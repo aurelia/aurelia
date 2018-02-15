@@ -48,12 +48,12 @@ export const DOM = {
     return document.querySelectorAll(query);
   },
   nextElementSibling(element: Node): Element {
-    if ('nextElementSibling' in element) { 
-      return element['nextElementSibling']; 
+    if ('nextElementSibling' in element) {
+      return element['nextElementSibling'];
     }
 
-    do { 
-      element = element.nextSibling; 
+    do {
+      element = element.nextSibling;
     } while (element && element.nodeType !== 1);
 
     return <Element>element;
@@ -63,7 +63,7 @@ export const DOM = {
     parser.innerHTML = markup;
 
     let temp = parser.firstElementChild;
-    
+
     if (!temp || temp.nodeName !== 'TEMPLATE') {
       throw new Error('Template markup must be wrapped in a <template> element e.g. <template> <!-- markup here --> </template>');
     }

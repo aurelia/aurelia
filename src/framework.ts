@@ -1,3 +1,19 @@
+import {
+  IExpression,
+  IBinding,
+  ILookupFunctions,
+  Scope,
+  AccessScope,
+  AccessMember,
+  CallScope,
+  InterpolationString,
+  LiteralString,
+  Binary,
+  Conditional
+} from './core';
+
+const emptyArray = [];
+
 export class Observer<T> {
   currentValue: T;
   subscribers: { callable: ICallable, context: string }[] = [];
@@ -12,6 +28,9 @@ export class Observer<T> {
 
   setValue(value: T) {
     let oldValue = this.currentValue;
+    if (Object.is(value, oldValue)) {
+      return;
+    }
     this.currentValue = value;
     this.subscribers.forEach(x => x.callable.call(x.context, value, oldValue));
   }
@@ -32,90 +51,54 @@ export interface ICallable {
   call(context, newValue, oldValue);
 }
 
-export interface IBinding {
+export interface IObservable<T = any> {
+  $observers: Record<string, Observer<T>>;
   bind();
   unbind();
-  observeProperty(context, name);
 }
 
-interface IExpression {
-  evaluate(scope, lookupFunctions): any;
-  assign(scope, value): any;
-  connect(binding, scope);
-}
+export type IBindingTarget = Element | CSSStyleDeclaration | IObservable;
 
-interface OverrideContext {
-  parentOverrideContext: OverrideContext;
-  bindingContext: any;
-}
 
-interface Scope {
-  bindingContext: any;
-  overrideContext: OverrideContext;
-}
 
 export function getTargets(element: Element) {
   return element.getElementsByClassName('au');
 }
 
-export function getContextFor(name: string, scope: Scope, ancestor: number): any {
-  let oc = scope.overrideContext;
-
-  if (ancestor) {
-    // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
-    while (ancestor && oc) {
-      ancestor--;
-      oc = oc.parentOverrideContext;
-    }
-    if (ancestor || !oc) {
-      return undefined;
-    }
-    return name in oc ? oc : oc.bindingContext;
-  }
-
-  // traverse the context and it's ancestors, searching for a context that has the name.
-  while (oc && !(name in oc) && !(oc.bindingContext && name in oc.bindingContext)) {
-    oc = oc.parentOverrideContext;
-  }
-  if (oc) {
-    // we located a context with the property.  return it.
-    return name in oc ? oc : oc.bindingContext;
-  }
-  // the name wasn't found.  return the root binding context.
-  return scope.bindingContext || scope.overrideContext;
-}
-
-class AccessScope implements IExpression {
-  constructor(private name: string, private ancestor: number = 0) {
-    this.name = name;
-  }
-
-  evaluate(scope, lookupFunctions) {
-    let context = getContextFor(this.name, scope, this.ancestor);
-    return context[this.name];
-  }
-
-  assign(scope, value) {
-    let context = getContextFor(this.name, scope, this.ancestor);
-    return context ? (context[this.name] = value) : undefined;
-  }
-
-  connect(binding, scope) {
-    let context = getContextFor(this.name, scope, this.ancestor);
-    binding.observeProperty(context, this.name);
-  }
-}
-
 let astLookup = {
   message: new AccessScope('message'),
   textContent: new AccessScope('textContent'),
-  value: new AccessScope('value')
+  value: new AccessScope('value'),
+  nameTagBorderWidth: new AccessScope('borderWidth'),
+  nameTagBorderColor: new AccessScope('borderColor'),
+  nameTagBorder: new InterpolationString([
+    new AccessScope('borderWidth'),
+    new LiteralString('px solid '),
+    new AccessScope('borderColor')
+  ]),
+  nameTagHeaderVisible: new AccessScope('showHeader'),
+  nameTagClasses: new InterpolationString([
+    new LiteralString('au name-tag '),
+    new Conditional(
+      new AccessScope('showHeader'),
+      new LiteralString('header-visible'),
+      new LiteralString('')
+    )
+  ]),
+  name: new AccessScope('name'),
+  click: new CallScope('submit', emptyArray, 0),
+  nameTagColor: new AccessScope('color')
 };
 
 export class OneWay implements IBinding {
   sourceAst: IExpression;
 
-  constructor(protected source, protected sourceExpression: string, protected target, protected targetProperty: string) {
+  constructor(
+    protected source: Scope,
+    protected sourceExpression: string,
+    protected target: IBindingTarget,
+    protected targetProperty: string
+  ) {
     this.sourceAst = astLookup[sourceExpression];
   }
 
@@ -140,13 +123,52 @@ export class OneWay implements IBinding {
 }
 
 export class TwoWay extends OneWay {
+
+  constructor(
+    source: Scope,
+    sourceExpression: string,
+    target: IBindingTarget,
+    targetProperty: string,
+    protected events?: string[]
+  ) {
+    super(source, sourceExpression, target, targetProperty);
+  }
+
   bind() {
     super.bind();
-    this.target.addEventListener('input', this);
+    let target = this.target;
+    let events = this.events;
+    if (events) {
+      for (let i = 0, ii = events.length; ii > i; ++i) {
+        (target as Element).addEventListener(events[i], this);
+      }
+      return;
+    }
+    target = target as IObservable;
+    target.$observers[this.targetProperty].subscribe(this, 'target');
+    target.bind();
   }
 
   unbind() {
-    this.target.removeEventListener('input', this);
+    let target = this.target;
+    let events = this.events;
+    if (events) {
+      for (let i = 0, ii = events.length; ii > i; ++i) {
+        (target as Element).removeEventListener(events[i], this);
+      }
+      return;
+    }
+    target = target as IObservable;
+    target.$observers[this.targetProperty].unsubscribe(this, 'target');
+    target.unbind();
+  }
+
+  call<T = any>(context: string, newValue: T, oldValue: T) {
+    if (context === 'target') {
+      this.updateSource();
+    } else {
+      this.updateTarget();
+    }
   }
 
   handleEvent(e: Event) {
@@ -157,11 +179,65 @@ export class TwoWay extends OneWay {
     this.sourceAst.assign(this.source, this.target[this.targetProperty]);
   }
 
+  updateTarget() {
+    this.target[this.targetProperty] = this.sourceAst.evaluate(this.source, null);
+  }
+
   oninput() {
     this.updateSource();
   }
 
   onchange() {
     this.updateSource();
+  }
+}
+
+export class Listener implements IBinding {
+
+  sourceAst: IExpression;
+
+  constructor(
+    protected source: Scope,
+    protected name: string,
+    protected target: EventTarget,
+    protected targetEvent: string,
+    protected lookupFunctions: ILookupFunctions | null,
+    protected preventDefault = true
+  ) {
+    this.sourceAst = astLookup[name];
+  }
+
+  observeProperty() {
+    throw new Error('Listener does not observe property');
+  }
+
+  handleEvent(e: Event) {
+    this.callSource(e);
+  }
+
+  callSource(e: Event) {
+    let overrideContext = this.source.bindingContext;
+    (overrideContext as any).$event = event;
+    let mustEvaluate = true;
+    let result = this.sourceAst.evaluate(this.source, null, mustEvaluate);
+    delete (overrideContext as any).$event;
+    if (result !== true && this.preventDefault) {
+      event.preventDefault();
+    }
+    return result;
+  }
+
+  bind() {
+    if (this.sourceAst.bind) {
+      this.sourceAst.bind(this, this.source, this.lookupFunctions);
+    }
+    this.target.addEventListener(this.targetEvent, this, false);
+  }
+
+  unbind() {
+    if (this.sourceAst.unbind) {
+      this.sourceAst.unbind(this, this.source, this.lookupFunctions);
+    }
+    this.target.removeEventListener(this.targetEvent, this, false);
   }
 }

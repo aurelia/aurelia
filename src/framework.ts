@@ -1,6 +1,6 @@
 export class Observer<T> {
   currentValue: T;
-  subscribers: {callable: ICallable, context: string}[] = [];
+  subscribers: { callable: ICallable, context: string }[] = [];
 
   constructor(value: T) {
     this.currentValue = value;
@@ -19,6 +19,13 @@ export class Observer<T> {
   subscribe(callable: ICallable, context: string) {
     this.subscribers.push({ callable, context });
   }
+
+  unsubscribe(callable: ICallable, context: string) {
+    let idx = this.subscribers.findIndex(x => x.context === context && x.callable === callable);
+    if (idx > -1) {
+      this.subscribers.splice(idx, 1);
+    }
+  }
 }
 
 export interface ICallable {
@@ -27,6 +34,7 @@ export interface ICallable {
 
 export interface IBinding {
   bind();
+  unbind();
   observeProperty(context, name);
 }
 
@@ -116,6 +124,10 @@ export class OneWay implements IBinding {
     this.sourceAst.connect(this, this.source);
   }
 
+  unbind() {
+
+  }
+
   observeProperty(context, name) {
     context.$observers[name].subscribe(this, 'source');
   }
@@ -130,6 +142,26 @@ export class OneWay implements IBinding {
 export class TwoWay extends OneWay {
   bind() {
     super.bind();
-    this.target.addEventListener('input', () => this.sourceAst.assign(this.source, this.target[this.targetProperty]));
+    this.target.addEventListener('input', this);
+  }
+
+  unbind() {
+    this.target.removeEventListener('input', this);
+  }
+
+  handleEvent(e: Event) {
+    this[`on${e.type}`](e);
+  }
+
+  updateSource() {
+    this.sourceAst.assign(this.source, this.target[this.targetProperty]);
+  }
+
+  oninput() {
+    this.updateSource();
+  }
+
+  onchange() {
+    this.updateSource();
   }
 }

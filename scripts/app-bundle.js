@@ -1,1 +1,3520 @@
-var __extends=this&&this.__extends||function(){var e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var r in t)t.hasOwnProperty(r)&&(e[r]=t[r])};return function(t,r){function n(){this.constructor=t}e(t,r),t.prototype=null===r?Object.create(r):(n.prototype=r.prototype,new n)}}();define("app",["require","exports","./framework"],function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n=function(e){function t(){var t=null!==e&&e.apply(this,arguments)||this;return t.$scope={bindingContext:t},t}return __extends(t,e),t.prototype.hydrate=function(e){this.$host=e,e.innerHTML=t.$html;var n=r.getTargets(e);this.$b1=new r.OneWay(this.$scope,"message",n[0],"textContent"),this.$b2=new r.TwoWay(this.$scope,"message",n[1],"value")},t.prototype.bind=function(){this.$b1.bind(),this.$b2.bind()},t.$html='\n    <div>\n      <span class="au"></span><br>\n      <input type="text" class="au">\n    </div>\n  ',t}(function(){function e(){this.$observers={message:new r.Observer("Hello World!")}}return Object.defineProperty(e.prototype,"message",{get:function(){return this.$observers.message.getValue()},set:function(e){this.$observers.message.setValue(e)},enumerable:!0,configurable:!0}),e}());t.App=n}),define("environment",["require","exports"],function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default={debug:!1,testing:!1}});__extends=this&&this.__extends||function(){var e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var r in t)t.hasOwnProperty(r)&&(e[r]=t[r])};return function(t,r){function n(){this.constructor=t}e(t,r),t.prototype=null===r?Object.create(r):(n.prototype=r.prototype,new n)}}();define("framework",["require","exports"],function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=function(){function e(e){this.subscribers=[],this.currentValue=e}return e.prototype.getValue=function(){return this.currentValue},e.prototype.setValue=function(e){var t=this.currentValue;this.currentValue=e,this.subscribers.forEach(function(r){return r.callable.call(r.context,e,t)})},e.prototype.subscribe=function(e,t){this.subscribers.push({callable:e,context:t})},e}();function n(e,t,r){var n=t.overrideContext;if(r){for(;r&&n;)r--,n=n.parentOverrideContext;if(r||!n)return;return e in n?n:n.bindingContext}for(;n&&!(e in n)&&!(n.bindingContext&&e in n.bindingContext);)n=n.parentOverrideContext;return n?e in n?n:n.bindingContext:t.bindingContext||t.overrideContext}t.Observer=r,t.getTargets=function(e){return e.getElementsByClassName("au")},t.getContextFor=n;var o=function(){function e(e,t){void 0===t&&(t=0),this.name=e,this.ancestor=t,this.name=e}return e.prototype.evaluate=function(e,t){return n(this.name,e,this.ancestor)[this.name]},e.prototype.assign=function(e,t){var r=n(this.name,e,this.ancestor);return r?r[this.name]=t:void 0},e.prototype.connect=function(e,t){var r=n(this.name,t,this.ancestor);e.observeProperty(r,this.name)},e}(),i={message:new o("message"),textContent:new o("textContent"),value:new o("value")},s=function(){function e(e,t,r,n){this.source=e,this.sourceExpression=t,this.target=r,this.targetProperty=n,this.sourceAst=i[t]}return e.prototype.bind=function(){this.target[this.targetProperty]=this.sourceAst.evaluate(this.source,null),this.sourceAst.connect(this,this.source)},e.prototype.observeProperty=function(e,t){e.$observers[t].subscribe(this,"source")},e.prototype.call=function(e,t,r){"source"==e&&(this.target[this.targetProperty]=this.sourceAst.evaluate(this.source,null))},e}();t.OneWay=s;var u=function(e){function t(){return null!==e&&e.apply(this,arguments)||this}return __extends(t,e),t.prototype.bind=function(){var t=this;e.prototype.bind.call(this),this.target.addEventListener("input",function(){return t.sourceAst.assign(t.source,t.target[t.targetProperty])})},t}(s);t.TwoWay=u}),define("main",["require","exports","./app"],function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n=new r.App;n.hydrate(document.body),n.bind()}),define("framework/array-change-records",["require","exports"],function(e,t){"use strict";function r(e,t,r){return{index:e,removed:t,addedCount:r}}Object.defineProperty(t,"__esModule",{value:!0});function n(){}n.prototype={calcEditDistances:function(e,t,r,n,o,i){for(var s,u,a=i-o+1,c=r-t+1,l=new Array(a),h=0;h<a;++h)l[h]=new Array(c),l[h][0]=h;for(var p=0;p<c;++p)l[0][p]=p;for(h=1;h<a;++h)for(p=1;p<c;++p)this.equals(e[t+p-1],n[o+h-1])?l[h][p]=l[h-1][p-1]:(s=l[h-1][p]+1,u=l[h][p-1]+1,l[h][p]=s<u?s:u);return l},spliceOperationsFromEditDistances:function(e){for(var t=e.length-1,r=e[0].length-1,n=e[t][r],o=[];t>0||r>0;)if(0!==t)if(0!==r){var i=e[t-1][r-1],s=e[t-1][r],u=e[t][r-1],a=void 0;(a=s<u?s<i?s:i:u<i?u:i)===i?(i===n?o.push(0):(o.push(1),n=i),t--,r--):a===s?(o.push(3),t--,n=s):(o.push(2),r--,n=u)}else o.push(3),t--;else o.push(2),r--;return o.reverse(),o},calcSplices:function(e,t,n,o,i,s){var u=0,a=0,c=Math.min(n-t,s-i);if(0===t&&0===i&&(u=this.sharedPrefix(e,o,c)),n===e.length&&s===o.length&&(a=this.sharedSuffix(e,o,c-u)),i+=u,s-=a,(n-=a)-(t+=u)==0&&s-i==0)return[];if(t===n){for(var l=r(t,[],0);i<s;)l.removed.push(o[i++]);return[l]}if(i===s)return[r(t,[],n-t)];for(var h=this.spliceOperationsFromEditDistances(this.calcEditDistances(e,t,n,o,i,s)),p=void 0,f=[],d=t,v=i,y=0;y<h.length;++y)switch(h[y]){case 0:p&&(f.push(p),p=void 0),d++,v++;break;case 1:p||(p=r(d,[],0)),p.addedCount++,d++,p.removed.push(o[v]),v++;break;case 2:p||(p=r(d,[],0)),p.addedCount++,d++;break;case 3:p||(p=r(d,[],0)),p.removed.push(o[v]),v++}return p&&f.push(p),f},sharedPrefix:function(e,t,r){for(var n=0;n<r;++n)if(!this.equals(e[n],t[n]))return n;return r},sharedSuffix:function(e,t,r){for(var n=e.length,o=t.length,i=0;i<r&&this.equals(e[--n],t[--o]);)i++;return i},calculateSplices:function(e,t){return this.calcSplices(e,0,e.length,t,0,t.length)},equals:function(e,t){return e===t}};var o=new n;function i(e,t,r,n,i,s){return o.calcSplices(e,t,r,n,i,s)}function s(e,t,n,o){for(var i,s,u,a,c=r(t,n,o),l=!1,h=0,p=0;p<e.length;p++){var f=e[p];if(f.index+=h,!l){var d=(i=c.index,s=c.index+c.removed.length,u=f.index,a=f.index+f.addedCount,s<u||a<i?-1:s===u||a===i?0:i<u?s<a?s-u:a-u:a<s?a-i:s-i);if(d>=0){e.splice(p,1),p--,h-=f.addedCount-f.removed.length,c.addedCount+=f.addedCount-d;var v=c.removed.length+f.removed.length-d;if(c.addedCount||v){var y=f.removed;if(c.index<f.index){var b=c.removed.slice(0,f.index-c.index);Array.prototype.push.apply(b,y),y=b}if(c.index+c.removed.length>f.index+f.addedCount){var m=c.removed.slice(f.index+f.addedCount-c.index);Array.prototype.push.apply(y,m)}c.removed=y,f.index<c.index&&(c.index=f.index)}else l=!0}else if(c.index<f.index){l=!0,e.splice(p,0,c),p++;var g=c.addedCount-c.removed.length;f.index+=g,h+=g}}}l||e.push(c)}t.calcSplices=i,t.mergeSplice=s,t.projectArraySplices=function(e,t){var r=[];return function(e,t){for(var r,n=[],o=0;o<t.length;o++){var i=t[o];switch(i.type){case"splice":s(n,i.index,i.removed.slice(),i.addedCount);break;case"add":case"update":case"delete":if(+(r=i.name)!=r>>>0)continue;var u=+i.name;if(u<0)continue;s(n,u,[i.oldValue],"delete"===i.type?0:1);break;default:console.error("Unexpected record type: "+JSON.stringify(i))}}return n}(0,t).forEach(function(t){1!==t.addedCount||1!==t.removed.length?r=r.concat(i(e,t.index,t.index+t.addedCount,t.removed,0,t.removed.length)):t.removed[0]!==e[t.index]&&r.push(t)}),r}}),define("framework/ast",["require","exports","./scope","./signals"],function(e,t,r,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var o=function(){function e(e){this.expressions=e}return e.prototype.evaluate=function(e,t){for(var r,n,o=this.expressions,i=0,s=o.length;i<s;++i)null!==(n=o[i].evaluate(e,t))&&(r=n);return r},e}();t.Chain=o;var i=function(){function e(e,t,r){this.expression=e,this.name=t,this.args=r}return e.prototype.evaluate=function(e,t){return this.expression.evaluate(e,t)},e.prototype.assign=function(e,t,r){return this.expression.assign(e,t,r)},e.prototype.connect=function(e,t){this.expression.connect(e,t)},e.prototype.bind=function(e,t,r){this.expression.expression&&this.expression.bind&&this.expression.bind(e,t,r);var n=r.bindingBehaviors(this.name);if(!n)throw new Error('No BindingBehavior named "'+this.name+'" was found!');var o="behavior-"+this.name;if(e[o])throw new Error('A binding behavior named "'+this.name+'" has already been applied to "'+this.expression+'"');e[o]=n,n.bind.apply(n,[e,t].concat(O(t,this.args,e.lookupFunctions)))},e.prototype.unbind=function(e,t){var r="behavior-"+this.name;e[r].unbind(e,t),e[r]=null,this.expression.expression&&this.expression.unbind&&this.expression.unbind(e,t)},e}();t.BindingBehavior=i;var s=function(){function e(e,t,r,n){this.expression=e,this.name=t,this.args=r,this.allArgs=n}return e.prototype.evaluate=function(e,t){var r=t.valueConverters(this.name);if(!r)throw new Error('No ValueConverter named "'+this.name+'" was found!');return"toView"in r?r.toView.apply(r,O(e,this.allArgs,t)):this.allArgs[0].evaluate(e,t)},e.prototype.assign=function(e,t,r){var n=r.valueConverters(this.name);if(!n)throw new Error('No ValueConverter named "'+this.name+'" was found!');return"fromView"in n&&(t=n.fromView.apply(n,[t].concat(O(e,this.args,r)))),this.allArgs[0].assign(e,t,r)},e.prototype.connect=function(e,t){for(var r=this.allArgs,o=r.length;o--;)r[o].connect(e,t);var i=e.lookupFunctions.valueConverters(this.name);if(!i)throw new Error('No ValueConverter named "'+this.name+'" was found!');var s=i.signals;if(void 0!==s)for(o=s.length;o--;)n.connectBindingToSignal(e,s[o])},e}();t.ValueConverter=s;var u=function(){function e(e,t){this.target=e,this.value=t}return e.prototype.evaluate=function(e,t){return this.target.assign(e,this.value.evaluate(e,t))},e.prototype.connect=function(e,t){},e.prototype.assign=function(e,t){this.value.assign(e,t),this.target.assign(e,t)},e}();t.Assign=u;var a=function(){function e(e,t,r){this.condition=e,this.yes=t,this.no=r}return e.prototype.evaluate=function(e,t){return this.condition.evaluate(e,t)?this.yes.evaluate(e,t):this.no.evaluate(e,t)},e.prototype.connect=function(e,t){this.condition.connect(e,t),this.condition.evaluate(t)?this.yes.connect(e,t):this.no.connect(e,t)},e}();t.Conditional=a;var c=function(){function e(e){this.ancestor=e}return e.prototype.evaluate=function(e,t){for(var r=e.overrideContext,n=this.ancestor;n--&&r;)r=r.parentOverrideContext;return n<1&&r?r.bindingContext:void 0},e.prototype.connect=function(e,t){},e}();t.AccessThis=c;var l=function(){function e(e,t){this.name=e,this.ancestor=t}return e.prototype.evaluate=function(e,t){return r.getContextFor(this.name,e,this.ancestor)[this.name]},e.prototype.assign=function(e,t){var n=r.getContextFor(this.name,e,this.ancestor);return n?n[this.name]=t:void 0},e.prototype.connect=function(e,t){var n=r.getContextFor(this.name,t,this.ancestor);e.observeProperty(n,this.name)},e}();t.AccessScope=l;var h=function(){function e(e,t){this.object=e,this.name=t}return e.prototype.evaluate=function(e,t){var r=this.object.evaluate(e,t);return null===r||void 0===r?r:r[this.name]},e.prototype.assign=function(e,t){var r=this.object.evaluate(e);return null!==r&&void 0!==r||(r={},this.object.assign(e,r)),r[this.name]=t,t},e.prototype.connect=function(e,t){this.object.connect(e,t);var r=this.object.evaluate(t);r&&e.observeProperty(r,this.name)},e}();t.AccessMember=h;var p=function(){function e(e,t){this.object=e,this.key=t}return e.prototype.evaluate=function(e,t){return function(e,t){{if(Array.isArray(e))return e[parseInt(t,10)];if(e)return e[t];if(null===e||void 0===e)return}return e[t]}(this.object.evaluate(e,t),this.key.evaluate(e,t))},e.prototype.assign=function(e,t){return function(e,t,r){if(Array.isArray(e)){var n=parseInt(t,10);e.length<=n&&(e.length=n+1),e[n]=r}else e[t]=r;return r}(this.object.evaluate(e),this.key.evaluate(e),t)},e.prototype.connect=function(e,t){this.object.connect(e,t);var r=this.object.evaluate(t);if(r instanceof Object){this.key.connect(e,t);var n=this.key.evaluate(t);null===n||void 0===n||Array.isArray(r)&&"number"==typeof n||e.observeProperty(r,n)}},e}();t.AccessKeyed=p;var f=function(){function e(e,t,r){this.name=e,this.args=t,this.ancestor=r}return e.prototype.evaluate=function(e,t,n){var o=O(e,this.args,t),i=r.getContextFor(this.name,e,this.ancestor),s=k(i,this.name,n);if(s)return s.apply(i,o)},e.prototype.connect=function(e,t){for(var r=this.args,n=r.length;n--;)r[n].connect(e,t)},e}();t.CallScope=f;var d=function(){function e(e,t,r){this.object=e,this.name=t,this.args=r}return e.prototype.evaluate=function(e,t,r){var n=this.object.evaluate(e,t),o=O(e,this.args,t),i=k(n,this.name,r);if(i)return i.apply(n,o)},e.prototype.connect=function(e,t){if(this.object.connect(e,t),k(this.object.evaluate(t),this.name,!1))for(var r=this.args,n=r.length;n--;)r[n].connect(e,t)},e}();t.CallMember=d;var v=function(){function e(e,t){this.func=e,this.args=t}return e.prototype.evaluate=function(e,t,r){var n=this.func.evaluate(e,t);if("function"==typeof n)return n.apply(null,O(e,this.args,t));if(r||null!==n&&void 0!==n)throw new Error(this.func+" is not a function")},e.prototype.connect=function(e,t){if(this.func.connect(e,t),"function"==typeof this.func.evaluate(t))for(var r=this.args,n=r.length;n--;)r[n].connect(e,t)},e}();t.CallFunction=v;var y=function(){function e(e,t,r){this.operation=e,this.left=t,this.right=r}return e.prototype.evaluate=function(e,t){var r=this.left.evaluate(e,t);switch(this.operation){case"&&":return r&&this.right.evaluate(e,t);case"||":return r||this.right.evaluate(e,t)}var n=this.right.evaluate(e,t);switch(this.operation){case"==":return r==n;case"===":return r===n;case"!=":return r!=n;case"!==":return r!==n}if(null===r||null===n||void 0===r||void 0===n){switch(this.operation){case"+":return null!==r&&void 0!==r?r:null!==n&&void 0!==n?n:0;case"-":return null!==r&&void 0!==r?r:null!==n&&void 0!==n?0-n:0}return null}switch(this.operation){case"+":return function(e,t){if(null!==e&&null!==t)return"string"==typeof e&&"string"!=typeof t?e+t.toString():"string"!=typeof e&&"string"==typeof t?e.toString()+t:e+t;if(null!==e)return e;if(null!==t)return t;return 0}(r,n);case"-":return r-n;case"*":return r*n;case"/":return r/n;case"%":return r%n;case"<":return r<n;case">":return r>n;case"<=":return r<=n;case">=":return r>=n;case"^":return r^n}throw new Error("Internal error ["+this.operation+"] not handled")},e.prototype.connect=function(e,t){this.left.connect(e,t);var r=this.left.evaluate(t);"&&"===this.operation&&!r||"||"===this.operation&&r||this.right.connect(e,t)},e}();t.Binary=y;var b=function(){function e(e,t){this.operation=e,this.expression=t}return e.prototype.evaluate=function(e,t){return!this.expression.evaluate(e,t)},e.prototype.connect=function(e,t){this.expression.connect(e,t)},e}();t.PrefixNot=b;var m=function(){function e(e){this.value=e}return e.prototype.evaluate=function(e,t){return this.value},e.prototype.connect=function(e,t){},e}();t.LiteralPrimitive=m;var g=function(){function e(e){this.value=e}return e.prototype.evaluate=function(e,t){return this.value},e.prototype.connect=function(e,t){},e}();t.LiteralString=g;var _=function(){function e(e){this.elements=e}return e.prototype.evaluate=function(e,t){for(var r=this.elements,n=[],o=0,i=r.length;o<i;++o)n[o]=r[o].evaluate(e,t);return n},e.prototype.connect=function(e,t){for(var r=this.elements.length,n=0;n<r;n++)this.elements[n].connect(e,t)},e}();t.LiteralArray=_;var x=function(){function e(e,t){this.keys=e,this.values=t}return e.prototype.evaluate=function(e,t){for(var r={},n=this.keys,o=this.values,i=0,s=n.length;i<s;++i)r[n[i]]=o[i].evaluate(e,t);return r},e.prototype.connect=function(e,t){for(var r=this.keys.length,n=0;n<r;n++)this.values[n].connect(e,t)},e}();function O(e,t,r){for(var n=t.length,o=[],i=0;i<n;i++)o[i]=t[i].evaluate(e,r);return o}function k(e,t,r){var n=null===e||void 0===e?null:e[t];if("function"==typeof n)return n;if(!r&&(null===n||void 0===n))return null;throw new Error(t+" is not a function")}t.LiteralObject=x}),define("framework/binding-mode",["require","exports"],function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.bindingMode={oneTime:0,toView:1,oneWay:1,twoWay:2,fromView:3}}),define("framework/call-context",["require","exports"],function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.targetContext="Binding:target",t.sourceContext="Binding:source"});__extends=this&&this.__extends||function(){var e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var r in t)t.hasOwnProperty(r)&&(e[r]=t[r])};return function(t,r){function n(){this.constructor=t}e(t,r),t.prototype=null===r?Object.create(r):(n.prototype=r.prototype,new n)}}();define("framework/checked-observer",["require","exports","./subscriber-collection"],function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n="CheckedObserver:array",o="CheckedObserver:value",i=function(e){function t(t,r,n){var o=e.call(this)||this;return o.element=t,o.handler=r,o.observerLocator=n,o}return __extends(t,e),t.prototype.getValue=function(){return this.value},t.prototype.setValue=function(e){this.initialSync&&this.value===e||(this.arrayObserver&&(this.arrayObserver.unsubscribe(n,this),this.arrayObserver=null),"checkbox"===this.element.type&&Array.isArray(e)&&(this.arrayObserver=this.observerLocator.getArrayObserver(e),this.arrayObserver.subscribe(n,this)),this.oldValue=this.value,this.value=e,this.synchronizeElement(),this.notify(),this.initialSync||(this.initialSync=!0,this.observerLocator.taskQueue.queueMicroTask(this)))},t.prototype.call=function(e,t){this.synchronizeElement(),this.valueObserver||(this.valueObserver=this.element.__observers__.model||this.element.__observers__.value,this.valueObserver&&this.valueObserver.subscribe(o,this))},t.prototype.synchronizeElement=function(){var e=this.value,t=this.element,r=t.hasOwnProperty("model")?t.model:t.value,n="radio"===t.type,o=t.matcher||function(e,t){return e===t};t.checked=n&&!!o(e,r)||!n&&!0===e||!n&&Array.isArray(e)&&-1!==e.findIndex(function(e){return!!o(e,r)})},t.prototype.synchronizeValue=function(){var e,t=this.value,r=this.element,n=r.hasOwnProperty("model")?r.model:r.value,o=r.matcher||function(e,t){return e===t};if("checkbox"===r.type){if(Array.isArray(t))return e=t.findIndex(function(e){return!!o(e,n)}),void(r.checked&&-1===e?t.push(n):r.checked||-1===e||t.splice(e,1));t=r.checked}else{if(!r.checked)return;t=n}this.oldValue=this.value,this.value=t,this.notify()},t.prototype.notify=function(){var e=this.oldValue,t=this.value;t!==e&&this.callSubscribers(t,e)},t.prototype.handleEvent=function(){this.synchronizeValue()},t.prototype.subscribe=function(e,t){this.hasSubscribers()||(this.disposeHandler=this.handler.subscribe(this.element,this)),this.addSubscriber(e,t)},t.prototype.unsubscribe=function(e,t){this.removeSubscriber(e,t)&&!this.hasSubscribers()&&(this.disposeHandler(),this.disposeHandler=null)},t.prototype.unbind=function(){this.arrayObserver&&(this.arrayObserver.unsubscribe(n,this),this.arrayObserver=null),this.valueObserver&&this.valueObserver.unsubscribe(o,this)},t}(r.SubscriberCollection);t.CheckedObserver=i}),define("framework/class-observer",["require","exports"],function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=function(){function e(e){this.element=e,this.doNotCache=!0,this.value="",this.version=0}return e.prototype.getValue=function(){return this.value},e.prototype.setValue=function(e){var t,r,n=this.nameIndex||{},o=this.version;if(null!==e&&void 0!==e&&e.length)for(var i=0,s=(t=e.split(/\s+/)).length;i<s;i++)""!==(r=t[i])&&(n[r]=o,this.element.classList.add(r));if(this.value=e,this.nameIndex=n,this.version+=1,0!==o)for(r in o-=1,n)n.hasOwnProperty(r)&&n[r]===o&&this.element.classList.remove(r)},e.prototype.subscribe=function(){throw new Error('Observation of a "'+this.element.nodeName+'" element\'s "class" property is not supported.')},e}();t.ClassObserver=r});__extends=this&&this.__extends||function(){var e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var r in t)t.hasOwnProperty(r)&&(e[r]=t[r])};return function(t,r){function n(){this.constructor=t}e(t,r),t.prototype=null===r?Object.create(r):(n.prototype=r.prototype,new n)}}();define("framework/collection-observation",["require","exports","./array-change-records","./map-change-records","./subscriber-collection"],function(e,t,r,n,o){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(e){function t(t,r){var n=e.call(this)||this;return n.queued=!1,n.changeRecords=null,n.oldCollection=null,n.lengthObserver=null,n.taskQueue=t,n.collection=r,n.lengthPropertyName=r instanceof Map||r instanceof Set?"size":"length",n}return __extends(t,e),t.prototype.subscribe=function(e,t){this.addSubscriber(e,t)},t.prototype.unsubscribe=function(e,t){this.removeSubscriber(e,t)},t.prototype.addChangeRecord=function(e){if(this.hasSubscribers()||this.lengthObserver){if("splice"===e.type){var t=e.index,r=e.object.length;t>r?t=r-e.addedCount:t<0&&(t=r+e.removed.length+t-e.addedCount),t<0&&(t=0),e.index=t}null===this.changeRecords?this.changeRecords=[e]:this.changeRecords.push(e),this.queued||(this.queued=!0,this.taskQueue.queueMicroTask(this))}},t.prototype.flushChangeRecords=function(){(this.changeRecords&&this.changeRecords.length||this.oldCollection)&&this.call()},t.prototype.reset=function(e){this.oldCollection=e,this.hasSubscribers()&&!this.queued&&(this.queued=!0,this.taskQueue.queueMicroTask(this))},t.prototype.getLengthObserver=function(){return this.lengthObserver||(this.lengthObserver=new s(this.collection))},t.prototype.call=function(){var e,t=this.changeRecords,o=this.oldCollection;this.queued=!1,this.changeRecords=[],this.oldCollection=null,this.hasSubscribers()&&(e=o?this.collection instanceof Map||this.collection instanceof Set?n.getChangeRecords(o):r.calcSplices(this.collection,0,this.collection.length,o,0,o.length):this.collection instanceof Map||this.collection instanceof Set?t:r.projectArraySplices(this.collection,t),this.callSubscribers(e)),this.lengthObserver&&this.lengthObserver.call(this.collection[this.lengthPropertyName])},t}(o.SubscriberCollection);t.ModifyCollectionObserver=i;var s=function(e){function t(t){var r=e.call(this)||this;return r.collection=t,r.lengthPropertyName=t instanceof Map||t instanceof Set?"size":"length",r.currentValue=t[r.lengthPropertyName],r}return __extends(t,e),t.prototype.getValue=function(){return this.collection[this.lengthPropertyName]},t.prototype.setValue=function(e){this.collection[this.lengthPropertyName]=e},t.prototype.subscribe=function(e,t){this.addSubscriber(e,t)},t.prototype.unsubscribe=function(e,t){this.removeSubscriber(e,t)},t.prototype.call=function(e){var t=this.currentValue;this.callSubscribers(e,t),this.currentValue=e},t}(o.SubscriberCollection);t.CollectionLengthObserver=s});__extends=this&&this.__extends||function(){var e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var r in t)t.hasOwnProperty(r)&&(e[r]=t[r])};return function(t,r){function n(){this.constructor=t}e(t,r),t.prototype=null===r?Object.create(r):(n.prototype=r.prototype,new n)}}();define("framework/dirty-checking",["require","exports","./subscriber-collection"],function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n=function(){function e(){this.tracked=[],this.checkDelay=120}return e.prototype.addProperty=function(e){var t=this.tracked;t.push(e),1===t.length&&this.scheduleDirtyCheck()},e.prototype.removeProperty=function(e){var t=this.tracked;t.splice(t.indexOf(e),1)},e.prototype.scheduleDirtyCheck=function(){var e=this;setTimeout(function(){return e.check()},this.checkDelay)},e.prototype.check=function(){for(var e=this.tracked,t=e.length;t--;){var r=e[t];r.isDirty()&&r.call()}e.length&&this.scheduleDirtyCheck()},e}();t.DirtyChecker=n;var o=function(e){function t(t,r,n){var o=e.call(this)||this;return o.dirtyChecker=t,o.obj=r,o.propertyName=n,o}return __extends(t,e),t.prototype.getValue=function(){return this.obj[this.propertyName]},t.prototype.setValue=function(e){this.obj[this.propertyName]=e},t.prototype.call=function(){var e=this.oldValue,t=this.getValue();this.callSubscribers(t,e),this.oldValue=t},t.prototype.isDirty=function(){return this.oldValue!==this.obj[this.propertyName]},t.prototype.subscribe=function(e,t){this.hasSubscribers()||(this.oldValue=this.getValue(),this.dirtyChecker.addProperty(this)),this.addSubscriber(e,t)},t.prototype.unsubscribe=function(e,t){this.removeSubscriber(e,t)&&!this.hasSubscribers()&&this.dirtyChecker.removeProperty(this)},t}(r.SubscriberCollection);t.DirtyCheckProperty=o}),define("framework/dom",["require","exports"],function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.DOM={Element:Element,SVGElement:SVGElement,boundary:"aurelia-dom-boundary",addEventListener:function(e,t,r){document.addEventListener(e,t,r)},removeEventListener:function(e,t,r){document.removeEventListener(e,t,r)},adoptNode:function(e){return document.adoptNode(e)},createAttribute:function(e){return document.createAttribute(e)},createElement:function(e){return document.createElement(e)},createTextNode:function(e){return document.createTextNode(e)},createComment:function(e){return document.createComment(e)},createDocumentFragment:function(){return document.createDocumentFragment()},createTemplateElement:function(){return document.createElement("template")},createMutationObserver:function(e){return new MutationObserver(e)},createCustomEvent:function(e,t){return new CustomEvent(e,t)},dispatchEvent:function(e){document.dispatchEvent(e)},getComputedStyle:function(e){return window.getComputedStyle(e)},getElementById:function(e){return document.getElementById(e)},querySelectorAll:function(e){return document.querySelectorAll(e)},nextElementSibling:function(e){if("nextElementSibling"in e)return e.nextElementSibling;do{e=e.nextSibling}while(e&&1!==e.nodeType);return e},createTemplateFromMarkup:function(e){var t=document.createElement("div");t.innerHTML=e;var r=t.firstElementChild;if(!r||"TEMPLATE"!==r.nodeName)throw new Error("Template markup must be wrapped in a <template> element e.g. <template> \x3c!-- markup here --\x3e </template>");return r},appendNode:function(e,t){(t||document.body).appendChild(e)},replaceNode:function(e,t,r){t.parentNode?t.parentNode.replaceChild(e,t):r.replaceChild(e,t)},removeNode:function(e,t){e.parentNode?e.parentNode.removeChild(e):t&&t.removeChild(e)},injectStyles:function(e,t,r,n){if(n){var o=document.getElementById(n);if(o){if("style"===o.tagName.toLowerCase())return void(o.innerHTML=e);throw new Error("The provided id does not indicate a style tag.")}}var i=document.createElement("style");return i.innerHTML=e,i.type="text/css",n&&(i.id=n),t=t||document.head,r&&t.childNodes.length>0?t.insertBefore(i,t.childNodes[0]):t.appendChild(i),i}}});__extends=this&&this.__extends||function(){var e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var r in t)t.hasOwnProperty(r)&&(e[r]=t[r])};return function(t,r){function n(){this.constructor=t}e(t,r),t.prototype=null===r?Object.create(r):(n.prototype=r.prototype,new n)}}();define("framework/element-observation",["require","exports","./subscriber-collection"],function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n=function(){function e(e,t,r){this.element=e,this.propertyName=t,this.attributeName=r}return e.prototype.getValue=function(){return this.element.getAttributeNS("http://www.w3.org/1999/xlink",this.attributeName)},e.prototype.setValue=function(e){return this.element.setAttributeNS("http://www.w3.org/1999/xlink",this.attributeName,e)},e.prototype.subscribe=function(){throw new Error('Observation of a "'+this.element.nodeName+'" element\'s "'+this.propertyName+'" property is not supported.')},e}();t.XLinkAttributeObserver=n,t.dataAttributeAccessor={getValue:function(e,t){return e.getAttribute(t)},setValue:function(e,t,r){null===e||void 0===e?t.removeAttribute(r):t.setAttribute(r,e)}};var o=function(){function e(e,t){this.element=e,this.propertyName=t}return e.prototype.getValue=function(){return this.element.getAttribute(this.propertyName)},e.prototype.setValue=function(e){return null===e||void 0===e?this.element.removeAttribute(this.propertyName):this.element.setAttribute(this.propertyName,e)},e.prototype.subscribe=function(){throw new Error('Observation of a "'+this.element.nodeName+'" element\'s "'+this.propertyName+'" property is not supported.')},e}();t.DataAttributeObserver=o;var i=function(){function e(e,t){this.element=e,this.propertyName=t,this.styles=null,this.version=0}return e.prototype.getValue=function(){return this.element.style.cssText},e.prototype._setProperty=function(e,t){var r="";null!==t&&void 0!==t&&"function"==typeof t.indexOf&&-1!==t.indexOf("!important")&&(r="important",t=t.replace("!important","")),this.element.style.setProperty(e,t,r)},e.prototype.setValue=function(e){var t,r=this.styles||{},n=this.version;if(null!==e&&void 0!==e)if(e instanceof Object){var o=void 0;for(t in e)e.hasOwnProperty(t)&&(o=e[t],r[t=t.replace(/([A-Z])/g,function(e){return"-"+e.toLowerCase()})]=n,this._setProperty(t,o))}else if(e.length)for(var i=/\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:^"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g,s=void 0;null!==(s=i.exec(e));)(t=s[1])&&(r[t]=n,this._setProperty(t,s[2]));if(this.styles=r,this.version+=1,0!==n)for(t in n-=1,r)r.hasOwnProperty(t)&&r[t]===n&&this.element.style.removeProperty(t)},e.prototype.subscribe=function(){throw new Error('Observation of a "'+this.element.nodeName+'" element\'s "'+this.propertyName+'" property is not supported.')},e}();t.StyleObserver=i;var s=function(e){function t(t,r,n){var o=e.call(this)||this;return o.element=t,o.propertyName=r,o.handler=n,"files"===r&&(o.setValue=function(){}),o}return __extends(t,e),t.prototype.getValue=function(){return this.element[this.propertyName]},t.prototype.setValue=function(e){e=void 0===e||null===e?"":e,this.element[this.propertyName]!==e&&(this.element[this.propertyName]=e,this.notify())},t.prototype.notify=function(){var e=this.oldValue,t=this.getValue();this.callSubscribers(t,e),this.oldValue=t},t.prototype.handleEvent=function(){this.notify()},t.prototype.subscribe=function(e,t){this.hasSubscribers()||(this.oldValue=this.getValue(),this.disposeHandler=this.handler.subscribe(this.element,this)),this.addSubscriber(e,t)},t.prototype.unsubscribe=function(e,t){this.removeSubscriber(e,t)&&!this.hasSubscribers()&&(this.disposeHandler(),this.disposeHandler=null)},t}(r.SubscriberCollection);t.ValueAttributeObserver=s}),define("framework/event-manager",["require","exports","./dom"],function(e,t,r){"use strict";function n(e){return e.path&&e.path[0]||e.deepPath&&e.deepPath[0]||e.target}function o(){this.standardStopPropagation(),this.propagationStopped=!0}function i(e){e.propagationStopped=!1;for(var t=n(e),r=[];t;){if(t.capturedCallbacks){var i=t.capturedCallbacks[e.type];i&&(e.stopPropagation!==o&&(e.standardStopPropagation=e.stopPropagation,e.stopPropagation=o),r.push(i))}t=t.parentNode}for(var s=r.length-1;s>=0&&!e.propagationStopped;s--){var u=r[s];"handleEvent"in u?u.handleEvent(e):u(e)}}Object.defineProperty(t,"__esModule",{value:!0});var s=function(){function e(e){this.eventName=e,this.count=0,this.eventName=e}return e.prototype.increment=function(){this.count++,1===this.count&&r.DOM.addEventListener(this.eventName,i,!0)},e.prototype.decrement=function(){this.count--,0===this.count&&r.DOM.removeEventListener(this.eventName,i,!0)},e}();function u(e){e.propagationStopped=!1;for(var t=n(e);t&&!e.propagationStopped;){if(t.delegatedCallbacks){var r=t.delegatedCallbacks[e.type];r&&(e.stopPropagation!==o&&(e.standardStopPropagation=e.stopPropagation,e.stopPropagation=o),"handleEvent"in r?r.handleEvent(e):r(e))}t=t.parentNode}}var a=function(){function e(e){this.eventName=e,this.count=0,this.eventName=e}return e.prototype.increment=function(){this.count++,1===this.count&&r.DOM.addEventListener(this.eventName,u,!1)},e.prototype.decrement=function(){this.count--,0===this.count&&r.DOM.removeEventListener(this.eventName,u)},e}(),c=function(){function e(){this.delegatedHandlers={},this.capturedHandlers={}}return e.prototype.subscribe=function(e,r,n,o){var i,u,c;if(o===t.delegationStrategy.bubbling){i=this.delegatedHandlers,c=i[r]||(i[r]=new a(r));var l=e.delegatedCallbacks||(e.delegatedCallbacks={});return c.increment(),l[r]=n,function(){c.decrement(),l[r]=null}}if(o===t.delegationStrategy.capturing){u=this.capturedHandlers,c=u[r]||(u[r]=new s(r));var h=e.capturedCallbacks||(e.capturedCallbacks={});return c.increment(),h[r]=n,function(){c.decrement(),h[r]=null}}return e.addEventListener(r,n,!1),function(){e.removeEventListener(r,n)}},e}();t.delegationStrategy={none:0,capturing:1,bubbling:2};var l=function(){function e(){this.elementHandlerLookup={},this.eventStrategyLookup={},this.defaultEventStrategy=new c,this.registerElementConfig({tagName:"input",properties:{value:["change","input"],checked:["change","input"],files:["change","input"]}}),this.registerElementConfig({tagName:"textarea",properties:{value:["change","input"]}}),this.registerElementConfig({tagName:"select",properties:{value:["change"]}}),this.registerElementConfig({tagName:"content editable",properties:{value:["change","input","blur","keyup","paste"]}}),this.registerElementConfig({tagName:"scrollable element",properties:{scrollTop:["scroll"],scrollLeft:["scroll"]}})}return e.prototype.registerElementConfig=function(e){var t,r=e.tagName.toLowerCase(),n=e.properties;for(t in this.elementHandlerLookup[r]={},n)n.hasOwnProperty(t)&&this.registerElementPropertyConfig(r,t,n[t])},e.prototype.registerElementPropertyConfig=function(e,t,r){this.elementHandlerLookup[e][t]=this.createElementHandler(r)},e.prototype.createElementHandler=function(e){return{subscribe:function(t,r){return e.forEach(function(e){t.addEventListener(e,r,!1)}),function(){e.forEach(function(e){t.removeEventListener(e,r,!1)})}}}},e.prototype.registerElementHandler=function(e,t){this.elementHandlerLookup[e.toLowerCase()]=t},e.prototype.registerEventStrategy=function(e,t){this.eventStrategyLookup[e]=t},e.prototype.getElementHandler=function(e,t){var r,n=this.elementHandlerLookup;if(e.tagName){if(n[r=e.tagName.toLowerCase()]&&n[r][t])return n[r][t];if("textContent"===t||"innerHTML"===t)return n["content editable"].value;if("scrollTop"===t||"scrollLeft"===t)return n["scrollable element"][t]}return null},e.prototype.addEventListener=function(e,t,r,n){return(this.eventStrategyLookup[t]||this.defaultEventStrategy).subscribe(e,t,r,n)},e}();t.EventManager=l}),define("framework/logging",["require","exports"],function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.logLevel={none:0,error:10,warn:20,info:30,debug:40};var r={},n=[],o=t.logLevel.none,i=Array.prototype.slice,s=["none","error","warn","info","debug"];function u(e){return s.filter(function(t){return t===e}).length>0}function a(){return[this].concat(i.call(arguments))}function c(e){var r=t.logLevel[e];return function(){if(!(this.level<r))for(var t,o=a.apply(this,arguments),i=n.length;i--;)(t=n[i])[e].apply(t,o)}}function l(e){var r=t.logLevel[e];return function(){if(!(this.level<r))for(var t=a.apply(this,arguments),o=n.length;o--;){var i=n[o];void 0!==i[e]&&i[e].apply(i,t)}}}function h(){var e=p.prototype;for(var r in t.logLevel)u(r)?"none"!==r&&(e[r]=c(r)):e[r]=l(r)}t.getLogger=function(e){return r[e]||new p(e)},t.addAppender=function(e){1===n.push(e)&&h()},t.removeAppender=function(e){n=n.filter(function(t){return t!==e})},t.getAppenders=function(){return n.slice()},t.clearAppenders=function(){n=[],function(){var e=p.prototype;for(var r in t.logLevel)"none"!==r&&(e[r]=function(){})}()},t.addCustomLevel=function(e,r){if(void 0!==t.logLevel[e])throw Error('Log level "'+e+'" already exists.');if(isNaN(r))throw Error("Value must be a number.");t.logLevel[e]=r,n.length>0?h():p.prototype[e]=function(){}},t.removeCustomLevel=function(e){if(void 0!==t.logLevel[e]){if(u(e))throw Error('Built-in log level "'+e+'" cannot be removed.');delete t.logLevel[e],delete p.prototype[e]}},t.setLevel=function(e){for(var t in o=e,r)r[t].setLevel(e)},t.getLevel=function(){return o};var p=function(){function e(e){var t=r[e];if(t)return t;r[e]=this,this.id=e,this.level=o}return e.prototype.debug=function(e){for(var t=[],r=1;r<arguments.length;r++)t[r-1]=arguments[r]},e.prototype.info=function(e){for(var t=[],r=1;r<arguments.length;r++)t[r-1]=arguments[r]},e.prototype.warn=function(e){for(var t=[],r=1;r<arguments.length;r++)t[r-1]=arguments[r]},e.prototype.error=function(e){for(var t=[],r=1;r<arguments.length;r++)t[r-1]=arguments[r]},e.prototype.setLevel=function(e){this.level=e},e}();t.Logger=p}),define("framework/map-change-records",["require","exports"],function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.getChangeRecords=function(e){for(var t,r,n,o,i=new Array(e.size),s=e.keys(),u=0;(t=s.next())&&!t.done;)i[u]=(r="added",n=e,o=t.value,{type:r,object:n,key:o,oldValue:void 0}),u++;return i}});__extends=this&&this.__extends||function(){var e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var r in t)t.hasOwnProperty(r)&&(e[r]=t[r])};return function(t,r){function n(){this.constructor=t}e(t,r),t.prototype=null===r?Object.create(r):(n.prototype=r.prototype,new n)}}();define("framework/map-observation",["require","exports","./collection-observation"],function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n=Map.prototype;t.getMapObserver=function(e,t){return o.for(e,t)};var o=function(e){function t(t,r){return e.call(this,t,r)||this}return __extends(t,e),t.for=function(e,r){return"__map_observer__"in r||Reflect.defineProperty(r,"__map_observer__",{value:t.create(e,r),enumerable:!1,configurable:!1}),r.__map_observer__},t.create=function(e,r){var o=new t(e,r),i=n;return i.set===r.set&&i.delete===r.delete&&i.clear===r.clear||(i={set:r.set,delete:r.delete,clear:r.clear}),r.set=function(){var e=r.has(arguments[0]),t=e?"update":"add",n=r.get(arguments[0]),s=i.set.apply(r,arguments);return e&&n===r.get(arguments[0])||o.addChangeRecord({type:t,object:r,key:arguments[0],oldValue:n}),s},r.delete=function(){var e=r.has(arguments[0]),t=r.get(arguments[0]),n=i.delete.apply(r,arguments);return e&&o.addChangeRecord({type:"delete",object:r,key:arguments[0],oldValue:t}),n},r.clear=function(){var e=i.clear.apply(r,arguments);return o.addChangeRecord({type:"clear",object:r}),e},o},t}(r.ModifyCollectionObserver)});__extends=this&&this.__extends||function(){var e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var r in t)t.hasOwnProperty(r)&&(e[r]=t[r])};return function(t,r){function n(){this.constructor=t}e(t,r),t.prototype=null===r?Object.create(r):(n.prototype=r.prototype,new n)}}();define("framework/property-observation",["require","exports","./logging","./subscriber-collection"],function(e,t,r,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var o=r.getLogger("property-observation");t.propertyAccessor={getValue:function(e,t){return e[t]},setValue:function(e,t,r){t[r]=e}};var i=function(){function e(e,t){this.primitive=e,this.propertyName=t,this.doNotCache=!0,this.primitive=e,this.propertyName=t}return e.prototype.getValue=function(){return this.primitive[this.propertyName]},e.prototype.setValue=function(){var e=typeof this.primitive;throw new Error("The "+this.propertyName+" property of a "+e+" ("+this.primitive+") cannot be assigned.")},e.prototype.subscribe=function(){},e.prototype.unsubscribe=function(){},e}();t.PrimitiveObserver=i;var s=function(e){function t(t,r,n){var o=e.call(this)||this;return o.taskQueue=t,o.obj=r,o.propertyName=n,o.queued=!1,o.observing=!1,o}return __extends(t,e),t.prototype.getValue=function(){return this.obj[this.propertyName]},t.prototype.setValue=function(e){this.obj[this.propertyName]=e},t.prototype.getterValue=function(){return this.currentValue},t.prototype.setterValue=function(e){var t=this.currentValue;t!==e&&(this.queued||(this.oldValue=t,this.queued=!0,this.taskQueue.queueMicroTask(this)),this.currentValue=e)},t.prototype.call=function(){var e=this.oldValue,t=this.currentValue;this.queued=!1,this.callSubscribers(t,e)},t.prototype.subscribe=function(e,t){this.observing||this.convertProperty(),this.addSubscriber(e,t)},t.prototype.unsubscribe=function(e,t){this.removeSubscriber(e,t)},t.prototype.convertProperty=function(){this.observing=!0,this.currentValue=this.obj[this.propertyName],this.setValue=this.setterValue,this.getValue=this.getterValue,Reflect.defineProperty(this.obj,this.propertyName,{configurable:!0,enumerable:!(this.propertyName in this.obj)||this.obj.propertyIsEnumerable(this.propertyName),get:this.getValue.bind(this),set:this.setValue.bind(this)})||o.warn("Cannot observe property '"+this.propertyName+"' of object",this.obj)},t}(n.SubscriberCollection);t.SetterObserver=s;var u=function(e){function t(t,r){var n=e.call(this)||this;return n.taskQueue=t,n.currentValue=r,n.queued=!1,n}return __extends(t,e),t.prototype.getValue=function(){return this.currentValue},t.prototype.setValue=function(e){var t=this.currentValue;t!==e&&(this.queued||(this.oldValue=t,this.queued=!0,this.taskQueue.queueMicroTask(this)),this.currentValue=e)},t.prototype.call=function(){var e=this.oldValue,t=this.currentValue;this.queued=!1,this.callSubscribers(t,e)},t.prototype.subscribe=function(e,t){this.addSubscriber(e,t)},t.prototype.unsubscribe=function(e,t){this.removeSubscriber(e,t)},t}(n.SubscriberCollection);t.Observer=u}),define("framework/scope",["require","exports"],function(e,t){"use strict";function r(e,t){return{bindingContext:e,parentOverrideContext:t||null}}Object.defineProperty(t,"__esModule",{value:!0}),t.createOverrideContext=r,t.getContextFor=function(e,t,r){var n=t.overrideContext;if(r){for(;r&&n;)r--,n=n.parentOverrideContext;if(r||!n)return;return e in n?n:n.bindingContext}for(;n&&!(e in n)&&!(n.bindingContext&&e in n.bindingContext);)n=n.parentOverrideContext;return n?e in n?n:n.bindingContext:t.bindingContext||t.overrideContext},t.createScopeForTest=function(e,t){return t?{bindingContext:e,overrideContext:r(e,r(t))}:{bindingContext:e,overrideContext:r(e)}}});__extends=this&&this.__extends||function(){var e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var r in t)t.hasOwnProperty(r)&&(e[r]=t[r])};return function(t,r){function n(){this.constructor=t}e(t,r),t.prototype=null===r?Object.create(r):(n.prototype=r.prototype,new n)}}();define("framework/select-value-observer",["require","exports","./subscriber-collection","./dom"],function(e,t,r,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var o="SelectValueObserver:array",i=function(e){function t(t,r,n){var o=e.call(this)||this;return o.element=t,o.handler=r,o.observerLocator=n,o.initialSync=!1,o.element=t,o.handler=r,o.observerLocator=n,o}return __extends(t,e),t.prototype.getValue=function(){return this.value},t.prototype.setValue=function(e){if(null!==e&&void 0!==e&&this.element.multiple&&!Array.isArray(e))throw new Error("Only null or Array instances can be bound to a multi-select.");this.value!==e&&(this.arrayObserver&&(this.arrayObserver.unsubscribe(o,this),this.arrayObserver=null),Array.isArray(e)&&(this.arrayObserver=this.observerLocator.getArrayObserver(e),this.arrayObserver.subscribe(o,this)),this.oldValue=this.value,this.value=e,this.synchronizeOptions(),this.notify(),this.initialSync||(this.initialSync=!0,this.observerLocator.taskQueue.queueMicroTask(this)))},t.prototype.call=function(e,t){this.synchronizeOptions()},t.prototype.synchronizeOptions=function(){var e,t=this.value;Array.isArray(t)&&(e=!0);for(var r=this.element.options,n=r.length,o=this.element.matcher||function(e,t){return e===t},i=function(){var i=r.item(n),s=i.hasOwnProperty("model")?i.model:i.value;if(e)return i.selected=-1!==t.findIndex(function(e){return!!o(s,e)}),"continue";i.selected=!!o(s,t)};n--;)i()},t.prototype.synchronizeValue=function(){for(var e=this.element.options,t=0,r=[],n=0,o=e.length;n<o;n++){var i=e.item(n);i.selected&&(r.push(i.hasOwnProperty("model")?i.model:i.value),t++)}if(this.element.multiple){if(Array.isArray(this.value)){for(var s=this.element.matcher||function(e,t){return e===t},u=(n=0,function(){var e=a.value[n];-1===r.findIndex(function(t){return s(e,t)})?a.value.splice(n,1):n++}),a=this;n<this.value.length;)u();n=0;for(var c=function(){var e=r[n];-1===l.value.findIndex(function(t){return s(e,t)})&&l.value.push(e),n++},l=this;n<r.length;)c();return}}else r=0===t?null:r[0];r!==this.value&&(this.oldValue=this.value,this.value=r,this.notify())},t.prototype.notify=function(){var e=this.oldValue,t=this.value;this.callSubscribers(t,e)},t.prototype.handleEvent=function(){this.synchronizeValue()},t.prototype.subscribe=function(e,t){this.hasSubscribers()||(this.disposeHandler=this.handler.subscribe(this.element,this)),this.addSubscriber(e,t)},t.prototype.unsubscribe=function(e,t){this.removeSubscriber(e,t)&&!this.hasSubscribers()&&(this.disposeHandler(),this.disposeHandler=null)},t.prototype.bind=function(){var e=this;this.domObserver=n.DOM.createMutationObserver(function(){e.synchronizeOptions(),e.synchronizeValue()}),this.domObserver.observe(this.element,{childList:!0,subtree:!0})},t.prototype.unbind=function(){this.domObserver.disconnect(),this.domObserver=null,this.arrayObserver&&(this.arrayObserver.unsubscribe(o,this),this.arrayObserver=null)},t}(r.SubscriberCollection);t.SelectValueObserver=i}),define("framework/signals",["require","exports"],function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r={};t.connectBindingToSignal=function(e,t){r.hasOwnProperty(t)||(r[t]=0),e.observeProperty(r,t)},t.signalBindings=function(e){r.hasOwnProperty(e)&&r[e]++}}),define("framework/subscriber-collection",["require","exports"],function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=[],n=[],o=[],i=function(){function e(){this._context0=null,this._callable0=null,this._context1=null,this._callable1=null,this._context2=null,this._callable2=null,this._contextsRest=null,this._callablesRest=null}return e.prototype.addSubscriber=function(e,t){return!this.hasSubscriber(e,t)&&(this._context0?this._context1?this._context2?this._contextsRest?(this._contextsRest.push(e),this._callablesRest.push(t),!0):(this._contextsRest=[e],this._callablesRest=[t],!0):(this._context2=e,this._callable2=t,!0):(this._context1=e,this._callable1=t,!0):(this._context0=e,this._callable0=t,!0))},e.prototype.removeSubscriber=function(e,t){if(this._context0===e&&this._callable0===t)return this._context0=null,this._callable0=null,!0;if(this._context1===e&&this._callable1===t)return this._context1=null,this._callable1=null,!0;if(this._context2===e&&this._callable2===t)return this._context2=null,this._callable2=null,!0;var r=this._callablesRest;if(void 0===r||0===r.length)return!1;for(var n=this._contextsRest,o=0;(r[o]!==t||n[o]!==e)&&r.length>o;)o++;return!(o>=r.length)&&(n.splice(o,1),r.splice(o,1),!0)},e.prototype.callSubscribers=function(e,t){var i,s,u,a,c=this._context0,l=this._callable0,h=this._context1,p=this._callable1,f=this._context2,d=this._callable2,v=this._contextsRest?this._contextsRest.length:0;if(v){for(u=o.length;u--&&o[u];);for(u<0?(u=o.length,i=[],s=[],o.push(!0),r.push(i),n.push(s)):(o[u]=!0,i=r[u],s=n[u]),a=v;a--;)i[a]=this._contextsRest[a],s[a]=this._callablesRest[a]}if(c&&(l?l.call(c,e,t):c(e,t)),h&&(p?p.call(h,e,t):h(e,t)),f&&(d?d.call(f,e,t):f(e,t)),v){for(a=0;a<v;a++){var y=s[a],b=i[a];y?y.call(b,e,t):b(e,t),i[a]=null,s[a]=null}o[u]=!1}},e.prototype.hasSubscribers=function(){return!!(this._context0||this._context1||this._context2||this._contextsRest&&this._contextsRest.length)},e.prototype.hasSubscriber=function(e,t){var r;if(this._context0===e&&this._callable0===t||this._context1===e&&this._callable1===t||this._context2===e&&this._callable2===t)return!0;var n=this._contextsRest;if(!n||0===(r=n.length))return!1;for(var o=this._callablesRest;r--;)if(n[r]===e&&o[r]===t)return!0;return!1},e}();t.SubscriberCollection=i}),define("framework/task-queue",["require","exports","./dom"],function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n="function"==typeof setImmediate;var o=function(){function e(){var e,t,n,o,i,s=this;this.flushing=!1,this.longStacks=!1,this.microTaskQueue=[],this.taskQueue=[],this.microTaskQueueCapacity=1024,this.requestFlushMicroTaskQueue=(e=function(){return s.flushMicroTaskQueue()},t=1,n=r.DOM.createMutationObserver(e),o=r.DOM.createTextNode(""),n.observe(o,{characterData:!0}),function(){t=-t,o.data=t.toString()}),this.requestFlushTaskQueue=(i=function(){return s.flushTaskQueue()},function(){var e=setTimeout(r,0),t=setInterval(r,50);function r(){clearTimeout(e),clearInterval(t),i()}})}return e.prototype.flushQueue=function(e,t){var r,o,s,u=0;try{for(this.flushing=!0;u<e.length;)if(r=e[u],this.longStacks&&(this.stack="string"==typeof r.stack?r.stack:void 0),r.call(),++u>t){for(var a=0,c=e.length-u;a<c;a++)e[a]=e[a+u];e.length-=u,u=0}}catch(e){o=e,s=r,this.longStacks&&s.stack&&"object"==typeof o&&null!==o&&(o.stack=i(o.stack)+s.stack),"onError"in s?s.onError(o):n?setImmediate(function(){throw o}):setTimeout(function(){throw o},0)}finally{this.flushing=!1}},e.prototype.queueMicroTask=function(e){this.microTaskQueue.length<1&&this.requestFlushMicroTaskQueue(),this.longStacks&&(e.stack=this.prepareQueueStack("\nEnqueued in MicroTaskQueue by:\n")),this.microTaskQueue.push(e)},e.prototype.queueTask=function(e){this.taskQueue.length<1&&this.requestFlushTaskQueue(),this.longStacks&&(e.stack=this.prepareQueueStack("\nEnqueued in TaskQueue by:\n")),this.taskQueue.push(e)},e.prototype.flushTaskQueue=function(){var e=this.taskQueue;this.taskQueue=[],this.flushQueue(e,Number.MAX_VALUE)},e.prototype.flushMicroTaskQueue=function(){var e=this.microTaskQueue;this.flushQueue(e,this.microTaskQueueCapacity),e.length=0},e.prototype.prepareQueueStack=function(e){var t=e+function(){var e=new Error;if(e.stack)return e.stack;try{throw e}catch(e){return e.stack}}().replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/,"");return"string"==typeof this.stack&&(t=i(t)+this.stack),t},e}();function i(e){var t=e.lastIndexOf("flushMicroTaskQueue");return t<0&&(t=e.lastIndexOf("flushTaskQueue"))<0?e:(t=e.lastIndexOf("\n",t))<0?e:e.substr(0,t)}t.TaskQueue=o});
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('app',["require", "exports", "./framework"], function (require, exports, framework_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var $App = (function () {
+        function $App() {
+            this.$observers = {
+                message: new framework_1.Observer('Hello World!')
+            };
+        }
+        Object.defineProperty($App.prototype, "message", {
+            get: function () { return this.$observers.message.getValue(); },
+            set: function (value) { this.$observers.message.setValue(value); },
+            enumerable: true,
+            configurable: true
+        });
+        return $App;
+    }());
+    var App = (function (_super) {
+        __extends(App, _super);
+        function App() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.$scope = {
+                bindingContext: _this,
+                overrideContext: null
+            };
+            return _this;
+        }
+        App.prototype.hydrate = function (element) {
+            this.$host = element;
+            element.innerHTML = App.$html;
+            var elements = framework_1.getTargets(element);
+            var $scope = this.$scope;
+            this.$b1 = new framework_1.OneWay($scope, 'message', elements[0], 'textContent');
+            this.$b2 = new framework_1.TwoWay($scope, 'message', elements[1], 'value', ['input', 'change']);
+            this.$e1 = new NameTag().hydrate(elements[2]);
+            this.$b3 = new framework_1.TwoWay($scope, 'message', this.$e1, 'name');
+            return this;
+        };
+        App.prototype.bind = function () {
+            this.$b1.bind();
+            this.$b2.bind();
+            this.$e1.bind();
+            this.$b3.bind();
+        };
+        App.prototype.unbind = function () {
+            this.$b1.unbind();
+            this.$b2.unbind();
+            this.$b3.unbind();
+            this.$e1.unbind();
+        };
+        App.$html = "\n    <div>\n      <span class=\"au\"></span><br>\n      <input type=\"text\" class=\"au\">\n      <name-tag class=\"au\"></name-tag>\n    </div>\n  ";
+        return App;
+    }($App));
+    exports.App = App;
+    var $NameTag = (function () {
+        function $NameTag() {
+            this.$observers = {
+                name: new framework_1.Observer('Aurelia'),
+                color: new framework_1.Observer(null),
+                borderColor: new framework_1.Observer('#000'),
+                borderWidth: new framework_1.Observer(1),
+                showHeader: new framework_1.Observer(true)
+            };
+        }
+        Object.defineProperty($NameTag.prototype, "name", {
+            get: function () { return this.$observers.name.getValue(); },
+            set: function (value) { this.$observers.name.setValue(value); },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty($NameTag.prototype, "color", {
+            get: function () { return this.$observers.color.getValue(); },
+            set: function (value) { this.$observers.color.setValue(value); },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty($NameTag.prototype, "borderColor", {
+            get: function () { return this.$observers.borderColor.getValue(); },
+            set: function (value) { this.$observers.borderColor.setValue(value); },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty($NameTag.prototype, "borderWidth", {
+            get: function () { return this.$observers.borderWidth.getValue(); },
+            set: function (value) { this.$observers.borderWidth.setValue(value); },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty($NameTag.prototype, "showHeader", {
+            get: function () { return this.$observers.showHeader.getValue(); },
+            set: function (value) { this.$observers.showHeader.setValue(value); },
+            enumerable: true,
+            configurable: true
+        });
+        $NameTag.prototype.submit = function () {
+            this.name = '' + Math.random();
+        };
+        return $NameTag;
+    }());
+    var NameTag = (function (_super) {
+        __extends(NameTag, _super);
+        function NameTag() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.$scope = {
+                bindingContext: _this,
+                overrideContext: null
+            };
+            return _this;
+        }
+        NameTag.prototype.hydrate = function (element) {
+            this.$host = element;
+            element.innerHTML = NameTag.$html;
+            var elements = framework_1.getTargets(element);
+            var $scope = this.$scope;
+            this.$b1 = new framework_1.TwoWay($scope, 'name', elements[0], 'value', ['change', 'input']);
+            this.$b2 = new framework_1.OneWay($scope, 'name', elements[1], 'textContent');
+            this.$b3 = new framework_1.OneWay($scope, 'nameTagColor', elements[1].style, 'color');
+            this.$b4 = new framework_1.TwoWay($scope, 'nameTagColor', elements[2], 'value', ['change']);
+            this.$b5 = new framework_1.TwoWay($scope, 'nameTagBorderColor', elements[3], 'value', ['change']);
+            this.$b6 = new framework_1.TwoWay($scope, 'nameTagBorderWidth', elements[4], 'value', ['change', 'input']);
+            this.$b7 = new framework_1.TwoWay($scope, 'nameTagHeaderVisible', elements[5], 'checked', ['change']);
+            this.$b8 = new framework_1.Listener($scope, 'click', elements[6], 'click', null);
+            this.$b9 = new framework_1.OneWay($scope, 'nameTagBorder', element.style, 'border');
+            this.$b10 = new framework_1.OneWay($scope, 'nameTagClasses', element, 'className');
+            return this;
+        };
+        NameTag.prototype.bind = function () {
+            this.$b1.bind();
+            this.$b2.bind();
+            this.$b3.bind();
+            this.$b4.bind();
+            this.$b5.bind();
+            this.$b6.bind();
+            this.$b7.bind();
+            this.$b8.bind();
+            this.$b9.bind();
+            this.$b10.bind();
+        };
+        NameTag.prototype.unbind = function () {
+            this.$b1.unbind();
+            this.$b2.unbind();
+            this.$b3.unbind();
+            this.$b4.unbind();
+            this.$b5.unbind();
+            this.$b6.unbind();
+            this.$b7.unbind();
+            this.$b8.unbind();
+            this.$b9.unbind();
+            this.$b10.unbind();
+        };
+        NameTag.$html = "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ";
+        return NameTag;
+    }($NameTag));
+    exports.NameTag = NameTag;
+});
+
+
+
+define('core',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var AccessScope = (function () {
+        function AccessScope(name, ancestor) {
+            if (ancestor === void 0) { ancestor = 0; }
+            this.name = name;
+            this.ancestor = ancestor;
+            this.name = name;
+        }
+        AccessScope.prototype.evaluate = function (scope, lookupFunctions) {
+            var context = getContextFor(this.name, scope, this.ancestor);
+            return context[this.name];
+        };
+        AccessScope.prototype.assign = function (scope, value) {
+            var context = getContextFor(this.name, scope, this.ancestor);
+            return context ? (context[this.name] = value) : undefined;
+        };
+        AccessScope.prototype.connect = function (binding, scope) {
+            var context = getContextFor(this.name, scope, this.ancestor);
+            binding.observeProperty(context, this.name);
+        };
+        return AccessScope;
+    }());
+    exports.AccessScope = AccessScope;
+    var AccessMember = (function () {
+        function AccessMember(object, name) {
+            this.object = object;
+            this.name = name;
+            this.object = object;
+            this.name = name;
+            this.isAssignable = true;
+        }
+        AccessMember.prototype.evaluate = function (scope, lookupFunctions) {
+            var instance = this.object.evaluate(scope, lookupFunctions);
+            return instance === null || instance === undefined ? instance : instance[this.name];
+        };
+        AccessMember.prototype.assign = function (scope, value) {
+            var instance = this.object.evaluate(scope, null);
+            if (instance === null || instance === undefined) {
+                return;
+            }
+            instance[this.name] = value;
+            return value;
+        };
+        AccessMember.prototype.connect = function (binding, scope) {
+            this.object.connect(binding, scope);
+            var obj = this.object.evaluate(scope, null);
+            if (obj) {
+                binding.observeProperty(obj, this.name);
+            }
+        };
+        return AccessMember;
+    }());
+    exports.AccessMember = AccessMember;
+    var CallScope = (function () {
+        function CallScope(name, args, ancestor) {
+            this.name = name;
+            this.args = args;
+            this.ancestor = ancestor;
+        }
+        CallScope.prototype.evaluate = function (scope, lookupFunctions, mustEvaluate) {
+            var args = evalList(scope, this.args, lookupFunctions);
+            var context = getContextFor(this.name, scope, this.ancestor);
+            var func = getFunction(context, this.name, mustEvaluate);
+            if (func) {
+                return func.apply(context, args);
+            }
+            return undefined;
+        };
+        CallScope.prototype.assign = function () { };
+        CallScope.prototype.connect = function (binding, scope) {
+            var args = this.args;
+            var i = args.length;
+            while (i--) {
+                args[i].connect(binding, scope);
+            }
+        };
+        return CallScope;
+    }());
+    exports.CallScope = CallScope;
+    var LiteralString = (function () {
+        function LiteralString(value) {
+            this.value = value;
+        }
+        LiteralString.prototype.assign = function () { };
+        LiteralString.prototype.evaluate = function (scope, lookupFunctions) {
+            return this.value;
+        };
+        LiteralString.prototype.connect = function (binding, scope) { };
+        return LiteralString;
+    }());
+    exports.LiteralString = LiteralString;
+    var InterpolationString = (function () {
+        function InterpolationString(parts) {
+            this.parts = parts;
+        }
+        InterpolationString.prototype.assign = function () { };
+        InterpolationString.prototype.evaluate = function (scope, lookupFunctions) {
+            var result = '';
+            var parts = this.parts;
+            var ii = parts.length;
+            for (var i = 0; ii > i; ++i) {
+                var partValue = parts[i].evaluate(scope, lookupFunctions);
+                if (partValue === null || partValue === undefined) {
+                    continue;
+                }
+                result += partValue.toString();
+            }
+            return result;
+        };
+        InterpolationString.prototype.connect = function (binding, scope) {
+            var parts = this.parts;
+            var i = parts.length;
+            while (i--) {
+                parts[i].connect(binding, scope);
+            }
+        };
+        return InterpolationString;
+    }());
+    exports.InterpolationString = InterpolationString;
+    var Conditional = (function () {
+        function Conditional(condition, yes, no) {
+            this.condition = condition;
+            this.yes = yes;
+            this.no = no;
+        }
+        Conditional.prototype.evaluate = function (scope, lookupFunctions) {
+            return (!!this.condition.evaluate(scope, lookupFunctions))
+                ? this.yes.evaluate(scope, lookupFunctions)
+                : this.no.evaluate(scope, lookupFunctions);
+        };
+        Conditional.prototype.assign = function () { };
+        Conditional.prototype.connect = function (binding, scope) {
+            this.condition.connect(binding, scope);
+            if (this.condition.evaluate(scope, null)) {
+                this.yes.connect(binding, scope);
+            }
+            else {
+                this.no.connect(binding, scope);
+            }
+        };
+        return Conditional;
+    }());
+    exports.Conditional = Conditional;
+    var Binary = (function () {
+        function Binary(operation, left, right) {
+            this.operation = operation;
+            this.left = left;
+            this.right = right;
+        }
+        Binary.prototype.evaluate = function (scope, lookupFunctions) {
+            var left = this.left.evaluate(scope, lookupFunctions);
+            switch (this.operation) {
+                case '&&': return left && this.right.evaluate(scope, lookupFunctions);
+                case '||': return left || this.right.evaluate(scope, lookupFunctions);
+            }
+            var right = this.right.evaluate(scope, lookupFunctions);
+            switch (this.operation) {
+                case '==': return left == right;
+                case '===': return left === right;
+                case '!=': return left != right;
+                case '!==': return left !== right;
+            }
+            if (left === null || right === null || left === undefined || right === undefined) {
+                switch (this.operation) {
+                    case '+':
+                        if (left !== null && left !== undefined)
+                            return left;
+                        if (right !== null && right !== undefined)
+                            return right;
+                        return 0;
+                    case '-':
+                        if (left !== null && left !== undefined)
+                            return left;
+                        if (right !== null && right !== undefined)
+                            return 0 - right;
+                        return 0;
+                }
+                return null;
+            }
+            switch (this.operation) {
+                case '+': return autoConvertAdd(left, right);
+                case '-': return left - right;
+                case '*': return left * right;
+                case '/': return left / right;
+                case '%': return left % right;
+                case '<': return left < right;
+                case '>': return left > right;
+                case '<=': return left <= right;
+                case '>=': return left >= right;
+                case '^': return left ^ right;
+            }
+            throw new Error("Internal error [" + this.operation + "] not handled");
+        };
+        Binary.prototype.assign = function () { };
+        Binary.prototype.connect = function (binding, scope) {
+            this.left.connect(binding, scope);
+            var left = this.left.evaluate(scope, null, false);
+            if (this.operation === '&&' && !left || this.operation === '||' && left) {
+                return;
+            }
+            this.right.connect(binding, scope);
+        };
+        return Binary;
+    }());
+    exports.Binary = Binary;
+    function evalList(scope, list, lookupFunctions) {
+        var length = list.length;
+        var result = [];
+        for (var i = 0; i < length; i++) {
+            result[i] = list[i].evaluate(scope, lookupFunctions);
+        }
+        return result;
+    }
+    function getContextFor(name, scope, ancestor) {
+        var oc = scope.overrideContext;
+        if (ancestor) {
+            while (ancestor && oc) {
+                ancestor--;
+                oc = oc.parentOverrideContext;
+            }
+            if (ancestor || !oc) {
+                return undefined;
+            }
+            return name in oc ? oc : oc.bindingContext;
+        }
+        while (oc && !(name in oc) && !(oc.bindingContext && name in oc.bindingContext)) {
+            oc = oc.parentOverrideContext;
+        }
+        if (oc) {
+            return name in oc ? oc : oc.bindingContext;
+        }
+        return scope.bindingContext || scope.overrideContext;
+    }
+    function getFunction(obj, name, mustExist) {
+        var func = obj === null || obj === undefined ? null : obj[name];
+        if (typeof func === 'function') {
+            return func;
+        }
+        if (!mustExist && (func === null || func === undefined)) {
+            return null;
+        }
+        throw new Error(name + " is not a function");
+    }
+    function autoConvertAdd(a, b) {
+        if (a !== null && b !== null) {
+            if (typeof a === 'string' && typeof b !== 'string') {
+                return a + b.toString();
+            }
+            if (typeof a !== 'string' && typeof b === 'string') {
+                return a.toString() + b;
+            }
+            return a + b;
+        }
+        if (a !== null) {
+            return a;
+        }
+        if (b !== null) {
+            return b;
+        }
+        return 0;
+    }
+});
+
+
+
+define('environment',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = {
+        debug: true,
+        testing: true
+    };
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('framework',["require", "exports", "./core"], function (require, exports, core_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var emptyArray = [];
+    var Observer = (function () {
+        function Observer(value) {
+            this.subscribers = [];
+            this.currentValue = value;
+        }
+        Observer.prototype.getValue = function () {
+            return this.currentValue;
+        };
+        Observer.prototype.setValue = function (value) {
+            var oldValue = this.currentValue;
+            if (Object.is(value, oldValue)) {
+                return;
+            }
+            this.currentValue = value;
+            this.subscribers.forEach(function (x) { return x.callable.call(x.context, value, oldValue); });
+        };
+        Observer.prototype.subscribe = function (callable, context) {
+            this.subscribers.push({ callable: callable, context: context });
+        };
+        Observer.prototype.unsubscribe = function (callable, context) {
+            var idx = this.subscribers.findIndex(function (x) { return x.context === context && x.callable === callable; });
+            if (idx > -1) {
+                this.subscribers.splice(idx, 1);
+            }
+        };
+        return Observer;
+    }());
+    exports.Observer = Observer;
+    function getTargets(element) {
+        return element.getElementsByClassName('au');
+    }
+    exports.getTargets = getTargets;
+    var astLookup = {
+        message: new core_1.AccessScope('message'),
+        textContent: new core_1.AccessScope('textContent'),
+        value: new core_1.AccessScope('value'),
+        nameTagBorderWidth: new core_1.AccessScope('borderWidth'),
+        nameTagBorderColor: new core_1.AccessScope('borderColor'),
+        nameTagBorder: new core_1.InterpolationString([
+            new core_1.AccessScope('borderWidth'),
+            new core_1.LiteralString('px solid '),
+            new core_1.AccessScope('borderColor')
+        ]),
+        nameTagHeaderVisible: new core_1.AccessScope('showHeader'),
+        nameTagClasses: new core_1.InterpolationString([
+            new core_1.LiteralString('au name-tag '),
+            new core_1.Conditional(new core_1.AccessScope('showHeader'), new core_1.LiteralString('header-visible'), new core_1.LiteralString(''))
+        ]),
+        name: new core_1.AccessScope('name'),
+        click: new core_1.CallScope('submit', emptyArray, 0),
+        nameTagColor: new core_1.AccessScope('color')
+    };
+    var OneWay = (function () {
+        function OneWay(source, sourceExpression, target, targetProperty) {
+            this.source = source;
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.targetProperty = targetProperty;
+            this.sourceAst = astLookup[sourceExpression];
+        }
+        OneWay.prototype.bind = function () {
+            this.target[this.targetProperty] = this.sourceAst.evaluate(this.source, null);
+            this.sourceAst.connect(this, this.source);
+        };
+        OneWay.prototype.unbind = function () {
+        };
+        OneWay.prototype.observeProperty = function (context, name) {
+            context.$observers[name].subscribe(this, 'source');
+        };
+        OneWay.prototype.call = function (context, newValue, oldValue) {
+            if (context == 'source') {
+                this.target[this.targetProperty] = this.sourceAst.evaluate(this.source, null);
+            }
+        };
+        return OneWay;
+    }());
+    exports.OneWay = OneWay;
+    var TwoWay = (function (_super) {
+        __extends(TwoWay, _super);
+        function TwoWay(source, sourceExpression, target, targetProperty, events) {
+            var _this = _super.call(this, source, sourceExpression, target, targetProperty) || this;
+            _this.events = events;
+            return _this;
+        }
+        TwoWay.prototype.bind = function () {
+            _super.prototype.bind.call(this);
+            var target = this.target;
+            var events = this.events;
+            if (events) {
+                for (var i = 0, ii = events.length; ii > i; ++i) {
+                    target.addEventListener(events[i], this);
+                }
+                return;
+            }
+            target = target;
+            target.$observers[this.targetProperty].subscribe(this, 'target');
+            target.bind();
+        };
+        TwoWay.prototype.unbind = function () {
+            var target = this.target;
+            var events = this.events;
+            if (events) {
+                for (var i = 0, ii = events.length; ii > i; ++i) {
+                    target.removeEventListener(events[i], this);
+                }
+                return;
+            }
+            target = target;
+            target.$observers[this.targetProperty].unsubscribe(this, 'target');
+            target.unbind();
+        };
+        TwoWay.prototype.call = function (context, newValue, oldValue) {
+            if (context === 'target') {
+                this.updateSource();
+            }
+            else {
+                this.updateTarget();
+            }
+        };
+        TwoWay.prototype.handleEvent = function (e) {
+            this["on" + e.type](e);
+        };
+        TwoWay.prototype.updateSource = function () {
+            this.sourceAst.assign(this.source, this.target[this.targetProperty]);
+        };
+        TwoWay.prototype.updateTarget = function () {
+            this.target[this.targetProperty] = this.sourceAst.evaluate(this.source, null);
+        };
+        TwoWay.prototype.oninput = function () {
+            this.updateSource();
+        };
+        TwoWay.prototype.onchange = function () {
+            this.updateSource();
+        };
+        return TwoWay;
+    }(OneWay));
+    exports.TwoWay = TwoWay;
+    var Listener = (function () {
+        function Listener(source, name, target, targetEvent, lookupFunctions, preventDefault) {
+            if (preventDefault === void 0) { preventDefault = true; }
+            this.source = source;
+            this.name = name;
+            this.target = target;
+            this.targetEvent = targetEvent;
+            this.lookupFunctions = lookupFunctions;
+            this.preventDefault = preventDefault;
+            this.sourceAst = astLookup[name];
+        }
+        Listener.prototype.observeProperty = function () {
+            throw new Error('Listener does not observe property');
+        };
+        Listener.prototype.handleEvent = function (e) {
+            this.callSource(e);
+        };
+        Listener.prototype.callSource = function (e) {
+            var overrideContext = this.source.bindingContext;
+            overrideContext.$event = event;
+            var mustEvaluate = true;
+            var result = this.sourceAst.evaluate(this.source, null, mustEvaluate);
+            delete overrideContext.$event;
+            if (result !== true && this.preventDefault) {
+                event.preventDefault();
+            }
+            return result;
+        };
+        Listener.prototype.bind = function () {
+            if (this.sourceAst.bind) {
+                this.sourceAst.bind(this, this.source, this.lookupFunctions);
+            }
+            this.target.addEventListener(this.targetEvent, this, false);
+        };
+        Listener.prototype.unbind = function () {
+            if (this.sourceAst.unbind) {
+                this.sourceAst.unbind(this, this.source, this.lookupFunctions);
+            }
+            this.target.removeEventListener(this.targetEvent, this, false);
+        };
+        return Listener;
+    }());
+    exports.Listener = Listener;
+});
+
+
+
+define('main',["require", "exports", "./app"], function (require, exports, app_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var app = new app_1.App();
+    app.hydrate(document.body);
+    app.bind();
+    window['app'] = app;
+});
+
+
+
+define('framework/array-change-records',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function isIndex(s) {
+        return +s === s >>> 0;
+    }
+    function toNumber(s) {
+        return +s;
+    }
+    function newSplice(index, removed, addedCount) {
+        return {
+            index: index,
+            removed: removed,
+            addedCount: addedCount
+        };
+    }
+    var EDIT_LEAVE = 0;
+    var EDIT_UPDATE = 1;
+    var EDIT_ADD = 2;
+    var EDIT_DELETE = 3;
+    function ArraySplice() { }
+    ArraySplice.prototype = {
+        calcEditDistances: function (current, currentStart, currentEnd, old, oldStart, oldEnd) {
+            var rowCount = oldEnd - oldStart + 1;
+            var columnCount = currentEnd - currentStart + 1;
+            var distances = new Array(rowCount);
+            var north;
+            var west;
+            for (var i = 0; i < rowCount; ++i) {
+                distances[i] = new Array(columnCount);
+                distances[i][0] = i;
+            }
+            for (var j = 0; j < columnCount; ++j) {
+                distances[0][j] = j;
+            }
+            for (var i = 1; i < rowCount; ++i) {
+                for (var j = 1; j < columnCount; ++j) {
+                    if (this.equals(current[currentStart + j - 1], old[oldStart + i - 1])) {
+                        distances[i][j] = distances[i - 1][j - 1];
+                    }
+                    else {
+                        north = distances[i - 1][j] + 1;
+                        west = distances[i][j - 1] + 1;
+                        distances[i][j] = north < west ? north : west;
+                    }
+                }
+            }
+            return distances;
+        },
+        spliceOperationsFromEditDistances: function (distances) {
+            var i = distances.length - 1;
+            var j = distances[0].length - 1;
+            var current = distances[i][j];
+            var edits = [];
+            while (i > 0 || j > 0) {
+                if (i === 0) {
+                    edits.push(EDIT_ADD);
+                    j--;
+                    continue;
+                }
+                if (j === 0) {
+                    edits.push(EDIT_DELETE);
+                    i--;
+                    continue;
+                }
+                var northWest = distances[i - 1][j - 1];
+                var west = distances[i - 1][j];
+                var north = distances[i][j - 1];
+                var min = void 0;
+                if (west < north) {
+                    min = west < northWest ? west : northWest;
+                }
+                else {
+                    min = north < northWest ? north : northWest;
+                }
+                if (min === northWest) {
+                    if (northWest === current) {
+                        edits.push(EDIT_LEAVE);
+                    }
+                    else {
+                        edits.push(EDIT_UPDATE);
+                        current = northWest;
+                    }
+                    i--;
+                    j--;
+                }
+                else if (min === west) {
+                    edits.push(EDIT_DELETE);
+                    i--;
+                    current = west;
+                }
+                else {
+                    edits.push(EDIT_ADD);
+                    j--;
+                    current = north;
+                }
+            }
+            edits.reverse();
+            return edits;
+        },
+        calcSplices: function (current, currentStart, currentEnd, old, oldStart, oldEnd) {
+            var prefixCount = 0;
+            var suffixCount = 0;
+            var minLength = Math.min(currentEnd - currentStart, oldEnd - oldStart);
+            if (currentStart === 0 && oldStart === 0) {
+                prefixCount = this.sharedPrefix(current, old, minLength);
+            }
+            if (currentEnd === current.length && oldEnd === old.length) {
+                suffixCount = this.sharedSuffix(current, old, minLength - prefixCount);
+            }
+            currentStart += prefixCount;
+            oldStart += prefixCount;
+            currentEnd -= suffixCount;
+            oldEnd -= suffixCount;
+            if ((currentEnd - currentStart) === 0 && (oldEnd - oldStart) === 0) {
+                return [];
+            }
+            if (currentStart === currentEnd) {
+                var splice_1 = newSplice(currentStart, [], 0);
+                while (oldStart < oldEnd) {
+                    splice_1.removed.push(old[oldStart++]);
+                }
+                return [splice_1];
+            }
+            else if (oldStart === oldEnd) {
+                return [newSplice(currentStart, [], currentEnd - currentStart)];
+            }
+            var ops = this.spliceOperationsFromEditDistances(this.calcEditDistances(current, currentStart, currentEnd, old, oldStart, oldEnd));
+            var splice = undefined;
+            var splices = [];
+            var index = currentStart;
+            var oldIndex = oldStart;
+            for (var i = 0; i < ops.length; ++i) {
+                switch (ops[i]) {
+                    case EDIT_LEAVE:
+                        if (splice) {
+                            splices.push(splice);
+                            splice = undefined;
+                        }
+                        index++;
+                        oldIndex++;
+                        break;
+                    case EDIT_UPDATE:
+                        if (!splice) {
+                            splice = newSplice(index, [], 0);
+                        }
+                        splice.addedCount++;
+                        index++;
+                        splice.removed.push(old[oldIndex]);
+                        oldIndex++;
+                        break;
+                    case EDIT_ADD:
+                        if (!splice) {
+                            splice = newSplice(index, [], 0);
+                        }
+                        splice.addedCount++;
+                        index++;
+                        break;
+                    case EDIT_DELETE:
+                        if (!splice) {
+                            splice = newSplice(index, [], 0);
+                        }
+                        splice.removed.push(old[oldIndex]);
+                        oldIndex++;
+                        break;
+                }
+            }
+            if (splice) {
+                splices.push(splice);
+            }
+            return splices;
+        },
+        sharedPrefix: function (current, old, searchLength) {
+            for (var i = 0; i < searchLength; ++i) {
+                if (!this.equals(current[i], old[i])) {
+                    return i;
+                }
+            }
+            return searchLength;
+        },
+        sharedSuffix: function (current, old, searchLength) {
+            var index1 = current.length;
+            var index2 = old.length;
+            var count = 0;
+            while (count < searchLength && this.equals(current[--index1], old[--index2])) {
+                count++;
+            }
+            return count;
+        },
+        calculateSplices: function (current, previous) {
+            return this.calcSplices(current, 0, current.length, previous, 0, previous.length);
+        },
+        equals: function (currentValue, previousValue) {
+            return currentValue === previousValue;
+        }
+    };
+    var arraySplice = new ArraySplice();
+    function calcSplices(current, currentStart, currentEnd, old, oldStart, oldEnd) {
+        return arraySplice.calcSplices(current, currentStart, currentEnd, old, oldStart, oldEnd);
+    }
+    exports.calcSplices = calcSplices;
+    function intersect(start1, end1, start2, end2) {
+        if (end1 < start2 || end2 < start1) {
+            return -1;
+        }
+        if (end1 === start2 || end2 === start1) {
+            return 0;
+        }
+        if (start1 < start2) {
+            if (end1 < end2) {
+                return end1 - start2;
+            }
+            return end2 - start2;
+        }
+        if (end2 < end1) {
+            return end2 - start1;
+        }
+        return end1 - start1;
+    }
+    function mergeSplice(splices, index, removed, addedCount) {
+        var splice = newSplice(index, removed, addedCount);
+        var inserted = false;
+        var insertionOffset = 0;
+        for (var i = 0; i < splices.length; i++) {
+            var current = splices[i];
+            current.index += insertionOffset;
+            if (inserted) {
+                continue;
+            }
+            var intersectCount = intersect(splice.index, splice.index + splice.removed.length, current.index, current.index + current.addedCount);
+            if (intersectCount >= 0) {
+                splices.splice(i, 1);
+                i--;
+                insertionOffset -= current.addedCount - current.removed.length;
+                splice.addedCount += current.addedCount - intersectCount;
+                var deleteCount = splice.removed.length +
+                    current.removed.length - intersectCount;
+                if (!splice.addedCount && !deleteCount) {
+                    inserted = true;
+                }
+                else {
+                    var currentRemoved = current.removed;
+                    if (splice.index < current.index) {
+                        var prepend = splice.removed.slice(0, current.index - splice.index);
+                        Array.prototype.push.apply(prepend, currentRemoved);
+                        currentRemoved = prepend;
+                    }
+                    if (splice.index + splice.removed.length > current.index + current.addedCount) {
+                        var append = splice.removed.slice(current.index + current.addedCount - splice.index);
+                        Array.prototype.push.apply(currentRemoved, append);
+                    }
+                    splice.removed = currentRemoved;
+                    if (current.index < splice.index) {
+                        splice.index = current.index;
+                    }
+                }
+            }
+            else if (splice.index < current.index) {
+                inserted = true;
+                splices.splice(i, 0, splice);
+                i++;
+                var offset = splice.addedCount - splice.removed.length;
+                current.index += offset;
+                insertionOffset += offset;
+            }
+        }
+        if (!inserted) {
+            splices.push(splice);
+        }
+    }
+    exports.mergeSplice = mergeSplice;
+    function createInitialSplices(array, changeRecords) {
+        var splices = [];
+        for (var i = 0; i < changeRecords.length; i++) {
+            var record = changeRecords[i];
+            switch (record.type) {
+                case 'splice':
+                    mergeSplice(splices, record.index, record.removed.slice(), record.addedCount);
+                    break;
+                case 'add':
+                case 'update':
+                case 'delete':
+                    if (!isIndex(record.name)) {
+                        continue;
+                    }
+                    var index = toNumber(record.name);
+                    if (index < 0) {
+                        continue;
+                    }
+                    mergeSplice(splices, index, [record.oldValue], record.type === 'delete' ? 0 : 1);
+                    break;
+                default:
+                    console.error('Unexpected record type: ' + JSON.stringify(record));
+                    break;
+            }
+        }
+        return splices;
+    }
+    function projectArraySplices(array, changeRecords) {
+        var splices = [];
+        createInitialSplices(array, changeRecords).forEach(function (splice) {
+            if (splice.addedCount === 1 && splice.removed.length === 1) {
+                if (splice.removed[0] !== array[splice.index]) {
+                    splices.push(splice);
+                }
+                return;
+            }
+            splices = splices.concat(calcSplices(array, splice.index, splice.index + splice.addedCount, splice.removed, 0, splice.removed.length));
+        });
+        return splices;
+    }
+    exports.projectArraySplices = projectArraySplices;
+});
+
+
+
+define('framework/ast',["require", "exports", "./scope", "./signals"], function (require, exports, scope_1, signals_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Chain = (function () {
+        function Chain(expressions) {
+            this.expressions = expressions;
+        }
+        Chain.prototype.evaluate = function (scope, lookupFunctions) {
+            var result;
+            var expressions = this.expressions;
+            var last;
+            for (var i = 0, length_1 = expressions.length; i < length_1; ++i) {
+                last = expressions[i].evaluate(scope, lookupFunctions);
+                if (last !== null) {
+                    result = last;
+                }
+            }
+            return result;
+        };
+        return Chain;
+    }());
+    exports.Chain = Chain;
+    var BindingBehavior = (function () {
+        function BindingBehavior(expression, name, args) {
+            this.expression = expression;
+            this.name = name;
+            this.args = args;
+        }
+        BindingBehavior.prototype.evaluate = function (scope, lookupFunctions) {
+            return this.expression.evaluate(scope, lookupFunctions);
+        };
+        BindingBehavior.prototype.assign = function (scope, value, lookupFunctions) {
+            return this.expression.assign(scope, value, lookupFunctions);
+        };
+        BindingBehavior.prototype.connect = function (binding, scope) {
+            this.expression.connect(binding, scope);
+        };
+        BindingBehavior.prototype.bind = function (binding, scope, lookupFunctions) {
+            if (this.expression.expression && this.expression.bind) {
+                this.expression.bind(binding, scope, lookupFunctions);
+            }
+            var behavior = lookupFunctions.bindingBehaviors(this.name);
+            if (!behavior) {
+                throw new Error("No BindingBehavior named \"" + this.name + "\" was found!");
+            }
+            var behaviorKey = "behavior-" + this.name;
+            if (binding[behaviorKey]) {
+                throw new Error("A binding behavior named \"" + this.name + "\" has already been applied to \"" + this.expression + "\"");
+            }
+            binding[behaviorKey] = behavior;
+            behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.lookupFunctions)));
+        };
+        BindingBehavior.prototype.unbind = function (binding, scope) {
+            var behaviorKey = "behavior-" + this.name;
+            binding[behaviorKey].unbind(binding, scope);
+            binding[behaviorKey] = null;
+            if (this.expression.expression && this.expression.unbind) {
+                this.expression.unbind(binding, scope);
+            }
+        };
+        return BindingBehavior;
+    }());
+    exports.BindingBehavior = BindingBehavior;
+    var ValueConverter = (function () {
+        function ValueConverter(expression, name, args, allArgs) {
+            this.expression = expression;
+            this.name = name;
+            this.args = args;
+            this.allArgs = allArgs;
+        }
+        ValueConverter.prototype.evaluate = function (scope, lookupFunctions) {
+            var converter = lookupFunctions.valueConverters(this.name);
+            if (!converter) {
+                throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
+            }
+            if ('toView' in converter) {
+                return converter.toView.apply(converter, evalList(scope, this.allArgs, lookupFunctions));
+            }
+            return this.allArgs[0].evaluate(scope, lookupFunctions);
+        };
+        ValueConverter.prototype.assign = function (scope, value, lookupFunctions) {
+            var converter = lookupFunctions.valueConverters(this.name);
+            if (!converter) {
+                throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
+            }
+            if ('fromView' in converter) {
+                value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, lookupFunctions)));
+            }
+            return this.allArgs[0].assign(scope, value, lookupFunctions);
+        };
+        ValueConverter.prototype.connect = function (binding, scope) {
+            var expressions = this.allArgs;
+            var i = expressions.length;
+            while (i--) {
+                expressions[i].connect(binding, scope);
+            }
+            var converter = binding.lookupFunctions.valueConverters(this.name);
+            if (!converter) {
+                throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
+            }
+            var signals = converter.signals;
+            if (signals === undefined) {
+                return;
+            }
+            i = signals.length;
+            while (i--) {
+                signals_1.connectBindingToSignal(binding, signals[i]);
+            }
+        };
+        return ValueConverter;
+    }());
+    exports.ValueConverter = ValueConverter;
+    var Assign = (function () {
+        function Assign(target, value) {
+            this.target = target;
+            this.value = value;
+        }
+        Assign.prototype.evaluate = function (scope, lookupFunctions) {
+            return this.target.assign(scope, this.value.evaluate(scope, lookupFunctions));
+        };
+        Assign.prototype.connect = function (binding, scope) { };
+        Assign.prototype.assign = function (scope, value) {
+            this.value.assign(scope, value);
+            this.target.assign(scope, value);
+        };
+        return Assign;
+    }());
+    exports.Assign = Assign;
+    var Conditional = (function () {
+        function Conditional(condition, yes, no) {
+            this.condition = condition;
+            this.yes = yes;
+            this.no = no;
+        }
+        Conditional.prototype.evaluate = function (scope, lookupFunctions) {
+            return (!!this.condition.evaluate(scope, lookupFunctions)) ? this.yes.evaluate(scope, lookupFunctions) : this.no.evaluate(scope, lookupFunctions);
+        };
+        Conditional.prototype.connect = function (binding, scope) {
+            this.condition.connect(binding, scope);
+            if (this.condition.evaluate(scope)) {
+                this.yes.connect(binding, scope);
+            }
+            else {
+                this.no.connect(binding, scope);
+            }
+        };
+        return Conditional;
+    }());
+    exports.Conditional = Conditional;
+    var AccessThis = (function () {
+        function AccessThis(ancestor) {
+            this.ancestor = ancestor;
+        }
+        AccessThis.prototype.evaluate = function (scope, lookupFunctions) {
+            var oc = scope.overrideContext;
+            var i = this.ancestor;
+            while (i-- && oc) {
+                oc = oc.parentOverrideContext;
+            }
+            return i < 1 && oc ? oc.bindingContext : undefined;
+        };
+        AccessThis.prototype.connect = function (binding, scope) { };
+        return AccessThis;
+    }());
+    exports.AccessThis = AccessThis;
+    var AccessScope = (function () {
+        function AccessScope(name, ancestor) {
+            this.name = name;
+            this.ancestor = ancestor;
+        }
+        AccessScope.prototype.evaluate = function (scope, lookupFunctions) {
+            var context = scope_1.getContextFor(this.name, scope, this.ancestor);
+            return context[this.name];
+        };
+        AccessScope.prototype.assign = function (scope, value) {
+            var context = scope_1.getContextFor(this.name, scope, this.ancestor);
+            return context ? (context[this.name] = value) : undefined;
+        };
+        AccessScope.prototype.connect = function (binding, scope) {
+            var context = scope_1.getContextFor(this.name, scope, this.ancestor);
+            binding.observeProperty(context, this.name);
+        };
+        return AccessScope;
+    }());
+    exports.AccessScope = AccessScope;
+    var AccessMember = (function () {
+        function AccessMember(object, name) {
+            this.object = object;
+            this.name = name;
+        }
+        AccessMember.prototype.evaluate = function (scope, lookupFunctions) {
+            var instance = this.object.evaluate(scope, lookupFunctions);
+            return instance === null || instance === undefined ? instance : instance[this.name];
+        };
+        AccessMember.prototype.assign = function (scope, value) {
+            var instance = this.object.evaluate(scope);
+            if (instance === null || instance === undefined) {
+                instance = {};
+                this.object.assign(scope, instance);
+            }
+            instance[this.name] = value;
+            return value;
+        };
+        AccessMember.prototype.connect = function (binding, scope) {
+            this.object.connect(binding, scope);
+            var obj = this.object.evaluate(scope);
+            if (obj) {
+                binding.observeProperty(obj, this.name);
+            }
+        };
+        return AccessMember;
+    }());
+    exports.AccessMember = AccessMember;
+    var AccessKeyed = (function () {
+        function AccessKeyed(object, key) {
+            this.object = object;
+            this.key = key;
+        }
+        AccessKeyed.prototype.evaluate = function (scope, lookupFunctions) {
+            var instance = this.object.evaluate(scope, lookupFunctions);
+            var lookup = this.key.evaluate(scope, lookupFunctions);
+            return getKeyed(instance, lookup);
+        };
+        AccessKeyed.prototype.assign = function (scope, value) {
+            var instance = this.object.evaluate(scope);
+            var lookup = this.key.evaluate(scope);
+            return setKeyed(instance, lookup, value);
+        };
+        AccessKeyed.prototype.connect = function (binding, scope) {
+            this.object.connect(binding, scope);
+            var obj = this.object.evaluate(scope);
+            if (obj instanceof Object) {
+                this.key.connect(binding, scope);
+                var key = this.key.evaluate(scope);
+                if (key !== null && key !== undefined
+                    && !(Array.isArray(obj) && typeof (key) === 'number')) {
+                    binding.observeProperty(obj, key);
+                }
+            }
+        };
+        return AccessKeyed;
+    }());
+    exports.AccessKeyed = AccessKeyed;
+    var CallScope = (function () {
+        function CallScope(name, args, ancestor) {
+            this.name = name;
+            this.args = args;
+            this.ancestor = ancestor;
+        }
+        CallScope.prototype.evaluate = function (scope, lookupFunctions, mustEvaluate) {
+            var args = evalList(scope, this.args, lookupFunctions);
+            var context = scope_1.getContextFor(this.name, scope, this.ancestor);
+            var func = getFunction(context, this.name, mustEvaluate);
+            if (func) {
+                return func.apply(context, args);
+            }
+            return undefined;
+        };
+        CallScope.prototype.connect = function (binding, scope) {
+            var args = this.args;
+            var i = args.length;
+            while (i--) {
+                args[i].connect(binding, scope);
+            }
+        };
+        return CallScope;
+    }());
+    exports.CallScope = CallScope;
+    var CallMember = (function () {
+        function CallMember(object, name, args) {
+            this.object = object;
+            this.name = name;
+            this.args = args;
+        }
+        CallMember.prototype.evaluate = function (scope, lookupFunctions, mustEvaluate) {
+            var instance = this.object.evaluate(scope, lookupFunctions);
+            var args = evalList(scope, this.args, lookupFunctions);
+            var func = getFunction(instance, this.name, mustEvaluate);
+            if (func) {
+                return func.apply(instance, args);
+            }
+            return undefined;
+        };
+        CallMember.prototype.connect = function (binding, scope) {
+            this.object.connect(binding, scope);
+            var obj = this.object.evaluate(scope);
+            if (getFunction(obj, this.name, false)) {
+                var args = this.args;
+                var i = args.length;
+                while (i--) {
+                    args[i].connect(binding, scope);
+                }
+            }
+        };
+        return CallMember;
+    }());
+    exports.CallMember = CallMember;
+    var CallFunction = (function () {
+        function CallFunction(func, args) {
+            this.func = func;
+            this.args = args;
+        }
+        CallFunction.prototype.evaluate = function (scope, lookupFunctions, mustEvaluate) {
+            var func = this.func.evaluate(scope, lookupFunctions);
+            if (typeof func === 'function') {
+                return func.apply(null, evalList(scope, this.args, lookupFunctions));
+            }
+            if (!mustEvaluate && (func === null || func === undefined)) {
+                return undefined;
+            }
+            throw new Error(this.func + " is not a function");
+        };
+        CallFunction.prototype.connect = function (binding, scope) {
+            this.func.connect(binding, scope);
+            var func = this.func.evaluate(scope);
+            if (typeof func === 'function') {
+                var args = this.args;
+                var i = args.length;
+                while (i--) {
+                    args[i].connect(binding, scope);
+                }
+            }
+        };
+        return CallFunction;
+    }());
+    exports.CallFunction = CallFunction;
+    var Binary = (function () {
+        function Binary(operation, left, right) {
+            this.operation = operation;
+            this.left = left;
+            this.right = right;
+        }
+        Binary.prototype.evaluate = function (scope, lookupFunctions) {
+            var left = this.left.evaluate(scope, lookupFunctions);
+            switch (this.operation) {
+                case '&&': return left && this.right.evaluate(scope, lookupFunctions);
+                case '||': return left || this.right.evaluate(scope, lookupFunctions);
+            }
+            var right = this.right.evaluate(scope, lookupFunctions);
+            switch (this.operation) {
+                case '==': return left == right;
+                case '===': return left === right;
+                case '!=': return left != right;
+                case '!==': return left !== right;
+            }
+            if (left === null || right === null || left === undefined || right === undefined) {
+                switch (this.operation) {
+                    case '+':
+                        if (left !== null && left !== undefined)
+                            return left;
+                        if (right !== null && right !== undefined)
+                            return right;
+                        return 0;
+                    case '-':
+                        if (left !== null && left !== undefined)
+                            return left;
+                        if (right !== null && right !== undefined)
+                            return 0 - right;
+                        return 0;
+                }
+                return null;
+            }
+            switch (this.operation) {
+                case '+': return autoConvertAdd(left, right);
+                case '-': return left - right;
+                case '*': return left * right;
+                case '/': return left / right;
+                case '%': return left % right;
+                case '<': return left < right;
+                case '>': return left > right;
+                case '<=': return left <= right;
+                case '>=': return left >= right;
+                case '^': return left ^ right;
+            }
+            throw new Error("Internal error [" + this.operation + "] not handled");
+        };
+        Binary.prototype.connect = function (binding, scope) {
+            this.left.connect(binding, scope);
+            var left = this.left.evaluate(scope);
+            if (this.operation === '&&' && !left || this.operation === '||' && left) {
+                return;
+            }
+            this.right.connect(binding, scope);
+        };
+        return Binary;
+    }());
+    exports.Binary = Binary;
+    var PrefixNot = (function () {
+        function PrefixNot(operation, expression) {
+            this.operation = operation;
+            this.expression = expression;
+        }
+        PrefixNot.prototype.evaluate = function (scope, lookupFunctions) {
+            return !this.expression.evaluate(scope, lookupFunctions);
+        };
+        PrefixNot.prototype.connect = function (binding, scope) {
+            this.expression.connect(binding, scope);
+        };
+        return PrefixNot;
+    }());
+    exports.PrefixNot = PrefixNot;
+    var LiteralPrimitive = (function () {
+        function LiteralPrimitive(value) {
+            this.value = value;
+        }
+        LiteralPrimitive.prototype.evaluate = function (scope, lookupFunctions) {
+            return this.value;
+        };
+        LiteralPrimitive.prototype.connect = function (binding, scope) {
+        };
+        return LiteralPrimitive;
+    }());
+    exports.LiteralPrimitive = LiteralPrimitive;
+    var LiteralString = (function () {
+        function LiteralString(value) {
+            this.value = value;
+        }
+        LiteralString.prototype.evaluate = function (scope, lookupFunctions) {
+            return this.value;
+        };
+        LiteralString.prototype.connect = function (binding, scope) {
+        };
+        return LiteralString;
+    }());
+    exports.LiteralString = LiteralString;
+    var LiteralArray = (function () {
+        function LiteralArray(elements) {
+            this.elements = elements;
+        }
+        LiteralArray.prototype.evaluate = function (scope, lookupFunctions) {
+            var elements = this.elements;
+            var result = [];
+            for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
+                result[i] = elements[i].evaluate(scope, lookupFunctions);
+            }
+            return result;
+        };
+        LiteralArray.prototype.connect = function (binding, scope) {
+            var length = this.elements.length;
+            for (var i = 0; i < length; i++) {
+                this.elements[i].connect(binding, scope);
+            }
+        };
+        return LiteralArray;
+    }());
+    exports.LiteralArray = LiteralArray;
+    var LiteralObject = (function () {
+        function LiteralObject(keys, values) {
+            this.keys = keys;
+            this.values = values;
+        }
+        LiteralObject.prototype.evaluate = function (scope, lookupFunctions) {
+            var instance = {};
+            var keys = this.keys;
+            var values = this.values;
+            for (var i = 0, length_3 = keys.length; i < length_3; ++i) {
+                instance[keys[i]] = values[i].evaluate(scope, lookupFunctions);
+            }
+            return instance;
+        };
+        LiteralObject.prototype.connect = function (binding, scope) {
+            var length = this.keys.length;
+            for (var i = 0; i < length; i++) {
+                this.values[i].connect(binding, scope);
+            }
+        };
+        return LiteralObject;
+    }());
+    exports.LiteralObject = LiteralObject;
+    function evalList(scope, list, lookupFunctions) {
+        var length = list.length;
+        var result = [];
+        for (var i = 0; i < length; i++) {
+            result[i] = list[i].evaluate(scope, lookupFunctions);
+        }
+        return result;
+    }
+    function autoConvertAdd(a, b) {
+        if (a !== null && b !== null) {
+            if (typeof a === 'string' && typeof b !== 'string') {
+                return a + b.toString();
+            }
+            if (typeof a !== 'string' && typeof b === 'string') {
+                return a.toString() + b;
+            }
+            return a + b;
+        }
+        if (a !== null) {
+            return a;
+        }
+        if (b !== null) {
+            return b;
+        }
+        return 0;
+    }
+    function getFunction(obj, name, mustExist) {
+        var func = obj === null || obj === undefined ? null : obj[name];
+        if (typeof func === 'function') {
+            return func;
+        }
+        if (!mustExist && (func === null || func === undefined)) {
+            return null;
+        }
+        throw new Error(name + " is not a function");
+    }
+    function getKeyed(obj, key) {
+        if (Array.isArray(obj)) {
+            return obj[parseInt(key, 10)];
+        }
+        else if (obj) {
+            return obj[key];
+        }
+        else if (obj === null || obj === undefined) {
+            return undefined;
+        }
+        return obj[key];
+    }
+    function setKeyed(obj, key, value) {
+        if (Array.isArray(obj)) {
+            var index = parseInt(key, 10);
+            if (obj.length <= index) {
+                obj.length = index + 1;
+            }
+            obj[index] = value;
+        }
+        else {
+            obj[key] = value;
+        }
+        return value;
+    }
+});
+
+
+
+define('framework/binding-mode',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.bindingMode = {
+        oneTime: 0,
+        toView: 1,
+        oneWay: 1,
+        twoWay: 2,
+        fromView: 3
+    };
+});
+
+
+
+define('framework/call-context',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.targetContext = 'Binding:target';
+    exports.sourceContext = 'Binding:source';
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('framework/checked-observer',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var checkedArrayContext = 'CheckedObserver:array';
+    var checkedValueContext = 'CheckedObserver:value';
+    var CheckedObserver = (function (_super) {
+        __extends(CheckedObserver, _super);
+        function CheckedObserver(element, handler, observerLocator) {
+            var _this = _super.call(this) || this;
+            _this.element = element;
+            _this.handler = handler;
+            _this.observerLocator = observerLocator;
+            return _this;
+        }
+        CheckedObserver.prototype.getValue = function () {
+            return this.value;
+        };
+        CheckedObserver.prototype.setValue = function (newValue) {
+            if (this.initialSync && this.value === newValue) {
+                return;
+            }
+            if (this.arrayObserver) {
+                this.arrayObserver.unsubscribe(checkedArrayContext, this);
+                this.arrayObserver = null;
+            }
+            if (this.element.type === 'checkbox' && Array.isArray(newValue)) {
+                this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
+                this.arrayObserver.subscribe(checkedArrayContext, this);
+            }
+            this.oldValue = this.value;
+            this.value = newValue;
+            this.synchronizeElement();
+            this.notify();
+            if (!this.initialSync) {
+                this.initialSync = true;
+                this.observerLocator.taskQueue.queueMicroTask(this);
+            }
+        };
+        CheckedObserver.prototype.call = function (context, splices) {
+            this.synchronizeElement();
+            if (!this.valueObserver) {
+                this.valueObserver = this.element['__observers__'].model || this.element['__observers__'].value;
+                if (this.valueObserver) {
+                    this.valueObserver.subscribe(checkedValueContext, this);
+                }
+            }
+        };
+        CheckedObserver.prototype.synchronizeElement = function () {
+            var value = this.value;
+            var element = this.element;
+            var elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
+            var isRadio = element.type === 'radio';
+            var matcher = element['matcher'] || (function (a, b) { return a === b; });
+            element.checked =
+                isRadio && !!matcher(value, elementValue)
+                    || !isRadio && value === true
+                    || !isRadio && Array.isArray(value) && value.findIndex(function (item) { return !!matcher(item, elementValue); }) !== -1;
+        };
+        CheckedObserver.prototype.synchronizeValue = function () {
+            var value = this.value;
+            var element = this.element;
+            var elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
+            var index;
+            var matcher = element['matcher'] || (function (a, b) { return a === b; });
+            if (element.type === 'checkbox') {
+                if (Array.isArray(value)) {
+                    index = value.findIndex(function (item) { return !!matcher(item, elementValue); });
+                    if (element.checked && index === -1) {
+                        value.push(elementValue);
+                    }
+                    else if (!element.checked && index !== -1) {
+                        value.splice(index, 1);
+                    }
+                    return;
+                }
+                value = element.checked;
+            }
+            else if (element.checked) {
+                value = elementValue;
+            }
+            else {
+                return;
+            }
+            this.oldValue = this.value;
+            this.value = value;
+            this.notify();
+        };
+        CheckedObserver.prototype.notify = function () {
+            var oldValue = this.oldValue;
+            var newValue = this.value;
+            if (newValue === oldValue) {
+                return;
+            }
+            this.callSubscribers(newValue, oldValue);
+        };
+        CheckedObserver.prototype.handleEvent = function () {
+            this.synchronizeValue();
+        };
+        CheckedObserver.prototype.subscribe = function (context, callable) {
+            if (!this.hasSubscribers()) {
+                this.disposeHandler = this.handler.subscribe(this.element, this);
+            }
+            this.addSubscriber(context, callable);
+        };
+        CheckedObserver.prototype.unsubscribe = function (context, callable) {
+            if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
+                this.disposeHandler();
+                this.disposeHandler = null;
+            }
+        };
+        CheckedObserver.prototype.unbind = function () {
+            if (this.arrayObserver) {
+                this.arrayObserver.unsubscribe(checkedArrayContext, this);
+                this.arrayObserver = null;
+            }
+            if (this.valueObserver) {
+                this.valueObserver.unsubscribe(checkedValueContext, this);
+            }
+        };
+        return CheckedObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.CheckedObserver = CheckedObserver;
+});
+
+
+
+define('framework/class-observer',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var ClassObserver = (function () {
+        function ClassObserver(element) {
+            this.element = element;
+            this.doNotCache = true;
+            this.value = '';
+            this.version = 0;
+        }
+        ClassObserver.prototype.getValue = function () {
+            return this.value;
+        };
+        ClassObserver.prototype.setValue = function (newValue) {
+            var nameIndex = this.nameIndex || {};
+            var version = this.version;
+            var names;
+            var name;
+            if (newValue !== null && newValue !== undefined && newValue.length) {
+                names = newValue.split(/\s+/);
+                for (var i = 0, length_1 = names.length; i < length_1; i++) {
+                    name = names[i];
+                    if (name === '') {
+                        continue;
+                    }
+                    nameIndex[name] = version;
+                    this.element.classList.add(name);
+                }
+            }
+            this.value = newValue;
+            this.nameIndex = nameIndex;
+            this.version += 1;
+            if (version === 0) {
+                return;
+            }
+            version -= 1;
+            for (name in nameIndex) {
+                if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
+                    continue;
+                }
+                this.element.classList.remove(name);
+            }
+        };
+        ClassObserver.prototype.subscribe = function () {
+            throw new Error("Observation of a \"" + this.element.nodeName + "\" element's \"class\" property is not supported.");
+        };
+        return ClassObserver;
+    }());
+    exports.ClassObserver = ClassObserver;
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('framework/collection-observation',["require", "exports", "./array-change-records", "./map-change-records", "./subscriber-collection"], function (require, exports, array_change_records_1, map_change_records_1, subscriber_collection_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var ModifyCollectionObserver = (function (_super) {
+        __extends(ModifyCollectionObserver, _super);
+        function ModifyCollectionObserver(taskQueue, collection) {
+            var _this = _super.call(this) || this;
+            _this.queued = false;
+            _this.changeRecords = null;
+            _this.oldCollection = null;
+            _this.lengthObserver = null;
+            _this.taskQueue = taskQueue;
+            _this.collection = collection;
+            _this.lengthPropertyName = collection instanceof Map || collection instanceof Set ? 'size' : 'length';
+            return _this;
+        }
+        ModifyCollectionObserver.prototype.subscribe = function (context, callable) {
+            this.addSubscriber(context, callable);
+        };
+        ModifyCollectionObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+        };
+        ModifyCollectionObserver.prototype.addChangeRecord = function (changeRecord) {
+            if (!this.hasSubscribers() && !this.lengthObserver) {
+                return;
+            }
+            if (changeRecord.type === 'splice') {
+                var index = changeRecord.index;
+                var arrayLength = changeRecord.object.length;
+                if (index > arrayLength) {
+                    index = arrayLength - changeRecord.addedCount;
+                }
+                else if (index < 0) {
+                    index = arrayLength + changeRecord.removed.length + index - changeRecord.addedCount;
+                }
+                if (index < 0) {
+                    index = 0;
+                }
+                changeRecord.index = index;
+            }
+            if (this.changeRecords === null) {
+                this.changeRecords = [changeRecord];
+            }
+            else {
+                this.changeRecords.push(changeRecord);
+            }
+            if (!this.queued) {
+                this.queued = true;
+                this.taskQueue.queueMicroTask(this);
+            }
+        };
+        ModifyCollectionObserver.prototype.flushChangeRecords = function () {
+            if ((this.changeRecords && this.changeRecords.length) || this.oldCollection) {
+                this.call();
+            }
+        };
+        ModifyCollectionObserver.prototype.reset = function (oldCollection) {
+            this.oldCollection = oldCollection;
+            if (this.hasSubscribers() && !this.queued) {
+                this.queued = true;
+                this.taskQueue.queueMicroTask(this);
+            }
+        };
+        ModifyCollectionObserver.prototype.getLengthObserver = function () {
+            return this.lengthObserver || (this.lengthObserver = new CollectionLengthObserver(this.collection));
+        };
+        ModifyCollectionObserver.prototype.call = function () {
+            var changeRecords = this.changeRecords;
+            var oldCollection = this.oldCollection;
+            var records;
+            this.queued = false;
+            this.changeRecords = [];
+            this.oldCollection = null;
+            if (this.hasSubscribers()) {
+                if (oldCollection) {
+                    if (this.collection instanceof Map || this.collection instanceof Set) {
+                        records = map_change_records_1.getChangeRecords(oldCollection);
+                    }
+                    else {
+                        records = array_change_records_1.calcSplices(this.collection, 0, this.collection.length, oldCollection, 0, oldCollection.length);
+                    }
+                }
+                else {
+                    if (this.collection instanceof Map || this.collection instanceof Set) {
+                        records = changeRecords;
+                    }
+                    else {
+                        records = array_change_records_1.projectArraySplices(this.collection, changeRecords);
+                    }
+                }
+                this.callSubscribers(records);
+            }
+            if (this.lengthObserver) {
+                this.lengthObserver.call(this.collection[this.lengthPropertyName]);
+            }
+        };
+        return ModifyCollectionObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.ModifyCollectionObserver = ModifyCollectionObserver;
+    var CollectionLengthObserver = (function (_super) {
+        __extends(CollectionLengthObserver, _super);
+        function CollectionLengthObserver(collection) {
+            var _this = _super.call(this) || this;
+            _this.collection = collection;
+            _this.lengthPropertyName = collection instanceof Map || collection instanceof Set ? 'size' : 'length';
+            _this.currentValue = collection[_this.lengthPropertyName];
+            return _this;
+        }
+        CollectionLengthObserver.prototype.getValue = function () {
+            return this.collection[this.lengthPropertyName];
+        };
+        CollectionLengthObserver.prototype.setValue = function (newValue) {
+            this.collection[this.lengthPropertyName] = newValue;
+        };
+        CollectionLengthObserver.prototype.subscribe = function (context, callable) {
+            this.addSubscriber(context, callable);
+        };
+        CollectionLengthObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+        };
+        CollectionLengthObserver.prototype.call = function (newValue) {
+            var oldValue = this.currentValue;
+            this.callSubscribers(newValue, oldValue);
+            this.currentValue = newValue;
+        };
+        return CollectionLengthObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.CollectionLengthObserver = CollectionLengthObserver;
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('framework/dirty-checking',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var DirtyChecker = (function () {
+        function DirtyChecker() {
+            this.tracked = [];
+            this.checkDelay = 120;
+        }
+        DirtyChecker.prototype.addProperty = function (property) {
+            var tracked = this.tracked;
+            tracked.push(property);
+            if (tracked.length === 1) {
+                this.scheduleDirtyCheck();
+            }
+        };
+        DirtyChecker.prototype.removeProperty = function (property) {
+            var tracked = this.tracked;
+            tracked.splice(tracked.indexOf(property), 1);
+        };
+        DirtyChecker.prototype.scheduleDirtyCheck = function () {
+            var _this = this;
+            setTimeout(function () { return _this.check(); }, this.checkDelay);
+        };
+        DirtyChecker.prototype.check = function () {
+            var tracked = this.tracked;
+            var i = tracked.length;
+            while (i--) {
+                var current = tracked[i];
+                if (current.isDirty()) {
+                    current.call();
+                }
+            }
+            if (tracked.length) {
+                this.scheduleDirtyCheck();
+            }
+        };
+        return DirtyChecker;
+    }());
+    exports.DirtyChecker = DirtyChecker;
+    var DirtyCheckProperty = (function (_super) {
+        __extends(DirtyCheckProperty, _super);
+        function DirtyCheckProperty(dirtyChecker, obj, propertyName) {
+            var _this = _super.call(this) || this;
+            _this.dirtyChecker = dirtyChecker;
+            _this.obj = obj;
+            _this.propertyName = propertyName;
+            return _this;
+        }
+        DirtyCheckProperty.prototype.getValue = function () {
+            return this.obj[this.propertyName];
+        };
+        DirtyCheckProperty.prototype.setValue = function (newValue) {
+            this.obj[this.propertyName] = newValue;
+        };
+        DirtyCheckProperty.prototype.call = function () {
+            var oldValue = this.oldValue;
+            var newValue = this.getValue();
+            this.callSubscribers(newValue, oldValue);
+            this.oldValue = newValue;
+        };
+        DirtyCheckProperty.prototype.isDirty = function () {
+            return this.oldValue !== this.obj[this.propertyName];
+        };
+        DirtyCheckProperty.prototype.subscribe = function (context, callable) {
+            if (!this.hasSubscribers()) {
+                this.oldValue = this.getValue();
+                this.dirtyChecker.addProperty(this);
+            }
+            this.addSubscriber(context, callable);
+        };
+        DirtyCheckProperty.prototype.unsubscribe = function (context, callable) {
+            if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
+                this.dirtyChecker.removeProperty(this);
+            }
+        };
+        return DirtyCheckProperty;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.DirtyCheckProperty = DirtyCheckProperty;
+});
+
+
+
+define('framework/dom',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DOM = {
+        Element: Element,
+        SVGElement: SVGElement,
+        boundary: 'aurelia-dom-boundary',
+        addEventListener: function (eventName, callback, capture) {
+            document.addEventListener(eventName, callback, capture);
+        },
+        removeEventListener: function (eventName, callback, capture) {
+            document.removeEventListener(eventName, callback, capture);
+        },
+        adoptNode: function (node) {
+            return document.adoptNode(node);
+        },
+        createAttribute: function (name) {
+            return document.createAttribute(name);
+        },
+        createElement: function (tagName) {
+            return document.createElement(tagName);
+        },
+        createTextNode: function (text) {
+            return document.createTextNode(text);
+        },
+        createComment: function (text) {
+            return document.createComment(text);
+        },
+        createDocumentFragment: function () {
+            return document.createDocumentFragment();
+        },
+        createTemplateElement: function () {
+            return document.createElement('template');
+        },
+        createMutationObserver: function (callback) {
+            return new MutationObserver(callback);
+        },
+        createCustomEvent: function (eventType, options) {
+            return new CustomEvent(eventType, options);
+        },
+        dispatchEvent: function (evt) {
+            document.dispatchEvent(evt);
+        },
+        getComputedStyle: function (element) {
+            return window.getComputedStyle(element);
+        },
+        getElementById: function (id) {
+            return document.getElementById(id);
+        },
+        querySelectorAll: function (query) {
+            return document.querySelectorAll(query);
+        },
+        nextElementSibling: function (element) {
+            if ('nextElementSibling' in element) {
+                return element['nextElementSibling'];
+            }
+            do {
+                element = element.nextSibling;
+            } while (element && element.nodeType !== 1);
+            return element;
+        },
+        createTemplateFromMarkup: function (markup) {
+            var parser = document.createElement('div');
+            parser.innerHTML = markup;
+            var temp = parser.firstElementChild;
+            if (!temp || temp.nodeName !== 'TEMPLATE') {
+                throw new Error('Template markup must be wrapped in a <template> element e.g. <template> <!-- markup here --> </template>');
+            }
+            return temp;
+        },
+        appendNode: function (newNode, parentNode) {
+            (parentNode || document.body).appendChild(newNode);
+        },
+        replaceNode: function (newNode, node, parentNode) {
+            if (node.parentNode) {
+                node.parentNode.replaceChild(newNode, node);
+            }
+            else {
+                parentNode.replaceChild(newNode, node);
+            }
+        },
+        removeNode: function (node, parentNode) {
+            if (node.parentNode) {
+                node.parentNode.removeChild(node);
+            }
+            else if (parentNode) {
+                parentNode.removeChild(node);
+            }
+        },
+        injectStyles: function (styles, destination, prepend, id) {
+            if (id) {
+                var oldStyle = document.getElementById(id);
+                if (oldStyle) {
+                    var isStyleTag = oldStyle.tagName.toLowerCase() === 'style';
+                    if (isStyleTag) {
+                        oldStyle.innerHTML = styles;
+                        return;
+                    }
+                    throw new Error('The provided id does not indicate a style tag.');
+                }
+            }
+            var node = document.createElement('style');
+            node.innerHTML = styles;
+            node.type = 'text/css';
+            if (id) {
+                node.id = id;
+            }
+            destination = destination || document.head;
+            if (prepend && destination.childNodes.length > 0) {
+                destination.insertBefore(node, destination.childNodes[0]);
+            }
+            else {
+                destination.appendChild(node);
+            }
+            return node;
+        }
+    };
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('framework/element-observation',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var XLinkAttributeObserver = (function () {
+        function XLinkAttributeObserver(element, propertyName, attributeName) {
+            this.element = element;
+            this.propertyName = propertyName;
+            this.attributeName = attributeName;
+        }
+        XLinkAttributeObserver.prototype.getValue = function () {
+            return this.element.getAttributeNS('http://www.w3.org/1999/xlink', this.attributeName);
+        };
+        XLinkAttributeObserver.prototype.setValue = function (newValue) {
+            return this.element.setAttributeNS('http://www.w3.org/1999/xlink', this.attributeName, newValue);
+        };
+        XLinkAttributeObserver.prototype.subscribe = function () {
+            throw new Error("Observation of a \"" + this.element.nodeName + "\" element's \"" + this.propertyName + "\" property is not supported.");
+        };
+        return XLinkAttributeObserver;
+    }());
+    exports.XLinkAttributeObserver = XLinkAttributeObserver;
+    exports.dataAttributeAccessor = {
+        getValue: function (obj, propertyName) { return obj.getAttribute(propertyName); },
+        setValue: function (value, obj, propertyName) {
+            if (value === null || value === undefined) {
+                obj.removeAttribute(propertyName);
+            }
+            else {
+                obj.setAttribute(propertyName, value);
+            }
+        }
+    };
+    var DataAttributeObserver = (function () {
+        function DataAttributeObserver(element, propertyName) {
+            this.element = element;
+            this.propertyName = propertyName;
+        }
+        DataAttributeObserver.prototype.getValue = function () {
+            return this.element.getAttribute(this.propertyName);
+        };
+        DataAttributeObserver.prototype.setValue = function (newValue) {
+            if (newValue === null || newValue === undefined) {
+                return this.element.removeAttribute(this.propertyName);
+            }
+            return this.element.setAttribute(this.propertyName, newValue);
+        };
+        DataAttributeObserver.prototype.subscribe = function () {
+            throw new Error("Observation of a \"" + this.element.nodeName + "\" element's \"" + this.propertyName + "\" property is not supported.");
+        };
+        return DataAttributeObserver;
+    }());
+    exports.DataAttributeObserver = DataAttributeObserver;
+    var StyleObserver = (function () {
+        function StyleObserver(element, propertyName) {
+            this.element = element;
+            this.propertyName = propertyName;
+            this.styles = null;
+            this.version = 0;
+        }
+        StyleObserver.prototype.getValue = function () {
+            return this.element.style.cssText;
+        };
+        StyleObserver.prototype._setProperty = function (style, value) {
+            var priority = '';
+            if (value !== null && value !== undefined && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
+                priority = 'important';
+                value = value.replace('!important', '');
+            }
+            this.element.style.setProperty(style, value, priority);
+        };
+        StyleObserver.prototype.setValue = function (newValue) {
+            var styles = this.styles || {};
+            var style;
+            var version = this.version;
+            if (newValue !== null && newValue !== undefined) {
+                if (newValue instanceof Object) {
+                    var value = void 0;
+                    for (style in newValue) {
+                        if (newValue.hasOwnProperty(style)) {
+                            value = newValue[style];
+                            style = style.replace(/([A-Z])/g, function (m) { return '-' + m.toLowerCase(); });
+                            styles[style] = version;
+                            this._setProperty(style, value);
+                        }
+                    }
+                }
+                else if (newValue.length) {
+                    var rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:^"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
+                    var pair = void 0;
+                    while ((pair = rx.exec(newValue)) !== null) {
+                        style = pair[1];
+                        if (!style) {
+                            continue;
+                        }
+                        styles[style] = version;
+                        this._setProperty(style, pair[2]);
+                    }
+                }
+            }
+            this.styles = styles;
+            this.version += 1;
+            if (version === 0) {
+                return;
+            }
+            version -= 1;
+            for (style in styles) {
+                if (!styles.hasOwnProperty(style) || styles[style] !== version) {
+                    continue;
+                }
+                this.element.style.removeProperty(style);
+            }
+        };
+        StyleObserver.prototype.subscribe = function () {
+            throw new Error("Observation of a \"" + this.element.nodeName + "\" element's \"" + this.propertyName + "\" property is not supported.");
+        };
+        return StyleObserver;
+    }());
+    exports.StyleObserver = StyleObserver;
+    var ValueAttributeObserver = (function (_super) {
+        __extends(ValueAttributeObserver, _super);
+        function ValueAttributeObserver(element, propertyName, handler) {
+            var _this = _super.call(this) || this;
+            _this.element = element;
+            _this.propertyName = propertyName;
+            _this.handler = handler;
+            if (propertyName === 'files') {
+                _this.setValue = function () { };
+            }
+            return _this;
+        }
+        ValueAttributeObserver.prototype.getValue = function () {
+            return this.element[this.propertyName];
+        };
+        ValueAttributeObserver.prototype.setValue = function (newValue) {
+            newValue = newValue === undefined || newValue === null ? '' : newValue;
+            if (this.element[this.propertyName] !== newValue) {
+                this.element[this.propertyName] = newValue;
+                this.notify();
+            }
+        };
+        ValueAttributeObserver.prototype.notify = function () {
+            var oldValue = this.oldValue;
+            var newValue = this.getValue();
+            this.callSubscribers(newValue, oldValue);
+            this.oldValue = newValue;
+        };
+        ValueAttributeObserver.prototype.handleEvent = function () {
+            this.notify();
+        };
+        ValueAttributeObserver.prototype.subscribe = function (context, callable) {
+            if (!this.hasSubscribers()) {
+                this.oldValue = this.getValue();
+                this.disposeHandler = this.handler.subscribe(this.element, this);
+            }
+            this.addSubscriber(context, callable);
+        };
+        ValueAttributeObserver.prototype.unsubscribe = function (context, callable) {
+            if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
+                this.disposeHandler();
+                this.disposeHandler = null;
+            }
+        };
+        return ValueAttributeObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.ValueAttributeObserver = ValueAttributeObserver;
+});
+
+
+
+define('framework/event-manager',["require", "exports", "./dom"], function (require, exports, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function findOriginalEventTarget(event) {
+        return (event.path && event.path[0]) || (event.deepPath && event.deepPath[0]) || event.target;
+    }
+    function stopPropagation() {
+        this.standardStopPropagation();
+        this.propagationStopped = true;
+    }
+    function handleCapturedEvent(event) {
+        event.propagationStopped = false;
+        var target = findOriginalEventTarget(event);
+        var orderedCallbacks = [];
+        while (target) {
+            if (target.capturedCallbacks) {
+                var callback = target.capturedCallbacks[event.type];
+                if (callback) {
+                    if (event.stopPropagation !== stopPropagation) {
+                        event.standardStopPropagation = event.stopPropagation;
+                        event.stopPropagation = stopPropagation;
+                    }
+                    orderedCallbacks.push(callback);
+                }
+            }
+            target = target.parentNode;
+        }
+        for (var i = orderedCallbacks.length - 1; i >= 0 && !event.propagationStopped; i--) {
+            var orderedCallback = orderedCallbacks[i];
+            if ('handleEvent' in orderedCallback) {
+                orderedCallback.handleEvent(event);
+            }
+            else {
+                orderedCallback(event);
+            }
+        }
+    }
+    var CapturedHandlerEntry = (function () {
+        function CapturedHandlerEntry(eventName) {
+            this.eventName = eventName;
+            this.count = 0;
+            this.eventName = eventName;
+        }
+        CapturedHandlerEntry.prototype.increment = function () {
+            this.count++;
+            if (this.count === 1) {
+                dom_1.DOM.addEventListener(this.eventName, handleCapturedEvent, true);
+            }
+        };
+        CapturedHandlerEntry.prototype.decrement = function () {
+            this.count--;
+            if (this.count === 0) {
+                dom_1.DOM.removeEventListener(this.eventName, handleCapturedEvent, true);
+            }
+        };
+        return CapturedHandlerEntry;
+    }());
+    function handleDelegatedEvent(event) {
+        event.propagationStopped = false;
+        var target = findOriginalEventTarget(event);
+        while (target && !event.propagationStopped) {
+            if (target.delegatedCallbacks) {
+                var callback = target.delegatedCallbacks[event.type];
+                if (callback) {
+                    if (event.stopPropagation !== stopPropagation) {
+                        event.standardStopPropagation = event.stopPropagation;
+                        event.stopPropagation = stopPropagation;
+                    }
+                    if ('handleEvent' in callback) {
+                        callback.handleEvent(event);
+                    }
+                    else {
+                        callback(event);
+                    }
+                }
+            }
+            target = target.parentNode;
+        }
+    }
+    var DelegateHandlerEntry = (function () {
+        function DelegateHandlerEntry(eventName) {
+            this.eventName = eventName;
+            this.count = 0;
+            this.eventName = eventName;
+        }
+        DelegateHandlerEntry.prototype.increment = function () {
+            this.count++;
+            if (this.count === 1) {
+                dom_1.DOM.addEventListener(this.eventName, handleDelegatedEvent, false);
+            }
+        };
+        DelegateHandlerEntry.prototype.decrement = function () {
+            this.count--;
+            if (this.count === 0) {
+                dom_1.DOM.removeEventListener(this.eventName, handleDelegatedEvent);
+            }
+        };
+        return DelegateHandlerEntry;
+    }());
+    var DefaultEventStrategy = (function () {
+        function DefaultEventStrategy() {
+            this.delegatedHandlers = {};
+            this.capturedHandlers = {};
+        }
+        DefaultEventStrategy.prototype.subscribe = function (target, targetEvent, callback, strategy) {
+            var delegatedHandlers;
+            var capturedHandlers;
+            var handlerEntry;
+            if (strategy === exports.delegationStrategy.bubbling) {
+                delegatedHandlers = this.delegatedHandlers;
+                handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new DelegateHandlerEntry(targetEvent));
+                var delegatedCallbacks_1 = target.delegatedCallbacks || (target.delegatedCallbacks = {});
+                handlerEntry.increment();
+                delegatedCallbacks_1[targetEvent] = callback;
+                return function () {
+                    handlerEntry.decrement();
+                    delegatedCallbacks_1[targetEvent] = null;
+                };
+            }
+            if (strategy === exports.delegationStrategy.capturing) {
+                capturedHandlers = this.capturedHandlers;
+                handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new CapturedHandlerEntry(targetEvent));
+                var capturedCallbacks_1 = target.capturedCallbacks || (target.capturedCallbacks = {});
+                handlerEntry.increment();
+                capturedCallbacks_1[targetEvent] = callback;
+                return function () {
+                    handlerEntry.decrement();
+                    capturedCallbacks_1[targetEvent] = null;
+                };
+            }
+            target.addEventListener(targetEvent, callback, false);
+            return function () {
+                target.removeEventListener(targetEvent, callback);
+            };
+        };
+        return DefaultEventStrategy;
+    }());
+    exports.delegationStrategy = {
+        none: 0,
+        capturing: 1,
+        bubbling: 2
+    };
+    var EventManager = (function () {
+        function EventManager() {
+            this.elementHandlerLookup = {};
+            this.eventStrategyLookup = {};
+            this.defaultEventStrategy = new DefaultEventStrategy();
+            this.registerElementConfig({
+                tagName: 'input',
+                properties: {
+                    value: ['change', 'input'],
+                    checked: ['change', 'input'],
+                    files: ['change', 'input']
+                }
+            });
+            this.registerElementConfig({
+                tagName: 'textarea',
+                properties: {
+                    value: ['change', 'input']
+                }
+            });
+            this.registerElementConfig({
+                tagName: 'select',
+                properties: {
+                    value: ['change']
+                }
+            });
+            this.registerElementConfig({
+                tagName: 'content editable',
+                properties: {
+                    value: ['change', 'input', 'blur', 'keyup', 'paste']
+                }
+            });
+            this.registerElementConfig({
+                tagName: 'scrollable element',
+                properties: {
+                    scrollTop: ['scroll'],
+                    scrollLeft: ['scroll']
+                }
+            });
+        }
+        EventManager.prototype.registerElementConfig = function (config) {
+            var tagName = config.tagName.toLowerCase();
+            var properties = config.properties;
+            var propertyName;
+            this.elementHandlerLookup[tagName] = {};
+            for (propertyName in properties) {
+                if (properties.hasOwnProperty(propertyName)) {
+                    this.registerElementPropertyConfig(tagName, propertyName, properties[propertyName]);
+                }
+            }
+        };
+        EventManager.prototype.registerElementPropertyConfig = function (tagName, propertyName, events) {
+            this.elementHandlerLookup[tagName][propertyName] = this.createElementHandler(events);
+        };
+        EventManager.prototype.createElementHandler = function (events) {
+            return {
+                subscribe: function (target, callbackOrListener) {
+                    events.forEach(function (changeEvent) {
+                        target.addEventListener(changeEvent, callbackOrListener, false);
+                    });
+                    return function () {
+                        events.forEach(function (changeEvent) {
+                            target.removeEventListener(changeEvent, callbackOrListener, false);
+                        });
+                    };
+                }
+            };
+        };
+        EventManager.prototype.registerElementHandler = function (tagName, handler) {
+            this.elementHandlerLookup[tagName.toLowerCase()] = handler;
+        };
+        EventManager.prototype.registerEventStrategy = function (eventName, strategy) {
+            this.eventStrategyLookup[eventName] = strategy;
+        };
+        EventManager.prototype.getElementHandler = function (target, propertyName) {
+            var tagName;
+            var lookup = this.elementHandlerLookup;
+            if (target.tagName) {
+                tagName = target.tagName.toLowerCase();
+                if (lookup[tagName] && lookup[tagName][propertyName]) {
+                    return lookup[tagName][propertyName];
+                }
+                if (propertyName === 'textContent' || propertyName === 'innerHTML') {
+                    return lookup['content editable'].value;
+                }
+                if (propertyName === 'scrollTop' || propertyName === 'scrollLeft') {
+                    return lookup['scrollable element'][propertyName];
+                }
+            }
+            return null;
+        };
+        EventManager.prototype.addEventListener = function (target, targetEvent, callbackOrListener, delegate) {
+            return (this.eventStrategyLookup[targetEvent] || this.defaultEventStrategy)
+                .subscribe(target, targetEvent, callbackOrListener, delegate);
+        };
+        return EventManager;
+    }());
+    exports.EventManager = EventManager;
+});
+
+
+
+define('framework/logging',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.logLevel = {
+        none: 0,
+        error: 10,
+        warn: 20,
+        info: 30,
+        debug: 40
+    };
+    var loggers = {};
+    var appenders = [];
+    var globalDefaultLevel = exports.logLevel.none;
+    var slice = Array.prototype.slice;
+    var standardLevels = ['none', 'error', 'warn', 'info', 'debug'];
+    function isStandardLevel(level) {
+        return standardLevels.filter(function (l) { return l === level; }).length > 0;
+    }
+    function appendArgs() {
+        return [this].concat(slice.call(arguments));
+    }
+    function logFactory(level) {
+        var threshold = exports.logLevel[level];
+        return function () {
+            if (this.level < threshold) {
+                return;
+            }
+            var args = appendArgs.apply(this, arguments);
+            var i = appenders.length;
+            while (i--) {
+                (_a = appenders[i])[level].apply(_a, args);
+            }
+            var _a;
+        };
+    }
+    function logFactoryCustom(level) {
+        var threshold = exports.logLevel[level];
+        return function () {
+            if (this.level < threshold) {
+                return;
+            }
+            var args = appendArgs.apply(this, arguments);
+            var i = appenders.length;
+            while (i--) {
+                var appender = appenders[i];
+                if (appender[level] !== undefined) {
+                    appender[level].apply(appender, args);
+                }
+            }
+        };
+    }
+    function connectLoggers() {
+        var proto = Logger.prototype;
+        for (var level in exports.logLevel) {
+            if (isStandardLevel(level)) {
+                if (level !== 'none') {
+                    proto[level] = logFactory(level);
+                }
+            }
+            else {
+                proto[level] = logFactoryCustom(level);
+            }
+        }
+    }
+    function disconnectLoggers() {
+        var proto = Logger.prototype;
+        for (var level in exports.logLevel) {
+            if (level !== 'none') {
+                proto[level] = function () { };
+            }
+        }
+    }
+    function getLogger(id) {
+        return loggers[id] || new Logger(id);
+    }
+    exports.getLogger = getLogger;
+    function addAppender(appender) {
+        if (appenders.push(appender) === 1) {
+            connectLoggers();
+        }
+    }
+    exports.addAppender = addAppender;
+    function removeAppender(appender) {
+        appenders = appenders.filter(function (a) { return a !== appender; });
+    }
+    exports.removeAppender = removeAppender;
+    function getAppenders() {
+        return appenders.slice();
+    }
+    exports.getAppenders = getAppenders;
+    function clearAppenders() {
+        appenders = [];
+        disconnectLoggers();
+    }
+    exports.clearAppenders = clearAppenders;
+    function addCustomLevel(name, value) {
+        if (exports.logLevel[name] !== undefined) {
+            throw Error("Log level \"" + name + "\" already exists.");
+        }
+        if (isNaN(value)) {
+            throw Error('Value must be a number.');
+        }
+        exports.logLevel[name] = value;
+        if (appenders.length > 0) {
+            connectLoggers();
+        }
+        else {
+            Logger.prototype[name] = function () { };
+        }
+    }
+    exports.addCustomLevel = addCustomLevel;
+    function removeCustomLevel(name) {
+        if (exports.logLevel[name] === undefined) {
+            return;
+        }
+        if (isStandardLevel(name)) {
+            throw Error("Built-in log level \"" + name + "\" cannot be removed.");
+        }
+        delete exports.logLevel[name];
+        delete Logger.prototype[name];
+    }
+    exports.removeCustomLevel = removeCustomLevel;
+    function setLevel(level) {
+        globalDefaultLevel = level;
+        for (var key in loggers) {
+            loggers[key].setLevel(level);
+        }
+    }
+    exports.setLevel = setLevel;
+    function getLevel() {
+        return globalDefaultLevel;
+    }
+    exports.getLevel = getLevel;
+    var Logger = (function () {
+        function Logger(id) {
+            var cached = loggers[id];
+            if (cached) {
+                return cached;
+            }
+            loggers[id] = this;
+            this.id = id;
+            this.level = globalDefaultLevel;
+        }
+        Logger.prototype.debug = function (message) {
+            var rest = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                rest[_i - 1] = arguments[_i];
+            }
+        };
+        Logger.prototype.info = function (message) {
+            var rest = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                rest[_i - 1] = arguments[_i];
+            }
+        };
+        Logger.prototype.warn = function (message) {
+            var rest = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                rest[_i - 1] = arguments[_i];
+            }
+        };
+        Logger.prototype.error = function (message) {
+            var rest = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                rest[_i - 1] = arguments[_i];
+            }
+        };
+        Logger.prototype.setLevel = function (level) {
+            this.level = level;
+        };
+        return Logger;
+    }());
+    exports.Logger = Logger;
+});
+
+
+
+define('framework/map-change-records',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function newRecord(type, object, key, oldValue) {
+        return {
+            type: type,
+            object: object,
+            key: key,
+            oldValue: oldValue
+        };
+    }
+    function getChangeRecords(map) {
+        var entries = new Array(map.size);
+        var keys = map.keys();
+        var i = 0;
+        var item;
+        while (item = keys.next()) {
+            if (item.done) {
+                break;
+            }
+            entries[i] = newRecord('added', map, item.value);
+            i++;
+        }
+        return entries;
+    }
+    exports.getChangeRecords = getChangeRecords;
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('framework/map-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var mapProto = Map.prototype;
+    function getMapObserver(taskQueue, map) {
+        return ModifyMapObserver.for(taskQueue, map);
+    }
+    exports.getMapObserver = getMapObserver;
+    var ModifyMapObserver = (function (_super) {
+        __extends(ModifyMapObserver, _super);
+        function ModifyMapObserver(taskQueue, map) {
+            return _super.call(this, taskQueue, map) || this;
+        }
+        ModifyMapObserver.for = function (taskQueue, map) {
+            if (!('__map_observer__' in map)) {
+                Reflect.defineProperty(map, '__map_observer__', {
+                    value: ModifyMapObserver.create(taskQueue, map),
+                    enumerable: false, configurable: false
+                });
+            }
+            return map.__map_observer__;
+        };
+        ModifyMapObserver.create = function (taskQueue, map) {
+            var observer = new ModifyMapObserver(taskQueue, map);
+            var proto = mapProto;
+            if (proto.set !== map.set || proto.delete !== map.delete || proto.clear !== map.clear) {
+                proto = {
+                    set: map.set,
+                    delete: map.delete,
+                    clear: map.clear
+                };
+            }
+            map.set = function () {
+                var hasValue = map.has(arguments[0]);
+                var type = hasValue ? 'update' : 'add';
+                var oldValue = map.get(arguments[0]);
+                var methodCallResult = proto.set.apply(map, arguments);
+                if (!hasValue || oldValue !== map.get(arguments[0])) {
+                    observer.addChangeRecord({
+                        type: type,
+                        object: map,
+                        key: arguments[0],
+                        oldValue: oldValue
+                    });
+                }
+                return methodCallResult;
+            };
+            map.delete = function () {
+                var hasValue = map.has(arguments[0]);
+                var oldValue = map.get(arguments[0]);
+                var methodCallResult = proto.delete.apply(map, arguments);
+                if (hasValue) {
+                    observer.addChangeRecord({
+                        type: 'delete',
+                        object: map,
+                        key: arguments[0],
+                        oldValue: oldValue
+                    });
+                }
+                return methodCallResult;
+            };
+            map.clear = function () {
+                var methodCallResult = proto.clear.apply(map, arguments);
+                observer.addChangeRecord({
+                    type: 'clear',
+                    object: map
+                });
+                return methodCallResult;
+            };
+            return observer;
+        };
+        return ModifyMapObserver;
+    }(collection_observation_1.ModifyCollectionObserver));
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('framework/property-observation',["require", "exports", "./logging", "./subscriber-collection"], function (require, exports, logging_1, subscriber_collection_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var logger = logging_1.getLogger('property-observation');
+    exports.propertyAccessor = {
+        getValue: function (obj, propertyName) { return obj[propertyName]; },
+        setValue: function (value, obj, propertyName) { obj[propertyName] = value; }
+    };
+    var PrimitiveObserver = (function () {
+        function PrimitiveObserver(primitive, propertyName) {
+            this.primitive = primitive;
+            this.propertyName = propertyName;
+            this.doNotCache = true;
+            this.primitive = primitive;
+            this.propertyName = propertyName;
+        }
+        PrimitiveObserver.prototype.getValue = function () {
+            return this.primitive[this.propertyName];
+        };
+        PrimitiveObserver.prototype.setValue = function () {
+            var type = typeof this.primitive;
+            throw new Error("The " + this.propertyName + " property of a " + type + " (" + this.primitive + ") cannot be assigned.");
+        };
+        PrimitiveObserver.prototype.subscribe = function () {
+        };
+        PrimitiveObserver.prototype.unsubscribe = function () {
+        };
+        return PrimitiveObserver;
+    }());
+    exports.PrimitiveObserver = PrimitiveObserver;
+    var SetterObserver = (function (_super) {
+        __extends(SetterObserver, _super);
+        function SetterObserver(taskQueue, obj, propertyName) {
+            var _this = _super.call(this) || this;
+            _this.taskQueue = taskQueue;
+            _this.obj = obj;
+            _this.propertyName = propertyName;
+            _this.queued = false;
+            _this.observing = false;
+            return _this;
+        }
+        SetterObserver.prototype.getValue = function () {
+            return this.obj[this.propertyName];
+        };
+        SetterObserver.prototype.setValue = function (newValue) {
+            this.obj[this.propertyName] = newValue;
+        };
+        SetterObserver.prototype.getterValue = function () {
+            return this.currentValue;
+        };
+        SetterObserver.prototype.setterValue = function (newValue) {
+            var oldValue = this.currentValue;
+            if (oldValue !== newValue) {
+                if (!this.queued) {
+                    this.oldValue = oldValue;
+                    this.queued = true;
+                    this.taskQueue.queueMicroTask(this);
+                }
+                this.currentValue = newValue;
+            }
+        };
+        SetterObserver.prototype.call = function () {
+            var oldValue = this.oldValue;
+            var newValue = this.currentValue;
+            this.queued = false;
+            this.callSubscribers(newValue, oldValue);
+        };
+        SetterObserver.prototype.subscribe = function (context, callable) {
+            if (!this.observing) {
+                this.convertProperty();
+            }
+            this.addSubscriber(context, callable);
+        };
+        SetterObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+        };
+        SetterObserver.prototype.convertProperty = function () {
+            this.observing = true;
+            this.currentValue = this.obj[this.propertyName];
+            this.setValue = this.setterValue;
+            this.getValue = this.getterValue;
+            if (!Reflect.defineProperty(this.obj, this.propertyName, {
+                configurable: true,
+                enumerable: this.propertyName in this.obj ?
+                    this.obj.propertyIsEnumerable(this.propertyName) : true,
+                get: this.getValue.bind(this),
+                set: this.setValue.bind(this)
+            })) {
+                logger.warn("Cannot observe property '" + this.propertyName + "' of object", this.obj);
+            }
+        };
+        return SetterObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.SetterObserver = SetterObserver;
+    var Observer = (function (_super) {
+        __extends(Observer, _super);
+        function Observer(taskQueue, currentValue) {
+            var _this = _super.call(this) || this;
+            _this.taskQueue = taskQueue;
+            _this.currentValue = currentValue;
+            _this.queued = false;
+            return _this;
+        }
+        Observer.prototype.getValue = function () {
+            return this.currentValue;
+        };
+        Observer.prototype.setValue = function (newValue) {
+            var oldValue = this.currentValue;
+            if (oldValue !== newValue) {
+                if (!this.queued) {
+                    this.oldValue = oldValue;
+                    this.queued = true;
+                    this.taskQueue.queueMicroTask(this);
+                }
+                this.currentValue = newValue;
+            }
+        };
+        Observer.prototype.call = function () {
+            var oldValue = this.oldValue;
+            var newValue = this.currentValue;
+            this.queued = false;
+            this.callSubscribers(newValue, oldValue);
+        };
+        Observer.prototype.subscribe = function (context, callable) {
+            this.addSubscriber(context, callable);
+        };
+        Observer.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+        };
+        return Observer;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.Observer = Observer;
+});
+
+
+
+define('framework/scope',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function createOverrideContext(bindingContext, parentOverrideContext) {
+        return {
+            bindingContext: bindingContext,
+            parentOverrideContext: parentOverrideContext || null
+        };
+    }
+    exports.createOverrideContext = createOverrideContext;
+    function getContextFor(name, scope, ancestor) {
+        var oc = scope.overrideContext;
+        if (ancestor) {
+            while (ancestor && oc) {
+                ancestor--;
+                oc = oc.parentOverrideContext;
+            }
+            if (ancestor || !oc) {
+                return undefined;
+            }
+            return name in oc ? oc : oc.bindingContext;
+        }
+        while (oc && !(name in oc) && !(oc.bindingContext && name in oc.bindingContext)) {
+            oc = oc.parentOverrideContext;
+        }
+        if (oc) {
+            return name in oc ? oc : oc.bindingContext;
+        }
+        return scope.bindingContext || scope.overrideContext;
+    }
+    exports.getContextFor = getContextFor;
+    function createScopeForTest(bindingContext, parentBindingContext) {
+        if (parentBindingContext) {
+            return {
+                bindingContext: bindingContext,
+                overrideContext: createOverrideContext(bindingContext, createOverrideContext(parentBindingContext))
+            };
+        }
+        return {
+            bindingContext: bindingContext,
+            overrideContext: createOverrideContext(bindingContext)
+        };
+    }
+    exports.createScopeForTest = createScopeForTest;
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('framework/select-value-observer',["require", "exports", "./subscriber-collection", "./dom"], function (require, exports, subscriber_collection_1, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var selectArrayContext = 'SelectValueObserver:array';
+    var SelectValueObserver = (function (_super) {
+        __extends(SelectValueObserver, _super);
+        function SelectValueObserver(element, handler, observerLocator) {
+            var _this = _super.call(this) || this;
+            _this.element = element;
+            _this.handler = handler;
+            _this.observerLocator = observerLocator;
+            _this.initialSync = false;
+            _this.element = element;
+            _this.handler = handler;
+            _this.observerLocator = observerLocator;
+            return _this;
+        }
+        SelectValueObserver.prototype.getValue = function () {
+            return this.value;
+        };
+        SelectValueObserver.prototype.setValue = function (newValue) {
+            if (newValue !== null && newValue !== undefined && this.element.multiple && !Array.isArray(newValue)) {
+                throw new Error('Only null or Array instances can be bound to a multi-select.');
+            }
+            if (this.value === newValue) {
+                return;
+            }
+            if (this.arrayObserver) {
+                this.arrayObserver.unsubscribe(selectArrayContext, this);
+                this.arrayObserver = null;
+            }
+            if (Array.isArray(newValue)) {
+                this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
+                this.arrayObserver.subscribe(selectArrayContext, this);
+            }
+            this.oldValue = this.value;
+            this.value = newValue;
+            this.synchronizeOptions();
+            this.notify();
+            if (!this.initialSync) {
+                this.initialSync = true;
+                this.observerLocator.taskQueue.queueMicroTask(this);
+            }
+        };
+        SelectValueObserver.prototype.call = function (context, splices) {
+            this.synchronizeOptions();
+        };
+        SelectValueObserver.prototype.synchronizeOptions = function () {
+            var value = this.value;
+            var isArray;
+            if (Array.isArray(value)) {
+                isArray = true;
+            }
+            var options = this.element.options;
+            var i = options.length;
+            var matcher = this.element.matcher || (function (a, b) { return a === b; });
+            var _loop_1 = function () {
+                var option = options.item(i);
+                var optionValue = option.hasOwnProperty('model') ? option.model : option.value;
+                if (isArray) {
+                    option.selected = value.findIndex(function (item) { return !!matcher(optionValue, item); }) !== -1;
+                    return "continue";
+                }
+                option.selected = !!matcher(optionValue, value);
+            };
+            while (i--) {
+                _loop_1();
+            }
+        };
+        SelectValueObserver.prototype.synchronizeValue = function () {
+            var options = this.element.options;
+            var count = 0;
+            var value = [];
+            for (var i = 0, ii = options.length; i < ii; i++) {
+                var option = options.item(i);
+                if (!option.selected) {
+                    continue;
+                }
+                value.push(option.hasOwnProperty('model') ? option.model : option.value);
+                count++;
+            }
+            if (this.element.multiple) {
+                if (Array.isArray(this.value)) {
+                    var matcher_1 = this.element.matcher || (function (a, b) { return a === b; });
+                    var i = 0;
+                    var _loop_2 = function () {
+                        var a = this_1.value[i];
+                        if (value.findIndex(function (b) { return matcher_1(a, b); }) === -1) {
+                            this_1.value.splice(i, 1);
+                        }
+                        else {
+                            i++;
+                        }
+                    };
+                    var this_1 = this;
+                    while (i < this.value.length) {
+                        _loop_2();
+                    }
+                    i = 0;
+                    var _loop_3 = function () {
+                        var a = value[i];
+                        if (this_2.value.findIndex(function (b) { return matcher_1(a, b); }) === -1) {
+                            this_2.value.push(a);
+                        }
+                        i++;
+                    };
+                    var this_2 = this;
+                    while (i < value.length) {
+                        _loop_3();
+                    }
+                    return;
+                }
+            }
+            else {
+                if (count === 0) {
+                    value = null;
+                }
+                else {
+                    value = value[0];
+                }
+            }
+            if (value !== this.value) {
+                this.oldValue = this.value;
+                this.value = value;
+                this.notify();
+            }
+        };
+        SelectValueObserver.prototype.notify = function () {
+            var oldValue = this.oldValue;
+            var newValue = this.value;
+            this.callSubscribers(newValue, oldValue);
+        };
+        SelectValueObserver.prototype.handleEvent = function () {
+            this.synchronizeValue();
+        };
+        SelectValueObserver.prototype.subscribe = function (context, callable) {
+            if (!this.hasSubscribers()) {
+                this.disposeHandler = this.handler.subscribe(this.element, this);
+            }
+            this.addSubscriber(context, callable);
+        };
+        SelectValueObserver.prototype.unsubscribe = function (context, callable) {
+            if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
+                this.disposeHandler();
+                this.disposeHandler = null;
+            }
+        };
+        SelectValueObserver.prototype.bind = function () {
+            var _this = this;
+            this.domObserver = dom_1.DOM.createMutationObserver(function () {
+                _this.synchronizeOptions();
+                _this.synchronizeValue();
+            });
+            this.domObserver.observe(this.element, { childList: true, subtree: true });
+        };
+        SelectValueObserver.prototype.unbind = function () {
+            this.domObserver.disconnect();
+            this.domObserver = null;
+            if (this.arrayObserver) {
+                this.arrayObserver.unsubscribe(selectArrayContext, this);
+                this.arrayObserver = null;
+            }
+        };
+        return SelectValueObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.SelectValueObserver = SelectValueObserver;
+});
+
+
+
+define('framework/signals',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var signals = {};
+    function connectBindingToSignal(binding, name) {
+        if (!signals.hasOwnProperty(name)) {
+            signals[name] = 0;
+        }
+        binding.observeProperty(signals, name);
+    }
+    exports.connectBindingToSignal = connectBindingToSignal;
+    function signalBindings(name) {
+        if (signals.hasOwnProperty(name)) {
+            signals[name]++;
+        }
+    }
+    exports.signalBindings = signalBindings;
+});
+
+
+
+define('framework/subscriber-collection',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var arrayPool1 = [];
+    var arrayPool2 = [];
+    var poolUtilization = [];
+    var SubscriberCollection = (function () {
+        function SubscriberCollection() {
+            this._context0 = null;
+            this._callable0 = null;
+            this._context1 = null;
+            this._callable1 = null;
+            this._context2 = null;
+            this._callable2 = null;
+            this._contextsRest = null;
+            this._callablesRest = null;
+        }
+        SubscriberCollection.prototype.addSubscriber = function (context, callable) {
+            if (this.hasSubscriber(context, callable)) {
+                return false;
+            }
+            if (!this._context0) {
+                this._context0 = context;
+                this._callable0 = callable;
+                return true;
+            }
+            if (!this._context1) {
+                this._context1 = context;
+                this._callable1 = callable;
+                return true;
+            }
+            if (!this._context2) {
+                this._context2 = context;
+                this._callable2 = callable;
+                return true;
+            }
+            if (!this._contextsRest) {
+                this._contextsRest = [context];
+                this._callablesRest = [callable];
+                return true;
+            }
+            this._contextsRest.push(context);
+            this._callablesRest.push(callable);
+            return true;
+        };
+        SubscriberCollection.prototype.removeSubscriber = function (context, callable) {
+            if (this._context0 === context && this._callable0 === callable) {
+                this._context0 = null;
+                this._callable0 = null;
+                return true;
+            }
+            if (this._context1 === context && this._callable1 === callable) {
+                this._context1 = null;
+                this._callable1 = null;
+                return true;
+            }
+            if (this._context2 === context && this._callable2 === callable) {
+                this._context2 = null;
+                this._callable2 = null;
+                return true;
+            }
+            var callables = this._callablesRest;
+            if (callables === undefined || callables.length === 0) {
+                return false;
+            }
+            var contexts = this._contextsRest;
+            var i = 0;
+            while (!(callables[i] === callable && contexts[i] === context) && callables.length > i) {
+                i++;
+            }
+            if (i >= callables.length) {
+                return false;
+            }
+            contexts.splice(i, 1);
+            callables.splice(i, 1);
+            return true;
+        };
+        SubscriberCollection.prototype.callSubscribers = function (newValue, oldValue) {
+            var context0 = this._context0;
+            var callable0 = this._callable0;
+            var context1 = this._context1;
+            var callable1 = this._callable1;
+            var context2 = this._context2;
+            var callable2 = this._callable2;
+            var length = this._contextsRest ? this._contextsRest.length : 0;
+            var contextsRest;
+            var callablesRest;
+            var poolIndex;
+            var i;
+            if (length) {
+                poolIndex = poolUtilization.length;
+                while (poolIndex-- && poolUtilization[poolIndex]) {
+                }
+                if (poolIndex < 0) {
+                    poolIndex = poolUtilization.length;
+                    contextsRest = [];
+                    callablesRest = [];
+                    poolUtilization.push(true);
+                    arrayPool1.push(contextsRest);
+                    arrayPool2.push(callablesRest);
+                }
+                else {
+                    poolUtilization[poolIndex] = true;
+                    contextsRest = arrayPool1[poolIndex];
+                    callablesRest = arrayPool2[poolIndex];
+                }
+                i = length;
+                while (i--) {
+                    contextsRest[i] = this._contextsRest[i];
+                    callablesRest[i] = this._callablesRest[i];
+                }
+            }
+            if (context0) {
+                if (callable0) {
+                    callable0.call(context0, newValue, oldValue);
+                }
+                else {
+                    context0(newValue, oldValue);
+                }
+            }
+            if (context1) {
+                if (callable1) {
+                    callable1.call(context1, newValue, oldValue);
+                }
+                else {
+                    context1(newValue, oldValue);
+                }
+            }
+            if (context2) {
+                if (callable2) {
+                    callable2.call(context2, newValue, oldValue);
+                }
+                else {
+                    context2(newValue, oldValue);
+                }
+            }
+            if (length) {
+                for (i = 0; i < length; i++) {
+                    var callable = callablesRest[i];
+                    var context = contextsRest[i];
+                    if (callable) {
+                        callable.call(context, newValue, oldValue);
+                    }
+                    else {
+                        context(newValue, oldValue);
+                    }
+                    contextsRest[i] = null;
+                    callablesRest[i] = null;
+                }
+                poolUtilization[poolIndex] = false;
+            }
+        };
+        SubscriberCollection.prototype.hasSubscribers = function () {
+            return !!(this._context0
+                || this._context1
+                || this._context2
+                || this._contextsRest && this._contextsRest.length);
+        };
+        SubscriberCollection.prototype.hasSubscriber = function (context, callable) {
+            var has = this._context0 === context && this._callable0 === callable
+                || this._context1 === context && this._callable1 === callable
+                || this._context2 === context && this._callable2 === callable;
+            if (has) {
+                return true;
+            }
+            var index;
+            var contexts = this._contextsRest;
+            if (!contexts || (index = contexts.length) === 0) {
+                return false;
+            }
+            var callables = this._callablesRest;
+            while (index--) {
+                if (contexts[index] === context && callables[index] === callable) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        return SubscriberCollection;
+    }());
+    exports.SubscriberCollection = SubscriberCollection;
+});
+
+
+
+define('framework/task-queue',["require", "exports", "./dom"], function (require, exports, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var hasSetImmediate = typeof setImmediate === 'function';
+    var stackSeparator = '\nEnqueued in TaskQueue by:\n';
+    var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
+    function makeRequestFlushFromMutationObserver(flush) {
+        var toggle = 1;
+        var observer = dom_1.DOM.createMutationObserver(flush);
+        var node = dom_1.DOM.createTextNode('');
+        observer.observe(node, { characterData: true });
+        return function requestFlush() {
+            toggle = -toggle;
+            node.data = toggle.toString();
+        };
+    }
+    function makeRequestFlushFromTimer(flush) {
+        return function requestFlush() {
+            var timeoutHandle = setTimeout(handleFlushTimer, 0);
+            var intervalHandle = setInterval(handleFlushTimer, 50);
+            function handleFlushTimer() {
+                clearTimeout(timeoutHandle);
+                clearInterval(intervalHandle);
+                flush();
+            }
+        };
+    }
+    function onError(error, task, longStacks) {
+        if (longStacks &&
+            task.stack &&
+            typeof error === 'object' &&
+            error !== null) {
+            error.stack = filterFlushStack(error.stack) + task.stack;
+        }
+        if ('onError' in task) {
+            task.onError(error);
+        }
+        else if (hasSetImmediate) {
+            setImmediate(function () { throw error; });
+        }
+        else {
+            setTimeout(function () { throw error; }, 0);
+        }
+    }
+    var TaskQueue = (function () {
+        function TaskQueue() {
+            var _this = this;
+            this.flushing = false;
+            this.longStacks = false;
+            this.microTaskQueue = [];
+            this.taskQueue = [];
+            this.microTaskQueueCapacity = 1024;
+            this.requestFlushMicroTaskQueue = makeRequestFlushFromMutationObserver(function () { return _this.flushMicroTaskQueue(); });
+            this.requestFlushTaskQueue = makeRequestFlushFromTimer(function () { return _this.flushTaskQueue(); });
+        }
+        TaskQueue.prototype.flushQueue = function (queue, capacity) {
+            var index = 0;
+            var task;
+            try {
+                this.flushing = true;
+                while (index < queue.length) {
+                    task = queue[index];
+                    if (this.longStacks) {
+                        this.stack = typeof task.stack === 'string' ? task.stack : undefined;
+                    }
+                    task.call();
+                    index++;
+                    if (index > capacity) {
+                        for (var scan = 0, newLength = queue.length - index; scan < newLength; scan++) {
+                            queue[scan] = queue[scan + index];
+                        }
+                        queue.length -= index;
+                        index = 0;
+                    }
+                }
+            }
+            catch (error) {
+                onError(error, task, this.longStacks);
+            }
+            finally {
+                this.flushing = false;
+            }
+        };
+        TaskQueue.prototype.queueMicroTask = function (task) {
+            if (this.microTaskQueue.length < 1) {
+                this.requestFlushMicroTaskQueue();
+            }
+            if (this.longStacks) {
+                task['stack'] = this.prepareQueueStack(microStackSeparator);
+            }
+            this.microTaskQueue.push(task);
+        };
+        TaskQueue.prototype.queueTask = function (task) {
+            if (this.taskQueue.length < 1) {
+                this.requestFlushTaskQueue();
+            }
+            if (this.longStacks) {
+                task['stack'] = this.prepareQueueStack(stackSeparator);
+            }
+            this.taskQueue.push(task);
+        };
+        TaskQueue.prototype.flushTaskQueue = function () {
+            var queue = this.taskQueue;
+            this.taskQueue = [];
+            this.flushQueue(queue, Number.MAX_VALUE);
+        };
+        TaskQueue.prototype.flushMicroTaskQueue = function () {
+            var queue = this.microTaskQueue;
+            this.flushQueue(queue, this.microTaskQueueCapacity);
+            queue.length = 0;
+        };
+        TaskQueue.prototype.prepareQueueStack = function (separator) {
+            var stack = separator + filterQueueStack(captureStack());
+            if (typeof this.stack === 'string') {
+                stack = filterFlushStack(stack) + this.stack;
+            }
+            return stack;
+        };
+        return TaskQueue;
+    }());
+    exports.TaskQueue = TaskQueue;
+    function captureStack() {
+        var error = new Error();
+        if (error.stack) {
+            return error.stack;
+        }
+        try {
+            throw error;
+        }
+        catch (e) {
+            return e.stack;
+        }
+    }
+    function filterQueueStack(stack) {
+        return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
+    }
+    function filterFlushStack(stack) {
+        var index = stack.lastIndexOf('flushMicroTaskQueue');
+        if (index < 0) {
+            index = stack.lastIndexOf('flushTaskQueue');
+            if (index < 0) {
+                return stack;
+            }
+        }
+        index = stack.lastIndexOf('\n', index);
+        return index < 0 ? stack : stack.substr(0, index);
+    }
+});
+
+
+
+//# sourceMappingURL=app-bundle.js.map

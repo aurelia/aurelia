@@ -1,8 +1,8 @@
 import { IBindingExpression, IBinding, Scope } from './core';
 import { Observer, IObservable, getTargets, OneWay, TwoWay, Listener } from './framework';
-// import { Scope } from './framework/scope';
 
-// Original User Code
+// Original User Code for App
+
 // export class App {
 //   message = 'Hello World!';
 // }
@@ -10,6 +10,7 @@ import { Observer, IObservable, getTargets, OneWay, TwoWay, Listener } from './f
 // <div>
 //   <span>${message}</span><br>
 //   <input type="text" value.bind="message">
+//   <name-tag name.bind="message"></name-tag>
 // </div>
 
 // ------------------------------
@@ -20,7 +21,7 @@ import { Observer, IObservable, getTargets, OneWay, TwoWay, Listener } from './f
 //   name = 'Aurelia';
 // }
 
-// <template class="name-tag ${showHeader ? 'header-visible' : ''}">
+//<template class="name-tag ${showHeader ? 'header-visible' : ''}">
 // <header>Super Duper name tag</header>
 // <div>
 //   <input type="text" value.bind="name" ><br/>
@@ -62,40 +63,9 @@ import { Observer, IObservable, getTargets, OneWay, TwoWay, Listener } from './f
 //   </label>
 // </div>
 // <button click.trigger="submit()">Reset</button>
+//</template>
 
-type ChildNode = Text | Comment | string | number | boolean | null | undefined | Element;
-
-type NodeTuple = [string, Record<string, any>, IBinding[]];
-type HnodeTuple = NodeTuple
-
-interface TagMap {
-  [id: number]: string;
-};
-
-const tagMap: TagMap = {
-  1: 'div',
-
-};
-
-function h(
-  tagTypeId: number,
-  props: Record<string, any>,
-  bindings: IBindingExpression[],
-  ...children: ChildNode[]
-) {
-
-}
-
-class ViewFactory {
-  factory = [
-    1, null, [],
-    [
-      1, null, []
-
-    ],
-    []
-  ]
-}
+// ------------------------------
 
 //Altered/Generated via a compile-time transform
 class $App {
@@ -112,6 +82,8 @@ export class App extends $App implements IObservable {
   private $b1: OneWay;
   private $b2: TwoWay;
   private $b3: TwoWay;
+  private $e1: NameTag;
+
   private $scope: Scope = {
     bindingContext: this,
     overrideContext: null
@@ -130,9 +102,13 @@ export class App extends $App implements IObservable {
     element.innerHTML = App.$html;
 
     let elements = getTargets(element);
-    this.$b1 = new OneWay(this.$scope, 'message', elements[0], 'textContent');
-    this.$b2 = new TwoWay(this.$scope, 'message', elements[1], 'value', ['input', 'change']);
-    this.$b3 = new TwoWay(this.$scope, 'message', new NameTag().hydrate(elements[2]), 'name');
+    let $scope = this.$scope;
+
+    this.$b1 = new OneWay($scope, 'message', elements[0], 'textContent');
+    this.$b2 = new TwoWay($scope, 'message', elements[1], 'value', ['input', 'change']);
+
+    this.$e1 = new NameTag().hydrate(elements[2]);
+    this.$b3 = new TwoWay($scope, 'message', this.$e1, 'name');
 
     return this;
   }
@@ -140,6 +116,7 @@ export class App extends $App implements IObservable {
   bind() {
     this.$b1.bind();
     this.$b2.bind();
+    this.$e1.bind();
     this.$b3.bind();
   }
 
@@ -147,6 +124,7 @@ export class App extends $App implements IObservable {
     this.$b1.unbind();
     this.$b2.unbind();
     this.$b3.unbind();
+    this.$e1.unbind();
   }
 }
 
@@ -173,6 +151,11 @@ class $NameTag {
 
   get showHeader() { return this.$observers.showHeader.getValue(); }
   set showHeader(value: boolean) { this.$observers.showHeader.setValue(value); }
+
+  submit() {
+    // alert('It was already updated, (two way binding thingy)');
+    this.name = '' + Math.random();
+  }
 }
 
 export class NameTag extends $NameTag implements IObservable {
@@ -242,6 +225,7 @@ export class NameTag extends $NameTag implements IObservable {
 
     let elements = getTargets(element);
     let $scope = this.$scope;
+
     this.$b1 = new TwoWay($scope, 'name', elements[0], 'value', ['change', 'input']);
     this.$b2 = new OneWay($scope, 'name', elements[1], 'textContent');
     this.$b3 = new OneWay($scope, 'nameTagColor', (elements[1] as HTMLElement).style, 'color');
@@ -254,10 +238,6 @@ export class NameTag extends $NameTag implements IObservable {
     this.$b10 = new OneWay($scope, 'nameTagClasses', element, 'className');
 
     return this;
-  }
-
-  observeProperty() {
-
   }
 
   bind() {
@@ -284,11 +264,6 @@ export class NameTag extends $NameTag implements IObservable {
     this.$b8.unbind();
     this.$b9.unbind();
     this.$b10.unbind();
-  }
-
-  submit() {
-    // alert('It was already updated, (two way binding thingy)');
-    this.name = '' + Math.random();
   }
 }
 

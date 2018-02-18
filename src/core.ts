@@ -39,11 +39,11 @@ export class Template {
   }
 
   create() {
-    return new TemplateInstance(this.element);
+    return new View(this.element);
   }
 }
 
-export class TemplateInstance {
+export class View {
   fragment: DocumentFragment;
   targets: NodeListOf<Element>;
   firstChild: Node;

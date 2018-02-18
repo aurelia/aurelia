@@ -217,26 +217,26 @@ define('core',["require", "exports", "./framework/dom"], function (require, expo
             this.element.innerHTML = html;
         }
         Template.prototype.create = function () {
-            return new TemplateInstance(this.element);
+            return new View(this.element);
         };
         return Template;
     }());
     exports.Template = Template;
-    var TemplateInstance = (function () {
-        function TemplateInstance(template) {
+    var View = (function () {
+        function View(template) {
             var clone = template.cloneNode(true);
             this.fragment = clone.content;
             this.targets = this.fragment.querySelectorAll('.au');
             this.firstChild = this.fragment.firstChild;
             this.lastChild = this.fragment.lastChild;
         }
-        TemplateInstance.prototype.insertNodesBefore = function (refNode) {
+        View.prototype.insertNodesBefore = function (refNode) {
             refNode.parentNode.insertBefore(this.fragment, refNode);
         };
-        TemplateInstance.prototype.appendNodesTo = function (parent) {
+        View.prototype.appendNodesTo = function (parent) {
             parent.appendChild(this.fragment);
         };
-        TemplateInstance.prototype.removeNodes = function () {
+        View.prototype.removeNodes = function () {
             var fragment = this.fragment;
             var current = this.firstChild;
             var end = this.lastChild;
@@ -250,9 +250,9 @@ define('core',["require", "exports", "./framework/dom"], function (require, expo
                 current = next;
             }
         };
-        return TemplateInstance;
+        return View;
     }());
-    exports.TemplateInstance = TemplateInstance;
+    exports.View = View;
 });
 
 

@@ -3,7 +3,7 @@ import { Observer } from './framework/property-observation';
 import { getTargets, oneWay, twoWay, listener } from './framework';
 import { IObservable, Binding } from './framework/binding';
 import { Listener } from './framework/listener';
-import { Template, TemplateInstance } from './core';
+import { Template, View } from './core';
 
 // Original User Code for App
 
@@ -83,7 +83,7 @@ class $App {
 
 export class App extends $App implements IObservable {
   private $host: Element;
-  private $view: TemplateInstance;
+  private $view: View;
   private $b1: Binding;
   private $b2: Binding;
   private $b3: Binding;
@@ -175,7 +175,7 @@ class $NameTag {
 
 export class NameTag extends $NameTag implements IObservable {
   private $host: Element;
-  private $view: TemplateInstance;
+  private $view: View;
   private $b1: Binding;
   private $b2: Binding;
   private $b3: Binding;

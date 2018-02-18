@@ -1,4 +1,3 @@
-import { InterpolationString } from './core';
 import { Scope } from './framework/scope';
 import { Observer } from './framework/property-observation';
 import {
@@ -12,17 +11,13 @@ import {
   Binary,
   Conditional
 } from './framework/ast';
-
 import { IBindingTarget, IObservable, Binding } from './framework/binding';
 import { bindingMode } from './framework/binding-mode';
 import { Listener } from './framework/listener';
 import { delegationStrategy } from './framework/event-manager';
+import { InterpolationString } from './framework-new';
 
 const emptyArray = [];
-
-export function getTargets(element: Element) {
-  return element.getElementsByClassName('au');
-}
 
 let astLookup = {
   message: new AccessScope('message'),

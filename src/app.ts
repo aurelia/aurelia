@@ -1,9 +1,9 @@
 import { Scope, createOverrideContext } from './framework/scope';
 import { Observer } from './framework/property-observation';
-import { getTargets, oneWay, twoWay, listener } from './framework';
-import { IObservable, Binding } from './framework/binding';
-import { Listener } from './framework/listener';
-import { Template, View } from './core';
+import { IObservable } from './framework/binding';
+import { IBinding } from './framework/ast';
+import { Template, View } from './framework-new';
+import { oneWay, twoWay, listener } from './framework-generated';
 
 // Original User Code for App
 
@@ -84,9 +84,9 @@ class $App {
 export class App extends $App implements IObservable {
   private $host: Element;
   private $view: View;
-  private $b1: Binding;
-  private $b2: Binding;
-  private $b3: Binding;
+  private $b1: IBinding;
+  private $b2: IBinding;
+  private $b3: IBinding;
   private $e1: NameTag;
 
   private $scope: Scope = {
@@ -176,16 +176,16 @@ class $NameTag {
 export class NameTag extends $NameTag implements IObservable {
   private $host: Element;
   private $view: View;
-  private $b1: Binding;
-  private $b2: Binding;
-  private $b3: Binding;
-  private $b4: Binding;
-  private $b5: Binding;
-  private $b6: Binding;
-  private $b7: Binding;
-  private $b8: Listener;
-  private $b9: Binding;
-  private $b10: Binding;
+  private $b1: IBinding;
+  private $b2: IBinding;
+  private $b3: IBinding;
+  private $b4: IBinding;
+  private $b5: IBinding;
+  private $b6: IBinding;
+  private $b7: IBinding;
+  private $b8: IBinding;
+  private $b9: IBinding;
+  private $b10: IBinding;
   
   private $scope: Scope = {
     bindingContext: this,

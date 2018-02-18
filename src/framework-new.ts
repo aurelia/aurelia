@@ -2,6 +2,19 @@ import { Scope } from './framework/scope';
 import { Expression, ILookupFunctions, IBinding} from './framework/ast';
 import { DOM } from './framework/dom';
 
+export interface AureliaSettings {
+  host: HTMLElement,
+  root: any
+}
+
+export class Aurelia {
+  constructor(public settings: AureliaSettings) { 
+    this.settings.root.hydrate(this.settings.host);
+    this.settings.root.bind();
+    this.settings.root.attach();
+  }
+}
+
 export class InterpolationString implements Expression {
   constructor(private parts: Expression[]) { }
 

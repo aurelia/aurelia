@@ -1,8 +1,7 @@
 import { App } from './app';
+import { Aurelia } from './framework-new';
 
-let app = new App();
-app.hydrate(document.body);
-app.bind();
-app.attach();
-
-window['app'] = app;
+new Aurelia({
+  host: document.body,
+  root: new App()
+});

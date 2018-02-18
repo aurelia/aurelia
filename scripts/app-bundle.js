@@ -66,9 +66,9 @@ define('app',["require", "exports", "./framework/scope", "./framework/property-o
         function $NameTag() {
             this.$observers = {
                 name: new property_observation_1.Observer('Aurelia'),
-                color: new property_observation_1.Observer(null),
-                borderColor: new property_observation_1.Observer('#000'),
-                borderWidth: new property_observation_1.Observer(1),
+                color: new property_observation_1.Observer('red'),
+                borderColor: new property_observation_1.Observer('orange'),
+                borderWidth: new property_observation_1.Observer(3),
                 showHeader: new property_observation_1.Observer(true)
             };
         }

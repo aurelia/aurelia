@@ -1,4 +1,3 @@
-import { IBinding } from './framework/ast';
 import { Scope, createOverrideContext } from './framework/scope';
 import { Observer } from './framework/property-observation';
 import { getTargets, oneWay, twoWay, listener } from './framework';
@@ -135,9 +134,9 @@ export class App extends $App implements IObservable {
 class $NameTag {
   $observers = {
     name: new Observer('Aurelia'),
-    color: new Observer<string>(null),
-    borderColor: new Observer('#000'),
-    borderWidth: new Observer(1),
+    color: new Observer<string>('red'),
+    borderColor: new Observer('orange'),
+    borderWidth: new Observer(3),
     showHeader: new Observer(true)
   };
 

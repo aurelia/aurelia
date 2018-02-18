@@ -8,7 +8,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('app',["require", "exports", "./framework/property-observation", "./framework"], function (require, exports, property_observation_1, framework_1) {
+define('app',["require", "exports", "./framework/scope", "./framework/property-observation", "./framework"], function (require, exports, scope_1, property_observation_1, framework_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var $App = (function () {
@@ -31,7 +31,7 @@ define('app',["require", "exports", "./framework/property-observation", "./frame
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.$scope = {
                 bindingContext: _this,
-                overrideContext: null
+                overrideContext: scope_1.createOverrideContext()
             };
             return _this;
         }
@@ -113,7 +113,7 @@ define('app',["require", "exports", "./framework/property-observation", "./frame
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.$scope = {
                 bindingContext: _this,
-                overrideContext: null
+                overrideContext: scope_1.createOverrideContext()
             };
             return _this;
         }
@@ -1463,7 +1463,7 @@ define('framework/checked-observer',["require", "exports", "./subscriber-collect
         CheckedObserver.prototype.call = function (context, splices) {
             this.synchronizeElement();
             if (!this.valueObserver) {
-                this.valueObserver = this.element['__observers__'].model || this.element['__observers__'].value;
+                this.valueObserver = this.element['$observers'].model || this.element['$observers'].value;
                 if (this.valueObserver) {
                     this.valueObserver.subscribe(checkedValueContext, this);
                 }

@@ -1,5 +1,5 @@
 import { IBinding } from './framework/ast';
-import { Scope } from './framework/scope';
+import { Scope, createOverrideContext } from './framework/scope';
 import { Observer } from './framework/property-observation';
 import { getTargets, oneWay, twoWay, listener } from './framework';
 import { IObservable, Binding } from './framework/binding';
@@ -90,7 +90,7 @@ export class App extends $App implements IObservable {
 
   private $scope: Scope = {
     bindingContext: this,
-    overrideContext: null
+    overrideContext: createOverrideContext()
   };
 
   private static $html = `
@@ -174,9 +174,10 @@ export class NameTag extends $NameTag implements IObservable {
   private $b8: Listener;
   private $b9: Binding;
   private $b10: Binding;
+  
   private $scope: Scope = {
     bindingContext: this,
-    overrideContext: null
+    overrideContext: createOverrideContext()
   };
 
   private static $html = `

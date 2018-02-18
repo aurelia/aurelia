@@ -52,7 +52,7 @@ export class CheckedObserver extends SubscriberCollection {
     // if the input's model or value property is data-bound, subscribe to it's
     // changes to enable synchronizing the element's checked status when a change occurs.
     if (!this.valueObserver) {
-      this.valueObserver = this.element['__observers__'].model || this.element['__observers__'].value;
+      this.valueObserver = this.element['$observers'].model || this.element['$observers'].value;
       if (this.valueObserver) {
         this.valueObserver.subscribe(checkedValueContext, this);
       }

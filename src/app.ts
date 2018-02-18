@@ -1,6 +1,9 @@
 import { IBinding } from './framework/ast';
 import { Scope } from './framework/scope';
-import { Observer, IObservable, getTargets, OneWay, TwoWay, Listener } from './framework';
+import { Observer } from './framework/property-observation';
+import { getTargets, oneWay, twoWay, listener } from './framework';
+import { IObservable, Binding } from './framework/binding';
+import { Listener } from './framework/listener';
 
 // Original User Code for App
 
@@ -80,9 +83,9 @@ class $App {
 
 export class App extends $App implements IObservable {
   private $host: Element;
-  private $b1: OneWay;
-  private $b2: TwoWay;
-  private $b3: TwoWay;
+  private $b1: Binding;
+  private $b2: Binding;
+  private $b3: Binding;
   private $e1: NameTag;
 
   private $scope: Scope = {
@@ -103,22 +106,22 @@ export class App extends $App implements IObservable {
     element.innerHTML = App.$html;
 
     let elements = getTargets(element);
-    let $scope = this.$scope;
 
-    this.$b1 = new OneWay($scope, 'message', elements[0], 'textContent');
-    this.$b2 = new TwoWay($scope, 'message', elements[1], 'value', ['input', 'change']);
+    this.$b1 = oneWay('message', elements[0], 'textContent');
+    this.$b2 = twoWay('message', elements[1], 'value');
 
     this.$e1 = new NameTag().hydrate(elements[2]);
-    this.$b3 = new TwoWay($scope, 'message', this.$e1, 'name');
+    this.$b3 = twoWay('message', this.$e1, 'name');
 
     return this;
   }
 
   bind() {
-    this.$b1.bind();
-    this.$b2.bind();
+    let $scope = this.$scope;
+    this.$b1.bind($scope);
+    this.$b2.bind($scope);
     this.$e1.bind();
-    this.$b3.bind();
+    this.$b3.bind($scope);
   }
 
   unbind() {
@@ -161,16 +164,16 @@ class $NameTag {
 
 export class NameTag extends $NameTag implements IObservable {
   private $host: Element;
-  private $b1: TwoWay;
-  private $b2: OneWay;
-  private $b3: OneWay;
-  private $b4: TwoWay;
-  private $b5: TwoWay;
-  private $b6: TwoWay;
-  private $b7: TwoWay;
+  private $b1: Binding;
+  private $b2: Binding;
+  private $b3: Binding;
+  private $b4: Binding;
+  private $b5: Binding;
+  private $b6: Binding;
+  private $b7: Binding;
   private $b8: Listener;
-  private $b9: OneWay;
-  private $b10: OneWay;
+  private $b9: Binding;
+  private $b10: Binding;
   private $scope: Scope = {
     bindingContext: this,
     overrideContext: null
@@ -225,33 +228,33 @@ export class NameTag extends $NameTag implements IObservable {
     element.innerHTML = NameTag.$html;
 
     let elements = getTargets(element);
-    let $scope = this.$scope;
 
-    this.$b1 = new TwoWay($scope, 'name', elements[0], 'value', ['change', 'input']);
-    this.$b2 = new OneWay($scope, 'name', elements[1], 'textContent');
-    this.$b3 = new OneWay($scope, 'nameTagColor', (elements[1] as HTMLElement).style, 'color');
-    this.$b4 = new TwoWay($scope, 'nameTagColor', elements[2], 'value', ['change']);
-    this.$b5 = new TwoWay($scope, 'nameTagBorderColor', elements[3], 'value', ['change']);
-    this.$b6 = new TwoWay($scope, 'nameTagBorderWidth', elements[4], 'value', ['change', 'input']);
-    this.$b7 = new TwoWay($scope, 'nameTagHeaderVisible', elements[5], 'checked', ['change']);
-    this.$b8 = new Listener($scope, 'click', elements[6], 'click', null);
-    this.$b9 = new OneWay($scope, 'nameTagBorder', (element as HTMLElement).style, 'border');
-    this.$b10 = new OneWay($scope, 'nameTagClasses', element, 'className');
+    this.$b1 = twoWay('name', elements[0], 'value');
+    this.$b2 = oneWay('name', elements[1], 'textContent');
+    this.$b3 = oneWay('nameTagColor', (elements[1] as HTMLElement).style, 'color');
+    this.$b4 = twoWay('nameTagColor', elements[2], 'value');
+    this.$b5 = twoWay('nameTagBorderColor', elements[3], 'value');
+    this.$b6 = twoWay('nameTagBorderWidth', elements[4], 'value');
+    this.$b7 = twoWay('nameTagHeaderVisible', elements[5], 'checked');
+    this.$b8 = listener('click', elements[6], 'submit');
+    this.$b9 = oneWay('nameTagBorder', (element as HTMLElement).style, 'border');
+    this.$b10 = oneWay('nameTagClasses', element, 'className');
 
     return this;
   }
 
   bind() {
-    this.$b1.bind();
-    this.$b2.bind();
-    this.$b3.bind();
-    this.$b4.bind();
-    this.$b5.bind();
-    this.$b6.bind();
-    this.$b7.bind();
-    this.$b8.bind();
-    this.$b9.bind();
-    this.$b10.bind();
+    let $scope = this.$scope;
+    this.$b1.bind($scope);
+    this.$b2.bind($scope);
+    this.$b3.bind($scope);
+    this.$b4.bind($scope);
+    this.$b5.bind($scope);
+    this.$b6.bind($scope);
+    this.$b7.bind($scope);
+    this.$b8.bind($scope);
+    this.$b9.bind($scope);
+    this.$b10.bind($scope);
   }
 
   unbind() {
@@ -267,5 +270,3 @@ export class NameTag extends $NameTag implements IObservable {
     this.$b10.unbind();
   }
 }
-
-

@@ -1,5 +1,6 @@
-import {getLogger} from './logging';
-import {SubscriberCollection} from './subscriber-collection';
+import { getLogger } from './logging';
+import { SubscriberCollection } from './subscriber-collection';
+import { TaskQueue } from './task-queue';
 
 const logger = getLogger('property-observation');
 
@@ -110,7 +111,7 @@ export class Observer<T> extends SubscriberCollection {
   private queued = false;
   private oldValue: T;
 
-  constructor(private taskQueue, private currentValue: T) {
+  constructor(private currentValue: T, private taskQueue = TaskQueue.instance) {
     super();
   }
 

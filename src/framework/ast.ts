@@ -16,7 +16,7 @@ export interface ILookupFunctions {
 }
 
 export interface IBinding {
-  bind();
+  bind(source: Scope);
   unbind();
   observeProperty(context, name);
 }

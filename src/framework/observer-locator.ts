@@ -1,6 +1,6 @@
 import * as LogManager from './logging';
 import {DOM} from './dom';
-import {TaskQueue} from 'aurelia-task-queue';
+import {TaskQueue, Task} from './task-queue';
 import {getArrayObserver} from './array-observation';
 import {getMapObserver} from './map-observation';
 import {getSetObserver} from './set-observation';
@@ -36,11 +36,17 @@ function getPropertyDescriptor(subject, name) {
 }
 
 export class ObserverLocator {
-  static inject = [TaskQueue, EventManager, DirtyChecker, SVGAnalyzer];
+  public static instance = new ObserverLocator();
+  
   private adapters = [];
   private logger = LogManager.getLogger('observer-locator');
 
-  constructor(private taskQueue, private eventManager, private dirtyChecker, private svgAnalyzer) {}
+  constructor(
+    private taskQueue: TaskQueue = TaskQueue.instance, 
+    private eventManager: EventManager = EventManager.instance,
+    private dirtyChecker: DirtyChecker = DirtyChecker.instance,
+    private svgAnalyzer: SVGAnalyzer = SVGAnalyzer.instance
+  ) {}
 
   getObserver(obj, propertyName) {
     let observersLookup = obj.$observers;

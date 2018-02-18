@@ -164,6 +164,8 @@ export const delegationStrategy = {
 };
 
 export class EventManager {
+  public static instance = new EventManager();
+
   elementHandlerLookup = {};
   eventStrategyLookup = {};
   defaultEventStrategy = new DefaultEventStrategy();

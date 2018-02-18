@@ -1,6 +1,8 @@
 import {SubscriberCollection} from './subscriber-collection';
 
 export class DirtyChecker {
+  public static instance = new DirtyChecker();
+
   tracked = [];
   checkDelay = 120;
 

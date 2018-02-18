@@ -73,6 +73,8 @@ export interface Task {
 * Implements an asynchronous task queue.
 */
 export class TaskQueue {
+  public static instance = new TaskQueue();
+
   /**
    * Whether the queue is in the process of flushing.
    */

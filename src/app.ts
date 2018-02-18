@@ -11,11 +11,9 @@ import { oneWay, twoWay, listener } from './framework-generated';
 //   message = 'Hello World!';
 // }
 
-// <div>
-//   <span>${message}</span><br>
-//   <input type="text" value.bind="message">
-//   <name-tag name.bind="message"></name-tag>
-// </div>
+// <span>${message}</span><br>
+// <input type="text" value.bind="message">
+// <name-tag name.bind="message"></name-tag>
 
 // ------------------------------
 
@@ -82,7 +80,7 @@ class $App {
 }
 
 export class App extends $App implements IObservable {
-  private $host: Element;
+  private $anchor: Element;
   private $view: View;
   private $b1: IBinding;
   private $b2: IBinding;
@@ -95,23 +93,21 @@ export class App extends $App implements IObservable {
   };
 
   private static $template = new Template(`
-    <div>
-      <span class="au"></span><br>
-      <input type="text" class="au">
-      <name-tag class="au"></name-tag>
-    </div>
+    <span class="au"></span><br>
+    <input type="text" class="au">
+    <name-tag class="au"></name-tag>
   `);
 
-  hydrate(element: Element) {
-    this.$host = element;
+  hydrate(anchor: Element) {
+    this.$anchor = anchor;
     this.$view = App.$template.create();
 
-    let elements = this.$view.targets;
+    let targets = this.$view.targets;
 
-    this.$b1 = oneWay('message', elements[0], 'textContent');
-    this.$b2 = twoWay('message', elements[1], 'value');
+    this.$b1 = oneWay('message', targets[0], 'textContent');
+    this.$b2 = twoWay('message', targets[1], 'value');
 
-    this.$e1 = new NameTag().hydrate(elements[2]);
+    this.$e1 = new NameTag().hydrate(targets[2]);
     this.$b3 = twoWay('message', this.$e1, 'name');
 
     return this;
@@ -119,7 +115,7 @@ export class App extends $App implements IObservable {
 
   attach() {
     this.$e1.attach();
-    this.$view.appendNodesTo(this.$host);
+    this.$view.appendNodesTo(this.$anchor);
   }
 
   bind() {
@@ -174,7 +170,7 @@ class $NameTag {
 }
 
 export class NameTag extends $NameTag implements IObservable {
-  private $host: Element;
+  private $anchor: Element;
   private $view: View;
   private $b1: IBinding;
   private $b2: IBinding;
@@ -236,22 +232,22 @@ export class NameTag extends $NameTag implements IObservable {
     <button class="au">Reset</button>
   `);
 
-  hydrate(element: Element) {
-    this.$host = element;
+  hydrate(anchor: Element) {
+    this.$anchor = anchor;
     this.$view = NameTag.$template.create();
 
-    let elements = this.$view.targets;
+    let targets = this.$view.targets;
 
-    this.$b1 = twoWay('name', elements[0], 'value');
-    this.$b2 = oneWay('name', elements[1], 'textContent');
-    this.$b3 = oneWay('nameTagColor', (elements[1] as HTMLElement).style, 'color');
-    this.$b4 = twoWay('nameTagColor', elements[2], 'value');
-    this.$b5 = twoWay('nameTagBorderColor', elements[3], 'value');
-    this.$b6 = twoWay('nameTagBorderWidth', elements[4], 'value');
-    this.$b7 = twoWay('nameTagHeaderVisible', elements[5], 'checked');
-    this.$b8 = listener('click', elements[6], 'submit');
-    this.$b9 = oneWay('nameTagBorder', (element as HTMLElement).style, 'border');
-    this.$b10 = oneWay('nameTagClasses', element, 'className');
+    this.$b1 = twoWay('name', targets[0], 'value');
+    this.$b2 = oneWay('name', targets[1], 'textContent');
+    this.$b3 = oneWay('nameTagColor', (targets[1] as HTMLElement).style, 'color');
+    this.$b4 = twoWay('nameTagColor', targets[2], 'value');
+    this.$b5 = twoWay('nameTagBorderColor', targets[3], 'value');
+    this.$b6 = twoWay('nameTagBorderWidth', targets[4], 'value');
+    this.$b7 = twoWay('nameTagHeaderVisible', targets[5], 'checked');
+    this.$b8 = listener('click', targets[6], 'submit');
+    this.$b9 = oneWay('nameTagBorder', (anchor as HTMLElement).style, 'border');
+    this.$b10 = oneWay('nameTagClasses', anchor, 'className');
 
     return this;
   }
@@ -271,7 +267,7 @@ export class NameTag extends $NameTag implements IObservable {
   }
 
   attach() {
-    this.$view.appendNodesTo(this.$host);
+    this.$view.appendNodesTo(this.$anchor);
   }
 
   unbind() {

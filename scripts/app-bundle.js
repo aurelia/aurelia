@@ -35,19 +35,19 @@ define('app',["require", "exports", "./framework/scope", "./framework/property-o
             };
             return _this;
         }
-        App.prototype.hydrate = function (element) {
-            this.$host = element;
+        App.prototype.hydrate = function (anchor) {
+            this.$anchor = anchor;
             this.$view = App.$template.create();
-            var elements = this.$view.targets;
-            this.$b1 = framework_generated_1.oneWay('message', elements[0], 'textContent');
-            this.$b2 = framework_generated_1.twoWay('message', elements[1], 'value');
-            this.$e1 = new NameTag().hydrate(elements[2]);
+            var targets = this.$view.targets;
+            this.$b1 = framework_generated_1.oneWay('message', targets[0], 'textContent');
+            this.$b2 = framework_generated_1.twoWay('message', targets[1], 'value');
+            this.$e1 = new NameTag().hydrate(targets[2]);
             this.$b3 = framework_generated_1.twoWay('message', this.$e1, 'name');
             return this;
         };
         App.prototype.attach = function () {
             this.$e1.attach();
-            this.$view.appendNodesTo(this.$host);
+            this.$view.appendNodesTo(this.$anchor);
         };
         App.prototype.bind = function () {
             var $scope = this.$scope;
@@ -66,7 +66,7 @@ define('app',["require", "exports", "./framework/scope", "./framework/property-o
             this.$b3.unbind();
             this.$e1.unbind();
         };
-        App.$template = new framework_new_1.Template("\n    <div>\n      <span class=\"au\"></span><br>\n      <input type=\"text\" class=\"au\">\n      <name-tag class=\"au\"></name-tag>\n    </div>\n  ");
+        App.$template = new framework_new_1.Template("\n    <span class=\"au\"></span><br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n  ");
         return App;
     }($App));
     exports.App = App;
@@ -125,20 +125,20 @@ define('app',["require", "exports", "./framework/scope", "./framework/property-o
             };
             return _this;
         }
-        NameTag.prototype.hydrate = function (element) {
-            this.$host = element;
+        NameTag.prototype.hydrate = function (anchor) {
+            this.$anchor = anchor;
             this.$view = NameTag.$template.create();
-            var elements = this.$view.targets;
-            this.$b1 = framework_generated_1.twoWay('name', elements[0], 'value');
-            this.$b2 = framework_generated_1.oneWay('name', elements[1], 'textContent');
-            this.$b3 = framework_generated_1.oneWay('nameTagColor', elements[1].style, 'color');
-            this.$b4 = framework_generated_1.twoWay('nameTagColor', elements[2], 'value');
-            this.$b5 = framework_generated_1.twoWay('nameTagBorderColor', elements[3], 'value');
-            this.$b6 = framework_generated_1.twoWay('nameTagBorderWidth', elements[4], 'value');
-            this.$b7 = framework_generated_1.twoWay('nameTagHeaderVisible', elements[5], 'checked');
-            this.$b8 = framework_generated_1.listener('click', elements[6], 'submit');
-            this.$b9 = framework_generated_1.oneWay('nameTagBorder', element.style, 'border');
-            this.$b10 = framework_generated_1.oneWay('nameTagClasses', element, 'className');
+            var targets = this.$view.targets;
+            this.$b1 = framework_generated_1.twoWay('name', targets[0], 'value');
+            this.$b2 = framework_generated_1.oneWay('name', targets[1], 'textContent');
+            this.$b3 = framework_generated_1.oneWay('nameTagColor', targets[1].style, 'color');
+            this.$b4 = framework_generated_1.twoWay('nameTagColor', targets[2], 'value');
+            this.$b5 = framework_generated_1.twoWay('nameTagBorderColor', targets[3], 'value');
+            this.$b6 = framework_generated_1.twoWay('nameTagBorderWidth', targets[4], 'value');
+            this.$b7 = framework_generated_1.twoWay('nameTagHeaderVisible', targets[5], 'checked');
+            this.$b8 = framework_generated_1.listener('click', targets[6], 'submit');
+            this.$b9 = framework_generated_1.oneWay('nameTagBorder', anchor.style, 'border');
+            this.$b10 = framework_generated_1.oneWay('nameTagClasses', anchor, 'className');
             return this;
         };
         NameTag.prototype.bind = function () {
@@ -155,7 +155,7 @@ define('app',["require", "exports", "./framework/scope", "./framework/property-o
             this.$b10.bind($scope);
         };
         NameTag.prototype.attach = function () {
-            this.$view.appendNodesTo(this.$host);
+            this.$view.appendNodesTo(this.$anchor);
         };
         NameTag.prototype.unbind = function () {
             this.$b1.unbind();

@@ -3,6 +3,7 @@ import { Observer } from './framework/property-observation';
 import { getTargets, oneWay, twoWay, listener } from './framework';
 import { IObservable, Binding } from './framework/binding';
 import { Listener } from './framework/listener';
+import { Template, TemplateInstance } from './core';
 
 // Original User Code for App
 
@@ -82,6 +83,7 @@ class $App {
 
 export class App extends $App implements IObservable {
   private $host: Element;
+  private $view: TemplateInstance;
   private $b1: Binding;
   private $b2: Binding;
   private $b3: Binding;
@@ -92,19 +94,19 @@ export class App extends $App implements IObservable {
     overrideContext: createOverrideContext()
   };
 
-  private static $html = `
+  private static $template = new Template(`
     <div>
       <span class="au"></span><br>
       <input type="text" class="au">
       <name-tag class="au"></name-tag>
     </div>
-  `;
+  `);
 
   hydrate(element: Element) {
     this.$host = element;
-    element.innerHTML = App.$html;
+    this.$view = App.$template.create();
 
-    let elements = getTargets(element);
+    let elements = this.$view.targets;
 
     this.$b1 = oneWay('message', elements[0], 'textContent');
     this.$b2 = twoWay('message', elements[1], 'value');
@@ -115,12 +117,22 @@ export class App extends $App implements IObservable {
     return this;
   }
 
+  attach() {
+    this.$e1.attach();
+    this.$view.appendNodesTo(this.$host);
+  }
+
   bind() {
     let $scope = this.$scope;
     this.$b1.bind($scope);
     this.$b2.bind($scope);
     this.$e1.bind();
     this.$b3.bind($scope);
+  }
+
+  detach() {
+    this.$view.removeNodes();
+    this.$e1.detach();    
   }
 
   unbind() {
@@ -163,6 +175,7 @@ class $NameTag {
 
 export class NameTag extends $NameTag implements IObservable {
   private $host: Element;
+  private $view: TemplateInstance;
   private $b1: Binding;
   private $b2: Binding;
   private $b3: Binding;
@@ -179,7 +192,7 @@ export class NameTag extends $NameTag implements IObservable {
     overrideContext: createOverrideContext()
   };
 
-  private static $html = `
+  private static $template = new Template(`
     <header>Super Duper name tag</header>
     <div>
       <input type="text" class="au"><br/>
@@ -221,13 +234,13 @@ export class NameTag extends $NameTag implements IObservable {
       </label>
     </div>
     <button class="au">Reset</button>
-  `
+  `);
 
   hydrate(element: Element) {
     this.$host = element;
-    element.innerHTML = NameTag.$html;
+    this.$view = NameTag.$template.create();
 
-    let elements = getTargets(element);
+    let elements = this.$view.targets;
 
     this.$b1 = twoWay('name', elements[0], 'value');
     this.$b2 = oneWay('name', elements[1], 'textContent');
@@ -257,6 +270,10 @@ export class NameTag extends $NameTag implements IObservable {
     this.$b10.bind($scope);
   }
 
+  attach() {
+    this.$view.appendNodesTo(this.$host);
+  }
+
   unbind() {
     this.$b1.unbind();
     this.$b2.unbind();
@@ -268,5 +285,9 @@ export class NameTag extends $NameTag implements IObservable {
     this.$b8.unbind();
     this.$b9.unbind();
     this.$b10.unbind();
+  }
+
+  detach() {
+    this.$view.removeNodes();
   }
 }

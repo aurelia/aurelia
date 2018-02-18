@@ -3,14 +3,28 @@ import {connectBindingToSignal} from './signals';
 import {Scope} from './scope';
 
 export interface Expression {
-  evaluate(scope: Scope, lookupFunctions: any, args?: any): any;
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions | null, mustEvaluateIfFunction?: boolean): any;
   assign?(scope: Scope, value: any, lookupFunctions: any): any;
+  connect(binding: IBinding, scope: Scope);
+  bind?(binding: IBinding, scope: Scope, lookupFunctions: ILookupFunctions | null): void;
+  unbind?(binding: IBinding, scope: Scope, lookupFunctions: ILookupFunctions | null): void;
+}
+
+export interface ILookupFunctions {
+  valueConverters: Record<string, any>;
+  bindingBehaviors: Record<string, any>;
+}
+
+export interface IBinding {
+  bind();
+  unbind();
+  observeProperty(context, name);
 }
 
 export class Chain implements Expression {
   constructor(private expressions) { }
 
-  evaluate(scope: Scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     let result;
     let expressions = this.expressions;
     let last;
@@ -25,6 +39,8 @@ export class Chain implements Expression {
 
     return result;
   }
+
+  connect() {}
 }
 
 export class BindingBehavior implements Expression {
@@ -134,15 +150,17 @@ export class Assign implements Expression {
 }
 
 export class Conditional implements Expression {
-  constructor(private condition, private yes, private no) { }
+  constructor(private condition: Expression, private yes: Expression, private no: Expression) { }
 
-  evaluate(scope, lookupFunctions) {
-    return (!!this.condition.evaluate(scope, lookupFunctions)) ? this.yes.evaluate(scope, lookupFunctions) : this.no.evaluate(scope, lookupFunctions);
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
+    return (!!this.condition.evaluate(scope, lookupFunctions))
+      ? this.yes.evaluate(scope, lookupFunctions)
+      : this.no.evaluate(scope, lookupFunctions);
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     this.condition.connect(binding, scope);
-    if (this.condition.evaluate(scope)) {
+    if (this.condition.evaluate(scope, null)) {
       this.yes.connect(binding, scope);
     } else {
       this.no.connect(binding, scope);
@@ -166,7 +184,7 @@ export class AccessThis implements Expression {
 }
 
 export class AccessScope implements Expression {
-  constructor(private name, private ancestor) { }
+  constructor(private name: string, private ancestor: number = 0) { }
 
   evaluate(scope, lookupFunctions) {
     let context = getContextFor(this.name, scope, this.ancestor);
@@ -185,9 +203,9 @@ export class AccessScope implements Expression {
 }
 
 export class AccessMember implements Expression {
-  constructor(private object, private name) { }
+  constructor(private object, private name: string) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope, lookupFunctions: ILookupFunctions | null) {
     let instance = this.object.evaluate(scope, lookupFunctions);
     return instance === null || instance === undefined ? instance : instance[this.name];
   }
@@ -245,9 +263,13 @@ export class AccessKeyed implements Expression {
 }
 
 export class CallScope implements Expression {
-  constructor(private name, private args, private ancestor) { }
+  constructor(
+    private name: string,
+    private args: Expression[],
+    private ancestor: number
+  ) { }
 
-  evaluate(scope, lookupFunctions, mustEvaluate) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions | null, mustEvaluate?: boolean) {
     let args = evalList(scope, this.args, lookupFunctions);
     let context = getContextFor(this.name, scope, this.ancestor);
     let func = getFunction(context, this.name, mustEvaluate);
@@ -257,7 +279,7 @@ export class CallScope implements Expression {
     return undefined;
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     let args = this.args;
     let i = args.length;
     while (i--) {
@@ -321,7 +343,7 @@ export class CallFunction implements Expression {
 }
 
 export class Binary implements Expression {
-  constructor(private operation, private left, private right) { }
+  constructor(private operation: string, private left: Expression, private right: Expression) { }
 
   evaluate(scope, lookupFunctions) {
     let left = this.left.evaluate(scope, lookupFunctions);
@@ -378,7 +400,7 @@ export class Binary implements Expression {
 
   connect(binding, scope) {
     this.left.connect(binding, scope);
-    let left = this.left.evaluate(scope);
+    let left = this.left.evaluate(scope, null);
     if (this.operation === '&&' && !left || this.operation === '||' && left) {
       return;
     }
@@ -410,14 +432,13 @@ export class LiteralPrimitive implements Expression {
 }
 
 export class LiteralString implements Expression {
-  constructor(private value) { }
+  constructor(private value: string) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     return this.value;
   }
 
-  connect(binding, scope) {
-  }
+  connect(binding: IBinding, scope: Scope) { }
 }
 
 export class LiteralArray implements Expression {

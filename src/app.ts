@@ -1,4 +1,5 @@
-import { IBindingExpression, IBinding, Scope } from './core';
+import { IBinding } from './framework/ast';
+import { Scope } from './framework/scope';
 import { Observer, IObservable, getTargets, OneWay, TwoWay, Listener } from './framework';
 
 // Original User Code for App

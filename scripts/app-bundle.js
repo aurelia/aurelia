@@ -169,96 +169,6 @@ define('app',["require", "exports", "./framework"], function (require, exports, 
 define('core',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var AccessScope = (function () {
-        function AccessScope(name, ancestor) {
-            if (ancestor === void 0) { ancestor = 0; }
-            this.name = name;
-            this.ancestor = ancestor;
-            this.name = name;
-        }
-        AccessScope.prototype.evaluate = function (scope, lookupFunctions) {
-            var context = getContextFor(this.name, scope, this.ancestor);
-            return context[this.name];
-        };
-        AccessScope.prototype.assign = function (scope, value) {
-            var context = getContextFor(this.name, scope, this.ancestor);
-            return context ? (context[this.name] = value) : undefined;
-        };
-        AccessScope.prototype.connect = function (binding, scope) {
-            var context = getContextFor(this.name, scope, this.ancestor);
-            binding.observeProperty(context, this.name);
-        };
-        return AccessScope;
-    }());
-    exports.AccessScope = AccessScope;
-    var AccessMember = (function () {
-        function AccessMember(object, name) {
-            this.object = object;
-            this.name = name;
-            this.object = object;
-            this.name = name;
-            this.isAssignable = true;
-        }
-        AccessMember.prototype.evaluate = function (scope, lookupFunctions) {
-            var instance = this.object.evaluate(scope, lookupFunctions);
-            return instance === null || instance === undefined ? instance : instance[this.name];
-        };
-        AccessMember.prototype.assign = function (scope, value) {
-            var instance = this.object.evaluate(scope, null);
-            if (instance === null || instance === undefined) {
-                return;
-            }
-            instance[this.name] = value;
-            return value;
-        };
-        AccessMember.prototype.connect = function (binding, scope) {
-            this.object.connect(binding, scope);
-            var obj = this.object.evaluate(scope, null);
-            if (obj) {
-                binding.observeProperty(obj, this.name);
-            }
-        };
-        return AccessMember;
-    }());
-    exports.AccessMember = AccessMember;
-    var CallScope = (function () {
-        function CallScope(name, args, ancestor) {
-            this.name = name;
-            this.args = args;
-            this.ancestor = ancestor;
-        }
-        CallScope.prototype.evaluate = function (scope, lookupFunctions, mustEvaluate) {
-            var args = evalList(scope, this.args, lookupFunctions);
-            var context = getContextFor(this.name, scope, this.ancestor);
-            var func = getFunction(context, this.name, mustEvaluate);
-            if (func) {
-                return func.apply(context, args);
-            }
-            return undefined;
-        };
-        CallScope.prototype.assign = function () { };
-        CallScope.prototype.connect = function (binding, scope) {
-            var args = this.args;
-            var i = args.length;
-            while (i--) {
-                args[i].connect(binding, scope);
-            }
-        };
-        return CallScope;
-    }());
-    exports.CallScope = CallScope;
-    var LiteralString = (function () {
-        function LiteralString(value) {
-            this.value = value;
-        }
-        LiteralString.prototype.assign = function () { };
-        LiteralString.prototype.evaluate = function (scope, lookupFunctions) {
-            return this.value;
-        };
-        LiteralString.prototype.connect = function (binding, scope) { };
-        return LiteralString;
-    }());
-    exports.LiteralString = LiteralString;
     var InterpolationString = (function () {
         function InterpolationString(parts) {
             this.parts = parts;
@@ -287,148 +197,6 @@ define('core',["require", "exports"], function (require, exports) {
         return InterpolationString;
     }());
     exports.InterpolationString = InterpolationString;
-    var Conditional = (function () {
-        function Conditional(condition, yes, no) {
-            this.condition = condition;
-            this.yes = yes;
-            this.no = no;
-        }
-        Conditional.prototype.evaluate = function (scope, lookupFunctions) {
-            return (!!this.condition.evaluate(scope, lookupFunctions))
-                ? this.yes.evaluate(scope, lookupFunctions)
-                : this.no.evaluate(scope, lookupFunctions);
-        };
-        Conditional.prototype.assign = function () { };
-        Conditional.prototype.connect = function (binding, scope) {
-            this.condition.connect(binding, scope);
-            if (this.condition.evaluate(scope, null)) {
-                this.yes.connect(binding, scope);
-            }
-            else {
-                this.no.connect(binding, scope);
-            }
-        };
-        return Conditional;
-    }());
-    exports.Conditional = Conditional;
-    var Binary = (function () {
-        function Binary(operation, left, right) {
-            this.operation = operation;
-            this.left = left;
-            this.right = right;
-        }
-        Binary.prototype.evaluate = function (scope, lookupFunctions) {
-            var left = this.left.evaluate(scope, lookupFunctions);
-            switch (this.operation) {
-                case '&&': return left && this.right.evaluate(scope, lookupFunctions);
-                case '||': return left || this.right.evaluate(scope, lookupFunctions);
-            }
-            var right = this.right.evaluate(scope, lookupFunctions);
-            switch (this.operation) {
-                case '==': return left == right;
-                case '===': return left === right;
-                case '!=': return left != right;
-                case '!==': return left !== right;
-            }
-            if (left === null || right === null || left === undefined || right === undefined) {
-                switch (this.operation) {
-                    case '+':
-                        if (left !== null && left !== undefined)
-                            return left;
-                        if (right !== null && right !== undefined)
-                            return right;
-                        return 0;
-                    case '-':
-                        if (left !== null && left !== undefined)
-                            return left;
-                        if (right !== null && right !== undefined)
-                            return 0 - right;
-                        return 0;
-                }
-                return null;
-            }
-            switch (this.operation) {
-                case '+': return autoConvertAdd(left, right);
-                case '-': return left - right;
-                case '*': return left * right;
-                case '/': return left / right;
-                case '%': return left % right;
-                case '<': return left < right;
-                case '>': return left > right;
-                case '<=': return left <= right;
-                case '>=': return left >= right;
-                case '^': return left ^ right;
-            }
-            throw new Error("Internal error [" + this.operation + "] not handled");
-        };
-        Binary.prototype.assign = function () { };
-        Binary.prototype.connect = function (binding, scope) {
-            this.left.connect(binding, scope);
-            var left = this.left.evaluate(scope, null, false);
-            if (this.operation === '&&' && !left || this.operation === '||' && left) {
-                return;
-            }
-            this.right.connect(binding, scope);
-        };
-        return Binary;
-    }());
-    exports.Binary = Binary;
-    function evalList(scope, list, lookupFunctions) {
-        var length = list.length;
-        var result = [];
-        for (var i = 0; i < length; i++) {
-            result[i] = list[i].evaluate(scope, lookupFunctions);
-        }
-        return result;
-    }
-    function getContextFor(name, scope, ancestor) {
-        var oc = scope.overrideContext;
-        if (ancestor) {
-            while (ancestor && oc) {
-                ancestor--;
-                oc = oc.parentOverrideContext;
-            }
-            if (ancestor || !oc) {
-                return undefined;
-            }
-            return name in oc ? oc : oc.bindingContext;
-        }
-        while (oc && !(name in oc) && !(oc.bindingContext && name in oc.bindingContext)) {
-            oc = oc.parentOverrideContext;
-        }
-        if (oc) {
-            return name in oc ? oc : oc.bindingContext;
-        }
-        return scope.bindingContext || scope.overrideContext;
-    }
-    function getFunction(obj, name, mustExist) {
-        var func = obj === null || obj === undefined ? null : obj[name];
-        if (typeof func === 'function') {
-            return func;
-        }
-        if (!mustExist && (func === null || func === undefined)) {
-            return null;
-        }
-        throw new Error(name + " is not a function");
-    }
-    function autoConvertAdd(a, b) {
-        if (a !== null && b !== null) {
-            if (typeof a === 'string' && typeof b !== 'string') {
-                return a + b.toString();
-            }
-            if (typeof a !== 'string' && typeof b === 'string') {
-                return a.toString() + b;
-            }
-            return a + b;
-        }
-        if (a !== null) {
-            return a;
-        }
-        if (b !== null) {
-            return b;
-        }
-        return 0;
-    }
 });
 
 
@@ -454,7 +222,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework',["require", "exports", "./core"], function (require, exports, core_1) {
+define('framework',["require", "exports", "./core", "./framework/ast"], function (require, exports, core_1, ast_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -491,24 +259,24 @@ define('framework',["require", "exports", "./core"], function (require, exports,
     }
     exports.getTargets = getTargets;
     var astLookup = {
-        message: new core_1.AccessScope('message'),
-        textContent: new core_1.AccessScope('textContent'),
-        value: new core_1.AccessScope('value'),
-        nameTagBorderWidth: new core_1.AccessScope('borderWidth'),
-        nameTagBorderColor: new core_1.AccessScope('borderColor'),
+        message: new ast_1.AccessScope('message'),
+        textContent: new ast_1.AccessScope('textContent'),
+        value: new ast_1.AccessScope('value'),
+        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
+        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
         nameTagBorder: new core_1.InterpolationString([
-            new core_1.AccessScope('borderWidth'),
-            new core_1.LiteralString('px solid '),
-            new core_1.AccessScope('borderColor')
+            new ast_1.AccessScope('borderWidth'),
+            new ast_1.LiteralString('px solid '),
+            new ast_1.AccessScope('borderColor')
         ]),
-        nameTagHeaderVisible: new core_1.AccessScope('showHeader'),
+        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
         nameTagClasses: new core_1.InterpolationString([
-            new core_1.LiteralString('au name-tag '),
-            new core_1.Conditional(new core_1.AccessScope('showHeader'), new core_1.LiteralString('header-visible'), new core_1.LiteralString(''))
+            new ast_1.LiteralString('au name-tag '),
+            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
         ]),
-        name: new core_1.AccessScope('name'),
-        click: new core_1.CallScope('submit', emptyArray, 0),
-        nameTagColor: new core_1.AccessScope('color')
+        name: new ast_1.AccessScope('name'),
+        click: new ast_1.CallScope('submit', emptyArray, 0),
+        nameTagColor: new ast_1.AccessScope('color')
     };
     var OneWay = (function () {
         function OneWay(source, sourceExpression, target, targetProperty) {
@@ -1124,6 +892,7 @@ define('framework/ast',["require", "exports", "./scope", "./signals"], function 
             }
             return result;
         };
+        Chain.prototype.connect = function () { };
         return Chain;
     }());
     exports.Chain = Chain;
@@ -1240,11 +1009,13 @@ define('framework/ast',["require", "exports", "./scope", "./signals"], function 
             this.no = no;
         }
         Conditional.prototype.evaluate = function (scope, lookupFunctions) {
-            return (!!this.condition.evaluate(scope, lookupFunctions)) ? this.yes.evaluate(scope, lookupFunctions) : this.no.evaluate(scope, lookupFunctions);
+            return (!!this.condition.evaluate(scope, lookupFunctions))
+                ? this.yes.evaluate(scope, lookupFunctions)
+                : this.no.evaluate(scope, lookupFunctions);
         };
         Conditional.prototype.connect = function (binding, scope) {
             this.condition.connect(binding, scope);
-            if (this.condition.evaluate(scope)) {
+            if (this.condition.evaluate(scope, null)) {
                 this.yes.connect(binding, scope);
             }
             else {
@@ -1272,6 +1043,7 @@ define('framework/ast',["require", "exports", "./scope", "./signals"], function 
     exports.AccessThis = AccessThis;
     var AccessScope = (function () {
         function AccessScope(name, ancestor) {
+            if (ancestor === void 0) { ancestor = 0; }
             this.name = name;
             this.ancestor = ancestor;
         }
@@ -1483,7 +1255,7 @@ define('framework/ast',["require", "exports", "./scope", "./signals"], function 
         };
         Binary.prototype.connect = function (binding, scope) {
             this.left.connect(binding, scope);
-            var left = this.left.evaluate(scope);
+            var left = this.left.evaluate(scope, null);
             if (this.operation === '&&' && !left || this.operation === '||' && left) {
                 return;
             }
@@ -1525,8 +1297,7 @@ define('framework/ast',["require", "exports", "./scope", "./signals"], function 
         LiteralString.prototype.evaluate = function (scope, lookupFunctions) {
             return this.value;
         };
-        LiteralString.prototype.connect = function (binding, scope) {
-        };
+        LiteralString.prototype.connect = function (binding, scope) { };
         return LiteralString;
     }());
     exports.LiteralString = LiteralString;

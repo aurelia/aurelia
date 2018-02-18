@@ -1,16 +1,16 @@
+import { InterpolationString } from './core';
+import { Scope } from './framework/scope';
 import {
-  IExpression,
+  Expression,
   IBinding,
   ILookupFunctions,
-  Scope,
   AccessScope,
   AccessMember,
   CallScope,
-  InterpolationString,
   LiteralString,
   Binary,
   Conditional
-} from './core';
+} from './framework/ast';
 
 const emptyArray = [];
 
@@ -91,7 +91,7 @@ let astLookup = {
 };
 
 export class OneWay implements IBinding {
-  sourceAst: IExpression;
+  sourceAst: Expression;
 
   constructor(
     protected source: Scope,
@@ -194,7 +194,7 @@ export class TwoWay extends OneWay {
 
 export class Listener implements IBinding {
 
-  sourceAst: IExpression;
+  sourceAst: Expression;
 
   constructor(
     protected source: Scope,

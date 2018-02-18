@@ -176,7 +176,7 @@ export class TwoWay extends OneWay {
   }
 
   updateSource() {
-    this.sourceAst.assign(this.source, this.target[this.targetProperty]);
+    this.sourceAst.assign(this.source, this.target[this.targetProperty], null);
   }
 
   updateTarget() {

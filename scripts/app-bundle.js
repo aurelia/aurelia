@@ -349,7 +349,7 @@ define('framework',["require", "exports", "./core", "./framework/ast"], function
             this["on" + e.type](e);
         };
         TwoWay.prototype.updateSource = function () {
-            this.sourceAst.assign(this.source, this.target[this.targetProperty]);
+            this.sourceAst.assign(this.source, this.target[this.targetProperty], null);
         };
         TwoWay.prototype.updateTarget = function () {
             this.target[this.targetProperty] = this.sourceAst.evaluate(this.source, null);

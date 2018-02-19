@@ -41,30 +41,30 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             var targets = this.$view.targets;
             this.$b1 = generated_1.oneWayText('message', targets[0]);
             this.$b2 = generated_1.twoWay('message', targets[1], 'value');
-            this.$e1 = new NameTag().hydrate(targets[2]);
-            this.$b3 = generated_1.twoWay('message', this.$e1, 'name');
+            this.$c1 = new NameTag().hydrate(targets[2]);
+            this.$b3 = generated_1.twoWay('message', this.$c1, 'name');
             return this;
         };
         App.prototype.attach = function () {
-            this.$e1.attach();
+            this.$c1.attach();
             this.$view.appendNodesTo(this.$anchor);
         };
         App.prototype.bind = function () {
             var $scope = this.$scope;
             this.$b1.bind($scope);
             this.$b2.bind($scope);
-            this.$e1.bind();
+            this.$c1.bind();
             this.$b3.bind($scope);
         };
         App.prototype.detach = function () {
             this.$view.removeNodes();
-            this.$e1.detach();
+            this.$c1.detach();
         };
         App.prototype.unbind = function () {
             this.$b1.unbind();
             this.$b2.unbind();
             this.$b3.unbind();
-            this.$e1.unbind();
+            this.$c1.unbind();
         };
         App.$template = new new_1.Template("\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n  ");
         return App;
@@ -552,7 +552,7 @@ define('framework/logging',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/new',["require", "exports", "./dom"], function (require, exports, dom_1) {
+define('framework/new',["require", "exports", "./dom", "./templating/view"], function (require, exports, dom_1, view_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Aurelia = (function () {
@@ -599,42 +599,11 @@ define('framework/new',["require", "exports", "./dom"], function (require, expor
             this.element.innerHTML = html;
         }
         Template.prototype.create = function () {
-            return new View(this.element);
+            return new view_1.View(this.element);
         };
         return Template;
     }());
     exports.Template = Template;
-    var View = (function () {
-        function View(template) {
-            var clone = template.cloneNode(true);
-            this.fragment = clone.content;
-            this.targets = this.fragment.querySelectorAll('.au');
-            this.firstChild = this.fragment.firstChild;
-            this.lastChild = this.fragment.lastChild;
-        }
-        View.prototype.insertNodesBefore = function (refNode) {
-            refNode.parentNode.insertBefore(this.fragment, refNode);
-        };
-        View.prototype.appendNodesTo = function (parent) {
-            parent.appendChild(this.fragment);
-        };
-        View.prototype.removeNodes = function () {
-            var fragment = this.fragment;
-            var current = this.firstChild;
-            var end = this.lastChild;
-            var next;
-            while (current) {
-                next = current.nextSibling;
-                fragment.appendChild(current);
-                if (current === end) {
-                    break;
-                }
-                current = next;
-            }
-        };
-        return View;
-    }());
-    exports.View = View;
 });
 
 
@@ -3963,6 +3932,782 @@ define('framework/binding/svg',["require", "exports"], function (require, export
         return SVGAnalyzer;
     }());
     exports.SVGAnalyzer = SVGAnalyzer;
+});
+
+
+
+define('framework/templating/view',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var View = (function () {
+        function View(template) {
+            var clone = template.cloneNode(true);
+            this.fragment = clone.content;
+            this.targets = this.fragment.querySelectorAll('.au');
+            this.firstChild = this.fragment.firstChild;
+            this.lastChild = this.fragment.lastChild;
+        }
+        View.prototype.insertNodesBefore = function (refNode) {
+            refNode.parentNode.insertBefore(this.fragment, refNode);
+        };
+        View.prototype.appendNodesTo = function (parent) {
+            parent.appendChild(this.fragment);
+        };
+        View.prototype.removeNodes = function () {
+            var fragment = this.fragment;
+            var current = this.firstChild;
+            var end = this.lastChild;
+            var next;
+            while (current) {
+                next = current.nextSibling;
+                fragment.appendChild(current);
+                if (current === end) {
+                    break;
+                }
+                current = next;
+            }
+        };
+        return View;
+    }());
+    exports.View = View;
+});
+
+
+
+define('framework/templating/view-slot',["require", "exports", "./animator", "./shadow-dom"], function (require, exports, animator_1, shadow_dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function getAnimatableElement(visual) {
+        var view = visual.$view;
+        if (view['$animatableElement'] !== undefined) {
+            return view['$animatableElement'];
+        }
+        var current = view.firstChild;
+        while (current && current.nodeType !== 1) {
+            current = current.nextSibling;
+        }
+        if (current && current.nodeType === 1) {
+            return (view['$animatableElement'] = current.classList.contains('au-animate') ? current : null);
+        }
+        return (view['$animatableElement'] = null);
+    }
+    var ViewSlot = (function () {
+        function ViewSlot(anchor, anchorIsContainer, animator) {
+            if (animator === void 0) { animator = animator_1.Animator.instance; }
+            this.anchor = anchor;
+            this.anchorIsContainer = anchorIsContainer;
+            this.animator = animator;
+            this.children = [];
+            this.isBound = false;
+            this.isAttached = false;
+            this.contentSelectors = null;
+            anchor['viewSlot'] = this;
+            anchor['isContentProjectionSource'] = false;
+        }
+        ViewSlot.prototype.animateView = function (visual, direction) {
+            if (direction === void 0) { direction = 'enter'; }
+            var animatableElement = getAnimatableElement(visual);
+            if (animatableElement !== null) {
+                switch (direction) {
+                    case 'enter':
+                        return this.animator.enter(animatableElement);
+                    case 'leave':
+                        return this.animator.leave(animatableElement);
+                    default:
+                        throw new Error('Invalid animation direction: ' + direction);
+                }
+            }
+        };
+        ViewSlot.prototype.bind = function () {
+            if (this.isBound) {
+                return;
+            }
+            this.isBound = true;
+            var children = this.children;
+            for (var i = 0, ii = children.length; i < ii; ++i) {
+                children[i].bind();
+            }
+        };
+        ViewSlot.prototype.unbind = function () {
+            if (this.isBound) {
+                var i = void 0;
+                var ii = void 0;
+                var children = this.children;
+                this.isBound = false;
+                for (i = 0, ii = children.length; i < ii; ++i) {
+                    children[i].unbind();
+                }
+            }
+        };
+        ViewSlot.prototype.add = function (visual) {
+            if (this.anchorIsContainer) {
+                visual.$view.appendNodesTo(this.anchor);
+            }
+            else {
+                visual.$view.insertNodesBefore(this.anchor);
+            }
+            this.children.push(visual);
+            if (this.isAttached) {
+                visual.attach();
+                return this.animateView(visual, 'enter');
+            }
+        };
+        ViewSlot.prototype.insert = function (index, visual) {
+            var children = this.children;
+            var length = children.length;
+            if ((index === 0 && length === 0) || index >= length) {
+                return this.add(visual);
+            }
+            visual.$view.insertNodesBefore(children[index].$view.firstChild);
+            children.splice(index, 0, visual);
+            if (this.isAttached) {
+                visual.attach();
+                return this.animateView(visual, 'enter');
+            }
+        };
+        ViewSlot.prototype.move = function (sourceIndex, targetIndex) {
+            if (sourceIndex === targetIndex) {
+                return;
+            }
+            var children = this.children;
+            var component = children[sourceIndex];
+            var view = component.$view;
+            view.removeNodes();
+            view.insertNodesBefore(children[targetIndex].$view.firstChild);
+            children.splice(sourceIndex, 1);
+            children.splice(targetIndex, 0, component);
+        };
+        ViewSlot.prototype.remove = function (visual, skipAnimation) {
+            return this.removeAt(this.children.indexOf(visual), skipAnimation);
+        };
+        ViewSlot.prototype.removeMany = function (visualsToRemove, skipAnimation) {
+            var _this = this;
+            var children = this.children;
+            var ii = visualsToRemove.length;
+            var i;
+            var rmPromises = [];
+            visualsToRemove.forEach(function (child) {
+                var view = child.$view;
+                if (skipAnimation) {
+                    view.removeNodes();
+                    return;
+                }
+                var animation = _this.animateView(child, 'leave');
+                if (animation) {
+                    rmPromises.push(animation.then(function () { return view.removeNodes(); }));
+                }
+                else {
+                    view.removeNodes();
+                }
+            });
+            var removeAction = function () {
+                if (_this.isAttached) {
+                    for (i = 0; i < ii; ++i) {
+                        visualsToRemove[i].detach();
+                    }
+                }
+                for (i = 0; i < ii; ++i) {
+                    var index = children.indexOf(visualsToRemove[i]);
+                    if (index >= 0) {
+                        children.splice(index, 1);
+                    }
+                }
+                return visualsToRemove;
+            };
+            if (rmPromises.length > 0) {
+                return Promise.all(rmPromises).then(function () { return removeAction(); });
+            }
+            return removeAction();
+        };
+        ViewSlot.prototype.removeAt = function (index, skipAnimation) {
+            var _this = this;
+            var visual = this.children[index];
+            var removeAction = function () {
+                index = _this.children.indexOf(visual);
+                visual.$view.removeNodes();
+                _this.children.splice(index, 1);
+                if (_this.isAttached) {
+                    visual.detach();
+                }
+                return visual;
+            };
+            if (!skipAnimation) {
+                var animation = this.animateView(visual, 'leave');
+                if (animation) {
+                    return animation.then(function () { return removeAction(); });
+                }
+            }
+            return removeAction();
+        };
+        ViewSlot.prototype.removeAll = function (skipAnimation) {
+            var _this = this;
+            var children = this.children;
+            var ii = children.length;
+            var i;
+            var rmPromises = [];
+            children.forEach(function (child) {
+                var view = child.$view;
+                if (skipAnimation) {
+                    view.removeNodes();
+                    return;
+                }
+                var animation = _this.animateView(child, 'leave');
+                if (animation) {
+                    rmPromises.push(animation.then(function () { return view.removeNodes(); }));
+                }
+                else {
+                    view.removeNodes();
+                }
+            });
+            var removeAction = function () {
+                if (_this.isAttached) {
+                    for (i = 0; i < ii; ++i) {
+                        children[i].detach();
+                    }
+                }
+                _this.children = [];
+            };
+            if (rmPromises.length > 0) {
+                return Promise.all(rmPromises).then(function () { return removeAction(); });
+            }
+            return removeAction();
+        };
+        ViewSlot.prototype.attached = function () {
+            var i;
+            var ii;
+            var children;
+            var child;
+            if (this.isAttached) {
+                return;
+            }
+            this.isAttached = true;
+            children = this.children;
+            for (i = 0, ii = children.length; i < ii; ++i) {
+                child = children[i];
+                child.attached();
+                this.animateView(child, 'enter');
+            }
+        };
+        ViewSlot.prototype.detached = function () {
+            var i;
+            var ii;
+            var children;
+            if (this.isAttached) {
+                this.isAttached = false;
+                children = this.children;
+                for (i = 0, ii = children.length; i < ii; ++i) {
+                    children[i].detached();
+                }
+            }
+        };
+        ViewSlot.prototype.projectTo = function (slots) {
+            var _this = this;
+            this.projectToSlots = slots;
+            this.add = this._projectionAdd;
+            this.insert = this._projectionInsert;
+            this.move = this._projectionMove;
+            this.remove = this._projectionRemove;
+            this.removeAt = this._projectionRemoveAt;
+            this.removeMany = this._projectionRemoveMany;
+            this.removeAll = this._projectionRemoveAll;
+            this.children.forEach(function (view) { return shadow_dom_1.ShadowDOM.distributeView(view, slots, _this); });
+        };
+        ViewSlot.prototype._projectionAdd = function (view) {
+            shadow_dom_1.ShadowDOM.distributeView(view, this.projectToSlots, this);
+            this.children.push(view);
+            if (this.isAttached) {
+                view.attached();
+            }
+        };
+        ViewSlot.prototype._projectionInsert = function (index, view) {
+            if ((index === 0 && !this.children.length) || index >= this.children.length) {
+                this.add(view);
+            }
+            else {
+                shadow_dom_1.ShadowDOM.distributeView(view, this.projectToSlots, this, index);
+                this.children.splice(index, 0, view);
+                if (this.isAttached) {
+                    view.attached();
+                }
+            }
+        };
+        ViewSlot.prototype._projectionMove = function (sourceIndex, targetIndex) {
+            if (sourceIndex === targetIndex) {
+                return;
+            }
+            var children = this.children;
+            var view = children[sourceIndex];
+            shadow_dom_1.ShadowDOM.undistributeView(view, this.projectToSlots, this);
+            shadow_dom_1.ShadowDOM.distributeView(view, this.projectToSlots, this, targetIndex);
+            children.splice(sourceIndex, 1);
+            children.splice(targetIndex, 0, view);
+        };
+        ViewSlot.prototype._projectionRemove = function (view) {
+            shadow_dom_1.ShadowDOM.undistributeView(view, this.projectToSlots, this);
+            this.children.splice(this.children.indexOf(view), 1);
+            if (this.isAttached) {
+                view.detached();
+            }
+            return view;
+        };
+        ViewSlot.prototype._projectionRemoveAt = function (index, skipAnimation) {
+            var view = this.children[index];
+            shadow_dom_1.ShadowDOM.undistributeView(view, this.projectToSlots, this);
+            this.children.splice(index, 1);
+            if (this.isAttached) {
+                view.detach();
+            }
+            return view;
+        };
+        ViewSlot.prototype._projectionRemoveMany = function (viewsToRemove, skipAnimation) {
+            var _this = this;
+            viewsToRemove.forEach(function (view) { return _this.remove(view); });
+        };
+        ViewSlot.prototype._projectionRemoveAll = function () {
+            shadow_dom_1.ShadowDOM.undistributeAll(this.projectToSlots, this);
+            var children = this.children;
+            if (this.isAttached) {
+                for (var i = 0, ii = children.length; i < ii; ++i) {
+                    children[i].detach();
+                }
+            }
+            this.children = [];
+        };
+        return ViewSlot;
+    }());
+    exports.ViewSlot = ViewSlot;
+});
+
+
+
+define('framework/templating/animator',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Animator = (function () {
+        function Animator() {
+        }
+        Animator.prototype.enter = function (element) {
+            return Promise.resolve(false);
+        };
+        Animator.prototype.leave = function (element) {
+            return Promise.resolve(false);
+        };
+        Animator.prototype.removeClass = function (element, className) {
+            element.classList.remove(className);
+            return Promise.resolve(false);
+        };
+        Animator.prototype.addClass = function (element, className) {
+            element.classList.add(className);
+            return Promise.resolve(false);
+        };
+        Animator.prototype.animate = function (element, className) {
+            return Promise.resolve(false);
+        };
+        Animator.prototype.runSequence = function (animations) {
+            return Promise.resolve(true);
+        };
+        Animator.prototype.registerEffect = function (effectName, properties) { };
+        Animator.prototype.unregisterEffect = function (effectName) { };
+        Animator.instance = new Animator();
+        return Animator;
+    }());
+    exports.Animator = Animator;
+});
+
+
+
+define('framework/templating/shadow-dom',["require", "exports", "../dom", "../util"], function (require, exports, dom_1, util_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var noNodes = Object.freeze([]);
+    var SlotCustomAttribute = (function () {
+        function SlotCustomAttribute(element) {
+            this.element = element;
+            this.element = element;
+            this.element['auSlotAttribute'] = this;
+        }
+        SlotCustomAttribute.prototype.valueChanged = function (newValue, oldValue) {
+        };
+        return SlotCustomAttribute;
+    }());
+    exports.SlotCustomAttribute = SlotCustomAttribute;
+    var PassThroughSlot = (function () {
+        function PassThroughSlot(anchor, name, destinationName, fallbackFactory) {
+            this.anchor = anchor;
+            this.name = name;
+            this.destinationName = destinationName;
+            this.fallbackFactory = fallbackFactory;
+            this.projections = 0;
+            this.contentView = null;
+            this.destinationSlot = null;
+            this.anchor['viewSlot'] = this;
+            var attr = new SlotCustomAttribute(this.anchor);
+            attr['value'] = this.destinationName;
+        }
+        Object.defineProperty(PassThroughSlot.prototype, "needsFallbackRendering", {
+            get: function () {
+                return this.fallbackFactory && this.projections === 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        PassThroughSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
+            if (index === void 0) { index = 0; }
+            if (this.contentView === null) {
+                this.contentView = this.fallbackFactory.create(this.ownerView.container);
+                this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+                var slots = Object.create(null);
+                slots[this.destinationSlot.name] = this.destinationSlot;
+                ShadowDOM.distributeView(this.contentView, slots, projectionSource, index, this.destinationSlot.name);
+            }
+        };
+        PassThroughSlot.prototype.passThroughTo = function (destinationSlot) {
+            this.destinationSlot = destinationSlot;
+        };
+        PassThroughSlot.prototype.addNode = function (view, node, projectionSource, index) {
+            if (this.contentView !== null) {
+                this.contentView.removeNodes();
+                this.contentView.detached();
+                this.contentView.unbind();
+                this.contentView = null;
+            }
+            if (node.viewSlot instanceof PassThroughSlot) {
+                node.viewSlot.passThroughTo(this);
+                return;
+            }
+            this.projections++;
+            this.destinationSlot.addNode(view, node, projectionSource, index);
+        };
+        PassThroughSlot.prototype.removeView = function (view, projectionSource) {
+            this.projections--;
+            this.destinationSlot.removeView(view, projectionSource);
+            if (this.needsFallbackRendering) {
+                this.renderFallbackContent(null, noNodes, projectionSource);
+            }
+        };
+        PassThroughSlot.prototype.removeAll = function (projectionSource) {
+            this.projections = 0;
+            this.destinationSlot.removeAll(projectionSource);
+            if (this.needsFallbackRendering) {
+                this.renderFallbackContent(null, noNodes, projectionSource);
+            }
+        };
+        PassThroughSlot.prototype.projectFrom = function (view, projectionSource) {
+            this.destinationSlot.projectFrom(view, projectionSource);
+        };
+        PassThroughSlot.prototype.created = function (ownerView) {
+            this.ownerView = ownerView;
+        };
+        PassThroughSlot.prototype.bind = function (view) {
+            if (this.contentView) {
+                this.contentView.bind(view.bindingContext, view.overrideContext);
+            }
+        };
+        PassThroughSlot.prototype.attached = function () {
+            if (this.contentView) {
+                this.contentView.attached();
+            }
+        };
+        PassThroughSlot.prototype.detached = function () {
+            if (this.contentView) {
+                this.contentView.detached();
+            }
+        };
+        PassThroughSlot.prototype.unbind = function () {
+            if (this.contentView) {
+                this.contentView.unbind();
+            }
+        };
+        return PassThroughSlot;
+    }());
+    exports.PassThroughSlot = PassThroughSlot;
+    var ShadowSlot = (function () {
+        function ShadowSlot(anchor, name, fallbackFactory) {
+            this.anchor = anchor;
+            this.name = name;
+            this.fallbackFactory = fallbackFactory;
+            this.contentView = null;
+            this.projections = 0;
+            this.children = [];
+            this.projectFromAnchors = null;
+            this.destinationSlots = null;
+            this.anchor['isContentProjectionSource'] = true;
+            this.anchor['viewSlot'] = this;
+        }
+        Object.defineProperty(ShadowSlot.prototype, "needsFallbackRendering", {
+            get: function () {
+                return this.fallbackFactory && this.projections === 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ShadowSlot.prototype.addNode = function (view, node, projectionSource, index, destination) {
+            if (this.contentView !== null) {
+                this.contentView.removeNodes();
+                this.contentView.detached();
+                this.contentView.unbind();
+                this.contentView = null;
+            }
+            if (node.viewSlot instanceof PassThroughSlot) {
+                node.viewSlot.passThroughTo(this);
+                return;
+            }
+            if (this.destinationSlots !== null) {
+                ShadowDOM.distributeNodes(view, [node], this.destinationSlots, this, index);
+            }
+            else {
+                node.auOwnerView = view;
+                node.auProjectionSource = projectionSource;
+                node.auAssignedSlot = this;
+                var anchor = this._findAnchor(view, node, projectionSource, index);
+                var parent_1 = anchor.parentNode;
+                parent_1.insertBefore(node, anchor);
+                this.children.push(node);
+                this.projections++;
+            }
+        };
+        ShadowSlot.prototype.removeView = function (view, projectionSource) {
+            if (this.destinationSlots !== null) {
+                ShadowDOM.undistributeView(view, this.destinationSlots, this);
+            }
+            else if (this.contentView && this.contentView.hasSlots) {
+                ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
+            }
+            else {
+                var found = this.children.find(function (x) { return x.auSlotProjectFrom === projectionSource; });
+                if (found) {
+                    var children = found.auProjectionChildren;
+                    for (var i = 0, ii = children.length; i < ii; ++i) {
+                        var child = children[i];
+                        if (child.auOwnerView === view) {
+                            children.splice(i, 1);
+                            view.fragment.appendChild(child);
+                            i--;
+                            ii--;
+                            this.projections--;
+                        }
+                    }
+                    if (this.needsFallbackRendering) {
+                        this.renderFallbackContent(view, noNodes, projectionSource);
+                    }
+                }
+            }
+        };
+        ShadowSlot.prototype.removeAll = function (projectionSource) {
+            if (this.destinationSlots !== null) {
+                ShadowDOM.undistributeAll(this.destinationSlots, this);
+            }
+            else if (this.contentView && this.contentView.hasSlots) {
+                ShadowDOM.undistributeAll(this.contentView.slots, projectionSource);
+            }
+            else {
+                var found = this.children.find(function (x) { return x.auSlotProjectFrom === projectionSource; });
+                if (found) {
+                    var children = found.auProjectionChildren;
+                    for (var i = 0, ii = children.length; i < ii; ++i) {
+                        var child = children[i];
+                        child.auOwnerView.fragment.appendChild(child);
+                        this.projections--;
+                    }
+                    found.auProjectionChildren = [];
+                    if (this.needsFallbackRendering) {
+                        this.renderFallbackContent(null, noNodes, projectionSource);
+                    }
+                }
+            }
+        };
+        ShadowSlot.prototype._findAnchor = function (view, node, projectionSource, index) {
+            if (projectionSource) {
+                var found = this.children.find(function (x) { return x.auSlotProjectFrom === projectionSource; });
+                if (found) {
+                    if (index !== undefined) {
+                        var children = found.auProjectionChildren;
+                        var viewIndex = -1;
+                        var lastView = void 0;
+                        for (var i = 0, ii = children.length; i < ii; ++i) {
+                            var current = children[i];
+                            if (current.auOwnerView !== lastView) {
+                                viewIndex++;
+                                lastView = current.auOwnerView;
+                                if (viewIndex >= index && lastView !== view) {
+                                    children.splice(i, 0, node);
+                                    return current;
+                                }
+                            }
+                        }
+                    }
+                    found.auProjectionChildren.push(node);
+                    return found;
+                }
+            }
+            return this.anchor;
+        };
+        ShadowSlot.prototype.projectTo = function (slots) {
+            this.destinationSlots = slots;
+        };
+        ShadowSlot.prototype.projectFrom = function (view, projectionSource) {
+            var anchor = dom_1.DOM.createComment('anchor');
+            var parent = this.anchor.parentNode;
+            anchor['auSlotProjectFrom'] = projectionSource;
+            anchor['auOwnerView'] = view;
+            anchor['auProjectionChildren'] = [];
+            parent.insertBefore(anchor, this.anchor);
+            this.children.push(anchor);
+            if (this.projectFromAnchors === null) {
+                this.projectFromAnchors = [];
+            }
+            this.projectFromAnchors.push(anchor);
+        };
+        ShadowSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
+            if (index === void 0) { index = 0; }
+            if (this.contentView === null) {
+                this.contentView = this.fallbackFactory.create(this.ownerView.container);
+                this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+                this.contentView.insertNodesBefore(this.anchor);
+            }
+            if (this.contentView.hasSlots) {
+                var slots = this.contentView.slots;
+                var projectFromAnchors = this.projectFromAnchors;
+                if (projectFromAnchors !== null) {
+                    for (var slotName in slots) {
+                        var slot = slots[slotName];
+                        for (var i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
+                            var anchor = projectFromAnchors[i];
+                            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
+                        }
+                    }
+                }
+                this.fallbackSlots = slots;
+                ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
+            }
+        };
+        ShadowSlot.prototype.created = function (ownerView) {
+            this.ownerView = ownerView;
+        };
+        ShadowSlot.prototype.bind = function (view) {
+            if (this.contentView) {
+                this.contentView.bind(view.bindingContext, view.overrideContext);
+            }
+        };
+        ShadowSlot.prototype.attached = function () {
+            if (this.contentView) {
+                this.contentView.attached();
+            }
+        };
+        ShadowSlot.prototype.detached = function () {
+            if (this.contentView) {
+                this.contentView.detached();
+            }
+        };
+        ShadowSlot.prototype.unbind = function () {
+            if (this.contentView) {
+                this.contentView.unbind();
+            }
+        };
+        return ShadowSlot;
+    }());
+    exports.ShadowSlot = ShadowSlot;
+    var ShadowDOM = (function () {
+        function ShadowDOM() {
+        }
+        ShadowDOM.getSlotName = function (node) {
+            if (node.auSlotAttribute === undefined) {
+                return ShadowDOM.defaultSlotKey;
+            }
+            return node.auSlotAttribute.value;
+        };
+        ShadowDOM.distributeView = function (view, slots, projectionSource, index, destinationOverride) {
+            if (index === void 0) { index = 0; }
+            if (destinationOverride === void 0) { destinationOverride = null; }
+            var nodes;
+            if (view === null) {
+                nodes = noNodes;
+            }
+            else {
+                var childNodes = view.fragment.childNodes;
+                var ii = childNodes.length;
+                nodes = new Array(ii);
+                for (var i = 0; i < ii; ++i) {
+                    nodes[i] = childNodes[i];
+                }
+            }
+            ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride);
+        };
+        ShadowDOM.undistributeView = function (view, slots, projectionSource) {
+            for (var slotName in slots) {
+                slots[slotName].removeView(view, projectionSource);
+            }
+        };
+        ShadowDOM.undistributeAll = function (slots, projectionSource) {
+            for (var slotName in slots) {
+                slots[slotName].removeAll(projectionSource);
+            }
+        };
+        ShadowDOM.distributeNodes = function (view, nodes, slots, projectionSource, index, destinationOverride) {
+            if (destinationOverride === void 0) { destinationOverride = null; }
+            for (var i = 0, ii = nodes.length; i < ii; ++i) {
+                var currentNode = nodes[i];
+                var nodeType = currentNode.nodeType;
+                if (currentNode.isContentProjectionSource) {
+                    currentNode.viewSlot.projectTo(slots);
+                    for (var slotName in slots) {
+                        slots[slotName].projectFrom(view, currentNode.viewSlot);
+                    }
+                    nodes.splice(i, 1);
+                    ii--;
+                    i--;
+                }
+                else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) {
+                    if (nodeType === 3 && util_1._isAllWhitespace(currentNode)) {
+                        nodes.splice(i, 1);
+                        ii--;
+                        i--;
+                    }
+                    else {
+                        var found = slots[destinationOverride || ShadowDOM.getSlotName(currentNode)];
+                        if (found) {
+                            found.addNode(view, currentNode, projectionSource, index);
+                            nodes.splice(i, 1);
+                            ii--;
+                            i--;
+                        }
+                    }
+                }
+                else {
+                    nodes.splice(i, 1);
+                    ii--;
+                    i--;
+                }
+            }
+            for (var slotName in slots) {
+                var slot = slots[slotName];
+                if (slot.needsFallbackRendering) {
+                    slot.renderFallbackContent(view, nodes, projectionSource, index);
+                }
+            }
+        };
+        ShadowDOM.defaultSlotKey = '__au-default-slot-key__';
+        return ShadowDOM;
+    }());
+    exports.ShadowDOM = ShadowDOM;
+});
+
+
+
+define('framework/util',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function _isAllWhitespace(node) {
+        return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
+    }
+    exports._isAllWhitespace = _isAllWhitespace;
+});
+
+
+
+define('framework/templating/component',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
 });
 
 

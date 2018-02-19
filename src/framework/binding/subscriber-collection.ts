@@ -2,7 +2,7 @@ let arrayPool1 = [];
 let arrayPool2 = [];
 let poolUtilization = [];
 
-export class SubscriberCollection {
+export abstract class SubscriberCollection {
   private _context0 = null;
   private _callable0 = null;
   private _context1 = null;
@@ -12,7 +12,7 @@ export class SubscriberCollection {
   private _contextsRest = null;
   private _callablesRest = null;
 
-  addSubscriber(context, callable) {
+  protected addSubscriber(context, callable) {
     if (this.hasSubscriber(context, callable)) {
       return false;
     }
@@ -41,7 +41,7 @@ export class SubscriberCollection {
     return true;
   }
   
-  removeSubscriber(context, callable) {
+  protected removeSubscriber(context, callable) {
     if (this._context0 === context && this._callable0 === callable) {
       this._context0 = null;
       this._callable0 = null;
@@ -74,7 +74,7 @@ export class SubscriberCollection {
     return true;
   }
 
-  callSubscribers(newValue, oldValue?) {
+  protected callSubscribers(newValue, oldValue?) {
     let context0 = this._context0;
     let callable0 = this._callable0;
     let context1 = this._context1;
@@ -149,7 +149,7 @@ export class SubscriberCollection {
     }
   }
   
-  hasSubscribers() {
+  protected hasSubscribers() {
     return !!(
       this._context0
       || this._context1
@@ -157,7 +157,7 @@ export class SubscriberCollection {
       || this._contextsRest && this._contextsRest.length);
   }
   
-  hasSubscriber(context, callable) {
+  protected hasSubscriber(context, callable) {
     let has = this._context0 === context && this._callable0 === callable
       || this._context1 === context && this._callable1 === callable
       || this._context2 === context && this._callable2 === callable;

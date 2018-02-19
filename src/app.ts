@@ -2,8 +2,10 @@ import { Scope, createOverrideContext } from './framework/binding/scope';
 import { Observer } from './framework/binding/property-observation';
 import { IObservable } from './framework/binding/binding';
 import { IBinding } from './framework/binding/ast';
-import { Template, View } from './framework/new';
+import { Template } from './framework/new';
 import { oneWay, twoWay, listener, oneWayText } from './framework/generated';
+import { View } from './framework/templating/view';
+import { IVisual, IComponent } from './framework/templating/component';
 
 // Original User Code for App
 
@@ -81,15 +83,15 @@ class $App {
   set message(value: string) { this.$observers.message.setValue(value); }
 }
 
-export class App extends $App implements IObservable {
-  private $anchor: Element;
-  private $view: View;
+export class App extends $App implements IComponent {
   private $b1: IBinding;
   private $b2: IBinding;
   private $b3: IBinding;
-  private $e1: NameTag;
+  private $c1: IComponent;
 
-  private $scope: Scope = {
+  $anchor: Element;
+  $view: View;
+  $scope: Scope = {
     bindingContext: this,
     overrideContext: createOverrideContext()
   };
@@ -109,14 +111,14 @@ export class App extends $App implements IObservable {
     this.$b1 = oneWayText('message', targets[0]);
     this.$b2 = twoWay('message', targets[1], 'value');
 
-    this.$e1 = new NameTag().hydrate(targets[2]);
-    this.$b3 = twoWay('message', this.$e1, 'name');
+    this.$c1 = new NameTag().hydrate(targets[2]);
+    this.$b3 = twoWay('message', this.$c1, 'name');
 
     return this;
   }
 
   attach() {
-    this.$e1.attach();
+    this.$c1.attach();
     this.$view.appendNodesTo(this.$anchor);
   }
 
@@ -124,20 +126,20 @@ export class App extends $App implements IObservable {
     let $scope = this.$scope;
     this.$b1.bind($scope);
     this.$b2.bind($scope);
-    this.$e1.bind();
+    this.$c1.bind();
     this.$b3.bind($scope);
   }
 
   detach() {
     this.$view.removeNodes();
-    this.$e1.detach();    
+    this.$c1.detach();    
   }
 
   unbind() {
     this.$b1.unbind();
     this.$b2.unbind();
     this.$b3.unbind();
-    this.$e1.unbind();
+    this.$c1.unbind();
   }
 }
 
@@ -171,9 +173,7 @@ class $NameTag {
   }
 }
 
-export class NameTag extends $NameTag implements IObservable {
-  private $anchor: Element;
-  private $view: View;
+export class NameTag extends $NameTag implements IComponent {
   private $b1: IBinding;
   private $b2: IBinding;
   private $b3: IBinding;
@@ -185,7 +185,9 @@ export class NameTag extends $NameTag implements IObservable {
   private $b9: IBinding;
   private $b10: IBinding;
   
-  private $scope: Scope = {
+  $anchor: Element;
+  $view: View;
+  $scope: Scope = {
     bindingContext: this,
     overrideContext: createOverrideContext()
   };

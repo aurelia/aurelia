@@ -1,6 +1,7 @@
 import { EventManager } from "./event-manager";
-import { Expression, ILookupFunctions, IBinding } from "./ast";
+import { Expression, ILookupFunctions } from "./ast";
 import { Scope } from "./scope";
+import { IBinding } from "./binding";
 
 export class Listener implements IBinding {
   private source: Scope;

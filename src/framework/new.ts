@@ -1,7 +1,8 @@
 import { Scope } from './binding/scope';
-import { Expression, ILookupFunctions, IBinding} from './binding/ast';
+import { Expression, ILookupFunctions } from './binding/ast';
 import { DOM } from './dom';
 import { View } from './templating/view';
+import { IBinding } from './binding/binding';
 
 export interface AureliaSettings {
   host: HTMLElement,
@@ -10,7 +11,7 @@ export interface AureliaSettings {
 
 export class Aurelia {
   constructor(public settings: AureliaSettings) { 
-    this.settings.root.hydrate(this.settings.host);
+    this.settings.root.applyTo(this.settings.host);
     this.settings.root.bind();
     this.settings.root.attach();
   }

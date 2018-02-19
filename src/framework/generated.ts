@@ -2,7 +2,6 @@ import { Scope } from './binding/scope';
 import { Observer } from './binding/property-observation';
 import {
   Expression,
-  IBinding,
   ILookupFunctions,
   AccessScope,
   AccessMember,

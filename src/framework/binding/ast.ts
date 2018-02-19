@@ -1,6 +1,6 @@
-import {getContextFor} from './scope';
-import {connectBindingToSignal} from './signals';
-import {Scope} from './scope';
+import { getContextFor, Scope } from './scope';
+import { connectBindingToSignal } from './signals';
+import { IBinding } from './binding';
 
 export interface Expression {
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions | null, mustEvaluateIfFunction?: boolean): any;
@@ -13,12 +13,6 @@ export interface Expression {
 export interface ILookupFunctions {
   valueConverters: Record<string, any>;
   bindingBehaviors: Record<string, any>;
-}
-
-export interface IBinding {
-  bind(source: Scope);
-  unbind();
-  observeProperty(context, name);
 }
 
 export class Chain implements Expression {

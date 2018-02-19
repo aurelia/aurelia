@@ -1,8 +1,9 @@
-import {Animator} from './animator';
-import {View} from './view';
-import {ShadowDOM} from './shadow-dom';
-import { IVisual } from './component';
+import { Animator } from './animator';
+import { View } from './view';
+import { ShadowDOM } from './shadow-dom';
+import { IVisual, IAttach } from './component';
 import { Scope } from '../binding/scope';
+import { IBindScope } from '../binding/binding';
 
 function getAnimatableElement(visual: IVisual) {
   let view = visual.$view;
@@ -28,12 +29,13 @@ function getAnimatableElement(visual: IVisual) {
 * Represents a slot or location within the DOM to which views can be added and removed.
 * Manages the view lifecycle for its children.
 */
-export class ViewSlot {
-  children: IVisual[] = [];
-  isBound = false;
-  isAttached = false;
-  contentSelectors = null;
-  projectToSlots;
+export class ViewSlot implements IBindScope, IAttach {
+  private scope: Scope;
+  private children: IVisual[] = [];
+  private isBound = false;
+  private isAttached = false;
+  private contentSelectors = null;
+  private projectToSlots;
 
   /**
   * Creates an instance of ViewSlot.
@@ -41,7 +43,7 @@ export class ViewSlot {
   * @param anchorIsContainer Indicates whether the node is a container.
   * @param animator The animator that will controll enter/leave transitions for this slot.
   */
-  constructor(private anchor: Node, private anchorIsContainer: boolean, private animator: Animator = Animator.instance) {
+  constructor(public anchor: Node, private anchorIsContainer: boolean, private animator: Animator = Animator.instance) {
     anchor['viewSlot'] = this;
     anchor['isContentProjectionSource'] = false;
   }
@@ -52,17 +54,17 @@ export class ViewSlot {
    *   @param  direction The animation direction enter|leave.
    *   @returns An animation complete Promise or undefined if no animation was run.
    */
-  animateView(visual: IVisual, direction: string = 'enter'): void | Promise<any> {
+  animateView(visual: IVisual, direction: string = 'enter'): void | Promise<boolean> {
     let animatableElement = getAnimatableElement(visual);
 
     if (animatableElement !== null) {
       switch (direction) {
-      case 'enter':
-        return this.animator.enter(animatableElement);
-      case 'leave':
-        return this.animator.leave(animatableElement);
-      default:
-        throw new Error('Invalid animation direction: ' + direction);
+        case 'enter':
+          return this.animator.enter(animatableElement);
+        case 'leave':
+          return this.animator.leave(animatableElement);
+        default:
+          throw new Error('Invalid animation direction: ' + direction);
       }
     }
   }
@@ -70,18 +72,22 @@ export class ViewSlot {
   /**
   * Binds the slot and it's children.
   */
-  bind(): void {
-    //NOTE: this method altered significantly from the original
-
+  bind(scope: Scope): void {
     if (this.isBound) {
-      return;
+      if (this.scope === scope) {
+        return;
+      }
+
+      this.unbind();
     }
 
     this.isBound = true;
+    this.scope = scope = scope || this.scope;
+
     let children = this.children;
 
     for (let i = 0, ii = children.length; i < ii; ++i) {
-      children[i].bind();
+      children[i].bind(scope);
     }
   }
 
@@ -89,16 +95,13 @@ export class ViewSlot {
   * Unbinds the slot and its children.
   */
   unbind(): void {
-    //NOTE: this method altered significantly from the original
-
     if (this.isBound) {
-      let i;
-      let ii;
+      this.isBound = false;
+      this.scope = null;
+
       let children = this.children;
 
-      this.isBound = false;
-
-      for (i = 0, ii = children.length; i < ii; ++i) {
+      for (let i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
       }
     }
@@ -111,9 +114,9 @@ export class ViewSlot {
   */
   add(visual: IVisual): void | Promise<any> {
     if (this.anchorIsContainer) {
-      visual.$view.appendNodesTo(<Element>this.anchor);
+      visual.$view.appendTo(<Element>this.anchor);
     } else {
-      visual.$view.insertNodesBefore(this.anchor);
+      visual.$view.insertBefore(this.anchor);
     }
 
     this.children.push(visual);
@@ -138,7 +141,7 @@ export class ViewSlot {
       return this.add(visual);
     }
 
-    visual.$view.insertNodesBefore(children[index].$view.firstChild);
+    visual.$view.insertBefore(children[index].$view.firstChild);
     children.splice(index, 0, visual);
 
     if (this.isAttached) {
@@ -161,8 +164,8 @@ export class ViewSlot {
     const component = children[sourceIndex]
     const view = component.$view;
 
-    view.removeNodes();
-    view.insertNodesBefore(children[targetIndex].$view.firstChild);
+    view.remove();
+    view.insertBefore(children[targetIndex].$view.firstChild);
     children.splice(sourceIndex, 1);
     children.splice(targetIndex, 0, component);
   }
@@ -193,16 +196,16 @@ export class ViewSlot {
       let view = child.$view;
 
       if (skipAnimation) {
-        view.removeNodes();
+        view.remove();
         return;
       }
 
       let animation = this.animateView(child, 'leave');
       
       if (animation) {
-        rmPromises.push(animation.then(() => view.removeNodes()));
+        rmPromises.push(animation.then(() => view.remove()));
       } else {
-        view.removeNodes();
+        view.remove();
       }
     });
 
@@ -241,7 +244,7 @@ export class ViewSlot {
 
     let removeAction = () => {
       index = this.children.indexOf(visual);
-      visual.$view.removeNodes();
+      visual.$view.remove();
       this.children.splice(index, 1);
 
       if (this.isAttached) {
@@ -276,15 +279,15 @@ export class ViewSlot {
       const view = child.$view;
 
       if (skipAnimation) {
-        view.removeNodes();
+        view.remove();
         return;
       }
 
       let animation = this.animateView(child, 'leave');
       if (animation) {
-        rmPromises.push(animation.then(() => view.removeNodes()));
+        rmPromises.push(animation.then(() => view.remove()));
       } else {
-        view.removeNodes();
+        view.remove();
       }
     });
 
@@ -308,7 +311,7 @@ export class ViewSlot {
   /**
   * Triggers the attach for the slot and its children.
   */
-  attached(): void {
+  attach(): void {
     let i;
     let ii;
     let children;
@@ -331,7 +334,7 @@ export class ViewSlot {
   /**
   * Triggers the detach for the slot and its children.
   */
-  detached(): void {
+  detach(): void {
     let i;
     let ii;
     let children;

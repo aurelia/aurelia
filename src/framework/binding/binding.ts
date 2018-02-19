@@ -3,14 +3,21 @@ import { ConnectableBinding } from './connectable-binding';
 import { enqueueBindingConnect } from './connect-queue';
 import { sourceContext, targetContext } from './call-context';
 import { ObserverLocator } from './observer-locator';
-import { Expression, ILookupFunctions, IBinding } from './ast';
+import { Expression, ILookupFunctions } from './ast';
 import { Observer } from './property-observation';
 import { Scope } from './scope';
 
 export interface IObservable<T = any> {
   $observers: Record<string, Observer<T>>;
-  bind();
+}
+
+export interface IBindScope {
+  bind(source: Scope);
   unbind();
+}
+
+export interface IBinding extends IBindScope {
+  observeProperty(context, name);
 }
 
 export type IBindingTarget = Node | CSSStyleDeclaration | IObservable;

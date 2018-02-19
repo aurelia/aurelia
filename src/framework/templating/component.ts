@@ -1,19 +1,28 @@
-import { IObservable } from "../binding/binding";
-import { View } from "./view";
+import { IObservable, IBindScope } from "../binding/binding";
+import { View, IView } from "./view";
 import { Scope } from "../binding/scope";
 
-export interface IBehavior extends IObservable {
-  $scope: Scope;
-  
-  hydrate(anchor: Element);
+export interface IBindSelf {
+  bind();
+  unbind();
+}
+export interface IAttach {
   attach();
   detach();
 }
 
-export interface IVisual extends IBehavior {
-  $view: View;
+export interface IRender {
+  $view: IView;
 }
 
-export interface IComponent extends IVisual {
-  $anchor: Node;
+export interface IApplyToTarget {
+  applyTo(target: Element);
+}
+
+export interface IVisual extends IBindScope, IAttach, IRender {
+  
+}
+
+export interface IComponent extends IBindSelf, IAttach, IRender, IObservable, IApplyToTarget  {
+  
 }

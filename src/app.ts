@@ -1,7 +1,6 @@
 import { Scope, createOverrideContext } from './framework/binding/scope';
 import { Observer } from './framework/binding/property-observation';
-import { IObservable } from './framework/binding/binding';
-import { IBinding } from './framework/binding/ast';
+import { IObservable, IBinding } from './framework/binding/binding';
 import { Template } from './framework/new';
 import { oneWay, twoWay, listener, oneWayText } from './framework/generated';
 import { View } from './framework/templating/view';
@@ -88,13 +87,13 @@ export class App extends $App implements IComponent {
   private $b2: IBinding;
   private $b3: IBinding;
   private $c1: IComponent;
-
-  $anchor: Element;
-  $view: View;
-  $scope: Scope = {
+  private $anchor: Element;
+  private $scope: Scope = {
     bindingContext: this,
     overrideContext: createOverrideContext()
   };
+
+  $view: View;
 
   private static $template = new Template(`
     <au-marker class="au"></au-marker> <br>
@@ -102,7 +101,7 @@ export class App extends $App implements IComponent {
     <name-tag class="au"></name-tag>
   `);
 
-  hydrate(anchor: Element) {
+  applyTo(anchor: Element) {
     this.$anchor = anchor;
     this.$view = App.$template.create();
 
@@ -111,7 +110,7 @@ export class App extends $App implements IComponent {
     this.$b1 = oneWayText('message', targets[0]);
     this.$b2 = twoWay('message', targets[1], 'value');
 
-    this.$c1 = new NameTag().hydrate(targets[2]);
+    this.$c1 = new NameTag().applyTo(targets[2]);
     this.$b3 = twoWay('message', this.$c1, 'name');
 
     return this;
@@ -119,7 +118,7 @@ export class App extends $App implements IComponent {
 
   attach() {
     this.$c1.attach();
-    this.$view.appendNodesTo(this.$anchor);
+    this.$view.appendTo(this.$anchor);
   }
 
   bind() {
@@ -131,7 +130,7 @@ export class App extends $App implements IComponent {
   }
 
   detach() {
-    this.$view.removeNodes();
+    this.$view.remove();
     this.$c1.detach();    
   }
 
@@ -184,13 +183,13 @@ export class NameTag extends $NameTag implements IComponent {
   private $b8: IBinding;
   private $b9: IBinding;
   private $b10: IBinding;
-  
-  $anchor: Element;
-  $view: View;
-  $scope: Scope = {
+  private $anchor: Element;
+  private $scope: Scope = {
     bindingContext: this,
     overrideContext: createOverrideContext()
   };
+
+  $view: View;
 
   private static $template = new Template(`
     <header>Super Duper name tag</header>
@@ -236,7 +235,7 @@ export class NameTag extends $NameTag implements IComponent {
     <button class="au">Reset</button>
   `);
 
-  hydrate(anchor: Element) {
+  applyTo(anchor: Element) {
     this.$anchor = anchor;
     this.$view = NameTag.$template.create();
 
@@ -271,7 +270,7 @@ export class NameTag extends $NameTag implements IComponent {
   }
 
   attach() {
-    this.$view.appendNodesTo(this.$anchor);
+    this.$view.appendTo(this.$anchor);
   }
 
   unbind() {
@@ -288,6 +287,6 @@ export class NameTag extends $NameTag implements IComponent {
   }
 
   detach() {
-    this.$view.removeNodes();
+    this.$view.remove();
   }
 }

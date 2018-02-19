@@ -1,6 +1,6 @@
-import { Scope } from './framework/binding/scope';
-import { Expression, ILookupFunctions, IBinding} from './framework/binding/ast';
-import { DOM } from './framework/dom';
+import { Scope } from './binding/scope';
+import { Expression, ILookupFunctions, IBinding} from './binding/ast';
+import { DOM } from './dom';
 
 export interface AureliaSettings {
   host: HTMLElement,

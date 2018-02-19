@@ -8,7 +8,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('app',["require", "exports", "./framework/binding/scope", "./framework/binding/property-observation", "./framework-new", "./framework-generated"], function (require, exports, scope_1, property_observation_1, framework_new_1, framework_generated_1) {
+define('app',["require", "exports", "./framework/binding/scope", "./framework/binding/property-observation", "./framework/new", "./framework/generated"], function (require, exports, scope_1, property_observation_1, new_1, generated_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var $App = (function () {
@@ -39,10 +39,10 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$anchor = anchor;
             this.$view = App.$template.create();
             var targets = this.$view.targets;
-            this.$b1 = framework_generated_1.oneWayText('message', targets[0]);
-            this.$b2 = framework_generated_1.twoWay('message', targets[1], 'value');
+            this.$b1 = generated_1.oneWayText('message', targets[0]);
+            this.$b2 = generated_1.twoWay('message', targets[1], 'value');
             this.$e1 = new NameTag().hydrate(targets[2]);
-            this.$b3 = framework_generated_1.twoWay('message', this.$e1, 'name');
+            this.$b3 = generated_1.twoWay('message', this.$e1, 'name');
             return this;
         };
         App.prototype.attach = function () {
@@ -66,7 +66,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b3.unbind();
             this.$e1.unbind();
         };
-        App.$template = new framework_new_1.Template("\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n  ");
+        App.$template = new new_1.Template("\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n  ");
         return App;
     }($App));
     exports.App = App;
@@ -129,16 +129,16 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$anchor = anchor;
             this.$view = NameTag.$template.create();
             var targets = this.$view.targets;
-            this.$b1 = framework_generated_1.twoWay('name', targets[0], 'value');
-            this.$b2 = framework_generated_1.oneWay('name', targets[1], 'textContent');
-            this.$b3 = framework_generated_1.oneWay('nameTagColor', targets[1].style, 'color');
-            this.$b4 = framework_generated_1.twoWay('nameTagColor', targets[2], 'value');
-            this.$b5 = framework_generated_1.twoWay('nameTagBorderColor', targets[3], 'value');
-            this.$b6 = framework_generated_1.twoWay('nameTagBorderWidth', targets[4], 'value');
-            this.$b7 = framework_generated_1.twoWay('nameTagHeaderVisible', targets[5], 'checked');
-            this.$b8 = framework_generated_1.listener('click', targets[6], 'submit');
-            this.$b9 = framework_generated_1.oneWay('nameTagBorder', anchor.style, 'border');
-            this.$b10 = framework_generated_1.oneWay('nameTagClasses', anchor, 'className');
+            this.$b1 = generated_1.twoWay('name', targets[0], 'value');
+            this.$b2 = generated_1.oneWay('name', targets[1], 'textContent');
+            this.$b3 = generated_1.oneWay('nameTagColor', targets[1].style, 'color');
+            this.$b4 = generated_1.twoWay('nameTagColor', targets[2], 'value');
+            this.$b5 = generated_1.twoWay('nameTagBorderColor', targets[3], 'value');
+            this.$b6 = generated_1.twoWay('nameTagBorderWidth', targets[4], 'value');
+            this.$b7 = generated_1.twoWay('nameTagHeaderVisible', targets[5], 'checked');
+            this.$b8 = generated_1.listener('click', targets[6], 'submit');
+            this.$b9 = generated_1.oneWay('nameTagBorder', anchor.style, 'border');
+            this.$b10 = generated_1.oneWay('nameTagClasses', anchor, 'className');
             return this;
         };
         NameTag.prototype.bind = function () {
@@ -172,7 +172,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
         NameTag.prototype.detach = function () {
             this.$view.removeNodes();
         };
-        NameTag.$template = new framework_new_1.Template("\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ");
+        NameTag.$template = new new_1.Template("\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ");
         return NameTag;
     }($NameTag));
     exports.NameTag = NameTag;
@@ -191,149 +191,10 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('framework-generated',["require", "exports", "./framework/binding/ast", "./framework/binding/binding", "./framework/binding/binding-mode", "./framework/binding/listener", "./framework/binding/event-manager", "./framework-new"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, framework_new_1) {
+define('main',["require", "exports", "./app", "./framework/new"], function (require, exports, app_1, new_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var emptyArray = [];
-    var astLookup = {
-        message: new ast_1.AccessScope('message'),
-        textContent: new ast_1.AccessScope('textContent'),
-        value: new ast_1.AccessScope('value'),
-        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
-        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
-        nameTagBorder: new framework_new_1.InterpolationString([
-            new ast_1.AccessScope('borderWidth'),
-            new ast_1.LiteralString('px solid '),
-            new ast_1.AccessScope('borderColor')
-        ]),
-        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
-        nameTagClasses: new framework_new_1.InterpolationString([
-            new ast_1.LiteralString('au name-tag '),
-            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
-        ]),
-        name: new ast_1.AccessScope('name'),
-        submit: new ast_1.CallScope('submit', emptyArray, 0),
-        nameTagColor: new ast_1.AccessScope('color')
-    };
-    function getAST(key) {
-        return astLookup[key];
-    }
-    function oneWay(sourceExpression, target, targetProperty) {
-        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.oneWay, null);
-    }
-    exports.oneWay = oneWay;
-    function oneWayText(sourceExpression, target) {
-        var next = target.nextSibling;
-        next['auInterpolationTarget'] = true;
-        target.parentNode.removeChild(target);
-        return oneWay(sourceExpression, next, 'textContent');
-    }
-    exports.oneWayText = oneWayText;
-    function twoWay(sourceExpression, target, targetProperty) {
-        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.twoWay, null);
-    }
-    exports.twoWay = twoWay;
-    function listener(targetEvent, target, sourceExpression, preventDefault, strategy) {
-        if (preventDefault === void 0) { preventDefault = true; }
-        if (strategy === void 0) { strategy = event_manager_1.delegationStrategy.none; }
-        return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, null);
-    }
-    exports.listener = listener;
-});
-
-
-
-define('framework-new',["require", "exports", "./framework/dom"], function (require, exports, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Aurelia = (function () {
-        function Aurelia(settings) {
-            this.settings = settings;
-            this.settings.root.hydrate(this.settings.host);
-            this.settings.root.bind();
-            this.settings.root.attach();
-        }
-        return Aurelia;
-    }());
-    exports.Aurelia = Aurelia;
-    var InterpolationString = (function () {
-        function InterpolationString(parts) {
-            this.parts = parts;
-        }
-        InterpolationString.prototype.assign = function () { };
-        InterpolationString.prototype.evaluate = function (scope, lookupFunctions) {
-            var result = '';
-            var parts = this.parts;
-            var ii = parts.length;
-            for (var i = 0; ii > i; ++i) {
-                var partValue = parts[i].evaluate(scope, lookupFunctions);
-                if (partValue === null || partValue === undefined) {
-                    continue;
-                }
-                result += partValue.toString();
-            }
-            return result;
-        };
-        InterpolationString.prototype.connect = function (binding, scope) {
-            var parts = this.parts;
-            var i = parts.length;
-            while (i--) {
-                parts[i].connect(binding, scope);
-            }
-        };
-        return InterpolationString;
-    }());
-    exports.InterpolationString = InterpolationString;
-    var Template = (function () {
-        function Template(html) {
-            this.element = dom_1.DOM.createTemplateElement();
-            this.element.innerHTML = html;
-        }
-        Template.prototype.create = function () {
-            return new View(this.element);
-        };
-        return Template;
-    }());
-    exports.Template = Template;
-    var View = (function () {
-        function View(template) {
-            var clone = template.cloneNode(true);
-            this.fragment = clone.content;
-            this.targets = this.fragment.querySelectorAll('.au');
-            this.firstChild = this.fragment.firstChild;
-            this.lastChild = this.fragment.lastChild;
-        }
-        View.prototype.insertNodesBefore = function (refNode) {
-            refNode.parentNode.insertBefore(this.fragment, refNode);
-        };
-        View.prototype.appendNodesTo = function (parent) {
-            parent.appendChild(this.fragment);
-        };
-        View.prototype.removeNodes = function () {
-            var fragment = this.fragment;
-            var current = this.firstChild;
-            var end = this.lastChild;
-            var next;
-            while (current) {
-                next = current.nextSibling;
-                fragment.appendChild(current);
-                if (current === end) {
-                    break;
-                }
-                current = next;
-            }
-        };
-        return View;
-    }());
-    exports.View = View;
-});
-
-
-
-define('main',["require", "exports", "./app", "./framework-new"], function (require, exports, app_1, framework_new_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    new framework_new_1.Aurelia({
+    new new_1.Aurelia({
         host: document.body,
         root: new app_1.App()
     });
@@ -458,6 +319,58 @@ define('framework/dom',["require", "exports"], function (require, exports) {
             return node;
         }
     };
+});
+
+
+
+define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./new"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, new_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var emptyArray = [];
+    var astLookup = {
+        message: new ast_1.AccessScope('message'),
+        textContent: new ast_1.AccessScope('textContent'),
+        value: new ast_1.AccessScope('value'),
+        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
+        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
+        nameTagBorder: new new_1.InterpolationString([
+            new ast_1.AccessScope('borderWidth'),
+            new ast_1.LiteralString('px solid '),
+            new ast_1.AccessScope('borderColor')
+        ]),
+        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
+        nameTagClasses: new new_1.InterpolationString([
+            new ast_1.LiteralString('au name-tag '),
+            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
+        ]),
+        name: new ast_1.AccessScope('name'),
+        submit: new ast_1.CallScope('submit', emptyArray, 0),
+        nameTagColor: new ast_1.AccessScope('color')
+    };
+    function getAST(key) {
+        return astLookup[key];
+    }
+    function oneWay(sourceExpression, target, targetProperty) {
+        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.oneWay, null);
+    }
+    exports.oneWay = oneWay;
+    function oneWayText(sourceExpression, target) {
+        var next = target.nextSibling;
+        next['auInterpolationTarget'] = true;
+        target.parentNode.removeChild(target);
+        return oneWay(sourceExpression, next, 'textContent');
+    }
+    exports.oneWayText = oneWayText;
+    function twoWay(sourceExpression, target, targetProperty) {
+        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.twoWay, null);
+    }
+    exports.twoWay = twoWay;
+    function listener(targetEvent, target, sourceExpression, preventDefault, strategy) {
+        if (preventDefault === void 0) { preventDefault = true; }
+        if (strategy === void 0) { strategy = event_manager_1.delegationStrategy.none; }
+        return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, null);
+    }
+    exports.listener = listener;
 });
 
 
@@ -635,6 +548,93 @@ define('framework/logging',["require", "exports"], function (require, exports) {
         return Logger;
     }());
     exports.Logger = Logger;
+});
+
+
+
+define('framework/new',["require", "exports", "./dom"], function (require, exports, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Aurelia = (function () {
+        function Aurelia(settings) {
+            this.settings = settings;
+            this.settings.root.hydrate(this.settings.host);
+            this.settings.root.bind();
+            this.settings.root.attach();
+        }
+        return Aurelia;
+    }());
+    exports.Aurelia = Aurelia;
+    var InterpolationString = (function () {
+        function InterpolationString(parts) {
+            this.parts = parts;
+        }
+        InterpolationString.prototype.assign = function () { };
+        InterpolationString.prototype.evaluate = function (scope, lookupFunctions) {
+            var result = '';
+            var parts = this.parts;
+            var ii = parts.length;
+            for (var i = 0; ii > i; ++i) {
+                var partValue = parts[i].evaluate(scope, lookupFunctions);
+                if (partValue === null || partValue === undefined) {
+                    continue;
+                }
+                result += partValue.toString();
+            }
+            return result;
+        };
+        InterpolationString.prototype.connect = function (binding, scope) {
+            var parts = this.parts;
+            var i = parts.length;
+            while (i--) {
+                parts[i].connect(binding, scope);
+            }
+        };
+        return InterpolationString;
+    }());
+    exports.InterpolationString = InterpolationString;
+    var Template = (function () {
+        function Template(html) {
+            this.element = dom_1.DOM.createTemplateElement();
+            this.element.innerHTML = html;
+        }
+        Template.prototype.create = function () {
+            return new View(this.element);
+        };
+        return Template;
+    }());
+    exports.Template = Template;
+    var View = (function () {
+        function View(template) {
+            var clone = template.cloneNode(true);
+            this.fragment = clone.content;
+            this.targets = this.fragment.querySelectorAll('.au');
+            this.firstChild = this.fragment.firstChild;
+            this.lastChild = this.fragment.lastChild;
+        }
+        View.prototype.insertNodesBefore = function (refNode) {
+            refNode.parentNode.insertBefore(this.fragment, refNode);
+        };
+        View.prototype.appendNodesTo = function (parent) {
+            parent.appendChild(this.fragment);
+        };
+        View.prototype.removeNodes = function () {
+            var fragment = this.fragment;
+            var current = this.firstChild;
+            var end = this.lastChild;
+            var next;
+            while (current) {
+                next = current.nextSibling;
+                fragment.appendChild(current);
+                if (current === end) {
+                    break;
+                }
+                current = next;
+            }
+        };
+        return View;
+    }());
+    exports.View = View;
 });
 
 

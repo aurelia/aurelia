@@ -2,8 +2,8 @@ import { Scope, createOverrideContext } from './framework/binding/scope';
 import { Observer } from './framework/binding/property-observation';
 import { IObservable } from './framework/binding/binding';
 import { IBinding } from './framework/binding/ast';
-import { Template, View } from './framework-new';
-import { oneWay, twoWay, listener, oneWayText } from './framework-generated';
+import { Template, View } from './framework/new';
+import { oneWay, twoWay, listener, oneWayText } from './framework/generated';
 
 // Original User Code for App
 

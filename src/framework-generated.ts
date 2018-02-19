@@ -52,6 +52,13 @@ export function oneWay(sourceExpression: string, target: IBindingTarget, targetP
   return new Binding(getAST(sourceExpression), target, targetProperty, bindingMode.oneWay, null);
 }
 
+export function oneWayText(sourceExpression: string, target: Element) {
+  let next = target.nextSibling;
+  next['auInterpolationTarget'] = true;
+  target.parentNode.removeChild(target);
+  return oneWay(sourceExpression, next, 'textContent');
+}
+
 export function twoWay(sourceExpression: string, target: IBindingTarget, targetProperty: string) {
   return new Binding(getAST(sourceExpression), target, targetProperty, bindingMode.twoWay, null);
 }

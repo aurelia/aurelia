@@ -13,7 +13,7 @@ export interface IObservable<T = any> {
   unbind();
 }
 
-export type IBindingTarget = Element | CSSStyleDeclaration | IObservable;
+export type IBindingTarget = Node | CSSStyleDeclaration | IObservable;
 
 export class Binding extends ConnectableBinding implements IBinding {
   private targetObserver;

@@ -39,7 +39,7 @@ define('app',["require", "exports", "./framework/scope", "./framework/property-o
             this.$anchor = anchor;
             this.$view = App.$template.create();
             var targets = this.$view.targets;
-            this.$b1 = framework_generated_1.oneWay('message', targets[0], 'textContent');
+            this.$b1 = framework_generated_1.oneWayText('message', targets[0]);
             this.$b2 = framework_generated_1.twoWay('message', targets[1], 'value');
             this.$e1 = new NameTag().hydrate(targets[2]);
             this.$b3 = framework_generated_1.twoWay('message', this.$e1, 'name');
@@ -66,7 +66,7 @@ define('app',["require", "exports", "./framework/scope", "./framework/property-o
             this.$b3.unbind();
             this.$e1.unbind();
         };
-        App.$template = new framework_new_1.Template("\n    <span class=\"au\"></span><br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n  ");
+        App.$template = new framework_new_1.Template("\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n  ");
         return App;
     }($App));
     exports.App = App;
@@ -4013,6 +4013,13 @@ define('framework-generated',["require", "exports", "./framework/ast", "./framew
         return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.oneWay, null);
     }
     exports.oneWay = oneWay;
+    function oneWayText(sourceExpression, target) {
+        var next = target.nextSibling;
+        next['auInterpolationTarget'] = true;
+        target.parentNode.removeChild(target);
+        return oneWay(sourceExpression, next, 'textContent');
+    }
+    exports.oneWayText = oneWayText;
     function twoWay(sourceExpression, target, targetProperty) {
         return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.twoWay, null);
     }

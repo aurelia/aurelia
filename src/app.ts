@@ -3,7 +3,7 @@ import { Observer } from './framework/property-observation';
 import { IObservable } from './framework/binding';
 import { IBinding } from './framework/ast';
 import { Template, View } from './framework-new';
-import { oneWay, twoWay, listener } from './framework-generated';
+import { oneWay, twoWay, listener, oneWayText } from './framework-generated';
 
 // Original User Code for App
 
@@ -11,7 +11,7 @@ import { oneWay, twoWay, listener } from './framework-generated';
 //   message = 'Hello World!';
 // }
 
-// <span>${message}</span><br>
+// ${message}<br>
 // <input type="text" value.bind="message">
 // <name-tag name.bind="message"></name-tag>
 
@@ -93,7 +93,7 @@ export class App extends $App implements IObservable {
   };
 
   private static $template = new Template(`
-    <span class="au"></span><br>
+    <au-marker class="au"></au-marker> <br>
     <input type="text" class="au">
     <name-tag class="au"></name-tag>
   `);
@@ -104,7 +104,7 @@ export class App extends $App implements IObservable {
 
     let targets = this.$view.targets;
 
-    this.$b1 = oneWay('message', targets[0], 'textContent');
+    this.$b1 = oneWayText('message', targets[0]);
     this.$b2 = twoWay('message', targets[1], 'value');
 
     this.$e1 = new NameTag().hydrate(targets[2]);

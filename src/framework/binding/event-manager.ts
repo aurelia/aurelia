@@ -1,4 +1,4 @@
-import {DOM} from './dom';
+import {DOM} from '../dom';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 function findOriginalEventTarget(event) {

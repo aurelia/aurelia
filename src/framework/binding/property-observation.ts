@@ -1,6 +1,6 @@
-import { getLogger } from './logging';
+import { getLogger } from '../logging';
 import { SubscriberCollection } from './subscriber-collection';
-import { TaskQueue } from './task-queue';
+import { TaskQueue } from '../task-queue';
 
 const logger = getLogger('property-observation');
 

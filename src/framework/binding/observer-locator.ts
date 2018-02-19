@@ -1,6 +1,6 @@
-import * as LogManager from './logging';
-import {DOM} from './dom';
-import {TaskQueue, Task} from './task-queue';
+import * as LogManager from '../logging';
+import {DOM} from '../dom';
+import {TaskQueue, Task} from '../task-queue';
 import {getArrayObserver} from './array-observation';
 import {getMapObserver} from './map-observation';
 import {getSetObserver} from './set-observation';

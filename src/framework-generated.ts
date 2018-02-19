@@ -1,5 +1,5 @@
-import { Scope } from './framework/scope';
-import { Observer } from './framework/property-observation';
+import { Scope } from './framework/binding/scope';
+import { Observer } from './framework/binding/property-observation';
 import {
   Expression,
   IBinding,
@@ -10,11 +10,11 @@ import {
   LiteralString,
   Binary,
   Conditional
-} from './framework/ast';
-import { IBindingTarget, IObservable, Binding } from './framework/binding';
-import { bindingMode } from './framework/binding-mode';
-import { Listener } from './framework/listener';
-import { delegationStrategy } from './framework/event-manager';
+} from './framework/binding/ast';
+import { IBindingTarget, IObservable, Binding } from './framework/binding/binding';
+import { bindingMode } from './framework/binding/binding-mode';
+import { Listener } from './framework/binding/listener';
+import { delegationStrategy } from './framework/binding/event-manager';
 import { InterpolationString } from './framework-new';
 
 const emptyArray = [];

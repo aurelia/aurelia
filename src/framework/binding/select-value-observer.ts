@@ -1,5 +1,5 @@
 import {SubscriberCollection} from './subscriber-collection';
-import {DOM} from './dom';
+import {DOM} from '../dom';
 
 const selectArrayContext = 'SelectValueObserver:array';
 

@@ -1,7 +1,7 @@
-import { Scope, createOverrideContext } from './framework/scope';
-import { Observer } from './framework/property-observation';
-import { IObservable } from './framework/binding';
-import { IBinding } from './framework/ast';
+import { Scope, createOverrideContext } from './framework/binding/scope';
+import { Observer } from './framework/binding/property-observation';
+import { IObservable } from './framework/binding/binding';
+import { IBinding } from './framework/binding/ast';
 import { Template, View } from './framework-new';
 import { oneWay, twoWay, listener, oneWayText } from './framework-generated';
 
@@ -11,9 +11,11 @@ import { oneWay, twoWay, listener, oneWayText } from './framework-generated';
 //   message = 'Hello World!';
 // }
 
-// ${message}<br>
-// <input type="text" value.bind="message">
-// <name-tag name.bind="message"></name-tag>
+// <template>
+//   ${message}<br>
+//   <input type="text" value.bind="message">
+//   <name-tag name.bind="message"></name-tag>
+// </template>
 
 // ------------------------------
 

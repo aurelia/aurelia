@@ -8,7 +8,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('app',["require", "exports", "./framework/scope", "./framework/property-observation", "./framework-new", "./framework-generated"], function (require, exports, scope_1, property_observation_1, framework_new_1, framework_generated_1) {
+define('app',["require", "exports", "./framework/binding/scope", "./framework/binding/property-observation", "./framework-new", "./framework-generated"], function (require, exports, scope_1, property_observation_1, framework_new_1, framework_generated_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var $App = (function () {
@@ -180,83 +180,6 @@ define('app',["require", "exports", "./framework/scope", "./framework/property-o
 
 
 
-define('core',["require", "exports", "./framework/dom"], function (require, exports, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var InterpolationString = (function () {
-        function InterpolationString(parts) {
-            this.parts = parts;
-        }
-        InterpolationString.prototype.assign = function () { };
-        InterpolationString.prototype.evaluate = function (scope, lookupFunctions) {
-            var result = '';
-            var parts = this.parts;
-            var ii = parts.length;
-            for (var i = 0; ii > i; ++i) {
-                var partValue = parts[i].evaluate(scope, lookupFunctions);
-                if (partValue === null || partValue === undefined) {
-                    continue;
-                }
-                result += partValue.toString();
-            }
-            return result;
-        };
-        InterpolationString.prototype.connect = function (binding, scope) {
-            var parts = this.parts;
-            var i = parts.length;
-            while (i--) {
-                parts[i].connect(binding, scope);
-            }
-        };
-        return InterpolationString;
-    }());
-    exports.InterpolationString = InterpolationString;
-    var Template = (function () {
-        function Template(html) {
-            this.element = dom_1.DOM.createTemplateElement();
-            this.element.innerHTML = html;
-        }
-        Template.prototype.create = function () {
-            return new View(this.element);
-        };
-        return Template;
-    }());
-    exports.Template = Template;
-    var View = (function () {
-        function View(template) {
-            var clone = template.cloneNode(true);
-            this.fragment = clone.content;
-            this.targets = this.fragment.querySelectorAll('.au');
-            this.firstChild = this.fragment.firstChild;
-            this.lastChild = this.fragment.lastChild;
-        }
-        View.prototype.insertNodesBefore = function (refNode) {
-            refNode.parentNode.insertBefore(this.fragment, refNode);
-        };
-        View.prototype.appendNodesTo = function (parent) {
-            parent.appendChild(this.fragment);
-        };
-        View.prototype.removeNodes = function () {
-            var fragment = this.fragment;
-            var current = this.firstChild;
-            var end = this.lastChild;
-            var next;
-            while (current) {
-                next = current.nextSibling;
-                fragment.appendChild(current);
-                if (current === end) {
-                    break;
-                }
-                current = next;
-            }
-        };
-        return View;
-    }());
-    exports.View = View;
-});
-
-
-
 define('environment',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -268,9 +191,71 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('framework',["require", "exports", "./framework/dom"], function (require, exports, dom_1) {
+define('framework-generated',["require", "exports", "./framework/binding/ast", "./framework/binding/binding", "./framework/binding/binding-mode", "./framework/binding/listener", "./framework/binding/event-manager", "./framework-new"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, framework_new_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var emptyArray = [];
+    var astLookup = {
+        message: new ast_1.AccessScope('message'),
+        textContent: new ast_1.AccessScope('textContent'),
+        value: new ast_1.AccessScope('value'),
+        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
+        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
+        nameTagBorder: new framework_new_1.InterpolationString([
+            new ast_1.AccessScope('borderWidth'),
+            new ast_1.LiteralString('px solid '),
+            new ast_1.AccessScope('borderColor')
+        ]),
+        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
+        nameTagClasses: new framework_new_1.InterpolationString([
+            new ast_1.LiteralString('au name-tag '),
+            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
+        ]),
+        name: new ast_1.AccessScope('name'),
+        submit: new ast_1.CallScope('submit', emptyArray, 0),
+        nameTagColor: new ast_1.AccessScope('color')
+    };
+    function getAST(key) {
+        return astLookup[key];
+    }
+    function oneWay(sourceExpression, target, targetProperty) {
+        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.oneWay, null);
+    }
+    exports.oneWay = oneWay;
+    function oneWayText(sourceExpression, target) {
+        var next = target.nextSibling;
+        next['auInterpolationTarget'] = true;
+        target.parentNode.removeChild(target);
+        return oneWay(sourceExpression, next, 'textContent');
+    }
+    exports.oneWayText = oneWayText;
+    function twoWay(sourceExpression, target, targetProperty) {
+        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.twoWay, null);
+    }
+    exports.twoWay = twoWay;
+    function listener(targetEvent, target, sourceExpression, preventDefault, strategy) {
+        if (preventDefault === void 0) { preventDefault = true; }
+        if (strategy === void 0) { strategy = event_manager_1.delegationStrategy.none; }
+        return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, null);
+    }
+    exports.listener = listener;
+});
+
+
+
+define('framework-new',["require", "exports", "./framework/dom"], function (require, exports, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Aurelia = (function () {
+        function Aurelia(settings) {
+            this.settings = settings;
+            this.settings.root.hydrate(this.settings.host);
+            this.settings.root.bind();
+            this.settings.root.attach();
+        }
+        return Aurelia;
+    }());
+    exports.Aurelia = Aurelia;
     var InterpolationString = (function () {
         function InterpolationString(parts) {
             this.parts = parts;
@@ -356,7 +341,479 @@ define('main',["require", "exports", "./app", "./framework-new"], function (requ
 
 
 
-define('framework/array-change-records',["require", "exports"], function (require, exports) {
+define('framework/dom',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DOM = {
+        Element: Element,
+        SVGElement: SVGElement,
+        boundary: 'aurelia-dom-boundary',
+        addEventListener: function (eventName, callback, capture) {
+            document.addEventListener(eventName, callback, capture);
+        },
+        removeEventListener: function (eventName, callback, capture) {
+            document.removeEventListener(eventName, callback, capture);
+        },
+        adoptNode: function (node) {
+            return document.adoptNode(node);
+        },
+        createAttribute: function (name) {
+            return document.createAttribute(name);
+        },
+        createElement: function (tagName) {
+            return document.createElement(tagName);
+        },
+        createTextNode: function (text) {
+            return document.createTextNode(text);
+        },
+        createComment: function (text) {
+            return document.createComment(text);
+        },
+        createDocumentFragment: function () {
+            return document.createDocumentFragment();
+        },
+        createTemplateElement: function () {
+            return document.createElement('template');
+        },
+        createMutationObserver: function (callback) {
+            return new MutationObserver(callback);
+        },
+        createCustomEvent: function (eventType, options) {
+            return new CustomEvent(eventType, options);
+        },
+        dispatchEvent: function (evt) {
+            document.dispatchEvent(evt);
+        },
+        getComputedStyle: function (element) {
+            return window.getComputedStyle(element);
+        },
+        getElementById: function (id) {
+            return document.getElementById(id);
+        },
+        querySelectorAll: function (query) {
+            return document.querySelectorAll(query);
+        },
+        nextElementSibling: function (element) {
+            if ('nextElementSibling' in element) {
+                return element['nextElementSibling'];
+            }
+            do {
+                element = element.nextSibling;
+            } while (element && element.nodeType !== 1);
+            return element;
+        },
+        createTemplateFromMarkup: function (markup) {
+            var parser = document.createElement('div');
+            parser.innerHTML = markup;
+            var temp = parser.firstElementChild;
+            if (!temp || temp.nodeName !== 'TEMPLATE') {
+                throw new Error('Template markup must be wrapped in a <template> element e.g. <template> <!-- markup here --> </template>');
+            }
+            return temp;
+        },
+        appendNode: function (newNode, parentNode) {
+            (parentNode || document.body).appendChild(newNode);
+        },
+        replaceNode: function (newNode, node, parentNode) {
+            if (node.parentNode) {
+                node.parentNode.replaceChild(newNode, node);
+            }
+            else {
+                parentNode.replaceChild(newNode, node);
+            }
+        },
+        removeNode: function (node, parentNode) {
+            if (node.parentNode) {
+                node.parentNode.removeChild(node);
+            }
+            else if (parentNode) {
+                parentNode.removeChild(node);
+            }
+        },
+        injectStyles: function (styles, destination, prepend, id) {
+            if (id) {
+                var oldStyle = document.getElementById(id);
+                if (oldStyle) {
+                    var isStyleTag = oldStyle.tagName.toLowerCase() === 'style';
+                    if (isStyleTag) {
+                        oldStyle.innerHTML = styles;
+                        return;
+                    }
+                    throw new Error('The provided id does not indicate a style tag.');
+                }
+            }
+            var node = document.createElement('style');
+            node.innerHTML = styles;
+            node.type = 'text/css';
+            if (id) {
+                node.id = id;
+            }
+            destination = destination || document.head;
+            if (prepend && destination.childNodes.length > 0) {
+                destination.insertBefore(node, destination.childNodes[0]);
+            }
+            else {
+                destination.appendChild(node);
+            }
+            return node;
+        }
+    };
+});
+
+
+
+define('framework/logging',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.logLevel = {
+        none: 0,
+        error: 10,
+        warn: 20,
+        info: 30,
+        debug: 40
+    };
+    var loggers = {};
+    var appenders = [];
+    var globalDefaultLevel = exports.logLevel.none;
+    var slice = Array.prototype.slice;
+    var standardLevels = ['none', 'error', 'warn', 'info', 'debug'];
+    function isStandardLevel(level) {
+        return standardLevels.filter(function (l) { return l === level; }).length > 0;
+    }
+    function appendArgs() {
+        return [this].concat(slice.call(arguments));
+    }
+    function logFactory(level) {
+        var threshold = exports.logLevel[level];
+        return function () {
+            if (this.level < threshold) {
+                return;
+            }
+            var args = appendArgs.apply(this, arguments);
+            var i = appenders.length;
+            while (i--) {
+                (_a = appenders[i])[level].apply(_a, args);
+            }
+            var _a;
+        };
+    }
+    function logFactoryCustom(level) {
+        var threshold = exports.logLevel[level];
+        return function () {
+            if (this.level < threshold) {
+                return;
+            }
+            var args = appendArgs.apply(this, arguments);
+            var i = appenders.length;
+            while (i--) {
+                var appender = appenders[i];
+                if (appender[level] !== undefined) {
+                    appender[level].apply(appender, args);
+                }
+            }
+        };
+    }
+    function connectLoggers() {
+        var proto = Logger.prototype;
+        for (var level in exports.logLevel) {
+            if (isStandardLevel(level)) {
+                if (level !== 'none') {
+                    proto[level] = logFactory(level);
+                }
+            }
+            else {
+                proto[level] = logFactoryCustom(level);
+            }
+        }
+    }
+    function disconnectLoggers() {
+        var proto = Logger.prototype;
+        for (var level in exports.logLevel) {
+            if (level !== 'none') {
+                proto[level] = function () { };
+            }
+        }
+    }
+    function getLogger(id) {
+        return loggers[id] || new Logger(id);
+    }
+    exports.getLogger = getLogger;
+    function addAppender(appender) {
+        if (appenders.push(appender) === 1) {
+            connectLoggers();
+        }
+    }
+    exports.addAppender = addAppender;
+    function removeAppender(appender) {
+        appenders = appenders.filter(function (a) { return a !== appender; });
+    }
+    exports.removeAppender = removeAppender;
+    function getAppenders() {
+        return appenders.slice();
+    }
+    exports.getAppenders = getAppenders;
+    function clearAppenders() {
+        appenders = [];
+        disconnectLoggers();
+    }
+    exports.clearAppenders = clearAppenders;
+    function addCustomLevel(name, value) {
+        if (exports.logLevel[name] !== undefined) {
+            throw Error("Log level \"" + name + "\" already exists.");
+        }
+        if (isNaN(value)) {
+            throw Error('Value must be a number.');
+        }
+        exports.logLevel[name] = value;
+        if (appenders.length > 0) {
+            connectLoggers();
+        }
+        else {
+            Logger.prototype[name] = function () { };
+        }
+    }
+    exports.addCustomLevel = addCustomLevel;
+    function removeCustomLevel(name) {
+        if (exports.logLevel[name] === undefined) {
+            return;
+        }
+        if (isStandardLevel(name)) {
+            throw Error("Built-in log level \"" + name + "\" cannot be removed.");
+        }
+        delete exports.logLevel[name];
+        delete Logger.prototype[name];
+    }
+    exports.removeCustomLevel = removeCustomLevel;
+    function setLevel(level) {
+        globalDefaultLevel = level;
+        for (var key in loggers) {
+            loggers[key].setLevel(level);
+        }
+    }
+    exports.setLevel = setLevel;
+    function getLevel() {
+        return globalDefaultLevel;
+    }
+    exports.getLevel = getLevel;
+    var Logger = (function () {
+        function Logger(id) {
+            var cached = loggers[id];
+            if (cached) {
+                return cached;
+            }
+            loggers[id] = this;
+            this.id = id;
+            this.level = globalDefaultLevel;
+        }
+        Logger.prototype.debug = function (message) {
+            var rest = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                rest[_i - 1] = arguments[_i];
+            }
+        };
+        Logger.prototype.info = function (message) {
+            var rest = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                rest[_i - 1] = arguments[_i];
+            }
+        };
+        Logger.prototype.warn = function (message) {
+            var rest = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                rest[_i - 1] = arguments[_i];
+            }
+        };
+        Logger.prototype.error = function (message) {
+            var rest = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                rest[_i - 1] = arguments[_i];
+            }
+        };
+        Logger.prototype.setLevel = function (level) {
+            this.level = level;
+        };
+        return Logger;
+    }());
+    exports.Logger = Logger;
+});
+
+
+
+define('framework/platform',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.PLATFORM = {
+        global: window,
+        location: window.location,
+        history: window.history,
+        addEventListener: function (eventName, callback, capture) {
+            this.global.addEventListener(eventName, callback, capture);
+        },
+        removeEventListener: function (eventName, callback, capture) {
+            this.global.removeEventListener(eventName, callback, capture);
+        },
+        performance: window.performance,
+        requestAnimationFrame: function (callback) {
+            return this.global.requestAnimationFrame(callback);
+        }
+    };
+});
+
+
+
+define('framework/task-queue',["require", "exports", "./dom"], function (require, exports, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var hasSetImmediate = typeof setImmediate === 'function';
+    var stackSeparator = '\nEnqueued in TaskQueue by:\n';
+    var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
+    function makeRequestFlushFromMutationObserver(flush) {
+        var toggle = 1;
+        var observer = dom_1.DOM.createMutationObserver(flush);
+        var node = dom_1.DOM.createTextNode('');
+        observer.observe(node, { characterData: true });
+        return function requestFlush() {
+            toggle = -toggle;
+            node.data = toggle.toString();
+        };
+    }
+    function makeRequestFlushFromTimer(flush) {
+        return function requestFlush() {
+            var timeoutHandle = setTimeout(handleFlushTimer, 0);
+            var intervalHandle = setInterval(handleFlushTimer, 50);
+            function handleFlushTimer() {
+                clearTimeout(timeoutHandle);
+                clearInterval(intervalHandle);
+                flush();
+            }
+        };
+    }
+    function onError(error, task, longStacks) {
+        if (longStacks &&
+            task.stack &&
+            typeof error === 'object' &&
+            error !== null) {
+            error.stack = filterFlushStack(error.stack) + task.stack;
+        }
+        if ('onError' in task) {
+            task.onError(error);
+        }
+        else if (hasSetImmediate) {
+            setImmediate(function () { throw error; });
+        }
+        else {
+            setTimeout(function () { throw error; }, 0);
+        }
+    }
+    var TaskQueue = (function () {
+        function TaskQueue() {
+            var _this = this;
+            this.flushing = false;
+            this.longStacks = false;
+            this.microTaskQueue = [];
+            this.taskQueue = [];
+            this.microTaskQueueCapacity = 1024;
+            this.requestFlushMicroTaskQueue = makeRequestFlushFromMutationObserver(function () { return _this.flushMicroTaskQueue(); });
+            this.requestFlushTaskQueue = makeRequestFlushFromTimer(function () { return _this.flushTaskQueue(); });
+        }
+        TaskQueue.prototype.flushQueue = function (queue, capacity) {
+            var index = 0;
+            var task;
+            try {
+                this.flushing = true;
+                while (index < queue.length) {
+                    task = queue[index];
+                    if (this.longStacks) {
+                        this.stack = typeof task.stack === 'string' ? task.stack : undefined;
+                    }
+                    task.call();
+                    index++;
+                    if (index > capacity) {
+                        for (var scan = 0, newLength = queue.length - index; scan < newLength; scan++) {
+                            queue[scan] = queue[scan + index];
+                        }
+                        queue.length -= index;
+                        index = 0;
+                    }
+                }
+            }
+            catch (error) {
+                onError(error, task, this.longStacks);
+            }
+            finally {
+                this.flushing = false;
+            }
+        };
+        TaskQueue.prototype.queueMicroTask = function (task) {
+            if (this.microTaskQueue.length < 1) {
+                this.requestFlushMicroTaskQueue();
+            }
+            if (this.longStacks) {
+                task['stack'] = this.prepareQueueStack(microStackSeparator);
+            }
+            this.microTaskQueue.push(task);
+        };
+        TaskQueue.prototype.queueTask = function (task) {
+            if (this.taskQueue.length < 1) {
+                this.requestFlushTaskQueue();
+            }
+            if (this.longStacks) {
+                task['stack'] = this.prepareQueueStack(stackSeparator);
+            }
+            this.taskQueue.push(task);
+        };
+        TaskQueue.prototype.flushTaskQueue = function () {
+            var queue = this.taskQueue;
+            this.taskQueue = [];
+            this.flushQueue(queue, Number.MAX_VALUE);
+        };
+        TaskQueue.prototype.flushMicroTaskQueue = function () {
+            var queue = this.microTaskQueue;
+            this.flushQueue(queue, this.microTaskQueueCapacity);
+            queue.length = 0;
+        };
+        TaskQueue.prototype.prepareQueueStack = function (separator) {
+            var stack = separator + filterQueueStack(captureStack());
+            if (typeof this.stack === 'string') {
+                stack = filterFlushStack(stack) + this.stack;
+            }
+            return stack;
+        };
+        TaskQueue.instance = new TaskQueue();
+        return TaskQueue;
+    }());
+    exports.TaskQueue = TaskQueue;
+    function captureStack() {
+        var error = new Error();
+        if (error.stack) {
+            return error.stack;
+        }
+        try {
+            throw error;
+        }
+        catch (e) {
+            return e.stack;
+        }
+    }
+    function filterQueueStack(stack) {
+        return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
+    }
+    function filterFlushStack(stack) {
+        var index = stack.lastIndexOf('flushMicroTaskQueue');
+        if (index < 0) {
+            index = stack.lastIndexOf('flushTaskQueue');
+            if (index < 0) {
+                return stack;
+            }
+        }
+        index = stack.lastIndexOf('\n', index);
+        return index < 0 ? stack : stack.substr(0, index);
+    }
+});
+
+
+
+define('framework/binding/array-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function isIndex(s) {
@@ -682,7 +1139,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/array-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
+define('framework/binding/array-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var pop = Array.prototype.pop;
@@ -808,7 +1265,7 @@ define('framework/array-observation',["require", "exports", "./collection-observ
 
 
 
-define('framework/ast',["require", "exports", "./scope", "./signals"], function (require, exports, scope_1, signals_1) {
+define('framework/binding/ast',["require", "exports", "./scope", "./signals"], function (require, exports, scope_1, signals_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Chain = (function () {
@@ -1345,7 +1802,7 @@ define('framework/ast',["require", "exports", "./scope", "./signals"], function 
 
 
 
-define('framework/binding-mode',["require", "exports"], function (require, exports) {
+define('framework/binding/binding-mode',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.bindingMode = {
@@ -1369,7 +1826,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./call-context", "./observer-locator"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, call_context_1, observer_locator_1) {
+define('framework/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./call-context", "./observer-locator"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, call_context_1, observer_locator_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Binding = (function (_super) {
@@ -1487,7 +1944,7 @@ define('framework/binding',["require", "exports", "./binding-mode", "./connectab
 
 
 
-define('framework/call-context',["require", "exports"], function (require, exports) {
+define('framework/binding/call-context',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.targetContext = 'Binding:target';
@@ -1506,7 +1963,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/checked-observer',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+define('framework/binding/checked-observer',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var checkedArrayContext = 'CheckedObserver:array';
@@ -1632,7 +2089,7 @@ define('framework/checked-observer',["require", "exports", "./subscriber-collect
 
 
 
-define('framework/class-observer',["require", "exports"], function (require, exports) {
+define('framework/binding/class-observer',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ClassObserver = (function () {
@@ -1695,7 +2152,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/collection-observation',["require", "exports", "./array-change-records", "./map-change-records", "./subscriber-collection"], function (require, exports, array_change_records_1, map_change_records_1, subscriber_collection_1) {
+define('framework/binding/collection-observation',["require", "exports", "./array-change-records", "./map-change-records", "./subscriber-collection"], function (require, exports, array_change_records_1, map_change_records_1, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ModifyCollectionObserver = (function (_super) {
@@ -1827,7 +2284,7 @@ define('framework/collection-observation',["require", "exports", "./array-change
 
 
 
-define('framework/connect-queue',["require", "exports", "./platform"], function (require, exports, platform_1) {
+define('framework/binding/connect-queue',["require", "exports", "../platform"], function (require, exports, platform_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var queue = [];
@@ -1885,7 +2342,7 @@ define('framework/connect-queue',["require", "exports", "./platform"], function 
 
 
 
-define('framework/connectable-binding',["require", "exports", "./call-context"], function (require, exports, call_context_1) {
+define('framework/binding/connectable-binding',["require", "exports", "./call-context"], function (require, exports, call_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var slotNames = [];
@@ -1956,7 +2413,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/dirty-checking',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+define('framework/binding/dirty-checking',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var DirtyChecker = (function () {
@@ -2039,127 +2496,6 @@ define('framework/dirty-checking',["require", "exports", "./subscriber-collectio
 
 
 
-define('framework/dom',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.DOM = {
-        Element: Element,
-        SVGElement: SVGElement,
-        boundary: 'aurelia-dom-boundary',
-        addEventListener: function (eventName, callback, capture) {
-            document.addEventListener(eventName, callback, capture);
-        },
-        removeEventListener: function (eventName, callback, capture) {
-            document.removeEventListener(eventName, callback, capture);
-        },
-        adoptNode: function (node) {
-            return document.adoptNode(node);
-        },
-        createAttribute: function (name) {
-            return document.createAttribute(name);
-        },
-        createElement: function (tagName) {
-            return document.createElement(tagName);
-        },
-        createTextNode: function (text) {
-            return document.createTextNode(text);
-        },
-        createComment: function (text) {
-            return document.createComment(text);
-        },
-        createDocumentFragment: function () {
-            return document.createDocumentFragment();
-        },
-        createTemplateElement: function () {
-            return document.createElement('template');
-        },
-        createMutationObserver: function (callback) {
-            return new MutationObserver(callback);
-        },
-        createCustomEvent: function (eventType, options) {
-            return new CustomEvent(eventType, options);
-        },
-        dispatchEvent: function (evt) {
-            document.dispatchEvent(evt);
-        },
-        getComputedStyle: function (element) {
-            return window.getComputedStyle(element);
-        },
-        getElementById: function (id) {
-            return document.getElementById(id);
-        },
-        querySelectorAll: function (query) {
-            return document.querySelectorAll(query);
-        },
-        nextElementSibling: function (element) {
-            if ('nextElementSibling' in element) {
-                return element['nextElementSibling'];
-            }
-            do {
-                element = element.nextSibling;
-            } while (element && element.nodeType !== 1);
-            return element;
-        },
-        createTemplateFromMarkup: function (markup) {
-            var parser = document.createElement('div');
-            parser.innerHTML = markup;
-            var temp = parser.firstElementChild;
-            if (!temp || temp.nodeName !== 'TEMPLATE') {
-                throw new Error('Template markup must be wrapped in a <template> element e.g. <template> <!-- markup here --> </template>');
-            }
-            return temp;
-        },
-        appendNode: function (newNode, parentNode) {
-            (parentNode || document.body).appendChild(newNode);
-        },
-        replaceNode: function (newNode, node, parentNode) {
-            if (node.parentNode) {
-                node.parentNode.replaceChild(newNode, node);
-            }
-            else {
-                parentNode.replaceChild(newNode, node);
-            }
-        },
-        removeNode: function (node, parentNode) {
-            if (node.parentNode) {
-                node.parentNode.removeChild(node);
-            }
-            else if (parentNode) {
-                parentNode.removeChild(node);
-            }
-        },
-        injectStyles: function (styles, destination, prepend, id) {
-            if (id) {
-                var oldStyle = document.getElementById(id);
-                if (oldStyle) {
-                    var isStyleTag = oldStyle.tagName.toLowerCase() === 'style';
-                    if (isStyleTag) {
-                        oldStyle.innerHTML = styles;
-                        return;
-                    }
-                    throw new Error('The provided id does not indicate a style tag.');
-                }
-            }
-            var node = document.createElement('style');
-            node.innerHTML = styles;
-            node.type = 'text/css';
-            if (id) {
-                node.id = id;
-            }
-            destination = destination || document.head;
-            if (prepend && destination.childNodes.length > 0) {
-                destination.insertBefore(node, destination.childNodes[0]);
-            }
-            else {
-                destination.appendChild(node);
-            }
-            return node;
-        }
-    };
-});
-
-
-
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -2170,7 +2506,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/element-observation',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+define('framework/binding/element-observation',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var XLinkAttributeObserver = (function () {
@@ -2339,7 +2675,7 @@ define('framework/element-observation',["require", "exports", "./subscriber-coll
 
 
 
-define('framework/event-manager',["require", "exports", "./dom"], function (require, exports, dom_1) {
+define('framework/binding/event-manager',["require", "exports", "../dom"], function (require, exports, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function findOriginalEventTarget(event) {
@@ -2583,7 +2919,7 @@ define('framework/event-manager',["require", "exports", "./dom"], function (requ
 
 
 
-define('framework/listener',["require", "exports", "./event-manager"], function (require, exports, event_manager_1) {
+define('framework/binding/listener',["require", "exports", "./event-manager"], function (require, exports, event_manager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Listener = (function () {
@@ -2651,184 +2987,7 @@ define('framework/listener',["require", "exports", "./event-manager"], function 
 
 
 
-define('framework/logging',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.logLevel = {
-        none: 0,
-        error: 10,
-        warn: 20,
-        info: 30,
-        debug: 40
-    };
-    var loggers = {};
-    var appenders = [];
-    var globalDefaultLevel = exports.logLevel.none;
-    var slice = Array.prototype.slice;
-    var standardLevels = ['none', 'error', 'warn', 'info', 'debug'];
-    function isStandardLevel(level) {
-        return standardLevels.filter(function (l) { return l === level; }).length > 0;
-    }
-    function appendArgs() {
-        return [this].concat(slice.call(arguments));
-    }
-    function logFactory(level) {
-        var threshold = exports.logLevel[level];
-        return function () {
-            if (this.level < threshold) {
-                return;
-            }
-            var args = appendArgs.apply(this, arguments);
-            var i = appenders.length;
-            while (i--) {
-                (_a = appenders[i])[level].apply(_a, args);
-            }
-            var _a;
-        };
-    }
-    function logFactoryCustom(level) {
-        var threshold = exports.logLevel[level];
-        return function () {
-            if (this.level < threshold) {
-                return;
-            }
-            var args = appendArgs.apply(this, arguments);
-            var i = appenders.length;
-            while (i--) {
-                var appender = appenders[i];
-                if (appender[level] !== undefined) {
-                    appender[level].apply(appender, args);
-                }
-            }
-        };
-    }
-    function connectLoggers() {
-        var proto = Logger.prototype;
-        for (var level in exports.logLevel) {
-            if (isStandardLevel(level)) {
-                if (level !== 'none') {
-                    proto[level] = logFactory(level);
-                }
-            }
-            else {
-                proto[level] = logFactoryCustom(level);
-            }
-        }
-    }
-    function disconnectLoggers() {
-        var proto = Logger.prototype;
-        for (var level in exports.logLevel) {
-            if (level !== 'none') {
-                proto[level] = function () { };
-            }
-        }
-    }
-    function getLogger(id) {
-        return loggers[id] || new Logger(id);
-    }
-    exports.getLogger = getLogger;
-    function addAppender(appender) {
-        if (appenders.push(appender) === 1) {
-            connectLoggers();
-        }
-    }
-    exports.addAppender = addAppender;
-    function removeAppender(appender) {
-        appenders = appenders.filter(function (a) { return a !== appender; });
-    }
-    exports.removeAppender = removeAppender;
-    function getAppenders() {
-        return appenders.slice();
-    }
-    exports.getAppenders = getAppenders;
-    function clearAppenders() {
-        appenders = [];
-        disconnectLoggers();
-    }
-    exports.clearAppenders = clearAppenders;
-    function addCustomLevel(name, value) {
-        if (exports.logLevel[name] !== undefined) {
-            throw Error("Log level \"" + name + "\" already exists.");
-        }
-        if (isNaN(value)) {
-            throw Error('Value must be a number.');
-        }
-        exports.logLevel[name] = value;
-        if (appenders.length > 0) {
-            connectLoggers();
-        }
-        else {
-            Logger.prototype[name] = function () { };
-        }
-    }
-    exports.addCustomLevel = addCustomLevel;
-    function removeCustomLevel(name) {
-        if (exports.logLevel[name] === undefined) {
-            return;
-        }
-        if (isStandardLevel(name)) {
-            throw Error("Built-in log level \"" + name + "\" cannot be removed.");
-        }
-        delete exports.logLevel[name];
-        delete Logger.prototype[name];
-    }
-    exports.removeCustomLevel = removeCustomLevel;
-    function setLevel(level) {
-        globalDefaultLevel = level;
-        for (var key in loggers) {
-            loggers[key].setLevel(level);
-        }
-    }
-    exports.setLevel = setLevel;
-    function getLevel() {
-        return globalDefaultLevel;
-    }
-    exports.getLevel = getLevel;
-    var Logger = (function () {
-        function Logger(id) {
-            var cached = loggers[id];
-            if (cached) {
-                return cached;
-            }
-            loggers[id] = this;
-            this.id = id;
-            this.level = globalDefaultLevel;
-        }
-        Logger.prototype.debug = function (message) {
-            var rest = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                rest[_i - 1] = arguments[_i];
-            }
-        };
-        Logger.prototype.info = function (message) {
-            var rest = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                rest[_i - 1] = arguments[_i];
-            }
-        };
-        Logger.prototype.warn = function (message) {
-            var rest = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                rest[_i - 1] = arguments[_i];
-            }
-        };
-        Logger.prototype.error = function (message) {
-            var rest = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                rest[_i - 1] = arguments[_i];
-            }
-        };
-        Logger.prototype.setLevel = function (level) {
-            this.level = level;
-        };
-        return Logger;
-    }());
-    exports.Logger = Logger;
-});
-
-
-
-define('framework/map-change-records',["require", "exports"], function (require, exports) {
+define('framework/binding/map-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function newRecord(type, object, key, oldValue) {
@@ -2868,7 +3027,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/map-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
+define('framework/binding/map-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var mapProto = Map.prototype;
@@ -2945,7 +3104,7 @@ define('framework/map-observation',["require", "exports", "./collection-observat
 
 
 
-define('framework/observer-locator',["require", "exports", "./logging", "./dom", "./task-queue", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checking", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg"], function (require, exports, LogManager, dom_1, task_queue_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checking_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_1) {
+define('framework/binding/observer-locator',["require", "exports", "../logging", "../dom", "../task-queue", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checking", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg"], function (require, exports, LogManager, dom_1, task_queue_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checking_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function getPropertyDescriptor(subject, name) {
@@ -3126,28 +3285,6 @@ define('framework/observer-locator',["require", "exports", "./logging", "./dom",
 
 
 
-define('framework/platform',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.PLATFORM = {
-        global: window,
-        location: window.location,
-        history: window.history,
-        addEventListener: function (eventName, callback, capture) {
-            this.global.addEventListener(eventName, callback, capture);
-        },
-        removeEventListener: function (eventName, callback, capture) {
-            this.global.removeEventListener(eventName, callback, capture);
-        },
-        performance: window.performance,
-        requestAnimationFrame: function (callback) {
-            return this.global.requestAnimationFrame(callback);
-        }
-    };
-});
-
-
-
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -3158,7 +3295,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/property-observation',["require", "exports", "./logging", "./subscriber-collection", "./task-queue"], function (require, exports, logging_1, subscriber_collection_1, task_queue_1) {
+define('framework/binding/property-observation',["require", "exports", "../logging", "./subscriber-collection", "../task-queue"], function (require, exports, logging_1, subscriber_collection_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var logger = logging_1.getLogger('property-observation');
@@ -3295,7 +3432,7 @@ define('framework/property-observation',["require", "exports", "./logging", "./s
 
 
 
-define('framework/scope',["require", "exports"], function (require, exports) {
+define('framework/binding/scope',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function createOverrideContext(bindingContext, parentOverrideContext) {
@@ -3353,7 +3490,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/select-value-observer',["require", "exports", "./subscriber-collection", "./dom"], function (require, exports, subscriber_collection_1, dom_1) {
+define('framework/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../dom"], function (require, exports, subscriber_collection_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var selectArrayContext = 'SelectValueObserver:array';
@@ -3533,7 +3670,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/set-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
+define('framework/binding/set-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var setProto = Set.prototype;
@@ -3607,7 +3744,7 @@ define('framework/set-observation',["require", "exports", "./collection-observat
 
 
 
-define('framework/signals',["require", "exports"], function (require, exports) {
+define('framework/binding/signals',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var signals = {};
@@ -3628,7 +3765,7 @@ define('framework/signals',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/subscriber-collection',["require", "exports"], function (require, exports) {
+define('framework/binding/subscriber-collection',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var arrayPool1 = [];
@@ -3813,7 +3950,7 @@ define('framework/subscriber-collection',["require", "exports"], function (requi
 
 
 
-define('framework/svg',["require", "exports"], function (require, exports) {
+define('framework/binding/svg',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var SVGAnalyzer = (function () {
@@ -3826,297 +3963,6 @@ define('framework/svg',["require", "exports"], function (require, exports) {
         return SVGAnalyzer;
     }());
     exports.SVGAnalyzer = SVGAnalyzer;
-});
-
-
-
-define('framework/task-queue',["require", "exports", "./dom"], function (require, exports, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var hasSetImmediate = typeof setImmediate === 'function';
-    var stackSeparator = '\nEnqueued in TaskQueue by:\n';
-    var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
-    function makeRequestFlushFromMutationObserver(flush) {
-        var toggle = 1;
-        var observer = dom_1.DOM.createMutationObserver(flush);
-        var node = dom_1.DOM.createTextNode('');
-        observer.observe(node, { characterData: true });
-        return function requestFlush() {
-            toggle = -toggle;
-            node.data = toggle.toString();
-        };
-    }
-    function makeRequestFlushFromTimer(flush) {
-        return function requestFlush() {
-            var timeoutHandle = setTimeout(handleFlushTimer, 0);
-            var intervalHandle = setInterval(handleFlushTimer, 50);
-            function handleFlushTimer() {
-                clearTimeout(timeoutHandle);
-                clearInterval(intervalHandle);
-                flush();
-            }
-        };
-    }
-    function onError(error, task, longStacks) {
-        if (longStacks &&
-            task.stack &&
-            typeof error === 'object' &&
-            error !== null) {
-            error.stack = filterFlushStack(error.stack) + task.stack;
-        }
-        if ('onError' in task) {
-            task.onError(error);
-        }
-        else if (hasSetImmediate) {
-            setImmediate(function () { throw error; });
-        }
-        else {
-            setTimeout(function () { throw error; }, 0);
-        }
-    }
-    var TaskQueue = (function () {
-        function TaskQueue() {
-            var _this = this;
-            this.flushing = false;
-            this.longStacks = false;
-            this.microTaskQueue = [];
-            this.taskQueue = [];
-            this.microTaskQueueCapacity = 1024;
-            this.requestFlushMicroTaskQueue = makeRequestFlushFromMutationObserver(function () { return _this.flushMicroTaskQueue(); });
-            this.requestFlushTaskQueue = makeRequestFlushFromTimer(function () { return _this.flushTaskQueue(); });
-        }
-        TaskQueue.prototype.flushQueue = function (queue, capacity) {
-            var index = 0;
-            var task;
-            try {
-                this.flushing = true;
-                while (index < queue.length) {
-                    task = queue[index];
-                    if (this.longStacks) {
-                        this.stack = typeof task.stack === 'string' ? task.stack : undefined;
-                    }
-                    task.call();
-                    index++;
-                    if (index > capacity) {
-                        for (var scan = 0, newLength = queue.length - index; scan < newLength; scan++) {
-                            queue[scan] = queue[scan + index];
-                        }
-                        queue.length -= index;
-                        index = 0;
-                    }
-                }
-            }
-            catch (error) {
-                onError(error, task, this.longStacks);
-            }
-            finally {
-                this.flushing = false;
-            }
-        };
-        TaskQueue.prototype.queueMicroTask = function (task) {
-            if (this.microTaskQueue.length < 1) {
-                this.requestFlushMicroTaskQueue();
-            }
-            if (this.longStacks) {
-                task['stack'] = this.prepareQueueStack(microStackSeparator);
-            }
-            this.microTaskQueue.push(task);
-        };
-        TaskQueue.prototype.queueTask = function (task) {
-            if (this.taskQueue.length < 1) {
-                this.requestFlushTaskQueue();
-            }
-            if (this.longStacks) {
-                task['stack'] = this.prepareQueueStack(stackSeparator);
-            }
-            this.taskQueue.push(task);
-        };
-        TaskQueue.prototype.flushTaskQueue = function () {
-            var queue = this.taskQueue;
-            this.taskQueue = [];
-            this.flushQueue(queue, Number.MAX_VALUE);
-        };
-        TaskQueue.prototype.flushMicroTaskQueue = function () {
-            var queue = this.microTaskQueue;
-            this.flushQueue(queue, this.microTaskQueueCapacity);
-            queue.length = 0;
-        };
-        TaskQueue.prototype.prepareQueueStack = function (separator) {
-            var stack = separator + filterQueueStack(captureStack());
-            if (typeof this.stack === 'string') {
-                stack = filterFlushStack(stack) + this.stack;
-            }
-            return stack;
-        };
-        TaskQueue.instance = new TaskQueue();
-        return TaskQueue;
-    }());
-    exports.TaskQueue = TaskQueue;
-    function captureStack() {
-        var error = new Error();
-        if (error.stack) {
-            return error.stack;
-        }
-        try {
-            throw error;
-        }
-        catch (e) {
-            return e.stack;
-        }
-    }
-    function filterQueueStack(stack) {
-        return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
-    }
-    function filterFlushStack(stack) {
-        var index = stack.lastIndexOf('flushMicroTaskQueue');
-        if (index < 0) {
-            index = stack.lastIndexOf('flushTaskQueue');
-            if (index < 0) {
-                return stack;
-            }
-        }
-        index = stack.lastIndexOf('\n', index);
-        return index < 0 ? stack : stack.substr(0, index);
-    }
-});
-
-
-
-define('framework-generated',["require", "exports", "./framework/ast", "./framework/binding", "./framework/binding-mode", "./framework/listener", "./framework/event-manager", "./framework-new"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, framework_new_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var emptyArray = [];
-    var astLookup = {
-        message: new ast_1.AccessScope('message'),
-        textContent: new ast_1.AccessScope('textContent'),
-        value: new ast_1.AccessScope('value'),
-        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
-        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
-        nameTagBorder: new framework_new_1.InterpolationString([
-            new ast_1.AccessScope('borderWidth'),
-            new ast_1.LiteralString('px solid '),
-            new ast_1.AccessScope('borderColor')
-        ]),
-        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
-        nameTagClasses: new framework_new_1.InterpolationString([
-            new ast_1.LiteralString('au name-tag '),
-            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
-        ]),
-        name: new ast_1.AccessScope('name'),
-        submit: new ast_1.CallScope('submit', emptyArray, 0),
-        nameTagColor: new ast_1.AccessScope('color')
-    };
-    function getAST(key) {
-        return astLookup[key];
-    }
-    function oneWay(sourceExpression, target, targetProperty) {
-        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.oneWay, null);
-    }
-    exports.oneWay = oneWay;
-    function oneWayText(sourceExpression, target) {
-        var next = target.nextSibling;
-        next['auInterpolationTarget'] = true;
-        target.parentNode.removeChild(target);
-        return oneWay(sourceExpression, next, 'textContent');
-    }
-    exports.oneWayText = oneWayText;
-    function twoWay(sourceExpression, target, targetProperty) {
-        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.twoWay, null);
-    }
-    exports.twoWay = twoWay;
-    function listener(targetEvent, target, sourceExpression, preventDefault, strategy) {
-        if (preventDefault === void 0) { preventDefault = true; }
-        if (strategy === void 0) { strategy = event_manager_1.delegationStrategy.none; }
-        return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, null);
-    }
-    exports.listener = listener;
-});
-
-
-
-define('framework-new',["require", "exports", "./framework/dom"], function (require, exports, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Aurelia = (function () {
-        function Aurelia(settings) {
-            this.settings = settings;
-            this.settings.root.hydrate(this.settings.host);
-            this.settings.root.bind();
-            this.settings.root.attach();
-        }
-        return Aurelia;
-    }());
-    exports.Aurelia = Aurelia;
-    var InterpolationString = (function () {
-        function InterpolationString(parts) {
-            this.parts = parts;
-        }
-        InterpolationString.prototype.assign = function () { };
-        InterpolationString.prototype.evaluate = function (scope, lookupFunctions) {
-            var result = '';
-            var parts = this.parts;
-            var ii = parts.length;
-            for (var i = 0; ii > i; ++i) {
-                var partValue = parts[i].evaluate(scope, lookupFunctions);
-                if (partValue === null || partValue === undefined) {
-                    continue;
-                }
-                result += partValue.toString();
-            }
-            return result;
-        };
-        InterpolationString.prototype.connect = function (binding, scope) {
-            var parts = this.parts;
-            var i = parts.length;
-            while (i--) {
-                parts[i].connect(binding, scope);
-            }
-        };
-        return InterpolationString;
-    }());
-    exports.InterpolationString = InterpolationString;
-    var Template = (function () {
-        function Template(html) {
-            this.element = dom_1.DOM.createTemplateElement();
-            this.element.innerHTML = html;
-        }
-        Template.prototype.create = function () {
-            return new View(this.element);
-        };
-        return Template;
-    }());
-    exports.Template = Template;
-    var View = (function () {
-        function View(template) {
-            var clone = template.cloneNode(true);
-            this.fragment = clone.content;
-            this.targets = this.fragment.querySelectorAll('.au');
-            this.firstChild = this.fragment.firstChild;
-            this.lastChild = this.fragment.lastChild;
-        }
-        View.prototype.insertNodesBefore = function (refNode) {
-            refNode.parentNode.insertBefore(this.fragment, refNode);
-        };
-        View.prototype.appendNodesTo = function (parent) {
-            parent.appendChild(this.fragment);
-        };
-        View.prototype.removeNodes = function () {
-            var fragment = this.fragment;
-            var current = this.firstChild;
-            var end = this.lastChild;
-            var next;
-            while (current) {
-                next = current.nextSibling;
-                fragment.appendChild(current);
-                if (current === end) {
-                    break;
-                }
-                current = next;
-            }
-        };
-        return View;
-    }());
-    exports.View = View;
 });
 
 

@@ -1,5 +1,5 @@
-import { Scope } from './framework/scope';
-import { Expression, ILookupFunctions, IBinding} from './framework/ast';
+import { Scope } from './framework/binding/scope';
+import { Expression, ILookupFunctions, IBinding} from './framework/binding/ast';
 import { DOM } from './framework/dom';
 
 export interface AureliaSettings {

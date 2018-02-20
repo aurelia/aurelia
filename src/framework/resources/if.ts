@@ -1,12 +1,23 @@
 import { IfCore } from "./if-core";
 import { Scope } from "../binding/scope";
 import { Else } from "./else";
+import { Observer } from "../binding/property-observation";
 
 export class If extends IfCore {
   private animating = false;
   private elseBehavior: Else;
 
-  condition: any;
+  $observers = {
+    condition: new Observer(false)
+  };
+  
+  get condition() { return this.$observers.condition.getValue(); }
+  set condition(value: boolean) { 
+    this.$observers.condition.setValue(value);
+    this.conditionChanged(value); 
+  }
+
+  //condition: any;
   swapOrder: 'before'|'with'|'after';
 
   /**

@@ -4096,7 +4096,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/resources/if',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
+define('framework/resources/if',["require", "exports", "./if-core", "../binding/property-observation"], function (require, exports, if_core_1, property_observation_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var If = (function (_super) {
@@ -4104,8 +4104,20 @@ define('framework/resources/if',["require", "exports", "./if-core"], function (r
         function If() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.animating = false;
+            _this.$observers = {
+                condition: new property_observation_1.Observer(false)
+            };
             return _this;
         }
+        Object.defineProperty(If.prototype, "condition", {
+            get: function () { return this.$observers.condition.getValue(); },
+            set: function (value) {
+                this.$observers.condition.setValue(value);
+                this.conditionChanged(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
         If.prototype.bind = function (scope) {
             _super.prototype.bind.call(this, scope);
             if (this.condition) {

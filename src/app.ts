@@ -2,7 +2,7 @@ import { Scope, createOverrideContext } from './framework/binding/scope';
 import { Observer } from './framework/binding/property-observation';
 import { IObservable, IBinding } from './framework/binding/binding';
 import { Template } from './framework/new';
-import { oneWay, twoWay, listener, oneWayText } from './framework/generated';
+import { oneWay, twoWay, listener, oneWayText, makeElementIntoAnchor } from './framework/generated';
 import { View } from './framework/templating/view';
 import { IVisual, IComponent } from './framework/templating/component';
 import { If } from './framework/resources/if';
@@ -81,8 +81,12 @@ import { ViewSlot } from './framework/templating/view-slot';
 //Altered/Generated via a compile-time transform
 class $App {
   $observers = {
-    message: new Observer('Hello World!')
+    message: new Observer('Hello World!'),
+    duplicateMessage: new Observer(true)
   };
+
+  get duplicateMessage() { return this.$observers.duplicateMessage.getValue(); }
+  set duplicateMessage(value: boolean) { this.$observers.duplicateMessage.setValue(value); }
   
   get message() { return this.$observers.message.getValue(); }
   set message(value: string) { this.$observers.message.setValue(value); }
@@ -92,6 +96,7 @@ class $DynamicView implements IVisual {
   private $b1: IBinding;
   
   $view: View;
+  isBound = false;
 
   private static $template = new Template(`
     <div><au-marker class="au"></au-marker> </div>
@@ -104,10 +109,12 @@ class $DynamicView implements IVisual {
   }
 
   bind(scope: Scope) {
+    this.isBound = true;
     this.$b1.bind(scope);
   }
 
   unbind() {
+    this.isBound = false;
     this.$b1.unbind();
   }
 
@@ -154,7 +161,7 @@ export class App extends $App implements IComponent {
 
     this.$b4 = twoWay('duplicateMessage', targets[3], 'checked');
 
-    this.$a1 = new If(() => new $DynamicView(), new ViewSlot(targets[4], false)); //TODO: convert marker to comment
+    this.$a1 = new If(() => new $DynamicView(), new ViewSlot(makeElementIntoAnchor(targets[4]), false));
     this.$b5 = oneWay('duplicateMessage', this.$a1, 'condition');
 
     return this;
@@ -166,13 +173,13 @@ export class App extends $App implements IComponent {
     this.$b1.bind(scope);
     this.$b2.bind(scope);
 
-    this.$b3.bind(scope); //bind properties before calling bind on attribute/component
-    this.$c1.bind();
+    this.$b3.bind(scope); //bind properties before calling bind on component
+    this.$c1.bind(); //bind always called, but after all properties are set
 
     this.$b4.bind(scope);
 
-    this.$b5.bind(scope); //bind properties before calling bind on attribute/component
-    this.$a1.bind(scope);
+    this.$b5.bind(scope); //bind properties before calling bind on attribute
+    this.$a1.bind(scope); //bind always called, but after all properties are set
   }
 
   //attaching tunnels down the tree before the dom attach happens

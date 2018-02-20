@@ -8,16 +8,17 @@ import { Scope } from '../binding/scope';
 export abstract class IfCore {
   private visual: IVisual = null;
   private scope: Scope = null;
-  private isBound = false;
 
   // If the child view is animated, `value` might not reflect the internal
   // state anymore, so we use `showing` for that.
   // Eventually, `showing` and `value` should be consistent.
   protected showing = false;
+  protected isBound = false;
 
   constructor(private createVisual: () => IVisual, protected viewSlot: ViewSlot) { }
 
   bind(scope: Scope) {
+    this.isBound = true;
     this.scope = scope;
   }
 
@@ -30,6 +31,8 @@ export abstract class IfCore {
   }
 
   unbind() {
+    this.isBound = false;
+
     if (this.visual === null) {
       return;
     }
@@ -49,7 +52,7 @@ export abstract class IfCore {
       // Ensures the view is bound.
       // It might not be the case when the if was unbound but not detached, then rebound.
       // Typical case where this happens is nested ifs
-      if (!this.isBound) {
+      if (!this.visual.isBound) {
         this.visual.bind(this.scope);
       }
 
@@ -60,7 +63,7 @@ export abstract class IfCore {
       this.visual = this.createVisual();
     }
 
-    if (!this.isBound) {
+    if (!this.visual.isBound) {
       this.visual.bind(this.scope);
     }
 

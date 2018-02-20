@@ -20,7 +20,7 @@ export interface IApplyToTarget {
 }
 
 export interface IVisual extends IBindScope, IAttach, IRender {
-  
+  isBound: boolean;
 }
 
 export interface IComponent extends IBindSelf, IAttach, IObservable, IApplyToTarget  {

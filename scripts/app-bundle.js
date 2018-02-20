@@ -14,9 +14,16 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
     var $App = (function () {
         function $App() {
             this.$observers = {
-                message: new property_observation_1.Observer('Hello World!')
+                message: new property_observation_1.Observer('Hello World!'),
+                duplicateMessage: new property_observation_1.Observer(true)
             };
         }
+        Object.defineProperty($App.prototype, "duplicateMessage", {
+            get: function () { return this.$observers.duplicateMessage.getValue(); },
+            set: function (value) { this.$observers.duplicateMessage.setValue(value); },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty($App.prototype, "message", {
             get: function () { return this.$observers.message.getValue(); },
             set: function (value) { this.$observers.message.setValue(value); },
@@ -27,14 +34,17 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
     }());
     var $DynamicView = (function () {
         function $DynamicView() {
+            this.isBound = false;
             this.$view = $DynamicView.$template.create();
             var targets = this.$view.targets;
             this.$b1 = generated_1.oneWayText('message', targets[0]);
         }
         $DynamicView.prototype.bind = function (scope) {
+            this.isBound = true;
             this.$b1.bind(scope);
         };
         $DynamicView.prototype.unbind = function () {
+            this.isBound = false;
             this.$b1.unbind();
         };
         $DynamicView.prototype.attach = function () { };
@@ -61,7 +71,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$c1 = new NameTag().applyTo(targets[2]);
             this.$b3 = generated_1.twoWay('message', this.$c1, 'name');
             this.$b4 = generated_1.twoWay('duplicateMessage', targets[3], 'checked');
-            this.$a1 = new if_1.If(function () { return new $DynamicView(); }, new view_slot_1.ViewSlot(targets[4], false));
+            this.$a1 = new if_1.If(function () { return new $DynamicView(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[4]), false));
             this.$b5 = generated_1.oneWay('duplicateMessage', this.$a1, 'condition');
             return this;
         };
@@ -351,7 +361,7 @@ define('framework/dom',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./new"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, new_1) {
+define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom", "./new"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1, new_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -401,6 +411,14 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, null);
     }
     exports.listener = listener;
+    function makeElementIntoAnchor(element, elementInstruction) {
+        var anchor = dom_1.DOM.createComment('anchor');
+        if (elementInstruction) {
+        }
+        dom_1.DOM.replaceNode(anchor, element);
+        return anchor;
+    }
+    exports.makeElementIntoAnchor = makeElementIntoAnchor;
 });
 
 
@@ -4028,10 +4046,11 @@ define('framework/resources/if-core',["require", "exports"], function (require, 
             this.viewSlot = viewSlot;
             this.visual = null;
             this.scope = null;
-            this.isBound = false;
             this.showing = false;
+            this.isBound = false;
         }
         IfCore.prototype.bind = function (scope) {
+            this.isBound = true;
             this.scope = scope;
         };
         IfCore.prototype.attach = function () {
@@ -4041,6 +4060,7 @@ define('framework/resources/if-core',["require", "exports"], function (require, 
             this.viewSlot.detach();
         };
         IfCore.prototype.unbind = function () {
+            this.isBound = false;
             if (this.visual === null) {
                 return;
             }
@@ -4053,7 +4073,7 @@ define('framework/resources/if-core',["require", "exports"], function (require, 
         };
         IfCore.prototype.show = function () {
             if (this.showing) {
-                if (!this.isBound) {
+                if (!this.visual.isBound) {
                     this.visual.bind(this.scope);
                 }
                 return;
@@ -4061,7 +4081,7 @@ define('framework/resources/if-core',["require", "exports"], function (require, 
             if (this.visual === null) {
                 this.visual = this.createVisual();
             }
-            if (!this.isBound) {
+            if (!this.visual.isBound) {
                 this.visual.bind(this.scope);
             }
             this.showing = true;
@@ -4128,7 +4148,9 @@ define('framework/resources/if',["require", "exports", "./if-core", "../binding/
             }
         };
         If.prototype.conditionChanged = function (newValue) {
-            this.update(newValue);
+            if (this.isBound) {
+                this.update(newValue);
+            }
         };
         If.prototype.connect = function (elseBehavior) {
             if (this.elseBehavior === elseBehavior) {

@@ -14,6 +14,7 @@ import { IBindingTarget, IObservable, Binding } from './binding/binding';
 import { bindingMode } from './binding/binding-mode';
 import { Listener } from './binding/listener';
 import { delegationStrategy } from './binding/event-manager';
+import { DOM } from './dom';
 import { InterpolationString } from './new';
 
 const emptyArray = [];
@@ -66,4 +67,26 @@ export function twoWay(sourceExpression: string, target: IBindingTarget, targetP
 
 export function listener(targetEvent: string, target: Element, sourceExpression: string, preventDefault = true, strategy: number = delegationStrategy.none) {
   return new Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, null);
+}
+
+export function makeElementIntoAnchor(element: Element, elementInstruction?) {
+  let anchor = DOM.createComment('anchor');
+
+  if (elementInstruction) {
+    // let firstChild = element.firstChild;
+
+    // if (firstChild && firstChild.tagName === 'AU-CONTENT') {
+    //   anchor.contentElement = firstChild;
+    // }
+
+    // anchor._element = element;
+
+    // anchor.hasAttribute = hasAttribute;
+    // anchor.getAttribute = getAttribute;
+    // anchor.setAttribute = setAttribute;
+  }
+
+  DOM.replaceNode(anchor, element);
+
+  return anchor;
 }

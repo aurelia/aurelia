@@ -39,7 +39,9 @@ export class If extends IfCore {
   * @param newValue The new value
   */
   conditionChanged(newValue) {
-    this.update(newValue);
+    if (this.isBound) {
+      this.update(newValue);
+    }
   }
 
   connect(elseBehavior: Else) {
@@ -68,8 +70,10 @@ export class If extends IfCore {
 
     if (promise) {
       this.animating = true;
+
       promise.then(() => {
         this.animating = false;
+
         if (this.condition !== this.showing) {
           this.update(this.condition);
         }

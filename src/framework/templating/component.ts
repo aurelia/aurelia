@@ -1,6 +1,7 @@
 import { IObservable, IBindScope } from "../binding/binding";
 import { View, IView } from "./view";
 import { Scope } from "../binding/scope";
+import { Template } from "../new";
 
 export interface IBindSelf {
   bind();
@@ -25,4 +26,24 @@ export interface IVisual extends IBindScope, IAttach, IRender {
 
 export interface IComponent extends IBindSelf, IAttach, IObservable, IApplyToTarget  {
   
+}
+
+export class Visual implements IVisual {
+  $view: View;
+  isBound = false;
+
+  constructor(template: Template) {
+    this.$view = template.create();
+  }
+
+  bind(scope: Scope) {
+    this.isBound = true;
+  }
+
+  unbind() {
+    this.isBound = false;
+  }
+
+  attach() { }
+  detach() { }
 }

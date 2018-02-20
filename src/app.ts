@@ -4,7 +4,7 @@ import { IObservable, IBinding } from './framework/binding/binding';
 import { Template } from './framework/new';
 import { oneWay, twoWay, listener, oneWayText, makeElementIntoAnchor } from './framework/generated';
 import { View } from './framework/templating/view';
-import { IVisual, IComponent } from './framework/templating/component';
+import { IVisual, IComponent, Visual } from './framework/templating/component';
 import { If } from './framework/resources/if';
 import { ViewSlot } from './framework/templating/view-slot';
 import { Else } from './framework/resources/else';
@@ -94,58 +94,34 @@ class $App {
   set message(value: string) { this.$observers.message.setValue(value); }
 }
 
-class $DynamicView implements IVisual {
+class $DynamicView extends Visual {
   private $b1: IBinding;
-  
-  $view: View;
-  isBound = false;
 
-  private static $template = new Template(`
-    <div><au-marker class="au"></au-marker> </div>
-  `);
+  private static $template = new Template('<div><au-marker class="au"></au-marker> </div>');
 
   constructor() {
-    this.$view = $DynamicView.$template.create();
+    super($DynamicView.$template);
     let targets = this.$view.targets;
     this.$b1 = oneWayText('message', targets[0]);
   }
 
   bind(scope: Scope) {
-    this.isBound = true;
+    super.bind(scope);
     this.$b1.bind(scope);
   }
 
   unbind() {
-    this.isBound = false;
+    super.unbind();
     this.$b1.unbind();
   }
-
-  attach() { }
-  detach() { }
 }
 
-class $DynamicView2 implements IVisual {
-  $view: View;
-  isBound = false;
-
-  private static $template = new Template(`
-    <div>No Message Duplicated</div>
-  `);
+class $DynamicView2 extends Visual {
+  private static $template = new Template('<div>No Message Duplicated</div>');
 
   constructor() {
-    this.$view = $DynamicView2.$template.create();
+    super($DynamicView2.$template);
   }
-
-  bind(scope: Scope) {
-    this.isBound = true;
-  }
-
-  unbind() {
-    this.isBound = false;
-  }
-
-  attach() { }
-  detach() { }
 }
 
 export class App extends $App implements IComponent {

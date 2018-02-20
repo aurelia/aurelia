@@ -8,7 +8,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('app',["require", "exports", "./framework/binding/scope", "./framework/binding/property-observation", "./framework/new", "./framework/generated", "./framework/resources/if", "./framework/templating/view-slot", "./framework/resources/else"], function (require, exports, scope_1, property_observation_1, new_1, generated_1, if_1, view_slot_1, else_1) {
+define('app',["require", "exports", "./framework/binding/scope", "./framework/binding/property-observation", "./framework/new", "./framework/generated", "./framework/templating/component", "./framework/resources/if", "./framework/templating/view-slot", "./framework/resources/else"], function (require, exports, scope_1, property_observation_1, new_1, generated_1, component_1, if_1, view_slot_1, else_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var $App = (function () {
@@ -32,42 +32,33 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
         });
         return $App;
     }());
-    var $DynamicView = (function () {
+    var $DynamicView = (function (_super) {
+        __extends($DynamicView, _super);
         function $DynamicView() {
-            this.isBound = false;
-            this.$view = $DynamicView.$template.create();
-            var targets = this.$view.targets;
-            this.$b1 = generated_1.oneWayText('message', targets[0]);
+            var _this = _super.call(this, $DynamicView.$template) || this;
+            var targets = _this.$view.targets;
+            _this.$b1 = generated_1.oneWayText('message', targets[0]);
+            return _this;
         }
         $DynamicView.prototype.bind = function (scope) {
-            this.isBound = true;
+            _super.prototype.bind.call(this, scope);
             this.$b1.bind(scope);
         };
         $DynamicView.prototype.unbind = function () {
-            this.isBound = false;
+            _super.prototype.unbind.call(this);
             this.$b1.unbind();
         };
-        $DynamicView.prototype.attach = function () { };
-        $DynamicView.prototype.detach = function () { };
-        $DynamicView.$template = new new_1.Template("\n    <div><au-marker class=\"au\"></au-marker> </div>\n  ");
+        $DynamicView.$template = new new_1.Template('<div><au-marker class="au"></au-marker> </div>');
         return $DynamicView;
-    }());
-    var $DynamicView2 = (function () {
+    }(component_1.Visual));
+    var $DynamicView2 = (function (_super) {
+        __extends($DynamicView2, _super);
         function $DynamicView2() {
-            this.isBound = false;
-            this.$view = $DynamicView2.$template.create();
+            return _super.call(this, $DynamicView2.$template) || this;
         }
-        $DynamicView2.prototype.bind = function (scope) {
-            this.isBound = true;
-        };
-        $DynamicView2.prototype.unbind = function () {
-            this.isBound = false;
-        };
-        $DynamicView2.prototype.attach = function () { };
-        $DynamicView2.prototype.detach = function () { };
-        $DynamicView2.$template = new new_1.Template("\n    <div>No Message Duplicated</div>\n  ");
+        $DynamicView2.$template = new new_1.Template('<div>No Message Duplicated</div>');
         return $DynamicView2;
-    }());
+    }(component_1.Visual));
     var App = (function (_super) {
         __extends(App, _super);
         function App() {
@@ -4260,6 +4251,22 @@ define('framework/templating/animator',["require", "exports"], function (require
 define('framework/templating/component',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var Visual = (function () {
+        function Visual(template) {
+            this.isBound = false;
+            this.$view = template.create();
+        }
+        Visual.prototype.bind = function (scope) {
+            this.isBound = true;
+        };
+        Visual.prototype.unbind = function () {
+            this.isBound = false;
+        };
+        Visual.prototype.attach = function () { };
+        Visual.prototype.detach = function () { };
+        return Visual;
+    }());
+    exports.Visual = Visual;
 });
 
 

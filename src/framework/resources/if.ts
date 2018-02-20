@@ -17,7 +17,6 @@ export class If extends IfCore {
     this.conditionChanged(value); 
   }
 
-  //condition: any;
   swapOrder: 'before'|'with'|'after';
 
   /**

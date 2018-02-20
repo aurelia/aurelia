@@ -7,6 +7,10 @@ export interface IView {
   remove(): void;
 }
 
+export interface IRender {
+  $view: IView;
+}
+
 export class View implements IView {
   private fragment: DocumentFragment;
   targets: NodeListOf<Element>;

@@ -1,7 +1,5 @@
 import { IfCore } from "./if-core";
 import { Scope } from "../binding/scope";
-import { ViewSlot } from "../templating/view-slot";
-import { IVisual } from "../templating/component";
 import { If } from "./if";
 
 export class Else extends IfCore {

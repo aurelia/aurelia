@@ -1,13 +1,14 @@
 import { Scope, createOverrideContext } from './framework/binding/scope';
 import { Observer } from './framework/binding/property-observation';
-import { IObservable, IBinding } from './framework/binding/binding';
-import { Template } from './framework/new';
+import { IBinding } from './framework/binding/binding';
 import { oneWay, twoWay, listener, oneWayText, makeElementIntoAnchor } from './framework/generated';
 import { View } from './framework/templating/view';
-import { IVisual, IComponent, Visual } from './framework/templating/component';
+import { IComponent } from './framework/templating/component';
 import { If } from './framework/resources/if';
 import { ViewSlot } from './framework/templating/view-slot';
 import { Else } from './framework/resources/else';
+import { Visual } from './framework/templating/visual';
+import { Template } from './framework/templating/template';
 
 // Original User Code for App
 

@@ -1,7 +1,5 @@
 import { Scope } from './binding/scope';
 import { Expression, ILookupFunctions } from './binding/ast';
-import { DOM } from './dom';
-import { View } from './templating/view';
 import { IBinding } from './binding/binding';
 
 export interface AureliaSettings {
@@ -42,18 +40,5 @@ export class InterpolationString implements Expression {
     while (i--) {
       parts[i].connect(binding, scope);
     }
-  }
-}
-
-export class Template {
-  element: HTMLTemplateElement;
-
-  constructor(html) {
-    this.element = DOM.createTemplateElement();
-    this.element.innerHTML = html;
-  }
-
-  create() {
-    return new View(this.element);
   }
 }

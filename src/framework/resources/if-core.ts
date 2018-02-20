@@ -1,6 +1,6 @@
-import { IVisual } from '../templating/component';
 import { ViewSlot } from '../templating/view-slot';
 import { Scope } from '../binding/scope';
+import { IVisual } from '../templating/visual';
 
 /**
 * For internal use only. May change without warning.

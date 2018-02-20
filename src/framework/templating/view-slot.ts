@@ -1,9 +1,10 @@
 import { Animator } from './animator';
 import { View } from './view';
 import { ShadowDOM } from './shadow-dom';
-import { IVisual, IAttach } from './component';
+import { IAttach } from './component';
 import { Scope } from '../binding/scope';
 import { IBindScope } from '../binding/binding';
+import { IVisual } from './visual';
 
 function getAnimatableElement(visual: IVisual) {
   let view = visual.$view;

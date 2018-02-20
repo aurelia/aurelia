@@ -8,7 +8,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('app',["require", "exports", "./framework/binding/scope", "./framework/binding/property-observation", "./framework/new", "./framework/generated", "./framework/resources/if", "./framework/templating/view-slot"], function (require, exports, scope_1, property_observation_1, new_1, generated_1, if_1, view_slot_1) {
+define('app',["require", "exports", "./framework/binding/scope", "./framework/binding/property-observation", "./framework/new", "./framework/generated", "./framework/resources/if", "./framework/templating/view-slot", "./framework/resources/else"], function (require, exports, scope_1, property_observation_1, new_1, generated_1, if_1, view_slot_1, else_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var $App = (function () {
@@ -52,6 +52,22 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
         $DynamicView.$template = new new_1.Template("\n    <div><au-marker class=\"au\"></au-marker> </div>\n  ");
         return $DynamicView;
     }());
+    var $DynamicView2 = (function () {
+        function $DynamicView2() {
+            this.isBound = false;
+            this.$view = $DynamicView2.$template.create();
+        }
+        $DynamicView2.prototype.bind = function (scope) {
+            this.isBound = true;
+        };
+        $DynamicView2.prototype.unbind = function () {
+            this.isBound = false;
+        };
+        $DynamicView2.prototype.attach = function () { };
+        $DynamicView2.prototype.detach = function () { };
+        $DynamicView2.$template = new new_1.Template("\n    <div>No Message Duplicated</div>\n  ");
+        return $DynamicView2;
+    }());
     var App = (function (_super) {
         __extends(App, _super);
         function App() {
@@ -73,6 +89,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b4 = generated_1.twoWay('duplicateMessage', targets[3], 'checked');
             this.$a1 = new if_1.If(function () { return new $DynamicView(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[4]), false));
             this.$b5 = generated_1.oneWay('duplicateMessage', this.$a1, 'condition');
+            this.$a2 = new else_1.Else(function () { return new $DynamicView2(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
             return this;
         };
         App.prototype.bind = function () {
@@ -84,16 +101,19 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b4.bind(scope);
             this.$b5.bind(scope);
             this.$a1.bind(scope);
+            this.$a2.bind(scope);
         };
         App.prototype.attach = function () {
             this.$c1.attach();
             this.$a1.attach();
+            this.$a2.attach();
             this.$view.appendTo(this.$anchor);
         };
         App.prototype.detach = function () {
             this.$view.remove();
             this.$c1.detach();
             this.$a1.detach();
+            this.$a2.detach();
         };
         App.prototype.unbind = function () {
             this.$b1.unbind();
@@ -101,10 +121,11 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b3.unbind();
             this.$c1.unbind();
             this.$a1.unbind();
+            this.$a2.unbind();
             this.$b4.unbind();
             this.$b5.unbind();
         };
-        App.$template = new new_1.Template("\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n  ");
+        App.$template = new new_1.Template("\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ");
         return App;
     }($App));
     exports.App = App;

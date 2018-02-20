@@ -7,6 +7,7 @@ import { View } from './framework/templating/view';
 import { IVisual, IComponent } from './framework/templating/component';
 import { If } from './framework/resources/if';
 import { ViewSlot } from './framework/templating/view-slot';
+import { Else } from './framework/resources/else';
 
 // Original User Code for App
 
@@ -22,6 +23,7 @@ import { ViewSlot } from './framework/templating/view-slot';
 //   <div if.bind="duplicateMessage">
 //     ${message}
 //   </div>
+//   <div else>No Message Duplicated</div>
 // </template>
 
 // ------------------------------
@@ -122,6 +124,30 @@ class $DynamicView implements IVisual {
   detach() { }
 }
 
+class $DynamicView2 implements IVisual {
+  $view: View;
+  isBound = false;
+
+  private static $template = new Template(`
+    <div>No Message Duplicated</div>
+  `);
+
+  constructor() {
+    this.$view = $DynamicView2.$template.create();
+  }
+
+  bind(scope: Scope) {
+    this.isBound = true;
+  }
+
+  unbind() {
+    this.isBound = false;
+  }
+
+  attach() { }
+  detach() { }
+}
+
 export class App extends $App implements IComponent {
   private $b1: IBinding;
   private $b2: IBinding;
@@ -130,6 +156,7 @@ export class App extends $App implements IComponent {
   private $b5: IBinding;
   private $c1: IComponent;
   private $a1: If;
+  private $a2: Else;
 
   private $view: View;
   private $anchor: Element;
@@ -144,6 +171,7 @@ export class App extends $App implements IComponent {
     <input type="text" class="au">
     <name-tag class="au"></name-tag>
     <input type="checkbox" class="au" />
+    <au-marker class="au"></au-marker>
     <au-marker class="au"></au-marker>
   `);
 
@@ -164,6 +192,8 @@ export class App extends $App implements IComponent {
     this.$a1 = new If(() => new $DynamicView(), new ViewSlot(makeElementIntoAnchor(targets[4]), false));
     this.$b5 = oneWay('duplicateMessage', this.$a1, 'condition');
 
+    this.$a2 = new Else(() => new $DynamicView2(), new ViewSlot(makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
+
     return this;
   }
 
@@ -180,6 +210,8 @@ export class App extends $App implements IComponent {
 
     this.$b5.bind(scope); //bind properties before calling bind on attribute
     this.$a1.bind(scope); //bind always called, but after all properties are set
+
+    this.$a2.bind(scope);
   }
 
   //attaching tunnels down the tree before the dom attach happens
@@ -189,6 +221,7 @@ export class App extends $App implements IComponent {
     //this.attaching(); //if developer implemented this callback
     this.$c1.attach();
     this.$a1.attach();
+    this.$a2.attach();
     this.$view.appendTo(this.$anchor); //attach children before the parent
     //TaskQueue.instance.queueMicroTask(() => this.attached()); //queue callback if developer implemented it
   }
@@ -198,6 +231,7 @@ export class App extends $App implements IComponent {
     this.$view.remove(); //remove parent before detaching children
     this.$c1.detach();    
     this.$a1.detach();
+    this.$a2.detach();
     //TaskQueue.instance.queueMicroTask(() => this.detached()); //queue callback if developer implemented it
   }
 
@@ -207,6 +241,7 @@ export class App extends $App implements IComponent {
     this.$b3.unbind();
     this.$c1.unbind();
     this.$a1.unbind();
+    this.$a2.unbind();
     this.$b4.unbind();
     this.$b5.unbind();
   }

@@ -8,7 +8,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('app',["require", "exports", "./framework/binding/scope", "./framework/binding/property-observation", "./framework/new", "./framework/generated"], function (require, exports, scope_1, property_observation_1, new_1, generated_1) {
+define('app',["require", "exports", "./framework/binding/scope", "./framework/binding/property-observation", "./framework/new", "./framework/generated", "./framework/resources/if", "./framework/templating/view-slot"], function (require, exports, scope_1, property_observation_1, new_1, generated_1, if_1, view_slot_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var $App = (function () {
@@ -24,6 +24,23 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             configurable: true
         });
         return $App;
+    }());
+    var $DynamicView = (function () {
+        function $DynamicView() {
+            this.$view = $DynamicView.$template.create();
+            var targets = this.$view.targets;
+            this.$b1 = generated_1.oneWayText('message', targets[0]);
+        }
+        $DynamicView.prototype.bind = function (scope) {
+            this.$b1.bind(scope);
+        };
+        $DynamicView.prototype.unbind = function () {
+            this.$b1.unbind();
+        };
+        $DynamicView.prototype.attach = function () { };
+        $DynamicView.prototype.detach = function () { };
+        $DynamicView.$template = new new_1.Template("\n    <div><au-marker class=\"au\"></au-marker> </div>\n  ");
+        return $DynamicView;
     }());
     var App = (function (_super) {
         __extends(App, _super);
@@ -43,30 +60,41 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b2 = generated_1.twoWay('message', targets[1], 'value');
             this.$c1 = new NameTag().applyTo(targets[2]);
             this.$b3 = generated_1.twoWay('message', this.$c1, 'name');
+            this.$b4 = generated_1.twoWay('duplicateMessage', targets[3], 'checked');
+            this.$a1 = new if_1.If(function () { return new $DynamicView(); }, new view_slot_1.ViewSlot(targets[4], false));
+            this.$b5 = generated_1.oneWay('duplicateMessage', this.$a1, 'condition');
             return this;
+        };
+        App.prototype.bind = function () {
+            var scope = this.$scope;
+            this.$b1.bind(scope);
+            this.$b2.bind(scope);
+            this.$b3.bind(scope);
+            this.$c1.bind();
+            this.$b4.bind(scope);
+            this.$b5.bind(scope);
+            this.$a1.bind(scope);
         };
         App.prototype.attach = function () {
             this.$c1.attach();
+            this.$a1.attach();
             this.$view.appendTo(this.$anchor);
-        };
-        App.prototype.bind = function () {
-            var $scope = this.$scope;
-            this.$b1.bind($scope);
-            this.$b2.bind($scope);
-            this.$c1.bind();
-            this.$b3.bind($scope);
         };
         App.prototype.detach = function () {
             this.$view.remove();
             this.$c1.detach();
+            this.$a1.detach();
         };
         App.prototype.unbind = function () {
             this.$b1.unbind();
             this.$b2.unbind();
             this.$b3.unbind();
             this.$c1.unbind();
+            this.$a1.unbind();
+            this.$b4.unbind();
+            this.$b5.unbind();
         };
-        App.$template = new new_1.Template("\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n  ");
+        App.$template = new new_1.Template("\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n  ");
         return App;
     }($App));
     exports.App = App;
@@ -157,6 +185,9 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
         NameTag.prototype.attach = function () {
             this.$view.appendTo(this.$anchor);
         };
+        NameTag.prototype.detach = function () {
+            this.$view.remove();
+        };
         NameTag.prototype.unbind = function () {
             this.$b1.unbind();
             this.$b2.unbind();
@@ -168,9 +199,6 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b8.unbind();
             this.$b9.unbind();
             this.$b10.unbind();
-        };
-        NameTag.prototype.detach = function () {
-            this.$view.remove();
         };
         NameTag.$template = new new_1.Template("\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ");
         return NameTag;
@@ -345,7 +373,9 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         ]),
         name: new ast_1.AccessScope('name'),
         submit: new ast_1.CallScope('submit', emptyArray, 0),
-        nameTagColor: new ast_1.AccessScope('color')
+        nameTagColor: new ast_1.AccessScope('color'),
+        duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
+        checked: new ast_1.AccessScope('checked')
     };
     function getAST(key) {
         return astLookup[key];
@@ -3957,7 +3987,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/if/else',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
+define('framework/resources/else',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Else = (function (_super) {
@@ -3989,18 +4019,26 @@ define('framework/if/else',["require", "exports", "./if-core"], function (requir
 
 
 
-define('framework/if/if-core',["require", "exports"], function (require, exports) {
+define('framework/resources/if-core',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var IfCore = (function () {
         function IfCore(createVisual, viewSlot) {
             this.createVisual = createVisual;
             this.viewSlot = viewSlot;
+            this.visual = null;
+            this.scope = null;
             this.isBound = false;
             this.showing = false;
         }
         IfCore.prototype.bind = function (scope) {
             this.scope = scope;
+        };
+        IfCore.prototype.attach = function () {
+            this.viewSlot.attach();
+        };
+        IfCore.prototype.detach = function () {
+            this.viewSlot.detach();
         };
         IfCore.prototype.unbind = function () {
             if (this.visual === null) {
@@ -4058,7 +4096,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/if/if',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
+define('framework/resources/if',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var If = (function (_super) {
@@ -4751,30 +4789,23 @@ define('framework/templating/view-slot',["require", "exports", "./animator", "./
             return removeAction();
         };
         ViewSlot.prototype.attach = function () {
-            var i;
-            var ii;
-            var children;
-            var child;
             if (this.isAttached) {
                 return;
             }
             this.isAttached = true;
-            children = this.children;
-            for (i = 0, ii = children.length; i < ii; ++i) {
-                child = children[i];
-                child.attached();
+            var children = this.children;
+            for (var i = 0, ii = children.length; i < ii; ++i) {
+                var child = children[i];
+                child.attach();
                 this.animateView(child, 'enter');
             }
         };
         ViewSlot.prototype.detach = function () {
-            var i;
-            var ii;
-            var children;
             if (this.isAttached) {
                 this.isAttached = false;
-                children = this.children;
-                for (i = 0, ii = children.length; i < ii; ++i) {
-                    children[i].detached();
+                var children = this.children;
+                for (var i = 0, ii = children.length; i < ii; ++i) {
+                    children[i].detach();
                 }
             }
         };

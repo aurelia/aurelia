@@ -5,6 +5,8 @@ import { Template } from './framework/new';
 import { oneWay, twoWay, listener, oneWayText } from './framework/generated';
 import { View } from './framework/templating/view';
 import { IVisual, IComponent } from './framework/templating/component';
+import { If } from './framework/resources/if';
+import { ViewSlot } from './framework/templating/view-slot';
 
 // Original User Code for App
 
@@ -16,6 +18,10 @@ import { IVisual, IComponent } from './framework/templating/component';
 //   ${message}<br>
 //   <input type="text" value.bind="message">
 //   <name-tag name.bind="message"></name-tag>
+//   <input type="checkbox" value.bind="duplicateMessage" />
+//   <div if.bind="duplicateMessage">
+//     ${message}
+//   </div>
 // </template>
 
 // ------------------------------
@@ -77,17 +83,49 @@ class $App {
   $observers = {
     message: new Observer('Hello World!')
   };
-
+  
   get message() { return this.$observers.message.getValue(); }
   set message(value: string) { this.$observers.message.setValue(value); }
+}
+
+class $DynamicView implements IVisual {
+  private $b1: IBinding;
+  
+  $view: View;
+
+  private static $template = new Template(`
+    <div><au-marker class="au"></au-marker> </div>
+  `);
+
+  constructor() {
+    this.$view = $DynamicView.$template.create();
+    let targets = this.$view.targets;
+    this.$b1 = oneWayText('message', targets[0]);
+  }
+
+  bind(scope: Scope) {
+    this.$b1.bind(scope);
+  }
+
+  unbind() {
+    this.$b1.unbind();
+  }
+
+  attach() { }
+  detach() { }
 }
 
 export class App extends $App implements IComponent {
   private $b1: IBinding;
   private $b2: IBinding;
   private $b3: IBinding;
+  private $b4: IBinding;
+  private $b5: IBinding;
   private $c1: IComponent;
+  private $a1: If;
+
   private $anchor: Element;
+
   private $scope: Scope = {
     bindingContext: this,
     overrideContext: createOverrideContext()
@@ -99,6 +137,8 @@ export class App extends $App implements IComponent {
     <au-marker class="au"></au-marker> <br>
     <input type="text" class="au">
     <name-tag class="au"></name-tag>
+    <input type="checkbox" class="au" />
+    <au-marker class="au"></au-marker>
   `);
 
   applyTo(anchor: Element) {
@@ -113,25 +153,39 @@ export class App extends $App implements IComponent {
     this.$c1 = new NameTag().applyTo(targets[2]);
     this.$b3 = twoWay('message', this.$c1, 'name');
 
+    this.$b4 = twoWay('duplicateMessage', targets[3], 'checked');
+
+    this.$a1 = new If(() => new $DynamicView(), new ViewSlot(targets[4], false)); //TODO: convert marker to comment
+    this.$b5 = oneWay('duplicateMessage', this.$a1, 'condition');
+
     return this;
+  }
+
+  bind() {
+    let scope = this.$scope;
+
+    this.$b1.bind(scope);
+    this.$b2.bind(scope);
+
+    this.$b3.bind(scope);
+    this.$c1.bind();
+
+    this.$b4.bind(scope);
+
+    this.$b5.bind(scope);
+    this.$a1.bind(scope);
   }
 
   attach() {
     this.$c1.attach();
+    this.$a1.attach();
     this.$view.appendTo(this.$anchor);
-  }
-
-  bind() {
-    let $scope = this.$scope;
-    this.$b1.bind($scope);
-    this.$b2.bind($scope);
-    this.$c1.bind();
-    this.$b3.bind($scope);
   }
 
   detach() {
     this.$view.remove();
     this.$c1.detach();    
+    this.$a1.detach();
   }
 
   unbind() {
@@ -139,6 +193,9 @@ export class App extends $App implements IComponent {
     this.$b2.unbind();
     this.$b3.unbind();
     this.$c1.unbind();
+    this.$a1.unbind();
+    this.$b4.unbind();
+    this.$b5.unbind();
   }
 }
 
@@ -273,6 +330,10 @@ export class NameTag extends $NameTag implements IComponent {
     this.$view.appendTo(this.$anchor);
   }
 
+  detach() {
+    this.$view.remove();
+  }
+
   unbind() {
     this.$b1.unbind();
     this.$b2.unbind();
@@ -284,9 +345,5 @@ export class NameTag extends $NameTag implements IComponent {
     this.$b8.unbind();
     this.$b9.unbind();
     this.$b10.unbind();
-  }
-
-  detach() {
-    this.$view.remove();
   }
 }

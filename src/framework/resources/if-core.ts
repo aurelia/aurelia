@@ -6,8 +6,8 @@ import { Scope } from '../binding/scope';
 * For internal use only. May change without warning.
 */
 export abstract class IfCore {
-  private visual: IVisual;
-  private scope: Scope;
+  private visual: IVisual = null;
+  private scope: Scope = null;
   private isBound = false;
 
   // If the child view is animated, `value` might not reflect the internal
@@ -19,6 +19,14 @@ export abstract class IfCore {
 
   bind(scope: Scope) {
     this.scope = scope;
+  }
+
+  attach() {
+    this.viewSlot.attach();
+  }
+
+  detach() {
+    this.viewSlot.detach();
   }
 
   unbind() {

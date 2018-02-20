@@ -312,21 +312,16 @@ export class ViewSlot implements IBindScope, IAttach {
   * Triggers the attach for the slot and its children.
   */
   attach(): void {
-    let i;
-    let ii;
-    let children;
-    let child;
-
     if (this.isAttached) {
       return;
     }
 
     this.isAttached = true;
 
-    children = this.children;
-    for (i = 0, ii = children.length; i < ii; ++i) {
-      child = children[i];
-      child.attached();
+    let children = this.children;
+    for (let i = 0, ii = children.length; i < ii; ++i) {
+      let child = children[i];
+      child.attach();
       this.animateView(child, 'enter');
     }
   }
@@ -335,15 +330,12 @@ export class ViewSlot implements IBindScope, IAttach {
   * Triggers the detach for the slot and its children.
   */
   detach(): void {
-    let i;
-    let ii;
-    let children;
-
     if (this.isAttached) {
       this.isAttached = false;
-      children = this.children;
-      for (i = 0, ii = children.length; i < ii; ++i) {
-        children[i].detached();
+
+      let children = this.children;
+      for (let i = 0, ii = children.length; i < ii; ++i) {
+        children[i].detach();
       }
     }
   }

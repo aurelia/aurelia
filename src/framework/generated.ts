@@ -40,7 +40,9 @@ let astLookup = {
   ]),
   name: new AccessScope('name'),
   submit: new CallScope('submit', emptyArray, 0),
-  nameTagColor: new AccessScope('color')
+  nameTagColor: new AccessScope('color'),
+  duplicateMessage: new AccessScope('duplicateMessage'),
+  checked: new AccessScope('checked')
 };
 
 function getAST(key: string) {

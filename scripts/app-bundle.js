@@ -4022,12 +4022,12 @@ define('framework/resources/else',["require", "exports", "./if-core"], function 
                 this.show();
             }
         };
-        Else.prototype.connect = function (ifBehavior) {
+        Else.prototype.link = function (ifBehavior) {
             if (this.ifBehavior === ifBehavior) {
                 return this;
             }
             this.ifBehavior = ifBehavior;
-            ifBehavior.connect(this);
+            ifBehavior.link(this);
             return this;
         };
         return Else;
@@ -4152,12 +4152,12 @@ define('framework/resources/if',["require", "exports", "./if-core", "../binding/
                 this.update(newValue);
             }
         };
-        If.prototype.connect = function (elseBehavior) {
+        If.prototype.link = function (elseBehavior) {
             if (this.elseBehavior === elseBehavior) {
                 return this;
             }
             this.elseBehavior = elseBehavior;
-            elseBehavior.connect(this);
+            elseBehavior.link(this);
             return this;
         };
         If.prototype.update = function (show) {

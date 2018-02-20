@@ -44,13 +44,13 @@ export class If extends IfCore {
     }
   }
 
-  connect(elseBehavior: Else) {
+  link(elseBehavior: Else) {
     if (this.elseBehavior === elseBehavior) {
       return this;
     }
 
     this.elseBehavior = elseBehavior;
-    elseBehavior.connect(this);
+    elseBehavior.link(this);
     
     return this;
   }

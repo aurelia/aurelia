@@ -18,13 +18,13 @@ export class Else extends IfCore {
     }
   }
 
-  connect(ifBehavior: If) {
+  link(ifBehavior: If) {
     if (this.ifBehavior === ifBehavior) {
       return this;
     }
 
     this.ifBehavior = ifBehavior;
-    ifBehavior.connect(this);
+    ifBehavior.link(this);
     
     return this;
   }

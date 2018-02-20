@@ -124,14 +124,13 @@ export class App extends $App implements IComponent {
   private $c1: IComponent;
   private $a1: If;
 
+  private $view: View;
   private $anchor: Element;
 
   private $scope: Scope = {
     bindingContext: this,
     overrideContext: createOverrideContext()
   };
-
-  $view: View;
 
   private static $template = new Template(`
     <au-marker class="au"></au-marker> <br>
@@ -167,25 +166,32 @@ export class App extends $App implements IComponent {
     this.$b1.bind(scope);
     this.$b2.bind(scope);
 
-    this.$b3.bind(scope);
+    this.$b3.bind(scope); //bind properties before calling bind on attribute/component
     this.$c1.bind();
 
     this.$b4.bind(scope);
 
-    this.$b5.bind(scope);
+    this.$b5.bind(scope); //bind properties before calling bind on attribute/component
     this.$a1.bind(scope);
   }
 
+  //attaching tunnels down the tree before the dom attach happens
+  //attached bubbles up the tree after the dom attach happens
+
   attach() {
+    //this.attaching(); //if developer implemented this callback
     this.$c1.attach();
     this.$a1.attach();
-    this.$view.appendTo(this.$anchor);
+    this.$view.appendTo(this.$anchor); //attach children before the parent
+    //TaskQueue.instance.queueMicroTask(() => this.attached()); //queue callback if developer implemented it
   }
 
   detach() {
-    this.$view.remove();
+    //this.detaching(); //if developer implemented this callback
+    this.$view.remove(); //remove parent before detaching children
     this.$c1.detach();    
     this.$a1.detach();
+    //TaskQueue.instance.queueMicroTask(() => this.detached()); //queue callback if developer implemented it
   }
 
   unbind() {

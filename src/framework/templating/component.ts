@@ -23,6 +23,6 @@ export interface IVisual extends IBindScope, IAttach, IRender {
   
 }
 
-export interface IComponent extends IBindSelf, IAttach, IRender, IObservable, IApplyToTarget  {
+export interface IComponent extends IBindSelf, IAttach, IObservable, IApplyToTarget  {
   
 }

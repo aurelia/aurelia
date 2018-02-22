@@ -1336,11 +1336,11 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
         BindingBehavior.prototype.connect = function (binding, scope) {
             this.expression.connect(binding, scope);
         };
-        BindingBehavior.prototype.bind = function (binding, scope, lookupFunctions) {
+        BindingBehavior.prototype.bind = function (binding, scope) {
             if (this.expression['expression'] && this.expression.bind) {
-                this.expression.bind(binding, scope, lookupFunctions);
+                this.expression.bind(binding, scope);
             }
-            var behavior = lookupFunctions.bindingBehaviors[this.name];
+            var behavior = binding.lookupFunctions.bindingBehaviors[this.name];
             if (!behavior) {
                 throw new Error("No BindingBehavior named \"" + this.name + "\" was found!");
             }
@@ -1356,7 +1356,7 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
             binding[behaviorKey].unbind(binding, scope);
             binding[behaviorKey] = null;
             if (this.expression['expression'] && this.expression.unbind) {
-                this.expression.unbind(binding, scope, null);
+                this.expression.unbind(binding, scope);
             }
         };
         return BindingBehavior;
@@ -1916,7 +1916,7 @@ define('framework/binding/binding',["require", "exports", "./binding-mode", "./c
             this.isBound = true;
             this.source = source;
             if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, source, this.lookupFunctions);
+                this.sourceExpression.bind(this, source);
             }
             var mode = this.mode;
             if (!this.targetObserver) {
@@ -1950,7 +1950,7 @@ define('framework/binding/binding',["require", "exports", "./binding-mode", "./c
             }
             this.isBound = false;
             if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.source, this.lookupFunctions);
+                this.sourceExpression.unbind(this, this.source);
             }
             this.source = null;
             if ('unbind' in this.targetObserver) {
@@ -2997,7 +2997,7 @@ define('framework/binding/listener',["require", "exports", "./event-manager"], f
             this.isBound = true;
             this.source = source;
             if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, source, this.lookupFunctions);
+                this.sourceExpression.bind(this, source);
             }
             this.disposeListener = this.eventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
         };
@@ -3007,7 +3007,7 @@ define('framework/binding/listener',["require", "exports", "./event-manager"], f
             }
             this.isBound = false;
             if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.source, this.lookupFunctions);
+                this.sourceExpression.unbind(this, this.source);
             }
             this.source = null;
             this.disposeListener();

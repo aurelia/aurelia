@@ -92,7 +92,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.source = source;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, source, this.lookupFunctions);
+      this.sourceExpression.bind(this, source);
     }
 
     let mode = this.mode;
@@ -131,7 +131,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.source, this.lookupFunctions);
+      this.sourceExpression.unbind(this, this.source);
     }
 
     this.source = null;

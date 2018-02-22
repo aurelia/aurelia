@@ -6,8 +6,8 @@ export interface IExpression {
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions | null, mustEvaluateIfFunction?: boolean): any;
   assign?(scope: Scope, value: any, lookupFunctions: ILookupFunctions | null): any;
   connect(binding: IBinding, scope: Scope);
-  bind?(binding: IBinding, scope: Scope, lookupFunctions: ILookupFunctions | null): void;
-  unbind?(binding: IBinding, scope: Scope, lookupFunctions: ILookupFunctions | null): void;
+  bind?(binding: IBinding, scope: Scope): void;
+  unbind?(binding: IBinding, scope: Scope): void;
 }
 
 export interface ILookupFunctions {
@@ -52,12 +52,12 @@ export class BindingBehavior implements IExpression {
     this.expression.connect(binding, scope);
   }
 
-  bind(binding: IBinding, scope: Scope, lookupFunctions: ILookupFunctions) {
+  bind(binding: IBinding, scope: Scope) {
     if (this.expression['expression'] && this.expression.bind) {
-      this.expression.bind(binding, scope, lookupFunctions);
+      this.expression.bind(binding, scope);
     }
 
-    let behavior = lookupFunctions.bindingBehaviors[this.name];
+    let behavior = binding.lookupFunctions.bindingBehaviors[this.name];
     if (!behavior) {
       throw new Error(`No BindingBehavior named "${this.name}" was found!`);
     }
@@ -78,7 +78,7 @@ export class BindingBehavior implements IExpression {
     binding[behaviorKey] = null;
 
     if (this.expression['expression'] && this.expression.unbind) {
-      this.expression.unbind(binding, scope, null);
+      this.expression.unbind(binding, scope);
     }
   }
 }

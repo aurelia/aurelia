@@ -3,7 +3,7 @@ import { ConnectableBinding } from './connectable-binding';
 import { enqueueBindingConnect } from './connect-queue';
 import { sourceContext, targetContext } from './call-context';
 import { ObserverLocator } from './observer-locator';
-import { Expression, ILookupFunctions } from './ast';
+import { IExpression, ILookupFunctions } from './ast';
 import { Observer } from './property-observation';
 import { Scope } from './scope';
 
@@ -17,6 +17,7 @@ export interface IBindScope {
 }
 
 export interface IBinding extends IBindScope {
+  lookupFunctions: ILookupFunctions;
   observeProperty(context, name);
 }
 
@@ -28,11 +29,11 @@ export class Binding extends ConnectableBinding implements IBinding {
   private isBound: boolean;
 
   constructor(
-    private sourceExpression: Expression, 
+    private sourceExpression: IExpression, 
     private target: IBindingTarget, 
     private targetProperty: string, 
     private mode: number, 
-    private lookupFunctions: ILookupFunctions, 
+    public lookupFunctions: ILookupFunctions, 
     observerLocator: ObserverLocator = ObserverLocator.instance) {
     super(observerLocator);
   }

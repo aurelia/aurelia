@@ -1,7 +1,7 @@
 import { Scope } from './binding/scope';
 import { Observer } from './binding/property-observation';
 import {
-  Expression,
+  IExpression,
   ILookupFunctions,
   AccessScope,
   AccessMember,
@@ -18,6 +18,11 @@ import { DOM } from './dom';
 import { InterpolationString } from './new';
 
 const emptyArray = [];
+
+let lookupFunctions: ILookupFunctions = {
+  valueConverters: {},
+  bindingBehaviors: {}
+};
 
 let astLookup = {
   message: new AccessScope('message'),
@@ -51,7 +56,7 @@ function getAST(key: string) {
 }
 
 export function oneWay(sourceExpression: string, target: IBindingTarget, targetProperty: string) {
-  return new Binding(getAST(sourceExpression), target, targetProperty, bindingMode.oneWay, null);
+  return new Binding(getAST(sourceExpression), target, targetProperty, bindingMode.oneWay, lookupFunctions);
 }
 
 export function oneWayText(sourceExpression: string, target: Element) {
@@ -62,11 +67,11 @@ export function oneWayText(sourceExpression: string, target: Element) {
 }
 
 export function twoWay(sourceExpression: string, target: IBindingTarget, targetProperty: string) {
-  return new Binding(getAST(sourceExpression), target, targetProperty, bindingMode.twoWay, null);
+  return new Binding(getAST(sourceExpression), target, targetProperty, bindingMode.twoWay, lookupFunctions);
 }
 
 export function listener(targetEvent: string, target: Element, sourceExpression: string, preventDefault = true, strategy: number = delegationStrategy.none) {
-  return new Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, null);
+  return new Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
 }
 
 export function makeElementIntoAnchor(element: Element, elementInstruction?) {

@@ -2,9 +2,9 @@ import { getContextFor, Scope } from './scope';
 import { connectBindingToSignal } from './signals';
 import { IBinding } from './binding';
 
-export interface Expression {
+export interface IExpression {
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions | null, mustEvaluateIfFunction?: boolean): any;
-  assign?(scope: Scope, value: any, lookupFunctions: any): any;
+  assign?(scope: Scope, value: any, lookupFunctions: ILookupFunctions | null): any;
   connect(binding: IBinding, scope: Scope);
   bind?(binding: IBinding, scope: Scope, lookupFunctions: ILookupFunctions | null): void;
   unbind?(binding: IBinding, scope: Scope, lookupFunctions: ILookupFunctions | null): void;
@@ -15,8 +15,8 @@ export interface ILookupFunctions {
   bindingBehaviors: Record<string, any>;
 }
 
-export class Chain implements Expression {
-  constructor(private expressions) { }
+export class Chain implements IExpression {
+  constructor(private expressions: IExpression[]) { }
 
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     let result;
@@ -37,52 +37,57 @@ export class Chain implements Expression {
   connect() {}
 }
 
-export class BindingBehavior implements Expression {
-  constructor(private expression, private name, private args) { }
+export class BindingBehavior implements IExpression {
+  constructor(private expression: IExpression, private name: string, private args: IExpression[]) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     return this.expression.evaluate(scope, lookupFunctions);
   }
 
-  assign(scope, value, lookupFunctions) {
+  assign(scope: Scope, value, lookupFunctions: ILookupFunctions) {
     return this.expression.assign(scope, value, lookupFunctions);
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     this.expression.connect(binding, scope);
   }
 
-  bind(binding, scope, lookupFunctions) {
-    if (this.expression.expression && this.expression.bind) {
+  bind(binding: IBinding, scope: Scope, lookupFunctions: ILookupFunctions) {
+    if (this.expression['expression'] && this.expression.bind) {
       this.expression.bind(binding, scope, lookupFunctions);
     }
-    let behavior = lookupFunctions.bindingBehaviors(this.name);
+
+    let behavior = lookupFunctions.bindingBehaviors[this.name];
     if (!behavior) {
       throw new Error(`No BindingBehavior named "${this.name}" was found!`);
     }
+
     let behaviorKey = `behavior-${this.name}`;
     if (binding[behaviorKey]) {
       throw new Error(`A binding behavior named "${this.name}" has already been applied to "${this.expression}"`);
     }
+
     binding[behaviorKey] = behavior;
     behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.lookupFunctions)));
   }
 
-  unbind(binding, scope) {
+  unbind(binding: IBinding, scope: Scope) {
     let behaviorKey = `behavior-${this.name}`;
+
     binding[behaviorKey].unbind(binding, scope);
     binding[behaviorKey] = null;
-    if (this.expression.expression && this.expression.unbind) {
-      this.expression.unbind(binding, scope);
+
+    if (this.expression['expression'] && this.expression.unbind) {
+      this.expression.unbind(binding, scope, null);
     }
   }
 }
 
-export class ValueConverter implements Expression {
-  constructor(private expression, private name, private args, private allArgs) { }
+export class ValueConverter implements IExpression {
+  constructor(private expression: IExpression, private name: string, private args: IExpression[], private allArgs: IExpression[]) { }
 
-  evaluate(scope, lookupFunctions) {
-    let converter = lookupFunctions.valueConverters(this.name);
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
+    let converter = lookupFunctions.valueConverters[this.name];
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
@@ -94,8 +99,8 @@ export class ValueConverter implements Expression {
     return this.allArgs[0].evaluate(scope, lookupFunctions);
   }
 
-  assign(scope, value, lookupFunctions) {
-    let converter = lookupFunctions.valueConverters(this.name);
+  assign(scope: Scope, value, lookupFunctions: ILookupFunctions) {
+    let converter = lookupFunctions.valueConverters[this.name];
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
@@ -107,13 +112,13 @@ export class ValueConverter implements Expression {
     return this.allArgs[0].assign(scope, value, lookupFunctions);
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     let expressions = this.allArgs;
     let i = expressions.length;
     while (i--) {
       expressions[i].connect(binding, scope);
     }
-    let converter = binding.lookupFunctions.valueConverters(this.name);
+    let converter = binding.lookupFunctions.valueConverters[this.name];
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
@@ -128,23 +133,23 @@ export class ValueConverter implements Expression {
   }
 }
 
-export class Assign implements Expression {
-  constructor(private target, private value) { }
+export class Assign implements IExpression {
+  constructor(private target: IExpression, private value: IExpression) { }
 
-  evaluate(scope, lookupFunctions) {
-    return this.target.assign(scope, this.value.evaluate(scope, lookupFunctions));
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions): any {
+    return this.target.assign(scope, this.value.evaluate(scope, lookupFunctions), lookupFunctions);
   }
 
-  connect(binding, scope) { }
+  connect() { }
 
-  assign(scope, value) {
-    this.value.assign(scope, value);
-    this.target.assign(scope, value);
+  assign(scope: Scope, value: any, lookupFunctions: ILookupFunctions) {
+    this.value.assign(scope, value, lookupFunctions);
+    this.target.assign(scope, value, lookupFunctions);
   }
 }
 
-export class Conditional implements Expression {
-  constructor(private condition: Expression, private yes: Expression, private no: Expression) { }
+export class Conditional implements IExpression {
+  constructor(private condition: IExpression, private yes: IExpression, private no: IExpression) { }
 
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     return (!!this.condition.evaluate(scope, lookupFunctions))
@@ -162,90 +167,93 @@ export class Conditional implements Expression {
   }
 }
 
-export class AccessThis implements Expression {
-  constructor(private ancestor) { }
+export class AccessThis implements IExpression {
+  constructor(private ancestor: number = 0) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     let oc = scope.overrideContext;
     let i = this.ancestor;
+
     while (i-- && oc) {
       oc = oc.parentOverrideContext;
     }
+
     return i < 1 && oc ? oc.bindingContext : undefined;
   }
 
-  connect(binding, scope) { }
+  connect() { }
 }
 
-export class AccessScope implements Expression {
+export class AccessScope implements IExpression {
   constructor(private name: string, private ancestor: number = 0) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     let context = getContextFor(this.name, scope, this.ancestor);
     return context[this.name];
   }
 
-  assign(scope, value) {
+  assign(scope: Scope, value) {
     let context = getContextFor(this.name, scope, this.ancestor);
     return context ? (context[this.name] = value) : undefined;
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     let context = getContextFor(this.name, scope, this.ancestor);
     binding.observeProperty(context, this.name);
   }
 }
 
-export class AccessMember implements Expression {
-  constructor(private object, private name: string) { }
+export class AccessMember implements IExpression {
+  constructor(private object: IExpression, private name: string) { }
 
-  evaluate(scope, lookupFunctions: ILookupFunctions | null) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     let instance = this.object.evaluate(scope, lookupFunctions);
     return instance === null || instance === undefined ? instance : instance[this.name];
   }
 
-  assign(scope, value) {
-    let instance = this.object.evaluate(scope);
+  assign(scope: Scope, value, lookupFunctions: ILookupFunctions) {
+    let instance = this.object.evaluate(scope, lookupFunctions);
 
     if (instance === null || instance === undefined) {
       instance = {};
-      this.object.assign(scope, instance);
+      this.object.assign(scope, instance, lookupFunctions);
     }
 
     instance[this.name] = value;
     return value;
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     this.object.connect(binding, scope);
-    let obj = this.object.evaluate(scope);
+
+    let obj = this.object.evaluate(scope, null);
     if (obj) {
       binding.observeProperty(obj, this.name);
     }
   }
 }
 
-export class AccessKeyed implements Expression {
-  constructor(private object, private key) { }
+export class AccessKeyed implements IExpression {
+  constructor(private object: IExpression, private key: IExpression) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     let instance = this.object.evaluate(scope, lookupFunctions);
     let lookup = this.key.evaluate(scope, lookupFunctions);
     return getKeyed(instance, lookup);
   }
 
-  assign(scope, value) {
-    let instance = this.object.evaluate(scope);
-    let lookup = this.key.evaluate(scope);
+  assign(scope: Scope, value: any, lookupFunctions: ILookupFunctions | null) {
+    let instance = this.object.evaluate(scope, lookupFunctions);
+    let lookup = this.key.evaluate(scope, lookupFunctions);
     return setKeyed(instance, lookup, value);
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     this.object.connect(binding, scope);
-    let obj = this.object.evaluate(scope);
+    let obj = this.object.evaluate(scope, null);
     if (obj instanceof Object) {
       this.key.connect(binding, scope);
-      let key = this.key.evaluate(scope);
+      let key = this.key.evaluate(scope, null);
       // observe the property represented by the key as long as it's not an array
       // being accessed by an integer key which would require dirty-checking.
       if (key !== null && key !== undefined
@@ -256,12 +264,8 @@ export class AccessKeyed implements Expression {
   }
 }
 
-export class CallScope implements Expression {
-  constructor(
-    private name: string,
-    private args: Expression[],
-    private ancestor: number
-  ) { }
+export class CallScope implements IExpression {
+  constructor(private name: string, private args: IExpression[], private ancestor: number) { }
 
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions | null, mustEvaluate?: boolean) {
     let args = evalList(scope, this.args, lookupFunctions);
@@ -283,10 +287,10 @@ export class CallScope implements Expression {
   }
 }
 
-export class CallMember implements Expression {
-  constructor(private object, private name, private args) { }
+export class CallMember implements IExpression {
+  constructor(private object: IExpression, private name: string, private args: IExpression[]) { }
 
-  evaluate(scope, lookupFunctions, mustEvaluate) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions, mustEvaluate: boolean) {
     let instance = this.object.evaluate(scope, lookupFunctions);
     let args = evalList(scope, this.args, lookupFunctions);
     let func = getFunction(instance, this.name, mustEvaluate);
@@ -296,9 +300,9 @@ export class CallMember implements Expression {
     return undefined;
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     this.object.connect(binding, scope);
-    let obj = this.object.evaluate(scope);
+    let obj = this.object.evaluate(scope, null);
     if (getFunction(obj, this.name, false)) {
       let args = this.args;
       let i = args.length;
@@ -309,10 +313,10 @@ export class CallMember implements Expression {
   }
 }
 
-export class CallFunction implements Expression {
-  constructor(private func, private args) { }
+export class CallFunction implements IExpression {
+  constructor(private func: IExpression, private args: IExpression[]) { }
 
-  evaluate(scope, lookupFunctions, mustEvaluate) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions, mustEvaluate: boolean) {
     let func = this.func.evaluate(scope, lookupFunctions);
     if (typeof func === 'function') {
       return func.apply(null, evalList(scope, this.args, lookupFunctions));
@@ -323,9 +327,9 @@ export class CallFunction implements Expression {
     throw new Error(`${this.func} is not a function`);
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     this.func.connect(binding, scope);
-    let func = this.func.evaluate(scope);
+    let func = this.func.evaluate(scope, null);
     if (typeof func === 'function') {
       let args = this.args;
       let i = args.length;
@@ -336,10 +340,10 @@ export class CallFunction implements Expression {
   }
 }
 
-export class Binary implements Expression {
-  constructor(private operation: string, private left: Expression, private right: Expression) { }
+export class Binary implements IExpression {
+  constructor(private operation: string, private left: IExpression, private right: IExpression) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     let left = this.left.evaluate(scope, lookupFunctions);
 
     switch (this.operation) {
@@ -392,7 +396,7 @@ export class Binary implements Expression {
     throw new Error(`Internal error [${this.operation}] not handled`);
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     this.left.connect(binding, scope);
     let left = this.left.evaluate(scope, null);
     if (this.operation === '&&' && !left || this.operation === '||' && left) {
@@ -402,30 +406,30 @@ export class Binary implements Expression {
   }
 }
 
-export class PrefixNot implements Expression {
-  constructor(private operation, private expression) { }
+export class PrefixNot implements IExpression {
+  constructor(private operation, private expression: IExpression) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     return !this.expression.evaluate(scope, lookupFunctions);
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     this.expression.connect(binding, scope);
   }
 }
 
-export class LiteralPrimitive implements Expression {
+export class LiteralPrimitive implements IExpression {
   constructor(private value) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     return this.value;
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
   }
 }
 
-export class LiteralString implements Expression {
+export class LiteralString implements IExpression {
   constructor(private value: string) { }
 
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
@@ -435,10 +439,10 @@ export class LiteralString implements Expression {
   connect(binding: IBinding, scope: Scope) { }
 }
 
-export class LiteralArray implements Expression {
-  constructor(private elements) { }
+export class LiteralArray implements IExpression {
+  constructor(private elements: IExpression[]) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     let elements = this.elements;
     let result = [];
 
@@ -449,7 +453,7 @@ export class LiteralArray implements Expression {
     return result;
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     let length = this.elements.length;
     for (let i = 0; i < length; i++) {
       this.elements[i].connect(binding, scope);
@@ -457,10 +461,10 @@ export class LiteralArray implements Expression {
   }
 }
 
-export class LiteralObject implements Expression {
-  constructor(private keys, private values) { }
+export class LiteralObject implements IExpression {
+  constructor(private keys: string[], private values: IExpression[]) { }
 
-  evaluate(scope, lookupFunctions) {
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     let instance = {};
     let keys = this.keys;
     let values = this.values;
@@ -472,7 +476,7 @@ export class LiteralObject implements Expression {
     return instance;
   }
 
-  connect(binding, scope) {
+  connect(binding: IBinding, scope: Scope) {
     let length = this.keys.length;
     for (let i = 0; i < length; i++) {
       this.values[i].connect(binding, scope);
@@ -481,12 +485,14 @@ export class LiteralObject implements Expression {
 }
 
 /// Evaluate the [list] in context of the [scope].
-function evalList(scope, list, lookupFunctions) {
+function evalList(scope: Scope, list: IExpression[], lookupFunctions: ILookupFunctions) {
   const length = list.length;
   const result = [];
+
   for (let i = 0; i < length; i++) {
     result[i] = list[i].evaluate(scope, lookupFunctions);
   }
+
   return result;
 }
 
@@ -516,14 +522,17 @@ function autoConvertAdd(a, b) {
   return 0;
 }
 
-function getFunction(obj, name, mustExist) {
+function getFunction(obj, name: string, mustExist: boolean) {
   let func = obj === null || obj === undefined ? null : obj[name];
+  
   if (typeof func === 'function') {
     return func;
   }
+
   if (!mustExist && (func === null || func === undefined)) {
     return null;
   }
+
   throw new Error(`${name} is not a function`);
 }
 

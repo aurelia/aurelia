@@ -1,5 +1,5 @@
 import { EventManager } from "./event-manager";
-import { Expression, ILookupFunctions } from "./ast";
+import { IExpression, ILookupFunctions } from "./ast";
 import { Scope } from "./scope";
 import { IBinding } from "./binding";
 
@@ -11,10 +11,10 @@ export class Listener implements IBinding {
   constructor(
     private targetEvent: string, 
     private delegationStrategy, 
-    private sourceExpression: Expression, 
+    private sourceExpression: IExpression, 
     private target, 
     private preventDefault: boolean, 
-    private lookupFunctions: ILookupFunctions, 
+    public lookupFunctions: ILookupFunctions, 
     private eventManager: EventManager = EventManager.instance
   ) {
     this.targetEvent = targetEvent;

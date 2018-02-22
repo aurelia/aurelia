@@ -1,5 +1,5 @@
 import { Scope } from './binding/scope';
-import { Expression, ILookupFunctions } from './binding/ast';
+import { IExpression, ILookupFunctions } from './binding/ast';
 import { IBinding } from './binding/binding';
 
 export interface AureliaSettings {
@@ -15,8 +15,8 @@ export class Aurelia {
   }
 }
 
-export class InterpolationString implements Expression {
-  constructor(private parts: Expression[]) { }
+export class InterpolationString implements IExpression {
+  constructor(private parts: IExpression[]) { }
 
   assign() { }
 

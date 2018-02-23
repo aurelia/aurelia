@@ -7,3 +7,6 @@ bower_components
 .DS_STORE
 build/reports
 yarn.lock
+.rollupcache
+.vscode
+dist

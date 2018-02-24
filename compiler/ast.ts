@@ -18,11 +18,14 @@ export enum AstKind {
   LiteralArray = 17,
   LiteralObject = 18,
   LiteralString = 19,
+  TemplateLiteral = 20
 }
+
+export type dehydratedAst = any[]
 
 export abstract class Expression {
 
-  abstract dehydrate();
+  abstract dehydrate(): dehydratedAst;
   abstract get observedProperties(): string[];
 
   toJSON() {
@@ -362,6 +365,25 @@ export class LiteralString extends Expression {
 
   get observedProperties() {
     return [];
+  }
+}
+
+export class TemplateLiteral extends Expression {
+  constructor(
+    public parts: Expression[]
+  ) {
+    super();
+  }
+
+  dehydrate() {
+    return [
+      AstKind.TemplateLiteral,
+      this.parts.map(p => p.dehydrate())
+    ];
+  }
+
+  get observedProperties() {
+    return this.parts.reduce((props, v) => props.concat(v.observedProperties), []);
   }
 }
 

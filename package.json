@@ -26,7 +26,7 @@
     "aurelia-testing": "^1.0.0-beta.3.0.1",
     "aurelia-tools": "^1.0.0",
     "autoprefixer": "^6.3.6",
-    "basichtml": "^0.13.1",
+    "basichtml": "^0.13.2",
     "browser-sync": "^2.13.0",
     "connect-history-api-fallback": "^1.2.0",
     "debounce": "^1.0.2",

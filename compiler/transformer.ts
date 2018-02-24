@@ -51,11 +51,39 @@ export class Transformer {
           ),
           ts.createProperty(
             undefined,
-            undefined,
+            [
+              ts.createToken(ts.SyntaxKind.PublicKeyword),
+              ts.createToken(ts.SyntaxKind.StaticKeyword)
+            ],
             '$html',
             undefined,
             undefined,
             ts.createLiteral(this.templateFactory.html)
+          ),
+          ts.createProperty(
+            undefined,
+            [
+              ts.createToken(ts.SyntaxKind.PublicKeyword),
+              ts.createToken(ts.SyntaxKind.StaticKeyword)
+            ],
+            '$bindings',
+            undefined,
+            undefined,
+            ts.createArrayLiteral(
+              this.templateFactory.bindings.map(binding => {
+                // let dehydratedBinding = binding[2].dehydrate();
+                // let dehydratedBindingNode: ts.ArrayLiteralExpression;
+
+                return ts.createArrayLiteral([
+                  ts.createLiteral(binding[0]),
+                  ts.createLiteral(binding[1]),
+                  // ts.createLiteral(JSON.stringify(binding[2])),
+                  this.bindingToArrayNode(binding[2].dehydrate()),
+                  // ts.createArrayLiteral(binding[2].dehydrate()),
+                  binding[3] ? ts.createLiteral(binding[3]) : null,
+                  binding[4] ? ts.createLiteral(binding[4]) : null
+                ].filter(Boolean))
+              }), true)
           ),
           ...observedProperties.reduce((propDeclarations, op) => {
             return propDeclarations.concat([
@@ -184,5 +212,11 @@ export class Transformer {
       && ((ts.getCombinedModifierFlags(node)
         | ts.ModifierFlags.Export) === ts.ModifierFlags.Export
       );
+  }
+
+  private bindingToArrayNode(dehydrated: AST.dehydratedAst): ts.ArrayLiteralExpression {
+    return ts.createArrayLiteral(dehydrated.map(v => {
+      return Array.isArray(v) ? this.bindingToArrayNode(v) : ts.createLiteral(v);
+    }));
   }
 }

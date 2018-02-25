@@ -1,0 +1,15 @@
+<template><div class.bind="name" textcontent.bind="computedName">
+    Name tag: ${computedName}
+  </div>
+  <input value.bind="name" />
+  <button click.delegate='submit()'></button>
+</template>
+
+<script>
+  export class App {
+    submit() {
+
+    }
+  }
+
+</script>

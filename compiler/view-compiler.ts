@@ -13,10 +13,7 @@ export class ViewCompiler {
   }
 
   compile(template: string | Element) {
-    const factory: TemplateFactory = {
-      html: '',
-      bindings: []
-    };
+    const factory = new TemplateFactory();
     let node: Node;
     let element: Element;
     if (typeof template === 'string') {

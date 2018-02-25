@@ -87,7 +87,7 @@ export class SyntaxInterpreter {
       bindingType.listener,
       this.parser.parse(info.attrValue),
       info.attrName,
-      delegationStrategy.capture
+      delegationStrategy.capturing
     ];
     // return new ListenerExpression(
     //   this.eventManager,
@@ -105,7 +105,7 @@ export class SyntaxInterpreter {
       bindingType.listener,
       this.parser.parse(info.attrValue),
       info.attrName,
-      delegationStrategy.delegate
+      delegationStrategy.bubbling
     ];
     // return new ListenerExpression(
     //   this.eventManager,

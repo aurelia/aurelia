@@ -10,6 +10,10 @@ export interface ModuleExportedElements {
 
 export class Transformer {
 
+  observerPropName = '$observer';
+  templatePropName = '$html';
+  bindingPropName = '$binding';
+
   constructor(
     public templateFactory: TemplateFactory
   ) {
@@ -22,142 +26,59 @@ export class Transformer {
 
   private fileVisitor = (file: ts.SourceFile) => {
     file = ts.visitEachChild(file, this.nodeVisitor, this.context);
-    let observedProperties = Array.from(new Set<string>(this.templateFactory.bindings.reduce(
-      (props, binding) => props.concat(binding[2].observedProperties),
-      []
-    )));
+    let observedProperties = this.templateFactory.observedProperties;
     let exportedElements = this.exportedElements.map(el => {
-      const baseClassName = `$${el.name}`;
       return ts.createClassDeclaration(
-        undefined,
-        undefined,
-        baseClassName,
-        undefined,
-        undefined,
+        /* decorators */ undefined,
+        /* modifiers */ undefined,
+        this.getViewClassName(el.name),
+        /* type parameters */ undefined,
+        /* heritage clauses */ undefined,
+        /* members */
         [
-          ts.createProperty(
-            undefined,
-            undefined,
-            '$observers',
-            undefined,
-            undefined,
-            ts.createObjectLiteral(
-              observedProperties.map(op => ts.createPropertyAssignment(
-                op,
-                ts.createNew(ts.createIdentifier('Observer'), [], [ts.createLiteral('')])
-              )),
-              /* multiline */true
+          this.createObserverProp(observedProperties),
+          this.createTemplateProp(),
+          this.createBindingsProp(),
+          ts.createMethod(
+            /* decorators */ undefined,
+            /* modifiers */ undefined,
+            /* asterisk token */ undefined,
+            'applyTo',
+            /* question token */ undefined,
+            /* type params */ undefined,
+            [
+              ts.createParameter(
+                /* decorators */ undefined,
+                /** modifiers */ undefined,
+                /** ... */ undefined,
+                'anchor',
+                /** question token */ undefined,
+                ts.createLiteralTypeNode(ts.createLiteral('Element')),
+                /** initializer */ undefined
+              )
+            ],
+            /** type */ undefined,
+            ts.createBlock(
+              /** statements */
+              [
+                ts.createReturn(ts.createThis())
+              ],
+              /** multiline */ true
             )
-          ),
-          ts.createProperty(
-            undefined,
-            [
-              ts.createToken(ts.SyntaxKind.PublicKeyword),
-              ts.createToken(ts.SyntaxKind.StaticKeyword)
-            ],
-            '$html',
-            undefined,
-            undefined,
-            ts.createLiteral(this.templateFactory.html)
-          ),
-          ts.createProperty(
-            undefined,
-            [
-              ts.createToken(ts.SyntaxKind.PublicKeyword),
-              ts.createToken(ts.SyntaxKind.StaticKeyword)
-            ],
-            '$bindings',
-            undefined,
-            undefined,
-            ts.createArrayLiteral(
-              this.templateFactory.bindings.map(binding => {
-                // let dehydratedBinding = binding[2].dehydrate();
-                // let dehydratedBindingNode: ts.ArrayLiteralExpression;
-
-                return ts.createArrayLiteral([
-                  ts.createLiteral(binding[0]),
-                  ts.createLiteral(binding[1]),
-                  // ts.createLiteral(JSON.stringify(binding[2])),
-                  this.bindingToArrayNode(binding[2].dehydrate()),
-                  // ts.createArrayLiteral(binding[2].dehydrate()),
-                  binding[3] ? ts.createLiteral(binding[3]) : null,
-                  binding[4] ? ts.createLiteral(binding[4]) : null
-                ].filter(Boolean))
-              }), true)
           ),
           ...observedProperties.reduce((propDeclarations, op) => {
             return propDeclarations.concat([
-              ts.createGetAccessor(
-                undefined,
-                undefined,
-                op,
-                undefined,
-                undefined,
-                ts.createBlock([
-                  ts.createReturn(
-                    ts.createCall(
-                      ts.createPropertyAccess(
-                        ts.createPropertyAccess(
-                          ts.createThis(),
-                          '$observer'
-                        ),
-                        'getValue'
-                      ), [], []
-                    )
-                  )
-                ])
-              ),
-              ts.createSetAccessor(
-                undefined,
-                undefined,
-                op,
-                [
-                  ts.createParameter(
-                    undefined,
-                    undefined,
-                    undefined,
-                    'value',
-                    undefined,
-                    undefined,
-                    undefined
-                  )
-                ],
-                ts.createBlock([
-                  ts.createStatement(
-                    ts.createCall(
-                      ts.createPropertyAccess(
-                        ts.createPropertyAccess(
-                          ts.createThis(),
-                          '$observer'
-                        ),
-                        'setValue'
-                      ), [],
-                      [
-                        ts.createIdentifier('value')
-                      ]
-                    )
-                  )
-                ])
-              )
+              this.createObserverGetter(op),
+              this.createObserverSetter(op)
             ]);
-          }, [])
-
+          }, /* observed properties init value */[]),
         ]
       );
     });
     return ts.updateSourceFileNode(file, [
-      ts.createImportDeclaration(
-        undefined,
-        undefined,
-        ts.createImportClause(
-          undefined,
-          ts.createNamedImports(AstNames.map(ast => ts.createImportSpecifier(
-            undefined,
-            ts.createIdentifier(ast)
-          )))
-        ),
-        ts.createLiteral('./core')
-      ),
+      this.createImport(['Observer'], './framework/binding/property-observation'),
+      this.createImport(['Template'], './framework/templating/template'),
+      this.createImport(['hydrateBindings'], './framework/generated'),
       ...exportedElements,
       ...file.statements
     ]);
@@ -203,10 +124,6 @@ export class Transformer {
     );
   }
 
-  generateViewClass(file: ts.SourceFile) {
-
-  }
-
   private isExportedClass(node: ts.Node): node is ts.ClassDeclaration & ts.ExportDeclaration {
     return node.kind === ts.SyntaxKind.ClassDeclaration
       && ((ts.getCombinedModifierFlags(node)
@@ -218,5 +135,167 @@ export class Transformer {
     return ts.createArrayLiteral(dehydrated.map(v => {
       return Array.isArray(v) ? this.bindingToArrayNode(v) : ts.createLiteral(v);
     }));
+  }
+
+  private getViewClassName(viewModelClass: string) {
+    return `$${viewModelClass}`;
+  }
+
+  private createImport(names: string[], moduleName: string) {
+    return ts.createImportDeclaration(
+      /* decorators */undefined,
+      /* modifiers */ undefined,
+      ts.createImportClause(
+        /* default */ undefined,
+        ts.createNamedImports(names.map(n => ts.createImportSpecifier(
+          /* propertyName */ undefined,
+          /* target name */ ts.createIdentifier(n)
+        )))
+      ),
+      ts.createLiteral(moduleName)
+    );
+  }
+
+  private createObserverProp(observedProperties: string[]) {
+    return ts.createProperty(
+      /* decorators */ undefined,
+      /* modifiers */ undefined,
+      this.observerPropName,
+      /* question token */ undefined,
+      /* type node */ undefined,
+      ts.createObjectLiteral(
+        observedProperties.map(op => ts.createPropertyAssignment(
+          op,
+          ts.createNew(
+            ts.createIdentifier('Observer'),
+            /* type arguments */ undefined,
+            /* arguments */
+            [
+              ts.createLiteral('')
+            ]
+          )
+        )),
+        /* multiline */ true
+      )
+    );
+  }
+
+  private createTemplateProp() {
+    return ts.createProperty(
+      /* decorators */ undefined,
+      [
+        ts.createToken(ts.SyntaxKind.PublicKeyword),
+        ts.createToken(ts.SyntaxKind.StaticKeyword)
+      ],
+      this.templatePropName,
+      /* question token */ undefined,
+      /* type node */ undefined,
+      ts.createNew(
+        ts.createIdentifier('Template'),
+        /* type arguments */ undefined,
+        /* arguments */
+        [
+          ts.createLiteral(this.templateFactory.html)
+        ]
+      )
+    );
+  }
+
+  private createBindingsProp() {
+    return ts.createProperty(
+      /* decorators */ undefined,
+      [
+        ts.createToken(ts.SyntaxKind.PublicKeyword),
+        ts.createToken(ts.SyntaxKind.StaticKeyword)
+      ],
+      this.bindingPropName,
+      /* question token */ undefined,
+      /* type node */ undefined,
+      ts.createCall(
+        ts.createIdentifier('hydrateBindings'),
+        /* type arguments */ undefined,
+        /* arguments */
+        [
+          ts.createArrayLiteral(
+            this.templateFactory.bindings.map(binding => {
+              return ts.createArrayLiteral([
+                ts.createLiteral(binding[0]),
+                ts.createLiteral(binding[1]),
+                this.bindingToArrayNode(binding[2].dehydrate()),
+                binding[3] ? ts.createLiteral(binding[3]) : null,
+                binding[4] ? ts.createLiteral(binding[4]) : null
+              ].filter(Boolean))
+            }),
+            /* multiline */ true
+          )
+        ]
+      ),
+    );
+  }
+
+  private createObserverGetter(name: string) {
+    return ts.createGetAccessor(
+      /* decorators */undefined,
+      [
+        ts.createToken(ts.SyntaxKind.PublicKeyword)
+      ],
+      name,
+      /* parameters */ undefined,
+      /* type */ undefined,
+      ts.createBlock([
+        ts.createReturn(
+          ts.createCall(
+            ts.createPropertyAccess(
+              ts.createPropertyAccess(
+                ts.createThis(),
+                this.observerPropName
+              ),
+              'getValue'
+            ),
+            /* type arguments */ undefined,
+            /* arguments */ undefined
+          )
+        )
+      ])
+    );
+  }
+
+  private createObserverSetter(name: string, paramName = 'v', type?: string) {
+    return ts.createSetAccessor(
+      undefined,
+      [
+        ts.createToken(ts.SyntaxKind.PublicKeyword)
+      ],
+      name,
+      [
+        ts.createParameter(
+          /* decorators */ undefined,
+          /* modifiers */ undefined,
+          /* dotdotdot token */undefined,
+          paramName,
+          /* question token */ undefined,
+          /* type */ undefined,
+          /* initializer */undefined
+        )
+      ],
+      ts.createBlock([
+        ts.createStatement(
+          ts.createCall(
+            ts.createPropertyAccess(
+              ts.createPropertyAccess(
+                ts.createThis(),
+                this.observerPropName
+              ),
+              'setValue'
+            ),
+            /* type arguments */ undefined,
+            /* arguments */
+            [
+              ts.createIdentifier(paramName)
+            ]
+          )
+        )
+      ])
+    )
   }
 }

@@ -57,7 +57,7 @@ export class Au {
     const output = ts.transpileModule(viewModelSource, {
       fileName: fileName,
       compilerOptions: {
-        target: ts.ScriptTarget.ESNext
+        target: ts.ScriptTarget.ESNext,
       },
       transformers: {
         before: [
@@ -66,12 +66,6 @@ export class Au {
       }
     });
     fs.writeFileSync(fileName, output.outputText, 'utf-8');
-  }
-
-  determineBindingMode(element: Element, attr: string) {
-    return element.tagName === 'INPUT' && (attr === 'checked' || attr === 'value')
-      ? bindingMode.twoWay
-      : bindingMode.oneWay;
   }
 }
 

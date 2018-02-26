@@ -21,7 +21,7 @@ export enum AstKind {
   TemplateLiteral = 20
 }
 
-export type dehydratedAst = any[]
+export type dehydratedAst = any[];
 
 export abstract class Expression {
 

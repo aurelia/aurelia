@@ -2,6 +2,52 @@ import { getContextFor, Scope } from './scope';
 import { connectBindingToSignal } from './signals';
 import { IBinding } from './binding';
 
+interface AstKind {
+  Base: 1;
+  Chain: 2;
+  ValueConverter: 3;
+  BindingBehavior: 4;
+  Assign: 5;
+  Conditional: 6;
+  AccessThis: 7;
+  AccessScope: 8;
+  AccessMember: 9;
+  AccessKeyed: 10;
+  CallScope: 11;
+  CallFunction: 12;
+  CallMember: 13;
+  PrefixNot: 14;
+  Binary: 15;
+  LiteralPrimitive: 16;
+  LiteralArray: 17;
+  LiteralObject: 18;
+  LiteralString: 19;
+  TemplateLiteral: 20;
+}
+
+export const AstKind: AstKind = {
+  Base: 1,
+  Chain: 2,
+  ValueConverter: 3,
+  BindingBehavior: 4,
+  Assign: 5,
+  Conditional: 6,
+  AccessThis: 7,
+  AccessScope: 8,
+  AccessMember: 9,
+  AccessKeyed: 10,
+  CallScope: 11,
+  CallFunction: 12,
+  CallMember: 13,
+  PrefixNot: 14,
+  Binary: 15,
+  LiteralPrimitive: 16,
+  LiteralArray: 17,
+  LiteralObject: 18,
+  LiteralString: 19,
+  TemplateLiteral: 20,
+};
+
 export interface IExpression {
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions | null, mustEvaluateIfFunction?: boolean): any;
   assign?(scope: Scope, value: any, lookupFunctions: ILookupFunctions | null): any;
@@ -34,7 +80,7 @@ export class Chain implements IExpression {
     return result;
   }
 
-  connect() {}
+  connect() { }
 }
 
 export class BindingBehavior implements IExpression {
@@ -257,7 +303,7 @@ export class AccessKeyed implements IExpression {
       // observe the property represented by the key as long as it's not an array
       // being accessed by an integer key which would require dirty-checking.
       if (key !== null && key !== undefined
-        && !(Array.isArray(obj) && typeof(key) === 'number')) {
+        && !(Array.isArray(obj) && typeof (key) === 'number')) {
         binding.observeProperty(obj, key);
       }
     }
@@ -347,50 +393,50 @@ export class Binary implements IExpression {
     let left = this.left.evaluate(scope, lookupFunctions);
 
     switch (this.operation) {
-    case '&&': return left && this.right.evaluate(scope, lookupFunctions);
-    case '||': return left || this.right.evaluate(scope, lookupFunctions);
-    // no default
+      case '&&': return left && this.right.evaluate(scope, lookupFunctions);
+      case '||': return left || this.right.evaluate(scope, lookupFunctions);
+      // no default
     }
 
     let right = this.right.evaluate(scope, lookupFunctions);
 
     switch (this.operation) {
-    case '==' : return left == right; // eslint-disable-line eqeqeq
-    case '===': return left === right;
-    case '!=' : return left != right; // eslint-disable-line eqeqeq
-    case '!==': return left !== right;
-    // no default
+      case '==': return left == right; // eslint-disable-line eqeqeq
+      case '===': return left === right;
+      case '!=': return left != right; // eslint-disable-line eqeqeq
+      case '!==': return left !== right;
+      // no default
     }
 
     // Null check for the operations.
     if (left === null || right === null || left === undefined || right === undefined) {
       switch (this.operation) {
-      case '+':
-        if (left !== null && left !== undefined) return left;
-        if (right !== null && right !== undefined) return right;
-        return 0;
-      case '-':
-        if (left !== null && left !== undefined) return left;
-        if (right !== null && right !== undefined) return 0 - right;
-        return 0;
-      // no default
+        case '+':
+          if (left !== null && left !== undefined) return left;
+          if (right !== null && right !== undefined) return right;
+          return 0;
+        case '-':
+          if (left !== null && left !== undefined) return left;
+          if (right !== null && right !== undefined) return 0 - right;
+          return 0;
+        // no default
       }
 
       return null;
     }
 
     switch (this.operation) {
-    case '+'  : return autoConvertAdd(left, right);
-    case '-'  : return left - right;
-    case '*'  : return left * right;
-    case '/'  : return left / right;
-    case '%'  : return left % right;
-    case '<'  : return left < right;
-    case '>'  : return left > right;
-    case '<=' : return left <= right;
-    case '>=' : return left >= right;
-    case '^'  : return left ^ right;
-    // no default
+      case '+': return autoConvertAdd(left, right);
+      case '-': return left - right;
+      case '*': return left * right;
+      case '/': return left / right;
+      case '%': return left % right;
+      case '<': return left < right;
+      case '>': return left > right;
+      case '<=': return left <= right;
+      case '>=': return left >= right;
+      case '^': return left ^ right;
+      // no default
     }
 
     throw new Error(`Internal error [${this.operation}] not handled`);
@@ -437,6 +483,32 @@ export class LiteralString implements IExpression {
   }
 
   connect(binding: IBinding, scope: Scope) { }
+}
+
+export class TemplateLiteral implements IExpression {
+  constructor(private parts: IExpression[]) { }
+
+  evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
+    let elements = this.parts;
+    let result = '';
+
+    for (let i = 0, length = elements.length; i < length; ++i) {
+      let value = elements[i].evaluate(scope, lookupFunctions);
+      if (value === undefined || value === null) {
+        continue;
+      }
+      result += value;
+    }
+
+    return result;
+  }
+
+  connect(binding: IBinding, scope: Scope) {
+    let length = this.parts.length;
+    for (let i = 0; i < length; i++) {
+      this.parts[i].connect(binding, scope);
+    }
+  }
 }
 
 export class LiteralArray implements IExpression {
@@ -524,7 +596,7 @@ function autoConvertAdd(a, b) {
 
 function getFunction(obj, name: string, mustExist: boolean) {
   let func = obj === null || obj === undefined ? null : obj[name];
-  
+
   if (typeof func === 'function') {
     return func;
   }

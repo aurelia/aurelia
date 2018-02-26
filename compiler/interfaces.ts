@@ -17,8 +17,8 @@ export enum bindingType {
 
 export enum delegationStrategy {
   none = 0,
-  delegate = 1,
-  capture = 2
+  capturing = 1,
+  bubbling = 2
 }
 
 export const ELEMENT_REF_KEY = 'element';
@@ -31,9 +31,17 @@ export interface TemplateFactoryBinding {
   4?: /** bindingMode */ bindingMode | delegationStrategy
 };
 
-export interface TemplateFactory {
-  html: string;
-  bindings: TemplateFactoryBinding[];
+export class TemplateFactory {
+
+  html: string = '';
+  bindings: TemplateFactoryBinding[] = [];
+
+  get observedProperties(): string[] {
+    return Array.from(new Set<string>(this.bindings.reduce(
+      (props, binding) => props.concat(binding[2].observedProperties),
+      []
+    )));
+  }
 }
 
 export interface IInsepctionInfo {

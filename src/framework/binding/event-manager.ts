@@ -1,4 +1,4 @@
-import {DOM} from '../dom';
+import { DOM } from '../dom';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 function findOriginalEventTarget(event) {
@@ -157,7 +157,13 @@ class DefaultEventStrategy {
   }
 }
 
-export const delegationStrategy = {
+interface IDelegationStrategy {
+  none: 0;
+  capturing: 1;
+  bubbling: 2;
+}
+
+export const delegationStrategy: IDelegationStrategy = {
   none: 0,
   capturing: 1,
   bubbling: 2

@@ -95,3 +95,47 @@ export function makeElementIntoAnchor(element: Element, elementInstruction?) {
 
   return anchor;
 }
+
+type valueOf<K, T extends keyof K = keyof K> = K[T];
+
+interface IBindingType {
+  binding: 1;
+  listener: 2;
+  ref: 3;
+  text: 4;
+}
+
+export const bindingType: IBindingType = {
+  binding: 1,
+  listener: 2,
+  ref: 3,
+  text: 4,
+}
+
+export interface dehydratedBinding extends Array<any> {
+  0: /** targetIndex */ number,
+  1: /** bindingType */ valueOf<typeof bindingType>,
+  2: /** expression */ any[],
+  3?: /** attr or Event or ref type */ string,
+  4?: /** bindingMode */ valueOf<typeof bindingMode & typeof delegationStrategy>
+};
+
+export function hydrateBindings(bindings: dehydratedBinding[]) {
+  return bindings.map(hydrateBinding);
+}
+
+export function hydrateBinding(binding: dehydratedBinding) {
+  const [targetIndex, _bindingType, expression, attrOrEventOrRef, bindingSpecifier] = binding;
+  switch (_bindingType) {
+    case bindingType.binding:
+      break;
+    case bindingType.listener:
+      break;
+    default: throw new Error('Invalid binding type');
+  }
+}
+
+export function hydrateExpression(hydratedExpression: any[]): IExpression {
+  const [astKind,]
+  return null;
+}

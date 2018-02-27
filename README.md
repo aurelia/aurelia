@@ -4,6 +4,10 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 
 ## Framework
 
+* [x] PAL
+* [x] Logging
+* [x] Task Queue
+* [ ] Dependency Injection
 * [x] One Way Bindings
 * [x] Two Way Bindings
 * [x] One Time Bindings
@@ -15,11 +19,10 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [x] Basic Lifecycle
 * [x] Basic Application Startup
 * [x] Plain Views
-* [x] `if` Template Controller
-* [x] `else` Template Controller
-* [ ] `repeat` Template Controller
 * [ ] Content Projection
 * [ ] Template Part Replacement
 * [ ] CSS Modules
-* [ ] Dependency Injection
+* [x] `if` Template Controller
+* [x] `else` Template Controller
+* [ ] `repeat` Template Controller
 * [ ] `compose` Custom Element

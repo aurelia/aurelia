@@ -1,7 +1,7 @@
 import { Scope, createOverrideContext } from './framework/binding/scope';
 import { Observer } from './framework/binding/property-observation';
 import { IBinding } from './framework/binding/binding';
-import { oneWay, twoWay, listener, oneWayText, makeElementIntoAnchor } from './framework/generated';
+import { oneWay, twoWay, listener, oneWayText, makeElementIntoAnchor, ref } from './framework/generated';
 import { View } from './framework/templating/view';
 import { IComponent } from './framework/templating/component';
 import { If } from './framework/resources/if';
@@ -19,7 +19,7 @@ import { Template } from './framework/templating/template';
 // <template>
 //   ${message}<br>
 //   <input type="text" value.bind="message">
-//   <name-tag name.bind="message"></name-tag>
+//   <name-tag name.bind="message" component.ref="nameTag"></name-tag>
 //   <input type="checkbox" value.bind="duplicateMessage" />
 //   <div if.bind="duplicateMessage">
 //     ${message}
@@ -83,10 +83,17 @@ import { Template } from './framework/templating/template';
 
 //Altered/Generated via a compile-time transform
 class $App {
-  $observers = {
-    message: new Observer('Hello World!'),
-    duplicateMessage: new Observer(true)
-  };
+  $observers: Record<string, Observer<any>>;
+
+  constructor() {
+    Object.defineProperty(this, '$observers', { 
+      enumerable: false, 
+      value: {
+        message: new Observer('Hello World!'),
+        duplicateMessage: new Observer(true)
+      }
+    });
+  }
 
   get duplicateMessage() { return this.$observers.duplicateMessage.getValue(); }
   set duplicateMessage(value: boolean) { this.$observers.duplicateMessage.setValue(value); }
@@ -131,6 +138,7 @@ export class App extends $App implements IComponent {
   private $b3: IBinding;
   private $b4: IBinding;
   private $b5: IBinding;
+  private $b6: IBinding;
   private $c1: IComponent;
   private $a1: If;
   private $a2: Else;
@@ -163,6 +171,7 @@ export class App extends $App implements IComponent {
 
     this.$c1 = new NameTag().applyTo(targets[2]);
     this.$b3 = twoWay('message', this.$c1, 'name');
+    this.$b6 = ref(this.$c1, 'nameTag');
 
     this.$b4 = twoWay('duplicateMessage', targets[3], 'checked');
 
@@ -181,6 +190,7 @@ export class App extends $App implements IComponent {
     this.$b2.bind(scope);
 
     this.$b3.bind(scope); //bind properties before calling bind on component
+    this.$b6.bind(scope);
     this.$c1.bind(); //bind always called, but after all properties are set
 
     this.$b4.bind(scope);
@@ -216,6 +226,7 @@ export class App extends $App implements IComponent {
     this.$b1.unbind();
     this.$b2.unbind();
     this.$b3.unbind();
+    this.$b6.unbind();
     this.$c1.unbind();
     this.$a1.unbind();
     this.$a2.unbind();
@@ -225,13 +236,20 @@ export class App extends $App implements IComponent {
 }
 
 class $NameTag {
-  $observers = {
-    name: new Observer('Aurelia'),
-    color: new Observer<string>('red'),
-    borderColor: new Observer('orange'),
-    borderWidth: new Observer(3),
-    showHeader: new Observer(true)
-  };
+  $observers: Record<string, Observer<any>>;
+
+  constructor() {
+    Object.defineProperty(this, '$observers', { 
+      enumerable: false, 
+      value: {
+        name: new Observer('Aurelia'),
+        color: new Observer<string>('red'),
+        borderColor: new Observer('orange'),
+        borderWidth: new Observer(3),
+        showHeader: new Observer(true)
+      }
+    });
+  }
 
   get name() { return this.$observers.name.getValue(); }
   set name(value: string) { this.$observers.name.setValue(value); }

@@ -8,14 +8,15 @@ import {
   CallScope,
   LiteralString,
   Binary,
-  Conditional
+  Conditional,
+  TemplateLiteral
 } from './binding/ast';
 import { IBindingTarget, IObservable, Binding } from './binding/binding';
 import { bindingMode } from './binding/binding-mode';
 import { Listener } from './binding/listener';
 import { delegationStrategy } from './binding/event-manager';
 import { DOM } from './dom';
-import { InterpolationString } from './new';
+import { Ref } from './binding/ref';
 
 const emptyArray = [];
 
@@ -30,13 +31,13 @@ let astLookup = {
   value: new AccessScope('value'),
   nameTagBorderWidth: new AccessScope('borderWidth'),
   nameTagBorderColor: new AccessScope('borderColor'),
-  nameTagBorder: new InterpolationString([
+  nameTagBorder: new TemplateLiteral([
     new AccessScope('borderWidth'),
     new LiteralString('px solid '),
     new AccessScope('borderColor')
   ]),
   nameTagHeaderVisible: new AccessScope('showHeader'),
-  nameTagClasses: new InterpolationString([
+  nameTagClasses: new TemplateLiteral([
     new LiteralString('au name-tag '),
     new Conditional(
       new AccessScope('showHeader'),
@@ -48,7 +49,8 @@ let astLookup = {
   submit: new CallScope('submit', emptyArray, 0),
   nameTagColor: new AccessScope('color'),
   duplicateMessage: new AccessScope('duplicateMessage'),
-  checked: new AccessScope('checked')
+  checked: new AccessScope('checked'),
+  nameTag: new AccessScope('nameTag')
 };
 
 function getAST(key: string) {
@@ -74,6 +76,10 @@ export function listener(targetEvent: string, target: Element, sourceExpression:
   return new Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
 }
 
+export function ref(target: IBindingTarget, sourceExpression: string) {
+  return new Ref(getAST(sourceExpression), target, lookupFunctions);
+}
+
 export function makeElementIntoAnchor(element: Element, elementInstruction?) {
   let anchor = DOM.createComment('anchor');
 
@@ -95,5 +101,3 @@ export function makeElementIntoAnchor(element: Element, elementInstruction?) {
 
   return anchor;
 }
-
-type valueOf<K, T extends keyof K = keyof K> = K[T];

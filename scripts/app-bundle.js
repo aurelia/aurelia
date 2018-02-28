@@ -13,10 +13,13 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
     Object.defineProperty(exports, "__esModule", { value: true });
     var $App = (function () {
         function $App() {
-            this.$observers = {
-                message: new property_observation_1.Observer('Hello World!'),
-                duplicateMessage: new property_observation_1.Observer(true)
-            };
+            Object.defineProperty(this, '$observers', {
+                enumerable: false,
+                value: {
+                    message: new property_observation_1.Observer('Hello World!'),
+                    duplicateMessage: new property_observation_1.Observer(true)
+                }
+            });
         }
         Object.defineProperty($App.prototype, "duplicateMessage", {
             get: function () { return this.$observers.duplicateMessage.getValue(); },
@@ -77,6 +80,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b2 = generated_1.twoWay('message', targets[1], 'value');
             this.$c1 = new NameTag().applyTo(targets[2]);
             this.$b3 = generated_1.twoWay('message', this.$c1, 'name');
+            this.$b6 = generated_1.ref(this.$c1, 'nameTag');
             this.$b4 = generated_1.twoWay('duplicateMessage', targets[3], 'checked');
             this.$a1 = new if_1.If(function () { return new $DynamicView(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[4]), false));
             this.$b5 = generated_1.oneWay('duplicateMessage', this.$a1, 'condition');
@@ -88,6 +92,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b1.bind(scope);
             this.$b2.bind(scope);
             this.$b3.bind(scope);
+            this.$b6.bind(scope);
             this.$c1.bind();
             this.$b4.bind(scope);
             this.$b5.bind(scope);
@@ -110,6 +115,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b1.unbind();
             this.$b2.unbind();
             this.$b3.unbind();
+            this.$b6.unbind();
             this.$c1.unbind();
             this.$a1.unbind();
             this.$a2.unbind();
@@ -122,13 +128,16 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
     exports.App = App;
     var $NameTag = (function () {
         function $NameTag() {
-            this.$observers = {
-                name: new property_observation_1.Observer('Aurelia'),
-                color: new property_observation_1.Observer('red'),
-                borderColor: new property_observation_1.Observer('orange'),
-                borderWidth: new property_observation_1.Observer(3),
-                showHeader: new property_observation_1.Observer(true)
-            };
+            Object.defineProperty(this, '$observers', {
+                enumerable: false,
+                value: {
+                    name: new property_observation_1.Observer('Aurelia'),
+                    color: new property_observation_1.Observer('red'),
+                    borderColor: new property_observation_1.Observer('orange'),
+                    borderWidth: new property_observation_1.Observer(3),
+                    showHeader: new property_observation_1.Observer(true)
+                }
+            });
         }
         Object.defineProperty($NameTag.prototype, "name", {
             get: function () { return this.$observers.name.getValue(); },
@@ -241,13 +250,38 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('main',["require", "exports", "./app", "./framework/new"], function (require, exports, app_1, new_1) {
+define('main',["require", "exports", "./app", "./framework/aurelia"], function (require, exports, app_1, aurelia_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    new new_1.Aurelia({
+    window['aureliaApp'] = new aurelia_1.Aurelia({
         host: document.body,
-        root: new app_1.App()
-    });
+        component: new app_1.App()
+    }).start();
+});
+
+
+
+define('framework/aurelia',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Aurelia = (function () {
+        function Aurelia(settings) {
+            this.settings = settings;
+            this.settings.component.applyTo(this.settings.host);
+        }
+        Aurelia.prototype.start = function () {
+            this.settings.component.bind();
+            this.settings.component.attach();
+            return this;
+        };
+        Aurelia.prototype.stop = function () {
+            this.settings.component.detach();
+            this.settings.component.unbind();
+            return this;
+        };
+        return Aurelia;
+    }());
+    exports.Aurelia = Aurelia;
 });
 
 
@@ -373,7 +407,7 @@ define('framework/dom',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom", "./new"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1, new_1) {
+define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom", "./binding/ref"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1, ref_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -387,13 +421,13 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         value: new ast_1.AccessScope('value'),
         nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
         nameTagBorderColor: new ast_1.AccessScope('borderColor'),
-        nameTagBorder: new new_1.InterpolationString([
+        nameTagBorder: new ast_1.TemplateLiteral([
             new ast_1.AccessScope('borderWidth'),
             new ast_1.LiteralString('px solid '),
             new ast_1.AccessScope('borderColor')
         ]),
         nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
-        nameTagClasses: new new_1.InterpolationString([
+        nameTagClasses: new ast_1.TemplateLiteral([
             new ast_1.LiteralString('au name-tag '),
             new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
         ]),
@@ -401,7 +435,8 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         submit: new ast_1.CallScope('submit', emptyArray, 0),
         nameTagColor: new ast_1.AccessScope('color'),
         duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
-        checked: new ast_1.AccessScope('checked')
+        checked: new ast_1.AccessScope('checked'),
+        nameTag: new ast_1.AccessScope('nameTag')
     };
     function getAST(key) {
         return astLookup[key];
@@ -427,6 +462,10 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
     }
     exports.listener = listener;
+    function ref(target, sourceExpression) {
+        return new ref_1.Ref(getAST(sourceExpression), target, lookupFunctions);
+    }
+    exports.ref = ref;
     function makeElementIntoAnchor(element, elementInstruction) {
         var anchor = dom_1.DOM.createComment('anchor');
         if (elementInstruction) {
@@ -435,6 +474,32 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         return anchor;
     }
     exports.makeElementIntoAnchor = makeElementIntoAnchor;
+    exports.bindingType = {
+        binding: 1,
+        listener: 2,
+        ref: 3,
+        text: 4,
+    };
+    ;
+    function hydrateBindings(bindings) {
+        return bindings.map(hydrateBinding);
+    }
+    exports.hydrateBindings = hydrateBindings;
+    function hydrateBinding(binding) {
+        var targetIndex = binding[0], _bindingType = binding[1], expression = binding[2], attrOrEventOrRef = binding[3], bindingSpecifier = binding[4];
+        switch (_bindingType) {
+            case exports.bindingType.binding:
+                break;
+            case exports.bindingType.listener:
+                break;
+            default: throw new Error('Invalid binding type');
+        }
+    }
+    exports.hydrateBinding = hydrateBinding;
+    function hydrateExpression(hydratedExpression) {
+        return null;
+    }
+    exports.hydrateExpression = hydrateExpression;
 });
 
 
@@ -612,51 +677,6 @@ define('framework/logging',["require", "exports"], function (require, exports) {
         return Logger;
     }());
     exports.Logger = Logger;
-});
-
-
-
-define('framework/new',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Aurelia = (function () {
-        function Aurelia(settings) {
-            this.settings = settings;
-            this.settings.root.applyTo(this.settings.host);
-            this.settings.root.bind();
-            this.settings.root.attach();
-        }
-        return Aurelia;
-    }());
-    exports.Aurelia = Aurelia;
-    var InterpolationString = (function () {
-        function InterpolationString(parts) {
-            this.parts = parts;
-        }
-        InterpolationString.prototype.assign = function () { };
-        InterpolationString.prototype.evaluate = function (scope, lookupFunctions) {
-            var result = '';
-            var parts = this.parts;
-            var ii = parts.length;
-            for (var i = 0; ii > i; ++i) {
-                var partValue = parts[i].evaluate(scope, lookupFunctions);
-                if (partValue === null || partValue === undefined) {
-                    continue;
-                }
-                result += partValue.toString();
-            }
-            return result;
-        };
-        InterpolationString.prototype.connect = function (binding, scope) {
-            var parts = this.parts;
-            var i = parts.length;
-            while (i--) {
-                parts[i].connect(binding, scope);
-            }
-        };
-        return InterpolationString;
-    }());
-    exports.InterpolationString = InterpolationString;
 });
 
 
@@ -1301,6 +1321,28 @@ define('framework/binding/array-observation',["require", "exports", "./collectio
 define('framework/binding/ast',["require", "exports", "./scope", "./signals"], function (require, exports, scope_1, signals_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AstKind = {
+        Base: 1,
+        Chain: 2,
+        ValueConverter: 3,
+        BindingBehavior: 4,
+        Assign: 5,
+        Conditional: 6,
+        AccessThis: 7,
+        AccessScope: 8,
+        AccessMember: 9,
+        AccessKeyed: 10,
+        CallScope: 11,
+        CallFunction: 12,
+        CallMember: 13,
+        PrefixNot: 14,
+        Binary: 15,
+        LiteralPrimitive: 16,
+        LiteralArray: 17,
+        LiteralObject: 18,
+        LiteralString: 19,
+        TemplateLiteral: 20,
+    };
     var Chain = (function () {
         function Chain(expressions) {
             this.expressions = expressions;
@@ -1727,6 +1769,31 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
         return LiteralString;
     }());
     exports.LiteralString = LiteralString;
+    var TemplateLiteral = (function () {
+        function TemplateLiteral(parts) {
+            this.parts = parts;
+        }
+        TemplateLiteral.prototype.evaluate = function (scope, lookupFunctions) {
+            var elements = this.parts;
+            var result = '';
+            for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
+                var value = elements[i].evaluate(scope, lookupFunctions);
+                if (value === undefined || value === null) {
+                    continue;
+                }
+                result += value;
+            }
+            return result;
+        };
+        TemplateLiteral.prototype.connect = function (binding, scope) {
+            var length = this.parts.length;
+            for (var i = 0; i < length; i++) {
+                this.parts[i].connect(binding, scope);
+            }
+        };
+        return TemplateLiteral;
+    }());
+    exports.TemplateLiteral = TemplateLiteral;
     var LiteralArray = (function () {
         function LiteralArray(elements) {
             this.elements = elements;
@@ -1734,7 +1801,7 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
         LiteralArray.prototype.evaluate = function (scope, lookupFunctions) {
             var elements = this.elements;
             var result = [];
-            for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
+            for (var i = 0, length_3 = elements.length; i < length_3; ++i) {
                 result[i] = elements[i].evaluate(scope, lookupFunctions);
             }
             return result;
@@ -1757,7 +1824,7 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
             var instance = {};
             var keys = this.keys;
             var values = this.values;
-            for (var i = 0, length_3 = keys.length; i < length_3; ++i) {
+            for (var i = 0, length_4 = keys.length; i < length_4; ++i) {
                 instance[keys[i]] = values[i].evaluate(scope, lookupFunctions);
             }
             return instance;
@@ -1850,6 +1917,19 @@ define('framework/binding/binding-mode',["require", "exports"], function (requir
 
 
 
+define('framework/binding/binding-type',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.bindingType = {
+        binding: 1,
+        listener: 2,
+        ref: 3,
+        text: 4,
+    };
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -1873,6 +1953,7 @@ define('framework/binding/binding',["require", "exports", "./binding-mode", "./c
             _this.targetProperty = targetProperty;
             _this.mode = mode;
             _this.lookupFunctions = lookupFunctions;
+            _this.isBound = false;
             return _this;
         }
         Binding.prototype.updateTarget = function (value) {
@@ -2966,6 +3047,7 @@ define('framework/binding/listener',["require", "exports", "./event-manager"], f
             this.preventDefault = preventDefault;
             this.lookupFunctions = lookupFunctions;
             this.eventManager = eventManager;
+            this.isBound = false;
             this.targetEvent = targetEvent;
             this.delegationStrategy = delegationStrategy;
             this.sourceExpression = sourceExpression;
@@ -5004,6 +5086,51 @@ define('framework/templating/visual',["require", "exports"], function (require, 
         return Visual;
     }());
     exports.Visual = Visual;
+});
+
+
+
+define('framework/binding/ref',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Ref = (function () {
+        function Ref(sourceExpression, target, lookupFunctions) {
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.lookupFunctions = lookupFunctions;
+            this.isBound = false;
+        }
+        Ref.prototype.bind = function (source) {
+            if (this.isBound) {
+                if (this.source === source) {
+                    return;
+                }
+                this.unbind();
+            }
+            this.isBound = true;
+            this.source = source;
+            if (this.sourceExpression.bind) {
+                this.sourceExpression.bind(this, source);
+            }
+            this.sourceExpression.assign(this.source, this.target, this.lookupFunctions);
+        };
+        Ref.prototype.unbind = function () {
+            if (!this.isBound) {
+                return;
+            }
+            this.isBound = false;
+            if (this.sourceExpression.evaluate(this.source, this.lookupFunctions) === this.target) {
+                this.sourceExpression.assign(this.source, null, this.lookupFunctions);
+            }
+            if (this.sourceExpression.unbind) {
+                this.sourceExpression.unbind(this, this.source);
+            }
+            this.source = null;
+        };
+        Ref.prototype.observeProperty = function (context, name) { };
+        return Ref;
+    }());
+    exports.Ref = Ref;
 });
 
 

@@ -5,7 +5,7 @@ import { IBinding } from "./binding";
 
 export class Listener implements IBinding {
   private source: Scope;
-  private isBound: boolean;
+  private isBound = false;
   private disposeListener: () => void;
 
   constructor(

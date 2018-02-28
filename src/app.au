@@ -6,7 +6,11 @@
 </template>
 
 <script>
-  export class App {
+  export class AppCustomElement {
+    constructor() {
+
+    }
+
     submit() {
 
     }

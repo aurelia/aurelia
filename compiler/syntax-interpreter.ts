@@ -1,6 +1,15 @@
 import { AttributeMap } from './attribute-map';
 import { Parser } from './parser';
-import { IBindingLanguage, bindingMode, IInsepctionInfo, TemplateFactoryBinding, ResourcesBag, bindingType, delegationStrategy } from './interfaces';
+import {
+  IBindingLanguage,
+  IInsepctionInfo,
+  TemplateFactory,
+  TemplateFactoryBinding,
+  ResourcesBag,
+  bindingType,
+
+} from './interfaces';
+import { bindingMode, delegationStrategy, AbstractBinding, PropertyBinding, ListenerBinding } from './binding';
 
 export class SyntaxInterpreter {
 
@@ -51,26 +60,40 @@ export class SyntaxInterpreter {
     return bindingMode.oneWay;
   }
 
-  bind(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): TemplateFactoryBinding {
-    return [
+  bind(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): AbstractBinding {
+    return new PropertyBinding(
+      TemplateFactory.addAst(info.attrValue, this.parser.parse(info.attrValue)),
       targetIndex,
-      bindingType.binding,
-      this.parser.parse(info.attrValue),
       info.attrName,
       info.defaultBindingMode === undefined || info.defaultBindingMode === null
         ? this.determineDefaultBindingMode(resources, element, info.attrName)
         : info.defaultBindingMode
-    ];
+    );
+    // return [
+    //   targetIndex,
+    //   bindingType.binding,
+    //   this.parser.parse(info.attrValue),
+    //   info.attrName,
+    //   info.defaultBindingMode === undefined || info.defaultBindingMode === null
+    //     ? this.determineDefaultBindingMode(resources, element, info.attrName)
+    //     : info.defaultBindingMode
+    // ];
   }
 
-  trigger(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): TemplateFactoryBinding {
-    return [
+  trigger(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): AbstractBinding {
+    return new ListenerBinding(
+      TemplateFactory.addAst(info.attrValue, this.parser.parse(info.attrValue)),
       targetIndex,
-      bindingType.listener,
-      this.parser.parse(info.attrValue),
       info.attrName,
-      delegationStrategy.none
-    ];
+      delegationStrategy.none,
+    );
+    // return [
+    //   targetIndex,
+    //   bindingType.listener,
+    //   this.parser.parse(info.attrValue),
+    //   info.attrName,
+    //   delegationStrategy.none
+    // ];
     // return new ListenerExpression(
     //   this.eventManager,
     //   info.attrName,
@@ -81,14 +104,20 @@ export class SyntaxInterpreter {
     // );
   }
 
-  capture(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): TemplateFactoryBinding {
-    return [
+  capture(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): AbstractBinding {
+    return new ListenerBinding(
+      TemplateFactory.addAst(info.attrValue, this.parser.parse(info.attrValue)),
       targetIndex,
-      bindingType.listener,
-      this.parser.parse(info.attrValue),
       info.attrName,
-      delegationStrategy.capturing
-    ];
+      delegationStrategy.capturing,
+    );
+    // return [
+    //   targetIndex,
+    //   bindingType.listener,
+    //   this.parser.parse(info.attrValue),
+    //   info.attrName,
+    //   delegationStrategy.capturing
+    // ];
     // return new ListenerExpression(
     //   this.eventManager,
     //   info.attrName,
@@ -99,14 +128,20 @@ export class SyntaxInterpreter {
     // );
   }
 
-  delegate(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): TemplateFactoryBinding {
-    return [
+  delegate(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): AbstractBinding {
+    return new ListenerBinding(
+      TemplateFactory.addAst(info.attrValue, this.parser.parse(info.attrValue)),
       targetIndex,
-      bindingType.listener,
-      this.parser.parse(info.attrValue),
       info.attrName,
-      delegationStrategy.bubbling
-    ];
+      delegationStrategy.bubbling,
+    );
+    // return [
+    //   targetIndex,
+    //   bindingType.listener,
+    //   this.parser.parse(info.attrValue),
+    //   info.attrName,
+    //   delegationStrategy.bubbling
+    // ];
     // return new ListenerExpression(
     //   this.eventManager,
     //   info.attrName,

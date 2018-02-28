@@ -1,7 +1,7 @@
 import { App } from './app';
-import { Aurelia } from './framework/new';
+import { Aurelia } from './framework/aurelia';
 
-new Aurelia({
+window['aureliaApp'] = new Aurelia({
   host: document.body,
-  root: new App()
-});
+  component: new App()
+}).start();

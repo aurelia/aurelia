@@ -8,14 +8,14 @@ import {
   CallScope,
   LiteralString,
   Binary,
-  Conditional
+  Conditional,
+  TemplateLiteral
 } from './binding/ast';
 import { IBindingTarget, IObservable, Binding } from './binding/binding';
 import { bindingMode } from './binding/binding-mode';
 import { Listener } from './binding/listener';
 import { delegationStrategy } from './binding/event-manager';
 import { DOM } from './dom';
-import { InterpolationString } from './new';
 
 const emptyArray = [];
 
@@ -30,13 +30,13 @@ let astLookup = {
   value: new AccessScope('value'),
   nameTagBorderWidth: new AccessScope('borderWidth'),
   nameTagBorderColor: new AccessScope('borderColor'),
-  nameTagBorder: new InterpolationString([
+  nameTagBorder: new TemplateLiteral([
     new AccessScope('borderWidth'),
     new LiteralString('px solid '),
     new AccessScope('borderColor')
   ]),
   nameTagHeaderVisible: new AccessScope('showHeader'),
-  nameTagClasses: new InterpolationString([
+  nameTagClasses: new TemplateLiteral([
     new LiteralString('au name-tag '),
     new Conditional(
       new AccessScope('showHeader'),

@@ -241,13 +241,38 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('main',["require", "exports", "./app", "./framework/new"], function (require, exports, app_1, new_1) {
+define('main',["require", "exports", "./app", "./framework/aurelia"], function (require, exports, app_1, aurelia_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    new new_1.Aurelia({
+    window['aureliaApp'] = new aurelia_1.Aurelia({
         host: document.body,
-        root: new app_1.App()
-    });
+        component: new app_1.App()
+    }).start();
+});
+
+
+
+define('framework/aurelia',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Aurelia = (function () {
+        function Aurelia(settings) {
+            this.settings = settings;
+            this.settings.component.applyTo(this.settings.host);
+        }
+        Aurelia.prototype.start = function () {
+            this.settings.component.bind();
+            this.settings.component.attach();
+            return this;
+        };
+        Aurelia.prototype.stop = function () {
+            this.settings.component.detach();
+            this.settings.component.unbind();
+            return this;
+        };
+        return Aurelia;
+    }());
+    exports.Aurelia = Aurelia;
 });
 
 
@@ -373,7 +398,7 @@ define('framework/dom',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom", "./new"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1, new_1) {
+define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -387,13 +412,13 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         value: new ast_1.AccessScope('value'),
         nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
         nameTagBorderColor: new ast_1.AccessScope('borderColor'),
-        nameTagBorder: new new_1.InterpolationString([
+        nameTagBorder: new ast_1.TemplateLiteral([
             new ast_1.AccessScope('borderWidth'),
             new ast_1.LiteralString('px solid '),
             new ast_1.AccessScope('borderColor')
         ]),
         nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
-        nameTagClasses: new new_1.InterpolationString([
+        nameTagClasses: new ast_1.TemplateLiteral([
             new ast_1.LiteralString('au name-tag '),
             new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
         ]),
@@ -638,51 +663,6 @@ define('framework/logging',["require", "exports"], function (require, exports) {
         return Logger;
     }());
     exports.Logger = Logger;
-});
-
-
-
-define('framework/new',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Aurelia = (function () {
-        function Aurelia(settings) {
-            this.settings = settings;
-            this.settings.root.applyTo(this.settings.host);
-            this.settings.root.bind();
-            this.settings.root.attach();
-        }
-        return Aurelia;
-    }());
-    exports.Aurelia = Aurelia;
-    var InterpolationString = (function () {
-        function InterpolationString(parts) {
-            this.parts = parts;
-        }
-        InterpolationString.prototype.assign = function () { };
-        InterpolationString.prototype.evaluate = function (scope, lookupFunctions) {
-            var result = '';
-            var parts = this.parts;
-            var ii = parts.length;
-            for (var i = 0; ii > i; ++i) {
-                var partValue = parts[i].evaluate(scope, lookupFunctions);
-                if (partValue === null || partValue === undefined) {
-                    continue;
-                }
-                result += partValue.toString();
-            }
-            return result;
-        };
-        InterpolationString.prototype.connect = function (binding, scope) {
-            var parts = this.parts;
-            var i = parts.length;
-            while (i--) {
-                parts[i].connect(binding, scope);
-            }
-        };
-        return InterpolationString;
-    }());
-    exports.InterpolationString = InterpolationString;
 });
 
 

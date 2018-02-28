@@ -80,6 +80,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b2 = generated_1.twoWay('message', targets[1], 'value');
             this.$c1 = new NameTag().applyTo(targets[2]);
             this.$b3 = generated_1.twoWay('message', this.$c1, 'name');
+            this.$b6 = generated_1.ref(this.$c1, 'nameTag');
             this.$b4 = generated_1.twoWay('duplicateMessage', targets[3], 'checked');
             this.$a1 = new if_1.If(function () { return new $DynamicView(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[4]), false));
             this.$b5 = generated_1.oneWay('duplicateMessage', this.$a1, 'condition');
@@ -91,6 +92,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b1.bind(scope);
             this.$b2.bind(scope);
             this.$b3.bind(scope);
+            this.$b6.bind(scope);
             this.$c1.bind();
             this.$b4.bind(scope);
             this.$b5.bind(scope);
@@ -113,6 +115,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b1.unbind();
             this.$b2.unbind();
             this.$b3.unbind();
+            this.$b6.unbind();
             this.$c1.unbind();
             this.$a1.unbind();
             this.$a2.unbind();
@@ -404,7 +407,7 @@ define('framework/dom',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1) {
+define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom", "./binding/ref"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1, ref_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -432,7 +435,8 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         submit: new ast_1.CallScope('submit', emptyArray, 0),
         nameTagColor: new ast_1.AccessScope('color'),
         duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
-        checked: new ast_1.AccessScope('checked')
+        checked: new ast_1.AccessScope('checked'),
+        nameTag: new ast_1.AccessScope('nameTag')
     };
     function getAST(key) {
         return astLookup[key];
@@ -458,6 +462,10 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
     }
     exports.listener = listener;
+    function ref(target, sourceExpression) {
+        return new ref_1.Ref(getAST(sourceExpression), target, lookupFunctions);
+    }
+    exports.ref = ref;
     function makeElementIntoAnchor(element, elementInstruction) {
         var anchor = dom_1.DOM.createComment('anchor');
         if (elementInstruction) {
@@ -1945,6 +1953,7 @@ define('framework/binding/binding',["require", "exports", "./binding-mode", "./c
             _this.targetProperty = targetProperty;
             _this.mode = mode;
             _this.lookupFunctions = lookupFunctions;
+            _this.isBound = false;
             return _this;
         }
         Binding.prototype.updateTarget = function (value) {
@@ -3038,6 +3047,7 @@ define('framework/binding/listener',["require", "exports", "./event-manager"], f
             this.preventDefault = preventDefault;
             this.lookupFunctions = lookupFunctions;
             this.eventManager = eventManager;
+            this.isBound = false;
             this.targetEvent = targetEvent;
             this.delegationStrategy = delegationStrategy;
             this.sourceExpression = sourceExpression;
@@ -5076,6 +5086,51 @@ define('framework/templating/visual',["require", "exports"], function (require, 
         return Visual;
     }());
     exports.Visual = Visual;
+});
+
+
+
+define('framework/binding/ref',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Ref = (function () {
+        function Ref(sourceExpression, target, lookupFunctions) {
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.lookupFunctions = lookupFunctions;
+            this.isBound = false;
+        }
+        Ref.prototype.bind = function (source) {
+            if (this.isBound) {
+                if (this.source === source) {
+                    return;
+                }
+                this.unbind();
+            }
+            this.isBound = true;
+            this.source = source;
+            if (this.sourceExpression.bind) {
+                this.sourceExpression.bind(this, source);
+            }
+            this.sourceExpression.assign(this.source, this.target, this.lookupFunctions);
+        };
+        Ref.prototype.unbind = function () {
+            if (!this.isBound) {
+                return;
+            }
+            this.isBound = false;
+            if (this.sourceExpression.evaluate(this.source, this.lookupFunctions) === this.target) {
+                this.sourceExpression.assign(this.source, null, this.lookupFunctions);
+            }
+            if (this.sourceExpression.unbind) {
+                this.sourceExpression.unbind(this, this.source);
+            }
+            this.source = null;
+        };
+        Ref.prototype.observeProperty = function (context, name) { };
+        return Ref;
+    }());
+    exports.Ref = Ref;
 });
 
 

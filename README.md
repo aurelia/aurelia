@@ -13,7 +13,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [x] One Time Bindings
 * [x] From View Bindings
 * [x] Listener Bindings
-* [ ] Ref Bindings
+* [x] Ref Bindings
 * [x] Basic Components
 * [x] Basic Attributes
 * [x] Basic Lifecycle

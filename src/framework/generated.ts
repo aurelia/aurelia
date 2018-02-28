@@ -16,6 +16,7 @@ import { bindingMode } from './binding/binding-mode';
 import { Listener } from './binding/listener';
 import { delegationStrategy } from './binding/event-manager';
 import { DOM } from './dom';
+import { Ref } from './binding/ref';
 
 const emptyArray = [];
 
@@ -48,7 +49,8 @@ let astLookup = {
   submit: new CallScope('submit', emptyArray, 0),
   nameTagColor: new AccessScope('color'),
   duplicateMessage: new AccessScope('duplicateMessage'),
-  checked: new AccessScope('checked')
+  checked: new AccessScope('checked'),
+  nameTag: new AccessScope('nameTag')
 };
 
 function getAST(key: string) {
@@ -72,6 +74,10 @@ export function twoWay(sourceExpression: string, target: IBindingTarget, targetP
 
 export function listener(targetEvent: string, target: Element, sourceExpression: string, preventDefault = true, strategy: number = delegationStrategy.none) {
   return new Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
+}
+
+export function ref(target: IBindingTarget, sourceExpression: string) {
+  return new Ref(getAST(sourceExpression), target, lookupFunctions);
 }
 
 export function makeElementIntoAnchor(element: Element, elementInstruction?) {

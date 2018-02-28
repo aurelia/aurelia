@@ -13,10 +13,13 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
     Object.defineProperty(exports, "__esModule", { value: true });
     var $App = (function () {
         function $App() {
-            this.$observers = {
-                message: new property_observation_1.Observer('Hello World!'),
-                duplicateMessage: new property_observation_1.Observer(true)
-            };
+            Object.defineProperty(this, '$observers', {
+                enumerable: false,
+                value: {
+                    message: new property_observation_1.Observer('Hello World!'),
+                    duplicateMessage: new property_observation_1.Observer(true)
+                }
+            });
         }
         Object.defineProperty($App.prototype, "duplicateMessage", {
             get: function () { return this.$observers.duplicateMessage.getValue(); },
@@ -122,13 +125,16 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
     exports.App = App;
     var $NameTag = (function () {
         function $NameTag() {
-            this.$observers = {
-                name: new property_observation_1.Observer('Aurelia'),
-                color: new property_observation_1.Observer('red'),
-                borderColor: new property_observation_1.Observer('orange'),
-                borderWidth: new property_observation_1.Observer(3),
-                showHeader: new property_observation_1.Observer(true)
-            };
+            Object.defineProperty(this, '$observers', {
+                enumerable: false,
+                value: {
+                    name: new property_observation_1.Observer('Aurelia'),
+                    color: new property_observation_1.Observer('red'),
+                    borderColor: new property_observation_1.Observer('orange'),
+                    borderWidth: new property_observation_1.Observer(3),
+                    showHeader: new property_observation_1.Observer(true)
+                }
+            });
         }
         Object.defineProperty($NameTag.prototype, "name", {
             get: function () { return this.$observers.name.getValue(); },

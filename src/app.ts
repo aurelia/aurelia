@@ -83,10 +83,17 @@ import { Template } from './framework/templating/template';
 
 //Altered/Generated via a compile-time transform
 class $App {
-  $observers = {
-    message: new Observer('Hello World!'),
-    duplicateMessage: new Observer(true)
-  };
+  $observers: Record<string, Observer<any>>;
+
+  constructor() {
+    Object.defineProperty(this, '$observers', { 
+      enumerable: false, 
+      value: {
+        message: new Observer('Hello World!'),
+        duplicateMessage: new Observer(true)
+      }
+    });
+  }
 
   get duplicateMessage() { return this.$observers.duplicateMessage.getValue(); }
   set duplicateMessage(value: boolean) { this.$observers.duplicateMessage.setValue(value); }
@@ -225,13 +232,20 @@ export class App extends $App implements IComponent {
 }
 
 class $NameTag {
-  $observers = {
-    name: new Observer('Aurelia'),
-    color: new Observer<string>('red'),
-    borderColor: new Observer('orange'),
-    borderWidth: new Observer(3),
-    showHeader: new Observer(true)
-  };
+  $observers: Record<string, Observer<any>>;
+
+  constructor() {
+    Object.defineProperty(this, '$observers', { 
+      enumerable: false, 
+      value: {
+        name: new Observer('Aurelia'),
+        color: new Observer<string>('red'),
+        borderColor: new Observer('orange'),
+        borderWidth: new Observer(3),
+        showHeader: new Observer(true)
+      }
+    });
+  }
 
   get name() { return this.$observers.name.getValue(); }
   set name(value: string) { this.$observers.name.setValue(value); }

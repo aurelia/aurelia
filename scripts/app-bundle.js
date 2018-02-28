@@ -435,6 +435,32 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         return anchor;
     }
     exports.makeElementIntoAnchor = makeElementIntoAnchor;
+    exports.bindingType = {
+        binding: 1,
+        listener: 2,
+        ref: 3,
+        text: 4,
+    };
+    ;
+    function hydrateBindings(bindings) {
+        return bindings.map(hydrateBinding);
+    }
+    exports.hydrateBindings = hydrateBindings;
+    function hydrateBinding(binding) {
+        var targetIndex = binding[0], _bindingType = binding[1], expression = binding[2], attrOrEventOrRef = binding[3], bindingSpecifier = binding[4];
+        switch (_bindingType) {
+            case exports.bindingType.binding:
+                break;
+            case exports.bindingType.listener:
+                break;
+            default: throw new Error('Invalid binding type');
+        }
+    }
+    exports.hydrateBinding = hydrateBinding;
+    function hydrateExpression(hydratedExpression) {
+        return null;
+    }
+    exports.hydrateExpression = hydrateExpression;
 });
 
 
@@ -1301,6 +1327,28 @@ define('framework/binding/array-observation',["require", "exports", "./collectio
 define('framework/binding/ast',["require", "exports", "./scope", "./signals"], function (require, exports, scope_1, signals_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AstKind = {
+        Base: 1,
+        Chain: 2,
+        ValueConverter: 3,
+        BindingBehavior: 4,
+        Assign: 5,
+        Conditional: 6,
+        AccessThis: 7,
+        AccessScope: 8,
+        AccessMember: 9,
+        AccessKeyed: 10,
+        CallScope: 11,
+        CallFunction: 12,
+        CallMember: 13,
+        PrefixNot: 14,
+        Binary: 15,
+        LiteralPrimitive: 16,
+        LiteralArray: 17,
+        LiteralObject: 18,
+        LiteralString: 19,
+        TemplateLiteral: 20,
+    };
     var Chain = (function () {
         function Chain(expressions) {
             this.expressions = expressions;
@@ -1727,6 +1775,31 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
         return LiteralString;
     }());
     exports.LiteralString = LiteralString;
+    var TemplateLiteral = (function () {
+        function TemplateLiteral(parts) {
+            this.parts = parts;
+        }
+        TemplateLiteral.prototype.evaluate = function (scope, lookupFunctions) {
+            var elements = this.parts;
+            var result = '';
+            for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
+                var value = elements[i].evaluate(scope, lookupFunctions);
+                if (value === undefined || value === null) {
+                    continue;
+                }
+                result += value;
+            }
+            return result;
+        };
+        TemplateLiteral.prototype.connect = function (binding, scope) {
+            var length = this.parts.length;
+            for (var i = 0; i < length; i++) {
+                this.parts[i].connect(binding, scope);
+            }
+        };
+        return TemplateLiteral;
+    }());
+    exports.TemplateLiteral = TemplateLiteral;
     var LiteralArray = (function () {
         function LiteralArray(elements) {
             this.elements = elements;
@@ -1734,7 +1807,7 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
         LiteralArray.prototype.evaluate = function (scope, lookupFunctions) {
             var elements = this.elements;
             var result = [];
-            for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
+            for (var i = 0, length_3 = elements.length; i < length_3; ++i) {
                 result[i] = elements[i].evaluate(scope, lookupFunctions);
             }
             return result;
@@ -1757,7 +1830,7 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
             var instance = {};
             var keys = this.keys;
             var values = this.values;
-            for (var i = 0, length_3 = keys.length; i < length_3; ++i) {
+            for (var i = 0, length_4 = keys.length; i < length_4; ++i) {
                 instance[keys[i]] = values[i].evaluate(scope, lookupFunctions);
             }
             return instance;
@@ -1845,6 +1918,19 @@ define('framework/binding/binding-mode',["require", "exports"], function (requir
         oneWay: 1,
         twoWay: 2,
         fromView: 3
+    };
+});
+
+
+
+define('framework/binding/binding-type',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.bindingType = {
+        binding: 1,
+        listener: 2,
+        ref: 3,
+        text: 4,
     };
 });
 

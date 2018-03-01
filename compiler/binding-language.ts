@@ -5,6 +5,7 @@ import { Expression, TemplateLiteral, LiteralString } from './ast';
 import { Parser } from './parser';
 import { bindingMode, IInsepctionInfo, IBindingLanguage, TemplateFactoryBinding, bindingType, ELEMENT_REF_KEY } from './interfaces';
 import { camelCase } from './util';
+import { AbstractBinding } from './binding';
 
 let info: IInsepctionInfo = {};
 
@@ -27,7 +28,7 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
     attrName: string,
     attrValue: string,
     targetIndex: number
-  ): TemplateFactoryBinding {
+  ): AbstractBinding {
     let parts = attrName.split('.');
 
     info.defaultBindingMode = null;
@@ -38,12 +39,13 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
       info.command = parts[1].trim();
 
       if (info.command === 'ref') {
-        return [
-          targetIndex,
-          bindingType.ref,
-          this.parser.parse(attrValue),
-          camelCase(parts[0].trim())
-        ];
+        return null;
+        // return [
+        //   targetIndex,
+        //   bindingType.ref,
+        //   this.parser.parse(attrValue),
+        //   camelCase(parts[0].trim())
+        // ];
       } else {
         return this.syntaxInterpreter.interpret(
           {},
@@ -53,12 +55,13 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
         );
       }
     } else if (attrName === 'ref') {
-      return [
-        targetIndex,
-        bindingType.ref,
-        this.parser.parse(attrValue),
-        ELEMENT_REF_KEY
-      ];
+      return null;
+      // return [
+      //   targetIndex,
+      //   bindingType.ref,
+      //   this.parser.parse(attrValue),
+      //   ELEMENT_REF_KEY
+      // ];
     } else {
       info.attrName = attrName;
       info.attrValue = attrValue;
@@ -73,11 +76,12 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
         //   targetIndex
         // );
       } else {
-        return [
-          targetIndex,
-          bindingType.binding,
-          templateLiteral
-        ];
+        return null;
+        // return [
+        //   targetIndex,
+        //   bindingType.binding,
+        //   templateLiteral
+        // ];
         // info.expression = new InterpolationBindingExpression(
         //   this.attributeMap.map(element, attrName),
         //   interpolationParts,

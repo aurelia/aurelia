@@ -2,6 +2,7 @@ import { TemplateFactory, bindingMode, IBindingLanguage, bindingType } from "./i
 import { Parser } from "./parser";
 import { DOM } from "./dom";
 import { TemplatingBindingLanguage } from "./binding-language";
+import { TextBinding } from "./binding";
 
 export class ViewCompiler {
 
@@ -47,14 +48,11 @@ export class ViewCompiler {
           while (node.nextSibling && node.nextSibling.nodeType === 3) {
             node.parentNode.removeChild(node.nextSibling);
           }
-          let bindings = templateFactory.bindings;
-          let lastBinding = bindings[bindings.length - 1];
-          let lastIndex = lastBinding ? lastBinding[0] : -1;
-          bindings.push([
-            lastIndex + 1,
-            bindingType.text,
-            templateLiteralExpression
-          ]);
+          let lastIndex = templateFactory.lastTargetIndex;
+          templateFactory.bindings.push(new TextBinding(
+            TemplateFactory.addAst(node.textContent, templateLiteralExpression),
+            lastIndex + 1
+          ));
         } else {
           //skip parsing adjacent text nodes.
           while (node.nextSibling && node.nextSibling.nodeType === 3) {
@@ -76,14 +74,12 @@ export class ViewCompiler {
 
   private compileElement(node: Element, templateFactory: TemplateFactory) {
     let hasBinding = false;
-    let bindings = templateFactory.bindings;
-    let lastBinding = bindings[bindings.length - 1];
-    let lastIndex = lastBinding ? lastBinding[0] : -1;
+    let lastIndex = templateFactory.lastTargetIndex;
     for (let i = 0; i < node.attributes.length; ++i) {
       let attr = node.attributes[i];
       let binding = this.bindingLanguage.inspectAttribute(node, attr.nodeName, attr.value, lastIndex + 1);
       if (binding) {
-        bindings.push(binding);
+        templateFactory.bindings.push(binding);
         hasBinding = true;
         node.removeAttribute(attr.nodeName);
         --i;

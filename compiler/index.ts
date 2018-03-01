@@ -66,6 +66,32 @@ export class Au {
       }
     });
     fs.writeFileSync(fileName, output.outputText, 'utf-8');
+    let astOutput = TemplateFactory.emitAst();
+    // ts.createProgram(
+    //   [],
+    //   { target: ts.ScriptTarget.Latest },
+    //   {
+    //     getSourceFile: (fileName) => astOutput,
+    //     getDefaultLibFileName: () => '',
+    //     getCurrentDirectory: () => '',
+    //     getDirectories: () => [],
+    //     getCanonicalFileName: (fileName) => fileName,
+    //     useCaseSensitiveFileNames: () => true,
+    //     getNewLine: () => "\n",
+    //     fileExists: (fileName) => fileName === 'src/asts.js',
+    //     readFile: (fileName) => astOutput.text,
+    //     writeFile: (fileName, text) => {
+    //       fs.writeFileSync(fileName, text, 'utf-8')
+    //     }
+    //   }
+    // ).emit(astOutput, (fileName, text) => {
+    //   fs.writeFileSync(fileName, text, 'utf-8')
+    // });
+    // astOutput = ts.transform(astOutput, [], {
+    //   target: ts.ScriptTarget.Latest
+    // }).transformed[0]// || astOutput;
+    // console.log(astOutput);
+    fs.writeFileSync('src/asts.js', ts.createPrinter().printFile(astOutput), 'utf-8');
   }
 }
 

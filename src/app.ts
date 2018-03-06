@@ -102,13 +102,13 @@ class $App {
   set message(value: string) { this.$observers.message.setValue(value); }
 }
 
-class $DynamicView extends Visual {
+class $PlainView1 extends Visual {
   private $b1: IBinding;
 
   private static $template = new Template('<div><au-marker class="au"></au-marker> </div>');
 
   constructor() {
-    super($DynamicView.$template);
+    super($PlainView1.$template);
     let targets = this.$view.targets;
     this.$b1 = oneWayText('message', targets[0]);
   }
@@ -124,11 +124,11 @@ class $DynamicView extends Visual {
   }
 }
 
-class $DynamicView2 extends Visual {
+class $PlainView2 extends Visual {
   private static $template = new Template('<div>No Message Duplicated</div>');
 
   constructor() {
-    super($DynamicView2.$template);
+    super($PlainView2.$template);
   }
 }
 
@@ -175,10 +175,10 @@ export class App extends $App implements IComponent {
 
     this.$b4 = twoWay('duplicateMessage', targets[3], 'checked');
 
-    this.$a1 = new If(() => new $DynamicView(), new ViewSlot(makeElementIntoAnchor(targets[4]), false));
+    this.$a1 = new If(() => new $PlainView1(), new ViewSlot(makeElementIntoAnchor(targets[4]), false));
     this.$b5 = oneWay('duplicateMessage', this.$a1, 'condition');
 
-    this.$a2 = new Else(() => new $DynamicView2(), new ViewSlot(makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
+    this.$a2 = new Else(() => new $PlainView2(), new ViewSlot(makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
 
     return this;
   }

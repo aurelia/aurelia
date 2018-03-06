@@ -35,32 +35,32 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
         });
         return $App;
     }());
-    var $DynamicView = (function (_super) {
-        __extends($DynamicView, _super);
-        function $DynamicView() {
-            var _this = _super.call(this, $DynamicView.$template) || this;
+    var $PlainView1 = (function (_super) {
+        __extends($PlainView1, _super);
+        function $PlainView1() {
+            var _this = _super.call(this, $PlainView1.$template) || this;
             var targets = _this.$view.targets;
             _this.$b1 = generated_1.oneWayText('message', targets[0]);
             return _this;
         }
-        $DynamicView.prototype.bind = function (scope) {
+        $PlainView1.prototype.bind = function (scope) {
             _super.prototype.bind.call(this, scope);
             this.$b1.bind(scope);
         };
-        $DynamicView.prototype.unbind = function () {
+        $PlainView1.prototype.unbind = function () {
             _super.prototype.unbind.call(this);
             this.$b1.unbind();
         };
-        $DynamicView.$template = new template_1.Template('<div><au-marker class="au"></au-marker> </div>');
-        return $DynamicView;
+        $PlainView1.$template = new template_1.Template('<div><au-marker class="au"></au-marker> </div>');
+        return $PlainView1;
     }(visual_1.Visual));
-    var $DynamicView2 = (function (_super) {
-        __extends($DynamicView2, _super);
-        function $DynamicView2() {
-            return _super.call(this, $DynamicView2.$template) || this;
+    var $PlainView2 = (function (_super) {
+        __extends($PlainView2, _super);
+        function $PlainView2() {
+            return _super.call(this, $PlainView2.$template) || this;
         }
-        $DynamicView2.$template = new template_1.Template('<div>No Message Duplicated</div>');
-        return $DynamicView2;
+        $PlainView2.$template = new template_1.Template('<div>No Message Duplicated</div>');
+        return $PlainView2;
     }(visual_1.Visual));
     var App = (function (_super) {
         __extends(App, _super);
@@ -82,9 +82,9 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b3 = generated_1.twoWay('message', this.$c1, 'name');
             this.$b6 = generated_1.ref(this.$c1, 'nameTag');
             this.$b4 = generated_1.twoWay('duplicateMessage', targets[3], 'checked');
-            this.$a1 = new if_1.If(function () { return new $DynamicView(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[4]), false));
+            this.$a1 = new if_1.If(function () { return new $PlainView1(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[4]), false));
             this.$b5 = generated_1.oneWay('duplicateMessage', this.$a1, 'condition');
-            this.$a2 = new else_1.Else(function () { return new $DynamicView2(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
+            this.$a2 = new else_1.Else(function () { return new $PlainView2(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
             return this;
         };
         App.prototype.beginBind = function () {

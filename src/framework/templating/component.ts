@@ -1,5 +1,6 @@
 export interface IBindSelf {
-  bind();
+  beginBind();
+  endBind();
   unbind();
 }
 export interface IAttach {

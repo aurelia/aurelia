@@ -33,7 +33,8 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [x] Ref Bindings
 * [x] Basic Components
 * [x] Basic Attributes
-* [x] Basic Lifecycle
+* [x] Attach Lifecycle
+* [ ] Bind Lifecycle (in-progress)
 * [x] Basic Application Startup
 * [x] Plain Views
 * [ ] Content Projection

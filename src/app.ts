@@ -183,22 +183,37 @@ export class App extends $App implements IComponent {
     return this;
   }
 
-  bind() {
+  //binding tunnels down the tree before binding happens
+  //bound bubbles up the tree after binding happens
+  //property change events always fire, but in a group at the end of binding, but before bound
+
+  beginBind() {
+    //this.binding(); //if developer implemented this callback
+
+    let scope = this.$scope;
+
+    this.$c1.beginBind();
+    this.$a1.beginBind(scope);
+    this.$a2.beginBind(scope);
+  }
+
+  endBind() {
     let scope = this.$scope;
 
     this.$b1.bind(scope);
     this.$b2.bind(scope);
-
-    this.$b3.bind(scope); //bind properties before calling bind on component
-    this.$b6.bind(scope);
-    this.$c1.bind(); //bind always called, but after all properties are set
-
     this.$b4.bind(scope);
+  
+    this.$b3.bind(scope); //input binding set before component ends binding by activating internals
+    this.$b6.bind(scope);
+    this.$c1.endBind(); //change events fire inside here for all properties, and then the bound callback
 
-    this.$b5.bind(scope); //bind properties before calling bind on attribute
-    this.$a1.bind(scope); //bind always called, but after all properties are set
+    this.$b5.bind(scope);    
+    this.$a1.endBind(); 
 
-    this.$a2.bind(scope);
+    this.$a2.endBind();
+    
+    //this.bound(); //if developer implemented this callback
   }
 
   //attaching tunnels down the tree before the dom attach happens
@@ -237,6 +252,7 @@ export class App extends $App implements IComponent {
 
 class $NameTag {
   $observers: Record<string, Observer<any>>;
+  $isBound = false;
 
   constructor() {
     Object.defineProperty(this, '$observers', { 
@@ -252,7 +268,10 @@ class $NameTag {
   }
 
   get name() { return this.$observers.name.getValue(); }
-  set name(value: string) { this.$observers.name.setValue(value); }
+  set name(value: string) { 
+    this.$observers.name.setValue(value); 
+    if (this.$isBound) this.nameChanged(value);
+  }
 
   get color() { return this.$observers.color.getValue(); }
   set color(value: string) { this.$observers.color.setValue(value); }
@@ -265,6 +284,10 @@ class $NameTag {
 
   get showHeader() { return this.$observers.showHeader.getValue(); }
   set showHeader(value: boolean) { this.$observers.showHeader.setValue(value); }
+
+  nameChanged(newValue: string) {
+    console.log(`Name changed to ${name}`);
+  }
 
   submit() {
     // alert('It was already updated, (two way binding thingy)');
@@ -355,8 +378,13 @@ export class NameTag extends $NameTag implements IComponent {
     return this;
   }
 
-  bind() {
+  beginBind() {
+    //this.binding(); //if developer implemented this callback
+  }
+
+  endBind() {
     let $scope = this.$scope;
+
     this.$b1.bind($scope);
     this.$b2.bind($scope);
     this.$b3.bind($scope);
@@ -367,6 +395,11 @@ export class NameTag extends $NameTag implements IComponent {
     this.$b8.bind($scope);
     this.$b9.bind($scope);
     this.$b10.bind($scope);
+
+    this.$isBound = true;
+    this.nameChanged(this.name);
+
+    //this.bound(); //if developer implemented this callback
   }
 
   attach() {

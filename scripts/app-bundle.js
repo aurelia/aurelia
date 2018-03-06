@@ -87,17 +87,23 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$a2 = new else_1.Else(function () { return new $DynamicView2(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
             return this;
         };
-        App.prototype.bind = function () {
+        App.prototype.beginBind = function () {
+            var scope = this.$scope;
+            this.$c1.beginBind();
+            this.$a1.beginBind(scope);
+            this.$a2.beginBind(scope);
+        };
+        App.prototype.endBind = function () {
             var scope = this.$scope;
             this.$b1.bind(scope);
             this.$b2.bind(scope);
+            this.$b4.bind(scope);
             this.$b3.bind(scope);
             this.$b6.bind(scope);
-            this.$c1.bind();
-            this.$b4.bind(scope);
+            this.$c1.endBind();
             this.$b5.bind(scope);
-            this.$a1.bind(scope);
-            this.$a2.bind(scope);
+            this.$a1.endBind();
+            this.$a2.endBind();
         };
         App.prototype.attach = function () {
             this.$c1.attach();
@@ -128,6 +134,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
     exports.App = App;
     var $NameTag = (function () {
         function $NameTag() {
+            this.$isBound = false;
             Object.defineProperty(this, '$observers', {
                 enumerable: false,
                 value: {
@@ -141,7 +148,11 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
         }
         Object.defineProperty($NameTag.prototype, "name", {
             get: function () { return this.$observers.name.getValue(); },
-            set: function (value) { this.$observers.name.setValue(value); },
+            set: function (value) {
+                this.$observers.name.setValue(value);
+                if (this.$isBound)
+                    this.nameChanged(value);
+            },
             enumerable: true,
             configurable: true
         });
@@ -169,6 +180,9 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             enumerable: true,
             configurable: true
         });
+        $NameTag.prototype.nameChanged = function (newValue) {
+            console.log("Name changed to " + name);
+        };
         $NameTag.prototype.submit = function () {
             this.name = '' + Math.random();
         };
@@ -200,7 +214,9 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b10 = generated_1.oneWay('nameTagClasses', anchor, 'className');
             return this;
         };
-        NameTag.prototype.bind = function () {
+        NameTag.prototype.beginBind = function () {
+        };
+        NameTag.prototype.endBind = function () {
             var $scope = this.$scope;
             this.$b1.bind($scope);
             this.$b2.bind($scope);
@@ -212,6 +228,8 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b8.bind($scope);
             this.$b9.bind($scope);
             this.$b10.bind($scope);
+            this.$isBound = true;
+            this.nameChanged(this.name);
         };
         NameTag.prototype.attach = function () {
             this.$view.appendTo(this.$anchor);
@@ -270,7 +288,8 @@ define('framework/aurelia',["require", "exports"], function (require, exports) {
             this.settings.component.applyTo(this.settings.host);
         }
         Aurelia.prototype.start = function () {
-            this.settings.component.bind();
+            this.settings.component.beginBind();
+            this.settings.component.endBind();
             this.settings.component.attach();
             return this;
         };
@@ -474,32 +493,6 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         return anchor;
     }
     exports.makeElementIntoAnchor = makeElementIntoAnchor;
-    exports.bindingType = {
-        binding: 1,
-        listener: 2,
-        ref: 3,
-        text: 4,
-    };
-    ;
-    function hydrateBindings(bindings) {
-        return bindings.map(hydrateBinding);
-    }
-    exports.hydrateBindings = hydrateBindings;
-    function hydrateBinding(binding) {
-        var targetIndex = binding[0], _bindingType = binding[1], expression = binding[2], attrOrEventOrRef = binding[3], bindingSpecifier = binding[4];
-        switch (_bindingType) {
-            case exports.bindingType.binding:
-                break;
-            case exports.bindingType.listener:
-                break;
-            default: throw new Error('Invalid binding type');
-        }
-    }
-    exports.hydrateBinding = hydrateBinding;
-    function hydrateExpression(hydratedExpression) {
-        return null;
-    }
-    exports.hydrateExpression = hydrateExpression;
 });
 
 
@@ -2055,6 +2048,19 @@ define('framework/binding/binding',["require", "exports", "./binding-mode", "./c
         return Binding;
     }(connectable_binding_1.ConnectableBinding));
     exports.Binding = Binding;
+    var TextBinding = (function (_super) {
+        __extends(TextBinding, _super);
+        function TextBinding(sourceExpression, target, lookupFunctions, observerLocator) {
+            if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
+            var _this = _super.call(this, sourceExpression, target.nextSibling, 'textContent', binding_mode_1.bindingMode.oneWay, lookupFunctions) || this;
+            var next = target.nextSibling;
+            next['auInterpolationTarget'] = true;
+            target.parentNode.removeChild(target);
+            return _this;
+        }
+        return TextBinding;
+    }(Binding));
+    exports.TextBinding = TextBinding;
 });
 
 
@@ -3548,6 +3554,51 @@ define('framework/binding/property-observation',["require", "exports", "../loggi
 
 
 
+define('framework/binding/ref',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Ref = (function () {
+        function Ref(sourceExpression, target, lookupFunctions) {
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.lookupFunctions = lookupFunctions;
+            this.isBound = false;
+        }
+        Ref.prototype.bind = function (source) {
+            if (this.isBound) {
+                if (this.source === source) {
+                    return;
+                }
+                this.unbind();
+            }
+            this.isBound = true;
+            this.source = source;
+            if (this.sourceExpression.bind) {
+                this.sourceExpression.bind(this, source);
+            }
+            this.sourceExpression.assign(this.source, this.target, this.lookupFunctions);
+        };
+        Ref.prototype.unbind = function () {
+            if (!this.isBound) {
+                return;
+            }
+            this.isBound = false;
+            if (this.sourceExpression.evaluate(this.source, this.lookupFunctions) === this.target) {
+                this.sourceExpression.assign(this.source, null, this.lookupFunctions);
+            }
+            if (this.sourceExpression.unbind) {
+                this.sourceExpression.unbind(this, this.source);
+            }
+            this.source = null;
+        };
+        Ref.prototype.observeProperty = function (context, name) { };
+        return Ref;
+    }());
+    exports.Ref = Ref;
+});
+
+
+
 define('framework/binding/scope',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4101,8 +4152,8 @@ define('framework/resources/else',["require", "exports", "./if-core"], function 
         function Else() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        Else.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
+        Else.prototype.endBind = function () {
+            _super.prototype.endBind.call(this);
             if (this.ifBehavior.condition) {
                 this.hide();
             }
@@ -4137,9 +4188,11 @@ define('framework/resources/if-core',["require", "exports"], function (require, 
             this.showing = false;
             this.isBound = false;
         }
-        IfCore.prototype.bind = function (scope) {
-            this.isBound = true;
+        IfCore.prototype.beginBind = function (scope) {
             this.scope = scope;
+        };
+        IfCore.prototype.endBind = function () {
+            this.isBound = true;
         };
         IfCore.prototype.attach = function () {
             this.viewSlot.attach();
@@ -4221,24 +4274,18 @@ define('framework/resources/if',["require", "exports", "./if-core", "../binding/
             get: function () { return this.$observers.condition.getValue(); },
             set: function (value) {
                 this.$observers.condition.setValue(value);
-                this.conditionChanged(value);
+                if (this.isBound)
+                    this.conditionChanged(value);
             },
             enumerable: true,
             configurable: true
         });
-        If.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
-            if (this.condition) {
-                this.show();
-            }
-            else {
-                this.hide();
-            }
+        If.prototype.endBind = function () {
+            _super.prototype.endBind.call(this);
+            this.conditionChanged(this.condition);
         };
         If.prototype.conditionChanged = function (newValue) {
-            if (this.isBound) {
-                this.update(newValue);
-            }
+            this.update(newValue);
         };
         If.prototype.link = function (elseBehavior) {
             if (this.elseBehavior === elseBehavior) {
@@ -5086,51 +5133,6 @@ define('framework/templating/visual',["require", "exports"], function (require, 
         return Visual;
     }());
     exports.Visual = Visual;
-});
-
-
-
-define('framework/binding/ref',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Ref = (function () {
-        function Ref(sourceExpression, target, lookupFunctions) {
-            this.sourceExpression = sourceExpression;
-            this.target = target;
-            this.lookupFunctions = lookupFunctions;
-            this.isBound = false;
-        }
-        Ref.prototype.bind = function (source) {
-            if (this.isBound) {
-                if (this.source === source) {
-                    return;
-                }
-                this.unbind();
-            }
-            this.isBound = true;
-            this.source = source;
-            if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, source);
-            }
-            this.sourceExpression.assign(this.source, this.target, this.lookupFunctions);
-        };
-        Ref.prototype.unbind = function () {
-            if (!this.isBound) {
-                return;
-            }
-            this.isBound = false;
-            if (this.sourceExpression.evaluate(this.source, this.lookupFunctions) === this.target) {
-                this.sourceExpression.assign(this.source, null, this.lookupFunctions);
-            }
-            if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.source);
-            }
-            this.source = null;
-        };
-        Ref.prototype.observeProperty = function (context, name) { };
-        return Ref;
-    }());
-    exports.Ref = Ref;
 });
 
 

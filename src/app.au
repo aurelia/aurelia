@@ -1,8 +1,10 @@
 <template>
-  <div class.bind="name" textcontent.bind="computedName">
+  <import from='./name-tag'></import>
+  div class.bind="name" textcontent.bind="computedName">
     Name tag: ${computedName}
   </div>
   <input value.bind="name" />
+  <name-tag name.bind='name'></name-tag>
   <button click.delegate='submit()'></button>
 </template>
 
@@ -13,6 +15,7 @@
     }
 
     submit() {
+    
     }
   }
 </script>

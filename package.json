@@ -8,8 +8,9 @@
   },
   "scripts": {
     "transpile": "tsc src/compile.ts --outDir scripts",
-    "roll:compiler": "rollup -c compiler.rollup.config.js",
-    "roll:app": "node compiler/test/compile"
+    "build": "rollup -c compiler.rollup.config.js",
+    "test": "node compiler/test/compile",
+    "start": "npm run build && npm run test"
   },
   "license": "MIT",
   "dependencies": {

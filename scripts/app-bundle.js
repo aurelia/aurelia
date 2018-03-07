@@ -128,11 +128,12 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
     exports.App = App;
     var $NameTag = (function () {
         function $NameTag() {
+            var _this = this;
             this.$isBound = false;
             Object.defineProperty(this, '$observers', {
                 enumerable: false,
                 value: {
-                    name: new property_observation_1.Observer('Aurelia'),
+                    name: new property_observation_1.Observer('Aurelia', function (v) { return _this.$isBound ? _this.nameChanged(v) : void 0; }),
                     color: new property_observation_1.Observer('red'),
                     borderColor: new property_observation_1.Observer('orange'),
                     borderWidth: new property_observation_1.Observer(3),
@@ -142,11 +143,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
         }
         Object.defineProperty($NameTag.prototype, "name", {
             get: function () { return this.$observers.name.getValue(); },
-            set: function (value) {
-                this.$observers.name.setValue(value);
-                if (this.$isBound)
-                    this.nameChanged(value);
-            },
+            set: function (value) { this.$observers.name.setValue(value); },
             enumerable: true,
             configurable: true
         });
@@ -176,6 +173,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
         });
         $NameTag.prototype.nameChanged = function (newValue) {
             console.log("Name changed to " + newValue);
+            ;
         };
         $NameTag.prototype.submit = function () {
             this.name = '' + Math.random();
@@ -3504,10 +3502,11 @@ define('framework/binding/property-observation',["require", "exports", "../loggi
     exports.SetterObserver = SetterObserver;
     var Observer = (function (_super) {
         __extends(Observer, _super);
-        function Observer(currentValue, taskQueue) {
+        function Observer(currentValue, selfCallback, taskQueue) {
             if (taskQueue === void 0) { taskQueue = task_queue_1.TaskQueue.instance; }
             var _this = _super.call(this) || this;
             _this.currentValue = currentValue;
+            _this.selfCallback = selfCallback;
             _this.taskQueue = taskQueue;
             _this.queued = false;
             return _this;
@@ -3522,6 +3521,12 @@ define('framework/binding/property-observation',["require", "exports", "../loggi
                     this.oldValue = oldValue;
                     this.queued = true;
                     this.taskQueue.queueMicroTask(this);
+                }
+                if (this.selfCallback !== undefined) {
+                    var coercedValue = this.selfCallback(newValue, oldValue);
+                    if (coercedValue !== undefined) {
+                        newValue = coercedValue;
+                    }
                 }
                 this.currentValue = newValue;
             }
@@ -4255,17 +4260,13 @@ define('framework/resources/if',["require", "exports", "./if-core", "../binding/
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.animating = false;
             _this.$observers = {
-                condition: new property_observation_1.Observer(false)
+                condition: new property_observation_1.Observer(false, function (v) { return _this.isBound ? _this.conditionChanged(v) : void 0; })
             };
             return _this;
         }
         Object.defineProperty(If.prototype, "condition", {
             get: function () { return this.$observers.condition.getValue(); },
-            set: function (value) {
-                this.$observers.condition.setValue(value);
-                if (this.isBound)
-                    this.conditionChanged(value);
-            },
+            set: function (value) { this.$observers.condition.setValue(value); },
             enumerable: true,
             configurable: true
         });

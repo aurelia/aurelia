@@ -8,14 +8,11 @@ export class If extends IfCore {
   private elseBehavior: Else;
 
   $observers = {
-    condition: new Observer(false)
+    condition: new Observer(false, v => this.isBound ? this.conditionChanged(v) : void 0)
   };
   
   get condition() { return this.$observers.condition.getValue(); }
-  set condition(value: boolean) { 
-    this.$observers.condition.setValue(value);
-    if (this.isBound) this.conditionChanged(value); 
-  }
+  set condition(value: boolean) { this.$observers.condition.setValue(value); }
 
   swapOrder: 'before'|'with'|'after';
 

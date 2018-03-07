@@ -249,7 +249,7 @@ class $NameTag {
     Object.defineProperty(this, '$observers', { 
       enumerable: false, 
       value: {
-        name: new Observer('Aurelia'),
+        name: new Observer('Aurelia', v => this.$isBound ? this.nameChanged(v) : void 0),
         color: new Observer<string>('red'),
         borderColor: new Observer('orange'),
         borderWidth: new Observer(3),
@@ -259,10 +259,7 @@ class $NameTag {
   }
 
   get name() { return this.$observers.name.getValue(); }
-  set name(value: string) { 
-    this.$observers.name.setValue(value); 
-    if (this.$isBound) this.nameChanged(value);
-  }
+  set name(value: string) { this.$observers.name.setValue(value); }
 
   get color() { return this.$observers.color.getValue(); }
   set color(value: string) { this.$observers.color.setValue(value); }
@@ -277,7 +274,7 @@ class $NameTag {
   set showHeader(value: boolean) { this.$observers.showHeader.setValue(value); }
 
   nameChanged(newValue: string) {
-    console.log(`Name changed to ${newValue}`);
+    console.log(`Name changed to ${newValue}`);;
   }
 
   submit() {

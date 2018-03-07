@@ -111,7 +111,11 @@ export class Observer<T> extends SubscriberCollection {
   private queued = false;
   private oldValue: T;
 
-  constructor(private currentValue: T, private taskQueue = TaskQueue.instance) {
+  constructor(
+    private currentValue: T, 
+    private selfCallback?: (newValue: T, oldValue: T) => void | T,
+    private taskQueue = TaskQueue.instance    
+  ) {
     super();
   }
 
@@ -127,6 +131,14 @@ export class Observer<T> extends SubscriberCollection {
         this.oldValue = oldValue;
         this.queued = true;
         this.taskQueue.queueMicroTask(this);
+      }
+
+      if (this.selfCallback !== undefined) {
+        let coercedValue = this.selfCallback(newValue, oldValue);
+
+        if (coercedValue !== undefined) {
+          newValue = <T>coercedValue;
+        }
       }
 
       this.currentValue = newValue;

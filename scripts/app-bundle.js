@@ -87,23 +87,17 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$a2 = new else_1.Else(function () { return new $PlainView2(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
             return this;
         };
-        App.prototype.beginBind = function () {
-            var scope = this.$scope;
-            this.$c1.beginBind();
-            this.$a1.beginBind(scope);
-            this.$a2.beginBind(scope);
-        };
-        App.prototype.endBind = function () {
+        App.prototype.bind = function () {
             var scope = this.$scope;
             this.$b1.bind(scope);
             this.$b2.bind(scope);
             this.$b4.bind(scope);
             this.$b3.bind(scope);
             this.$b6.bind(scope);
-            this.$c1.endBind();
+            this.$c1.bind();
             this.$b5.bind(scope);
-            this.$a1.endBind();
-            this.$a2.endBind();
+            this.$a1.bind(scope);
+            this.$a2.bind(scope);
         };
         App.prototype.attach = function () {
             this.$c1.attach();
@@ -181,7 +175,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             configurable: true
         });
         $NameTag.prototype.nameChanged = function (newValue) {
-            console.log("Name changed to " + name);
+            console.log("Name changed to " + newValue);
         };
         $NameTag.prototype.submit = function () {
             this.name = '' + Math.random();
@@ -214,9 +208,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b10 = generated_1.oneWay('nameTagClasses', anchor, 'className');
             return this;
         };
-        NameTag.prototype.beginBind = function () {
-        };
-        NameTag.prototype.endBind = function () {
+        NameTag.prototype.bind = function () {
             var $scope = this.$scope;
             this.$b1.bind($scope);
             this.$b2.bind($scope);
@@ -288,8 +280,7 @@ define('framework/aurelia',["require", "exports"], function (require, exports) {
             this.settings.component.applyTo(this.settings.host);
         }
         Aurelia.prototype.start = function () {
-            this.settings.component.beginBind();
-            this.settings.component.endBind();
+            this.settings.component.bind();
             this.settings.component.attach();
             return this;
         };
@@ -4152,8 +4143,8 @@ define('framework/resources/else',["require", "exports", "./if-core"], function 
         function Else() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        Else.prototype.endBind = function () {
-            _super.prototype.endBind.call(this);
+        Else.prototype.bind = function (scope) {
+            _super.prototype.bind.call(this, scope);
             if (this.ifBehavior.condition) {
                 this.hide();
             }
@@ -4188,10 +4179,8 @@ define('framework/resources/if-core',["require", "exports"], function (require, 
             this.showing = false;
             this.isBound = false;
         }
-        IfCore.prototype.beginBind = function (scope) {
+        IfCore.prototype.bind = function (scope) {
             this.scope = scope;
-        };
-        IfCore.prototype.endBind = function () {
             this.isBound = true;
         };
         IfCore.prototype.attach = function () {
@@ -4280,8 +4269,8 @@ define('framework/resources/if',["require", "exports", "./if-core", "../binding/
             enumerable: true,
             configurable: true
         });
-        If.prototype.endBind = function () {
-            _super.prototype.endBind.call(this);
+        If.prototype.bind = function (scope) {
+            _super.prototype.bind.call(this, scope);
             this.conditionChanged(this.condition);
         };
         If.prototype.conditionChanged = function (newValue) {

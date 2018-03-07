@@ -180,38 +180,29 @@ export class App extends $App implements IComponent {
 
     this.$a2 = new Else(() => new $PlainView2(), new ViewSlot(makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
 
+    //this.created(); //if developer implemented this callback
+
     return this;
   }
 
-  //binding tunnels down the tree before binding happens
   //bound bubbles up the tree after binding happens
   //property change events always fire, but in a group at the end of binding, but before bound
 
-  beginBind() {
-    //this.binding(); //if developer implemented this callback
-
-    let scope = this.$scope;
-
-    this.$c1.beginBind();
-    this.$a1.beginBind(scope);
-    this.$a2.beginBind(scope);
-  }
-
-  endBind() {
+  bind() {
     let scope = this.$scope;
 
     this.$b1.bind(scope);
     this.$b2.bind(scope);
     this.$b4.bind(scope);
   
-    this.$b3.bind(scope); //input binding set before component ends binding by activating internals
+    this.$b3.bind(scope); //input bindings set before component bind
     this.$b6.bind(scope);
-    this.$c1.endBind(); //change events fire inside here for all properties, and then the bound callback
+    this.$c1.bind();
 
-    this.$b5.bind(scope);    
-    this.$a1.endBind(); 
+    this.$b5.bind(scope); //input bindings set before attribute bind
+    this.$a1.bind(scope);
 
-    this.$a2.endBind();
+    this.$a2.bind(scope);
     
     //this.bound(); //if developer implemented this callback
   }
@@ -286,7 +277,7 @@ class $NameTag {
   set showHeader(value: boolean) { this.$observers.showHeader.setValue(value); }
 
   nameChanged(newValue: string) {
-    console.log(`Name changed to ${name}`);
+    console.log(`Name changed to ${newValue}`);
   }
 
   submit() {
@@ -375,14 +366,12 @@ export class NameTag extends $NameTag implements IComponent {
     this.$b9 = oneWay('nameTagBorder', (anchor as HTMLElement).style, 'border');
     this.$b10 = oneWay('nameTagClasses', anchor, 'className');
 
+    //this.created(); //if developer implemented this callback
+
     return this;
   }
 
-  beginBind() {
-    //this.binding(); //if developer implemented this callback
-  }
-
-  endBind() {
+  bind() {
     let $scope = this.$scope;
 
     this.$b1.bind($scope);
@@ -397,7 +386,7 @@ export class NameTag extends $NameTag implements IComponent {
     this.$b10.bind($scope);
 
     this.$isBound = true;
-    this.nameChanged(this.name);
+    this.nameChanged(this.name); //all change events fire after all bindings are setup
 
     //this.bound(); //if developer implemented this callback
   }

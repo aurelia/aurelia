@@ -9,8 +9,7 @@ export class Aurelia {
   }
 
   start() {
-    this.settings.component.beginBind();
-    this.settings.component.endBind();
+    this.settings.component.bind();
     this.settings.component.attach();
     return this;
   }

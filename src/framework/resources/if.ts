@@ -19,8 +19,8 @@ export class If extends IfCore {
 
   swapOrder: 'before'|'with'|'after';
 
-  endBind() {
-    super.endBind();
+  bind(scope: Scope) {
+    super.bind(scope);
     this.conditionChanged(this.condition);
   }
 

@@ -1,6 +1,6 @@
 <template>
   <import from='./name-tag'></import>
-  div class.bind="name" textcontent.bind="computedName">
+  <div class.bind="name" textcontent.bind="computedName">
     Name tag: ${computedName}
   </div>
   <input value.bind="name" />

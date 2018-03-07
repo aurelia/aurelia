@@ -14,9 +14,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "aurelia-bootstrapper": "^2.1.1",
-    "aurelia-animator-css": "^1.0.2",
-    "bluebird": "^3.4.1",
     "requirejs": "^2.3.2",
     "text": "github:requirejs/text#latest"
   },
@@ -24,7 +21,6 @@
   "devDependencies": {
     "@types/node": "^6.0.45",
     "aurelia-cli": "^0.32.0",
-    "aurelia-testing": "^1.0.0-beta.3.0.1",
     "aurelia-tools": "^1.0.0",
     "autoprefixer": "^6.3.6",
     "basichtml": "^0.13.2",

@@ -5,10 +5,9 @@ import { If } from "./if";
 export class Else extends IfCore {
   private ifBehavior: If;
 
-  bind(scope: Scope) {
-    super.bind(scope);
+  endBind() {
+    super.endBind();
 
-    // Render on initial
     if (this.ifBehavior.condition) {
       this.hide();
     } else {

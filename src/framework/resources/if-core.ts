@@ -17,9 +17,12 @@ export abstract class IfCore {
 
   constructor(private createVisual: () => IVisual, protected viewSlot: ViewSlot) { }
 
-  bind(scope: Scope) {
-    this.isBound = true;
+  beginBind(scope: Scope) {
     this.scope = scope;
+  }
+
+  endBind() {
+    this.isBound = true;    
   }
 
   attach() {

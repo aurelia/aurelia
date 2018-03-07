@@ -14,24 +14,14 @@ export class If extends IfCore {
   get condition() { return this.$observers.condition.getValue(); }
   set condition(value: boolean) { 
     this.$observers.condition.setValue(value);
-    this.conditionChanged(value); 
+    if (this.isBound) this.conditionChanged(value); 
   }
 
   swapOrder: 'before'|'with'|'after';
 
-  /**
-  * Binds the if to the binding context and override context
-  * @param bindingContext The binding context
-  * @param overrideContext An override context for binding.
-  */
-  bind(scope: Scope) {
-    super.bind(scope);
-
-    if (this.condition) {
-      this.show();
-    } else {
-      this.hide();
-    }
+  endBind() {
+    super.endBind();
+    this.conditionChanged(this.condition);
   }
 
   /**
@@ -39,9 +29,7 @@ export class If extends IfCore {
   * @param newValue The new value
   */
   conditionChanged(newValue) {
-    if (this.isBound) {
-      this.update(newValue);
-    }
+    this.update(newValue);
   }
 
   link(elseBehavior: Else) {

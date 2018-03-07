@@ -1,7 +1,7 @@
 import { Scope, createOverrideContext } from './framework/binding/scope';
 import { Observer } from './framework/binding/property-observation';
 import { IBinding } from './framework/binding/binding';
-import { oneWay, twoWay, listener, oneWayText, makeElementIntoAnchor } from './framework/generated';
+import { oneWay, twoWay, listener, oneWayText, makeElementIntoAnchor, ref } from './framework/generated';
 import { View } from './framework/templating/view';
 import { IComponent } from './framework/templating/component';
 import { If } from './framework/resources/if';
@@ -19,7 +19,7 @@ import { Template } from './framework/templating/template';
 // <template>
 //   ${message}<br>
 //   <input type="text" value.bind="message">
-//   <name-tag name.bind="message"></name-tag>
+//   <name-tag name.bind="message" component.ref="nameTag"></name-tag>
 //   <input type="checkbox" value.bind="duplicateMessage" />
 //   <div if.bind="duplicateMessage">
 //     ${message}
@@ -83,10 +83,17 @@ import { Template } from './framework/templating/template';
 
 //Altered/Generated via a compile-time transform
 class $App {
-  $observers = {
-    message: new Observer('Hello World!'),
-    duplicateMessage: new Observer(true)
-  };
+  $observers: Record<string, Observer<any>>;
+
+  constructor() {
+    Object.defineProperty(this, '$observers', { 
+      enumerable: false, 
+      value: {
+        message: new Observer('Hello World!'),
+        duplicateMessage: new Observer(true)
+      }
+    });
+  }
 
   get duplicateMessage() { return this.$observers.duplicateMessage.getValue(); }
   set duplicateMessage(value: boolean) { this.$observers.duplicateMessage.setValue(value); }
@@ -95,13 +102,13 @@ class $App {
   set message(value: string) { this.$observers.message.setValue(value); }
 }
 
-class $DynamicView extends Visual {
+class $PlainView1 extends Visual {
   private $b1: IBinding;
 
   private static $template = new Template('<div><au-marker class="au"></au-marker> </div>');
 
   constructor() {
-    super($DynamicView.$template);
+    super($PlainView1.$template);
     let targets = this.$view.targets;
     this.$b1 = oneWayText('message', targets[0]);
   }
@@ -117,11 +124,11 @@ class $DynamicView extends Visual {
   }
 }
 
-class $DynamicView2 extends Visual {
+class $PlainView2 extends Visual {
   private static $template = new Template('<div>No Message Duplicated</div>');
 
   constructor() {
-    super($DynamicView2.$template);
+    super($PlainView2.$template);
   }
 }
 
@@ -131,6 +138,7 @@ export class App extends $App implements IComponent {
   private $b3: IBinding;
   private $b4: IBinding;
   private $b5: IBinding;
+  private $b6: IBinding;
   private $c1: IComponent;
   private $a1: If;
   private $a2: Else;
@@ -163,32 +171,49 @@ export class App extends $App implements IComponent {
 
     this.$c1 = new NameTag().applyTo(targets[2]);
     this.$b3 = twoWay('message', this.$c1, 'name');
+    this.$b6 = ref(this.$c1, 'nameTag');
 
     this.$b4 = twoWay('duplicateMessage', targets[3], 'checked');
 
-    this.$a1 = new If(() => new $DynamicView(), new ViewSlot(makeElementIntoAnchor(targets[4]), false));
+    this.$a1 = new If(() => new $PlainView1(), new ViewSlot(makeElementIntoAnchor(targets[4]), false));
     this.$b5 = oneWay('duplicateMessage', this.$a1, 'condition');
 
-    this.$a2 = new Else(() => new $DynamicView2(), new ViewSlot(makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
+    this.$a2 = new Else(() => new $PlainView2(), new ViewSlot(makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
 
     return this;
   }
 
-  bind() {
+  //binding tunnels down the tree before binding happens
+  //bound bubbles up the tree after binding happens
+  //property change events always fire, but in a group at the end of binding, but before bound
+
+  beginBind() {
+    //this.binding(); //if developer implemented this callback
+
+    let scope = this.$scope;
+
+    this.$c1.beginBind();
+    this.$a1.beginBind(scope);
+    this.$a2.beginBind(scope);
+  }
+
+  endBind() {
     let scope = this.$scope;
 
     this.$b1.bind(scope);
     this.$b2.bind(scope);
-
-    this.$b3.bind(scope); //bind properties before calling bind on component
-    this.$c1.bind(); //bind always called, but after all properties are set
-
     this.$b4.bind(scope);
+  
+    this.$b3.bind(scope); //input binding set before component ends binding by activating internals
+    this.$b6.bind(scope);
+    this.$c1.endBind(); //change events fire inside here for all properties, and then the bound callback
 
-    this.$b5.bind(scope); //bind properties before calling bind on attribute
-    this.$a1.bind(scope); //bind always called, but after all properties are set
+    this.$b5.bind(scope);    
+    this.$a1.endBind(); 
 
-    this.$a2.bind(scope);
+    this.$a2.endBind();
+    
+    //this.bound(); //if developer implemented this callback
   }
 
   //attaching tunnels down the tree before the dom attach happens
@@ -216,6 +241,7 @@ export class App extends $App implements IComponent {
     this.$b1.unbind();
     this.$b2.unbind();
     this.$b3.unbind();
+    this.$b6.unbind();
     this.$c1.unbind();
     this.$a1.unbind();
     this.$a2.unbind();
@@ -225,16 +251,27 @@ export class App extends $App implements IComponent {
 }
 
 class $NameTag {
-  $observers = {
-    name: new Observer('Aurelia'),
-    color: new Observer<string>('red'),
-    borderColor: new Observer('orange'),
-    borderWidth: new Observer(3),
-    showHeader: new Observer(true)
-  };
+  $observers: Record<string, Observer<any>>;
+  $isBound = false;
+
+  constructor() {
+    Object.defineProperty(this, '$observers', { 
+      enumerable: false, 
+      value: {
+        name: new Observer('Aurelia'),
+        color: new Observer<string>('red'),
+        borderColor: new Observer('orange'),
+        borderWidth: new Observer(3),
+        showHeader: new Observer(true)
+      }
+    });
+  }
 
   get name() { return this.$observers.name.getValue(); }
-  set name(value: string) { this.$observers.name.setValue(value); }
+  set name(value: string) { 
+    this.$observers.name.setValue(value); 
+    if (this.$isBound) this.nameChanged(value);
+  }
 
   get color() { return this.$observers.color.getValue(); }
   set color(value: string) { this.$observers.color.setValue(value); }
@@ -247,6 +284,10 @@ class $NameTag {
 
   get showHeader() { return this.$observers.showHeader.getValue(); }
   set showHeader(value: boolean) { this.$observers.showHeader.setValue(value); }
+
+  nameChanged(newValue: string) {
+    console.log(`Name changed to ${name}`);
+  }
 
   submit() {
     // alert('It was already updated, (two way binding thingy)');
@@ -337,8 +378,13 @@ export class NameTag extends $NameTag implements IComponent {
     return this;
   }
 
-  bind() {
+  beginBind() {
+    //this.binding(); //if developer implemented this callback
+  }
+
+  endBind() {
     let $scope = this.$scope;
+
     this.$b1.bind($scope);
     this.$b2.bind($scope);
     this.$b3.bind($scope);
@@ -349,6 +395,11 @@ export class NameTag extends $NameTag implements IComponent {
     this.$b8.bind($scope);
     this.$b9.bind($scope);
     this.$b10.bind($scope);
+
+    this.$isBound = true;
+    this.nameChanged(this.name);
+
+    //this.bound(); //if developer implemented this callback
   }
 
   attach() {

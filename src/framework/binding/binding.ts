@@ -26,7 +26,7 @@ export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 export class Binding extends ConnectableBinding implements IBinding {
   private targetObserver;
   private source: Scope;
-  private isBound: boolean;
+  private isBound = false;
 
   constructor(
     private sourceExpression: IExpression,

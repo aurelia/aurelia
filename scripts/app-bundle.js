@@ -13,10 +13,13 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
     Object.defineProperty(exports, "__esModule", { value: true });
     var $App = (function () {
         function $App() {
-            this.$observers = {
-                message: new property_observation_1.Observer('Hello World!'),
-                duplicateMessage: new property_observation_1.Observer(true)
-            };
+            Object.defineProperty(this, '$observers', {
+                enumerable: false,
+                value: {
+                    message: new property_observation_1.Observer('Hello World!'),
+                    duplicateMessage: new property_observation_1.Observer(true)
+                }
+            });
         }
         Object.defineProperty($App.prototype, "duplicateMessage", {
             get: function () { return this.$observers.duplicateMessage.getValue(); },
@@ -32,32 +35,32 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
         });
         return $App;
     }());
-    var $DynamicView = (function (_super) {
-        __extends($DynamicView, _super);
-        function $DynamicView() {
-            var _this = _super.call(this, $DynamicView.$template) || this;
+    var $PlainView1 = (function (_super) {
+        __extends($PlainView1, _super);
+        function $PlainView1() {
+            var _this = _super.call(this, $PlainView1.$template) || this;
             var targets = _this.$view.targets;
             _this.$b1 = generated_1.oneWayText('message', targets[0]);
             return _this;
         }
-        $DynamicView.prototype.bind = function (scope) {
+        $PlainView1.prototype.bind = function (scope) {
             _super.prototype.bind.call(this, scope);
             this.$b1.bind(scope);
         };
-        $DynamicView.prototype.unbind = function () {
+        $PlainView1.prototype.unbind = function () {
             _super.prototype.unbind.call(this);
             this.$b1.unbind();
         };
-        $DynamicView.$template = new template_1.Template('<div><au-marker class="au"></au-marker> </div>');
-        return $DynamicView;
+        $PlainView1.$template = new template_1.Template('<div><au-marker class="au"></au-marker> </div>');
+        return $PlainView1;
     }(visual_1.Visual));
-    var $DynamicView2 = (function (_super) {
-        __extends($DynamicView2, _super);
-        function $DynamicView2() {
-            return _super.call(this, $DynamicView2.$template) || this;
+    var $PlainView2 = (function (_super) {
+        __extends($PlainView2, _super);
+        function $PlainView2() {
+            return _super.call(this, $PlainView2.$template) || this;
         }
-        $DynamicView2.$template = new template_1.Template('<div>No Message Duplicated</div>');
-        return $DynamicView2;
+        $PlainView2.$template = new template_1.Template('<div>No Message Duplicated</div>');
+        return $PlainView2;
     }(visual_1.Visual));
     var App = (function (_super) {
         __extends(App, _super);
@@ -77,22 +80,30 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b2 = generated_1.twoWay('message', targets[1], 'value');
             this.$c1 = new NameTag().applyTo(targets[2]);
             this.$b3 = generated_1.twoWay('message', this.$c1, 'name');
+            this.$b6 = generated_1.ref(this.$c1, 'nameTag');
             this.$b4 = generated_1.twoWay('duplicateMessage', targets[3], 'checked');
-            this.$a1 = new if_1.If(function () { return new $DynamicView(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[4]), false));
+            this.$a1 = new if_1.If(function () { return new $PlainView1(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[4]), false));
             this.$b5 = generated_1.oneWay('duplicateMessage', this.$a1, 'condition');
-            this.$a2 = new else_1.Else(function () { return new $DynamicView2(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
+            this.$a2 = new else_1.Else(function () { return new $PlainView2(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
             return this;
         };
-        App.prototype.bind = function () {
+        App.prototype.beginBind = function () {
+            var scope = this.$scope;
+            this.$c1.beginBind();
+            this.$a1.beginBind(scope);
+            this.$a2.beginBind(scope);
+        };
+        App.prototype.endBind = function () {
             var scope = this.$scope;
             this.$b1.bind(scope);
             this.$b2.bind(scope);
-            this.$b3.bind(scope);
-            this.$c1.bind();
             this.$b4.bind(scope);
+            this.$b3.bind(scope);
+            this.$b6.bind(scope);
+            this.$c1.endBind();
             this.$b5.bind(scope);
-            this.$a1.bind(scope);
-            this.$a2.bind(scope);
+            this.$a1.endBind();
+            this.$a2.endBind();
         };
         App.prototype.attach = function () {
             this.$c1.attach();
@@ -110,6 +121,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b1.unbind();
             this.$b2.unbind();
             this.$b3.unbind();
+            this.$b6.unbind();
             this.$c1.unbind();
             this.$a1.unbind();
             this.$a2.unbind();
@@ -122,17 +134,25 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
     exports.App = App;
     var $NameTag = (function () {
         function $NameTag() {
-            this.$observers = {
-                name: new property_observation_1.Observer('Aurelia'),
-                color: new property_observation_1.Observer('red'),
-                borderColor: new property_observation_1.Observer('orange'),
-                borderWidth: new property_observation_1.Observer(3),
-                showHeader: new property_observation_1.Observer(true)
-            };
+            this.$isBound = false;
+            Object.defineProperty(this, '$observers', {
+                enumerable: false,
+                value: {
+                    name: new property_observation_1.Observer('Aurelia'),
+                    color: new property_observation_1.Observer('red'),
+                    borderColor: new property_observation_1.Observer('orange'),
+                    borderWidth: new property_observation_1.Observer(3),
+                    showHeader: new property_observation_1.Observer(true)
+                }
+            });
         }
         Object.defineProperty($NameTag.prototype, "name", {
             get: function () { return this.$observers.name.getValue(); },
-            set: function (value) { this.$observers.name.setValue(value); },
+            set: function (value) {
+                this.$observers.name.setValue(value);
+                if (this.$isBound)
+                    this.nameChanged(value);
+            },
             enumerable: true,
             configurable: true
         });
@@ -160,6 +180,9 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             enumerable: true,
             configurable: true
         });
+        $NameTag.prototype.nameChanged = function (newValue) {
+            console.log("Name changed to " + name);
+        };
         $NameTag.prototype.submit = function () {
             this.name = '' + Math.random();
         };
@@ -191,7 +214,9 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b10 = generated_1.oneWay('nameTagClasses', anchor, 'className');
             return this;
         };
-        NameTag.prototype.bind = function () {
+        NameTag.prototype.beginBind = function () {
+        };
+        NameTag.prototype.endBind = function () {
             var $scope = this.$scope;
             this.$b1.bind($scope);
             this.$b2.bind($scope);
@@ -203,6 +228,8 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b8.bind($scope);
             this.$b9.bind($scope);
             this.$b10.bind($scope);
+            this.$isBound = true;
+            this.nameChanged(this.name);
         };
         NameTag.prototype.attach = function () {
             this.$view.appendTo(this.$anchor);
@@ -241,13 +268,39 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('main',["require", "exports", "./app", "./framework/new"], function (require, exports, app_1, new_1) {
+define('main',["require", "exports", "./app", "./framework/aurelia"], function (require, exports, app_1, aurelia_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    new new_1.Aurelia({
+    window['aureliaApp'] = new aurelia_1.Aurelia({
         host: document.body,
-        root: new app_1.App()
-    });
+        component: new app_1.App()
+    }).start();
+});
+
+
+
+define('framework/aurelia',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Aurelia = (function () {
+        function Aurelia(settings) {
+            this.settings = settings;
+            this.settings.component.applyTo(this.settings.host);
+        }
+        Aurelia.prototype.start = function () {
+            this.settings.component.beginBind();
+            this.settings.component.endBind();
+            this.settings.component.attach();
+            return this;
+        };
+        Aurelia.prototype.stop = function () {
+            this.settings.component.detach();
+            this.settings.component.unbind();
+            return this;
+        };
+        return Aurelia;
+    }());
+    exports.Aurelia = Aurelia;
 });
 
 
@@ -373,7 +426,7 @@ define('framework/dom',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom", "./new"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1, new_1) {
+define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom", "./binding/ref"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1, ref_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -387,13 +440,13 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         value: new ast_1.AccessScope('value'),
         nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
         nameTagBorderColor: new ast_1.AccessScope('borderColor'),
-        nameTagBorder: new new_1.InterpolationString([
+        nameTagBorder: new ast_1.TemplateLiteral([
             new ast_1.AccessScope('borderWidth'),
             new ast_1.LiteralString('px solid '),
             new ast_1.AccessScope('borderColor')
         ]),
         nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
-        nameTagClasses: new new_1.InterpolationString([
+        nameTagClasses: new ast_1.TemplateLiteral([
             new ast_1.LiteralString('au name-tag '),
             new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
         ]),
@@ -401,7 +454,8 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         submit: new ast_1.CallScope('submit', emptyArray, 0),
         nameTagColor: new ast_1.AccessScope('color'),
         duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
-        checked: new ast_1.AccessScope('checked')
+        checked: new ast_1.AccessScope('checked'),
+        nameTag: new ast_1.AccessScope('nameTag')
     };
     function getAST(key) {
         return astLookup[key];
@@ -427,6 +481,10 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
     }
     exports.listener = listener;
+    function ref(target, sourceExpression) {
+        return new ref_1.Ref(getAST(sourceExpression), target, lookupFunctions);
+    }
+    exports.ref = ref;
     function makeElementIntoAnchor(element, elementInstruction) {
         var anchor = dom_1.DOM.createComment('anchor');
         if (elementInstruction) {
@@ -612,51 +670,6 @@ define('framework/logging',["require", "exports"], function (require, exports) {
         return Logger;
     }());
     exports.Logger = Logger;
-});
-
-
-
-define('framework/new',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Aurelia = (function () {
-        function Aurelia(settings) {
-            this.settings = settings;
-            this.settings.root.applyTo(this.settings.host);
-            this.settings.root.bind();
-            this.settings.root.attach();
-        }
-        return Aurelia;
-    }());
-    exports.Aurelia = Aurelia;
-    var InterpolationString = (function () {
-        function InterpolationString(parts) {
-            this.parts = parts;
-        }
-        InterpolationString.prototype.assign = function () { };
-        InterpolationString.prototype.evaluate = function (scope, lookupFunctions) {
-            var result = '';
-            var parts = this.parts;
-            var ii = parts.length;
-            for (var i = 0; ii > i; ++i) {
-                var partValue = parts[i].evaluate(scope, lookupFunctions);
-                if (partValue === null || partValue === undefined) {
-                    continue;
-                }
-                result += partValue.toString();
-            }
-            return result;
-        };
-        InterpolationString.prototype.connect = function (binding, scope) {
-            var parts = this.parts;
-            var i = parts.length;
-            while (i--) {
-                parts[i].connect(binding, scope);
-            }
-        };
-        return InterpolationString;
-    }());
-    exports.InterpolationString = InterpolationString;
 });
 
 
@@ -1301,6 +1314,28 @@ define('framework/binding/array-observation',["require", "exports", "./collectio
 define('framework/binding/ast',["require", "exports", "./scope", "./signals"], function (require, exports, scope_1, signals_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AstKind = {
+        Base: 1,
+        Chain: 2,
+        ValueConverter: 3,
+        BindingBehavior: 4,
+        Assign: 5,
+        Conditional: 6,
+        AccessThis: 7,
+        AccessScope: 8,
+        AccessMember: 9,
+        AccessKeyed: 10,
+        CallScope: 11,
+        CallFunction: 12,
+        CallMember: 13,
+        PrefixNot: 14,
+        Binary: 15,
+        LiteralPrimitive: 16,
+        LiteralArray: 17,
+        LiteralObject: 18,
+        LiteralString: 19,
+        TemplateLiteral: 20,
+    };
     var Chain = (function () {
         function Chain(expressions) {
             this.expressions = expressions;
@@ -1727,6 +1762,31 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
         return LiteralString;
     }());
     exports.LiteralString = LiteralString;
+    var TemplateLiteral = (function () {
+        function TemplateLiteral(parts) {
+            this.parts = parts;
+        }
+        TemplateLiteral.prototype.evaluate = function (scope, lookupFunctions) {
+            var elements = this.parts;
+            var result = '';
+            for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
+                var value = elements[i].evaluate(scope, lookupFunctions);
+                if (value === undefined || value === null) {
+                    continue;
+                }
+                result += value;
+            }
+            return result;
+        };
+        TemplateLiteral.prototype.connect = function (binding, scope) {
+            var length = this.parts.length;
+            for (var i = 0; i < length; i++) {
+                this.parts[i].connect(binding, scope);
+            }
+        };
+        return TemplateLiteral;
+    }());
+    exports.TemplateLiteral = TemplateLiteral;
     var LiteralArray = (function () {
         function LiteralArray(elements) {
             this.elements = elements;
@@ -1734,7 +1794,7 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
         LiteralArray.prototype.evaluate = function (scope, lookupFunctions) {
             var elements = this.elements;
             var result = [];
-            for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
+            for (var i = 0, length_3 = elements.length; i < length_3; ++i) {
                 result[i] = elements[i].evaluate(scope, lookupFunctions);
             }
             return result;
@@ -1757,7 +1817,7 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
             var instance = {};
             var keys = this.keys;
             var values = this.values;
-            for (var i = 0, length_3 = keys.length; i < length_3; ++i) {
+            for (var i = 0, length_4 = keys.length; i < length_4; ++i) {
                 instance[keys[i]] = values[i].evaluate(scope, lookupFunctions);
             }
             return instance;
@@ -1850,6 +1910,19 @@ define('framework/binding/binding-mode',["require", "exports"], function (requir
 
 
 
+define('framework/binding/binding-type',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.bindingType = {
+        binding: 1,
+        listener: 2,
+        ref: 3,
+        text: 4,
+    };
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -1873,6 +1946,7 @@ define('framework/binding/binding',["require", "exports", "./binding-mode", "./c
             _this.targetProperty = targetProperty;
             _this.mode = mode;
             _this.lookupFunctions = lookupFunctions;
+            _this.isBound = false;
             return _this;
         }
         Binding.prototype.updateTarget = function (value) {
@@ -1974,6 +2048,19 @@ define('framework/binding/binding',["require", "exports", "./binding-mode", "./c
         return Binding;
     }(connectable_binding_1.ConnectableBinding));
     exports.Binding = Binding;
+    var TextBinding = (function (_super) {
+        __extends(TextBinding, _super);
+        function TextBinding(sourceExpression, target, lookupFunctions, observerLocator) {
+            if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
+            var _this = _super.call(this, sourceExpression, target.nextSibling, 'textContent', binding_mode_1.bindingMode.oneWay, lookupFunctions) || this;
+            var next = target.nextSibling;
+            next['auInterpolationTarget'] = true;
+            target.parentNode.removeChild(target);
+            return _this;
+        }
+        return TextBinding;
+    }(Binding));
+    exports.TextBinding = TextBinding;
 });
 
 
@@ -2966,6 +3053,7 @@ define('framework/binding/listener',["require", "exports", "./event-manager"], f
             this.preventDefault = preventDefault;
             this.lookupFunctions = lookupFunctions;
             this.eventManager = eventManager;
+            this.isBound = false;
             this.targetEvent = targetEvent;
             this.delegationStrategy = delegationStrategy;
             this.sourceExpression = sourceExpression;
@@ -3462,6 +3550,51 @@ define('framework/binding/property-observation',["require", "exports", "../loggi
         return Observer;
     }(subscriber_collection_1.SubscriberCollection));
     exports.Observer = Observer;
+});
+
+
+
+define('framework/binding/ref',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Ref = (function () {
+        function Ref(sourceExpression, target, lookupFunctions) {
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.lookupFunctions = lookupFunctions;
+            this.isBound = false;
+        }
+        Ref.prototype.bind = function (source) {
+            if (this.isBound) {
+                if (this.source === source) {
+                    return;
+                }
+                this.unbind();
+            }
+            this.isBound = true;
+            this.source = source;
+            if (this.sourceExpression.bind) {
+                this.sourceExpression.bind(this, source);
+            }
+            this.sourceExpression.assign(this.source, this.target, this.lookupFunctions);
+        };
+        Ref.prototype.unbind = function () {
+            if (!this.isBound) {
+                return;
+            }
+            this.isBound = false;
+            if (this.sourceExpression.evaluate(this.source, this.lookupFunctions) === this.target) {
+                this.sourceExpression.assign(this.source, null, this.lookupFunctions);
+            }
+            if (this.sourceExpression.unbind) {
+                this.sourceExpression.unbind(this, this.source);
+            }
+            this.source = null;
+        };
+        Ref.prototype.observeProperty = function (context, name) { };
+        return Ref;
+    }());
+    exports.Ref = Ref;
 });
 
 
@@ -4019,8 +4152,8 @@ define('framework/resources/else',["require", "exports", "./if-core"], function 
         function Else() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        Else.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
+        Else.prototype.endBind = function () {
+            _super.prototype.endBind.call(this);
             if (this.ifBehavior.condition) {
                 this.hide();
             }
@@ -4055,9 +4188,11 @@ define('framework/resources/if-core',["require", "exports"], function (require, 
             this.showing = false;
             this.isBound = false;
         }
-        IfCore.prototype.bind = function (scope) {
-            this.isBound = true;
+        IfCore.prototype.beginBind = function (scope) {
             this.scope = scope;
+        };
+        IfCore.prototype.endBind = function () {
+            this.isBound = true;
         };
         IfCore.prototype.attach = function () {
             this.viewSlot.attach();
@@ -4139,24 +4274,18 @@ define('framework/resources/if',["require", "exports", "./if-core", "../binding/
             get: function () { return this.$observers.condition.getValue(); },
             set: function (value) {
                 this.$observers.condition.setValue(value);
-                this.conditionChanged(value);
+                if (this.isBound)
+                    this.conditionChanged(value);
             },
             enumerable: true,
             configurable: true
         });
-        If.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
-            if (this.condition) {
-                this.show();
-            }
-            else {
-                this.hide();
-            }
+        If.prototype.endBind = function () {
+            _super.prototype.endBind.call(this);
+            this.conditionChanged(this.condition);
         };
         If.prototype.conditionChanged = function (newValue) {
-            if (this.isBound) {
-                this.update(newValue);
-            }
+            this.update(newValue);
         };
         If.prototype.link = function (elseBehavior) {
             if (this.elseBehavior === elseBehavior) {

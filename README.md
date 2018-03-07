@@ -18,6 +18,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] Link view / view model
   * [ ] Single File Component
   * [ ] Lifecycle Optimization
+  * [x] <import from="..." />
 
 ## Runtime
 
@@ -44,3 +45,23 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [x] `else` Template Controller
 * [ ] `repeat` Template Controller
 * [ ] `compose` Custom Element
+
+## Building & Testing
+
+* Build compiler
+
+```shell
+npm build
+```
+
+* Test compiler
+
+```shell
+npm test
+```
+
+* Build then test
+
+```shell
+npm start
+```

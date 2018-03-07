@@ -3,40 +3,44 @@ import { Parser } from './parser';
 import {
   IBindingLanguage,
   IInsepctionInfo,
-  TemplateFactory,
-  TemplateFactoryBinding,
-  ResourcesBag,
   bindingType,
-
+  IResourceElement,
+  IAureliaModule,
+  ITemplateFactory,
 } from './interfaces';
+
 import { bindingMode, delegationStrategy, AbstractBinding, PropertyBinding, ListenerBinding } from './binding';
 
 export class SyntaxInterpreter {
 
+  static inject = ['Parser', 'IBindingLanguage', AttributeMap];
+
   constructor(
     public parser: Parser,
     public bindingLanguage: IBindingLanguage,
-    public attributeMap: AttributeMap = AttributeMap.instance
+    public attributeMap: AttributeMap
   ) {
   }
 
-  interpret(resources: object, element: Element, info: IInsepctionInfo, targetIndex: number) {
+  interpret(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule) {
     if (info.command in this) {
-      return this[info.command](resources, element, info, targetIndex);
+      return this[info.command](element, info, targetIndex, elementResource, factory, auModule);
     }
 
-    return this.handleUnknownCommand(resources, element, info, targetIndex);
+    return this.handleUnknownCommand(element, info, targetIndex);
   }
 
-  private handleUnknownCommand(resources, element: Element, info: IInsepctionInfo, targetIndex: number) {
+  private handleUnknownCommand(element: Element, info: IInsepctionInfo, targetIndex: number) {
     console.warn('Unknown binding command.', info);
     return null;
   }
 
   private determineDefaultBindingMode(
-    resources: ResourcesBag,
     element: Element & { type?: string, contentEditable?: string },
-    attrName: string
+    attrName: string,
+    elementResource: IResourceElement,
+    factory: ITemplateFactory,
+    auModule: IAureliaModule,
   ) {
     let tagName = element.tagName.toLowerCase();
 
@@ -49,25 +53,41 @@ export class SyntaxInterpreter {
       return bindingMode.twoWay;
     }
 
-    if (resources
-      && resources.attributes && attrName in resources.attributes
-      && resources.attributes[attrName]
-      && resources.attributes[attrName].defaultBindingMode >= bindingMode.oneTime
-    ) {
-      return resources.attributes[attrName].defaultBindingMode;
+    // Todo: check if custom attribute || or should it be on view compiler
+    if (!elementResource) {
+      return bindingMode.toView;
     }
+
+    let bindable = factory.elementResource.getBindable(attrName);
+    if (bindable) {
+      return bindable.defaultBindingMode === null || bindable.defaultBindingMode === undefined
+        ? bindingMode.toView
+        : bindable.defaultBindingMode
+    }
+
+
+    // if (resources
+    //   && resources.attributes && attrName in resources.attributes
+    //   && resources.attributes[attrName]
+    //   && resources.attributes[attrName].defaultBindingMode >= bindingMode.oneTime
+    // ) {
+    //   return resources.attributes[attrName].defaultBindingMode;
+    // }
 
     return bindingMode.oneWay;
   }
 
-  bind(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): AbstractBinding {
+  bind(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
+    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
     return new PropertyBinding(
-      TemplateFactory.addAst(info.attrValue, this.parser.parse(info.attrValue)),
+      this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
       info.attrName,
       info.defaultBindingMode === undefined || info.defaultBindingMode === null
-        ? this.determineDefaultBindingMode(resources, element, info.attrName)
-        : info.defaultBindingMode
+        ? this.determineDefaultBindingMode(element, info.attrName, elementResource, factory, auModule)
+        : info.defaultBindingMode,
+      bindable ? true : false,
+      bindable ? factory.lastBehaviorIndex : undefined
     );
     // return [
     //   targetIndex,
@@ -80,9 +100,9 @@ export class SyntaxInterpreter {
     // ];
   }
 
-  trigger(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): AbstractBinding {
+  trigger(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
     return new ListenerBinding(
-      TemplateFactory.addAst(info.attrValue, this.parser.parse(info.attrValue)),
+      this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
       info.attrName,
       delegationStrategy.none,
@@ -104,9 +124,9 @@ export class SyntaxInterpreter {
     // );
   }
 
-  capture(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): AbstractBinding {
+  capture(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
     return new ListenerBinding(
-      TemplateFactory.addAst(info.attrValue, this.parser.parse(info.attrValue)),
+      this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
       info.attrName,
       delegationStrategy.capturing,
@@ -128,9 +148,9 @@ export class SyntaxInterpreter {
     // );
   }
 
-  delegate(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): AbstractBinding {
+  delegate(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
     return new ListenerBinding(
-      TemplateFactory.addAst(info.attrValue, this.parser.parse(info.attrValue)),
+      this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
       info.attrName,
       delegationStrategy.bubbling,
@@ -276,14 +296,23 @@ export class SyntaxInterpreter {
   //   return instruction;
   // }
 
-  'two-way'(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): TemplateFactoryBinding {
-    return [
+  'two-way'(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
+    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+    return new PropertyBinding(
+      this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
-      bindingType.binding,
-      this.parser.parse(info.attrValue),
       info.attrName,
-      bindingMode.twoWay
-    ];
+      bindingMode.twoWay,
+      bindable ? true : false,
+      bindable ? factory.lastBehaviorIndex : undefined
+    );
+    // return [
+    //   targetIndex,
+    //   bindingType.binding,
+    //   this.parser.parse(info.attrValue),
+    //   info.attrName,
+    //   bindingMode.twoWay
+    // ];
 
     // instruction.attributes[info.attrName] = new BindingExpression(
     //   this.observerLocator,
@@ -296,14 +325,23 @@ export class SyntaxInterpreter {
     // return instruction;
   }
 
-  'to-view'(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): TemplateFactoryBinding {
-    return [
+  'to-view'(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
+    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+    return new PropertyBinding(
+      this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
-      bindingType.binding,
-      this.parser.parse(info.attrValue),
       info.attrName,
-      bindingMode.twoWay
-    ];
+      bindingMode.toView,
+      bindable ? true : false,
+      bindable ? factory.lastBehaviorIndex : undefined
+    );
+    // return [
+    //   targetIndex,
+    //   bindingType.binding,
+    //   this.parser.parse(info.attrValue),
+    //   info.attrName,
+    //   bindingMode.twoWay
+    // ];
     // let instruction = existingInstruction || BehaviorInstruction.attribute(info.attrName);
 
     // instruction.attributes[info.attrName] = new BindingExpression(
@@ -317,14 +355,23 @@ export class SyntaxInterpreter {
     // return instruction;
   }
 
-  'one-way'(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): TemplateFactoryBinding {
-    return [
+  'one-way'(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
+    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+    return new PropertyBinding(
+      this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
-      bindingType.binding,
-      this.parser.parse(info.attrValue),
       info.attrName,
-      bindingMode.twoWay
-    ];
+      bindingMode.toView,
+      bindable ? true : false,
+      bindable ? factory.lastBehaviorIndex : undefined
+    );
+    // return [
+    //   targetIndex,
+    //   bindingType.binding,
+    //   this.parser.parse(info.attrValue),
+    //   info.attrName,
+    //   bindingMode.twoWay
+    // ];
     // let instruction = existingInstruction || BehaviorInstruction.attribute(info.attrName);
 
     // instruction.attributes[info.attrName] = new BindingExpression(
@@ -338,14 +385,23 @@ export class SyntaxInterpreter {
     // return instruction;
   }
 
-  'from-view'(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): TemplateFactoryBinding {
-    return [
+  'from-view'(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
+    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+    return new PropertyBinding(
+      this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
-      bindingType.binding,
-      this.parser.parse(info.attrValue),
       info.attrName,
-      bindingMode.fromView
-    ];
+      bindingMode.fromView,
+      bindable ? true : false,
+      bindable ? factory.lastBehaviorIndex : undefined
+    );
+    // return [
+    //   targetIndex,
+    //   bindingType.binding,
+    //   this.parser.parse(info.attrValue),
+    //   info.attrName,
+    //   bindingMode.fromView
+    // ];
     // let instruction = existingInstruction || BehaviorInstruction.attribute(info.attrName);
 
     // instruction.attributes[info.attrName] = new BindingExpression(
@@ -359,14 +415,23 @@ export class SyntaxInterpreter {
     // return instruction;
   }
 
-  'one-time'(resources: ResourcesBag, element: Element, info: IInsepctionInfo, targetIndex: number): TemplateFactoryBinding {
-    return [
+  'one-time'(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
+    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+    return new PropertyBinding(
+      this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
-      bindingType.binding,
-      this.parser.parse(info.attrValue),
       info.attrName,
-      bindingMode.oneTime
-    ];
+      bindingMode.oneTime,
+      bindable ? true : false,
+      bindable ? factory.lastBehaviorIndex : undefined
+    );
+    // return [
+    //   targetIndex,
+    //   bindingType.binding,
+    //   this.parser.parse(info.attrValue),
+    //   info.attrName,
+    //   bindingMode.oneTime
+    // ];
     // let instruction = existingInstruction || BehaviorInstruction.attribute(info.attrName);
 
     // instruction.attributes[info.attrName] = new BindingExpression(
@@ -380,5 +445,3 @@ export class SyntaxInterpreter {
     // return instruction;
   }
 }
-
-SyntaxInterpreter.prototype['one-way'] = SyntaxInterpreter.prototype['to-view'];

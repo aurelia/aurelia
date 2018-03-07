@@ -1,3 +1,4 @@
+import * as ts from 'typescript';
 import { Lexer, Token } from './lexer';
 import {
   Expression,
@@ -7,10 +8,66 @@ import {
   PrefixNot, BindingBehavior, Binary,
   LiteralPrimitive, LiteralArray, LiteralObject, LiteralString
 } from './ast';
+import * as AST from './ast';
 
+let AstNames = Object.getOwnPropertyNames(AST).filter(ast => ast !== 'Expression');
 let EOF = new Token(-1, null);
 
+export interface AstRegistryRecord {
+  id: number;
+  ast: Expression;
+}
+
 export class Parser {
+
+  static astId: number = 1;
+  static astRegistry: Record<string, AstRegistryRecord> = {};
+
+  static addAst(expression: string, ast: Expression) {
+    return this.astRegistry[expression]
+      || (this.astRegistry[expression] = {
+        id: this.astId++,
+        ast
+      });
+  }
+
+  static emitAst(): ts.SourceFile {
+    let file = ts.createSourceFile(
+      'src/asts.js',
+      [
+        `/* Aurelia Compiler - auto generated file */`,
+        `import {\n${AstNames.join(', \n')}\n} from './framework/binding/ast';`,
+        `export var getAst = id => Asts[id];`
+      ].join('\n'),
+      ts.ScriptTarget.Latest, true
+    );
+    return ts.updateSourceFileNode(file, [
+      ...file.statements,
+      ts.createVariableStatement(
+        /*modifiers*/ undefined,
+        [
+          ts.createVariableDeclaration(
+            'Asts',
+            /*type*/ undefined,
+            ts.createObjectLiteral([
+              ...Object.keys(this.astRegistry)
+                .map(exp => {
+                  let record = this.astRegistry[exp];
+                  return ts.createPropertyAssignment(
+                    ts.createLiteral(record.id),
+                    record.ast.code
+                  );
+                })
+            ], /*multiline*/ true)
+          )
+        ]
+      )
+    ]);
+  }
+
+  static generateAst() {
+    return ts.createPrinter().printFile(this.emitAst());
+  }
 
   private cache: Record<string, Expression>;
   private lexer: Lexer;
@@ -20,11 +77,15 @@ export class Parser {
     this.lexer = new Lexer();
   }
 
-  parse(input) {
+  parse(input: string) {
     input = input || '';
 
     return this.cache[input]
       || (this.cache[input] = new ParserImplementation(this.lexer, input).parseChain());
+  }
+
+  getOrCreateAstRecord(input: string): AstRegistryRecord {
+    return Parser.astRegistry[input] || (Parser.addAst(input, this.parse(input)));
   }
 }
 

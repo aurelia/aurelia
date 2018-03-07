@@ -146,7 +146,7 @@ export class Assign extends Expression {
   }
 
   get observedProperties() {
-    return [...this.target.observedProperties, ...this.value.observedProperties];
+    return [...this.value.observedProperties];
   }
 
   get code() {
@@ -244,7 +244,7 @@ export class AccessScope extends Expression {
   }
 
   get observedProperties() {
-    return [this.name];
+    return this.ancestor === 0 ? [this.name] : [];
   }
 
   get code() {
@@ -276,7 +276,8 @@ export class AccessMember extends Expression {
   }
 
   get observedProperties() {
-    return [this.name, ...this.object.observedProperties];
+    return [];
+    // return [this.name, ...this.object.observedProperties];
   }
 
   get code() {
@@ -308,7 +309,12 @@ export class AccessKeyed extends Expression {
   }
 
   get observedProperties() {
-    return [this.key.toString(), ...this.object.observedProperties];
+    if (this.object instanceof AccessScope) {
+      return [this.key.toString(), ...this.object.observedProperties]
+    } else {
+      return [];
+    }
+    // return [this.key.toString(), ...this.object.observedProperties];
   }
 
   get code() {
@@ -342,7 +348,7 @@ export class CallScope extends Expression {
   }
 
   get observedProperties() {
-    return this.args.reduce((props, a) => props.concat(a.observedProperties), [this.name]);
+    return this.args.reduce((props, a) => props.concat(a.observedProperties), []);
   }
 
   get code() {
@@ -377,10 +383,11 @@ export class CallMember extends Expression {
   }
 
   get observedProperties() {
-    return this.args.reduce(
-      (props, a) => props.concat(a.observedProperties),
-      [this.name, ...this.object.observedProperties]
-    );
+    return [];
+    // return this.args.reduce(
+    //   (props, a) => props.concat(a.observedProperties),
+    //   [this.name, ...this.object.observedProperties]
+    // );
   }
 
   get code() {

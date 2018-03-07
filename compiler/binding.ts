@@ -49,10 +49,12 @@ export abstract class AbstractBinding {
     return ts.createLiteral(mode);
   }
 
+  behavior?: boolean;
+  behaviorIndex?: number;
   textAccessor = 'textContent';
   abstract targetIndex: number;
   abstract get dehydrated(): any[];
-  abstract get code(): ts.NewExpression;
+  abstract get code(): ts.Expression;
   abstract get observedProperties(): string[];
 }
 
@@ -62,7 +64,9 @@ export class PropertyBinding extends AbstractBinding {
     public astRecord: AstRegistryRecord,
     public targetIndex: number,
     public targetProperty: string,
-    public mode: bindingMode = bindingMode.oneWay
+    public mode: bindingMode = bindingMode.oneWay,
+    public forBehavior?: boolean,
+    public behaviorIndex?: number
   ) {
     super();
   }
@@ -85,10 +89,15 @@ export class PropertyBinding extends AbstractBinding {
             ts.createLiteral(this.astRecord.id)
           ]
         ),
-        ts.createElementAccess(
-          ts.createIdentifier(AbstractBinding.targetsAccessor),
-          ts.createNumericLiteral(this.targetIndex.toString())
-        ),
+        this.forBehavior
+          ? ts.createPropertyAccess(
+            ts.createThis(),
+            `$b${this.behaviorIndex}`
+          )
+          : ts.createElementAccess(
+            ts.createIdentifier(AbstractBinding.targetsAccessor),
+            ts.createNumericLiteral(this.targetIndex.toString())
+          ),
         ts.createLiteral(this.targetProperty),
         AbstractBinding.resolveBindingMode(this.mode),
         ts.createIdentifier('lookupFunctions')

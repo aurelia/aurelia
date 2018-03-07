@@ -16,152 +16,43 @@ export { bindingMode, delegationStrategy };
 
 export const ELEMENT_REF_KEY = 'element';
 
-export interface TemplateFactoryBinding {
-  0: /** targetIndex */ number,
-  1: /** bindingType */ bindingType,
-  2: /** expression */ Expression,
-  3?: /** attr or Event or ref type */ string,
-  4?: /** bindingMode */ bindingMode | delegationStrategy
-};
+// export interface TemplateFactoryBinding {
+//   0: /** targetIndex */ number,
+//   1: /** bindingType */ bindingType,
+//   2: /** expression */ Expression,
+//   3?: /** attr or Event or ref type */ string,
+//   4?: /** bindingMode */ bindingMode | delegationStrategy
+// };
 
-export interface AstRegistryRecord {
-  id: number;
-  ast: Expression;
+export interface IViewCompiler {
+  moduleCompiler: IAureliaModuleCompiler;
+
+  compileWithModule(fileName: string, aureliaModule: IAureliaModule): IAureliaModule;
+  compile(fileName: string, template: string | Element, resourceModule: IAureliaModule, dependencyModules: IAureliaModule[]): ITemplateFactory;
 }
 
-export class TemplateFactory {
+export interface ITemplateFactory {
+  html: string;
+  elementResource: IResourceElement;
+  bindings: AbstractBinding[];
 
-  static astId: number = 1;
-  static astRegistry: Record<string, AstRegistryRecord> = {};
+  owner: IAureliaModule;
+  dependencies: IAureliaModule[];
 
-  static addAst(expression: string, ast: Expression) {
-    return this.astRegistry[expression]
-      || (this.astRegistry[expression] = {
-        id: this.astId++,
-        ast
-      });
-  }
+  readonly observedProperties: string[];
+  readonly lastTargetIndex: number;
+  readonly lastBehaviorIndex: number;
 
-  // static emitAst(): string {
-  //   const file = ts.createSourceFile('fake.js', '', ts.ScriptTarget.Latest);
-  //   return [
-  //     `export const getAst = id => Asts[id];`,
-  //     `const Asts = { ${
-  //     Object.keys(this.astRegistry)
-  //       .map(exp => {
-  //         let record = this.astRegistry[exp];
-  //         return `${record.id}: ${record.ast.code.getText(file)}`;
-  //       })
-  //     }`
-  //   ].join('\n');
-  // }
-  static emitAst(): ts.SourceFile {
-    let file = ts.createSourceFile('src/asts.js', `/* Aurelia Compiler - auto generated file */`, ts.ScriptTarget.Latest, true);
-    return ts.updateSourceFileNode(file, [
-      ...file.statements,
-      ts.createImportDeclaration(
-        /*decorators*/ undefined,
-        /*modifiers*/ undefined,
-        ts.createImportClause(
-          undefined,
-          ts.createNamedImports(
-            AstNames.map(n => ts.createImportSpecifier(undefined, ts.createIdentifier(n)))
-          )
-        ),
-        ts.createLiteral('./framework/binding/ast')
-      ),
-      // ts.createExportAssignment(
-      //   undefined,
-      //   undefined,
-      //   false,
-      //   ts.createArrowFunction(
-      //     [
+  addDependency(dependency: IAureliaModule);
+  transform(emitImport?: boolean): ts.SourceFile;
 
-      //     ],
-      //     undefined,
-      //     [
-      //       ts.createParameter(
-      //         undefined,
-      //         undefined,
-      //         undefined,
-      //         'id'
-      //       )
-      //     ],
-      //     undefined,
-      //     ts.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-      //     ts.createElementAccess(
-      //       ts.createIdentifier('Asts'),
-      //       ts.createIdentifier('id')
-      //     )
-      //   )
-      // ),
-      ts.createVariableStatement(
-        /*modifiers*/
-        [
-          ts.createToken(ts.SyntaxKind.ExportKeyword)
-        ],
-        [
-          ts.createVariableDeclaration(
-            'getAst',
-            /*type*/ undefined,
-            ts.createArrowFunction(
-              undefined,
-              undefined,
-              [
-                ts.createParameter(
-                  undefined,
-                  undefined,
-                  undefined,
-                  'id'
-                )
-              ],
-              undefined,
-              ts.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-              ts.createElementAccess(
-                ts.createIdentifier('Asts'),
-                ts.createIdentifier('id')
-              )
-            )
-          )
-        ]
-      ),
-      ts.createVariableStatement(
-        /*modifiers*/ undefined,
-        [
-          ts.createVariableDeclaration(
-            'Asts',
-            /*type*/ undefined,
-            ts.createObjectLiteral([
-              ...Object.keys(this.astRegistry)
-                .map(exp => {
-                  let record = this.astRegistry[exp];
-                  return ts.createPropertyAssignment(
-                    ts.createLiteral(record.id),
-                    record.ast.code
-                  );
-                })
-            ], /*multiline*/ true)
-          )
-        ]
-      )
-    ]);
-  }
+  getCustomElement(htmlName: string): IResourceElement;
+  getCode(emitImports?: boolean): ITemplateFactoryCode;
+}
 
-  html: string = '';
-  bindings: AbstractBinding[] = [];
-
-  get observedProperties(): string[] {
-    return Array.from(new Set<string>(this.bindings.reduce(
-      (props, binding) => props.concat(binding.observedProperties),
-      []
-    )));
-  }
-
-  get lastTargetIndex() {
-    const bindings = this.bindings;
-    const lastBinding = bindings[bindings.length - 1];
-    return lastBinding ? lastBinding.targetIndex : -1;
-  }
+export interface ITemplateFactoryCode {
+  imports: ts.ImportDeclaration[];
+  view: ts.ClassDeclaration;
 }
 
 export interface IInsepctionInfo {
@@ -173,16 +64,136 @@ export interface IInsepctionInfo {
 
 export interface IBindingLanguage {
   inspectAttribute(
-    elementName: Element,
+    element: Element,
     attrName: string,
     attrValue: string,
-    targetIndex: number
+    targetIndex: number,
+    elementResource: IResourceElement,
+    templateFactory: ITemplateFactory,
+    module: IAureliaModule
   ): AbstractBinding;
 
   inspectTextContent(value: string): TemplateLiteral | null;
 }
 
-export interface ResourcesBag {
-  attributes?: Record<string, any>;
-  elements?: Record<string, any>;
+export interface IBindable {
+  name: string;
+  type: string;
+  defaultBindingMode?: bindingMode
+}
+
+export enum resourceKind {
+  element,
+  attribute,
+  valueConverter,
+  bindingBehavior
+}
+
+export interface IResource {
+  name: string;
+  kind: resourceKind;
+  impl: ts.ClassDeclaration;
+}
+
+export interface IResourceElement extends IResource {
+  htmlName: string;
+  kind: resourceKind.element;
+  bindables: IBindable[];
+  getBindable(name: string): IBindable;
+}
+
+export interface IResourceAttribute extends IResource {
+  htmlName: string;
+  kind: resourceKind.attribute;
+  bindables: IBindable[];
+  getBindable(name: string): IBindable;
+}
+
+export interface IResourceValueConverter extends IResource {
+  kind: resourceKind.valueConverter;
+}
+
+export interface IResourceBindingBehavior extends IResource {
+  kind: resourceKind.bindingBehavior;
+}
+
+export interface IViewResources {
+
+  elements?: Record<string, IResourceElement>;
+  attributes?: Record<string, IResourceAttribute>;
+  valueConverters?: Record<string, IResourceValueConverter>;
+  bindingBehaviors?: Record<string, IResourceBindingBehavior>;
+
+  parent?: IViewResources;
+  children?: IViewResources[];
+
+  getCustomElement(name: string): IResourceElement;
+  setCustomElement(name: string, impl: ts.ClassDeclaration): boolean;
+
+  getCustomAttribute(name: string): IResourceAttribute;
+  setCustomAttribute(name: string, impl: ts.ClassDeclaration): boolean;
+
+  getValueConverter(name: string): IResourceValueConverter;
+  setValueConverter(name: string, impl: ts.ClassDeclaration): boolean;
+
+  getBindingBehavior(name: string): IResourceBindingBehavior;
+  setBindingBehavior(name: string, impl: ts.ClassDeclaration): boolean;
+}
+
+export interface IAureliaModule {
+
+  fileName: string;
+  file: ts.SourceFile;
+
+  templates: HTMLTemplateElement[];
+  templateFactories: ITemplateFactory[];
+
+  mainResource: IResourceElement;
+  // resources: IViewResources;
+
+  addFactory(factory: ITemplateFactory): this;
+
+  getExports(): ts.ExportDeclaration[];
+
+  getCustomElement(htmlName: string): IResourceElement;
+  getCustomElements(): IResourceElement[];
+  getCustomAttributes(): IResourceAttribute[];
+  getValueConverters(): IResourceValueConverter[];
+  getBindingBehaviors(): IResourceBindingBehavior[];
+
+  toStatements(emitImports?: boolean): IAureliaModuleStatements;
+  /**
+   * Return compiled content, as ts document object model
+   */
+  toSourceFile(emitImports?: boolean): ts.SourceFile;
+  /**
+   * Return compiled content from templates, scripts
+   */
+  compile(): string;
+}
+
+export interface IAureliaModuleStatements {
+  imports: ts.ImportDeclaration[];
+  view: ts.ClassDeclaration;
+  originals: ts.Statement[];
+  deps: IAureliaModuleStatements[];
+}
+
+// export interface IScriptModule {
+//   elements: Record<string, IResourceElement>;
+//   attributes?: Record<string, IResourceAttribute>;
+//   valueConverters?: Record<string, IResourceValueConverter>;
+//   bindingBehaviors?: Record<string, IResourceBindingBehavior>;
+// }
+
+export interface IViewModelCompiler {
+  compile(fileName: string, content?: string): IAureliaModule;
+}
+
+export interface IAureliaModuleCompiler {
+
+  viewCompiler: IViewCompiler;
+  viewModelCompiler: IViewModelCompiler;
+
+  compile(fileName: string, text?: string): IAureliaModule;
 }

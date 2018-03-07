@@ -1,33 +1,37 @@
-/*eslint indent:0*/
 import { SyntaxInterpreter } from './syntax-interpreter';
 import { AttributeMap } from './attribute-map';
 import { Expression, TemplateLiteral, LiteralString } from './ast';
 import { Parser } from './parser';
-import { bindingMode, IInsepctionInfo, IBindingLanguage, TemplateFactoryBinding, bindingType, ELEMENT_REF_KEY } from './interfaces';
+import { bindingMode, IInsepctionInfo, IBindingLanguage, bindingType, ELEMENT_REF_KEY, IAureliaModule, IResourceElement, ITemplateFactory } from './interfaces';
 import { camelCase } from './util';
-import { AbstractBinding } from './binding';
+import { AbstractBinding, TextBinding, RefBinding } from './binding';
+import { TemplateFactory } from './template-factory'
 
 let info: IInsepctionInfo = {};
 
 export class TemplatingBindingLanguage implements IBindingLanguage {
+
+  static inject = ['Parser', AttributeMap];
 
   syntaxInterpreter: SyntaxInterpreter;
   emptyStringExpression: Expression;
 
   constructor(
     public parser: Parser,
-    public attributeMap: AttributeMap = AttributeMap.instance
+    public attributeMap: AttributeMap
   ) {
     this.syntaxInterpreter = new SyntaxInterpreter(parser, this, attributeMap);
     this.emptyStringExpression = parser.parse('\'\'');
-    this.attributeMap = attributeMap;
   }
 
   inspectAttribute(
     element: Element,
     attrName: string,
     attrValue: string,
-    targetIndex: number
+    targetIndex: number,
+    elementResource: IResourceElement,
+    templateFactory: ITemplateFactory,
+    auModule: IAureliaModule
   ): AbstractBinding {
     let parts = attrName.split('.');
 
@@ -39,7 +43,11 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
       info.command = parts[1].trim();
 
       if (info.command === 'ref') {
-        return null;
+        return new RefBinding(
+          Parser.addAst(attrValue, this.parser.parse(attrValue)),
+          targetIndex,
+          info.attrName
+        );
         // return [
         //   targetIndex,
         //   bindingType.ref,
@@ -48,14 +56,20 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
         // ];
       } else {
         return this.syntaxInterpreter.interpret(
-          {},
           element,
           info,
-          targetIndex
+          targetIndex,
+          elementResource,
+          templateFactory,
+          auModule
         );
       }
     } else if (attrName === 'ref') {
-      return null;
+      return new RefBinding(
+        Parser.addAst(attrValue, this.parser.parse(attrValue)),
+        targetIndex,
+        ELEMENT_REF_KEY
+      );
       // return [
       //   targetIndex,
       //   bindingType.ref,
@@ -76,7 +90,10 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
         //   targetIndex
         // );
       } else {
-        return null;
+        return new TextBinding(
+          Parser.addAst(attrValue, templateLiteral),
+          targetIndex
+        );
         // return [
         //   targetIndex,
         //   bindingType.binding,

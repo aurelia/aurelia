@@ -1,38 +1,125 @@
-import { TemplateFactory, bindingMode, IBindingLanguage, bindingType } from "./interfaces";
+import {
+  bindingMode,
+  IBindingLanguage,
+  bindingType,
+  IViewResources,
+  IAureliaModule,
+  IResourceElement,
+  IAureliaModuleCompiler,
+  IViewCompiler,
+  ITemplateFactory
+} from "./interfaces";
 import { Parser } from "./parser";
 import { DOM } from "./dom";
-import { TemplatingBindingLanguage } from "./binding-language";
-import { TextBinding } from "./binding";
+import { TextBinding, AbstractBinding } from "./binding";
+import * as path from 'path';
+import * as fs from 'fs';
+import * as ts from 'typescript';
+import { relativeToFile } from 'aurelia-path';
+import { TemplateFactory } from './template-factory';
 
-export class ViewCompiler {
+export class ViewCompiler implements IViewCompiler {
+
+  static inject = ['Parser', 'IBindingLanguage'];
+
+  moduleCompiler: IAureliaModuleCompiler;
 
   constructor(
     public parser: Parser,
-    public bindingLanguage: IBindingLanguage = new TemplatingBindingLanguage(parser)
+    public bindingLanguage: IBindingLanguage
   ) {
 
   }
 
-  compile(template: string | Element) {
-    const factory = new TemplateFactory();
+  compileWithModule(fileName: string, aureliaModule: IAureliaModule) {
+    let templates = aureliaModule.templates;
+    let mainTemplate = templates[0];
+    let importFiles = this.extractTemplateImports(mainTemplate);
+
+    let depModules: IAureliaModule[] = [];
+    let depFactories: ITemplateFactory[] = [];
+
+    let dependencies = importFiles.map(depFileName => {
+      let depModule = this.moduleCompiler.compile(relativeToFile(depFileName, fileName));
+      // depModules.push(depModule);
+      // this.compileWithModule(depModule.fileName, depModule);
+      return depModule;
+    });
+
+    let factory = this.compile(fileName, mainTemplate, aureliaModule, dependencies, aureliaModule.mainResource);
+
+    aureliaModule.addFactory(factory);
+    dependencies.forEach(dep => {
+      factory.addDependency(this.compileWithModule(dep.fileName, dep));
+    });
+
+    return aureliaModule;
+  }
+
+  compile(fileName: string, template: string | Element, aureliaModule: IAureliaModule, dependencyModules: IAureliaModule[], elementResource?: IResourceElement): ITemplateFactory {
+    let factory: ITemplateFactory = new TemplateFactory(aureliaModule, elementResource);
     let node: Node;
     let element: Element;
+
     if (typeof template === 'string') {
       element = DOM.createTemplateFromMarkup(template);
       node = (element as HTMLTemplateElement).content;
     } else {
       element = template;
-      node = template;
+      node = template.tagName.toLowerCase() === 'template' ? (template as HTMLTemplateElement).content : template;
     }
-    this.compileNode(node, factory);
+    this.compileNode(node, aureliaModule, factory, dependencyModules);
     factory.html = element.innerHTML;
+    factory.owner = aureliaModule;
     return factory;
   }
 
-  private compileNode(node: Node, templateFactory: TemplateFactory) {
+  private extractTemplateImports(template: HTMLTemplateElement): string[] {
+    const imports = Array.from(template.getElementsByTagName('import'));
+    const requires = Array.from(template.getElementsByTagName('require'));
+    const importModules = [];
+    while (imports.length) {
+      let $import = imports.shift();
+      let moduleId = $import.getAttribute('from');
+      if (!moduleId) {
+        throw new Error('Invalid <import/> element. No "from" attribute specifier.');
+      }
+      importModules.push(moduleId);
+      ($import.parentNode || template).removeChild($import);
+    }
+    let hasRequires = false;
+    while (requires.length) {
+      let $require = requires.shift();
+      let moduleId = $require.getAttribute('from');
+      if (!moduleId) {
+        throw new Error('Invalid <require/> element. No "from" attribute specifier.');
+      }
+      importModules.push(moduleId);
+      hasRequires = true;
+      ($require.parentNode || template).removeChild($require);
+    }
+    if (hasRequires) {
+      console.log('Consider using <import from="..." /> instead of <require/>. <require/> was used to support IE11 as IE11 does NOT allow <import />.');
+    }
+    return importModules;
+  }
+
+  // private processImports(fileName: string, imports: string[], templateFactory: ITemplateFactory, sourceResource: IAureliaModule) {
+  //   const modules = imports.map(m => {
+  //     return {
+  //       fileName,
+  //       text: fs.readFileSync(path.resolve(fileName, m), 'utf-8')
+  //     };
+  //   });
+  //   modules.forEach(m => {
+  //     templateFactory.addDependency(this.moduleCompiler.compile(m.fileName, m.text));
+  //   });
+  // }
+
+  private compileNode(node: Node, resourceModule: IAureliaModule, templateFactory: ITemplateFactory, dependencyModules: IAureliaModule[]) {
     switch (node.nodeType) {
       case 1: //element node
-        return this.compileElement(node as Element, templateFactory);
+        return this.compileElement(node as Element, resourceModule, templateFactory, dependencyModules);
       // return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
       case 3: //text node
         //use wholeText to retrieve the textContent of all adjacent text nodes.
@@ -50,7 +137,7 @@ export class ViewCompiler {
           }
           let lastIndex = templateFactory.lastTargetIndex;
           templateFactory.bindings.push(new TextBinding(
-            TemplateFactory.addAst(node.textContent, templateLiteralExpression),
+            Parser.addAst(node.textContent, templateLiteralExpression),
             lastIndex + 1
           ));
         } else {
@@ -63,7 +150,7 @@ export class ViewCompiler {
       case 11: //document fragment node
         let currentChild = node.firstChild;
         while (currentChild) {
-          currentChild = this.compileNode(currentChild, templateFactory);
+          currentChild = this.compileNode(currentChild, resourceModule, templateFactory, dependencyModules);
         }
         break;
       default:
@@ -72,17 +159,39 @@ export class ViewCompiler {
     return node.nextSibling;
   }
 
-  private compileElement(node: Element, templateFactory: TemplateFactory) {
+  private compileElement(node: Element, resourceModule: IAureliaModule, templateFactory: ITemplateFactory, dependencyModules: IAureliaModule[]) {
     let hasBinding = false;
     let lastIndex = templateFactory.lastTargetIndex;
+    let currentElement: IResourceElement = templateFactory.elementResource;
+    let elementResource = templateFactory.getCustomElement(node.tagName);
+    if (!elementResource) {
+      for (let i = 0, ii = dependencyModules.length; ii > i; ++i) {
+        let dep = dependencyModules[i];
+        if (elementResource = dep.getCustomElement(node.tagName)) {
+          break;
+        }
+      }
+    }
+    let elementBinding: CustomElementBinding;
+    if (elementResource) {
+      templateFactory.bindings.push(elementBinding = new CustomElementBinding(
+        elementResource,
+        lastIndex + 1,
+        templateFactory.lastBehaviorIndex + 1
+      ));
+    }
     for (let i = 0; i < node.attributes.length; ++i) {
       let attr = node.attributes[i];
-      let binding = this.bindingLanguage.inspectAttribute(node, attr.nodeName, attr.value, lastIndex + 1);
+      let binding = this.bindingLanguage.inspectAttribute(node, attr.nodeName, attr.value, lastIndex + 1, elementResource, templateFactory, resourceModule);
       if (binding) {
+        // if (elementResource) {
+
+        // } else {
         templateFactory.bindings.push(binding);
         hasBinding = true;
         node.removeAttribute(attr.nodeName);
         --i;
+        // }
       }
     }
     if (hasBinding) {
@@ -90,8 +199,51 @@ export class ViewCompiler {
     }
     let currentChild = node.firstChild;
     while (currentChild) {
-      currentChild = this.compileNode(currentChild, templateFactory);
+      currentChild = this.compileNode(currentChild, resourceModule, templateFactory, dependencyModules);
     }
     return node.nextSibling;
+  }
+}
+
+export class CustomElementBinding extends AbstractBinding {
+
+  behavior = true;
+  bindings: AbstractBinding[];
+
+  constructor(
+    public elementResource: IResourceElement,
+    public targetIndex: number,
+    public behaviorIndex: number
+  ) {
+    super();
+  }
+
+  get dehydrated() {
+    return [];
+  }
+
+  get code() {
+    return ts.createCall(
+      ts.createPropertyAccess(
+        ts.createNew(
+          ts.createIdentifier(this.elementResource.impl.name.escapedText.toString()),
+          /* type arguments */ undefined,
+          /* arguments */undefined
+        ),
+        'applyTo'
+      ),
+      /* typeArguments */ undefined,
+      /** arguments */
+      [
+        ts.createElementAccess(
+          ts.createIdentifier(AbstractBinding.targetsAccessor),
+          ts.createNumericLiteral(this.targetIndex.toString())
+        )
+      ]
+    );
+  }
+
+  get observedProperties() {
+    return [];
   }
 }

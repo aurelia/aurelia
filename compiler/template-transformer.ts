@@ -1,13 +1,17 @@
 import * as ts from 'typescript';
-import { bindingMode, IAureliaModule, ITemplateFactory } from './interfaces'
-import { AbstractBinding } from './binding';
+import {
+  ITemplateFactory,
+  IAureliaModule
+} from './interfaces';
 import { getElementViewName } from './util';
+import { AbstractBinding } from './binding';
 
-export interface ModuleExportedElements {
-  name: string
+export interface TemplateFactoryCode {
+  imports: ts.ImportDeclaration[];
+  view: ts.ClassDeclaration;
 }
 
-export class Transformer {
+export class TemplateTransformer {
 
   static lifecycleMethods = {
     created: 'created',
@@ -24,100 +28,131 @@ export class Transformer {
   elementViewPropName = '$view';
   elementScopePropName = '$scope';
 
+  behaviorCounter = 0;
+
   constructor(
     public templateFactory: ITemplateFactory,
-    public resourceModule: IAureliaModule
+    public emitImport = true
   ) {
 
   }
 
-  public context: ts.TransformationContext;
-  public hasExportedElement: boolean = false;
-  public exportedElements: ModuleExportedElements[] = [];
+  get code(): TemplateFactoryCode {
+    let factory = this.templateFactory;
+    let file = ts.createSourceFile(factory.owner.fileName, '', ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+    let observedProperties = factory.observedProperties;
+    let elResource = factory.elementResource;
+    let viewModelName = elResource.impl.name.escapedText.toString();
+    let viewClassName = getElementViewName(viewModelName);
+    return {
+      imports: (this.emitImport
+        ? [
+          this.createImport(['createOverrideContext'], './framework/binding/scope'),
+          this.createImport(['getAst'], './asts'),
+          this.createImport(['Binding', 'TextBinding', 'Listener'], './framework/binding/binding'),
+          this.createImport(['Observer'], './framework/binding/property-observation'),
+          this.createImport(['Template'], './framework/templating/template'),
+        ]
+        : []
+      ),
+      view: ts.createClassDeclaration(
+        /* decorators */ undefined,
+        /* modifiers */
+        [
+          ts.createToken(ts.SyntaxKind.ExportKeyword)
+        ],
+        viewClassName,
+        /* type parameters */ undefined,
+        /* heritage clauses */
+        [
+          ts.createHeritageClause(
+            ts.SyntaxKind.ExtendsKeyword,
+            [
+              ts.createExpressionWithTypeArguments(
+                undefined,
+                ts.createIdentifier(viewModelName)
+              )
+            ]
+          ),
+        ],
+        /* members */
+        [
+          this.createViewClassConstructor(),
+          // this.createScopeProp(),
+          // this.createObserverProp(observedProperties),
+          this.createTemplateProp(),
+          this.createInitMethod(viewClassName),
+          // this.createBindingsProp(),
+          ...this.createLifecycleMethods(),
+          ...observedProperties.reduce((propDeclarations, op) => {
+            return propDeclarations.concat([
+              this.createObserverGetter(op),
+              this.createObserverSetter(op)
+            ]);
+          }, /* observed properties init value */[]),
+        ]
+      ),
+    }
+  }
 
-  private fileVisitor = (file: ts.SourceFile) => {
-    file = ts.visitEachChild(file, this.nodeVisitor, this.context);
-    let observedProperties = this.templateFactory.observedProperties;
-    let exportedElements = this.resourceModule.getCustomElements().map((elResource, idx) => {
-      // Only the first element class declaration uses the main template;
-      if (idx === 0) {
-        const viewClassName = getElementViewName(elResource.impl.name);
-        return ts.createClassDeclaration(
-          /* decorators */ undefined,
-          /* modifiers */ undefined,
-          viewClassName,
-          /* type parameters */ undefined,
-          /* heritage clauses */ undefined,
-          /* members */
-          [
-            this.createViewClassConstructor(),
-            this.createScopeProp(),
-            // this.createObserverProp(observedProperties),
-            this.createTemplateProp(),
-            this.createInitMethod(viewClassName),
-            // this.createBindingsProp(),
-            ...this.createLifecycleMethods(),
-            ...observedProperties.reduce((propDeclarations, op) => {
-              return propDeclarations.concat([
-                this.createObserverGetter(op),
-                this.createObserverSetter(op)
-              ]);
-            }, /* observed properties init value */[]),
-          ]
-        );
-      } else {
-        let factories = []; // this.templateFactory.getTemplates();
-        if (!factories || !factories.length) {
-          return null;
-        } else {
-          throw new Error('Sub template in TemplateFactory not implemented.');
-        }
-      }
-    }).filter(Boolean);
+  toSourceFile(): ts.SourceFile {
+    let factory = this.templateFactory;
+    let file = ts.createSourceFile(factory.owner.fileName, '', ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+    let observedProperties = factory.observedProperties;
+    let elResource = factory.elementResource;
+    let viewModelName = elResource.impl.name.escapedText.toString();
+    let viewClassName = getElementViewName(viewModelName);
     return ts.updateSourceFileNode(file, [
-      this.createImport(['createOverrideContext'], './framework/binding/scope'),
-      this.createImport(['getAst'], './asts'),
-      this.createImport(['Binding', 'TextBinding', 'Listener'], './framework/binding/binding'),
-      this.createImport(['Observer'], './framework/binding/property-observation'),
-      this.createImport(['Template'], './framework/templating/template'),
-      ...exportedElements,
-      ...file.statements
+      ...(this.emitImport
+        ? [
+          this.createImport(['createOverrideContext'], './framework/binding/scope'),
+          this.createImport(['getAst'], './asts'),
+          this.createImport(['Binding', 'TextBinding', 'Listener'], './framework/binding/binding'),
+          this.createImport(['Observer'], './framework/binding/property-observation'),
+          this.createImport(['Template'], './framework/templating/template'),
+        ]
+        : []
+      ),
+      ts.createClassDeclaration(
+        /* decorators */ undefined,
+        /* modifiers */
+        [
+          ts.createToken(ts.SyntaxKind.ExportKeyword)
+        ],
+        viewClassName,
+        /* type parameters */ undefined,
+        /* heritage clauses */
+        [
+          ts.createHeritageClause(
+            ts.SyntaxKind.ExtendsKeyword,
+            [
+              ts.createExpressionWithTypeArguments(
+                undefined,
+                ts.createIdentifier(viewModelName)
+              )
+            ]
+          ),
+        ],
+        /* members */
+        [
+          this.createViewClassConstructor(),
+          // this.createScopeProp(),
+          // this.createObserverProp(observedProperties),
+          this.createTemplateProp(),
+          this.createInitMethod(viewClassName),
+          // this.createBindingsProp(),
+          ...this.createLifecycleMethods(),
+          ...observedProperties.reduce((propDeclarations, op) => {
+            return propDeclarations.concat([
+              this.createObserverGetter(op),
+              this.createObserverSetter(op)
+            ]);
+          }, /* observed properties init value */[]),
+        ]
+      ),
+
+
     ]);
-  }
-
-  private nodeVisitor = (node: ts.Node): ts.Node => {
-    const visitor = `visit${ts.SyntaxKind[node.kind]}`;
-    if (visitor in this) {
-      return this[visitor](node);
-    }
-    return ts.visitEachChild(node, this.nodeVisitor, this.context);
-  }
-
-  transform = (context: ts.TransformationContext) => {
-    this.context = context;
-    return this.fileVisitor;
-  }
-
-  private isExportedClass(node: ts.Node): node is ts.ClassDeclaration & ts.ExportDeclaration {
-    return node.kind === ts.SyntaxKind.ClassDeclaration
-      && ((ts.getCombinedModifierFlags(node)
-        | ts.ModifierFlags.Export) === ts.ModifierFlags.Export
-      );
-  }
-
-  private isCustomElement(node: ts.Node): node is ts.ClassDeclaration & ts.ExportDeclaration {
-    if (!this.isExportedClass(node)) {
-      return false;
-    }
-    const name = node.name.escapedText.toString();
-    if (name.endsWith('CustomElement')) {
-      return true;
-    }
-    const decorators = node.decorators;
-    if (!decorators) {
-      return false;
-    }
-    return decorators.some(d => (d.expression as ts.Identifier).escapedText === 'customElement');
   }
 
   private createImport(names: string[], moduleName: string) {
@@ -145,6 +180,41 @@ export class Transformer {
       /** modifiers */ undefined,
       /** params */[],
       ts.createBlock([
+        ts.createStatement(
+          ts.createCall(
+            ts.createSuper(),
+            undefined,
+            undefined
+          )
+        ),
+        ts.createStatement(
+          ts.createAssignment(
+            ts.createPropertyAccess(
+              ts.createThis(),
+              this.elementScopePropName
+            ),
+            ts.createObjectLiteral(
+              [
+                ts.createPropertyAssignment(
+                  'bindingContext',
+                  ts.createThis()
+                ),
+                ts.createPropertyAssignment(
+                  'overrideContext',
+                  ts.createCall(
+                    ts.createIdentifier('createOverrideContext'),
+                    /*typeArguments*/ undefined,
+                    /*arguments*/
+                    [
+                      ts.createThis()
+                    ]
+                  )
+                )
+              ],
+              /*multiline*/ true
+            )
+          )
+        ),
         ts.createStatement(
           ts.createCall(
             ts.createPropertyAccess(
@@ -241,7 +311,6 @@ export class Transformer {
     return ts.createProperty(
       /* decorators */ undefined,
       [
-        ts.createToken(ts.SyntaxKind.PublicKeyword),
         ts.createToken(ts.SyntaxKind.StaticKeyword)
       ],
       this.templatePropName,
@@ -273,7 +342,7 @@ export class Transformer {
           /** ... */ undefined,
           'anchor',
           /** question token */ undefined,
-          ts.createLiteralTypeNode(ts.createLiteral('Element')),
+          ts.createTypeReferenceNode(ts.createIdentifier('Element'), undefined),
           /** initializer */ undefined
         )
       ],
@@ -352,7 +421,7 @@ export class Transformer {
         /* decorators */ undefined,
         /* modifiers */ undefined,
         /* asterisk token */ undefined,
-        Transformer.lifecycleMethods.bind,
+        TemplateTransformer.lifecycleMethods.bind,
         /* question token */ undefined,
         /* type params */ undefined,
         /* params */ undefined,
@@ -407,7 +476,7 @@ export class Transformer {
                           ts.createCall(
                             ts.createPropertyAccess(
                               ts.createIdentifier('b'),
-                              Transformer.lifecycleMethods.bind
+                              TemplateTransformer.lifecycleMethods.bind
                             ),
                             /*typeArguments*/ undefined,
                             /*arguments*/
@@ -422,6 +491,19 @@ export class Transformer {
                   )
                 ]
               )
+            ),
+            ts.createStatement(
+              ts.createCall(
+                ts.createPropertyAccess(
+                  ts.createSuper(),
+                  ts.createIdentifier('bind')
+                ),
+                /* typeArguments */undefined,
+                /* arguments */
+                [
+                  ts.createIdentifier(this.elementScopePropName)
+                ]
+              ),
             )
           ],
           /** multiline */ true
@@ -431,7 +513,7 @@ export class Transformer {
         /* decorators */ undefined,
         /* modifiers */ undefined,
         /* asterisk token */ undefined,
-        Transformer.lifecycleMethods.attach,
+        TemplateTransformer.lifecycleMethods.attach,
         /* question token */ undefined,
         /* type params */ undefined,
         /* params */ undefined,
@@ -466,7 +548,7 @@ export class Transformer {
         /* decorators */ undefined,
         /* modifiers */ undefined,
         /* asterisk token */ undefined,
-        Transformer.lifecycleMethods.detach,
+        TemplateTransformer.lifecycleMethods.detach,
         /* question token */ undefined,
         /* type params */ undefined,
         /* params */ undefined,
@@ -496,7 +578,7 @@ export class Transformer {
         /* decorators */ undefined,
         /* modifiers */ undefined,
         /* asterisk token */ undefined,
-        Transformer.lifecycleMethods.unbind,
+        TemplateTransformer.lifecycleMethods.unbind,
         /* question token */ undefined,
         /* type params */ undefined,
         /* params */ undefined,
@@ -551,7 +633,7 @@ export class Transformer {
                           ts.createCall(
                             ts.createPropertyAccess(
                               ts.createIdentifier('b'),
-                              Transformer.lifecycleMethods.unbind
+                              TemplateTransformer.lifecycleMethods.unbind
                             ),
                             /*typeArguments*/ undefined,
                             /*arguments*/
@@ -578,7 +660,7 @@ export class Transformer {
     return ts.createBinary(
       ts.createPropertyAccess(
         ts.createThis(),
-        '$b1'
+        `$b${b.behaviorIndex}`
       ),
       ts.SyntaxKind.EqualsToken,
       b.code,
@@ -615,7 +697,7 @@ export class Transformer {
     return ts.createGetAccessor(
       /* decorators */undefined,
       [
-        ts.createToken(ts.SyntaxKind.PublicKeyword)
+        // ts.createToken(ts.SyntaxKind.PublicKeyword)
       ],
       name,
       /* parameters */ undefined,
@@ -645,7 +727,7 @@ export class Transformer {
     return ts.createSetAccessor(
       undefined,
       [
-        ts.createToken(ts.SyntaxKind.PublicKeyword)
+        // ts.createToken(ts.SyntaxKind.PublicKeyword)
       ],
       name,
       [
@@ -686,82 +768,4 @@ export class Transformer {
   // =============================
   // VIEW CLASS GENERATION
   // =============================
-
-  private visitClassDeclaration(node: ts.ClassDeclaration) {
-    return node;
-    // if (!this.isCustomElement(node)) {
-    //   return node;
-    // }
-    // this.exportedElements = this.exportedElements || [];
-    // let exportedElement = this.exportedElements.find(e => e.name === node.name.escapedText.toString());
-    // if (!exportedElement) {
-    //   exportedElement = { name: node.name.escapedText.toString() };
-    //   this.exportedElements.push(exportedElement);
-    // }
-    // return this.updateCustomElementClass(node);
-  }
-
-  private updateCustomElementClass(node: ts.ClassDeclaration) {
-    const viewClassName = getElementViewName(node.name);
-    const classMembers = [...node.members];
-    let bindMethod = classMembers.find(member => member.kind === ts.SyntaxKind.MethodDeclaration
-      && member.name.toString() === 'bind'
-    ) as ts.MethodDeclaration;
-    let bindMethodBody: ts.Block;
-    let bindMethodIndex: number = -1;
-    if (bindMethod) {
-      bindMethodIndex = classMembers.indexOf(bindMethod);
-      classMembers.splice(bindMethodIndex, 1);
-      bindMethodBody = (bindMethod as ts.MethodDeclaration).body;
-    } else {
-      bindMethod = {} as any;
-      bindMethodBody = ts.createBlock([]);
-    }
-    bindMethod = ts.createMethod(
-      bindMethod.decorators,
-      bindMethod.modifiers,
-      bindMethod.asteriskToken,
-      'bind',
-      bindMethod.questionToken,
-      bindMethod.typeParameters,
-      bindMethod.parameters,
-      bindMethod.type,
-      ts.createBlock(
-        [
-          ts.createStatement(
-            ts.createCall(
-              ts.createPropertyAccess(
-                ts.createSuper(),
-                ts.createIdentifier('bind')
-              ),
-              undefined,
-              undefined
-            ),
-          ),
-          ...bindMethodBody.statements
-        ],
-        /** multiline */ true
-      )
-    );
-    classMembers.splice(bindMethodIndex === -1 ? 0 : bindMethodIndex, 0, bindMethod);
-    return ts.updateClassDeclaration(
-      node,
-      Array.isArray(node.decorators) ? node.decorators : undefined,
-      [...node.modifiers],
-      node.name,
-      [...(node.typeParameters || [])],
-      [
-        ts.createHeritageClause(
-          ts.SyntaxKind.ExtendsKeyword,
-          [
-            ts.createExpressionWithTypeArguments(
-              undefined,
-              ts.createIdentifier(viewClassName)
-            )
-          ]
-        ),
-      ],
-      classMembers
-    );
-  }
 }

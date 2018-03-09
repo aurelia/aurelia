@@ -10,3 +10,4 @@ yarn.lock
 .rollupcache
 .vscode
 dist
+coverage

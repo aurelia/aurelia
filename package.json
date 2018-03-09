@@ -30,6 +30,7 @@
     "@types/node": "^6.0.45",
     "@types/webpack": "^4.0.0",
     "aurelia-cli": "^0.32.0",
+    "aurelia-pal-browser": "^1.7.0",
     "aurelia-polyfills": "^1.3.0",
     "aurelia-tools": "^1.0.0",
     "autoprefixer": "^6.3.6",

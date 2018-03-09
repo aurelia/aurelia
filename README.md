@@ -46,22 +46,63 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [ ] `repeat` Template Controller
 * [ ] `compose` Custom Element
 
-## Building & Testing
+
+## Building & Testing the Compiler
+
+This project has a temporary dependency on `aurelia-path` and `aurelia-dependency-injection`. Those need to be manually `npm install`ed first.
 
 * Build compiler
 
 ```shell
-npm build
+npm run build
 ```
 
 * Test compiler
 
 ```shell
-npm test
+npm run test
 ```
 
 * Build then test
 
 ```shell
-npm start
+npm run start
 ```
+
+## Running the sample App
+
+```shell
+au run [--watch]
+```
+
+## Running the unit tests
+
+* Single run
+
+```shell
+npm run karma
+```
+
+* Watch mode
+
+```shell
+npm run karma-watch
+```
+
+* Debug mode
+
+```shell
+npm run karma-debug
+```
+
+* Custom options (defaults are shown)
+
+```shell
+npm run karma -- --transpile-only=true --no-info=true --coverage=true --tsconfig=tsconfig-karma.json
+```
+
+For all standard karma options, see `karma start --help`
+
+Installed browser plugins: `Chrome,ChromeHeadless,Firefox,InternetExplorer`
+
+To see the generated test coverage, open `coverage/index.html` in a browser.

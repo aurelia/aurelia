@@ -9,7 +9,7 @@ import { ViewCompiler } from './view-compiler';
 import { ViewModelCompiler, ResourceModule } from './view-model-compiler';
 import { AureliaModuleCompiler } from './module-compiler';
 import 'aurelia-polyfills';
-import { Container } from 'aurelia-dependency-injection';
+import { Container } from '../src/framework/dependency-injection/container';
 import { TemplatingBindingLanguage } from './binding-language';
 import { SyntaxInterpreter } from './syntax-interpreter';
 

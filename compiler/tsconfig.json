@@ -3,8 +3,9 @@
   "compilerOptions": {
     "sourceMap": true,
     "target": "es5",
-    "module": "amd",
+    "module": "commonjs",
     "declaration": false,
+    "noUnusedLocals": true,
     "noImplicitAny": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -19,14 +20,5 @@
   "exclude": [
     "node_modules",
     "aurelia_project"
-  ],
-  "filesGlob": [
-    "./compiler/**/*.ts",
-    "./src/**/*.ts",
-    "./test/**/*.ts",
-    "./custom_typings/**/*.d.ts"
-  ],
-  "atom": {
-    "rewriteTsconfig": false
-  }
+  ]
 }

@@ -1,6 +1,4 @@
-import * as ts from 'typescript';
-
-const camelCasedCache = {};
+const camelCasedCache: Record<string, string> = {};
 
 export function camelCase(name: string) {
   if (name in camelCasedCache) {
@@ -17,7 +15,7 @@ function addHyphenAndLower(char: string) {
   return '-' + char.toLowerCase();
 }
 
-const hyphenatedCache = {};
+const hyphenatedCache: Record<string, string> = {};
 
 export function hyphenate(name: string) {
   if (name in hyphenatedCache) {
@@ -26,20 +24,20 @@ export function hyphenate(name: string) {
   return hyphenatedCache[name] = (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
 }
 
-export function normalizeElementClassName(name: ts.ClassDeclaration | ts.Identifier | string) {
-  name = typeof name === 'string' ? name : (ts.isClassDeclaration(name) ? name.name : name).escapedText.toString();
-  return name.replace(/CustomElement$/, '');
+// https://github.com/darkskyapp/string-hash/blob/master/index.js
+export default function hash(str: string): string {
+  let hash = 5381;
+  let i = str.length;
+
+  while (i--) hash = ((hash << 5) - hash) ^ str.charCodeAt(i);
+  return (hash >>> 0).toString(36);
 }
 
-export function getElementHtmlName(name: ts.ClassDeclaration | ts.Identifier | string): string {
-  return hyphenate(normalizeElementClassName(name));
-}
-
-export function getAttributeHtmlName(name: ts.Identifier | string): string {
-  name = typeof name === 'string' ? name : name.escapedText.toString();
-  return hyphenate(name.replace(/CustomAttribute$/, ''));
-}
-
-export function getElementViewName(name: ts.ClassDeclaration | ts.Identifier | string): string {
-  return `$${normalizeElementClassName(name)}View`
+export function arrayRemove(arr: any[], item: any) {
+  let idx = arr.indexOf(item);
+  if (idx !== -1) {
+    arr.splice(idx, 1);
+    return true;
+  }
+  return false;
 }

@@ -11,3 +11,4 @@ yarn.lock
 .vscode
 dist
 coverage
+npm-debug.log

@@ -5,8 +5,8 @@ export class AttributeMap {
 
   static instance = new AttributeMap();
 
-  elements = Object.create(null);
-  allElements = Object.create(null);
+  elements: Record<string, Record<string, string>> = Object.create(null);
+  allElements: Record<string, string> = Object.create(null);
 
   svg = SVGAnalyzer;
 
@@ -44,7 +44,7 @@ export class AttributeMap {
   /**
    * Maps a specific HTML element attribute to a javascript property.
    */
-  register(elementName, attributeName, propertyName) {
+  register(elementName: string, attributeName: string, propertyName: string): void {
     elementName = elementName.toLowerCase();
     attributeName = attributeName.toLowerCase();
     const element = this.elements[elementName] = (this.elements[elementName] || Object.create(null));
@@ -54,7 +54,7 @@ export class AttributeMap {
   /**
    * Maps an HTML attribute to a javascript property.
    */
-  registerUniversal(attributeName, propertyName) {
+  registerUniversal(attributeName: string, propertyName: string): void {
     attributeName = attributeName.toLowerCase();
     this.allElements[attributeName] = propertyName;
   }
@@ -62,7 +62,7 @@ export class AttributeMap {
   /**
    * Returns the javascript property name for a particlar HTML attribute.
    */
-  map(elementName, attributeName) {
+  map(elementName: string, attributeName: string): string {
     if (this.svg.isStandardSvgAttribute(elementName, attributeName)) {
       return attributeName;
     }

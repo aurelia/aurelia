@@ -174,7 +174,7 @@ export class ParserImplementation {
     return result;
   }
 
-  parseExpression() {
+  parseExpression(): Expression {
     let start = this.peek.index;
     let result = this.parseConditional();
 
@@ -300,7 +300,7 @@ export class ParserImplementation {
     }
   }
 
-  parsePrefix() {
+  parsePrefix(): Expression {
     if (this.optional('+')) {
       return this.parsePrefix(); // TODO(kasperl): This is different than the original parser.
     } else if (this.optional('-')) {
@@ -451,7 +451,7 @@ export class ParserImplementation {
     return new LiteralObject(keys, values);
   }
 
-  parseExpressionList(terminator) {
+  parseExpressionList(terminator: string) {
     let result = [];
 
     if (this.peek.text !== terminator) {
@@ -463,7 +463,7 @@ export class ParserImplementation {
     return result;
   }
 
-  optional(text) {
+  optional(text: string) {
     if (this.peek.text === text) {
       this.advance();
       return true;
@@ -472,7 +472,7 @@ export class ParserImplementation {
     return false;
   }
 
-  expect(text) {
+  expect(text: string) {
     if (this.peek.text === text) {
       this.advance();
     } else {
@@ -484,7 +484,7 @@ export class ParserImplementation {
     this.index++;
   }
 
-  error(message) {
+  error(message: string) {
     let location = (this.index < this.tokens.length)
       ? `at column ${this.tokens[this.index].index + 1} in`
       : 'at the end of the expression';

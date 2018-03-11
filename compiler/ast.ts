@@ -27,6 +27,7 @@ export type dehydratedAst = any[];
 
 export abstract class Expression {
 
+  isAssignable?: boolean;
   abstract dehydrate(): dehydratedAst;
   abstract get observedProperties(): string[];
   abstract get code(): ts.Expression;
@@ -212,7 +213,7 @@ export class AccessThis extends Expression {
     ];
   }
 
-  get observedProperties() {
+  get observedProperties(): string[] {
     return [];
   }
 
@@ -275,7 +276,7 @@ export class AccessMember extends Expression {
     ];
   }
 
-  get observedProperties() {
+  get observedProperties(): string[] {
     return [];
     // return [this.name, ...this.object.observedProperties];
   }
@@ -295,7 +296,7 @@ export class AccessMember extends Expression {
 export class AccessKeyed extends Expression {
   constructor(
     public object: Expression,
-    public key: string | number
+    public key: string | number | Expression
   ) {
     super();
   }
@@ -323,8 +324,8 @@ export class AccessKeyed extends Expression {
       undefined,
       [
         this.object.code,
-        ts.createLiteral(this.key)
-      ]
+        !(this.key instanceof Object) ? ts.createLiteral(this.key) : undefined
+      ].filter(Boolean)
     );
   }
 }
@@ -382,7 +383,7 @@ export class CallMember extends Expression {
     ];
   }
 
-  get observedProperties() {
+  get observedProperties(): string[] {
     return [];
     // return this.args.reduce(
     //   (props, a) => props.concat(a.observedProperties),
@@ -511,7 +512,7 @@ export class LiteralPrimitive extends Expression {
     ];
   }
 
-  get observedProperties() {
+  get observedProperties(): string[] {
     return [];
   }
 
@@ -538,7 +539,7 @@ export class LiteralString extends Expression {
     ];
   }
 
-  get observedProperties() {
+  get observedProperties(): string[] {
     return [];
   }
 

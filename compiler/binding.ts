@@ -71,7 +71,7 @@ export class PropertyBinding extends AbstractBinding {
     super();
   }
 
-  get dehydrated() {
+  get dehydrated(): any[] {
     return [];
   }
 
@@ -121,7 +121,7 @@ export class ListenerBinding extends AbstractBinding {
     super();
   }
 
-  get dehydrated() {
+  get dehydrated(): any[] {
     return [];
   }
 
@@ -165,11 +165,11 @@ export class RefBinding extends AbstractBinding {
     super();
   }
 
-  get dehydrated() {
+  get dehydrated(): any[] {
     return [];
   }
 
-  get code() {
+  get code(): ts.Expression {
     return null;
   }
 
@@ -186,7 +186,7 @@ export class TextBinding extends AbstractBinding {
     super();
   }
 
-  get dehydrated() {
+  get dehydrated(): any[] {
     return [];
   }
 

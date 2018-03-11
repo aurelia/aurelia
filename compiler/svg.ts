@@ -1,6 +1,6 @@
 import { DOM } from 'aurelia-pal';
 
-let svgElements;
+let svgElements: Record<string, string[]>;
 let svgPresentationElements;
 let svgPresentationAttributes;
 let svgAnalyzer;
@@ -206,7 +206,7 @@ svgPresentationAttributes = {
 };
 
 // SVG elements/attributes are case-sensitive.  Not all browsers use the same casing for all attributes.
-let createElement = function(html) {
+let createElement = function(html: string) {
   let div = DOM.createElement('div');
   div.innerHTML = html;
   return div.firstElementChild;
@@ -227,13 +227,13 @@ svgAnalyzer = class SVGAnalyzer {
     // }
   }
 
-  isStandardSvgAttribute(nodeName, attributeName) {
+  isStandardSvgAttribute(nodeName: string, attributeName: string) {
     return presentationElements[nodeName] && presentationAttributes[attributeName]
       || elements[nodeName] && elements[nodeName].indexOf(attributeName) !== -1;
   }
 };
 
 export const elements = svgElements;
-export const presentationElements = svgPresentationElements;
-export const presentationAttributes = svgPresentationAttributes;
+export const presentationElements: Record<string, boolean> = svgPresentationElements;
+export const presentationAttributes: Record<string, boolean> = svgPresentationAttributes;
 export const SVGAnalyzer = new (svgAnalyzer || class { isStandardSvgAttribute() { return false; } });

@@ -5,6 +5,10 @@
   </div>
   <input value.bind="name" />
   <name-tag name.bind='name'></name-tag>
+  <hr/>
+  <name-tag name.bind='name'></name-tag>
+  <hr/>
+  <name-tag name.bind='name'></name-tag>
   <button click.delegate='submit()'></button>
 </template>
 

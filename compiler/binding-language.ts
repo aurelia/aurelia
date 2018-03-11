@@ -2,16 +2,25 @@ import { SyntaxInterpreter } from './syntax-interpreter';
 import { AttributeMap } from './attribute-map';
 import { Expression, TemplateLiteral, LiteralString } from './ast';
 import { Parser } from './parser';
-import { bindingMode, IInsepctionInfo, IBindingLanguage, bindingType, ELEMENT_REF_KEY, IAureliaModule, IResourceElement, ITemplateFactory } from './interfaces';
-import { camelCase } from './util';
+import {
+  // bindingMode,
+  IInsepctionInfo,
+  IBindingLanguage,
+  // bindingType,
+  ELEMENT_REF_KEY,
+  IAureliaModule,
+  IResourceElement,
+  ITemplateFactory
+} from './interfaces';
+// import { camelCase } from './util';
 import { AbstractBinding, TextBinding, RefBinding } from './binding';
-import { TemplateFactory } from './template-factory'
+// import { TemplateFactory } from './template-factory'
 
 let info: IInsepctionInfo = {};
 
 export class TemplatingBindingLanguage implements IBindingLanguage {
 
-  static inject = ['Parser', AttributeMap];
+  static inject = [Parser, AttributeMap];
 
   syntaxInterpreter: SyntaxInterpreter;
   emptyStringExpression: Expression;

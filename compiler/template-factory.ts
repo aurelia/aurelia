@@ -1,13 +1,18 @@
 import * as ts from 'typescript';
-import { Expression, TemplateLiteral } from './ast'
-import * as AST from './ast';
-import { bindingMode, delegationStrategy, AbstractBinding } from './binding';
+// import { Expression, TemplateLiteral } from './ast'
+// import * as AST from './ast';
+import {
+  // bindingMode,
+  // delegationStrategy,
+  AbstractBinding
+} from './binding';
 import {
   ITemplateFactory,
   IAureliaModule,
-  IResourceElement
+  IResourceElement,
+  ITemplateFactoryCode
 } from './interfaces'
-import { getElementViewName } from './util';
+// import { getElementViewName } from './ts-util';
 import { TemplateTransformer } from './template-transformer';
 
 export class TemplateFactory implements ITemplateFactory {
@@ -28,7 +33,7 @@ export class TemplateFactory implements ITemplateFactory {
   }
 
   get observedProperties(): string[] {
-    let props = [];
+    let props: string[] = [];
     for (let bindings = this.bindings, i = 0, ii = bindings.length; ii > i; ++i) {
       let binding = bindings[i];
       let obProps = binding.observedProperties;
@@ -59,7 +64,7 @@ export class TemplateFactory implements ITemplateFactory {
     while (i--) {
       let binding = bindings[i];
       if (binding.behavior) {
-        return binding.behaviorIndex + 1;
+        return binding.behaviorIndex;
       }
     }
     return -1;
@@ -91,7 +96,7 @@ export class TemplateFactory implements ITemplateFactory {
   }
 
   getCode(emitImports?: boolean) {
-    let templateCode = new TemplateTransformer(this, emitImports).code;
+    let templateCode: ITemplateFactoryCode = new TemplateTransformer(this, emitImports).code;
     return {
       imports: templateCode.imports,
       view: templateCode.view

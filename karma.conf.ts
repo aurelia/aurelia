@@ -14,6 +14,7 @@ export interface IKarmaConfigOptions extends karma.ConfigOptions {
   webpack: webpack.Configuration;
   coverageIstanbulReporter: any;
   webpackServer: any;
+  customLaunchers: any;
 }
 
 export default (config: IKarmaConfig): void => {
@@ -51,12 +52,15 @@ export default (config: IKarmaConfig): void => {
       'text/x-typescript': ['ts']
     },
     reporters: ['mocha', 'progress'],
-    coverageIstanbulReporter: {
-      reports: ['html', 'lcovonly', 'text-summary'],
-      fixWebpackSourcePaths: true
-    },
     webpackServer: { noInfo: config.noInfo },
-    browsers: config.browsers || ['Chrome']
+    browsers: config.browsers || ['Chrome'],
+    customLaunchers: {
+      ChromeDebugging: {
+        base: "Chrome",
+        flags: ["--remote-debugging-port=9333"],
+        debug: true
+      }
+    }
   };
 
   if (config.coverage) {
@@ -68,6 +72,10 @@ export default (config: IKarmaConfig): void => {
       test: /src[\/\\].+\.ts$/
     });
     options.reporters.push('coverage-istanbul');
+    options.coverageIstanbulReporter = {
+      reports: ["html", "lcovonly", "text-summary"],
+      fixWebpackSourcePaths: true
+    };
   }
 
   config.set(options);

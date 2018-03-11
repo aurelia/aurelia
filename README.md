@@ -89,13 +89,25 @@ npm run karma
 npm run karma-watch
 ```
 
-* Debug mode
+### Debugging the unit tests from VS Code:
+
 
 ```shell
 npm run karma-debug
 ```
 
-* Custom options (defaults are shown)
+- When karma is running, press the `DEBUG` button in the browser (will open a new tab);
+- In VS Code start the debugger `Attach Karma Chrome`
+- When prompted to select which tab, select `DEBUG`
+- In VS Code, set a breakpoint in a `.ts` source file (src or test)
+- `ctrl+s` / save to trigger a recompile (works even if there are no changes)
+- Refresh the chrome `DEBUG` tab
+- Your breakpoint should now be hit
+
+By default no coverage is generated in debug mode.
+
+
+### Custom options (defaults are shown)
 
 ```shell
 npm run karma -- --transpile-only=true --no-info=true --coverage=true --tsconfig=tsconfig-karma.json

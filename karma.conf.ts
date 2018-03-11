@@ -11,14 +11,9 @@ export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
 }
 
 export interface IKarmaConfigOptions extends karma.ConfigOptions {
-  webpack: IWebackConfiguration;
+  webpack: webpack.Configuration;
   coverageIstanbulReporter: any;
   webpackServer: any;
-}
-
-// remove this when @types/webpack is updated to reflect this webpack 4.0 change
-export interface IWebackConfiguration extends webpack.Configuration {
-  mode: 'development' | 'production';
 }
 
 export default (config: IKarmaConfig): void => {

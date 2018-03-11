@@ -46,7 +46,11 @@
   @customElement()
   export class NameTag {
 
-    @bindable name
+    @bindable
+    name = 'Aurelia';
+
+    @bindable()
+    color = 'violet';
   }
 
 </script>

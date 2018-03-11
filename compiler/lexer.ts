@@ -15,12 +15,12 @@ export class Token {
     return this;
   }
 
-  withGetterSetter(key) {
+  withGetterSetter(key: string) {
     this.key = key;
     return this;
   }
 
-  withValue(value) {
+  withValue(value: any) {
     this.value = value;
     return this;
   }
@@ -31,7 +31,7 @@ export class Token {
 }
 
 export class Lexer {
-  lex(text) {
+  lex(text: string) {
     let scanner = new Scanner(text);
     let tokens = [];
     let token = scanner.scanToken();
@@ -60,7 +60,7 @@ export class Scanner {
     this.advance();
   }
 
-  scanToken() {
+  scanToken(): Token {
     // Skip whitespace.
     while (this.peek <= $SPACE) {
       if (++this.index >= this.length) {
@@ -130,20 +130,20 @@ export class Scanner {
     return null;
   }
 
-  scanCharacter(start, text) {
+  scanCharacter(start: number, text: string): Token {
     assert(this.peek === text.charCodeAt(0));
     this.advance();
     return new Token(start, text);
   }
 
-  scanOperator(start, text) {
+  scanOperator(start: number, text: string): Token {
     assert(this.peek === text.charCodeAt(0));
     assert(OPERATORS[text] === 1);
     this.advance();
     return new Token(start, text).withOp(text);
   }
 
-  scanComplexOperator(start, code, one, two) {
+  scanComplexOperator(start: number, code: number, one: string, two: string): Token {
     assert(this.peek === one.charCodeAt(0));
     this.advance();
 
@@ -164,7 +164,7 @@ export class Scanner {
     return new Token(start, text).withOp(text);
   }
 
-  scanIdentifier() {
+  scanIdentifier(): Token {
     assert(isIdentifierStart(this.peek));
     let start = this.index;
 
@@ -188,7 +188,7 @@ export class Scanner {
     return result;
   }
 
-  scanNumber(start) {
+  scanNumber(start: number): Token {
     assert(isDigit(this.peek));
     let simple = (this.index === start);
     this.advance();  // Skip initial digit.
@@ -230,7 +230,7 @@ export class Scanner {
 
     this.advance();  // Skip initial quote.
 
-    let buffer;
+    let buffer: string[];
     let marker = this.index;
 
     while (this.peek !== quote) {
@@ -295,7 +295,7 @@ export class Scanner {
     }
   }
 
-  error(message, offset = 0) {
+  error(message: string, offset = 0) {
     // TODO(kasperl): Try to get rid of the offset. It is only used to match
     // the error expectations in the lexer tests for numbers with exponents.
     let position = this.index + offset;
@@ -303,7 +303,7 @@ export class Scanner {
   }
 }
 
-const OPERATORS = {
+const OPERATORS: Record<string, 1> = {
   'undefined': 1,
   'null': 1,
   'true': 1,
@@ -387,18 +387,18 @@ const $BAR = 124;
 const $RBRACE = 125;
 const $NBSP = 160;
 
-function isWhitespace(code) {
+function isWhitespace(code: number) {
   return (code >= $TAB && code <= $SPACE) || (code === $NBSP);
 }
 
-function isIdentifierStart(code) {
+function isIdentifierStart(code: number) {
   return ($a <= code && code <= $z)
     || ($A <= code && code <= $Z)
     || (code === $_)
     || (code === $$);
 }
 
-function isIdentifierPart(code) {
+function isIdentifierPart(code: number) {
   return ($a <= code && code <= $z)
     || ($A <= code && code <= $Z)
     || ($0 <= code && code <= $9)
@@ -406,19 +406,19 @@ function isIdentifierPart(code) {
     || (code === $$);
 }
 
-function isDigit(code) {
+function isDigit(code: number) {
   return ($0 <= code && code <= $9);
 }
 
-function isExponentStart(code) {
+function isExponentStart(code: number) {
   return (code === $e || code === $E);
 }
 
-function isExponentSign(code) {
+function isExponentSign(code: number) {
   return (code === $MINUS || code === $PLUS);
 }
 
-function unescape(code) {
+function unescape(code: number) {
   switch (code) {
     case $n: return $LF;
     case $f: return $FF;

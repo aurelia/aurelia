@@ -1,9 +1,12 @@
 import * as ts from 'typescript';
-import { Expression, TemplateLiteral } from './ast'
-import * as AST from './ast';
+import {
+  // Expression,
+  TemplateLiteral
+} from './ast'
+// import * as AST from './ast';
 import { bindingMode, delegationStrategy, AbstractBinding } from './binding';
 
-const AstNames = Object.getOwnPropertyNames(AST).filter(ast => ast !== 'Expression');
+// const AstNames = Object.getOwnPropertyNames(AST).filter(ast => ast !== 'Expression');
 
 export enum bindingType {
   binding = 1,
@@ -43,7 +46,7 @@ export interface ITemplateFactory {
   readonly lastTargetIndex: number;
   readonly lastBehaviorIndex: number;
 
-  addDependency(dependency: IAureliaModule);
+  addDependency(dependency: IAureliaModule): void;
   transform(emitImport?: boolean): ts.SourceFile;
 
   getCustomElement(htmlName: string): IResourceElement;
@@ -78,8 +81,10 @@ export interface IBindingLanguage {
 
 export interface IBindable {
   name: string;
+  attribute: string;
   type: string;
-  defaultBindingMode?: bindingMode
+  defaultBindingMode?: bindingMode;
+  defaultValue?: ts.Expression;
 }
 
 export enum resourceKind {
@@ -95,18 +100,19 @@ export interface IResource {
   impl: ts.ClassDeclaration;
 }
 
-export interface IResourceElement extends IResource {
+export interface IResourceBehavior extends IResource {
   htmlName: string;
-  kind: resourceKind.element;
-  bindables: IBindable[];
+  bindables: Record<string, IBindable>;
+  initializers: Record<string, ts.Expression>;
   getBindable(name: string): IBindable;
 }
 
-export interface IResourceAttribute extends IResource {
-  htmlName: string;
+export interface IResourceElement extends IResourceBehavior {
+  kind: resourceKind.element;
+}
+
+export interface IResourceAttribute extends IResourceBehavior {
   kind: resourceKind.attribute;
-  bindables: IBindable[];
-  getBindable(name: string): IBindable;
 }
 
 export interface IResourceValueConverter extends IResource {

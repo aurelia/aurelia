@@ -1,8 +1,8 @@
 import {
-  bindingMode,
+  // bindingMode,
   IBindingLanguage,
-  bindingType,
-  IViewResources,
+  // bindingType,
+  // IViewResources,
   IAureliaModule,
   IResourceElement,
   IAureliaModuleCompiler,
@@ -12,15 +12,15 @@ import {
 import { Parser } from "./parser";
 import { DOM } from "./dom";
 import { TextBinding, AbstractBinding } from "./binding";
-import * as path from 'path';
-import * as fs from 'fs';
+// import * as path from 'path';
+// import * as fs from 'fs';
 import * as ts from 'typescript';
 import { relativeToFile } from 'aurelia-path';
 import { TemplateFactory } from './template-factory';
 
 export class ViewCompiler implements IViewCompiler {
 
-  static inject = ['Parser', 'IBindingLanguage'];
+  static inject = [Parser, 'IBindingLanguage'];
 
   moduleCompiler: IAureliaModuleCompiler;
 
@@ -36,8 +36,8 @@ export class ViewCompiler implements IViewCompiler {
     let mainTemplate = templates[0];
     let importFiles = this.extractTemplateImports(mainTemplate);
 
-    let depModules: IAureliaModule[] = [];
-    let depFactories: ITemplateFactory[] = [];
+    // let depModules: IAureliaModule[] = [];
+    // let depFactories: ITemplateFactory[] = [];
 
     let dependencies = importFiles.map(depFileName => {
       let depModule = this.moduleCompiler.compile(relativeToFile(depFileName, fileName));
@@ -162,7 +162,7 @@ export class ViewCompiler implements IViewCompiler {
   private compileElement(node: Element, resourceModule: IAureliaModule, templateFactory: ITemplateFactory, dependencyModules: IAureliaModule[]) {
     let hasBinding = false;
     let lastIndex = templateFactory.lastTargetIndex;
-    let currentElement: IResourceElement = templateFactory.elementResource;
+    // let currentElement: IResourceElement = templateFactory.elementResource;
     let elementResource = templateFactory.getCustomElement(node.tagName);
     if (!elementResource) {
       for (let i = 0, ii = dependencyModules.length; ii > i; ++i) {
@@ -218,15 +218,15 @@ export class CustomElementBinding extends AbstractBinding {
     super();
   }
 
-  get dehydrated() {
+  get dehydrated(): any[] {
     return [];
   }
 
-  get code() {
+  get code(): ts.Expression {
     return ts.createCall(
       ts.createPropertyAccess(
         ts.createNew(
-          ts.createIdentifier(this.elementResource.impl.name.escapedText.toString()),
+          ts.createIdentifier(this.elementResource.name),
           /* type arguments */ undefined,
           /* arguments */undefined
         ),
@@ -243,7 +243,7 @@ export class CustomElementBinding extends AbstractBinding {
     );
   }
 
-  get observedProperties() {
+  get observedProperties(): string[] {
     return [];
   }
 }

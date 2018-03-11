@@ -1,8 +1,8 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import {
-  IViewResources,
-  IAureliaModuleCompiler,
+  // IViewResources,
+  // IAureliaModuleCompiler,
   IAureliaModule,
   ITemplateFactory,
   IViewModelCompiler,
@@ -10,12 +10,17 @@ import {
   IResourceAttribute,
   IResourceValueConverter,
   IResourceBindingBehavior,
-  resourceKind,
+  // resourceKind,
   IAureliaModuleStatements,
+  IBindable,
+  bindingMode,
 } from "./interfaces";
-import { ElementResource, AttributeResource } from './view-resources';
-import { ViewCompiler } from './view-compiler';
-import { getElementHtmlName, getAttributeHtmlName, getElementViewName, normalizeElementClassName } from './util';
+import { ElementResource } from './view-resources';
+// import { ViewCompiler } from './view-compiler';
+import { hyphenate, arrayRemove } from './util';
+import { getElementHtmlName, getBindableDecorator, getBindableDecoratorBindingMode, getPrivateClassName } from './ts-util';
+import { BindableProperty, IBindableConfig } from './bindable-property';
+import { removeClassExport } from './ts-class-util';
 
 export class ViewModelCompiler implements IViewModelCompiler {
   constructor(
@@ -94,27 +99,27 @@ export class ResourceModule implements IAureliaModule {
     });
   }
 
-  private isCustomAttribute(node: ts.Node): node is ts.ClassDeclaration & ts.ExportDeclaration {
-    if (!this.isExportedClass(node)) {
-      return false;
-    }
-    const name = node.name.escapedText.toString();
-    if (name.endsWith('CustomAttribute')) {
-      return true;
-    }
-    const decorators = node.decorators;
-    if (!decorators) {
-      return false;
-    }
-    return decorators.some(d => {
-      const decoratorExpression = d.expression;
-      if (ts.isCallExpression(decoratorExpression)) {
-        return (decoratorExpression.expression as ts.Identifier).escapedText === 'customAttribute';
-      } else {
-        return (decoratorExpression as ts.Identifier).escapedText === 'customAttribute';
-      }
-    });
-  }
+  // private isCustomAttribute(node: ts.Node): node is ts.ClassDeclaration & ts.ExportDeclaration {
+  //   if (!this.isExportedClass(node)) {
+  //     return false;
+  //   }
+  //   const name = node.name.escapedText.toString();
+  //   if (name.endsWith('CustomAttribute')) {
+  //     return true;
+  //   }
+  //   const decorators = node.decorators;
+  //   if (!decorators) {
+  //     return false;
+  //   }
+  //   return decorators.some(d => {
+  //     const decoratorExpression = d.expression;
+  //     if (ts.isCallExpression(decoratorExpression)) {
+  //       return (decoratorExpression.expression as ts.Identifier).escapedText === 'customAttribute';
+  //     } else {
+  //       return (decoratorExpression as ts.Identifier).escapedText === 'customAttribute';
+  //     }
+  //   });
+  // }
 
   // private get customAttributes() {
   //   return this.file.getSourceFile().statements.filter(this.isCustomAttribute, this);
@@ -132,12 +137,6 @@ export class ResourceModule implements IAureliaModule {
     let updatedStatements = source.getSourceFile().statements.reduce((statements: ts.Statement[], statement: ts.Statement, idx: number) => {
       // console.log(statement, this.isCustomElement(statement));
       if (this.isCustomElement(statement)) {
-        let htmlName = getElementHtmlName(statement);
-        let elResource = new ElementResource(normalizeElementClassName(statement), resourceKind.element, statement);
-        if (!this.mainResource) {
-          this.mainResource = elResource;
-        }
-        this.elements[htmlName] = elResource;
         return statements.concat(this.updateCustomElementClass(statement));
       } else {
         return statements.concat(statement);
@@ -146,7 +145,7 @@ export class ResourceModule implements IAureliaModule {
     return updatedStatements;
   }
 
-  private updateCustomElementClass(node: ts.ClassDeclaration) {
+  private updateCustomElementClass(klass: ts.ClassDeclaration) {
     // this.exportedCustomElements = this.exportedCustomElements || [];
     // let elName = getCustomElementName(node.name);
     // let exportedElement = this.exportedCustomElements.find(e => getCustomElementName(e.name) === elName);
@@ -154,16 +153,51 @@ export class ResourceModule implements IAureliaModule {
     //   exportedElement = { name: elName };
     //   this.exportedElements.push(exportedElement);
     // }
-    const htmlName = getElementHtmlName(node.name);
-    const viewClassName = getElementViewName(node.name);
-    const classMembers = [...node.members];
-    let ctor: ts.ConstructorDeclaration;
-    let ctorBody: ts.Block;
-    let ctorIndex: number = -1;
-    let bindMethod: ts.MethodDeclaration;
-    let bindMethodBody: ts.Block;
-    let bindMethodIndex: number = -1;
+    let viewModelClassName = klass.name.escapedText.toString();
+    let privateBaseClassName = getPrivateClassName(viewModelClassName);
+    const htmlName = getElementHtmlName(klass);
+    // const viewClassName = getElementViewName(klass.name);
+    const classMembers = [...klass.members];
+    // let ctor: ts.ConstructorDeclaration;
+    // let ctorBody: ts.Block;
+    // let ctorIndex: number = -1;
+    // let bindMethod: ts.MethodDeclaration;
+    // let bindMethodBody: ts.Block;
+    // let bindMethodIndex: number = -1;
+    let bindables: Record<string, IBindable> = {};
+    let initializers: Record<string, ts.Expression> = {};
 
+    /**
+     * Upgrade
+     */
+    klass = ts.updateClassDeclaration(
+      klass,
+      Array.isArray(klass.decorators) ? this.updateElementDecorators(klass.decorators) : undefined,
+      klass.modifiers,
+      ts.createIdentifier(privateBaseClassName),
+      klass.typeParameters,
+      klass.heritageClauses,
+      classMembers
+    );
+
+    klass = this.extractClassMemberMetadata(
+      /* extract bindables of class members */ klass,
+      /* into this object */ bindables,
+      /* and this object */ initializers
+    );
+
+    klass = removeClassExport(/* unexport, export view class with this name instead */ klass);
+
+    /**
+     * Register resource
+     */
+    let elResource = new ElementResource(viewModelClassName, klass, bindables, initializers);
+    if (!this.mainResource) {
+      this.mainResource = elResource;
+    }
+    this.elements[htmlName] = elResource;
+
+    return klass;
 
     // classMembers.forEach((member, idx) => {
     //   if (!ctor && ts.isConstructorDeclaration(member)) {
@@ -238,16 +272,6 @@ export class ResourceModule implements IAureliaModule {
     //   bindMethodIndex === -1 ? 0 : 1,
     //   bindMethod
     // );
-
-    return ts.updateClassDeclaration(
-      node,
-      Array.isArray(node.decorators) ? this.updateElementDecorators(node.decorators) : undefined,
-      node.modifiers,
-      node.name,
-      Array.isArray(node.typeParameters) ? node.typeParameters : undefined,
-      node.heritageClauses,
-      classMembers
-    );
   }
 
   private updateElementDecorators(decorators: ts.Decorator[]) {
@@ -261,6 +285,63 @@ export class ResourceModule implements IAureliaModule {
         return dec;
       }
     }).filter(Boolean);
+  }
+
+  private extractClassMemberMetadata(klass: ts.ClassDeclaration, bindables: Record<string, IBindable>, initializers: Record<string, ts.Expression>) {
+    let members = klass.members.map(member => {
+      if (!member.decorators) {
+        return member;
+      }
+      if (!ts.isPropertyDeclaration(member)) {
+        return;
+      }
+      let nameAst = member.name;
+      if (ts.isComputedPropertyName(nameAst)) {
+        // Too complex for start
+        // TODO: support computed property
+        throw new Error('Cannot use bindable on computed property');
+      }
+      let memberName: string;
+      if (ts.isIdentifier(nameAst)) {
+        memberName = nameAst.escapedText.toString();
+      } else {
+        memberName = nameAst.text.toString();
+      }
+      if (member.initializer) {
+        initializers[memberName] = member.initializer;
+      }
+      let bindableDecorator = getBindableDecorator(member);
+      if (bindableDecorator === null) {
+        return member;
+      }
+      let decorators = [...member.decorators];
+      arrayRemove(decorators, bindableDecorator);
+      let bindableAttrName = hyphenate(memberName);
+      let bindableConfig: IBindableConfig = {
+        name: memberName,
+        defaultBindingMode: getBindableDecoratorBindingMode(bindableDecorator) || bindingMode.toView,
+        defaultValue: member.initializer ? ts.getMutableClone(member.initializer) : undefined
+      };
+      bindables[bindableAttrName] = new BindableProperty(bindableConfig);
+      return ts.updateProperty(
+        member,
+        decorators,
+        member.modifiers,
+        nameAst,
+        member.questionToken,
+        member.type,
+        member.initializer
+      );
+    });
+    return ts.updateClassDeclaration(
+      klass,
+      klass.decorators,
+      klass.modifiers,
+      klass.name,
+      klass.typeParameters,
+      klass.heritageClauses,
+      members
+    );
   }
 
   addFactory(factory: ITemplateFactory) {
@@ -321,9 +402,9 @@ export class ResourceModule implements IAureliaModule {
   }
 
   toSourceFile(emitImport?: boolean): ts.SourceFile {
-    let importsEmitted = false;
+    // let importsEmitted = false;
     let imports: ts.ImportDeclaration[];
-    let templateViews: ts.ClassDeclaration[] = [];
+    // let templateViews: ts.ClassDeclaration[] = [];
     let file = ts.createSourceFile(this.fileName, '', ts.ScriptTarget.Latest);
 
     let factories = this.templateFactories;
@@ -331,19 +412,19 @@ export class ResourceModule implements IAureliaModule {
     let mainFactoryCode = mainFactory.getCode();
     let statements: ts.Statement[] = [...mainFactoryCode.imports];
 
-    for (let i = 1, ii = factories.length; ii > i; ++i) {
-      let factory = factories[i];
-    }
+    // for (let i = 1, ii = factories.length; ii > i; ++i) {
+    //   let factory = factories[i];
+    // }
 
-    let templateCodes = this.templateFactories.forEach(tf => {
-      let code = tf.getCode(emitImport && !imports ? true : false);
-      if (!imports) {
-        imports = code.imports;
-        statements.push(...code.imports);
-      }
-      statements.push(code.view);
-      templateViews.push(code.view);
-    });
+    // let templateCodes = this.templateFactories.forEach(tf => {
+    //   let code = tf.getCode(emitImport && !imports ? true : false);
+    //   if (!imports) {
+    //     imports = code.imports;
+    //     statements.push(...code.imports);
+    //   }
+    //   statements.push(code.view);
+    //   templateViews.push(code.view);
+    // });
 
     // let templateFiles = this.templateFactories.map(tf => {
     //   return tf.transform(emitImport && !importsEmitted ? true : false)

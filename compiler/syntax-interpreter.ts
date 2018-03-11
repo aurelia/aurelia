@@ -3,7 +3,7 @@ import { Parser } from './parser';
 import {
   IBindingLanguage,
   IInsepctionInfo,
-  bindingType,
+  // bindingType,
   IResourceElement,
   IAureliaModule,
   ITemplateFactory,
@@ -11,9 +11,21 @@ import {
 
 import { bindingMode, delegationStrategy, AbstractBinding, PropertyBinding, ListenerBinding } from './binding';
 
+// interface SyntaxInterpreterCommands {
+//   bind: 1,
+//   'one-time': 1,
+//   'one-way': 1,
+//   'two-way': 1,
+//   'to-view': 1,
+//   'from-view': 1,
+//   'trigger': 1,
+//   'delegate': 1,
+//   'capture': 1
+// };
+
 export class SyntaxInterpreter {
 
-  static inject = ['Parser', 'IBindingLanguage', AttributeMap];
+  static inject = [Parser, 'IBindingLanguage', AttributeMap];
 
   constructor(
     public parser: Parser,
@@ -24,13 +36,13 @@ export class SyntaxInterpreter {
 
   interpret(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule) {
     if (info.command in this) {
-      return this[info.command](element, info, targetIndex, elementResource, factory, auModule);
+      return (this as any)[info.command](element, info, targetIndex, elementResource, factory, auModule);
     }
 
     return this.handleUnknownCommand(element, info, targetIndex);
   }
 
-  private handleUnknownCommand(element: Element, info: IInsepctionInfo, targetIndex: number) {
+  private handleUnknownCommand(element: Element, info: IInsepctionInfo, targetIndex: number): AbstractBinding {
     console.warn('Unknown binding command.', info);
     return null;
   }

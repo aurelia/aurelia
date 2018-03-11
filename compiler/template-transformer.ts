@@ -1,9 +1,9 @@
 import * as ts from 'typescript';
 import {
   ITemplateFactory,
-  IAureliaModule
+  // IAureliaModule
 } from './interfaces';
-import { getElementViewName } from './util';
+import { getElementViewName, getPrivateClassName } from './ts-util';
 import { AbstractBinding } from './binding';
 
 export interface TemplateFactoryCode {
@@ -39,11 +39,12 @@ export class TemplateTransformer {
 
   get code(): TemplateFactoryCode {
     let factory = this.templateFactory;
-    let file = ts.createSourceFile(factory.owner.fileName, '', ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+    // let file = ts.createSourceFile(factory.owner.fileName, '', ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
     let observedProperties = factory.observedProperties;
     let elResource = factory.elementResource;
-    let viewModelName = elResource.impl.name.escapedText.toString();
-    let viewClassName = getElementViewName(viewModelName);
+    let baseVmClassName = elResource.name;
+    // let viewClassName = getElementViewName(viewModelClassName);
+    let privateVmClassName = getPrivateClassName(baseVmClassName);
     return {
       imports: (this.emitImport
         ? [
@@ -61,7 +62,7 @@ export class TemplateTransformer {
         [
           ts.createToken(ts.SyntaxKind.ExportKeyword)
         ],
-        viewClassName,
+        baseVmClassName,
         /* type parameters */ undefined,
         /* heritage clauses */
         [
@@ -70,18 +71,18 @@ export class TemplateTransformer {
             [
               ts.createExpressionWithTypeArguments(
                 undefined,
-                ts.createIdentifier(viewModelName)
+                ts.createIdentifier(privateVmClassName)
               )
             ]
           ),
         ],
         /* members */
         [
+          this.createTemplateProp(),
           this.createViewClassConstructor(),
           // this.createScopeProp(),
           // this.createObserverProp(observedProperties),
-          this.createTemplateProp(),
-          this.createInitMethod(viewClassName),
+          this.createInitMethod(privateVmClassName),
           // this.createBindingsProp(),
           ...this.createLifecycleMethods(),
           ...observedProperties.reduce((propDeclarations, op) => {
@@ -155,7 +156,7 @@ export class TemplateTransformer {
     ]);
   }
 
-  private createImport(names: string[], moduleName: string) {
+  private createImport(names: string[], moduleName: string): ts.ImportDeclaration {
     return ts.createImportDeclaration(
       /* decorators */undefined,
       /* modifiers */ undefined,
@@ -174,12 +175,14 @@ export class TemplateTransformer {
   // VIEW CLASS GENERATION
   // =============================
 
-  private createViewClassConstructor() {
+  private createViewClassConstructor(): ts.ConstructorDeclaration {
+    let elInitializers = this.templateFactory.elementResource.initializers;
     return ts.createConstructor(
       /** decorators */ undefined,
       /** modifiers */ undefined,
       /** params */[],
       ts.createBlock([
+        // super()
         ts.createStatement(
           ts.createCall(
             ts.createSuper(),
@@ -187,6 +190,7 @@ export class TemplateTransformer {
             undefined
           )
         ),
+        // this.$scope = { ... }
         ts.createStatement(
           ts.createAssignment(
             ts.createPropertyAccess(
@@ -215,6 +219,7 @@ export class TemplateTransformer {
             )
           )
         ),
+        // this.$observer = { ... }
         ts.createStatement(
           ts.createCall(
             ts.createPropertyAccess(
@@ -231,14 +236,19 @@ export class TemplateTransformer {
                   ts.createPropertyAssignment(
                     'value',
                     ts.createObjectLiteral(
-                      this.templateFactory.observedProperties.map(op => ts.createPropertyAssignment(
-                        op,
-                        ts.createNew(
-                          ts.createIdentifier('Observer'),
-                          /* type arguments */ undefined,
-                          /* arguments */ undefined
+                      this.templateFactory.observedProperties.map(op => {
+                        let initializer = elInitializers[op];
+                        return ts.createPropertyAssignment(
+                          op,
+                          ts.createNew(
+                            ts.createIdentifier('Observer'),
+                            /* type arguments */ undefined,
+                            /* arguments */ initializer
+                              ? [initializer]
+                              : undefined
+                          )
                         )
-                      )),
+                      }),
                       /* multiline */ true
                     )
                   ),
@@ -253,61 +263,61 @@ export class TemplateTransformer {
     );
   }
 
-  private createObserverProp(observedProperties: string[]) {
-    return ts.createProperty(
-      /* decorators */ undefined,
-      /* modifiers */ undefined,
-      this.observerPropName,
-      /* question token */ undefined,
-      /* type node */ undefined,
-      ts.createObjectLiteral(
-        observedProperties.map(op => ts.createPropertyAssignment(
-          op,
-          ts.createNew(
-            ts.createIdentifier('Observer'),
-            /* type arguments */ undefined,
-            /* arguments */
-            [
-              ts.createLiteral('')
-            ]
-          )
-        )),
-        /* multiline */ true
-      )
-    );
-  }
+  // private createObserverProp(observedProperties: string[]) {
+  //   return ts.createProperty(
+  //     /* decorators */ undefined,
+  //     /* modifiers */ undefined,
+  //     this.observerPropName,
+  //     /* question token */ undefined,
+  //     /* type node */ undefined,
+  //     ts.createObjectLiteral(
+  //       observedProperties.map(op => ts.createPropertyAssignment(
+  //         op,
+  //         ts.createNew(
+  //           ts.createIdentifier('Observer'),
+  //           /* type arguments */ undefined,
+  //           /* arguments */
+  //           [
+  //             ts.createLiteral('')
+  //           ]
+  //         )
+  //       )),
+  //       /* multiline */ true
+  //     )
+  //   );
+  // }
 
-  private createScopeProp() {
-    return ts.createProperty(
-      /* decorators */ undefined,
-      /* modifiers */ undefined,
-      this.elementScopePropName,
-      /* question token */ undefined,
-      /* type node */ undefined,
-      ts.createObjectLiteral(
-        [
-          ts.createPropertyAssignment(
-            'bindingContext',
-            ts.createThis()
-          ),
-          ts.createPropertyAssignment(
-            'overrideContext',
-            ts.createCall(
-              ts.createIdentifier('createOverrideContext'),
-              /*typeArguments*/ undefined,
-              /*arguments*/
-              [
-                ts.createThis()
-              ]
-            )
-          )
-        ],
-        /*multiline*/ true
-      )
-    );
-  }
+  // private createScopeProp() {
+  //   return ts.createProperty(
+  //     /* decorators */ undefined,
+  //     /* modifiers */ undefined,
+  //     this.elementScopePropName,
+  //     /* question token */ undefined,
+  //     /* type node */ undefined,
+  //     ts.createObjectLiteral(
+  //       [
+  //         ts.createPropertyAssignment(
+  //           'bindingContext',
+  //           ts.createThis()
+  //         ),
+  //         ts.createPropertyAssignment(
+  //           'overrideContext',
+  //           ts.createCall(
+  //             ts.createIdentifier('createOverrideContext'),
+  //             /*typeArguments*/ undefined,
+  //             /*arguments*/
+  //             [
+  //               ts.createThis()
+  //             ]
+  //           )
+  //         )
+  //       ],
+  //       /*multiline*/ true
+  //     )
+  //   );
+  // }
 
-  private createTemplateProp() {
+  private createTemplateProp(): ts.PropertyDeclaration {
     return ts.createProperty(
       /* decorators */ undefined,
       [
@@ -327,7 +337,7 @@ export class TemplateTransformer {
     );
   }
 
-  private createInitMethod(viewClassName: string) {
+  private createInitMethod(viewClassName: string): ts.MethodDeclaration {
     return ts.createMethod(
       /* decorators */ undefined,
       /* modifiers */ undefined,
@@ -415,7 +425,7 @@ export class TemplateTransformer {
     );
   }
 
-  private createLifecycleMethods() {
+  private createLifecycleMethods(): ts.MethodDeclaration[] {
     return [
       ts.createMethod(
         /* decorators */ undefined,

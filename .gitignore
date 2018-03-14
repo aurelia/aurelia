@@ -8,7 +8,8 @@ bower_components
 build/reports
 yarn.lock
 .rollupcache
-.vscode
+.vscode/*
+!.vscode/launch.json
 dist
 coverage
 npm-debug.log

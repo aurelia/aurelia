@@ -1,10 +1,12 @@
-const signals = {};
+import { ConnectableBinding } from "./connectable-binding";
 
-export function connectBindingToSignal(binding, name: string) {
+const signals: Record<string, number> = {};
+
+export function connectBindingToSignal(binding: ConnectableBinding, name: string) {
   if (!signals.hasOwnProperty(name)) {
     signals[name] = 0;
   }
-  
+
   binding.observeProperty(signals, name);
 }
 

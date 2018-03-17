@@ -1,18 +1,18 @@
 import * as LogManager from '../logging';
-import {DOM} from '../dom';
-import {TaskQueue, Task} from '../task-queue';
-import {getArrayObserver} from './array-observation';
-import {getMapObserver} from './map-observation';
-import {getSetObserver} from './set-observation';
-import {EventManager} from './event-manager';
-import {DirtyChecker, DirtyCheckProperty} from './dirty-checking';
+import { DOM } from '../dom';
+import { TaskQueue, Task } from '../task-queue';
+import { getArrayObserver } from './array-observation';
+import { getMapObserver } from './map-observation';
+import { getSetObserver } from './set-observation';
+import { EventManager } from './event-manager';
+import { DirtyChecker, DirtyCheckProperty } from './dirty-checking';
 import {
   SetterObserver,
   PrimitiveObserver,
   propertyAccessor
 } from './property-observation';
-import {SelectValueObserver} from './select-value-observer';
-import {CheckedObserver} from './checked-observer';
+import { SelectValueObserver } from './select-value-observer';
+import { CheckedObserver } from './checked-observer';
 import {
   ValueAttributeObserver,
   XLinkAttributeObserver,
@@ -20,13 +20,14 @@ import {
   StyleObserver,
   dataAttributeAccessor
 } from './element-observation';
-import {ClassObserver} from './class-observer';
-import {SVGAnalyzer} from './svg';
+import { ClassObserver } from './class-observer';
+import { SVGAnalyzer } from './svg';
+import { IObserverLocator, IBindingTargetObserver, IObservable, ITaskQueue, IBindingTargetAccessor } from './binding-interfaces';
 
-function getPropertyDescriptor(subject, name) {
+function getPropertyDescriptor(subject: object, name: string) {
   let pd = Object.getOwnPropertyDescriptor(subject, name);
   let proto = Object.getPrototypeOf(subject);
-  
+
   while (typeof pd === 'undefined' && proto !== null) {
     pd = Object.getOwnPropertyDescriptor(proto, name);
     proto = Object.getPrototypeOf(proto);
@@ -35,20 +36,20 @@ function getPropertyDescriptor(subject, name) {
   return pd;
 }
 
-export class ObserverLocator {
+export class ObserverLocator implements IObserverLocator {
   public static instance = new ObserverLocator();
-  
-  private adapters = [];
+
+  private adapters: ObjectObservationAdapter[] = [];
   private logger = LogManager.getLogger('observer-locator');
 
   constructor(
-    private taskQueue: TaskQueue = TaskQueue.instance, 
+    public readonly taskQueue: ITaskQueue = TaskQueue.instance,
     private eventManager: EventManager = EventManager.instance,
     private dirtyChecker: DirtyChecker = DirtyChecker.instance,
     private svgAnalyzer: SVGAnalyzer = SVGAnalyzer.instance
-  ) {}
+  ) { }
 
-  getObserver(obj, propertyName) {
+  getObserver(obj: any, propertyName: string): IBindingTargetObserver {
     let observersLookup = obj.$observers;
     let observer;
 
@@ -69,12 +70,12 @@ export class ObserverLocator {
     return observer;
   }
 
-  getOrCreateObserversLookup(obj) {
+  getOrCreateObserversLookup(obj: IObservable) {
     return obj.$observers || this.createObserversLookup(obj);
   }
 
-  createObserversLookup(obj) {
-    let value = {};
+  createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {
+    let value: Record<string, IBindingTargetObserver> = {};
 
     if (!Reflect.defineProperty(obj, '$observers', {
       enumerable: false,
@@ -92,7 +93,7 @@ export class ObserverLocator {
     this.adapters.push(adapter);
   }
 
-  getAdapterObserver(obj, propertyName, descriptor) {
+  getAdapterObserver(obj: any, propertyName: string, descriptor: PropertyDescriptor) {
     for (let i = 0, ii = this.adapters.length; i < ii; i++) {
       let adapter = this.adapters[i];
       let observer = adapter.getObserver(obj, propertyName, descriptor);
@@ -103,7 +104,7 @@ export class ObserverLocator {
     return null;
   }
 
-  createPropertyObserver(obj, propertyName) {
+  createPropertyObserver(obj: any, propertyName: string) {
     let descriptor;
     let handler;
     let xlinkResult;
@@ -123,7 +124,7 @@ export class ObserverLocator {
 
       handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && obj.tagName.toLowerCase() === 'select') {
-        return new SelectValueObserver(obj, handler, this);
+        return new SelectValueObserver(obj as HTMLSelectElement, handler, this);
       }
 
       if (propertyName === 'checked' && obj.tagName.toLowerCase() === 'input') {
@@ -154,7 +155,7 @@ export class ObserverLocator {
     //}
 
     if (descriptor) {
-      const existingGetterOrSetter = descriptor.get || descriptor.set;
+      const existingGetterOrSetter: ((arg?: any) => any) & { getObserver?: Function } = descriptor.get || descriptor.set;
       if (existingGetterOrSetter) {
         if (existingGetterOrSetter.getObserver) {
           return existingGetterOrSetter.getObserver(obj);
@@ -192,7 +193,7 @@ export class ObserverLocator {
     return new SetterObserver(this.taskQueue, obj, propertyName);
   }
 
-  getAccessor(obj, propertyName) {
+  getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
     if (obj instanceof DOM.Element) {
       if (propertyName === 'class'
         || propertyName === 'style' || propertyName === 'css'
@@ -213,21 +214,19 @@ export class ObserverLocator {
     return propertyAccessor;
   }
 
-  getArrayObserver(array) {
+  getArrayObserver(array: any[]) {
     return getArrayObserver(this.taskQueue, array);
   }
 
-  getMapObserver(map) {
+  getMapObserver(map: Map<any, any>) {
     return getMapObserver(this.taskQueue, map);
   }
 
-  getSetObserver(set) {
+  getSetObserver(set: Set<any>) {
     return getSetObserver(this.taskQueue, set);
   }
 }
 
-export class ObjectObservationAdapter {
-  getObserver(object, propertyName, descriptor) {
-    throw new Error('BindingAdapters must implement getObserver(object, propertyName).');
-  }
+export interface ObjectObservationAdapter {
+  getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }

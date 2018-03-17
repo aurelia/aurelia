@@ -1,12 +1,12 @@
-function isIndex(s) {
+function isIndex(s: any): s is number {
   return +s === s >>> 0;
 }
 
-function toNumber(s) {
+function toNumber(s: any): number {
   return +s;
 }
 
-function newSplice(index, removed, addedCount) {
+function newSplice(index: number, removed: any, addedCount: any) {
   return {
     index: index,
     removed: removed,
@@ -19,7 +19,7 @@ const EDIT_UPDATE = 1;
 const EDIT_ADD = 2;
 const EDIT_DELETE = 3;
 
-function ArraySplice() {}
+function ArraySplice() { }
 
 ArraySplice.prototype = {
   // Note: This function is *based* on the computation of the Levenshtein
@@ -33,7 +33,7 @@ ArraySplice.prototype = {
   // With 1-edit updates, the shortest path would be just to update all seven
   // characters. With 2-edit updates, we delete 4, leave 3, and add 4. This
   // leaves the substring '123' intact.
-  calcEditDistances: function(current, currentStart, currentEnd, old, oldStart, oldEnd) {
+  calcEditDistances: function(current: any, currentStart: any, currentEnd: any, old: any, oldStart: any, oldEnd: any) {
     // "Deletion" columns
     let rowCount = oldEnd - oldStart + 1;
     let columnCount = currentEnd - currentStart + 1;
@@ -70,7 +70,7 @@ ArraySplice.prototype = {
   // This starts at the final weight, and walks "backward" by finding
   // the minimum previous weight recursively until the origin of the weight
   // matrix.
-  spliceOperationsFromEditDistances: function(distances) {
+  spliceOperationsFromEditDistances: function(distances: any) {
     let i = distances.length - 1;
     let j = distances[0].length - 1;
     let current = distances[i][j];
@@ -145,7 +145,7 @@ ArraySplice.prototype = {
    *   l: The length of the current array
    *   p: The length of the old array
    */
-  calcSplices: function(current, currentStart, currentEnd, old, oldStart, oldEnd) {
+  calcSplices: function(current: any, currentStart: any, currentEnd: any, old: any, oldStart: any, oldEnd: any) {
     let prefixCount = 0;
     let suffixCount = 0;
 
@@ -173,14 +173,14 @@ ArraySplice.prototype = {
         splice.removed.push(old[oldStart++]);
       }
 
-      return [ splice ];
+      return [splice];
     } else if (oldStart === oldEnd) {
-      return [ newSplice(currentStart, [], currentEnd - currentStart) ];
+      return [newSplice(currentStart, [], currentEnd - currentStart)];
     }
 
     let ops = this.spliceOperationsFromEditDistances(
-        this.calcEditDistances(current, currentStart, currentEnd,
-                               old, oldStart, oldEnd));
+      this.calcEditDistances(current, currentStart, currentEnd,
+        old, oldStart, oldEnd));
 
     let splice = undefined;
     let splices = [];
@@ -188,43 +188,43 @@ ArraySplice.prototype = {
     let oldIndex = oldStart;
     for (let i = 0; i < ops.length; ++i) {
       switch (ops[i]) {
-      case EDIT_LEAVE:
-        if (splice) {
-          splices.push(splice);
-          splice = undefined;
-        }
+        case EDIT_LEAVE:
+          if (splice) {
+            splices.push(splice);
+            splice = undefined;
+          }
 
-        index++;
-        oldIndex++;
-        break;
-      case EDIT_UPDATE:
-        if (!splice) {
-          splice = newSplice(index, [], 0);
-        }
+          index++;
+          oldIndex++;
+          break;
+        case EDIT_UPDATE:
+          if (!splice) {
+            splice = newSplice(index, [], 0);
+          }
 
-        splice.addedCount++;
-        index++;
+          splice.addedCount++;
+          index++;
 
-        splice.removed.push(old[oldIndex]);
-        oldIndex++;
-        break;
-      case EDIT_ADD:
-        if (!splice) {
-          splice = newSplice(index, [], 0);
-        }
+          splice.removed.push(old[oldIndex]);
+          oldIndex++;
+          break;
+        case EDIT_ADD:
+          if (!splice) {
+            splice = newSplice(index, [], 0);
+          }
 
-        splice.addedCount++;
-        index++;
-        break;
-      case EDIT_DELETE:
-        if (!splice) {
-          splice = newSplice(index, [], 0);
-        }
+          splice.addedCount++;
+          index++;
+          break;
+        case EDIT_DELETE:
+          if (!splice) {
+            splice = newSplice(index, [], 0);
+          }
 
-        splice.removed.push(old[oldIndex]);
-        oldIndex++;
-        break;
-       // no default
+          splice.removed.push(old[oldIndex]);
+          oldIndex++;
+          break;
+        // no default
       }
     }
 
@@ -234,7 +234,7 @@ ArraySplice.prototype = {
     return splices;
   },
 
-  sharedPrefix: function(current, old, searchLength) {
+  sharedPrefix: function(current: any, old: any, searchLength: any) {
     for (let i = 0; i < searchLength; ++i) {
       if (!this.equals(current[i], old[i])) {
         return i;
@@ -244,7 +244,7 @@ ArraySplice.prototype = {
     return searchLength;
   },
 
-  sharedSuffix: function(current, old, searchLength) {
+  sharedSuffix: function(current: any, old: any, searchLength: any) {
     let index1 = current.length;
     let index2 = old.length;
     let count = 0;
@@ -255,23 +255,23 @@ ArraySplice.prototype = {
     return count;
   },
 
-  calculateSplices: function(current, previous) {
+  calculateSplices: function(current: any, previous: any) {
     return this.calcSplices(current, 0, current.length, previous, 0,
-                            previous.length);
+      previous.length);
   },
 
-  equals: function(currentValue, previousValue) {
+  equals: function(currentValue: any, previousValue: any) {
     return currentValue === previousValue;
   }
 };
 
 let arraySplice = new ArraySplice();
 
-export function calcSplices(current, currentStart, currentEnd, old, oldStart, oldEnd) {
+export function calcSplices(current: any, currentStart: any, currentEnd: any, old: any, oldStart: any, oldEnd: any) {
   return arraySplice.calcSplices(current, currentStart, currentEnd, old, oldStart, oldEnd);
 }
 
-function intersect(start1, end1, start2, end2) {
+function intersect(start1: any, end1: any, start2: any, end2: any) {
   // Disjoint
   if (end1 < start2 || end2 < start1) {
     return -1;
@@ -299,7 +299,7 @@ function intersect(start1, end1, start2, end2) {
   return end1 - start1; // Contained
 }
 
-export function mergeSplice(splices, index, removed, addedCount) {
+export function mergeSplice(splices: any, index: any, removed: any, addedCount: any) {
   let splice = newSplice(index, removed, addedCount);
 
   let inserted = false;
@@ -314,9 +314,9 @@ export function mergeSplice(splices, index, removed, addedCount) {
     }
 
     let intersectCount = intersect(splice.index,
-                                   splice.index + splice.removed.length,
-                                   current.index,
-                                   current.index + current.addedCount);
+      splice.index + splice.removed.length,
+      current.index,
+      current.index + current.addedCount);
 
     if (intersectCount >= 0) {
       // Merge the two splices
@@ -328,7 +328,7 @@ export function mergeSplice(splices, index, removed, addedCount) {
 
       splice.addedCount += current.addedCount - intersectCount;
       let deleteCount = splice.removed.length +
-                        current.removed.length - intersectCount;
+        current.removed.length - intersectCount;
 
       if (!splice.addedCount && !deleteCount) {
         // merged splice is a noop. discard.
@@ -379,26 +379,26 @@ function createInitialSplices(array, changeRecords) {
   for (let i = 0; i < changeRecords.length; i++) {
     let record = changeRecords[i];
     switch (record.type) {
-    case 'splice':
-      mergeSplice(splices, record.index, record.removed.slice(), record.addedCount);
-      break;
-    case 'add':
-    case 'update':
-    case 'delete':
-      if (!isIndex(record.name)) {
-        continue;
-      }
+      case 'splice':
+        mergeSplice(splices, record.index, record.removed.slice(), record.addedCount);
+        break;
+      case 'add':
+      case 'update':
+      case 'delete':
+        if (!isIndex(record.name)) {
+          continue;
+        }
 
-      let index = toNumber(record.name);
-      if (index < 0) {
-        continue;
-      }
+        let index = toNumber(record.name);
+        if (index < 0) {
+          continue;
+        }
 
-      mergeSplice(splices, index, [record.oldValue], record.type === 'delete' ? 0 : 1);
-      break;
-    default:
-      console.error('Unexpected record type: ' + JSON.stringify(record)); // eslint-disable-line no-console
-      break;
+        mergeSplice(splices, index, [record.oldValue], record.type === 'delete' ? 0 : 1);
+        break;
+      default:
+        console.error('Unexpected record type: ' + JSON.stringify(record)); // eslint-disable-line no-console
+        break;
     }
   }
 
@@ -418,7 +418,7 @@ export function projectArraySplices(array, changeRecords) {
     }
 
     splices = splices.concat(calcSplices(array, splice.index, splice.index + splice.addedCount,
-                                         splice.removed, 0, splice.removed.length));
+      splice.removed, 0, splice.removed.length));
   });
 
   return splices;

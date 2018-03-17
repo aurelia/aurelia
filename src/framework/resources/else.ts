@@ -1,5 +1,5 @@
 import { IfCore } from "./if-core";
-import { Scope } from "../binding/scope";
+import { Scope } from "../binding/binding-interfaces";
 import { If } from "./if";
 
 export class Else extends IfCore {
@@ -22,7 +22,7 @@ export class Else extends IfCore {
 
     this.ifBehavior = ifBehavior;
     ifBehavior.link(this);
-    
+
     return this;
   }
 }

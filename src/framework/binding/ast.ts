@@ -1,6 +1,7 @@
-import { getContextFor, Scope } from './scope';
+import { getContextFor } from './scope';
 import { connectBindingToSignal } from './signals';
 import { IBinding } from './binding';
+import { Scope } from './binding-interfaces';
 
 interface AstKind {
   Base: 1;
@@ -51,7 +52,7 @@ export const AstKind: AstKind = {
 export interface IExpression {
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions | null, mustEvaluateIfFunction?: boolean): any;
   assign?(scope: Scope, value: any, lookupFunctions: ILookupFunctions | null): any;
-  connect(binding: IBinding, scope: Scope);
+  connect(binding: IBinding, scope: Scope): any;
   bind?(binding: IBinding, scope: Scope): void;
   unbind?(binding: IBinding, scope: Scope): void;
 }
@@ -90,7 +91,7 @@ export class BindingBehavior implements IExpression {
     return this.expression.evaluate(scope, lookupFunctions);
   }
 
-  assign(scope: Scope, value, lookupFunctions: ILookupFunctions) {
+  assign(scope: Scope, value: any, lookupFunctions: ILookupFunctions) {
     return this.expression.assign(scope, value, lookupFunctions);
   }
 
@@ -99,7 +100,7 @@ export class BindingBehavior implements IExpression {
   }
 
   bind(binding: IBinding, scope: Scope) {
-    if (this.expression['expression'] && this.expression.bind) {
+    if ((this.expression as any)['expression'] && this.expression.bind) {
       this.expression.bind(binding, scope);
     }
 
@@ -109,21 +110,21 @@ export class BindingBehavior implements IExpression {
     }
 
     let behaviorKey = `behavior-${this.name}`;
-    if (binding[behaviorKey]) {
+    if ((binding as any)[behaviorKey]) {
       throw new Error(`A binding behavior named "${this.name}" has already been applied to "${this.expression}"`);
     }
 
-    binding[behaviorKey] = behavior;
+    (binding as any)[behaviorKey] = behavior;
     behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.lookupFunctions)));
   }
 
   unbind(binding: IBinding, scope: Scope) {
     let behaviorKey = `behavior-${this.name}`;
 
-    binding[behaviorKey].unbind(binding, scope);
-    binding[behaviorKey] = null;
+    (binding as any)[behaviorKey].unbind(binding, scope);
+    (binding as any)[behaviorKey] = null;
 
-    if (this.expression['expression'] && this.expression.unbind) {
+    if ((this.expression as any)['expression'] && this.expression.unbind) {
       this.expression.unbind(binding, scope);
     }
   }
@@ -145,7 +146,7 @@ export class ValueConverter implements IExpression {
     return this.allArgs[0].evaluate(scope, lookupFunctions);
   }
 
-  assign(scope: Scope, value, lookupFunctions: ILookupFunctions) {
+  assign(scope: Scope, value: any, lookupFunctions: ILookupFunctions) {
     let converter = lookupFunctions.valueConverters[this.name];
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
@@ -174,7 +175,7 @@ export class ValueConverter implements IExpression {
     }
     i = signals.length;
     while (i--) {
-      connectBindingToSignal(binding, signals[i]);
+      connectBindingToSignal((binding as any), signals[i]);
     }
   }
 }
@@ -238,7 +239,7 @@ export class AccessScope implements IExpression {
     return context[this.name];
   }
 
-  assign(scope: Scope, value) {
+  assign(scope: Scope, value: any) {
     let context = getContextFor(this.name, scope, this.ancestor);
     return context ? (context[this.name] = value) : undefined;
   }
@@ -257,7 +258,7 @@ export class AccessMember implements IExpression {
     return instance === null || instance === undefined ? instance : instance[this.name];
   }
 
-  assign(scope: Scope, value, lookupFunctions: ILookupFunctions) {
+  assign(scope: Scope, value: any, lookupFunctions: ILookupFunctions) {
     let instance = this.object.evaluate(scope, lookupFunctions);
 
     if (instance === null || instance === undefined) {
@@ -453,7 +454,7 @@ export class Binary implements IExpression {
 }
 
 export class PrefixNot implements IExpression {
-  constructor(private operation, private expression: IExpression) { }
+  constructor(private operation: string, private expression: IExpression) { }
 
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     return !this.expression.evaluate(scope, lookupFunctions);
@@ -465,7 +466,7 @@ export class PrefixNot implements IExpression {
 }
 
 export class LiteralPrimitive implements IExpression {
-  constructor(private value) { }
+  constructor(private value: any) { }
 
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
     return this.value;
@@ -537,7 +538,7 @@ export class LiteralObject implements IExpression {
   constructor(private keys: string[], private values: IExpression[]) { }
 
   evaluate(scope: Scope, lookupFunctions: ILookupFunctions) {
-    let instance = {};
+    let instance: Record<string, any> = {};
     let keys = this.keys;
     let values = this.values;
 
@@ -569,7 +570,7 @@ function evalList(scope: Scope, list: IExpression[], lookupFunctions: ILookupFun
 }
 
 /// Add the two arguments with automatic type conversion.
-function autoConvertAdd(a, b) {
+function autoConvertAdd(a: any, b: any) {
   if (a !== null && b !== null) {
     // TODO(deboer): Support others.
     if (typeof a === 'string' && typeof b !== 'string') {
@@ -594,7 +595,7 @@ function autoConvertAdd(a, b) {
   return 0;
 }
 
-function getFunction(obj, name: string, mustExist: boolean) {
+function getFunction(obj: any, name: string, mustExist: boolean) {
   let func = obj === null || obj === undefined ? null : obj[name];
 
   if (typeof func === 'function') {
@@ -608,7 +609,7 @@ function getFunction(obj, name: string, mustExist: boolean) {
   throw new Error(`${name} is not a function`);
 }
 
-function getKeyed(obj, key) {
+function getKeyed(obj: any, key: any) {
   if (Array.isArray(obj)) {
     return obj[parseInt(key, 10)];
   } else if (obj) {
@@ -620,7 +621,7 @@ function getKeyed(obj, key) {
   return obj[key];
 }
 
-function setKeyed(obj, key, value) {
+function setKeyed(obj: any, key: any, value: any) {
   if (Array.isArray(obj)) {
     let index = parseInt(key, 10);
 

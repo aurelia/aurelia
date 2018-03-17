@@ -1,4 +1,3 @@
-import { Scope } from './binding/scope';
 import { Observer } from './binding/property-observation';
 import {
   IExpression,
@@ -11,21 +10,22 @@ import {
   Conditional,
   TemplateLiteral
 } from './binding/ast';
-import { IBindingTarget, IObservable, Binding } from './binding/binding';
+import { IBindingTarget, Binding } from './binding/binding';
+import { Scope, IObservable, IDelegationStrategy } from './binding/binding-interfaces';
 import { bindingMode } from './binding/binding-mode';
 import { Listener } from './binding/listener';
 import { delegationStrategy } from './binding/event-manager';
 import { DOM } from './dom';
 import { Ref } from './binding/ref';
 
-const emptyArray = [];
+const emptyArray: any[] = [];
 
 let lookupFunctions: ILookupFunctions = {
   valueConverters: {},
   bindingBehaviors: {}
 };
 
-let astLookup = {
+let astLookup: Record<string, any> = {
   message: new AccessScope('message'),
   textContent: new AccessScope('textContent'),
   value: new AccessScope('value'),
@@ -63,7 +63,7 @@ export function oneWay(sourceExpression: string, target: IBindingTarget, targetP
 
 export function oneWayText(sourceExpression: string, target: Element) {
   let next = target.nextSibling;
-  next['auInterpolationTarget'] = true;
+  (next as any)['auInterpolationTarget'] = true;
   target.parentNode.removeChild(target);
   return oneWay(sourceExpression, next, 'textContent');
 }
@@ -72,7 +72,13 @@ export function twoWay(sourceExpression: string, target: IBindingTarget, targetP
   return new Binding(getAST(sourceExpression), target, targetProperty, bindingMode.twoWay, lookupFunctions);
 }
 
-export function listener(targetEvent: string, target: Element, sourceExpression: string, preventDefault = true, strategy: number = delegationStrategy.none) {
+export function listener(
+  targetEvent: string,
+  target: Element,
+  sourceExpression: string,
+  preventDefault = true,
+  strategy: IDelegationStrategy[keyof IDelegationStrategy] = delegationStrategy.none
+) {
   return new Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
 }
 
@@ -80,7 +86,7 @@ export function ref(target: IBindingTarget, sourceExpression: string) {
   return new Ref(getAST(sourceExpression), target, lookupFunctions);
 }
 
-export function makeElementIntoAnchor(element: Element, elementInstruction?) {
+export function makeElementIntoAnchor(element: Element, elementInstruction?: any) {
   let anchor = DOM.createComment('anchor');
 
   if (elementInstruction) {

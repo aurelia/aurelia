@@ -1,5 +1,5 @@
 import { IfCore } from "./if-core";
-import { Scope } from "../binding/scope";
+import { Scope } from "../binding/binding-interfaces";
 import { Else } from "./else";
 import { Observer } from "../binding/property-observation";
 
@@ -10,11 +10,11 @@ export class If extends IfCore {
   $observers = {
     condition: new Observer(false, v => this.isBound ? this.conditionChanged(v) : void 0)
   };
-  
+
   get condition() { return this.$observers.condition.getValue(); }
   set condition(value: boolean) { this.$observers.condition.setValue(value); }
 
-  swapOrder: 'before'|'with'|'after';
+  swapOrder: 'before' | 'with' | 'after';
 
   bind(scope: Scope) {
     super.bind(scope);
@@ -36,7 +36,7 @@ export class If extends IfCore {
 
     this.elseBehavior = elseBehavior;
     elseBehavior.link(this);
-    
+
     return this;
   }
 
@@ -71,7 +71,7 @@ export class If extends IfCore {
       case 'before':
         return Promise.resolve(add.show()).then(() => remove.hide());
       case 'with':
-        return Promise.all([ remove.hide(), add.show() ]);
+        return Promise.all([remove.hide(), add.show()]);
       default:  // "after", default and unknown values
         let promise = remove.hide();
         return promise ? promise.then(() => add.show()) : add.show();

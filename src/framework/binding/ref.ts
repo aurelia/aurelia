@@ -1,14 +1,14 @@
 import { IExpression, ILookupFunctions } from "./ast";
-import { Scope } from "./scope";
 import { IBinding, IBindingTarget } from "./binding";
+import { Scope } from './binding-interfaces'
 
 export class Ref implements IBinding {
   private source: Scope;
   private isBound = false;
 
   constructor(
-    private sourceExpression: IExpression, 
-    private target: IBindingTarget, 
+    private sourceExpression: IExpression,
+    private target: IBindingTarget,
     public lookupFunctions: ILookupFunctions) {
   }
 

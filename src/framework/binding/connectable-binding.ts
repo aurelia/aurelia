@@ -1,8 +1,9 @@
-import {sourceContext} from './call-context';
-import {ObserverLocator} from './observer-locator';
+import { sourceContext } from './call-context';
+import { ObserverLocator } from './observer-locator';
+import { IBindingTargetObserver, IObserverLocator, IBindingCollectionObserver } from './binding-interfaces';
 
-const slotNames = [];
-const versionSlotNames = [];
+const slotNames: string[] = [];
+const versionSlotNames: string[] = [];
 
 for (let i = 0; i < 100; i++) {
   slotNames.push(`_observer${i}`);
@@ -10,20 +11,25 @@ for (let i = 0; i < 100; i++) {
 }
 
 export abstract class ConnectableBinding {
-  protected observerSlots;
-  protected version;
 
-  constructor(protected observerLocator: ObserverLocator) {}
+  protected observerSlots: any;
+  protected version: number;
 
-  addObserver(observer) {
+  [propName: string]: any;
+
+  constructor(protected observerLocator: IObserverLocator) { }
+
+  abstract call(...args: any[]): any;
+
+  addObserver(observer: IBindingTargetObserver | IBindingCollectionObserver) {
     // find the observer.
     let observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
     let i = observerSlots;
-    
+
     while (i-- && this[slotNames[i]] !== observer) {
       // Do nothing
     }
-  
+
     // if we are not already observing, put the observer in an open slot and subscribe.
     if (i === -1) {
       i = 0;
@@ -43,18 +49,18 @@ export abstract class ConnectableBinding {
     }
     this[versionSlotNames[i]] = this.version;
   }
-  
-  observeProperty(obj, propertyName) {
+
+  observeProperty(obj: any, propertyName: string) {
     let observer = this.observerLocator.getObserver(obj, propertyName);
     this.addObserver(observer);
   }
-  
-  observeArray(array) {
+
+  observeArray(array: any[]) {
     let observer = this.observerLocator.getArrayObserver(array);
     this.addObserver(observer);
   }
-  
-  unobserve(all) {
+
+  unobserve(all?: boolean) {
     let i = this.observerSlots;
     while (i--) {
       if (all || this[versionSlotNames[i]] !== this.version) {

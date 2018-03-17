@@ -1,4 +1,4 @@
-function newRecord(type, object, key, oldValue?) {
+function newRecord(type: string, object: any, key: any, oldValue?: any) {
   return {
     type: type,
     object: object,
@@ -7,7 +7,7 @@ function newRecord(type, object, key, oldValue?) {
   };
 }
 
-export function getChangeRecords(map) {
+export function getChangeRecords(map: Set<any> | Map<any, any>) {
   let entries = new Array(map.size);
   let keys = map.keys();
   let i = 0;

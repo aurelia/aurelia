@@ -3,6 +3,7 @@ import { getAst } from "./asts";
 import { Binding, TextBinding, Listener } from "./framework/binding/binding";
 import { Observer } from "./framework/binding/property-observation";
 import { Template } from "./framework/templating/template";
+import { Color } from "src/color.au";
 class $NameTag {
     constructor() {
         Object.defineProperty(this, "$observers", {
@@ -18,7 +19,7 @@ class $NameTag {
     }
 }
 export class NameTag extends $NameTag {
-    static $html = new Template(`<header>Aurelia Name Tag</header>\n  <div>\n    <input type="text" class="au" /><br />\n    <span class="au" style="font-weight: bold; padding: 10px 0;"><au-marker class="au"></au-marker> </span>\n  </div>\n  <hr />\n  <div>\n    <label>\n      Name tag color:\n      <select class="au">\n        <option>red</option>\n        <option>green</option>\n        <option>blue</option>\n      </select>\n    </label>\n  </div>\n  <hr />\n  <div>\n    <label>\n      Name tag border color:\n      <select class="au">\n        <option>orange</option>\n        <option>black</option>\n        <option>rgba(0,0,0,0.5)</option>\n      </select>\n    </label>\n  </div>\n  <hr />\n  <div>\n    <label>\n      Name tag border width:\n      <input type="number" min="1" step="1" max="10" class="au" />\n    </label>\n  </div>\n  <div>\n    <label>\n      Show header:\n      <input type="checkbox" class="au" />\n    </label>\n  </div>\n  <button class="au">Reset</button>`);
+    static $html = new Template(`<header>Aurelia Name Tag</header>\n  <div>\n    <input type="text" class="au" /><br />\n    <span class="au" style="font-weight: bold; padding: 10px 0;"><au-marker class="au"></au-marker> </span>\n  </div>\n  <hr />\n  <div>\n    <color class="au" />\n  </div>\n  <hr />\n  <div>\n    <label>\n      Name tag border color:\n      <select class="au">\n        <option>orange</option>\n        <option>black</option>\n        <option>rgba(0,0,0,0.5)</option>\n      </select>\n    </label>\n  </div>\n  <hr />\n  <div>\n    <label>\n      Name tag border width:\n      <input type="number" min="1" step="1" max="10" class="au" />\n    </label>\n  </div>\n  <div>\n    <label>\n      Show header:\n      <input type="checkbox" class="au" />\n    </label>\n  </div>\n  <button class="au">Reset</button>`);
     constructor() {
         super();
         this.$scope = {
@@ -31,9 +32,10 @@ export class NameTag extends $NameTag {
         this.$view = $NameTag.$html.create();
         var targets = this.$view.targets;
         this.$bindings = [
-            new Binding(getAst(1), targets[0], "value", 2, lookupFunctions),
-            new TextBinding(getAst(2), targets[1], lookupFunctions),
-            new Binding(getAst(3), targets[2], "value", 2, lookupFunctions),
+            new Binding(getAst(3), targets[0], "value", 2, lookupFunctions),
+            new TextBinding(getAst(1), targets[1], lookupFunctions),
+            this.$b0 = (new Color).applyTo(targets[2]),
+            new Binding(getAst(2), this.$b0, "color", 1, lookupFunctions),
             new Binding(getAst(4), targets[3], "value", 2, lookupFunctions),
             new Binding(getAst(5), targets[4], "value", 2, lookupFunctions),
             new Binding(getAst(6), targets[5], "value", 2, lookupFunctions),

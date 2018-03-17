@@ -1,13 +1,14 @@
-import {ModifyCollectionObserver} from './collection-observation';
+import { ModifyCollectionObserver } from './collection-observation';
+import { ITaskQueue } from './binding-interfaces';
 
 let setProto = Set.prototype;
 
-export function getSetObserver(taskQueue, set) {
+export function getSetObserver(taskQueue: ITaskQueue, set: Set<any>) {
   return ModifySetObserver.for(taskQueue, set);
 }
 
 class ModifySetObserver extends ModifyCollectionObserver {
-  constructor(taskQueue, set) {
+  constructor(taskQueue: ITaskQueue, set: Set<any>) {
     super(taskQueue, set);
   }
 
@@ -17,7 +18,7 @@ class ModifySetObserver extends ModifyCollectionObserver {
    * @param set instance for which observer is searched
    * @returns ModifySetObserver always the same instance for any given set instance
    */
-  static for(taskQueue, set) {
+  static for(taskQueue: ITaskQueue, set: Set<any> & { __set_observer__?: ModifySetObserver }) {
     if (!('__set_observer__' in set)) {
       Reflect.defineProperty(set, '__set_observer__', {
         value: ModifySetObserver.create(taskQueue, set),
@@ -27,7 +28,7 @@ class ModifySetObserver extends ModifyCollectionObserver {
     return set.__set_observer__;
   }
 
-  static create(taskQueue, set) {
+  static create(taskQueue: ITaskQueue, set: Set<any>) {
     let observer = new ModifySetObserver(taskQueue, set);
 
     let proto: any = setProto;

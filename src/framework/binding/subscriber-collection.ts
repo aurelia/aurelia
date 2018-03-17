@@ -1,18 +1,20 @@
-let arrayPool1 = [];
-let arrayPool2 = [];
-let poolUtilization = [];
+import { ICallable } from "./binding-interfaces";
+
+let arrayPool1: any[] = [];
+let arrayPool2: any[] = [];
+let poolUtilization: any[] = [];
 
 export abstract class SubscriberCollection {
-  private _context0 = null;
-  private _callable0 = null;
-  private _context1 = null;
-  private _callable1 = null;
-  private _context2 = null;
-  private _callable2 = null;
-  private _contextsRest = null;
-  private _callablesRest = null;
+  private _context0: any = null;
+  private _callable0: ICallable = null;
+  private _context1: any = null;
+  private _callable1: ICallable = null;
+  private _context2: any = null;
+  private _callable2: ICallable = null;
+  private _contextsRest: any[] = null;
+  private _callablesRest: ICallable[] = null;
 
-  protected addSubscriber(context, callable) {
+  protected addSubscriber(context: string, callable: ICallable) {
     if (this.hasSubscriber(context, callable)) {
       return false;
     }
@@ -40,8 +42,8 @@ export abstract class SubscriberCollection {
     this._callablesRest.push(callable);
     return true;
   }
-  
-  protected removeSubscriber(context, callable) {
+
+  protected removeSubscriber(context: string, callable: ICallable) {
     if (this._context0 === context && this._callable0 === callable) {
       this._context0 = null;
       this._callable0 = null;
@@ -74,7 +76,7 @@ export abstract class SubscriberCollection {
     return true;
   }
 
-  protected callSubscribers(newValue, oldValue?) {
+  protected callSubscribers(newValue: any, oldValue?: any) {
     let context0 = this._context0;
     let callable0 = this._callable0;
     let context1 = this._context1;
@@ -82,8 +84,8 @@ export abstract class SubscriberCollection {
     let context2 = this._context2;
     let callable2 = this._callable2;
     let length = this._contextsRest ? this._contextsRest.length : 0;
-    let contextsRest;
-    let callablesRest;
+    let contextsRest: any[];
+    let callablesRest: ICallable[];
     let poolIndex;
     let i;
     if (length) {
@@ -111,7 +113,7 @@ export abstract class SubscriberCollection {
         callablesRest[i] = this._callablesRest[i];
       }
     }
-  
+
     if (context0) {
       if (callable0) {
         callable0.call(context0, newValue, oldValue);
@@ -148,7 +150,7 @@ export abstract class SubscriberCollection {
       poolUtilization[poolIndex] = false;
     }
   }
-  
+
   protected hasSubscribers() {
     return !!(
       this._context0
@@ -156,8 +158,8 @@ export abstract class SubscriberCollection {
       || this._context2
       || this._contextsRest && this._contextsRest.length);
   }
-  
-  protected hasSubscriber(context, callable) {
+
+  protected hasSubscriber(context: string, callable: ICallable) {
     let has = this._context0 === context && this._callable0 === callable
       || this._context1 === context && this._callable1 === callable
       || this._context2 === context && this._callable2 === callable;

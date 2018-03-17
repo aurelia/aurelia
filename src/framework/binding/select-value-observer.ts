@@ -14,7 +14,7 @@ export class SelectValueObserver extends SubscriberCollection {
   constructor(
     private element: HTMLSelectElement,
     private handler: IEventSubscriber,
-    private observerLocator: IObserverLocator & { taskQueue?: any }
+    private observerLocator: IObserverLocator
   ) {
     super();
     this.element = element;
@@ -155,7 +155,7 @@ export class SelectValueObserver extends SubscriberCollection {
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: any[]) {
+  unsubscribe(context: string, callable: ICallable) {
     if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
       this.handler.dispose();
     }

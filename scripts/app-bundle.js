@@ -773,7 +773,7 @@ define('framework/task-queue',["require", "exports", "./dom"], function (require
                 this.requestFlushMicroTaskQueue();
             }
             if (this.longStacks) {
-                task['stack'] = this.prepareQueueStack(microStackSeparator);
+                task.stack = this.prepareQueueStack(microStackSeparator);
             }
             this.microTaskQueue.push(task);
         };
@@ -782,7 +782,7 @@ define('framework/task-queue',["require", "exports", "./dom"], function (require
                 this.requestFlushTaskQueue();
             }
             if (this.longStacks) {
-                task['stack'] = this.prepareQueueStack(stackSeparator);
+                task.stack = this.prepareQueueStack(stackSeparator);
             }
             this.taskQueue.push(task);
         };
@@ -1885,6 +1885,13 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
 
 
 
+define('framework/binding/binding-interfaces',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+
+
+
 define('framework/binding/binding-mode',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -2019,7 +2026,7 @@ define('framework/binding/binding',["require", "exports", "./binding-mode", "./c
             if ('unbind' in this.targetObserver) {
                 this.targetObserver.unbind();
             }
-            if (this.targetObserver.unsubscribe) {
+            if ('unsubscribe' in this.targetObserver) {
                 this.targetObserver.unsubscribe(call_context_1.targetContext, this);
             }
             this.unobserve(true);
@@ -2173,14 +2180,13 @@ define('framework/binding/checked-observer',["require", "exports", "./subscriber
         };
         CheckedObserver.prototype.subscribe = function (context, callable) {
             if (!this.hasSubscribers()) {
-                this.disposeHandler = this.handler.subscribe(this.element, this);
+                this.handler.subscribe(this.element, this);
             }
             this.addSubscriber(context, callable);
         };
         CheckedObserver.prototype.unsubscribe = function (context, callable) {
             if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
-                this.disposeHandler();
-                this.disposeHandler = null;
+                this.handler.dispose();
             }
         };
         CheckedObserver.prototype.unbind = function () {
@@ -2275,7 +2281,7 @@ define('framework/binding/collection-observation',["require", "exports", "./arra
             _this.lengthObserver = null;
             _this.taskQueue = taskQueue;
             _this.collection = collection;
-            _this.lengthPropertyName = collection instanceof Map || collection instanceof Set ? 'size' : 'length';
+            _this.lengthPropertyName = (collection instanceof Map) || (collection instanceof Set) ? 'size' : 'length';
             return _this;
         }
         ModifyCollectionObserver.prototype.subscribe = function (context, callable) {
@@ -2337,7 +2343,7 @@ define('framework/binding/collection-observation',["require", "exports", "./arra
             this.oldCollection = null;
             if (this.hasSubscribers()) {
                 if (oldCollection) {
-                    if (this.collection instanceof Map || this.collection instanceof Set) {
+                    if ((this.collection instanceof Map) || (this.collection instanceof Set)) {
                         records = map_change_records_1.getChangeRecords(oldCollection);
                     }
                     else {
@@ -2345,7 +2351,7 @@ define('framework/binding/collection-observation',["require", "exports", "./arra
                     }
                 }
                 else {
-                    if (this.collection instanceof Map || this.collection instanceof Set) {
+                    if ((this.collection instanceof Map) || (this.collection instanceof Set)) {
                         records = changeRecords;
                     }
                     else {
@@ -2768,14 +2774,13 @@ define('framework/binding/element-observation',["require", "exports", "./subscri
         ValueAttributeObserver.prototype.subscribe = function (context, callable) {
             if (!this.hasSubscribers()) {
                 this.oldValue = this.getValue();
-                this.disposeHandler = this.handler.subscribe(this.element, this);
+                this.handler.subscribe(this.element, this);
             }
             this.addSubscriber(context, callable);
         };
         ValueAttributeObserver.prototype.unsubscribe = function (context, callable) {
             if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
-                this.disposeHandler();
-                this.disposeHandler = null;
+                this.handler.dispose();
             }
         };
         return ValueAttributeObserver;
@@ -2864,25 +2869,51 @@ define('framework/binding/event-manager',["require", "exports", "../dom"], funct
             target = target.parentNode;
         }
     }
-    var DelegateHandlerEntry = (function () {
-        function DelegateHandlerEntry(eventName) {
+    var DelegatedHandlerEntry = (function () {
+        function DelegatedHandlerEntry(eventName) {
             this.eventName = eventName;
             this.count = 0;
-            this.eventName = eventName;
         }
-        DelegateHandlerEntry.prototype.increment = function () {
+        DelegatedHandlerEntry.prototype.increment = function () {
             this.count++;
             if (this.count === 1) {
                 dom_1.DOM.addEventListener(this.eventName, handleDelegatedEvent, false);
             }
         };
-        DelegateHandlerEntry.prototype.decrement = function () {
+        DelegatedHandlerEntry.prototype.decrement = function () {
             this.count--;
             if (this.count === 0) {
                 dom_1.DOM.removeEventListener(this.eventName, handleDelegatedEvent);
             }
         };
-        return DelegateHandlerEntry;
+        return DelegatedHandlerEntry;
+    }());
+    var DelegationEntryHandler = (function () {
+        function DelegationEntryHandler(entry, lookup, targetEvent, callback) {
+            this.entry = entry;
+            this.lookup = lookup;
+            this.targetEvent = targetEvent;
+            lookup[targetEvent] = callback;
+        }
+        DelegationEntryHandler.prototype.dispose = function () {
+            this.entry.decrement();
+            this.lookup[this.targetEvent] = null;
+            this.entry = this.lookup = this.targetEvent = null;
+        };
+        return DelegationEntryHandler;
+    }());
+    var EventHandler = (function () {
+        function EventHandler(target, targetEvent, callback) {
+            this.target = target;
+            this.targetEvent = targetEvent;
+            this.callback = callback;
+            target.addEventListener(targetEvent, callback);
+        }
+        EventHandler.prototype.dispose = function () {
+            this.target.removeEventListener(this.targetEvent, this.callback);
+            this.target = this.targetEvent = this.callback = null;
+        };
+        return EventHandler;
     }());
     var DefaultEventStrategy = (function () {
         function DefaultEventStrategy() {
@@ -2895,30 +2926,17 @@ define('framework/binding/event-manager',["require", "exports", "../dom"], funct
             var handlerEntry;
             if (strategy === exports.delegationStrategy.bubbling) {
                 delegatedHandlers = this.delegatedHandlers;
-                handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new DelegateHandlerEntry(targetEvent));
-                var delegatedCallbacks_1 = target.delegatedCallbacks || (target.delegatedCallbacks = {});
-                handlerEntry.increment();
-                delegatedCallbacks_1[targetEvent] = callback;
-                return function () {
-                    handlerEntry.decrement();
-                    delegatedCallbacks_1[targetEvent] = null;
-                };
+                handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new DelegatedHandlerEntry(targetEvent));
+                var delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
+                return new DelegationEntryHandler(handlerEntry, delegatedCallbacks, targetEvent, callback);
             }
             if (strategy === exports.delegationStrategy.capturing) {
                 capturedHandlers = this.capturedHandlers;
                 handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new CapturedHandlerEntry(targetEvent));
-                var capturedCallbacks_1 = target.capturedCallbacks || (target.capturedCallbacks = {});
-                handlerEntry.increment();
-                capturedCallbacks_1[targetEvent] = callback;
-                return function () {
-                    handlerEntry.decrement();
-                    capturedCallbacks_1[targetEvent] = null;
-                };
+                var capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
+                return new DelegationEntryHandler(handlerEntry, capturedCallbacks, targetEvent, callback);
             }
-            target.addEventListener(targetEvent, callback, false);
-            return function () {
-                target.removeEventListener(targetEvent, callback);
-            };
+            return new EventHandler(target, targetEvent, callback);
         };
         return DefaultEventStrategy;
     }());
@@ -2970,32 +2988,12 @@ define('framework/binding/event-manager',["require", "exports", "../dom"], funct
             var tagName = config.tagName.toLowerCase();
             var properties = config.properties;
             var propertyName;
-            this.elementHandlerLookup[tagName] = {};
+            var lookup = this.elementHandlerLookup[tagName] = {};
             for (propertyName in properties) {
                 if (properties.hasOwnProperty(propertyName)) {
-                    this.registerElementPropertyConfig(tagName, propertyName, properties[propertyName]);
+                    lookup[propertyName] = properties[propertyName];
                 }
             }
-        };
-        EventManager.prototype.registerElementPropertyConfig = function (tagName, propertyName, events) {
-            this.elementHandlerLookup[tagName][propertyName] = this.createElementHandler(events);
-        };
-        EventManager.prototype.createElementHandler = function (events) {
-            return {
-                subscribe: function (target, callbackOrListener) {
-                    events.forEach(function (changeEvent) {
-                        target.addEventListener(changeEvent, callbackOrListener, false);
-                    });
-                    return function () {
-                        events.forEach(function (changeEvent) {
-                            target.removeEventListener(changeEvent, callbackOrListener, false);
-                        });
-                    };
-                }
-            };
-        };
-        EventManager.prototype.registerElementHandler = function (tagName, handler) {
-            this.elementHandlerLookup[tagName.toLowerCase()] = handler;
         };
         EventManager.prototype.registerEventStrategy = function (eventName, strategy) {
             this.eventStrategyLookup[eventName] = strategy;
@@ -3006,13 +3004,13 @@ define('framework/binding/event-manager',["require", "exports", "../dom"], funct
             if (target.tagName) {
                 tagName = target.tagName.toLowerCase();
                 if (lookup[tagName] && lookup[tagName][propertyName]) {
-                    return lookup[tagName][propertyName];
+                    return new EventSubscriber(lookup[tagName][propertyName]);
                 }
                 if (propertyName === 'textContent' || propertyName === 'innerHTML') {
-                    return lookup['content editable'].value;
+                    return new EventSubscriber(lookup['content editable'].value);
                 }
                 if (propertyName === 'scrollTop' || propertyName === 'scrollLeft') {
-                    return lookup['scrollable element'][propertyName];
+                    return new EventSubscriber(lookup['scrollable element'][propertyName]);
                 }
             }
             return null;
@@ -3025,6 +3023,33 @@ define('framework/binding/event-manager',["require", "exports", "../dom"], funct
         return EventManager;
     }());
     exports.EventManager = EventManager;
+    var EventSubscriber = (function () {
+        function EventSubscriber(events) {
+            this.events = events;
+            this.events = events;
+            this.target = null;
+            this.handler = null;
+        }
+        EventSubscriber.prototype.subscribe = function (element, callbackOrListener) {
+            this.target = element;
+            this.handler = callbackOrListener;
+            var events = this.events;
+            for (var i = 0, ii = events.length; ii > i; ++i) {
+                element.addEventListener(events[i], callbackOrListener);
+            }
+        };
+        EventSubscriber.prototype.dispose = function () {
+            var element = this.target;
+            var callbackOrListener = this.handler;
+            var events = this.events;
+            for (var i = 0, ii = events.length; ii > i; ++i) {
+                element.removeEventListener(events[i], callbackOrListener);
+            }
+            this.target = this.handler = null;
+        };
+        return EventSubscriber;
+    }());
+    exports.EventSubscriber = EventSubscriber;
 });
 
 
@@ -3076,7 +3101,7 @@ define('framework/binding/listener',["require", "exports", "./event-manager"], f
             if (this.sourceExpression.bind) {
                 this.sourceExpression.bind(this, source);
             }
-            this.disposeListener = this.eventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
+            this.handler = this.eventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
         };
         Listener.prototype.unbind = function () {
             if (!this.isBound) {
@@ -3087,8 +3112,8 @@ define('framework/binding/listener',["require", "exports", "./event-manager"], f
                 this.sourceExpression.unbind(this, this.source);
             }
             this.source = null;
-            this.disposeListener();
-            this.disposeListener = null;
+            this.handler.dispose();
+            this.handler = null;
         };
         Listener.prototype.observeProperty = function () { };
         return Listener;
@@ -3383,15 +3408,6 @@ define('framework/binding/observer-locator',["require", "exports", "../logging",
         return ObserverLocator;
     }());
     exports.ObserverLocator = ObserverLocator;
-    var ObjectObservationAdapter = (function () {
-        function ObjectObservationAdapter() {
-        }
-        ObjectObservationAdapter.prototype.getObserver = function (object, propertyName, descriptor) {
-            throw new Error('BindingAdapters must implement getObserver(object, propertyName).');
-        };
-        return ObjectObservationAdapter;
-    }());
-    exports.ObjectObservationAdapter = ObjectObservationAdapter;
 });
 
 
@@ -3790,14 +3806,13 @@ define('framework/binding/select-value-observer',["require", "exports", "./subsc
         };
         SelectValueObserver.prototype.subscribe = function (context, callable) {
             if (!this.hasSubscribers()) {
-                this.disposeHandler = this.handler.subscribe(this.element, this);
+                this.handler.subscribe(this.element, this);
             }
             this.addSubscriber(context, callable);
         };
         SelectValueObserver.prototype.unsubscribe = function (context, callable) {
             if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
-                this.disposeHandler();
-                this.disposeHandler = null;
+                this.handler.dispose();
             }
         };
         SelectValueObserver.prototype.bind = function () {

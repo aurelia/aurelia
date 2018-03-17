@@ -1,4 +1,5 @@
 <template class="name-tag ${showHeader ? 'header-visible' : ''}">
+  <import from='./color'></import>
   <header>Aurelia Name Tag</header>
   <div>
     <input type="text" value.bind="name" ><br/>
@@ -6,14 +7,7 @@
   </div>
   <hr/>
   <div>
-    <label>
-      Name tag color:
-      <select value.bind="color">
-        <option>red</option>
-        <option>green</option>
-        <option>blue</option>
-      </select>
-    </label>
+    <color color.bind='color'></color>
   </div>
   <hr/>
   <div>

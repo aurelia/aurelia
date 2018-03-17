@@ -14,7 +14,7 @@ export class CheckedObserver extends SubscriberCollection {
   constructor(
     private element: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
     private handler: IEventSubscriber,
-    private observerLocator: IObserverLocator & { taskQueue?: any }
+    private observerLocator: IObserverLocator
   ) {
     super();
   }

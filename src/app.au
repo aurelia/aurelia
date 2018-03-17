@@ -10,10 +10,14 @@
   <hr/>
   <name-tag name.bind='name'></name-tag>
   <button click.delegate='submit()'></button>
+  <!-- this should not create custom element -->
+  <color color.bind='name'></color>
 </template>
 
 <script>
   export class AppCustomElement {
+    name = "Aurelia Navigation Skeleton";
+    computedName = 'Testing';
     constructor() {
 
     }

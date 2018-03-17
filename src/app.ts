@@ -1,4 +1,5 @@
-import { Scope, createOverrideContext } from './framework/binding/scope';
+import { createOverrideContext } from './framework/binding/scope';
+import { Scope } from './framework/binding/binding-interfaces';
 import { Observer } from './framework/binding/property-observation';
 import { IBinding } from './framework/binding/binding';
 import { oneWay, twoWay, listener, oneWayText, makeElementIntoAnchor, ref } from './framework/generated';
@@ -86,8 +87,8 @@ class $App {
   $observers: Record<string, Observer<any>>;
 
   constructor() {
-    Object.defineProperty(this, '$observers', { 
-      enumerable: false, 
+    Object.defineProperty(this, '$observers', {
+      enumerable: false,
       value: {
         message: new Observer('Hello World!'),
         duplicateMessage: new Observer(true)
@@ -97,7 +98,7 @@ class $App {
 
   get duplicateMessage() { return this.$observers.duplicateMessage.getValue(); }
   set duplicateMessage(value: boolean) { this.$observers.duplicateMessage.setValue(value); }
-  
+
   get message() { return this.$observers.message.getValue(); }
   set message(value: string) { this.$observers.message.setValue(value); }
 }
@@ -194,7 +195,7 @@ export class App extends $App implements IComponent {
     this.$b1.bind(scope);
     this.$b2.bind(scope);
     this.$b4.bind(scope);
-  
+
     this.$b3.bind(scope); //input bindings set before component bind
     this.$b6.bind(scope);
     this.$c1.bind();
@@ -203,7 +204,7 @@ export class App extends $App implements IComponent {
     this.$a1.bind(scope);
 
     this.$a2.bind(scope);
-    
+
     //this.bound(); //if developer implemented this callback
   }
 
@@ -222,7 +223,7 @@ export class App extends $App implements IComponent {
   detach() {
     //this.detaching(); //if developer implemented this callback
     this.$view.remove(); //remove parent before detaching children
-    this.$c1.detach();    
+    this.$c1.detach();
     this.$a1.detach();
     this.$a2.detach();
     //TaskQueue.instance.queueMicroTask(() => this.detached()); //queue callback if developer implemented it
@@ -246,8 +247,8 @@ class $NameTag {
   $isBound = false;
 
   constructor() {
-    Object.defineProperty(this, '$observers', { 
-      enumerable: false, 
+    Object.defineProperty(this, '$observers', {
+      enumerable: false,
       value: {
         name: new Observer('Aurelia', v => this.$isBound ? this.nameChanged(v) : void 0),
         color: new Observer<string>('red'),

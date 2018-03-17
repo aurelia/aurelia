@@ -1,7 +1,6 @@
 import { View, IRender } from "./view";
 import { Template } from "./template";
-import { Scope } from "../binding/scope";
-import { IBindScope } from "../binding/binding";
+import { Scope, IBindScope } from "../binding/binding-interfaces";
 import { IAttach } from "./component";
 
 export interface IVisual extends IBindScope, IAttach, IRender {

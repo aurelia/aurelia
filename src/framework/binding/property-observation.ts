@@ -1,18 +1,22 @@
 import { getLogger } from '../logging';
 import { SubscriberCollection } from './subscriber-collection';
 import { TaskQueue } from '../task-queue';
+import { IIndexable, ITaskQueue, ICallable } from './binding-interfaces';
 
 const logger = getLogger('property-observation');
 
 export const propertyAccessor = {
-  getValue: (obj, propertyName) => obj[propertyName],
-  setValue: (value, obj, propertyName) => { obj[propertyName] = value; }
+  getValue: (obj: any, propertyName: string) => obj[propertyName],
+  setValue: (value: any, obj: IIndexable, propertyName: string) => { obj[propertyName] = value; }
 };
 
 export class PrimitiveObserver {
   doNotCache = true;
 
-  constructor(private primitive, private propertyName: string) {
+  constructor(
+    private primitive: IIndexable,
+    private propertyName: string
+  ) {
     this.primitive = primitive;
     this.propertyName = propertyName;
   }
@@ -36,10 +40,14 @@ export class PrimitiveObserver {
 export class SetterObserver extends SubscriberCollection {
   private queued = false;
   private observing = false;
-  private currentValue;
-  private oldValue;
+  private currentValue: any;
+  private oldValue: any;
 
-  constructor(private taskQueue, private obj, private propertyName: string) {
+  constructor(
+    private taskQueue: ITaskQueue,
+    private obj: any,
+    private propertyName: string
+  ) {
     super();
   }
 
@@ -47,7 +55,7 @@ export class SetterObserver extends SubscriberCollection {
     return this.obj[this.propertyName];
   }
 
-  setValue(newValue) {
+  setValue(newValue: any) {
     this.obj[this.propertyName] = newValue;
   }
 
@@ -55,7 +63,7 @@ export class SetterObserver extends SubscriberCollection {
     return this.currentValue;
   }
 
-  setterValue(newValue) {
+  setterValue(newValue: any) {
     let oldValue = this.currentValue;
 
     if (oldValue !== newValue) {
@@ -78,14 +86,14 @@ export class SetterObserver extends SubscriberCollection {
     this.callSubscribers(newValue, oldValue);
   }
 
-  subscribe(context, callable) {
+  subscribe(context: string, callable: ICallable) {
     if (!this.observing) {
       this.convertProperty();
     }
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context, callable) {
+  unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
   }
 
@@ -98,7 +106,7 @@ export class SetterObserver extends SubscriberCollection {
     if (!Reflect.defineProperty(this.obj, this.propertyName, {
       configurable: true,
       enumerable: this.propertyName in this.obj ?
-          this.obj.propertyIsEnumerable(this.propertyName) : true,
+        this.obj.propertyIsEnumerable(this.propertyName) : true,
       get: this.getValue.bind(this),
       set: this.setValue.bind(this)
     })) {
@@ -112,9 +120,9 @@ export class Observer<T> extends SubscriberCollection {
   private oldValue: T;
 
   constructor(
-    private currentValue: T, 
+    private currentValue: T,
     private selfCallback?: (newValue: T, oldValue: T) => void | T,
-    private taskQueue = TaskQueue.instance    
+    private taskQueue = TaskQueue.instance
   ) {
     super();
   }
@@ -152,11 +160,11 @@ export class Observer<T> extends SubscriberCollection {
     this.callSubscribers(newValue, oldValue);
   }
 
-  subscribe(context, callable) {
+  subscribe(context: string, callable: ICallable) {
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context, callable) {
+  unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
   }
 }

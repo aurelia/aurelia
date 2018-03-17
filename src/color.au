@@ -1,0 +1,27 @@
+<template>
+  <span style='display: inline-block'>${color}</span>
+  <select value.bind="color">
+    <option>red</option>
+    <option>green</option>
+    <option>blue</option>
+  </select>
+</template>
+
+<script>
+  @customElement
+  export class Color {
+    
+    @bindable({
+      defaultBindingMode: bindingMode.twoWay
+    })
+    color = '#fff'
+
+    @bindable()
+    colors = [];
+
+    constructor() {
+      this.color = 'rgba(255, 15, 255, 0.5)';
+    }
+
+  }
+</script>

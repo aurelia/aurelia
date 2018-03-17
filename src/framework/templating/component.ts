@@ -1,16 +1,16 @@
 export interface IBindSelf {
-  bind();
-  unbind();
+  bind(): void;
+  unbind(): void;
 }
 export interface IAttach {
-  attach();
-  detach();
+  attach(): void;
+  detach(): void;
 }
 
 export interface IApplyToTarget {
-  applyTo(target: Element);
+  applyTo(target: Element): this;
 }
 
-export interface IComponent extends IBindSelf, IAttach, IApplyToTarget  {
-  
+export interface IComponent extends IBindSelf, IAttach, IApplyToTarget {
+
 }

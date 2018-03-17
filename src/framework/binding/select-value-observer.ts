@@ -1,17 +1,21 @@
-import {SubscriberCollection} from './subscriber-collection';
-import {DOM} from '../dom';
+import { SubscriberCollection } from './subscriber-collection';
+import { DOM } from '../dom';
+import { IEventSubscriber, IObserverLocator, ICallable } from './binding-interfaces';
 
 const selectArrayContext = 'SelectValueObserver:array';
 
 export class SelectValueObserver extends SubscriberCollection {
-  private value;
-  private oldValue;
-  private arrayObserver;
+  private value: any;
+  private oldValue: any;
+  private arrayObserver: any;
   private initialSync = false;
-  private disposeHandler;
   private domObserver: MutationObserver;
 
-  constructor(private element, private handler, private observerLocator) {
+  constructor(
+    private element: HTMLSelectElement,
+    private handler: IEventSubscriber,
+    private observerLocator: IObserverLocator
+  ) {
     super();
     this.element = element;
     this.handler = handler;
@@ -22,7 +26,7 @@ export class SelectValueObserver extends SubscriberCollection {
     return this.value;
   }
 
-  setValue(newValue) {
+  setValue(newValue: any) {
     if (newValue !== null && newValue !== undefined && this.element.multiple && !Array.isArray(newValue)) {
       throw new Error('Only null or Array instances can be bound to a multi-select.');
     }
@@ -51,14 +55,14 @@ export class SelectValueObserver extends SubscriberCollection {
     }
   }
 
-  call(context, splices) {
+  call(context: string, splices: any[]) {
     // called by task queue and array observer.
     this.synchronizeOptions();
   }
 
   synchronizeOptions() {
     let value = this.value;
-    let isArray;
+    let isArray: boolean;
 
     if (Array.isArray(value)) {
       isArray = true;
@@ -66,12 +70,12 @@ export class SelectValueObserver extends SubscriberCollection {
 
     let options = this.element.options;
     let i = options.length;
-    let matcher = this.element.matcher || ((a, b) => a === b);
+    let matcher = this.element.matcher || ((a: any, b: any) => a === b);
     while (i--) {
-      let option = options.item(i);
+      let option = options.item(i) as HTMLOptionElement & { model?: any };
       let optionValue = option.hasOwnProperty('model') ? option.model : option.value;
       if (isArray) {
-        option.selected = value.findIndex(item => !!matcher(optionValue, item)) !== -1; // eslint-disable-line no-loop-func
+        option.selected = value.findIndex((item: any) => !!matcher(optionValue, item)) !== -1; // eslint-disable-line no-loop-func
         continue;
       }
       option.selected = !!matcher(optionValue, value);
@@ -84,7 +88,7 @@ export class SelectValueObserver extends SubscriberCollection {
     let value = [];
 
     for (let i = 0, ii = options.length; i < ii; i++) {
-      let option = options.item(i);
+      let option = options.item(i) as HTMLOptionElement & { model?: any };
       if (!option.selected) {
         continue;
       }
@@ -95,7 +99,7 @@ export class SelectValueObserver extends SubscriberCollection {
     if (this.element.multiple) {
       // multi-select
       if (Array.isArray(this.value)) {
-        let matcher = this.element.matcher || ((a, b) => a === b);
+        let matcher = this.element.matcher || ((a: any, b: any) => a === b);
         // remove items that are no longer selected.
         let i = 0;
         while (i < this.value.length) {
@@ -144,17 +148,16 @@ export class SelectValueObserver extends SubscriberCollection {
     this.synchronizeValue();
   }
 
-  subscribe(context, callable) {
+  subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
-      this.disposeHandler = this.handler.subscribe(this.element, this);
+      this.handler.subscribe(this.element, this);
     }
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context, callable) {
+  unsubscribe(context: string, callable: ICallable) {
     if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
-      this.disposeHandler();
-      this.disposeHandler = null;
+      this.handler.dispose();
     }
   }
 

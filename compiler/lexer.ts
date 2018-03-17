@@ -60,7 +60,7 @@ export class Scanner {
     this.advance();
   }
 
-  scanToken(): Token {
+  scanToken(): Token | null {
     // Skip whitespace.
     while (this.peek <= $SPACE) {
       if (++this.index >= this.length) {
@@ -230,7 +230,7 @@ export class Scanner {
 
     this.advance();  // Skip initial quote.
 
-    let buffer: string[];
+    let buffer: string[] | undefined;
     let marker = this.index;
 
     while (this.peek !== quote) {

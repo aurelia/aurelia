@@ -5,26 +5,17 @@ import { sourceContext, targetContext } from './call-context';
 import { ObserverLocator } from './observer-locator';
 import { IExpression, ILookupFunctions } from './ast';
 import { Observer } from './property-observation';
-import { Scope } from './scope';
-
-export interface IObservable<T = any> {
-  $observers: Record<string, Observer<T>>;
-}
-
-export interface IBindScope {
-  bind(source: Scope);
-  unbind();
-}
+import { Scope, IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IObserverLocator } from './binding-interfaces';
 
 export interface IBinding extends IBindScope {
   lookupFunctions: ILookupFunctions;
-  observeProperty(context, name);
+  observeProperty(context: any, name: string): void;
 }
 
 export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 
 export class Binding extends ConnectableBinding implements IBinding {
-  private targetObserver;
+  private targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
   private source: Scope;
   private isBound = false;
 
@@ -34,19 +25,19 @@ export class Binding extends ConnectableBinding implements IBinding {
     private targetProperty: string,
     private mode: number,
     public lookupFunctions: ILookupFunctions,
-    observerLocator: ObserverLocator = ObserverLocator.instance) {
+    observerLocator: IObserverLocator = ObserverLocator.instance) {
     super(observerLocator);
   }
 
-  updateTarget(value) {
+  updateTarget(value: any) {
     this.targetObserver.setValue(value, this.target, this.targetProperty);
   }
 
-  updateSource(value) {
+  updateSource(value: any) {
     this.sourceExpression.assign(this.source, value, this.lookupFunctions);
   }
 
-  call(context, newValue, oldValue) {
+  call(context: string, newValue: any, oldValue: any) {
     if (!this.isBound) {
       return;
     }
@@ -79,7 +70,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     throw new Error(`Unexpected call context ${context}`);
   }
 
-  bind(source) {
+  bind(source: Scope) {
     if (this.isBound) {
       if (this.source === source) {
         return;
@@ -98,7 +89,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     let mode = this.mode;
 
     if (!this.targetObserver) {
-      let method = mode === bindingMode.twoWay || mode === bindingMode.fromView ? 'getObserver' : 'getAccessor';
+      let method: 'getObserver' | 'getAccessor' = mode === bindingMode.twoWay || mode === bindingMode.fromView ? 'getObserver' : 'getAccessor';
       this.targetObserver = this.observerLocator[method](this.target, this.targetProperty);
     }
 
@@ -117,9 +108,9 @@ export class Binding extends ConnectableBinding implements IBinding {
       enqueueBindingConnect(this);
     } else if (mode === bindingMode.twoWay) {
       this.sourceExpression.connect(this, source);
-      this.targetObserver.subscribe(targetContext, this);
+      (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
     } else if (mode === bindingMode.fromView) {
-      this.targetObserver.subscribe(targetContext, this);
+      (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
     }
   }
 
@@ -137,17 +128,17 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.source = null;
 
     if ('unbind' in this.targetObserver) {
-      this.targetObserver.unbind();
+      (this.targetObserver as IBindingTargetObserver).unbind();
     }
 
-    if (this.targetObserver.unsubscribe) {
+    if ('unsubscribe' in this.targetObserver) {
       this.targetObserver.unsubscribe(targetContext, this);
     }
 
     this.unobserve(true);
   }
 
-  connect(evaluate) {
+  connect(evaluate?: boolean) {
     if (!this.isBound) {
       return;
     }

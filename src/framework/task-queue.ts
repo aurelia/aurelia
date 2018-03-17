@@ -1,4 +1,5 @@
-import {DOM} from './dom';
+import { DOM } from './dom';
+import { ITaskQueue, ICallable } from './binding/binding-interfaces';
 
 let hasSetImmediate = typeof setImmediate === 'function';
 
@@ -7,18 +8,18 @@ const stackSeparator = '\nEnqueued in TaskQueue by:\n';
 const microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
 //DEBUG-END
 
-function makeRequestFlushFromMutationObserver(flush) {
+function makeRequestFlushFromMutationObserver(flush: any) {
   let toggle = 1;
   let observer = DOM.createMutationObserver(flush);
   let node = DOM.createTextNode('');
-  observer.observe(node, {characterData: true});
+  observer.observe(node, { characterData: true });
   return function requestFlush() {
     toggle = -toggle;
     node.data = toggle.toString();
   };
 }
 
-function makeRequestFlushFromTimer(flush) {
+function makeRequestFlushFromTimer(flush: any) {
   return function requestFlush() {
     // We dispatch a timeout with a specified delay of 0 for engines that
     // can reliably accommodate that request. This will usually be snapped
@@ -39,12 +40,12 @@ function makeRequestFlushFromTimer(flush) {
   };
 }
 
-function onError(error, task, longStacks) {
+function onError(error: any, task: any, longStacks: any) {
   //DEBUG
   if (longStacks &&
-      task.stack &&
-      typeof error === 'object' &&
-      error !== null) {
+    task.stack &&
+    typeof error === 'object' &&
+    error !== null) {
     // Note: IE sets error.stack when throwing but does not override a defined .stack.
     error.stack = filterFlushStack(error.stack) + task.stack;
   }
@@ -72,7 +73,7 @@ export interface Task {
 /**
 * Implements an asynchronous task queue.
 */
-export class TaskQueue {
+export class TaskQueue implements ITaskQueue {
   public static instance = new TaskQueue();
 
   /**
@@ -85,19 +86,19 @@ export class TaskQueue {
    */
   longStacks = false;
 
-  private microTaskQueue = [];
-  private taskQueue = [];
+  private microTaskQueue: ICallable[] = [];
+  private taskQueue: ICallable[] = [];
   private microTaskQueueCapacity = 1024;
   private requestFlushMicroTaskQueue = makeRequestFlushFromMutationObserver(() => this.flushMicroTaskQueue());
   private requestFlushTaskQueue = makeRequestFlushFromTimer(() => this.flushTaskQueue());
-  private stack;
+  private stack: string;
 
   /**
   * Immediately flushes the queue.
   * @param queue The task queue or micro task queue
   * @param capacity For periodically shift 1024 MicroTasks off the queue
   */
-  private flushQueue(queue, capacity): void {
+  private flushQueue(queue: (ICallable & { stack?: string })[], capacity: number): void {
     let index = 0;
     let task;
 
@@ -138,14 +139,14 @@ export class TaskQueue {
   * Queues a task on the micro task queue for ASAP execution.
   * @param task The task to queue up for ASAP execution.
   */
-  queueMicroTask(task: Task | Function): void {
+  queueMicroTask(task: (Task | Function) & { stack?: string }): void {
     if (this.microTaskQueue.length < 1) {
       this.requestFlushMicroTaskQueue();
     }
 
     //DEBUG
     if (this.longStacks) {
-      task['stack'] = this.prepareQueueStack(microStackSeparator);
+      task.stack = this.prepareQueueStack(microStackSeparator);
     }
     //DEBUG-END
 
@@ -156,14 +157,14 @@ export class TaskQueue {
   * Queues a task on the macro task queue for turn-based execution.
   * @param task The task to queue up for turn-based execution.
   */
-  queueTask(task: Task | Function): void {
+  queueTask(task: (Task | Function) & { stack?: string }): void {
     if (this.taskQueue.length < 1) {
       this.requestFlushTaskQueue();
     }
 
     //DEBUG
     if (this.longStacks) {
-      task['stack'] = this.prepareQueueStack(stackSeparator);
+      task.stack = this.prepareQueueStack(stackSeparator);
     }
     //DEBUG-END
 
@@ -189,7 +190,7 @@ export class TaskQueue {
   }
 
   //DEBUG
-  private prepareQueueStack(separator) {
+  private prepareQueueStack(separator: string) {
     let stack = separator + filterQueueStack(captureStack());
 
     if (typeof this.stack === 'string') {
@@ -217,12 +218,12 @@ function captureStack() {
   }
 }
 
-function filterQueueStack(stack) {
+function filterQueueStack(stack: string) {
   // Remove everything (error message + top stack frames) up to the topmost queueTask or queueMicroTask call
   return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
 }
 
-function filterFlushStack(stack) {
+function filterFlushStack(stack: string) {
   // Remove bottom frames starting with the last flushTaskQueue or flushMicroTaskQueue
   let index = stack.lastIndexOf('flushMicroTaskQueue');
 

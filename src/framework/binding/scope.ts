@@ -1,13 +1,8 @@
-interface OverrideContext {
-  parentOverrideContext: OverrideContext;
-  bindingContext: any;
-}
+import { OverrideContext, Scope } from "./binding-interfaces";
+
 
 // view instances implement this interface
-export interface Scope {
-  bindingContext: any;
-  overrideContext: OverrideContext;
-}
+
 
 export function createOverrideContext(bindingContext?: any, parentOverrideContext?: OverrideContext): OverrideContext {
   return {

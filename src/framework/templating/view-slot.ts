@@ -2,8 +2,7 @@ import { Animator } from './animator';
 import { View } from './view';
 import { ShadowDOM } from './shadow-dom';
 import { IAttach } from './component';
-import { Scope } from '../binding/scope';
-import { IBindScope } from '../binding/binding';
+import { Scope, IBindScope } from '../binding/binding-interfaces';
 import { IVisual } from './visual';
 
 function getAnimatableElement(visual: IVisual) {
@@ -202,7 +201,7 @@ export class ViewSlot implements IBindScope, IAttach {
       }
 
       let animation = this.animateView(child, 'leave');
-      
+
       if (animation) {
         rmPromises.push(animation.then(() => view.remove()));
       } else {

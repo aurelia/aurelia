@@ -1,17 +1,21 @@
-import {SubscriberCollection} from './subscriber-collection';
+import { SubscriberCollection } from './subscriber-collection';
+import { IObserverLocator, IEventSubscriber, ICallable } from './binding-interfaces';
 
 const checkedArrayContext = 'CheckedObserver:array';
 const checkedValueContext = 'CheckedObserver:value';
 
 export class CheckedObserver extends SubscriberCollection {
-  private value;
-  private initialSync;
-  private arrayObserver;
-  private oldValue;
-  private valueObserver;
-  private disposeHandler;
+  private value: any;
+  private initialSync: boolean;
+  private arrayObserver: any;
+  private oldValue: any;
+  private valueObserver: any;
 
-  constructor(private element: HTMLInputElement, private handler, private observerLocator) {
+  constructor(
+    private element: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
+    private handler: IEventSubscriber,
+    private observerLocator: IObserverLocator
+  ) {
     super();
   }
 
@@ -19,7 +23,7 @@ export class CheckedObserver extends SubscriberCollection {
     return this.value;
   }
 
-  setValue(newValue) {
+  setValue(newValue: any) {
     if (this.initialSync && this.value === newValue) {
       return;
     }
@@ -46,7 +50,7 @@ export class CheckedObserver extends SubscriberCollection {
     }
   }
 
-  call(context, splices) {
+  call(context: string, splices: any[]) {
     // called by task queue, array observer, and model/value observer.
     this.synchronizeElement();
     // if the input's model or value property is data-bound, subscribe to it's
@@ -64,7 +68,7 @@ export class CheckedObserver extends SubscriberCollection {
     let element = this.element;
     let elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     let isRadio = element.type === 'radio';
-    let matcher = element['matcher'] || ((a, b) => a === b);
+    let matcher = element['matcher'] || ((a: any, b: any) => a === b);
 
     element.checked =
       isRadio && !!matcher(value, elementValue)
@@ -77,7 +81,7 @@ export class CheckedObserver extends SubscriberCollection {
     let element = this.element;
     let elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     let index;
-    let matcher = element['matcher'] || ((a, b) => a === b);
+    let matcher = element['matcher'] || ((a: any, b: any) => a === b);
 
     if (element.type === 'checkbox') {
       if (Array.isArray(value)) {
@@ -119,17 +123,16 @@ export class CheckedObserver extends SubscriberCollection {
     this.synchronizeValue();
   }
 
-  subscribe(context, callable) {
+  subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
-      this.disposeHandler = this.handler.subscribe(this.element, this);
+      this.handler.subscribe(this.element, this);
     }
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context, callable) {
+  unsubscribe(context: string, callable: ICallable) {
     if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
-      this.disposeHandler();
-      this.disposeHandler = null;
+      this.handler.dispose();
     }
   }
 

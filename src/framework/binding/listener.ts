@@ -1,21 +1,21 @@
 import { EventManager } from "./event-manager";
 import { IExpression, ILookupFunctions } from "./ast";
-import { Scope } from "./scope";
 import { IBinding } from "./binding";
+import { Scope, IDisposable, IDelegationStrategy, IEventManager } from "./binding-interfaces";
 
 export class Listener implements IBinding {
   private source: Scope;
   private isBound = false;
-  private disposeListener: () => void;
+  private handler: IDisposable;
 
   constructor(
-    private targetEvent: string, 
-    private delegationStrategy, 
-    private sourceExpression: IExpression, 
-    private target, 
-    private preventDefault: boolean, 
-    public lookupFunctions: ILookupFunctions, 
-    private eventManager: EventManager = EventManager.instance
+    private targetEvent: string,
+    private delegationStrategy: IDelegationStrategy[keyof IDelegationStrategy],
+    private sourceExpression: IExpression,
+    private target: EventTarget,
+    private preventDefault: boolean,
+    public lookupFunctions: ILookupFunctions,
+    private eventManager: IEventManager = EventManager.instance
   ) {
     this.targetEvent = targetEvent;
     this.delegationStrategy = delegationStrategy;
@@ -25,15 +25,15 @@ export class Listener implements IBinding {
     this.lookupFunctions = lookupFunctions;
   }
 
-  callSource(event) {
-    let overrideContext = this.source.overrideContext;
+  callSource(event: Event) {
+    let overrideContext = this.source.overrideContext as any;
     overrideContext['$event'] = event;
-    
+
     let mustEvaluate = true;
     let result = this.sourceExpression.evaluate(this.source, this.lookupFunctions, mustEvaluate);
-    
+
     delete overrideContext['$event'];
-    
+
     if (result !== true && this.preventDefault) {
       event.preventDefault();
     }
@@ -41,11 +41,11 @@ export class Listener implements IBinding {
     return result;
   }
 
-  handleEvent(event) {
+  handleEvent(event: Event) {
     this.callSource(event);
   }
 
-  bind(source) {
+  bind(source: Scope) {
     if (this.isBound) {
       if (this.source === source) {
         return;
@@ -61,7 +61,7 @@ export class Listener implements IBinding {
       this.sourceExpression.bind(this, source);
     }
 
-    this.disposeListener = this.eventManager.addEventListener(
+    this.handler = this.eventManager.addEventListener(
       this.target,
       this.targetEvent,
       this,
@@ -81,8 +81,8 @@ export class Listener implements IBinding {
     }
 
     this.source = null;
-    this.disposeListener();
-    this.disposeListener = null;
+    this.handler.dispose();
+    this.handler = null;
   }
 
   observeProperty() { }

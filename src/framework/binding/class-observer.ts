@@ -2,7 +2,7 @@ export class ClassObserver {
   doNotCache = true;
   value = '';
   version = 0;
-  nameIndex;
+  nameIndex: any;
 
   constructor(private element: Element) { }
 
@@ -10,7 +10,7 @@ export class ClassObserver {
     return this.value;
   }
 
-  setValue(newValue) {
+  setValue(newValue: any) {
     let nameIndex = this.nameIndex || {};
     let version = this.version;
     let names;

@@ -11,7 +11,7 @@ import {
 import * as AST from './ast';
 
 let AstNames = Object.getOwnPropertyNames(AST).filter(ast => ast !== 'Expression');
-let EOF = new Token(-1, null);
+let EOF = new Token(-1, '');
 
 export interface AstRegistryRecord {
   id: number;
@@ -350,7 +350,7 @@ export class ParserImplementation {
     }
   }
 
-  parsePrimary() {
+  parsePrimary(): Expression {
     if (this.optional('(')) {
       let result = this.parseExpression();
       this.expect(')');
@@ -378,7 +378,7 @@ export class ParserImplementation {
     } else if (this.index >= this.tokens.length) {
       throw new Error(`Unexpected end of expression: ${this.input}`);
     } else {
-      this.error(`Unexpected token ${this.peek.text}`);
+      return this.error(`Unexpected token ${this.peek.text}`);
     }
   }
 
@@ -415,10 +415,10 @@ export class ParserImplementation {
     if (this.optional('(')) {
       let args = this.parseExpressionList(')');
       this.expect(')');
-      return new CallScope(name, args, ancestor);
+      return new CallScope(name!, args, ancestor);
     }
 
-    return new AccessScope(name, ancestor);
+    return new AccessScope(name!, ancestor);
   }
 
   parseObject() {
@@ -484,7 +484,7 @@ export class ParserImplementation {
     this.index++;
   }
 
-  error(message: string) {
+  error(message: string): never {
     let location = (this.index < this.tokens.length)
       ? `at column ${this.tokens[this.index].index + 1} in`
       : 'at the end of the expression';

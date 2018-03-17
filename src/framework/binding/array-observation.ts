@@ -1,5 +1,6 @@
 /* eslint-disable no-extend-native */
-import {ModifyCollectionObserver} from './collection-observation';
+import { ModifyCollectionObserver } from './collection-observation';
+import { ITaskQueue } from './binding-interfaces';
 
 let pop = Array.prototype.pop;
 let push = Array.prototype.push;
@@ -105,12 +106,12 @@ Array.prototype.unshift = function() {
   return methodCallResult;
 };
 
-export function getArrayObserver(taskQueue, array) {
+export function getArrayObserver(taskQueue: ITaskQueue, array: any[]) {
   return ModifyArrayObserver.for(taskQueue, array);
 }
 
 class ModifyArrayObserver extends ModifyCollectionObserver {
-  constructor(taskQueue, array) {
+  constructor(taskQueue: ITaskQueue, array: any[]) {
     super(taskQueue, array);
   }
 
@@ -120,7 +121,7 @@ class ModifyArrayObserver extends ModifyCollectionObserver {
    * @param array instance for which observer is searched
    * @returns ModifyArrayObserver always the same instance for any given array instance
    */
-  static for(taskQueue, array) {
+  static for(taskQueue: ITaskQueue, array: any[] & { __array_observer__?: ModifyArrayObserver }) {
     if (!('__array_observer__' in array)) {
       Reflect.defineProperty(array, '__array_observer__', {
         value: ModifyArrayObserver.create(taskQueue, array),
@@ -130,7 +131,7 @@ class ModifyArrayObserver extends ModifyCollectionObserver {
     return array.__array_observer__;
   }
 
-  static create(taskQueue, array) {
+  static create(taskQueue: ITaskQueue, array: any[]) {
     return new ModifyArrayObserver(taskQueue, array);
   }
 }

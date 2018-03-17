@@ -1,5 +1,5 @@
 import { ViewSlot } from '../templating/view-slot';
-import { Scope } from '../binding/scope';
+import { Scope } from '../binding/binding-interfaces';
 import { IVisual } from '../templating/visual';
 
 /**
@@ -19,7 +19,7 @@ export abstract class IfCore {
 
   bind(scope: Scope) {
     this.scope = scope;
-    this.isBound = true;    
+    this.isBound = true;
   }
 
   attach() {

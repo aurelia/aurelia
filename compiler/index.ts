@@ -1,5 +1,5 @@
 import { Parser } from './parser';
-import { IAureliaModule, IAureliaModuleCompiler, IViewCompiler, IViewModelCompiler, IBindingLanguage } from './interfaces'
+import { IAureliaModule, IAureliaModuleCompiler, IViewCompiler, IViewModelCompiler, IBindingLanguage, IFileUtils } from './interfaces'
 import { ViewCompiler } from './view-compiler';
 import { ViewModelCompiler } from './view-model-compiler';
 import { AureliaModuleCompiler } from './module-compiler';
@@ -16,11 +16,14 @@ export class AureliaCompiler {
   public readonly viewModelCompiler: IViewModelCompiler;
   public readonly moduleCompiler: IAureliaModuleCompiler;
 
-  constructor() {
+  constructor(fileUtils: IFileUtils) {
     let container: IContainer = this.container = new Container().makeGlobal();
 
     this.parser = container.get(Parser);
     container.registerInstance('Parser', this.parser);
+
+    // let fileUtils: IFileUtils = container.get(NodeFileUtils);
+    container.registerInstance('IFileUtils', fileUtils);
 
     let bindingLanguage: IBindingLanguage = container.get(TemplatingBindingLanguage);
     container.registerInstance('IBindingLanguage', bindingLanguage);
@@ -40,6 +43,10 @@ export class AureliaCompiler {
   start(fileName: string): IAureliaModule {
 
     return this.moduleCompiler.compile(fileName);
+  }
+
+  emitAll() {
+    return this.moduleCompiler.emitAll();
   }
 }
 

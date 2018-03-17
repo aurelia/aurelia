@@ -12,6 +12,7 @@ export class BindableProperty implements IBindable {
   type: string;
   attribute: string;
   defaultValue?: ts.Expression;
+  primaryProperty?: boolean;
 
   constructor(
     config: IBindableConfig
@@ -20,9 +21,10 @@ export class BindableProperty implements IBindable {
     this.type = config.type || 'string';
     this.attribute = config.attribute || hyphenate(config.name);
     this.defaultValue = config.defaultValue;
+    this.primaryProperty = config.primaryProperty;
   }
 
   get code(): ts.Expression {
-    return null;
+    throw new Error('Not implemented');
   }
 }

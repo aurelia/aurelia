@@ -18,7 +18,7 @@ export class Container implements IContainer {
   /**
    * The parent container in the DI hierarchy.
    */
-  parent: IContainer;
+  parent: IContainer | null;
 
   /**
    * The root container in the DI hierarchy.
@@ -29,7 +29,7 @@ export class Container implements IContainer {
   protected _configuration: IContainerConfiguration;
 
   /** @internal */
-  protected _onHandlerCreated: (handler: IInvocationHandler) => IInvocationHandler;
+  protected _onHandlerCreated?: (handler: IInvocationHandler) => IInvocationHandler;
 
   /** @internal */
   protected _handlers: Map<any, any>;
@@ -66,7 +66,7 @@ export class Container implements IContainer {
    * Sets an invocation handler creation callback that will be called when new InvocationsHandlers are created (called once per Function).
    * @param onHandlerCreated The callback to be called when an InvocationsHandler is created.
    */
-  public setHandlerCreatedCallback(onHandlerCreated: (handler: InvocationHandler) => InvocationHandler): void {
+  public setHandlerCreatedCallback(onHandlerCreated: (handler: IInvocationHandler) => IInvocationHandler): void {
     this._onHandlerCreated = onHandlerCreated;
     this._configuration.onHandlerCreated = onHandlerCreated;
   }
@@ -281,7 +281,7 @@ export class Container implements IContainer {
    * @return Returns a new container instance parented to this.
    */
   public createChild(): IContainer {
-    let child = new Container(this._configuration);
+    let child: IContainer = new Container(this._configuration);
     child.root = this.root;
     child.parent = this;
     return child;
@@ -319,8 +319,8 @@ export class Container implements IContainer {
     }
 
     let invoker = classInvokers[dependencies.length] || classInvokers.fallback;
-
     let handler = new InvocationHandler(fn, invoker, dependencies);
+
     return this._onHandlerCreated !== undefined ? this._onHandlerCreated(handler) : handler;
   }
 }
@@ -351,39 +351,44 @@ function invokeWithDynamicDependencies(container: IContainer, fn: Function, stat
   return Reflect.construct(fn, args);
 }
 
-let classInvokers: { [key: number]: { invoke: Function } & { invokeWithDynamicDependencies: typeof invokeWithDynamicDependencies }; fallback: any } = {
+interface IClassInvoker {
+  invoke<TType = any>(container: IContainer, Type: { new(...args: any[]): TType }, deps: any[]): any;
+  invokeWithDynamicDependencies: typeof invokeWithDynamicDependencies;
+}
+
+let classInvokers: { [key: number]: IClassInvoker; fallback: any } = {
   0: {
-    invoke(container: IContainer, Type: { new(): any }) {
+    invoke<TType = any>(container: IContainer, Type: { new(): TType }) {
       return new Type();
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },
   1: {
-    invoke(container: IContainer, Type: { new(...args: any[]): any }, deps: any[]) {
+    invoke<TType = any>(container: IContainer, Type: { new(...args: any[]): TType }, deps: any[]) {
       return new Type(container.get(deps[0]));
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },
   2: {
-    invoke(container: IContainer, Type: { new(...args: any[]): any }, deps: any[]) {
+    invoke<TType = any>(container: IContainer, Type: { new(...args: any[]): TType }, deps: any[]) {
       return new Type(container.get(deps[0]), container.get(deps[1]));
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },
   3: {
-    invoke(container: IContainer, Type: { new(...args: any[]): any }, deps: any[]) {
+    invoke<TType = any>(container: IContainer, Type: { new(...args: any[]): TType }, deps: any[]) {
       return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },
   4: {
-    invoke(container: IContainer, Type: { new(...args: any[]): any }, deps: any[]) {
+    invoke<TType = any>(container: IContainer, Type: { new(...args: any[]): TType }, deps: any[]) {
       return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]));
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },
   5: {
-    invoke(container: IContainer, Type: { new(...args: any[]): any }, deps: any[]) {
+    invoke<TType = any>(container: IContainer, Type: { new(...args: any[]): TType }, deps: any[]) {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),

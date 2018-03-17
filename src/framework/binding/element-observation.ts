@@ -1,16 +1,17 @@
-import {SubscriberCollection} from './subscriber-collection';
+import { SubscriberCollection } from './subscriber-collection';
+import { IDisposable, IEventSubscriber, ICallable } from './binding-interfaces';
 
 export class XLinkAttributeObserver {
   // xlink namespaced attributes require getAttributeNS/setAttributeNS
   // (even though the NS version doesn't work for other namespaces
   // in html5 documents)
-  constructor(private element: Element, private propertyName: string, private attributeName: string) {}
+  constructor(private element: Element, private propertyName: string, private attributeName: string) { }
 
   getValue() {
     return this.element.getAttributeNS('http://www.w3.org/1999/xlink', this.attributeName);
   }
 
-  setValue(newValue) {
+  setValue(newValue: any) {
     return this.element.setAttributeNS('http://www.w3.org/1999/xlink', this.attributeName, newValue);
   }
 
@@ -20,8 +21,8 @@ export class XLinkAttributeObserver {
 }
 
 export const dataAttributeAccessor = {
-  getValue: (obj, propertyName) => obj.getAttribute(propertyName),
-  setValue: (value, obj, propertyName) => {
+  getValue: (obj: Element, propertyName: string) => obj.getAttribute(propertyName),
+  setValue: (value: any, obj: Element, propertyName: string) => {
     if (value === null || value === undefined) {
       obj.removeAttribute(propertyName);
     } else {
@@ -31,13 +32,13 @@ export const dataAttributeAccessor = {
 };
 
 export class DataAttributeObserver {
-  constructor(private element: Element, private propertyName: string) {}
+  constructor(private element: Element, private propertyName: string) { }
 
   getValue() {
     return this.element.getAttribute(this.propertyName);
   }
 
-  setValue(newValue) {
+  setValue(newValue: any) {
     if (newValue === null || newValue === undefined) {
       return this.element.removeAttribute(this.propertyName);
     }
@@ -50,7 +51,7 @@ export class DataAttributeObserver {
 }
 
 export class StyleObserver {
-  styles = null;
+  styles: any = null;
   version = 0;
 
   constructor(private element: HTMLElement, private propertyName: string) { }
@@ -59,7 +60,7 @@ export class StyleObserver {
     return this.element.style.cssText;
   }
 
-  _setProperty(style, value) {
+  _setProperty(style: string, value: string) {
     let priority = '';
 
     if (value !== null && value !== undefined && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
@@ -69,7 +70,7 @@ export class StyleObserver {
     this.element.style.setProperty(style, value, priority);
   }
 
-  setValue(newValue) {
+  setValue(newValue: any) {
     let styles = this.styles || {};
     let style;
     let version = this.version;
@@ -90,7 +91,7 @@ export class StyleObserver {
         let pair;
         while ((pair = rx.exec(newValue)) !== null) {
           style = pair[1];
-          if ( !style ) { continue; }
+          if (!style) { continue; }
 
           styles[style] = version;
           this._setProperty(style, pair[2]);
@@ -121,26 +122,29 @@ export class StyleObserver {
 }
 
 export class ValueAttributeObserver extends SubscriberCollection {
-  private oldValue;
-  private disposeHandler;
+  private oldValue: any;
 
-  constructor(private element: Element, private propertyName: string, private handler) {
+  constructor(
+    private element: Element,
+    private propertyName: string,
+    private handler: IEventSubscriber
+  ) {
     super();
 
     if (propertyName === 'files') {
       // input.files cannot be assigned.
-      this.setValue = () => {};
+      this.setValue = () => { };
     }
   }
 
-  getValue() {
-    return this.element[this.propertyName];
+  getValue(): any {
+    return (this.element as any)[this.propertyName];
   }
 
-  setValue(newValue) {
+  setValue(newValue: any) {
     newValue = newValue === undefined || newValue === null ? '' : newValue;
-    if (this.element[this.propertyName] !== newValue) {
-      this.element[this.propertyName] = newValue;
+    if ((this.element as any)[this.propertyName] !== newValue) {
+      (this.element as any)[this.propertyName] = newValue;
       this.notify();
     }
   }
@@ -158,19 +162,18 @@ export class ValueAttributeObserver extends SubscriberCollection {
     this.notify();
   }
 
-  subscribe(context, callable) {
+  subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
-      this.disposeHandler = this.handler.subscribe(this.element, this);
+      this.handler.subscribe(this.element, this);
     }
 
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context, callable) {
+  unsubscribe(context: string, callable: ICallable) {
     if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
-      this.disposeHandler();
-      this.disposeHandler = null;
+      this.handler.dispose();
     }
   }
 }

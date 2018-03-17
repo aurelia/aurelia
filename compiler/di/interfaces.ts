@@ -5,7 +5,7 @@ export interface IContainer {
   /**
    * The parent container in the DI hierarchy.
    */
-  parent: IContainer;
+  parent: IContainer | null;
 
   /**
    * The root container in the DI hierarchy.

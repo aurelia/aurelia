@@ -13,7 +13,8 @@ import {
   ITemplateFactory
 } from './interfaces';
 // import { camelCase } from './util';
-import { AbstractBinding, TextBinding, RefBinding } from './binding';
+import { TextBinding, RefBinding, IBinding } from './binding';
+import { hyphenate } from './util';
 // import { TemplateFactory } from './template-factory'
 
 let info: IInsepctionInfo = {};
@@ -41,10 +42,10 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
     elementResource: IResourceElement,
     templateFactory: ITemplateFactory,
     auModule: IAureliaModule
-  ): AbstractBinding {
+  ): IBinding | null {
     let parts = attrName.split('.');
 
-    info.defaultBindingMode = null;
+    info.defaultBindingMode = undefined;
 
     if (parts.length === 2) {
       info.attrName = parts[0].trim();
@@ -53,7 +54,7 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
 
       if (info.command === 'ref') {
         return new RefBinding(
-          Parser.addAst(attrValue, this.parser.parse(attrValue)),
+          this.parser.getOrCreateAstRecord(attrValue),
           targetIndex,
           info.attrName
         );
@@ -64,6 +65,11 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
         //   camelCase(parts[0].trim())
         // ];
       } else {
+        let attrResource = auModule.getCustomAttribute(hyphenate(attrName));
+        if (attrResource) {
+
+        }
+
         return this.syntaxInterpreter.interpret(
           element,
           info,
@@ -75,7 +81,7 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
       }
     } else if (attrName === 'ref') {
       return new RefBinding(
-        Parser.addAst(attrValue, this.parser.parse(attrValue)),
+        this.parser.getOrCreateAstRecord(attrValue),
         targetIndex,
         ELEMENT_REF_KEY
       );
@@ -88,7 +94,7 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
     } else {
       info.attrName = attrName;
       info.attrValue = attrValue;
-      info.command = null;
+      info.command = undefined;
       const templateLiteral = this.parseInterpolation(attrValue);
       if (templateLiteral === null) {
         return null;
@@ -198,7 +204,7 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
 
       if (open === 0) {
         // lazy allocate array
-        parts = parts || [];
+        parts = parts! || [];
         if (value[interpolationStart - 1] === '\\' && value[interpolationStart - 2] !== '\\') {
           // escaped interpolation
           parts[partIndex] = new LiteralString(
@@ -228,6 +234,6 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
 
     // literal.
     parts[partIndex] = new LiteralString(value.substr(pos));
-    return new TemplateLiteral(parts);
+    return new TemplateLiteral(parts!);
   }
 }

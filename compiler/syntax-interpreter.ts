@@ -9,19 +9,7 @@ import {
   ITemplateFactory,
 } from './interfaces';
 
-import { bindingMode, delegationStrategy, AbstractBinding, PropertyBinding, ListenerBinding } from './binding';
-
-// interface SyntaxInterpreterCommands {
-//   bind: 1,
-//   'one-time': 1,
-//   'one-way': 1,
-//   'two-way': 1,
-//   'to-view': 1,
-//   'from-view': 1,
-//   'trigger': 1,
-//   'delegate': 1,
-//   'capture': 1
-// };
+import { bindingMode, delegationStrategy, IBinding, PropertyBinding, ListenerBinding } from './binding';
 
 export class SyntaxInterpreter {
 
@@ -34,15 +22,22 @@ export class SyntaxInterpreter {
   ) {
   }
 
-  interpret(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule) {
-    if (info.command in this) {
+  interpret(
+    element: Element,
+    info: IInsepctionInfo,
+    targetIndex: number,
+    elementResource: IResourceElement | null,
+    factory: ITemplateFactory,
+    auModule: IAureliaModule
+  ): IBinding | null {
+    if (info.command && info.command in this) {
       return (this as any)[info.command](element, info, targetIndex, elementResource, factory, auModule);
     }
 
     return this.handleUnknownCommand(element, info, targetIndex);
   }
 
-  private handleUnknownCommand(element: Element, info: IInsepctionInfo, targetIndex: number): AbstractBinding {
+  private handleUnknownCommand(element: Element, info: IInsepctionInfo, targetIndex: number): IBinding | null {
     console.warn('Unknown binding command.', info);
     return null;
   }
@@ -70,7 +65,7 @@ export class SyntaxInterpreter {
       return bindingMode.toView;
     }
 
-    let bindable = factory.elementResource.getBindable(attrName);
+    let bindable = elementResource.getBindable(attrName);
     if (bindable) {
       return bindable.defaultBindingMode === null || bindable.defaultBindingMode === undefined
         ? bindingMode.toView
@@ -89,14 +84,18 @@ export class SyntaxInterpreter {
     return bindingMode.oneWay;
   }
 
-  bind(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
-    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+  bind(el: Element, info: IInsepctionInfo, targetIndex: number, elRes: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): IBinding | null {
+    if (!info.attrName || !info.attrValue) {
+      console.error('Command [bind] used without attribue name or value.');
+      return null;
+    }
+    let bindable = elRes ? elRes.getBindable(info.attrName) : null;
     return new PropertyBinding(
       this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
       info.attrName,
       info.defaultBindingMode === undefined || info.defaultBindingMode === null
-        ? this.determineDefaultBindingMode(element, info.attrName, elementResource, factory, auModule)
+        ? this.determineDefaultBindingMode(el, info.attrName, elRes, factory, auModule)
         : info.defaultBindingMode,
       bindable ? true : false,
       bindable ? factory.lastBehaviorIndex : undefined
@@ -112,7 +111,11 @@ export class SyntaxInterpreter {
     // ];
   }
 
-  trigger(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
+  trigger(el: Element, info: IInsepctionInfo, targetIndex: number, elRes: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): IBinding | null {
+    if (!info.attrName || !info.attrValue) {
+      console.error('Command [trigger] used without attribue name or value.');
+      return null;
+    }
     return new ListenerBinding(
       this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
@@ -136,7 +139,11 @@ export class SyntaxInterpreter {
     // );
   }
 
-  capture(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
+  capture(el: Element, info: IInsepctionInfo, targetIndex: number, elRes: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): IBinding | null {
+    if (!info.attrName || !info.attrValue) {
+      console.error('Command [capture] used without attribue name or value.');
+      return null;
+    }
     return new ListenerBinding(
       this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
@@ -160,7 +167,11 @@ export class SyntaxInterpreter {
     // );
   }
 
-  delegate(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
+  delegate(el: Element, info: IInsepctionInfo, targetIndex: number, elRes: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): IBinding | null {
+    if (!info.attrName || !info.attrValue) {
+      console.error('Command [delegate] used without attribue name or value.');
+      return null;
+    }
     return new ListenerBinding(
       this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
@@ -308,8 +319,12 @@ export class SyntaxInterpreter {
   //   return instruction;
   // }
 
-  'two-way'(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
-    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+  'two-way'(el: Element, info: IInsepctionInfo, targetIndex: number, elRes: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): IBinding | null {
+    if (!info.attrName || !info.attrValue) {
+      console.error('explicit [.two-way] command without attribue name or value.');
+      return null;
+    }
+    let bindable = elRes ? elRes.getBindable(info.attrName) : null;
     return new PropertyBinding(
       this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
@@ -337,8 +352,12 @@ export class SyntaxInterpreter {
     // return instruction;
   }
 
-  'to-view'(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
-    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+  'to-view'(el: Element, info: IInsepctionInfo, targetIndex: number, elRes: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): IBinding | null {
+    if (!info.attrName || !info.attrValue) {
+      console.error('explicit [.to-view] command without attribue name or value.');
+      return null;
+    }
+    let bindable = elRes ? elRes.getBindable(info.attrName) : null;
     return new PropertyBinding(
       this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
@@ -367,8 +386,12 @@ export class SyntaxInterpreter {
     // return instruction;
   }
 
-  'one-way'(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
-    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+  'one-way'(el: Element, info: IInsepctionInfo, targetIndex: number, elRes: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): IBinding | null {
+    if (!info.attrName || !info.attrValue) {
+      console.error('explicit [.one-way] command without attribue name or value.');
+      return null;
+    }
+    let bindable = elRes ? elRes.getBindable(info.attrName) : null;
     return new PropertyBinding(
       this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
@@ -397,8 +420,12 @@ export class SyntaxInterpreter {
     // return instruction;
   }
 
-  'from-view'(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
-    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+  'from-view'(el: Element, info: IInsepctionInfo, targetIndex: number, elRes: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): IBinding | null {
+    if (!info.attrName || !info.attrValue) {
+      console.error('explicit [.from-view] command without attribue name or value.');
+      return null;
+    }
+    let bindable = elRes ? elRes.getBindable(info.attrName) : null;
     return new PropertyBinding(
       this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,
@@ -427,8 +454,12 @@ export class SyntaxInterpreter {
     // return instruction;
   }
 
-  'one-time'(element: Element, info: IInsepctionInfo, targetIndex: number, elementResource: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): AbstractBinding {
-    let bindable = elementResource ? elementResource.getBindable(info.attrName) : null;
+  'one-time'(el: Element, info: IInsepctionInfo, targetIndex: number, elRes: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): IBinding | null {
+    if (!info.attrName || !info.attrValue) {
+      console.error('explicit [.one-time] command without attribue name or value.');
+      return null;
+    }
+    let bindable = elRes ? elRes.getBindable(info.attrName) : null;
     return new PropertyBinding(
       this.parser.getOrCreateAstRecord(info.attrValue),
       targetIndex,

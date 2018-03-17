@@ -2,18 +2,22 @@
   "compileOnSave": false,
   "compilerOptions": {
     "sourceMap": true,
-    "target": "es5",
+    "target": "esnext",
     "module": "commonjs",
     "declaration": false,
     "noUnusedLocals": true,
     "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowJs": false,
     "moduleResolution": "node",
     "lib": [
-      "es2017",
+      "es2018",
       "dom"
     ]
   },

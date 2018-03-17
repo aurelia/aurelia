@@ -51,7 +51,7 @@ export class Chain extends Expression {
   }
 
   get observedProperties() {
-    return this.expressions.reduce((props, e) => props.concat(e.observedProperties), []);
+    return this.expressions.reduce((props, e) => props.concat(e.observedProperties), [] as string[]);
   }
 
   get code() {
@@ -80,7 +80,7 @@ export class BindingBehavior extends Expression {
   }
 
   get observedProperties() {
-    return this.args.reduce((props, a) => props.concat(a.observedProperties), []);
+    return this.args.reduce((props, a) => props.concat(a.observedProperties), [] as string[]);
   }
 
   get code() {
@@ -324,7 +324,7 @@ export class AccessKeyed extends Expression {
       undefined,
       [
         this.object.code,
-        !(this.key instanceof Object) ? ts.createLiteral(this.key) : undefined
+        !(this.key instanceof Object) ? ts.createLiteral(this.key) : undefined!
       ].filter(Boolean)
     );
   }
@@ -349,7 +349,7 @@ export class CallScope extends Expression {
   }
 
   get observedProperties() {
-    return this.args.reduce((props, a) => props.concat(a.observedProperties), []);
+    return this.args.reduce((props: string[], a) => props.concat(a.observedProperties), []);
   }
 
   get code() {
@@ -421,7 +421,7 @@ export class CallFunction extends Expression {
   }
 
   get observedProperties() {
-    return this.args.reduce((props, a) => props.concat(a.observedProperties), []);
+    return this.args.reduce((props: string[], a) => props.concat(a.observedProperties), []);
   }
 
   get code() {
@@ -501,7 +501,7 @@ export class PrefixNot extends Expression {
 }
 
 export class LiteralPrimitive extends Expression {
-  constructor(public value: number | boolean) {
+  constructor(public value: number | boolean | null | undefined) {
     super();
   }
 
@@ -521,7 +521,11 @@ export class LiteralPrimitive extends Expression {
       ts.createIdentifier('LiteralPrimitive'),
       undefined,
       [
-        ts.createLiteral(this.value)
+        this.value === null
+          ? ts.createNull()
+          : this.value === undefined
+            ? ts.createIdentifier('undefined')
+            : ts.createLiteral(this.value)
       ]
     );
   }
@@ -569,7 +573,7 @@ export class TemplateLiteral extends Expression {
   }
 
   get observedProperties() {
-    return this.parts.reduce((props, v) => props.concat(v.observedProperties), []);
+    return this.parts.reduce((props: string[], v) => props.concat(v.observedProperties), []);
   }
 
   get code() {
@@ -598,7 +602,7 @@ export class LiteralArray extends Expression {
   }
 
   get observedProperties() {
-    return this.elements.reduce((props, e) => props.concat(e.observedProperties), []);
+    return this.elements.reduce((props: string[], e) => props.concat(e.observedProperties), []);
   }
 
   get code() {
@@ -629,7 +633,7 @@ export class LiteralObject extends Expression {
   }
 
   get observedProperties() {
-    return this.values.reduce((props, v) => props.concat(v.observedProperties), []);
+    return this.values.reduce((props: string[], v) => props.concat(v.observedProperties), []);
   }
 
   get code() {

@@ -1,5 +1,3 @@
-import { DOM } from 'aurelia-pal';
-
 let svgElements: Record<string, string[]>;
 let svgPresentationElements;
 let svgPresentationAttributes;
@@ -206,11 +204,11 @@ svgPresentationAttributes = {
 };
 
 // SVG elements/attributes are case-sensitive.  Not all browsers use the same casing for all attributes.
-let createElement = function(html: string) {
-  let div = DOM.createElement('div');
-  div.innerHTML = html;
-  return div.firstElementChild;
-};
+// let createElement = function(html: string) {
+//   let div = DOM.createElement('div');
+//   div.innerHTML = html;
+//   return div.firstElementChild;
+// };
 
 svgAnalyzer = class SVGAnalyzer {
   constructor() {

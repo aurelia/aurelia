@@ -2,15 +2,15 @@ import * as ts from 'typescript';
 
 import {
   Expression,
-  AccessScope,
-  AccessMember,
-  CallScope,
-  LiteralString,
-  Binary,
-  Conditional
+  // AccessScope,
+  // AccessMember,
+  // CallScope,
+  // LiteralString,
+  // Binary,
+  // Conditional
 } from './ast';
 
-const emptyArray = [];
+// const emptyArray = [];
 
 interface AstRegistryRecord {
   id: number;
@@ -40,7 +40,16 @@ export enum delegationStrategy {
 //   return astLookup[key];
 // }
 
-export abstract class AbstractBinding {
+export interface IBinding {
+  behavior?: boolean;
+  behaviorIndex?: number;
+  targetIndex: number;
+  dehydrated: any[];
+  code: ts.Expression;
+  observedProperties: string[];
+}
+
+export abstract class AbstractBinding implements IBinding {
 
   static targetsAccessor = 'targets';
   static getAstFn = 'getAst';
@@ -170,7 +179,7 @@ export class RefBinding extends AbstractBinding {
   }
 
   get code(): ts.Expression {
-    return null;
+    throw new Error('RefBinding.prototype.code() not implemented');
   }
 
   get observedProperties() {

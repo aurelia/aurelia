@@ -1,27 +1,26 @@
 import * as ts from 'typescript';
 // import { Expression, TemplateLiteral } from './ast'
 // import * as AST from './ast';
-import {
-  // bindingMode,
-  // delegationStrategy,
-  AbstractBinding
-} from './binding';
+
 import {
   ITemplateFactory,
   IAureliaModule,
   IResourceElement,
-  ITemplateFactoryCode
+  ITemplateFactoryCode,
+  IResource
 } from './interfaces'
 // import { getElementViewName } from './ts-util';
 import { TemplateTransformer } from './template-transformer';
+import { IBinding } from './binding';
 
 export class TemplateFactory implements ITemplateFactory {
 
   html: string = '';
-  bindings: AbstractBinding[] = [];
+  bindings: IBinding[] = [];
 
-  elementResource: IResourceElement;
+  elementResource?: IResourceElement;
   dependencies: IAureliaModule[] = [];
+  usedDependencies: Map<IAureliaModule, IResource[]> = new Map();
 
   _lastCustomElementIndex = 0;
 
@@ -64,7 +63,7 @@ export class TemplateFactory implements ITemplateFactory {
     while (i--) {
       let binding = bindings[i];
       if (binding.behavior) {
-        return binding.behaviorIndex;
+        return binding.behaviorIndex!;
       }
     }
     return -1;
@@ -80,7 +79,7 @@ export class TemplateFactory implements ITemplateFactory {
   }
 
   getCustomElement(htmlName: string) {
-    let elementResource: IResourceElement;
+    let elementResource: IResourceElement | undefined;
     if (this.owner) {
       elementResource = this.owner.getCustomElement(htmlName);
     }
@@ -109,10 +108,14 @@ export class TemplateFactory implements ITemplateFactory {
     // let mainFile = new TemplateTransformer(this, emitImport).toSourceFile();
     return ts.updateSourceFileNode(file, [
       ...templateCode.imports,
-      ...this.dependencies.reduce((statements, dep) => {
+      ...this.dependencies.reduce((statements: ts.Statement[], dep) => {
         return statements.concat(dep.toSourceFile().statements);
       }, []),
       templateCode.view
     ]);
+  }
+
+  getUsedDependency(): ts.ImportDeclaration[] {
+    return new TemplateTransformer(this).createAureliaDepenciesImport();
   }
 }

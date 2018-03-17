@@ -8,90 +8,43 @@ import {
   // IResourceValueConverter,
   // IResourceBindingBehavior,
   IBindable,
-  IResourceBehavior
+  IResourceBehavior,
+  IAureliaModule
 } from './interfaces';
 // import { bindingMode } from './binding';
 // import { hyphenate } from './util';
-import { getElementHtmlName } from './ts-util';
+import { getBehaviorHtmlName } from './ts-util';
 
 abstract class HtmlBehavior implements IResourceBehavior {
 
   name: string;
   htmlName: string;
   kind: resourceKind.element | resourceKind.attribute;
-  impl: ts.ClassDeclaration;
+  // impl: ts.ClassDeclaration;
   bindables: Record<string, IBindable>;
   initializers: Record<string, ts.Expression>;
+  lifeCycles: Record<string, boolean>;
 
-  // private getBindableMode(classMember: ts.ClassElement) {
-  //   // let decorators = classMember.decorators;
-  //   // for (let i = 0, ii = decorators.length; ii > i; ++i) {
-  //   //   let decorator = decorators[i];
-  //   //   let expression = decorator.expression;
-  //   //   if (ts.isCallExpression(expression)) {
-  //   //     let config = expression.arguments[0];
-  //   //     if (ts.isObjectBindingPattern(config)) {
-  //   //       let properties = config.elements;
-  //   //       if (properties) {
-  //   //         for (let j = 0, jj = properties.length; jj > j; ++j) {
-  //   //           let prop = properties[j];
-  //   //           let initializer = prop.initializer;
-  //   //           if (prop.name.toString() === 'defaultBindingMode' && initializer) {
-  //   //             if (ts.isPropertyAccessExpression(initializer)) {
-  //   //               let mode = initializer.name.toString();
-  //   //               let obj = initializer.expression;
-  //   //               if (ts.isIdentifier(obj) && obj.escapedText.toString() === 'bindingMode') {
-  //   //                 return bindingMode[mode];
-  //   //               }
-  //   //             }
-  //   //           }
-  //   //         }
-  //   //       }
-  //   //     }
-  //   //   } else {
+  hasCreated: boolean;
+  hasBind: boolean;
+  hasAttached: boolean;
+  hasDetached: boolean;
+  hasUnbind: boolean;
 
-  //   //   }
-  //   // }
-  //   return bindingMode.toView;
-  // }
-
-  protected hasBindableDecorator(member: ts.ClassElement): member is ts.PropertyDeclaration {
-    if (!ts.isPropertyDeclaration(member)) {
-      return false;
-    }
-    if (!member.decorators) {
-      return false;
-    }
-    return member.decorators.some(decorator => (decorator.expression as ts.Identifier).text === 'bindable');
-  }
-
-  protected getBindables(): Record<string, IBindable> {
-    let members = this.impl.members;
-    if (!members) {
-      return this.bindables = {};
-    } else {
-      return this.bindables = members.reduce((bindables, member) => {
-        if (!member.decorators) {
-          return bindables;
-        }
-        if (!this.hasBindableDecorator(member)) {
-          return bindables;
-        }
-        // let name = (member.name as ts.Identifier).text;
-        // let htmlName = hyphenate(name);
-        // bindables[htmlName] = {
-        //   name,
-        //   attribute,
-        //   type: 'string',
-        //   defaultBindingMode: this.getBindableMode(member)
-        // }
-        return bindables;
-      }, {} as Record<string, IBindable>);
-    }
+  constructor(
+    public owner: IAureliaModule,
+    name: string
+  ) {
+    this.name = name;
+    this.htmlName = getBehaviorHtmlName(name);
   }
 
   getBindable(htmlName: string) {
     return this.bindables[htmlName] || null;
+  }
+
+  get hasConstructor() {
+    return this.lifeCycles.ctor === true;
   }
 }
 
@@ -101,16 +54,16 @@ export class ElementResource extends HtmlBehavior implements IResourceElement {
   htmlName: string;
 
   constructor(
-    public name: string,
-    public impl: ts.ClassDeclaration,
+    owner: IAureliaModule,
+    name: string,
     public bindables: Record<string, IBindable>,
-    public initializers: Record<string, ts.Expression>
+    public initializers: Record<string, ts.Expression>,
+    public lifeCycles: Record<string, boolean>
   ) {
-    super();
-    this.htmlName = getElementHtmlName(impl.name);
+    super(owner, name);
   }
 
-  get code(): ts.Expression {
+  get code(): ts.Expression | null {
     return null;
 
     // return ts.createCall(
@@ -138,19 +91,34 @@ export class ElementResource extends HtmlBehavior implements IResourceElement {
 }
 
 export class AttributeResource extends HtmlBehavior implements IResourceAttribute {
+
+  kind: resourceKind.attribute = resourceKind.attribute;
   htmlName: string;
+  primaryProperty?: IBindable;
+
   constructor(
-    public name: string,
-    public kind: resourceKind.attribute,
-    public impl: ts.ClassDeclaration,
-    public bindables: Record<string, IBindable>
+    owner: IAureliaModule,
+    name: string,
+    public bindables: Record<string, IBindable>,
+    public initializers: Record<string, ts.Expression>,
+    public lifeCycles: Record<string, boolean>
   ) {
-    super();
-    this.htmlName = getElementHtmlName(impl.name);
+    super(owner, name);
+    this.primaryProperty = this.getPrimaryProperty(bindables);
   }
 
-  get code(): ts.Expression {
+  get code(): ts.Expression | null {
     return null;
+  }
+
+  private getPrimaryProperty(bindables: Record<string, IBindable>): IBindable | undefined {
+    for (let prop in bindables) {
+      let bindable = bindables[prop];
+      if (bindable.primaryProperty) {
+        return bindable;
+      }
+    }
+    return undefined;
   }
 }
 

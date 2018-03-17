@@ -11,9 +11,10 @@ export default {
   name: 'core',
   plugins: [
     typescript({
+      tsconfig: 'compiler/tsconfig.json',
       tsconfigOverride: {
         compilerOptions: {
-          target: 'es2015',
+          noUnusedLocals: false,
         }
       },
       cacheRoot: '.rollupcache'

@@ -3,8 +3,11 @@ import {
   ITemplateFactory,
   // IAureliaModule
 } from './interfaces';
-import { getElementViewName, getPrivateClassName } from './ts-util';
-import { AbstractBinding } from './binding';
+import {
+  // getElementViewName,
+  getPrivateClassName
+} from './ts-util';
+import { AbstractBinding, IBinding } from './binding';
 
 export interface TemplateFactoryCode {
   imports: ts.ImportDeclaration[];
@@ -42,6 +45,10 @@ export class TemplateTransformer {
     // let file = ts.createSourceFile(factory.owner.fileName, '', ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
     let observedProperties = factory.observedProperties;
     let elResource = factory.elementResource;
+    if (!elResource) {
+      // TODO: implement plain view template
+      throw new Error('Template without element resource not supported');
+    }
     let baseVmClassName = elResource.name;
     // let viewClassName = getElementViewName(viewModelClassName);
     let privateVmClassName = getPrivateClassName(baseVmClassName);
@@ -55,7 +62,7 @@ export class TemplateTransformer {
           this.createImport(['Template'], './framework/templating/template'),
         ]
         : []
-      ),
+      ).concat(this.createAureliaDepenciesImport()),
       view: ts.createClassDeclaration(
         /* decorators */ undefined,
         /* modifiers */
@@ -70,7 +77,7 @@ export class TemplateTransformer {
             ts.SyntaxKind.ExtendsKeyword,
             [
               ts.createExpressionWithTypeArguments(
-                undefined,
+                undefined!,
                 ts.createIdentifier(privateVmClassName)
               )
             ]
@@ -85,76 +92,75 @@ export class TemplateTransformer {
           this.createInitMethod(privateVmClassName),
           // this.createBindingsProp(),
           ...this.createLifecycleMethods(),
-          ...observedProperties.reduce((propDeclarations, op) => {
-            return propDeclarations.concat([
+          ...observedProperties.reduce((propDeclarations: ts.ClassElement[], op: string) => {
+            return [
+              ...propDeclarations,
               this.createObserverGetter(op),
               this.createObserverSetter(op)
-            ]);
+            ];
           }, /* observed properties init value */[]),
         ]
       ),
     }
   }
 
-  toSourceFile(): ts.SourceFile {
-    let factory = this.templateFactory;
-    let file = ts.createSourceFile(factory.owner.fileName, '', ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
-    let observedProperties = factory.observedProperties;
-    let elResource = factory.elementResource;
-    let viewModelName = elResource.impl.name.escapedText.toString();
-    let viewClassName = getElementViewName(viewModelName);
-    return ts.updateSourceFileNode(file, [
-      ...(this.emitImport
-        ? [
-          this.createImport(['createOverrideContext'], './framework/binding/scope'),
-          this.createImport(['getAst'], './asts'),
-          this.createImport(['Binding', 'TextBinding', 'Listener'], './framework/binding/binding'),
-          this.createImport(['Observer'], './framework/binding/property-observation'),
-          this.createImport(['Template'], './framework/templating/template'),
-        ]
-        : []
-      ),
-      ts.createClassDeclaration(
-        /* decorators */ undefined,
-        /* modifiers */
-        [
-          ts.createToken(ts.SyntaxKind.ExportKeyword)
-        ],
-        viewClassName,
-        /* type parameters */ undefined,
-        /* heritage clauses */
-        [
-          ts.createHeritageClause(
-            ts.SyntaxKind.ExtendsKeyword,
-            [
-              ts.createExpressionWithTypeArguments(
-                undefined,
-                ts.createIdentifier(viewModelName)
-              )
-            ]
-          ),
-        ],
-        /* members */
-        [
-          this.createViewClassConstructor(),
-          // this.createScopeProp(),
-          // this.createObserverProp(observedProperties),
-          this.createTemplateProp(),
-          this.createInitMethod(viewClassName),
-          // this.createBindingsProp(),
-          ...this.createLifecycleMethods(),
-          ...observedProperties.reduce((propDeclarations, op) => {
-            return propDeclarations.concat([
-              this.createObserverGetter(op),
-              this.createObserverSetter(op)
-            ]);
-          }, /* observed properties init value */[]),
-        ]
-      ),
-
-
-    ]);
-  }
+  // toSourceFile(): ts.SourceFile {
+  //   let factory = this.templateFactory;
+  //   let file = ts.createSourceFile(factory.owner.fileName, '', ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+  //   let observedProperties = factory.observedProperties;
+  //   let elResource = factory.elementResource;
+  //   let viewModelName = elResource.impl.name.escapedText.toString();
+  //   let viewClassName = getElementViewName(viewModelName);
+  //   return ts.updateSourceFileNode(file, [
+  //     ...(this.emitImport
+  //       ? [
+  //         this.createImport(['createOverrideContext'], './framework/binding/scope'),
+  //         this.createImport(['getAst'], './asts'),
+  //         this.createImport(['Binding', 'TextBinding', 'Listener'], './framework/binding/binding'),
+  //         this.createImport(['Observer'], './framework/binding/property-observation'),
+  //         this.createImport(['Template'], './framework/templating/template'),
+  //       ]
+  //       : []
+  //     ),
+  //     ts.createClassDeclaration(
+  //       /* decorators */ undefined,
+  //       /* modifiers */
+  //       [
+  //         ts.createToken(ts.SyntaxKind.ExportKeyword)
+  //       ],
+  //       viewClassName,
+  //       /* type parameters */ undefined,
+  //       /* heritage clauses */
+  //       [
+  //         ts.createHeritageClause(
+  //           ts.SyntaxKind.ExtendsKeyword,
+  //           [
+  //             ts.createExpressionWithTypeArguments(
+  //               undefined,
+  //               ts.createIdentifier(viewModelName)
+  //             )
+  //           ]
+  //         ),
+  //       ],
+  //       /* members */
+  //       [
+  //         this.createViewClassConstructor(),
+  //         // this.createScopeProp(),
+  //         // this.createObserverProp(observedProperties),
+  //         this.createTemplateProp(),
+  //         this.createInitMethod(viewClassName),
+  //         // this.createBindingsProp(),
+  //         ...this.createLifecycleMethods(),
+  //         ...observedProperties.reduce((propDeclarations, op) => {
+  //           return propDeclarations.concat([
+  //             this.createObserverGetter(op),
+  //             this.createObserverSetter(op)
+  //           ]);
+  //         }, /* observed properties init value */[]),
+  //       ]
+  //     ),
+  //   ]);
+  // }
 
   private createImport(names: string[], moduleName: string): ts.ImportDeclaration {
     return ts.createImportDeclaration(
@@ -176,7 +182,8 @@ export class TemplateTransformer {
   // =============================
 
   private createViewClassConstructor(): ts.ConstructorDeclaration {
-    let elInitializers = this.templateFactory.elementResource.initializers;
+    // let elRes = this.templateFactory.elementResource;
+    // let elInitializers = elRes ? elRes.initializers : {};
     return ts.createConstructor(
       /** decorators */ undefined,
       /** modifiers */ undefined,
@@ -187,7 +194,7 @@ export class TemplateTransformer {
           ts.createCall(
             ts.createSuper(),
             undefined,
-            undefined
+            undefined!
           )
         ),
         // this.$scope = { ... }
@@ -220,45 +227,45 @@ export class TemplateTransformer {
           )
         ),
         // this.$observer = { ... }
-        ts.createStatement(
-          ts.createCall(
-            ts.createPropertyAccess(
-              ts.createIdentifier('Object'),
-              'defineProperty'
-            ),
-            /*typeArguments*/ undefined,
-            /*arguments*/
-            [
-              ts.createThis(),
-              ts.createLiteral(this.observerPropName),
-              ts.createObjectLiteral(
-                [
-                  ts.createPropertyAssignment(
-                    'value',
-                    ts.createObjectLiteral(
-                      this.templateFactory.observedProperties.map(op => {
-                        let initializer = elInitializers[op];
-                        return ts.createPropertyAssignment(
-                          op,
-                          ts.createNew(
-                            ts.createIdentifier('Observer'),
-                            /* type arguments */ undefined,
-                            /* arguments */ initializer
-                              ? [initializer]
-                              : undefined
-                          )
-                        )
-                      }),
-                      /* multiline */ true
-                    )
-                  ),
-                  ts.createPropertyAssignment('configurable', ts.createTrue())
-                ],
-                /*multiline*/ true
-              )
-            ]
-          ),
-        )
+        // ts.createStatement(
+        //   ts.createCall(
+        //     ts.createPropertyAccess(
+        //       ts.createIdentifier('Object'),
+        //       'defineProperty'
+        //     ),
+        //     /*typeArguments*/ undefined,
+        //     /*arguments*/
+        //     [
+        //       ts.createThis(),
+        //       ts.createLiteral(this.observerPropName),
+        //       ts.createObjectLiteral(
+        //         [
+        //           ts.createPropertyAssignment(
+        //             'value',
+        //             ts.createObjectLiteral(
+        //               this.templateFactory.observedProperties.map(op => {
+        //                 let initializer = elInitializers[op];
+        //                 return ts.createPropertyAssignment(
+        //                   op,
+        //                   ts.createNew(
+        //                     ts.createIdentifier('Observer'),
+        //                     /* type arguments */ undefined,
+        //                     /* arguments */ initializer
+        //                       ? [initializer]
+        //                       : undefined
+        //                   )
+        //                 )
+        //               }),
+        //               /* multiline */ true
+        //             )
+        //           ),
+        //           ts.createPropertyAssignment('configurable', ts.createTrue())
+        //         ],
+        //         /*multiline*/ true
+        //       )
+        //     ]
+        //   ),
+        // )
       ], /*multiline*/ true)
     );
   }
@@ -352,7 +359,8 @@ export class TemplateTransformer {
           /** ... */ undefined,
           'anchor',
           /** question token */ undefined,
-          ts.createTypeReferenceNode(ts.createIdentifier('Element'), undefined),
+          /* typeNode */ undefined,
+          // ts.createTypeReferenceNode(ts.createIdentifier('Element'), undefined),
           /** initializer */ undefined
         )
       ],
@@ -384,7 +392,7 @@ export class TemplateTransformer {
                   'create'
                 ),
                 /*typeArguments*/ undefined,
-                /*arguments*/ undefined
+                /*arguments*/ undefined!
               )
             )
           ),
@@ -434,7 +442,7 @@ export class TemplateTransformer {
         TemplateTransformer.lifecycleMethods.bind,
         /* question token */ undefined,
         /* type params */ undefined,
-        /* params */ undefined,
+        /* params */ undefined!,
         /** type */ undefined,
         /** body */
         ts.createBlock(
@@ -526,7 +534,7 @@ export class TemplateTransformer {
         TemplateTransformer.lifecycleMethods.attach,
         /* question token */ undefined,
         /* type params */ undefined,
-        /* params */ undefined,
+        /* params */ undefined!,
         /** type */ undefined,
         /** body */
         ts.createBlock(
@@ -561,7 +569,7 @@ export class TemplateTransformer {
         TemplateTransformer.lifecycleMethods.detach,
         /* question token */ undefined,
         /* type params */ undefined,
-        /* params */ undefined,
+        /* params */ undefined!,
         /** type */ undefined,
         /** body */
         ts.createBlock(
@@ -577,7 +585,7 @@ export class TemplateTransformer {
                   'remove'
                 ),
                 /*typeArguments*/undefined,
-                /*arugments*/undefined
+                /*arugments*/undefined!
               )
             )
           ],
@@ -591,7 +599,7 @@ export class TemplateTransformer {
         TemplateTransformer.lifecycleMethods.unbind,
         /* question token */ undefined,
         /* type params */ undefined,
-        /* params */ undefined,
+        /* params */ undefined!,
         /** type */ undefined,
         /** body */
         ts.createBlock(
@@ -666,7 +674,7 @@ export class TemplateTransformer {
     ];
   }
 
-  private createBehaviorBinding(b: AbstractBinding) {
+  private createBehaviorBinding(b: IBinding) {
     return ts.createBinary(
       ts.createPropertyAccess(
         ts.createThis(),
@@ -703,14 +711,14 @@ export class TemplateTransformer {
   //   );
   // }
 
-  private createObserverGetter(name: string) {
+  private createObserverGetter(name: string): ts.GetAccessorDeclaration {
     return ts.createGetAccessor(
       /* decorators */undefined,
       [
         // ts.createToken(ts.SyntaxKind.PublicKeyword)
       ],
       name,
-      /* parameters */ undefined,
+      /* parameters */ undefined!,
       /* type */ undefined,
       ts.createBlock([
         ts.createReturn(
@@ -726,14 +734,14 @@ export class TemplateTransformer {
               'getValue'
             ),
             /* type arguments */ undefined,
-            /* arguments */ undefined
+            /* arguments */ undefined!
           )
         )
       ])
     );
   }
 
-  private createObserverSetter(name: string, paramName = 'v', type?: string) {
+  private createObserverSetter(name: string, paramName = 'v', type?: string): ts.SetAccessorDeclaration {
     return ts.createSetAccessor(
       undefined,
       [
@@ -778,4 +786,13 @@ export class TemplateTransformer {
   // =============================
   // VIEW CLASS GENERATION
   // =============================
+
+  public createAureliaDepenciesImport() {
+    let factory = this.templateFactory;
+    let stmts: ts.ImportDeclaration[] = [];
+    factory.usedDependencies.forEach((deps, auModule) => {
+      stmts.push(this.createImport(deps.map(dep => dep.name), auModule.fileName));
+    });
+    return stmts;
+  }
 }

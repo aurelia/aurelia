@@ -1,5 +1,7 @@
 import 'aurelia-polyfills';
+import 'performance-now';
 import { initialize } from 'aurelia-pal-browser';
+import { PLATFORM } from 'aurelia-pal';
 initialize();
 
 Error.stackTraceLimit = Infinity;

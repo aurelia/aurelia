@@ -12,7 +12,7 @@ export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
 
 export interface IKarmaConfigOptions extends karma.ConfigOptions {
   webpack: webpack.Configuration;
-  coverageIstanbulReporter: any;
+  coverageIstanbulReporter?: any;
   webpackServer: any;
   customLaunchers: any;
 }
@@ -31,7 +31,11 @@ export default (config: IKarmaConfig): void => {
       mode: 'development',
       resolve: {
         extensions: ['.ts', '.js'],
-        modules: ['src', 'node_modules']
+        modules: ['src', 'node_modules'],
+        alias: {
+          bluebird: path.resolve(__dirname, 'node_modules/bluebird/js/browser/bluebird.core'),
+          'performance-now': path.resolve(__dirname, 'node_modules/performance-now/lib/performance-now')
+        }
       },
       devtool: 'cheap-module-eval-source-map',
       module: {
@@ -46,7 +50,13 @@ export default (config: IKarmaConfig): void => {
             }
           }
         ]
-      }
+      },
+      plugins: [
+        new webpack.ProvidePlugin({
+          Promise: 'bluebird',
+          now: 'performance-now'
+        })
+      ]
     },
     mime: {
       'text/x-typescript': ['ts']
@@ -56,8 +66,8 @@ export default (config: IKarmaConfig): void => {
     browsers: config.browsers || ['Chrome'],
     customLaunchers: {
       ChromeDebugging: {
-        base: "Chrome",
-        flags: ["--remote-debugging-port=9333"],
+        base: 'Chrome',
+        flags: ['--remote-debugging-port=9333'],
         debug: true
       }
     }
@@ -73,7 +83,7 @@ export default (config: IKarmaConfig): void => {
     });
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {
-      reports: ["html", "lcovonly", "text-summary"],
+      reports: ['html', 'lcovonly', 'text-summary'],
       fixWebpackSourcePaths: true
     };
   }

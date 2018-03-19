@@ -258,12 +258,12 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('main',["require", "exports", "./app", "./framework/aurelia"], function (require, exports, app_1, aurelia_1) {
+define('main',["require", "exports", "./app2", "./framework/aurelia"], function (require, exports, app2_1, aurelia_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     window['aureliaApp'] = new aurelia_1.Aurelia({
         host: document.body,
-        component: new app_1.App()
+        component: new app2_1.App()
     }).start();
 });
 
@@ -5138,6 +5138,81 @@ define('framework/templating/visual',["require", "exports"], function (require, 
         return Visual;
     }());
     exports.Visual = Visual;
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('app2',["require", "exports", "./framework/templating/template", "./framework/binding/scope", "./framework/generated"], function (require, exports, template_1, scope_1, generated_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function compiledElement(config) {
+        return function (constructor) {
+            return (function (_super) {
+                __extends(class_1, _super);
+                function class_1() {
+                    var _this = _super !== null && _super.apply(this, arguments) || this;
+                    _this.$scope = {
+                        bindingContext: _this,
+                        overrideContext: scope_1.createOverrideContext()
+                    };
+                    return _this;
+                }
+                class_1.prototype.applyTo = function (anchor) {
+                    this.$anchor = anchor;
+                    this.$view = config.template.create();
+                    var targets = this.$view.targets;
+                    this.$b1 = generated_1.oneWayText('message', targets[0]);
+                    this.$b2 = generated_1.twoWay('message', targets[1], 'value');
+                    return this;
+                };
+                class_1.prototype.bind = function () {
+                    var scope = this.$scope;
+                    this.$b1.bind(scope);
+                    this.$b2.bind(scope);
+                };
+                class_1.prototype.attach = function () {
+                    this.$view.appendTo(this.$anchor);
+                };
+                class_1.prototype.detach = function () {
+                    this.$view.remove();
+                };
+                class_1.prototype.unbind = function () {
+                    this.$b2.unbind();
+                    this.$b1.unbind();
+                };
+                return class_1;
+            }(constructor));
+        };
+    }
+    var config = {
+        template: new template_1.Template("\n  <div>\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n  </div>\n")
+    };
+    var App = (function () {
+        function App() {
+            this.message = 'Hello World';
+        }
+        App = __decorate([
+            compiledElement(config)
+        ], App);
+        return App;
+    }());
+    exports.App = App;
 });
 
 

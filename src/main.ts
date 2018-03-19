@@ -1,4 +1,4 @@
-import { App } from './app';
+import { App } from './app2';
 import { Aurelia } from './framework/aurelia';
 
 (window as any)['aureliaApp'] = new Aurelia({

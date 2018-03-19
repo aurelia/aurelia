@@ -68,6 +68,7 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^2.0.13",
     "minimatch": "^3.0.2",
+    "moment": "^2.21.0",
     "nps": "^5.8.1",
     "nps-utils": "^1.5.0",
     "path": "^0.12.7",

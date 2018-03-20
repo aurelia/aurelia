@@ -8,14 +8,24 @@ import { oneWayText, twoWay } from "./framework/generated";
 export interface CompiledElementConfiguration {
   name: string;
   template: Template;
+  instructions: any[];
+}
+
+function applyInstruction(component, instruction, target) {
+  switch(instruction.type) {
+    case 'oneWayText':
+      component.$bindings.push(oneWayText(instruction.source, target));
+      break;
+    case 'twoWay':
+      component.$bindings.push(twoWay(instruction.source, target, instruction.target));
+      break;
+  }
 }
 
 export function compiledElement(config: CompiledElementConfiguration) {
   return function<T extends {new(...args:any[]):{}}>(constructor:T) {
     return class extends constructor {
-      $b1: IBinding;
-      $b2: IBinding;
-
+      private $bindings: IBinding[] = [];
       private $view: View;
       private $anchor: Element;
       
@@ -29,18 +39,28 @@ export function compiledElement(config: CompiledElementConfiguration) {
         this.$view = config.template.create();
 
         let targets = this.$view.targets;
+        let targetInstructions = config.instructions;
 
-        this.$b1 = oneWayText('message', targets[0]);
-        this.$b2 = twoWay('message', targets[1], 'value');
+        for (let i = 0, ii = targets.length; i < ii; ++i) {
+          let instructions = targetInstructions[i];
+          let target = targets[i];
+
+          for (let j = 0, jj = instructions.length; j < jj; ++j) {
+            let instruction = instructions[j];
+            applyInstruction(this, instruction, target);
+          }
+        }
 
         return this;
       }
 
       bind() {
         let scope = this.$scope;
+        let bindings = this.$bindings;
 
-        this.$b1.bind(scope);
-        this.$b2.bind(scope);
+        for (let i = 0, ii = bindings.length; i < ii; ++i) {
+          bindings[i].bind(scope);
+        }
 
         //this.bound(); //if developer implemented this callback
       }
@@ -60,8 +80,12 @@ export function compiledElement(config: CompiledElementConfiguration) {
       }
 
       unbind() {
-        this.$b2.unbind();
-        this.$b1.unbind();
+        let bindings = this.$bindings;
+        let i = bindings.length;
+
+        while (i--) {
+          bindings[i].unbind();
+        }
       }
     }
   }

@@ -5168,9 +5168,25 @@ define('app2',["require", "exports", "./compiled-element", "./app2-config"], fun
 define('app2-config',["require", "exports", "./framework/templating/template"], function (require, exports, template_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var instructionProcessor = {};
     exports.config = {
         name: 'app',
-        template: new template_1.Template("\n    <div>\n      <au-marker class=\"au\"></au-marker> <br>\n      <input type=\"text\" class=\"au\">\n    </div>\n  ")
+        template: new template_1.Template("\n    <div>\n      <au-marker class=\"au\"></au-marker> <br>\n      <input type=\"text\" class=\"au\">\n    </div>\n  "),
+        instructions: [
+            [
+                {
+                    type: 'oneWayText',
+                    source: 'message'
+                }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'message',
+                    target: 'value'
+                }
+            ]
+        ]
     };
 });
 
@@ -5189,12 +5205,23 @@ var __extends = (this && this.__extends) || (function () {
 define('compiled-element',["require", "exports", "./framework/binding/scope", "./framework/generated"], function (require, exports, scope_1, generated_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    function applyInstruction(component, instruction, target) {
+        switch (instruction.type) {
+            case 'oneWayText':
+                component.$bindings.push(generated_1.oneWayText(instruction.source, target));
+                break;
+            case 'twoWay':
+                component.$bindings.push(generated_1.twoWay(instruction.source, target, instruction.target));
+                break;
+        }
+    }
     function compiledElement(config) {
         return function (constructor) {
             return (function (_super) {
                 __extends(class_1, _super);
                 function class_1() {
                     var _this = _super !== null && _super.apply(this, arguments) || this;
+                    _this.$bindings = [];
                     _this.$scope = {
                         bindingContext: _this,
                         overrideContext: scope_1.createOverrideContext()
@@ -5205,14 +5232,23 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                     this.$anchor = anchor;
                     this.$view = config.template.create();
                     var targets = this.$view.targets;
-                    this.$b1 = generated_1.oneWayText('message', targets[0]);
-                    this.$b2 = generated_1.twoWay('message', targets[1], 'value');
+                    var targetInstructions = config.instructions;
+                    for (var i = 0, ii = targets.length; i < ii; ++i) {
+                        var instructions = targetInstructions[i];
+                        var target = targets[i];
+                        for (var j = 0, jj = instructions.length; j < jj; ++j) {
+                            var instruction = instructions[j];
+                            applyInstruction(this, instruction, target);
+                        }
+                    }
                     return this;
                 };
                 class_1.prototype.bind = function () {
                     var scope = this.$scope;
-                    this.$b1.bind(scope);
-                    this.$b2.bind(scope);
+                    var bindings = this.$bindings;
+                    for (var i = 0, ii = bindings.length; i < ii; ++i) {
+                        bindings[i].bind(scope);
+                    }
                 };
                 class_1.prototype.attach = function () {
                     this.$view.appendTo(this.$anchor);
@@ -5221,8 +5257,11 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                     this.$view.remove();
                 };
                 class_1.prototype.unbind = function () {
-                    this.$b2.unbind();
-                    this.$b1.unbind();
+                    var bindings = this.$bindings;
+                    var i = bindings.length;
+                    while (i--) {
+                        bindings[i].unbind();
+                    }
                 };
                 return class_1;
             }(constructor));

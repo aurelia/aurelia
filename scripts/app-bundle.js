@@ -258,12 +258,12 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('main',["require", "exports", "./name-tag2", "./framework/aurelia"], function (require, exports, name_tag2_1, aurelia_1) {
+define('main',["require", "exports", "./app2", "./framework/aurelia"], function (require, exports, app2_1, aurelia_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     window['aureliaApp'] = new aurelia_1.Aurelia({
         host: document.body,
-        component: new name_tag2_1.NameTag()
+        component: new app2_1.App()
     }).start();
 });
 
@@ -5166,12 +5166,12 @@ define('app2',["require", "exports", "./compiled-element", "./app2-config"], fun
 
 
 
-define('app2-config',["require", "exports", "./framework/templating/template"], function (require, exports, template_1) {
+define('app2-config',["require", "exports", "./name-tag2"], function (require, exports, name_tag2_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.app2Config = {
         name: 'app',
-        template: new template_1.Template("\n    <div>\n      <au-marker class=\"au\"></au-marker> <br>\n      <input type=\"text\" class=\"au\">\n    </div>\n  "),
+        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n  ",
         observers: [
             {
                 name: 'message'
@@ -5180,7 +5180,7 @@ define('app2-config',["require", "exports", "./framework/templating/template"], 
                 name: 'duplicateMessage'
             }
         ],
-        instructions: [
+        targetInstructions: [
             [
                 {
                     type: 'oneWayText',
@@ -5193,8 +5193,26 @@ define('app2-config',["require", "exports", "./framework/templating/template"], 
                     source: 'message',
                     target: 'value'
                 }
+            ],
+            [
+                {
+                    type: 'element',
+                    ctor: name_tag2_1.NameTag,
+                    instructions: [
+                        {
+                            type: 'twoWay',
+                            source: 'message',
+                            target: 'name'
+                        },
+                        {
+                            type: 'ref',
+                            source: 'nameTag'
+                        }
+                    ]
+                }
             ]
-        ]
+        ],
+        surrogateInstructions: []
     };
 });
 

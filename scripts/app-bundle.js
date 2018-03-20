@@ -5216,19 +5216,34 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
     function applyInstruction(component, instruction, target) {
         switch (instruction.type) {
             case 'oneWayText':
-                component.$bindings.push(generated_1.oneWayText(instruction.source, target));
+                component.$bindable.push(generated_1.oneWayText(instruction.source, target));
                 break;
             case 'oneWay':
-                component.$bindings.push(generated_1.oneWay(instruction.source, target, instruction.target));
+                component.$bindable.push(generated_1.oneWay(instruction.source, target, instruction.target));
                 break;
             case 'twoWay':
-                component.$bindings.push(generated_1.twoWay(instruction.source, target, instruction.target));
+                component.$bindable.push(generated_1.twoWay(instruction.source, target, instruction.target));
                 break;
             case 'listener':
-                component.$bindings.push(generated_1.listener(instruction.source, target, instruction.target));
+                component.$bindable.push(generated_1.listener(instruction.source, target, instruction.target));
+                break;
+            case 'ref':
+                component.$bindable.push(generated_1.ref(target, instruction.source));
                 break;
             case 'style':
-                component.$bindings.push(generated_1.oneWay(instruction.source, target.style, instruction.target));
+                component.$bindable.push(generated_1.oneWay(instruction.source, target.style, instruction.target));
+                break;
+            case 'element':
+                var elementInstructions = instruction.instructions;
+                var viewModel = new instruction.ctor();
+                viewModel.applyTo(target);
+                for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
+                    var current = elementInstructions[i];
+                    var realTarget = current.type === 'style' || current.type === 'listener' ? target : viewModel;
+                    applyInstruction(component, current, realTarget);
+                }
+                component.$bindable.push(viewModel);
+                component.$attachable.push(viewModel);
                 break;
         }
     }
@@ -5274,7 +5289,8 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
                         args[_i] = arguments[_i];
                     }
                     var _this = _super.apply(this, args) || this;
-                    _this.$bindings = [];
+                    _this.$bindable = [];
+                    _this.$attachable = [];
                     _this.$isBound = false;
                     _this.$changeCallbacks = [];
                     _this.$scope = {
@@ -5307,9 +5323,9 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
                 };
                 class_1.prototype.bind = function () {
                     var scope = this.$scope;
-                    var bindings = this.$bindings;
-                    for (var i = 0, ii = bindings.length; i < ii; ++i) {
-                        bindings[i].bind(scope);
+                    var bindable = this.$bindable;
+                    for (var i = 0, ii = bindable.length; i < ii; ++i) {
+                        bindable[i].bind(scope);
                     }
                     var changeCallbacks = this.$changeCallbacks;
                     this.$isBound = true;
@@ -5325,6 +5341,10 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
                     if ('attaching' in this) {
                         this.attaching();
                     }
+                    var attachable = this.$attachable;
+                    for (var i = 0, ii = attachable.length; i < ii; ++i) {
+                        attachable[i].attach();
+                    }
                     this.$view.appendTo(this.$anchor);
                     if ('attached' in this) {
                         task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
@@ -5336,15 +5356,20 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
                         this.detaching();
                     }
                     this.$view.remove();
+                    var attachable = this.$attachable;
+                    var i = attachable.length;
+                    while (i--) {
+                        attachable[i].detach();
+                    }
                     if ('detached' in this) {
                         task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
                     }
                 };
                 class_1.prototype.unbind = function () {
-                    var bindings = this.$bindings;
-                    var i = bindings.length;
+                    var bindable = this.$bindable;
+                    var i = bindable.length;
                     while (i--) {
-                        bindings[i].unbind();
+                        bindable[i].unbind();
                     }
                     if ('unbound' in this) {
                         this.unbound();

@@ -3,9 +3,10 @@ import { IBinding } from "./framework/binding/binding";
 import { View } from "./framework/templating/view";
 import { Scope } from "./framework/binding/binding-interfaces";
 import { createOverrideContext } from "./framework/binding/scope";
-import { oneWayText, twoWay, listener, oneWay } from "./framework/generated";
+import { oneWayText, twoWay, listener, oneWay, ref } from "./framework/generated";
 import { Observer } from "./framework/binding/property-observation";
 import { TaskQueue } from "./framework/task-queue";
+import { IComponent, IAttach } from "./framework/templating/component";
 
 export interface CompiledElementConfiguration {
   name: string;
@@ -18,19 +19,37 @@ export interface CompiledElementConfiguration {
 function applyInstruction(component, instruction, target) {
   switch(instruction.type) {
     case 'oneWayText':
-      component.$bindings.push(oneWayText(instruction.source, target));
+      component.$bindable.push(oneWayText(instruction.source, target));
       break;
     case 'oneWay':
-      component.$bindings.push(oneWay(instruction.source, target, instruction.target));
+      component.$bindable.push(oneWay(instruction.source, target, instruction.target));
       break;
     case 'twoWay':
-      component.$bindings.push(twoWay(instruction.source, target, instruction.target));
+      component.$bindable.push(twoWay(instruction.source, target, instruction.target));
       break;
     case 'listener':
-      component.$bindings.push(listener(instruction.source, target, instruction.target));
+      component.$bindable.push(listener(instruction.source, target, instruction.target));
+      break;
+    case 'ref':
+      component.$bindable.push(ref(target, instruction.source)); //TODO: change sig to have source first
       break;
     case 'style':
-      component.$bindings.push(oneWay(instruction.source, (target as HTMLElement).style, instruction.target))
+      component.$bindable.push(oneWay(instruction.source, (target as HTMLElement).style, instruction.target))
+      break;
+    case 'element':
+      let elementInstructions = instruction.instructions;
+      let viewModel: IComponent = new instruction.ctor(); //TODO: DI
+      viewModel.applyTo(target);
+
+      for (let i = 0, ii = elementInstructions.length; i < ii; ++i) {
+        let current = elementInstructions[i];
+        let realTarget = current.type === 'style' || current.type === 'listener' ? target : viewModel;
+        applyInstruction(component, current, realTarget);
+      }
+
+      component.$bindable.push(viewModel);
+      component.$attachable.push(viewModel);
+
       break;
   }
 }
@@ -73,7 +92,8 @@ export function compiledElement(config: CompiledElementConfiguration) {
 
   return function<T extends {new(...args:any[]):{}}>(constructor:T) {
     return class extends constructor {
-      private $bindings: IBinding[] = [];
+      private $bindable: IBinding[] = [];
+      private $attachable: IAttach[] = [];
       private $isBound = false;
 
       private $view: View;
@@ -122,10 +142,10 @@ export function compiledElement(config: CompiledElementConfiguration) {
 
       bind() {
         let scope = this.$scope;
-        let bindings = this.$bindings;
+        let bindable = this.$bindable;
 
-        for (let i = 0, ii = bindings.length; i < ii; ++i) {
-          bindings[i].bind(scope);
+        for (let i = 0, ii = bindable.length; i < ii; ++i) {
+          bindable[i].bind(scope);
         }
 
         let changeCallbacks = this.$changeCallbacks;
@@ -146,8 +166,13 @@ export function compiledElement(config: CompiledElementConfiguration) {
           (<any>this).attaching();
         }
 
-        //attach children
-        this.$view.appendTo(this.$anchor); //attach children before the parent
+        let attachable = this.$attachable;
+
+        for (let i = 0, ii = attachable.length; i < ii; ++i) {
+          attachable[i].attach();
+        }
+
+        this.$view.appendTo(this.$anchor);
       
         if ('attached' in this) {
           TaskQueue.instance.queueMicroTask(() => (<any>this).attached());
@@ -159,7 +184,14 @@ export function compiledElement(config: CompiledElementConfiguration) {
           (<any>this).detaching();
         }
 
-        this.$view.remove(); //remove parent before detaching children
+        this.$view.remove();
+
+        let attachable = this.$attachable;
+        let i = attachable.length;
+
+        while (i--) {
+          attachable[i].detach();
+        }
 
         if ('detached' in this) {
           TaskQueue.instance.queueMicroTask(() => (<any>this).detached());
@@ -167,11 +199,11 @@ export function compiledElement(config: CompiledElementConfiguration) {
       }
 
       unbind() {
-        let bindings = this.$bindings;
-        let i = bindings.length;
+        let bindable = this.$bindable;
+        let i = bindable.length;
 
         while (i--) {
-          bindings[i].unbind();
+          bindable[i].unbind();
         }
 
         if ('unbound' in this) {

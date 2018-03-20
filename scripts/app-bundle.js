@@ -80,7 +80,7 @@ define('app',["require", "exports", "./framework/binding/scope", "./framework/bi
             this.$b2 = generated_1.twoWay('message', targets[1], 'value');
             this.$c1 = new NameTag().applyTo(targets[2]);
             this.$b3 = generated_1.twoWay('message', this.$c1, 'name');
-            this.$b6 = generated_1.ref(this.$c1, 'nameTag');
+            this.$b6 = generated_1.ref('nameTag', this.$c1);
             this.$b4 = generated_1.twoWay('duplicateMessage', targets[3], 'checked');
             this.$a1 = new if_1.If(function () { return new $PlainView1(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[4]), false));
             this.$b5 = generated_1.oneWay('duplicateMessage', this.$a1, 'condition');
@@ -470,7 +470,7 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
     }
     exports.listener = listener;
-    function ref(target, sourceExpression) {
+    function ref(sourceExpression, target) {
         return new ref_1.Ref(getAST(sourceExpression), target, lookupFunctions);
     }
     exports.ref = ref;
@@ -5213,25 +5213,25 @@ var __extends = (this && this.__extends) || (function () {
 define('compiled-element',["require", "exports", "./framework/templating/template", "./framework/binding/scope", "./framework/generated", "./framework/binding/property-observation", "./framework/task-queue"], function (require, exports, template_1, scope_1, generated_1, property_observation_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    function applyInstruction(component, instruction, target) {
+    function applyInstruction(instance, instruction, target) {
         switch (instruction.type) {
             case 'oneWayText':
-                component.$bindable.push(generated_1.oneWayText(instruction.source, target));
+                instance.$bindable.push(generated_1.oneWayText(instruction.source, target));
                 break;
             case 'oneWay':
-                component.$bindable.push(generated_1.oneWay(instruction.source, target, instruction.target));
+                instance.$bindable.push(generated_1.oneWay(instruction.source, target, instruction.target));
                 break;
             case 'twoWay':
-                component.$bindable.push(generated_1.twoWay(instruction.source, target, instruction.target));
+                instance.$bindable.push(generated_1.twoWay(instruction.source, target, instruction.target));
                 break;
             case 'listener':
-                component.$bindable.push(generated_1.listener(instruction.source, target, instruction.target));
+                instance.$bindable.push(generated_1.listener(instruction.source, target, instruction.target));
                 break;
             case 'ref':
-                component.$bindable.push(generated_1.ref(target, instruction.source));
+                instance.$bindable.push(generated_1.ref(instruction.source, target));
                 break;
             case 'style':
-                component.$bindable.push(generated_1.oneWay(instruction.source, target.style, instruction.target));
+                instance.$bindable.push(generated_1.oneWay(instruction.source, target.style, instruction.target));
                 break;
             case 'element':
                 var elementInstructions = instruction.instructions;
@@ -5240,14 +5240,14 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
                 for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
                     var current = elementInstructions[i];
                     var realTarget = current.type === 'style' || current.type === 'listener' ? target : viewModel;
-                    applyInstruction(component, current, realTarget);
+                    applyInstruction(instance, current, realTarget);
                 }
-                component.$bindable.push(viewModel);
-                component.$attachable.push(viewModel);
+                instance.$bindable.push(viewModel);
+                instance.$attachable.push(viewModel);
                 break;
         }
     }
-    function setupObservers(component, config) {
+    function setupObservers(instance, config) {
         var observerConfigs = config.observers;
         var observers = {};
         var _loop_1 = function (i, ii) {
@@ -5255,32 +5255,32 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
             var name_1 = observerConfig.name;
             if ('changeHandler' in observerConfig) {
                 var changeHandler_1 = observerConfig.changeHandler;
-                observers[name_1] = new property_observation_1.Observer(component[name_1], function (v) { return component.$isBound ? component[changeHandler_1](v) : void 0; });
-                component.$changeCallbacks.push(function () { return component[changeHandler_1](component[name_1]); });
+                observers[name_1] = new property_observation_1.Observer(instance[name_1], function (v) { return instance.$isBound ? instance[changeHandler_1](v) : void 0; });
+                instance.$changeCallbacks.push(function () { return instance[changeHandler_1](instance[name_1]); });
             }
             else {
-                observers[name_1] = new property_observation_1.Observer(component[name_1]);
+                observers[name_1] = new property_observation_1.Observer(instance[name_1]);
             }
-            createGetterSetter(component, name_1);
+            createGetterSetter(instance, name_1);
         };
         for (var i = 0, ii = observerConfigs.length; i < ii; ++i) {
             _loop_1(i, ii);
         }
-        Object.defineProperty(component, '$observers', {
+        Object.defineProperty(instance, '$observers', {
             enumerable: false,
             value: observers
         });
     }
-    function createGetterSetter(component, name) {
-        Object.defineProperty(component, name, {
+    function createGetterSetter(instance, name) {
+        Object.defineProperty(instance, name, {
             enumerable: true,
             get: function () { return this.$observers[name].getValue(); },
             set: function (value) { this.$observers[name].setValue(value); }
         });
     }
     function compiledElement(config) {
-        var template = new template_1.Template(config.template);
         return function (constructor) {
+            var template = new template_1.Template(config.template);
             return (function (_super) {
                 __extends(class_1, _super);
                 function class_1() {
@@ -5327,8 +5327,8 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
                     for (var i = 0, ii = bindable.length; i < ii; ++i) {
                         bindable[i].bind(scope);
                     }
-                    var changeCallbacks = this.$changeCallbacks;
                     this.$isBound = true;
+                    var changeCallbacks = this.$changeCallbacks;
                     for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
                         changeCallbacks[i]();
                     }

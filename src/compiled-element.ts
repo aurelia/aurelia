@@ -16,25 +16,25 @@ export interface CompiledElementConfiguration {
   surrogateInstructions: any[];
 }
 
-function applyInstruction(component, instruction, target) {
+function applyInstruction(instance, instruction, target) {
   switch(instruction.type) {
     case 'oneWayText':
-      component.$bindable.push(oneWayText(instruction.source, target));
+      instance.$bindable.push(oneWayText(instruction.source, target));
       break;
     case 'oneWay':
-      component.$bindable.push(oneWay(instruction.source, target, instruction.target));
+      instance.$bindable.push(oneWay(instruction.source, target, instruction.target));
       break;
     case 'twoWay':
-      component.$bindable.push(twoWay(instruction.source, target, instruction.target));
+      instance.$bindable.push(twoWay(instruction.source, target, instruction.target));
       break;
     case 'listener':
-      component.$bindable.push(listener(instruction.source, target, instruction.target));
+      instance.$bindable.push(listener(instruction.source, target, instruction.target));
       break;
     case 'ref':
-      component.$bindable.push(ref(target, instruction.source)); //TODO: change sig to have source first
+      instance.$bindable.push(ref(instruction.source, target));
       break;
     case 'style':
-      component.$bindable.push(oneWay(instruction.source, (target as HTMLElement).style, instruction.target))
+      instance.$bindable.push(oneWay(instruction.source, (target as HTMLElement).style, instruction.target))
       break;
     case 'element':
       let elementInstructions = instruction.instructions;
@@ -44,17 +44,17 @@ function applyInstruction(component, instruction, target) {
       for (let i = 0, ii = elementInstructions.length; i < ii; ++i) {
         let current = elementInstructions[i];
         let realTarget = current.type === 'style' || current.type === 'listener' ? target : viewModel;
-        applyInstruction(component, current, realTarget);
+        applyInstruction(instance, current, realTarget);
       }
 
-      component.$bindable.push(viewModel);
-      component.$attachable.push(viewModel);
+      instance.$bindable.push(viewModel);
+      instance.$attachable.push(viewModel);
 
       break;
   }
 }
 
-function setupObservers(component, config) {
+function setupObservers(instance, config) {
   let observerConfigs = config.observers;
   let observers = {};
 
@@ -64,23 +64,23 @@ function setupObservers(component, config) {
 
     if ('changeHandler' in observerConfig) {
       let changeHandler = observerConfig.changeHandler;
-      observers[name] = new Observer(component[name], v => component.$isBound ? component[changeHandler](v) : void 0);
-      component.$changeCallbacks.push(() => component[changeHandler](component[name]));
+      observers[name] = new Observer(instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
+      instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
     } else {
-      observers[name] = new Observer(component[name]);
+      observers[name] = new Observer(instance[name]);
     }
 
-    createGetterSetter(component, name);
+    createGetterSetter(instance, name);
   }
 
-  Object.defineProperty(component, '$observers', {
+  Object.defineProperty(instance, '$observers', {
     enumerable: false,
     value: observers
   });
 }
 
-function createGetterSetter(component, name) {
-  Object.defineProperty(component, name, {
+function createGetterSetter(instance, name) {
+  Object.defineProperty(instance, name, {
     enumerable: true,
     get: function() { return this.$observers[name].getValue(); },
     set: function(value) { this.$observers[name].setValue(value); }
@@ -88,9 +88,9 @@ function createGetterSetter(component, name) {
 }
 
 export function compiledElement(config: CompiledElementConfiguration) {
-  let template = new Template(config.template);
-
   return function<T extends {new(...args:any[]):{}}>(constructor:T) {
+    let template = new Template(config.template);
+    
     return class extends constructor {
       private $bindable: IBinding[] = [];
       private $attachable: IAttach[] = [];
@@ -148,9 +148,9 @@ export function compiledElement(config: CompiledElementConfiguration) {
           bindable[i].bind(scope);
         }
 
-        let changeCallbacks = this.$changeCallbacks;
-
         this.$isBound = true;
+
+        let changeCallbacks = this.$changeCallbacks;
 
         for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
           changeCallbacks[i]();

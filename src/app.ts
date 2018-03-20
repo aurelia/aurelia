@@ -172,7 +172,7 @@ export class App extends $App implements IComponent {
 
     this.$c1 = new NameTag().applyTo(targets[2]);
     this.$b3 = twoWay('message', this.$c1, 'name');
-    this.$b6 = ref(this.$c1, 'nameTag');
+    this.$b6 = ref('nameTag', this.$c1);
 
     this.$b4 = twoWay('duplicateMessage', targets[3], 'checked');
 

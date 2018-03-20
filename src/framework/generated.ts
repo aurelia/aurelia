@@ -82,7 +82,7 @@ export function listener(
   return new Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
 }
 
-export function ref(target: IBindingTarget, sourceExpression: string) {
+export function ref(sourceExpression: string, target: IBindingTarget) {
   return new Ref(getAST(sourceExpression), target, lookupFunctions);
 }
 

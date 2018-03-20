@@ -15,7 +15,6 @@ export class NameTag {
   }
 
   submit() {
-    // alert('It was already updated, (two way binding thingy)');
     this.name = '' + Math.random();
   }
 }

@@ -5210,7 +5210,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('compiled-element',["require", "exports", "./framework/binding/scope", "./framework/generated", "./framework/binding/property-observation", "./framework/task-queue"], function (require, exports, scope_1, generated_1, property_observation_1, task_queue_1) {
+define('compiled-element',["require", "exports", "./framework/templating/template", "./framework/binding/scope", "./framework/generated", "./framework/binding/property-observation", "./framework/task-queue"], function (require, exports, template_1, scope_1, generated_1, property_observation_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function applyInstruction(component, instruction, target) {
@@ -5264,6 +5264,7 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
         });
     }
     function compiledElement(config) {
+        var template = new template_1.Template(config.template);
         return function (constructor) {
             return (function (_super) {
                 __extends(class_1, _super);
@@ -5285,7 +5286,7 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                 }
                 class_1.prototype.applyTo = function (anchor) {
                     this.$anchor = anchor;
-                    this.$view = config.template.create();
+                    this.$view = template.create();
                     var targets = this.$view.targets;
                     var targetInstructions = config.targetInstructions;
                     for (var i = 0, ii = targets.length; i < ii; ++i) {
@@ -5392,12 +5393,12 @@ define('name-tag2',["require", "exports", "./compiled-element", "./name-tag2-con
 
 
 
-define('name-tag2-config',["require", "exports", "./framework/templating/template"], function (require, exports, template_1) {
+define('name-tag2-config',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.nameTag2Config = {
         name: 'name-tag',
-        template: new template_1.Template("\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  "),
+        template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
         observers: [
             {
                 name: 'name',

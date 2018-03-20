@@ -9,7 +9,7 @@ import { TaskQueue } from "./framework/task-queue";
 
 export interface CompiledElementConfiguration {
   name: string;
-  template: Template;
+  template: string;
   observers: any[];
   targetInstructions: any[];
   surrogateInstructions: any[];
@@ -69,6 +69,8 @@ function createGetterSetter(component, name) {
 }
 
 export function compiledElement(config: CompiledElementConfiguration) {
+  let template = new Template(config.template);
+
   return function<T extends {new(...args:any[]):{}}>(constructor:T) {
     return class extends constructor {
       private $bindings: IBinding[] = [];
@@ -91,7 +93,7 @@ export function compiledElement(config: CompiledElementConfiguration) {
 
       applyTo(anchor: Element) { 
         this.$anchor = anchor;
-        this.$view = config.template.create();
+        this.$view = template.create();
 
         let targets = this.$view.targets;
         let targetInstructions = config.targetInstructions;

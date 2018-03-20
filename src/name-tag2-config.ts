@@ -1,10 +1,9 @@
 import { CompiledElementConfiguration } from "./compiled-element";
-import { Template } from "./framework/templating/template";
 
 //this object is built up during compilation
 export const nameTag2Config: CompiledElementConfiguration = {
   name: 'name-tag',
-  template: new Template(`
+  template: `
     <header>Super Duper name tag</header>
     <div>
       <input type="text" class="au"><br/>
@@ -46,7 +45,7 @@ export const nameTag2Config: CompiledElementConfiguration = {
       </label>
     </div>
     <button class="au">Reset</button>
-  `),
+  `,
   observers: [
     {
       name: 'name',

@@ -1,5 +1,5 @@
 import { Resolver } from "./resolver";
-import { IRegistrationFunction, IRequirement, IInjectionPoint, IFulfillment, IInjector, IModule, IRegistration, IActivator } from "./interfaces";
+import { IRegistrationFunction, IRequirement, IInjectionPoint, IFulfillment, IInjector, IModuleConfiguration, IRegistration, IActivator } from "./interfaces";
 import { Container } from "./container";
 import { BasicInjectionPoint } from "./injection-point";
 import { Requirements } from "./requirements";
@@ -46,7 +46,7 @@ export class InjectorBuilder {
     this.lifetime = Lifetime.Singleton;
   }
 
-  public static create(...modules: IModule[]): InjectorBuilder {
+  public static create(...modules: IModuleConfiguration[]): InjectorBuilder {
     const builder = new InjectorBuilder(new RegistrationFunctionBuilder());
     for (const m of modules) {
       builder.applyModule(m);
@@ -59,7 +59,7 @@ export class InjectorBuilder {
     return this;
   }
 
-  public applyModule($module: IModule): InjectorBuilder {
+  public applyModule($module: IModuleConfiguration): InjectorBuilder {
     this.builder.applyModule($module);
     return this;
   }

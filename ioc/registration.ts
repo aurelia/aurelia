@@ -4,7 +4,7 @@ import {
   IRegistrationRule,
   IRequirement,
   IContextSpecification,
-  IModule,
+  IModuleConfiguration,
   IContext,
   IRegistrationFunction,
   IPair
@@ -16,15 +16,16 @@ import { ResolutionContext } from './resolution-context';
 import { RequirementChain } from './requirement-chain';
 import { RegistrationResult } from './resolver';
 import { getLogger } from 'aurelia-logging';
+import { IModuleItem } from './analysis/ast';
 
 const logger = getLogger('ioc-registration');
 
 export class Registration<T> implements IRegistration<T> {
   private context: DefaultContext;
-  private sourceType: DependencyType;
+  private sourceType: DependencyType | IModuleItem;
   private lifetime: Lifetime;
 
-  constructor(context: DefaultContext, sourceType: DependencyType, lifetime: Lifetime = Lifetime.Unspecified) {
+  constructor(context: DefaultContext, sourceType: DependencyType | IModuleItem, lifetime: Lifetime = Lifetime.Unspecified) {
     this.context = context;
     this.sourceType = sourceType;
     this.lifetime = lifetime;
@@ -180,7 +181,7 @@ export class RegistrationFunctionBuilder {
     this.rules.get(specification).push(rule);
   }
 
-  public applyModule($module: IModule): void {
+  public applyModule($module: IModuleConfiguration): void {
     $module.configure(this.root);
   }
 

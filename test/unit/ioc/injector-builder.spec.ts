@@ -39,7 +39,7 @@ import {
 } from '../../fixture';
 import { InjectorBuilder } from "../../../ioc/injector";
 import { DependencyType } from '../../../ioc/types';
-import { IModule, IContext } from '../../../ioc/interfaces';
+import { IContext } from '../../../ioc/interfaces';
 
 describe('InjectorBuilder', () => {
   let sut: InjectorBuilder;

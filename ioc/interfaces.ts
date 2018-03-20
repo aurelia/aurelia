@@ -3,6 +3,7 @@ import { ResolutionContext } from "./resolution-context";
 import { RequirementChain } from "./requirement-chain";
 import { RegistrationResult } from "./resolver";
 import { DependencyType, Lifetime, RegistrationFlags } from "./types";
+import { IModuleItem } from "./analysis/ast";
 
 
 export interface IFulfillment {
@@ -56,12 +57,12 @@ export interface IInjector {
   getInstance<T>(type: DependencyType): T;
 }
 
-export interface IModule {
+export interface IModuleConfiguration {
   configure(ctx: IContext): void;
 }
 
 export interface IContext {
-  register<T>(type: DependencyType): IRegistration<T>;
+  register<T>(type: DependencyType | IModuleItem): IRegistration<T>;
 }
 
 export interface IRegistration<T> {

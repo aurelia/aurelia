@@ -5292,8 +5292,7 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                         var instructions = targetInstructions[i];
                         var target = targets[i];
                         for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                            var instruction = instructions[j];
-                            applyInstruction(this, instruction, target);
+                            applyInstruction(this, instructions[j], target);
                         }
                     }
                     var surrogateInstructions = config.surrogateInstructions;
@@ -5333,7 +5332,7 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                 class_1.prototype.detach = function () {
                     var _this = this;
                     if ('detaching' in this) {
-                        this.attaching();
+                        this.detaching();
                     }
                     this.$view.remove();
                     if ('detached' in this) {

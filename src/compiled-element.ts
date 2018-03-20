@@ -101,8 +101,7 @@ export function compiledElement(config: CompiledElementConfiguration) {
           let target = targets[i];
 
           for (let j = 0, jj = instructions.length; j < jj; ++j) {
-            let instruction = instructions[j];
-            applyInstruction(this, instruction, target);
+            applyInstruction(this, instructions[j], target);
           }
         }
 
@@ -155,7 +154,7 @@ export function compiledElement(config: CompiledElementConfiguration) {
 
       detach() {
         if ('detaching' in this) {
-          (<any>this).attaching();
+          (<any>this).detaching();
         }
 
         this.$view.remove(); //remove parent before detaching children

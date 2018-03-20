@@ -5154,6 +5154,7 @@ define('app2',["require", "exports", "./compiled-element", "./app2-config"], fun
     var App = (function () {
         function App() {
             this.message = 'Hello World';
+            this.duplicateMessage = true;
         }
         App = __decorate([
             compiled_element_1.compiledElement(app2_config_1.app2Config)
@@ -5171,6 +5172,14 @@ define('app2-config',["require", "exports", "./framework/templating/template"], 
     exports.app2Config = {
         name: 'app',
         template: new template_1.Template("\n    <div>\n      <au-marker class=\"au\"></au-marker> <br>\n      <input type=\"text\" class=\"au\">\n    </div>\n  "),
+        observers: [
+            {
+                name: 'message'
+            },
+            {
+                name: 'duplicateMessage'
+            }
+        ],
         instructions: [
             [
                 {
@@ -5201,7 +5210,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('compiled-element',["require", "exports", "./framework/binding/scope", "./framework/generated"], function (require, exports, scope_1, generated_1) {
+define('compiled-element',["require", "exports", "./framework/binding/scope", "./framework/generated", "./framework/binding/property-observation"], function (require, exports, scope_1, generated_1, property_observation_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function applyInstruction(component, instruction, target) {
@@ -5217,18 +5226,52 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                 break;
         }
     }
+    function setupObservers(component, config) {
+        var observerConfigs = config.observers;
+        var observers = {};
+        var _loop_1 = function (i, ii) {
+            var observerConfig = observerConfigs[i];
+            var name_1 = observerConfig.name;
+            if ('changeHandler' in observerConfig) {
+                observers[name_1] = new property_observation_1.Observer(component[name_1], function (v) { return component.$isBound ? component[observerConfig.changeHandler](v) : void 0; });
+            }
+            else {
+                observers[name_1] = new property_observation_1.Observer(component[name_1]);
+            }
+            createGetterSetter(component, name_1);
+        };
+        for (var i = 0, ii = observerConfigs.length; i < ii; ++i) {
+            _loop_1(i, ii);
+        }
+        Object.defineProperty(component, '$observers', {
+            enumerable: false,
+            value: observers
+        });
+    }
+    function createGetterSetter(component, name) {
+        Object.defineProperty(component, name, {
+            enumerable: true,
+            get: function () { return this.$observers[name].getValue(); },
+            set: function (value) { this.$observers[name].setValue(value); }
+        });
+    }
     function compiledElement(config) {
         return function (constructor) {
             return (function (_super) {
                 __extends(class_1, _super);
                 function class_1() {
-                    var _this = _super !== null && _super.apply(this, arguments) || this;
+                    var args = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        args[_i] = arguments[_i];
+                    }
+                    var _this = _super.apply(this, args) || this;
                     _this.$bindings = [];
                     _this.$isBound = false;
                     _this.$scope = {
                         bindingContext: _this,
                         overrideContext: scope_1.createOverrideContext()
                     };
+                    setupObservers(_this, config);
                     return _this;
                 }
                 class_1.prototype.applyTo = function (anchor) {

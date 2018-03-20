@@ -10,6 +10,14 @@ export const app2Config: CompiledElementConfiguration = {
       <input type="text" class="au">
     </div>
   `),
+  observers: [
+    {
+      name: 'message'
+    },
+    {
+      name: 'duplicateMessage'
+    }
+  ],
   instructions: [
     [
       {

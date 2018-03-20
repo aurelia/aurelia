@@ -4,10 +4,12 @@ import { View } from "./framework/templating/view";
 import { Scope } from "./framework/binding/binding-interfaces";
 import { createOverrideContext } from "./framework/binding/scope";
 import { oneWayText, twoWay, listener } from "./framework/generated";
+import { Observer } from "./framework/binding/property-observation";
 
 export interface CompiledElementConfiguration {
   name: string;
   template: Template;
+  observers: any[];
   instructions: any[];
 }
 
@@ -25,6 +27,37 @@ function applyInstruction(component, instruction, target) {
   }
 }
 
+function setupObservers(component, config) {
+  let observerConfigs = config.observers;
+  let observers = {};
+
+  for (let i = 0, ii = observerConfigs.length; i < ii; ++i) {
+    let observerConfig = observerConfigs[i];
+    let name = observerConfig.name;
+
+    if ('changeHandler' in observerConfig) {
+      observers[name] = new Observer(component[name], v => component.$isBound ? component[observerConfig.changeHandler](v) : void 0)
+    } else {
+      observers[name] = new Observer(component[name]);
+    }
+
+    createGetterSetter(component, name);
+  }
+
+  Object.defineProperty(component, '$observers', {
+    enumerable: false,
+    value: observers
+  });
+}
+
+function createGetterSetter(component, name) {
+  Object.defineProperty(component, name, {
+    enumerable: true,
+    get: function() { return this.$observers[name].getValue(); },
+    set: function(value) { this.$observers[name].setValue(value); }
+  });
+}
+
 export function compiledElement(config: CompiledElementConfiguration) {
   return function<T extends {new(...args:any[]):{}}>(constructor:T) {
     return class extends constructor {
@@ -38,6 +71,11 @@ export function compiledElement(config: CompiledElementConfiguration) {
         bindingContext: this,
         overrideContext: createOverrideContext()
       };
+
+      constructor(...args:any[]) {
+        super(...args);
+        setupObservers(this, config);
+      }
 
       applyTo(anchor: Element) { 
         this.$anchor = anchor;

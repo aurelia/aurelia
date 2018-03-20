@@ -5210,7 +5210,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('compiled-element',["require", "exports", "./framework/binding/scope", "./framework/generated", "./framework/binding/property-observation"], function (require, exports, scope_1, generated_1, property_observation_1) {
+define('compiled-element',["require", "exports", "./framework/binding/scope", "./framework/generated", "./framework/binding/property-observation", "./framework/task-queue"], function (require, exports, scope_1, generated_1, property_observation_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function applyInstruction(component, instruction, target) {
@@ -5233,7 +5233,9 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
             var observerConfig = observerConfigs[i];
             var name_1 = observerConfig.name;
             if ('changeHandler' in observerConfig) {
-                observers[name_1] = new property_observation_1.Observer(component[name_1], function (v) { return component.$isBound ? component[observerConfig.changeHandler](v) : void 0; });
+                var changeHandler_1 = observerConfig.changeHandler;
+                observers[name_1] = new property_observation_1.Observer(component[name_1], function (v) { return component.$isBound ? component[changeHandler_1](v) : void 0; });
+                component.$changeCallbacks.push(function () { return component[changeHandler_1](component[name_1]); });
             }
             else {
                 observers[name_1] = new property_observation_1.Observer(component[name_1]);
@@ -5267,6 +5269,7 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                     var _this = _super.apply(this, args) || this;
                     _this.$bindings = [];
                     _this.$isBound = false;
+                    _this.$changeCallbacks = [];
                     _this.$scope = {
                         bindingContext: _this,
                         overrideContext: scope_1.createOverrideContext()
@@ -5295,19 +5298,43 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                     for (var i = 0, ii = bindings.length; i < ii; ++i) {
                         bindings[i].bind(scope);
                     }
+                    var changeCallbacks = this.$changeCallbacks;
+                    for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+                        changeCallbacks[i]();
+                    }
                     this.$isBound = true;
+                    if ('bound' in this) {
+                        this.bound();
+                    }
                 };
                 class_1.prototype.attach = function () {
+                    var _this = this;
+                    if ('attaching' in this) {
+                        this.attaching();
+                    }
                     this.$view.appendTo(this.$anchor);
+                    if ('attached' in this) {
+                        task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
+                    }
                 };
                 class_1.prototype.detach = function () {
+                    var _this = this;
+                    if ('detaching' in this) {
+                        this.attaching();
+                    }
                     this.$view.remove();
+                    if ('detached' in this) {
+                        task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
+                    }
                 };
                 class_1.prototype.unbind = function () {
                     var bindings = this.$bindings;
                     var i = bindings.length;
                     while (i--) {
                         bindings[i].unbind();
+                    }
+                    if ('unbound' in this) {
+                        this.unbound();
                     }
                 };
                 return class_1;

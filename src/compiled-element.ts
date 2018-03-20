@@ -5,6 +5,7 @@ import { Scope } from "./framework/binding/binding-interfaces";
 import { createOverrideContext } from "./framework/binding/scope";
 import { oneWayText, twoWay, listener } from "./framework/generated";
 import { Observer } from "./framework/binding/property-observation";
+import { TaskQueue } from "./framework/task-queue";
 
 export interface CompiledElementConfiguration {
   name: string;
@@ -36,7 +37,9 @@ function setupObservers(component, config) {
     let name = observerConfig.name;
 
     if ('changeHandler' in observerConfig) {
-      observers[name] = new Observer(component[name], v => component.$isBound ? component[observerConfig.changeHandler](v) : void 0)
+      let changeHandler = observerConfig.changeHandler;
+      observers[name] = new Observer(component[name], v => component.$isBound ? component[changeHandler](v) : void 0);
+      component.$changeCallbacks.push(() => component[changeHandler](component[name]));
     } else {
       observers[name] = new Observer(component[name]);
     }
@@ -66,6 +69,8 @@ export function compiledElement(config: CompiledElementConfiguration) {
 
       private $view: View;
       private $anchor: Element;
+
+      private $changeCallbacks: (() => void)[] = [];
       
       private $scope: Scope = {
         bindingContext: this,
@@ -105,25 +110,42 @@ export function compiledElement(config: CompiledElementConfiguration) {
           bindings[i].bind(scope);
         }
 
-        //execute change callbacks
+        let changeCallbacks = this.$changeCallbacks;
+
+        for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+          changeCallbacks[i]();
+        }
 
         this.$isBound = true;
 
-        //this.bound(); //if developer implemented this callback
+        if ('bound' in this) {
+          (<any>this).bound();
+        }
       }
 
       attach() {
-        //this.attaching(); //if developer implemented this callback
+        if ('attaching' in this) {
+          (<any>this).attaching();
+        }
+
         //attach children
         this.$view.appendTo(this.$anchor); //attach children before the parent
-        //TaskQueue.instance.queueMicroTask(() => this.attached()); //queue callback if developer implemented it
+      
+        if ('attached' in this) {
+          TaskQueue.instance.queueMicroTask(() => (<any>this).attached());
+        }
       }
 
       detach() {
-        //this.detaching(); //if developer implemented this callback
+        if ('detaching' in this) {
+          (<any>this).attaching();
+        }
+
         this.$view.remove(); //remove parent before detaching children
-        //detach children
-        //TaskQueue.instance.queueMicroTask(() => this.detached()); //queue callback if developer implemented it
+
+        if ('detached' in this) {
+          TaskQueue.instance.queueMicroTask(() => (<any>this).detached());
+        }
       }
 
       unbind() {
@@ -132,6 +154,10 @@ export function compiledElement(config: CompiledElementConfiguration) {
 
         while (i--) {
           bindings[i].unbind();
+        }
+
+        if ('unbound' in this) {
+          (<any>this).unbound();
         }
       }
     }

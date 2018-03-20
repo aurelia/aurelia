@@ -1,12 +1,8 @@
 import { CompiledElementConfiguration } from "./compiled-element";
 import { Template } from "./framework/templating/template";
 
-var instructionProcessor = {
-  
-};
-
 //this object is built up during compilation
-export const config: CompiledElementConfiguration = {
+export const app2Config: CompiledElementConfiguration = {
   name: 'app',
   template: new Template(`
     <div>

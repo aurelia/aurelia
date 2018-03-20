@@ -3,7 +3,7 @@ import { IBinding } from "./framework/binding/binding";
 import { View } from "./framework/templating/view";
 import { Scope } from "./framework/binding/binding-interfaces";
 import { createOverrideContext } from "./framework/binding/scope";
-import { oneWayText, twoWay } from "./framework/generated";
+import { oneWayText, twoWay, listener } from "./framework/generated";
 
 export interface CompiledElementConfiguration {
   name: string;
@@ -19,6 +19,9 @@ function applyInstruction(component, instruction, target) {
     case 'twoWay':
       component.$bindings.push(twoWay(instruction.source, target, instruction.target));
       break;
+    case 'listener':
+      component.$bindings.push(listener(instruction.source, target, instruction.target));
+      break;
   }
 }
 
@@ -26,6 +29,8 @@ export function compiledElement(config: CompiledElementConfiguration) {
   return function<T extends {new(...args:any[]):{}}>(constructor:T) {
     return class extends constructor {
       private $bindings: IBinding[] = [];
+      private $isBound = false;
+
       private $view: View;
       private $anchor: Element;
       
@@ -61,6 +66,10 @@ export function compiledElement(config: CompiledElementConfiguration) {
         for (let i = 0, ii = bindings.length; i < ii; ++i) {
           bindings[i].bind(scope);
         }
+
+        //execute change callbacks
+
+        this.$isBound = true;
 
         //this.bound(); //if developer implemented this callback
       }

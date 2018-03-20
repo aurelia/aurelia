@@ -5156,7 +5156,7 @@ define('app2',["require", "exports", "./compiled-element", "./app2-config"], fun
             this.message = 'Hello World';
         }
         App = __decorate([
-            compiled_element_1.compiledElement(app2_config_1.config)
+            compiled_element_1.compiledElement(app2_config_1.app2Config)
         ], App);
         return App;
     }());
@@ -5168,8 +5168,7 @@ define('app2',["require", "exports", "./compiled-element", "./app2-config"], fun
 define('app2-config',["require", "exports", "./framework/templating/template"], function (require, exports, template_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var instructionProcessor = {};
-    exports.config = {
+    exports.app2Config = {
         name: 'app',
         template: new template_1.Template("\n    <div>\n      <au-marker class=\"au\"></au-marker> <br>\n      <input type=\"text\" class=\"au\">\n    </div>\n  "),
         instructions: [
@@ -5213,6 +5212,9 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
             case 'twoWay':
                 component.$bindings.push(generated_1.twoWay(instruction.source, target, instruction.target));
                 break;
+            case 'listener':
+                component.$bindings.push(generated_1.listener(instruction.source, target, instruction.target));
+                break;
         }
     }
     function compiledElement(config) {
@@ -5222,6 +5224,7 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                 function class_1() {
                     var _this = _super !== null && _super.apply(this, arguments) || this;
                     _this.$bindings = [];
+                    _this.$isBound = false;
                     _this.$scope = {
                         bindingContext: _this,
                         overrideContext: scope_1.createOverrideContext()
@@ -5249,6 +5252,7 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                     for (var i = 0, ii = bindings.length; i < ii; ++i) {
                         bindings[i].bind(scope);
                     }
+                    this.$isBound = true;
                 };
                 class_1.prototype.attach = function () {
                     this.$view.appendTo(this.$anchor);

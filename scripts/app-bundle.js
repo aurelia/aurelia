@@ -5142,6 +5142,39 @@ define('framework/templating/visual',["require", "exports"], function (require, 
 
 
 
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('app2',["require", "exports", "./compiled-element", "./app2-config"], function (require, exports, compiled_element_1, app2_config_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var App = (function () {
+        function App() {
+            this.message = 'Hello World';
+        }
+        App = __decorate([
+            compiled_element_1.compiledElement(app2_config_1.config)
+        ], App);
+        return App;
+    }());
+    exports.App = App;
+});
+
+
+
+define('app2-config',["require", "exports", "./framework/templating/template"], function (require, exports, template_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.config = {
+        template: new template_1.Template("\n    <div>\n      <au-marker class=\"au\"></au-marker> <br>\n      <input type=\"text\" class=\"au\">\n    </div>\n  ")
+    };
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -5152,13 +5185,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-define('app2',["require", "exports", "./framework/templating/template", "./framework/binding/scope", "./framework/generated"], function (require, exports, template_1, scope_1, generated_1) {
+define('compiled-element',["require", "exports", "./framework/binding/scope", "./framework/generated"], function (require, exports, scope_1, generated_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function compiledElement(config) {
@@ -5200,19 +5227,7 @@ define('app2',["require", "exports", "./framework/templating/template", "./frame
             }(constructor));
         };
     }
-    var config = {
-        template: new template_1.Template("\n  <div>\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n  </div>\n")
-    };
-    var App = (function () {
-        function App() {
-            this.message = 'Hello World';
-        }
-        App = __decorate([
-            compiledElement(config)
-        ], App);
-        return App;
-    }());
-    exports.App = App;
+    exports.compiledElement = compiledElement;
 });
 
 

@@ -3,7 +3,7 @@ import { IBinding } from "./framework/binding/binding";
 import { View } from "./framework/templating/view";
 import { Scope } from "./framework/binding/binding-interfaces";
 import { createOverrideContext } from "./framework/binding/scope";
-import { oneWayText, twoWay, listener } from "./framework/generated";
+import { oneWayText, twoWay, listener, oneWay } from "./framework/generated";
 import { Observer } from "./framework/binding/property-observation";
 import { TaskQueue } from "./framework/task-queue";
 
@@ -11,7 +11,8 @@ export interface CompiledElementConfiguration {
   name: string;
   template: Template;
   observers: any[];
-  instructions: any[];
+  targetInstructions: any[];
+  surrogateInstructions: any[];
 }
 
 function applyInstruction(component, instruction, target) {
@@ -19,11 +20,17 @@ function applyInstruction(component, instruction, target) {
     case 'oneWayText':
       component.$bindings.push(oneWayText(instruction.source, target));
       break;
+    case 'oneWay':
+      component.$bindings.push(oneWay(instruction.source, target, instruction.target));
+      break;
     case 'twoWay':
       component.$bindings.push(twoWay(instruction.source, target, instruction.target));
       break;
     case 'listener':
       component.$bindings.push(listener(instruction.source, target, instruction.target));
+      break;
+    case 'style':
+      component.$bindings.push(oneWay(instruction.source, (target as HTMLElement).style, instruction.target))
       break;
   }
 }
@@ -87,7 +94,7 @@ export function compiledElement(config: CompiledElementConfiguration) {
         this.$view = config.template.create();
 
         let targets = this.$view.targets;
-        let targetInstructions = config.instructions;
+        let targetInstructions = config.targetInstructions;
 
         for (let i = 0, ii = targets.length; i < ii; ++i) {
           let instructions = targetInstructions[i];
@@ -97,6 +104,16 @@ export function compiledElement(config: CompiledElementConfiguration) {
             let instruction = instructions[j];
             applyInstruction(this, instruction, target);
           }
+        }
+
+        let surrogateInstructions = config.surrogateInstructions;
+
+        for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
+          applyInstruction(this, surrogateInstructions[i], anchor);
+        }
+
+        if ('created' in this) {
+          (<any>this).created();
         }
 
         return this;
@@ -112,11 +129,11 @@ export function compiledElement(config: CompiledElementConfiguration) {
 
         let changeCallbacks = this.$changeCallbacks;
 
+        this.$isBound = true;
+
         for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
           changeCallbacks[i]();
         }
-
-        this.$isBound = true;
 
         if ('bound' in this) {
           (<any>this).bound();

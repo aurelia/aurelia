@@ -258,12 +258,12 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('main',["require", "exports", "./app2", "./framework/aurelia"], function (require, exports, app2_1, aurelia_1) {
+define('main',["require", "exports", "./name-tag2", "./framework/aurelia"], function (require, exports, name_tag2_1, aurelia_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     window['aureliaApp'] = new aurelia_1.Aurelia({
         host: document.body,
-        component: new app2_1.App()
+        component: new name_tag2_1.NameTag()
     }).start();
 });
 
@@ -5218,11 +5218,17 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
             case 'oneWayText':
                 component.$bindings.push(generated_1.oneWayText(instruction.source, target));
                 break;
+            case 'oneWay':
+                component.$bindings.push(generated_1.oneWay(instruction.source, target, instruction.target));
+                break;
             case 'twoWay':
                 component.$bindings.push(generated_1.twoWay(instruction.source, target, instruction.target));
                 break;
             case 'listener':
                 component.$bindings.push(generated_1.listener(instruction.source, target, instruction.target));
+                break;
+            case 'style':
+                component.$bindings.push(generated_1.oneWay(instruction.source, target.style, instruction.target));
                 break;
         }
     }
@@ -5281,7 +5287,7 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                     this.$anchor = anchor;
                     this.$view = config.template.create();
                     var targets = this.$view.targets;
-                    var targetInstructions = config.instructions;
+                    var targetInstructions = config.targetInstructions;
                     for (var i = 0, ii = targets.length; i < ii; ++i) {
                         var instructions = targetInstructions[i];
                         var target = targets[i];
@@ -5289,6 +5295,13 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                             var instruction = instructions[j];
                             applyInstruction(this, instruction, target);
                         }
+                    }
+                    var surrogateInstructions = config.surrogateInstructions;
+                    for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
+                        applyInstruction(this, surrogateInstructions[i], anchor);
+                    }
+                    if ('created' in this) {
+                        this.created();
                     }
                     return this;
                 };
@@ -5299,10 +5312,10 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
                         bindings[i].bind(scope);
                     }
                     var changeCallbacks = this.$changeCallbacks;
+                    this.$isBound = true;
                     for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
                         changeCallbacks[i]();
                     }
-                    this.$isBound = true;
                     if ('bound' in this) {
                         this.bound();
                     }
@@ -5342,6 +5355,137 @@ define('compiled-element',["require", "exports", "./framework/binding/scope", ".
         };
     }
     exports.compiledElement = compiledElement;
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('name-tag2',["require", "exports", "./compiled-element", "./name-tag2-config"], function (require, exports, compiled_element_1, name_tag2_config_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var NameTag = (function () {
+        function NameTag() {
+            this.name = 'Aurelia';
+            this.color = 'red';
+            this.borderColor = 'orange';
+            this.borderWidth = 3;
+            this.showHeader = true;
+        }
+        NameTag.prototype.nameChanged = function (newValue) {
+            console.log("Name changed to " + newValue);
+            ;
+        };
+        NameTag.prototype.submit = function () {
+            this.name = '' + Math.random();
+        };
+        NameTag = __decorate([
+            compiled_element_1.compiledElement(name_tag2_config_1.nameTag2Config)
+        ], NameTag);
+        return NameTag;
+    }());
+    exports.NameTag = NameTag;
+});
+
+
+
+define('name-tag2-config',["require", "exports", "./framework/templating/template"], function (require, exports, template_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.nameTag2Config = {
+        name: 'name-tag',
+        template: new template_1.Template("\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  "),
+        observers: [
+            {
+                name: 'name',
+                changeHandler: 'nameChanged'
+            },
+            {
+                name: 'color'
+            },
+            {
+                name: 'borderColor'
+            },
+            {
+                name: 'borderWidth'
+            },
+            {
+                name: 'showHeader'
+            }
+        ],
+        targetInstructions: [
+            [
+                {
+                    type: 'twoWay',
+                    source: 'name',
+                    target: 'value'
+                }
+            ],
+            [
+                {
+                    type: 'oneWay',
+                    source: 'name',
+                    target: 'textContent'
+                },
+                {
+                    type: 'style',
+                    source: 'nameTagColor',
+                    target: 'color'
+                }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'nameTagColor',
+                    target: 'value'
+                }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'nameTagBorderColor',
+                    target: 'value'
+                }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'nameTagBorderWidth',
+                    target: 'value'
+                }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'nameTagHeaderVisible',
+                    target: 'checked'
+                }
+            ],
+            [
+                {
+                    type: 'listener',
+                    source: 'click',
+                    target: 'submit'
+                }
+            ]
+        ],
+        surrogateInstructions: [
+            {
+                type: 'style',
+                source: 'nameTagBorder',
+                target: 'border'
+            },
+            {
+                type: 'oneWay',
+                source: 'nameTagClasses',
+                target: 'className'
+            }
+        ]
+    };
 });
 
 

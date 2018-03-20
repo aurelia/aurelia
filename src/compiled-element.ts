@@ -6,6 +6,7 @@ import { createOverrideContext } from "./framework/binding/scope";
 import { oneWayText, twoWay } from "./framework/generated";
 
 export interface CompiledElementConfiguration {
+  name: string;
   template: Template;
 }
 

@@ -5169,6 +5169,7 @@ define('app2-config',["require", "exports", "./framework/templating/template"], 
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.config = {
+        name: 'app',
         template: new template_1.Template("\n    <div>\n      <au-marker class=\"au\"></au-marker> <br>\n      <input type=\"text\" class=\"au\">\n    </div>\n  ")
     };
 });

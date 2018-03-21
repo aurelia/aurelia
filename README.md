@@ -62,8 +62,8 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] `else` Template Controller
   * [ ] `repeat` Template Controller
 * Application Startup
-  [x] SPA Startup
-  [ ] Progressive Enhancement
+  * [x] SPA Startup
+  * [ ] Progressive Enhancement
 
 ## Building & Testing the Compiler
 

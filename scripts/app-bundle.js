@@ -5166,12 +5166,12 @@ define('app2',["require", "exports", "./compiled-element", "./app2-config"], fun
 
 
 
-define('app2-config',["require", "exports", "./name-tag2"], function (require, exports, name_tag2_1) {
+define('app2-config',["require", "exports", "./name-tag2", "./framework/resources/if", "./framework/resources/else"], function (require, exports, name_tag2_1, if_1, else_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.app2Config = {
         name: 'app',
-        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n  ",
+        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
         observers: [
             {
                 name: 'message'
@@ -5210,6 +5210,49 @@ define('app2-config',["require", "exports", "./name-tag2"], function (require, e
                         }
                     ]
                 }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'duplicateMessage',
+                    target: 'checked'
+                }
+            ],
+            [
+                {
+                    type: 'templateController',
+                    ctor: if_1.If,
+                    config: {
+                        template: "<div><au-marker class=\"au\"></au-marker> </div>",
+                        targetInstructions: [
+                            [
+                                {
+                                    type: 'oneWayText',
+                                    source: 'message'
+                                }
+                            ]
+                        ]
+                    },
+                    instructions: [
+                        {
+                            type: 'oneWay',
+                            source: 'duplicateMessage',
+                            target: 'condition'
+                        }
+                    ]
+                }
+            ],
+            [
+                {
+                    type: 'templateController',
+                    ctor: else_1.Else,
+                    link: true,
+                    config: {
+                        template: "<div>No Message Duplicated</div>",
+                        targetInstructions: []
+                    },
+                    instructions: []
+                }
             ]
         ],
         surrogateInstructions: []
@@ -5228,7 +5271,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('compiled-element',["require", "exports", "./framework/templating/template", "./framework/binding/scope", "./framework/generated", "./framework/binding/property-observation", "./framework/task-queue"], function (require, exports, template_1, scope_1, generated_1, property_observation_1, task_queue_1) {
+define('compiled-element',["require", "exports", "./framework/templating/template", "./framework/binding/scope", "./framework/generated", "./framework/binding/property-observation", "./framework/task-queue", "./framework/templating/view-slot"], function (require, exports, template_1, scope_1, generated_1, property_observation_1, task_queue_1, view_slot_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function applyInstruction(instance, instruction, target) {
@@ -5253,15 +5296,31 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
                 break;
             case 'element':
                 var elementInstructions = instruction.instructions;
-                var viewModel = new instruction.ctor();
-                viewModel.applyTo(target);
+                var elementModel = new instruction.ctor();
+                elementModel.applyTo(target);
                 for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
                     var current = elementInstructions[i];
-                    var realTarget = current.type === 'style' || current.type === 'listener' ? target : viewModel;
+                    var realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
                     applyInstruction(instance, current, realTarget);
                 }
-                instance.$bindable.push(viewModel);
-                instance.$attachable.push(viewModel);
+                instance.$bindable.push(elementModel);
+                instance.$attachable.push(elementModel);
+                break;
+            case 'templateController':
+                var templateControllerInstructions = instruction.instructions;
+                var factory = instruction.factory;
+                if (factory === undefined) {
+                    instruction.factory = factory = createViewFactory(instruction.config);
+                }
+                var templateControllerModel = new instruction.ctor(factory, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(target), false));
+                if (instruction.link) {
+                    templateControllerModel.link(instance.$attachable[instance.$attachable.length - 1]);
+                }
+                for (var i = 0, ii = templateControllerInstructions.length; i < ii; ++i) {
+                    applyInstruction(instance, templateControllerInstructions[i], templateControllerModel);
+                }
+                instance.$bindable.push(templateControllerModel);
+                instance.$attachable.push(templateControllerModel);
                 break;
         }
     }
@@ -5296,105 +5355,159 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
             set: function (value) { this.$observers[name].setValue(value); }
         });
     }
-    function compiledElement(config) {
-        return function (constructor) {
-            var template = new template_1.Template(config.template);
-            return (function (_super) {
-                __extends(class_1, _super);
-                function class_1() {
-                    var args = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        args[_i] = arguments[_i];
+    function createViewFactory(config) {
+        var template = new template_1.Template(config.template);
+        var PlainView = (function () {
+            function PlainView() {
+                this.$bindable = [];
+                this.$attachable = [];
+                this.isBound = false;
+                this.$view = template.create();
+                var targets = this.$view.targets;
+                var targetInstructions = config.targetInstructions;
+                for (var i = 0, ii = targets.length; i < ii; ++i) {
+                    var instructions = targetInstructions[i];
+                    var target = targets[i];
+                    for (var j = 0, jj = instructions.length; j < jj; ++j) {
+                        applyInstruction(this, instructions[j], target);
                     }
-                    var _this = _super.apply(this, args) || this;
-                    _this.$bindable = [];
-                    _this.$attachable = [];
-                    _this.$isBound = false;
-                    _this.$changeCallbacks = [];
-                    _this.$scope = {
-                        bindingContext: _this,
-                        overrideContext: scope_1.createOverrideContext()
-                    };
-                    setupObservers(_this, config);
-                    return _this;
                 }
-                class_1.prototype.applyTo = function (anchor) {
-                    this.$anchor = anchor;
-                    this.$view = template.create();
-                    var targets = this.$view.targets;
-                    var targetInstructions = config.targetInstructions;
-                    for (var i = 0, ii = targets.length; i < ii; ++i) {
-                        var instructions = targetInstructions[i];
-                        var target = targets[i];
-                        for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                            applyInstruction(this, instructions[j], target);
-                        }
-                    }
-                    var surrogateInstructions = config.surrogateInstructions;
-                    for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-                        applyInstruction(this, surrogateInstructions[i], anchor);
-                    }
-                    if ('created' in this) {
-                        this.created();
-                    }
-                    return this;
+            }
+            PlainView.prototype.bind = function (scope) {
+                var bindable = this.$bindable;
+                for (var i = 0, ii = bindable.length; i < ii; ++i) {
+                    bindable[i].bind(scope);
+                }
+                this.isBound = true;
+            };
+            PlainView.prototype.attach = function () {
+                var attachable = this.$attachable;
+                for (var i = 0, ii = attachable.length; i < ii; ++i) {
+                    attachable[i].attach();
+                }
+            };
+            PlainView.prototype.detach = function () {
+                var attachable = this.$attachable;
+                var i = attachable.length;
+                while (i--) {
+                    attachable[i].detach();
+                }
+            };
+            PlainView.prototype.unbind = function () {
+                var bindable = this.$bindable;
+                var i = bindable.length;
+                while (i--) {
+                    bindable[i].unbind();
+                }
+                this.isBound = false;
+            };
+            return PlainView;
+        }());
+        return function () { return new PlainView(); };
+    }
+    function createCustomElement(ctor, config) {
+        var template = new template_1.Template(config.template);
+        return (function (_super) {
+            __extends(class_1, _super);
+            function class_1() {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                var _this = _super.apply(this, args) || this;
+                _this.$bindable = [];
+                _this.$attachable = [];
+                _this.$isBound = false;
+                _this.$changeCallbacks = [];
+                _this.$scope = {
+                    bindingContext: _this,
+                    overrideContext: scope_1.createOverrideContext()
                 };
-                class_1.prototype.bind = function () {
-                    var scope = this.$scope;
-                    var bindable = this.$bindable;
-                    for (var i = 0, ii = bindable.length; i < ii; ++i) {
-                        bindable[i].bind(scope);
+                setupObservers(_this, config);
+                return _this;
+            }
+            class_1.prototype.applyTo = function (anchor) {
+                this.$anchor = anchor;
+                this.$view = template.create();
+                var targets = this.$view.targets;
+                var targetInstructions = config.targetInstructions;
+                for (var i = 0, ii = targets.length; i < ii; ++i) {
+                    var instructions = targetInstructions[i];
+                    var target = targets[i];
+                    for (var j = 0, jj = instructions.length; j < jj; ++j) {
+                        applyInstruction(this, instructions[j], target);
                     }
-                    this.$isBound = true;
-                    var changeCallbacks = this.$changeCallbacks;
-                    for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-                        changeCallbacks[i]();
-                    }
-                    if ('bound' in this) {
-                        this.bound();
-                    }
-                };
-                class_1.prototype.attach = function () {
-                    var _this = this;
-                    if ('attaching' in this) {
-                        this.attaching();
-                    }
-                    var attachable = this.$attachable;
-                    for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                        attachable[i].attach();
-                    }
-                    this.$view.appendTo(this.$anchor);
-                    if ('attached' in this) {
-                        task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
-                    }
-                };
-                class_1.prototype.detach = function () {
-                    var _this = this;
-                    if ('detaching' in this) {
-                        this.detaching();
-                    }
-                    this.$view.remove();
-                    var attachable = this.$attachable;
-                    var i = attachable.length;
-                    while (i--) {
-                        attachable[i].detach();
-                    }
-                    if ('detached' in this) {
-                        task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
-                    }
-                };
-                class_1.prototype.unbind = function () {
-                    var bindable = this.$bindable;
-                    var i = bindable.length;
-                    while (i--) {
-                        bindable[i].unbind();
-                    }
-                    if ('unbound' in this) {
-                        this.unbound();
-                    }
-                };
-                return class_1;
-            }(constructor));
+                }
+                var surrogateInstructions = config.surrogateInstructions;
+                for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
+                    applyInstruction(this, surrogateInstructions[i], anchor);
+                }
+                if ('created' in this) {
+                    this.created();
+                }
+                return this;
+            };
+            class_1.prototype.bind = function () {
+                var scope = this.$scope;
+                var bindable = this.$bindable;
+                for (var i = 0, ii = bindable.length; i < ii; ++i) {
+                    bindable[i].bind(scope);
+                }
+                this.$isBound = true;
+                var changeCallbacks = this.$changeCallbacks;
+                for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+                    changeCallbacks[i]();
+                }
+                if ('bound' in this) {
+                    this.bound();
+                }
+            };
+            class_1.prototype.attach = function () {
+                var _this = this;
+                if ('attaching' in this) {
+                    this.attaching();
+                }
+                var attachable = this.$attachable;
+                for (var i = 0, ii = attachable.length; i < ii; ++i) {
+                    attachable[i].attach();
+                }
+                this.$view.appendTo(this.$anchor);
+                if ('attached' in this) {
+                    task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
+                }
+            };
+            class_1.prototype.detach = function () {
+                var _this = this;
+                if ('detaching' in this) {
+                    this.detaching();
+                }
+                this.$view.remove();
+                var attachable = this.$attachable;
+                var i = attachable.length;
+                while (i--) {
+                    attachable[i].detach();
+                }
+                if ('detached' in this) {
+                    task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
+                }
+            };
+            class_1.prototype.unbind = function () {
+                var bindable = this.$bindable;
+                var i = bindable.length;
+                while (i--) {
+                    bindable[i].unbind();
+                }
+                if ('unbound' in this) {
+                    this.unbound();
+                }
+                this.$isBound = false;
+            };
+            return class_1;
+        }(ctor));
+    }
+    function compiledElement(config) {
+        return function (target) {
+            return createCustomElement(target, config);
         };
     }
     exports.compiledElement = compiledElement;

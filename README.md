@@ -22,30 +22,48 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 
 ## Runtime
 
-* [x] PAL
-* [x] Logging
-* [x] Task Queue
-* [ ] Dependency Injection
-* [x] One Way Bindings
-* [x] Two Way Bindings
-* [x] One Time Bindings
-* [x] From View Bindings
-* [x] Listener Bindings
-* [x] Ref Bindings
-* [x] Basic Components
-* [x] Basic Attributes
-* [x] Attach Lifecycle
-* [ ] Bind Lifecycle (in-progress)
-* [x] Basic Application Startup
-* [x] Plain Views
-* [ ] Content Projection
-* [ ] Template Part Replacement
-* [ ] CSS Modules
-* [x] `if` Template Controller
-* [x] `else` Template Controller
-* [ ] `repeat` Template Controller
-* [ ] `compose` Custom Element
-
+* Core
+  * [x] PAL
+  * [x] Logging
+  * [x] Task Queue
+  * [ ] Dependency Injection
+* Binding
+  * [x] One Way
+  * [x] Two Way 
+  * [x] One Time
+  * [x] From View
+  * [x] Listener
+  * [ ] Call
+  * [x] Ref
+  * [x] Style
+  * [x] Text
+* Custom Elements
+  * [x] Binding
+  * [x] Bind Lifecycle
+  * [x] Attach Lifecycle
+  * [ ] Content Projection
+  * [ ] Template Part Replacement
+  * [ ] CSS Modules
+  * [ ] `compose` Custom Element
+* Custom Attributes
+  * [x] Binding
+  * [x] Bind Lifecycle
+  * [x] Attach Lifecycle
+* Template Controllers
+  * [x] Binding
+  * [x] Bind Lifecycle
+  * [x] Attach Lifecycle
+  * [x] View Factories
+  * [x] View Slots
+  * [x] Plain Views
+  * [x] Linking
+    * e.g. if/else and switch/case scenarios
+  * [x] `if` Template Controller
+  * [x] `else` Template Controller
+  * [ ] `repeat` Template Controller
+* Application Startup
+  [x] SPA Startup
+  [ ] Progressive Enhancement
 
 ## Building & Testing the Compiler
 

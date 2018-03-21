@@ -61,6 +61,10 @@ export function oneWay(sourceExpression: string, target: IBindingTarget, targetP
   return new Binding(getAST(sourceExpression), target, targetProperty, bindingMode.oneWay, lookupFunctions);
 }
 
+export function fromView(sourceExpression: string, target: IBindingTarget, targetProperty: string){
+  return new Binding(getAST(sourceExpression), target, targetProperty, bindingMode.fromView, lookupFunctions);
+}
+
 export function oneWayText(sourceExpression: string, target: Element) {
   let next = target.nextSibling;
   (next as any)['auInterpolationTarget'] = true;

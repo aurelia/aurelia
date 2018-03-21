@@ -3,7 +3,7 @@ import { IBinding } from "./framework/binding/binding";
 import { View } from "./framework/templating/view";
 import { Scope } from "./framework/binding/binding-interfaces";
 import { createOverrideContext } from "./framework/binding/scope";
-import { oneWayText, twoWay, listener, oneWay, ref, makeElementIntoAnchor } from "./framework/generated";
+import { oneWayText, twoWay, listener, oneWay, ref, makeElementIntoAnchor, fromView } from "./framework/generated";
 import { Observer } from "./framework/binding/property-observation";
 import { TaskQueue } from "./framework/task-queue";
 import { IComponent, IAttach } from "./framework/templating/component";
@@ -25,6 +25,9 @@ function applyInstruction(instance, instruction, target) {
       break;
     case 'oneWay':
       instance.$bindable.push(oneWay(instruction.source, target, instruction.target));
+      break;
+    case 'fromView':
+      instance.$bindable.push(fromView(instruction.source, target, instruction.target));
       break;
     case 'twoWay':
       instance.$bindable.push(twoWay(instruction.source, target, instruction.target));
@@ -52,6 +55,17 @@ function applyInstruction(instance, instruction, target) {
       instance.$bindable.push(elementModel);
       instance.$attachable.push(elementModel);
 
+      break;
+    case 'attribute':
+      let attributeInstructions = instruction.instructions;
+      let attributeModel: IComponent = new instruction.ctor(target); //TODO: DI
+
+      for (let i = 0, ii = attributeInstructions.length; i < ii; ++i) {
+        applyInstruction(instance, attributeInstructions[i], attributeModel);
+      }
+
+      instance.$bindable.push(attributeModel);
+      instance.$attachable.push(attributeModel);
       break;
     case 'templateController':
       let templateControllerInstructions = instruction.instructions;

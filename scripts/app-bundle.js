@@ -453,6 +453,10 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.oneWay, lookupFunctions);
     }
     exports.oneWay = oneWay;
+    function fromView(sourceExpression, target, targetProperty) {
+        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.fromView, lookupFunctions);
+    }
+    exports.fromView = fromView;
     function oneWayText(sourceExpression, target) {
         var next = target.nextSibling;
         next['auInterpolationTarget'] = true;
@@ -5282,6 +5286,9 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
             case 'oneWay':
                 instance.$bindable.push(generated_1.oneWay(instruction.source, target, instruction.target));
                 break;
+            case 'fromView':
+                instance.$bindable.push(generated_1.fromView(instruction.source, target, instruction.target));
+                break;
             case 'twoWay':
                 instance.$bindable.push(generated_1.twoWay(instruction.source, target, instruction.target));
                 break;
@@ -5305,6 +5312,15 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
                 }
                 instance.$bindable.push(elementModel);
                 instance.$attachable.push(elementModel);
+                break;
+            case 'attribute':
+                var attributeInstructions = instruction.instructions;
+                var attributeModel = new instruction.ctor(target);
+                for (var i = 0, ii = attributeInstructions.length; i < ii; ++i) {
+                    applyInstruction(instance, attributeInstructions[i], attributeModel);
+                }
+                instance.$bindable.push(attributeModel);
+                instance.$attachable.push(attributeModel);
                 break;
             case 'templateController':
                 var templateControllerInstructions = instruction.instructions;

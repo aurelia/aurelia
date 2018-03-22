@@ -33,7 +33,7 @@ function applyInstruction(instance, instruction, target) {
       instance.$bindable.push(twoWay(instruction.source, target, instruction.target));
       break;
     case 'listener':
-      instance.$bindable.push(listener(instruction.source, target, instruction.target));
+      instance.$bindable.push(listener(instruction.source, target, instruction.target, instruction.preventDefault, instruction.strategy));
       break;
     case 'ref':
       instance.$bindable.push(ref(instruction.source, target));

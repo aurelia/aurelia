@@ -5293,7 +5293,7 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
                 instance.$bindable.push(generated_1.twoWay(instruction.source, target, instruction.target));
                 break;
             case 'listener':
-                instance.$bindable.push(generated_1.listener(instruction.source, target, instruction.target));
+                instance.$bindable.push(generated_1.listener(instruction.source, target, instruction.target, instruction.preventDefault, instruction.strategy));
                 break;
             case 'ref':
                 instance.$bindable.push(generated_1.ref(instruction.source, target));
@@ -5641,7 +5641,9 @@ define('name-tag2-config',["require", "exports"], function (require, exports) {
                 {
                     type: 'listener',
                     source: 'click',
-                    target: 'submit'
+                    target: 'submit',
+                    preventDefault: true,
+                    strategy: 0
                 }
             ]
         ],

@@ -116,7 +116,9 @@ export const nameTag2Config: CompiledElementConfiguration = {
       {
         type: 'listener',
         source: 'click',
-        target: 'submit'
+        target: 'submit',
+        preventDefault: true,
+        strategy: 0
       }
     ]
   ],

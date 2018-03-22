@@ -32,7 +32,9 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] Two Way 
   * [x] One Time
   * [x] From View
-  * [x] Listener
+  * [x] Trigger
+  * [x] Delegate
+  * [x] Capture
   * [ ] Call
   * [x] Ref
   * [x] Style

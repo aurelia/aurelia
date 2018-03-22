@@ -37,35 +37,106 @@ import {
   SettingsComponent,
   UserService
 } from '../../fixture';
-import { InjectorBuilder } from "../../../ioc/injector";
+import { InjectorBuilder, DefaultInjector } from '../../../ioc/injector';
 import { DependencyType } from '../../../ioc/types';
 import { IContext } from '../../../ioc/interfaces';
+import * as ts from 'typescript';
+import { raw } from '../../fixture/raw';
+import * as AST from '../../../ioc/analysis/ast';
+import { TypeScriptSyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
 
 describe('InjectorBuilder', () => {
   let sut: InjectorBuilder;
 
-  it('should work with module configuration', () => {
-    const type = DependencyType.wrap(App); // temporary verbose configuration
-    const $module = {
-      configure(ctx: IContext): void {
-        ctx.register(type).toType(type);
-      }
-    };
-
-    sut = InjectorBuilder.create($module);
+  beforeEach(() => {
+    sut = InjectorBuilder.create();
+    sut.register(History).toType(BrowserHistory);
+    sut.register(Router).toType(AppRouter);
+    sut.register(LinkHandler).toType(DefaultLinkHandler);
+    sut.register(BindingLanguage).toType(TemplatingBindingLanguage);
+    sut.register(Validator).toType(StandardValidator);
     const injector = sut.build();
+    ValidationRules.initialize(injector.getInstance(ValidationMessageParser), injector.getInstance(PropertyAccessorParser));
+  });
 
-    const actual = injector.getInstance<App>(type);
-    expect(actual instanceof App).toBe(true);
+  it('should properly resolve App', () => {
+    const injector = sut.build();
+    const actual = injector.getInstance(App) as App;
+    verifyApp(actual);
+  });
+
+  it('should properly resolve ArticleComponent', () => {
+    const injector = sut.build();
+    const actual = injector.getInstance(ArticleComponent) as ArticleComponent;
+    verifyArticleComponent(actual);
+  });
+
+  it('should properly resolve AuthComponent', () => {
+    const injector = sut.build();
+    const actual = injector.getInstance(AuthComponent) as AuthComponent;
+    verifyAuthComponent(actual);
+  });
+
+  it('should properly resolve EditorComponent', () => {
+    const injector = sut.build();
+    const actual = injector.getInstance(EditorComponent) as EditorComponent;
+    verifyEditorComponent(actual);
+  });
+
+  it('should properly resolve HomeComponent', () => {
+    const injector = sut.build();
+    const actual = injector.getInstance(HomeComponent) as HomeComponent;
+    verifyHomeComponent(actual);
+  });
+
+  it('should properly resolve ProfileArticleComponent', () => {
+    const injector = sut.build();
+    const actual = injector.getInstance(ProfileArticleComponent) as ProfileArticleComponent;
+    verifyProfileArticleComponent(actual);
+  });
+
+  it('should properly resolve ProfileComponent', () => {
+    const injector = sut.build();
+    const actual = injector.getInstance(ProfileComponent) as ProfileComponent;
+    verifyProfileComponent(actual);
+  });
+
+  it('should properly resolve ProfileFavoritesComponent', () => {
+    const injector = sut.build();
+    const actual = injector.getInstance(ProfileFavoritesComponent) as ProfileFavoritesComponent;
+    verifyProfileFavoritesComponent(actual);
+  });
+
+  it('should properly resolve SettingsComponent', () => {
+    const injector = sut.build();
+    const actual = injector.getInstance(SettingsComponent) as SettingsComponent;
+    verifySettingsComponent(actual);
+  });
+
+  it('should be able to resolve 1k keys in less than 1500ms (cold)', () => {
+    const injector = sut.build();
+    const actual = resolveTimes(1000, injector as DefaultInjector);
+    expect(actual).toBeLessThan(1500);
+  });
+
+  it('should be able to resolve 10k keys in less than 10ms (warm)', () => {
+    const injector = sut.build();
+    const actual = resolveTimes(10000, injector as DefaultInjector, true);
+    expect(actual).toBeLessThan(10);
+  });
+
+  it('should be able to resolve 1k keys in less than 1ms (warm)', () => {
+    const injector = sut.build();
+    const actual = resolveTimes(1000, injector as DefaultInjector, true);
+    expect(actual).toBeLessThan(1);
   });
 
   it('should work with registration', () => {
-    const type = DependencyType.wrap(App); // temporary verbose configuration
     sut = InjectorBuilder.create();
-    sut.register(type).toType(type);
+    sut.register(App).toSelf();
     const injector = sut.build();
 
-    const actual = injector.getInstance<App>(type);
+    const actual = injector.getInstance(App);
     expect(actual instanceof App).toBe(true);
   });
 });

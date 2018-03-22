@@ -1,5 +1,5 @@
 import { IActivator, IRequirement, IPair } from "./interfaces";
-import { DependencyType } from "./types";
+import { DependencyType, isConstructor } from "./types";
 import { DependencyMap } from "./container";
 
 export class Activators {
@@ -58,19 +58,17 @@ export class InstanceActivator implements IActivator {
 }
 
 export class ClassActivator implements IActivator {
-  private type: DependencyType;
+  private type: FunctionConstructor;
   private requirements: IRequirement[];
   private providers: DependencyMap;
 
-  constructor(type: DependencyType, requirements: IRequirement[], providers: DependencyMap) {
+  constructor(type: FunctionConstructor, requirements: IRequirement[], providers: DependencyMap) {
     this.type = type;
     this.requirements = requirements;
     this.providers = providers;
   }
 
   public activate(): any {
-    // static code analysis stuff inc
-    // for now, just naively (and inefficiently) go for the constructor
     let constructorKey: IPair<PropertyKey, PropertyDescriptor>;
     const dependencyGroups = new Map<IPair<PropertyKey, PropertyDescriptor>, IRequirement[]>();
     for (const req of this.requirements) {
@@ -84,16 +82,17 @@ export class ClassActivator implements IActivator {
         constructorKey = key;
       }
     }
-    const type = this.type.ctor as any;
+    //const type = isConstructor(this.type) ? this.type as any : null;
     if (constructorKey !== undefined) {
       const constructorDeps = dependencyGroups.get(constructorKey);
-      const deps = constructorDeps.map(d => this.providers.get(d).activate());
-      if (type !== undefined) {
-        return new type(...deps);
+      const providers = constructorDeps.map(d => this.providers.get(d));
+      const deps = providers.map(p => p.activate());
+      if (isConstructor(this.type)) {
+        return new this.type(...deps);
       }
     }
     if (this.requirements.length === 0) {
-      return new type();
+      return new this.type();
     }
     throw new Error(`Could not activate class ${this.type.name}`);
   }

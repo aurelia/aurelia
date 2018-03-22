@@ -3,10 +3,12 @@ import { IRegistrationFunction, IRequirement, IInjectionPoint, IFulfillment, IIn
 import { Container } from "./container";
 import { BasicInjectionPoint } from "./injection-point";
 import { Requirements } from "./requirements";
-import { RegistrationFunctionBuilder } from "./registration";
+import { RegistrationFunctionBuilder, DefaultRequirementRegistrationFunction } from "./registration";
 import { Lifetime, DependencyType } from "./types";
 
 export class DefaultInjector implements IInjector {
+  private requirementCache: Map<DependencyType, IRequirement> = new Map();
+  private activatorCache: Map<DependencyType, IActivator> = new Map();
   private lifetime: Lifetime;
   private resolver: Resolver;
   private container: Container;
@@ -21,21 +23,44 @@ export class DefaultInjector implements IInjector {
   }
 
   public getInstance<T>(type: DependencyType): T {
-    return this.resolve(Requirements.create(type));
+    if (!this.requirementCache.has(type)) {
+      this.requirementCache.set(type, Requirements.create(type));
+    }
+    return this.resolve(this.requirementCache.get(type));
+    //return this.resolve(Requirements.create(type));
   }
 
   private resolve(requirement: IRequirement): any {
-    let resolved = this.resolver.getGraph().getOutgoingEdgeWithKey(d => d.hasInitialRequirement(requirement));
-
-    if (resolved === null) {
-      this.resolver.resolve(requirement);
-      resolved = this.resolver.getGraph().getOutgoingEdgeWithKey(d => d.hasInitialRequirement(requirement));
+    //todo: take resolution scope into account when resolving from the cache (or optimize the resolution process in another way)
+    if (!this.activatorCache.has(requirement.requiredType)) {
+      let resolved = this.resolver.getGraph().getOutgoingEdgeWithKey(d => d.hasInitialRequirement(requirement));
+  
+      if (resolved === null) {
+        this.resolver.resolve(requirement);
+        resolved = this.resolver.getGraph().getOutgoingEdgeWithKey(d => d.hasInitialRequirement(requirement));
+      }
+  
+      const resolvedNode = resolved.tail;
+  
+      const activator = this.container.makeActivator(resolvedNode, this.resolver.getBackEdges());
+      this.activatorCache.set(requirement.requiredType, activator);
     }
 
-    const resolvedNode = resolved.tail;
+    return this.activatorCache.get(requirement.requiredType).activate();
 
-    return this.container.makeActivator(resolvedNode, this.resolver.getBackEdges()).activate();
+    // let resolved = this.resolver.getGraph().getOutgoingEdgeWithKey(d => d.hasInitialRequirement(requirement));
+  
+    // if (resolved === null) {
+    //   this.resolver.resolve(requirement);
+    //   resolved = this.resolver.getGraph().getOutgoingEdgeWithKey(d => d.hasInitialRequirement(requirement));
+    // }
+
+    // const resolvedNode = resolved.tail;
+
+    // const activator = this.container.makeActivator(resolvedNode, this.resolver.getBackEdges());
+    // return activator.activate();
   }
+  
 }
 
 export class InjectorBuilder {
@@ -69,7 +94,7 @@ export class InjectorBuilder {
   }
 
   public build(): IInjector {
-    const functions = [this.builder.build()];
-    return new DefaultInjector(this.lifetime, functions);
+    const registrationFunctions = [this.builder.build(), new DefaultRequirementRegistrationFunction()];
+    return new DefaultInjector(this.lifetime, registrationFunctions);
   }
 }

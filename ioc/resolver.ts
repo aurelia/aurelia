@@ -3,7 +3,8 @@ import { Node, Edge, Component, Dependency } from "./graph";
 import { ResolutionContext } from "./resolution-context";
 import { RequirementChain } from "./requirement-chain";
 import { getLogger } from "aurelia-logging";
-import { NullFulfillment, Lifetime, DependencyType, RegistrationFlags } from "./types";
+import { Lifetime, DependencyType, RegistrationFlags } from "./types";
+import { NullFulfillment } from "./fulfillments";
 
 const logger = getLogger("dependency-resolver");
 
@@ -14,7 +15,7 @@ export class Resolver {
   private defaultLifetime: Lifetime;
 
   public static ROOT_FULFILLMENT = Component.create(
-    new NullFulfillment(DependencyType.wrap(null)),
+    new NullFulfillment(Symbol(null)),
     Lifetime.Unspecified
   );
 
@@ -61,7 +62,7 @@ export class Resolver {
     let node: Node;
     const nodeBuilder = Node.newBuilder();
     nodeBuilder.setKey(result.makeComponent());
-    for (const requirement of result.fulfillment.getRequirements()) {
+    for (const requirement of result.fulfillment.getDependencies()) {
       logger.debug("Attempting to satify dependency: ", requirement);
 
       const resolution = this.resolveCore(requirement, context);

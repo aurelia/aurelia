@@ -1,5 +1,6 @@
-import { IFulfillment, IRequirement, IActivator } from "./interfaces";
-import { DependencyMap } from "./container";
+import { IFulfillment, IRequirement, IActivator } from './interfaces';
+import { DependencyMap } from './container';
+import { metadata } from 'aurelia-metadata';
 
 export const enum RegistrationFlags {
   None = 1 << 0,
@@ -11,55 +12,39 @@ export enum Lifetime {
   Singleton,
   Transient
 }
-export type DataType = undefined | null | boolean | number | string | symbol | object | Function;
 
-export class DependencyType {
-  public name: string;
-  public ctor?: Function;
+export type DependencyType = number | Number | string | String | symbol | Symbol | object | Object | Function;
 
-  constructor(name: string, ctor?: Function) {
-    this.name = name;
-    this.ctor = ctor;
-  }
+export function validateKey(key: DependencyType): boolean {
+  const type = typeof key;
 
-  public static wrap(dataType: DataType, name?: string): DependencyType {
-    if (dataType instanceof Function && Object.prototype.hasOwnProperty.call(dataType, "prototype")) {
-      return new DependencyType(name || dataType.name, dataType);
-    } else {
-      return new DependencyType(name || Object.prototype.toString.call(dataType));
-    }
-  }
+  return key === 'function' || key === 'object' || key === 'string' || key === 'number';
 }
 
-export class NullFulfillment implements IFulfillment {
-  public type: DependencyType;
+export function isConstructor(key: DependencyType): boolean {
+  return /Function/.test(Object.prototype.toString.call(key)) && Object.prototype.hasOwnProperty.call(key, 'prototype');
+}
 
-  constructor(type: DependencyType) {
-    this.type = type;
+export function getParamTypes(ctor: any): any[] {
+  let types: any[] = [];
+  if (ctor.inject === undefined) {
+    types = metadata.getOwn("design:paramtypes", ctor) as Array<any> || [];
+  } else {
+    let base = ctor;
+    while (base !== Function.prototype && base !== Object.prototype) {
+      types.push(...getInjectTypes(base));
+      base = Object.getPrototypeOf(base);
+    }
   }
+  return types;
+}
 
-  public getType(): DependencyType {
-    return this.type;
-  }
-  public getDefaultLifetime(): Lifetime {
-    return Lifetime.Singleton;
-  }
-  public getRequirements(): IRequirement[] {
+function getInjectTypes(ctor: any): any[] {
+  if (!Object.prototype.hasOwnProperty.call(ctor, "inject")) {
     return [];
-  }
-  public makeActivator(dependencies: DependencyMap): IActivator {
-    throw new Error("Method not implemented.");
-  }
-}
-
-export class Types {
-  public static isActivatable(type: DependencyType): boolean {
-    // static code analysis stuff inc
-    // for now, just naively go by whether it's a constructor function
-    if (type.ctor && type.ctor instanceof Function) {
-      return true;
-    } else {
-      return false;
-    }
+  } else if (typeof ctor.inject === "function") {
+    return ctor.inject();
+  } else {
+    return ctor.inject;
   }
 }

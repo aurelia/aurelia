@@ -99,13 +99,18 @@ describe('aurelia-dependency-injection version 1', () => {
     verifySettingsComponent(actual);
   });
 
-  it('should be able to register 1k keys in less than 20ms', () => {
+  it('should be able to register 1k keys in less than 50ms', () => {
     const actual = registerTimes(1000, sut);
-    expect(actual).toBeLessThan(20);
+    expect(actual).toBeLessThan(50);
   });
 
-  it('should be able to resolve 1k keys in less than 20ms', () => {
+  it('should be able to resolve 1k keys in less than 50ms (cold)', () => {
     const actual = resolveTimes(1000, sut);
+    expect(actual).toBeLessThan(50);
+  });
+
+  it('should be able to resolve 1k keys in less than 20ms (warm)', () => {
+    const actual = resolveTimes(1000, sut, true);
     expect(actual).toBeLessThan(20);
   });
 });

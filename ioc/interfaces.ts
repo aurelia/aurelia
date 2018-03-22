@@ -5,12 +5,13 @@ import { RegistrationResult } from "./resolver";
 import { DependencyType, Lifetime, RegistrationFlags } from "./types";
 import { IModuleItem } from "./analysis/ast";
 
-
 export interface IFulfillment {
-  getType(): DependencyType;
+  readonly isFulfillment: true;
+  readonly type: DependencyType;
   getDefaultLifetime(): Lifetime;
-  getRequirements(): IRequirement[];
+  getDependencies(): IRequirement[];
   makeActivator(dependencies: DependencyMap): IActivator;
+  isEqualTo(other: IFulfillment): boolean;
 }
 
 export interface IPredicate<T> {
@@ -38,14 +39,17 @@ export interface IInjectionPoint {
   readonly isOptional: boolean;
 
   getMember(): IPair<PropertyKey, PropertyDescriptor>;
+  isEqualTo(other: IInjectionPoint): boolean;
 }
 
 export interface IRequirement {
+  readonly isRequirement: true;
   readonly requiredType: DependencyType;
   readonly injectionPoint: IInjectionPoint;
   isInstantiable(): boolean;
   getFulfillment(): IFulfillment;
   restrict(typeOrFulfillment: DependencyType | IFulfillment): IRequirement;
+  isEqualTo(other: IRequirement): boolean;
 }
 
 export interface IActivator {
@@ -69,7 +73,9 @@ export interface IRegistration<T> {
   singleton(): IRegistration<T>;
   transient(): IRegistration<T>;
 
+  toSelf(): void;
   toType(type: DependencyType): void;
+  toNull(type: DependencyType): void;
   toInstance(instance: T): void;
 }
 

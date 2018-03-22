@@ -10,7 +10,7 @@ import {
   IPair
 } from './interfaces';
 import { DefaultContext } from './context';
-import { Lifetime, RegistrationFlags, Types, DependencyType } from './types';
+import { Lifetime, RegistrationFlags, DependencyType, isConstructor } from './types';
 import { Fulfillments } from './fulfillments';
 import { ResolutionContext } from './resolution-context';
 import { RequirementChain } from './requirement-chain';
@@ -39,22 +39,46 @@ export class Registration<T> implements IRegistration<T> {
     return new Registration(this.context, this.sourceType, Lifetime.Transient);
   }
 
+  public toSelf(): void {
+    const builder = this.createRule();
+    if (isConstructor(this.sourceType)) {
+      builder.setFulfillment(Fulfillments.type(this.sourceType as FunctionConstructor));
+    } else {
+      builder.setImplementation(this.sourceType);
+    }
+    builder.setTerminal(true);
+    this.generateRegistrations(builder, this.sourceType);
+  }
+
   public toType(type: DependencyType): void {
     const builder = this.createRule();
-    if (Types.isActivatable(type)) {
-      builder.setFulfillment(Fulfillments.type(type));
+    if (isConstructor(type)) {
+      builder.setFulfillment(Fulfillments.type(type as FunctionConstructor));
     } else {
       builder.setImplementation(type);
     }
-    builder.setTerminal(true);
+    builder.setTerminal(false);
+    this.generateRegistrations(builder, type);
   }
 
   public toInstance(instance: T): void {
-    throw new Error('Method not implemented.');
+    if (!instance) {
+      this.toNull(this.sourceType);
+    } else {
+      const fulfillment = Fulfillments.instance(this.sourceType, instance);
+      const builder = this.createRule().setFulfillment(fulfillment);
+      this.generateRegistrations(builder, fulfillment.type);
+    }
+  }
+
+  public toNull(type: DependencyType): void {
+    const fulfillment = Fulfillments.null(type);
+    const builder = this.createRule().setFulfillment(fulfillment);
+    this.generateRegistrations(builder, fulfillment.type);
   }
 
   private generateRegistrations(builder: RegistrationRuleBuilder, type: DependencyType): void {
-    this.context.builder.addRegistrationRule({ isSatisfiedBy: () => true }, builder.setDependencyType(type).build());
+    this.context.builder.addRegistrationRule({ isSatisfiedBy: () => true }, builder.setDependencyType(this.sourceType).build());
   }
 
   private createRule(): RegistrationRuleBuilder {
@@ -65,10 +89,10 @@ export class Registration<T> implements IRegistration<T> {
 }
 
 export class RegistrationRuleBuilder {
-  private dependencyType: DependencyType;
-  private fulfillment: IFulfillment;
-  private implementation: DependencyType;
-  private lifetime: Lifetime;
+  private dependencyType: DependencyType = null;
+  private fulfillment: IFulfillment = null;
+  private implementation: DependencyType = null;
+  private lifetime: Lifetime = null;
   private flags: RegistrationFlags = RegistrationFlags.None;
 
   public static create(): RegistrationRuleBuilder {
@@ -233,5 +257,28 @@ export class RuleBasedRegistrationFunction implements IRegistrationFunction {
       return result;
     }
     return null;
+  }
+}
+
+export class DefaultRequirementRegistrationFunction implements IRegistrationFunction {
+  private metadataCache: Map<DependencyType, RegistrationResult> = new Map();
+
+  public register(context: ResolutionContext, chain: RequirementChain): RegistrationResult {
+    const requirement = chain.currentRequirement;
+    let result: RegistrationResult = this.metadataCache.get(requirement.requiredType);
+
+    if (!result) {
+      if (isConstructor(requirement.requiredType)) {
+        const fulfillment = Fulfillments.type(requirement.requiredType as FunctionConstructor);
+        result = new RegistrationResult(requirement.restrict(fulfillment), Lifetime.Unspecified, RegistrationFlags.Terminal);
+      } else {
+        const fulfillment = Fulfillments.null(requirement.requiredType);
+        result = new RegistrationResult(requirement.restrict(fulfillment), Lifetime.Unspecified, RegistrationFlags.Terminal);
+      }
+
+      this.metadataCache.set(requirement.requiredType, result);
+    }
+
+    return result;
   }
 }

@@ -38,6 +38,7 @@ import {
   SharedState
 } from "../../fixture";
 import { PLATFORM } from "aurelia-pal";
+import { DefaultInjector } from "../../../ioc/injector";
 
 export function verifyApp(x: App): void {
   verifyInstance(x, App);
@@ -315,12 +316,23 @@ export function registerTimes(n: number, container: Container) {
   return end - start;
 }
 
-export function resolveTimes(n: number, container: Container) {
+export function resolveTimes(n: number, container: Container | DefaultInjector, warm: boolean = false) {
   let i = 0;
-  const start = PLATFORM.performance.now();
-  for (i = 0; i < n; i++) {
-      container.get(`key${i}`);
+  const method = container instanceof Container ? "get" : "getInstance";
+  if (warm) {
+    container[method](`key`);
+    const start = PLATFORM.performance.now();
+    for (i = 0; i < n; i++) {
+        container[method](`key`);
+    }
+    const end = PLATFORM.performance.now();
+    return end - start;
+  } else {
+    const start = PLATFORM.performance.now();
+    for (i = 0; i < n; i++) {
+        container[method](`key${i}`);
+    }
+    const end = PLATFORM.performance.now();
+    return end - start;
   }
-  const end = PLATFORM.performance.now();
-  return end - start;
 }

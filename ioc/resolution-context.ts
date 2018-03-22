@@ -16,7 +16,7 @@ export class ResolutionContext implements IChain<IPair<IFulfillment, IInjectionP
   public static singleton(fulfillment: IFulfillment, injectionPoint?: IInjectionPoint): ResolutionContext {
     let ip = injectionPoint;
     if (ip === undefined) {
-      ip = new BasicInjectionPoint(fulfillment.getType());
+      ip = new BasicInjectionPoint(fulfillment.type);
     }
     return new ResolutionContext(null, fulfillment, injectionPoint);
   }

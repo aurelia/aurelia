@@ -72,8 +72,10 @@ export class DependencyMap {
   }
 
   public get(requirement: IRequirement): IActivator {
-    if (this.requirements.has(requirement)) {
-      return this.lookup.apply(requirement);
+    for (const req of (this.requirements as any as IRequirement[])) {
+      if (req.isEqualTo(requirement)) {
+        return this.lookup.apply(requirement);
+      }
     }
     return undefined;
   }
@@ -89,13 +91,14 @@ export class DependencyLookup {
     edges: Set<Edge>,
     backEdges: Map<Node, Edge>
   ) {
+    this.container = container;
     this.edges = Array.from(edges.keys());
     this.backEdges = backEdges;
   }
 
   public apply(input: IRequirement): IActivator {
     for (const edge of this.edges) {
-      if (edge.key.requirementChain.initialRequirement === input) {
+      if (edge.key.requirementChain.initialRequirement.isEqualTo(input)) {
         return this.container.makeActivator(edge.tail, this.backEdges);
       }
     }

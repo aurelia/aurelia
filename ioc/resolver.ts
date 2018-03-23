@@ -76,7 +76,7 @@ export class Resolver {
   }
 
   private resolveCore(requirement: IRequirement, context: ResolutionContext): Resolution {
-    let chain = RequirementChain.singleton(requirement);
+    let chain = RequirementChain.create(requirement);
     let lifetime = Lifetime.Unspecified;
 
     while (true) {
@@ -85,7 +85,7 @@ export class Resolver {
       let registration: RegistrationResult = null;
       for (const registrationFunction of this.functions) {
         registration = registrationFunction.register(context, chain);
-        if (!!registration && !chain.getPreviousRequirement().some(d => registration.requirement === d)) {
+        if (!!registration && !chain.getPreviousRequirements().some(d => registration.requirement === d)) {
           break;
         }
       }

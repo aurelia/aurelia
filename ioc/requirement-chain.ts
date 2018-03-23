@@ -15,11 +15,11 @@ export class RequirementChain implements IChain<IRequirement> {
     this.key = !prev ? Symbol(RequirementChain.name) : prev.key;
   }
 
-  public static singleton(requirement: IRequirement): RequirementChain {
+  public static create(requirement: IRequirement): RequirementChain {
     return new RequirementChain(null, requirement);
   }
 
-  public getPreviousRequirement(): IRequirement[] {
+  public getPreviousRequirements(): IRequirement[] {
     if (!this.previous) {
       return [];
     } else {

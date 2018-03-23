@@ -415,7 +415,7 @@ define('framework/dom',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom", "./binding/ref"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1, ref_1) {
+define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom", "./binding/ref", "./binding/call"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1, ref_1, call_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -478,6 +478,10 @@ define('framework/generated',["require", "exports", "./binding/ast", "./binding/
         return new ref_1.Ref(getAST(sourceExpression), target, lookupFunctions);
     }
     exports.ref = ref;
+    function call(sourceExpression, target, targetProperty) {
+        return new call_1.Call(getAST(sourceExpression), target, targetProperty, lookupFunctions);
+    }
+    exports.call = call;
     function makeElementIntoAnchor(element, elementInstruction) {
         var anchor = dom_1.DOM.createComment('anchor');
         if (elementInstruction) {
@@ -5295,6 +5299,9 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
             case 'listener':
                 instance.$bindable.push(generated_1.listener(instruction.source, target, instruction.target, instruction.preventDefault, instruction.strategy));
                 break;
+            case 'call':
+                instance.$bindable.push(generated_1.call(instruction.source, target, instruction.target));
+                break;
             case 'ref':
                 instance.$bindable.push(generated_1.ref(instruction.source, target));
                 break;
@@ -5660,6 +5667,65 @@ define('name-tag2-config',["require", "exports"], function (require, exports) {
             }
         ]
     };
+});
+
+
+
+define('framework/binding/call',["require", "exports", "./observer-locator"], function (require, exports, observer_locator_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Call = (function () {
+        function Call(sourceExpression, target, targetProperty, lookupFunctions, observerLocator) {
+            if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.targetProperty = targetProperty;
+            this.lookupFunctions = lookupFunctions;
+            this.isBound = false;
+            this.targetObserver = observerLocator.getObserver(target, targetProperty);
+        }
+        Call.prototype.callSource = function ($event) {
+            var overrideContext = this.source.overrideContext;
+            Object.assign(overrideContext, $event);
+            overrideContext.$event = $event;
+            var mustEvaluate = true;
+            var result = this.sourceExpression.evaluate(this.source, this.lookupFunctions, mustEvaluate);
+            delete overrideContext.$event;
+            for (var prop in $event) {
+                delete overrideContext[prop];
+            }
+            return result;
+        };
+        Call.prototype.bind = function (source) {
+            var _this = this;
+            if (this.isBound) {
+                if (this.source === source) {
+                    return;
+                }
+                this.unbind();
+            }
+            this.isBound = true;
+            this.source = source;
+            if (this.sourceExpression.bind) {
+                this.sourceExpression.bind(this, source);
+            }
+            this.targetObserver.setValue(function ($event) { return _this.callSource($event); }, this.target, this.targetProperty);
+        };
+        Call.prototype.unbind = function () {
+            if (!this.isBound) {
+                return;
+            }
+            this.isBound = false;
+            if (this.sourceExpression.unbind) {
+                this.sourceExpression.unbind(this, this.source);
+            }
+            this.source = null;
+            this.targetObserver.setValue(null, this.target, this.targetProperty);
+        };
+        Call.prototype.observeProperty = function () { };
+        return Call;
+    }());
+    exports.Call = Call;
 });
 
 

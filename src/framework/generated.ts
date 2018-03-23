@@ -17,6 +17,7 @@ import { Listener } from './binding/listener';
 import { delegationStrategy } from './binding/event-manager';
 import { DOM } from './dom';
 import { Ref } from './binding/ref';
+import { Call } from './binding/call';
 
 const emptyArray: any[] = [];
 
@@ -78,7 +79,7 @@ export function twoWay(sourceExpression: string, target: IBindingTarget, targetP
 
 export function listener(
   targetEvent: string,
-  target: Element,
+  target: EventTarget,
   sourceExpression: string,
   preventDefault = true,
   strategy: IDelegationStrategy[keyof IDelegationStrategy] = delegationStrategy.none
@@ -88,6 +89,10 @@ export function listener(
 
 export function ref(sourceExpression: string, target: IBindingTarget) {
   return new Ref(getAST(sourceExpression), target, lookupFunctions);
+}
+
+export function call(sourceExpression: string, target: EventTarget, targetProperty: string) {
+  return new Call(getAST(sourceExpression), target, targetProperty, lookupFunctions)
 }
 
 export function makeElementIntoAnchor(element: Element, elementInstruction?: any) {

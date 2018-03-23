@@ -3,7 +3,7 @@ import { IBinding } from "./framework/binding/binding";
 import { View } from "./framework/templating/view";
 import { Scope } from "./framework/binding/binding-interfaces";
 import { createOverrideContext } from "./framework/binding/scope";
-import { oneWayText, twoWay, listener, oneWay, ref, makeElementIntoAnchor, fromView } from "./framework/generated";
+import { oneWayText, twoWay, listener, oneWay, ref, makeElementIntoAnchor, fromView, call } from "./framework/generated";
 import { Observer } from "./framework/binding/property-observation";
 import { TaskQueue } from "./framework/task-queue";
 import { IComponent, IAttach } from "./framework/templating/component";
@@ -34,6 +34,9 @@ function applyInstruction(instance, instruction, target) {
       break;
     case 'listener':
       instance.$bindable.push(listener(instruction.source, target, instruction.target, instruction.preventDefault, instruction.strategy));
+      break;
+    case 'call':
+      instance.$bindable.push(call(instruction.source, target, instruction.target));
       break;
     case 'ref':
       instance.$bindable.push(ref(instruction.source, target));

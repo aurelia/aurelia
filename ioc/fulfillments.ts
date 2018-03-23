@@ -1,8 +1,9 @@
 import { IFulfillment, IRequirement, IActivator } from './interfaces';
 import { DependencyType, Lifetime } from './types';
 import { DependencyMap } from './container';
-import { RuntimeRequirement } from './requirements';
-import { ClassActivator, Activators } from './activators';
+import { RuntimeRequirement, BuildtimeRequirement } from './requirements';
+import { ClassActivator, Activators, EmitSyntaxActivator } from './activators';
+import * as AST from './analysis/ast';
 
 export class Fulfillments {
   public static type(type: FunctionConstructor): IFulfillment {
@@ -15,6 +16,10 @@ export class Fulfillments {
 
   public static instance(type: DependencyType, instance: any): IFulfillment {
     return new InstanceFulfillment(type, instance);
+  }
+
+  public static syntax(type: AST.INode): IFulfillment {
+    return new SyntaxFulfillment(type);
   }
 }
 
@@ -92,6 +97,31 @@ export class NullFulfillment implements IFulfillment {
   }
   public isEqualTo(other: NullFulfillment): boolean {
     if (!(other instanceof NullFulfillment)) {
+      return false;
+    }
+    return other.type === this.type;
+  }
+}
+
+export class SyntaxFulfillment implements IFulfillment {
+  public readonly isFulfillment: true = true;
+  public readonly type: AST.INode;
+
+  constructor(type: AST.INode) {
+    this.type = type;
+  }
+
+  public getDefaultLifetime(): Lifetime {
+    return Lifetime.Singleton;
+  }
+  public getDependencies(): IRequirement[] {
+    return BuildtimeRequirement.getRequirements(this.type);
+  }
+  public makeActivator(dependencies: DependencyMap): IActivator {
+    return new EmitSyntaxActivator(this.type, this.getDependencies(), dependencies);
+  }
+  public isEqualTo(other: SyntaxFulfillment): boolean {
+    if (!(other instanceof InstanceFulfillment)) {
       return false;
     }
     return other.type === this.type;

@@ -1,15 +1,16 @@
 import { BasicInjectionPoint, SourceFileInjectionPoint, ParameterInjectionPoint } from './injection-point';
 import { IRequirement, IInjectionPoint, IFulfillment, IPair } from './interfaces';
-import { DependencyType, isConstructor, getParamTypes } from './types';
+import { DependencyType, isConstructor, getParamTypes, getClassSyntaxFromCtorParameter } from './types';
 import { ClassFulfillment, NullFulfillment } from './fulfillments';
 import { INode, getSourceFilePath } from './analysis/ast';
 import { metadata } from 'aurelia-metadata';
+import * as AST from './analysis/ast';
 
 export class Requirements {
   public static create(type: DependencyType | INode): IRequirement {
     if ((type as INode).isAnalysisASTNode) {
       const node = type as INode;
-      return new BuildtimeRequirement(new SourceFileInjectionPoint(type, getSourceFilePath(node)));
+      return new BuildtimeRequirement(new BasicInjectionPoint(type));
     } else {
       return new RuntimeRequirement(new BasicInjectionPoint(type));
     }
@@ -57,6 +58,25 @@ export class BuildtimeRequirement implements IRequirement {
       other.injectionPoint.isEqualTo(this.injectionPoint) &&
       (!other.fulfillment ? !this.fulfillment : other.fulfillment.isEqualTo(this.fulfillment))
     );
+  }
+
+  public static getRequirements(type: AST.INode): IRequirement[] {
+    const requirements: IRequirement[] = [];
+
+    if (type.kind === AST.NodeKind.Class) {
+      if (type.ctor !== undefined) {
+        for (const param of type.ctor.parameters) {
+          const $class = getClassSyntaxFromCtorParameter(param);
+          const ip = new SourceFileInjectionPoint(type, $class, param, type.ctor.parameters.indexOf(param), {
+            left: 'constructor',
+            right: null
+          });
+          requirements.push(new BuildtimeRequirement(ip));
+        }
+      }
+    }
+
+    return requirements;
   }
 }
 
@@ -114,7 +134,7 @@ export class RuntimeRequirement implements IRequirement {
       const paramTypes = getParamTypes(ctor);
 
       for (const paramType of paramTypes) {
-        const ip = new ParameterInjectionPoint(paramType, member);
+        const ip = new ParameterInjectionPoint(type, paramType, member, paramTypes.indexOf(paramType));
         requirements.push(new RuntimeRequirement(ip));
       }
     }

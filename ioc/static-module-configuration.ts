@@ -2,7 +2,8 @@ import { IModuleConfiguration, IContext } from "./interfaces";
 import * as AST from "./analysis/ast";
 
 
-export class StaticModuleConfiguration implements IModuleConfiguration {
+export class StaticModuleConfiguration implements IModuleConfiguration, AST.IModuleCollection {
+  public isAnalysisASTNode: false = false;
   public modules: AST.IModule[];
 
   constructor(...modules: AST.IModule[]) {

@@ -116,13 +116,18 @@ export function Node(this: INode, kind: NodeKind, parent: INode = undefined): vo
   }
 }
 
+export interface IModuleCollection {
+  isAnalysisASTNode: false;
+  modules: IModule[];
+}
+
 /**
  * Represents a single file
  */
 export interface IModule {
   isAnalysisASTNode: true;
   kind: NodeKind.Module;
-  parent: null;
+  parent: IModuleCollection;
   path: string;
   items: IModuleItem[];
 }
@@ -298,7 +303,7 @@ export interface IArgument {
 
 export function getSourceFilePath(node: INode): string {
   let current = node;
-  while (current.parent) {
+  while (current.parent && current.parent.isAnalysisASTNode) {
     current = current.parent;
   }
   if (current.kind !== NodeKind.Module) {

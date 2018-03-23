@@ -16,16 +16,20 @@ import { ResolutionContext } from './resolution-context';
 import { RequirementChain } from './requirement-chain';
 import { RegistrationResult } from './resolver';
 import { getLogger } from 'aurelia-logging';
-import { IModuleItem } from './analysis/ast';
+import * as AST from './analysis/ast';
 
 const logger = getLogger('ioc-registration');
 
 export class Registration<T> implements IRegistration<T> {
   private context: DefaultContext;
-  private sourceType: DependencyType | IModuleItem;
+  private sourceType: DependencyType | AST.IModuleItem;
   private lifetime: Lifetime;
 
-  constructor(context: DefaultContext, sourceType: DependencyType | IModuleItem, lifetime: Lifetime = Lifetime.Unspecified) {
+  constructor(
+    context: DefaultContext,
+    sourceType: DependencyType | AST.IModuleItem,
+    lifetime: Lifetime = Lifetime.Unspecified
+  ) {
     this.context = context;
     this.sourceType = sourceType;
     this.lifetime = lifetime;
@@ -78,7 +82,10 @@ export class Registration<T> implements IRegistration<T> {
   }
 
   private generateRegistrations(builder: RegistrationRuleBuilder, type: DependencyType): void {
-    this.context.builder.addRegistrationRule({ isSatisfiedBy: () => true }, builder.setDependencyType(this.sourceType).build());
+    this.context.builder.addRegistrationRule(
+      { isSatisfiedBy: () => true },
+      builder.setDependencyType(this.sourceType).build()
+    );
   }
 
   private createRule(): RegistrationRuleBuilder {
@@ -134,9 +141,9 @@ export class RegistrationRuleBuilder {
   }
 
   public build(): RegistrationRule {
-    if (this.implementation !== null) {
+    if (!!this.implementation) {
       return new RegistrationRule(this.dependencyType, null, this.implementation, this.lifetime, this.flags);
-    } else if (this.fulfillment !== null) {
+    } else if (!!this.fulfillment) {
       return new RegistrationRule(this.dependencyType, this.fulfillment, null, this.lifetime, this.flags);
     } else {
       throw new Error('No registration target specified');
@@ -169,7 +176,7 @@ export class RegistrationRule implements IRegistrationRule {
     return this.lifetime;
   }
   public apply(requirement: IRequirement): IRequirement {
-    if (this.fulfillment !== null) {
+    if (!!this.fulfillment) {
       return requirement.restrict(this.fulfillment);
     } else {
       return requirement.restrict(this.implementationType);
@@ -260,7 +267,7 @@ export class RuleBasedRegistrationFunction implements IRegistrationFunction {
   }
 }
 
-export class DefaultRequirementRegistrationFunction implements IRegistrationFunction {
+export class DefaultRuntimeRequirementRegistrationFunction implements IRegistrationFunction {
   private metadataCache: Map<DependencyType, RegistrationResult> = new Map();
 
   public register(context: ResolutionContext, chain: RequirementChain): RegistrationResult {
@@ -270,13 +277,45 @@ export class DefaultRequirementRegistrationFunction implements IRegistrationFunc
     if (!result) {
       if (isConstructor(requirement.requiredType)) {
         const fulfillment = Fulfillments.type(requirement.requiredType as FunctionConstructor);
-        result = new RegistrationResult(requirement.restrict(fulfillment), Lifetime.Unspecified, RegistrationFlags.Terminal);
-      } else {
+        result = new RegistrationResult(
+          requirement.restrict(fulfillment),
+          Lifetime.Unspecified,
+          RegistrationFlags.Terminal
+        );
+      } else if (!(requirement.requiredType && ((requirement.requiredType as any) as AST.INode).isAnalysisASTNode)) {
         const fulfillment = Fulfillments.null(requirement.requiredType);
-        result = new RegistrationResult(requirement.restrict(fulfillment), Lifetime.Unspecified, RegistrationFlags.Terminal);
+        result = new RegistrationResult(
+          requirement.restrict(fulfillment),
+          Lifetime.Unspecified,
+          RegistrationFlags.Terminal
+        );
       }
 
       this.metadataCache.set(requirement.requiredType, result);
+    }
+
+    return result;
+  }
+}
+
+export class DefaultBuildtimeRequirementRegistrationFunction implements IRegistrationFunction {
+  private metadataCache: Map<AST.INode, RegistrationResult> = new Map();
+
+  public register(context: ResolutionContext, chain: RequirementChain): RegistrationResult {
+    const requirement = chain.currentRequirement;
+    let result: RegistrationResult = this.metadataCache.get(requirement.requiredType as any);
+
+    if (!result) {
+      if (requirement.requiredType && ((requirement.requiredType as any) as AST.INode).isAnalysisASTNode) {
+        const fulfillment = Fulfillments.syntax(requirement.requiredType as any);
+        result = new RegistrationResult(
+          requirement.restrict(fulfillment),
+          Lifetime.Unspecified,
+          RegistrationFlags.Terminal
+        );
+      }
+
+      this.metadataCache.set(requirement.requiredType as any, result);
     }
 
     return result;

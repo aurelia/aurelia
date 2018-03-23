@@ -23,7 +23,7 @@ export class ResolutionContext implements IChain<IPair<IFulfillment, IInjectionP
 
   public toArray(): IPair<IFulfillment, IInjectionPoint>[] {
     const current = this.tailValue;
-    if (this.previous === null) {
+    if (!this.previous) {
       return [current];
     } else {
       return this.previous.toArray().concat(current);

@@ -1,12 +1,12 @@
-import { IRegistrationFunction, IRequirement, IPair, IFulfillment } from "./interfaces";
-import { Node, Edge, Component, Dependency } from "./graph";
-import { ResolutionContext } from "./resolution-context";
-import { RequirementChain } from "./requirement-chain";
-import { getLogger } from "aurelia-logging";
-import { Lifetime, DependencyType, RegistrationFlags } from "./types";
-import { NullFulfillment } from "./fulfillments";
+import { IRegistrationFunction, IRequirement, IPair, IFulfillment } from './interfaces';
+import { Node, Edge, Component, Dependency } from './graph';
+import { ResolutionContext } from './resolution-context';
+import { RequirementChain } from './requirement-chain';
+import { getLogger } from 'aurelia-logging';
+import { Lifetime, DependencyType, RegistrationFlags } from './types';
+import { NullFulfillment } from './fulfillments';
 
-const logger = getLogger("dependency-resolver");
+const logger = getLogger('dependency-resolver');
 
 export class Resolver {
   private functions: IRegistrationFunction[];
@@ -14,10 +14,7 @@ export class Resolver {
   private backEdges: Map<Node, Edge>;
   private defaultLifetime: Lifetime;
 
-  public static ROOT_FULFILLMENT = Component.create(
-    new NullFulfillment(Symbol(null)),
-    Lifetime.Unspecified
-  );
+  public static ROOT_FULFILLMENT = Component.create(new NullFulfillment(Symbol(null)), Lifetime.Unspecified);
 
   public static initialContext(): ResolutionContext {
     return ResolutionContext.singleton(Resolver.ROOT_FULFILLMENT.fulfillment);
@@ -63,7 +60,7 @@ export class Resolver {
     const nodeBuilder = Node.newBuilder();
     nodeBuilder.setKey(result.makeComponent());
     for (const requirement of result.fulfillment.getDependencies()) {
-      logger.debug("Attempting to satify dependency: ", requirement);
+      logger.debug('Attempting to satify dependency: ', requirement);
 
       const resolution = this.resolveCore(requirement, context);
       const newContext = context.extend(resolution.fulfillment, requirement.injectionPoint);
@@ -83,18 +80,18 @@ export class Resolver {
     let lifetime = Lifetime.Unspecified;
 
     while (true) {
-      logger.debug("Current requirement: ", chain.currentRequirement);
+      logger.debug('Current requirement: ', chain.currentRequirement);
 
       let registration: RegistrationResult = null;
       for (const registrationFunction of this.functions) {
         registration = registrationFunction.register(context, chain);
-        if (registration !== null && !chain.getPreviousRequirement().some(d => registration.requirement === d)) {
+        if (!!registration && !chain.getPreviousRequirement().some(d => registration.requirement === d)) {
           break;
         }
       }
 
       let terminate = true;
-      if (registration !== null) {
+      if (!!registration) {
         chain = chain.extend(registration.requirement);
         terminate = registration.terminates();
 
@@ -104,7 +101,7 @@ export class Resolver {
       }
 
       if (terminate && chain.currentRequirement.isInstantiable()) {
-        logger.info("Requirement fulfilled with: ", chain.currentRequirement.getFulfillment());
+        logger.info('Requirement fulfilled with: ', chain.currentRequirement.getFulfillment());
 
         if (lifetime === Lifetime.Unspecified) {
           lifetime = chain.currentRequirement.getFulfillment().getDefaultLifetime();
@@ -115,7 +112,7 @@ export class Resolver {
         }
 
         return new Resolution(chain.currentRequirement.getFulfillment(), lifetime, chain);
-      } else if (registration === null) {
+      } else if (!registration) {
         throw new Error(`Unable to resolve dependency ${requirement}`);
       }
     }

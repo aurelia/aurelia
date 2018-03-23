@@ -4,7 +4,7 @@ import * as AST from '../../../ioc/analysis/ast';
 import { TypeScriptSyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
 
 describe('SyntaxTransformer', () => {
-  let createSourceFileCount = 10; // Number.MAX_SAFE_INTEGER // restrict source files to process because it's cpu-intensive and clogs the console output
+  let createSourceFileCount = 1; // Number.MAX_SAFE_INTEGER // restrict source files to process because it's cpu-intensive and clogs the console output
   let sourceFiles: ts.SourceFile[];
   let sut: TypeScriptSyntaxTransformer;
 
@@ -26,6 +26,7 @@ describe('SyntaxTransformer', () => {
 
     // set parents to null so JSON.stringify won't run into infinite recursion
     for (const mod of config.modules) {
+      mod.parent = null;
       for (const item of mod.items) {
         item.parent = null;
         switch (item.kind) {

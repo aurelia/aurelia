@@ -35,8 +35,10 @@ export interface IRegistrationFunction {
 }
 
 export interface IInjectionPoint {
+  readonly target: DependencyType;
   readonly type: DependencyType;
   readonly isOptional: boolean;
+  readonly parameterIndex: number;
 
   getMember(): IPair<PropertyKey, PropertyDescriptor>;
   isEqualTo(other: IInjectionPoint): boolean;

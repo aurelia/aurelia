@@ -1,9 +1,12 @@
 import { IInjectionPoint, IPair } from './interfaces';
 import { DependencyType } from './types';
+import * as AST from './analysis/ast';
 
 export class BasicInjectionPoint implements IInjectionPoint {
+  public target: DependencyType = null;
   public type: DependencyType;
   public isOptional: boolean;
+  public parameterIndex: number = -1;
 
   constructor(type: DependencyType, isOptional: boolean = false) {
     this.type = type;
@@ -22,35 +25,69 @@ export class BasicInjectionPoint implements IInjectionPoint {
 }
 
 export class SourceFileInjectionPoint implements IInjectionPoint {
-  public type: DependencyType;
-  public filePath: string;
-  public isOptional: boolean;
+  /**
+   * The target that needs to be instantiated
+   */
+  public target: AST.INode | null;
 
-  constructor(type: DependencyType, filePath: string, isOptional: boolean = false) {
+  /**
+   * The type of the dependency to be injected
+   */
+  public type: AST.INode | null;
+
+  /**
+   * The target (typically parameter) node on which the dependency needs to be injected
+   */
+  public targetNode: AST.INode;
+  public isOptional: boolean;
+  public parameterIndex: number;
+  public member: IPair<PropertyKey, PropertyDescriptor>;
+
+  constructor(
+    target: AST.INode | null,
+    type: AST.INode | null,
+    targetNode: AST.INode,
+    parameterIndex: number,
+    member: IPair<PropertyKey, PropertyDescriptor>,
+    isOptional: boolean = false
+  ) {
+    this.target = target;
     this.type = type;
-    this.filePath = filePath;
+    this.targetNode = targetNode;
     this.isOptional = isOptional;
+    this.parameterIndex = parameterIndex;
+    this.member = member;
   }
 
   public getMember(): IPair<PropertyKey, PropertyDescriptor> {
-    return null;
+    return this.member;
   }
   public isEqualTo(other: SourceFileInjectionPoint): boolean {
     if (!(other instanceof SourceFileInjectionPoint)) {
       return false;
     }
-    return other.type === this.type && other.isOptional === this.isOptional && other.filePath === this.filePath;
+    return other.type === this.type && other.isOptional === this.isOptional && other.targetNode === this.targetNode;
   }
 }
 
 export class ParameterInjectionPoint implements IInjectionPoint {
+  public target: DependencyType;
   public type: DependencyType;
   public member: IPair<PropertyKey, PropertyDescriptor>;
   public isOptional: boolean;
+  public parameterIndex: number;
 
-  constructor(type: DependencyType, member: IPair<PropertyKey, PropertyDescriptor>, isOptional: boolean = false) {
+  constructor(
+    target: DependencyType,
+    type: DependencyType,
+    member: IPair<PropertyKey, PropertyDescriptor>,
+    parameterIndex: number,
+    isOptional: boolean = false
+  ) {
+    this.target = target;
     this.type = type;
     this.member = member;
+    this.parameterIndex = parameterIndex;
     this.isOptional = isOptional;
   }
 

@@ -81,6 +81,9 @@ export class TypeScriptSyntaxTransformer {
 
   public create(...sourceFiles: ts.SourceFile[]): StaticModuleConfiguration {
     const config = new StaticModuleConfiguration(...sourceFiles.map(s => this.context.resolve(s)));
+    for (const m of config.modules) {
+      m.parent = config;
+    }    
     return config;
   }
 }

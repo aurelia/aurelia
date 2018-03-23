@@ -10,9 +10,9 @@ export class RequirementChain implements IChain<IRequirement> {
   constructor(prev: RequirementChain, cur: IRequirement) {
     this.previous = prev;
     this.tailValue = cur;
-    this.initialRequirement = prev === null ? cur : prev.initialRequirement;
+    this.initialRequirement = !prev ? cur : prev.initialRequirement;
     this.currentRequirement = cur;
-    this.key = prev === null ? Symbol(RequirementChain.name) : prev.key;
+    this.key = !prev ? Symbol(RequirementChain.name) : prev.key;
   }
 
   public static singleton(requirement: IRequirement): RequirementChain {
@@ -20,7 +20,7 @@ export class RequirementChain implements IChain<IRequirement> {
   }
 
   public getPreviousRequirement(): IRequirement[] {
-    if (this.previous === null) {
+    if (!this.previous) {
       return [];
     } else {
       return this.previous.toArray();
@@ -29,7 +29,7 @@ export class RequirementChain implements IChain<IRequirement> {
 
   public toArray(): IRequirement[] {
     const current = this.tailValue;
-    if (this.previous === null) {
+    if (!this.previous) {
       return [current];
     } else {
       return this.previous.toArray().concat(current);

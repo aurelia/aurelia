@@ -131,73 +131,71 @@ function createGetterSetter(instance, name) {
   });
 }
 
-function createViewFactory(config): () => IVisual {
-  let template = new Template(config.template);
-
-  //TODO: Dynamically create the lifecycle methods based on what the view actually contains.
-  class PlainView implements IVisual {
-    private $bindable: IBinding[] = [];
-    private $attachable: IAttach[] = [];
-    
-    $view: View;
-    isBound = false;
+class PlainView implements IVisual {
+  private $bindable: IBinding[] = [];
+  private $attachable: IAttach[] = [];
   
-    constructor() {
-      this.$view = template.create();
+  $view: View;
+  isBound = false;
 
-      let targets = this.$view.targets;
-      let targetInstructions = config.targetInstructions;
+  constructor(template: Template, config: CompiledElementConfiguration) {
+    this.$view = template.create();
 
-      for (let i = 0, ii = targets.length; i < ii; ++i) {
-        let instructions = targetInstructions[i];
-        let target = targets[i];
+    let targets = this.$view.targets;
+    let targetInstructions = config.targetInstructions;
 
-        for (let j = 0, jj = instructions.length; j < jj; ++j) {
-          applyInstruction(this, instructions[j], target);
-        }
+    for (let i = 0, ii = targets.length; i < ii; ++i) {
+      let instructions = targetInstructions[i];
+      let target = targets[i];
+
+      for (let j = 0, jj = instructions.length; j < jj; ++j) {
+        applyInstruction(this, instructions[j], target);
       }
-    }
-  
-    bind(scope: Scope) {
-      let bindable = this.$bindable;
-
-      for (let i = 0, ii = bindable.length; i < ii; ++i) {
-        bindable[i].bind(scope);
-      }
-
-      this.isBound = true;
-    }
-
-    attach() {
-      let attachable = this.$attachable;
-
-      for (let i = 0, ii = attachable.length; i < ii; ++i) {
-        attachable[i].attach();
-      }
-    }
-
-    detach() { 
-      let attachable = this.$attachable;
-      let i = attachable.length;
-
-      while (i--) {
-        attachable[i].detach();
-      }
-    }
-  
-    unbind() {
-      let bindable = this.$bindable;
-      let i = bindable.length;
-
-      while (i--) {
-        bindable[i].unbind();
-      }
-
-      this.isBound = false;
     }
   }
 
-  return function() { return new PlainView(); }
+  bind(scope: Scope) {
+    let bindable = this.$bindable;
+
+    for (let i = 0, ii = bindable.length; i < ii; ++i) {
+      bindable[i].bind(scope);
+    }
+
+    this.isBound = true;
+  }
+
+  attach() {
+    let attachable = this.$attachable;
+
+    for (let i = 0, ii = attachable.length; i < ii; ++i) {
+      attachable[i].attach();
+    }
+  }
+
+  detach() { 
+    let attachable = this.$attachable;
+    let i = attachable.length;
+
+    while (i--) {
+      attachable[i].detach();
+    }
+  }
+
+  unbind() {
+    let bindable = this.$bindable;
+    let i = bindable.length;
+
+    while (i--) {
+      bindable[i].unbind();
+    }
+
+    this.isBound = false;
+  }
+}
+
+function createViewFactory(config): () => IVisual {
+  let template = new Template(config.template);
+  return function() { return new PlainView(template, config); }
 }
 
 function createCustomElement<T extends {new(...args:any[]):{}}>(ctor: T, config: CompiledElementConfiguration) {

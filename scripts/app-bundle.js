@@ -5378,55 +5378,55 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
             set: function (value) { this.$observers[name].setValue(value); }
         });
     }
-    function createViewFactory(config) {
-        var template = new template_1.Template(config.template);
-        var PlainView = (function () {
-            function PlainView() {
-                this.$bindable = [];
-                this.$attachable = [];
-                this.isBound = false;
-                this.$view = template.create();
-                var targets = this.$view.targets;
-                var targetInstructions = config.targetInstructions;
-                for (var i = 0, ii = targets.length; i < ii; ++i) {
-                    var instructions = targetInstructions[i];
-                    var target = targets[i];
-                    for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                        applyInstruction(this, instructions[j], target);
-                    }
+    var PlainView = (function () {
+        function PlainView(template, config) {
+            this.$bindable = [];
+            this.$attachable = [];
+            this.isBound = false;
+            this.$view = template.create();
+            var targets = this.$view.targets;
+            var targetInstructions = config.targetInstructions;
+            for (var i = 0, ii = targets.length; i < ii; ++i) {
+                var instructions = targetInstructions[i];
+                var target = targets[i];
+                for (var j = 0, jj = instructions.length; j < jj; ++j) {
+                    applyInstruction(this, instructions[j], target);
                 }
             }
-            PlainView.prototype.bind = function (scope) {
-                var bindable = this.$bindable;
-                for (var i = 0, ii = bindable.length; i < ii; ++i) {
-                    bindable[i].bind(scope);
-                }
-                this.isBound = true;
-            };
-            PlainView.prototype.attach = function () {
-                var attachable = this.$attachable;
-                for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                    attachable[i].attach();
-                }
-            };
-            PlainView.prototype.detach = function () {
-                var attachable = this.$attachable;
-                var i = attachable.length;
-                while (i--) {
-                    attachable[i].detach();
-                }
-            };
-            PlainView.prototype.unbind = function () {
-                var bindable = this.$bindable;
-                var i = bindable.length;
-                while (i--) {
-                    bindable[i].unbind();
-                }
-                this.isBound = false;
-            };
-            return PlainView;
-        }());
-        return function () { return new PlainView(); };
+        }
+        PlainView.prototype.bind = function (scope) {
+            var bindable = this.$bindable;
+            for (var i = 0, ii = bindable.length; i < ii; ++i) {
+                bindable[i].bind(scope);
+            }
+            this.isBound = true;
+        };
+        PlainView.prototype.attach = function () {
+            var attachable = this.$attachable;
+            for (var i = 0, ii = attachable.length; i < ii; ++i) {
+                attachable[i].attach();
+            }
+        };
+        PlainView.prototype.detach = function () {
+            var attachable = this.$attachable;
+            var i = attachable.length;
+            while (i--) {
+                attachable[i].detach();
+            }
+        };
+        PlainView.prototype.unbind = function () {
+            var bindable = this.$bindable;
+            var i = bindable.length;
+            while (i--) {
+                bindable[i].unbind();
+            }
+            this.isBound = false;
+        };
+        return PlainView;
+    }());
+    function createViewFactory(config) {
+        var template = new template_1.Template(config.template);
+        return function () { return new PlainView(template, config); };
     }
     function createCustomElement(ctor, config) {
         var template = new template_1.Template(config.template);

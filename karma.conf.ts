@@ -79,7 +79,7 @@ export default (config: IKarmaConfig): void => {
       exclude: /(node_modules|\.spec\.ts$)/,
       loader: 'istanbul-instrumenter-loader',
       options: { esModules: true },
-      test: /src[\/\\].+\.ts$/
+      test: /(src|ioc|compiler)[\/\\].+\.ts$/
     });
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {

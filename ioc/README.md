@@ -1,6 +1,24 @@
-# IoC: high-level overview
+# IoC
 
-(documentation still in early stage)
+* [ ] Configuration
+  * [x] Fluent API
+  * [ ] Decorators
+  * [ ] Static analysis
+    * [x] TypeScript
+    * [ ] Babel
+    * [ ] ?
+* [ ] Activation
+  * [x] Direct API
+  * [ ] Generated code
+* [x] Lifetime scopes
+* [ ] Resolution scopes
+* [ ] Registration types
+  * [x] Concrete type
+  * [x] Instance
+  * [ ] Factory
+* [ ] Graph deduplication
+
+## Main components
 
 * `IInjector` / `DefaultInjector`
 

@@ -113,10 +113,10 @@ describe('InjectorBuilder', () => {
     verifySettingsComponent(actual);
   });
 
-  it('should be able to resolve 1k keys in less than 1500ms (cold)', () => {
+  it('should be able to resolve 100 keys in less than 150ms (cold)', () => {
     const injector = sut.build();
-    const actual = resolveTimes(1000, injector as DefaultInjector);
-    expect(actual).toBeLessThan(1500);
+    const actual = resolveTimes(100, injector as DefaultInjector);
+    expect(actual).toBeLessThan(150);
   });
 
   it('should be able to resolve 10k keys in less than 10ms (warm)', () => {

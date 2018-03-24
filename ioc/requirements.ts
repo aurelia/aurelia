@@ -1,34 +1,39 @@
 import { BasicInjectionPoint, SourceFileInjectionPoint, ParameterInjectionPoint } from './injection-point';
 import { IRequirement, IInjectionPoint, IFulfillment, IPair } from './interfaces';
-import { DependencyType, isConstructor, getParamTypes, getClassSyntaxFromCtorParameter } from './types';
-import { ClassFulfillment, NullFulfillment } from './fulfillments';
+import { DependencyType, isConstructor, getParamTypes, getClassSyntaxFromCtorParameter, isASTNode } from './types';
+import { ClassFulfillment, NullFulfillment, Fulfillments, SyntaxFulfillment } from './fulfillments';
 import { INode, getSourceFilePath } from './analysis/ast';
 import { metadata } from 'aurelia-metadata';
 import * as AST from './analysis/ast';
 
 export class Requirements {
-  public static create(type: DependencyType | INode): IRequirement {
-    if ((type as INode).isAnalysisASTNode) {
-      const node = type as INode;
-      return new BuildtimeRequirement(new BasicInjectionPoint(type));
+  public static create(type: DependencyType): IRequirement;
+  public static create(astNode: INode): IRequirement;
+  public static create(typeOrAstNode: DependencyType | INode): IRequirement {
+    if (isASTNode(typeOrAstNode)) {
+      return new BuildtimeRequirement(new BasicInjectionPoint(typeOrAstNode));
     } else {
-      return new RuntimeRequirement(new BasicInjectionPoint(type));
+      return new RuntimeRequirement(new BasicInjectionPoint(typeOrAstNode));
     }
   }
 }
 
 export class BuildtimeRequirement implements IRequirement {
   public readonly isRequirement: true = true;
-  public readonly requiredType: DependencyType;
+  public readonly requiredType: AST.INode;
   public readonly injectionPoint: IInjectionPoint;
   private fulfillment: IFulfillment;
 
-  constructor(injectionPoint: IInjectionPoint, requiredType?: DependencyType, fulfillment?: IFulfillment) {
+  constructor(injectionPoint: IInjectionPoint, requiredType?: AST.INode, fulfillment?: IFulfillment) {
     this.injectionPoint = injectionPoint;
-    this.requiredType = requiredType || injectionPoint.type;
+    this.requiredType = requiredType || (injectionPoint.type as any);
     if (fulfillment === undefined) {
-      if (isConstructor(this.requiredType)) {
-        fulfillment = new ClassFulfillment(this.requiredType as FunctionConstructor);
+      if (
+        this.requiredType !== null &&
+        this.requiredType !== undefined &&
+        this.requiredType.kind === AST.NodeKind.Class
+      ) {
+        fulfillment = new SyntaxFulfillment(this.requiredType);
       } else if (injectionPoint.isOptional) {
         fulfillment = new NullFulfillment(this.requiredType);
       }
@@ -37,7 +42,7 @@ export class BuildtimeRequirement implements IRequirement {
   }
 
   public isInstantiable(): boolean {
-    return this.fulfillment !== undefined;
+    return this.fulfillment !== undefined && this.fulfillment !== null;
   }
   public getFulfillment(): IFulfillment {
     return this.fulfillment;

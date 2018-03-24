@@ -14,7 +14,18 @@ export enum Lifetime {
   Transient
 }
 
-export type DependencyType = number | Number | string | String | symbol | Symbol | object | Object | Function;
+export type DependencyType =
+  | number
+  | Number
+  | string
+  | String
+  | symbol
+  | Symbol
+  | object
+  | Object
+  | Function
+  | AST.INode;
+
 
 export function validateKey(key: DependencyType): boolean {
   const type = typeof key;
@@ -24,6 +35,10 @@ export function validateKey(key: DependencyType): boolean {
 
 export function isConstructor(key: DependencyType): boolean {
   return /Function/.test(Object.prototype.toString.call(key)) && Object.prototype.hasOwnProperty.call(key, 'prototype');
+}
+
+export function isASTNode(key: DependencyType): boolean {
+  return key !== null && key !== undefined && (key as AST.INode).isAnalysisASTNode;
 }
 
 export function getParamTypes(ctor: any): any[] {

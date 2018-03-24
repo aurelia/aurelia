@@ -44,6 +44,9 @@ function applyInstruction(instance, instruction, target) {
     case 'style':
       instance.$bindable.push(oneWay(instruction.source, (target as HTMLElement).style, instruction.target))
       break;
+    case 'property':
+      target[instruction.target] = instruction.value;
+      break;
     case 'element':
       let elementInstructions = instruction.instructions;
       let elementModel: IComponent = new instruction.ctor(); //TODO: DI

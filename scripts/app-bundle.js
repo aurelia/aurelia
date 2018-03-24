@@ -5308,6 +5308,9 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
             case 'style':
                 instance.$bindable.push(generated_1.oneWay(instruction.source, target.style, instruction.target));
                 break;
+            case 'property':
+                target[instruction.target] = instruction.value;
+                break;
             case 'element':
                 var elementInstructions = instruction.instructions;
                 var elementModel = new instruction.ctor();
@@ -5727,6 +5730,55 @@ define('framework/binding/call',["require", "exports", "./observer-locator"], fu
     }());
     exports.Call = Call;
 });
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var DI = {
+    registerInstance: function (key, value) {
+    },
+    createInterface: function (friendlyName) {
+        var decorator = function (target, b, index) {
+            var ctor = target.constructor;
+            var inject = ctor.inject || (ctor.inject = []);
+            inject[index] = decorator;
+        };
+        if (friendlyName) {
+            decorator['friendlyName'] = friendlyName;
+        }
+        return decorator;
+    }
+};
+var IFoo = DI.createInterface('IFoo');
+var IBar = DI.createInterface('IBar');
+DI.registerInstance(IFoo, {
+    someMethod: function () {
+    }
+});
+DI.registerInstance(IBar, {
+    anotherMethod: function () {
+    }
+});
+var Test = (function () {
+    function Test(foo, bar) {
+    }
+    Test = __decorate([
+        __param(0, IFoo), __param(1, IBar),
+        __metadata("design:paramtypes", [Object, Object])
+    ], Test);
+    return Test;
+}());
 
 
 

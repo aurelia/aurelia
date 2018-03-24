@@ -226,7 +226,7 @@ function createCustomElement<T extends {new(...args:any[]):{}}>(ctor: T, config:
 
     applyTo(anchor: Element) { 
       this.$anchor = anchor;
-      this.$view = template.create();
+      this.$view = this.createView();
 
       let targets = this.$view.targets;
       let targetInstructions = config.targetInstructions;
@@ -251,6 +251,10 @@ function createCustomElement<T extends {new(...args:any[]):{}}>(ctor: T, config:
       }
 
       return this;
+    }
+
+    createView() {
+      return template.create();
     }
 
     bind() {

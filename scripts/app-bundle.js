@@ -5454,7 +5454,7 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
             }
             class_1.prototype.applyTo = function (anchor) {
                 this.$anchor = anchor;
-                this.$view = template.create();
+                this.$view = this.createView();
                 var targets = this.$view.targets;
                 var targetInstructions = config.targetInstructions;
                 for (var i = 0, ii = targets.length; i < ii; ++i) {
@@ -5472,6 +5472,9 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
                     this.created();
                 }
                 return this;
+            };
+            class_1.prototype.createView = function () {
+                return template.create();
             };
             class_1.prototype.bind = function () {
                 var scope = this.$scope;

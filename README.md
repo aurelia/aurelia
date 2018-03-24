@@ -40,9 +40,13 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] Style
   * [x] Text
 * Custom Elements
+  * [x] Properties
   * [x] Binding
   * [x] Bind Lifecycle
   * [x] Attach Lifecycle
+  * [x] Fixed Views
+  * [x] Per-instance Views
+  * [x] No View
   * [ ] Content Projection
   * [ ] Template Part Replacement
   * [ ] CSS Modules

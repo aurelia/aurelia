@@ -1,5 +1,5 @@
-import { View, IRender } from "./view";
-import { Template } from "./template";
+import { IRender, IView } from "./view";
+import { ITemplate } from "./template";
 import { Scope, IBindScope } from "../binding/binding-interfaces";
 import { IAttach } from "./component";
 
@@ -8,10 +8,10 @@ export interface IVisual extends IBindScope, IAttach, IRender {
 }
 
 export class Visual implements IVisual {
-  $view: View;
+  $view: IView;
   isBound = false;
 
-  constructor(template: Template) {
+  constructor(template: ITemplate) {
     this.$view = template.create();
   }
 

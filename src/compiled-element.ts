@@ -1,6 +1,6 @@
-import { Template } from "./framework/templating/template";
+import { ITemplate, Template } from "./framework/templating/template";
 import { IBinding } from "./framework/binding/binding";
-import { View } from "./framework/templating/view";
+import { IView } from "./framework/templating/view";
 import { Scope } from "./framework/binding/binding-interfaces";
 import { createOverrideContext } from "./framework/binding/scope";
 import { oneWayText, twoWay, listener, oneWay, ref, makeElementIntoAnchor, fromView, call } from "./framework/generated";
@@ -138,13 +138,13 @@ class PlainView implements IVisual {
   private $bindable: IBinding[] = [];
   private $attachable: IAttach[] = [];
   
-  $view: View;
+  $view: IView;
   isBound = false;
 
   constructor(template: Template, config: CompiledElementConfiguration) {
     this.$view = template.create();
 
-    let targets = this.$view.targets;
+    let targets = this.$view.findTargets();
     let targetInstructions = config.targetInstructions;
 
     for (let i = 0, ii = targets.length; i < ii; ++i) {
@@ -202,14 +202,17 @@ function createViewFactory(config): () => IVisual {
 }
 
 function createCustomElement<T extends {new(...args:any[]):{}}>(ctor: T, config: CompiledElementConfiguration) {
-  let template = new Template(config.template);
+  let template = Template.fromCompiledSource(config.template);
     
   return class extends ctor {
+    static template: ITemplate = template;
+    static config: CompiledElementConfiguration = config;
+
     private $bindable: IBinding[] = [];
     private $attachable: IAttach[] = [];
     private $isBound = false;
 
-    private $view: View;
+    private $view: IView;
     private $anchor: Element;
 
     private $changeCallbacks: (() => void)[] = [];
@@ -228,7 +231,7 @@ function createCustomElement<T extends {new(...args:any[]):{}}>(ctor: T, config:
       this.$anchor = anchor;
       this.$view = this.createView();
 
-      let targets = this.$view.targets;
+      let targets = this.$view.findTargets();
       let targetInstructions = config.targetInstructions;
 
       for (let i = 0, ii = targets.length; i < ii; ++i) {

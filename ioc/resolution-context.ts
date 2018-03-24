@@ -1,5 +1,6 @@
-import { IChain, IPair, IFulfillment, IInjectionPoint } from "./interfaces";
-import { BasicInjectionPoint } from "./injection-point";
+import { IChain, IPair, IFulfillment, IInjectionPoint } from './interfaces';
+import { BasicInjectionPoint } from './injection-point';
+import { Pair } from './types';
 
 export class ResolutionContext implements IChain<IPair<IFulfillment, IInjectionPoint>> {
   public readonly previous: IChain<IPair<IFulfillment, IInjectionPoint>>;
@@ -7,10 +8,7 @@ export class ResolutionContext implements IChain<IPair<IFulfillment, IInjectionP
 
   constructor(prev: ResolutionContext, fulfillment: IFulfillment, injectionPoint: IInjectionPoint) {
     this.previous = prev;
-    this.tailValue = {
-      left: fulfillment,
-      right: injectionPoint
-    };
+    this.tailValue = new Pair(fulfillment, injectionPoint);
   }
 
   public static singleton(fulfillment: IFulfillment, injectionPoint?: IInjectionPoint): ResolutionContext {

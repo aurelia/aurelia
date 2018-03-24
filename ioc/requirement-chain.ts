@@ -39,4 +39,24 @@ export class RequirementChain implements IChain<IRequirement> {
   public extend(requirement: IRequirement): RequirementChain {
     return new RequirementChain(this, requirement);
   }
+
+  public isEqualTo(other: RequirementChain): boolean {
+    if (this === other) {
+      return true;
+    }
+    if (!(other instanceof RequirementChain)) {
+      return false;
+    }
+    const thisArray = this.toArray();
+    const otherArray = other.toArray();
+    if (thisArray.length !== otherArray.length) {
+      return false;
+    }
+    for (let i = 0; i < thisArray.length; i++) {
+      if (!thisArray[i].isEqualTo(otherArray[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

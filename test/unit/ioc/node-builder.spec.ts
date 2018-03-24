@@ -1,4 +1,5 @@
-import { NodeBuilder, Node, Component } from "../../../ioc/graph";
+import { NodeBuilder, Node, Component } from '../../../ioc/graph';
+import { Pair } from '../../../ioc/types';
 
 describe('NodeBuilder', () => {
   let sut: NodeBuilder;
@@ -26,14 +27,13 @@ describe('NodeBuilder', () => {
     expect(sut.key).toBe(key);
   });
 
-
   it('should build correctly', () => {
     const builderKey = 'foo' as any;
     const nodeKey = 'bar' as any;
     const edgeKey = 'baz' as any;
     sut = Node.newBuilder(builderKey);
     const tail = Node.singleton(nodeKey);
-    const edge = {left: tail, right: edgeKey};
+    const edge = new Pair(tail, edgeKey);
     const actual = sut.addEdge(edge).build();
 
     expect(actual.outgoingEdges[0].head.key).toEqual(builderKey);

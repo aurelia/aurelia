@@ -10,7 +10,7 @@ import {
   IPair
 } from './interfaces';
 import { DefaultContext } from './context';
-import { Lifetime, RegistrationFlags, DependencyType, isConstructor } from './types';
+import { Lifetime, RegistrationFlags, DependencyType, isConstructor, Pair } from './types';
 import { Fulfillments } from './fulfillments';
 import { ResolutionContext } from './resolution-context';
 import { RequirementChain } from './requirement-chain';
@@ -242,7 +242,7 @@ export class RuleBasedRegistrationFunction implements IRegistrationFunction {
       if (specification.isSatisfiedBy(context)) {
         for (const rule of this.rules.get(specification)) {
           if (rule.matches(chain.currentRequirement) && !appliedRules.has(rule)) {
-            validRules.push({ left: specification, right: rule });
+            validRules.push(new Pair(specification, rule));
           }
         }
       }

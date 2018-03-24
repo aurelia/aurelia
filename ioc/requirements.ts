@@ -1,6 +1,13 @@
 import { BasicInjectionPoint, SourceFileInjectionPoint, ParameterInjectionPoint } from './injection-point';
 import { IRequirement, IInjectionPoint, IFulfillment, IPair } from './interfaces';
-import { DependencyType, isConstructor, getParamTypes, getClassSyntaxFromCtorParameter, isASTNode } from './types';
+import {
+  DependencyType,
+  isConstructor,
+  getParamTypes,
+  getClassSyntaxFromCtorParameter,
+  isASTNode,
+  Pair
+} from './types';
 import { ClassFulfillment, NullFulfillment, Fulfillments, SyntaxFulfillment } from './fulfillments';
 import { INode, getSourceFilePath } from './analysis/ast';
 import { metadata } from 'aurelia-metadata';
@@ -72,10 +79,13 @@ export class BuildtimeRequirement implements IRequirement {
       if (type.ctor !== undefined) {
         for (const param of type.ctor.parameters) {
           const $class = getClassSyntaxFromCtorParameter(param);
-          const ip = new SourceFileInjectionPoint(type, $class, param, type.ctor.parameters.indexOf(param), {
-            left: 'constructor',
-            right: null
-          });
+          const ip = new SourceFileInjectionPoint(
+            type,
+            $class,
+            param,
+            type.ctor.parameters.indexOf(param),
+            new Pair('constructor', null)
+          );
           requirements.push(new BuildtimeRequirement(ip));
         }
       }
@@ -132,10 +142,7 @@ export class RuntimeRequirement implements IRequirement {
 
     if (isConstructor(type)) {
       const ctor = type as FunctionConstructor;
-      const member: IPair<PropertyKey, PropertyDescriptor> = {
-        left: 'constructor',
-        right: Object.getOwnPropertyDescriptor((ctor as any).prototype, 'constructor')
-      };
+      const member = new Pair('constructor', Object.getOwnPropertyDescriptor((ctor as any).prototype, 'constructor'));
       const paramTypes = getParamTypes(ctor);
 
       for (const paramType of paramTypes) {

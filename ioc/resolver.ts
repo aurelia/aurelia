@@ -1,9 +1,9 @@
 import { IRegistrationFunction, IRequirement, IPair, IFulfillment } from './interfaces';
-import { Node, Edge, Component, Dependency } from './graph';
+import { Node, Edge, Component, Dependency, GraphMerger } from './graph';
 import { ResolutionContext } from './resolution-context';
 import { RequirementChain } from './requirement-chain';
 import { getLogger } from 'aurelia-logging';
-import { Lifetime, DependencyType, RegistrationFlags } from './types';
+import { Lifetime, DependencyType, RegistrationFlags, Pair } from './types';
 import { NullFulfillment } from './fulfillments';
 
 const logger = getLogger('dependency-resolver');
@@ -13,6 +13,7 @@ export class Resolver {
   private graph: Node;
   private backEdges: Map<Node, Edge>;
   private defaultLifetime: Lifetime;
+  private merger: GraphMerger;
 
   public static ROOT_FULFILLMENT = Component.create(new NullFulfillment(Symbol(null)), Lifetime.Unspecified);
 
@@ -25,6 +26,7 @@ export class Resolver {
     this.defaultLifetime = defaultLifetime;
     this.graph = Node.singleton(Resolver.ROOT_FULFILLMENT);
     this.backEdges = new Map();
+    this.merger = new GraphMerger();
   }
 
   public static newBuilder(): ResolverBuilder {
@@ -44,14 +46,15 @@ export class Resolver {
   }
 
   public resolve(requirement: IRequirement): void {
-    const node = Resolver.rootNode();
-    const context = Resolver.initialContext();
-    const resolution = this.resolveCore(requirement, context);
-    const newContext = context.extend(resolution.fulfillment, requirement.injectionPoint);
-    const rootNode = this.resolveDependenciesAndMakeNode(resolution, newContext);
+    const rootNode = Resolver.rootNode();
+    const initialContext = Resolver.initialContext();
+
+    const resolution = this.resolveCore(requirement, initialContext);
+    const newContext = initialContext.extend(resolution.fulfillment, requirement.injectionPoint);
+    const rootPair = this.resolveDependenciesAndMakeNode(resolution, newContext);
 
     this.graph = Node.copyBuilder(this.graph)
-      .addEdge({ left: rootNode.left, right: rootNode.right })
+      .addEdge(new Pair(this.merger.merge(rootPair.left), rootPair.right))
       .build();
   }
 
@@ -69,10 +72,7 @@ export class Resolver {
     }
 
     node = nodeBuilder.build();
-    return {
-      left: node,
-      right: result.makeDependency()
-    };
+    return new Pair(node, result.makeDependency());
   }
 
   private resolveCore(requirement: IRequirement, context: ResolutionContext): Resolution {

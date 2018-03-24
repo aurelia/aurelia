@@ -16,7 +16,7 @@
   * [x] Concrete type
   * [x] Instance
   * [ ] Factory
-* [ ] Graph deduplication
+* [x] Graph deduplication
 
 ## Main components
 

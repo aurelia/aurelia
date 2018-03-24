@@ -5,7 +5,7 @@ import { TypeScriptSyntaxTransformer } from '../../../ioc/analysis/syntax-transf
 import { StaticModuleConfiguration } from '../../../ioc/static-module-configuration';
 import { InjectorBuilder } from '../../../ioc/injector';
 import { IInjector } from '../../../ioc/interfaces';
-import { EmitResult } from '../../../ioc/activators';
+import { SyntaxEmitResult } from '../../../ioc/activators';
 
 describe('StaticModuleConfiguration', () => {
   let sourceFiles: ts.SourceFile[];
@@ -28,84 +28,79 @@ describe('StaticModuleConfiguration', () => {
     items = sut.modules.map(m => m.items).reduce((prev, cur) => prev.concat(cur));
   });
 
-  it('should produce a valid constructor call for App', () => {
-    const node = items.find(i => i.name === 'App');
+  function getClassNode(name: string): AST.IClass {
+    return items.find(i => i.kind === AST.NodeKind.Class && i.name === name) as any;
+  }
 
-    const expected = 'new App(new UserService(new SharedState()))';
-    const actual = injector.getInstance<EmitResult>(node).text;;
+  it('should produce the correct result for App', () => {
+    const node = getClassNode('App');
 
-    expect(actual).toEqual(expected);
+    const actual = injector.getInstance<SyntaxEmitResult>(node);
+
+    expect(actual.node).toEqual(node);
   });
 
-  // it('should produce a valid constructor call for ArticleComponent', () => {
-  //   const node = items.find(i => i.name === 'ArticleComponent');
+  it('should produce the correct result for ArticleComponent', () => {
+    const node = getClassNode('ArticleComponent');
 
-  //   const expected = 'new App(new UserService(new SharedState()))';
-  //   const actual = injector.getInstance<EmitResult>(node).text;;
+    const actual = injector.getInstance<SyntaxEmitResult>(node);
 
-  //   expect(actual).toEqual(expected);
-  // });
-
-  // it('should produce a valid constructor call for AuthComponent', () => {
-  //   const node = items.find(i => i.name === 'AuthComponent');
-
-  //   const expected = 'new App(new UserService(new SharedState()))';
-  //   const actual = injector.getInstance<EmitResult>(node).text;;
-
-  //   expect(actual).toEqual(expected);
-  // });
-
-  // it('should produce a valid constructor call for EditorComponent', () => {
-  //   const node = items.find(i => i.name === 'EditorComponent');
-
-  //   const expected = 'new App(new UserService(new SharedState()))';
-  //   const actual = injector.getInstance<EmitResult>(node).text;;
-
-  //   expect(actual).toEqual(expected);
-  // });
-
-  it('should produce a valid constructor call for HomeComponent', () => {
-    const node = items.find(i => i.name === 'HomeComponent');
-
-    const expected = 'new HomeComponent(new TagService(new ApiService(new JwtService())))';
-    const actual = injector.getInstance<EmitResult>(node).text;;
-
-    expect(actual).toEqual(expected);
+    expect(actual.node).toEqual(node);
   });
 
-  it('should produce a valid constructor call for ProfileArticleComponent', () => {
-    const node = items.find(i => i.name === 'ProfileArticleComponent');
+  it('should produce the correct result for AuthComponent', () => {
+    const node = getClassNode('AuthComponent');
 
-    const expected = 'new ProfileArticleComponent(new ArticleService(new ApiService(new JwtService())))';
-    const actual = injector.getInstance<EmitResult>(node).text;;
+    const actual = injector.getInstance<SyntaxEmitResult>(node);
 
-    expect(actual).toEqual(expected);
+    expect(actual.node).toEqual(node);
   });
 
-  it('should produce a valid constructor call for ProfileComponent', () => {
-    const node = items.find(i => i.name === 'ProfileComponent');
+  it('should produce the correct result for EditorComponent', () => {
+    const node = getClassNode('EditorComponent');
 
-    const expected = 'new ProfileComponent(new ProfileService(new ApiService(new JwtService())))';
-    const actual = injector.getInstance<EmitResult>(node).text;;
+    const actual = injector.getInstance<SyntaxEmitResult>(node);
 
-    expect(actual).toEqual(expected);
+    expect(actual.node).toEqual(node);
   });
 
-  it('should produce a valid constructor call for ProfileFavoritesComponent', () => {
-    const node = items.find(i => i.name === 'ProfileFavoritesComponent');
+  it('should produce the correct result for HomeComponent', () => {
+    const node = getClassNode('HomeComponent');
 
-    const expected = 'new ProfileFavoritesComponent(new ArticleService(new ApiService(new JwtService())))';
-    const actual = injector.getInstance<EmitResult>(node).text;;
+    const actual = injector.getInstance<SyntaxEmitResult>(node);
 
-    expect(actual).toEqual(expected);
+    expect(actual.node).toEqual(node);
   });
 
-  // it('should produce a valid constructor call for SettingsComponent', () => {
-  //   const node = items.find(i => i.name === 'SettingsComponent');
+  it('should produce the correct result for ProfileArticleComponent', () => {
+    const node = getClassNode('ProfileArticleComponent');
 
-  //   const expected = 'new App(new UserService(new SharedState()))';
-  //   const actual = injector.getInstance<EmitResult>(node).text;
+    const actual = injector.getInstance<SyntaxEmitResult>(node);
 
-  //   expect(actual).toEqual(expected);
-  // });
+    expect(actual.node).toEqual(node);
+  });
+
+  it('should produce the correct result for ProfileComponent', () => {
+    const node = getClassNode('ProfileComponent');
+
+    const actual = injector.getInstance<SyntaxEmitResult>(node);
+
+    expect(actual.node).toEqual(node);
+  });
+
+  it('should produce the correct result for ProfileFavoritesComponent', () => {
+    const node = getClassNode('ProfileFavoritesComponent');
+
+    const actual = injector.getInstance<SyntaxEmitResult>(node);
+
+    expect(actual.node).toEqual(node);
+  });
+
+  it('should produce the correct result for SettingsComponent', () => {
+    const node = getClassNode('SettingsComponent');
+
+    const actual = injector.getInstance<SyntaxEmitResult>(node);
+
+    expect(actual.node).toEqual(node);
+  });
 });

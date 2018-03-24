@@ -24,40 +24,6 @@ describe('SyntaxTransformer', () => {
   it('should transform to ioc AST', () => {
     const config = sut.create(...sourceFiles);
 
-    // set parents to null so JSON.stringify won't run into infinite recursion
-    for (const mod of config.modules) {
-      mod.parent = null;
-      for (const item of mod.items) {
-        item.parent = null;
-        switch (item.kind) {
-          case AST.NodeKind.Class: {
-            for (const mem of item.members) {
-              mem.parent = null;
-              if (mem.kind === AST.NodeKind.Method || mem.kind === AST.NodeKind.Constructor) {
-                for (const param of mem.parameters) {
-                  param.parent = null;
-                }
-              }
-            }
-            if (item.ctor) {
-              item.ctor.parent = null;
-              for (const param of item.ctor.parameters) {
-                param.parent = null;
-              }
-            }
-            break;
-          }
-          case AST.NodeKind.Function: {
-            for (const param of item.parameters) {
-              param.parent = null;
-            }
-            break;
-          }
-        }
-      }
-    }
-
-    // checking the resulting json from console is a temporary quick-n-dirty test
-    console.log(JSON.stringify(config));
+    console.log(AST.toJSON(config as any));
   });
 });

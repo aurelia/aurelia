@@ -311,3 +311,42 @@ export function getSourceFilePath(node: INode): string {
   }
   return current.path;
 }
+
+export function toJSON(node: INode): string {
+  return JSON.stringify(node, replacer);
+
+  function replacer(key: string, value: any): any {
+    switch(key) {
+      case 'parent':
+      case 'isAnalysisASTNode': {
+        return;
+      }
+      case 'kind': {
+        switch(value) {
+          case NodeKind.Module: return 'Module';
+          case NodeKind.Class: return 'Class';
+          case NodeKind.Function: return 'Function';
+          case NodeKind.Variable: return 'Variable';
+          case NodeKind.ModuleImport: return 'ModuleImport';
+          case NodeKind.ModuleExport: return 'ModuleExport';
+          case NodeKind.CallExpression: return 'CallExpression';
+          case NodeKind.Decorator: return 'Decorator';
+          case NodeKind.Method: return 'Method';
+          case NodeKind.Property: return 'Property';
+          case NodeKind.Constructor: return 'Constructor';
+          case NodeKind.Parameter: return 'Parameter';
+          case NodeKind.Argument: return 'Argument';
+        }
+      }
+    }
+    if (value === undefined || value === null) {
+      return;
+    }
+    if (Array.isArray(value) && value.length === 0) {
+      return;
+    }
+
+    
+    return value;
+  }
+}

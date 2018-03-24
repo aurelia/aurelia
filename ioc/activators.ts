@@ -86,11 +86,16 @@ export class ClassActivator implements IActivator {
     //const type = isConstructor(this.type) ? this.type as any : null;
     if (constructorKey !== undefined) {
       const constructorDeps = dependencyGroups.get(constructorKey);
-      const providers = constructorDeps.map(d => this.providers.get(d));
-      const deps = providers.map(p => p.activate());
-      if (isConstructor(this.type)) {
-        return new this.type(...deps);
+      const depInstances = [];
+      for (const dep of constructorDeps) {
+        const provider = this.providers.get(dep);
+        if (!provider) {
+          throw new Error(`No provider found for dependency ${JSON.stringify(dep)}`);
+        }
+        const depInstance = provider.activate();
+        depInstances.push(depInstance);
       }
+      return new this.type(...depInstances);
     }
     if (this.requirements.length === 0) {
       return new this.type();
@@ -113,7 +118,7 @@ export class EmitSyntaxActivator implements IActivator {
     this.providers = providers;
   }
 
-  public activate(): EmitResult {
+  public activate(): SyntaxEmitResult {
     let constructorKey: IPair<PropertyKey, PropertyDescriptor>;
     const dependencyGroups = new Map<IPair<PropertyKey, PropertyDescriptor>, IRequirement[]>();
     for (const req of this.requirements) {
@@ -127,30 +132,31 @@ export class EmitSyntaxActivator implements IActivator {
         constructorKey = key;
       }
     }
-    if (this.type.kind === AST.NodeKind.Class) {
-      if (constructorKey !== undefined) {
-        const constructorDeps = dependencyGroups.get(constructorKey);
-        const providers = constructorDeps.map(d => this.providers.get(d));
-        const deps = providers.map(p => p.activate()) as EmitResult[];
-        const innerEmitResult = deps.map(d => (!!d ? d.text : 'null')).join(', ');
-        return new EmitResult(`new ${this.type.name}(${innerEmitResult})`);
+    const result = new SyntaxEmitResult(this.type);
+    if (constructorKey !== undefined) {
+      const constructorDeps = dependencyGroups.get(constructorKey);
+      const providers = constructorDeps.map(d => this.providers.get(d));
+      for (const dep of constructorDeps) {
+        const provider = this.providers.get(dep);
+        if (!provider) {
+          throw new Error(`No provider found for dependency ${AST.toJSON(dep.requiredType as any)} -- ${(this.providers as any).requirements.size}`);
+        }
+        const depResult = provider.activate();
+        result.dependencies.push(depResult);
       }
-      if (this.requirements.length === 0) {
-        return new EmitResult(`new ${this.type.name}()`);
-      }
-    } else {
-      return new EmitResult(''); // todo
     }
-    throw new Error(`Could not activate class ${this.type.name}`);
+    return result;
   }
   public getType(): DependencyType {
     return this.type;
   }
 }
 
-export class EmitResult {
-  public text: string;
-  constructor(text: string) {
-    this.text = text;
+export class SyntaxEmitResult {
+  public node: AST.INode;
+  public dependencies: SyntaxEmitResult[];
+  constructor(node: AST.INode) {
+    this.node = node;
+    this.dependencies = [];
   }
 }

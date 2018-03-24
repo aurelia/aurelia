@@ -24,7 +24,7 @@ export class BasicInjectionPoint implements IInjectionPoint {
   }
 }
 
-export class SourceFileInjectionPoint implements IInjectionPoint {
+export class BuildtimeParameterInjectionPoint implements IInjectionPoint {
   /**
    * The target that needs to be instantiated
    */
@@ -62,15 +62,15 @@ export class SourceFileInjectionPoint implements IInjectionPoint {
   public getMember(): IPair<PropertyKey, PropertyDescriptor> {
     return this.member;
   }
-  public isEqualTo(other: SourceFileInjectionPoint): boolean {
-    if (!(other instanceof SourceFileInjectionPoint)) {
+  public isEqualTo(other: BuildtimeParameterInjectionPoint): boolean {
+    if (!(other instanceof BuildtimeParameterInjectionPoint)) {
       return false;
     }
     return other.type === this.type && other.isOptional === this.isOptional && other.targetNode === this.targetNode;
   }
 }
 
-export class ParameterInjectionPoint implements IInjectionPoint {
+export class RuntimeParameterInjectionPoint implements IInjectionPoint {
   public target: DependencyType;
   public type: DependencyType;
   public member: IPair<PropertyKey, PropertyDescriptor>;
@@ -94,8 +94,8 @@ export class ParameterInjectionPoint implements IInjectionPoint {
   public getMember(): IPair<PropertyKey, PropertyDescriptor> {
     return this.member;
   }
-  public isEqualTo(other: ParameterInjectionPoint): boolean {
-    if (!(other instanceof ParameterInjectionPoint)) {
+  public isEqualTo(other: RuntimeParameterInjectionPoint): boolean {
+    if (!(other instanceof RuntimeParameterInjectionPoint)) {
       return false;
     }
     return (

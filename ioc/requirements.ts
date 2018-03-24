@@ -1,10 +1,10 @@
-import { BasicInjectionPoint, SourceFileInjectionPoint, ParameterInjectionPoint } from './injection-point';
+import { BasicInjectionPoint, RuntimeParameterInjectionPoint, BuildtimeParameterInjectionPoint } from './injection-point';
 import { IRequirement, IInjectionPoint, IFulfillment, IPair } from './interfaces';
 import {
   DependencyType,
   isConstructor,
   getParamTypes,
-  getClassSyntaxFromCtorParameter,
+  getTypeSourceFromCtorParameter,
   isASTNode,
   Pair
 } from './types';
@@ -78,10 +78,10 @@ export class BuildtimeRequirement implements IRequirement {
     if (type.kind === AST.NodeKind.Class) {
       if (type.ctor !== undefined) {
         for (const param of type.ctor.parameters) {
-          const $class = getClassSyntaxFromCtorParameter(param);
-          const ip = new SourceFileInjectionPoint(
+          const typeSource = getTypeSourceFromCtorParameter(param);
+          const ip = new BuildtimeParameterInjectionPoint(
             type,
-            $class,
+            typeSource || param,
             param,
             type.ctor.parameters.indexOf(param),
             new Pair('constructor', null)
@@ -146,7 +146,7 @@ export class RuntimeRequirement implements IRequirement {
       const paramTypes = getParamTypes(ctor);
 
       for (const paramType of paramTypes) {
-        const ip = new ParameterInjectionPoint(type, paramType, member, paramTypes.indexOf(paramType));
+        const ip = new RuntimeParameterInjectionPoint(type, paramType, member, paramTypes.indexOf(paramType));
         requirements.push(new RuntimeRequirement(ip));
       }
     }

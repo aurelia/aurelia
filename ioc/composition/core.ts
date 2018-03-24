@@ -102,3 +102,36 @@ export class TerminatingBuilder implements IObjectBuilder {
     throw new Error(`Unable to resolve request: ${request}`);
   }
 }
+
+export class AndSpecification implements IRequestSpecification {
+  public readonly specifications: IRequestSpecification[];
+  constructor(...specifications: IRequestSpecification[]) {
+    this.specifications = specifications;
+  }
+
+  public isSatisfiedBy(request: any): boolean {
+    return this.specifications.every(s => s.isSatisfiedBy(request));
+  }
+}
+
+export class OrSpecification implements IRequestSpecification {
+  public readonly specifications: IRequestSpecification[];
+  constructor(...specifications: IRequestSpecification[]) {
+    this.specifications = specifications;
+  }
+
+  public isSatisfiedBy(request: any): boolean {
+    return this.specifications.some(s => s.isSatisfiedBy(request));
+  }
+}
+
+export class NotSpecification implements IRequestSpecification {
+  public readonly specification: IRequestSpecification;
+  constructor(specification: IRequestSpecification) {
+    this.specification = specification;
+  }
+
+  public isSatisfiedBy(request: any): boolean {
+    return !this.specification.isSatisfiedBy(request);
+  }
+}

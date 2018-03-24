@@ -13,7 +13,10 @@ import {
   FilteringObjectBuilderNode,
   CompositeObjectBuilderNode,
   Postprocessor,
-  TerminatingBuilder
+  TerminatingBuilder,
+  AndSpecification,
+  OrSpecification,
+  NotSpecification
 } from '../composition/core';
 import { StaticModuleConfiguration } from '../static-module-configuration';
 import {
@@ -29,19 +32,12 @@ import {
   ParameterBuilder,
   ModuleBuilder
 } from './node-builders';
+import { TypeNameSpecification, PropertySpecification, IsTypeScriptSyntaxSpecification } from './specifications';
 
 export class TypeScriptSyntaxTransformer {
   private readonly context: IObjectContext;
 
   constructor() {
-    const isTypeScriptSyntax = new AndSpecification(
-      new TypeNameSpecification(/Object/),
-      new OrSpecification(
-        new PropertySpecification('kind', new TypeNameSpecification(/Number/)),
-        new PropertySpecification('flags', new TypeNameSpecification(/Number/))
-      )
-    );
-
     const hasParentSymbol = new PropertySpecification(
       parentSymbol,
       new NotSpecification(new TypeNameSpecification(/Undefined/))
@@ -71,7 +67,7 @@ export class TypeScriptSyntaxTransformer {
     this.context = new ObjectContext(
       new CompositeObjectBuilderNode(
         new ParentChildLinker(),
-        new FilteringObjectBuilderNode(graphBuilder, isTypeScriptSyntax),
+        new FilteringObjectBuilderNode(graphBuilder, new IsTypeScriptSyntaxSpecification()),
         new TextResidueCollector(),
         new OptionalResidueCollector()
         //new TerminatingBuilder()
@@ -83,7 +79,7 @@ export class TypeScriptSyntaxTransformer {
     const config = new StaticModuleConfiguration(...sourceFiles.map(s => this.context.resolve(s)));
     for (const m of config.modules) {
       m.parent = config;
-    }    
+    }
     return config;
   }
 }
@@ -124,63 +120,6 @@ export class DecoratorAssigner implements IObjectCommand {
       obj.decorators.push(resolvedDecorator);
     }
     return obj;
-  }
-}
-
-export class PropertySpecification implements IRequestSpecification {
-  public readonly propertyKey: PropertyKey;
-  public readonly specification: IRequestSpecification;
-  constructor(propertyKey: PropertyKey, specification: IRequestSpecification) {
-    this.propertyKey = propertyKey;
-    this.specification = specification;
-  }
-
-  public isSatisfiedBy(request: any): boolean {
-    return this.specification.isSatisfiedBy(request[this.propertyKey]);
-  }
-}
-
-export class TypeNameSpecification implements IRequestSpecification {
-  public readonly typeName: RegExp;
-  constructor(typeName: RegExp) {
-    this.typeName = typeName;
-  }
-
-  public isSatisfiedBy(request: any): boolean {
-    return this.typeName.test(Object.prototype.toString.call(request));
-  }
-}
-
-export class AndSpecification implements IRequestSpecification {
-  public readonly specifications: IRequestSpecification[];
-  constructor(...specifications: IRequestSpecification[]) {
-    this.specifications = specifications;
-  }
-
-  public isSatisfiedBy(request: any): boolean {
-    return this.specifications.every(s => s.isSatisfiedBy(request));
-  }
-}
-
-export class OrSpecification implements IRequestSpecification {
-  public readonly specifications: IRequestSpecification[];
-  constructor(...specifications: IRequestSpecification[]) {
-    this.specifications = specifications;
-  }
-
-  public isSatisfiedBy(request: any): boolean {
-    return this.specifications.some(s => s.isSatisfiedBy(request));
-  }
-}
-
-export class NotSpecification implements IRequestSpecification {
-  public readonly specification: IRequestSpecification;
-  constructor(specification: IRequestSpecification) {
-    this.specification = specification;
-  }
-
-  public isSatisfiedBy(request: any): boolean {
-    return !this.specification.isSatisfiedBy(request);
   }
 }
 

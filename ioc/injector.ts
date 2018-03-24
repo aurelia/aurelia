@@ -20,6 +20,8 @@ import {
 import { Lifetime, DependencyType } from './types';
 
 export class DefaultInjector implements IInjector {
+  private static activatorCacheQueue: Map<DependencyType, IActivator> = new Map();
+  public static INSTANCE: IInjector;
   private requirementCache: Map<DependencyType, IRequirement> = new Map();
   private activatorCache: Map<DependencyType, IActivator> = new Map();
   private lifetime: Lifetime;
@@ -33,6 +35,9 @@ export class DefaultInjector implements IInjector {
       .build();
 
     this.container = Container.create(lifetime);
+    for (const [key, value] of (DefaultInjector.activatorCacheQueue as any)) {
+      this.activatorCache.set(key, value);
+    }
   }
 
   public getInstance<T>(type: DependencyType): T {
@@ -73,6 +78,17 @@ export class DefaultInjector implements IInjector {
     // const activator = this.container.makeActivator(resolvedNode, this.resolver.getBackEdges());
     // return activator.activate();
   }
+
+  public addActivator(type: DependencyType, activator: IActivator): void {
+    if (!this.requirementCache.has(type)) {
+      this.requirementCache.set(type, { requiredType: type } as any);
+    }
+    this.activatorCache.set(type, activator);
+  }
+
+  public static addActivator(type: DependencyType, activator: IActivator): void {
+    this.activatorCacheQueue.set(type, activator);
+  }
 }
 
 export class InjectorBuilder {
@@ -111,6 +127,8 @@ export class InjectorBuilder {
       new DefaultRuntimeRequirementRegistrationFunction(),
       new DefaultBuildtimeRequirementRegistrationFunction()
     ];
-    return new DefaultInjector(this.lifetime, registrationFunctions);
+    const injector = new DefaultInjector(this.lifetime, registrationFunctions);
+    DefaultInjector.INSTANCE = injector;
+    return injector;
   }
 }

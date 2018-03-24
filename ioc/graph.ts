@@ -2,6 +2,7 @@ import { IPair, IPredicate, IRequirement, IFulfillment } from './interfaces';
 import { RequirementChain } from './requirement-chain';
 import { RegistrationFlags, Lifetime, isASTNode, isConstructor, Pair } from './types';
 import * as AST from './analysis/ast';
+import { RuntimeRequirement } from './requirements';
 
 // the graph will be the primary source of information to generate efficient runtime DI code
 
@@ -246,5 +247,27 @@ export class Component {
       return false;
     }
     return this.fulfillment.isEqualTo(other.fulfillment) && this.lifetime === other.lifetime;
+  }
+}
+
+export function toJSON(node: Node): string {
+  const cache = [];
+  return JSON.stringify(node, replacer);
+
+  function replacer(key: string, value: any): any {
+    if (value instanceof Component) {
+      return { name: value.fulfillment.type && (value.fulfillment.type as any).name };
+    } else if (value instanceof RequirementChain) {
+      return { initial: JSON.stringify(value.initialRequirement), current: JSON.stringify(value.currentRequirement) };
+    } else if (value instanceof Edge) {
+      return { key: value.key, tail: value.tail };
+    } else if (value instanceof RuntimeRequirement) {
+      return { type: value.requiredType };
+    }
+
+    if (typeof value === 'object') {
+      cache.push(value);
+    }
+    return value;
   }
 }

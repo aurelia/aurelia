@@ -18,9 +18,9 @@ import {
   OrSpecification
 } from '../composition/core';
 import { StaticModuleConfiguration } from '../static-module-configuration';
-import { IInjector } from '../interfaces';
+import { IInjector, IModuleConfiguration } from '../interfaces';
 import { InjectorBuilder } from '../injector';
-import { StaticDIConfiguration, StaticDependencyRegistration } from '../static-di-configuration';
+import { StaticDIConfiguration } from '../static-di-configuration';
 import { SyntaxEmitResult } from '../activators';
 import { IsTypeScriptSyntaxSpecification } from './specifications';
 import { Pair } from '../types';
@@ -31,14 +31,9 @@ export class DependencyInjectionCodeGenerator {
   constructor() {
     this.context = new ObjectContext(
       new CompositeObjectBuilderNode(
-        new FilteringObjectBuilderNode(
-          new CompositeObjectBuilderNode(
-            new SiblingClassDependencyBuilder(),
-            new InternalModuleDependencyBuilder(),
-            new ExternalModuleDependencyBuilder()
-          ),
-          new IsTypeScriptSyntaxSpecification()
-        ),
+        new FilteringObjectBuilderNode(new ClassActivatorBuilder(), new IsSyntaxEmitResultSpecification()),
+        new FilteringObjectBuilderNode(new ClassDependencyActivatorBuilder(), new IsActivatorRequestSpecification()),
+        new FilteringObjectBuilderNode(new DependencyActivatorRegistrator(), new IsRegistratorRequestSpecification()),
         new TerminatingBuilder()
       )
     );
@@ -58,72 +53,157 @@ export class DependencyInjectionCodeGenerator {
         throw new Error('node mismatch');
       }
 
-      const imports: string[] = [];
-      const registrations: string[] = [];
-      for (const dep of result.dependencies) {
-        switch (dep.node.kind) {
-          case AST.NodeKind.Class: {
-            registrations.push(`DefaultInjector.INSTANCE.getInstance(${dep.node.name})`);
-            break;
-          }
-          case AST.NodeKind.ModuleImport: {
-            registrations.push(`DefaultInjector.INSTANCE.getInstance(${dep.node.name})`);
-            break;
-          }
-          case AST.NodeKind.ModuleExport: {
-            registrations.push(`DefaultInjector.INSTANCE.getInstance(${dep.node.name})`);
-            break;
-          }
-        }
-      }
+      const activatorDeclaration = this.context.resolve(result) as ts.ClassDeclaration;
+      const activatorRegistrator = this.context.resolve(result) as ts.CallExpression;
+      const sourceFile = getFile(cls);
+      const newSourceFile = ts.updateSourceFileNode(sourceFile, [
+        ...sourceFile.statements,
+        activatorDeclaration,
+        ts.createStatement(activatorRegistrator)
+      ]);
 
-      const registration = new StaticDependencyRegistration();
-      const depActivation = registrations.join(',');
-      registration.activatorClassDeclaration = `
-      export class $${cls.name}Activator {
-        instance;
-        activate() {
-          if (!this.instance) {
-            this.instance = new ${cls.name}(${depActivation});
-          }
-          return this.instance;
-        }
-      }
-    `;
-      registration.activatorRegistrationExpression = `DefaultInjector.addActivator(${cls.name}, new $${
-        cls.name
-      }Activator());`;
-
-      if (!diConfig.registrations.has(cls.parent)) {
-        diConfig.registrations.set(cls.parent, []);
-      }
-      diConfig.registrations.get(cls.parent).push(registration);
+      diConfig.fileMap.set(cls.parent, newSourceFile);
     }
 
     return diConfig;
   }
 }
 
-export class SiblingClassDependencyBuilder implements IObjectBuilder {
-  public create(request: AST.IClass, context: IObjectContext): string | symbol {
-    if (request.kind !== AST.NodeKind.Class) return NoObject;
+export class ClassActivatorBuilder implements IObjectBuilder {
+  public create(request: SyntaxEmitResult, context: IObjectContext): ts.ClassDeclaration | symbol {
+    if (request.node.kind !== AST.NodeKind.Class) return NoObject;
 
-    return ''; //todo
+    const args: ts.Expression[] = [];
+    for (const dep of request.dependencies) {
+      const arg = context.resolve(new ActivatorRequest(dep.node));
+      args.push(arg);
+    }
+    const output = ts.createClassDeclaration(
+      [],
+      [],
+      `$${request.node.name}Activator`,
+      [],
+      [],
+      ts.createNodeArray([
+        ts.createProperty([], [], 'instance', null, null, null),
+        ts.createMethod(
+          [],
+          [],
+          null,
+          'activate',
+          null,
+          [],
+          [],
+          null,
+          ts.createBlock(
+            ts.createNodeArray([
+              ts.createIf(
+                ts.createLogicalNot(ts.createPropertyAccess(ts.createThis(), 'instance')),
+                ts.createStatement(
+                  ts.createAssignment(
+                    ts.createPropertyAccess(ts.createThis(), 'instance'),
+                    ts.createNew(ts.createIdentifier(request.node.name), [], ts.createNodeArray(args))
+                  )
+                )
+              ),
+              ts.createReturn(ts.createPropertyAccess(ts.createThis(), 'instance'))
+            ])
+          )
+        )
+      ])
+    );
+
+    return output;
   }
 }
 
-export class InternalModuleDependencyBuilder implements IObjectBuilder {
-  public create(request: AST.IModuleImport, context: IObjectContext): string | symbol {
-    if (request.kind !== AST.NodeKind.ModuleImport) return NoObject;
+export class ClassDependencyActivatorBuilder implements IObjectBuilder {
+  public create(request: ActivatorRequest, context: IObjectContext): ts.Expression | symbol {
+    if (
+      request.node.kind !== AST.NodeKind.Class &&
+      request.node.kind !== AST.NodeKind.ModuleImport &&
+      request.node.kind !== AST.NodeKind.ModuleExport
+    ) {
+      return NoObject;
+    }
 
-    return ''; //todo
+    const output = ts.createCall(
+      ts.createPropertyAccess(
+        ts.createPropertyAccess(ts.createIdentifier('DefaultInjector'), 'INSTANCE'),
+        'getInstance'
+      ),
+      [],
+      ts.createNodeArray([ts.createIdentifier(request.node.name)])
+    );
+
+    return output;
   }
 }
 
-export class ExternalModuleDependencyBuilder implements IObjectBuilder {
-  public create(request: AST.IModuleExport, context: IObjectContext): string | symbol {
-    if (request.kind !== AST.NodeKind.ModuleExport) return NoObject;
+export class DependencyActivatorRegistrator implements IObjectBuilder {
+  public create(request: RegistratorRequest, context: IObjectContext): ts.CallExpression | symbol {
+    if (
+      request.node.kind !== AST.NodeKind.Class &&
+      request.node.kind !== AST.NodeKind.ModuleImport &&
+      request.node.kind !== AST.NodeKind.ModuleExport
+    ) {
+      return NoObject;
+    }
 
-    return ''; //todo
+    const output = ts.createCall(
+      ts.createPropertyAccess(ts.createIdentifier('DefaultInjector'), 'addActivator'),
+      [],
+      ts.createNodeArray([
+        ts.createIdentifier(request.node.name),
+        ts.createNew(ts.createIdentifier(`$${request.node.name}Activator`), [], [])
+      ])
+    );
+
+    return output;
   }
+}
+
+export class RegistratorRequest {
+  public readonly node: AST.INode;
+  constructor(node: AST.INode) {
+    this.node = node;
+  }
+}
+
+export class ActivatorRequest {
+  public readonly node: AST.INode;
+  constructor(node: AST.INode) {
+    this.node = node;
+  }
+}
+
+export class IsRegistratorRequestSpecification implements IRequestSpecification {
+  public isSatisfiedBy(request: any): boolean {
+    return request instanceof RegistratorRequest;
+  }
+}
+
+export class IsActivatorRequestSpecification implements IRequestSpecification {
+  public isSatisfiedBy(request: any): boolean {
+    return request instanceof ActivatorRequest;
+  }
+}
+
+export class IsSyntaxEmitResultSpecification implements IRequestSpecification {
+  public isSatisfiedBy(request: any): boolean {
+    return request instanceof SyntaxEmitResult;
+  }
+}
+
+function getFile(node: AST.INode): ts.SourceFile {
+  let config: any = node;
+  while (!(config as any).files) {
+    config = config.parent;
+  }
+  let $module: any = node;
+  while ($module.kind !== AST.NodeKind.Module) {
+    $module = $module.parent;
+  }
+  const files = config.files as ts.SourceFile[];
+  return files.find(f => f.fileName === $module.path);
 }

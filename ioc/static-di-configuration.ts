@@ -1,13 +1,7 @@
-import * as AST from "./analysis/ast";
-import { IPair } from "./interfaces";
+import * as AST from './analysis/ast';
+import * as ts from 'typescript';
+import { IPair } from './interfaces';
 
 export class StaticDIConfiguration {
-  public registrations: Map<AST.IModule, StaticDependencyRegistration[]> = new Map();
-
-}
-
-export class StaticDependencyRegistration {
-  public importStatements: string[] = [];
-  public activatorClassDeclaration: string;
-  public activatorRegistrationExpression: string;
+  public fileMap: Map<AST.IModule, ts.SourceFile> = new Map();
 }

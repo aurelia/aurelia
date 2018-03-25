@@ -119,6 +119,10 @@ export function Node(this: INode, kind: NodeKind, parent: INode = undefined): vo
 export interface IModuleCollection {
   isAnalysisASTNode: false;
   modules: IModule[];
+  /**
+   * ts.sourceFiles used for transformed code emission
+   */
+  files: any;
 }
 
 /**

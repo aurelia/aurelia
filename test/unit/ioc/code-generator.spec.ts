@@ -28,6 +28,6 @@ describe('DependencyInjectionCodeGenerator', () => {
   it('should return correct configuration', () => {
     const actual = sut.create(config);
 
-    expect(actual.registrations.size).toBe(26); // 26 exported classes in the fixture
+    expect(actual.fileMap.size).toBe(26); // 26 exported classes in the fixture
   });
 });

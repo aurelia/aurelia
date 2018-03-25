@@ -92,3 +92,16 @@ export interface IRegistrationRule {
 export interface IContextSpecification {
   isSatisfiedBy(context: ResolutionContext): boolean;
 }
+
+export interface IFileUtils {
+  readFile(fileName: string): Promise<string>;
+  readFileSync(fileName: string): string;
+
+  writeFile(fileName: string, data: any): Promise<boolean>
+  writeFileSync(fileName: string, data: any): boolean;
+
+  exists(fileName: string): Promise<boolean>;
+  existsSync(fileName: string): boolean;
+
+  getFileNamesRecursive(dir): Promise<string[]>;
+}

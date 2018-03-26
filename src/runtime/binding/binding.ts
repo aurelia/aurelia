@@ -5,7 +5,7 @@ import { sourceContext, targetContext } from './call-context';
 import { ObserverLocator } from './observer-locator';
 import { IExpression, ILookupFunctions } from './ast';
 import { Observer } from './property-observation';
-import { Scope, IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IObserverLocator } from './binding-interfaces';
+import { IScope, IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IObserverLocator } from './binding-interfaces';
 
 export interface IBinding extends IBindScope {
   lookupFunctions: ILookupFunctions;
@@ -16,7 +16,7 @@ export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 
 export class Binding extends ConnectableBinding implements IBinding {
   private targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
-  private source: Scope;
+  private source: IScope;
   private isBound = false;
 
   constructor(
@@ -70,7 +70,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     throw new Error(`Unexpected call context ${context}`);
   }
 
-  bind(source: Scope) {
+  bind(source: IScope) {
     if (this.isBound) {
       if (this.source === source) {
         return;

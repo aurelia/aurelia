@@ -1,8 +1,7 @@
 import { Animator } from './animator';
-import { View } from './view';
 import { ShadowDOM } from './shadow-dom';
 import { IAttach } from './component';
-import { Scope, IBindScope } from '../binding/binding-interfaces';
+import { IScope, IBindScope } from '../binding/binding-interfaces';
 import { IVisual } from './visual';
 
 function getAnimatableElement(visual: IVisual) {
@@ -30,7 +29,7 @@ function getAnimatableElement(visual: IVisual) {
 * Manages the view lifecycle for its children.
 */
 export class ViewSlot implements IBindScope, IAttach {
-  private scope: Scope;
+  private scope: IScope;
   private children: IVisual[] = [];
   private isBound = false;
   private isAttached = false;
@@ -72,7 +71,7 @@ export class ViewSlot implements IBindScope, IAttach {
   /**
   * Binds the slot and it's children.
   */
-  bind(scope: Scope): void {
+  bind(scope: IScope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;

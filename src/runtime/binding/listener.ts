@@ -1,10 +1,10 @@
 import { EventManager } from "./event-manager";
 import { IExpression, ILookupFunctions } from "./ast";
 import { IBinding } from "./binding";
-import { Scope, IDisposable, IDelegationStrategy, IEventManager } from "./binding-interfaces";
+import { IScope, IDisposable, IDelegationStrategy, IEventManager } from "./binding-interfaces";
 
 export class Listener implements IBinding {
-  private source: Scope;
+  private source: IScope;
   private isBound = false;
   private handler: IDisposable;
 
@@ -45,7 +45,7 @@ export class Listener implements IBinding {
     this.callSource(event);
   }
 
-  bind(source: Scope) {
+  bind(source: IScope) {
     if (this.isBound) {
       if (this.source === source) {
         return;

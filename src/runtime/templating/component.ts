@@ -1,7 +1,7 @@
 import { Template, CompiledViewSource, ITemplate } from "./template";
 import { IBinding } from "../binding/binding";
 import { IView } from "./view";
-import { Scope } from "../binding/binding-interfaces";
+import { IScope } from "../binding/binding-interfaces";
 import { createOverrideContext } from "../binding/scope";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
@@ -55,7 +55,7 @@ export const Component = {
   
       private $changeCallbacks: (() => void)[] = [];
       
-      private $scope: Scope = {
+      private $scope: IScope = {
         bindingContext: this,
         overrideContext: createOverrideContext()
       };

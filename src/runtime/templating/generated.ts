@@ -11,7 +11,7 @@ import {
   TemplateLiteral
 } from '../binding/ast';
 import { IBindingTarget, Binding } from '../binding/binding';
-import { Scope, IObservable, IDelegationStrategy } from '../binding/binding-interfaces';
+import { IScope, IObservable, IDelegationStrategy } from '../binding/binding-interfaces';
 import { bindingMode } from '../binding/binding-mode';
 import { Listener } from '../binding/listener';
 import { delegationStrategy } from '../binding/event-manager';

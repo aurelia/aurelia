@@ -1,11 +1,11 @@
 import { IfCore } from "./if-core";
-import { Scope } from "../binding/binding-interfaces";
+import { IScope } from "../binding/binding-interfaces";
 import { If } from "./if";
 
 export class Else extends IfCore {
   private ifBehavior: If;
 
-  bind(scope: Scope) {
+  bind(scope: IScope) {
     super.bind(scope);
 
     if (this.ifBehavior.condition) {

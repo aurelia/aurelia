@@ -1,5 +1,5 @@
 import { IfCore } from "./if-core";
-import { Scope } from "../binding/binding-interfaces";
+import { IScope } from "../binding/binding-interfaces";
 import { Else } from "./else";
 import { Observer } from "../binding/property-observation";
 
@@ -16,7 +16,7 @@ export class If extends IfCore {
 
   swapOrder: 'before' | 'with' | 'after';
 
-  bind(scope: Scope) {
+  bind(scope: IScope) {
     super.bind(scope);
     this.conditionChanged(this.condition);
   }

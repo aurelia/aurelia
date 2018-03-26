@@ -154,10 +154,8 @@ class CompiledTemplate implements ITemplate {
   element: HTMLTemplateElement;
 
   constructor(private source: CompiledViewSource) {
-    const html = source.template;
-    
     this.element = DOM.createTemplateElement();
-    this.element.innerHTML = html;
+    this.element.innerHTML = source.template;
   }
 
   createFor(owner: IViewOwner, host?: Node): IView {
@@ -176,9 +174,9 @@ class CompiledTemplate implements ITemplate {
       }
     }
 
-    const surrogateInstructions = source.surrogateInstructions;
-
-    if (surrogateInstructions) {
+    if (host) {
+      const surrogateInstructions = source.surrogateInstructions;
+      
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
         applyInstruction(owner, surrogateInstructions[i], host);
       }

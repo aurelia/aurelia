@@ -1,11 +1,11 @@
 import { ObserverLocator } from "./observer-locator";
 import { IExpression, ILookupFunctions } from "./ast";
-import { IBindingTargetObserver, Scope } from "./binding-interfaces";
+import { IBindingTargetObserver, IScope } from "./binding-interfaces";
 import { IBinding } from "./binding";
 
 export class Call implements IBinding {
   targetObserver: IBindingTargetObserver;
-  private source: Scope;
+  private source: IScope;
   private isBound = false;
 
   constructor(
@@ -32,7 +32,7 @@ export class Call implements IBinding {
     return result;
   }
 
-  bind(source: Scope) {
+  bind(source: IScope) {
     if (this.isBound) {
       if (this.source === source) {
         return;

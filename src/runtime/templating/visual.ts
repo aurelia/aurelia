@@ -1,6 +1,6 @@
 import { IRender, IView } from "./view";
 import { ITemplate, IViewOwner } from "./template";
-import { Scope, IBindScope } from "../binding/binding-interfaces";
+import { IScope, IBindScope } from "../binding/binding-interfaces";
 import { IAttach } from "./component";
 import { IBinding } from "../binding/binding";
 
@@ -19,7 +19,7 @@ export class Visual implements IVisual, IViewOwner {
     this.$view = template.createFor(this);
   }
 
-  bind(scope: Scope) {
+  bind(scope: IScope) {
     let bindable = this.$bindable;
 
     for (let i = 0, ii = bindable.length; i < ii; ++i) {

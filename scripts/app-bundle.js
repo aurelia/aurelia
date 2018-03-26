@@ -5090,9 +5090,8 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
     var CompiledTemplate = (function () {
         function CompiledTemplate(source) {
             this.source = source;
-            var html = source.template;
             this.element = dom_1.DOM.createTemplateElement();
-            this.element.innerHTML = html;
+            this.element.innerHTML = source.template;
         }
         CompiledTemplate.prototype.createFor = function (owner, host) {
             var source = this.source;
@@ -5106,8 +5105,8 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
                     applyInstruction(owner, instructions[j], target);
                 }
             }
-            var surrogateInstructions = source.surrogateInstructions;
-            if (surrogateInstructions) {
+            if (host) {
+                var surrogateInstructions = source.surrogateInstructions;
                 for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
                     applyInstruction(owner, surrogateInstructions[i], host);
                 }

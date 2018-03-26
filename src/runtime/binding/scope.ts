@@ -1,17 +1,13 @@
-import { OverrideContext, Scope } from "./binding-interfaces";
+import { IOverrideContext, IScope } from "./binding-interfaces";
 
-
-// view instances implement this interface
-
-
-export function createOverrideContext(bindingContext?: any, parentOverrideContext?: OverrideContext): OverrideContext {
+export function createOverrideContext(bindingContext?: any, parentOverrideContext?: IOverrideContext): IOverrideContext {
   return {
     bindingContext: bindingContext,
     parentOverrideContext: parentOverrideContext || null
   };
 }
 
-export function getContextFor(name: string, scope: Scope, ancestor: number): any {
+export function getContextFor(name: string, scope: IScope, ancestor: number): any {
   let oc = scope.overrideContext;
 
   if (ancestor) {
@@ -39,7 +35,7 @@ export function getContextFor(name: string, scope: Scope, ancestor: number): any
 }
 
 //DEBUG
-export function createScopeForTest(bindingContext: any, parentBindingContext?: any): Scope {
+export function createScopeForTest(bindingContext: any, parentBindingContext?: any): IScope {
   if (parentBindingContext) {
     return {
       bindingContext,

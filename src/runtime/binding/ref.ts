@@ -1,9 +1,9 @@
 import { IExpression, ILookupFunctions } from "./ast";
 import { IBinding, IBindingTarget } from "./binding";
-import { Scope } from './binding-interfaces'
+import { IScope } from './binding-interfaces'
 
 export class Ref implements IBinding {
-  private source: Scope;
+  private source: IScope;
   private isBound = false;
 
   constructor(
@@ -12,7 +12,7 @@ export class Ref implements IBinding {
     public lookupFunctions: ILookupFunctions) {
   }
 
-  bind(source: Scope) {
+  bind(source: IScope) {
     if (this.isBound) {
       if (this.source === source) {
         return;

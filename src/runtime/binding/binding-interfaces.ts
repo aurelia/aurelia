@@ -9,9 +9,7 @@ export interface IDisposable {
 }
 
 export interface IEventSubscriber extends IDisposable {
-
   readonly events: string[];
-
   subscribe(element: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void;
 }
 
@@ -53,7 +51,6 @@ export interface IBindingTargetAccessor<TGetReturn = any, TSetReturn = TGetRetur
   setValue(value: TSetReturn, obj: IIndexable, propertyName: string): void;
 }
 
-
 export interface IBindingCollectionObserver extends ISubscribable {
   getValue?(target: IIndexable, targetProperty: string): any;
   setValue?(value: any, target: IIndexable, targetProperty: string): void;
@@ -87,20 +84,19 @@ export interface IEventManager {
   ): IDisposable;
 }
 
-// ----------------
 
-export interface OverrideContext {
-  parentOverrideContext: OverrideContext;
+export interface IOverrideContext {
+  parentOverrideContext: IOverrideContext;
   bindingContext: any;
 }
 
-export interface Scope {
+export interface IScope {
   bindingContext: any;
-  overrideContext: OverrideContext;
+  overrideContext: IOverrideContext;
 }
 
 export interface IBindScope {
-  bind(source: Scope): void;
+  bind(source: IScope): void;
   unbind(): void;
 }
 

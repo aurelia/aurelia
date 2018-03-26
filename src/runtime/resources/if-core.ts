@@ -1,5 +1,5 @@
 import { ViewSlot } from '../templating/view-slot';
-import { Scope } from '../binding/binding-interfaces';
+import { IScope } from '../binding/binding-interfaces';
 import { IVisual } from '../templating/visual';
 
 /**
@@ -7,7 +7,7 @@ import { IVisual } from '../templating/visual';
 */
 export abstract class IfCore {
   private visual: IVisual = null;
-  private scope: Scope = null;
+  private scope: IScope = null;
 
   // If the child view is animated, `value` might not reflect the internal
   // state anymore, so we use `showing` for that.
@@ -17,7 +17,7 @@ export abstract class IfCore {
 
   constructor(private createVisual: () => IVisual, protected viewSlot: ViewSlot) { }
 
-  bind(scope: Scope) {
+  bind(scope: IScope) {
     this.scope = scope;
     this.isBound = true;
   }

@@ -1,22 +1,52 @@
-export interface AureliaSettings {
+import { IComponent } from "./templating/component";
+
+export interface SinglePageApp {
   host: HTMLElement,
   component: any
 }
 
+export interface ProgressiveEnhancement {
+  element: HTMLElement,
+  data?: any
+}
+
 export class Aurelia {
-  constructor(public settings: AureliaSettings) { 
-    this.settings.component.applyTo(this.settings.host);
+  private components: IComponent[] = [];
+  private startTasks: (() => void)[] = [];
+  private stopTasks: (() => void)[] = [];
+
+  enhance(config: ProgressiveEnhancement) {
+    return this;
+  }
+
+  app(config: SinglePageApp) {
+    let component: IComponent = config.component;
+
+    this.startTasks.push(() => {
+      if (!this.components.includes(component)) {
+        this.components.push(component);
+        component.applyTo(config.host);
+      }
+
+      component.bind();
+      component.attach();
+    });
+
+    this.stopTasks.push(() => {
+      component.detach();
+      component.unbind();
+    });
+    
+    return this;
   }
 
   start() {
-    this.settings.component.bind();
-    this.settings.component.attach();
+    this.startTasks.forEach(x => x());
     return this;
   }
 
   stop() {
-    this.settings.component.detach();
-    this.settings.component.unbind();
+    this.stopTasks.forEach(x => x());
     return this;
   }
 }

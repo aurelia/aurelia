@@ -131,10 +131,9 @@ define('environment',["require", "exports"], function (require, exports) {
 define('main',["require", "exports", "./app", "./runtime/aurelia"], function (require, exports, app_1, aurelia_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    window['aureliaApp'] = new aurelia_1.Aurelia({
-        host: document.body,
-        component: new app_1.App()
-    }).start();
+    window['au'] = new aurelia_1.Aurelia()
+        .app({ host: document.body, component: new app_1.App() })
+        .start();
 });
 
 
@@ -276,18 +275,37 @@ define('runtime/aurelia',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Aurelia = (function () {
-        function Aurelia(settings) {
-            this.settings = settings;
-            this.settings.component.applyTo(this.settings.host);
+        function Aurelia() {
+            this.components = [];
+            this.startTasks = [];
+            this.stopTasks = [];
         }
+        Aurelia.prototype.enhance = function (config) {
+            return this;
+        };
+        Aurelia.prototype.app = function (config) {
+            var _this = this;
+            var component = config.component;
+            this.startTasks.push(function () {
+                if (!_this.components.includes(component)) {
+                    _this.components.push(component);
+                    component.applyTo(config.host);
+                }
+                component.bind();
+                component.attach();
+            });
+            this.stopTasks.push(function () {
+                component.detach();
+                component.unbind();
+            });
+            return this;
+        };
         Aurelia.prototype.start = function () {
-            this.settings.component.bind();
-            this.settings.component.attach();
+            this.startTasks.forEach(function (x) { return x(); });
             return this;
         };
         Aurelia.prototype.stop = function () {
-            this.settings.component.detach();
-            this.settings.component.unbind();
+            this.stopTasks.forEach(function (x) { return x(); });
             return this;
         };
         return Aurelia;

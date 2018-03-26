@@ -1,4 +1,4 @@
-import { CompiledElementSource } from "./framework/templating/template";
+import { CompiledElementSource } from "./runtime/templating/template";
 
 //this object is built up during compilation
 export const nameTagConfig: CompiledElementSource = {

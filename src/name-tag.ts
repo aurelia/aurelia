@@ -1,4 +1,4 @@
-import { compiledElement } from "./framework/templating/compiled-element"; //added by the compiler
+import { compiledElement } from "./runtime/templating/compiled-element"; //added by the compiler
 import { nameTagConfig } from './name-tag-config'; //added by the compiler
 
 @compiledElement(nameTagConfig) //added by the compiler

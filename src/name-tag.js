@@ -1,8 +1,8 @@
-import { createOverrideContext } from "./framework/binding/scope";
+import { createOverrideContext } from "./runtime/binding/scope";
 import { getAst } from "./asts";
-import { Binding, TextBinding, Listener } from "./framework/binding/binding";
-import { Observer } from "./framework/binding/property-observation";
-import { Template } from "./framework/templating/template";
+import { Binding, TextBinding, Listener } from "./runtime/binding/binding";
+import { Observer } from "./runtime/binding/property-observation";
+import { Template } from "./runtime/templating/template";
 import { Color } from "src/color.au";
 class $NameTag {
     constructor() {

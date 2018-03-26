@@ -1,5 +1,5 @@
 import { App } from './app';
-import { Aurelia } from './framework/aurelia';
+import { Aurelia } from './runtime/aurelia';
 
 (window as any)['aureliaApp'] = new Aurelia({
   host: document.body,

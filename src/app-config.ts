@@ -1,7 +1,7 @@
-import { Template, CompiledElementSource } from "./framework/templating/template";
+import { Template, CompiledElementSource } from "./runtime/templating/template";
 import { NameTag } from "./name-tag";
-import { If } from "./framework/resources/if";
-import { Else } from "./framework/resources/else";
+import { If } from "./runtime/resources/if";
+import { Else } from "./runtime/resources/else";
 
 //this object is built up during compilation
 export const appConfig: CompiledElementSource = {

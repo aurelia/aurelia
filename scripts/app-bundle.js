@@ -1,4 +1,4 @@
-define('app-config',["require", "exports", "./name-tag", "./framework/resources/if", "./framework/resources/else"], function (require, exports, name_tag_1, if_1, else_1) {
+define('app-config',["require", "exports", "./name-tag", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, name_tag_1, if_1, else_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.appConfig = {
@@ -99,7 +99,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('app',["require", "exports", "./app-config", "./framework/templating/compiled-element"], function (require, exports, app_config_1, compiled_element_1) {
+define('app',["require", "exports", "./app-config", "./runtime/templating/compiled-element"], function (require, exports, app_config_1, compiled_element_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var App = (function () {
@@ -128,7 +128,7 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('main',["require", "exports", "./app", "./framework/aurelia"], function (require, exports, app_1, aurelia_1) {
+define('main',["require", "exports", "./app", "./runtime/aurelia"], function (require, exports, app_1, aurelia_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     window['aureliaApp'] = new aurelia_1.Aurelia({
@@ -244,7 +244,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('name-tag',["require", "exports", "./framework/templating/compiled-element", "./name-tag-config"], function (require, exports, compiled_element_1, name_tag_config_1) {
+define('name-tag',["require", "exports", "./runtime/templating/compiled-element", "./name-tag-config"], function (require, exports, compiled_element_1, name_tag_config_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var NameTag = (function () {
@@ -272,7 +272,7 @@ define('name-tag',["require", "exports", "./framework/templating/compiled-elemen
 
 
 
-define('framework/aurelia',["require", "exports"], function (require, exports) {
+define('runtime/aurelia',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Aurelia = (function () {
@@ -297,7 +297,7 @@ define('framework/aurelia',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/dom',["require", "exports"], function (require, exports) {
+define('runtime/dom',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DOM = {
@@ -418,7 +418,7 @@ define('framework/dom',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/logging',["require", "exports"], function (require, exports) {
+define('runtime/logging',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.logLevel = {
@@ -595,7 +595,7 @@ define('framework/logging',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/platform',["require", "exports"], function (require, exports) {
+define('runtime/platform',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PLATFORM = {
@@ -617,7 +617,7 @@ define('framework/platform',["require", "exports"], function (require, exports) 
 
 
 
-define('framework/task-queue',["require", "exports", "./dom"], function (require, exports, dom_1) {
+define('runtime/task-queue',["require", "exports", "./dom"], function (require, exports, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var hasSetImmediate = typeof setImmediate === 'function';
@@ -769,7 +769,7 @@ define('framework/task-queue',["require", "exports", "./dom"], function (require
 
 
 
-define('framework/util',["require", "exports"], function (require, exports) {
+define('runtime/util',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function _isAllWhitespace(node) {
@@ -780,7 +780,7 @@ define('framework/util',["require", "exports"], function (require, exports) {
 
 
 
-define('framework/binding/array-change-records',["require", "exports"], function (require, exports) {
+define('runtime/binding/array-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function isIndex(s) {
@@ -1106,7 +1106,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding/array-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
+define('runtime/binding/array-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var pop = Array.prototype.pop;
@@ -1232,7 +1232,7 @@ define('framework/binding/array-observation',["require", "exports", "./collectio
 
 
 
-define('framework/binding/ast',["require", "exports", "./scope", "./signals"], function (require, exports, scope_1, signals_1) {
+define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], function (require, exports, scope_1, signals_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AstKind = {
@@ -1817,14 +1817,14 @@ define('framework/binding/ast',["require", "exports", "./scope", "./signals"], f
 
 
 
-define('framework/binding/binding-interfaces',["require", "exports"], function (require, exports) {
+define('runtime/binding/binding-interfaces',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
 
 
 
-define('framework/binding/binding-mode',["require", "exports"], function (require, exports) {
+define('runtime/binding/binding-mode',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.bindingMode = {
@@ -1838,7 +1838,7 @@ define('framework/binding/binding-mode',["require", "exports"], function (requir
 
 
 
-define('framework/binding/binding-type',["require", "exports"], function (require, exports) {
+define('runtime/binding/binding-type',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.bindingType = {
@@ -1861,7 +1861,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./call-context", "./observer-locator"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, call_context_1, observer_locator_1) {
+define('runtime/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./call-context", "./observer-locator"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, call_context_1, observer_locator_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Binding = (function (_super) {
@@ -1993,7 +1993,7 @@ define('framework/binding/binding',["require", "exports", "./binding-mode", "./c
 
 
 
-define('framework/binding/call-context',["require", "exports"], function (require, exports) {
+define('runtime/binding/call-context',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.targetContext = 'Binding:target';
@@ -2002,7 +2002,7 @@ define('framework/binding/call-context',["require", "exports"], function (requir
 
 
 
-define('framework/binding/call',["require", "exports", "./observer-locator"], function (require, exports, observer_locator_1) {
+define('runtime/binding/call',["require", "exports", "./observer-locator"], function (require, exports, observer_locator_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Call = (function () {
@@ -2071,7 +2071,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding/checked-observer',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+define('runtime/binding/checked-observer',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var checkedArrayContext = 'CheckedObserver:array';
@@ -2196,7 +2196,7 @@ define('framework/binding/checked-observer',["require", "exports", "./subscriber
 
 
 
-define('framework/binding/class-observer',["require", "exports"], function (require, exports) {
+define('runtime/binding/class-observer',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ClassObserver = (function () {
@@ -2259,7 +2259,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding/collection-observation',["require", "exports", "./array-change-records", "./map-change-records", "./subscriber-collection"], function (require, exports, array_change_records_1, map_change_records_1, subscriber_collection_1) {
+define('runtime/binding/collection-observation',["require", "exports", "./array-change-records", "./map-change-records", "./subscriber-collection"], function (require, exports, array_change_records_1, map_change_records_1, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ModifyCollectionObserver = (function (_super) {
@@ -2391,7 +2391,7 @@ define('framework/binding/collection-observation',["require", "exports", "./arra
 
 
 
-define('framework/binding/connect-queue',["require", "exports", "../platform"], function (require, exports, platform_1) {
+define('runtime/binding/connect-queue',["require", "exports", "../platform"], function (require, exports, platform_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var queue = [];
@@ -2449,7 +2449,7 @@ define('framework/binding/connect-queue',["require", "exports", "../platform"], 
 
 
 
-define('framework/binding/connectable-binding',["require", "exports", "./call-context"], function (require, exports, call_context_1) {
+define('runtime/binding/connectable-binding',["require", "exports", "./call-context"], function (require, exports, call_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var slotNames = [];
@@ -2520,7 +2520,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding/dirty-checking',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+define('runtime/binding/dirty-checking',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var DirtyChecker = (function () {
@@ -2613,7 +2613,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding/element-observation',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+define('runtime/binding/element-observation',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var XLinkAttributeObserver = (function () {
@@ -2781,7 +2781,7 @@ define('framework/binding/element-observation',["require", "exports", "./subscri
 
 
 
-define('framework/binding/event-manager',["require", "exports", "../dom"], function (require, exports, dom_1) {
+define('runtime/binding/event-manager',["require", "exports", "../dom"], function (require, exports, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function findOriginalEventTarget(event) {
@@ -3045,7 +3045,7 @@ define('framework/binding/event-manager',["require", "exports", "../dom"], funct
 
 
 
-define('framework/binding/listener',["require", "exports", "./event-manager"], function (require, exports, event_manager_1) {
+define('runtime/binding/listener',["require", "exports", "./event-manager"], function (require, exports, event_manager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Listener = (function () {
@@ -3114,7 +3114,7 @@ define('framework/binding/listener',["require", "exports", "./event-manager"], f
 
 
 
-define('framework/binding/map-change-records',["require", "exports"], function (require, exports) {
+define('runtime/binding/map-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function newRecord(type, object, key, oldValue) {
@@ -3154,7 +3154,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding/map-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
+define('runtime/binding/map-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var mapProto = Map.prototype;
@@ -3231,7 +3231,7 @@ define('framework/binding/map-observation',["require", "exports", "./collection-
 
 
 
-define('framework/binding/observer-locator',["require", "exports", "../logging", "../dom", "../task-queue", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checking", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg"], function (require, exports, LogManager, dom_1, task_queue_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checking_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_1) {
+define('runtime/binding/observer-locator',["require", "exports", "../logging", "../dom", "../task-queue", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checking", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg"], function (require, exports, LogManager, dom_1, task_queue_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checking_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function getPropertyDescriptor(subject, name) {
@@ -3413,7 +3413,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding/property-observation',["require", "exports", "../logging", "./subscriber-collection", "../task-queue"], function (require, exports, logging_1, subscriber_collection_1, task_queue_1) {
+define('runtime/binding/property-observation',["require", "exports", "../logging", "./subscriber-collection", "../task-queue"], function (require, exports, logging_1, subscriber_collection_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var logger = logging_1.getLogger('property-observation');
@@ -3557,7 +3557,7 @@ define('framework/binding/property-observation',["require", "exports", "../loggi
 
 
 
-define('framework/binding/ref',["require", "exports"], function (require, exports) {
+define('runtime/binding/ref',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Ref = (function () {
@@ -3602,7 +3602,7 @@ define('framework/binding/ref',["require", "exports"], function (require, export
 
 
 
-define('framework/binding/scope',["require", "exports"], function (require, exports) {
+define('runtime/binding/scope',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function createOverrideContext(bindingContext, parentOverrideContext) {
@@ -3660,7 +3660,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../dom"], function (require, exports, subscriber_collection_1, dom_1) {
+define('runtime/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../dom"], function (require, exports, subscriber_collection_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var selectArrayContext = 'SelectValueObserver:array';
@@ -3839,7 +3839,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/binding/set-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
+define('runtime/binding/set-observation',["require", "exports", "./collection-observation"], function (require, exports, collection_observation_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var setProto = Set.prototype;
@@ -3913,7 +3913,7 @@ define('framework/binding/set-observation',["require", "exports", "./collection-
 
 
 
-define('framework/binding/signals',["require", "exports"], function (require, exports) {
+define('runtime/binding/signals',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var signals = {};
@@ -3934,7 +3934,7 @@ define('framework/binding/signals',["require", "exports"], function (require, ex
 
 
 
-define('framework/binding/subscriber-collection',["require", "exports"], function (require, exports) {
+define('runtime/binding/subscriber-collection',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var arrayPool1 = [];
@@ -4119,7 +4119,7 @@ define('framework/binding/subscriber-collection',["require", "exports"], functio
 
 
 
-define('framework/binding/svg',["require", "exports"], function (require, exports) {
+define('runtime/binding/svg',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var SVGAnalyzer = (function () {
@@ -4146,7 +4146,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/resources/else',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
+define('runtime/resources/else',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Else = (function (_super) {
@@ -4178,7 +4178,7 @@ define('framework/resources/else',["require", "exports", "./if-core"], function 
 
 
 
-define('framework/resources/if-core',["require", "exports"], function (require, exports) {
+define('runtime/resources/if-core',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var IfCore = (function () {
@@ -4257,7 +4257,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/resources/if',["require", "exports", "./if-core", "../binding/property-observation"], function (require, exports, if_core_1, property_observation_1) {
+define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation"], function (require, exports, if_core_1, property_observation_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var If = (function (_super) {
@@ -4331,7 +4331,7 @@ define('framework/resources/if',["require", "exports", "./if-core", "../binding/
 
 
 
-define('framework/templating/animator',["require", "exports"], function (require, exports) {
+define('runtime/templating/animator',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Animator = (function () {
@@ -4377,7 +4377,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('framework/templating/compiled-element',["require", "exports", "../binding/property-observation", "./template", "../binding/scope", "../task-queue"], function (require, exports, property_observation_1, template_1, scope_1, task_queue_1) {
+define('runtime/templating/compiled-element',["require", "exports", "../binding/property-observation", "./template", "../binding/scope", "../task-queue"], function (require, exports, property_observation_1, template_1, scope_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function setupObservers(instance, config) {
@@ -4515,14 +4515,14 @@ define('framework/templating/compiled-element',["require", "exports", "../bindin
 
 
 
-define('framework/templating/component',["require", "exports"], function (require, exports) {
+define('runtime/templating/component',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
 
 
 
-define('framework/templating/generated',["require", "exports", "../binding/ast", "../binding/binding", "../binding/binding-mode", "../binding/listener", "../binding/event-manager", "../binding/ref", "../binding/call"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, ref_1, call_1) {
+define('runtime/templating/generated',["require", "exports", "../binding/ast", "../binding/binding", "../binding/binding-mode", "../binding/listener", "../binding/event-manager", "../binding/ref", "../binding/call"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, ref_1, call_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -4593,7 +4593,7 @@ define('framework/templating/generated',["require", "exports", "../binding/ast",
 
 
 
-define('framework/templating/shadow-dom',["require", "exports", "../dom", "../util"], function (require, exports, dom_1, util_1) {
+define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util"], function (require, exports, dom_1, util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noNodes = Object.freeze([]);
@@ -4971,7 +4971,7 @@ define('framework/templating/shadow-dom',["require", "exports", "../dom", "../ut
 
 
 
-define('framework/templating/template',["require", "exports", "../dom", "./view", "./visual", "./view-slot", "./generated"], function (require, exports, dom_1, view_1, visual_1, view_slot_1, generated_1) {
+define('runtime/templating/template',["require", "exports", "../dom", "./view", "./visual", "./view-slot", "./generated"], function (require, exports, dom_1, view_1, visual_1, view_slot_1, generated_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -5105,7 +5105,7 @@ define('framework/templating/template',["require", "exports", "../dom", "./view"
 
 
 
-define('framework/templating/view-slot',["require", "exports", "./animator", "./shadow-dom"], function (require, exports, animator_1, shadow_dom_1) {
+define('runtime/templating/view-slot',["require", "exports", "./animator", "./shadow-dom"], function (require, exports, animator_1, shadow_dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function getAnimatableElement(visual) {
@@ -5407,7 +5407,7 @@ define('framework/templating/view-slot',["require", "exports", "./animator", "./
 
 
 
-define('framework/templating/view',["require", "exports"], function (require, exports) {
+define('runtime/templating/view',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noopView = {
@@ -5455,7 +5455,7 @@ define('framework/templating/view',["require", "exports"], function (require, ex
 
 
 
-define('framework/templating/visual',["require", "exports"], function (require, exports) {
+define('runtime/templating/visual',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Visual = (function () {

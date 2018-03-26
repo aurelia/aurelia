@@ -1,28 +1,59 @@
 import { IRender, IView } from "./view";
-import { ITemplate } from "./template";
+import { ITemplate, IViewOwner } from "./template";
 import { Scope, IBindScope } from "../binding/binding-interfaces";
 import { IAttach } from "./component";
+import { IBinding } from "../binding/binding";
 
 export interface IVisual extends IBindScope, IAttach, IRender {
   isBound: boolean;
 }
 
-export class Visual implements IVisual {
+export class Visual implements IVisual, IViewOwner {
+  $bindable: IBinding[] = [];
+  $attachable: IAttach[] = [];
+  
   $view: IView;
   isBound = false;
 
   constructor(template: ITemplate) {
-    this.$view = template.create();
+    this.$view = template.createFor(this);
   }
 
   bind(scope: Scope) {
+    let bindable = this.$bindable;
+
+    for (let i = 0, ii = bindable.length; i < ii; ++i) {
+      bindable[i].bind(scope);
+    }
+
     this.isBound = true;
   }
 
-  unbind() {
-    this.isBound = false;
+  attach() {
+    let attachable = this.$attachable;
+
+    for (let i = 0, ii = attachable.length; i < ii; ++i) {
+      attachable[i].attach();
+    }
   }
 
-  attach() { }
-  detach() { }
+  detach() { 
+    let attachable = this.$attachable;
+    let i = attachable.length;
+
+    while (i--) {
+      attachable[i].detach();
+    }
+  }
+
+  unbind() {
+    let bindable = this.$bindable;
+    let i = bindable.length;
+
+    while (i--) {
+      bindable[i].unbind();
+    }
+
+    this.isBound = false;
+  }
 }

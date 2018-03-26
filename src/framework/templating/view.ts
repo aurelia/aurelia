@@ -2,9 +2,6 @@ export interface IView {
   firstChild: Node;
   lastChild: Node;
 
-   //TODO: can we define a return type that has a length and can be indexed only?
-  findTargets(): ReadonlyArray<Element>;
-
   insertBefore(refNode: Node): void;
   appendTo(parent: Element): void;
   remove(): void;
@@ -14,13 +11,9 @@ export interface IRender {
   $view: IView;
 }
 
-const noTargets = Object.freeze([]);
 const noopView: IView = {
   firstChild: Node = null,
   lastChild: Node = null,
-  findTargets(): ReadonlyArray<Element> {
-    return noTargets;
-  },
   insertBefore(refNode: Node): void {},
   appendTo(parent: Element): void {},
   remove(): void {}

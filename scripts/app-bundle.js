@@ -1,248 +1,118 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-define('app',["require", "exports", "./framework/binding/scope", "./framework/binding/property-observation", "./framework/generated", "./framework/resources/if", "./framework/templating/view-slot", "./framework/resources/else", "./framework/templating/visual", "./framework/templating/template"], function (require, exports, scope_1, property_observation_1, generated_1, if_1, view_slot_1, else_1, visual_1, template_1) {
+define('app-config',["require", "exports", "./name-tag", "./framework/resources/if", "./framework/resources/else"], function (require, exports, name_tag_1, if_1, else_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var $App = (function () {
-        function $App() {
-            Object.defineProperty(this, '$observers', {
-                enumerable: false,
-                value: {
-                    message: new property_observation_1.Observer('Hello World!'),
-                    duplicateMessage: new property_observation_1.Observer(true)
+    exports.appConfig = {
+        name: 'app',
+        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
+        observers: [
+            {
+                name: 'message'
+            },
+            {
+                name: 'duplicateMessage'
+            }
+        ],
+        targetInstructions: [
+            [
+                {
+                    type: 'oneWayText',
+                    source: 'message'
                 }
-            });
-        }
-        Object.defineProperty($App.prototype, "duplicateMessage", {
-            get: function () { return this.$observers.duplicateMessage.getValue(); },
-            set: function (value) { this.$observers.duplicateMessage.setValue(value); },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty($App.prototype, "message", {
-            get: function () { return this.$observers.message.getValue(); },
-            set: function (value) { this.$observers.message.setValue(value); },
-            enumerable: true,
-            configurable: true
-        });
-        return $App;
-    }());
-    var $PlainView1 = (function (_super) {
-        __extends($PlainView1, _super);
-        function $PlainView1() {
-            var _this = _super.call(this, $PlainView1.$template) || this;
-            var targets = _this.$view.targets;
-            _this.$b1 = generated_1.oneWayText('message', targets[0]);
-            return _this;
-        }
-        $PlainView1.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
-            this.$b1.bind(scope);
-        };
-        $PlainView1.prototype.unbind = function () {
-            _super.prototype.unbind.call(this);
-            this.$b1.unbind();
-        };
-        $PlainView1.$template = new template_1.Template('<div><au-marker class="au"></au-marker> </div>');
-        return $PlainView1;
-    }(visual_1.Visual));
-    var $PlainView2 = (function (_super) {
-        __extends($PlainView2, _super);
-        function $PlainView2() {
-            return _super.call(this, $PlainView2.$template) || this;
-        }
-        $PlainView2.$template = new template_1.Template('<div>No Message Duplicated</div>');
-        return $PlainView2;
-    }(visual_1.Visual));
-    var App = (function (_super) {
-        __extends(App, _super);
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'message',
+                    target: 'value'
+                }
+            ],
+            [
+                {
+                    type: 'element',
+                    ctor: name_tag_1.NameTag,
+                    instructions: [
+                        {
+                            type: 'twoWay',
+                            source: 'message',
+                            target: 'name'
+                        },
+                        {
+                            type: 'ref',
+                            source: 'nameTag'
+                        }
+                    ]
+                }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'duplicateMessage',
+                    target: 'checked'
+                }
+            ],
+            [
+                {
+                    type: 'templateController',
+                    ctor: if_1.If,
+                    config: {
+                        template: "<div><au-marker class=\"au\"></au-marker> </div>",
+                        targetInstructions: [
+                            [
+                                {
+                                    type: 'oneWayText',
+                                    source: 'message'
+                                }
+                            ]
+                        ]
+                    },
+                    instructions: [
+                        {
+                            type: 'oneWay',
+                            source: 'duplicateMessage',
+                            target: 'condition'
+                        }
+                    ]
+                }
+            ],
+            [
+                {
+                    type: 'templateController',
+                    ctor: else_1.Else,
+                    link: true,
+                    config: {
+                        template: "<div>No Message Duplicated</div>",
+                        targetInstructions: []
+                    },
+                    instructions: []
+                }
+            ]
+        ],
+        surrogateInstructions: []
+    };
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('app',["require", "exports", "./app-config", "./framework/templating/compiled-element"], function (require, exports, app_config_1, compiled_element_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var App = (function () {
         function App() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.$scope = {
-                bindingContext: _this,
-                overrideContext: scope_1.createOverrideContext()
-            };
-            return _this;
+            this.message = 'Hello World';
+            this.duplicateMessage = true;
         }
-        App.prototype.applyTo = function (anchor) {
-            this.$anchor = anchor;
-            this.$view = App.$template.create();
-            var targets = this.$view.targets;
-            this.$b1 = generated_1.oneWayText('message', targets[0]);
-            this.$b2 = generated_1.twoWay('message', targets[1], 'value');
-            this.$c1 = new NameTag().applyTo(targets[2]);
-            this.$b3 = generated_1.twoWay('message', this.$c1, 'name');
-            this.$b6 = generated_1.ref('nameTag', this.$c1);
-            this.$b4 = generated_1.twoWay('duplicateMessage', targets[3], 'checked');
-            this.$a1 = new if_1.If(function () { return new $PlainView1(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[4]), false));
-            this.$b5 = generated_1.oneWay('duplicateMessage', this.$a1, 'condition');
-            this.$a2 = new else_1.Else(function () { return new $PlainView2(); }, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(targets[5]), false)).link(this.$a1);
-            return this;
-        };
-        App.prototype.bind = function () {
-            var scope = this.$scope;
-            this.$b1.bind(scope);
-            this.$b2.bind(scope);
-            this.$b4.bind(scope);
-            this.$b3.bind(scope);
-            this.$b6.bind(scope);
-            this.$c1.bind();
-            this.$b5.bind(scope);
-            this.$a1.bind(scope);
-            this.$a2.bind(scope);
-        };
-        App.prototype.attach = function () {
-            this.$c1.attach();
-            this.$a1.attach();
-            this.$a2.attach();
-            this.$view.appendTo(this.$anchor);
-        };
-        App.prototype.detach = function () {
-            this.$view.remove();
-            this.$c1.detach();
-            this.$a1.detach();
-            this.$a2.detach();
-        };
-        App.prototype.unbind = function () {
-            this.$b1.unbind();
-            this.$b2.unbind();
-            this.$b3.unbind();
-            this.$b6.unbind();
-            this.$c1.unbind();
-            this.$a1.unbind();
-            this.$a2.unbind();
-            this.$b4.unbind();
-            this.$b5.unbind();
-        };
-        App.$template = new template_1.Template("\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ");
+        App = __decorate([
+            compiled_element_1.compiledElement(app_config_1.appConfig)
+        ], App);
         return App;
-    }($App));
-    exports.App = App;
-    var $NameTag = (function () {
-        function $NameTag() {
-            var _this = this;
-            this.$isBound = false;
-            Object.defineProperty(this, '$observers', {
-                enumerable: false,
-                value: {
-                    name: new property_observation_1.Observer('Aurelia', function (v) { return _this.$isBound ? _this.nameChanged(v) : void 0; }),
-                    color: new property_observation_1.Observer('red'),
-                    borderColor: new property_observation_1.Observer('orange'),
-                    borderWidth: new property_observation_1.Observer(3),
-                    showHeader: new property_observation_1.Observer(true)
-                }
-            });
-        }
-        Object.defineProperty($NameTag.prototype, "name", {
-            get: function () { return this.$observers.name.getValue(); },
-            set: function (value) { this.$observers.name.setValue(value); },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty($NameTag.prototype, "color", {
-            get: function () { return this.$observers.color.getValue(); },
-            set: function (value) { this.$observers.color.setValue(value); },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty($NameTag.prototype, "borderColor", {
-            get: function () { return this.$observers.borderColor.getValue(); },
-            set: function (value) { this.$observers.borderColor.setValue(value); },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty($NameTag.prototype, "borderWidth", {
-            get: function () { return this.$observers.borderWidth.getValue(); },
-            set: function (value) { this.$observers.borderWidth.setValue(value); },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty($NameTag.prototype, "showHeader", {
-            get: function () { return this.$observers.showHeader.getValue(); },
-            set: function (value) { this.$observers.showHeader.setValue(value); },
-            enumerable: true,
-            configurable: true
-        });
-        $NameTag.prototype.nameChanged = function (newValue) {
-            console.log("Name changed to " + newValue);
-            ;
-        };
-        $NameTag.prototype.submit = function () {
-            this.name = '' + Math.random();
-        };
-        return $NameTag;
     }());
-    var NameTag = (function (_super) {
-        __extends(NameTag, _super);
-        function NameTag() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.$scope = {
-                bindingContext: _this,
-                overrideContext: scope_1.createOverrideContext()
-            };
-            return _this;
-        }
-        NameTag.prototype.applyTo = function (anchor) {
-            this.$anchor = anchor;
-            this.$view = NameTag.$template.create();
-            var targets = this.$view.targets;
-            this.$b1 = generated_1.twoWay('name', targets[0], 'value');
-            this.$b2 = generated_1.oneWay('name', targets[1], 'textContent');
-            this.$b3 = generated_1.oneWay('nameTagColor', targets[1].style, 'color');
-            this.$b4 = generated_1.twoWay('nameTagColor', targets[2], 'value');
-            this.$b5 = generated_1.twoWay('nameTagBorderColor', targets[3], 'value');
-            this.$b6 = generated_1.twoWay('nameTagBorderWidth', targets[4], 'value');
-            this.$b7 = generated_1.twoWay('nameTagHeaderVisible', targets[5], 'checked');
-            this.$b8 = generated_1.listener('click', targets[6], 'submit');
-            this.$b9 = generated_1.oneWay('nameTagBorder', anchor.style, 'border');
-            this.$b10 = generated_1.oneWay('nameTagClasses', anchor, 'className');
-            return this;
-        };
-        NameTag.prototype.bind = function () {
-            var $scope = this.$scope;
-            this.$b1.bind($scope);
-            this.$b2.bind($scope);
-            this.$b3.bind($scope);
-            this.$b4.bind($scope);
-            this.$b5.bind($scope);
-            this.$b6.bind($scope);
-            this.$b7.bind($scope);
-            this.$b8.bind($scope);
-            this.$b9.bind($scope);
-            this.$b10.bind($scope);
-            this.$isBound = true;
-            this.nameChanged(this.name);
-        };
-        NameTag.prototype.attach = function () {
-            this.$view.appendTo(this.$anchor);
-        };
-        NameTag.prototype.detach = function () {
-            this.$view.remove();
-        };
-        NameTag.prototype.unbind = function () {
-            this.$b1.unbind();
-            this.$b2.unbind();
-            this.$b3.unbind();
-            this.$b4.unbind();
-            this.$b5.unbind();
-            this.$b6.unbind();
-            this.$b7.unbind();
-            this.$b8.unbind();
-            this.$b9.unbind();
-            this.$b10.unbind();
-        };
-        NameTag.$template = new template_1.Template("\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ");
-        return NameTag;
-    }($NameTag));
-    exports.NameTag = NameTag;
+    exports.App = App;
 });
 
 
@@ -258,13 +128,146 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('main',["require", "exports", "./app2", "./framework/aurelia"], function (require, exports, app2_1, aurelia_1) {
+define('main',["require", "exports", "./app", "./framework/aurelia"], function (require, exports, app_1, aurelia_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     window['aureliaApp'] = new aurelia_1.Aurelia({
         host: document.body,
-        component: new app2_1.App()
+        component: new app_1.App()
     }).start();
+});
+
+
+
+define('name-tag-config',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.nameTagConfig = {
+        name: 'name-tag',
+        template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
+        observers: [
+            {
+                name: 'name',
+                changeHandler: 'nameChanged'
+            },
+            {
+                name: 'color'
+            },
+            {
+                name: 'borderColor'
+            },
+            {
+                name: 'borderWidth'
+            },
+            {
+                name: 'showHeader'
+            }
+        ],
+        targetInstructions: [
+            [
+                {
+                    type: 'twoWay',
+                    source: 'name',
+                    target: 'value'
+                }
+            ],
+            [
+                {
+                    type: 'oneWay',
+                    source: 'name',
+                    target: 'textContent'
+                },
+                {
+                    type: 'style',
+                    source: 'nameTagColor',
+                    target: 'color'
+                }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'nameTagColor',
+                    target: 'value'
+                }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'nameTagBorderColor',
+                    target: 'value'
+                }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'nameTagBorderWidth',
+                    target: 'value'
+                }
+            ],
+            [
+                {
+                    type: 'twoWay',
+                    source: 'nameTagHeaderVisible',
+                    target: 'checked'
+                }
+            ],
+            [
+                {
+                    type: 'listener',
+                    source: 'click',
+                    target: 'submit',
+                    preventDefault: true,
+                    strategy: 0
+                }
+            ]
+        ],
+        surrogateInstructions: [
+            {
+                type: 'style',
+                source: 'nameTagBorder',
+                target: 'border'
+            },
+            {
+                type: 'oneWay',
+                source: 'nameTagClasses',
+                target: 'className'
+            }
+        ]
+    };
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('name-tag',["require", "exports", "./framework/templating/compiled-element", "./name-tag-config"], function (require, exports, compiled_element_1, name_tag_config_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var NameTag = (function () {
+        function NameTag() {
+            this.name = 'Aurelia';
+            this.color = 'red';
+            this.borderColor = 'orange';
+            this.borderWidth = 3;
+            this.showHeader = true;
+        }
+        NameTag.prototype.nameChanged = function (newValue) {
+            console.log("Name changed to " + newValue);
+            ;
+        };
+        NameTag.prototype.submit = function () {
+            this.name = '' + Math.random();
+        };
+        NameTag = __decorate([
+            compiled_element_1.compiledElement(name_tag_config_1.nameTagConfig)
+        ], NameTag);
+        return NameTag;
+    }());
+    exports.NameTag = NameTag;
 });
 
 
@@ -411,85 +414,6 @@ define('framework/dom',["require", "exports"], function (require, exports) {
             return node;
         }
     };
-});
-
-
-
-define('framework/generated',["require", "exports", "./binding/ast", "./binding/binding", "./binding/binding-mode", "./binding/listener", "./binding/event-manager", "./dom", "./binding/ref", "./binding/call"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, dom_1, ref_1, call_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var emptyArray = [];
-    var lookupFunctions = {
-        valueConverters: {},
-        bindingBehaviors: {}
-    };
-    var astLookup = {
-        message: new ast_1.AccessScope('message'),
-        textContent: new ast_1.AccessScope('textContent'),
-        value: new ast_1.AccessScope('value'),
-        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
-        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
-        nameTagBorder: new ast_1.TemplateLiteral([
-            new ast_1.AccessScope('borderWidth'),
-            new ast_1.LiteralString('px solid '),
-            new ast_1.AccessScope('borderColor')
-        ]),
-        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
-        nameTagClasses: new ast_1.TemplateLiteral([
-            new ast_1.LiteralString('au name-tag '),
-            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
-        ]),
-        name: new ast_1.AccessScope('name'),
-        submit: new ast_1.CallScope('submit', emptyArray, 0),
-        nameTagColor: new ast_1.AccessScope('color'),
-        duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
-        checked: new ast_1.AccessScope('checked'),
-        nameTag: new ast_1.AccessScope('nameTag')
-    };
-    function getAST(key) {
-        return astLookup[key];
-    }
-    function oneWay(sourceExpression, target, targetProperty) {
-        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.oneWay, lookupFunctions);
-    }
-    exports.oneWay = oneWay;
-    function fromView(sourceExpression, target, targetProperty) {
-        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.fromView, lookupFunctions);
-    }
-    exports.fromView = fromView;
-    function oneWayText(sourceExpression, target) {
-        var next = target.nextSibling;
-        next['auInterpolationTarget'] = true;
-        target.parentNode.removeChild(target);
-        return oneWay(sourceExpression, next, 'textContent');
-    }
-    exports.oneWayText = oneWayText;
-    function twoWay(sourceExpression, target, targetProperty) {
-        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.twoWay, lookupFunctions);
-    }
-    exports.twoWay = twoWay;
-    function listener(targetEvent, target, sourceExpression, preventDefault, strategy) {
-        if (preventDefault === void 0) { preventDefault = true; }
-        if (strategy === void 0) { strategy = event_manager_1.delegationStrategy.none; }
-        return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
-    }
-    exports.listener = listener;
-    function ref(sourceExpression, target) {
-        return new ref_1.Ref(getAST(sourceExpression), target, lookupFunctions);
-    }
-    exports.ref = ref;
-    function call(sourceExpression, target, targetProperty) {
-        return new call_1.Call(getAST(sourceExpression), target, targetProperty, lookupFunctions);
-    }
-    exports.call = call;
-    function makeElementIntoAnchor(element, elementInstruction) {
-        var anchor = dom_1.DOM.createComment('anchor');
-        if (elementInstruction) {
-        }
-        dom_1.DOM.replaceNode(anchor, element);
-        return anchor;
-    }
-    exports.makeElementIntoAnchor = makeElementIntoAnchor;
 });
 
 
@@ -2074,6 +1998,65 @@ define('framework/binding/call-context',["require", "exports"], function (requir
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.targetContext = 'Binding:target';
     exports.sourceContext = 'Binding:source';
+});
+
+
+
+define('framework/binding/call',["require", "exports", "./observer-locator"], function (require, exports, observer_locator_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Call = (function () {
+        function Call(sourceExpression, target, targetProperty, lookupFunctions, observerLocator) {
+            if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.targetProperty = targetProperty;
+            this.lookupFunctions = lookupFunctions;
+            this.isBound = false;
+            this.targetObserver = observerLocator.getObserver(target, targetProperty);
+        }
+        Call.prototype.callSource = function ($event) {
+            var overrideContext = this.source.overrideContext;
+            Object.assign(overrideContext, $event);
+            overrideContext.$event = $event;
+            var mustEvaluate = true;
+            var result = this.sourceExpression.evaluate(this.source, this.lookupFunctions, mustEvaluate);
+            delete overrideContext.$event;
+            for (var prop in $event) {
+                delete overrideContext[prop];
+            }
+            return result;
+        };
+        Call.prototype.bind = function (source) {
+            var _this = this;
+            if (this.isBound) {
+                if (this.source === source) {
+                    return;
+                }
+                this.unbind();
+            }
+            this.isBound = true;
+            this.source = source;
+            if (this.sourceExpression.bind) {
+                this.sourceExpression.bind(this, source);
+            }
+            this.targetObserver.setValue(function ($event) { return _this.callSource($event); }, this.target, this.targetProperty);
+        };
+        Call.prototype.unbind = function () {
+            if (!this.isBound) {
+                return;
+            }
+            this.isBound = false;
+            if (this.sourceExpression.unbind) {
+                this.sourceExpression.unbind(this, this.source);
+            }
+            this.source = null;
+            this.targetObserver.setValue(null, this.target, this.targetProperty);
+        };
+        Call.prototype.observeProperty = function () { };
+        return Call;
+    }());
+    exports.Call = Call;
 });
 
 
@@ -4384,9 +4367,228 @@ define('framework/templating/animator',["require", "exports"], function (require
 
 
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('framework/templating/compiled-element',["require", "exports", "../binding/property-observation", "./template", "../binding/scope", "../task-queue"], function (require, exports, property_observation_1, template_1, scope_1, task_queue_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function setupObservers(instance, config) {
+        var observerConfigs = config.observers;
+        var observers = {};
+        var _loop_1 = function (i, ii) {
+            var observerConfig = observerConfigs[i];
+            var name_1 = observerConfig.name;
+            if ('changeHandler' in observerConfig) {
+                var changeHandler_1 = observerConfig.changeHandler;
+                observers[name_1] = new property_observation_1.Observer(instance[name_1], function (v) { return instance.$isBound ? instance[changeHandler_1](v) : void 0; });
+                instance.$changeCallbacks.push(function () { return instance[changeHandler_1](instance[name_1]); });
+            }
+            else {
+                observers[name_1] = new property_observation_1.Observer(instance[name_1]);
+            }
+            createGetterSetter(instance, name_1);
+        };
+        for (var i = 0, ii = observerConfigs.length; i < ii; ++i) {
+            _loop_1(i, ii);
+        }
+        Object.defineProperty(instance, '$observers', {
+            enumerable: false,
+            value: observers
+        });
+    }
+    function createGetterSetter(instance, name) {
+        Object.defineProperty(instance, name, {
+            enumerable: true,
+            get: function () { return this.$observers[name].getValue(); },
+            set: function (value) { this.$observers[name].setValue(value); }
+        });
+    }
+    function createCustomElement(ctor, source) {
+        var template = template_1.Template.fromCompiledSource(source);
+        return _a = (function (_super) {
+                __extends(class_1, _super);
+                function class_1() {
+                    var args = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        args[_i] = arguments[_i];
+                    }
+                    var _this = _super.apply(this, args) || this;
+                    _this.$bindable = [];
+                    _this.$attachable = [];
+                    _this.$isBound = false;
+                    _this.$changeCallbacks = [];
+                    _this.$scope = {
+                        bindingContext: _this,
+                        overrideContext: scope_1.createOverrideContext()
+                    };
+                    setupObservers(_this, source);
+                    return _this;
+                }
+                class_1.prototype.applyTo = function (host) {
+                    this.$host = host;
+                    this.$view = this.createView(host);
+                    if ('created' in this) {
+                        this.created();
+                    }
+                    return this;
+                };
+                class_1.prototype.createView = function (host) {
+                    return template.createFor(this, host);
+                };
+                class_1.prototype.bind = function () {
+                    var scope = this.$scope;
+                    var bindable = this.$bindable;
+                    for (var i = 0, ii = bindable.length; i < ii; ++i) {
+                        bindable[i].bind(scope);
+                    }
+                    this.$isBound = true;
+                    var changeCallbacks = this.$changeCallbacks;
+                    for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+                        changeCallbacks[i]();
+                    }
+                    if ('bound' in this) {
+                        this.bound();
+                    }
+                };
+                class_1.prototype.attach = function () {
+                    var _this = this;
+                    if ('attaching' in this) {
+                        this.attaching();
+                    }
+                    var attachable = this.$attachable;
+                    for (var i = 0, ii = attachable.length; i < ii; ++i) {
+                        attachable[i].attach();
+                    }
+                    this.$view.appendTo(this.$host);
+                    if ('attached' in this) {
+                        task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
+                    }
+                };
+                class_1.prototype.detach = function () {
+                    var _this = this;
+                    if ('detaching' in this) {
+                        this.detaching();
+                    }
+                    this.$view.remove();
+                    var attachable = this.$attachable;
+                    var i = attachable.length;
+                    while (i--) {
+                        attachable[i].detach();
+                    }
+                    if ('detached' in this) {
+                        task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
+                    }
+                };
+                class_1.prototype.unbind = function () {
+                    var bindable = this.$bindable;
+                    var i = bindable.length;
+                    while (i--) {
+                        bindable[i].unbind();
+                    }
+                    if ('unbound' in this) {
+                        this.unbound();
+                    }
+                    this.$isBound = false;
+                };
+                return class_1;
+            }(ctor)),
+            _a.template = template,
+            _a.source = source,
+            _a;
+        var _a;
+    }
+    function compiledElement(source) {
+        return function (target) {
+            return createCustomElement(target, source);
+        };
+    }
+    exports.compiledElement = compiledElement;
+});
+
+
+
 define('framework/templating/component',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+});
+
+
+
+define('framework/templating/generated',["require", "exports", "../binding/ast", "../binding/binding", "../binding/binding-mode", "../binding/listener", "../binding/event-manager", "../binding/ref", "../binding/call"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, ref_1, call_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var emptyArray = [];
+    var lookupFunctions = {
+        valueConverters: {},
+        bindingBehaviors: {}
+    };
+    var astLookup = {
+        message: new ast_1.AccessScope('message'),
+        textContent: new ast_1.AccessScope('textContent'),
+        value: new ast_1.AccessScope('value'),
+        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
+        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
+        nameTagBorder: new ast_1.TemplateLiteral([
+            new ast_1.AccessScope('borderWidth'),
+            new ast_1.LiteralString('px solid '),
+            new ast_1.AccessScope('borderColor')
+        ]),
+        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
+        nameTagClasses: new ast_1.TemplateLiteral([
+            new ast_1.LiteralString('au name-tag '),
+            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
+        ]),
+        name: new ast_1.AccessScope('name'),
+        submit: new ast_1.CallScope('submit', emptyArray, 0),
+        nameTagColor: new ast_1.AccessScope('color'),
+        duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
+        checked: new ast_1.AccessScope('checked'),
+        nameTag: new ast_1.AccessScope('nameTag')
+    };
+    function getAST(key) {
+        return astLookup[key];
+    }
+    function oneWay(sourceExpression, target, targetProperty) {
+        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.oneWay, lookupFunctions);
+    }
+    exports.oneWay = oneWay;
+    function fromView(sourceExpression, target, targetProperty) {
+        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.fromView, lookupFunctions);
+    }
+    exports.fromView = fromView;
+    function oneWayText(sourceExpression, target) {
+        var next = target.nextSibling;
+        next['auInterpolationTarget'] = true;
+        target.parentNode.removeChild(target);
+        return oneWay(sourceExpression, next, 'textContent');
+    }
+    exports.oneWayText = oneWayText;
+    function twoWay(sourceExpression, target, targetProperty) {
+        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.twoWay, lookupFunctions);
+    }
+    exports.twoWay = twoWay;
+    function listener(targetEvent, target, sourceExpression, preventDefault, strategy) {
+        if (preventDefault === void 0) { preventDefault = true; }
+        if (strategy === void 0) { strategy = event_manager_1.delegationStrategy.none; }
+        return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
+    }
+    exports.listener = listener;
+    function ref(sourceExpression, target) {
+        return new ref_1.Ref(getAST(sourceExpression), target, lookupFunctions);
+    }
+    exports.ref = ref;
+    function call(sourceExpression, target, targetProperty) {
+        return new call_1.Call(getAST(sourceExpression), target, targetProperty, lookupFunctions);
+    }
+    exports.call = call;
 });
 
 
@@ -4769,25 +4971,20 @@ define('framework/templating/shadow-dom',["require", "exports", "../dom", "../ut
 
 
 
-define('framework/templating/template',["require", "exports", "../dom", "./view"], function (require, exports, dom_1, view_1) {
+define('framework/templating/template',["require", "exports", "../dom", "./view", "./visual", "./view-slot", "./generated"], function (require, exports, dom_1, view_1, visual_1, view_slot_1, generated_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
-        create: function () {
+        createFor: function (owner, host) {
             return view_1.View.none;
         }
     };
     var Template = (function () {
-        function Template(html) {
-            this.element = dom_1.DOM.createTemplateElement();
-            this.element.innerHTML = html;
+        function Template() {
         }
-        Template.prototype.create = function () {
-            return new view_1.View(this.element);
-        };
         Template.fromCompiledSource = function (source) {
-            if (source) {
-                return new Template(source);
+            if (source && source.template) {
+                return new CompiledTemplate(source);
             }
             return noViewTemplate;
         };
@@ -4795,6 +4992,115 @@ define('framework/templating/template',["require", "exports", "../dom", "./view"
         return Template;
     }());
     exports.Template = Template;
+    function createViewFactory(source) {
+        var template = Template.fromCompiledSource(source);
+        return function () { return new visual_1.Visual(template); };
+    }
+    function makeElementIntoAnchor(element, elementInstruction) {
+        var anchor = dom_1.DOM.createComment('anchor');
+        if (elementInstruction) {
+        }
+        dom_1.DOM.replaceNode(anchor, element);
+        return anchor;
+    }
+    exports.makeElementIntoAnchor = makeElementIntoAnchor;
+    function applyInstruction(owner, instruction, target) {
+        switch (instruction.type) {
+            case 'oneWayText':
+                owner.$bindable.push(generated_1.oneWayText(instruction.source, target));
+                break;
+            case 'oneWay':
+                owner.$bindable.push(generated_1.oneWay(instruction.source, target, instruction.target));
+                break;
+            case 'fromView':
+                owner.$bindable.push(generated_1.fromView(instruction.source, target, instruction.target));
+                break;
+            case 'twoWay':
+                owner.$bindable.push(generated_1.twoWay(instruction.source, target, instruction.target));
+                break;
+            case 'listener':
+                owner.$bindable.push(generated_1.listener(instruction.source, target, instruction.target, instruction.preventDefault, instruction.strategy));
+                break;
+            case 'call':
+                owner.$bindable.push(generated_1.call(instruction.source, target, instruction.target));
+                break;
+            case 'ref':
+                owner.$bindable.push(generated_1.ref(instruction.source, target));
+                break;
+            case 'style':
+                owner.$bindable.push(generated_1.oneWay(instruction.source, target.style, instruction.target));
+                break;
+            case 'property':
+                target[instruction.target] = instruction.value;
+                break;
+            case 'element':
+                var elementInstructions = instruction.instructions;
+                var elementModel = new instruction.ctor();
+                elementModel.applyTo(target);
+                for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
+                    var current = elementInstructions[i];
+                    var realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
+                    applyInstruction(owner, current, realTarget);
+                }
+                owner.$bindable.push(elementModel);
+                owner.$attachable.push(elementModel);
+                break;
+            case 'attribute':
+                var attributeInstructions = instruction.instructions;
+                var attributeModel = new instruction.ctor(target);
+                for (var i = 0, ii = attributeInstructions.length; i < ii; ++i) {
+                    applyInstruction(owner, attributeInstructions[i], attributeModel);
+                }
+                owner.$bindable.push(attributeModel);
+                owner.$attachable.push(attributeModel);
+                break;
+            case 'templateController':
+                var templateControllerInstructions = instruction.instructions;
+                var factory = instruction.factory;
+                if (factory === undefined) {
+                    instruction.factory = factory = createViewFactory(instruction.config);
+                }
+                var templateControllerModel = new instruction.ctor(factory, new view_slot_1.ViewSlot(makeElementIntoAnchor(target), false));
+                if (instruction.link) {
+                    templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
+                }
+                for (var i = 0, ii = templateControllerInstructions.length; i < ii; ++i) {
+                    applyInstruction(owner, templateControllerInstructions[i], templateControllerModel);
+                }
+                owner.$bindable.push(templateControllerModel);
+                owner.$attachable.push(templateControllerModel);
+                break;
+        }
+    }
+    var CompiledTemplate = (function () {
+        function CompiledTemplate(source) {
+            this.source = source;
+            var html = source.template;
+            this.element = dom_1.DOM.createTemplateElement();
+            this.element.innerHTML = html;
+        }
+        CompiledTemplate.prototype.createFor = function (owner, host) {
+            var source = this.source;
+            var view = new view_1.View(this.element);
+            var targets = view.findTargets();
+            var targetInstructions = source.targetInstructions;
+            for (var i = 0, ii = targets.length; i < ii; ++i) {
+                var instructions = targetInstructions[i];
+                var target = targets[i];
+                for (var j = 0, jj = instructions.length; j < jj; ++j) {
+                    applyInstruction(owner, instructions[j], target);
+                }
+            }
+            var surrogateInstructions = source.surrogateInstructions;
+            if (surrogateInstructions) {
+                for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
+                    applyInstruction(owner, surrogateInstructions[i], host);
+                }
+            }
+            return view;
+        };
+        return CompiledTemplate;
+    }());
 });
 
 
@@ -5104,13 +5410,9 @@ define('framework/templating/view-slot',["require", "exports", "./animator", "./
 define('framework/templating/view',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var noTargets = Object.freeze([]);
     var noopView = {
         firstChild: Node = null,
         lastChild: Node = null,
-        findTargets: function () {
-            return noTargets;
-        },
         insertBefore: function (refNode) { },
         appendTo: function (parent) { },
         remove: function () { }
@@ -5158,292 +5460,32 @@ define('framework/templating/visual',["require", "exports"], function (require, 
     Object.defineProperty(exports, "__esModule", { value: true });
     var Visual = (function () {
         function Visual(template) {
-            this.isBound = false;
-            this.$view = template.create();
-        }
-        Visual.prototype.bind = function (scope) {
-            this.isBound = true;
-        };
-        Visual.prototype.unbind = function () {
-            this.isBound = false;
-        };
-        Visual.prototype.attach = function () { };
-        Visual.prototype.detach = function () { };
-        return Visual;
-    }());
-    exports.Visual = Visual;
-});
-
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-define('app2',["require", "exports", "./compiled-element", "./app2-config"], function (require, exports, compiled_element_1, app2_config_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var App = (function () {
-        function App() {
-            this.message = 'Hello World';
-            this.duplicateMessage = true;
-        }
-        App = __decorate([
-            compiled_element_1.compiledElement(app2_config_1.app2Config)
-        ], App);
-        return App;
-    }());
-    exports.App = App;
-});
-
-
-
-define('app2-config',["require", "exports", "./name-tag2", "./framework/resources/if", "./framework/resources/else"], function (require, exports, name_tag2_1, if_1, else_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.app2Config = {
-        name: 'app',
-        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
-        observers: [
-            {
-                name: 'message'
-            },
-            {
-                name: 'duplicateMessage'
-            }
-        ],
-        targetInstructions: [
-            [
-                {
-                    type: 'oneWayText',
-                    source: 'message'
-                }
-            ],
-            [
-                {
-                    type: 'twoWay',
-                    source: 'message',
-                    target: 'value'
-                }
-            ],
-            [
-                {
-                    type: 'element',
-                    ctor: name_tag2_1.NameTag,
-                    instructions: [
-                        {
-                            type: 'twoWay',
-                            source: 'message',
-                            target: 'name'
-                        },
-                        {
-                            type: 'ref',
-                            source: 'nameTag'
-                        }
-                    ]
-                }
-            ],
-            [
-                {
-                    type: 'twoWay',
-                    source: 'duplicateMessage',
-                    target: 'checked'
-                }
-            ],
-            [
-                {
-                    type: 'templateController',
-                    ctor: if_1.If,
-                    config: {
-                        template: "<div><au-marker class=\"au\"></au-marker> </div>",
-                        targetInstructions: [
-                            [
-                                {
-                                    type: 'oneWayText',
-                                    source: 'message'
-                                }
-                            ]
-                        ]
-                    },
-                    instructions: [
-                        {
-                            type: 'oneWay',
-                            source: 'duplicateMessage',
-                            target: 'condition'
-                        }
-                    ]
-                }
-            ],
-            [
-                {
-                    type: 'templateController',
-                    ctor: else_1.Else,
-                    link: true,
-                    config: {
-                        template: "<div>No Message Duplicated</div>",
-                        targetInstructions: []
-                    },
-                    instructions: []
-                }
-            ]
-        ],
-        surrogateInstructions: []
-    };
-});
-
-
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-define('compiled-element',["require", "exports", "./framework/templating/template", "./framework/binding/scope", "./framework/generated", "./framework/binding/property-observation", "./framework/task-queue", "./framework/templating/view-slot"], function (require, exports, template_1, scope_1, generated_1, property_observation_1, task_queue_1, view_slot_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function applyInstruction(instance, instruction, target) {
-        switch (instruction.type) {
-            case 'oneWayText':
-                instance.$bindable.push(generated_1.oneWayText(instruction.source, target));
-                break;
-            case 'oneWay':
-                instance.$bindable.push(generated_1.oneWay(instruction.source, target, instruction.target));
-                break;
-            case 'fromView':
-                instance.$bindable.push(generated_1.fromView(instruction.source, target, instruction.target));
-                break;
-            case 'twoWay':
-                instance.$bindable.push(generated_1.twoWay(instruction.source, target, instruction.target));
-                break;
-            case 'listener':
-                instance.$bindable.push(generated_1.listener(instruction.source, target, instruction.target, instruction.preventDefault, instruction.strategy));
-                break;
-            case 'call':
-                instance.$bindable.push(generated_1.call(instruction.source, target, instruction.target));
-                break;
-            case 'ref':
-                instance.$bindable.push(generated_1.ref(instruction.source, target));
-                break;
-            case 'style':
-                instance.$bindable.push(generated_1.oneWay(instruction.source, target.style, instruction.target));
-                break;
-            case 'property':
-                target[instruction.target] = instruction.value;
-                break;
-            case 'element':
-                var elementInstructions = instruction.instructions;
-                var elementModel = new instruction.ctor();
-                elementModel.applyTo(target);
-                for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
-                    var current = elementInstructions[i];
-                    var realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
-                    applyInstruction(instance, current, realTarget);
-                }
-                instance.$bindable.push(elementModel);
-                instance.$attachable.push(elementModel);
-                break;
-            case 'attribute':
-                var attributeInstructions = instruction.instructions;
-                var attributeModel = new instruction.ctor(target);
-                for (var i = 0, ii = attributeInstructions.length; i < ii; ++i) {
-                    applyInstruction(instance, attributeInstructions[i], attributeModel);
-                }
-                instance.$bindable.push(attributeModel);
-                instance.$attachable.push(attributeModel);
-                break;
-            case 'templateController':
-                var templateControllerInstructions = instruction.instructions;
-                var factory = instruction.factory;
-                if (factory === undefined) {
-                    instruction.factory = factory = createViewFactory(instruction.config);
-                }
-                var templateControllerModel = new instruction.ctor(factory, new view_slot_1.ViewSlot(generated_1.makeElementIntoAnchor(target), false));
-                if (instruction.link) {
-                    templateControllerModel.link(instance.$attachable[instance.$attachable.length - 1]);
-                }
-                for (var i = 0, ii = templateControllerInstructions.length; i < ii; ++i) {
-                    applyInstruction(instance, templateControllerInstructions[i], templateControllerModel);
-                }
-                instance.$bindable.push(templateControllerModel);
-                instance.$attachable.push(templateControllerModel);
-                break;
-        }
-    }
-    function setupObservers(instance, config) {
-        var observerConfigs = config.observers;
-        var observers = {};
-        var _loop_1 = function (i, ii) {
-            var observerConfig = observerConfigs[i];
-            var name_1 = observerConfig.name;
-            if ('changeHandler' in observerConfig) {
-                var changeHandler_1 = observerConfig.changeHandler;
-                observers[name_1] = new property_observation_1.Observer(instance[name_1], function (v) { return instance.$isBound ? instance[changeHandler_1](v) : void 0; });
-                instance.$changeCallbacks.push(function () { return instance[changeHandler_1](instance[name_1]); });
-            }
-            else {
-                observers[name_1] = new property_observation_1.Observer(instance[name_1]);
-            }
-            createGetterSetter(instance, name_1);
-        };
-        for (var i = 0, ii = observerConfigs.length; i < ii; ++i) {
-            _loop_1(i, ii);
-        }
-        Object.defineProperty(instance, '$observers', {
-            enumerable: false,
-            value: observers
-        });
-    }
-    function createGetterSetter(instance, name) {
-        Object.defineProperty(instance, name, {
-            enumerable: true,
-            get: function () { return this.$observers[name].getValue(); },
-            set: function (value) { this.$observers[name].setValue(value); }
-        });
-    }
-    var PlainView = (function () {
-        function PlainView(template, config) {
             this.$bindable = [];
             this.$attachable = [];
             this.isBound = false;
-            this.$view = template.create();
-            var targets = this.$view.findTargets();
-            var targetInstructions = config.targetInstructions;
-            for (var i = 0, ii = targets.length; i < ii; ++i) {
-                var instructions = targetInstructions[i];
-                var target = targets[i];
-                for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                    applyInstruction(this, instructions[j], target);
-                }
-            }
+            this.$view = template.createFor(this);
         }
-        PlainView.prototype.bind = function (scope) {
+        Visual.prototype.bind = function (scope) {
             var bindable = this.$bindable;
             for (var i = 0, ii = bindable.length; i < ii; ++i) {
                 bindable[i].bind(scope);
             }
             this.isBound = true;
         };
-        PlainView.prototype.attach = function () {
+        Visual.prototype.attach = function () {
             var attachable = this.$attachable;
             for (var i = 0, ii = attachable.length; i < ii; ++i) {
                 attachable[i].attach();
             }
         };
-        PlainView.prototype.detach = function () {
+        Visual.prototype.detach = function () {
             var attachable = this.$attachable;
             var i = attachable.length;
             while (i--) {
                 attachable[i].detach();
             }
         };
-        PlainView.prototype.unbind = function () {
+        Visual.prototype.unbind = function () {
             var bindable = this.$bindable;
             var i = bindable.length;
             while (i--) {
@@ -5451,367 +5493,10 @@ define('compiled-element',["require", "exports", "./framework/templating/templat
             }
             this.isBound = false;
         };
-        return PlainView;
+        return Visual;
     }());
-    function createViewFactory(config) {
-        var template = new template_1.Template(config.template);
-        return function () { return new PlainView(template, config); };
-    }
-    function createCustomElement(ctor, config) {
-        var template = template_1.Template.fromCompiledSource(config.template);
-        return _a = (function (_super) {
-                __extends(class_1, _super);
-                function class_1() {
-                    var args = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        args[_i] = arguments[_i];
-                    }
-                    var _this = _super.apply(this, args) || this;
-                    _this.$bindable = [];
-                    _this.$attachable = [];
-                    _this.$isBound = false;
-                    _this.$changeCallbacks = [];
-                    _this.$scope = {
-                        bindingContext: _this,
-                        overrideContext: scope_1.createOverrideContext()
-                    };
-                    setupObservers(_this, config);
-                    return _this;
-                }
-                class_1.prototype.applyTo = function (anchor) {
-                    this.$anchor = anchor;
-                    this.$view = this.createView();
-                    var targets = this.$view.findTargets();
-                    var targetInstructions = config.targetInstructions;
-                    for (var i = 0, ii = targets.length; i < ii; ++i) {
-                        var instructions = targetInstructions[i];
-                        var target = targets[i];
-                        for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                            applyInstruction(this, instructions[j], target);
-                        }
-                    }
-                    var surrogateInstructions = config.surrogateInstructions;
-                    for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-                        applyInstruction(this, surrogateInstructions[i], anchor);
-                    }
-                    if ('created' in this) {
-                        this.created();
-                    }
-                    return this;
-                };
-                class_1.prototype.createView = function () {
-                    return template.create();
-                };
-                class_1.prototype.bind = function () {
-                    var scope = this.$scope;
-                    var bindable = this.$bindable;
-                    for (var i = 0, ii = bindable.length; i < ii; ++i) {
-                        bindable[i].bind(scope);
-                    }
-                    this.$isBound = true;
-                    var changeCallbacks = this.$changeCallbacks;
-                    for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-                        changeCallbacks[i]();
-                    }
-                    if ('bound' in this) {
-                        this.bound();
-                    }
-                };
-                class_1.prototype.attach = function () {
-                    var _this = this;
-                    if ('attaching' in this) {
-                        this.attaching();
-                    }
-                    var attachable = this.$attachable;
-                    for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                        attachable[i].attach();
-                    }
-                    this.$view.appendTo(this.$anchor);
-                    if ('attached' in this) {
-                        task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
-                    }
-                };
-                class_1.prototype.detach = function () {
-                    var _this = this;
-                    if ('detaching' in this) {
-                        this.detaching();
-                    }
-                    this.$view.remove();
-                    var attachable = this.$attachable;
-                    var i = attachable.length;
-                    while (i--) {
-                        attachable[i].detach();
-                    }
-                    if ('detached' in this) {
-                        task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
-                    }
-                };
-                class_1.prototype.unbind = function () {
-                    var bindable = this.$bindable;
-                    var i = bindable.length;
-                    while (i--) {
-                        bindable[i].unbind();
-                    }
-                    if ('unbound' in this) {
-                        this.unbound();
-                    }
-                    this.$isBound = false;
-                };
-                return class_1;
-            }(ctor)),
-            _a.template = template,
-            _a.config = config,
-            _a;
-        var _a;
-    }
-    function compiledElement(config) {
-        return function (target) {
-            return createCustomElement(target, config);
-        };
-    }
-    exports.compiledElement = compiledElement;
+    exports.Visual = Visual;
 });
-
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-define('name-tag2',["require", "exports", "./compiled-element", "./name-tag2-config"], function (require, exports, compiled_element_1, name_tag2_config_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var NameTag = (function () {
-        function NameTag() {
-            this.name = 'Aurelia';
-            this.color = 'red';
-            this.borderColor = 'orange';
-            this.borderWidth = 3;
-            this.showHeader = true;
-        }
-        NameTag.prototype.nameChanged = function (newValue) {
-            console.log("Name changed to " + newValue);
-            ;
-        };
-        NameTag.prototype.submit = function () {
-            this.name = '' + Math.random();
-        };
-        NameTag = __decorate([
-            compiled_element_1.compiledElement(name_tag2_config_1.nameTag2Config)
-        ], NameTag);
-        return NameTag;
-    }());
-    exports.NameTag = NameTag;
-});
-
-
-
-define('name-tag2-config',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.nameTag2Config = {
-        name: 'name-tag',
-        template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
-        observers: [
-            {
-                name: 'name',
-                changeHandler: 'nameChanged'
-            },
-            {
-                name: 'color'
-            },
-            {
-                name: 'borderColor'
-            },
-            {
-                name: 'borderWidth'
-            },
-            {
-                name: 'showHeader'
-            }
-        ],
-        targetInstructions: [
-            [
-                {
-                    type: 'twoWay',
-                    source: 'name',
-                    target: 'value'
-                }
-            ],
-            [
-                {
-                    type: 'oneWay',
-                    source: 'name',
-                    target: 'textContent'
-                },
-                {
-                    type: 'style',
-                    source: 'nameTagColor',
-                    target: 'color'
-                }
-            ],
-            [
-                {
-                    type: 'twoWay',
-                    source: 'nameTagColor',
-                    target: 'value'
-                }
-            ],
-            [
-                {
-                    type: 'twoWay',
-                    source: 'nameTagBorderColor',
-                    target: 'value'
-                }
-            ],
-            [
-                {
-                    type: 'twoWay',
-                    source: 'nameTagBorderWidth',
-                    target: 'value'
-                }
-            ],
-            [
-                {
-                    type: 'twoWay',
-                    source: 'nameTagHeaderVisible',
-                    target: 'checked'
-                }
-            ],
-            [
-                {
-                    type: 'listener',
-                    source: 'click',
-                    target: 'submit',
-                    preventDefault: true,
-                    strategy: 0
-                }
-            ]
-        ],
-        surrogateInstructions: [
-            {
-                type: 'style',
-                source: 'nameTagBorder',
-                target: 'border'
-            },
-            {
-                type: 'oneWay',
-                source: 'nameTagClasses',
-                target: 'className'
-            }
-        ]
-    };
-});
-
-
-
-define('framework/binding/call',["require", "exports", "./observer-locator"], function (require, exports, observer_locator_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Call = (function () {
-        function Call(sourceExpression, target, targetProperty, lookupFunctions, observerLocator) {
-            if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
-            this.sourceExpression = sourceExpression;
-            this.target = target;
-            this.targetProperty = targetProperty;
-            this.lookupFunctions = lookupFunctions;
-            this.isBound = false;
-            this.targetObserver = observerLocator.getObserver(target, targetProperty);
-        }
-        Call.prototype.callSource = function ($event) {
-            var overrideContext = this.source.overrideContext;
-            Object.assign(overrideContext, $event);
-            overrideContext.$event = $event;
-            var mustEvaluate = true;
-            var result = this.sourceExpression.evaluate(this.source, this.lookupFunctions, mustEvaluate);
-            delete overrideContext.$event;
-            for (var prop in $event) {
-                delete overrideContext[prop];
-            }
-            return result;
-        };
-        Call.prototype.bind = function (source) {
-            var _this = this;
-            if (this.isBound) {
-                if (this.source === source) {
-                    return;
-                }
-                this.unbind();
-            }
-            this.isBound = true;
-            this.source = source;
-            if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, source);
-            }
-            this.targetObserver.setValue(function ($event) { return _this.callSource($event); }, this.target, this.targetProperty);
-        };
-        Call.prototype.unbind = function () {
-            if (!this.isBound) {
-                return;
-            }
-            this.isBound = false;
-            if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.source);
-            }
-            this.source = null;
-            this.targetObserver.setValue(null, this.target, this.targetProperty);
-        };
-        Call.prototype.observeProperty = function () { };
-        return Call;
-    }());
-    exports.Call = Call;
-});
-
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var DI = {
-    registerInstance: function (key, value) {
-    },
-    createInterface: function (friendlyName) {
-        var decorator = function (target, b, index) {
-            var ctor = target.constructor;
-            var inject = ctor.inject || (ctor.inject = []);
-            inject[index] = decorator;
-        };
-        if (friendlyName) {
-            decorator['friendlyName'] = friendlyName;
-        }
-        return decorator;
-    }
-};
-var IFoo = DI.createInterface('IFoo');
-var IBar = DI.createInterface('IBar');
-DI.registerInstance(IFoo, {
-    someMethod: function () {
-    }
-});
-DI.registerInstance(IBar, {
-    anotherMethod: function () {
-    }
-});
-var Test = (function () {
-    function Test(foo, bar) {
-    }
-    Test = __decorate([
-        __param(0, IFoo), __param(1, IBar),
-        __metadata("design:paramtypes", [Object, Object])
-    ], Test);
-    return Test;
-}());
 
 
 

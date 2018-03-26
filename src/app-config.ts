@@ -1,11 +1,10 @@
-import { CompiledElementConfiguration } from "./compiled-element";
-import { Template } from "./framework/templating/template";
-import { NameTag } from "./name-tag2";
+import { Template, CompiledElementSource } from "./framework/templating/template";
+import { NameTag } from "./name-tag";
 import { If } from "./framework/resources/if";
 import { Else } from "./framework/resources/else";
 
 //this object is built up during compilation
-export const app2Config: CompiledElementConfiguration = {
+export const appConfig: CompiledElementSource = {
   name: 'app',
   template: `
     <au-marker class="au"></au-marker> <br>

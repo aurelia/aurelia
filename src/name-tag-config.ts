@@ -1,7 +1,7 @@
-import { CompiledElementConfiguration } from "./compiled-element";
+import { CompiledElementSource } from "./framework/templating/template";
 
 //this object is built up during compilation
-export const nameTag2Config: CompiledElementConfiguration = {
+export const nameTagConfig: CompiledElementSource = {
   name: 'name-tag',
   template: `
     <header>Super Duper name tag</header>

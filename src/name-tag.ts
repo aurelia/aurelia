@@ -1,7 +1,7 @@
-import { compiledElement } from "./compiled-element"; //added by the compiler
-import { nameTag2Config } from './name-tag2-config'; //added by the compiler
+import { compiledElement } from "./framework/templating/compiled-element"; //added by the compiler
+import { nameTagConfig } from './name-tag-config'; //added by the compiler
 
-@compiledElement(nameTag2Config) //added by the compiler
+@compiledElement(nameTagConfig) //added by the compiler
 //@customElement //removed by the compiler
 export class NameTag {
   name = 'Aurelia';

@@ -47,6 +47,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] Fixed Views
   * [x] Per-instance Views
   * [x] No View
+  * [x] Containerless
   * [ ] Content Projection
   * [ ] Template Part Replacement
   * [ ] CSS Modules

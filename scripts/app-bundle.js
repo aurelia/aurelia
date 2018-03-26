@@ -4408,7 +4408,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./template", "../binding/scope", "../task-queue", "../binding/property-observation"], function (require, exports, template_1, scope_1, task_queue_1, property_observation_1) {
+define('runtime/templating/component',["require", "exports", "./template", "../binding/scope", "../task-queue", "../binding/property-observation", "./anchors"], function (require, exports, template_1, scope_1, task_queue_1, property_observation_1, anchors_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Component = {
@@ -4434,8 +4434,10 @@ define('runtime/templating/component',["require", "exports", "./template", "../b
                         return _this;
                     }
                     class_1.prototype.applyTo = function (host) {
-                        this.$host = host;
-                        this.$view = this.createView(host);
+                        this.$host = source.containerless
+                            ? anchors_1.makeElementIntoAnchor(host, true)
+                            : host;
+                        this.$view = this.createView(this.$host);
                         if ('created' in this) {
                             this.created();
                         }
@@ -4468,7 +4470,12 @@ define('runtime/templating/component',["require", "exports", "./template", "../b
                         for (var i = 0, ii = attachable.length; i < ii; ++i) {
                             attachable[i].attach();
                         }
-                        this.$view.appendTo(this.$host);
+                        if (source.containerless) {
+                            this.$view.insertBefore(this.$host);
+                        }
+                        else {
+                            this.$view.appendTo(this.$host);
+                        }
                         if ('attached' in this) {
                             task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
                         }
@@ -4991,7 +4998,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
 
 
 
-define('runtime/templating/template',["require", "exports", "../dom", "./view", "./visual", "./view-slot", "./generated"], function (require, exports, dom_1, view_1, visual_1, view_slot_1, generated_1) {
+define('runtime/templating/template',["require", "exports", "../dom", "./view", "./visual", "./view-slot", "./generated", "./anchors"], function (require, exports, dom_1, view_1, visual_1, view_slot_1, generated_1, anchors_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -5011,13 +5018,6 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
     function createViewFactory(source) {
         var template = exports.Template.fromCompiledSource(source);
         return function () { return new visual_1.Visual(template); };
-    }
-    function makeElementIntoAnchor(element, elementInstruction) {
-        var anchor = dom_1.DOM.createComment('anchor');
-        if (elementInstruction) {
-        }
-        dom_1.DOM.replaceNode(anchor, element);
-        return anchor;
     }
     function applyInstruction(owner, instruction, target) {
         switch (instruction.type) {
@@ -5075,7 +5075,7 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
                 if (factory === undefined) {
                     instruction.factory = factory = createViewFactory(instruction.config);
                 }
-                var templateControllerModel = new instruction.ctor(factory, new view_slot_1.ViewSlot(makeElementIntoAnchor(target), false));
+                var templateControllerModel = new instruction.ctor(factory, new view_slot_1.ViewSlot(anchors_1.makeElementIntoAnchor(target), false));
                 if (instruction.link) {
                     templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
                 }
@@ -5510,6 +5510,64 @@ define('runtime/templating/visual',["require", "exports"], function (require, ex
         return Visual;
     }());
     exports.Visual = Visual;
+});
+
+
+
+define('runtime/templating/anchor',["require", "exports", "../dom"], function (require, exports, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function hasAttribute(name) {
+        return this._element.hasAttribute(name);
+    }
+    function getAttribute(name) {
+        return this._element.getAttribute(name);
+    }
+    function setAttribute(name, value) {
+        this._element.setAttribute(name, value);
+    }
+    function makeElementIntoAnchor(element, proxy) {
+        if (proxy === void 0) { proxy = false; }
+        var anchor = dom_1.DOM.createComment('anchor');
+        if (proxy) {
+            anchor._element = element;
+            anchor.hasAttribute = hasAttribute;
+            anchor.getAttribute = getAttribute;
+            anchor.setAttribute = setAttribute;
+        }
+        dom_1.DOM.replaceNode(anchor, element);
+        return anchor;
+    }
+    exports.makeElementIntoAnchor = makeElementIntoAnchor;
+});
+
+
+
+define('runtime/templating/anchors',["require", "exports", "../dom"], function (require, exports, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function hasAttribute(name) {
+        return this._element.hasAttribute(name);
+    }
+    function getAttribute(name) {
+        return this._element.getAttribute(name);
+    }
+    function setAttribute(name, value) {
+        this._element.setAttribute(name, value);
+    }
+    function makeElementIntoAnchor(element, proxy) {
+        if (proxy === void 0) { proxy = false; }
+        var anchor = dom_1.DOM.createComment('anchor');
+        if (proxy) {
+            anchor._element = element;
+            anchor.hasAttribute = hasAttribute;
+            anchor.getAttribute = getAttribute;
+            anchor.setAttribute = setAttribute;
+        }
+        dom_1.DOM.replaceNode(anchor, element);
+        return anchor;
+    }
+    exports.makeElementIntoAnchor = makeElementIntoAnchor;
 });
 
 

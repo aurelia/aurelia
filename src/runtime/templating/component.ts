@@ -5,6 +5,7 @@ import { IScope } from "../binding/binding-interfaces";
 import { createOverrideContext } from "../binding/scope";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
+import { makeElementIntoAnchor } from "./anchors";
 
 export interface IBindSelf {
   bind(): void;
@@ -25,6 +26,7 @@ export interface IComponent extends IBindSelf, IAttach, IApplyToTarget {
 
 export interface CompiledElementSource extends CompiledViewSource {
   name: string;
+  containerless?: boolean;
   observers: any[];
 }
 
@@ -66,8 +68,11 @@ export const Component = {
       }
   
       applyTo(host: Element) { 
-        this.$host = host;
-        this.$view = this.createView(host);
+        this.$host = source.containerless 
+          ? makeElementIntoAnchor(host, true)
+          : host;
+
+        this.$view = this.createView(this.$host);
   
         if ('created' in this) {
           (<any>this).created();
@@ -112,7 +117,11 @@ export const Component = {
           attachable[i].attach();
         }
   
-        this.$view.appendTo(this.$host);
+        if (source.containerless) {
+          this.$view.insertBefore(this.$host);
+        } else {
+          this.$view.appendTo(this.$host);
+        }
       
         if ('attached' in this) {
           TaskQueue.instance.queueMicroTask(() => (<any>this).attached());

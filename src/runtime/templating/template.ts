@@ -6,6 +6,7 @@ import { IBinding } from "../binding/binding";
 import { ViewSlot } from "./view-slot";
 import { IBindScope } from "../binding/binding-interfaces";
 import { oneWayText, oneWay, fromView, twoWay, listener, ref, call } from "./generated";
+import { makeElementIntoAnchor } from "./anchors";
 
 type SupportsBindingLifecycle = IBindScope | IBindSelf;
 export interface IViewOwner {
@@ -43,28 +44,6 @@ export const Template = {
 function createViewFactory(source: CompiledViewSource): () => IVisual {
   let template = Template.fromCompiledSource(source);
   return function() { return new Visual(template); }
-}
-
-function makeElementIntoAnchor(element: Element, elementInstruction?: any) {
-  let anchor = DOM.createComment('anchor');
-
-  if (elementInstruction) {
-    // let firstChild = element.firstChild;
-
-    // if (firstChild && firstChild.tagName === 'AU-CONTENT') {
-    //   anchor.contentElement = firstChild;
-    // }
-
-    // anchor._element = element;
-
-    // anchor.hasAttribute = hasAttribute;
-    // anchor.getAttribute = getAttribute;
-    // anchor.setAttribute = setAttribute;
-  }
-
-  DOM.replaceNode(anchor, element);
-
-  return anchor;
 }
 
 function applyInstruction(owner: IViewOwner, instruction, target) {

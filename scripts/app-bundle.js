@@ -4367,6 +4367,19 @@ define('runtime/templating/animator',["require", "exports"], function (require, 
 
 
 
+define('runtime/templating/compiled-element',["require", "exports", "./component"], function (require, exports, component_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function compiledElement(source) {
+        return function (target) {
+            return component_1.Component.fromCompiledSource(target, source);
+        };
+    }
+    exports.compiledElement = compiledElement;
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -4377,9 +4390,105 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/compiled-element',["require", "exports", "../binding/property-observation", "./template", "../binding/scope", "../task-queue"], function (require, exports, property_observation_1, template_1, scope_1, task_queue_1) {
+define('runtime/templating/component',["require", "exports", "./template", "../binding/scope", "../task-queue", "../binding/property-observation"], function (require, exports, template_1, scope_1, task_queue_1, property_observation_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Component = {
+        fromCompiledSource: function (ctor, source) {
+            var template = template_1.Template.fromCompiledSource(source);
+            return _a = (function (_super) {
+                    __extends(class_1, _super);
+                    function class_1() {
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i] = arguments[_i];
+                        }
+                        var _this = _super.apply(this, args) || this;
+                        _this.$bindable = [];
+                        _this.$attachable = [];
+                        _this.$isBound = false;
+                        _this.$changeCallbacks = [];
+                        _this.$scope = {
+                            bindingContext: _this,
+                            overrideContext: scope_1.createOverrideContext()
+                        };
+                        setupObservers(_this, source);
+                        return _this;
+                    }
+                    class_1.prototype.applyTo = function (host) {
+                        this.$host = host;
+                        this.$view = this.createView(host);
+                        if ('created' in this) {
+                            this.created();
+                        }
+                        return this;
+                    };
+                    class_1.prototype.createView = function (host) {
+                        return template.createFor(this, host);
+                    };
+                    class_1.prototype.bind = function () {
+                        var scope = this.$scope;
+                        var bindable = this.$bindable;
+                        for (var i = 0, ii = bindable.length; i < ii; ++i) {
+                            bindable[i].bind(scope);
+                        }
+                        this.$isBound = true;
+                        var changeCallbacks = this.$changeCallbacks;
+                        for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+                            changeCallbacks[i]();
+                        }
+                        if ('bound' in this) {
+                            this.bound();
+                        }
+                    };
+                    class_1.prototype.attach = function () {
+                        var _this = this;
+                        if ('attaching' in this) {
+                            this.attaching();
+                        }
+                        var attachable = this.$attachable;
+                        for (var i = 0, ii = attachable.length; i < ii; ++i) {
+                            attachable[i].attach();
+                        }
+                        this.$view.appendTo(this.$host);
+                        if ('attached' in this) {
+                            task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
+                        }
+                    };
+                    class_1.prototype.detach = function () {
+                        var _this = this;
+                        if ('detaching' in this) {
+                            this.detaching();
+                        }
+                        this.$view.remove();
+                        var attachable = this.$attachable;
+                        var i = attachable.length;
+                        while (i--) {
+                            attachable[i].detach();
+                        }
+                        if ('detached' in this) {
+                            task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
+                        }
+                    };
+                    class_1.prototype.unbind = function () {
+                        var bindable = this.$bindable;
+                        var i = bindable.length;
+                        while (i--) {
+                            bindable[i].unbind();
+                        }
+                        if ('unbound' in this) {
+                            this.unbound();
+                        }
+                        this.$isBound = false;
+                    };
+                    return class_1;
+                }(ctor)),
+                _a.template = template,
+                _a.source = source,
+                _a;
+            var _a;
+        }
+    };
     function setupObservers(instance, config) {
         var observerConfigs = config.observers;
         var observers = {};
@@ -4411,113 +4520,6 @@ define('runtime/templating/compiled-element',["require", "exports", "../binding/
             set: function (value) { this.$observers[name].setValue(value); }
         });
     }
-    function createCustomElement(ctor, source) {
-        var template = template_1.Template.fromCompiledSource(source);
-        return _a = (function (_super) {
-                __extends(class_1, _super);
-                function class_1() {
-                    var args = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        args[_i] = arguments[_i];
-                    }
-                    var _this = _super.apply(this, args) || this;
-                    _this.$bindable = [];
-                    _this.$attachable = [];
-                    _this.$isBound = false;
-                    _this.$changeCallbacks = [];
-                    _this.$scope = {
-                        bindingContext: _this,
-                        overrideContext: scope_1.createOverrideContext()
-                    };
-                    setupObservers(_this, source);
-                    return _this;
-                }
-                class_1.prototype.applyTo = function (host) {
-                    this.$host = host;
-                    this.$view = this.createView(host);
-                    if ('created' in this) {
-                        this.created();
-                    }
-                    return this;
-                };
-                class_1.prototype.createView = function (host) {
-                    return template.createFor(this, host);
-                };
-                class_1.prototype.bind = function () {
-                    var scope = this.$scope;
-                    var bindable = this.$bindable;
-                    for (var i = 0, ii = bindable.length; i < ii; ++i) {
-                        bindable[i].bind(scope);
-                    }
-                    this.$isBound = true;
-                    var changeCallbacks = this.$changeCallbacks;
-                    for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-                        changeCallbacks[i]();
-                    }
-                    if ('bound' in this) {
-                        this.bound();
-                    }
-                };
-                class_1.prototype.attach = function () {
-                    var _this = this;
-                    if ('attaching' in this) {
-                        this.attaching();
-                    }
-                    var attachable = this.$attachable;
-                    for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                        attachable[i].attach();
-                    }
-                    this.$view.appendTo(this.$host);
-                    if ('attached' in this) {
-                        task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
-                    }
-                };
-                class_1.prototype.detach = function () {
-                    var _this = this;
-                    if ('detaching' in this) {
-                        this.detaching();
-                    }
-                    this.$view.remove();
-                    var attachable = this.$attachable;
-                    var i = attachable.length;
-                    while (i--) {
-                        attachable[i].detach();
-                    }
-                    if ('detached' in this) {
-                        task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
-                    }
-                };
-                class_1.prototype.unbind = function () {
-                    var bindable = this.$bindable;
-                    var i = bindable.length;
-                    while (i--) {
-                        bindable[i].unbind();
-                    }
-                    if ('unbound' in this) {
-                        this.unbound();
-                    }
-                    this.$isBound = false;
-                };
-                return class_1;
-            }(ctor)),
-            _a.template = template,
-            _a.source = source,
-            _a;
-        var _a;
-    }
-    function compiledElement(source) {
-        return function (target) {
-            return createCustomElement(target, source);
-        };
-    }
-    exports.compiledElement = compiledElement;
-});
-
-
-
-define('runtime/templating/component',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
 });
 
 
@@ -4979,21 +4981,17 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
             return view_1.View.none;
         }
     };
-    var Template = (function () {
-        function Template() {
-        }
-        Template.fromCompiledSource = function (source) {
+    exports.Template = {
+        none: noViewTemplate,
+        fromCompiledSource: function (source) {
             if (source && source.template) {
                 return new CompiledTemplate(source);
             }
             return noViewTemplate;
-        };
-        Template.none = noViewTemplate;
-        return Template;
-    }());
-    exports.Template = Template;
+        }
+    };
     function createViewFactory(source) {
-        var template = Template.fromCompiledSource(source);
+        var template = exports.Template.fromCompiledSource(source);
         return function () { return new visual_1.Visual(template); };
     }
     function makeElementIntoAnchor(element, elementInstruction) {
@@ -5003,7 +5001,6 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
         dom_1.DOM.replaceNode(anchor, element);
         return anchor;
     }
-    exports.makeElementIntoAnchor = makeElementIntoAnchor;
     function applyInstruction(owner, instruction, target) {
         switch (instruction.type) {
             case 'oneWayText':

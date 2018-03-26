@@ -1,4 +1,4 @@
-import { Template, CompiledElementSource } from "./runtime/templating/template";
+import { CompiledElementSource } from "./runtime/templating/component";
 import { NameTag } from "./name-tag";
 import { If } from "./runtime/resources/if";
 import { Else } from "./runtime/resources/else";

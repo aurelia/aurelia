@@ -7,9 +7,9 @@ import { ViewSlot } from "./view-slot";
 import { IBindScope } from "../binding/binding-interfaces";
 import { oneWayText, oneWay, fromView, twoWay, listener, ref, call } from "./generated";
 
-type Bindable = IBindScope | IBindSelf;
+type SupportsBindingLifecycle = IBindScope | IBindSelf;
 export interface IViewOwner {
-  $bindable: Bindable[];
+  $bindable: SupportsBindingLifecycle[];
   $attachable: IAttach[];
 }
 export interface ITemplate {
@@ -22,35 +22,30 @@ export interface CompiledViewSource {
   surrogateInstructions?: any[];
 }
 
-export interface CompiledElementSource extends CompiledViewSource{
-  name: string;
-  observers: any[];
-}
-
 const noViewTemplate: ITemplate = {
   createFor(owner: IViewOwner, host?: Node) {
     return View.none;
   }
 };
 
-export class Template {
-  static none: ITemplate = noViewTemplate;
+export const Template = {
+  none: noViewTemplate,
 
-  static fromCompiledSource(source: CompiledViewSource) {
+  fromCompiledSource(source: CompiledViewSource) {
     if (source && source.template) {
       return new CompiledTemplate(source);
     }
 
     return noViewTemplate;
   }
-}
+};
 
 function createViewFactory(source: CompiledViewSource): () => IVisual {
   let template = Template.fromCompiledSource(source);
   return function() { return new Visual(template); }
 }
 
-export function makeElementIntoAnchor(element: Element, elementInstruction?: any) {
+function makeElementIntoAnchor(element: Element, elementInstruction?: any) {
   let anchor = DOM.createComment('anchor');
 
   if (elementInstruction) {

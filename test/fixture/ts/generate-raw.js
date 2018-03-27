@@ -46,7 +46,7 @@ walk('.', (err, files) => {
     fs.writeFileSync(outFile, 'export const raw: { [path: string]: string } = Object.create(null);\n\n', 'utf-8');
 
     files.forEach(f => {
-      const content = fs.readFileSync(f, 'utf-8').replace(/([`$])/g, '\\$1');
+      const content = fs.readFileSync(f, 'utf-8').replace(/([`$\\])/g, '\\$1');
       const path = f.replace(/[\\\/]+/g, '/').replace(/\.ts$/, '').split('fixture/')[1];
 
       fs.appendFileSync(outFile, `raw['${path}'] = \`${content}\`\n`, 'utf-8');

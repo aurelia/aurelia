@@ -1,6 +1,6 @@
 export const raw: { [path: string]: string } = Object.create(null);
 
-raw['app'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/app'] = `import { autoinject } from "aurelia-dependency-injection";
 import { PLATFORM } from "aurelia-pal";
 import { Router, RouterConfiguration } from "aurelia-router";
 import { UserService } from "./shared/services/userservice";
@@ -72,14 +72,14 @@ export class App {
   }
 }
 `
-raw['environment'] = `export default {
+raw['ts/environment'] = `export default {
   debug: true,
   testing: true
 };
 `
-raw['globals.d'] = `declare module "querystringify"
+raw['ts/globals.d'] = `declare module "querystringify"
 `
-raw['index'] = `export * from "./shared/services/apiservice";
+raw['ts/index'] = `export * from "./shared/services/apiservice";
 export * from "./app";
 export * from "./components/article/articlecomponent";
 export * from "./shared/services/articleservice";
@@ -98,7 +98,7 @@ export * from "./shared/services/tagservice";
 export * from "aurelia-templating-binding";
 export * from "./shared/services/userservice";
 `
-raw['main'] = `import { Aurelia } from "aurelia-framework";
+raw['ts/main'] = `import { Aurelia } from "aurelia-framework";
 import { PLATFORM } from "aurelia-pal";
 import environment from "./environment";
 
@@ -121,7 +121,7 @@ export function configure(au: Aurelia): void {
   au.start().then(() => au.setRoot(PLATFORM.moduleName("app")));
 }
 `
-raw['components/article/articlecomponent'] = `import { computedFrom } from "aurelia-binding";
+raw['ts/components/article/articlecomponent'] = `import { computedFrom } from "aurelia-binding";
 import { autoinject } from "aurelia-dependency-injection";
 import { RouteConfig, Router } from "aurelia-router";
 import { ArticleService } from "../../shared/services/articleservice";
@@ -215,7 +215,7 @@ export class ArticleComponent {
   }
 }
 `
-raw['components/article/comment'] = `import { computedFrom } from "aurelia-binding";
+raw['ts/components/article/comment'] = `import { computedFrom } from "aurelia-binding";
 import { autoinject } from "aurelia-framework";
 import { bindable } from "aurelia-templating";
 import { SharedState } from "../../shared/state/sharedstate";
@@ -240,7 +240,7 @@ export class CommentCustomElement {
   }
 }
 `
-raw['components/auth/authcomponent'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/components/auth/authcomponent'] = `import { autoinject } from "aurelia-dependency-injection";
 import { activationStrategy, RouteConfig, Router } from "aurelia-router";
 import { ValidationController, ValidationControllerFactory, ValidationRules } from "aurelia-validation";
 import { UserService } from "../../shared/services/userservice";
@@ -320,7 +320,7 @@ export class AuthComponent {
   }
 }
 `
-raw['components/editor/editorcomponent'] = `import { observable } from "aurelia-binding";
+raw['ts/components/editor/editorcomponent'] = `import { observable } from "aurelia-binding";
 import { autoinject } from "aurelia-dependency-injection";
 import { RouteConfig, Router } from "aurelia-router";
 import { ArticleService } from "../../shared/services/articleservice";
@@ -385,7 +385,7 @@ export class EditorComponent {
   }
 }
 `
-raw['components/home/homecomponent'] = `import { Disposable } from "aurelia-binding";
+raw['ts/components/home/homecomponent'] = `import { Disposable } from "aurelia-binding";
 import { autoinject } from "aurelia-dependency-injection";
 import { BindingEngine } from "aurelia-framework";
 import { getLogger } from "aurelia-logging";
@@ -492,7 +492,7 @@ export class HomeComponent {
   }
 }
 `
-raw['components/profile/profilearticlecomponent'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/components/profile/profilearticlecomponent'] = `import { autoinject } from "aurelia-dependency-injection";
 import { RouteConfig } from "aurelia-router";
 import { ArticleService } from "../../shared/services/articleservice";
 
@@ -540,7 +540,7 @@ export class ProfileArticleComponent {
   }
 }
 `
-raw['components/profile/profilecomponent'] = `import { computedFrom } from "aurelia-binding";
+raw['ts/components/profile/profilecomponent'] = `import { computedFrom } from "aurelia-binding";
 import { autoinject } from "aurelia-dependency-injection";
 import { RouteConfig, Router, RouterConfiguration } from "aurelia-router";
 import { ProfileService } from "../../shared/services/profileservice";
@@ -595,7 +595,7 @@ export class ProfileComponent {
   }
 }
 `
-raw['components/profile/profilefavoritescomponent'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/components/profile/profilefavoritescomponent'] = `import { autoinject } from "aurelia-dependency-injection";
 import { RouteConfig } from "aurelia-router";
 import { ArticleService } from "../../shared/services/articleservice";
 
@@ -643,7 +643,7 @@ export class ProfileFavoritesComponent {
   }
 }
 `
-raw['components/settings/settingscomponent'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/components/settings/settingscomponent'] = `import { autoinject } from "aurelia-dependency-injection";
 import { Router } from "aurelia-router";
 import { UserService } from "../../shared/services/userservice";
 import { SharedState } from "../../shared/state/sharedstate";
@@ -670,71 +670,9 @@ export class SettingsComponent {
   }
 }
 `
-raw['resources/index'] = `import { FrameworkConfiguration } from "aurelia-framework";
-import { PLATFORM } from "aurelia-pal";
-
-export function configure(config: FrameworkConfiguration): void {
-  config.globalResources([PLATFORM.moduleName("./value-converters/date")]);
-}
+raw['ts/shared/layouts/footerlayout'] = `export class FooterLayout {}
 `
-raw['resources/elements/articlelist'] = `import { bindable } from "aurelia-framework";
-
-export class ArticleList {
-  @bindable()
-  public articles: any[] | undefined;
-
-  @bindable()
-  public pageNumber: number | undefined;
-
-  @bindable()
-  public totalPages: number | undefined;
-
-  @bindable()
-  public currentPage: number | undefined;
-
-  @bindable()
-  public setPageCb: Function | undefined;
-}
-`
-raw['resources/elements/articlepreview'] = `import { bindable } from "aurelia-framework";
-
-export class ArticlePreview {
-  @bindable()
-  public article: any;
-}
-`
-raw['resources/value-converters/date'] = `import moment from "moment";
-
-export class DateValueConverter {
-  /*
-  * "2017-07-27T07:01:19.644Z"
-  * into
-  * "July 27, 2017"
-  */
-  public toView(value: string): string {
-    return moment(value).format("MMMM D, YYYY");
-  }
-}
-`
-raw['resources/value-converters/formathtml'] = `export class FormatHtmlValueConverter {
-  public toView(value: string): string {
-    return value.replace(/(?:\r\n|\r|\n)/g, "<br />");
-  }
-}
-`
-raw['resources/value-converters/keys'] = `export class KeysValueConverter {
-  public toView(value: Object): PropertyKey[] {
-    if (value) {
-      return Reflect.ownKeys(value);
-    }
-
-    return [];
-  }
-}
-`
-raw['shared/layouts/footerlayout'] = `export class FooterLayout {}
-`
-raw['shared/layouts/headerlayout'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/shared/layouts/headerlayout'] = `import { autoinject } from "aurelia-dependency-injection";
 import { bindable, bindingMode } from "aurelia-framework";
 import { RouteConfig } from "aurelia-router";
 import { SharedState } from "../state/sharedstate";
@@ -757,7 +695,7 @@ export class HeaderLayout {
   }
 }
 `
-raw['shared/models/user'] = `export class User {
+raw['ts/shared/models/user'] = `export class User {
   public email: string;
   public token: string;
   public username: string;
@@ -773,7 +711,7 @@ raw['shared/models/user'] = `export class User {
   }
 }
 `
-raw['shared/services/apiservice'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/shared/services/apiservice'] = `import { autoinject } from "aurelia-dependency-injection";
 import { HttpClient, json } from "aurelia-fetch-client";
 import * as qs from "querystringify";
 import { config } from "./config";
@@ -856,7 +794,7 @@ export class ApiService {
   }
 }
 `
-raw['shared/services/articleservice'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/shared/services/articleservice'] = `import { autoinject } from "aurelia-dependency-injection";
 import { ApiService } from "./apiservice";
 
 @autoinject()
@@ -900,7 +838,7 @@ export class ArticleService {
   }
 }
 `
-raw['shared/services/commentservice'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/shared/services/commentservice'] = `import { autoinject } from "aurelia-dependency-injection";
 import { ApiService } from "./apiservice";
 
 @autoinject()
@@ -926,11 +864,25 @@ export class CommentService {
   }
 }
 `
-raw['shared/services/config'] = `export const config = {
+raw['ts/shared/services/config'] = `export const config = {
   api_url: "https://conduit.productionready.io/api"
 };
 `
-raw['shared/services/profileservice'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/shared/services/jwtservice'] = `export class JwtService {
+  public getToken(): string {
+    return window.localStorage.jwtToken;
+  }
+
+  public saveToken(token: string): void {
+    window.localStorage.jwtToken = token;
+  }
+
+  public destroyToken(): void {
+    window.localStorage.removeItem("jwtToken");
+  }
+}
+`
+raw['ts/shared/services/profileservice'] = `import { autoinject } from "aurelia-dependency-injection";
 import { ApiService } from "./apiservice";
 
 @autoinject()
@@ -955,21 +907,7 @@ export class ProfileService {
   }
 }
 `
-raw['shared/services/jwtservice'] = `export class JwtService {
-  public getToken(): string {
-    return window.localStorage.jwtToken;
-  }
-
-  public saveToken(token: string): void {
-    window.localStorage.jwtToken = token;
-  }
-
-  public destroyToken(): void {
-    window.localStorage.removeItem("jwtToken");
-  }
-}
-`
-raw['shared/services/servicehelper'] = `export function status<T>(response: Response): T {
+raw['ts/shared/services/servicehelper'] = `export function status<T>(response: Response): T {
   if (response.status >= 200 && response.status < 400) {
     return response.json() as any;
   }
@@ -985,7 +923,7 @@ export function parseError(error: any): any {
   return error;
 }
 `
-raw['shared/services/tagservice'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/shared/services/tagservice'] = `import { autoinject } from "aurelia-dependency-injection";
 import { ApiService } from "./apiservice";
 
 @autoinject()
@@ -1001,7 +939,7 @@ export class TagService {
   }
 }
 `
-raw['shared/services/userservice'] = `import { autoinject } from "aurelia-dependency-injection";
+raw['ts/shared/services/userservice'] = `import { autoinject } from "aurelia-dependency-injection";
 import { User } from "../models/user";
 import { SharedState } from "../state/sharedstate";
 import { ApiService } from "./apiservice";
@@ -1064,7 +1002,7 @@ export class UserService {
   }
 }
 `
-raw['shared/state/sharedstate'] = `import { User } from "../models/user";
+raw['ts/shared/state/sharedstate'] = `import { User } from "../models/user";
 
 export class SharedState {
   public currentUser: User;
@@ -1073,6 +1011,68 @@ export class SharedState {
   constructor() {
     this.currentUser = new User();
     this.isAuthenticated = false;
+  }
+}
+`
+raw['ts/resources/index'] = `import { FrameworkConfiguration } from "aurelia-framework";
+import { PLATFORM } from "aurelia-pal";
+
+export function configure(config: FrameworkConfiguration): void {
+  config.globalResources([PLATFORM.moduleName("./value-converters/date")]);
+}
+`
+raw['ts/resources/elements/articlelist'] = `import { bindable } from "aurelia-framework";
+
+export class ArticleList {
+  @bindable()
+  public articles: any[] | undefined;
+
+  @bindable()
+  public pageNumber: number | undefined;
+
+  @bindable()
+  public totalPages: number | undefined;
+
+  @bindable()
+  public currentPage: number | undefined;
+
+  @bindable()
+  public setPageCb: Function | undefined;
+}
+`
+raw['ts/resources/elements/articlepreview'] = `import { bindable } from "aurelia-framework";
+
+export class ArticlePreview {
+  @bindable()
+  public article: any;
+}
+`
+raw['ts/resources/value-converters/date'] = `import moment from "moment";
+
+export class DateValueConverter {
+  /*
+  * "2017-07-27T07:01:19.644Z"
+  * into
+  * "July 27, 2017"
+  */
+  public toView(value: string): string {
+    return moment(value).format("MMMM D, YYYY");
+  }
+}
+`
+raw['ts/resources/value-converters/formathtml'] = `export class FormatHtmlValueConverter {
+  public toView(value: string): string {
+    return value.replace(/(?:\\r\\n|\\r|\\n)/g, "<br />");
+  }
+}
+`
+raw['ts/resources/value-converters/keys'] = `export class KeysValueConverter {
+  public toView(value: Object): PropertyKey[] {
+    if (value) {
+      return Reflect.ownKeys(value);
+    }
+
+    return [];
   }
 }
 `

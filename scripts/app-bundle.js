@@ -4349,6 +4349,35 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
 
 
 
+define('runtime/templating/anchors',["require", "exports", "../dom"], function (require, exports, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function hasAttribute(name) {
+        return this._element.hasAttribute(name);
+    }
+    function getAttribute(name) {
+        return this._element.getAttribute(name);
+    }
+    function setAttribute(name, value) {
+        this._element.setAttribute(name, value);
+    }
+    function makeElementIntoAnchor(element, proxy) {
+        if (proxy === void 0) { proxy = false; }
+        var anchor = dom_1.DOM.createComment('anchor');
+        if (proxy) {
+            anchor._element = element;
+            anchor.hasAttribute = hasAttribute;
+            anchor.getAttribute = getAttribute;
+            anchor.setAttribute = setAttribute;
+        }
+        dom_1.DOM.replaceNode(anchor, element);
+        return anchor;
+    }
+    exports.makeElementIntoAnchor = makeElementIntoAnchor;
+});
+
+
+
 define('runtime/templating/animator',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4424,6 +4453,7 @@ define('runtime/templating/component',["require", "exports", "./template", "../b
                         var _this = _super.apply(this, args) || this;
                         _this.$bindable = [];
                         _this.$attachable = [];
+                        _this.$slots = source.hasSlots ? {} : null;
                         _this.$isBound = false;
                         _this.$changeCallbacks = [];
                         _this.$scope = {
@@ -4451,6 +4481,8 @@ define('runtime/templating/component',["require", "exports", "./template", "../b
                         var bindable = this.$bindable;
                         for (var i = 0, ii = bindable.length; i < ii; ++i) {
                             bindable[i].bind(scope);
+                        }
+                        if (source.hasSlots) {
                         }
                         this.$isBound = true;
                         var changeCallbacks = this.$changeCallbacks;
@@ -4620,7 +4652,7 @@ define('runtime/templating/generated',["require", "exports", "../binding/ast", "
 
 
 
-define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util"], function (require, exports, dom_1, util_1) {
+define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util", "./view-factory"], function (require, exports, dom_1, util_1, view_factory_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noNodes = Object.freeze([]);
@@ -4628,13 +4660,12 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
         function SlotCustomAttribute(element) {
             this.element = element;
             this.element = element;
-            this.element['auSlotAttribute'] = this;
+            this.element.auSlotAttribute = this;
         }
         SlotCustomAttribute.prototype.valueChanged = function (newValue, oldValue) {
         };
         return SlotCustomAttribute;
     }());
-    exports.SlotCustomAttribute = SlotCustomAttribute;
     var PassThroughSlot = (function () {
         function PassThroughSlot(anchor, name, destinationName, fallbackFactory) {
             this.anchor = anchor;
@@ -4644,9 +4675,9 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
             this.projections = 0;
             this.contentView = null;
             this.destinationSlot = null;
-            this.anchor['viewSlot'] = this;
+            this.anchor.viewSlot = this;
             var attr = new SlotCustomAttribute(this.anchor);
-            attr['value'] = this.destinationName;
+            attr.value = this.destinationName;
         }
         Object.defineProperty(PassThroughSlot.prototype, "needsFallbackRendering", {
             get: function () {
@@ -4662,7 +4693,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
                 this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
                 var slots = Object.create(null);
                 slots[this.destinationSlot.name] = this.destinationSlot;
-                ShadowDOM.distributeView(this.contentView, slots, projectionSource, index, this.destinationSlot.name);
+                exports.ShadowDOM.distributeView(this.contentView, slots, projectionSource, index, this.destinationSlot.name);
             }
         };
         PassThroughSlot.prototype.passThroughTo = function (destinationSlot) {
@@ -4702,17 +4733,17 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
         PassThroughSlot.prototype.created = function (ownerView) {
             this.ownerView = ownerView;
         };
-        PassThroughSlot.prototype.bind = function (view) {
+        PassThroughSlot.prototype.bind = function (scope) {
             if (this.contentView) {
-                this.contentView.bind(view.bindingContext, view.overrideContext);
+                this.contentView.bind(scope);
             }
         };
-        PassThroughSlot.prototype.attached = function () {
+        PassThroughSlot.prototype.attach = function () {
             if (this.contentView) {
                 this.contentView.attached();
             }
         };
-        PassThroughSlot.prototype.detached = function () {
+        PassThroughSlot.prototype.detach = function () {
             if (this.contentView) {
                 this.contentView.detached();
             }
@@ -4724,7 +4755,6 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
         };
         return PassThroughSlot;
     }());
-    exports.PassThroughSlot = PassThroughSlot;
     var ShadowSlot = (function () {
         function ShadowSlot(anchor, name, fallbackFactory) {
             this.anchor = anchor;
@@ -4735,8 +4765,8 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
             this.children = [];
             this.projectFromAnchors = null;
             this.destinationSlots = null;
-            this.anchor['isContentProjectionSource'] = true;
-            this.anchor['viewSlot'] = this;
+            this.anchor.isContentProjectionSource = true;
+            this.anchor.viewSlot = this;
         }
         Object.defineProperty(ShadowSlot.prototype, "needsFallbackRendering", {
             get: function () {
@@ -4757,7 +4787,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
                 return;
             }
             if (this.destinationSlots !== null) {
-                ShadowDOM.distributeNodes(view, [node], this.destinationSlots, this, index);
+                exports.ShadowDOM.distributeNodes(view, [node], this.destinationSlots, this, index);
             }
             else {
                 node.auOwnerView = view;
@@ -4772,10 +4802,10 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
         };
         ShadowSlot.prototype.removeView = function (view, projectionSource) {
             if (this.destinationSlots !== null) {
-                ShadowDOM.undistributeView(view, this.destinationSlots, this);
+                exports.ShadowDOM.undistributeView(view, this.destinationSlots, this);
             }
             else if (this.contentView && this.contentView.hasSlots) {
-                ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
+                exports.ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
             }
             else {
                 var found = this.children.find(function (x) { return x.auSlotProjectFrom === projectionSource; });
@@ -4799,10 +4829,10 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
         };
         ShadowSlot.prototype.removeAll = function (projectionSource) {
             if (this.destinationSlots !== null) {
-                ShadowDOM.undistributeAll(this.destinationSlots, this);
+                exports.ShadowDOM.undistributeAll(this.destinationSlots, this);
             }
             else if (this.contentView && this.contentView.hasSlots) {
-                ShadowDOM.undistributeAll(this.contentView.slots, projectionSource);
+                exports.ShadowDOM.undistributeAll(this.contentView.slots, projectionSource);
             }
             else {
                 var found = this.children.find(function (x) { return x.auSlotProjectFrom === projectionSource; });
@@ -4882,23 +4912,23 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
                     }
                 }
                 this.fallbackSlots = slots;
-                ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
+                exports.ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
             }
         };
         ShadowSlot.prototype.created = function (ownerView) {
             this.ownerView = ownerView;
         };
-        ShadowSlot.prototype.bind = function (view) {
+        ShadowSlot.prototype.bind = function (scope) {
             if (this.contentView) {
-                this.contentView.bind(view.bindingContext, view.overrideContext);
+                this.contentView.bind(scope);
             }
         };
-        ShadowSlot.prototype.attached = function () {
+        ShadowSlot.prototype.attach = function () {
             if (this.contentView) {
                 this.contentView.attached();
             }
         };
-        ShadowSlot.prototype.detached = function () {
+        ShadowSlot.prototype.detach = function () {
             if (this.contentView) {
                 this.contentView.detached();
             }
@@ -4910,17 +4940,28 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
         };
         return ShadowSlot;
     }());
-    exports.ShadowSlot = ShadowSlot;
-    var ShadowDOM = (function () {
-        function ShadowDOM() {
-        }
-        ShadowDOM.getSlotName = function (node) {
+    exports.ShadowDOM = {
+        defaultSlotKey: '__au-default-slot-key__',
+        getSlotName: function (node) {
             if (node.auSlotAttribute === undefined) {
-                return ShadowDOM.defaultSlotKey;
+                return this.defaultSlotKey;
             }
             return node.auSlotAttribute.value;
-        };
-        ShadowDOM.distributeView = function (view, slots, projectionSource, index, destinationOverride) {
+        },
+        createSlotFromInstruction: function (instruction) {
+            var anchor = dom_1.DOM.createComment('slot');
+            var fallbackFactory = instruction.factory;
+            if (fallbackFactory === undefined && instruction.fallback) {
+                instruction.factory = fallbackFactory = view_factory_1.ViewFactory.fromCompiledSource(instruction.fallback);
+            }
+            if (instruction.destination) {
+                return new PassThroughSlot(anchor, instruction.name, instruction.destination, fallbackFactory);
+            }
+            else {
+                return new ShadowSlot(anchor, instruction.name, fallbackFactory);
+            }
+        },
+        distributeView: function (view, slots, projectionSource, index, destinationOverride) {
             if (index === void 0) { index = 0; }
             if (destinationOverride === void 0) { destinationOverride = null; }
             var nodes;
@@ -4935,19 +4976,19 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
                     nodes[i] = childNodes[i];
                 }
             }
-            ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride);
-        };
-        ShadowDOM.undistributeView = function (view, slots, projectionSource) {
+            this.distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride);
+        },
+        undistributeView: function (view, slots, projectionSource) {
             for (var slotName in slots) {
                 slots[slotName].removeView(view, projectionSource);
             }
-        };
-        ShadowDOM.undistributeAll = function (slots, projectionSource) {
+        },
+        undistributeAll: function (slots, projectionSource) {
             for (var slotName in slots) {
                 slots[slotName].removeAll(projectionSource);
             }
-        };
-        ShadowDOM.distributeNodes = function (view, nodes, slots, projectionSource, index, destinationOverride) {
+        },
+        distributeNodes: function (view, nodes, slots, projectionSource, index, destinationOverride) {
             if (destinationOverride === void 0) { destinationOverride = null; }
             for (var i = 0, ii = nodes.length; i < ii; ++i) {
                 var currentNode = nodes[i];
@@ -4968,7 +5009,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
                         i--;
                     }
                     else {
-                        var found = slots[destinationOverride || ShadowDOM.getSlotName(currentNode)];
+                        var found = slots[destinationOverride || exports.ShadowDOM.getSlotName(currentNode)];
                         if (found) {
                             found.addNode(view, currentNode, projectionSource, index);
                             nodes.splice(i, 1);
@@ -4989,16 +5030,13 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
                     slot.renderFallbackContent(view, nodes, projectionSource, index);
                 }
             }
-        };
-        ShadowDOM.defaultSlotKey = '__au-default-slot-key__';
-        return ShadowDOM;
-    }());
-    exports.ShadowDOM = ShadowDOM;
+        }
+    };
 });
 
 
 
-define('runtime/templating/template',["require", "exports", "../dom", "./view", "./visual", "./view-slot", "./generated", "./anchors"], function (require, exports, dom_1, view_1, visual_1, view_slot_1, generated_1, anchors_1) {
+define('runtime/templating/template',["require", "exports", "../dom", "./view", "./view-slot", "./generated", "./anchors", "./shadow-dom", "./view-factory"], function (require, exports, dom_1, view_1, view_slot_1, generated_1, anchors_1, shadow_dom_1, view_factory_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -5015,10 +5053,6 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
             return noViewTemplate;
         }
     };
-    function createViewFactory(source) {
-        var template = exports.Template.fromCompiledSource(source);
-        return function () { return new visual_1.Visual(template); };
-    }
     function applyInstruction(owner, instruction, target) {
         switch (instruction.type) {
             case 'oneWayText':
@@ -5048,6 +5082,13 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
             case 'property':
                 target[instruction.target] = instruction.value;
                 break;
+            case 'slot':
+                var slot = shadow_dom_1.ShadowDOM.createSlotFromInstruction(instruction);
+                owner.$slots[slot.name] = slot;
+                owner.$bindable.push(slot);
+                owner.$attachable.push(slot);
+                dom_1.DOM.replaceNode(slot.anchor, target);
+                break;
             case 'element':
                 var elementInstructions = instruction.instructions;
                 var elementModel = new instruction.ctor();
@@ -5073,7 +5114,7 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
                 var templateControllerInstructions = instruction.instructions;
                 var factory = instruction.factory;
                 if (factory === undefined) {
-                    instruction.factory = factory = createViewFactory(instruction.config);
+                    instruction.factory = factory = view_factory_1.ViewFactory.fromCompiledSource(instruction.config);
                 }
                 var templateControllerModel = new instruction.ctor(factory, new view_slot_1.ViewSlot(anchors_1.makeElementIntoAnchor(target), false));
                 if (instruction.link) {
@@ -5115,6 +5156,19 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
         };
         return CompiledTemplate;
     }());
+});
+
+
+
+define('runtime/templating/view-factory',["require", "exports", "./visual", "./template"], function (require, exports, visual_1, template_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ViewFactory = {
+        fromCompiledSource: function (source) {
+            var template = template_1.Template.fromCompiledSource(source);
+            return function () { return new visual_1.Visual(template); };
+        }
+    };
 });
 
 
@@ -5351,24 +5405,24 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             this.removeAt = this._projectionRemoveAt;
             this.removeMany = this._projectionRemoveMany;
             this.removeAll = this._projectionRemoveAll;
-            this.children.forEach(function (view) { return shadow_dom_1.ShadowDOM.distributeView(view, slots, _this); });
+            this.children.forEach(function (view) { return shadow_dom_1.ShadowDOM.distributeView(view.$view, slots, _this); });
         };
-        ViewSlot.prototype._projectionAdd = function (view) {
-            shadow_dom_1.ShadowDOM.distributeView(view, this.projectToSlots, this);
-            this.children.push(view);
+        ViewSlot.prototype._projectionAdd = function (visual) {
+            shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this);
+            this.children.push(visual);
             if (this.isAttached) {
-                view.attached();
+                visual.attach();
             }
         };
-        ViewSlot.prototype._projectionInsert = function (index, view) {
+        ViewSlot.prototype._projectionInsert = function (index, visual) {
             if ((index === 0 && !this.children.length) || index >= this.children.length) {
-                this.add(view);
+                this.add(visual);
             }
             else {
-                shadow_dom_1.ShadowDOM.distributeView(view, this.projectToSlots, this, index);
-                this.children.splice(index, 0, view);
+                shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, index);
+                this.children.splice(index, 0, visual);
                 if (this.isAttached) {
-                    view.attached();
+                    visual.attach();
                 }
             }
         };
@@ -5377,28 +5431,28 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
                 return;
             }
             var children = this.children;
-            var view = children[sourceIndex];
-            shadow_dom_1.ShadowDOM.undistributeView(view, this.projectToSlots, this);
-            shadow_dom_1.ShadowDOM.distributeView(view, this.projectToSlots, this, targetIndex);
+            var visual = children[sourceIndex];
+            shadow_dom_1.ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
+            shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, targetIndex);
             children.splice(sourceIndex, 1);
-            children.splice(targetIndex, 0, view);
+            children.splice(targetIndex, 0, visual);
         };
-        ViewSlot.prototype._projectionRemove = function (view) {
-            shadow_dom_1.ShadowDOM.undistributeView(view, this.projectToSlots, this);
-            this.children.splice(this.children.indexOf(view), 1);
+        ViewSlot.prototype._projectionRemove = function (visual) {
+            shadow_dom_1.ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
+            this.children.splice(this.children.indexOf(visual), 1);
             if (this.isAttached) {
-                view.detached();
+                visual.detach();
             }
-            return view;
+            return visual;
         };
         ViewSlot.prototype._projectionRemoveAt = function (index, skipAnimation) {
-            var view = this.children[index];
-            shadow_dom_1.ShadowDOM.undistributeView(view, this.projectToSlots, this);
+            var visual = this.children[index];
+            shadow_dom_1.ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
             this.children.splice(index, 1);
             if (this.isAttached) {
-                view.detach();
+                visual.detach();
             }
-            return view;
+            return visual;
         };
         ViewSlot.prototype._projectionRemoveMany = function (viewsToRemove, skipAnimation) {
             var _this = this;
@@ -5510,64 +5564,6 @@ define('runtime/templating/visual',["require", "exports"], function (require, ex
         return Visual;
     }());
     exports.Visual = Visual;
-});
-
-
-
-define('runtime/templating/anchor',["require", "exports", "../dom"], function (require, exports, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function hasAttribute(name) {
-        return this._element.hasAttribute(name);
-    }
-    function getAttribute(name) {
-        return this._element.getAttribute(name);
-    }
-    function setAttribute(name, value) {
-        this._element.setAttribute(name, value);
-    }
-    function makeElementIntoAnchor(element, proxy) {
-        if (proxy === void 0) { proxy = false; }
-        var anchor = dom_1.DOM.createComment('anchor');
-        if (proxy) {
-            anchor._element = element;
-            anchor.hasAttribute = hasAttribute;
-            anchor.getAttribute = getAttribute;
-            anchor.setAttribute = setAttribute;
-        }
-        dom_1.DOM.replaceNode(anchor, element);
-        return anchor;
-    }
-    exports.makeElementIntoAnchor = makeElementIntoAnchor;
-});
-
-
-
-define('runtime/templating/anchors',["require", "exports", "../dom"], function (require, exports, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function hasAttribute(name) {
-        return this._element.hasAttribute(name);
-    }
-    function getAttribute(name) {
-        return this._element.getAttribute(name);
-    }
-    function setAttribute(name, value) {
-        this._element.setAttribute(name, value);
-    }
-    function makeElementIntoAnchor(element, proxy) {
-        if (proxy === void 0) { proxy = false; }
-        var anchor = dom_1.DOM.createComment('anchor');
-        if (proxy) {
-            anchor._element = element;
-            anchor.hasAttribute = hasAttribute;
-            anchor.getAttribute = getAttribute;
-            anchor.setAttribute = setAttribute;
-        }
-        dom_1.DOM.replaceNode(anchor, element);
-        return anchor;
-    }
-    exports.makeElementIntoAnchor = makeElementIntoAnchor;
 });
 
 

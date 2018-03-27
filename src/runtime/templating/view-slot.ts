@@ -1,5 +1,5 @@
 import { Animator } from './animator';
-import { ShadowDOM } from './shadow-dom';
+import { ShadowDOM, IShadowSlot } from './shadow-dom';
 import { IAttach } from './component';
 import { IScope, IBindScope } from '../binding/binding-interfaces';
 import { IVisual } from './visual';
@@ -34,7 +34,7 @@ export class ViewSlot implements IBindScope, IAttach {
   private isBound = false;
   private isAttached = false;
   private contentSelectors = null;
-  private projectToSlots;
+  private projectToSlots: Record<string, IShadowSlot>;
 
   /**
   * Creates an instance of ViewSlot.
@@ -154,7 +154,7 @@ export class ViewSlot implements IBindScope, IAttach {
    * @param sourceIndex The index the view is currently at.
    * @param targetIndex The index to insert the view at.
    */
-  move(sourceIndex, targetIndex) {
+  move(sourceIndex: number, targetIndex: number) {
     if (sourceIndex === targetIndex) {
       return;
     }
@@ -339,7 +339,7 @@ export class ViewSlot implements IBindScope, IAttach {
     }
   }
 
-  projectTo(slots: Object): void {
+  projectTo(slots: Record<string, IShadowSlot>): void {
     this.projectToSlots = slots;
     this.add = this._projectionAdd;
     this.insert = this._projectionInsert;
@@ -348,73 +348,73 @@ export class ViewSlot implements IBindScope, IAttach {
     this.removeAt = this._projectionRemoveAt;
     this.removeMany = this._projectionRemoveMany;
     this.removeAll = this._projectionRemoveAll;
-    this.children.forEach(view => ShadowDOM.distributeView(view, slots, this));
+    this.children.forEach(view => ShadowDOM.distributeView(view.$view, slots, this));
   }
 
-  _projectionAdd(view) {
-    ShadowDOM.distributeView(view, this.projectToSlots, this);
+  _projectionAdd(visual: IVisual) {
+    ShadowDOM.distributeView(visual.$view, this.projectToSlots, this);
 
-    this.children.push(view);
+    this.children.push(visual);
 
     if (this.isAttached) {
-      view.attached();
+      visual.attach();
     }
   }
 
-  _projectionInsert(index, view) {
+  _projectionInsert(index: number, visual: IVisual) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
-      this.add(view);
+      this.add(visual);
     } else {
-      ShadowDOM.distributeView(view, this.projectToSlots, this, index);
+      ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, index);
 
-      this.children.splice(index, 0, view);
+      this.children.splice(index, 0, visual);
 
       if (this.isAttached) {
-        view.attached();
+        visual.attach();
       }
     }
   }
 
-  _projectionMove(sourceIndex, targetIndex) {
+  _projectionMove(sourceIndex: number, targetIndex: number) {
     if (sourceIndex === targetIndex) {
       return;
     }
 
     const children = this.children;
-    const view = children[sourceIndex];
+    const visual = children[sourceIndex];
 
-    ShadowDOM.undistributeView(view, this.projectToSlots, this);
-    ShadowDOM.distributeView(view, this.projectToSlots, this, targetIndex);
+    ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
+    ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, targetIndex);
 
     children.splice(sourceIndex, 1);
-    children.splice(targetIndex, 0, view);
+    children.splice(targetIndex, 0, visual);
   }
 
-  _projectionRemove(view) {
-    ShadowDOM.undistributeView(view, this.projectToSlots, this);
-    this.children.splice(this.children.indexOf(view), 1);
+  _projectionRemove(visual: IVisual) {
+    ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
+    this.children.splice(this.children.indexOf(visual), 1);
 
     if (this.isAttached) {
-      view.detached();
+      visual.detach();
     }
 
-    return view;
+    return visual;
   }
 
   _projectionRemoveAt(index: number, skipAnimation?: boolean) {
-    let view = this.children[index];
+    let visual = this.children[index];
 
-    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
     this.children.splice(index, 1);
 
     if (this.isAttached) {
-      view.detach();
+      visual.detach();
     }
 
-    return view;
+    return visual;
   }
 
-  _projectionRemoveMany(viewsToRemove, skipAnimation) {
+  _projectionRemoveMany(viewsToRemove: IVisual[], skipAnimation: boolean) {
     viewsToRemove.forEach(view => this.remove(view));
   }
 

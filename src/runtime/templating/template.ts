@@ -7,11 +7,14 @@ import { ViewSlot } from "./view-slot";
 import { IBindScope } from "../binding/binding-interfaces";
 import { oneWayText, oneWay, fromView, twoWay, listener, ref, call } from "./generated";
 import { makeElementIntoAnchor } from "./anchors";
+import { IShadowSlot, ShadowDOM } from "./shadow-dom";
+import { ViewFactory } from "./view-factory";
 
 type SupportsBindingLifecycle = IBindScope | IBindSelf;
 export interface IViewOwner {
   $bindable: SupportsBindingLifecycle[];
   $attachable: IAttach[];
+  $slots?: Record<string, IShadowSlot>;
 }
 export interface ITemplate {
   createFor(owner: IViewOwner, host?: Node): IView;
@@ -41,11 +44,6 @@ export const Template = {
   }
 };
 
-function createViewFactory(source: CompiledViewSource): () => IVisual {
-  let template = Template.fromCompiledSource(source);
-  return function() { return new Visual(template); }
-}
-
 function applyInstruction(owner: IViewOwner, instruction, target) {
   switch(instruction.type) {
     case 'oneWayText':
@@ -74,6 +72,13 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
       break;
     case 'property':
       target[instruction.target] = instruction.value;
+      break;
+    case 'slot':
+      let slot = ShadowDOM.createSlotFromInstruction(instruction);
+      owner.$slots[slot.name] = slot;
+      owner.$bindable.push(slot);
+      owner.$attachable.push(slot);
+      DOM.replaceNode(slot.anchor, target);
       break;
     case 'element':
       let elementInstructions = instruction.instructions;
@@ -106,7 +111,7 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
       let factory = instruction.factory;
 
       if (factory === undefined) {
-        instruction.factory = factory = createViewFactory(instruction.config);
+        instruction.factory = factory = ViewFactory.fromCompiledSource(instruction.config);
       }  
 
       let templateControllerModel: IComponent = new instruction.ctor(

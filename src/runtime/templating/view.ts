@@ -1,4 +1,6 @@
 export interface IView {
+  fragment?: DocumentFragment;
+
   firstChild: Node;
   lastChild: Node;
 
@@ -22,8 +24,7 @@ const noopView: IView = {
 export class View implements IView {
   static none: IView = noopView;
 
-  private fragment: DocumentFragment;
-
+  fragment: DocumentFragment;
   firstChild: Node;
   lastChild: Node;
 

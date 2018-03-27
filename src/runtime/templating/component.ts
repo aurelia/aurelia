@@ -6,6 +6,7 @@ import { createOverrideContext } from "../binding/scope";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
 import { makeElementIntoAnchor } from "./anchors";
+import { IShadowSlot, ShadowDOM } from "./shadow-dom";
 
 export interface IBindSelf {
   bind(): void;
@@ -27,6 +28,7 @@ export interface IComponent extends IBindSelf, IAttach, IApplyToTarget {
 export interface CompiledElementSource extends CompiledViewSource {
   name: string;
   containerless?: boolean;
+  hasSlots?: boolean;
   observers: any[];
 }
 
@@ -50,6 +52,8 @@ export const Component = {
   
       $bindable: IBinding[] = [];
       $attachable: IAttach[] = [];
+      $slots: Record<string, IShadowSlot> = source.hasSlots ? {} : null;
+
       private $isBound = false;
   
       private $view: IView;
@@ -91,6 +95,10 @@ export const Component = {
   
         for (let i = 0, ii = bindable.length; i < ii; ++i) {
           bindable[i].bind(scope);
+        }
+
+        if (source.hasSlots) {
+          //ShadowDOM.distributeView(this.contentView, this.$slots);
         }
   
         this.$isBound = true;

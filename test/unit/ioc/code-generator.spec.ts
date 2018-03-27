@@ -40,7 +40,7 @@ describe('DependencyInjectionCodeGenerator', () => {
   it('should return correct configuration', () => {
     const actual = sut.create(config);
 
-    expect(actual.fileMap.size).toBe(26); // 26 exported classes in the fixture
+    expect(actual.fileMap.size).toBe(22); // 26 exported classes in the fixture, 4 of which should be skipped (3 converters and the environment.ts)
   });
 });
 

@@ -17,7 +17,8 @@ import {
   AndSpecification,
   OrSpecification,
   NotSpecification,
-  OmitObject
+  OmitObject,
+  SomeSpecification
 } from '../composition/core';
 import { StaticModuleConfiguration } from '../static-module-configuration';
 import {
@@ -45,6 +46,16 @@ export class SyntaxTransformer {
       new NotSpecification(new TypeNameSpecification(/Undefined/))
     );
 
+    const isBindingBehavior = new OrSpecification(
+      new ClassNameSpecification(/(BindingBehavior|ValueConverter)$/),
+      new PropertySpecification(
+        'decorators',
+        new SomeSpecification(
+          new DecoratorNameSpecification(/bindingBehavior|valueConverter/)
+        )
+      )
+    );
+
     const graphNodeBuilder = new FilteringObjectBuilderNode(
       new Postprocessor(
         new CompositeObjectBuilderNode(
@@ -65,6 +76,7 @@ export class SyntaxTransformer {
     const graphBuilder = new CompositeObjectBuilderNode(
       new ModuleBuilder(),
       new DecoratorBuilder(),
+      new FilteringObjectBuilderNode(new OmitObjectRelay(), isBindingBehavior),
       graphNodeBuilder,
       new NameBuilder(),
       new SkippableNodeResidueCollector()
@@ -83,9 +95,13 @@ export class SyntaxTransformer {
   }
 
   public create(...sourceFiles: ts.SourceFile[]): StaticModuleConfiguration {
-    const config = new StaticModuleConfiguration(...sourceFiles.map(s => this.context.resolve(s)));
-    for (const m of config.modules) {
-      m.parent = config;
+    const config = new StaticModuleConfiguration();
+    for (const sourceFile of sourceFiles) {
+      const mod = this.context.resolve(sourceFile) as AST.IModule;
+      if (!(mod instanceof OmitObject) && mod.items.length) {
+        config.modules.push(mod);
+        mod.parent = config;
+      }
     }
     return config;
   }
@@ -168,7 +184,7 @@ export class TextResidueCollector implements IObjectBuilder {
       return request.escapedText;
     }
 
-    switch(request.kind) {
+    switch (request.kind) {
       case ts.SyntaxKind.AnyKeyword: {
         return undefined;
       }
@@ -261,13 +277,15 @@ export class SkippableNodeResidueCollector implements IObjectBuilder {
       return NoObject;
     }
     const parent = request[parentSymbol] as AST.INode;
-    // Currently only ModuleBuilder and ClassDeclarationBuilder are aware of OmitObject
-    // so we don't accidentally want any of the other builders to assign OmitObject to a property
-    // that is supposed to be a syntax
-    if (parent.kind !== AST.NodeKind.Module && parent.kind !== AST.NodeKind.Class) {
+    // Make sure we can only return OmitObject to builders that know about it
+    if (
+      request.kind !== ts.SyntaxKind.SourceFile &&
+      parent.kind !== AST.NodeKind.Module &&
+      parent.kind !== AST.NodeKind.Class
+    ) {
       return NoObject;
     }
-    switch(request.kind) {
+    switch (request.kind) {
       case ts.SyntaxKind.GetAccessor:
       case ts.SyntaxKind.SetAccessor:
       case ts.SyntaxKind.ExpressionStatement:
@@ -279,6 +297,12 @@ export class SkippableNodeResidueCollector implements IObjectBuilder {
         return NoObject;
       }
     }
+  }
+}
+
+export class OmitObjectRelay implements IObjectBuilder {
+  public create(request: any, context: IObjectContext): OmitObject {
+    return new OmitObject(request);
   }
 }
 
@@ -316,3 +340,35 @@ export class DecoratorsQuery implements IObjectQuery {
 }
 
 const parentSymbol = Symbol('parent');
+
+export class ClassNameSpecification implements IRequestSpecification {
+  public name: RegExp;
+  constructor(name: RegExp) {
+    this.name = name;
+  }
+
+  public isSatisfiedBy(request: ts.ClassDeclaration): boolean {
+    if (request.kind !== ts.SyntaxKind.ClassDeclaration || !request.name) {
+      return false;
+    }
+    const name = request.name.text || (request.name.escapedText as string);
+    return this.name.test(name);
+  }
+}
+
+export class DecoratorNameSpecification implements IRequestSpecification {
+  public name: RegExp;
+  constructor(name: RegExp) {
+    this.name = name;
+  }
+
+  public isSatisfiedBy(request: ts.Decorator): boolean {
+    if (request.kind !== ts.SyntaxKind.Decorator || request.expression.kind !== ts.SyntaxKind.CallExpression) {
+      return false;
+    }
+    const callExpression = request.expression as ts.CallExpression;
+    const callee = callExpression.expression as any;
+    const name = callee.text || (callee.escapedText as string);
+    return this.name.test(name);
+  }
+}

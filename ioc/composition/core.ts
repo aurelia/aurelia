@@ -156,3 +156,17 @@ export class NotSpecification implements IRequestSpecification {
     return !this.specification.isSatisfiedBy(request);
   }
 }
+
+export class SomeSpecification implements IRequestSpecification {
+  public readonly specification: IRequestSpecification;
+  constructor(specification: IRequestSpecification) {
+    this.specification = specification;
+  }
+
+  public isSatisfiedBy(request: any[]): boolean {
+    if (!(request && Array.isArray(request))) {
+      return false;
+    }
+    return request.some(i => this.specification.isSatisfiedBy(i));
+  }
+}

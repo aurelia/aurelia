@@ -1,0 +1,20 @@
+<template>
+  <require from="./articlepreview"></require>
+
+  <div class="article-preview" show.bind="articles.length === 0">
+    No articles are here... yet.
+  </div>
+
+  <article-preview repeat.for="article of articles" article.bind="article"></article-preview>
+
+  <nav show.bind="totalPages.length > 1">
+    <ul class="pagination">
+      <li class="page-item"
+          class="${pageNumber === currentPage ? 'active' : ''}"
+          repeat.for="pageNumber of totalPages"
+          click.delegate="setPageCb({pageNumber: pageNumber})">
+        <a class="page-link" href="#">${pageNumber}</a>
+      </li>
+    </ul>
+  </nav>
+</template>

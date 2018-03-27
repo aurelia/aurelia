@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { raw } from '../../fixture/raw';
+import { raw } from '../../fixture/ts/raw';
 import * as AST from '../../../ioc/analysis/ast';
 import { TypeScriptSyntaxTransformer } from '../../../ioc/analysis/ts-syntax-transformer';
 import { StaticModuleConfiguration } from '../../../ioc/static-module-configuration';

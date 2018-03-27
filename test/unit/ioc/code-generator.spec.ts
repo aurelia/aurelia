@@ -10,7 +10,7 @@ import {
   ModuleImportRequest
 } from '../../../ioc/analysis/code-generator';
 import * as ts from 'typescript';
-import { raw } from '../../fixture/raw';
+import { raw } from '../../fixture/ts/raw';
 import * as AST from '../../../ioc/analysis/ast';
 import { StaticModuleConfiguration } from '../../../ioc/static-module-configuration';
 import { TypeScriptSyntaxTransformer } from '../../../ioc/analysis/ts-syntax-transformer';

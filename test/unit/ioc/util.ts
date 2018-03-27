@@ -36,7 +36,7 @@ import {
   ProfileService,
   TagService,
   SharedState
-} from "../../fixture";
+} from "../../fixture/ts";
 import { PLATFORM } from "aurelia-pal";
 import { DefaultInjector } from "../../../ioc/injector";
 

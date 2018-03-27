@@ -35,7 +35,7 @@ import {
   ProfileComponent,
   ProfileFavoritesComponent,
   SettingsComponent
-} from '../../fixture';
+} from '../../fixture/ts';
 
 /**
  * Baseline test

@@ -21,9 +21,9 @@
 ## To try the code generator:
 
 - `npm run build-ioc`
-- `npm run test-ioc`
+- `npm run test-ioc-ts-fixture`
 
-There will be `.js` files next to the `.ts` files under `test/fixture`
+There will be `.js` files next to the `.ts` files under `test/fixture/ts`
 
 ## Main components
 

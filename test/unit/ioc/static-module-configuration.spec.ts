@@ -38,6 +38,7 @@ describe('StaticModuleConfiguration', () => {
     const actual = injector.getInstance<SyntaxEmitResult>(node);
 
     expect(actual.node).toEqual(node);
+    expect(actual.dependencies.length).toBe(1);
   });
 
   it('should produce the correct result for ArticleComponent', () => {
@@ -46,6 +47,7 @@ describe('StaticModuleConfiguration', () => {
     const actual = injector.getInstance<SyntaxEmitResult>(node);
 
     expect(actual.node).toEqual(node);
+    expect(actual.dependencies.length).toBe(6);
   });
 
   it('should produce the correct result for AuthComponent', () => {
@@ -54,6 +56,7 @@ describe('StaticModuleConfiguration', () => {
     const actual = injector.getInstance<SyntaxEmitResult>(node);
 
     expect(actual.node).toEqual(node);
+    expect(actual.dependencies.length).toBe(4);
   });
 
   it('should produce the correct result for EditorComponent', () => {
@@ -62,6 +65,7 @@ describe('StaticModuleConfiguration', () => {
     const actual = injector.getInstance<SyntaxEmitResult>(node);
 
     expect(actual.node).toEqual(node);
+    expect(actual.dependencies.length).toBe(2);
   });
 
   it('should produce the correct result for HomeComponent', () => {
@@ -70,6 +74,7 @@ describe('StaticModuleConfiguration', () => {
     const actual = injector.getInstance<SyntaxEmitResult>(node);
 
     expect(actual.node).toEqual(node);
+    expect(actual.dependencies.length).toBe(4);
   });
 
   it('should produce the correct result for ProfileArticleComponent', () => {
@@ -78,6 +83,7 @@ describe('StaticModuleConfiguration', () => {
     const actual = injector.getInstance<SyntaxEmitResult>(node);
 
     expect(actual.node).toEqual(node);
+    expect(actual.dependencies.length).toBe(1);
   });
 
   it('should produce the correct result for ProfileComponent', () => {
@@ -86,6 +92,7 @@ describe('StaticModuleConfiguration', () => {
     const actual = injector.getInstance<SyntaxEmitResult>(node);
 
     expect(actual.node).toEqual(node);
+    expect(actual.dependencies.length).toBe(2);
   });
 
   it('should produce the correct result for ProfileFavoritesComponent', () => {
@@ -94,6 +101,7 @@ describe('StaticModuleConfiguration', () => {
     const actual = injector.getInstance<SyntaxEmitResult>(node);
 
     expect(actual.node).toEqual(node);
+    expect(actual.dependencies.length).toBe(1);
   });
 
   it('should produce the correct result for SettingsComponent', () => {
@@ -102,5 +110,6 @@ describe('StaticModuleConfiguration', () => {
     const actual = injector.getInstance<SyntaxEmitResult>(node);
 
     expect(actual.node).toEqual(node);
+    expect(actual.dependencies.length).toBe(3);
   });
 });

@@ -1,5 +1,5 @@
 import { DefaultInjector, InjectorBuilder } from './injector';
-import { TypeScriptSyntaxTransformer } from './analysis/syntax-transformer';
+import { TypeScriptSyntaxTransformer } from './analysis/ts-syntax-transformer';
 import { DependencyInjectionCodeGenerator } from './analysis/code-generator';
 import * as ts from 'typescript';
 import { IFileUtils } from './interfaces';

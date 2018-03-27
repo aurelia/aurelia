@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import { raw } from '../../fixture/raw';
 import * as AST from '../../../ioc/analysis/ast';
-import { TypeScriptSyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
+import { TypeScriptSyntaxTransformer } from '../../../ioc/analysis/ts-syntax-transformer';
 import { StaticModuleConfiguration } from '../../../ioc/static-module-configuration';
 import { InjectorBuilder } from '../../../ioc/injector';
 import { IInjector } from '../../../ioc/interfaces';

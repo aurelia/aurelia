@@ -1,5 +1,5 @@
 import { DefaultInjector, InjectorBuilder } from './injector';
-import { TypeScriptSyntaxTransformer } from './analysis/ts-syntax-transformer';
+import { SyntaxTransformer } from './analysis/syntax-transformer';
 import { DependencyInjectionCodeGenerator } from './analysis/code-generator';
 import * as ts from 'typescript';
 import { IFileUtils } from './interfaces';
@@ -7,12 +7,12 @@ import { IModule } from './analysis/ast';
 
 export class DIGenerator {
   public readonly fileUtils: IFileUtils;
-  public readonly transformer: TypeScriptSyntaxTransformer;
+  public readonly transformer: SyntaxTransformer;
   public readonly generator: DependencyInjectionCodeGenerator;
 
   constructor(fileUtils: IFileUtils) {
     this.fileUtils = fileUtils;
-    this.transformer = new TypeScriptSyntaxTransformer();
+    this.transformer = new SyntaxTransformer();
     this.generator = new DependencyInjectionCodeGenerator();
   }
 

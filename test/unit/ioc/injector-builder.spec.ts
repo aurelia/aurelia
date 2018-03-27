@@ -43,7 +43,7 @@ import { IContext } from '../../../ioc/interfaces';
 import * as ts from 'typescript';
 import { raw } from '../../fixture/ts/raw';
 import * as AST from '../../../ioc/analysis/ast';
-import { TypeScriptSyntaxTransformer } from '../../../ioc/analysis/ts-syntax-transformer';
+import { SyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
 
 describe('InjectorBuilder', () => {
   let sut: InjectorBuilder;

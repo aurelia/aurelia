@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import * as AST from './ast';
 import { IObjectBuilder, IObjectContext } from '../composition/interfaces';
 import { NoObject } from '../composition/core';
-import { ChildNode, OptionalRequest } from './ts-syntax-transformer';
+import { ChildNode, OptionalRequest } from './syntax-transformer';
 
 export class ModuleBuilder implements IObjectBuilder {
   public create(request: ts.Node, context: IObjectContext): Partial<AST.INode> | symbol {

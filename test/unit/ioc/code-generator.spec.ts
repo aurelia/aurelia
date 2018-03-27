@@ -13,7 +13,7 @@ import * as ts from 'typescript';
 import { raw } from '../../fixture/ts/raw';
 import * as AST from '../../../ioc/analysis/ast';
 import { StaticModuleConfiguration } from '../../../ioc/static-module-configuration';
-import { TypeScriptSyntaxTransformer } from '../../../ioc/analysis/ts-syntax-transformer';
+import { SyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
 import { InjectorBuilder } from '../../../ioc/injector';
 import { Node } from '../../../ioc/graph';
 import { IObjectContext } from '../../../ioc/composition/interfaces';
@@ -32,7 +32,7 @@ describe('DependencyInjectionCodeGenerator', () => {
       const sourceFile = ts.createSourceFile(path, raw[path], ts.ScriptTarget.ES2015);
       sourceFiles.push(sourceFile);
     }
-    let transformer = new TypeScriptSyntaxTransformer();
+    let transformer = new SyntaxTransformer();
     config = transformer.create(...sourceFiles);
     config.rootDir = '';
   });

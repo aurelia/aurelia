@@ -34,7 +34,7 @@ import {
 } from './node-builders';
 import { TypeNameSpecification, PropertySpecification, IsTypeScriptSyntaxSpecification } from './specifications';
 
-export class TypeScriptSyntaxTransformer {
+export class SyntaxTransformer {
   private readonly context: IObjectContext;
 
   constructor() {

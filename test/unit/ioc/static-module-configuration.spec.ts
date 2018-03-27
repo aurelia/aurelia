@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import { raw } from '../../fixture/ts/raw';
 import * as AST from '../../../ioc/analysis/ast';
-import { TypeScriptSyntaxTransformer } from '../../../ioc/analysis/ts-syntax-transformer';
+import { SyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
 import { StaticModuleConfiguration } from '../../../ioc/static-module-configuration';
 import { InjectorBuilder } from '../../../ioc/injector';
 import { IInjector } from '../../../ioc/interfaces';
@@ -9,7 +9,7 @@ import { SyntaxEmitResult } from '../../../ioc/activators';
 
 describe('StaticModuleConfiguration', () => {
   let sourceFiles: ts.SourceFile[];
-  let transformer: TypeScriptSyntaxTransformer;
+  let transformer: SyntaxTransformer;
   let injectorBuilder: InjectorBuilder;
   let sut: StaticModuleConfiguration;
   let injector: IInjector;
@@ -21,7 +21,7 @@ describe('StaticModuleConfiguration', () => {
       const sourceFile = ts.createSourceFile(path, raw[path], ts.ScriptTarget.ES2015);
       sourceFiles.push(sourceFile);
     }
-    transformer = new TypeScriptSyntaxTransformer();
+    transformer = new SyntaxTransformer();
     sut = transformer.create(...sourceFiles);
     injectorBuilder = InjectorBuilder.create(sut);
     injector = injectorBuilder.build();

@@ -104,4 +104,5 @@ export interface IFileUtils {
   existsSync(fileName: string): boolean;
 
   getFileNamesRecursive(dir): Promise<string[]>;
+  getAbsolutePath(dir): string;
 }

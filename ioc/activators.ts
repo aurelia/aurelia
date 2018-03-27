@@ -119,27 +119,27 @@ export class EmitSyntaxActivator implements IActivator {
   }
 
   public activate(): SyntaxEmitResult {
-    let constructorKey: IPair<PropertyKey, PropertyDescriptor>;
-    const dependencyGroups = new Map<IPair<PropertyKey, PropertyDescriptor>, IRequirement[]>();
+    const dependencyGroups = new Map<string, IRequirement[]>();
     for (const req of this.requirements) {
-      const key = req.injectionPoint.getMember();
+      const key = req.injectionPoint.getMember().left.toString();
       if (dependencyGroups.has(key)) {
         dependencyGroups.get(key).push(req);
       } else {
         dependencyGroups.set(key, [req]);
       }
-      if (key.left.toString() === 'constructor') {
-        constructorKey = key;
-      }
     }
     const result = new SyntaxEmitResult(this.type);
-    if (constructorKey !== undefined) {
-      const constructorDeps = dependencyGroups.get(constructorKey);
+    const constructorDeps = dependencyGroups.get('constructor');
+    if (constructorDeps) {
       const providers = constructorDeps.map(d => this.providers.get(d));
       for (const dep of constructorDeps) {
         const provider = this.providers.get(dep);
         if (!provider) {
-          throw new Error(`No provider found for dependency ${AST.toJSON(dep.requiredType as any)} -- ${(this.providers as any).requirements.size}`);
+          throw new Error(
+            `No provider found for dependency ${AST.toJSON(dep.requiredType as any)} -- ${
+              (this.providers as any).requirements.size
+            }`
+          );
         }
         const depResult = provider.activate();
         result.dependencies.push(depResult);

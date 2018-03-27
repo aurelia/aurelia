@@ -75,6 +75,10 @@ exports.NodeFileUtils = class NodeFileUtils {
       });
     });
   }
+
+  getAbsolutePath(dir) {
+    return path.resolve(__dirname);
+  }
 }
 
 

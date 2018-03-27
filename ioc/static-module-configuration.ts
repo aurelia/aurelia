@@ -5,7 +5,7 @@ import * as AST from "./analysis/ast";
 export class StaticModuleConfiguration implements IModuleConfiguration, AST.IModuleCollection {
   public isAnalysisASTNode: false = false;
   public modules: AST.IModule[];
-  public files: any;
+  public rootDir: string;
 
   constructor(...modules: AST.IModule[]) {
     this.modules = modules;

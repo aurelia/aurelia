@@ -5,7 +5,7 @@ console.time('Generation');
 (async () => {
   try {
     let generator = new DIGenerator(new NodeFileUtils());
-    await generator.process('test/fixture');
+    await generator.process(process.argv[2]);
     console.timeEnd('Generation');
   } catch (ex) {
     console.log(ex);

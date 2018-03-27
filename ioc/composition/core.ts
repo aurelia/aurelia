@@ -2,6 +2,13 @@ import { IObjectContext, IObjectBuilder, IObjectBuilderNode, IRequestSpecificati
 
 export const NoObject = Symbol.for("NoObject");
 
+export class OmitObject {
+  public request: any;
+  constructor(request?: any) {
+    this.request = request;
+  }
+}
+
 /**
  * The ObjectContext is a resolution scope for a specific graph of builders.
  */
@@ -99,8 +106,22 @@ export class Postprocessor extends Array<IObjectBuilder> implements IObjectBuild
  */
 export class TerminatingBuilder implements IObjectBuilder {
   public create(request: any, context: IObjectContext): any {
-    throw new Error(`Unable to resolve request: ${request}`);
+    throw new Error(`Unable to resolve request: ${stringify(request)}`);
   }
+}
+
+function stringify(value: any): string {
+  const cache: any[] = [];
+  function replacer(key: string, value: any): any {
+    if (typeof value === 'object') {
+      if (cache.indexOf(value) > -1) {
+        return '<circular>';
+      }
+      cache.push(value);
+    }
+    return value;
+  }
+  return JSON.stringify(value, replacer);
 }
 
 export class AndSpecification implements IRequestSpecification {

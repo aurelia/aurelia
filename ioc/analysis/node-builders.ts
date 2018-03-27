@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as AST from './ast';
 import { IObjectBuilder, IObjectContext } from '../composition/interfaces';
-import { NoObject } from '../composition/core';
+import { NoObject, OmitObject } from '../composition/core';
 import { ChildNode, OptionalRequest } from './syntax-transformer';
 
 export class ModuleBuilder implements IObjectBuilder {
@@ -16,7 +16,7 @@ export class ModuleBuilder implements IObjectBuilder {
       const result = context.resolve(ChildNode.of(statement).withParentOutput(output));
       if (Array.isArray(result)) {
         output.items.push(...result);
-      } else {
+      } else if (!(result instanceof OmitObject)) {
         output.items.push(result);
       }
     }
@@ -36,6 +36,9 @@ export class ClassBuilder implements IObjectBuilder {
 
     for (const element of classDeclaration.members) {
       const member = context.resolve(ChildNode.of(element).withParentOutput(output));
+      if (member instanceof OmitObject) {
+        continue;
+      }
       if (element.kind === ts.SyntaxKind.Constructor) {
         output.ctor = member;
       }
@@ -66,7 +69,7 @@ export class FunctionBuilder implements IObjectBuilder {
 
 export class VariableBuilder implements IObjectBuilder {
   public create(request: ts.Node, context: IObjectContext): Partial<AST.INode>[] | symbol {
-    if (request.kind !== ts.SyntaxKind.VariableDeclaration) return NoObject;
+    if (request.kind !== ts.SyntaxKind.VariableStatement) return NoObject;
 
     const outputs: Partial<AST.IVariable>[] = [];
     const variableStatement = request as ts.VariableStatement;
@@ -125,10 +128,17 @@ export class ModuleExportsBuilder implements IObjectBuilder {
 }
 
 export class CallExpressionBuilder implements IObjectBuilder {
-  public create(request: ts.Node, context: IObjectContext): Partial<AST.INode> | symbol {
+  public create(request: ts.CallExpression, context: IObjectContext): Partial<AST.INode> | symbol {
     if (request.kind !== ts.SyntaxKind.CallExpression) return NoObject;
 
-    return {}; //todo
+    const output = new AST.Node(AST.NodeKind.CallExpression) as AST.ICallExpression;
+    output.callee = context.resolve(request.expression);
+    for (const arg of request.arguments) {
+      const argument = context.resolve(ChildNode.of(new ArgumentRequest(arg)).withParentOutput(output));
+      output.arguments.push(argument);
+    }
+
+    return output;
   }
 }
 
@@ -136,11 +146,16 @@ export class DecoratorBuilder implements IObjectBuilder {
   public create(request: ts.Decorator, context: IObjectContext): Partial<AST.INode> | symbol {
     if (request.kind !== ts.SyntaxKind.Decorator) return NoObject;
 
-    const callExpression = request.expression as ts.CallExpression;
-    const expressionText = context.resolve(callExpression.expression);
     const output = new AST.Node(AST.NodeKind.Decorator) as AST.IDecorator;
-    output.name = expressionText;
-    output.text = expressionText; //output.todo = raw string?
+    if (request.expression.kind === ts.SyntaxKind.CallExpression) {
+      const callExpression = request.expression as ts.CallExpression;
+      output.name = context.resolve(callExpression.expression);
+
+      for (const arg of callExpression.arguments) {
+        const argument = context.resolve(ChildNode.of(new ArgumentRequest(arg)).withParentOutput(output));
+        output.arguments.push(argument);
+      }
+    }
 
     return output;
   }
@@ -201,6 +216,23 @@ export class ParameterBuilder implements IObjectBuilder {
     output.typeName = typeName;
     output.text = name;
     output.decorators = parameterDeclaration.decorators as any;
+
+    return output;
+  }
+}
+
+export class ArgumentRequest {
+  public node: ts.Node;
+  constructor(node: ts.Node) {
+    this.node = node;
+  }
+}
+export class ArgumentBuilder implements IObjectBuilder {
+  public create(request: ArgumentRequest, context: IObjectContext): Partial<AST.INode> | symbol {
+    if (!(request instanceof ArgumentRequest)) return NoObject;
+
+    const output = new AST.Node(AST.NodeKind.Argument) as AST.IArgument;
+    output.text = context.resolve(request.node);
 
     return output;
   }

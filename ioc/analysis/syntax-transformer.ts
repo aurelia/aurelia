@@ -16,7 +16,8 @@ import {
   TerminatingBuilder,
   AndSpecification,
   OrSpecification,
-  NotSpecification
+  NotSpecification,
+  OmitObject
 } from '../composition/core';
 import { StaticModuleConfiguration } from '../static-module-configuration';
 import {
@@ -30,7 +31,8 @@ import {
   ConstructorBuilder,
   PropertyBuilder,
   ParameterBuilder,
-  ModuleBuilder
+  ModuleBuilder,
+  ArgumentBuilder
 } from './node-builders';
 import { TypeNameSpecification, PropertySpecification, IsTypeScriptSyntaxSpecification } from './specifications';
 
@@ -51,26 +53,31 @@ export class SyntaxTransformer {
           new VariableBuilder(),
           new ModuleImportBuilder(),
           new ModuleExportsBuilder(),
-          new DecoratorBuilder(),
           new MethodBuilder(),
           new ConstructorBuilder(),
           new PropertyBuilder(),
-          new ParameterBuilder(),
-          new ArgumentBuilder()
+          new ParameterBuilder()
         ),
         new DecoratorAssigner(new DecoratorsQuery())
       ),
       hasParentSymbol
     );
-    const graphBuilder = new CompositeObjectBuilderNode(new ModuleBuilder(), graphNodeBuilder, new NameBuilder());
+    const graphBuilder = new CompositeObjectBuilderNode(
+      new ModuleBuilder(),
+      new DecoratorBuilder(),
+      graphNodeBuilder,
+      new NameBuilder(),
+      new SkippableNodeResidueCollector()
+    );
 
     this.context = new ObjectContext(
       new CompositeObjectBuilderNode(
         new ParentChildLinker(),
         new FilteringObjectBuilderNode(graphBuilder, new IsTypeScriptSyntaxSpecification()),
+        new ArgumentBuilder(),
         new TextResidueCollector(),
-        new OptionalResidueCollector()
-        //new TerminatingBuilder()
+        new OptionalResidueCollector(),
+        new TerminatingBuilder()
       )
     );
   }
@@ -147,32 +154,13 @@ export class NameBuilder implements IObjectBuilder {
 }
 
 /**
- * Returns arguments if they have text (simple class references), e.g. for @inject(ClassA, ClassB)
- * CallExpressions such as @inject(Factory.of(ClassA)) are simply unwrapped (for the time being)
- */
-export class ArgumentBuilder implements IObjectBuilder {
-  public create(request: ts.Node, context: IObjectContext): Partial<AST.INode> | symbol {
-    if (request.kind === ts.SyntaxKind.CallExpression) {
-      const callExpression = request as ts.CallExpression;
-      if (callExpression.arguments.length === 1) {
-        const firstArg = callExpression.arguments[0];
-        return context.resolve(ChildNode.of(firstArg).withParentRequest(request));
-      }
-      return NoObject;
-    }
-
-    return {
-      kind: AST.NodeKind.Argument,
-      text: (request as any).text || (request as any).escapedText
-    };
-  }
-}
-
-/**
  * Tries to retrieve raw text from syntax nodes that could not be resolved by other builders
  */
 export class TextResidueCollector implements IObjectBuilder {
   public create(request: any, context: IObjectContext): string | symbol {
+    if (request === undefined) {
+      return undefined;
+    }
     if (!!request.text && request.text.length) {
       return request.text;
     }
@@ -180,7 +168,51 @@ export class TextResidueCollector implements IObjectBuilder {
       return request.escapedText;
     }
 
-    return NoObject;
+    switch(request.kind) {
+      case ts.SyntaxKind.AnyKeyword: {
+        return undefined;
+      }
+      case ts.SyntaxKind.BooleanKeyword: {
+        return 'boolean';
+      }
+      case ts.SyntaxKind.NumberKeyword: {
+        return 'number';
+      }
+      case ts.SyntaxKind.StringKeyword: {
+        return 'string';
+      }
+      case ts.SyntaxKind.NullKeyword: {
+        return 'null';
+      }
+      case ts.SyntaxKind.UndefinedKeyword: {
+        return 'undefined';
+      }
+      case ts.SyntaxKind.TrueKeyword: {
+        return 'true';
+      }
+      case ts.SyntaxKind.FalseKeyword: {
+        return 'false';
+      }
+      case ts.SyntaxKind.UnionType: {
+        const union = request as ts.UnionType;
+        const types: string[] = [];
+        for (const type of union.types) {
+          types.push(context.resolve(type));
+        }
+        return types.join('|');
+      }
+      case ts.SyntaxKind.IntersectionType: {
+        const union = request as ts.UnionType;
+        const types: string[] = [];
+        for (const type of union.types) {
+          types.push(context.resolve(type));
+        }
+        return types.join('&');
+      }
+      default: {
+        return NoObject;
+      }
+    }
   }
 }
 
@@ -220,6 +252,33 @@ export class OptionalRequest {
   public withDefault(value: any): OptionalRequest {
     this.defaultValue = value;
     return this;
+  }
+}
+
+export class SkippableNodeResidueCollector implements IObjectBuilder {
+  public create(request: ts.Node, context: IObjectContext): any {
+    if (!request[parentSymbol]) {
+      return NoObject;
+    }
+    const parent = request[parentSymbol] as AST.INode;
+    // Currently only ModuleBuilder and ClassDeclarationBuilder are aware of OmitObject
+    // so we don't accidentally want any of the other builders to assign OmitObject to a property
+    // that is supposed to be a syntax
+    if (parent.kind !== AST.NodeKind.Module && parent.kind !== AST.NodeKind.Class) {
+      return NoObject;
+    }
+    switch(request.kind) {
+      case ts.SyntaxKind.GetAccessor:
+      case ts.SyntaxKind.SetAccessor:
+      case ts.SyntaxKind.ExpressionStatement:
+      case ts.SyntaxKind.ModuleDeclaration:
+      case ts.SyntaxKind.ExportAssignment: {
+        return new OmitObject(request);
+      }
+      default: {
+        return NoObject;
+      }
+    }
   }
 }
 

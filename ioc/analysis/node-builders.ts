@@ -199,6 +199,11 @@ export class PropertyBuilder implements IObjectBuilder {
     const propertyDeclaration = request as ts.PropertyDeclaration;
     const output = new AST.Node(AST.NodeKind.Property) as AST.IProperty;
     output.name = context.resolve(propertyDeclaration.name);
+    if (propertyDeclaration.initializer) {
+      output.initializerValue = context.resolve(
+        OptionalRequest.for(propertyDeclaration.initializer).withDefault(undefined)
+      );
+    }
 
     return output;
   }

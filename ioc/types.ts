@@ -68,10 +68,12 @@ export function getTypeSourceFromCtorParameter(param: AST.IParameter): AST.INode
   if (param.parent.kind !== AST.NodeKind.Constructor) {
     throw new Error('Expecting constructor parameter');
   }
-  // no typename specified on the parameter, try to get it from decorators/inject method (todo)
-  // note: we want to look for decorators / inject property anyway because they have priority
+  // no typename specified on the parameter, try to get it from decorators/inject method
   if (!param.typeName || param.typeName.length === 0) {
-    return null;
+    param.typeName = getTypeNameFromInjectProperty(param) || getTypeSourceFromInjectDecorator(param);
+    if (param.typeName === null) {
+      return null;
+    }
   }
   const $module = param.parent.parent.parent;
   let moduleImport = $module.items.find(
@@ -108,12 +110,15 @@ export function getTypeSourceFromCtorParameter(param: AST.IParameter): AST.INode
     return moduleImport;
   }
 
-
   // look for an actual export declaration first
-  let moduleExport = importedModule.items.find(i => i.kind === AST.NodeKind.ModuleExport && (i.alias === param.typeName || (i.name === param.typeName && !i.alias)));
+  let moduleExport = importedModule.items.find(
+    i => i.kind === AST.NodeKind.ModuleExport && (i.alias === param.typeName || (i.name === param.typeName && !i.alias))
+  );
   if (!moduleExport) {
     // only if no export declaration is found, look for a matching class or function declared in the module
-    moduleExport = importedModule.items.find(i => i.kind === (AST.NodeKind.Class || i.kind === AST.NodeKind.Function) && i.name === param.typeName);
+    moduleExport = importedModule.items.find(
+      i => i.kind === (AST.NodeKind.Class || i.kind === AST.NodeKind.Function) && i.name === param.typeName
+    );
 
     // not sure if this is even possible?
     if (!moduleExport) {
@@ -122,6 +127,40 @@ export function getTypeSourceFromCtorParameter(param: AST.IParameter): AST.INode
   }
 
   return moduleExport;
+}
+
+function getTypeNameFromInjectProperty(param: AST.IParameter): string | null {
+  const $class = param.parent.parent as AST.IClass;
+  const injectProperty = $class.members.find(m => m.name === 'inject');
+  if (!injectProperty) {
+    return null;
+  }
+  // if inject is a function, this will be NodeKind.Method
+  if (injectProperty.kind !== AST.NodeKind.Property) {
+    throw new Error('function body not yet implemented for statically analyzed inject property');
+  }
+
+  // if inject has a property getter, the value will not have been resolved by syntax-transformer
+  if (!injectProperty.initializerValue) {
+    throw new Error('getter not yet supported for statically analyzed inject property');
+  }
+
+  if (!Array.isArray(injectProperty.initializerValue)) {
+    throw new Error('inject property must be an array');
+  }
+
+  return injectProperty.initializerValue[param.parent.parameters.indexOf(param)];
+}
+
+function getTypeSourceFromInjectDecorator(param: AST.IParameter): string | null {
+  const $class = param.parent.parent as AST.IClass;
+
+  const injectDecorator = $class.decorators.find(m => m.name === 'inject');
+  if (!injectDecorator) {
+    return null;
+  }
+
+  return injectDecorator.arguments[param.parent.parameters.indexOf(param)].text;
 }
 
 export class Pair<L, R> implements IPair<L, R> {

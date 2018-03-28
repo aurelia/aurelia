@@ -50,9 +50,7 @@ export class SyntaxTransformer {
       new ClassNameSpecification(/(BindingBehavior|ValueConverter)$/),
       new PropertySpecification(
         'decorators',
-        new SomeSpecification(
-          new DecoratorNameSpecification(/bindingBehavior|valueConverter/)
-        )
+        new SomeSpecification(new DecoratorNameSpecification(/bindingBehavior|valueConverter/))
       )
     );
 
@@ -79,6 +77,7 @@ export class SyntaxTransformer {
       new FilteringObjectBuilderNode(new OmitObjectRelay(), isBindingBehavior),
       graphNodeBuilder,
       new NameBuilder(),
+      new ExpressionResidueCollector(),
       new SkippableNodeResidueCollector()
     );
 
@@ -98,7 +97,7 @@ export class SyntaxTransformer {
     const config = new StaticModuleConfiguration();
     for (const sourceFile of sourceFiles) {
       const mod = this.context.resolve(sourceFile) as AST.IModule;
-      if (!(mod instanceof OmitObject) && mod.items.length) {
+      if (!(mod instanceof OmitObject) && mod.items.some(i => i.kind === AST.NodeKind.Class)) {
         config.modules.push(mod);
         mod.parent = config;
       }
@@ -162,6 +161,51 @@ export class NameBuilder implements IObjectBuilder {
       }
       case ts.SyntaxKind.ObjectBindingPattern:
       case ts.SyntaxKind.ArrayBindingPattern:
+      default: {
+        return NoObject;
+      }
+    }
+  }
+}
+
+export class ExpressionResidueCollector implements IObjectBuilder {
+  public create(request: ts.Node, context: IObjectContext): any[] | object | string | symbol {
+    switch (request.kind) {
+      case ts.SyntaxKind.StringLiteral:
+      case ts.SyntaxKind.NumericLiteral:
+      case ts.SyntaxKind.RegularExpressionLiteral: {
+        const expr = request as ts.RegularExpressionLiteral;
+        return expr.text;
+      }
+      case ts.SyntaxKind.ArrayLiteralExpression: {
+        const expr = request as ts.ArrayLiteralExpression;
+        const output: any[] = [];
+        for (const element of expr.elements) {
+          output.push(context.resolve(OptionalRequest.for(element)));
+        }
+        return output;
+      }
+      case ts.SyntaxKind.ObjectLiteralExpression: {
+        const expr = request as ts.ObjectLiteralExpression;
+        const output = {};
+        for (const property of expr.properties) {
+          let propertyName: string;
+          let propertyValue: any;
+          switch (property.kind) {
+            case ts.SyntaxKind.PropertyAssignment: {
+              propertyName = context.resolve(property.name);
+              const defaultSymbol = Symbol();
+              propertyValue = context.resolve(OptionalRequest.for(property.initializer).withDefault(defaultSymbol));
+              if (propertyValue !== defaultSymbol) {
+                output[propertyName] = propertyValue;
+              }
+            }
+            default: {
+              continue;
+            }
+          }
+        }
+      }
       default: {
         return NoObject;
       }
@@ -234,23 +278,29 @@ export class TextResidueCollector implements IObjectBuilder {
 
 export class OptionalResidueCollector implements IObjectBuilder {
   public readonly defaultValue: any;
+
+  private requestStack: OptionalRequest[] = [];
+  private currentRequest: OptionalRequest;
+
   constructor(defaultValue: any = null) {
     this.defaultValue = defaultValue;
   }
 
   public create(request: OptionalRequest, context: IObjectContext): string | symbol {
     if (!(request instanceof OptionalRequest)) {
+      if (request === this.currentRequest.innerRequest) {
+        let defaultValue = this.defaultValue;
+        if (this.currentRequest.defaultValue !== undefined) {
+          defaultValue = this.currentRequest.defaultValue;
+        }
+        this.currentRequest = this.requestStack.pop();
+        return defaultValue;
+      }
       return NoObject;
     }
 
-    const output = context.resolve(request.innerRequest);
-    if (output !== NoObject) {
-      return output;
-    }
-    if (request.defaultValue !== undefined) {
-      return request.defaultValue;
-    }
-    return this.defaultValue;
+    this.requestStack.push((this.currentRequest = request));
+    return context.resolve(request.innerRequest);
   }
 }
 

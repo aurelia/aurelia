@@ -13,6 +13,7 @@
     "build-ioc": "rollup -c ioc.rollup.config.js",
     "test-ioc-src": "node ioc/test/generate src",
     "test-ioc-ts-fixture": "node ioc/test/generate test/fixture/ts",
+    "test-ioc-js-fixture": "node ioc/test/generate test/fixture/js",
     "transpile": "tsc src/compile.ts --outDir scripts",
     "build": "rollup -c compiler.rollup.config.js",
     "test": "node compiler/test/compile",

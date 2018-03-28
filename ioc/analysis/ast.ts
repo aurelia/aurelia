@@ -95,6 +95,7 @@ export function Node(this: INode, kind: NodeKind, parent: INode = undefined): vo
       (this as IProperty).getter = undefined;
       (this as IProperty).setter = undefined;
       (this as IProperty).decorators = [];
+      (this as IProperty).initializerValue = undefined;
       break;
     }
     case NodeKind.Constructor:{
@@ -276,6 +277,7 @@ export interface IProperty {
   getter?: IMethod;
   setter?: IMethod;
   decorators: IDecorator[];
+  initializerValue?: string | string[];
 }
 
 /**

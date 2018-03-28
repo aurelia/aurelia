@@ -18,7 +18,7 @@ export class DIGenerator {
 
   process(dir: string): Promise<void> {
     return this.fileUtils.getFileNamesRecursive(dir).then(fileNames => {
-      const files = fileNames.filter(f => /\.ts$/.test(f)).map(f => ({
+      const files = fileNames.filter(f => /^(?!.*ioc\.[tj]s$).*\.[tj]s$/i.test(f)).map(f => ({
         name: f,
         content: this.fileUtils.readFileSync(f)
       }));
@@ -28,7 +28,7 @@ export class DIGenerator {
       const result = this.generator.create(config);
 
       for (const [mod, file] of (result.fileMap as any) as [IModule, ts.SourceFile][]) {
-        this.fileUtils.writeFileSync(mod.path.replace('.ts', '-ioc.js'), ts.createPrinter().printFile(file));
+        this.fileUtils.writeFileSync(mod.path.replace(/\.[tj]s$/, '-ioc.js'), ts.createPrinter().printFile(file));
       }
     });
   }

@@ -1,4 +1,5 @@
 import { DOM } from "../dom";
+import { IViewOwner } from "./template";
 
 export interface IView {
   firstChild: Node;
@@ -33,12 +34,19 @@ export const View = {
   fromCompiledTemplate(element: HTMLTemplateElement): IView {
     return new TemplateView(element);
   },
-  fromCompiledElementContent(element: Element): IView {
+  fromCompiledElementContent(owner: IViewOwner, element: Element): IView {
     let contentElement = element.firstElementChild;
 
     if (contentElement !== null && contentElement !== undefined) {
       DOM.removeNode(contentElement);
-      return new ContentView(contentElement);
+
+      if (owner.$useShadowDOM) {
+        while(contentElement.firstChild) {
+          element.appendChild(contentElement.firstChild);
+        }
+      } else {
+        return new ContentView(contentElement);
+      }
     }
     
     return noopView;

@@ -48,8 +48,8 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] Per-instance Views
   * [x] No View
   * [x] Containerless
-  * [x] Emulated ShadowDOM
-  * [ ] Native ShadowDOM
+  * [x] Emulated ShadowDOM (Partial Support...More Work Needed)
+  * [x] Native ShadowDOM
   * [ ] Template Part Replacement
   * [ ] CSS Modules
   * [ ] `compose` Custom Element

@@ -1,12 +1,13 @@
-import { Template, CompiledViewSource, ITemplate } from "./template";
+import { Template, CompiledViewSource, ITemplate, IViewOwner } from "./template";
 import { IBinding } from "../binding/binding";
-import { IView } from "./view";
+import { IView, View } from "./view";
 import { IScope } from "../binding/binding-interfaces";
 import { createOverrideContext } from "../binding/scope";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
 import { makeElementIntoAnchor } from "./anchors";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
+import { FEATURE } from "../feature";
 
 export interface IBindSelf {
   bind(): void;
@@ -21,15 +22,16 @@ export interface IApplyToTarget {
   applyTo(target: Element): this;
 }
 
-export interface IComponent extends IBindSelf, IAttach, IApplyToTarget {
+export interface IComponent extends IBindSelf, IAttach, IApplyToTarget, IViewOwner {
   
 }
 
 export interface CompiledElementSource extends CompiledViewSource {
   name: string;
+  observers: any[];
   containerless?: boolean;
   hasSlots?: boolean;
-  observers: any[];
+  shadowOptions?: ShadowRootInit;
 }
 
 type Constructable = {
@@ -53,13 +55,13 @@ export const Component = {
       $bindable: IBinding[] = [];
       $attachable: IAttach[] = [];
       $slots: Record<string, IShadowSlot> = source.hasSlots ? {} : null;
+      $useShadowDOM = source.shadowOptions && FEATURE.shadowDOM;
+      $view: IView;
       $contentView: IView = null;
 
       private $isBound = false;
-  
-      private $view: IView;
       private $host: Element;
-  
+      private $shadowRoot: Element | ShadowRoot;
       private $changeCallbacks: (() => void)[] = [];
       
       private $scope: IScope = {
@@ -76,6 +78,10 @@ export const Component = {
         this.$host = source.containerless 
           ? makeElementIntoAnchor(host, true)
           : host;
+
+        this.$shadowRoot = this.$useShadowDOM 
+          ? host.attachShadow(source.shadowOptions) 
+          : this.$host;
 
         this.$view = this.createView(this.$host);
   
@@ -98,7 +104,7 @@ export const Component = {
           bindable[i].bind(scope);
         }
 
-        if (source.hasSlots) {
+        if (this.$contentView !== View.none) {
           ShadowDOM.distributeView(this.$contentView, this.$slots);
         }
   
@@ -129,7 +135,7 @@ export const Component = {
         if (source.containerless) {
           this.$view.insertBefore(this.$host);
         } else {
-          this.$view.appendTo(this.$host);
+          this.$view.appendTo(this.$shadowRoot);
         }
       
         if ('attached' in this) {

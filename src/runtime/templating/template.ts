@@ -12,9 +12,11 @@ import { ViewFactory } from "./view-factory";
 
 type SupportsBindingLifecycle = IBindScope | IBindSelf;
 export interface IViewOwner {
+  $view: IView;
   $bindable: SupportsBindingLifecycle[];
   $attachable: IAttach[];
   $slots?: Record<string, IShadowSlot>;
+  $useShadowDOM?: boolean;
 }
 export interface ITemplate {
   createFor(owner: IViewOwner, host?: Node): IView;
@@ -74,20 +76,18 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
       target[instruction.target] = instruction.value;
       break;
     case 'slot':
-      let slot = ShadowDOM.createSlotFromInstruction(instruction);
-      owner.$slots[slot.name] = slot;
-      owner.$bindable.push(slot);
-      owner.$attachable.push(slot);
-      DOM.replaceNode(slot.anchor, target);
+      if (!owner.$useShadowDOM) {
+        let slot = ShadowDOM.createSlotFromInstruction(instruction);
+        owner.$slots[slot.name] = slot;
+        owner.$bindable.push(slot);
+        owner.$attachable.push(slot);
+        DOM.replaceNode(slot.anchor, target);
+      }
       break;
     case 'element':
       let elementInstructions = instruction.instructions;
       let elementModel: IComponent = new instruction.ctor(); //TODO: DI
-      let contentView = View.fromCompiledElementContent(target);
-
-      if (contentView !== View.none) {
-        (<any>elementModel).$contentView = contentView;
-      }
+      (<any>elementModel).$contentView = View.fromCompiledElementContent(elementModel, target);
 
       elementModel.applyTo(target);
 

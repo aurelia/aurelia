@@ -150,7 +150,7 @@ define('name-tag-config',["require", "exports"], function (require, exports) {
     exports.nameTagConfig = {
         name: 'name-tag',
         hasSlots: true,
-        template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n      <au-shadow-slot class=\"au\"></au-shadow-slot>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
+        template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n      <slot class=\"au\"></slot>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
         observers: [
             {
                 name: 'name',
@@ -4453,7 +4453,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./template", "../binding/scope", "../task-queue", "../binding/property-observation", "./anchors", "./shadow-dom"], function (require, exports, template_1, scope_1, task_queue_1, property_observation_1, anchors_1, shadow_dom_1) {
+define('runtime/templating/component',["require", "exports", "./template", "./view", "../binding/scope", "../task-queue", "../binding/property-observation", "./anchors", "./shadow-dom", "../feature"], function (require, exports, template_1, view_1, scope_1, task_queue_1, property_observation_1, anchors_1, shadow_dom_1, feature_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Component = {
@@ -4470,6 +4470,7 @@ define('runtime/templating/component',["require", "exports", "./template", "../b
                         _this.$bindable = [];
                         _this.$attachable = [];
                         _this.$slots = source.hasSlots ? {} : null;
+                        _this.$useShadowDOM = source.shadowOptions && feature_1.FEATURE.shadowDOM;
                         _this.$contentView = null;
                         _this.$isBound = false;
                         _this.$changeCallbacks = [];
@@ -4484,6 +4485,9 @@ define('runtime/templating/component',["require", "exports", "./template", "../b
                         this.$host = source.containerless
                             ? anchors_1.makeElementIntoAnchor(host, true)
                             : host;
+                        this.$shadowRoot = this.$useShadowDOM
+                            ? host.attachShadow(source.shadowOptions)
+                            : this.$host;
                         this.$view = this.createView(this.$host);
                         if ('created' in this) {
                             this.created();
@@ -4499,7 +4503,7 @@ define('runtime/templating/component',["require", "exports", "./template", "../b
                         for (var i = 0, ii = bindable.length; i < ii; ++i) {
                             bindable[i].bind(scope);
                         }
-                        if (source.hasSlots) {
+                        if (this.$contentView !== view_1.View.none) {
                             shadow_dom_1.ShadowDOM.distributeView(this.$contentView, this.$slots);
                         }
                         this.$isBound = true;
@@ -4524,7 +4528,7 @@ define('runtime/templating/component',["require", "exports", "./template", "../b
                             this.$view.insertBefore(this.$host);
                         }
                         else {
-                            this.$view.appendTo(this.$host);
+                            this.$view.appendTo(this.$shadowRoot);
                         }
                         if ('attached' in this) {
                             task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
@@ -5102,19 +5106,18 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
                 target[instruction.target] = instruction.value;
                 break;
             case 'slot':
-                var slot = shadow_dom_1.ShadowDOM.createSlotFromInstruction(instruction);
-                owner.$slots[slot.name] = slot;
-                owner.$bindable.push(slot);
-                owner.$attachable.push(slot);
-                dom_1.DOM.replaceNode(slot.anchor, target);
+                if (!owner.$useShadowDOM) {
+                    var slot = shadow_dom_1.ShadowDOM.createSlotFromInstruction(instruction);
+                    owner.$slots[slot.name] = slot;
+                    owner.$bindable.push(slot);
+                    owner.$attachable.push(slot);
+                    dom_1.DOM.replaceNode(slot.anchor, target);
+                }
                 break;
             case 'element':
                 var elementInstructions = instruction.instructions;
                 var elementModel = new instruction.ctor();
-                var contentView = view_1.View.fromCompiledElementContent(target);
-                if (contentView !== view_1.View.none) {
-                    elementModel.$contentView = contentView;
-                }
+                elementModel.$contentView = view_1.View.fromCompiledElementContent(elementModel, target);
                 elementModel.applyTo(target);
                 for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
                     var current = elementInstructions[i];
@@ -5517,11 +5520,18 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         fromCompiledTemplate: function (element) {
             return new TemplateView(element);
         },
-        fromCompiledElementContent: function (element) {
+        fromCompiledElementContent: function (owner, element) {
             var contentElement = element.firstElementChild;
             if (contentElement !== null && contentElement !== undefined) {
                 dom_1.DOM.removeNode(contentElement);
-                return new ContentView(contentElement);
+                if (owner.$useShadowDOM) {
+                    while (contentElement.firstChild) {
+                        element.appendChild(contentElement.firstChild);
+                    }
+                }
+                else {
+                    return new ContentView(contentElement);
+                }
             }
             return noopView;
         }
@@ -5634,6 +5644,16 @@ define('runtime/templating/visual',["require", "exports"], function (require, ex
         return Visual;
     }());
     exports.Visual = Visual;
+});
+
+
+
+define('runtime/feature',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.FEATURE = {
+        shadowDOM: !!HTMLElement.prototype.attachShadow
+    };
 });
 
 

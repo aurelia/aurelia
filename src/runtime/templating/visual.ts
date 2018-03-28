@@ -4,11 +4,11 @@ import { IScope, IBindScope } from "../binding/binding-interfaces";
 import { IAttach } from "./component";
 import { IBinding } from "../binding/binding";
 
-export interface IVisual extends IBindScope, IAttach, IRender {
+export interface IVisual extends IBindScope, IAttach, IRender, IViewOwner {
   isBound: boolean;
 }
 
-export class Visual implements IVisual, IViewOwner {
+export class Visual implements IVisual {
   $bindable: IBinding[] = [];
   $attachable: IAttach[] = [];
   

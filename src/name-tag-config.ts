@@ -4,6 +4,7 @@ import { CompiledElementSource } from "./runtime/templating/component";
 export const nameTagConfig: CompiledElementSource = {
   name: 'name-tag',
   hasSlots: true,
+  //shadowOptions: { mode: 'open' },
   template: `
     <header>Super Duper name tag</header>
     <div>
@@ -31,7 +32,7 @@ export const nameTagConfig: CompiledElementSource = {
           <option>rgba(0,0,0,0.5)</option>
         </select>
       </label>
-      <au-shadow-slot class="au"></au-shadow-slot>
+      <slot class="au"></slot>
     </div>
     <hr/>
     <div>

@@ -5661,12 +5661,12 @@ define('runtime/feature',["require", "exports"], function (require, exports) {
 define('designtime/templating/template',["require", "exports", "../../runtime/templating/template"], function (require, exports, template_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Template = Object.assign({
+    exports.Template = Object.assign(template_1.Template, {
         fromUncompiledSource: function (uncompiledSource) {
             var compiledSource = null;
             return template_1.Template.fromCompiledSource(compiledSource);
         }
-    }, template_1.Template);
+    });
 });
 
 

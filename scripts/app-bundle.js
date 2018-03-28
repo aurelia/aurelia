@@ -4811,7 +4811,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
                 node.auOwnerView = view;
                 node.auProjectionSource = projectionSource;
                 node.auAssignedSlot = this;
-                var anchor = this._findAnchor(view, node, projectionSource, index);
+                var anchor = this.findAnchor(view, node, projectionSource, index);
                 var parent_1 = anchor.parentNode;
                 parent_1.insertBefore(node, anchor);
                 this.children.push(node);
@@ -4868,7 +4868,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
                 }
             }
         };
-        ShadowSlot.prototype._findAnchor = function (view, node, projectionSource, index) {
+        ShadowSlot.prototype.findAnchor = function (view, node, projectionSource, index) {
             if (projectionSource) {
                 var found = this.children.find(function (x) { return x.auSlotProjectFrom === projectionSource; });
                 if (found) {

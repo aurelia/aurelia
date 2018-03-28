@@ -162,7 +162,7 @@ class ShadowSlot implements IShadowSlot {
     return this.fallbackFactory && this.projections === 0;
   }
 
-  addNode(view: IView, node: SlotNode, projectionSource: ShadowProjectionSource, index: number, destination) {
+  addNode(view: IView, node: SlotNode, projectionSource: ShadowProjectionSource, index: number, destination: string) {
     if (this.contentView !== null) {
       this.contentView.removeNodes();
       this.contentView.detached();
@@ -182,7 +182,7 @@ class ShadowSlot implements IShadowSlot {
       node.auProjectionSource = projectionSource;
       node.auAssignedSlot = this;
 
-      let anchor = this._findAnchor(view, node, projectionSource, index);
+      let anchor = this.findAnchor(view, node, projectionSource, index);
       let parent = anchor.parentNode;
 
       parent.insertBefore(node, anchor);
@@ -244,7 +244,7 @@ class ShadowSlot implements IShadowSlot {
     }
   }
 
-  _findAnchor(view: IView, node: SlotNode, projectionSource: ShadowProjectionSource, index: number) {
+  private findAnchor(view: IView, node: SlotNode, projectionSource: ShadowProjectionSource, index: number) {
     if (projectionSource) {
       //find the anchor associated with the projected view slot
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
@@ -379,7 +379,7 @@ export const ShadowDOM = {
     }
   },
 
-  distributeView(view: IView, slots: Record<string, IShadowSlot>, projectionSource: ShadowProjectionSource = null, index = 0, destinationOverride = null) {
+  distributeView(view: IView, slots: Record<string, IShadowSlot>, projectionSource: ShadowProjectionSource = null, index = 0, destinationOverride: string = null) {
     let nodes;
 
     if (view === null) {
@@ -416,7 +416,7 @@ export const ShadowDOM = {
     }
   },
 
-  distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, IShadowSlot>, projectionSource: ShadowProjectionSource, index: number, destinationOverride = null) {
+  distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, IShadowSlot>, projectionSource: ShadowProjectionSource, index: number, destinationOverride: string = null) {
     for (let i = 0, ii = nodes.length; i < ii; ++i) {
       let currentNode = nodes[i];
       let nodeType = currentNode.nodeType;

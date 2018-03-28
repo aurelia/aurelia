@@ -1,5 +1,4 @@
-import {DOM} from '../dom';
-import {_isAllWhitespace} from '../util';
+import { DOM } from '../dom';
 import { IAttach } from './component';
 import { IScope, IBindScope } from '../binding/binding-interfaces';
 import { IView } from './view';
@@ -432,7 +431,7 @@ export const ShadowDOM = {
         nodes.splice(i, 1);
         ii--; i--;
       } else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) { //project only elements and text
-        if (nodeType === 3 && _isAllWhitespace(currentNode)) {
+        if (nodeType === 3 && DOM.isAllWhitespace(currentNode)) {
           nodes.splice(i, 1);
           ii--; i--;
         } else {

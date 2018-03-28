@@ -417,6 +417,9 @@ define('runtime/dom',["require", "exports"], function (require, exports) {
                 parentNode.removeChild(node);
             }
         },
+        isAllWhitespace: function (node) {
+            return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
+        },
         injectStyles: function (styles, destination, prepend, id) {
             if (id) {
                 var oldStyle = document.getElementById(id);
@@ -4667,7 +4670,7 @@ define('runtime/templating/generated',["require", "exports", "../binding/ast", "
 
 
 
-define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util", "./view-factory"], function (require, exports, dom_1, util_1, view_factory_1) {
+define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-factory"], function (require, exports, dom_1, view_factory_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noNodes = Object.freeze([]);
@@ -5019,7 +5022,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
                     i--;
                 }
                 else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) {
-                    if (nodeType === 3 && util_1._isAllWhitespace(currentNode)) {
+                    if (nodeType === 3 && dom_1.DOM.isAllWhitespace(currentNode)) {
                         nodes.splice(i, 1);
                         ii--;
                         i--;

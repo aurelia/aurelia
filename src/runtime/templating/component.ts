@@ -53,6 +53,7 @@ export const Component = {
       $bindable: IBinding[] = [];
       $attachable: IAttach[] = [];
       $slots: Record<string, IShadowSlot> = source.hasSlots ? {} : null;
+      $contentView: IView = null;
 
       private $isBound = false;
   
@@ -98,7 +99,7 @@ export const Component = {
         }
 
         if (source.hasSlots) {
-          //ShadowDOM.distributeView(this.contentView, this.$slots);
+          ShadowDOM.distributeView(this.$contentView, this.$slots);
         }
   
         this.$isBound = true;

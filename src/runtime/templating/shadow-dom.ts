@@ -207,7 +207,7 @@ class ShadowSlot implements IShadowSlot {
 
           if (child.auOwnerView === view) {
             children.splice(i, 1);
-            view.fragment.appendChild(child);
+            view.appendChild(child);
             i--; ii--;
             this.projections--;
           }
@@ -380,13 +380,13 @@ export const ShadowDOM = {
     }
   },
 
-  distributeView(view: IView, slots: Record<string, IShadowSlot>, projectionSource: ShadowProjectionSource, index = 0, destinationOverride = null) {
+  distributeView(view: IView, slots: Record<string, IShadowSlot>, projectionSource: ShadowProjectionSource = null, index = 0, destinationOverride = null) {
     let nodes;
 
     if (view === null) {
       nodes = noNodes;
     } else {
-      let childNodes = view.fragment.childNodes;
+      let childNodes = view.childNodes;
       let ii = childNodes.length;
       nodes = new Array(ii);
 

@@ -798,6 +798,201 @@ define('runtime/util',["require", "exports"], function (require, exports) {
 
 
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('runtime/resources/else',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Else = (function (_super) {
+        __extends(Else, _super);
+        function Else() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Else.prototype.bind = function (scope) {
+            _super.prototype.bind.call(this, scope);
+            if (this.ifBehavior.condition) {
+                this.hide();
+            }
+            else {
+                this.show();
+            }
+        };
+        Else.prototype.link = function (ifBehavior) {
+            if (this.ifBehavior === ifBehavior) {
+                return this;
+            }
+            this.ifBehavior = ifBehavior;
+            ifBehavior.link(this);
+            return this;
+        };
+        return Else;
+    }(if_core_1.IfCore));
+    exports.Else = Else;
+});
+
+
+
+define('runtime/resources/if-core',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var IfCore = (function () {
+        function IfCore(createVisual, viewSlot) {
+            this.createVisual = createVisual;
+            this.viewSlot = viewSlot;
+            this.visual = null;
+            this.scope = null;
+            this.showing = false;
+            this.isBound = false;
+        }
+        IfCore.prototype.bind = function (scope) {
+            this.scope = scope;
+            this.isBound = true;
+        };
+        IfCore.prototype.attach = function () {
+            this.viewSlot.attach();
+        };
+        IfCore.prototype.detach = function () {
+            this.viewSlot.detach();
+        };
+        IfCore.prototype.unbind = function () {
+            this.isBound = false;
+            if (this.visual === null) {
+                return;
+            }
+            this.visual.unbind();
+            if (this.showing) {
+                this.showing = false;
+                this.viewSlot.remove(this.visual, true);
+            }
+            this.visual = null;
+        };
+        IfCore.prototype.show = function () {
+            if (this.showing) {
+                if (!this.visual.isBound) {
+                    this.visual.bind(this.scope);
+                }
+                return;
+            }
+            if (this.visual === null) {
+                this.visual = this.createVisual();
+            }
+            if (!this.visual.isBound) {
+                this.visual.bind(this.scope);
+            }
+            this.showing = true;
+            return this.viewSlot.add(this.visual);
+        };
+        IfCore.prototype.hide = function () {
+            var _this = this;
+            if (!this.showing) {
+                return;
+            }
+            this.showing = false;
+            var removed = this.viewSlot.remove(this.visual);
+            if (removed instanceof Promise) {
+                return removed.then(function () { return _this.visual.unbind(); });
+            }
+            this.visual.unbind();
+        };
+        return IfCore;
+    }());
+    exports.IfCore = IfCore;
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation"], function (require, exports, if_core_1, property_observation_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var If = (function (_super) {
+        __extends(If, _super);
+        function If() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.animating = false;
+            _this.$observers = {
+                condition: new property_observation_1.Observer(false, function (v) { return _this.isBound ? _this.conditionChanged(v) : void 0; })
+            };
+            return _this;
+        }
+        Object.defineProperty(If.prototype, "condition", {
+            get: function () { return this.$observers.condition.getValue(); },
+            set: function (value) { this.$observers.condition.setValue(value); },
+            enumerable: true,
+            configurable: true
+        });
+        If.prototype.bind = function (scope) {
+            _super.prototype.bind.call(this, scope);
+            this.conditionChanged(this.condition);
+        };
+        If.prototype.conditionChanged = function (newValue) {
+            this.update(newValue);
+        };
+        If.prototype.link = function (elseBehavior) {
+            if (this.elseBehavior === elseBehavior) {
+                return this;
+            }
+            this.elseBehavior = elseBehavior;
+            elseBehavior.link(this);
+            return this;
+        };
+        If.prototype.update = function (show) {
+            var _this = this;
+            if (this.animating) {
+                return;
+            }
+            var promise;
+            if (this.elseBehavior) {
+                promise = show ? this.swap(this.elseBehavior, this) : this.swap(this, this.elseBehavior);
+            }
+            else {
+                promise = show ? this.show() : this.hide();
+            }
+            if (promise) {
+                this.animating = true;
+                promise.then(function () {
+                    _this.animating = false;
+                    if (_this.condition !== _this.showing) {
+                        _this.update(_this.condition);
+                    }
+                });
+            }
+        };
+        If.prototype.swap = function (remove, add) {
+            switch (this.swapOrder) {
+                case 'before':
+                    return Promise.resolve(add.show()).then(function () { return remove.hide(); });
+                case 'with':
+                    return Promise.all([remove.hide(), add.show()]);
+                default:
+                    var promise = remove.hide();
+                    return promise ? promise.then(function () { return add.show(); }) : add.show();
+            }
+        };
+        return If;
+    }(if_core_1.IfCore));
+    exports.If = If;
+});
+
+
+
 define('runtime/binding/array-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4154,201 +4349,6 @@ define('runtime/binding/svg',["require", "exports"], function (require, exports)
 
 
 
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-define('runtime/resources/else',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Else = (function (_super) {
-        __extends(Else, _super);
-        function Else() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        Else.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
-            if (this.ifBehavior.condition) {
-                this.hide();
-            }
-            else {
-                this.show();
-            }
-        };
-        Else.prototype.link = function (ifBehavior) {
-            if (this.ifBehavior === ifBehavior) {
-                return this;
-            }
-            this.ifBehavior = ifBehavior;
-            ifBehavior.link(this);
-            return this;
-        };
-        return Else;
-    }(if_core_1.IfCore));
-    exports.Else = Else;
-});
-
-
-
-define('runtime/resources/if-core',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var IfCore = (function () {
-        function IfCore(createVisual, viewSlot) {
-            this.createVisual = createVisual;
-            this.viewSlot = viewSlot;
-            this.visual = null;
-            this.scope = null;
-            this.showing = false;
-            this.isBound = false;
-        }
-        IfCore.prototype.bind = function (scope) {
-            this.scope = scope;
-            this.isBound = true;
-        };
-        IfCore.prototype.attach = function () {
-            this.viewSlot.attach();
-        };
-        IfCore.prototype.detach = function () {
-            this.viewSlot.detach();
-        };
-        IfCore.prototype.unbind = function () {
-            this.isBound = false;
-            if (this.visual === null) {
-                return;
-            }
-            this.visual.unbind();
-            if (this.showing) {
-                this.showing = false;
-                this.viewSlot.remove(this.visual, true);
-            }
-            this.visual = null;
-        };
-        IfCore.prototype.show = function () {
-            if (this.showing) {
-                if (!this.visual.isBound) {
-                    this.visual.bind(this.scope);
-                }
-                return;
-            }
-            if (this.visual === null) {
-                this.visual = this.createVisual();
-            }
-            if (!this.visual.isBound) {
-                this.visual.bind(this.scope);
-            }
-            this.showing = true;
-            return this.viewSlot.add(this.visual);
-        };
-        IfCore.prototype.hide = function () {
-            var _this = this;
-            if (!this.showing) {
-                return;
-            }
-            this.showing = false;
-            var removed = this.viewSlot.remove(this.visual);
-            if (removed instanceof Promise) {
-                return removed.then(function () { return _this.visual.unbind(); });
-            }
-            this.visual.unbind();
-        };
-        return IfCore;
-    }());
-    exports.IfCore = IfCore;
-});
-
-
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation"], function (require, exports, if_core_1, property_observation_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var If = (function (_super) {
-        __extends(If, _super);
-        function If() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.animating = false;
-            _this.$observers = {
-                condition: new property_observation_1.Observer(false, function (v) { return _this.isBound ? _this.conditionChanged(v) : void 0; })
-            };
-            return _this;
-        }
-        Object.defineProperty(If.prototype, "condition", {
-            get: function () { return this.$observers.condition.getValue(); },
-            set: function (value) { this.$observers.condition.setValue(value); },
-            enumerable: true,
-            configurable: true
-        });
-        If.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
-            this.conditionChanged(this.condition);
-        };
-        If.prototype.conditionChanged = function (newValue) {
-            this.update(newValue);
-        };
-        If.prototype.link = function (elseBehavior) {
-            if (this.elseBehavior === elseBehavior) {
-                return this;
-            }
-            this.elseBehavior = elseBehavior;
-            elseBehavior.link(this);
-            return this;
-        };
-        If.prototype.update = function (show) {
-            var _this = this;
-            if (this.animating) {
-                return;
-            }
-            var promise;
-            if (this.elseBehavior) {
-                promise = show ? this.swap(this.elseBehavior, this) : this.swap(this, this.elseBehavior);
-            }
-            else {
-                promise = show ? this.show() : this.hide();
-            }
-            if (promise) {
-                this.animating = true;
-                promise.then(function () {
-                    _this.animating = false;
-                    if (_this.condition !== _this.showing) {
-                        _this.update(_this.condition);
-                    }
-                });
-            }
-        };
-        If.prototype.swap = function (remove, add) {
-            switch (this.swapOrder) {
-                case 'before':
-                    return Promise.resolve(add.show()).then(function () { return remove.hide(); });
-                case 'with':
-                    return Promise.all([remove.hide(), add.show()]);
-                default:
-                    var promise = remove.hide();
-                    return promise ? promise.then(function () { return add.show(); }) : add.show();
-            }
-        };
-        return If;
-    }(if_core_1.IfCore));
-    exports.If = If;
-});
-
-
-
 define('runtime/templating/anchors',["require", "exports", "../dom"], function (require, exports, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4437,7 +4437,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./template", "../binding/scope", "../task-queue", "../binding/property-observation", "./anchors"], function (require, exports, template_1, scope_1, task_queue_1, property_observation_1, anchors_1) {
+define('runtime/templating/component',["require", "exports", "./template", "../binding/scope", "../task-queue", "../binding/property-observation", "./anchors", "./shadow-dom"], function (require, exports, template_1, scope_1, task_queue_1, property_observation_1, anchors_1, shadow_dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Component = {
@@ -4454,6 +4454,7 @@ define('runtime/templating/component',["require", "exports", "./template", "../b
                         _this.$bindable = [];
                         _this.$attachable = [];
                         _this.$slots = source.hasSlots ? {} : null;
+                        _this.$contentView = null;
                         _this.$isBound = false;
                         _this.$changeCallbacks = [];
                         _this.$scope = {
@@ -4483,6 +4484,7 @@ define('runtime/templating/component',["require", "exports", "./template", "../b
                             bindable[i].bind(scope);
                         }
                         if (source.hasSlots) {
+                            shadow_dom_1.ShadowDOM.distributeView(this.$contentView, this.$slots);
                         }
                         this.$isBound = true;
                         var changeCallbacks = this.$changeCallbacks;
@@ -4815,7 +4817,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
                         var child = children[i];
                         if (child.auOwnerView === view) {
                             children.splice(i, 1);
-                            view.fragment.appendChild(child);
+                            view.appendChild(child);
                             i--;
                             ii--;
                             this.projections--;
@@ -4962,6 +4964,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
             }
         },
         distributeView: function (view, slots, projectionSource, index, destinationOverride) {
+            if (projectionSource === void 0) { projectionSource = null; }
             if (index === void 0) { index = 0; }
             if (destinationOverride === void 0) { destinationOverride = null; }
             var nodes;
@@ -4969,7 +4972,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "../util
                 nodes = noNodes;
             }
             else {
-                var childNodes = view.fragment.childNodes;
+                var childNodes = view.childNodes;
                 var ii = childNodes.length;
                 nodes = new Array(ii);
                 for (var i = 0; i < ii; ++i) {
@@ -5092,6 +5095,10 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
             case 'element':
                 var elementInstructions = instruction.instructions;
                 var elementModel = new instruction.ctor();
+                var contentView = view_1.View.fromCompiledElementContent(target);
+                if (contentView !== view_1.View.none) {
+                    elementModel.$contentView = contentView;
+                }
                 elementModel.applyTo(target);
                 for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
                     var current = elementInstructions[i];
@@ -5136,7 +5143,7 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
         }
         CompiledTemplate.prototype.createFor = function (owner, host) {
             var source = this.source;
-            var view = new view_1.View(this.element);
+            var view = view_1.View.fromCompiledTemplate(this.element);
             var targets = view.findTargets();
             var targetInstructions = source.targetInstructions;
             for (var i = 0, ii = targets.length; i < ii; ++i) {
@@ -5475,33 +5482,82 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
 
 
 
-define('runtime/templating/view',["require", "exports"], function (require, exports) {
+define('runtime/templating/view',["require", "exports", "../dom"], function (require, exports, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var noNodes = Object.freeze([]);
     var noopView = {
         firstChild: Node = null,
         lastChild: Node = null,
+        childNodes: noNodes,
+        findTargets: function () { return noNodes; },
         insertBefore: function (refNode) { },
         appendTo: function (parent) { },
-        remove: function () { }
+        remove: function () { },
+        appendChild: function (child) { }
     };
-    var View = (function () {
-        function View(template) {
-            var clone = template.cloneNode(true);
-            this.fragment = clone.content;
+    exports.View = {
+        none: noopView,
+        fromCompiledTemplate: function (element) {
+            return new TemplateView(element);
+        },
+        fromCompiledElementContent: function (element) {
+            var contentElement = element.firstElementChild;
+            if (contentElement !== null && contentElement !== undefined) {
+                dom_1.DOM.removeNode(contentElement);
+                return new ContentView(contentElement);
+            }
+            return noopView;
+        }
+    };
+    var ContentView = (function () {
+        function ContentView(element) {
+            this.element = element;
+            this.firstChild = this.element.firstChild;
+            this.lastChild = this.element.lastChild;
+        }
+        Object.defineProperty(ContentView.prototype, "childNodes", {
+            get: function () {
+                return this.element.childNodes;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ContentView.prototype.appendChild = function (child) {
+            this.element.appendChild(child);
+        };
+        ContentView.prototype.findTargets = function () { return noNodes; };
+        ContentView.prototype.insertBefore = function (refNode) { };
+        ContentView.prototype.appendTo = function (parent) { };
+        ContentView.prototype.remove = function () { };
+        return ContentView;
+    }());
+    var TemplateView = (function () {
+        function TemplateView(template) {
+            this.fragment = template.cloneNode(true).content;
             this.firstChild = this.fragment.firstChild;
             this.lastChild = this.fragment.lastChild;
         }
-        View.prototype.findTargets = function () {
+        Object.defineProperty(TemplateView.prototype, "childNodes", {
+            get: function () {
+                return this.fragment.childNodes;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        TemplateView.prototype.appendChild = function (node) {
+            this.fragment.appendChild(node);
+        };
+        TemplateView.prototype.findTargets = function () {
             return this.fragment.querySelectorAll('.au');
         };
-        View.prototype.insertBefore = function (refNode) {
+        TemplateView.prototype.insertBefore = function (refNode) {
             refNode.parentNode.insertBefore(this.fragment, refNode);
         };
-        View.prototype.appendTo = function (parent) {
+        TemplateView.prototype.appendTo = function (parent) {
             parent.appendChild(this.fragment);
         };
-        View.prototype.remove = function () {
+        TemplateView.prototype.remove = function () {
             var fragment = this.fragment;
             var current = this.firstChild;
             var end = this.lastChild;
@@ -5515,10 +5571,8 @@ define('runtime/templating/view',["require", "exports"], function (require, expo
                 current = next;
             }
         };
-        View.none = noopView;
-        return View;
+        return TemplateView;
     }());
-    exports.View = View;
 });
 
 

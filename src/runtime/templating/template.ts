@@ -83,6 +83,12 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
     case 'element':
       let elementInstructions = instruction.instructions;
       let elementModel: IComponent = new instruction.ctor(); //TODO: DI
+      let contentView = View.fromCompiledElementContent(target);
+
+      if (contentView !== View.none) {
+        (<any>elementModel).$contentView = contentView;
+      }
+
       elementModel.applyTo(target);
 
       for (let i = 0, ii = elementInstructions.length; i < ii; ++i) {
@@ -144,7 +150,7 @@ class CompiledTemplate implements ITemplate {
 
   createFor(owner: IViewOwner, host?: Node): IView {
     const source = this.source;
-    const view = new View(this.element);
+    const view = View.fromCompiledTemplate(this.element);
     const targets = view.findTargets();
 
     const targetInstructions = source.targetInstructions;

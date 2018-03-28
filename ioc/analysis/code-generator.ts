@@ -125,16 +125,16 @@ export class ClassActivatorBuilder implements IObjectBuilder {
       [],
       [],
       [
-        ts.createProperty([], [], 'instance', null, null, null),
+        ts.createProperty([], [], 'instance', undefined, undefined, undefined),
         ts.createMethod(
           [],
           [],
-          null,
+          undefined,
           'activate',
-          null,
+          undefined,
           [],
           [],
-          null,
+          undefined,
           ts.createBlock(
             [
               ts.createIf(
@@ -215,8 +215,8 @@ export class DIImportBuilder implements IObjectBuilder {
       [],
       [],
       ts.createImportClause(
-        null,
-        ts.createNamedImports([ts.createImportSpecifier(null, ts.createIdentifier(request.className))])
+        undefined,
+        ts.createNamedImports([ts.createImportSpecifier(undefined, ts.createIdentifier(request.className))])
       ),
       ts.createLiteral(iocPath)
     );
@@ -261,7 +261,7 @@ export class ModuleImportBuilder implements IObjectBuilder {
     const output = ts.createImportDeclaration(
       [],
       [],
-      ts.createImportClause(null, ts.createNamedImports([ts.createImportSpecifier(null, ts.createIdentifier(name))])),
+      ts.createImportClause(undefined, ts.createNamedImports([ts.createImportSpecifier(undefined, ts.createIdentifier(name))])),
       ts.createLiteral(path)
     );
 

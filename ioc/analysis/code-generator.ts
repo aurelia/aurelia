@@ -54,7 +54,8 @@ export class DependencyInjectionCodeGenerator {
         new ClassActivatorBuilder(),
         new DependencyActivatorInvocationBuilder(),
         new ActivatorRegistratorBuilder(),
-        new TerminatingBuilder()
+        new TerminatingBuilder(),
+        new InjectorBootstrapperBuilder()
       )
     );
   }
@@ -77,7 +78,7 @@ export class DependencyInjectionCodeGenerator {
       const imports = result.dependencies
         .concat(result)
         .map(d => this.context.resolve(request.of(ModuleImportRequest, d.node)))
-        .concat(this.context.resolve(request.of(DIImportRequest, cls)));
+        .concat(this.context.resolve(request.of(DIImportRequest, cls).with('injector', 'DefaultInjector')));
 
       const activatorDeclaration = this.context.resolve(request.of(ClassActivatorRequest, cls));
       const activatorRegistrator = this.context.resolve(request.of(ActivatorRegistratorRequest, cls));
@@ -89,6 +90,8 @@ export class DependencyInjectionCodeGenerator {
 
       diConfig.fileMap.set(cls.parent, newSourceFile);
     }
+
+    
 
     return diConfig;
   }
@@ -164,7 +167,15 @@ export class ClassActivatorBuilder implements IObjectBuilder {
   }
 }
 
-export class DIImportRequest extends CodeGeneratorRequest {}
+export class DIImportRequest extends CodeGeneratorRequest {
+  public moduleName: string;
+  public className: string;
+  with(moduleName: string, className: string): DIImportRequest {
+    this.moduleName = moduleName;
+    this.className = className;
+    return this;
+  }
+}
 export class DIImportBuilder implements IObjectBuilder {
   public create(request: DIImportRequest, context: IObjectContext): ts.ImportDeclaration | symbol {
     if (!(request instanceof DIImportRequest)) return NoObject;
@@ -193,7 +204,7 @@ export class DIImportBuilder implements IObjectBuilder {
 
     // remove the /test part
     iocDirParts.pop();
-    iocDirParts.push('injector');
+    iocDirParts.push(request.moduleName);
 
     for (let i = 0; i < classPathParts.length; i++) {
       iocDirParts.unshift('..');
@@ -205,7 +216,7 @@ export class DIImportBuilder implements IObjectBuilder {
       [],
       ts.createImportClause(
         null,
-        ts.createNamedImports([ts.createImportSpecifier(null, ts.createIdentifier('DefaultInjector'))])
+        ts.createNamedImports([ts.createImportSpecifier(null, ts.createIdentifier(request.className))])
       ),
       ts.createLiteral(iocPath)
     );
@@ -311,6 +322,27 @@ export class ActivatorRegistratorBuilder implements IObjectBuilder {
       ts.createPropertyAccess(ts.createIdentifier('DefaultInjector'), 'addActivator'),
       [],
       [ts.createIdentifier(name), ts.createNew(ts.createIdentifier(`$${name}Activator`), [], [])]
+    );
+
+    return output;
+  }
+}
+
+export class InjectorBootstrapperRequest extends CodeGeneratorRequest {}
+export class InjectorBootstrapperBuilder implements IObjectBuilder {
+  public create(request: InjectorBootstrapperRequest, context: IObjectContext): ts.BinaryExpression | symbol {
+    if (!(request instanceof InjectorBootstrapperRequest)) return NoObject;
+
+    const output = ts.createAssignment(
+      ts.createPropertyAccess(ts.createIdentifier('DefaultInjector'), 'INSTANCE'),
+      ts.createCall(
+        ts.createPropertyAccess(
+          ts.createCall(ts.createPropertyAccess(ts.createIdentifier('InjectorBuilder'), 'create'), [], []),
+          'build'
+        ),
+        [],
+        []
+      )
     );
 
     return output;

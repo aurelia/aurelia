@@ -9,7 +9,11 @@ export const appConfig: CompiledElementSource = {
   template: `
     <au-marker class="au"></au-marker> <br>
     <input type="text" class="au">
-    <name-tag class="au"></name-tag>
+    <name-tag class="au">
+      <au-content>
+        <h2>Message: <au-marker class="au"></au-marker> </h2>
+      </au-content>
+    </name-tag>
     <input type="checkbox" class="au" />
     <au-marker class="au"></au-marker>
     <au-marker class="au"></au-marker>
@@ -51,6 +55,12 @@ export const appConfig: CompiledElementSource = {
             source: 'nameTag'
           }
         ]
+      }
+    ],
+    [
+      {
+        type: 'oneWayText',
+        source: 'message'
       }
     ],
     [

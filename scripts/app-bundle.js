@@ -3,7 +3,7 @@ define('app-config',["require", "exports", "./name-tag", "./runtime/resources/if
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.appConfig = {
         name: 'app',
-        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\"></name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
+        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <au-content>\n        <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n      </au-content>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
         observers: [
             {
                 name: 'message'
@@ -41,6 +41,12 @@ define('app-config',["require", "exports", "./name-tag", "./runtime/resources/if
                             source: 'nameTag'
                         }
                     ]
+                }
+            ],
+            [
+                {
+                    type: 'oneWayText',
+                    source: 'message'
                 }
             ],
             [
@@ -143,7 +149,8 @@ define('name-tag-config',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.nameTagConfig = {
         name: 'name-tag',
-        template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
+        hasSlots: true,
+        template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n      <au-shadow-slot class=\"au\"></au-shadow-slot>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
         observers: [
             {
                 name: 'name',
@@ -194,6 +201,12 @@ define('name-tag-config',["require", "exports"], function (require, exports) {
                     type: 'twoWay',
                     source: 'nameTagBorderColor',
                     target: 'value'
+                }
+            ],
+            [
+                {
+                    type: 'slot',
+                    name: '__au-default-slot-key__'
                 }
             ],
             [

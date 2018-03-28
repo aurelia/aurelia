@@ -3,6 +3,7 @@ import { CompiledElementSource } from "./runtime/templating/component";
 //this object is built up during compilation
 export const nameTagConfig: CompiledElementSource = {
   name: 'name-tag',
+  hasSlots: true,
   template: `
     <header>Super Duper name tag</header>
     <div>
@@ -30,6 +31,7 @@ export const nameTagConfig: CompiledElementSource = {
           <option>rgba(0,0,0,0.5)</option>
         </select>
       </label>
+      <au-shadow-slot class="au"></au-shadow-slot>
     </div>
     <hr/>
     <div>
@@ -96,6 +98,12 @@ export const nameTagConfig: CompiledElementSource = {
         type: 'twoWay',
         source: 'nameTagBorderColor',
         target: 'value'
+      }
+    ],
+    [
+      {
+        type: 'slot',
+        name: '__au-default-slot-key__'
       }
     ],
     [

@@ -1,12 +1,10 @@
-define('app-config',["require", "exports", "./name-tag", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, import1, import2, import3) {
+define('app-config',["require", "exports", "./name-tag"], function (require, exports, import1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.appConfig = {
         name: 'app',
         resources: [
-            import1,
-            import2,
-            import3
+            import1
         ],
         template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <au-content>\n        <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n      </au-content>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
         observers: [
@@ -170,10 +168,14 @@ define('generated',["require", "exports", "./runtime/binding/ast"], function (re
 
 
 
-define('main',["require", "exports", "./app", "./runtime/aurelia", "./runtime/binding/expression", "./generated"], function (require, exports, app_1, aurelia_1, expression_1, generated_1) {
+define('main',["require", "exports", "./app", "./runtime/aurelia", "./runtime/binding/expression", "./generated", "./runtime/templating/view-resources", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, app_1, aurelia_1, expression_1, generated_1, view_resources_1, if_1, else_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     expression_1.Expression.primeCache(generated_1.expressionCache);
+    view_resources_1.ViewResources.register([
+        if_1.If,
+        else_1.Else
+    ]);
     window['au'] = new aurelia_1.Aurelia()
         .app({ host: document.body, component: new app_1.App() })
         .start();

@@ -2,16 +2,12 @@ import { CompiledElementSource } from "./runtime/templating/component";
 
 //extracted from view imports
 import * as import1 from "./name-tag";
-import * as import2 from "./runtime/resources/if";
-import * as import3 from "./runtime/resources/else";
 
 //this object is built up during compilation
 export const appConfig: CompiledElementSource = {
   name: 'app',
   resources: [
-    import1,
-    import2,
-    import3
+    import1
   ],
   template: `
     <au-marker class="au"></au-marker> <br>

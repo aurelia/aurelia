@@ -1,6 +1,12 @@
-import { IObjectContext, IObjectBuilder, IObjectBuilderNode, IRequestSpecification, IObjectCommand } from "./interfaces";
+import {
+  IObjectContext,
+  IObjectBuilder,
+  IObjectBuilderNode,
+  IRequestSpecification,
+  IObjectCommand
+} from './interfaces';
 
-export const NoObject = Symbol.for("NoObject");
+export const NoObject = Symbol.for('NoObject');
 
 export class OmitObject {
   public request: any;
@@ -31,7 +37,7 @@ export class ObjectContext implements IObjectContext {
 export class FilteringObjectBuilderNode extends Array<IObjectBuilder> implements IObjectBuilderNode {
   public readonly builder: IObjectBuilder;
   public readonly specification: IRequestSpecification;
-  
+
   constructor(builder: IObjectBuilder, specification: IRequestSpecification) {
     super(builder);
     this.builder = builder;
@@ -101,7 +107,7 @@ export class Postprocessor extends Array<IObjectBuilder> implements IObjectBuild
 
 /**
  * Guards against NoOutput by always throwing an error
- * 
+ *
  * This is meant to be the last builder in a chain
  */
 export class TerminatingBuilder implements IObjectBuilder {

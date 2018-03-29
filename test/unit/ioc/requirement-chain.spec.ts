@@ -1,6 +1,6 @@
-import { RequirementChain } from "../../../ioc/requirement-chain";
-import { IRequirement } from "../../../ioc/interfaces";
-import { MockRequirement } from "./mocks";
+import { RequirementChain } from '../../../ioc/runtime/requirement-chain';
+import { IRequirement } from '../../../ioc/runtime/interfaces';
+import { MockRequirement } from './mocks';
 
 describe('RequirementChain', () => {
   let sut: RequirementChain;
@@ -21,7 +21,7 @@ describe('RequirementChain', () => {
     expect(sut.tailValue).toBe(req1);
     expect(sut.initialRequirement).toBe(req1);
     expect(sut.currentRequirement).toBe(req1);
-    expect(typeof sut.key).toBe("symbol");
+    expect(typeof sut.key).toBe('symbol');
 
     expect(sut.getPreviousRequirements()).toEqual([]);
     expect(sut.toArray()).toEqual([req1]);
@@ -55,5 +55,4 @@ describe('RequirementChain', () => {
     expect(sut.getPreviousRequirements()).toEqual([req1, req2]);
     expect(sut.toArray()).toEqual([req1, req2, req3]);
   });
-
 });

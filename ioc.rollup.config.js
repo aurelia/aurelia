@@ -1,7 +1,7 @@
 import typescript from 'rollup-plugin-typescript2';
 
 export default {
-  input: 'ioc/index.ts',
+  input: 'ioc/designtime/index.ts',
   indent: false,
   output: {
     file: 'ioc/dist/aurelia-ioc.js',

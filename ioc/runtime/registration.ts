@@ -5,30 +5,21 @@ import {
   IRequirement,
   IModuleConfiguration,
   IContext,
-  IRegistrationFunction,
-  IPair
+  IRegistrationFunction
 } from './interfaces';
 import { DefaultContext } from './context';
-import { Lifetime, RegistrationFlags, DependencyType, isConstructor, Pair } from './types';
+import { Lifetime, RegistrationFlags, DependencyType } from './types';
 import { Fulfillments } from './fulfillments';
 import { ResolutionContext } from './resolution-context';
 import { RequirementChain } from './requirement-chain';
 import { RegistrationResult } from './resolver';
-import { getLogger } from 'aurelia-logging';
-import * as AST from './analysis/ast';
-
-const logger = getLogger('ioc-registration');
 
 export class Registration<T> implements IRegistration<T> {
   private context: DefaultContext;
-  private sourceType: DependencyType | AST.IModuleItem;
+  private sourceType: DependencyType;
   private lifetime: Lifetime;
 
-  constructor(
-    context: DefaultContext,
-    sourceType: DependencyType | AST.IModuleItem,
-    lifetime: Lifetime = Lifetime.Unspecified
-  ) {
+  constructor(context: DefaultContext, sourceType: DependencyType, lifetime: Lifetime = Lifetime.Unspecified) {
     this.context = context;
     this.sourceType = sourceType;
     this.lifetime = lifetime;
@@ -236,7 +227,7 @@ export class RuleBasedRegistrationFunction implements IRegistrationFunction {
 
     if (validRules.length > 0) {
       if (validRules.length > 1) {
-        logger.warn('more than one matching rule found - this is not yet handled properly', validRules);
+        throw new Error('more than one matching rule found - this is not yet handled properly');
       }
 
       const selectedRule = validRules[0];
@@ -268,7 +259,7 @@ export class DefaultRuntimeRequirementRegistrationFunction implements IRegistrat
           Lifetime.Unspecified,
           RegistrationFlags.Terminal
         );
-      } else if (!(requirement.requiredType && ((requirement.requiredType as any) as AST.INode).isAnalysisASTNode)) {
+      } else if (!(requirement.requiredType && (requirement.requiredType as any).isAnalysisASTNode)) {
         const fulfillment = Fulfillments.null(requirement.requiredType);
         result = new RegistrationResult(
           requirement.restrict(fulfillment),
@@ -278,30 +269,6 @@ export class DefaultRuntimeRequirementRegistrationFunction implements IRegistrat
       }
 
       this.metadataCache.set(requirement.requiredType, result);
-    }
-
-    return result;
-  }
-}
-
-export class DefaultDesigntimeRequirementRegistrationFunction implements IRegistrationFunction {
-  private metadataCache: Map<AST.INode, RegistrationResult> = new Map();
-
-  public register(context: ResolutionContext, chain: RequirementChain): RegistrationResult {
-    const requirement = chain.currentRequirement;
-    let result: RegistrationResult = this.metadataCache.get(requirement.requiredType as any);
-
-    if (!result) {
-      if (requirement.requiredType && ((requirement.requiredType as any) as AST.INode).isAnalysisASTNode) {
-        const fulfillment = Fulfillments.syntax(requirement.requiredType as any);
-        result = new RegistrationResult(
-          requirement.restrict(fulfillment),
-          Lifetime.Unspecified,
-          RegistrationFlags.Terminal
-        );
-      }
-
-      this.metadataCache.set(requirement.requiredType as any, result);
     }
 
     return result;

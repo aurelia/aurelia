@@ -12,7 +12,7 @@ export interface IObjectBuilder {
 
 /**
  * An intermediate node in a graph of IObjectBuilder instances
- * 
+ *
  * Its responsibility is to compose multiple builders in a certain fashion,
  * and expose their cumulative behavior as a single builder
  */
@@ -61,4 +61,18 @@ export interface IObjectQuery {
    * @param obj The object to select associated objects from
    */
   select(obj: any): any[];
+}
+
+export interface IFileUtils {
+  readFile(fileName: string): Promise<string>;
+  readFileSync(fileName: string): string;
+
+  writeFile(fileName: string, data: any): Promise<boolean>;
+  writeFileSync(fileName: string, data: any): boolean;
+
+  exists(fileName: string): Promise<boolean>;
+  existsSync(fileName: string): boolean;
+
+  getFileNamesRecursive(dir): Promise<string[]>;
+  getAbsolutePath(dir): string;
 }

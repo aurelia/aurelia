@@ -1,5 +1,5 @@
-import { NodeBuilder, Node, Component } from '../../../ioc/graph';
-import { Pair } from '../../../ioc/types';
+import { NodeBuilder, Node } from '../../../ioc/runtime/graph';
+import { Pair } from '../../../ioc/runtime/types';
 
 describe('NodeBuilder', () => {
   let sut: NodeBuilder;

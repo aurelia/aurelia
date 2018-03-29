@@ -1,22 +1,19 @@
+import { raw } from '../../fixture/ts/raw';
+import * as ts from 'typescript';
+import * as AST from '../../../ioc/designtime/ast';
 import {
   DependencyInjectionCodeGenerator,
   ClassActivatorBuilder,
-  ActivatorRegistratorBuilder,
-  DependencyActivatorInvocationBuilder,
-  ModuleImportBuilder,
   ClassActivatorRequest,
+  DependencyActivatorInvocationBuilder,
   DependencyActivatorInvocationRequest,
+  ActivatorRegistratorBuilder,
   ActivatorRegistratorRequest,
+  ModuleImportBuilder,
   ModuleImportRequest
-} from '../../../ioc/analysis/code-generator';
-import * as ts from 'typescript';
-import { raw } from '../../fixture/ts/raw';
-import * as AST from '../../../ioc/analysis/ast';
-import { StaticModuleConfiguration } from '../../../ioc/static-module-configuration';
-import { SyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
-import { InjectorBuilder } from '../../../ioc/injector';
-import { Node } from '../../../ioc/graph';
-import { IObjectContext } from '../../../ioc/composition/interfaces';
+} from '../../../ioc/designtime/code-generator';
+import { StaticModuleConfiguration } from '../../../ioc/designtime/configuration';
+import { SyntaxTransformer } from '../../../ioc/designtime/syntax-transformer';
 
 describe('DependencyInjectionCodeGenerator', () => {
   let sut: DependencyInjectionCodeGenerator;
@@ -47,7 +44,11 @@ describe('DependencyInjectionCodeGenerator', () => {
 describe('ClassActivatorBuilder', () => {
   it('should create the correct syntax when there are no dependencies', () => {
     const sut = new ClassActivatorBuilder();
-    const request = new ClassActivatorRequest({} as any, { dependencies: [] } as any, { kind: AST.NodeKind.Class, name: 'Foo' } as any);
+    const request = new ClassActivatorRequest(
+      {} as any,
+      { dependencies: [] } as any,
+      { kind: AST.NodeKind.Class, name: 'Foo' } as any
+    );
     const context = { resolve: () => '' } as any;
     const syntax = sut.create(request, context);
 
@@ -68,7 +69,11 @@ describe('ClassActivatorBuilder', () => {
 
   it('should create the correct syntax when there is one dependency', () => {
     const sut = new ClassActivatorBuilder();
-    const request = new ClassActivatorRequest({} as any, { dependencies: [{}] } as any, { kind: AST.NodeKind.Class, name: 'Foo' } as any);
+    const request = new ClassActivatorRequest(
+      {} as any,
+      { dependencies: [{}] } as any,
+      { kind: AST.NodeKind.Class, name: 'Foo' } as any
+    );
     const context = { resolve: () => ts.createIdentifier('dep') } as any;
     const syntax = sut.create(request, context);
 
@@ -89,7 +94,11 @@ describe('ClassActivatorBuilder', () => {
 
   it('should create the correct syntax when there are multiple dependencies', () => {
     const sut = new ClassActivatorBuilder();
-    const request = new ClassActivatorRequest({} as any, { dependencies: [{}, {}, {}] } as any, { kind: AST.NodeKind.Class, name: 'Foo' } as any);
+    const request = new ClassActivatorRequest(
+      {} as any,
+      { dependencies: [{}, {}, {}] } as any,
+      { kind: AST.NodeKind.Class, name: 'Foo' } as any
+    );
     const context = { resolve: () => ts.createIdentifier('dep') } as any;
     const syntax = sut.create(request, context);
 
@@ -112,7 +121,11 @@ describe('ClassActivatorBuilder', () => {
 describe('ClassDependencyActivatorBuilder', () => {
   it('should create the correct syntax', () => {
     const sut = new DependencyActivatorInvocationBuilder();
-    const request = new DependencyActivatorInvocationRequest({} as any, {} as any, { kind: AST.NodeKind.Class, name: 'Foo' } as any);
+    const request = new DependencyActivatorInvocationRequest(
+      {} as any,
+      {} as any,
+      { kind: AST.NodeKind.Class, name: 'Foo' } as any
+    );
     const context = {} as any;
     const syntax = sut.create(request, context);
 
@@ -127,7 +140,11 @@ describe('ClassDependencyActivatorBuilder', () => {
 describe('DependencyActivatorRegistrator', () => {
   it('should create the correct syntax', () => {
     const sut = new ActivatorRegistratorBuilder();
-    const request = new ActivatorRegistratorRequest({} as any, {} as any, { kind: AST.NodeKind.Class, name: 'Foo' } as any);
+    const request = new ActivatorRegistratorRequest(
+      {} as any,
+      {} as any,
+      { kind: AST.NodeKind.Class, name: 'Foo' } as any
+    );
     const context = {} as any;
     const syntax = sut.create(request, context);
 
@@ -142,7 +159,11 @@ describe('DependencyActivatorRegistrator', () => {
 describe('ModuleImportsBuilder', () => {
   it('should create the correct syntax when a Class is provided', () => {
     const sut = new ModuleImportBuilder();
-    const request = new ModuleImportRequest({} as any, {} as any, { kind: AST.NodeKind.Class, name: 'Foo', parent: { path: 'foo/path' } } as any);
+    const request = new ModuleImportRequest(
+      {} as any,
+      {} as any,
+      { kind: AST.NodeKind.Class, name: 'Foo', parent: { path: 'foo/path' } } as any
+    );
     const context = {} as any;
     const syntax = sut.create(request, context)[0];
 
@@ -155,7 +176,11 @@ describe('ModuleImportsBuilder', () => {
 
   it('should create the correct syntax when a ModuleImport is provided', () => {
     const sut = new ModuleImportBuilder();
-    const request = new ModuleImportRequest({} as any, {} as any, { kind: AST.NodeKind.ModuleImport, name: 'Foo', path: 'foo/path' } as any);
+    const request = new ModuleImportRequest(
+      {} as any,
+      {} as any,
+      { kind: AST.NodeKind.ModuleImport, name: 'Foo', path: 'foo/path' } as any
+    );
     const context = {} as any;
     const syntax = sut.create(request, context)[0];
 
@@ -168,7 +193,11 @@ describe('ModuleImportsBuilder', () => {
 
   it('should create the correct syntax when a ModuleExport is provided', () => {
     const sut = new ModuleImportBuilder();
-    const request = new ModuleImportRequest({} as any, {} as any, { kind: AST.NodeKind.ModuleExport, name: 'Foo', path: 'foo/path' } as any);
+    const request = new ModuleImportRequest(
+      {} as any,
+      {} as any,
+      { kind: AST.NodeKind.ModuleExport, name: 'Foo', path: 'foo/path' } as any
+    );
     const context = {} as any;
     const syntax = sut.create(request, context)[0];
 

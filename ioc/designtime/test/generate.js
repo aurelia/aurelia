@@ -1,5 +1,5 @@
 const { NodeFileUtils } = require('./node-file-utils');
-const { DIGenerator } = require('../dist/aurelia-ioc');
+const { DIGenerator } = require('../../dist/aurelia-ioc');
 
 console.time('Generation');
 (async () => {

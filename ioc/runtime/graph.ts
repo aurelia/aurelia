@@ -1,8 +1,6 @@
-import { IPair, IPredicate, IRequirement, IFulfillment } from './interfaces';
+import { IPair, IFulfillment } from './interfaces';
+import { Pair, DependencyType, RegistrationFlags, Lifetime } from './types';
 import { RequirementChain } from './requirement-chain';
-import { RegistrationFlags, Lifetime, isASTNode, isConstructor, Pair, DependencyType } from './types';
-import * as AST from './analysis/ast';
-import { RuntimeRequirement } from './requirements';
 
 export class Node {
   public readonly key: Component;

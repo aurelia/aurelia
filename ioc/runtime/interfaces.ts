@@ -1,9 +1,8 @@
-import { DependencyMap } from "./container";
-import { ResolutionContext } from "./resolution-context";
-import { RequirementChain } from "./requirement-chain";
-import { RegistrationResult } from "./resolver";
-import { DependencyType, Lifetime, RegistrationFlags } from "./types";
-import * as AST from "./analysis/ast";
+import { DependencyMap } from './container';
+import { ResolutionContext } from './resolution-context';
+import { RequirementChain } from './requirement-chain';
+import { RegistrationResult } from './resolver';
+import { DependencyType, Lifetime, RegistrationFlags } from './types';
 
 export interface IFulfillment {
   readonly isFulfillment: true;
@@ -27,7 +26,7 @@ export interface IChain<T> {
   readonly previous: IChain<T>;
   readonly tailValue: T;
 
-  toArray(): T[];  
+  toArray(): T[];
 }
 
 export interface IRegistrationFunction {
@@ -68,7 +67,7 @@ export interface IModuleConfiguration {
 }
 
 export interface IContext {
-  register<T>(type: DependencyType | AST.IModuleItem): IRegistration<T>;
+  register<T>(type: DependencyType): IRegistration<T>;
 }
 
 export interface IRegistration<T> {
@@ -87,18 +86,4 @@ export interface IRegistrationRule {
   isTerminal(): boolean;
   getFlags(): RegistrationFlags;
   matches(requirement: IRequirement): boolean;
-}
-
-export interface IFileUtils {
-  readFile(fileName: string): Promise<string>;
-  readFileSync(fileName: string): string;
-
-  writeFile(fileName: string, data: any): Promise<boolean>
-  writeFileSync(fileName: string, data: any): boolean;
-
-  exists(fileName: string): Promise<boolean>;
-  existsSync(fileName: string): boolean;
-
-  getFileNamesRecursive(dir): Promise<string[]>;
-  getAbsolutePath(dir): string;
 }

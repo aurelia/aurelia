@@ -2,11 +2,8 @@ import { IRegistrationFunction, IRequirement, IPair, IFulfillment } from './inte
 import { Node, Edge, Component, Dependency, GraphMerger } from './graph';
 import { ResolutionContext } from './resolution-context';
 import { RequirementChain } from './requirement-chain';
-import { getLogger } from 'aurelia-logging';
-import { Lifetime, DependencyType, RegistrationFlags, Pair } from './types';
+import { Lifetime, RegistrationFlags, Pair } from './types';
 import { NullFulfillment } from './fulfillments';
-
-const logger = getLogger('dependency-resolver');
 
 export class Resolver {
   public functions: IRegistrationFunction[];

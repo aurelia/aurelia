@@ -1,12 +1,6 @@
 import * as ts from 'typescript';
 import * as AST from './ast';
-import {
-  IObjectBuilder,
-  IObjectContext,
-  IRequestSpecification,
-  IObjectCommand,
-  IObjectQuery
-} from '../composition/interfaces';
+import { IObjectBuilder, IObjectContext, IRequestSpecification, IObjectCommand, IObjectQuery } from './interfaces';
 import {
   NoObject,
   ObjectContext,
@@ -14,13 +8,12 @@ import {
   CompositeObjectBuilderNode,
   Postprocessor,
   TerminatingBuilder,
-  AndSpecification,
   OrSpecification,
   NotSpecification,
   OmitObject,
   SomeSpecification
-} from '../composition/core';
-import { StaticModuleConfiguration } from '../static-module-configuration';
+} from './core';
+import { StaticModuleConfiguration } from './configuration';
 import {
   ClassBuilder,
   FunctionBuilder,

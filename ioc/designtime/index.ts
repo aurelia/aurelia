@@ -1,9 +1,8 @@
-import { DefaultInjector, InjectorBuilder } from './injector';
-import { SyntaxTransformer } from './analysis/syntax-transformer';
-import { DependencyInjectionCodeGenerator } from './analysis/code-generator';
+import { SyntaxTransformer } from './syntax-transformer';
+import { DependencyInjectionCodeGenerator } from './code-generator';
 import * as ts from 'typescript';
 import { IFileUtils } from './interfaces';
-import { IModule } from './analysis/ast';
+import { IModule } from './ast';
 
 export class DIGenerator {
   public readonly fileUtils: IFileUtils;

@@ -1,6 +1,5 @@
-import { IRequestSpecification } from "../composition/interfaces";
-import { AndSpecification, OrSpecification } from "../composition/core";
-
+import { IRequestSpecification } from './interfaces';
+import { AndSpecification, OrSpecification } from './core';
 
 export class PropertySpecification implements IRequestSpecification {
   public readonly propertyKey: PropertyKey;

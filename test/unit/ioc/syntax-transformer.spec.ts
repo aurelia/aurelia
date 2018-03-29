@@ -1,8 +1,8 @@
 import * as ts from 'typescript';
 import { raw as rawTs } from '../../fixture/ts/raw';
 import { raw as rawJs } from '../../fixture/js/raw';
-import * as AST from '../../../ioc/analysis/ast';
-import { SyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
+import * as AST from '../../../ioc/designtime/ast';
+import { SyntaxTransformer } from '../../../ioc/designtime/syntax-transformer';
 
 describe('SyntaxTransformer', () => {
   let createTsSourceFileCount = Number.MAX_SAFE_INTEGER; // Number.MAX_SAFE_INTEGER // restrict source files to process because it's cpu-intensive and clogs the console output

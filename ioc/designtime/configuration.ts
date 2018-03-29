@@ -1,6 +1,10 @@
-import { IModuleConfiguration, IContext } from "./interfaces";
-import * as AST from "./analysis/ast";
+import * as AST from './ast';
+import * as ts from 'typescript';
+import { IModuleConfiguration, IContext } from '../runtime/interfaces';
 
+export class StaticDIConfiguration {
+  public fileMap: Map<AST.IModule, ts.SourceFile> = new Map();
+}
 
 export class StaticModuleConfiguration implements IModuleConfiguration, AST.IModuleCollection {
   public isAnalysisASTNode: false = false;

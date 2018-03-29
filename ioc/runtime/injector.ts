@@ -1,24 +1,18 @@
-import { Resolver } from './resolver';
 import {
-  IRegistrationFunction,
-  IRequirement,
-  IInjectionPoint,
-  IFulfillment,
   IInjector,
+  IActivator,
+  IRequirement,
+  IRegistrationFunction,
   IModuleConfiguration,
-  IRegistration,
-  IActivator
+  IRegistration
 } from './interfaces';
+import { DependencyType, Lifetime } from './types';
+import { Resolver } from './resolver';
 import { Container } from './container';
-import { BasicInjectionPoint } from './injection-point';
-import { Requirements } from './requirements';
-import {
-  RegistrationFunctionBuilder,
-  DefaultRuntimeRequirementRegistrationFunction,
-  DefaultDesigntimeRequirementRegistrationFunction
-} from './registration';
-import { Lifetime, DependencyType } from './types';
 import { InstanceActivator } from './activators';
+import { RegistrationFunctionBuilder, DefaultRuntimeRequirementRegistrationFunction } from './registration';
+import { RuntimeRequirement } from './requirements';
+import { BasicInjectionPoint } from './injection-point';
 
 export class DefaultInjector implements IInjector {
   private static activatorCacheQueue: Map<DependencyType, IActivator> = new Map();
@@ -63,10 +57,12 @@ export class DefaultInjector implements IInjector {
   private resolve(type: DependencyType): any {
     if (!this.activatorCache.has(type)) {
       if (!this.requirementCache.has(type)) {
-        this.requirementCache.set(type, Requirements.create(type));
+        this.requirementCache.set(type, new RuntimeRequirement(new BasicInjectionPoint(type)));
       }
       const requirement = this.requirementCache.get(type);
-      let resolved = this.resolver.graph.outgoingEdges.find(e => e.key.requirementChain.initialRequirement === requirement);
+      let resolved = this.resolver.graph.outgoingEdges.find(
+        e => e.key.requirementChain.initialRequirement === requirement
+      );
 
       if (!resolved) {
         this.resolver.resolve(requirement);
@@ -124,11 +120,11 @@ export class InjectorBuilder {
     return this.builder.root.register(type);
   }
 
-  public build(): IInjector {
+  public build(...customFunctions: IRegistrationFunction[]): IInjector {
     const registrationFunctions = [
       this.builder.build(),
       new DefaultRuntimeRequirementRegistrationFunction(),
-      new DefaultDesigntimeRequirementRegistrationFunction()
+      ...customFunctions
     ];
     const injector = new DefaultInjector(this.lifetime, registrationFunctions);
     DefaultInjector.INSTANCE = injector;

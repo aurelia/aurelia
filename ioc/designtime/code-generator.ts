@@ -1,29 +1,11 @@
 import * as ts from 'typescript';
 import * as AST from './ast';
-import {
-  IObjectBuilder,
-  IObjectContext,
-  IRequestSpecification,
-  IObjectCommand,
-  IObjectQuery
-} from '../composition/interfaces';
-import {
-  NoObject,
-  ObjectContext,
-  FilteringObjectBuilderNode,
-  CompositeObjectBuilderNode,
-  Postprocessor,
-  TerminatingBuilder,
-  AndSpecification,
-  OrSpecification
-} from '../composition/core';
-import { StaticModuleConfiguration } from '../static-module-configuration';
-import { IInjector, IModuleConfiguration } from '../interfaces';
-import { InjectorBuilder } from '../injector';
-import { StaticDIConfiguration } from '../static-di-configuration';
-import { SyntaxEmitResult } from '../activators';
-import { IsTypeScriptSyntaxSpecification } from './specifications';
-import { Pair } from '../types';
+import { IObjectBuilder, IObjectContext, IRequestSpecification, IObjectCommand, IObjectQuery } from './interfaces';
+import { NoObject, ObjectContext, CompositeObjectBuilderNode, TerminatingBuilder } from './core';
+import { StaticModuleConfiguration, StaticDIConfiguration } from './configuration';
+import { InjectorBuilder } from '../runtime/injector';
+import { SyntaxEmitResult } from './activators';
+import { DefaultDesigntimeRequirementRegistrationFunction } from './registration';
 
 export class CodeGeneratorRequest {
   public readonly config: StaticModuleConfiguration;
@@ -61,7 +43,7 @@ export class DependencyInjectionCodeGenerator {
   }
 
   public create(config: StaticModuleConfiguration): StaticDIConfiguration {
-    const injector = InjectorBuilder.create(config).build();
+    const injector = InjectorBuilder.create(config).build(new DefaultDesigntimeRequirementRegistrationFunction());
     const diConfig = new StaticDIConfiguration();
 
     const classes = config.modules
@@ -90,8 +72,6 @@ export class DependencyInjectionCodeGenerator {
 
       diConfig.fileMap.set(cls.parent, newSourceFile);
     }
-
-    
 
     return diConfig;
   }
@@ -261,7 +241,10 @@ export class ModuleImportBuilder implements IObjectBuilder {
     const output = ts.createImportDeclaration(
       [],
       [],
-      ts.createImportClause(undefined, ts.createNamedImports([ts.createImportSpecifier(undefined, ts.createIdentifier(name))])),
+      ts.createImportClause(
+        undefined,
+        ts.createNamedImports([ts.createImportSpecifier(undefined, ts.createIdentifier(name))])
+      ),
       ts.createLiteral(path)
     );
 

@@ -1,4 +1,4 @@
-import { IChain, IRequirement } from "./interfaces";
+import { IChain, IRequirement } from './interfaces';
 
 export class RequirementChain implements IChain<IRequirement> {
   public readonly previous: IChain<IRequirement>;

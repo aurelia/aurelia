@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as AST from './ast';
-import { IObjectBuilder, IObjectContext } from '../composition/interfaces';
-import { NoObject, OmitObject } from '../composition/core';
+import { IObjectBuilder, IObjectContext } from './interfaces';
+import { NoObject, OmitObject } from './core';
 import { ChildNode, OptionalRequest } from './syntax-transformer';
 
 export class ModuleBuilder implements IObjectBuilder {

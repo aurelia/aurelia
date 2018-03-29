@@ -1,11 +1,12 @@
-import * as ts from 'typescript';
 import { raw } from '../../fixture/ts/raw';
-import * as AST from '../../../ioc/analysis/ast';
-import { SyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
-import { StaticModuleConfiguration } from '../../../ioc/static-module-configuration';
-import { InjectorBuilder } from '../../../ioc/injector';
-import { IInjector } from '../../../ioc/interfaces';
-import { SyntaxEmitResult } from '../../../ioc/activators';
+import * as ts from 'typescript';
+import * as AST from '../../../ioc/designtime/ast';
+import { SyntaxTransformer } from '../../../ioc/designtime/syntax-transformer';
+import { InjectorBuilder } from '../../../ioc/runtime/injector';
+import { StaticModuleConfiguration } from '../../../ioc/designtime/configuration';
+import { IInjector } from '../../../ioc/runtime/interfaces';
+import { SyntaxEmitResult } from '../../../ioc/designtime/activators';
+import { DefaultDesigntimeRequirementRegistrationFunction } from '../../../ioc/designtime/registration';
 
 describe('StaticModuleConfiguration', () => {
   let sourceFiles: ts.SourceFile[];
@@ -24,7 +25,7 @@ describe('StaticModuleConfiguration', () => {
     transformer = new SyntaxTransformer();
     sut = transformer.create(...sourceFiles);
     injectorBuilder = InjectorBuilder.create(sut);
-    injector = injectorBuilder.build();
+    injector = injectorBuilder.build(new DefaultDesigntimeRequirementRegistrationFunction());
     items = sut.modules.map(m => m.items).reduce((prev, cur) => prev.concat(cur));
   });
 

@@ -6,18 +6,18 @@ import {
   ValidationMessageParser,
   StandardValidator,
   ValidationRules
-} from "aurelia-validation";
-import { BindingEngine } from "aurelia-binding";
-import { BrowserHistory, DefaultLinkHandler } from "aurelia-history-browser";
-import { Container } from "aurelia-dependency-injection";
-import { EventAggregator } from "aurelia-event-aggregator";
-import { HttpClient } from "aurelia-fetch-client";
-import { LookupFunctions, Parser, ObserverLocator, EventManager } from "aurelia-binding";
-import * as Binding from "aurelia-binding";
-import { Router, PipelineProvider, AppRouter } from "aurelia-router";
-import { TaskQueue } from "aurelia-task-queue";
-import { TemplatingBindingLanguage, SyntaxInterpreter, AttributeMap } from "aurelia-templating-binding";
-import { ViewResources } from "aurelia-templating";
+} from 'aurelia-validation';
+import { BindingEngine } from 'aurelia-binding';
+import { BrowserHistory, DefaultLinkHandler } from 'aurelia-history-browser';
+import { Container } from 'aurelia-dependency-injection';
+import { EventAggregator } from 'aurelia-event-aggregator';
+import { HttpClient } from 'aurelia-fetch-client';
+import { LookupFunctions, Parser, ObserverLocator, EventManager } from 'aurelia-binding';
+import * as Binding from 'aurelia-binding';
+import { Router, PipelineProvider, AppRouter } from 'aurelia-router';
+import { TaskQueue } from 'aurelia-task-queue';
+import { TemplatingBindingLanguage, SyntaxInterpreter, AttributeMap } from 'aurelia-templating-binding';
+import { ViewResources } from 'aurelia-templating';
 import {
   App,
   UserService,
@@ -36,9 +36,9 @@ import {
   ProfileService,
   TagService,
   SharedState
-} from "../../fixture/ts";
-import { PLATFORM } from "aurelia-pal";
-import { DefaultInjector } from "../../../ioc/injector";
+} from '../../fixture/ts';
+import { PLATFORM } from 'aurelia-pal';
+import { DefaultInjector } from '../../../ioc/runtime/injector';
 
 export function verifyApp(x: App): void {
   verifyInstance(x, App);
@@ -310,7 +310,7 @@ export function registerTimes(n: number, container: Container) {
   let i = 0;
   const start = PLATFORM.performance.now();
   for (i = 0; i < n; i++) {
-      container.autoRegister(`key${i}`, new Function());
+    container.autoRegister(`key${i}`, new Function());
   }
   const end = PLATFORM.performance.now();
   return end - start;
@@ -318,25 +318,24 @@ export function registerTimes(n: number, container: Container) {
 
 export function resolveTimes(n: number, container: Container | DefaultInjector, warm: boolean = false) {
   let i = 0;
-  const method = container instanceof Container ? "get" : "getInstance";
+  const method = container instanceof Container ? 'get' : 'getInstance';
   if (warm) {
     container[method](`key`);
     const start = PLATFORM.performance.now();
     for (i = 0; i < n; i++) {
-        container[method](`key`);
+      container[method](`key`);
     }
     const end = PLATFORM.performance.now();
     return end - start;
   } else {
     const start = PLATFORM.performance.now();
     for (i = 0; i < n; i++) {
-        container[method](`key${i}`);
+      container[method](`key${i}`);
     }
     const end = PLATFORM.performance.now();
     return end - start;
   }
 }
-
 
 export function createClasses(params: { [key: string]: any }): any[] {
   const { count, depth, width, allClasses } = params;

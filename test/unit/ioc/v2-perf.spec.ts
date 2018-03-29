@@ -1,7 +1,7 @@
 import { registerTimes, resolveTimes, createClasses } from './util';
-import { InjectorBuilder, DefaultInjector } from '../../../ioc/injector';
+import { InjectorBuilder, DefaultInjector } from '../../../ioc/runtime/injector';
 import { PLATFORM } from 'aurelia-pal';
-import { IInjector } from '../../../ioc/interfaces';
+import { IInjector } from '../../../ioc/runtime/interfaces';
 
 describe('InjectorBuilder', () => {
   let sut: InjectorBuilder;
@@ -77,7 +77,10 @@ function testWarmResolutionPerformance(injectorBuilder: InjectorBuilder, params:
   const { count, depth, width, maxResTime, allClasses } = params;
   const classes = createClasses(params as any);
   for (const $class of allClasses) {
-    injectorBuilder.register($class).transient().toSelf();
+    injectorBuilder
+      .register($class)
+      .transient()
+      .toSelf();
   }
   const injector = injectorBuilder.build();
   for (let i = 0; i < count; i++) {

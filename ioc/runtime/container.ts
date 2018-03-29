@@ -1,10 +1,7 @@
-import { Node, Edge, Component, Dependency } from "./graph";
-import { IActivator, IRequirement } from "./interfaces";
-import { getLogger } from "aurelia-logging";
-import { Activators } from "./activators";
-import { Lifetime } from "./types";
-
-const logger = getLogger("injection-container");
+import { IActivator, IRequirement } from './interfaces';
+import { Lifetime } from './types';
+import { Activators } from './activators';
+import { Node, Edge } from './graph';
 
 export class Container {
   private providerCache: Map<Node, IActivator>;
@@ -19,13 +16,8 @@ export class Container {
     return new Container(lifetime);
   }
 
-  public makeActivator(
-    node: Node,
-    backEdges: Map<Node, Edge>
-  ): IActivator {
+  public makeActivator(node: Node, backEdges: Map<Node, Edge>): IActivator {
     if (!this.providerCache.has(node)) {
-      logger.debug("Cache missed for node: ", node.key);
-
       const map = this.makeDependencyMap(node, backEdges);
       const raw = node.key.fulfillment.makeActivator(map);
       const lifetime = node.key.lifetime;
@@ -43,10 +35,7 @@ export class Container {
     return this.providerCache.get(node);
   }
 
-  private makeDependencyMap(
-    node: Node,
-    backEdges: Map<Node, Edge>
-  ): DependencyMap {
+  private makeDependencyMap(node: Node, backEdges: Map<Node, Edge>): DependencyMap {
     let edges = new Set(node.outgoingEdges);
     if (backEdges.has(node)) {
       edges.add(backEdges.get(node));
@@ -85,11 +74,7 @@ export class DependencyLookup {
   private edges: Set<Edge>;
   private backEdges: Map<Node, Edge>;
 
-  constructor(
-    container: Container,
-    edges: Set<Edge>,
-    backEdges: Map<Node, Edge>
-  ) {
+  constructor(container: Container, edges: Set<Edge>, backEdges: Map<Node, Edge>) {
     this.container = container;
     this.edges = edges;
     this.backEdges = backEdges;

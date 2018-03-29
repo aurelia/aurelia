@@ -1,15 +1,19 @@
-import { GraphMerger, Node, Component, Dependency } from '../../../ioc/graph';
-import { Pair, Lifetime, RegistrationFlags } from '../../../ioc/types';
-import { NullFulfillment } from '../../../ioc/fulfillments';
-import { RequirementChain } from '../../../ioc/requirement-chain';
-import { RuntimeRequirement } from '../../../ioc/requirements';
-import { BasicInjectionPoint } from '../../../ioc/injection-point';
+import { Component, Dependency, GraphMerger } from '../../../ioc/runtime/graph';
+import { NullFulfillment } from '../../../ioc/runtime/fulfillments';
+import { RequirementChain } from '../../../ioc/runtime/requirement-chain';
+import { BasicInjectionPoint } from '../../../ioc/runtime/injection-point';
+import { RuntimeRequirement } from '../../../ioc/runtime/requirements';
+import { Lifetime, RegistrationFlags, Pair } from '../../../ioc/runtime/types';
+import { Node } from '../../../ioc/runtime/graph';
 
 function component(name: string): Component {
   return new Component(new NullFulfillment(name), Lifetime.Unspecified);
 }
 function dependency(name: string): Dependency {
-  return new Dependency(new RequirementChain(null, new RuntimeRequirement(new BasicInjectionPoint(name))), RegistrationFlags.Terminal);
+  return new Dependency(
+    new RequirementChain(null, new RuntimeRequirement(new BasicInjectionPoint(name))),
+    RegistrationFlags.Terminal
+  );
 }
 
 describe('GraphMerger', () => {

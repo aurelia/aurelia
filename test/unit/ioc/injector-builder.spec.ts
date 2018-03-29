@@ -38,14 +38,7 @@ import {
   SettingsComponent,
   UserService
 } from '../../fixture/ts';
-import { InjectorBuilder, DefaultInjector } from '../../../ioc/injector';
-import { DependencyType } from '../../../ioc/types';
-import { IContext } from '../../../ioc/interfaces';
-import * as ts from 'typescript';
-import { raw } from '../../fixture/ts/raw';
-import * as AST from '../../../ioc/analysis/ast';
-import { SyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
-import { InstanceActivator } from '../../../ioc/activators';
+import { InjectorBuilder } from '../../../ioc/runtime/injector';
 
 describe('InjectorBuilder', () => {
   let sut: InjectorBuilder;
@@ -61,7 +54,10 @@ describe('InjectorBuilder', () => {
     sut.register(ValidationControllerFactory).toInstance(vcFactory);
     const injector = sut.build();
     (vcFactory as any).container = injector;
-    ValidationRules.initialize(injector.getInstance(ValidationMessageParser), injector.getInstance(PropertyAccessorParser));
+    ValidationRules.initialize(
+      injector.getInstance(ValidationMessageParser),
+      injector.getInstance(PropertyAccessorParser)
+    );
   });
 
   it('should properly resolve App', () => {

@@ -1,7 +1,6 @@
-import { IRequirement, IInjectionPoint, IFulfillment } from "../../../ioc/interfaces";
-import { DependencyType } from "../../../ioc/types";
-import { Requirements } from "../../../ioc/requirements";
-import { BasicInjectionPoint } from "../../../ioc/injection-point";
+import { IRequirement, IInjectionPoint, IFulfillment } from '../../../ioc/runtime/interfaces';
+import { DependencyType } from '../../../ioc/runtime/types';
+import { BasicInjectionPoint } from '../../../ioc/runtime/injection-point';
 
 export class MockRequirement implements IRequirement {
   public readonly isRequirement: true = true;

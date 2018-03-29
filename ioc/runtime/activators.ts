@@ -1,7 +1,8 @@
-import { IActivator, IRequirement, IPair } from './interfaces';
-import { DependencyType, isConstructor } from './types';
+import { IActivator } from './interfaces';
+import { DependencyType } from './types';
+import { IRequirement } from './interfaces';
 import { DependencyMap } from './container';
-import * as AST from './analysis/ast';
+import { IPair } from './interfaces';
 
 export class Activators {
   public static ofInstance(instance: any): IActivator {
@@ -95,56 +96,5 @@ export class ClassActivator implements IActivator {
       return new (this.type as any)();
     }
     throw new Error(`Could not activate class ${(this.type as any).name}`);
-  }
-}
-
-export class EmitSyntaxActivator implements IActivator {
-  public readonly type: DependencyType;
-  private requirements: IRequirement[];
-  private providers: DependencyMap;
-
-  constructor(type: AST.INode, requirements: IRequirement[], providers: DependencyMap) {
-    this.type = type;
-    this.requirements = requirements;
-    this.providers = providers;
-  }
-
-  public activate(): SyntaxEmitResult {
-    const dependencyGroups = new Map<string, IRequirement[]>();
-    for (const req of this.requirements) {
-      const key = req.injectionPoint.getMember().left.toString();
-      if (dependencyGroups.has(key)) {
-        dependencyGroups.get(key).push(req);
-      } else {
-        dependencyGroups.set(key, [req]);
-      }
-    }
-    const result = new SyntaxEmitResult(this.type as any);
-    const constructorDeps = dependencyGroups.get('constructor');
-    if (constructorDeps) {
-      const providers = constructorDeps.map(d => this.providers.get(d));
-      for (const dep of constructorDeps) {
-        const provider = this.providers.get(dep);
-        if (!provider) {
-          throw new Error(
-            `No provider found for dependency ${AST.toJSON(dep.requiredType as any)} -- ${
-              (this.providers as any).requirements.size
-            }`
-          );
-        }
-        const depResult = provider.activate();
-        result.dependencies.push(depResult);
-      }
-    }
-    return result;
-  }
-}
-
-export class SyntaxEmitResult {
-  public node: AST.INode;
-  public dependencies: SyntaxEmitResult[];
-  constructor(node: AST.INode) {
-    this.node = node;
-    this.dependencies = [];
   }
 }

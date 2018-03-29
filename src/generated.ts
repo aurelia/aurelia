@@ -1,5 +1,4 @@
 import { 
-  ILookupFunctions, 
   AccessScope, 
   TemplateLiteral, 
   LiteralString, 

@@ -50,28 +50,28 @@ export const AstKind: AstKind = {
 };
 
 export interface IExpression {
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions | null, mustEvaluateIfFunction?: boolean): any;
-  assign?(scope: IScope, value: any, lookupFunctions: ILookupFunctions | null): any;
+  evaluate(scope: IScope, resources: IBindingResources | null, mustEvaluateIfFunction?: boolean): any;
+  assign?(scope: IScope, value: any, resources: IBindingResources | null): any;
   connect(binding: IBinding, scope: IScope): any;
   bind?(binding: IBinding, scope: IScope): void;
   unbind?(binding: IBinding, scope: IScope): void;
 }
 
-export interface ILookupFunctions {
-  valueConverters: Record<string, any>;
-  bindingBehaviors: Record<string, any>;
+export interface IBindingResources {
+  getValueConverter(name: string): any;
+  getBindingBehavior(name: string): any;
 }
 
 export class Chain implements IExpression {
   constructor(private expressions: IExpression[]) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
+  evaluate(scope: IScope, resources: IBindingResources) {
     let result;
     let expressions = this.expressions;
     let last;
 
     for (let i = 0, length = expressions.length; i < length; ++i) {
-      last = expressions[i].evaluate(scope, lookupFunctions);
+      last = expressions[i].evaluate(scope, resources);
 
       if (last !== null) {
         result = last;
@@ -87,12 +87,12 @@ export class Chain implements IExpression {
 export class BindingBehavior implements IExpression {
   constructor(private expression: IExpression, private name: string, private args: IExpression[]) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
-    return this.expression.evaluate(scope, lookupFunctions);
+  evaluate(scope: IScope, resources: IBindingResources) {
+    return this.expression.evaluate(scope, resources);
   }
 
-  assign(scope: IScope, value: any, lookupFunctions: ILookupFunctions) {
-    return this.expression.assign(scope, value, lookupFunctions);
+  assign(scope: IScope, value: any, resources: IBindingResources) {
+    return this.expression.assign(scope, value, resources);
   }
 
   connect(binding: IBinding, scope: IScope) {
@@ -104,7 +104,7 @@ export class BindingBehavior implements IExpression {
       this.expression.bind(binding, scope);
     }
 
-    let behavior = binding.lookupFunctions.bindingBehaviors[this.name];
+    let behavior = binding.resources.getBindingBehavior(this.name);
     if (!behavior) {
       throw new Error(`No BindingBehavior named "${this.name}" was found!`);
     }
@@ -115,7 +115,7 @@ export class BindingBehavior implements IExpression {
     }
 
     (binding as any)[behaviorKey] = behavior;
-    behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.lookupFunctions)));
+    behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.resources)));
   }
 
   unbind(binding: IBinding, scope: IScope) {
@@ -133,30 +133,30 @@ export class BindingBehavior implements IExpression {
 export class ValueConverter implements IExpression {
   constructor(private expression: IExpression, private name: string, private args: IExpression[], private allArgs: IExpression[]) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
-    let converter = lookupFunctions.valueConverters[this.name];
+  evaluate(scope: IScope, resources: IBindingResources) {
+    let converter = resources.getValueConverter(this.name);
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
 
     if ('toView' in converter) {
-      return converter.toView.apply(converter, evalList(scope, this.allArgs, lookupFunctions));
+      return converter.toView.apply(converter, evalList(scope, this.allArgs, resources));
     }
 
-    return this.allArgs[0].evaluate(scope, lookupFunctions);
+    return this.allArgs[0].evaluate(scope, resources);
   }
 
-  assign(scope: IScope, value: any, lookupFunctions: ILookupFunctions) {
-    let converter = lookupFunctions.valueConverters[this.name];
+  assign(scope: IScope, value: any, resources: IBindingResources) {
+    let converter = resources.getValueConverter(this.name);
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
 
     if ('fromView' in converter) {
-      value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, lookupFunctions)));
+      value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, resources)));
     }
 
-    return this.allArgs[0].assign(scope, value, lookupFunctions);
+    return this.allArgs[0].assign(scope, value, resources);
   }
 
   connect(binding: IBinding, scope: IScope) {
@@ -165,7 +165,7 @@ export class ValueConverter implements IExpression {
     while (i--) {
       expressions[i].connect(binding, scope);
     }
-    let converter = binding.lookupFunctions.valueConverters[this.name];
+    let converter = binding.resources.getValueConverter(this.name);
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
@@ -183,25 +183,25 @@ export class ValueConverter implements IExpression {
 export class Assign implements IExpression {
   constructor(private target: IExpression, private value: IExpression) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions): any {
-    return this.target.assign(scope, this.value.evaluate(scope, lookupFunctions), lookupFunctions);
+  evaluate(scope: IScope, resources: IBindingResources): any {
+    return this.target.assign(scope, this.value.evaluate(scope, resources), resources);
   }
 
   connect() { }
 
-  assign(scope: IScope, value: any, lookupFunctions: ILookupFunctions) {
-    this.value.assign(scope, value, lookupFunctions);
-    this.target.assign(scope, value, lookupFunctions);
+  assign(scope: IScope, value: any, resources: IBindingResources) {
+    this.value.assign(scope, value, resources);
+    this.target.assign(scope, value, resources);
   }
 }
 
 export class Conditional implements IExpression {
   constructor(private condition: IExpression, private yes: IExpression, private no: IExpression) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
-    return (!!this.condition.evaluate(scope, lookupFunctions))
-      ? this.yes.evaluate(scope, lookupFunctions)
-      : this.no.evaluate(scope, lookupFunctions);
+  evaluate(scope: IScope, resources: IBindingResources) {
+    return (!!this.condition.evaluate(scope, resources))
+      ? this.yes.evaluate(scope, resources)
+      : this.no.evaluate(scope, resources);
   }
 
   connect(binding: IBinding, scope: IScope) {
@@ -217,7 +217,7 @@ export class Conditional implements IExpression {
 export class AccessThis implements IExpression {
   constructor(private ancestor: number = 0) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
+  evaluate(scope: IScope, resources: IBindingResources) {
     let oc = scope.overrideContext;
     let i = this.ancestor;
 
@@ -234,7 +234,7 @@ export class AccessThis implements IExpression {
 export class AccessScope implements IExpression {
   constructor(private name: string, private ancestor: number = 0) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
+  evaluate(scope: IScope, resources: IBindingResources) {
     let context = getContextFor(this.name, scope, this.ancestor);
     return context[this.name];
   }
@@ -253,17 +253,17 @@ export class AccessScope implements IExpression {
 export class AccessMember implements IExpression {
   constructor(private object: IExpression, private name: string) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
-    let instance = this.object.evaluate(scope, lookupFunctions);
+  evaluate(scope: IScope, resources: IBindingResources) {
+    let instance = this.object.evaluate(scope, resources);
     return instance === null || instance === undefined ? instance : instance[this.name];
   }
 
-  assign(scope: IScope, value: any, lookupFunctions: ILookupFunctions) {
-    let instance = this.object.evaluate(scope, lookupFunctions);
+  assign(scope: IScope, value: any, resources: IBindingResources) {
+    let instance = this.object.evaluate(scope, resources);
 
     if (instance === null || instance === undefined) {
       instance = {};
-      this.object.assign(scope, instance, lookupFunctions);
+      this.object.assign(scope, instance, resources);
     }
 
     instance[this.name] = value;
@@ -283,15 +283,15 @@ export class AccessMember implements IExpression {
 export class AccessKeyed implements IExpression {
   constructor(private object: IExpression, private key: IExpression) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
-    let instance = this.object.evaluate(scope, lookupFunctions);
-    let lookup = this.key.evaluate(scope, lookupFunctions);
+  evaluate(scope: IScope, resources: IBindingResources) {
+    let instance = this.object.evaluate(scope, resources);
+    let lookup = this.key.evaluate(scope, resources);
     return getKeyed(instance, lookup);
   }
 
-  assign(scope: IScope, value: any, lookupFunctions: ILookupFunctions | null) {
-    let instance = this.object.evaluate(scope, lookupFunctions);
-    let lookup = this.key.evaluate(scope, lookupFunctions);
+  assign(scope: IScope, value: any, resources: IBindingResources | null) {
+    let instance = this.object.evaluate(scope, resources);
+    let lookup = this.key.evaluate(scope, resources);
     return setKeyed(instance, lookup, value);
   }
 
@@ -314,8 +314,8 @@ export class AccessKeyed implements IExpression {
 export class CallScope implements IExpression {
   constructor(private name: string, private args: IExpression[], private ancestor: number) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions | null, mustEvaluate?: boolean) {
-    let args = evalList(scope, this.args, lookupFunctions);
+  evaluate(scope: IScope, resources: IBindingResources | null, mustEvaluate?: boolean) {
+    let args = evalList(scope, this.args, resources);
     let context = getContextFor(this.name, scope, this.ancestor);
     let func = getFunction(context, this.name, mustEvaluate);
     if (func) {
@@ -337,9 +337,9 @@ export class CallScope implements IExpression {
 export class CallMember implements IExpression {
   constructor(private object: IExpression, private name: string, private args: IExpression[]) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions, mustEvaluate: boolean) {
-    let instance = this.object.evaluate(scope, lookupFunctions);
-    let args = evalList(scope, this.args, lookupFunctions);
+  evaluate(scope: IScope, resources: IBindingResources, mustEvaluate: boolean) {
+    let instance = this.object.evaluate(scope, resources);
+    let args = evalList(scope, this.args, resources);
     let func = getFunction(instance, this.name, mustEvaluate);
     if (func) {
       return func.apply(instance, args);
@@ -363,10 +363,10 @@ export class CallMember implements IExpression {
 export class CallFunction implements IExpression {
   constructor(private func: IExpression, private args: IExpression[]) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions, mustEvaluate: boolean) {
-    let func = this.func.evaluate(scope, lookupFunctions);
+  evaluate(scope: IScope, resources: IBindingResources, mustEvaluate: boolean) {
+    let func = this.func.evaluate(scope, resources);
     if (typeof func === 'function') {
-      return func.apply(null, evalList(scope, this.args, lookupFunctions));
+      return func.apply(null, evalList(scope, this.args, resources));
     }
     if (!mustEvaluate && (func === null || func === undefined)) {
       return undefined;
@@ -390,16 +390,16 @@ export class CallFunction implements IExpression {
 export class Binary implements IExpression {
   constructor(private operation: string, private left: IExpression, private right: IExpression) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
-    let left = this.left.evaluate(scope, lookupFunctions);
+  evaluate(scope: IScope, resources: IBindingResources) {
+    let left = this.left.evaluate(scope, resources);
 
     switch (this.operation) {
-      case '&&': return left && this.right.evaluate(scope, lookupFunctions);
-      case '||': return left || this.right.evaluate(scope, lookupFunctions);
+      case '&&': return left && this.right.evaluate(scope, resources);
+      case '||': return left || this.right.evaluate(scope, resources);
       // no default
     }
 
-    let right = this.right.evaluate(scope, lookupFunctions);
+    let right = this.right.evaluate(scope, resources);
 
     switch (this.operation) {
       case '==': return left == right; // eslint-disable-line eqeqeq
@@ -456,8 +456,8 @@ export class Binary implements IExpression {
 export class PrefixNot implements IExpression {
   constructor(private operation: string, private expression: IExpression) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
-    return !this.expression.evaluate(scope, lookupFunctions);
+  evaluate(scope: IScope, resources: IBindingResources) {
+    return !this.expression.evaluate(scope, resources);
   }
 
   connect(binding: IBinding, scope: IScope) {
@@ -468,7 +468,7 @@ export class PrefixNot implements IExpression {
 export class LiteralPrimitive implements IExpression {
   constructor(private value: any) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
+  evaluate(scope: IScope, resources: IBindingResources) {
     return this.value;
   }
 
@@ -479,7 +479,7 @@ export class LiteralPrimitive implements IExpression {
 export class LiteralString implements IExpression {
   constructor(private value: string) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
+  evaluate(scope: IScope, resources: IBindingResources) {
     return this.value;
   }
 
@@ -489,12 +489,12 @@ export class LiteralString implements IExpression {
 export class TemplateLiteral implements IExpression {
   constructor(private parts: IExpression[]) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
+  evaluate(scope: IScope, resources: IBindingResources) {
     let elements = this.parts;
     let result = '';
 
     for (let i = 0, length = elements.length; i < length; ++i) {
-      let value = elements[i].evaluate(scope, lookupFunctions);
+      let value = elements[i].evaluate(scope, resources);
       if (value === undefined || value === null) {
         continue;
       }
@@ -515,12 +515,12 @@ export class TemplateLiteral implements IExpression {
 export class LiteralArray implements IExpression {
   constructor(private elements: IExpression[]) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
+  evaluate(scope: IScope, resources: IBindingResources) {
     let elements = this.elements;
     let result = [];
 
     for (let i = 0, length = elements.length; i < length; ++i) {
-      result[i] = elements[i].evaluate(scope, lookupFunctions);
+      result[i] = elements[i].evaluate(scope, resources);
     }
 
     return result;
@@ -537,13 +537,13 @@ export class LiteralArray implements IExpression {
 export class LiteralObject implements IExpression {
   constructor(private keys: string[], private values: IExpression[]) { }
 
-  evaluate(scope: IScope, lookupFunctions: ILookupFunctions) {
+  evaluate(scope: IScope, resources: IBindingResources) {
     let instance: Record<string, any> = {};
     let keys = this.keys;
     let values = this.values;
 
     for (let i = 0, length = keys.length; i < length; ++i) {
-      instance[keys[i]] = values[i].evaluate(scope, lookupFunctions);
+      instance[keys[i]] = values[i].evaluate(scope, resources);
     }
 
     return instance;
@@ -558,12 +558,12 @@ export class LiteralObject implements IExpression {
 }
 
 /// Evaluate the [list] in context of the [scope].
-function evalList(scope: IScope, list: IExpression[], lookupFunctions: ILookupFunctions) {
+function evalList(scope: IScope, list: IExpression[], resources: IBindingResources) {
   const length = list.length;
   const result = [];
 
   for (let i = 0; i < length; i++) {
-    result[i] = list[i].evaluate(scope, lookupFunctions);
+    result[i] = list[i].evaluate(scope, resources);
   }
 
   return result;

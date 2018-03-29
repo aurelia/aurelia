@@ -7,6 +7,7 @@ import { Observer } from "../binding/property-observation";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
 import { FEATURE } from "../feature";
 import { DOM } from "../dom";
+import { IViewResources } from "./view-resources";
 
 export interface IBindSelf {
   bind(): void;
@@ -44,11 +45,15 @@ type ConstructableComponent = Constructable & {
 
 export const Component = {
   fromCompiledSource<T extends Constructable>(ctor: T, source: CompiledElementSource): T & ConstructableComponent {
-    let template = Template.fromCompiledSource(source);
+    const template = Template.fromCompiledSource(source);
       
-    return class extends ctor implements IComponent {
+    return class CompiledComponent extends ctor implements IComponent {
       static template: ITemplate = template;
       static source: CompiledElementSource = source;
+
+      static registerResources(registry: IViewResources){
+        registry.registerElement(source.name, CompiledComponent);
+      }
   
       $bindable: IBindScope[] = [];
       $attachable: IAttach[] = [];

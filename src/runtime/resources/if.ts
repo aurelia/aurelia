@@ -2,10 +2,15 @@ import { IfCore } from "./if-core";
 import { IScope } from "../binding/binding-interfaces";
 import { Else } from "./else";
 import { Observer } from "../binding/property-observation";
+import { IViewResources } from "../templating/view-resources";
 
 export class If extends IfCore {
   private animating = false;
   private elseBehavior: Else;
+
+  static registerResources(registry: IViewResources){
+    registry.registerAttribute('if', If);
+  } 
 
   $observers = {
     condition: new Observer(false, v => this.isBound ? this.conditionChanged(v) : void 0)

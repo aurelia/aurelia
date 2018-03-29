@@ -1,8 +1,13 @@
-define('app-config',["require", "exports", "./name-tag", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, name_tag_1, if_1, else_1) {
+define('app-config',["require", "exports", "./name-tag", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, import1, import2, import3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.appConfig = {
         name: 'app',
+        resources: [
+            import1,
+            import2,
+            import3
+        ],
         template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <au-content>\n        <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n      </au-content>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
         observers: [
             {
@@ -29,7 +34,7 @@ define('app-config',["require", "exports", "./name-tag", "./runtime/resources/if
             [
                 {
                     type: 'element',
-                    ctor: name_tag_1.NameTag,
+                    resource: 'name-tag',
                     instructions: [
                         {
                             type: 'twoWay',
@@ -59,7 +64,7 @@ define('app-config',["require", "exports", "./name-tag", "./runtime/resources/if
             [
                 {
                     type: 'templateController',
-                    ctor: if_1.If,
+                    resource: 'if',
                     config: {
                         template: "<div><au-marker class=\"au\"></au-marker> </div>",
                         targetInstructions: [
@@ -83,7 +88,7 @@ define('app-config',["require", "exports", "./name-tag", "./runtime/resources/if
             [
                 {
                     type: 'templateController',
-                    ctor: else_1.Else,
+                    resource: 'else',
                     link: true,
                     config: {
                         template: "<div>No Message Duplicated</div>",
@@ -134,6 +139,37 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
+define('generated',["require", "exports", "./runtime/binding/ast"], function (require, exports, ast_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var emptyArray = [];
+    exports.expressionCache = {
+        message: new ast_1.AccessScope('message'),
+        textContent: new ast_1.AccessScope('textContent'),
+        value: new ast_1.AccessScope('value'),
+        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
+        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
+        nameTagBorder: new ast_1.TemplateLiteral([
+            new ast_1.AccessScope('borderWidth'),
+            new ast_1.LiteralString('px solid '),
+            new ast_1.AccessScope('borderColor')
+        ]),
+        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
+        nameTagClasses: new ast_1.TemplateLiteral([
+            new ast_1.LiteralString('au name-tag '),
+            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
+        ]),
+        name: new ast_1.AccessScope('name'),
+        submit: new ast_1.CallScope('submit', emptyArray, 0),
+        nameTagColor: new ast_1.AccessScope('color'),
+        duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
+        checked: new ast_1.AccessScope('checked'),
+        nameTag: new ast_1.AccessScope('nameTag')
+    };
+});
+
+
+
 define('main',["require", "exports", "./app", "./runtime/aurelia", "./runtime/binding/expression", "./generated"], function (require, exports, app_1, aurelia_1, expression_1, generated_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -150,6 +186,7 @@ define('name-tag-config',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.nameTagConfig = {
         name: 'name-tag',
+        resources: [],
         hasSlots: true,
         template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n      <slot class=\"au\"></slot>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
         observers: [
@@ -838,6 +875,18 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
 
 
 
+define('designtime/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Expression = Object.assign(expression_1.Expression, {
+        compile: function (expression) {
+            throw new Error('Expression Compilation Not Implemented');
+        }
+    });
+});
+
+
+
 define('designtime/templating/template',["require", "exports", "../../runtime/templating/template"], function (require, exports, template_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1332,12 +1381,12 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         function Chain(expressions) {
             this.expressions = expressions;
         }
-        Chain.prototype.evaluate = function (scope, lookupFunctions) {
+        Chain.prototype.evaluate = function (scope, resources) {
             var result;
             var expressions = this.expressions;
             var last;
             for (var i = 0, length_1 = expressions.length; i < length_1; ++i) {
-                last = expressions[i].evaluate(scope, lookupFunctions);
+                last = expressions[i].evaluate(scope, resources);
                 if (last !== null) {
                     result = last;
                 }
@@ -1354,11 +1403,11 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.name = name;
             this.args = args;
         }
-        BindingBehavior.prototype.evaluate = function (scope, lookupFunctions) {
-            return this.expression.evaluate(scope, lookupFunctions);
+        BindingBehavior.prototype.evaluate = function (scope, resources) {
+            return this.expression.evaluate(scope, resources);
         };
-        BindingBehavior.prototype.assign = function (scope, value, lookupFunctions) {
-            return this.expression.assign(scope, value, lookupFunctions);
+        BindingBehavior.prototype.assign = function (scope, value, resources) {
+            return this.expression.assign(scope, value, resources);
         };
         BindingBehavior.prototype.connect = function (binding, scope) {
             this.expression.connect(binding, scope);
@@ -1367,7 +1416,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             if (this.expression['expression'] && this.expression.bind) {
                 this.expression.bind(binding, scope);
             }
-            var behavior = binding.lookupFunctions.bindingBehaviors[this.name];
+            var behavior = binding.resources.getBindingBehavior(this.name);
             if (!behavior) {
                 throw new Error("No BindingBehavior named \"" + this.name + "\" was found!");
             }
@@ -1376,7 +1425,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
                 throw new Error("A binding behavior named \"" + this.name + "\" has already been applied to \"" + this.expression + "\"");
             }
             binding[behaviorKey] = behavior;
-            behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.lookupFunctions)));
+            behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.resources)));
         };
         BindingBehavior.prototype.unbind = function (binding, scope) {
             var behaviorKey = "behavior-" + this.name;
@@ -1396,25 +1445,25 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.args = args;
             this.allArgs = allArgs;
         }
-        ValueConverter.prototype.evaluate = function (scope, lookupFunctions) {
-            var converter = lookupFunctions.valueConverters[this.name];
+        ValueConverter.prototype.evaluate = function (scope, resources) {
+            var converter = resources.getValueConverter(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
             if ('toView' in converter) {
-                return converter.toView.apply(converter, evalList(scope, this.allArgs, lookupFunctions));
+                return converter.toView.apply(converter, evalList(scope, this.allArgs, resources));
             }
-            return this.allArgs[0].evaluate(scope, lookupFunctions);
+            return this.allArgs[0].evaluate(scope, resources);
         };
-        ValueConverter.prototype.assign = function (scope, value, lookupFunctions) {
-            var converter = lookupFunctions.valueConverters[this.name];
+        ValueConverter.prototype.assign = function (scope, value, resources) {
+            var converter = resources.getValueConverter(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
             if ('fromView' in converter) {
-                value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, lookupFunctions)));
+                value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, resources)));
             }
-            return this.allArgs[0].assign(scope, value, lookupFunctions);
+            return this.allArgs[0].assign(scope, value, resources);
         };
         ValueConverter.prototype.connect = function (binding, scope) {
             var expressions = this.allArgs;
@@ -1422,7 +1471,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             while (i--) {
                 expressions[i].connect(binding, scope);
             }
-            var converter = binding.lookupFunctions.valueConverters[this.name];
+            var converter = binding.resources.getValueConverter(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
@@ -1443,13 +1492,13 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.target = target;
             this.value = value;
         }
-        Assign.prototype.evaluate = function (scope, lookupFunctions) {
-            return this.target.assign(scope, this.value.evaluate(scope, lookupFunctions), lookupFunctions);
+        Assign.prototype.evaluate = function (scope, resources) {
+            return this.target.assign(scope, this.value.evaluate(scope, resources), resources);
         };
         Assign.prototype.connect = function () { };
-        Assign.prototype.assign = function (scope, value, lookupFunctions) {
-            this.value.assign(scope, value, lookupFunctions);
-            this.target.assign(scope, value, lookupFunctions);
+        Assign.prototype.assign = function (scope, value, resources) {
+            this.value.assign(scope, value, resources);
+            this.target.assign(scope, value, resources);
         };
         return Assign;
     }());
@@ -1460,10 +1509,10 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.yes = yes;
             this.no = no;
         }
-        Conditional.prototype.evaluate = function (scope, lookupFunctions) {
-            return (!!this.condition.evaluate(scope, lookupFunctions))
-                ? this.yes.evaluate(scope, lookupFunctions)
-                : this.no.evaluate(scope, lookupFunctions);
+        Conditional.prototype.evaluate = function (scope, resources) {
+            return (!!this.condition.evaluate(scope, resources))
+                ? this.yes.evaluate(scope, resources)
+                : this.no.evaluate(scope, resources);
         };
         Conditional.prototype.connect = function (binding, scope) {
             this.condition.connect(binding, scope);
@@ -1482,7 +1531,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             if (ancestor === void 0) { ancestor = 0; }
             this.ancestor = ancestor;
         }
-        AccessThis.prototype.evaluate = function (scope, lookupFunctions) {
+        AccessThis.prototype.evaluate = function (scope, resources) {
             var oc = scope.overrideContext;
             var i = this.ancestor;
             while (i-- && oc) {
@@ -1500,7 +1549,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.name = name;
             this.ancestor = ancestor;
         }
-        AccessScope.prototype.evaluate = function (scope, lookupFunctions) {
+        AccessScope.prototype.evaluate = function (scope, resources) {
             var context = scope_1.getContextFor(this.name, scope, this.ancestor);
             return context[this.name];
         };
@@ -1520,15 +1569,15 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.object = object;
             this.name = name;
         }
-        AccessMember.prototype.evaluate = function (scope, lookupFunctions) {
-            var instance = this.object.evaluate(scope, lookupFunctions);
+        AccessMember.prototype.evaluate = function (scope, resources) {
+            var instance = this.object.evaluate(scope, resources);
             return instance === null || instance === undefined ? instance : instance[this.name];
         };
-        AccessMember.prototype.assign = function (scope, value, lookupFunctions) {
-            var instance = this.object.evaluate(scope, lookupFunctions);
+        AccessMember.prototype.assign = function (scope, value, resources) {
+            var instance = this.object.evaluate(scope, resources);
             if (instance === null || instance === undefined) {
                 instance = {};
-                this.object.assign(scope, instance, lookupFunctions);
+                this.object.assign(scope, instance, resources);
             }
             instance[this.name] = value;
             return value;
@@ -1548,14 +1597,14 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.object = object;
             this.key = key;
         }
-        AccessKeyed.prototype.evaluate = function (scope, lookupFunctions) {
-            var instance = this.object.evaluate(scope, lookupFunctions);
-            var lookup = this.key.evaluate(scope, lookupFunctions);
+        AccessKeyed.prototype.evaluate = function (scope, resources) {
+            var instance = this.object.evaluate(scope, resources);
+            var lookup = this.key.evaluate(scope, resources);
             return getKeyed(instance, lookup);
         };
-        AccessKeyed.prototype.assign = function (scope, value, lookupFunctions) {
-            var instance = this.object.evaluate(scope, lookupFunctions);
-            var lookup = this.key.evaluate(scope, lookupFunctions);
+        AccessKeyed.prototype.assign = function (scope, value, resources) {
+            var instance = this.object.evaluate(scope, resources);
+            var lookup = this.key.evaluate(scope, resources);
             return setKeyed(instance, lookup, value);
         };
         AccessKeyed.prototype.connect = function (binding, scope) {
@@ -1579,8 +1628,8 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.args = args;
             this.ancestor = ancestor;
         }
-        CallScope.prototype.evaluate = function (scope, lookupFunctions, mustEvaluate) {
-            var args = evalList(scope, this.args, lookupFunctions);
+        CallScope.prototype.evaluate = function (scope, resources, mustEvaluate) {
+            var args = evalList(scope, this.args, resources);
             var context = scope_1.getContextFor(this.name, scope, this.ancestor);
             var func = getFunction(context, this.name, mustEvaluate);
             if (func) {
@@ -1604,9 +1653,9 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.name = name;
             this.args = args;
         }
-        CallMember.prototype.evaluate = function (scope, lookupFunctions, mustEvaluate) {
-            var instance = this.object.evaluate(scope, lookupFunctions);
-            var args = evalList(scope, this.args, lookupFunctions);
+        CallMember.prototype.evaluate = function (scope, resources, mustEvaluate) {
+            var instance = this.object.evaluate(scope, resources);
+            var args = evalList(scope, this.args, resources);
             var func = getFunction(instance, this.name, mustEvaluate);
             if (func) {
                 return func.apply(instance, args);
@@ -1632,10 +1681,10 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.func = func;
             this.args = args;
         }
-        CallFunction.prototype.evaluate = function (scope, lookupFunctions, mustEvaluate) {
-            var func = this.func.evaluate(scope, lookupFunctions);
+        CallFunction.prototype.evaluate = function (scope, resources, mustEvaluate) {
+            var func = this.func.evaluate(scope, resources);
             if (typeof func === 'function') {
-                return func.apply(null, evalList(scope, this.args, lookupFunctions));
+                return func.apply(null, evalList(scope, this.args, resources));
             }
             if (!mustEvaluate && (func === null || func === undefined)) {
                 return undefined;
@@ -1662,13 +1711,13 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.left = left;
             this.right = right;
         }
-        Binary.prototype.evaluate = function (scope, lookupFunctions) {
-            var left = this.left.evaluate(scope, lookupFunctions);
+        Binary.prototype.evaluate = function (scope, resources) {
+            var left = this.left.evaluate(scope, resources);
             switch (this.operation) {
-                case '&&': return left && this.right.evaluate(scope, lookupFunctions);
-                case '||': return left || this.right.evaluate(scope, lookupFunctions);
+                case '&&': return left && this.right.evaluate(scope, resources);
+                case '||': return left || this.right.evaluate(scope, resources);
             }
-            var right = this.right.evaluate(scope, lookupFunctions);
+            var right = this.right.evaluate(scope, resources);
             switch (this.operation) {
                 case '==': return left == right;
                 case '===': return left === right;
@@ -1722,8 +1771,8 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.operation = operation;
             this.expression = expression;
         }
-        PrefixNot.prototype.evaluate = function (scope, lookupFunctions) {
-            return !this.expression.evaluate(scope, lookupFunctions);
+        PrefixNot.prototype.evaluate = function (scope, resources) {
+            return !this.expression.evaluate(scope, resources);
         };
         PrefixNot.prototype.connect = function (binding, scope) {
             this.expression.connect(binding, scope);
@@ -1735,7 +1784,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         function LiteralPrimitive(value) {
             this.value = value;
         }
-        LiteralPrimitive.prototype.evaluate = function (scope, lookupFunctions) {
+        LiteralPrimitive.prototype.evaluate = function (scope, resources) {
             return this.value;
         };
         LiteralPrimitive.prototype.connect = function (binding, scope) {
@@ -1747,7 +1796,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         function LiteralString(value) {
             this.value = value;
         }
-        LiteralString.prototype.evaluate = function (scope, lookupFunctions) {
+        LiteralString.prototype.evaluate = function (scope, resources) {
             return this.value;
         };
         LiteralString.prototype.connect = function (binding, scope) { };
@@ -1758,11 +1807,11 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         function TemplateLiteral(parts) {
             this.parts = parts;
         }
-        TemplateLiteral.prototype.evaluate = function (scope, lookupFunctions) {
+        TemplateLiteral.prototype.evaluate = function (scope, resources) {
             var elements = this.parts;
             var result = '';
             for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
-                var value = elements[i].evaluate(scope, lookupFunctions);
+                var value = elements[i].evaluate(scope, resources);
                 if (value === undefined || value === null) {
                     continue;
                 }
@@ -1783,11 +1832,11 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         function LiteralArray(elements) {
             this.elements = elements;
         }
-        LiteralArray.prototype.evaluate = function (scope, lookupFunctions) {
+        LiteralArray.prototype.evaluate = function (scope, resources) {
             var elements = this.elements;
             var result = [];
             for (var i = 0, length_3 = elements.length; i < length_3; ++i) {
-                result[i] = elements[i].evaluate(scope, lookupFunctions);
+                result[i] = elements[i].evaluate(scope, resources);
             }
             return result;
         };
@@ -1805,12 +1854,12 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.keys = keys;
             this.values = values;
         }
-        LiteralObject.prototype.evaluate = function (scope, lookupFunctions) {
+        LiteralObject.prototype.evaluate = function (scope, resources) {
             var instance = {};
             var keys = this.keys;
             var values = this.values;
             for (var i = 0, length_4 = keys.length; i < length_4; ++i) {
-                instance[keys[i]] = values[i].evaluate(scope, lookupFunctions);
+                instance[keys[i]] = values[i].evaluate(scope, resources);
             }
             return instance;
         };
@@ -1823,11 +1872,11 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         return LiteralObject;
     }());
     exports.LiteralObject = LiteralObject;
-    function evalList(scope, list, lookupFunctions) {
+    function evalList(scope, list, resources) {
         var length = list.length;
         var result = [];
         for (var i = 0; i < length; i++) {
-            result[i] = list[i].evaluate(scope, lookupFunctions);
+            result[i] = list[i].evaluate(scope, resources);
         }
         return result;
     }
@@ -1937,14 +1986,14 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
     Object.defineProperty(exports, "__esModule", { value: true });
     var Binding = (function (_super) {
         __extends(Binding, _super);
-        function Binding(sourceExpression, target, targetProperty, mode, lookupFunctions, observerLocator) {
+        function Binding(sourceExpression, target, targetProperty, mode, resources, observerLocator) {
             if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
             var _this = _super.call(this, observerLocator) || this;
             _this.sourceExpression = sourceExpression;
             _this.target = target;
             _this.targetProperty = targetProperty;
             _this.mode = mode;
-            _this.lookupFunctions = lookupFunctions;
+            _this.resources = resources;
             _this.isBound = false;
             return _this;
         }
@@ -1952,7 +2001,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             this.targetObserver.setValue(value, this.target, this.targetProperty);
         };
         Binding.prototype.updateSource = function (value) {
-            this.sourceExpression.assign(this.source, value, this.lookupFunctions);
+            this.sourceExpression.assign(this.source, value, this.resources);
         };
         Binding.prototype.call = function (context, newValue, oldValue) {
             if (!this.isBound) {
@@ -1960,7 +2009,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             }
             if (context === call_context_1.sourceContext) {
                 oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-                newValue = this.sourceExpression.evaluate(this.source, this.lookupFunctions);
+                newValue = this.sourceExpression.evaluate(this.source, this.resources);
                 if (newValue !== oldValue) {
                     this.updateTarget(newValue);
                 }
@@ -1972,7 +2021,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 return;
             }
             if (context === call_context_1.targetContext) {
-                if (newValue !== this.sourceExpression.evaluate(this.source, this.lookupFunctions)) {
+                if (newValue !== this.sourceExpression.evaluate(this.source, this.resources)) {
                     this.updateSource(newValue);
                 }
                 return;
@@ -2000,7 +2049,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 this.targetObserver.bind();
             }
             if (this.mode !== binding_mode_1.bindingMode.fromView) {
-                var value = this.sourceExpression.evaluate(source, this.lookupFunctions);
+                var value = this.sourceExpression.evaluate(source, this.resources);
                 this.updateTarget(value);
             }
             if (mode === binding_mode_1.bindingMode.oneTime) {
@@ -2039,7 +2088,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 return;
             }
             if (evaluate) {
-                var value = this.sourceExpression.evaluate(this.source, this.lookupFunctions);
+                var value = this.sourceExpression.evaluate(this.source, this.resources);
                 this.updateTarget(value);
             }
             this.sourceExpression.connect(this, this.source);
@@ -2077,12 +2126,12 @@ define('runtime/binding/call',["require", "exports", "./observer-locator"], func
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Call = (function () {
-        function Call(sourceExpression, target, targetProperty, lookupFunctions, observerLocator) {
+        function Call(sourceExpression, target, targetProperty, resources, observerLocator) {
             if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.targetProperty = targetProperty;
-            this.lookupFunctions = lookupFunctions;
+            this.resources = resources;
             this.isBound = false;
             this.targetObserver = observerLocator.getObserver(target, targetProperty);
         }
@@ -2091,7 +2140,7 @@ define('runtime/binding/call',["require", "exports", "./observer-locator"], func
             Object.assign(overrideContext, $event);
             overrideContext.$event = $event;
             var mustEvaluate = true;
-            var result = this.sourceExpression.evaluate(this.source, this.lookupFunctions, mustEvaluate);
+            var result = this.sourceExpression.evaluate(this.source, this.resources, mustEvaluate);
             delete overrideContext.$event;
             for (var prop in $event) {
                 delete overrideContext[prop];
@@ -3116,18 +3165,42 @@ define('runtime/binding/event-manager',["require", "exports", "../dom"], functio
 
 
 
+define('runtime/binding/expression',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var cache = Object.create(null);
+    exports.Expression = {
+        from: function (expression) {
+            var found = cache[expression];
+            if (found === undefined) {
+                found = this.compile(expression);
+                cache[expression] = found;
+            }
+            return found;
+        },
+        primeCache: function (expressionCache) {
+            Object.assign(cache, expressionCache);
+        }
+    };
+    exports.Expression.compile = function (expression) {
+        throw new Error('Runtime expression compilation is only available when including designtime support.');
+    };
+});
+
+
+
 define('runtime/binding/listener',["require", "exports", "./event-manager"], function (require, exports, event_manager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Listener = (function () {
-        function Listener(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, lookupFunctions, eventManager) {
+        function Listener(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, resources, eventManager) {
             if (eventManager === void 0) { eventManager = event_manager_1.EventManager.instance; }
             this.targetEvent = targetEvent;
             this.delegationStrategy = delegationStrategy;
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.preventDefault = preventDefault;
-            this.lookupFunctions = lookupFunctions;
+            this.resources = resources;
             this.eventManager = eventManager;
             this.isBound = false;
             this.targetEvent = targetEvent;
@@ -3135,13 +3208,13 @@ define('runtime/binding/listener',["require", "exports", "./event-manager"], fun
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.preventDefault = preventDefault;
-            this.lookupFunctions = lookupFunctions;
+            this.resources = resources;
         }
         Listener.prototype.callSource = function (event) {
             var overrideContext = this.source.overrideContext;
             overrideContext['$event'] = event;
             var mustEvaluate = true;
-            var result = this.sourceExpression.evaluate(this.source, this.lookupFunctions, mustEvaluate);
+            var result = this.sourceExpression.evaluate(this.source, this.resources, mustEvaluate);
             delete overrideContext['$event'];
             if (result !== true && this.preventDefault) {
                 event.preventDefault();
@@ -3632,10 +3705,10 @@ define('runtime/binding/ref',["require", "exports"], function (require, exports)
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Ref = (function () {
-        function Ref(sourceExpression, target, lookupFunctions) {
+        function Ref(sourceExpression, target, resources) {
             this.sourceExpression = sourceExpression;
             this.target = target;
-            this.lookupFunctions = lookupFunctions;
+            this.resources = resources;
             this.isBound = false;
         }
         Ref.prototype.bind = function (source) {
@@ -3650,15 +3723,15 @@ define('runtime/binding/ref',["require", "exports"], function (require, exports)
             if (this.sourceExpression.bind) {
                 this.sourceExpression.bind(this, source);
             }
-            this.sourceExpression.assign(this.source, this.target, this.lookupFunctions);
+            this.sourceExpression.assign(this.source, this.target, this.resources);
         };
         Ref.prototype.unbind = function () {
             if (!this.isBound) {
                 return;
             }
             this.isBound = false;
-            if (this.sourceExpression.evaluate(this.source, this.lookupFunctions) === this.target) {
-                this.sourceExpression.assign(this.source, null, this.lookupFunctions);
+            if (this.sourceExpression.evaluate(this.source, this.resources) === this.target) {
+                this.sourceExpression.assign(this.source, null, this.resources);
             }
             if (this.sourceExpression.unbind) {
                 this.sourceExpression.unbind(this, this.source);
@@ -4217,7 +4290,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/resources/else',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
+define('runtime/resources/else',["require", "exports", "./if-core", "./if"], function (require, exports, if_core_1, if_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Else = (function (_super) {
@@ -4225,6 +4298,9 @@ define('runtime/resources/else',["require", "exports", "./if-core"], function (r
         function Else() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
+        Else.registerResources = function (registry) {
+            registry.registerAttribute('else', if_1.If);
+        };
         Else.prototype.bind = function (scope) {
             _super.prototype.bind.call(this, scope);
             if (this.ifBehavior.condition) {
@@ -4341,6 +4417,9 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
             };
             return _this;
         }
+        If.registerResources = function (registry) {
+            registry.registerAttribute('if', If);
+        };
         Object.defineProperty(If.prototype, "condition", {
             get: function () { return this.$observers.condition.getValue(); },
             set: function (value) { this.$observers.condition.setValue(value); },
@@ -4455,8 +4534,8 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
         fromCompiledSource: function (ctor, source) {
             var template = template_1.Template.fromCompiledSource(source);
             return _a = (function (_super) {
-                    __extends(class_1, _super);
-                    function class_1() {
+                    __extends(CompiledComponent, _super);
+                    function CompiledComponent() {
                         var args = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             args[_i] = arguments[_i];
@@ -4476,7 +4555,10 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
                         setupObservers(_this, source);
                         return _this;
                     }
-                    class_1.prototype.applyTo = function (host) {
+                    CompiledComponent.registerResources = function (registry) {
+                        registry.registerElement(source.name, CompiledComponent);
+                    };
+                    CompiledComponent.prototype.applyTo = function (host) {
                         this.$host = source.containerless
                             ? dom_1.DOM.makeElementIntoAnchor(host, true)
                             : host;
@@ -4489,10 +4571,10 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
                         }
                         return this;
                     };
-                    class_1.prototype.createView = function (host) {
+                    CompiledComponent.prototype.createView = function (host) {
                         return template.createFor(this, host);
                     };
-                    class_1.prototype.bind = function () {
+                    CompiledComponent.prototype.bind = function () {
                         var scope = this.$scope;
                         var bindable = this.$bindable;
                         for (var i = 0, ii = bindable.length; i < ii; ++i) {
@@ -4510,7 +4592,7 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
                             this.bound();
                         }
                     };
-                    class_1.prototype.attach = function () {
+                    CompiledComponent.prototype.attach = function () {
                         var _this = this;
                         if ('attaching' in this) {
                             this.attaching();
@@ -4529,7 +4611,7 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
                             task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
                         }
                     };
-                    class_1.prototype.detach = function () {
+                    CompiledComponent.prototype.detach = function () {
                         var _this = this;
                         if ('detaching' in this) {
                             this.detaching();
@@ -4544,7 +4626,7 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
                             task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
                         }
                     };
-                    class_1.prototype.unbind = function () {
+                    CompiledComponent.prototype.unbind = function () {
                         var bindable = this.$bindable;
                         var i = bindable.length;
                         while (i--) {
@@ -4555,7 +4637,7 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
                         }
                         this.$isBound = false;
                     };
-                    return class_1;
+                    return CompiledComponent;
                 }(ctor)),
                 _a.template = template,
                 _a.source = source,
@@ -4607,17 +4689,6 @@ define('runtime/templating/decorators',["require", "exports", "./component"], fu
         };
     }
     exports.compiledElement = compiledElement;
-});
-
-
-
-define('runtime/templating/generated',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.lookupFunctions = {
-        valueConverters: {},
-        bindingBehaviors: {}
-    };
 });
 
 
@@ -5001,13 +5072,9 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
 
 
 
-define('runtime/templating/template',["require", "exports", "../dom", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "./view-factory", "../binding/binding-mode", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression"], function (require, exports, dom_1, view_1, binding_1, view_slot_1, shadow_dom_1, view_factory_1, binding_mode_1, listener_1, call_1, ref_1, expression_1) {
+define('runtime/templating/template',["require", "exports", "../dom", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "./view-factory", "../binding/binding-mode", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "./view-resources"], function (require, exports, dom_1, view_1, binding_1, view_slot_1, shadow_dom_1, view_factory_1, binding_mode_1, listener_1, call_1, ref_1, expression_1, view_resources_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var lookupFunctions = {
-        valueConverters: {},
-        bindingBehaviors: {}
-    };
     var noViewTemplate = {
         createFor: function (owner, host) {
             return view_1.View.none;
@@ -5022,34 +5089,34 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
             return noViewTemplate;
         }
     };
-    function applyInstruction(owner, instruction, target) {
+    function applyInstruction(owner, instruction, target, resources) {
         switch (instruction.type) {
             case 'oneWayText':
                 var next = target.nextSibling;
                 dom_1.DOM.treatNodeAsNonWhitespace(next);
                 dom_1.DOM.removeNode(target);
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), next, 'textContent', binding_mode_1.bindingMode.oneWay, lookupFunctions));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), next, 'textContent', binding_mode_1.bindingMode.oneWay, resources));
                 break;
             case 'oneWay':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.oneWay, lookupFunctions));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.oneWay, resources));
                 break;
             case 'fromView':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.fromView, lookupFunctions));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.fromView, resources));
                 break;
             case 'twoWay':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.twoWay, lookupFunctions));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.twoWay, resources));
                 break;
             case 'listener':
-                owner.$bindable.push(new listener_1.Listener(instruction.source, instruction.strategy, expression_1.Expression.from(instruction.target), target, instruction.preventDefault, lookupFunctions));
+                owner.$bindable.push(new listener_1.Listener(instruction.source, instruction.strategy, expression_1.Expression.from(instruction.target), target, instruction.preventDefault, resources));
                 break;
             case 'call':
-                owner.$bindable.push(new call_1.Call(expression_1.Expression.from(instruction.source), target, instruction.target, lookupFunctions));
+                owner.$bindable.push(new call_1.Call(expression_1.Expression.from(instruction.source), target, instruction.target, resources));
                 break;
             case 'ref':
-                owner.$bindable.push(new ref_1.Ref(expression_1.Expression.from(instruction.source), target, lookupFunctions));
+                owner.$bindable.push(new ref_1.Ref(expression_1.Expression.from(instruction.source), target, resources));
                 break;
             case 'style':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target.style, instruction.target, binding_mode_1.bindingMode.oneWay, lookupFunctions));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target.style, instruction.target, binding_mode_1.bindingMode.oneWay, resources));
                 break;
             case 'property':
                 target[instruction.target] = instruction.value;
@@ -5065,22 +5132,24 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
                 break;
             case 'element':
                 var elementInstructions = instruction.instructions;
-                var elementModel = new instruction.ctor();
+                var ElementCtor = resources.getElement(instruction.resource);
+                var elementModel = new ElementCtor();
                 elementModel.$contentView = view_1.View.fromCompiledElementContent(elementModel, target);
                 elementModel.applyTo(target);
                 for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
                     var current = elementInstructions[i];
                     var realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
-                    applyInstruction(owner, current, realTarget);
+                    applyInstruction(owner, current, realTarget, resources);
                 }
                 owner.$bindable.push(elementModel);
                 owner.$attachable.push(elementModel);
                 break;
             case 'attribute':
                 var attributeInstructions = instruction.instructions;
-                var attributeModel = new instruction.ctor(target);
+                var AttributeCtor = resources.getAttribute(instruction.resource);
+                var attributeModel = new AttributeCtor(target);
                 for (var i = 0, ii = attributeInstructions.length; i < ii; ++i) {
-                    applyInstruction(owner, attributeInstructions[i], attributeModel);
+                    applyInstruction(owner, attributeInstructions[i], attributeModel, resources);
                 }
                 owner.$bindable.push(attributeModel);
                 owner.$attachable.push(attributeModel);
@@ -5091,12 +5160,13 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
                 if (factory === undefined) {
                     instruction.factory = factory = view_factory_1.ViewFactory.fromCompiledSource(instruction.config);
                 }
-                var templateControllerModel = new instruction.ctor(factory, new view_slot_1.ViewSlot(dom_1.DOM.makeElementIntoAnchor(target), false));
+                var TemplateControllerCtor = resources.getAttribute(instruction.resource);
+                var templateControllerModel = new TemplateControllerCtor(factory, new view_slot_1.ViewSlot(dom_1.DOM.makeElementIntoAnchor(target), false));
                 if (instruction.link) {
                     templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
                 }
                 for (var i = 0, ii = templateControllerInstructions.length; i < ii; ++i) {
-                    applyInstruction(owner, templateControllerInstructions[i], templateControllerModel);
+                    applyInstruction(owner, templateControllerInstructions[i], templateControllerModel, resources);
                 }
                 owner.$bindable.push(templateControllerModel);
                 owner.$attachable.push(templateControllerModel);
@@ -5106,6 +5176,7 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
     var CompiledTemplate = (function () {
         function CompiledTemplate(source) {
             this.source = source;
+            this.resources = view_resources_1.ViewResources.createChild(source.resources);
             this.element = dom_1.DOM.createTemplateElement();
             this.element.innerHTML = source.template;
         }
@@ -5113,18 +5184,19 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
             var source = this.source;
             var view = view_1.View.fromCompiledTemplate(this.element);
             var targets = view.findTargets();
+            var resources = this.resources;
             var targetInstructions = source.targetInstructions;
             for (var i = 0, ii = targets.length; i < ii; ++i) {
                 var instructions = targetInstructions[i];
                 var target = targets[i];
                 for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                    applyInstruction(owner, instructions[j], target);
+                    applyInstruction(owner, instructions[j], target, resources);
                 }
             }
             if (host) {
                 var surrogateInstructions = source.surrogateInstructions;
                 for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-                    applyInstruction(owner, surrogateInstructions[i], host);
+                    applyInstruction(owner, surrogateInstructions[i], host, resources);
                 }
             }
             return view;
@@ -5209,6 +5281,73 @@ define('runtime/templating/view-factory',["require", "exports", "./template"], f
         return Visual;
     }());
     exports.Visual = Visual;
+});
+
+
+
+define('runtime/templating/view-resources',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var ViewResourceRegistry = (function () {
+        function ViewResourceRegistry(parent) {
+            if (parent === void 0) { parent = null; }
+            this.parent = parent;
+            this.elements = Object.create(null);
+            this.attributes = Object.create(null);
+            this.valueConverters = Object.create(null);
+            this.bindingBehaviors = Object.create(null);
+        }
+        ViewResourceRegistry.prototype.register = function (resources) {
+            var _this = this;
+            for (var i = 0, ii = resources.length; i < ii; ++i) {
+                var current = resources[i];
+                if ('registerResources' in current) {
+                    current.registerResources(this);
+                }
+                else {
+                    Object.values(current).forEach(function (x) {
+                        if ('registerResources' in x) {
+                            x.registerResources(_this);
+                        }
+                    });
+                }
+            }
+        };
+        ViewResourceRegistry.prototype.registerElement = function (name, implementation) {
+            this.elements[name] = implementation;
+        };
+        ViewResourceRegistry.prototype.registerAttribute = function (name, implementation) {
+            this.attributes[name] = implementation;
+        };
+        ViewResourceRegistry.prototype.registerValueConverter = function (name, instance) {
+            this.valueConverters[name] = instance;
+        };
+        ViewResourceRegistry.prototype.registerBindingBehavior = function (name, instance) {
+            this.bindingBehaviors[name] = instance;
+        };
+        ViewResourceRegistry.prototype.getElement = function (name) {
+            return this.elements[name] || (this.parent !== null ? this.parent.getElement(name) : null);
+        };
+        ViewResourceRegistry.prototype.getAttribute = function (name) {
+            return this.attributes[name] || (this.parent !== null ? this.parent.getAttribute(name) : null);
+        };
+        ViewResourceRegistry.prototype.getValueConverter = function (name) {
+            return this.valueConverters[name] || (this.parent !== null ? this.parent.getValueConverter(name) : null);
+        };
+        ViewResourceRegistry.prototype.getBindingBehavior = function (name) {
+            return this.bindingBehaviors[name] || (this.parent !== null ? this.parent.getBindingBehavior(name) : null);
+        };
+        ViewResourceRegistry.prototype.createChild = function (resources) {
+            if (resources === void 0) { resources = null; }
+            var registry = new ViewResourceRegistry(this);
+            if (resources !== null) {
+                registry.register(resources);
+            }
+            return registry;
+        };
+        return ViewResourceRegistry;
+    }());
+    exports.ViewResources = new ViewResourceRegistry();
 });
 
 
@@ -5613,73 +5752,6 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         };
         return TemplateView;
     }());
-});
-
-
-
-define('runtime/binding/expression',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var cache = Object.create(null);
-    exports.Expression = {
-        from: function (expression) {
-            var found = cache[expression];
-            if (found === undefined) {
-                found = this.compile(expression);
-                cache[expression] = found;
-            }
-            return found;
-        },
-        primeCache: function (expressionCache) {
-            Object.assign(cache, expressionCache);
-        }
-    };
-    exports.Expression.compile = function (expression) {
-        throw new Error('Runtime expression compilation is only available when including designtime support.');
-    };
-});
-
-
-
-define('designtime/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Expression = Object.assign(expression_1.Expression, {
-        compile: function (expression) {
-            throw new Error('Expression Compilation Not Implemented');
-        }
-    });
-});
-
-
-
-define('generated',["require", "exports", "./runtime/binding/ast"], function (require, exports, ast_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var emptyArray = [];
-    exports.expressionCache = {
-        message: new ast_1.AccessScope('message'),
-        textContent: new ast_1.AccessScope('textContent'),
-        value: new ast_1.AccessScope('value'),
-        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
-        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
-        nameTagBorder: new ast_1.TemplateLiteral([
-            new ast_1.AccessScope('borderWidth'),
-            new ast_1.LiteralString('px solid '),
-            new ast_1.AccessScope('borderColor')
-        ]),
-        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
-        nameTagClasses: new ast_1.TemplateLiteral([
-            new ast_1.LiteralString('au name-tag '),
-            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
-        ]),
-        name: new ast_1.AccessScope('name'),
-        submit: new ast_1.CallScope('submit', emptyArray, 0),
-        nameTagColor: new ast_1.AccessScope('color'),
-        duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
-        checked: new ast_1.AccessScope('checked'),
-        nameTag: new ast_1.AccessScope('nameTag')
-    };
 });
 
 

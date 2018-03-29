@@ -11,7 +11,7 @@ import { Listener } from "../binding/listener";
 import { Call } from "../binding/call";
 import { Ref } from "../binding/ref";
 import { Expression } from "../binding/expression";
-import { ILookupFunctions } from "../binding/ast";
+import { IViewResources, ViewResources } from "./view-resources";
 
 export interface ITemplate {
   createFor(owner: IViewOwner, host?: Node): IView;
@@ -19,16 +19,11 @@ export interface ITemplate {
 
 export interface CompiledViewSource {
   template: string;
+  resources: any[];
   hasSlots?: boolean;
   targetInstructions: any[];
   surrogateInstructions?: any[];
 }
-
-//TODO: Move this somewhere else...
-const lookupFunctions: ILookupFunctions = {
-  valueConverters: {},
-  bindingBehaviors: {}
-};
 
 const noViewTemplate: ITemplate = {
   createFor(owner: IViewOwner, host?: Node) {
@@ -48,34 +43,34 @@ export const Template = {
   }
 };
 
-function applyInstruction(owner: IViewOwner, instruction, target) {
+function applyInstruction(owner: IViewOwner, instruction, target, resources: IViewResources) {
   switch(instruction.type) {
     case 'oneWayText':
       let next = target.nextSibling;
       DOM.treatNodeAsNonWhitespace(next);
       DOM.removeNode(target);
-      owner.$bindable.push(new Binding(Expression.from(instruction.source), next, 'textContent', bindingMode.oneWay, lookupFunctions));
+      owner.$bindable.push(new Binding(Expression.from(instruction.source), next, 'textContent', bindingMode.oneWay, resources));
       break;
     case 'oneWay':
-      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, bindingMode.oneWay, lookupFunctions));
+      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, bindingMode.oneWay, resources));
       break;
     case 'fromView':
-      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, bindingMode.fromView, lookupFunctions));
+      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, bindingMode.fromView, resources));
       break;
     case 'twoWay':
-      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, bindingMode.twoWay, lookupFunctions));
+      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, bindingMode.twoWay, resources));
       break;
     case 'listener':
-      owner.$bindable.push(new Listener(instruction.source, instruction.strategy, Expression.from(instruction.target), target, instruction.preventDefault, lookupFunctions));
+      owner.$bindable.push(new Listener(instruction.source, instruction.strategy, Expression.from(instruction.target), target, instruction.preventDefault, resources));
       break;
     case 'call':
-      owner.$bindable.push(new Call(Expression.from(instruction.source), target, instruction.target, lookupFunctions));
+      owner.$bindable.push(new Call(Expression.from(instruction.source), target, instruction.target, resources));
       break;
     case 'ref':
-      owner.$bindable.push(new Ref(Expression.from(instruction.source), target, lookupFunctions));
+      owner.$bindable.push(new Ref(Expression.from(instruction.source), target, resources));
       break;
     case 'style':
-      owner.$bindable.push(new Binding(Expression.from(instruction.source), (target as HTMLElement).style, instruction.target, bindingMode.oneWay, lookupFunctions));
+      owner.$bindable.push(new Binding(Expression.from(instruction.source), (target as HTMLElement).style, instruction.target, bindingMode.oneWay, resources));
       break;
     case 'property':
       target[instruction.target] = instruction.value;
@@ -91,7 +86,8 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
       break;
     case 'element':
       let elementInstructions = instruction.instructions;
-      let elementModel: (IViewOwner & IComponent) = new instruction.ctor(); //TODO: DI
+      let ElementCtor = resources.getElement(instruction.resource);
+      let elementModel = <IViewOwner & IComponent>new ElementCtor(); //TODO: DI
       (<any>elementModel).$contentView = View.fromCompiledElementContent(elementModel, target);
 
       elementModel.applyTo(target);
@@ -99,7 +95,7 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
       for (let i = 0, ii = elementInstructions.length; i < ii; ++i) {
         let current = elementInstructions[i];
         let realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
-        applyInstruction(owner, current, realTarget);
+        applyInstruction(owner, current, realTarget, resources);
       }
 
       owner.$bindable.push(elementModel);
@@ -108,10 +104,11 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
       break;
     case 'attribute':
       let attributeInstructions = instruction.instructions;
-      let attributeModel: IComponent = new instruction.ctor(target); //TODO: DI
+      let AttributeCtor = resources.getAttribute(instruction.resource);
+      let attributeModel = <IComponent>new AttributeCtor(target); //TODO: DI
 
       for (let i = 0, ii = attributeInstructions.length; i < ii; ++i) {
-        applyInstruction(owner, attributeInstructions[i], attributeModel);
+        applyInstruction(owner, attributeInstructions[i], attributeModel, resources);
       }
 
       owner.$bindable.push(attributeModel);
@@ -123,9 +120,10 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
 
       if (factory === undefined) {
         instruction.factory = factory = ViewFactory.fromCompiledSource(instruction.config);
-      }  
+      }
 
-      let templateControllerModel: IComponent = new instruction.ctor(
+      let TemplateControllerCtor = resources.getAttribute(instruction.resource);
+      let templateControllerModel = <IComponent>new TemplateControllerCtor(
         factory, 
         new ViewSlot(DOM.makeElementIntoAnchor(target), false)
       ); //TODO: DI
@@ -135,7 +133,7 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
       }
 
       for (let i = 0, ii = templateControllerInstructions.length; i < ii; ++i) {
-        applyInstruction(owner, templateControllerInstructions[i], templateControllerModel);
+        applyInstruction(owner, templateControllerInstructions[i], templateControllerModel, resources);
       }
 
       owner.$bindable.push(templateControllerModel);
@@ -146,9 +144,11 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
 }
 
 class CompiledTemplate implements ITemplate {
-  element: HTMLTemplateElement;
+  private element: HTMLTemplateElement;
+  private resources: IViewResources;
 
   constructor(private source: CompiledViewSource) {
+    this.resources = ViewResources.createChild(source.resources);
     this.element = DOM.createTemplateElement();
     this.element.innerHTML = source.template;
   }
@@ -157,6 +157,7 @@ class CompiledTemplate implements ITemplate {
     const source = this.source;
     const view = View.fromCompiledTemplate(this.element);
     const targets = view.findTargets();
+    const resources = this.resources;
 
     const targetInstructions = source.targetInstructions;
 
@@ -165,7 +166,7 @@ class CompiledTemplate implements ITemplate {
       let target = targets[i];
 
       for (let j = 0, jj = instructions.length; j < jj; ++j) {
-        applyInstruction(owner, instructions[j], target);
+        applyInstruction(owner, instructions[j], target, resources);
       }
     }
 
@@ -173,7 +174,7 @@ class CompiledTemplate implements ITemplate {
       const surrogateInstructions = source.surrogateInstructions;
       
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-        applyInstruction(owner, surrogateInstructions[i], host);
+        applyInstruction(owner, surrogateInstructions[i], host, resources);
       }
     }
 

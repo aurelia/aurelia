@@ -3,6 +3,7 @@ import { IShadowSlot } from "./shadow-dom";
 import { IView, IViewOwner } from "./view";
 import { IScope, IBindScope } from "../binding/binding-interfaces";
 import { IAttach } from "./component";
+import { ViewResources } from "./view-resources";
 
 export interface IVisual extends IBindScope, IAttach, IViewOwner { }
 

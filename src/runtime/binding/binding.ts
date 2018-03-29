@@ -3,12 +3,12 @@ import { ConnectableBinding } from './connectable-binding';
 import { enqueueBindingConnect } from './connect-queue';
 import { sourceContext, targetContext } from './call-context';
 import { ObserverLocator } from './observer-locator';
-import { IExpression, ILookupFunctions } from './ast';
+import { IExpression, IBindingResources } from './ast';
 import { Observer } from './property-observation';
 import { IScope, IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IObserverLocator } from './binding-interfaces';
 
 export interface IBinding extends IBindScope {
-  lookupFunctions: ILookupFunctions;
+  resources: IBindingResources;
   observeProperty(context: any, name: string): void;
 }
 
@@ -24,7 +24,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     private target: IBindingTarget,
     private targetProperty: string,
     private mode: number,
-    public lookupFunctions: ILookupFunctions,
+    public resources: IBindingResources,
     observerLocator: IObserverLocator = ObserverLocator.instance) {
     super(observerLocator);
   }
@@ -34,7 +34,7 @@ export class Binding extends ConnectableBinding implements IBinding {
   }
 
   updateSource(value: any) {
-    this.sourceExpression.assign(this.source, value, this.lookupFunctions);
+    this.sourceExpression.assign(this.source, value, this.resources);
   }
 
   call(context: string, newValue: any, oldValue: any) {
@@ -44,7 +44,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
     if (context === sourceContext) {
       oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-      newValue = this.sourceExpression.evaluate(this.source, this.lookupFunctions);
+      newValue = this.sourceExpression.evaluate(this.source, this.resources);
 
       if (newValue !== oldValue) {
         this.updateTarget(newValue);
@@ -60,7 +60,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (context === targetContext) {
-      if (newValue !== this.sourceExpression.evaluate(this.source, this.lookupFunctions)) {
+      if (newValue !== this.sourceExpression.evaluate(this.source, this.resources)) {
         this.updateSource(newValue);
       }
 
@@ -98,7 +98,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (this.mode !== bindingMode.fromView) {
-      let value = this.sourceExpression.evaluate(source, this.lookupFunctions);
+      let value = this.sourceExpression.evaluate(source, this.resources);
       this.updateTarget(value);
     }
 
@@ -144,7 +144,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (evaluate) {
-      let value = this.sourceExpression.evaluate(this.source, this.lookupFunctions);
+      let value = this.sourceExpression.evaluate(this.source, this.resources);
       this.updateTarget(value);
     }
 
@@ -157,7 +157,7 @@ export class TextBinding extends Binding {
   constructor(
     sourceExpression: IExpression,
     target: IBindingTarget,
-    lookupFunctions: ILookupFunctions,
+    lookupFunctions: IBindingResources,
     observerLocator: ObserverLocator = ObserverLocator.instance
   ) {
     super(sourceExpression, target.nextSibling, 'textContent', bindingMode.oneWay, lookupFunctions);

@@ -1,4 +1,4 @@
-import { IExpression, ILookupFunctions } from "./ast";
+import { IExpression, IBindingResources } from "./ast";
 import { IBinding, IBindingTarget } from "./binding";
 import { IScope } from './binding-interfaces'
 
@@ -9,7 +9,7 @@ export class Ref implements IBinding {
   constructor(
     private sourceExpression: IExpression,
     private target: IBindingTarget,
-    public lookupFunctions: ILookupFunctions) {
+    public resources: IBindingResources) {
   }
 
   bind(source: IScope) {
@@ -28,7 +28,7 @@ export class Ref implements IBinding {
       this.sourceExpression.bind(this, source);
     }
 
-    this.sourceExpression.assign(this.source, this.target, this.lookupFunctions);
+    this.sourceExpression.assign(this.source, this.target, this.resources);
   }
 
   unbind() {
@@ -38,8 +38,8 @@ export class Ref implements IBinding {
 
     this.isBound = false;
 
-    if (this.sourceExpression.evaluate(this.source, this.lookupFunctions) === this.target) {
-      this.sourceExpression.assign(this.source, null, this.lookupFunctions);
+    if (this.sourceExpression.evaluate(this.source, this.resources) === this.target) {
+      this.sourceExpression.assign(this.source, null, this.resources);
     }
 
     if (this.sourceExpression.unbind) {

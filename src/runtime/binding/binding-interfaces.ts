@@ -84,7 +84,6 @@ export interface IEventManager {
   ): IDisposable;
 }
 
-
 export interface IOverrideContext {
   parentOverrideContext: IOverrideContext;
   bindingContext: any;

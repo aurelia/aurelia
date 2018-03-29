@@ -1,11 +1,18 @@
 import { CompiledElementSource } from "./runtime/templating/component";
-import { NameTag } from "./name-tag";
-import { If } from "./runtime/resources/if";
-import { Else } from "./runtime/resources/else";
+
+//extracted from view imports
+import * as import1 from "./name-tag";
+import * as import2 from "./runtime/resources/if";
+import * as import3 from "./runtime/resources/else";
 
 //this object is built up during compilation
 export const appConfig: CompiledElementSource = {
   name: 'app',
+  resources: [
+    import1,
+    import2,
+    import3
+  ],
   template: `
     <au-marker class="au"></au-marker> <br>
     <input type="text" class="au">
@@ -43,7 +50,7 @@ export const appConfig: CompiledElementSource = {
     [
       {
         type: 'element',
-        ctor: NameTag,
+        resource: 'name-tag',
         instructions: [
           {
             type: 'twoWay',
@@ -73,7 +80,7 @@ export const appConfig: CompiledElementSource = {
     [
       {
         type: 'templateController',
-        ctor: If,
+        resource: 'if',
         config: {
           template: `<div><au-marker class="au"></au-marker> </div>`,
           targetInstructions: [
@@ -97,7 +104,7 @@ export const appConfig: CompiledElementSource = {
     [
       {
         type: 'templateController',
-        ctor: Else,
+        resource: 'else',
         link: true,
         config: {
           template: `<div>No Message Duplicated</div>`,

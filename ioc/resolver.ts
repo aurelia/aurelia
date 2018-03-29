@@ -9,13 +9,13 @@ import { NullFulfillment } from './fulfillments';
 const logger = getLogger('dependency-resolver');
 
 export class Resolver {
-  private functions: IRegistrationFunction[];
-  private graph: Node;
-  private backEdges: Map<Node, Edge>;
-  private defaultLifetime: Lifetime;
-  private merger: GraphMerger;
+  public functions: IRegistrationFunction[];
+  public graph: Node;
+  public backEdges: Map<Node, Edge>;
+  public defaultLifetime: Lifetime;
+  public merger: GraphMerger;
 
-  public static ROOT_FULFILLMENT = Component.create(new NullFulfillment(Symbol(null)), Lifetime.Unspecified);
+  public static ROOT_FULFILLMENT = new Component(new NullFulfillment(Symbol(null)), Lifetime.Unspecified);
 
   public static initialContext(): ResolutionContext {
     return ResolutionContext.singleton(Resolver.ROOT_FULFILLMENT.fulfillment);
@@ -31,14 +31,6 @@ export class Resolver {
 
   public static newBuilder(): ResolverBuilder {
     return new ResolverBuilder();
-  }
-
-  public getGraph(): Node {
-    return this.graph;
-  }
-
-  public getBackEdges(): Map<Node, Edge> {
-    return new Map(this.backEdges);
   }
 
   public static rootNode(): Node {
@@ -61,10 +53,8 @@ export class Resolver {
   private resolveDependenciesAndMakeNode(result: Resolution, context: ResolutionContext): IPair<Node, Dependency> {
     let node: Node;
     const nodeBuilder = Node.newBuilder();
-    nodeBuilder.setKey(result.makeComponent());
+    nodeBuilder.setKey(new Component(result.fulfillment, result.lifetime));
     for (const requirement of result.fulfillment.getDependencies()) {
-      logger.debug('Attempting to satify dependency: ', requirement);
-
       const resolution = this.resolveCore(requirement, context);
       const newContext = context.extend(resolution.fulfillment, requirement.injectionPoint);
       const nodeAndDependency = this.resolveDependenciesAndMakeNode(resolution, newContext);
@@ -72,7 +62,7 @@ export class Resolver {
     }
 
     node = nodeBuilder.build();
-    return new Pair(node, result.makeDependency());
+    return new Pair(node, new Dependency(result.requirements, RegistrationFlags.None));
   }
 
   private resolveCore(requirement: IRequirement, context: ResolutionContext): Resolution {
@@ -80,8 +70,6 @@ export class Resolver {
     let lifetime = Lifetime.Unspecified;
 
     while (true) {
-      logger.debug('Current requirement: ', chain.currentRequirement);
-
       let registration: RegistrationResult = null;
       for (const registrationFunction of this.functions) {
         registration = registrationFunction.register(context, chain);
@@ -101,8 +89,6 @@ export class Resolver {
       }
 
       if (terminate && chain.currentRequirement.isInstantiable()) {
-        logger.info('Requirement fulfilled with: ', chain.currentRequirement.getFulfillment());
-
         if (lifetime === Lifetime.Unspecified) {
           lifetime = chain.currentRequirement.getFulfillment().getDefaultLifetime();
 
@@ -128,14 +114,6 @@ export class Resolution {
     this.fulfillment = fulfillment;
     this.lifetime = lifetime;
     this.requirements = requirements;
-  }
-
-  public makeComponent(): Component {
-    return Component.create(this.fulfillment, this.lifetime);
-  }
-
-  public makeDependency(): Dependency {
-    return Dependency.create(this.requirements, RegistrationFlags.None);
   }
 }
 

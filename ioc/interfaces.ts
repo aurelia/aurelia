@@ -55,8 +55,8 @@ export interface IRequirement {
 }
 
 export interface IActivator {
+  readonly type: DependencyType;
   activate(): any;
-  getType(): DependencyType;
 }
 
 export interface IInjector {
@@ -87,10 +87,6 @@ export interface IRegistrationRule {
   isTerminal(): boolean;
   getFlags(): RegistrationFlags;
   matches(requirement: IRequirement): boolean;
-}
-
-export interface IContextSpecification {
-  isSatisfiedBy(context: ResolutionContext): boolean;
 }
 
 export interface IFileUtils {

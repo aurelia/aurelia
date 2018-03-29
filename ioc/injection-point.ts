@@ -17,14 +17,11 @@ export class BasicInjectionPoint implements IInjectionPoint {
     return null;
   }
   public isEqualTo(other: BasicInjectionPoint): boolean {
-    if (!(other instanceof BasicInjectionPoint)) {
-      return false;
-    }
-    return other.type === this.type && other.isOptional === this.isOptional;
+    return other.type === this.type;
   }
 }
 
-export class BuildtimeParameterInjectionPoint implements IInjectionPoint {
+export class DesigntimeParameterInjectionPoint implements IInjectionPoint {
   /**
    * The target that needs to be instantiated
    */
@@ -62,11 +59,8 @@ export class BuildtimeParameterInjectionPoint implements IInjectionPoint {
   public getMember(): IPair<PropertyKey, PropertyDescriptor> {
     return this.member;
   }
-  public isEqualTo(other: BuildtimeParameterInjectionPoint): boolean {
-    if (!(other instanceof BuildtimeParameterInjectionPoint)) {
-      return false;
-    }
-    return other.type === this.type && other.isOptional === this.isOptional && other.targetNode === this.targetNode;
+  public isEqualTo(other: DesigntimeParameterInjectionPoint): boolean {
+    return other.type === this.type && other.targetNode === this.targetNode;
   }
 }
 
@@ -95,12 +89,8 @@ export class RuntimeParameterInjectionPoint implements IInjectionPoint {
     return this.member;
   }
   public isEqualTo(other: RuntimeParameterInjectionPoint): boolean {
-    if (!(other instanceof RuntimeParameterInjectionPoint)) {
-      return false;
-    }
     return (
       other.type === this.type &&
-      other.isOptional === this.isOptional &&
       other.member.left === this.member.left &&
       other.member.right.value === this.member.right.value
     );

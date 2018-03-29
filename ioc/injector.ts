@@ -15,9 +15,10 @@ import { Requirements } from './requirements';
 import {
   RegistrationFunctionBuilder,
   DefaultRuntimeRequirementRegistrationFunction,
-  DefaultBuildtimeRequirementRegistrationFunction
+  DefaultDesigntimeRequirementRegistrationFunction
 } from './registration';
 import { Lifetime, DependencyType } from './types';
+import { InstanceActivator } from './activators';
 
 export class DefaultInjector implements IInjector {
   private static activatorCacheQueue: Map<DependencyType, IActivator> = new Map();
@@ -35,48 +36,50 @@ export class DefaultInjector implements IInjector {
       .build();
 
     this.container = Container.create(lifetime);
-    for (const [key, value] of (DefaultInjector.activatorCacheQueue as any)) {
+    for (const [key, value] of DefaultInjector.activatorCacheQueue as any) {
       this.activatorCache.set(key, value);
     }
   }
 
   public getInstance<T>(type: DependencyType): T {
-    if (!this.requirementCache.has(type)) {
-      this.requirementCache.set(type, Requirements.create(type));
-    }
-    return this.resolve(this.requirementCache.get(type));
+    return this.resolve(type);
     //return this.resolve(Requirements.create(type));
   }
 
-  private resolve(requirement: IRequirement): any {
-    //todo: take resolution scope into account when resolving from the cache (or optimize the resolution process in another way)
-    if (!this.activatorCache.has(requirement.requiredType)) {
-      let resolved = this.resolver.getGraph().getOutgoingEdgeWithKey(d => d.hasInitialRequirement(requirement));
+  /**
+   * Convenience method for backwards compatibility with Container
+   */
+  public get<T>(type: DependencyType): T {
+    return this.getInstance(type);
+  }
+
+  /**
+   * Convenience method for backwards compatibility with Container
+   */
+  public registerInstance(type: DependencyType, instance: any): void {
+    this.addActivator(type, new InstanceActivator(instance, type));
+  }
+
+  private resolve(type: DependencyType): any {
+    if (!this.activatorCache.has(type)) {
+      if (!this.requirementCache.has(type)) {
+        this.requirementCache.set(type, Requirements.create(type));
+      }
+      const requirement = this.requirementCache.get(type);
+      let resolved = this.resolver.graph.outgoingEdges.find(e => e.key.requirementChain.initialRequirement === requirement);
 
       if (!resolved) {
         this.resolver.resolve(requirement);
-        resolved = this.resolver.getGraph().getOutgoingEdgeWithKey(d => d.hasInitialRequirement(requirement));
+        resolved = this.resolver.graph.outgoingEdges.find(
+          e => e.key.requirementChain.initialRequirement === requirement
+        );
       }
 
-      const resolvedNode = resolved.tail;
-
-      const activator = this.container.makeActivator(resolvedNode, this.resolver.getBackEdges());
+      const activator = this.container.makeActivator(resolved.tail, this.resolver.backEdges);
       this.activatorCache.set(requirement.requiredType, activator);
     }
 
-    return this.activatorCache.get(requirement.requiredType).activate();
-
-    // let resolved = this.resolver.getGraph().getOutgoingEdgeWithKey(d => d.hasInitialRequirement(requirement));
-
-    // if (!resolved) {
-    //   this.resolver.resolve(requirement);
-    //   resolved = this.resolver.getGraph().getOutgoingEdgeWithKey(d => d.hasInitialRequirement(requirement));
-    // }
-
-    // const resolvedNode = resolved.tail;
-
-    // const activator = this.container.makeActivator(resolvedNode, this.resolver.getBackEdges());
-    // return activator.activate();
+    return this.activatorCache.get(type).activate();
   }
 
   public addActivator(type: DependencyType, activator: IActivator): void {
@@ -125,7 +128,7 @@ export class InjectorBuilder {
     const registrationFunctions = [
       this.builder.build(),
       new DefaultRuntimeRequirementRegistrationFunction(),
-      new DefaultBuildtimeRequirementRegistrationFunction()
+      new DefaultDesigntimeRequirementRegistrationFunction()
     ];
     const injector = new DefaultInjector(this.lifetime, registrationFunctions);
     DefaultInjector.INSTANCE = injector;

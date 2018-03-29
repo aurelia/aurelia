@@ -3,7 +3,6 @@ import {
   IFulfillment,
   IRegistrationRule,
   IRequirement,
-  IContextSpecification,
   IModuleConfiguration,
   IContext,
   IRegistrationFunction,
@@ -45,7 +44,7 @@ export class Registration<T> implements IRegistration<T> {
 
   public toSelf(): void {
     const builder = this.createRule();
-    if (isConstructor(this.sourceType)) {
+    if (typeof this.sourceType === 'function') {
       builder.setFulfillment(Fulfillments.type(this.sourceType as FunctionConstructor));
     } else {
       builder.setImplementation(this.sourceType);
@@ -56,7 +55,7 @@ export class Registration<T> implements IRegistration<T> {
 
   public toType(type: DependencyType): void {
     const builder = this.createRule();
-    if (isConstructor(type)) {
+    if (typeof this.sourceType === 'function') {
       builder.setFulfillment(Fulfillments.type(type as FunctionConstructor));
     } else {
       builder.setImplementation(type);
@@ -82,10 +81,7 @@ export class Registration<T> implements IRegistration<T> {
   }
 
   private generateRegistrations(builder: RegistrationRuleBuilder, type: DependencyType): void {
-    this.context.builder.addRegistrationRule(
-      { isSatisfiedBy: () => true },
-      builder.setDependencyType(this.sourceType).build()
-    );
+    this.context.builder.addRegistrationRule(builder.setDependencyType(this.sourceType).build());
   }
 
   private createRule(): RegistrationRuleBuilder {
@@ -189,27 +185,21 @@ export class RegistrationRule implements IRegistrationRule {
     return this.flags;
   }
   public matches(requirement: IRequirement): boolean {
-    if (requirement.requiredType == this.dependencyType) {
-      return true;
-    }
-    return false;
+    return requirement.requiredType === this.dependencyType;
   }
 }
 
 export class RegistrationFunctionBuilder {
-  private rules: Map<IContextSpecification, IRegistrationRule[]>;
+  private rules: Set<IRegistrationRule>;
   public readonly root: IContext;
 
   constructor() {
-    this.rules = new Map();
+    this.rules = new Set();
     this.root = DefaultContext.root(this);
   }
 
-  public addRegistrationRule(specification: IContextSpecification, rule: IRegistrationRule): void {
-    if (!this.rules.has(specification)) {
-      this.rules.set(specification, []);
-    }
-    this.rules.get(specification).push(rule);
+  public addRegistrationRule(rule: IRegistrationRule): void {
+    this.rules.add(rule);
   }
 
   public applyModule($module: IModuleConfiguration): void {
@@ -223,11 +213,11 @@ export class RegistrationFunctionBuilder {
 
 export class RuleBasedRegistrationFunction implements IRegistrationFunction {
   private registrationRuleCache: Map<Symbol, Set<IRegistrationRule>>;
-  public readonly rules: Map<IContextSpecification, IRegistrationRule[]>;
+  public readonly rules: Set<IRegistrationRule>;
 
-  constructor(rules: Map<IContextSpecification, IRegistrationRule[]>) {
+  constructor(rules: Set<IRegistrationRule>) {
     this.registrationRuleCache = new Map();
-    this.rules = new Map(rules);
+    this.rules = new Set(rules);
   }
 
   public register(context: ResolutionContext, chain: RequirementChain): RegistrationResult {
@@ -237,14 +227,10 @@ export class RuleBasedRegistrationFunction implements IRegistrationFunction {
       this.registrationRuleCache.set(chain.key, appliedRules);
     }
 
-    const validRules: IPair<IContextSpecification, IRegistrationRule>[] = [];
-    for (const specification of Array.from(this.rules.keys())) {
-      if (specification.isSatisfiedBy(context)) {
-        for (const rule of this.rules.get(specification)) {
-          if (rule.matches(chain.currentRequirement) && !appliedRules.has(rule)) {
-            validRules.push(new Pair(specification, rule));
-          }
-        }
+    const validRules: IRegistrationRule[] = [];
+    for (const rule of this.rules) {
+      if (rule.matches(chain.currentRequirement) && !appliedRules.has(rule)) {
+        validRules.push(rule);
       }
     }
 
@@ -253,7 +239,7 @@ export class RuleBasedRegistrationFunction implements IRegistrationFunction {
         logger.warn('more than one matching rule found - this is not yet handled properly', validRules);
       }
 
-      const selectedRule = validRules[0].right;
+      const selectedRule = validRules[0];
       appliedRules.add(selectedRule);
 
       const result = new RegistrationResult(
@@ -275,7 +261,7 @@ export class DefaultRuntimeRequirementRegistrationFunction implements IRegistrat
     let result: RegistrationResult = this.metadataCache.get(requirement.requiredType);
 
     if (!result) {
-      if (isConstructor(requirement.requiredType)) {
+      if (typeof requirement.requiredType === 'function') {
         const fulfillment = Fulfillments.type(requirement.requiredType as FunctionConstructor);
         result = new RegistrationResult(
           requirement.restrict(fulfillment),
@@ -298,7 +284,7 @@ export class DefaultRuntimeRequirementRegistrationFunction implements IRegistrat
   }
 }
 
-export class DefaultBuildtimeRequirementRegistrationFunction implements IRegistrationFunction {
+export class DefaultDesigntimeRequirementRegistrationFunction implements IRegistrationFunction {
   private metadataCache: Map<AST.INode, RegistrationResult> = new Map();
 
   public register(context: ResolutionContext, chain: RequirementChain): RegistrationResult {

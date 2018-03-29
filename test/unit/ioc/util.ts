@@ -336,3 +336,47 @@ export function resolveTimes(n: number, container: Container | DefaultInjector, 
     return end - start;
   }
 }
+
+
+export function createClasses(params: { [key: string]: any }): any[] {
+  const { count, depth, width, allClasses } = params;
+  const classes: any[] = [];
+  for (let i = 0; i < count; i++) {
+    const $class = new Function(`return class C${i} {
+      constructor(...args) {
+        for (let arg of args) {
+          this[arg.constructor.name] = arg;
+        }
+      }
+    }`)();
+    classes.push($class);
+    allClasses.push($class);
+    params.currentDepth = 0;
+    params.target = $class;
+    createDependencies($class, 0, params);
+  }
+  return classes;
+}
+
+function createDependencies(target: any, currentDepth: number, params: { [key: string]: any }): void {
+  const { depth, width, allClasses } = params;
+  Object.defineProperty(target, 'inject', { value: [] });
+
+  if (currentDepth >= depth) {
+    return;
+  }
+
+  for (let i = 0; i < width; i++) {
+    const dep = new Function(`return class ${target.name}D${i}{
+      constructor(...args) {
+        for (let arg of args) {
+          this[arg.constructor.name] = arg;
+        }
+      }
+    }`)();
+    allClasses.push(dep);
+    target.inject.push(dep);
+    params.currentDepth++;
+    createDependencies(dep, currentDepth + 1, params);
+  }
+}

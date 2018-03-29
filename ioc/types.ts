@@ -33,7 +33,7 @@ export function validateKey(key: DependencyType): boolean {
 }
 
 export function isConstructor(key: DependencyType): boolean {
-  return /Function/.test(Object.prototype.toString.call(key)) && Object.prototype.hasOwnProperty.call(key, 'prototype');
+  return typeof key === 'function' && Object.prototype.hasOwnProperty.call(key, 'prototype');
 }
 
 export function isASTNode(key: DependencyType): boolean {
@@ -171,81 +171,5 @@ export class Pair<L, R> implements IPair<L, R> {
     this.left = left;
     this.right = right;
   }
-
-  public isEqualTo(other: Pair<L, R>): boolean {
-    if (this === other) {
-      return true;
-    }
-    // if (!(other instanceof Pair)) {
-    //   return false;
-    // }
-
-    return areEqual(this.left, other.left) && areEqual(this.right, other.right);
-  }
 }
 
-function areEqual(first: any, second: any): boolean {
-  if (first === second) {
-    return true;
-  }
-  const firstTag = / (\w+)/.exec(Object.prototype.toString.call(first))[1];
-  const secondTag = / (\w+)/.exec(Object.prototype.toString.call(first))[1];
-  if (firstTag !== secondTag) {
-    return false;
-  }
-  switch (firstTag) {
-    case 'Undefined':
-    case 'Null':
-    case 'Boolean':
-    case 'Number':
-    case 'String':
-    case 'Symbol': {
-      return false;
-    }
-    case 'Array': {
-      if (first.length !== second.length) {
-        return false;
-      }
-      for (let i = 0; i < first.length; i++) {
-        if (!areEqual(first[i], second[i])) {
-          return false;
-        }
-      }
-      return true;
-    }
-    case 'Map': {
-      if (first.size !== second.size) {
-        return false;
-      }
-      const firstKeys = Array.from(first.keys());
-      const secondKeys = Array.from(second.keys());
-      for (let i = 0; i < firstKeys.length; i++) {
-        const firstKey = firstKeys[i];
-        const secondKey = secondKeys[i];
-        if (!areEqual(firstKey, secondKey)) {
-          return false;
-        }
-        if (!areEqual(first.get(firstKey), second.get(secondKey))) {
-          return false;
-        }
-      }
-      return true;
-    }
-    case 'Set': {
-      if (first.size !== second.size) {
-        return false;
-      }
-      const firstKeys = Array.from(first.keys());
-      const secondKeys = Array.from(second.keys());
-      for (let i = 0; i < firstKeys.length; i++) {
-        if (!areEqual(firstKeys[i], secondKeys[i])) {
-          return false;
-        }
-      }
-      return true;
-    }
-  }
-  if ('isEqualTo' in first && 'isEqualTo' in second) {
-    return first.isEqualTo(second);
-  }
-}

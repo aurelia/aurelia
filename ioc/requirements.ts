@@ -1,4 +1,4 @@
-import { BasicInjectionPoint, RuntimeParameterInjectionPoint, BuildtimeParameterInjectionPoint } from './injection-point';
+import { BasicInjectionPoint, RuntimeParameterInjectionPoint, DesigntimeParameterInjectionPoint } from './injection-point';
 import { IRequirement, IInjectionPoint, IFulfillment, IPair } from './interfaces';
 import {
   DependencyType,
@@ -18,14 +18,14 @@ export class Requirements {
   public static create(astNode: INode): IRequirement;
   public static create(typeOrAstNode: DependencyType | INode): IRequirement {
     if (isASTNode(typeOrAstNode)) {
-      return new BuildtimeRequirement(new BasicInjectionPoint(typeOrAstNode));
+      return new DesigntimeRequirement(new BasicInjectionPoint(typeOrAstNode));
     } else {
       return new RuntimeRequirement(new BasicInjectionPoint(typeOrAstNode));
     }
   }
 }
 
-export class BuildtimeRequirement implements IRequirement {
+export class DesigntimeRequirement implements IRequirement {
   public readonly isRequirement: true = true;
   public readonly requiredType: AST.INode;
   public readonly injectionPoint: IInjectionPoint;
@@ -61,8 +61,8 @@ export class BuildtimeRequirement implements IRequirement {
       return new RuntimeRequirement(this.injectionPoint, typeOrFulfillment, null);
     }
   }
-  public isEqualTo(other: BuildtimeRequirement): boolean {
-    if (!(other instanceof BuildtimeRequirement)) {
+  public isEqualTo(other: DesigntimeRequirement): boolean {
+    if (!(other instanceof DesigntimeRequirement)) {
       return false;
     }
     return (
@@ -79,14 +79,14 @@ export class BuildtimeRequirement implements IRequirement {
       if (type.ctor !== undefined) {
         for (const param of type.ctor.parameters) {
           const typeSource = getTypeSourceFromCtorParameter(param);
-          const ip = new BuildtimeParameterInjectionPoint(
+          const ip = new DesigntimeParameterInjectionPoint(
             type,
             typeSource || param,
             param,
             type.ctor.parameters.indexOf(param),
             new Pair('constructor', null)
           );
-          requirements.push(new BuildtimeRequirement(ip));
+          requirements.push(new DesigntimeRequirement(ip));
         }
       }
     }
@@ -105,7 +105,7 @@ export class RuntimeRequirement implements IRequirement {
     this.injectionPoint = injectionPoint;
     this.requiredType = requiredType || injectionPoint.type;
     if (fulfillment === undefined) {
-      if (isConstructor(this.requiredType)) {
+      if (typeof this.requiredType === 'function') {
         fulfillment = new ClassFulfillment(this.requiredType as FunctionConstructor);
       } else if (injectionPoint.isOptional) {
         fulfillment = new NullFulfillment(this.requiredType);
@@ -140,7 +140,7 @@ export class RuntimeRequirement implements IRequirement {
   public static getRequirements(type: DependencyType): IRequirement[] {
     const requirements: IRequirement[] = [];
 
-    if (isConstructor(type)) {
+    if (typeof type === 'function') {
       const ctor = type as FunctionConstructor;
       const member = new Pair('constructor', Object.getOwnPropertyDescriptor((ctor as any).prototype, 'constructor'));
       const paramTypes = getParamTypes(ctor);

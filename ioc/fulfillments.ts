@@ -1,7 +1,7 @@
 import { IFulfillment, IRequirement, IActivator } from './interfaces';
 import { DependencyType, Lifetime } from './types';
 import { DependencyMap } from './container';
-import { RuntimeRequirement, BuildtimeRequirement } from './requirements';
+import { RuntimeRequirement, DesigntimeRequirement } from './requirements';
 import { ClassActivator, Activators, EmitSyntaxActivator } from './activators';
 import * as AST from './analysis/ast';
 
@@ -41,9 +41,6 @@ export class ClassFulfillment implements IFulfillment {
     return new ClassActivator(this.type, this.getDependencies(), dependencies);
   }
   public isEqualTo(other: ClassFulfillment): boolean {
-    if (!(other instanceof ClassFulfillment)) {
-      return false;
-    }
     return other.type === this.type;
   }
 }
@@ -68,10 +65,7 @@ export class InstanceFulfillment implements IFulfillment {
     return Activators.ofInstance(this.instance);
   }
   public isEqualTo(other: InstanceFulfillment): boolean {
-    if (!(other instanceof InstanceFulfillment)) {
-      return false;
-    }
-    return other.type === this.type && other.instance === this.instance;
+    return other.instance === this.instance;
   }
 }
 
@@ -96,9 +90,6 @@ export class NullFulfillment implements IFulfillment {
     return Activators.ofNull(this.type);
   }
   public isEqualTo(other: NullFulfillment): boolean {
-    if (!(other instanceof NullFulfillment)) {
-      return false;
-    }
     return other.type === this.type;
   }
 }
@@ -115,15 +106,12 @@ export class SyntaxFulfillment implements IFulfillment {
     return Lifetime.Singleton;
   }
   public getDependencies(): IRequirement[] {
-    return BuildtimeRequirement.getRequirements(this.type);
+    return DesigntimeRequirement.getRequirements(this.type);
   }
   public makeActivator(dependencies: DependencyMap): IActivator {
     return new EmitSyntaxActivator(this.type, this.getDependencies(), dependencies);
   }
   public isEqualTo(other: SyntaxFulfillment): boolean {
-    if (!(other instanceof InstanceFulfillment)) {
-      return false;
-    }
     return other.type === this.type;
   }
 }

@@ -1,34 +1,19 @@
 import { IPair, IPredicate, IRequirement, IFulfillment } from './interfaces';
 import { RequirementChain } from './requirement-chain';
-import { RegistrationFlags, Lifetime, isASTNode, isConstructor, Pair } from './types';
+import { RegistrationFlags, Lifetime, isASTNode, isConstructor, Pair, DependencyType } from './types';
 import * as AST from './analysis/ast';
 import { RuntimeRequirement } from './requirements';
-
-// the graph will be the primary source of information to generate efficient runtime DI code
 
 export class Node {
   public readonly key: Component;
   public readonly outgoingEdges: Edge[] = [];
   private allNodes: Set<Node>;
 
-  constructor(key: Component, edges: IPair<Node, Dependency>[]) {
+  constructor(key: Component, edges: Iterable<IPair<Node, Dependency>>) {
     this.key = key;
     for (const pair of edges) {
-      const edge = new Edge(this, pair.left, pair.right);
-      this.outgoingEdges.push(edge);
+      this.outgoingEdges.push(new Edge(this, pair.left, pair.right));
     }
-  }
-
-  public getOutgoingEdgeWithKey(predicate: IPredicate<Dependency>): Edge {
-    let result: Edge = null;
-    this.outgoingEdges.some(e => {
-      if (predicate(e.key)) {
-        result = e;
-        return true;
-      }
-      return false;
-    });
-    return result;
   }
 
   public getAllNodes(): Set<Node> {
@@ -39,12 +24,10 @@ export class Node {
     return this.allNodes;
   }
 
-  public getAdjacentNodes(): Set<Node> {
-    const adjacentNodes = new Set();
-    for (const edge of this.outgoingEdges) {
-      adjacentNodes.add(edge.tail);
+  public *getAdjacentNodes(): IterableIterator<Node> {
+    for (let i = this.outgoingEdges.length - 1; i >= 0; i--) {
+      yield this.outgoingEdges[i].tail;
     }
-    return adjacentNodes;
   }
 
   private visit(nodes: Set<Node>): void {
@@ -82,28 +65,9 @@ export class Edge {
   public readonly key: Dependency;
 
   constructor(head: Node, tail: Node, key: Dependency) {
-    if (head == null) {
-      throw new Error('head cannot be nil');
-    }
-    if (tail == null) {
-      throw new Error('tail cannot be nil');
-    }
-    if (key == null) {
-      throw new Error('key cannot be nil');
-    }
     this.head = head;
     this.tail = tail;
     this.key = key;
-  }
-
-  public isEqualTo(other: Edge): boolean {
-    if (this === other) {
-      return true;
-    }
-    if (!(other instanceof Edge)) {
-      return false;
-    }
-    return this.head === other.head && this.tail === other.tail && this.key.isEqualTo(other.key);
   }
 }
 
@@ -133,7 +97,7 @@ export class NodeBuilder {
   }
 
   public build(): Node {
-    return new Node(this.key, Array.from(this.edges.keys()));
+    return new Node(this.key, this.edges.keys());
   }
 }
 
@@ -141,57 +105,40 @@ export class GraphMerger {
   private pool: Set<Node> = new Set();
 
   public merge(graph: Node): Node {
-    const sortedNodes = (graph.getAllNodes() as any) as Node[];
+    const sortedNodes = graph.getAllNodes();
 
-    const nodeTable = new Map<IPair<Component, Set<Node>>, Node>();
-    for (const node of (this.pool as any) as Node[]) {
-      const key = new Pair(node.key, node.getAdjacentNodes());
-      nodeTable.set(key, node);
+    const nodeTable = new Map<DependencyType, Node>();
+    for (const node of this.pool) {
+      nodeTable.set(node.key.fulfillment.type, node);
     }
 
     const mergedMap = new Map<Node, Node>();
-    for (const node of sortedNodes) {
-      const key = node.key;
-      const neighbors = new Set<Node>();
-      for (const edge of node.outgoingEdges) {
-        const neighbor = mergedMap.get(edge.tail);
-        neighbors.add(neighbor);
-      }
-      const nodeTableKey = new Pair(key, neighbors);
-      let newNode: Node;
-      for (const [existingKey, value] of nodeTable as any) {
-        if (nodeTableKey.isEqualTo(existingKey)) {
-          newNode = value;
-          break;
-        }
-      }
+    for (const nodeToMerge of sortedNodes) {
+      let newNode = nodeTable.get(nodeToMerge.key.fulfillment.type);
       if (!newNode) {
-        const builder = Node.newBuilder();
         let changed = false;
-        builder.setKey(key);
-
-        for (const edge of node.outgoingEdges) {
+        const builder = Node.newBuilder().setKey(nodeToMerge.key);
+        for (const edge of nodeToMerge.outgoingEdges) {
           const filtered = mergedMap.get(edge.tail);
           builder.addEdge(new Pair(filtered, edge.key));
-          if (filtered !== edge.tail) {
+          if (edge.tail !== filtered) {
             changed = true;
           }
         }
-
         if (changed) {
           newNode = builder.build();
         } else {
-          newNode = node;
+          newNode = nodeToMerge;
         }
 
-        nodeTable.set(new Pair(key, neighbors), newNode);
+        nodeTable.set(nodeToMerge.key.fulfillment.type, newNode);
       }
 
-      mergedMap.set(node, newNode);
+      mergedMap.set(nodeToMerge, newNode);
     }
 
     const newRoot = mergedMap.get(graph);
-    for (const node of (newRoot.getAllNodes() as any) as Node[]) {
+    for (const node of newRoot.getAllNodes()) {
       this.pool.add(node);
     }
     return newRoot;
@@ -206,24 +153,6 @@ export class Dependency {
     this.requirementChain = requirementChain;
     this.flags = flags;
   }
-
-  public hasInitialRequirement(requirement: IRequirement): boolean {
-    return this.requirementChain.initialRequirement === requirement;
-  }
-
-  public static create(requirements: RequirementChain, flags: RegistrationFlags): Dependency {
-    return new Dependency(requirements, flags);
-  }
-
-  public isEqualTo(other: Dependency): boolean {
-    if (this === other) {
-      return true;
-    }
-    if (!(other instanceof Dependency)) {
-      return false;
-    }
-    return this.flags === other.flags && this.requirementChain.isEqualTo(other.requirementChain);
-  }
 }
 
 export class Component {
@@ -233,41 +162,5 @@ export class Component {
   constructor(fulfillment: IFulfillment, lifetime: Lifetime) {
     this.fulfillment = fulfillment;
     this.lifetime = lifetime;
-  }
-
-  public static create(fulfillment: IFulfillment, lifetime: Lifetime): Component {
-    return new Component(fulfillment, lifetime);
-  }
-
-  public isEqualTo(other: Component): boolean {
-    if (this === other) {
-      return true;
-    }
-    if (!(other instanceof Component)) {
-      return false;
-    }
-    return this.fulfillment.isEqualTo(other.fulfillment) && this.lifetime === other.lifetime;
-  }
-}
-
-export function toJSON(node: Node): string {
-  const cache = [];
-  return JSON.stringify(node, replacer);
-
-  function replacer(key: string, value: any): any {
-    if (value instanceof Component) {
-      return { name: value.fulfillment.type && (value.fulfillment.type as any).name };
-    } else if (value instanceof RequirementChain) {
-      return { initial: JSON.stringify(value.initialRequirement), current: JSON.stringify(value.currentRequirement) };
-    } else if (value instanceof Edge) {
-      return { key: value.key, tail: value.tail };
-    } else if (value instanceof RuntimeRequirement) {
-      return { type: value.requiredType };
-    }
-
-    if (typeof value === 'object') {
-      cache.push(value);
-    }
-    return value;
   }
 }

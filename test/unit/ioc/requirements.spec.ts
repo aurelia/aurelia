@@ -1,11 +1,11 @@
-import { Requirements, BuildtimeRequirement, RuntimeRequirement } from "../../../ioc/requirements";
+import { Requirements, DesigntimeRequirement, RuntimeRequirement } from "../../../ioc/requirements";
 
 describe('Requirements', () => {
   describe('create()', () => {
-    it('should return a BuildtimeRequirement when called with an AST node', () => {
+    it('should return a DesigntimeRequirement when called with an AST node', () => {
       const actual = Requirements.create({isAnalysisASTNode: true});
 
-      expect (actual instanceof BuildtimeRequirement).toBe(true);
+      expect (actual instanceof DesigntimeRequirement).toBe(true);
     });
 
     it('should return a RuntimeRequirement when called with undefined', () => {

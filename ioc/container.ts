@@ -23,25 +23,24 @@ export class Container {
     node: Node,
     backEdges: Map<Node, Edge>
   ): IActivator {
-    let cached = this.providerCache.get(node);
-
-    if (cached === undefined) {
+    if (!this.providerCache.has(node)) {
       logger.debug("Cache missed for node: ", node.key);
 
       const map = this.makeDependencyMap(node, backEdges);
       const raw = node.key.fulfillment.makeActivator(map);
       const lifetime = node.key.lifetime;
 
+      let activator: IActivator;
       if (lifetime === Lifetime.Singleton) {
-        cached = Activators.ofSingleton(raw);
+        activator = Activators.ofSingleton(raw);
       } else {
-        cached = raw;
+        activator = raw;
       }
 
-      this.providerCache.set(node, cached);
+      this.providerCache.set(node, activator);
     }
 
-    return cached;
+    return this.providerCache.get(node);
   }
 
   private makeDependencyMap(
@@ -54,7 +53,7 @@ export class Container {
     }
 
     const requirements = new Set();
-    for (const edge of Array.from(edges.keys())) {
+    for (const edge of edges.keys()) {
       requirements.add(edge.key.requirementChain.initialRequirement);
     }
 
@@ -72,7 +71,7 @@ export class DependencyMap {
   }
 
   public get(requirement: IRequirement): IActivator {
-    for (const req of (this.requirements as any as IRequirement[])) {
+    for (const req of this.requirements) {
       if (req.isEqualTo(requirement)) {
         return this.lookup.apply(requirement);
       }
@@ -83,7 +82,7 @@ export class DependencyMap {
 
 export class DependencyLookup {
   private container: Container;
-  private edges: Edge[];
+  private edges: Set<Edge>;
   private backEdges: Map<Node, Edge>;
 
   constructor(
@@ -92,7 +91,7 @@ export class DependencyLookup {
     backEdges: Map<Node, Edge>
   ) {
     this.container = container;
-    this.edges = Array.from(edges.keys());
+    this.edges = edges;
     this.backEdges = backEdges;
   }
 

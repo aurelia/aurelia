@@ -3,7 +3,8 @@ import {
   PropertyAccessorParser,
   ValidationMessageParser,
   StandardValidator,
-  ValidationRules
+  ValidationRules,
+  ValidationControllerFactory
 } from 'aurelia-validation';
 import { BrowserHistory, LinkHandler, DefaultLinkHandler } from 'aurelia-history-browser';
 import { Container } from 'aurelia-dependency-injection';
@@ -44,6 +45,7 @@ import * as ts from 'typescript';
 import { raw } from '../../fixture/ts/raw';
 import * as AST from '../../../ioc/analysis/ast';
 import { SyntaxTransformer } from '../../../ioc/analysis/syntax-transformer';
+import { InstanceActivator } from '../../../ioc/activators';
 
 describe('InjectorBuilder', () => {
   let sut: InjectorBuilder;
@@ -55,7 +57,10 @@ describe('InjectorBuilder', () => {
     sut.register(LinkHandler).toType(DefaultLinkHandler);
     sut.register(BindingLanguage).toType(TemplatingBindingLanguage);
     sut.register(Validator).toType(StandardValidator);
+    const vcFactory = new ValidationControllerFactory(null as any);
+    sut.register(ValidationControllerFactory).toInstance(vcFactory);
     const injector = sut.build();
+    (vcFactory as any).container = injector;
     ValidationRules.initialize(injector.getInstance(ValidationMessageParser), injector.getInstance(PropertyAccessorParser));
   });
 
@@ -111,24 +116,6 @@ describe('InjectorBuilder', () => {
     const injector = sut.build();
     const actual = injector.getInstance(SettingsComponent) as SettingsComponent;
     verifySettingsComponent(actual);
-  });
-
-  it('should be able to resolve 100 keys in less than 150ms (cold)', () => {
-    const injector = sut.build();
-    const actual = resolveTimes(100, injector as DefaultInjector);
-    expect(actual).toBeLessThan(150);
-  });
-
-  it('should be able to resolve 10k keys in less than 10ms (warm)', () => {
-    const injector = sut.build();
-    const actual = resolveTimes(10000, injector as DefaultInjector, true);
-    expect(actual).toBeLessThan(10);
-  });
-
-  it('should be able to resolve 1k keys in less than 1ms (warm)', () => {
-    const injector = sut.build();
-    const actual = resolveTimes(1000, injector as DefaultInjector, true);
-    expect(actual).toBeLessThan(1);
   });
 
   it('should work with registration', () => {

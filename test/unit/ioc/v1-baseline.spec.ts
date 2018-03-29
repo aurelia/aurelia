@@ -21,9 +21,7 @@ import {
   verifyProfileArticleComponent,
   verifyProfileComponent,
   verifyProfileFavoritesComponent,
-  verifySettingsComponent,
-  registerTimes,
-  resolveTimes
+  verifySettingsComponent
 } from './util';
 import {
   App,
@@ -97,20 +95,5 @@ describe('aurelia-dependency-injection version 1', () => {
   it('should properly resolve SettingsComponent', () => {
     const actual = sut.get(SettingsComponent) as SettingsComponent;
     verifySettingsComponent(actual);
-  });
-
-  it('should be able to register 1k keys in less than 50ms', () => {
-    const actual = registerTimes(1000, sut);
-    expect(actual).toBeLessThan(50);
-  });
-
-  it('should be able to resolve 1k keys in less than 50ms (cold)', () => {
-    const actual = resolveTimes(1000, sut);
-    expect(actual).toBeLessThan(50);
-  });
-
-  it('should be able to resolve 1k keys in less than 20ms (warm)', () => {
-    const actual = resolveTimes(1000, sut, true);
-    expect(actual).toBeLessThan(20);
   });
 });

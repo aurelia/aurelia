@@ -18,12 +18,14 @@ export class Activators {
 }
 
 export class SingletonActivator implements IActivator {
+  public readonly type: DependencyType;
   private delegate: IActivator;
   private instantiated: boolean = false;
   private instance: any = null;
 
   constructor(instantiator: IActivator) {
     this.delegate = instantiator;
+    this.type = instantiator.type;
   }
 
   public activate(): any {
@@ -34,15 +36,11 @@ export class SingletonActivator implements IActivator {
 
     return this.instance;
   }
-
-  public getType(): DependencyType {
-    return this.delegate.getType();
-  }
 }
 
 export class InstanceActivator implements IActivator {
+  public readonly type: DependencyType;
   private instance: any;
-  private type: DependencyType;
 
   constructor(instance: any, type?: DependencyType) {
     this.instance = instance;
@@ -52,14 +50,10 @@ export class InstanceActivator implements IActivator {
   public activate(): any {
     return this.instance;
   }
-
-  public getType(): DependencyType {
-    return this.type;
-  }
 }
 
 export class ClassActivator implements IActivator {
-  private type: FunctionConstructor;
+  public readonly type: DependencyType;
   private requirements: IRequirement[];
   private providers: DependencyMap;
 
@@ -95,20 +89,17 @@ export class ClassActivator implements IActivator {
         const depInstance = provider.activate();
         depInstances.push(depInstance);
       }
-      return new this.type(...depInstances);
+      return new (this.type as any)(...depInstances);
     }
     if (this.requirements.length === 0) {
-      return new this.type();
+      return new (this.type as any)();
     }
-    throw new Error(`Could not activate class ${this.type.name}`);
-  }
-  public getType(): DependencyType {
-    return this.type;
+    throw new Error(`Could not activate class ${(this.type as any).name}`);
   }
 }
 
 export class EmitSyntaxActivator implements IActivator {
-  private type: AST.INode;
+  public readonly type: DependencyType;
   private requirements: IRequirement[];
   private providers: DependencyMap;
 
@@ -128,7 +119,7 @@ export class EmitSyntaxActivator implements IActivator {
         dependencyGroups.set(key, [req]);
       }
     }
-    const result = new SyntaxEmitResult(this.type);
+    const result = new SyntaxEmitResult(this.type as any);
     const constructorDeps = dependencyGroups.get('constructor');
     if (constructorDeps) {
       const providers = constructorDeps.map(d => this.providers.get(d));
@@ -146,9 +137,6 @@ export class EmitSyntaxActivator implements IActivator {
       }
     }
     return result;
-  }
-  public getType(): DependencyType {
-    return this.type;
   }
 }
 

@@ -1,32 +1,33 @@
-import { IRender, IView } from "./view";
-import { ITemplate, IViewOwner } from "./template";
+import { IRender, IView, IViewOwner } from "./view";
+import { ITemplate } from "./template";
 import { IScope, IBindScope } from "../binding/binding-interfaces";
 import { IAttach } from "./component";
-import { IBinding } from "../binding/binding";
 
-export interface IVisual extends IBindScope, IAttach, IRender, IViewOwner {
-  isBound: boolean;
-}
+export interface IVisual extends IBindScope, IAttach, IViewOwner { }
 
-export class Visual implements IVisual {
-  $bindable: IBinding[] = [];
+export abstract class Visual implements IVisual {
+  $bindable: IBindScope[] = [];
   $attachable: IAttach[] = [];
-  
+  $scope: IScope;
   $view: IView;
-  isBound = false;
+  $isBound = false;
 
-  constructor(template: ITemplate) {
-    this.$view = template.createFor(this);
+  constructor() {
+    this.$view = this.createView();
   }
 
+  abstract createView(): IView;
+
   bind(scope: IScope) {
+    this.$scope = scope;
+
     let bindable = this.$bindable;
 
     for (let i = 0, ii = bindable.length; i < ii; ++i) {
       bindable[i].bind(scope);
     }
 
-    this.isBound = true;
+    this.$isBound = true;
   }
 
   attach() {
@@ -54,6 +55,6 @@ export class Visual implements IVisual {
       bindable[i].unbind();
     }
 
-    this.isBound = false;
+    this.$isBound = false;
   }
 }

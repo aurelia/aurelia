@@ -1,29 +1,22 @@
 import { DOM } from "../dom";
-import { View, IView } from "./view";
+import { View, IView, IViewOwner } from "./view";
 import { IComponent, IAttach, IBindSelf } from "./component";
 import { IVisual, Visual } from "./visual";
 import { IBinding } from "../binding/binding";
 import { ViewSlot } from "./view-slot";
-import { IBindScope } from "../binding/binding-interfaces";
+import { IBindScope, IScope } from "../binding/binding-interfaces";
 import { oneWayText, oneWay, fromView, twoWay, listener, ref, call } from "./generated";
 import { makeElementIntoAnchor } from "./anchors";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
 import { ViewFactory } from "./view-factory";
 
-type SupportsBindingLifecycle = IBindScope | IBindSelf;
-export interface IViewOwner {
-  $view: IView;
-  $bindable: SupportsBindingLifecycle[];
-  $attachable: IAttach[];
-  $slots?: Record<string, IShadowSlot>;
-  $useShadowDOM?: boolean;
-}
 export interface ITemplate {
   createFor(owner: IViewOwner, host?: Node): IView;
 }
 
 export interface CompiledViewSource {
   template: string;
+  hasSlots?: boolean;
   targetInstructions: any[];
   surrogateInstructions?: any[];
 }
@@ -77,7 +70,7 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
       break;
     case 'slot':
       if (!owner.$useShadowDOM) {
-        let slot = ShadowDOM.createSlotFromInstruction(instruction);
+        let slot = ShadowDOM.createSlotFromInstruction(owner, instruction);
         owner.$slots[slot.name] = slot;
         owner.$bindable.push(slot);
         owner.$attachable.push(slot);
@@ -86,7 +79,7 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
       break;
     case 'element':
       let elementInstructions = instruction.instructions;
-      let elementModel: IComponent = new instruction.ctor(); //TODO: DI
+      let elementModel: (IViewOwner & IComponent) = new instruction.ctor(); //TODO: DI
       (<any>elementModel).$contentView = View.fromCompiledElementContent(elementModel, target);
 
       elementModel.applyTo(target);

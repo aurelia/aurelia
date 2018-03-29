@@ -1,5 +1,7 @@
 import { DOM } from "../dom";
-import { IViewOwner } from "./template";
+import { IScope, IBindScope } from "../binding/binding-interfaces";
+import { IShadowSlot } from "./shadow-dom";
+import { IAttach } from "./component";
 
 export interface IView {
   firstChild: Node;
@@ -12,9 +14,18 @@ export interface IView {
   appendTo(parent: Node): void;
   remove(): void;
 }
-
 export interface IRender {
   $view: IView;
+}
+export interface IViewOwner extends IRender {
+  $scope: IScope;
+  $isBound: boolean;
+
+  $bindable: IBindScope[];
+  $attachable: IAttach[];
+
+  $slots?: Record<string, IShadowSlot>;
+  $useShadowDOM?: boolean;
 }
 
 const noNodes = Object.freeze([]);

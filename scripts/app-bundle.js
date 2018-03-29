@@ -452,6 +452,16 @@ define('runtime/dom',["require", "exports"], function (require, exports) {
 
 
 
+define('runtime/feature',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.FEATURE = {
+        shadowDOM: !!HTMLElement.prototype.attachShadow
+    };
+});
+
+
+
 define('runtime/logging',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -803,208 +813,15 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
 
 
 
-define('runtime/util',["require", "exports"], function (require, exports) {
+define('designtime/templating/template',["require", "exports", "../../runtime/templating/template"], function (require, exports, template_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    function _isAllWhitespace(node) {
-        return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
-    }
-    exports._isAllWhitespace = _isAllWhitespace;
-});
-
-
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-define('runtime/resources/else',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Else = (function (_super) {
-        __extends(Else, _super);
-        function Else() {
-            return _super !== null && _super.apply(this, arguments) || this;
+    exports.Template = Object.assign(template_1.Template, {
+        fromUncompiledSource: function (uncompiledSource) {
+            var compiledSource = null;
+            return template_1.Template.fromCompiledSource(compiledSource);
         }
-        Else.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
-            if (this.ifBehavior.condition) {
-                this.hide();
-            }
-            else {
-                this.show();
-            }
-        };
-        Else.prototype.link = function (ifBehavior) {
-            if (this.ifBehavior === ifBehavior) {
-                return this;
-            }
-            this.ifBehavior = ifBehavior;
-            ifBehavior.link(this);
-            return this;
-        };
-        return Else;
-    }(if_core_1.IfCore));
-    exports.Else = Else;
-});
-
-
-
-define('runtime/resources/if-core',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var IfCore = (function () {
-        function IfCore(createVisual, viewSlot) {
-            this.createVisual = createVisual;
-            this.viewSlot = viewSlot;
-            this.visual = null;
-            this.scope = null;
-            this.showing = false;
-            this.isBound = false;
-        }
-        IfCore.prototype.bind = function (scope) {
-            this.scope = scope;
-            this.isBound = true;
-        };
-        IfCore.prototype.attach = function () {
-            this.viewSlot.attach();
-        };
-        IfCore.prototype.detach = function () {
-            this.viewSlot.detach();
-        };
-        IfCore.prototype.unbind = function () {
-            this.isBound = false;
-            if (this.visual === null) {
-                return;
-            }
-            this.visual.unbind();
-            if (this.showing) {
-                this.showing = false;
-                this.viewSlot.remove(this.visual, true);
-            }
-            this.visual = null;
-        };
-        IfCore.prototype.show = function () {
-            if (this.showing) {
-                if (!this.visual.isBound) {
-                    this.visual.bind(this.scope);
-                }
-                return;
-            }
-            if (this.visual === null) {
-                this.visual = this.createVisual();
-            }
-            if (!this.visual.isBound) {
-                this.visual.bind(this.scope);
-            }
-            this.showing = true;
-            return this.viewSlot.add(this.visual);
-        };
-        IfCore.prototype.hide = function () {
-            var _this = this;
-            if (!this.showing) {
-                return;
-            }
-            this.showing = false;
-            var removed = this.viewSlot.remove(this.visual);
-            if (removed instanceof Promise) {
-                return removed.then(function () { return _this.visual.unbind(); });
-            }
-            this.visual.unbind();
-        };
-        return IfCore;
-    }());
-    exports.IfCore = IfCore;
-});
-
-
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation"], function (require, exports, if_core_1, property_observation_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var If = (function (_super) {
-        __extends(If, _super);
-        function If() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.animating = false;
-            _this.$observers = {
-                condition: new property_observation_1.Observer(false, function (v) { return _this.isBound ? _this.conditionChanged(v) : void 0; })
-            };
-            return _this;
-        }
-        Object.defineProperty(If.prototype, "condition", {
-            get: function () { return this.$observers.condition.getValue(); },
-            set: function (value) { this.$observers.condition.setValue(value); },
-            enumerable: true,
-            configurable: true
-        });
-        If.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
-            this.conditionChanged(this.condition);
-        };
-        If.prototype.conditionChanged = function (newValue) {
-            this.update(newValue);
-        };
-        If.prototype.link = function (elseBehavior) {
-            if (this.elseBehavior === elseBehavior) {
-                return this;
-            }
-            this.elseBehavior = elseBehavior;
-            elseBehavior.link(this);
-            return this;
-        };
-        If.prototype.update = function (show) {
-            var _this = this;
-            if (this.animating) {
-                return;
-            }
-            var promise;
-            if (this.elseBehavior) {
-                promise = show ? this.swap(this.elseBehavior, this) : this.swap(this, this.elseBehavior);
-            }
-            else {
-                promise = show ? this.show() : this.hide();
-            }
-            if (promise) {
-                this.animating = true;
-                promise.then(function () {
-                    _this.animating = false;
-                    if (_this.condition !== _this.showing) {
-                        _this.update(_this.condition);
-                    }
-                });
-            }
-        };
-        If.prototype.swap = function (remove, add) {
-            switch (this.swapOrder) {
-                case 'before':
-                    return Promise.resolve(add.show()).then(function () { return remove.hide(); });
-                case 'with':
-                    return Promise.all([remove.hide(), add.show()]);
-                default:
-                    var promise = remove.hide();
-                    return promise ? promise.then(function () { return add.show(); }) : add.show();
-            }
-        };
-        return If;
-    }(if_core_1.IfCore));
-    exports.If = If;
+    });
 });
 
 
@@ -4365,6 +4182,201 @@ define('runtime/binding/svg',["require", "exports"], function (require, exports)
 
 
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('runtime/resources/else',["require", "exports", "./if-core"], function (require, exports, if_core_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Else = (function (_super) {
+        __extends(Else, _super);
+        function Else() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Else.prototype.bind = function (scope) {
+            _super.prototype.bind.call(this, scope);
+            if (this.ifBehavior.condition) {
+                this.hide();
+            }
+            else {
+                this.show();
+            }
+        };
+        Else.prototype.link = function (ifBehavior) {
+            if (this.ifBehavior === ifBehavior) {
+                return this;
+            }
+            this.ifBehavior = ifBehavior;
+            ifBehavior.link(this);
+            return this;
+        };
+        return Else;
+    }(if_core_1.IfCore));
+    exports.Else = Else;
+});
+
+
+
+define('runtime/resources/if-core',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var IfCore = (function () {
+        function IfCore(createVisual, viewSlot) {
+            this.createVisual = createVisual;
+            this.viewSlot = viewSlot;
+            this.visual = null;
+            this.scope = null;
+            this.showing = false;
+            this.isBound = false;
+        }
+        IfCore.prototype.bind = function (scope) {
+            this.scope = scope;
+            this.isBound = true;
+        };
+        IfCore.prototype.attach = function () {
+            this.viewSlot.attach();
+        };
+        IfCore.prototype.detach = function () {
+            this.viewSlot.detach();
+        };
+        IfCore.prototype.unbind = function () {
+            this.isBound = false;
+            if (this.visual === null) {
+                return;
+            }
+            this.visual.unbind();
+            if (this.showing) {
+                this.showing = false;
+                this.viewSlot.remove(this.visual, true);
+            }
+            this.visual = null;
+        };
+        IfCore.prototype.show = function () {
+            if (this.showing) {
+                if (!this.visual.$isBound) {
+                    this.visual.bind(this.scope);
+                }
+                return;
+            }
+            if (this.visual === null) {
+                this.visual = this.createVisual();
+            }
+            if (!this.visual.$isBound) {
+                this.visual.bind(this.scope);
+            }
+            this.showing = true;
+            return this.viewSlot.add(this.visual);
+        };
+        IfCore.prototype.hide = function () {
+            var _this = this;
+            if (!this.showing) {
+                return;
+            }
+            this.showing = false;
+            var removed = this.viewSlot.remove(this.visual);
+            if (removed instanceof Promise) {
+                return removed.then(function () { return _this.visual.unbind(); });
+            }
+            this.visual.unbind();
+        };
+        return IfCore;
+    }());
+    exports.IfCore = IfCore;
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation"], function (require, exports, if_core_1, property_observation_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var If = (function (_super) {
+        __extends(If, _super);
+        function If() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.animating = false;
+            _this.$observers = {
+                condition: new property_observation_1.Observer(false, function (v) { return _this.isBound ? _this.conditionChanged(v) : void 0; })
+            };
+            return _this;
+        }
+        Object.defineProperty(If.prototype, "condition", {
+            get: function () { return this.$observers.condition.getValue(); },
+            set: function (value) { this.$observers.condition.setValue(value); },
+            enumerable: true,
+            configurable: true
+        });
+        If.prototype.bind = function (scope) {
+            _super.prototype.bind.call(this, scope);
+            this.conditionChanged(this.condition);
+        };
+        If.prototype.conditionChanged = function (newValue) {
+            this.update(newValue);
+        };
+        If.prototype.link = function (elseBehavior) {
+            if (this.elseBehavior === elseBehavior) {
+                return this;
+            }
+            this.elseBehavior = elseBehavior;
+            elseBehavior.link(this);
+            return this;
+        };
+        If.prototype.update = function (show) {
+            var _this = this;
+            if (this.animating) {
+                return;
+            }
+            var promise;
+            if (this.elseBehavior) {
+                promise = show ? this.swap(this.elseBehavior, this) : this.swap(this, this.elseBehavior);
+            }
+            else {
+                promise = show ? this.show() : this.hide();
+            }
+            if (promise) {
+                this.animating = true;
+                promise.then(function () {
+                    _this.animating = false;
+                    if (_this.condition !== _this.showing) {
+                        _this.update(_this.condition);
+                    }
+                });
+            }
+        };
+        If.prototype.swap = function (remove, add) {
+            switch (this.swapOrder) {
+                case 'before':
+                    return Promise.resolve(add.show()).then(function () { return remove.hide(); });
+                case 'with':
+                    return Promise.all([remove.hide(), add.show()]);
+                default:
+                    var promise = remove.hide();
+                    return promise ? promise.then(function () { return add.show(); }) : add.show();
+            }
+        };
+        return If;
+    }(if_core_1.IfCore));
+    exports.If = If;
+});
+
+
+
 define('runtime/templating/anchors',["require", "exports", "../dom"], function (require, exports, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4473,11 +4485,11 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
                         _this.$useShadowDOM = source.shadowOptions && feature_1.FEATURE.shadowDOM;
                         _this.$contentView = null;
                         _this.$isBound = false;
-                        _this.$changeCallbacks = [];
                         _this.$scope = {
                             bindingContext: _this,
                             overrideContext: scope_1.createOverrideContext()
                         };
+                        _this.$changeCallbacks = [];
                         setupObservers(_this, source);
                         return _this;
                     }
@@ -4684,12 +4696,11 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
             this.element = element;
             this.element.auSlotAttribute = this;
         }
-        SlotCustomAttribute.prototype.valueChanged = function (newValue, oldValue) {
-        };
         return SlotCustomAttribute;
     }());
     var PassThroughSlot = (function () {
-        function PassThroughSlot(anchor, name, destinationName, fallbackFactory) {
+        function PassThroughSlot(owner, anchor, name, destinationName, fallbackFactory) {
+            this.owner = owner;
             this.anchor = anchor;
             this.name = name;
             this.destinationName = destinationName;
@@ -4711,11 +4722,11 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
         PassThroughSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
             if (index === void 0) { index = 0; }
             if (this.contentView === null) {
-                this.contentView = this.fallbackFactory.create(this.ownerView.container);
-                this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+                this.contentView = this.fallbackFactory();
+                this.contentView.bind(this.owner.$scope);
                 var slots = Object.create(null);
                 slots[this.destinationSlot.name] = this.destinationSlot;
-                exports.ShadowDOM.distributeView(this.contentView, slots, projectionSource, index, this.destinationSlot.name);
+                exports.ShadowDOM.distributeView(this.contentView.$view, slots, projectionSource, index, this.destinationSlot.name);
             }
         };
         PassThroughSlot.prototype.passThroughTo = function (destinationSlot) {
@@ -4723,8 +4734,8 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
         };
         PassThroughSlot.prototype.addNode = function (view, node, projectionSource, index) {
             if (this.contentView !== null) {
-                this.contentView.removeNodes();
-                this.contentView.detached();
+                this.contentView.$view.remove();
+                this.contentView.detach();
                 this.contentView.unbind();
                 this.contentView = null;
             }
@@ -4752,33 +4763,31 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
         PassThroughSlot.prototype.projectFrom = function (view, projectionSource) {
             this.destinationSlot.projectFrom(view, projectionSource);
         };
-        PassThroughSlot.prototype.created = function (ownerView) {
-            this.ownerView = ownerView;
-        };
         PassThroughSlot.prototype.bind = function (scope) {
-            if (this.contentView) {
+            if (this.contentView !== null) {
                 this.contentView.bind(scope);
             }
         };
         PassThroughSlot.prototype.attach = function () {
-            if (this.contentView) {
-                this.contentView.attached();
+            if (this.contentView !== null) {
+                this.contentView.attach();
             }
         };
         PassThroughSlot.prototype.detach = function () {
-            if (this.contentView) {
-                this.contentView.detached();
+            if (this.contentView !== null) {
+                this.contentView.detach();
             }
         };
         PassThroughSlot.prototype.unbind = function () {
-            if (this.contentView) {
+            if (this.contentView !== null) {
                 this.contentView.unbind();
             }
         };
         return PassThroughSlot;
     }());
     var ShadowSlot = (function () {
-        function ShadowSlot(anchor, name, fallbackFactory) {
+        function ShadowSlot(owner, anchor, name, fallbackFactory) {
+            this.owner = owner;
             this.anchor = anchor;
             this.name = name;
             this.fallbackFactory = fallbackFactory;
@@ -4799,8 +4808,8 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
         });
         ShadowSlot.prototype.addNode = function (view, node, projectionSource, index, destination) {
             if (this.contentView !== null) {
-                this.contentView.removeNodes();
-                this.contentView.detached();
+                this.contentView.$view.remove();
+                this.contentView.detach();
                 this.contentView.unbind();
                 this.contentView = null;
             }
@@ -4826,8 +4835,8 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
             if (this.destinationSlots !== null) {
                 exports.ShadowDOM.undistributeView(view, this.destinationSlots, this);
             }
-            else if (this.contentView && this.contentView.hasSlots) {
-                exports.ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
+            else if (this.contentView && this.contentView.$slots) {
+                exports.ShadowDOM.undistributeView(view, this.contentView.$slots, projectionSource);
             }
             else {
                 var found = this.children.find(function (x) { return x.auSlotProjectFrom === projectionSource; });
@@ -4853,8 +4862,8 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
             if (this.destinationSlots !== null) {
                 exports.ShadowDOM.undistributeAll(this.destinationSlots, this);
             }
-            else if (this.contentView && this.contentView.hasSlots) {
-                exports.ShadowDOM.undistributeAll(this.contentView.slots, projectionSource);
+            else if (this.contentView && this.contentView.$slots) {
+                exports.ShadowDOM.undistributeAll(this.contentView.$slots, projectionSource);
             }
             else {
                 var found = this.children.find(function (x) { return x.auSlotProjectFrom === projectionSource; });
@@ -4862,7 +4871,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
                     var children = found.auProjectionChildren;
                     for (var i = 0, ii = children.length; i < ii; ++i) {
                         var child = children[i];
-                        child.auOwnerView.fragment.appendChild(child);
+                        child.auOwnerView.appendChild(child);
                         this.projections--;
                     }
                     found.auProjectionChildren = [];
@@ -4904,9 +4913,9 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
         ShadowSlot.prototype.projectFrom = function (view, projectionSource) {
             var anchor = dom_1.DOM.createComment('anchor');
             var parent = this.anchor.parentNode;
-            anchor['auSlotProjectFrom'] = projectionSource;
-            anchor['auOwnerView'] = view;
-            anchor['auProjectionChildren'] = [];
+            anchor.auSlotProjectFrom = projectionSource;
+            anchor.auOwnerView = view;
+            anchor.auProjectionChildren = [];
             parent.insertBefore(anchor, this.anchor);
             this.children.push(anchor);
             if (this.projectFromAnchors === null) {
@@ -4917,12 +4926,12 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
         ShadowSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
             if (index === void 0) { index = 0; }
             if (this.contentView === null) {
-                this.contentView = this.fallbackFactory.create(this.ownerView.container);
-                this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
-                this.contentView.insertNodesBefore(this.anchor);
+                this.contentView = this.fallbackFactory();
+                this.contentView.bind(this.owner.$scope);
+                this.contentView.$view.insertBefore(this.anchor);
             }
-            if (this.contentView.hasSlots) {
-                var slots = this.contentView.slots;
+            if (this.contentView.$slots) {
+                var slots = this.contentView.$slots;
                 var projectFromAnchors = this.projectFromAnchors;
                 if (projectFromAnchors !== null) {
                     for (var slotName in slots) {
@@ -4937,26 +4946,23 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
                 exports.ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
             }
         };
-        ShadowSlot.prototype.created = function (ownerView) {
-            this.ownerView = ownerView;
-        };
         ShadowSlot.prototype.bind = function (scope) {
-            if (this.contentView) {
+            if (this.contentView !== null) {
                 this.contentView.bind(scope);
             }
         };
         ShadowSlot.prototype.attach = function () {
-            if (this.contentView) {
-                this.contentView.attached();
+            if (this.contentView !== null) {
+                this.contentView.attach();
             }
         };
         ShadowSlot.prototype.detach = function () {
-            if (this.contentView) {
-                this.contentView.detached();
+            if (this.contentView !== null) {
+                this.contentView.detach();
             }
         };
         ShadowSlot.prototype.unbind = function () {
-            if (this.contentView) {
+            if (this.contentView !== null) {
                 this.contentView.unbind();
             }
         };
@@ -4970,17 +4976,17 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
             }
             return node.auSlotAttribute.value;
         },
-        createSlotFromInstruction: function (instruction) {
+        createSlotFromInstruction: function (owner, instruction) {
             var anchor = dom_1.DOM.createComment('slot');
             var fallbackFactory = instruction.factory;
             if (fallbackFactory === undefined && instruction.fallback) {
                 instruction.factory = fallbackFactory = view_factory_1.ViewFactory.fromCompiledSource(instruction.fallback);
             }
             if (instruction.destination) {
-                return new PassThroughSlot(anchor, instruction.name, instruction.destination, fallbackFactory);
+                return new PassThroughSlot(owner, anchor, instruction.name, instruction.destination, fallbackFactory);
             }
             else {
-                return new ShadowSlot(anchor, instruction.name, fallbackFactory);
+                return new ShadowSlot(owner, anchor, instruction.name, fallbackFactory);
             }
         },
         distributeView: function (view, slots, projectionSource, index, destinationOverride) {
@@ -5107,7 +5113,7 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
                 break;
             case 'slot':
                 if (!owner.$useShadowDOM) {
-                    var slot = shadow_dom_1.ShadowDOM.createSlotFromInstruction(instruction);
+                    var slot = shadow_dom_1.ShadowDOM.createSlotFromInstruction(owner, instruction);
                     owner.$slots[slot.name] = slot;
                     owner.$bindable.push(slot);
                     owner.$attachable.push(slot);
@@ -5186,13 +5192,39 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
 
 
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 define('runtime/templating/view-factory',["require", "exports", "./visual", "./template"], function (require, exports, visual_1, template_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ViewFactory = {
         fromCompiledSource: function (source) {
             var template = template_1.Template.fromCompiledSource(source);
-            return function () { return new visual_1.Visual(template); };
+            var CompiledVisual = (_a = (function (_super) {
+                    __extends(class_1, _super);
+                    function class_1() {
+                        var _this = _super !== null && _super.apply(this, arguments) || this;
+                        _this.$slots = source.hasSlots ? {} : null;
+                        return _this;
+                    }
+                    class_1.prototype.createView = function () {
+                        return template.createFor(this);
+                    };
+                    return class_1;
+                }(visual_1.Visual)),
+                _a.template = template,
+                _a.source = source,
+                _a);
+            return function () { return new CompiledVisual(); };
+            var _a;
         }
     };
 });
@@ -5607,18 +5639,19 @@ define('runtime/templating/visual',["require", "exports"], function (require, ex
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Visual = (function () {
-        function Visual(template) {
+        function Visual() {
             this.$bindable = [];
             this.$attachable = [];
-            this.isBound = false;
-            this.$view = template.createFor(this);
+            this.$isBound = false;
+            this.$view = this.createView();
         }
         Visual.prototype.bind = function (scope) {
+            this.$scope = scope;
             var bindable = this.$bindable;
             for (var i = 0, ii = bindable.length; i < ii; ++i) {
                 bindable[i].bind(scope);
             }
-            this.isBound = true;
+            this.$isBound = true;
         };
         Visual.prototype.attach = function () {
             var attachable = this.$attachable;
@@ -5639,34 +5672,11 @@ define('runtime/templating/visual',["require", "exports"], function (require, ex
             while (i--) {
                 bindable[i].unbind();
             }
-            this.isBound = false;
+            this.$isBound = false;
         };
         return Visual;
     }());
     exports.Visual = Visual;
-});
-
-
-
-define('runtime/feature',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.FEATURE = {
-        shadowDOM: !!HTMLElement.prototype.attachShadow
-    };
-});
-
-
-
-define('designtime/templating/template',["require", "exports", "../../runtime/templating/template"], function (require, exports, template_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Template = Object.assign(template_1.Template, {
-        fromUncompiledSource: function (uncompiledSource) {
-            var compiledSource = null;
-            return template_1.Template.fromCompiledSource(compiledSource);
-        }
-    });
 });
 
 

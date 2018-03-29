@@ -1,7 +1,6 @@
-import { Template, CompiledViewSource, ITemplate, IViewOwner } from "./template";
-import { IBinding } from "../binding/binding";
-import { IView, View } from "./view";
-import { IScope } from "../binding/binding-interfaces";
+import { Template, CompiledViewSource, ITemplate } from "./template";
+import { IView, View, IViewOwner } from "./view";
+import { IScope, IBindScope } from "../binding/binding-interfaces";
 import { createOverrideContext } from "../binding/scope";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
@@ -30,7 +29,6 @@ export interface CompiledElementSource extends CompiledViewSource {
   name: string;
   observers: any[];
   containerless?: boolean;
-  hasSlots?: boolean;
   shadowOptions?: ShadowRootInit;
 }
 
@@ -52,22 +50,21 @@ export const Component = {
       static template: ITemplate = template;
       static source: CompiledElementSource = source;
   
-      $bindable: IBinding[] = [];
+      $bindable: IBindScope[] = [];
       $attachable: IAttach[] = [];
       $slots: Record<string, IShadowSlot> = source.hasSlots ? {} : null;
       $useShadowDOM = source.shadowOptions && FEATURE.shadowDOM;
       $view: IView;
       $contentView: IView = null;
-
-      private $isBound = false;
-      private $host: Element;
-      private $shadowRoot: Element | ShadowRoot;
-      private $changeCallbacks: (() => void)[] = [];
-      
-      private $scope: IScope = {
+      $isBound = false;
+      $scope: IScope = {
         bindingContext: this,
         overrideContext: createOverrideContext()
       };
+      
+      private $host: Element;
+      private $shadowRoot: Element | ShadowRoot;
+      private $changeCallbacks: (() => void)[] = [];
   
       constructor(...args:any[]) {
         super(...args);

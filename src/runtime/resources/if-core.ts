@@ -52,7 +52,7 @@ export abstract class IfCore {
       // Ensures the view is bound.
       // It might not be the case when the if was unbound but not detached, then rebound.
       // Typical case where this happens is nested ifs
-      if (!this.visual.isBound) {
+      if (!this.visual.$isBound) {
         this.visual.bind(this.scope);
       }
 
@@ -63,7 +63,7 @@ export abstract class IfCore {
       this.visual = this.createVisual();
     }
 
-    if (!this.visual.isBound) {
+    if (!this.visual.$isBound) {
       this.visual.bind(this.scope);
     }
 

@@ -1,20 +1,25 @@
 import { DOM } from '../dom';
 import { IAttach } from './component';
 import { IScope, IBindScope } from '../binding/binding-interfaces';
-import { IView } from './view';
+import { IView, IViewOwner } from './view';
 import { ViewSlot } from './view-slot';
 import { ViewFactory } from './view-factory';
+import { IVisual } from './visual';
 
 type ShadowProjectionSource = ViewSlot | IShadowSlot;
 
-type SlotNode = Node & { 
+type ShadowEmulationTracking = { 
   viewSlot: IShadowSlot;
   auSlotAttribute?: SlotCustomAttribute;
   isContentProjectionSource?: boolean;
   auOwnerView?: IView;
   auProjectionSource?: ShadowProjectionSource;
+  auSlotProjectFrom?: ShadowProjectionSource;
   auAssignedSlot?: IShadowSlot;
+  auProjectionChildren: SlotNode[];
 };
+
+type SlotNode = Node & ShadowEmulationTracking;
 
 export interface IShadowSlot extends IBindScope, IAttach {
   name: string;
@@ -38,19 +43,14 @@ class SlotCustomAttribute {
     this.element = element;
     this.element.auSlotAttribute = this;
   }
-
-  valueChanged(newValue, oldValue) {
-    //console.log('au-slot', newValue);
-  }
 }
 
 class PassThroughSlot implements IShadowSlot {
   private projections = 0;
-  private contentView = null;
+  private contentView: IVisual = null;
   private destinationSlot: IShadowSlot = null;
-  private ownerView;
 
-  constructor(public anchor: SlotNode, public name: string, private destinationName: string, private fallbackFactory) {
+  constructor(private owner: IViewOwner, public anchor: SlotNode, public name: string, private destinationName: string, private fallbackFactory: () => IVisual) {
     this.anchor.viewSlot = this;
     let attr = new SlotCustomAttribute(this.anchor);
     attr.value = this.destinationName;
@@ -62,13 +62,19 @@ class PassThroughSlot implements IShadowSlot {
 
   renderFallbackContent(view: IView, nodes: SlotNode[], projectionSource: ShadowProjectionSource, index = 0) {
     if (this.contentView === null) {
-      this.contentView = this.fallbackFactory.create(this.ownerView.container);
-      this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+      this.contentView = this.fallbackFactory();
+      this.contentView.bind(this.owner.$scope);
 
       let slots = Object.create(null);
       slots[this.destinationSlot.name] = this.destinationSlot;
 
-      ShadowDOM.distributeView(this.contentView, slots, projectionSource, index, this.destinationSlot.name);
+      ShadowDOM.distributeView(
+        this.contentView.$view, 
+        slots, 
+        projectionSource, 
+        index, 
+        this.destinationSlot.name
+      );
     }
   }
 
@@ -78,8 +84,8 @@ class PassThroughSlot implements IShadowSlot {
 
   addNode(view: IView, node: SlotNode, projectionSource: ShadowProjectionSource, index: number) {
     if (this.contentView !== null) {
-      this.contentView.removeNodes();
-      this.contentView.detached();
+      this.contentView.$view.remove();
+      this.contentView.detach();
       this.contentView.unbind();
       this.contentView = null;
     }
@@ -115,45 +121,40 @@ class PassThroughSlot implements IShadowSlot {
     this.destinationSlot.projectFrom(view, projectionSource);
   }
 
-  created(ownerView) {
-    this.ownerView = ownerView;
-  }
-
   bind(scope: IScope) {
-    if (this.contentView) {
+    if (this.contentView !== null) {
       this.contentView.bind(scope);
     }
   }
 
   attach() {
-    if (this.contentView) {
-      this.contentView.attached();
+    if (this.contentView !== null) {
+      this.contentView.attach();
     }
   }
 
   detach() {
-    if (this.contentView) {
-      this.contentView.detached();
+    if (this.contentView !== null) {
+      this.contentView.detach();
     }
   }
 
   unbind() {
-    if (this.contentView) {
+    if (this.contentView !== null) {
       this.contentView.unbind();
     }
   }
 }
 
 class ShadowSlot implements IShadowSlot {
-  private contentView = null;
+  private contentView: IVisual = null;
   private projections = 0;
-  private children = [];
-  private projectFromAnchors = null;
+  private children: SlotNode[] = [];
+  private projectFromAnchors: SlotNode[] = null;
   private destinationSlots = null;
-  private ownerView;
   private fallbackSlots;
 
-  constructor(public anchor: SlotNode, public name: string, private fallbackFactory) {
+  constructor(private owner: IViewOwner, public anchor: SlotNode, public name: string, private fallbackFactory: () => IVisual) {
     this.anchor.isContentProjectionSource = true;
     this.anchor.viewSlot = this;
   }
@@ -164,8 +165,8 @@ class ShadowSlot implements IShadowSlot {
 
   addNode(view: IView, node: SlotNode, projectionSource: ShadowProjectionSource, index: number, destination: string) {
     if (this.contentView !== null) {
-      this.contentView.removeNodes();
-      this.contentView.detached();
+      this.contentView.$view.remove();
+      this.contentView.detach();
       this.contentView.unbind();
       this.contentView = null;
     }
@@ -194,8 +195,8 @@ class ShadowSlot implements IShadowSlot {
   removeView(view: IView, projectionSource: ShadowProjectionSource) {
     if (this.destinationSlots !== null) {
       ShadowDOM.undistributeView(view, this.destinationSlots, this);
-    } else if (this.contentView && this.contentView.hasSlots) {
-      ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
+    } else if (this.contentView && this.contentView.$slots) {
+      ShadowDOM.undistributeView(view, this.contentView.$slots, projectionSource);
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
@@ -222,8 +223,8 @@ class ShadowSlot implements IShadowSlot {
   removeAll(projectionSource: ShadowProjectionSource) {
     if (this.destinationSlots !== null) {
       ShadowDOM.undistributeAll(this.destinationSlots, this);
-    } else if (this.contentView && this.contentView.hasSlots) {
-      ShadowDOM.undistributeAll(this.contentView.slots, projectionSource);
+    } else if (this.contentView && this.contentView.$slots) {
+      ShadowDOM.undistributeAll(this.contentView.$slots, projectionSource);
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
 
@@ -231,7 +232,7 @@ class ShadowSlot implements IShadowSlot {
         let children = found.auProjectionChildren;
         for (let i = 0, ii = children.length; i < ii; ++i) {
           let child = children[i];
-          child.auOwnerView.fragment.appendChild(child);
+          child.auOwnerView.appendChild(child);
           this.projections--;
         }
 
@@ -252,7 +253,7 @@ class ShadowSlot implements IShadowSlot {
         if (index !== undefined) {
           let children = found.auProjectionChildren;
           let viewIndex = -1;
-          let lastView;
+          let lastView: IView;
 
           for (let i = 0, ii = children.length; i < ii; ++i) {
             let current = children[i];
@@ -282,11 +283,11 @@ class ShadowSlot implements IShadowSlot {
   }
 
   projectFrom(view: IView, projectionSource: ShadowProjectionSource) {
-    let anchor = DOM.createComment('anchor');
+    let anchor: SlotNode = <any>DOM.createComment('anchor');
     let parent = this.anchor.parentNode;
-    anchor['auSlotProjectFrom'] = projectionSource;
-    anchor['auOwnerView'] = view;
-    anchor['auProjectionChildren'] = [];
+    anchor.auSlotProjectFrom = projectionSource;
+    anchor.auOwnerView = view;
+    anchor.auProjectionChildren = [];
     parent.insertBefore(anchor, this.anchor);
     this.children.push(anchor);
 
@@ -299,13 +300,13 @@ class ShadowSlot implements IShadowSlot {
 
   renderFallbackContent(view: IView, nodes: SlotNode[], projectionSource: ShadowProjectionSource, index = 0) {
     if (this.contentView === null) {
-      this.contentView = this.fallbackFactory.create(this.ownerView.container);
-      this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
-      this.contentView.insertNodesBefore(this.anchor);
+      this.contentView = this.fallbackFactory();
+      this.contentView.bind(this.owner.$scope);
+      this.contentView.$view.insertBefore(this.anchor);
     }
 
-    if (this.contentView.hasSlots) {
-      let slots = this.contentView.slots;
+    if (this.contentView.$slots) {
+      let slots = this.contentView.$slots;
       let projectFromAnchors = this.projectFromAnchors;
 
       if (projectFromAnchors !== null) {
@@ -324,30 +325,26 @@ class ShadowSlot implements IShadowSlot {
     }
   }
 
-  created(ownerView) {
-    this.ownerView = ownerView;
-  }
-
   bind(scope: IScope) {
-    if (this.contentView) {
+    if (this.contentView !== null) {
       this.contentView.bind(scope);
     }
   }
 
   attach() {
-    if (this.contentView) {
-      this.contentView.attached();
+    if (this.contentView !== null) {
+      this.contentView.attach();
     }
   }
 
   detach() {
-    if (this.contentView) {
-      this.contentView.detached();
+    if (this.contentView !== null) {
+      this.contentView.detach();
     }
   }
 
   unbind() {
-    if (this.contentView) {
+    if (this.contentView !== null) {
       this.contentView.unbind();
     }
   }
@@ -364,7 +361,7 @@ export const ShadowDOM = {
     return (<any>node).auSlotAttribute.value;
   },
 
-  createSlotFromInstruction(instruction): IShadowSlot {
+  createSlotFromInstruction(owner: IViewOwner, instruction): IShadowSlot {
     let anchor = DOM.createComment('slot');
     let fallbackFactory = instruction.factory;
 
@@ -373,9 +370,9 @@ export const ShadowDOM = {
     }
 
     if (instruction.destination) {
-      return new PassThroughSlot(<any>anchor, instruction.name, instruction.destination, fallbackFactory);
+      return new PassThroughSlot(owner, <any>anchor, instruction.name, instruction.destination, fallbackFactory);
     } else {
-      return new ShadowSlot(<any>anchor, instruction.name, fallbackFactory);
+      return new ShadowSlot(owner, <any>anchor, instruction.name, fallbackFactory);
     }
   },
 

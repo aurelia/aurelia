@@ -8,7 +8,7 @@ import {
   IRegistrationFunction
 } from './interfaces';
 import { DefaultContext } from './context';
-import { Lifetime, RegistrationFlags, DependencyType } from './types';
+import { Lifetime, RegistrationFlags, DependencyType, registry } from './types';
 import { Fulfillments } from './fulfillments';
 import { ResolutionContext } from './resolution-context';
 import { RequirementChain } from './requirement-chain';
@@ -36,7 +36,7 @@ export class Registration<T> implements IRegistration<T> {
   public toSelf(): void {
     const builder = this.createRule();
     if (typeof this.sourceType === 'function') {
-      builder.setFulfillment(Fulfillments.type(this.sourceType as FunctionConstructor));
+      builder.setFulfillment(Fulfillments.type(this.sourceType));
     } else {
       builder.setImplementation(this.sourceType);
     }
@@ -47,7 +47,9 @@ export class Registration<T> implements IRegistration<T> {
   public toType(type: DependencyType): void {
     const builder = this.createRule();
     if (typeof this.sourceType === 'function') {
-      builder.setFulfillment(Fulfillments.type(type as FunctionConstructor));
+      builder.setFulfillment(Fulfillments.type(type as Function));
+    } else if (registry.dependencies.has(this.sourceType.toString())) {
+      builder.setImplementation(Fulfillments.decorator(this.sourceType as any, Fulfillments.type(type as any)));
     } else {
       builder.setImplementation(type);
     }
@@ -59,7 +61,10 @@ export class Registration<T> implements IRegistration<T> {
     if (!instance) {
       this.toNull(this.sourceType);
     } else {
-      const fulfillment = Fulfillments.instance(this.sourceType, instance);
+      let fulfillment = Fulfillments.instance(this.sourceType, instance);
+      if (registry.dependencies.has(this.sourceType.toString())) {
+        fulfillment = Fulfillments.decorator(this.sourceType as any, fulfillment);
+      }
       const builder = this.createRule().setFulfillment(fulfillment);
       this.generateRegistrations(builder, fulfillment.type);
     }
@@ -72,7 +77,12 @@ export class Registration<T> implements IRegistration<T> {
   }
 
   private generateRegistrations(builder: RegistrationRuleBuilder, type: DependencyType): void {
-    this.context.builder.addRegistrationRule(builder.setDependencyType(this.sourceType).build());
+    if (registry.dependencies.has(this.sourceType.toString())) {
+      builder.setDependencyType(this.sourceType.toString());
+    } else {
+      builder.setDependencyType(this.sourceType);
+    }
+    this.context.builder.addRegistrationRule(builder.build());
   }
 
   private createRule(): RegistrationRuleBuilder {
@@ -178,6 +188,21 @@ export class RegistrationRule implements IRegistrationRule {
   public matches(requirement: IRequirement): boolean {
     return requirement.requiredType === this.dependencyType;
   }
+  public hasTarget(): boolean {
+    return !!this.fulfillment || !!this.implementationType;
+  }
+  public createCopy(): RegistrationRuleBuilder {
+    const builder = RegistrationRuleBuilder.create()
+      .setDependencyType(this.dependencyType)
+      .setLifetime(this.lifetime)
+      .setFlags(this.flags);
+    if (!!this.fulfillment) {
+      builder.setFulfillment(this.fulfillment);
+    } else {
+      builder.setImplementation(this.implementationType);
+    }
+    return builder;
+  }
 }
 
 export class RegistrationFunctionBuilder {
@@ -253,12 +278,19 @@ export class DefaultRuntimeRequirementRegistrationFunction implements IRegistrat
 
     if (!result) {
       if (typeof requirement.requiredType === 'function') {
-        const fulfillment = Fulfillments.type(requirement.requiredType as FunctionConstructor);
-        result = new RegistrationResult(
-          requirement.restrict(fulfillment),
-          Lifetime.Unspecified,
-          RegistrationFlags.Terminal
-        );
+        let $requirement = requirement;
+        let $lifetime = Lifetime.Unspecified;
+        let $flags = RegistrationFlags.Terminal;
+
+        const metadata = registry.getMetadata(requirement.requiredType);
+        if (metadata.registrationRule) {
+          const rule = metadata.registrationRule.build();
+          $requirement = rule.apply(requirement);
+          $lifetime = rule.getLifetime();
+          $flags = rule.getFlags();
+        }
+        const fulfillment = Fulfillments.type($requirement.requiredType as any);
+        result = new RegistrationResult($requirement.restrict(fulfillment), $lifetime, $flags);
       } else if (!(requirement.requiredType && (requirement.requiredType as any).isAnalysisASTNode)) {
         const fulfillment = Fulfillments.null(requirement.requiredType);
         result = new RegistrationResult(

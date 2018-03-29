@@ -1,5 +1,5 @@
 import { IRequirement, IInjectionPoint, IFulfillment } from './interfaces';
-import { DependencyType, Pair, getParamTypes } from './types';
+import { DependencyType, Pair, getParamTypes, registry } from './types';
 import { ClassFulfillment, NullFulfillment } from './fulfillments';
 import { RuntimeParameterInjectionPoint } from './injection-point';
 
@@ -14,7 +14,7 @@ export class RuntimeRequirement implements IRequirement {
     this.requiredType = requiredType || injectionPoint.type;
     if (fulfillment === undefined) {
       if (typeof this.requiredType === 'function') {
-        fulfillment = new ClassFulfillment(this.requiredType as FunctionConstructor);
+        fulfillment = new ClassFulfillment(this.requiredType);
       } else if (injectionPoint.isOptional) {
         fulfillment = new NullFulfillment(this.requiredType);
       }
@@ -49,13 +49,15 @@ export class RuntimeRequirement implements IRequirement {
     const requirements: IRequirement[] = [];
 
     if (typeof type === 'function') {
-      const ctor = type as FunctionConstructor;
-      const member = new Pair('constructor', Object.getOwnPropertyDescriptor((ctor as any).prototype, 'constructor'));
-      const paramTypes = getParamTypes(ctor);
+      const paramRequirements = registry.getMetadata(type).requirements;
+      if (paramRequirements) {
+        return paramRequirements;
+      }
+      const member = new Pair('constructor', Object.getOwnPropertyDescriptor(type.prototype, 'constructor'));
+      const paramTypes = getParamTypes(type);
 
-      for (const paramType of paramTypes) {
-        const ip = new RuntimeParameterInjectionPoint(type, paramType, member, paramTypes.indexOf(paramType));
-        requirements.push(new RuntimeRequirement(ip));
+      for (let i = 0; i < paramTypes.length; i++) {
+        requirements.push(new RuntimeRequirement(new RuntimeParameterInjectionPoint(type, paramTypes[i], member, i)));
       }
     }
 

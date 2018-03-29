@@ -3,6 +3,7 @@ import { ResolutionContext } from './resolution-context';
 import { RequirementChain } from './requirement-chain';
 import { RegistrationResult } from './resolver';
 import { DependencyType, Lifetime, RegistrationFlags } from './types';
+import { RegistrationRuleBuilder } from './registration';
 
 export interface IFulfillment {
   readonly isFulfillment: true;
@@ -81,9 +82,11 @@ export interface IRegistration<T> {
 }
 
 export interface IRegistrationRule {
+  hasTarget(): boolean;
   getLifetime(): Lifetime;
   apply(requirement: IRequirement): IRequirement;
   isTerminal(): boolean;
   getFlags(): RegistrationFlags;
   matches(requirement: IRequirement): boolean;
+  createCopy(): RegistrationRuleBuilder;
 }

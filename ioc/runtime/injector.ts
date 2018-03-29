@@ -6,7 +6,7 @@ import {
   IModuleConfiguration,
   IRegistration
 } from './interfaces';
-import { DependencyType, Lifetime } from './types';
+import { DependencyType, Lifetime, registry } from './types';
 import { Resolver } from './resolver';
 import { Container } from './container';
 import { InstanceActivator } from './activators';
@@ -17,7 +17,6 @@ import { BasicInjectionPoint } from './injection-point';
 export class DefaultInjector implements IInjector {
   private static activatorCacheQueue: Map<DependencyType, IActivator> = new Map();
   public static INSTANCE: IInjector;
-  private requirementCache: Map<DependencyType, IRequirement> = new Map();
   private activatorCache: Map<DependencyType, IActivator> = new Map();
   private lifetime: Lifetime;
   private resolver: Resolver;
@@ -56,10 +55,10 @@ export class DefaultInjector implements IInjector {
 
   private resolve(type: DependencyType): any {
     if (!this.activatorCache.has(type)) {
-      if (!this.requirementCache.has(type)) {
-        this.requirementCache.set(type, new RuntimeRequirement(new BasicInjectionPoint(type)));
+      if (!registry.requirements.has(type)) {
+        registry.requirements.set(type, new RuntimeRequirement(new BasicInjectionPoint(type)));
       }
-      const requirement = this.requirementCache.get(type);
+      const requirement = registry.requirements.get(type);
       let resolved = this.resolver.graph.outgoingEdges.find(
         e => e.key.requirementChain.initialRequirement === requirement
       );
@@ -79,8 +78,8 @@ export class DefaultInjector implements IInjector {
   }
 
   public addActivator(type: DependencyType, activator: IActivator): void {
-    if (!this.requirementCache.has(type)) {
-      this.requirementCache.set(type, { requiredType: type } as any);
+    if (!registry.requirements.has(type)) {
+      registry.requirements.set(type, { requiredType: type } as any);
     }
     this.activatorCache.set(type, activator);
   }

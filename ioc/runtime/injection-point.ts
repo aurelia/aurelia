@@ -48,7 +48,7 @@ export class RuntimeParameterInjectionPoint implements IInjectionPoint {
     return (
       other.type === this.type &&
       other.member.left === this.member.left &&
-      other.member.right.value === this.member.right.value
+      other.parameterIndex === this.parameterIndex
     );
   }
 }

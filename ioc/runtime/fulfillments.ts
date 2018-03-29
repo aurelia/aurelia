@@ -5,7 +5,7 @@ import { DependencyMap } from './container';
 import { ClassActivator, Activators } from './activators';
 
 export class Fulfillments {
-  public static type(type: FunctionConstructor): IFulfillment {
+  public static type(type: Function): IFulfillment {
     return new ClassFulfillment(type);
   }
 
@@ -16,13 +16,17 @@ export class Fulfillments {
   public static instance(type: DependencyType, instance: any): IFulfillment {
     return new InstanceFulfillment(type, instance);
   }
+
+  public static decorator(decorator: ParameterDecorator, fulfillment: IFulfillment): IFulfillment {
+    return new DecoratorFulfillment(decorator, fulfillment);
+  }
 }
 
 export class ClassFulfillment implements IFulfillment {
   public readonly isFulfillment: true = true;
-  public readonly type: FunctionConstructor;
+  public readonly type: Function;
 
-  constructor(type: FunctionConstructor) {
+  constructor(type: Function) {
     this.type = type;
   }
 
@@ -37,6 +41,32 @@ export class ClassFulfillment implements IFulfillment {
   }
   public isEqualTo(other: ClassFulfillment): boolean {
     return other.type === this.type;
+  }
+}
+
+export class DecoratorFulfillment implements IFulfillment {
+  public readonly isFulfillment: true = true;
+  public readonly type: DependencyType;
+  private fulfillment: IFulfillment;
+  private decorator: ParameterDecorator;
+
+  constructor(decorator: ParameterDecorator, fulfillment: IFulfillment) {
+    this.decorator = decorator;
+    this.fulfillment = fulfillment;
+    this.type = fulfillment.type;
+  }
+
+  public getDefaultLifetime(): Lifetime {
+    return this.fulfillment.getDefaultLifetime();
+  }
+  public getDependencies(): IRequirement[] {
+    return this.fulfillment.getDependencies();
+  }
+  public makeActivator(dependencies: DependencyMap): IActivator {
+    return this.fulfillment.makeActivator(dependencies);
+  }
+  public isEqualTo(other: DecoratorFulfillment): boolean {
+    return other.decorator === this.decorator && other.isEqualTo(this);
   }
 }
 

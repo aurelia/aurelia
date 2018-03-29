@@ -58,7 +58,7 @@ export class ClassActivator implements IActivator {
   private requirements: IRequirement[];
   private providers: DependencyMap;
 
-  constructor(type: FunctionConstructor, requirements: IRequirement[], providers: DependencyMap) {
+  constructor(type: Function, requirements: IRequirement[], providers: DependencyMap) {
     this.type = type;
     this.requirements = requirements;
     this.providers = providers;

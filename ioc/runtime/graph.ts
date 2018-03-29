@@ -22,12 +22,6 @@ export class Node {
     return this.allNodes;
   }
 
-  public *getAdjacentNodes(): IterableIterator<Node> {
-    for (let i = this.outgoingEdges.length - 1; i >= 0; i--) {
-      yield this.outgoingEdges[i].tail;
-    }
-  }
-
   private visit(nodes: Set<Node>): void {
     if (!nodes.has(this)) {
       for (const edge of this.outgoingEdges) {

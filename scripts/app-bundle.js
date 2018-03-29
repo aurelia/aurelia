@@ -168,15 +168,12 @@ define('generated',["require", "exports", "./runtime/binding/ast"], function (re
 
 
 
-define('main',["require", "exports", "./app", "./runtime/aurelia", "./runtime/binding/expression", "./generated", "./runtime/templating/view-resources", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, app_1, aurelia_1, expression_1, generated_1, view_resources_1, if_1, else_1) {
+define('main',["require", "exports", "./runtime/aurelia", "./runtime/resources/standard", "./app", "./generated"], function (require, exports, aurelia_1, StandardResources, app_1, generated_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    expression_1.Expression.primeCache(generated_1.expressionCache);
-    view_resources_1.ViewResources.register([
-        if_1.If,
-        else_1.Else
-    ]);
-    window['au'] = new aurelia_1.Aurelia()
+    aurelia_1.Aurelia
+        .globalResources(StandardResources)
+        .primeExpressionCache(generated_1.expressionCache)
         .app({ host: document.body, component: new app_1.App() })
         .start();
 });
@@ -324,19 +321,31 @@ define('name-tag',["require", "exports", "./runtime/templating/decorators", "./n
 
 
 
-define('runtime/aurelia',["require", "exports"], function (require, exports) {
+define('runtime/aurelia',["require", "exports", "./platform", "./templating/view-resources", "./binding/expression"], function (require, exports, platform_1, view_resources_1, expression_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var Aurelia = (function () {
-        function Aurelia() {
+    var AureliaImplementation = (function () {
+        function AureliaImplementation() {
             this.components = [];
             this.startTasks = [];
             this.stopTasks = [];
         }
-        Aurelia.prototype.enhance = function (config) {
+        AureliaImplementation.prototype.globalResources = function () {
+            var params = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                params[_i] = arguments[_i];
+            }
+            view_resources_1.ViewResources.register(params);
             return this;
         };
-        Aurelia.prototype.app = function (config) {
+        AureliaImplementation.prototype.primeExpressionCache = function (expressionCache) {
+            expression_1.Expression.primeCache(expressionCache);
+            return this;
+        };
+        AureliaImplementation.prototype.enhance = function (config) {
+            return this;
+        };
+        AureliaImplementation.prototype.app = function (config) {
             var _this = this;
             var component = config.component;
             this.startTasks.push(function () {
@@ -353,17 +362,18 @@ define('runtime/aurelia',["require", "exports"], function (require, exports) {
             });
             return this;
         };
-        Aurelia.prototype.start = function () {
+        AureliaImplementation.prototype.start = function () {
             this.startTasks.forEach(function (x) { return x(); });
             return this;
         };
-        Aurelia.prototype.stop = function () {
+        AureliaImplementation.prototype.stop = function () {
             this.stopTasks.forEach(function (x) { return x(); });
             return this;
         };
-        return Aurelia;
+        return AureliaImplementation;
     }());
-    exports.Aurelia = Aurelia;
+    exports.Aurelia = new AureliaImplementation();
+    platform_1.PLATFORM.global.Aurelia = exports.Aurelia;
 });
 
 
@@ -5754,6 +5764,15 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         };
         return TemplateView;
     }());
+});
+
+
+
+define('runtime/resources/standard',["require", "exports", "./else", "./if"], function (require, exports, else_1, if_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Else = else_1.Else;
+    exports.If = if_1.If;
 });
 
 

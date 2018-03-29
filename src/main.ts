@@ -1,18 +1,10 @@
-import { App } from './app';
 import { Aurelia } from './runtime/aurelia';
-import { Expression } from './runtime/binding/expression';
+import * as StandardResources from './runtime/resources/standard';
+import { App } from './app';
 import { expressionCache } from './generated';
-import { ViewResources } from './runtime/templating/view-resources';
-import { If } from './runtime/resources/if';
-import { Else } from './runtime/resources/else';
 
-Expression.primeCache(expressionCache);
-
-ViewResources.register([
-  If,
-  Else
-]);
-
-window['au'] = new Aurelia()
+Aurelia
+  .globalResources(StandardResources)
+  .primeExpressionCache(expressionCache)
   .app({ host: document.body, component: new App() })
   .start();

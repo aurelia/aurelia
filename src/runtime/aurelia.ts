@@ -1,4 +1,8 @@
 import { IComponent } from "./templating/component";
+import { PLATFORM } from "./platform";
+import { ViewResources } from "./templating/view-resources";
+import { Expression } from "./binding/expression";
+import { IExpression } from "./binding/ast";
 
 export interface SinglePageApp {
   host: HTMLElement,
@@ -10,10 +14,20 @@ export interface ProgressiveEnhancement {
   data?: any
 }
 
-export class Aurelia {
+class AureliaImplementation { 
   private components: IComponent[] = [];
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
+
+  globalResources(...params: any[]) {
+    ViewResources.register(params);
+    return this;
+  }
+
+  primeExpressionCache(expressionCache: Record<string, IExpression>) {
+    Expression.primeCache(expressionCache);
+    return this;
+  }
 
   enhance(config: ProgressiveEnhancement) {
     return this;
@@ -50,3 +64,6 @@ export class Aurelia {
     return this;
   }
 }
+
+export const Aurelia = new AureliaImplementation();
+(<any>PLATFORM.global).Aurelia = Aurelia;

@@ -429,6 +429,9 @@ define('runtime/dom',["require", "exports"], function (require, exports) {
         isAllWhitespace: function (node) {
             return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
         },
+        treatNodeAsNonWhitespace: function (node) {
+            node.auInterpolationTarget = true;
+        },
         makeElementIntoAnchor: function (element, proxy) {
             if (proxy === void 0) { proxy = false; }
             var anchor = exports.DOM.createComment('anchor');
@@ -4607,11 +4610,11 @@ define('runtime/templating/decorators',["require", "exports", "./component"], fu
 
 
 
-define('runtime/templating/generated',["require", "exports", "../binding/ast", "../binding/binding", "../binding/binding-mode", "../binding/listener", "../binding/event-manager", "../binding/ref", "../binding/call"], function (require, exports, ast_1, binding_1, binding_mode_1, listener_1, event_manager_1, ref_1, call_1) {
+define('runtime/templating/generated',["require", "exports", "../binding/ast"], function (require, exports, ast_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
-    var lookupFunctions = {
+    exports.lookupFunctions = {
         valueConverters: {},
         bindingBehaviors: {}
     };
@@ -4641,39 +4644,7 @@ define('runtime/templating/generated',["require", "exports", "../binding/ast", "
     function getAST(key) {
         return astLookup[key];
     }
-    function oneWay(sourceExpression, target, targetProperty) {
-        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.oneWay, lookupFunctions);
-    }
-    exports.oneWay = oneWay;
-    function fromView(sourceExpression, target, targetProperty) {
-        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.fromView, lookupFunctions);
-    }
-    exports.fromView = fromView;
-    function oneWayText(sourceExpression, target) {
-        var next = target.nextSibling;
-        next['auInterpolationTarget'] = true;
-        target.parentNode.removeChild(target);
-        return oneWay(sourceExpression, next, 'textContent');
-    }
-    exports.oneWayText = oneWayText;
-    function twoWay(sourceExpression, target, targetProperty) {
-        return new binding_1.Binding(getAST(sourceExpression), target, targetProperty, binding_mode_1.bindingMode.twoWay, lookupFunctions);
-    }
-    exports.twoWay = twoWay;
-    function listener(targetEvent, target, sourceExpression, preventDefault, strategy) {
-        if (preventDefault === void 0) { preventDefault = true; }
-        if (strategy === void 0) { strategy = event_manager_1.delegationStrategy.none; }
-        return new listener_1.Listener(targetEvent, strategy, getAST(sourceExpression), target, preventDefault, lookupFunctions);
-    }
-    exports.listener = listener;
-    function ref(sourceExpression, target) {
-        return new ref_1.Ref(getAST(sourceExpression), target, lookupFunctions);
-    }
-    exports.ref = ref;
-    function call(sourceExpression, target, targetProperty) {
-        return new call_1.Call(getAST(sourceExpression), target, targetProperty, lookupFunctions);
-    }
-    exports.call = call;
+    exports.getAST = getAST;
 });
 
 
@@ -5057,7 +5028,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
 
 
 
-define('runtime/templating/template',["require", "exports", "../dom", "./view", "./view-slot", "./generated", "./shadow-dom", "./view-factory"], function (require, exports, dom_1, view_1, view_slot_1, generated_1, shadow_dom_1, view_factory_1) {
+define('runtime/templating/template',["require", "exports", "../dom", "./view", "../binding/binding", "./view-slot", "./generated", "./shadow-dom", "./view-factory", "../binding/binding-mode", "../binding/listener", "../binding/call", "../binding/ref"], function (require, exports, dom_1, view_1, binding_1, view_slot_1, generated_1, shadow_dom_1, view_factory_1, binding_mode_1, listener_1, call_1, ref_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -5077,28 +5048,31 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
     function applyInstruction(owner, instruction, target) {
         switch (instruction.type) {
             case 'oneWayText':
-                owner.$bindable.push(generated_1.oneWayText(instruction.source, target));
+                var next = target.nextSibling;
+                dom_1.DOM.treatNodeAsNonWhitespace(next);
+                dom_1.DOM.removeNode(target);
+                owner.$bindable.push(new binding_1.Binding(generated_1.getAST(instruction.source), next, 'textContent', binding_mode_1.bindingMode.oneWay, generated_1.lookupFunctions));
                 break;
             case 'oneWay':
-                owner.$bindable.push(generated_1.oneWay(instruction.source, target, instruction.target));
+                owner.$bindable.push(new binding_1.Binding(generated_1.getAST(instruction.source), target, instruction.target, binding_mode_1.bindingMode.oneWay, generated_1.lookupFunctions));
                 break;
             case 'fromView':
-                owner.$bindable.push(generated_1.fromView(instruction.source, target, instruction.target));
+                owner.$bindable.push(new binding_1.Binding(generated_1.getAST(instruction.source), target, instruction.target, binding_mode_1.bindingMode.fromView, generated_1.lookupFunctions));
                 break;
             case 'twoWay':
-                owner.$bindable.push(generated_1.twoWay(instruction.source, target, instruction.target));
+                owner.$bindable.push(new binding_1.Binding(generated_1.getAST(instruction.source), target, instruction.target, binding_mode_1.bindingMode.twoWay, generated_1.lookupFunctions));
                 break;
             case 'listener':
-                owner.$bindable.push(generated_1.listener(instruction.source, target, instruction.target, instruction.preventDefault, instruction.strategy));
+                owner.$bindable.push(new listener_1.Listener(instruction.source, instruction.strategy, generated_1.getAST(instruction.target), target, instruction.preventDefault, generated_1.lookupFunctions));
                 break;
             case 'call':
-                owner.$bindable.push(generated_1.call(instruction.source, target, instruction.target));
+                owner.$bindable.push(new call_1.Call(generated_1.getAST(instruction.source), target, instruction.target, generated_1.lookupFunctions));
                 break;
             case 'ref':
-                owner.$bindable.push(generated_1.ref(instruction.source, target));
+                owner.$bindable.push(new ref_1.Ref(generated_1.getAST(instruction.source), target, generated_1.lookupFunctions));
                 break;
             case 'style':
-                owner.$bindable.push(generated_1.oneWay(instruction.source, target.style, instruction.target));
+                owner.$bindable.push(new binding_1.Binding(generated_1.getAST(instruction.source), target.style, instruction.target, binding_mode_1.bindingMode.oneWay, generated_1.lookupFunctions));
                 break;
             case 'property':
                 target[instruction.target] = instruction.value;

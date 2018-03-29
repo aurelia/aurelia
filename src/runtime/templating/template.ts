@@ -1,12 +1,16 @@
 import { DOM } from "../dom";
 import { View, IView, IViewOwner } from "./view";
 import { IComponent, IAttach, IBindSelf } from "./component";
-import { IBinding } from "../binding/binding";
+import { IBinding, Binding } from "../binding/binding";
 import { ViewSlot } from "./view-slot";
 import { IBindScope, IScope } from "../binding/binding-interfaces";
-import { oneWayText, oneWay, fromView, twoWay, listener, ref, call } from "./generated";
+import { getAST, lookupFunctions } from "./generated";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
 import { ViewFactory } from "./view-factory";
+import { bindingMode } from "../binding/binding-mode";
+import { Listener } from "../binding/listener";
+import { Call } from "../binding/call";
+import { Ref } from "../binding/ref";
 
 export interface ITemplate {
   createFor(owner: IViewOwner, host?: Node): IView;
@@ -40,28 +44,31 @@ export const Template = {
 function applyInstruction(owner: IViewOwner, instruction, target) {
   switch(instruction.type) {
     case 'oneWayText':
-      owner.$bindable.push(oneWayText(instruction.source, target));
+      let next = target.nextSibling;
+      DOM.treatNodeAsNonWhitespace(next);
+      DOM.removeNode(target);
+      owner.$bindable.push(new Binding(getAST(instruction.source), next, 'textContent', bindingMode.oneWay, lookupFunctions));
       break;
     case 'oneWay':
-      owner.$bindable.push(oneWay(instruction.source, target, instruction.target));
+      owner.$bindable.push(new Binding(getAST(instruction.source), target, instruction.target, bindingMode.oneWay, lookupFunctions));
       break;
     case 'fromView':
-      owner.$bindable.push(fromView(instruction.source, target, instruction.target));
+      owner.$bindable.push(new Binding(getAST(instruction.source), target, instruction.target, bindingMode.fromView, lookupFunctions));
       break;
     case 'twoWay':
-      owner.$bindable.push(twoWay(instruction.source, target, instruction.target));
+      owner.$bindable.push(new Binding(getAST(instruction.source), target, instruction.target, bindingMode.twoWay, lookupFunctions));
       break;
     case 'listener':
-      owner.$bindable.push(listener(instruction.source, target, instruction.target, instruction.preventDefault, instruction.strategy));
+      owner.$bindable.push(new Listener(instruction.source, instruction.strategy, getAST(instruction.target), target, instruction.preventDefault, lookupFunctions));
       break;
     case 'call':
-      owner.$bindable.push(call(instruction.source, target, instruction.target));
+      owner.$bindable.push(new Call(getAST(instruction.source), target, instruction.target, lookupFunctions));
       break;
     case 'ref':
-      owner.$bindable.push(ref(instruction.source, target));
+      owner.$bindable.push(new Ref(getAST(instruction.source), target, lookupFunctions));
       break;
     case 'style':
-      owner.$bindable.push(oneWay(instruction.source, (target as HTMLElement).style, instruction.target))
+      owner.$bindable.push(new Binding(getAST(instruction.source), (target as HTMLElement).style, instruction.target, bindingMode.oneWay, lookupFunctions));
       break;
     case 'property':
       target[instruction.target] = instruction.value;

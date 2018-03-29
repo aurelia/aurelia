@@ -101,10 +101,14 @@ export const DOM = {
   },
   //https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace_in_the_DOM
   //We need to ignore whitespace so we don't mess up fallback rendering
-  //However, we cannot ignore empty text nodes that container interpolations.
+  //However, we cannot ignore empty text nodes that contain interpolations.
   isAllWhitespace(node: Node) {
     // Use ECMA-262 Edition 3 String and RegExp features
     return !((<any>node).auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
+  },
+  treatNodeAsNonWhitespace(node: Node) {
+    //See isWhitespace above for an explanation.
+    (<any>node).auInterpolationTarget = true;
   },
   makeElementIntoAnchor(element: Element, proxy = false) {
     let anchor = <any>DOM.createComment('anchor');

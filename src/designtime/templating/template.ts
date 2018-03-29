@@ -1,4 +1,4 @@
-import {Template as RuntimeTemplate, ITemplate} from '../../runtime/templating/template';
+import { Template as RuntimeTemplate, ITemplate } from '../../runtime/templating/template';
 
 export const Template = Object.assign(RuntimeTemplate, {
   fromUncompiledSource(uncompiledSource): ITemplate {

@@ -134,9 +134,10 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('main',["require", "exports", "./app", "./runtime/aurelia"], function (require, exports, app_1, aurelia_1) {
+define('main',["require", "exports", "./app", "./runtime/aurelia", "./runtime/binding/expression", "./generated"], function (require, exports, app_1, aurelia_1, expression_1, generated_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    expression_1.Expression.primeCache(generated_1.expressionCache);
     window['au'] = new aurelia_1.Aurelia()
         .app({ host: document.body, component: new app_1.App() })
         .start();
@@ -4610,41 +4611,13 @@ define('runtime/templating/decorators',["require", "exports", "./component"], fu
 
 
 
-define('runtime/templating/generated',["require", "exports", "../binding/ast"], function (require, exports, ast_1) {
+define('runtime/templating/generated',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var emptyArray = [];
     exports.lookupFunctions = {
         valueConverters: {},
         bindingBehaviors: {}
     };
-    var astLookup = {
-        message: new ast_1.AccessScope('message'),
-        textContent: new ast_1.AccessScope('textContent'),
-        value: new ast_1.AccessScope('value'),
-        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
-        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
-        nameTagBorder: new ast_1.TemplateLiteral([
-            new ast_1.AccessScope('borderWidth'),
-            new ast_1.LiteralString('px solid '),
-            new ast_1.AccessScope('borderColor')
-        ]),
-        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
-        nameTagClasses: new ast_1.TemplateLiteral([
-            new ast_1.LiteralString('au name-tag '),
-            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
-        ]),
-        name: new ast_1.AccessScope('name'),
-        submit: new ast_1.CallScope('submit', emptyArray, 0),
-        nameTagColor: new ast_1.AccessScope('color'),
-        duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
-        checked: new ast_1.AccessScope('checked'),
-        nameTag: new ast_1.AccessScope('nameTag')
-    };
-    function getAST(key) {
-        return astLookup[key];
-    }
-    exports.getAST = getAST;
 });
 
 
@@ -5028,9 +5001,13 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
 
 
 
-define('runtime/templating/template',["require", "exports", "../dom", "./view", "../binding/binding", "./view-slot", "./generated", "./shadow-dom", "./view-factory", "../binding/binding-mode", "../binding/listener", "../binding/call", "../binding/ref"], function (require, exports, dom_1, view_1, binding_1, view_slot_1, generated_1, shadow_dom_1, view_factory_1, binding_mode_1, listener_1, call_1, ref_1) {
+define('runtime/templating/template',["require", "exports", "../dom", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "./view-factory", "../binding/binding-mode", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression"], function (require, exports, dom_1, view_1, binding_1, view_slot_1, shadow_dom_1, view_factory_1, binding_mode_1, listener_1, call_1, ref_1, expression_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var lookupFunctions = {
+        valueConverters: {},
+        bindingBehaviors: {}
+    };
     var noViewTemplate = {
         createFor: function (owner, host) {
             return view_1.View.none;
@@ -5051,28 +5028,28 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
                 var next = target.nextSibling;
                 dom_1.DOM.treatNodeAsNonWhitespace(next);
                 dom_1.DOM.removeNode(target);
-                owner.$bindable.push(new binding_1.Binding(generated_1.getAST(instruction.source), next, 'textContent', binding_mode_1.bindingMode.oneWay, generated_1.lookupFunctions));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), next, 'textContent', binding_mode_1.bindingMode.oneWay, lookupFunctions));
                 break;
             case 'oneWay':
-                owner.$bindable.push(new binding_1.Binding(generated_1.getAST(instruction.source), target, instruction.target, binding_mode_1.bindingMode.oneWay, generated_1.lookupFunctions));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.oneWay, lookupFunctions));
                 break;
             case 'fromView':
-                owner.$bindable.push(new binding_1.Binding(generated_1.getAST(instruction.source), target, instruction.target, binding_mode_1.bindingMode.fromView, generated_1.lookupFunctions));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.fromView, lookupFunctions));
                 break;
             case 'twoWay':
-                owner.$bindable.push(new binding_1.Binding(generated_1.getAST(instruction.source), target, instruction.target, binding_mode_1.bindingMode.twoWay, generated_1.lookupFunctions));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.twoWay, lookupFunctions));
                 break;
             case 'listener':
-                owner.$bindable.push(new listener_1.Listener(instruction.source, instruction.strategy, generated_1.getAST(instruction.target), target, instruction.preventDefault, generated_1.lookupFunctions));
+                owner.$bindable.push(new listener_1.Listener(instruction.source, instruction.strategy, expression_1.Expression.from(instruction.target), target, instruction.preventDefault, lookupFunctions));
                 break;
             case 'call':
-                owner.$bindable.push(new call_1.Call(generated_1.getAST(instruction.source), target, instruction.target, generated_1.lookupFunctions));
+                owner.$bindable.push(new call_1.Call(expression_1.Expression.from(instruction.source), target, instruction.target, lookupFunctions));
                 break;
             case 'ref':
-                owner.$bindable.push(new ref_1.Ref(generated_1.getAST(instruction.source), target, generated_1.lookupFunctions));
+                owner.$bindable.push(new ref_1.Ref(expression_1.Expression.from(instruction.source), target, lookupFunctions));
                 break;
             case 'style':
-                owner.$bindable.push(new binding_1.Binding(generated_1.getAST(instruction.source), target.style, instruction.target, binding_mode_1.bindingMode.oneWay, generated_1.lookupFunctions));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target.style, instruction.target, binding_mode_1.bindingMode.oneWay, lookupFunctions));
                 break;
             case 'property':
                 target[instruction.target] = instruction.value;
@@ -5636,6 +5613,73 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         };
         return TemplateView;
     }());
+});
+
+
+
+define('runtime/binding/expression',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var cache = Object.create(null);
+    exports.Expression = {
+        from: function (expression) {
+            var found = cache[expression];
+            if (found === undefined) {
+                found = this.compile(expression);
+                cache[expression] = found;
+            }
+            return found;
+        },
+        primeCache: function (expressionCache) {
+            Object.assign(cache, expressionCache);
+        }
+    };
+    exports.Expression.compile = function (expression) {
+        throw new Error('Runtime expression compilation is only available when including designtime support.');
+    };
+});
+
+
+
+define('designtime/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Expression = Object.assign(expression_1.Expression, {
+        compile: function (expression) {
+            throw new Error('Expression Compilation Not Implemented');
+        }
+    });
+});
+
+
+
+define('generated',["require", "exports", "./runtime/binding/ast"], function (require, exports, ast_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var emptyArray = [];
+    exports.expressionCache = {
+        message: new ast_1.AccessScope('message'),
+        textContent: new ast_1.AccessScope('textContent'),
+        value: new ast_1.AccessScope('value'),
+        nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
+        nameTagBorderColor: new ast_1.AccessScope('borderColor'),
+        nameTagBorder: new ast_1.TemplateLiteral([
+            new ast_1.AccessScope('borderWidth'),
+            new ast_1.LiteralString('px solid '),
+            new ast_1.AccessScope('borderColor')
+        ]),
+        nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
+        nameTagClasses: new ast_1.TemplateLiteral([
+            new ast_1.LiteralString('au name-tag '),
+            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
+        ]),
+        name: new ast_1.AccessScope('name'),
+        submit: new ast_1.CallScope('submit', emptyArray, 0),
+        nameTagColor: new ast_1.AccessScope('color'),
+        duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
+        checked: new ast_1.AccessScope('checked'),
+        nameTag: new ast_1.AccessScope('nameTag')
+    };
 });
 
 

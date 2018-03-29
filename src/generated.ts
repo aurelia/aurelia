@@ -4,17 +4,13 @@ import {
   TemplateLiteral, 
   LiteralString, 
   Conditional, 
-  CallScope 
-} from "../binding/ast";
+  CallScope, 
+  IExpression
+} from "./runtime/binding/ast";
 
 const emptyArray: any[] = [];
 
-export const lookupFunctions: ILookupFunctions = {
-  valueConverters: {},
-  bindingBehaviors: {}
-};
-
-let astLookup: Record<string, any> = {
+export const expressionCache: Record<string, IExpression> = {
   message: new AccessScope('message'),
   textContent: new AccessScope('textContent'),
   value: new AccessScope('value'),
@@ -41,7 +37,3 @@ let astLookup: Record<string, any> = {
   checked: new AccessScope('checked'),
   nameTag: new AccessScope('nameTag')
 };
-
-export function getAST(key: string) {
-  return astLookup[key];
-}

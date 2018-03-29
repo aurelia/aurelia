@@ -1,5 +1,5 @@
 import { FooterLayout } from "./footerlayout";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $FooterLayoutActivator {
     instance;
     activate() {

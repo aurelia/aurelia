@@ -2,7 +2,7 @@ import { UserService } from "../../shared/services/userservice";
 import { SharedState } from "../../shared/state/sharedstate";
 import { Router } from "aurelia-router";
 import { SettingsComponent } from "./settingscomponent";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $SettingsComponentActivator {
     instance;
     activate() {

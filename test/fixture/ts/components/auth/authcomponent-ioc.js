@@ -3,7 +3,7 @@ import { SharedState } from "../../shared/state/sharedstate";
 import { Router } from "aurelia-router";
 import { ValidationControllerFactory } from "aurelia-validation";
 import { AuthComponent } from "./authcomponent";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $AuthComponentActivator {
     instance;
     activate() {

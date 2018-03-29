@@ -1,6 +1,6 @@
 import { ApiService } from "./apiservice";
 import { ProfileService } from "./profileservice";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $ProfileServiceActivator {
     instance;
     activate() {

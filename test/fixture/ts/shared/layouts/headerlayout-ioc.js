@@ -1,6 +1,6 @@
 import { SharedState } from "../state/sharedstate";
 import { HeaderLayout } from "./headerlayout";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $HeaderLayoutActivator {
     instance;
     activate() {

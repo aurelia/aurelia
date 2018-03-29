@@ -1,7 +1,7 @@
 import { HttpClient } from "aurelia-fetch-client";
 import { JwtService } from "./jwtservice";
 import { ApiService } from "./apiservice";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $ApiServiceActivator {
     instance;
     activate() {

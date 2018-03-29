@@ -1,6 +1,6 @@
 import { SharedState } from "../../shared/state/sharedstate";
 import { CommentCustomElement } from "./comment";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $CommentCustomElementActivator {
     instance;
     activate() {

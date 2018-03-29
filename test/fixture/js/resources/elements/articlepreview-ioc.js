@@ -1,5 +1,5 @@
 import { ArticlePreview } from "./articlepreview";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $ArticlePreviewActivator {
     instance;
     activate() {

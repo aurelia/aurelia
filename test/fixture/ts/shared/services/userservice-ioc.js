@@ -2,7 +2,7 @@ import { ApiService } from "./apiservice";
 import { JwtService } from "./jwtservice";
 import { SharedState } from "../state/sharedstate";
 import { UserService } from "./userservice";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $UserServiceActivator {
     instance;
     activate() {

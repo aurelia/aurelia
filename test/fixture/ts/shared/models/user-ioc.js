@@ -1,5 +1,5 @@
 import { User } from "./user";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $UserActivator {
     instance;
     activate() {

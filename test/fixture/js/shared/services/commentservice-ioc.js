@@ -1,6 +1,6 @@
 import { ApiService } from "./apiservice";
 import { CommentService } from "./commentservice";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $CommentServiceActivator {
     instance;
     activate() {

@@ -3,7 +3,7 @@ import { BindingEngine } from "aurelia-framework";
 import { ArticleService } from "../../shared/services/articleservice";
 import { TagService } from "../../shared/services/tagservice";
 import { HomeComponent } from "./homecomponent";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $HomeComponentActivator {
     instance;
     activate() {

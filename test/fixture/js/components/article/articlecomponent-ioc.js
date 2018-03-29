@@ -5,7 +5,7 @@ import { SharedState } from "../../shared/state/sharedstate";
 import { ProfileService } from "../../shared/services/profileservice";
 import { Router } from "aurelia-router";
 import { ArticleComponent } from "./articlecomponent";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $ArticleComponentActivator {
     instance;
     activate() {

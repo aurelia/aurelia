@@ -1,7 +1,7 @@
 import { ArticleService } from "../../shared/services/articleservice";
 import { Router } from "aurelia-router";
 import { EditorComponent } from "./editorcomponent";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $EditorComponentActivator {
     instance;
     activate() {

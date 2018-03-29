@@ -1,5 +1,5 @@
 import { ArticleList } from "./articlelist";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $ArticleListActivator {
     instance;
     activate() {

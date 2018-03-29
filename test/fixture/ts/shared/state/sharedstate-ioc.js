@@ -1,5 +1,5 @@
 import { SharedState } from "./sharedstate";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $SharedStateActivator {
     instance;
     activate() {

@@ -1,6 +1,6 @@
 import { ApiService } from "./apiservice";
 import { ArticleService } from "./articleservice";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $ArticleServiceActivator {
     instance;
     activate() {

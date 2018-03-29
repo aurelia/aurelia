@@ -1,6 +1,6 @@
 import { UserService } from "./shared/services/userservice";
 import { App } from "./app";
-import { DefaultInjector } from "../../../ioc/injector";
+import { DefaultInjector } from "../../../ioc/designtime/injector";
 class $AppActivator {
     instance;
     activate() {

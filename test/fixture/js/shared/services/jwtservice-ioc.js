@@ -1,5 +1,5 @@
 import { JwtService } from "./jwtservice";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $JwtServiceActivator {
     instance;
     activate() {

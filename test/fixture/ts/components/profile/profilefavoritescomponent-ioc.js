@@ -1,6 +1,6 @@
 import { ArticleService } from "../../shared/services/articleservice";
 import { ProfileFavoritesComponent } from "./profilefavoritescomponent";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $ProfileFavoritesComponentActivator {
     instance;
     activate() {

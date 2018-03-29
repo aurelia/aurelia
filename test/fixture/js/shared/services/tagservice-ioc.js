@@ -1,6 +1,6 @@
 import { ApiService } from "./apiservice";
 import { TagService } from "./tagservice";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $TagServiceActivator {
     instance;
     activate() {

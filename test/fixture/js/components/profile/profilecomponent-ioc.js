@@ -1,7 +1,7 @@
 import { SharedState } from "../../shared/state/sharedstate";
 import { ProfileService } from "../../shared/services/profileservice";
 import { ProfileComponent } from "./profilecomponent";
-import { DefaultInjector } from "../../../../../ioc/injector";
+import { DefaultInjector } from "../../../../../ioc/designtime/injector";
 class $ProfileComponentActivator {
     instance;
     activate() {

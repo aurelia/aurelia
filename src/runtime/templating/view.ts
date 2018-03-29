@@ -14,10 +14,9 @@ export interface IView {
   appendTo(parent: Node): void;
   remove(): void;
 }
-export interface IRender {
+
+export interface IViewOwner {
   $view: IView;
-}
-export interface IViewOwner extends IRender {
   $scope: IScope;
   $isBound: boolean;
 

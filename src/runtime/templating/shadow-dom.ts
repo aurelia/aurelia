@@ -3,8 +3,7 @@ import { IAttach } from './component';
 import { IScope, IBindScope } from '../binding/binding-interfaces';
 import { IView, IViewOwner } from './view';
 import { ViewSlot } from './view-slot';
-import { ViewFactory } from './view-factory';
-import { IVisual } from './visual';
+import { ViewFactory, IVisual } from './view-factory';
 
 type ShadowProjectionSource = ViewSlot | IShadowSlot;
 

@@ -2,7 +2,7 @@ import { Animator } from './animator';
 import { ShadowDOM, IShadowSlot } from './shadow-dom';
 import { IAttach } from './component';
 import { IScope, IBindScope } from '../binding/binding-interfaces';
-import { IVisual } from './visual';
+import { IVisual } from './view-factory';
 
 function getAnimatableElement(visual: IVisual) {
   let view = visual.$view;

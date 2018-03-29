@@ -1,12 +1,10 @@
 import { DOM } from "../dom";
 import { View, IView, IViewOwner } from "./view";
 import { IComponent, IAttach, IBindSelf } from "./component";
-import { IVisual, Visual } from "./visual";
 import { IBinding } from "../binding/binding";
 import { ViewSlot } from "./view-slot";
 import { IBindScope, IScope } from "../binding/binding-interfaces";
 import { oneWayText, oneWay, fromView, twoWay, listener, ref, call } from "./generated";
-import { makeElementIntoAnchor } from "./anchors";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
 import { ViewFactory } from "./view-factory";
 
@@ -115,7 +113,7 @@ function applyInstruction(owner: IViewOwner, instruction, target) {
 
       let templateControllerModel: IComponent = new instruction.ctor(
         factory, 
-        new ViewSlot(makeElementIntoAnchor(target), false)
+        new ViewSlot(DOM.makeElementIntoAnchor(target), false)
       ); //TODO: DI
 
       if (instruction.link) {

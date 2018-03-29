@@ -4,9 +4,9 @@ import { IScope, IBindScope } from "../binding/binding-interfaces";
 import { createOverrideContext } from "../binding/scope";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
-import { makeElementIntoAnchor } from "./anchors";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
 import { FEATURE } from "../feature";
+import { DOM } from "../dom";
 
 export interface IBindSelf {
   bind(): void;
@@ -73,7 +73,7 @@ export const Component = {
   
       applyTo(host: Element) { 
         this.$host = source.containerless 
-          ? makeElementIntoAnchor(host, true)
+          ? DOM.makeElementIntoAnchor(host, true)
           : host;
 
         this.$shadowRoot = this.$useShadowDOM 

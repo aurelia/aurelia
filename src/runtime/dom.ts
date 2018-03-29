@@ -1,3 +1,15 @@
+function hasAttribute(name) {
+  return this._element.hasAttribute(name);
+}
+
+function getAttribute(name) {
+  return this._element.getAttribute(name);
+}
+
+function setAttribute(name, value) {
+  this._element.setAttribute(name, value);
+}
+
 export const DOM = {
   Element: Element,
   SVGElement: SVGElement,
@@ -93,6 +105,21 @@ export const DOM = {
   isAllWhitespace(node: Node) {
     // Use ECMA-262 Edition 3 String and RegExp features
     return !((<any>node).auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
+  },
+  makeElementIntoAnchor(element: Element, proxy = false) {
+    let anchor = <any>DOM.createComment('anchor');
+  
+    if (proxy) {
+      anchor._element = element;
+  
+      anchor.hasAttribute = hasAttribute;
+      anchor.getAttribute = getAttribute;
+      anchor.setAttribute = setAttribute;
+    }
+  
+    DOM.replaceNode(anchor, element);
+  
+    return anchor;
   },
   injectStyles(styles: string, destination?: Element, prepend?: boolean, id?: string): Node {
     if (id) {

@@ -1,6 +1,6 @@
 import { ViewSlot } from '../templating/view-slot';
 import { IScope } from '../binding/binding-interfaces';
-import { IVisual } from '../templating/visual';
+import { IVisual } from '../templating/view-factory';
 
 /**
 * For internal use only. May change without warning.

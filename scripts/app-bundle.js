@@ -105,7 +105,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('app',["require", "exports", "./app-config", "./runtime/templating/compiled-element"], function (require, exports, app_config_1, compiled_element_1) {
+define('app',["require", "exports", "./app-config", "./runtime/templating/decorators"], function (require, exports, app_config_1, decorators_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var App = (function () {
@@ -114,7 +114,7 @@ define('app',["require", "exports", "./app-config", "./runtime/templating/compil
             this.duplicateMessage = true;
         }
         App = __decorate([
-            compiled_element_1.compiledElement(app_config_1.appConfig)
+            decorators_1.compiledElement(app_config_1.appConfig)
         ], App);
         return App;
     }());
@@ -256,7 +256,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('name-tag',["require", "exports", "./runtime/templating/compiled-element", "./name-tag-config"], function (require, exports, compiled_element_1, name_tag_config_1) {
+define('name-tag',["require", "exports", "./runtime/templating/decorators", "./name-tag-config"], function (require, exports, decorators_1, name_tag_config_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var NameTag = (function () {
@@ -275,7 +275,7 @@ define('name-tag',["require", "exports", "./runtime/templating/compiled-element"
             this.name = '' + Math.random();
         };
         NameTag = __decorate([
-            compiled_element_1.compiledElement(name_tag_config_1.nameTagConfig)
+            decorators_1.compiledElement(name_tag_config_1.nameTagConfig)
         ], NameTag);
         return NameTag;
     }());
@@ -331,6 +331,15 @@ define('runtime/aurelia',["require", "exports"], function (require, exports) {
 define('runtime/dom',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    function hasAttribute(name) {
+        return this._element.hasAttribute(name);
+    }
+    function getAttribute(name) {
+        return this._element.getAttribute(name);
+    }
+    function setAttribute(name, value) {
+        this._element.setAttribute(name, value);
+    }
     exports.DOM = {
         Element: Element,
         SVGElement: SVGElement,
@@ -419,6 +428,18 @@ define('runtime/dom',["require", "exports"], function (require, exports) {
         },
         isAllWhitespace: function (node) {
             return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
+        },
+        makeElementIntoAnchor: function (element, proxy) {
+            if (proxy === void 0) { proxy = false; }
+            var anchor = exports.DOM.createComment('anchor');
+            if (proxy) {
+                anchor._element = element;
+                anchor.hasAttribute = hasAttribute;
+                anchor.getAttribute = getAttribute;
+                anchor.setAttribute = setAttribute;
+            }
+            exports.DOM.replaceNode(anchor, element);
+            return anchor;
         },
         injectStyles: function (styles, destination, prepend, id) {
             if (id) {
@@ -4377,35 +4398,6 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
 
 
 
-define('runtime/templating/anchors',["require", "exports", "../dom"], function (require, exports, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function hasAttribute(name) {
-        return this._element.hasAttribute(name);
-    }
-    function getAttribute(name) {
-        return this._element.getAttribute(name);
-    }
-    function setAttribute(name, value) {
-        this._element.setAttribute(name, value);
-    }
-    function makeElementIntoAnchor(element, proxy) {
-        if (proxy === void 0) { proxy = false; }
-        var anchor = dom_1.DOM.createComment('anchor');
-        if (proxy) {
-            anchor._element = element;
-            anchor.hasAttribute = hasAttribute;
-            anchor.getAttribute = getAttribute;
-            anchor.setAttribute = setAttribute;
-        }
-        dom_1.DOM.replaceNode(anchor, element);
-        return anchor;
-    }
-    exports.makeElementIntoAnchor = makeElementIntoAnchor;
-});
-
-
-
 define('runtime/templating/animator',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4442,19 +4434,6 @@ define('runtime/templating/animator',["require", "exports"], function (require, 
 
 
 
-define('runtime/templating/compiled-element',["require", "exports", "./component"], function (require, exports, component_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function compiledElement(source) {
-        return function (target) {
-            return component_1.Component.fromCompiledSource(target, source);
-        };
-    }
-    exports.compiledElement = compiledElement;
-});
-
-
-
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -4465,7 +4444,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./template", "./view", "../binding/scope", "../task-queue", "../binding/property-observation", "./anchors", "./shadow-dom", "../feature"], function (require, exports, template_1, view_1, scope_1, task_queue_1, property_observation_1, anchors_1, shadow_dom_1, feature_1) {
+define('runtime/templating/component',["require", "exports", "./template", "./view", "../binding/scope", "../task-queue", "../binding/property-observation", "./shadow-dom", "../feature", "../dom"], function (require, exports, template_1, view_1, scope_1, task_queue_1, property_observation_1, shadow_dom_1, feature_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Component = {
@@ -4495,7 +4474,7 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
                     }
                     class_1.prototype.applyTo = function (host) {
                         this.$host = source.containerless
-                            ? anchors_1.makeElementIntoAnchor(host, true)
+                            ? dom_1.DOM.makeElementIntoAnchor(host, true)
                             : host;
                         this.$shadowRoot = this.$useShadowDOM
                             ? host.attachShadow(source.shadowOptions)
@@ -4611,6 +4590,19 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
             set: function (value) { this.$observers[name].setValue(value); }
         });
     }
+});
+
+
+
+define('runtime/templating/decorators',["require", "exports", "./component"], function (require, exports, component_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function compiledElement(source) {
+        return function (target) {
+            return component_1.Component.fromCompiledSource(target, source);
+        };
+    }
+    exports.compiledElement = compiledElement;
 });
 
 
@@ -5065,7 +5057,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
 
 
 
-define('runtime/templating/template',["require", "exports", "../dom", "./view", "./view-slot", "./generated", "./anchors", "./shadow-dom", "./view-factory"], function (require, exports, dom_1, view_1, view_slot_1, generated_1, anchors_1, shadow_dom_1, view_factory_1) {
+define('runtime/templating/template',["require", "exports", "../dom", "./view", "./view-slot", "./generated", "./shadow-dom", "./view-factory"], function (require, exports, dom_1, view_1, view_slot_1, generated_1, shadow_dom_1, view_factory_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -5148,7 +5140,7 @@ define('runtime/templating/template',["require", "exports", "../dom", "./view", 
                 if (factory === undefined) {
                     instruction.factory = factory = view_factory_1.ViewFactory.fromCompiledSource(instruction.config);
                 }
-                var templateControllerModel = new instruction.ctor(factory, new view_slot_1.ViewSlot(anchors_1.makeElementIntoAnchor(target), false));
+                var templateControllerModel = new instruction.ctor(factory, new view_slot_1.ViewSlot(dom_1.DOM.makeElementIntoAnchor(target), false));
                 if (instruction.link) {
                     templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
                 }
@@ -5202,7 +5194,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-factory',["require", "exports", "./visual", "./template"], function (require, exports, visual_1, template_1) {
+define('runtime/templating/view-factory',["require", "exports", "./template"], function (require, exports, template_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ViewFactory = {
@@ -5219,7 +5211,7 @@ define('runtime/templating/view-factory',["require", "exports", "./visual", "./t
                         return template.createFor(this);
                     };
                     return class_1;
-                }(visual_1.Visual)),
+                }(Visual)),
                 _a.template = template,
                 _a.source = source,
                 _a);
@@ -5227,6 +5219,45 @@ define('runtime/templating/view-factory',["require", "exports", "./visual", "./t
             var _a;
         }
     };
+    var Visual = (function () {
+        function Visual() {
+            this.$bindable = [];
+            this.$attachable = [];
+            this.$isBound = false;
+            this.$view = this.createView();
+        }
+        Visual.prototype.bind = function (scope) {
+            this.$scope = scope;
+            var bindable = this.$bindable;
+            for (var i = 0, ii = bindable.length; i < ii; ++i) {
+                bindable[i].bind(scope);
+            }
+            this.$isBound = true;
+        };
+        Visual.prototype.attach = function () {
+            var attachable = this.$attachable;
+            for (var i = 0, ii = attachable.length; i < ii; ++i) {
+                attachable[i].attach();
+            }
+        };
+        Visual.prototype.detach = function () {
+            var attachable = this.$attachable;
+            var i = attachable.length;
+            while (i--) {
+                attachable[i].detach();
+            }
+        };
+        Visual.prototype.unbind = function () {
+            var bindable = this.$bindable;
+            var i = bindable.length;
+            while (i--) {
+                bindable[i].unbind();
+            }
+            this.$isBound = false;
+        };
+        return Visual;
+    }());
+    exports.Visual = Visual;
 });
 
 
@@ -5631,52 +5662,6 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         };
         return TemplateView;
     }());
-});
-
-
-
-define('runtime/templating/visual',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Visual = (function () {
-        function Visual() {
-            this.$bindable = [];
-            this.$attachable = [];
-            this.$isBound = false;
-            this.$view = this.createView();
-        }
-        Visual.prototype.bind = function (scope) {
-            this.$scope = scope;
-            var bindable = this.$bindable;
-            for (var i = 0, ii = bindable.length; i < ii; ++i) {
-                bindable[i].bind(scope);
-            }
-            this.$isBound = true;
-        };
-        Visual.prototype.attach = function () {
-            var attachable = this.$attachable;
-            for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                attachable[i].attach();
-            }
-        };
-        Visual.prototype.detach = function () {
-            var attachable = this.$attachable;
-            var i = attachable.length;
-            while (i--) {
-                attachable[i].detach();
-            }
-        };
-        Visual.prototype.unbind = function () {
-            var bindable = this.$bindable;
-            var i = bindable.length;
-            while (i--) {
-                bindable[i].unbind();
-            }
-            this.$isBound = false;
-        };
-        return Visual;
-    }());
-    exports.Visual = Visual;
 });
 
 

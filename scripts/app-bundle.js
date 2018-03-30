@@ -5777,4 +5777,313 @@ define('runtime/resources/standard',["require", "exports", "./else", "./if"], fu
 
 
 
+define('runtime/di',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function createInterface(key) {
+        return function Key(target, prop, index) {
+            var inject = target.inject || (target.inject = []);
+            Key.key = key;
+            inject[index] = Key;
+            return target;
+        };
+    }
+    exports.IContainer = createInterface('IContainer');
+    var Resolver = (function () {
+        function Resolver(key, strategy, state) {
+            this.key = key;
+            this.strategy = strategy;
+            this.state = state;
+        }
+        Resolver.prototype.register = function (container, key) {
+            return container.registerResolver(key || this.key, this);
+        };
+        Resolver.prototype.get = function (handler, requestor) {
+            switch (this.strategy) {
+                case 0:
+                    return this.state;
+                case 1:
+                    var singleton = handler.construct(this.state);
+                    this.state = singleton;
+                    this.strategy = 0;
+                    return singleton;
+                case 2:
+                    return requestor.construct(this.state);
+                case 3:
+                    return this.state(handler, requestor, this);
+                case 4:
+                    return this.state[0].get(handler, requestor);
+                case 5:
+                    return handler.get(this.state);
+                default:
+                    throw new Error('Invalid strategy: ' + this.strategy);
+            }
+        };
+        return Resolver;
+    }());
+    var emptyArray = Object.freeze([]);
+    var InvocationHandler = (function () {
+        function InvocationHandler(fn, invoker, dependencies) {
+            this.fn = fn;
+            this.invoker = invoker;
+            this.dependencies = dependencies;
+        }
+        InvocationHandler.prototype.invoke = function (container, dynamicDependencies) {
+            return dynamicDependencies !== undefined
+                ? this.invoker.invokeWithDynamicDependencies(container, this.fn, this.dependencies, dynamicDependencies)
+                : this.invoker.invoke(container, this.fn, this.dependencies);
+        };
+        return InvocationHandler;
+    }());
+    var Container = (function () {
+        function Container(configuration) {
+            if (configuration === void 0) { configuration = {}; }
+            this.parent = null;
+            this.resolvers = new Map();
+            this.configuration = configuration;
+            this.handlers = configuration.handlers || (configuration.handlers = new Map());
+        }
+        Container.prototype.register = function () {
+            var _this = this;
+            var params = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                params[_i] = arguments[_i];
+            }
+            var resolvers = this.resolvers;
+            for (var i = 0, ii = params.length; i < ii; ++i) {
+                var current = params[i];
+                if ('register' in current) {
+                    current.register(this);
+                }
+                else {
+                    Object.values(current).forEach(function (x) {
+                        if ('register' in x) {
+                            x.register(_this);
+                        }
+                    });
+                }
+            }
+        };
+        Container.prototype.registerResolver = function (key, resolver) {
+            validateKey(key);
+            var resolvers = this.resolvers;
+            var result = resolvers.get(key);
+            if (result === undefined) {
+                resolvers.set(key, resolver);
+            }
+            else if (resolver instanceof Resolver && resolver.strategy === 4) {
+                result.state.push(resolver);
+            }
+            else {
+                resolvers.set(key, new Resolver(key, 4, [result, resolver]));
+            }
+            return resolver;
+        };
+        Container.prototype.get = function (key) {
+            if (key === exports.IContainer) {
+                return this;
+            }
+            if ('get' in key) {
+                return key.get(this, this);
+            }
+            var resolver = this.resolvers.get(key);
+            if (resolver === undefined) {
+                if (this.parent === null) {
+                    return this.jitRegister(key, this).get(this, this);
+                }
+                if ('register' in key) {
+                    return key.register(this, key).get(this, this);
+                }
+                return this.parent.parentGet(key, this);
+            }
+            return resolver.get(this, this);
+        };
+        Container.prototype.parentGet = function (key, requestor) {
+            var resolver = this.resolvers.get(key);
+            if (resolver === undefined) {
+                if (this.parent === null) {
+                    return this.jitRegister(key, requestor).get(this, requestor);
+                }
+                return this.parent.parentGet(key, requestor);
+            }
+            return resolver.get(this, requestor);
+        };
+        Container.prototype.getAll = function (key) {
+            validateKey(key);
+            var resolver = this.resolvers.get(key);
+            if (resolver === undefined) {
+                if (this.parent === null) {
+                    return emptyArray;
+                }
+                return this.parent.parentGetAll(key, this);
+            }
+            return buildAllResponse(resolver, this, this);
+        };
+        Container.prototype.parentGetAll = function (key, requestor) {
+            var resolver = this.resolvers.get(key);
+            if (resolver === undefined) {
+                if (this.parent === null) {
+                    return emptyArray;
+                }
+                return this.parent.parentGetAll(key, requestor);
+            }
+            return buildAllResponse(resolver, this, requestor);
+        };
+        Container.prototype.jitRegister = function (keyAsValue, requestor) {
+            if ('register' in keyAsValue) {
+                return keyAsValue.register(this, keyAsValue);
+            }
+            var strategy = new Resolver(keyAsValue, 1, keyAsValue);
+            this.resolvers.set(keyAsValue, strategy);
+            return strategy;
+        };
+        Container.prototype.construct = function (type, dynamicDependencies) {
+            var handler = this.handlers.get(type);
+            if (handler === undefined) {
+                handler = this.createInvocationHandler(type);
+                this.handlers.set(type, handler);
+            }
+            return handler.invoke(this, dynamicDependencies);
+        };
+        Container.prototype.createInvocationHandler = function (fn) {
+            var dependencies;
+            if (fn.inject === undefined) {
+                dependencies = Reflect.getOwnMetadata('design:paramtypes', fn);
+            }
+            else {
+                dependencies = [];
+                var ctor = fn;
+                while (typeof ctor === 'function') {
+                    dependencies.push.apply(dependencies, getDependencies(ctor));
+                    ctor = Object.getPrototypeOf(ctor);
+                }
+            }
+            var invoker = classInvokers[dependencies.length] || classInvokers.fallback;
+            return new InvocationHandler(fn, invoker, dependencies);
+        };
+        Container.prototype.createChild = function () {
+            var child = new Container(this.configuration);
+            child.parent = this;
+            return child;
+        };
+        return Container;
+    }());
+    var container = new Container();
+    container.createInterface = createInterface;
+    exports.DI = container;
+    exports.Registration = {
+        instance: function (key, value) {
+            return new Resolver(key, 0, value);
+        },
+        singleton: function (key, value) {
+            return new Resolver(key, 1, value);
+        },
+        transient: function (key, value) {
+            return new Resolver(key, 2, value);
+        },
+        factory: function (key, value) {
+            return new Resolver(key, 3, value);
+        },
+        alias: function (originalKey, aliasKey) {
+            return new Resolver(aliasKey, 5, originalKey);
+        }
+    };
+    function validateKey(key) {
+        if (key === null || key === undefined) {
+            throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+        }
+    }
+    function buildAllResponse(resolver, handler, requestor) {
+        if (resolver instanceof Resolver && resolver.strategy === 4) {
+            var state = resolver.state;
+            var i = state.length;
+            var results = new Array(i);
+            while (i--) {
+                results[i] = state[i].get(handler, requestor);
+            }
+            return results;
+        }
+        return [resolver.get(handler, requestor)];
+    }
+    function getDependencies(type) {
+        if (!type.hasOwnProperty('inject')) {
+            return [];
+        }
+        return type.inject;
+    }
+    var classInvokers = (_a = {},
+        _a[0] = {
+            invoke: function (container, Type) {
+                return new (Type());
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a[1] = {
+            invoke: function (container, Type, deps) {
+                return new (Type(container.get(deps[0])));
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a[2] = {
+            invoke: function (container, Type, deps) {
+                return new (Type(container.get(deps[0]), container.get(deps[1])));
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a[3] = {
+            invoke: function (container, Type, deps) {
+                return new (Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2])));
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a[4] = {
+            invoke: function (container, Type, deps) {
+                return new (Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3])));
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a[5] = {
+            invoke: function (container, Type, deps) {
+                return new (Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]), container.get(deps[4])));
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a.fallback = {
+            invoke: invokeWithDynamicDependencies,
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a);
+    function invokeWithDynamicDependencies(container, fn, staticDependencies, dynamicDependencies) {
+        var i = staticDependencies.length;
+        var args = new Array(i);
+        var lookup;
+        while (i--) {
+            lookup = staticDependencies[i];
+            if (lookup === null || lookup === undefined) {
+                throw new Error('Constructor Parameter with index ' + i + ' cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+            }
+            else {
+                args[i] = container.get(lookup);
+            }
+        }
+        if (dynamicDependencies !== undefined) {
+            args = args.concat(dynamicDependencies);
+        }
+        return Reflect.construct(fn, args);
+    }
+    if (!('getOwnMetadata' in Reflect)) {
+        Reflect.getOwnMetadata = function (key, target) {
+            return target[key];
+        };
+        Reflect.metadata = function (key, value) {
+            return function (target) {
+                target[key] = value;
+            };
+        };
+    }
+    var _a;
+});
+
+
+
 //# sourceMappingURL=app-bundle.js.map

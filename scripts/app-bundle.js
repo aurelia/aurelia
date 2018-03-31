@@ -137,11 +137,11 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('generated',["require", "exports", "./runtime/binding/ast"], function (require, exports, ast_1) {
+define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/configuration/standard", "./designtime/binding/expression"], function (require, exports, ast_1, StandardConfiguration, expression_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
-    exports.expressionCache = {
+    var expressionCache = {
         message: new ast_1.AccessScope('message'),
         textContent: new ast_1.AccessScope('textContent'),
         value: new ast_1.AccessScope('value'),
@@ -164,16 +164,20 @@ define('generated',["require", "exports", "./runtime/binding/ast"], function (re
         checked: new ast_1.AccessScope('checked'),
         nameTag: new ast_1.AccessScope('nameTag')
     };
+    function register(container) {
+        expression_1.Expression.primeCache(expressionCache);
+        container.register(StandardConfiguration);
+    }
+    exports.register = register;
 });
 
 
 
-define('main',["require", "exports", "./runtime/aurelia", "./runtime/configuration/standard", "./app", "./generated"], function (require, exports, aurelia_1, StandardConfiguration, app_1, generated_1) {
+define('main',["require", "exports", "./runtime/aurelia", "./app", "./generated-configuration"], function (require, exports, aurelia_1, app_1, Configuration) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     aurelia_1.Aurelia
-        .register(StandardConfiguration)
-        .primeExpressionCache(generated_1.expressionCache)
+        .register(Configuration)
         .app({ host: document.body, component: new app_1.App() })
         .start();
 });
@@ -1204,6 +1208,15 @@ define('designtime/binding/expression',["require", "exports", "../../runtime/bin
             throw new Error('Expression Compilation Not Implemented');
         }
     });
+});
+
+
+
+define('runtime/configuration/standard',["require", "exports", "../resources/else", "../resources/if"], function (require, exports, else_1, if_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Else = else_1.Else;
+    exports.If = if_1.If;
 });
 
 
@@ -4584,15 +4597,6 @@ define('runtime/binding/svg',["require", "exports"], function (require, exports)
         return SVGAnalyzer;
     }());
     exports.SVGAnalyzer = SVGAnalyzer;
-});
-
-
-
-define('runtime/configuration/standard',["require", "exports", "../resources/else", "../resources/if"], function (require, exports, else_1, if_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Else = else_1.Else;
-    exports.If = if_1.If;
 });
 
 

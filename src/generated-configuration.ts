@@ -1,15 +1,11 @@
-import { 
-  AccessScope, 
-  TemplateLiteral, 
-  LiteralString, 
-  Conditional, 
-  CallScope, 
-  IExpression
-} from "./runtime/binding/ast";
+import { AccessScope, TemplateLiteral, LiteralString, Conditional, CallScope, IExpression } from "./runtime/binding/ast";
+import { IContainer } from "./runtime/di";
+import * as StandardConfiguration from './runtime/configuration/standard';
+import { Expression } from "./designtime/binding/expression";
 
 const emptyArray: any[] = [];
 
-export const expressionCache: Record<string, IExpression> = {
+const expressionCache: Record<string, IExpression> = {
   message: new AccessScope('message'),
   textContent: new AccessScope('textContent'),
   value: new AccessScope('value'),
@@ -36,3 +32,8 @@ export const expressionCache: Record<string, IExpression> = {
   checked: new AccessScope('checked'),
   nameTag: new AccessScope('nameTag')
 };
+
+export function register(container: IContainer) {
+  Expression.primeCache(expressionCache);
+  container.register(StandardConfiguration);
+}

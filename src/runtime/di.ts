@@ -109,11 +109,11 @@ class Container implements IContainer {
     for (let i = 0, ii = params.length; i < ii; ++i) {
       const current = params[i];
       
-      if ('register' in current) {
+      if (current.register) {
         current.register(this);
       } else {
         Object.values(current).forEach((x: any) => {
-          if ('register' in x) {
+          if (x.register) {
             x.register(this);
           }
         });
@@ -143,7 +143,7 @@ class Container implements IContainer {
       return this;
     }
 
-    if ('get' in key) {
+    if (key.get) {
       return key.get(this, this);
     }
 
@@ -154,7 +154,7 @@ class Container implements IContainer {
         return this.jitRegister(key, this).get(this, this);
       }
 
-      if ('register' in key) {
+      if (key.register) {
         return key.register(this, key).get(this, this);
       }
 
@@ -209,7 +209,7 @@ class Container implements IContainer {
   }
 
   private jitRegister(keyAsValue: any, requestor: IContainer): IResolver {
-    if ('register' in keyAsValue) {
+    if (keyAsValue.register) {
       return keyAsValue.register(this, keyAsValue);
     }
 
@@ -233,7 +233,7 @@ class Container implements IContainer {
     let dependencies;
 
     if (fn.inject === undefined) {
-      dependencies = (<any>Reflect).getOwnMetadata('design:paramtypes', fn);
+      dependencies = (<any>Reflect).getOwnMetadata('design:paramtypes', fn) || emptyArray;
     } else {
       dependencies = [];
       let ctor = fn;
@@ -314,37 +314,37 @@ function getDependencies(type) {
 const classInvokers: Record<string, IInvoker> = {
   [0]: {
     invoke(container: IContainer, Type: Function) {
-      return new (<any>Type());
+      return new (<any>Type)();
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },
   [1]: {
     invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (<any>Type(container.get(deps[0])));
+      return new (<any>Type)(container.get(deps[0]));
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },
   [2]: {
     invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (<any>Type(container.get(deps[0]), container.get(deps[1])));
+      return new (<any>Type)(container.get(deps[0]), container.get(deps[1]));
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },
   [3]: {
     invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (<any>Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2])));
+      return new (<any>Type)(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },
   [4]: {
     invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (<any>Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3])));
+      return new (<any>Type)(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]));
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },
   [5]: {
     invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (<any>Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]), container.get(deps[4])));
+      return new (<any>Type)(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]), container.get(deps[4]));
     },
     invokeWithDynamicDependencies: invokeWithDynamicDependencies
   },

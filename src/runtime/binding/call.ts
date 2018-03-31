@@ -1,7 +1,8 @@
 import { ObserverLocator } from "./observer-locator";
-import { IExpression, IBindingResources } from "./ast";
+import { IExpression } from "./ast";
 import { IBindingTargetObserver, IScope } from "./binding-interfaces";
 import { IBinding } from "./binding";
+import { IContainer } from "../di";
 
 export class Call implements IBinding {
   targetObserver: IBindingTargetObserver;
@@ -12,7 +13,7 @@ export class Call implements IBinding {
     private sourceExpression: IExpression,
     private target: EventTarget,
     private targetProperty: string, 
-    public resources: IBindingResources, 
+    public container: IContainer, 
     observerLocator = ObserverLocator.instance) {
     this.targetObserver = observerLocator.getObserver(target, targetProperty);
   }
@@ -22,7 +23,7 @@ export class Call implements IBinding {
     Object.assign(overrideContext, $event);
     overrideContext.$event = $event; // deprecate this?
     let mustEvaluate = true;
-    let result = this.sourceExpression.evaluate(this.source, this.resources, mustEvaluate);
+    let result = this.sourceExpression.evaluate(this.source, this.container, mustEvaluate);
     delete overrideContext.$event;
 
     for (let prop in $event) {

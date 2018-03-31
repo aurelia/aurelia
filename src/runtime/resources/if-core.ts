@@ -1,6 +1,6 @@
 import { ViewSlot } from '../templating/view-slot';
 import { IScope } from '../binding/binding-interfaces';
-import { IVisual } from '../templating/view-factory';
+import { IVisual, IViewFactory } from '../templating/view-engine';
 
 /**
 * For internal use only. May change without warning.
@@ -15,7 +15,7 @@ export abstract class IfCore {
   protected showing = false;
   protected isBound = false;
 
-  constructor(private createVisual: () => IVisual, protected viewSlot: ViewSlot) { }
+  constructor(private viewFactory: IViewFactory, protected viewSlot: ViewSlot) { }
 
   bind(scope: IScope) {
     this.scope = scope;
@@ -60,7 +60,7 @@ export abstract class IfCore {
     }
 
     if (this.visual === null) {
-      this.visual = this.createVisual();
+      this.visual = this.viewFactory.create();
     }
 
     if (!this.visual.$isBound) {

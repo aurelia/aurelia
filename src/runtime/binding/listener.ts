@@ -1,7 +1,8 @@
 import { EventManager } from "./event-manager";
-import { IExpression, IBindingResources } from "./ast";
+import { IExpression } from "./ast";
 import { IBinding } from "./binding";
 import { IScope, IDisposable, IDelegationStrategy, IEventManager } from "./binding-interfaces";
+import { IContainer } from "../di";
 
 export class Listener implements IBinding {
   private source: IScope;
@@ -14,7 +15,7 @@ export class Listener implements IBinding {
     private sourceExpression: IExpression,
     private target: EventTarget,
     private preventDefault: boolean,
-    public resources: IBindingResources,
+    public container: IContainer,
     private eventManager: IEventManager = EventManager.instance
   ) {
     this.targetEvent = targetEvent;
@@ -22,7 +23,7 @@ export class Listener implements IBinding {
     this.sourceExpression = sourceExpression;
     this.target = target;
     this.preventDefault = preventDefault;
-    this.resources = resources;
+    this.container = container;
   }
 
   callSource(event: Event) {
@@ -30,7 +31,7 @@ export class Listener implements IBinding {
     overrideContext['$event'] = event;
 
     let mustEvaluate = true;
-    let result = this.sourceExpression.evaluate(this.source, this.resources, mustEvaluate);
+    let result = this.sourceExpression.evaluate(this.source, this.container, mustEvaluate);
 
     delete overrideContext['$event'];
 

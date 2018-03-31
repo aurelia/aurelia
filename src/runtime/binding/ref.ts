@@ -1,6 +1,7 @@
-import { IExpression, IBindingResources } from "./ast";
+import { IExpression } from "./ast";
 import { IBinding, IBindingTarget } from "./binding";
 import { IScope } from './binding-interfaces'
+import { IContainer } from "../di";
 
 export class Ref implements IBinding {
   private source: IScope;
@@ -9,7 +10,7 @@ export class Ref implements IBinding {
   constructor(
     private sourceExpression: IExpression,
     private target: IBindingTarget,
-    public resources: IBindingResources) {
+    public container: IContainer) {
   }
 
   bind(source: IScope) {
@@ -28,7 +29,7 @@ export class Ref implements IBinding {
       this.sourceExpression.bind(this, source);
     }
 
-    this.sourceExpression.assign(this.source, this.target, this.resources);
+    this.sourceExpression.assign(this.source, this.target, this.container);
   }
 
   unbind() {
@@ -38,8 +39,8 @@ export class Ref implements IBinding {
 
     this.isBound = false;
 
-    if (this.sourceExpression.evaluate(this.source, this.resources) === this.target) {
-      this.sourceExpression.assign(this.source, null, this.resources);
+    if (this.sourceExpression.evaluate(this.source, this.container) === this.target) {
+      this.sourceExpression.assign(this.source, null, this.container);
     }
 
     if (this.sourceExpression.unbind) {

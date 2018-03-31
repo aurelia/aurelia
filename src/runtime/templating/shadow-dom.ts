@@ -3,7 +3,7 @@ import { IAttach } from './component';
 import { IScope, IBindScope } from '../binding/binding-interfaces';
 import { IView, IViewOwner } from './view';
 import { ViewSlot } from './view-slot';
-import { ViewFactory, IVisual } from './view-factory';
+import { IVisual, IViewFactory } from './view-engine';
 
 type ShadowProjectionSource = ViewSlot | IShadowSlot;
 
@@ -49,7 +49,7 @@ class PassThroughSlot implements IShadowSlot {
   private contentView: IVisual = null;
   private destinationSlot: IShadowSlot = null;
 
-  constructor(private owner: IViewOwner, public anchor: SlotNode, public name: string, private destinationName: string, private fallbackFactory: () => IVisual) {
+  constructor(private owner: IViewOwner, public anchor: SlotNode, public name: string, private destinationName: string, private fallbackFactory?: IViewFactory) {
     this.anchor.viewSlot = this;
     let attr = new SlotCustomAttribute(this.anchor);
     attr.value = this.destinationName;
@@ -61,7 +61,7 @@ class PassThroughSlot implements IShadowSlot {
 
   renderFallbackContent(view: IView, nodes: SlotNode[], projectionSource: ShadowProjectionSource, index = 0) {
     if (this.contentView === null) {
-      this.contentView = this.fallbackFactory();
+      this.contentView = this.fallbackFactory.create();
       this.contentView.bind(this.owner.$scope);
 
       let slots = Object.create(null);
@@ -153,7 +153,7 @@ class ShadowSlot implements IShadowSlot {
   private destinationSlots = null;
   private fallbackSlots;
 
-  constructor(private owner: IViewOwner, public anchor: SlotNode, public name: string, private fallbackFactory: () => IVisual) {
+  constructor(private owner: IViewOwner, public anchor: SlotNode, public name: string, private fallbackFactory?: IViewFactory) {
     this.anchor.isContentProjectionSource = true;
     this.anchor.viewSlot = this;
   }
@@ -299,7 +299,7 @@ class ShadowSlot implements IShadowSlot {
 
   renderFallbackContent(view: IView, nodes: SlotNode[], projectionSource: ShadowProjectionSource, index = 0) {
     if (this.contentView === null) {
-      this.contentView = this.fallbackFactory();
+      this.contentView = this.fallbackFactory.create();
       this.contentView.bind(this.owner.$scope);
       this.contentView.$view.insertBefore(this.anchor);
     }
@@ -360,18 +360,13 @@ export const ShadowDOM = {
     return (<any>node).auSlotAttribute.value;
   },
 
-  createSlotFromInstruction(owner: IViewOwner, instruction): IShadowSlot {
+  createSlot(owner: IViewOwner, name: string, destination?: string, fallbackFactory?: IViewFactory) {
     let anchor = DOM.createComment('slot');
-    let fallbackFactory = instruction.factory;
 
-    if (fallbackFactory === undefined && instruction.fallback) {
-      instruction.factory = fallbackFactory = ViewFactory.fromCompiledSource(instruction.fallback);
-    }
-
-    if (instruction.destination) {
-      return new PassThroughSlot(owner, <any>anchor, instruction.name, instruction.destination, fallbackFactory);
+    if (destination) {
+      return new PassThroughSlot(owner, <any>anchor, name, destination, fallbackFactory);
     } else {
-      return new ShadowSlot(owner, <any>anchor, instruction.name, fallbackFactory);
+      return new ShadowSlot(owner, <any>anchor, name, fallbackFactory);
     }
   },
 

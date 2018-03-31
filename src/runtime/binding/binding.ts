@@ -3,12 +3,13 @@ import { ConnectableBinding } from './connectable-binding';
 import { enqueueBindingConnect } from './connect-queue';
 import { sourceContext, targetContext } from './call-context';
 import { ObserverLocator } from './observer-locator';
-import { IExpression, IBindingResources } from './ast';
+import { IExpression } from './ast';
 import { Observer } from './property-observation';
 import { IScope, IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IObserverLocator } from './binding-interfaces';
+import { IContainer } from '../di';
 
 export interface IBinding extends IBindScope {
-  resources: IBindingResources;
+  container: IContainer;
   observeProperty(context: any, name: string): void;
 }
 
@@ -24,7 +25,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     private target: IBindingTarget,
     private targetProperty: string,
     private mode: number,
-    public resources: IBindingResources,
+    public container: IContainer,
     observerLocator: IObserverLocator = ObserverLocator.instance) {
     super(observerLocator);
   }
@@ -34,7 +35,7 @@ export class Binding extends ConnectableBinding implements IBinding {
   }
 
   updateSource(value: any) {
-    this.sourceExpression.assign(this.source, value, this.resources);
+    this.sourceExpression.assign(this.source, value, this.container);
   }
 
   call(context: string, newValue: any, oldValue: any) {
@@ -44,7 +45,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
     if (context === sourceContext) {
       oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-      newValue = this.sourceExpression.evaluate(this.source, this.resources);
+      newValue = this.sourceExpression.evaluate(this.source, this.container);
 
       if (newValue !== oldValue) {
         this.updateTarget(newValue);
@@ -60,7 +61,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (context === targetContext) {
-      if (newValue !== this.sourceExpression.evaluate(this.source, this.resources)) {
+      if (newValue !== this.sourceExpression.evaluate(this.source, this.container)) {
         this.updateSource(newValue);
       }
 
@@ -98,7 +99,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (this.mode !== bindingMode.fromView) {
-      let value = this.sourceExpression.evaluate(source, this.resources);
+      let value = this.sourceExpression.evaluate(source, this.container);
       this.updateTarget(value);
     }
 
@@ -144,7 +145,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (evaluate) {
-      let value = this.sourceExpression.evaluate(this.source, this.resources);
+      let value = this.sourceExpression.evaluate(this.source, this.container);
       this.updateTarget(value);
     }
 
@@ -153,14 +154,13 @@ export class Binding extends ConnectableBinding implements IBinding {
 }
 
 export class TextBinding extends Binding {
-
   constructor(
     sourceExpression: IExpression,
     target: IBindingTarget,
-    lookupFunctions: IBindingResources,
+    container: IContainer,
     observerLocator: ObserverLocator = ObserverLocator.instance
   ) {
-    super(sourceExpression, target.nextSibling, 'textContent', bindingMode.oneWay, lookupFunctions);
+    super(sourceExpression, target.nextSibling, 'textContent', bindingMode.oneWay, container);
     let next = target.nextSibling;
     next['auInterpolationTarget'] = true;
     target.parentNode.removeChild(target);

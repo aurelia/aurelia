@@ -168,11 +168,11 @@ define('generated',["require", "exports", "./runtime/binding/ast"], function (re
 
 
 
-define('main',["require", "exports", "./runtime/aurelia", "./runtime/resources/standard", "./app", "./generated"], function (require, exports, aurelia_1, StandardResources, app_1, generated_1) {
+define('main',["require", "exports", "./runtime/aurelia", "./runtime/configuration/standard", "./app", "./generated"], function (require, exports, aurelia_1, StandardConfiguration, app_1, generated_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     aurelia_1.Aurelia
-        .globalResources(StandardResources)
+        .register(StandardConfiguration)
         .primeExpressionCache(generated_1.expressionCache)
         .app({ host: document.body, component: new app_1.App() })
         .start();
@@ -321,7 +321,7 @@ define('name-tag',["require", "exports", "./runtime/templating/decorators", "./n
 
 
 
-define('runtime/aurelia',["require", "exports", "./platform", "./templating/view-resources", "./binding/expression"], function (require, exports, platform_1, view_resources_1, expression_1) {
+define('runtime/aurelia',["require", "exports", "./platform", "./binding/expression", "./di"], function (require, exports, platform_1, expression_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var AureliaImplementation = (function () {
@@ -330,12 +330,12 @@ define('runtime/aurelia',["require", "exports", "./platform", "./templating/view
             this.startTasks = [];
             this.stopTasks = [];
         }
-        AureliaImplementation.prototype.globalResources = function () {
+        AureliaImplementation.prototype.register = function () {
             var params = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 params[_i] = arguments[_i];
             }
-            view_resources_1.ViewResources.register(params);
+            di_1.DI.register.apply(di_1.DI, params);
             return this;
         };
         AureliaImplementation.prototype.primeExpressionCache = function (expressionCache) {
@@ -374,6 +374,315 @@ define('runtime/aurelia',["require", "exports", "./platform", "./templating/view
     }());
     exports.Aurelia = new AureliaImplementation();
     platform_1.PLATFORM.global.Aurelia = exports.Aurelia;
+});
+
+
+
+define('runtime/di',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function createInterface(key) {
+        return function Key(target, prop, index) {
+            var inject = target.inject || (target.inject = []);
+            Key.key = key;
+            inject[index] = Key;
+            return target;
+        };
+    }
+    exports.IContainer = createInterface('IContainer');
+    var Resolver = (function () {
+        function Resolver(key, strategy, state) {
+            this.key = key;
+            this.strategy = strategy;
+            this.state = state;
+        }
+        Resolver.prototype.register = function (container, key) {
+            return container.registerResolver(key || this.key, this);
+        };
+        Resolver.prototype.get = function (handler, requestor) {
+            switch (this.strategy) {
+                case 0:
+                    return this.state;
+                case 1:
+                    var singleton = handler.construct(this.state);
+                    this.state = singleton;
+                    this.strategy = 0;
+                    return singleton;
+                case 2:
+                    return requestor.construct(this.state);
+                case 3:
+                    return this.state(handler, requestor, this);
+                case 4:
+                    return this.state[0].get(handler, requestor);
+                case 5:
+                    return handler.get(this.state);
+                default:
+                    throw new Error('Invalid strategy: ' + this.strategy);
+            }
+        };
+        return Resolver;
+    }());
+    var emptyArray = Object.freeze([]);
+    var InvocationHandler = (function () {
+        function InvocationHandler(fn, invoker, dependencies) {
+            this.fn = fn;
+            this.invoker = invoker;
+            this.dependencies = dependencies;
+        }
+        InvocationHandler.prototype.invoke = function (container, dynamicDependencies) {
+            return dynamicDependencies !== undefined
+                ? this.invoker.invokeWithDynamicDependencies(container, this.fn, this.dependencies, dynamicDependencies)
+                : this.invoker.invoke(container, this.fn, this.dependencies);
+        };
+        return InvocationHandler;
+    }());
+    var Container = (function () {
+        function Container(configuration) {
+            if (configuration === void 0) { configuration = {}; }
+            this.parent = null;
+            this.resolvers = new Map();
+            this.configuration = configuration;
+            this.handlers = configuration.handlers || (configuration.handlers = new Map());
+        }
+        Container.prototype.register = function () {
+            var _this = this;
+            var params = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                params[_i] = arguments[_i];
+            }
+            var resolvers = this.resolvers;
+            for (var i = 0, ii = params.length; i < ii; ++i) {
+                var current = params[i];
+                if (current.register) {
+                    current.register(this);
+                }
+                else {
+                    Object.values(current).forEach(function (x) {
+                        if (x.register) {
+                            x.register(_this);
+                        }
+                    });
+                }
+            }
+        };
+        Container.prototype.registerResolver = function (key, resolver) {
+            validateKey(key);
+            var resolvers = this.resolvers;
+            var result = resolvers.get(key);
+            if (result === undefined) {
+                resolvers.set(key, resolver);
+            }
+            else if (resolver instanceof Resolver && resolver.strategy === 4) {
+                result.state.push(resolver);
+            }
+            else {
+                resolvers.set(key, new Resolver(key, 4, [result, resolver]));
+            }
+            return resolver;
+        };
+        Container.prototype.get = function (key) {
+            if (key === exports.IContainer) {
+                return this;
+            }
+            if (key.get) {
+                return key.get(this, this);
+            }
+            var resolver = this.resolvers.get(key);
+            if (resolver === undefined) {
+                if (this.parent === null) {
+                    return this.jitRegister(key, this).get(this, this);
+                }
+                if (key.register) {
+                    return key.register(this, key).get(this, this);
+                }
+                return this.parent.parentGet(key, this);
+            }
+            return resolver.get(this, this);
+        };
+        Container.prototype.parentGet = function (key, requestor) {
+            var resolver = this.resolvers.get(key);
+            if (resolver === undefined) {
+                if (this.parent === null) {
+                    return this.jitRegister(key, requestor).get(this, requestor);
+                }
+                return this.parent.parentGet(key, requestor);
+            }
+            return resolver.get(this, requestor);
+        };
+        Container.prototype.getAll = function (key) {
+            validateKey(key);
+            var resolver = this.resolvers.get(key);
+            if (resolver === undefined) {
+                if (this.parent === null) {
+                    return emptyArray;
+                }
+                return this.parent.parentGetAll(key, this);
+            }
+            return buildAllResponse(resolver, this, this);
+        };
+        Container.prototype.parentGetAll = function (key, requestor) {
+            var resolver = this.resolvers.get(key);
+            if (resolver === undefined) {
+                if (this.parent === null) {
+                    return emptyArray;
+                }
+                return this.parent.parentGetAll(key, requestor);
+            }
+            return buildAllResponse(resolver, this, requestor);
+        };
+        Container.prototype.jitRegister = function (keyAsValue, requestor) {
+            if (keyAsValue.register) {
+                return keyAsValue.register(this, keyAsValue);
+            }
+            var strategy = new Resolver(keyAsValue, 1, keyAsValue);
+            this.resolvers.set(keyAsValue, strategy);
+            return strategy;
+        };
+        Container.prototype.construct = function (type, dynamicDependencies) {
+            var handler = this.handlers.get(type);
+            if (handler === undefined) {
+                handler = this.createInvocationHandler(type);
+                this.handlers.set(type, handler);
+            }
+            return handler.invoke(this, dynamicDependencies);
+        };
+        Container.prototype.createInvocationHandler = function (fn) {
+            var dependencies;
+            if (fn.inject === undefined) {
+                dependencies = Reflect.getOwnMetadata('design:paramtypes', fn) || emptyArray;
+            }
+            else {
+                dependencies = [];
+                var ctor = fn;
+                while (typeof ctor === 'function') {
+                    dependencies.push.apply(dependencies, getDependencies(ctor));
+                    ctor = Object.getPrototypeOf(ctor);
+                }
+            }
+            var invoker = classInvokers[dependencies.length] || classInvokers.fallback;
+            return new InvocationHandler(fn, invoker, dependencies);
+        };
+        Container.prototype.createChild = function () {
+            var child = new Container(this.configuration);
+            child.parent = this;
+            return child;
+        };
+        return Container;
+    }());
+    var container = new Container();
+    container.createInterface = createInterface;
+    exports.DI = container;
+    exports.Registration = {
+        instance: function (key, value) {
+            return new Resolver(key, 0, value);
+        },
+        singleton: function (key, value) {
+            return new Resolver(key, 1, value);
+        },
+        transient: function (key, value) {
+            return new Resolver(key, 2, value);
+        },
+        factory: function (key, value) {
+            return new Resolver(key, 3, value);
+        },
+        alias: function (originalKey, aliasKey) {
+            return new Resolver(aliasKey, 5, originalKey);
+        }
+    };
+    function validateKey(key) {
+        if (key === null || key === undefined) {
+            throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+        }
+    }
+    function buildAllResponse(resolver, handler, requestor) {
+        if (resolver instanceof Resolver && resolver.strategy === 4) {
+            var state = resolver.state;
+            var i = state.length;
+            var results = new Array(i);
+            while (i--) {
+                results[i] = state[i].get(handler, requestor);
+            }
+            return results;
+        }
+        return [resolver.get(handler, requestor)];
+    }
+    function getDependencies(type) {
+        if (!type.hasOwnProperty('inject')) {
+            return [];
+        }
+        return type.inject;
+    }
+    var classInvokers = (_a = {},
+        _a[0] = {
+            invoke: function (container, Type) {
+                return new Type();
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a[1] = {
+            invoke: function (container, Type, deps) {
+                return new Type(container.get(deps[0]));
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a[2] = {
+            invoke: function (container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]));
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a[3] = {
+            invoke: function (container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a[4] = {
+            invoke: function (container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]));
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a[5] = {
+            invoke: function (container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]), container.get(deps[4]));
+            },
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a.fallback = {
+            invoke: invokeWithDynamicDependencies,
+            invokeWithDynamicDependencies: invokeWithDynamicDependencies
+        },
+        _a);
+    function invokeWithDynamicDependencies(container, fn, staticDependencies, dynamicDependencies) {
+        var i = staticDependencies.length;
+        var args = new Array(i);
+        var lookup;
+        while (i--) {
+            lookup = staticDependencies[i];
+            if (lookup === null || lookup === undefined) {
+                throw new Error('Constructor Parameter with index ' + i + ' cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+            }
+            else {
+                args[i] = container.get(lookup);
+            }
+        }
+        if (dynamicDependencies !== undefined) {
+            args = args.concat(dynamicDependencies);
+        }
+        return Reflect.construct(fn, args);
+    }
+    if (!('getOwnMetadata' in Reflect)) {
+        Reflect.getOwnMetadata = function (key, target) {
+            return target[key];
+        };
+        Reflect.metadata = function (key, value) {
+            return function (target) {
+                target[key] = value;
+            };
+        };
+    }
+    var _a;
 });
 
 
@@ -899,19 +1208,6 @@ define('designtime/binding/expression',["require", "exports", "../../runtime/bin
 
 
 
-define('designtime/templating/template',["require", "exports", "../../runtime/templating/template"], function (require, exports, template_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Template = Object.assign(template_1.Template, {
-        fromUncompiledSource: function (uncompiledSource) {
-            var compiledSource = null;
-            return template_1.Template.fromCompiledSource(compiledSource);
-        }
-    });
-});
-
-
-
 define('runtime/binding/array-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1393,12 +1689,12 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         function Chain(expressions) {
             this.expressions = expressions;
         }
-        Chain.prototype.evaluate = function (scope, resources) {
+        Chain.prototype.evaluate = function (scope, container) {
             var result;
             var expressions = this.expressions;
             var last;
             for (var i = 0, length_1 = expressions.length; i < length_1; ++i) {
-                last = expressions[i].evaluate(scope, resources);
+                last = expressions[i].evaluate(scope, container);
                 if (last !== null) {
                     result = last;
                 }
@@ -1415,11 +1711,11 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.name = name;
             this.args = args;
         }
-        BindingBehavior.prototype.evaluate = function (scope, resources) {
-            return this.expression.evaluate(scope, resources);
+        BindingBehavior.prototype.evaluate = function (scope, container) {
+            return this.expression.evaluate(scope, container);
         };
-        BindingBehavior.prototype.assign = function (scope, value, resources) {
-            return this.expression.assign(scope, value, resources);
+        BindingBehavior.prototype.assign = function (scope, value, container) {
+            return this.expression.assign(scope, value, container);
         };
         BindingBehavior.prototype.connect = function (binding, scope) {
             this.expression.connect(binding, scope);
@@ -1428,7 +1724,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             if (this.expression['expression'] && this.expression.bind) {
                 this.expression.bind(binding, scope);
             }
-            var behavior = binding.resources.getBindingBehavior(this.name);
+            var behavior = binding.container.get(this.name);
             if (!behavior) {
                 throw new Error("No BindingBehavior named \"" + this.name + "\" was found!");
             }
@@ -1437,7 +1733,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
                 throw new Error("A binding behavior named \"" + this.name + "\" has already been applied to \"" + this.expression + "\"");
             }
             binding[behaviorKey] = behavior;
-            behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.resources)));
+            behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.container)));
         };
         BindingBehavior.prototype.unbind = function (binding, scope) {
             var behaviorKey = "behavior-" + this.name;
@@ -1457,25 +1753,25 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.args = args;
             this.allArgs = allArgs;
         }
-        ValueConverter.prototype.evaluate = function (scope, resources) {
-            var converter = resources.getValueConverter(this.name);
+        ValueConverter.prototype.evaluate = function (scope, container) {
+            var converter = container.get(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
             if ('toView' in converter) {
-                return converter.toView.apply(converter, evalList(scope, this.allArgs, resources));
+                return converter.toView.apply(converter, evalList(scope, this.allArgs, container));
             }
-            return this.allArgs[0].evaluate(scope, resources);
+            return this.allArgs[0].evaluate(scope, container);
         };
-        ValueConverter.prototype.assign = function (scope, value, resources) {
-            var converter = resources.getValueConverter(this.name);
+        ValueConverter.prototype.assign = function (scope, value, container) {
+            var converter = container.get(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
             if ('fromView' in converter) {
-                value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, resources)));
+                value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, container)));
             }
-            return this.allArgs[0].assign(scope, value, resources);
+            return this.allArgs[0].assign(scope, value, container);
         };
         ValueConverter.prototype.connect = function (binding, scope) {
             var expressions = this.allArgs;
@@ -1483,7 +1779,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             while (i--) {
                 expressions[i].connect(binding, scope);
             }
-            var converter = binding.resources.getValueConverter(this.name);
+            var converter = binding.container.get(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
@@ -1504,13 +1800,13 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.target = target;
             this.value = value;
         }
-        Assign.prototype.evaluate = function (scope, resources) {
-            return this.target.assign(scope, this.value.evaluate(scope, resources), resources);
+        Assign.prototype.evaluate = function (scope, container) {
+            return this.target.assign(scope, this.value.evaluate(scope, container), container);
         };
         Assign.prototype.connect = function () { };
-        Assign.prototype.assign = function (scope, value, resources) {
-            this.value.assign(scope, value, resources);
-            this.target.assign(scope, value, resources);
+        Assign.prototype.assign = function (scope, value, container) {
+            this.value.assign(scope, value, container);
+            this.target.assign(scope, value, container);
         };
         return Assign;
     }());
@@ -1521,10 +1817,10 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.yes = yes;
             this.no = no;
         }
-        Conditional.prototype.evaluate = function (scope, resources) {
-            return (!!this.condition.evaluate(scope, resources))
-                ? this.yes.evaluate(scope, resources)
-                : this.no.evaluate(scope, resources);
+        Conditional.prototype.evaluate = function (scope, container) {
+            return (!!this.condition.evaluate(scope, container))
+                ? this.yes.evaluate(scope, container)
+                : this.no.evaluate(scope, container);
         };
         Conditional.prototype.connect = function (binding, scope) {
             this.condition.connect(binding, scope);
@@ -1543,7 +1839,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             if (ancestor === void 0) { ancestor = 0; }
             this.ancestor = ancestor;
         }
-        AccessThis.prototype.evaluate = function (scope, resources) {
+        AccessThis.prototype.evaluate = function (scope, container) {
             var oc = scope.overrideContext;
             var i = this.ancestor;
             while (i-- && oc) {
@@ -1561,7 +1857,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.name = name;
             this.ancestor = ancestor;
         }
-        AccessScope.prototype.evaluate = function (scope, resources) {
+        AccessScope.prototype.evaluate = function (scope, container) {
             var context = scope_1.getContextFor(this.name, scope, this.ancestor);
             return context[this.name];
         };
@@ -1581,15 +1877,15 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.object = object;
             this.name = name;
         }
-        AccessMember.prototype.evaluate = function (scope, resources) {
-            var instance = this.object.evaluate(scope, resources);
+        AccessMember.prototype.evaluate = function (scope, container) {
+            var instance = this.object.evaluate(scope, container);
             return instance === null || instance === undefined ? instance : instance[this.name];
         };
-        AccessMember.prototype.assign = function (scope, value, resources) {
-            var instance = this.object.evaluate(scope, resources);
+        AccessMember.prototype.assign = function (scope, value, container) {
+            var instance = this.object.evaluate(scope, container);
             if (instance === null || instance === undefined) {
                 instance = {};
-                this.object.assign(scope, instance, resources);
+                this.object.assign(scope, instance, container);
             }
             instance[this.name] = value;
             return value;
@@ -1609,14 +1905,14 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.object = object;
             this.key = key;
         }
-        AccessKeyed.prototype.evaluate = function (scope, resources) {
-            var instance = this.object.evaluate(scope, resources);
-            var lookup = this.key.evaluate(scope, resources);
+        AccessKeyed.prototype.evaluate = function (scope, container) {
+            var instance = this.object.evaluate(scope, container);
+            var lookup = this.key.evaluate(scope, container);
             return getKeyed(instance, lookup);
         };
-        AccessKeyed.prototype.assign = function (scope, value, resources) {
-            var instance = this.object.evaluate(scope, resources);
-            var lookup = this.key.evaluate(scope, resources);
+        AccessKeyed.prototype.assign = function (scope, value, container) {
+            var instance = this.object.evaluate(scope, container);
+            var lookup = this.key.evaluate(scope, container);
             return setKeyed(instance, lookup, value);
         };
         AccessKeyed.prototype.connect = function (binding, scope) {
@@ -1640,8 +1936,8 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.args = args;
             this.ancestor = ancestor;
         }
-        CallScope.prototype.evaluate = function (scope, resources, mustEvaluate) {
-            var args = evalList(scope, this.args, resources);
+        CallScope.prototype.evaluate = function (scope, container, mustEvaluate) {
+            var args = evalList(scope, this.args, container);
             var context = scope_1.getContextFor(this.name, scope, this.ancestor);
             var func = getFunction(context, this.name, mustEvaluate);
             if (func) {
@@ -1665,9 +1961,9 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.name = name;
             this.args = args;
         }
-        CallMember.prototype.evaluate = function (scope, resources, mustEvaluate) {
-            var instance = this.object.evaluate(scope, resources);
-            var args = evalList(scope, this.args, resources);
+        CallMember.prototype.evaluate = function (scope, container, mustEvaluate) {
+            var instance = this.object.evaluate(scope, container);
+            var args = evalList(scope, this.args, container);
             var func = getFunction(instance, this.name, mustEvaluate);
             if (func) {
                 return func.apply(instance, args);
@@ -1693,10 +1989,10 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.func = func;
             this.args = args;
         }
-        CallFunction.prototype.evaluate = function (scope, resources, mustEvaluate) {
-            var func = this.func.evaluate(scope, resources);
+        CallFunction.prototype.evaluate = function (scope, container, mustEvaluate) {
+            var func = this.func.evaluate(scope, container);
             if (typeof func === 'function') {
-                return func.apply(null, evalList(scope, this.args, resources));
+                return func.apply(null, evalList(scope, this.args, container));
             }
             if (!mustEvaluate && (func === null || func === undefined)) {
                 return undefined;
@@ -1723,13 +2019,13 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.left = left;
             this.right = right;
         }
-        Binary.prototype.evaluate = function (scope, resources) {
-            var left = this.left.evaluate(scope, resources);
+        Binary.prototype.evaluate = function (scope, container) {
+            var left = this.left.evaluate(scope, container);
             switch (this.operation) {
-                case '&&': return left && this.right.evaluate(scope, resources);
-                case '||': return left || this.right.evaluate(scope, resources);
+                case '&&': return left && this.right.evaluate(scope, container);
+                case '||': return left || this.right.evaluate(scope, container);
             }
-            var right = this.right.evaluate(scope, resources);
+            var right = this.right.evaluate(scope, container);
             switch (this.operation) {
                 case '==': return left == right;
                 case '===': return left === right;
@@ -1783,8 +2079,8 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.operation = operation;
             this.expression = expression;
         }
-        PrefixNot.prototype.evaluate = function (scope, resources) {
-            return !this.expression.evaluate(scope, resources);
+        PrefixNot.prototype.evaluate = function (scope, container) {
+            return !this.expression.evaluate(scope, container);
         };
         PrefixNot.prototype.connect = function (binding, scope) {
             this.expression.connect(binding, scope);
@@ -1796,7 +2092,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         function LiteralPrimitive(value) {
             this.value = value;
         }
-        LiteralPrimitive.prototype.evaluate = function (scope, resources) {
+        LiteralPrimitive.prototype.evaluate = function (scope, container) {
             return this.value;
         };
         LiteralPrimitive.prototype.connect = function (binding, scope) {
@@ -1808,7 +2104,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         function LiteralString(value) {
             this.value = value;
         }
-        LiteralString.prototype.evaluate = function (scope, resources) {
+        LiteralString.prototype.evaluate = function (scope, container) {
             return this.value;
         };
         LiteralString.prototype.connect = function (binding, scope) { };
@@ -1819,11 +2115,11 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         function TemplateLiteral(parts) {
             this.parts = parts;
         }
-        TemplateLiteral.prototype.evaluate = function (scope, resources) {
+        TemplateLiteral.prototype.evaluate = function (scope, container) {
             var elements = this.parts;
             var result = '';
             for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
-                var value = elements[i].evaluate(scope, resources);
+                var value = elements[i].evaluate(scope, container);
                 if (value === undefined || value === null) {
                     continue;
                 }
@@ -1844,11 +2140,11 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         function LiteralArray(elements) {
             this.elements = elements;
         }
-        LiteralArray.prototype.evaluate = function (scope, resources) {
+        LiteralArray.prototype.evaluate = function (scope, container) {
             var elements = this.elements;
             var result = [];
             for (var i = 0, length_3 = elements.length; i < length_3; ++i) {
-                result[i] = elements[i].evaluate(scope, resources);
+                result[i] = elements[i].evaluate(scope, container);
             }
             return result;
         };
@@ -1866,12 +2162,12 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.keys = keys;
             this.values = values;
         }
-        LiteralObject.prototype.evaluate = function (scope, resources) {
+        LiteralObject.prototype.evaluate = function (scope, container) {
             var instance = {};
             var keys = this.keys;
             var values = this.values;
             for (var i = 0, length_4 = keys.length; i < length_4; ++i) {
-                instance[keys[i]] = values[i].evaluate(scope, resources);
+                instance[keys[i]] = values[i].evaluate(scope, container);
             }
             return instance;
         };
@@ -1884,11 +2180,11 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         return LiteralObject;
     }());
     exports.LiteralObject = LiteralObject;
-    function evalList(scope, list, resources) {
+    function evalList(scope, list, container) {
         var length = list.length;
         var result = [];
         for (var i = 0; i < length; i++) {
-            result[i] = list[i].evaluate(scope, resources);
+            result[i] = list[i].evaluate(scope, container);
         }
         return result;
     }
@@ -1998,14 +2294,14 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
     Object.defineProperty(exports, "__esModule", { value: true });
     var Binding = (function (_super) {
         __extends(Binding, _super);
-        function Binding(sourceExpression, target, targetProperty, mode, resources, observerLocator) {
+        function Binding(sourceExpression, target, targetProperty, mode, container, observerLocator) {
             if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
             var _this = _super.call(this, observerLocator) || this;
             _this.sourceExpression = sourceExpression;
             _this.target = target;
             _this.targetProperty = targetProperty;
             _this.mode = mode;
-            _this.resources = resources;
+            _this.container = container;
             _this.isBound = false;
             return _this;
         }
@@ -2013,7 +2309,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             this.targetObserver.setValue(value, this.target, this.targetProperty);
         };
         Binding.prototype.updateSource = function (value) {
-            this.sourceExpression.assign(this.source, value, this.resources);
+            this.sourceExpression.assign(this.source, value, this.container);
         };
         Binding.prototype.call = function (context, newValue, oldValue) {
             if (!this.isBound) {
@@ -2021,7 +2317,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             }
             if (context === call_context_1.sourceContext) {
                 oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-                newValue = this.sourceExpression.evaluate(this.source, this.resources);
+                newValue = this.sourceExpression.evaluate(this.source, this.container);
                 if (newValue !== oldValue) {
                     this.updateTarget(newValue);
                 }
@@ -2033,7 +2329,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 return;
             }
             if (context === call_context_1.targetContext) {
-                if (newValue !== this.sourceExpression.evaluate(this.source, this.resources)) {
+                if (newValue !== this.sourceExpression.evaluate(this.source, this.container)) {
                     this.updateSource(newValue);
                 }
                 return;
@@ -2061,7 +2357,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 this.targetObserver.bind();
             }
             if (this.mode !== binding_mode_1.bindingMode.fromView) {
-                var value = this.sourceExpression.evaluate(source, this.resources);
+                var value = this.sourceExpression.evaluate(source, this.container);
                 this.updateTarget(value);
             }
             if (mode === binding_mode_1.bindingMode.oneTime) {
@@ -2100,7 +2396,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 return;
             }
             if (evaluate) {
-                var value = this.sourceExpression.evaluate(this.source, this.resources);
+                var value = this.sourceExpression.evaluate(this.source, this.container);
                 this.updateTarget(value);
             }
             this.sourceExpression.connect(this, this.source);
@@ -2110,9 +2406,9 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
     exports.Binding = Binding;
     var TextBinding = (function (_super) {
         __extends(TextBinding, _super);
-        function TextBinding(sourceExpression, target, lookupFunctions, observerLocator) {
+        function TextBinding(sourceExpression, target, container, observerLocator) {
             if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
-            var _this = _super.call(this, sourceExpression, target.nextSibling, 'textContent', binding_mode_1.bindingMode.oneWay, lookupFunctions) || this;
+            var _this = _super.call(this, sourceExpression, target.nextSibling, 'textContent', binding_mode_1.bindingMode.oneWay, container) || this;
             var next = target.nextSibling;
             next['auInterpolationTarget'] = true;
             target.parentNode.removeChild(target);
@@ -2138,12 +2434,12 @@ define('runtime/binding/call',["require", "exports", "./observer-locator"], func
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Call = (function () {
-        function Call(sourceExpression, target, targetProperty, resources, observerLocator) {
+        function Call(sourceExpression, target, targetProperty, container, observerLocator) {
             if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.targetProperty = targetProperty;
-            this.resources = resources;
+            this.container = container;
             this.isBound = false;
             this.targetObserver = observerLocator.getObserver(target, targetProperty);
         }
@@ -2152,7 +2448,7 @@ define('runtime/binding/call',["require", "exports", "./observer-locator"], func
             Object.assign(overrideContext, $event);
             overrideContext.$event = $event;
             var mustEvaluate = true;
-            var result = this.sourceExpression.evaluate(this.source, this.resources, mustEvaluate);
+            var result = this.sourceExpression.evaluate(this.source, this.container, mustEvaluate);
             delete overrideContext.$event;
             for (var prop in $event) {
                 delete overrideContext[prop];
@@ -3205,14 +3501,14 @@ define('runtime/binding/listener',["require", "exports", "./event-manager"], fun
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Listener = (function () {
-        function Listener(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, resources, eventManager) {
+        function Listener(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, container, eventManager) {
             if (eventManager === void 0) { eventManager = event_manager_1.EventManager.instance; }
             this.targetEvent = targetEvent;
             this.delegationStrategy = delegationStrategy;
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.preventDefault = preventDefault;
-            this.resources = resources;
+            this.container = container;
             this.eventManager = eventManager;
             this.isBound = false;
             this.targetEvent = targetEvent;
@@ -3220,13 +3516,13 @@ define('runtime/binding/listener',["require", "exports", "./event-manager"], fun
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.preventDefault = preventDefault;
-            this.resources = resources;
+            this.container = container;
         }
         Listener.prototype.callSource = function (event) {
             var overrideContext = this.source.overrideContext;
             overrideContext['$event'] = event;
             var mustEvaluate = true;
-            var result = this.sourceExpression.evaluate(this.source, this.resources, mustEvaluate);
+            var result = this.sourceExpression.evaluate(this.source, this.container, mustEvaluate);
             delete overrideContext['$event'];
             if (result !== true && this.preventDefault) {
                 event.preventDefault();
@@ -3717,10 +4013,10 @@ define('runtime/binding/ref',["require", "exports"], function (require, exports)
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Ref = (function () {
-        function Ref(sourceExpression, target, resources) {
+        function Ref(sourceExpression, target, container) {
             this.sourceExpression = sourceExpression;
             this.target = target;
-            this.resources = resources;
+            this.container = container;
             this.isBound = false;
         }
         Ref.prototype.bind = function (source) {
@@ -3735,15 +4031,15 @@ define('runtime/binding/ref',["require", "exports"], function (require, exports)
             if (this.sourceExpression.bind) {
                 this.sourceExpression.bind(this, source);
             }
-            this.sourceExpression.assign(this.source, this.target, this.resources);
+            this.sourceExpression.assign(this.source, this.target, this.container);
         };
         Ref.prototype.unbind = function () {
             if (!this.isBound) {
                 return;
             }
             this.isBound = false;
-            if (this.sourceExpression.evaluate(this.source, this.resources) === this.target) {
-                this.sourceExpression.assign(this.source, null, this.resources);
+            if (this.sourceExpression.evaluate(this.source, this.container) === this.target) {
+                this.sourceExpression.assign(this.source, null, this.container);
             }
             if (this.sourceExpression.unbind) {
                 this.sourceExpression.unbind(this, this.source);
@@ -4292,6 +4588,15 @@ define('runtime/binding/svg',["require", "exports"], function (require, exports)
 
 
 
+define('runtime/configuration/standard',["require", "exports", "../resources/else", "../resources/if"], function (require, exports, else_1, if_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Else = else_1.Else;
+    exports.If = if_1.If;
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -4302,7 +4607,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/resources/else',["require", "exports", "./if-core", "./if"], function (require, exports, if_core_1, if_1) {
+define('runtime/resources/else',["require", "exports", "./if-core", "../di", "../templating/view-engine", "../templating/view-slot"], function (require, exports, if_core_1, di_1, view_engine_1, view_slot_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Else = (function (_super) {
@@ -4310,8 +4615,8 @@ define('runtime/resources/else',["require", "exports", "./if-core", "./if"], fun
         function Else() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        Else.registerResources = function (registry) {
-            registry.registerAttribute('else', if_1.If);
+        Else.register = function (container) {
+            container.register(di_1.Registration.transient('else', Else));
         };
         Else.prototype.bind = function (scope) {
             _super.prototype.bind.call(this, scope);
@@ -4330,6 +4635,7 @@ define('runtime/resources/else',["require", "exports", "./if-core", "./if"], fun
             ifBehavior.link(this);
             return this;
         };
+        Else.inject = [view_engine_1.IViewFactory, view_slot_1.ViewSlot];
         return Else;
     }(if_core_1.IfCore));
     exports.Else = Else;
@@ -4341,8 +4647,8 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var IfCore = (function () {
-        function IfCore(createVisual, viewSlot) {
-            this.createVisual = createVisual;
+        function IfCore(viewFactory, viewSlot) {
+            this.viewFactory = viewFactory;
             this.viewSlot = viewSlot;
             this.visual = null;
             this.scope = null;
@@ -4379,7 +4685,7 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
                 return;
             }
             if (this.visual === null) {
-                this.visual = this.createVisual();
+                this.visual = this.viewFactory.create();
             }
             if (!this.visual.$isBound) {
                 this.visual.bind(this.scope);
@@ -4416,7 +4722,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation"], function (require, exports, if_core_1, property_observation_1) {
+define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation", "../di", "../templating/view-engine", "../templating/view-slot"], function (require, exports, if_core_1, property_observation_1, di_1, view_engine_1, view_slot_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var If = (function (_super) {
@@ -4429,8 +4735,8 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
             };
             return _this;
         }
-        If.registerResources = function (registry) {
-            registry.registerAttribute('if', If);
+        If.register = function (container) {
+            container.register(di_1.Registration.transient('if', If));
         };
         Object.defineProperty(If.prototype, "condition", {
             get: function () { return this.$observers.condition.getValue(); },
@@ -4486,6 +4792,7 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
                     return promise ? promise.then(function () { return add.show(); }) : add.show();
             }
         };
+        If.inject = [view_engine_1.IViewFactory, view_slot_1.ViewSlot];
         return If;
     }(if_core_1.IfCore));
     exports.If = If;
@@ -4539,12 +4846,12 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./template", "./view", "../binding/scope", "../task-queue", "../binding/property-observation", "./shadow-dom", "../feature", "../dom"], function (require, exports, template_1, view_1, scope_1, task_queue_1, property_observation_1, shadow_dom_1, feature_1, dom_1) {
+define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../binding/scope", "../task-queue", "../binding/property-observation", "./shadow-dom", "../feature", "../dom", "../di"], function (require, exports, view_engine_1, view_1, scope_1, task_queue_1, property_observation_1, shadow_dom_1, feature_1, dom_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Component = {
         fromCompiledSource: function (ctor, source) {
-            var template = template_1.Template.fromCompiledSource(source);
+            var template = view_engine_1.ViewEngine.templateFromCompiledSource(source);
             return _a = (function (_super) {
                     __extends(CompiledComponent, _super);
                     function CompiledComponent() {
@@ -4567,8 +4874,8 @@ define('runtime/templating/component',["require", "exports", "./template", "./vi
                         setupObservers(_this, source);
                         return _this;
                     }
-                    CompiledComponent.registerResources = function (registry) {
-                        registry.registerElement(source.name, CompiledComponent);
+                    CompiledComponent.register = function (container) {
+                        container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
                     CompiledComponent.prototype.applyTo = function (host) {
                         this.$host = source.containerless
@@ -4705,7 +5012,7 @@ define('runtime/templating/decorators',["require", "exports", "./component"], fu
 
 
 
-define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-factory"], function (require, exports, dom_1, view_factory_1) {
+define('runtime/templating/shadow-dom',["require", "exports", "../dom"], function (require, exports, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noNodes = Object.freeze([]);
@@ -4741,7 +5048,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
         PassThroughSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
             if (index === void 0) { index = 0; }
             if (this.contentView === null) {
-                this.contentView = this.fallbackFactory();
+                this.contentView = this.fallbackFactory.create();
                 this.contentView.bind(this.owner.$scope);
                 var slots = Object.create(null);
                 slots[this.destinationSlot.name] = this.destinationSlot;
@@ -4945,7 +5252,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
         ShadowSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
             if (index === void 0) { index = 0; }
             if (this.contentView === null) {
-                this.contentView = this.fallbackFactory();
+                this.contentView = this.fallbackFactory.create();
                 this.contentView.bind(this.owner.$scope);
                 this.contentView.$view.insertBefore(this.anchor);
             }
@@ -4995,17 +5302,13 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
             }
             return node.auSlotAttribute.value;
         },
-        createSlotFromInstruction: function (owner, instruction) {
+        createSlot: function (owner, name, destination, fallbackFactory) {
             var anchor = dom_1.DOM.createComment('slot');
-            var fallbackFactory = instruction.factory;
-            if (fallbackFactory === undefined && instruction.fallback) {
-                instruction.factory = fallbackFactory = view_factory_1.ViewFactory.fromCompiledSource(instruction.fallback);
-            }
-            if (instruction.destination) {
-                return new PassThroughSlot(owner, anchor, instruction.name, instruction.destination, fallbackFactory);
+            if (destination) {
+                return new PassThroughSlot(owner, anchor, name, destination, fallbackFactory);
             }
             else {
-                return new ShadowSlot(owner, anchor, instruction.name, fallbackFactory);
+                return new ShadowSlot(owner, anchor, name, fallbackFactory);
             }
         },
         distributeView: function (view, slots, projectionSource, index, destinationOverride) {
@@ -5084,141 +5387,6 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom", "./view-
 
 
 
-define('runtime/templating/template',["require", "exports", "../dom", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "./view-factory", "../binding/binding-mode", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "./view-resources"], function (require, exports, dom_1, view_1, binding_1, view_slot_1, shadow_dom_1, view_factory_1, binding_mode_1, listener_1, call_1, ref_1, expression_1, view_resources_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var noViewTemplate = {
-        createFor: function (owner, host) {
-            return view_1.View.none;
-        }
-    };
-    exports.Template = {
-        none: noViewTemplate,
-        fromCompiledSource: function (source) {
-            if (source && source.template) {
-                return new CompiledTemplate(source);
-            }
-            return noViewTemplate;
-        }
-    };
-    function applyInstruction(owner, instruction, target, resources) {
-        switch (instruction.type) {
-            case 'oneWayText':
-                var next = target.nextSibling;
-                dom_1.DOM.treatNodeAsNonWhitespace(next);
-                dom_1.DOM.removeNode(target);
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), next, 'textContent', binding_mode_1.bindingMode.oneWay, resources));
-                break;
-            case 'oneWay':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.oneWay, resources));
-                break;
-            case 'fromView':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.fromView, resources));
-                break;
-            case 'twoWay':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.twoWay, resources));
-                break;
-            case 'listener':
-                owner.$bindable.push(new listener_1.Listener(instruction.source, instruction.strategy, expression_1.Expression.from(instruction.target), target, instruction.preventDefault, resources));
-                break;
-            case 'call':
-                owner.$bindable.push(new call_1.Call(expression_1.Expression.from(instruction.source), target, instruction.target, resources));
-                break;
-            case 'ref':
-                owner.$bindable.push(new ref_1.Ref(expression_1.Expression.from(instruction.source), target, resources));
-                break;
-            case 'style':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target.style, instruction.target, binding_mode_1.bindingMode.oneWay, resources));
-                break;
-            case 'property':
-                target[instruction.target] = instruction.value;
-                break;
-            case 'slot':
-                if (!owner.$useShadowDOM) {
-                    var slot = shadow_dom_1.ShadowDOM.createSlotFromInstruction(owner, instruction);
-                    owner.$slots[slot.name] = slot;
-                    owner.$bindable.push(slot);
-                    owner.$attachable.push(slot);
-                    dom_1.DOM.replaceNode(slot.anchor, target);
-                }
-                break;
-            case 'element':
-                var elementInstructions = instruction.instructions;
-                var ElementCtor = resources.getElement(instruction.resource);
-                var elementModel = new ElementCtor();
-                elementModel.$contentView = view_1.View.fromCompiledElementContent(elementModel, target);
-                elementModel.applyTo(target);
-                for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
-                    var current = elementInstructions[i];
-                    var realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
-                    applyInstruction(owner, current, realTarget, resources);
-                }
-                owner.$bindable.push(elementModel);
-                owner.$attachable.push(elementModel);
-                break;
-            case 'attribute':
-                var attributeInstructions = instruction.instructions;
-                var AttributeCtor = resources.getAttribute(instruction.resource);
-                var attributeModel = new AttributeCtor(target);
-                for (var i = 0, ii = attributeInstructions.length; i < ii; ++i) {
-                    applyInstruction(owner, attributeInstructions[i], attributeModel, resources);
-                }
-                owner.$bindable.push(attributeModel);
-                owner.$attachable.push(attributeModel);
-                break;
-            case 'templateController':
-                var templateControllerInstructions = instruction.instructions;
-                var factory = instruction.factory;
-                if (factory === undefined) {
-                    instruction.factory = factory = view_factory_1.ViewFactory.fromCompiledSource(instruction.config);
-                }
-                var TemplateControllerCtor = resources.getAttribute(instruction.resource);
-                var templateControllerModel = new TemplateControllerCtor(factory, new view_slot_1.ViewSlot(dom_1.DOM.makeElementIntoAnchor(target), false));
-                if (instruction.link) {
-                    templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
-                }
-                for (var i = 0, ii = templateControllerInstructions.length; i < ii; ++i) {
-                    applyInstruction(owner, templateControllerInstructions[i], templateControllerModel, resources);
-                }
-                owner.$bindable.push(templateControllerModel);
-                owner.$attachable.push(templateControllerModel);
-                break;
-        }
-    }
-    var CompiledTemplate = (function () {
-        function CompiledTemplate(source) {
-            this.source = source;
-            this.resources = view_resources_1.ViewResources.createChild(source.resources);
-            this.element = dom_1.DOM.createTemplateElement();
-            this.element.innerHTML = source.template;
-        }
-        CompiledTemplate.prototype.createFor = function (owner, host) {
-            var source = this.source;
-            var view = view_1.View.fromCompiledTemplate(this.element);
-            var targets = view.findTargets();
-            var resources = this.resources;
-            var targetInstructions = source.targetInstructions;
-            for (var i = 0, ii = targets.length; i < ii; ++i) {
-                var instructions = targetInstructions[i];
-                var target = targets[i];
-                for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                    applyInstruction(owner, instructions[j], target, resources);
-                }
-            }
-            if (host) {
-                var surrogateInstructions = source.surrogateInstructions;
-                for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-                    applyInstruction(owner, surrogateInstructions[i], host, resources);
-                }
-            }
-            return view;
-        };
-        return CompiledTemplate;
-    }());
-});
-
-
-
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -5229,12 +5397,33 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-factory',["require", "exports", "./template"], function (require, exports, template_1) {
+define('runtime/templating/view-engine',["require", "exports", "../dom", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "../binding/binding-mode", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di"], function (require, exports, dom_1, view_1, binding_1, view_slot_1, shadow_dom_1, binding_mode_1, listener_1, call_1, ref_1, expression_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ViewFactory = {
-        fromCompiledSource: function (source) {
-            var template = template_1.Template.fromCompiledSource(source);
+    var noViewTemplate = {
+        createFor: function (owner, host) {
+            return view_1.View.none;
+        }
+    };
+    exports.IViewFactory = di_1.DI.createInterface('IViewFactory');
+    var DefaultViewFactory = (function () {
+        function DefaultViewFactory(type) {
+            this.type = type;
+        }
+        DefaultViewFactory.prototype.create = function () {
+            return new this.type();
+        };
+        return DefaultViewFactory;
+    }());
+    exports.ViewEngine = {
+        templateFromCompiledSource: function (source) {
+            if (source && source.template) {
+                return new CompiledTemplate(source);
+            }
+            return noViewTemplate;
+        },
+        factoryFromCompiledSource: function (source) {
+            var template = exports.ViewEngine.templateFromCompiledSource(source);
             var CompiledVisual = (_a = (function (_super) {
                     __extends(class_1, _super);
                     function class_1() {
@@ -5250,10 +5439,149 @@ define('runtime/templating/view-factory',["require", "exports", "./template"], f
                 _a.template = template,
                 _a.source = source,
                 _a);
-            return function () { return new CompiledVisual(); };
+            return new DefaultViewFactory(CompiledVisual);
             var _a;
         }
     };
+    function applyInstruction(owner, instruction, target, container) {
+        switch (instruction.type) {
+            case 'oneWayText':
+                var next = target.nextSibling;
+                dom_1.DOM.treatNodeAsNonWhitespace(next);
+                dom_1.DOM.removeNode(target);
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), next, 'textContent', binding_mode_1.bindingMode.oneWay, container));
+                break;
+            case 'oneWay':
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.oneWay, container));
+                break;
+            case 'fromView':
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.fromView, container));
+                break;
+            case 'twoWay':
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.twoWay, container));
+                break;
+            case 'listener':
+                owner.$bindable.push(new listener_1.Listener(instruction.source, instruction.strategy, expression_1.Expression.from(instruction.target), target, instruction.preventDefault, container));
+                break;
+            case 'call':
+                owner.$bindable.push(new call_1.Call(expression_1.Expression.from(instruction.source), target, instruction.target, container));
+                break;
+            case 'ref':
+                owner.$bindable.push(new ref_1.Ref(expression_1.Expression.from(instruction.source), target, container));
+                break;
+            case 'style':
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target.style, instruction.target, binding_mode_1.bindingMode.oneWay, container));
+                break;
+            case 'property':
+                target[instruction.target] = instruction.value;
+                break;
+            case 'slot':
+                if (owner.$useShadowDOM) {
+                    return;
+                }
+                var fallbackFactory = instruction.factory;
+                if (fallbackFactory === undefined && instruction.fallback) {
+                    instruction.factory = fallbackFactory = exports.ViewEngine.factoryFromCompiledSource(instruction.fallback);
+                }
+                var slot = shadow_dom_1.ShadowDOM.createSlot(owner, instruction.name, instruction.destination, fallbackFactory);
+                owner.$slots[slot.name] = slot;
+                owner.$bindable.push(slot);
+                owner.$attachable.push(slot);
+                dom_1.DOM.replaceNode(slot.anchor, target);
+                break;
+            case 'element':
+                var elementInstructions = instruction.instructions;
+                container.element.instance = target;
+                var elementModel = container.get(instruction.resource);
+                elementModel.$contentView = view_1.View.fromCompiledElementContent(elementModel, target);
+                elementModel.applyTo(target);
+                for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
+                    var current = elementInstructions[i];
+                    var realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
+                    applyInstruction(owner, current, realTarget, container);
+                }
+                owner.$bindable.push(elementModel);
+                owner.$attachable.push(elementModel);
+                break;
+            case 'attribute':
+                var attributeInstructions = instruction.instructions;
+                container.element.instance = target;
+                var attributeModel = container.get(instruction.resource);
+                for (var i = 0, ii = attributeInstructions.length; i < ii; ++i) {
+                    applyInstruction(owner, attributeInstructions[i], attributeModel, container);
+                }
+                owner.$bindable.push(attributeModel);
+                owner.$attachable.push(attributeModel);
+                break;
+            case 'templateController':
+                var templateControllerInstructions = instruction.instructions;
+                var factory = instruction.factory;
+                if (factory === undefined) {
+                    instruction.factory = factory = exports.ViewEngine.factoryFromCompiledSource(instruction.config);
+                }
+                container.element.instance = target;
+                container.viewFactory.instance = factory;
+                container.viewSlot.instance = new view_slot_1.ViewSlot(dom_1.DOM.makeElementIntoAnchor(target), false);
+                var templateControllerModel = container.get(instruction.resource);
+                if (instruction.link) {
+                    templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
+                }
+                for (var i = 0, ii = templateControllerInstructions.length; i < ii; ++i) {
+                    applyInstruction(owner, templateControllerInstructions[i], templateControllerModel, container);
+                }
+                owner.$bindable.push(templateControllerModel);
+                owner.$attachable.push(templateControllerModel);
+                break;
+        }
+    }
+    var FastInstance = (function () {
+        function FastInstance() {
+        }
+        FastInstance.prototype.get = function (handler, requestor) {
+            return this.instance;
+        };
+        return FastInstance;
+    }());
+    function createTemplateContainer(dependencies) {
+        var container = di_1.DI.createChild();
+        container.registerResolver(Element, container.element = new FastInstance());
+        container.registerResolver(exports.IViewFactory, container.viewFactory = new FastInstance());
+        container.registerResolver(view_slot_1.ViewSlot, container.viewSlot = new FastInstance());
+        if (dependencies) {
+            container.register.apply(container, dependencies);
+        }
+        return container;
+    }
+    var CompiledTemplate = (function () {
+        function CompiledTemplate(source) {
+            this.source = source;
+            this.container = createTemplateContainer(source.resources);
+            this.element = dom_1.DOM.createTemplateElement();
+            this.element.innerHTML = source.template;
+        }
+        CompiledTemplate.prototype.createFor = function (owner, host) {
+            var source = this.source;
+            var view = view_1.View.fromCompiledTemplate(this.element);
+            var targets = view.findTargets();
+            var container = this.container;
+            var targetInstructions = source.targetInstructions;
+            for (var i = 0, ii = targets.length; i < ii; ++i) {
+                var instructions = targetInstructions[i];
+                var target = targets[i];
+                for (var j = 0, jj = instructions.length; j < jj; ++j) {
+                    applyInstruction(owner, instructions[j], target, container);
+                }
+            }
+            if (host) {
+                var surrogateInstructions = source.surrogateInstructions;
+                for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
+                    applyInstruction(owner, surrogateInstructions[i], host, container);
+                }
+            }
+            return view;
+        };
+        return CompiledTemplate;
+    }());
     var Visual = (function () {
         function Visual() {
             this.$bindable = [];
@@ -5292,74 +5620,6 @@ define('runtime/templating/view-factory',["require", "exports", "./template"], f
         };
         return Visual;
     }());
-    exports.Visual = Visual;
-});
-
-
-
-define('runtime/templating/view-resources',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var ViewResourceRegistry = (function () {
-        function ViewResourceRegistry(parent) {
-            if (parent === void 0) { parent = null; }
-            this.parent = parent;
-            this.elements = Object.create(null);
-            this.attributes = Object.create(null);
-            this.valueConverters = Object.create(null);
-            this.bindingBehaviors = Object.create(null);
-        }
-        ViewResourceRegistry.prototype.register = function (resources) {
-            var _this = this;
-            for (var i = 0, ii = resources.length; i < ii; ++i) {
-                var current = resources[i];
-                if ('registerResources' in current) {
-                    current.registerResources(this);
-                }
-                else {
-                    Object.values(current).forEach(function (x) {
-                        if ('registerResources' in x) {
-                            x.registerResources(_this);
-                        }
-                    });
-                }
-            }
-        };
-        ViewResourceRegistry.prototype.registerElement = function (name, implementation) {
-            this.elements[name] = implementation;
-        };
-        ViewResourceRegistry.prototype.registerAttribute = function (name, implementation) {
-            this.attributes[name] = implementation;
-        };
-        ViewResourceRegistry.prototype.registerValueConverter = function (name, instance) {
-            this.valueConverters[name] = instance;
-        };
-        ViewResourceRegistry.prototype.registerBindingBehavior = function (name, instance) {
-            this.bindingBehaviors[name] = instance;
-        };
-        ViewResourceRegistry.prototype.getElement = function (name) {
-            return this.elements[name] || (this.parent !== null ? this.parent.getElement(name) : null);
-        };
-        ViewResourceRegistry.prototype.getAttribute = function (name) {
-            return this.attributes[name] || (this.parent !== null ? this.parent.getAttribute(name) : null);
-        };
-        ViewResourceRegistry.prototype.getValueConverter = function (name) {
-            return this.valueConverters[name] || (this.parent !== null ? this.parent.getValueConverter(name) : null);
-        };
-        ViewResourceRegistry.prototype.getBindingBehavior = function (name) {
-            return this.bindingBehaviors[name] || (this.parent !== null ? this.parent.getBindingBehavior(name) : null);
-        };
-        ViewResourceRegistry.prototype.createChild = function (resources) {
-            if (resources === void 0) { resources = null; }
-            var registry = new ViewResourceRegistry(this);
-            if (resources !== null) {
-                registry.register(resources);
-            }
-            return registry;
-        };
-        return ViewResourceRegistry;
-    }());
-    exports.ViewResources = new ViewResourceRegistry();
 });
 
 
@@ -5764,324 +6024,6 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         };
         return TemplateView;
     }());
-});
-
-
-
-define('runtime/resources/standard',["require", "exports", "./else", "./if"], function (require, exports, else_1, if_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Else = else_1.Else;
-    exports.If = if_1.If;
-});
-
-
-
-define('runtime/di',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function createInterface(key) {
-        return function Key(target, prop, index) {
-            var inject = target.inject || (target.inject = []);
-            Key.key = key;
-            inject[index] = Key;
-            return target;
-        };
-    }
-    exports.IContainer = createInterface('IContainer');
-    var Resolver = (function () {
-        function Resolver(key, strategy, state) {
-            this.key = key;
-            this.strategy = strategy;
-            this.state = state;
-        }
-        Resolver.prototype.register = function (container, key) {
-            return container.registerResolver(key || this.key, this);
-        };
-        Resolver.prototype.get = function (handler, requestor) {
-            switch (this.strategy) {
-                case 0:
-                    return this.state;
-                case 1:
-                    var singleton = handler.construct(this.state);
-                    this.state = singleton;
-                    this.strategy = 0;
-                    return singleton;
-                case 2:
-                    return requestor.construct(this.state);
-                case 3:
-                    return this.state(handler, requestor, this);
-                case 4:
-                    return this.state[0].get(handler, requestor);
-                case 5:
-                    return handler.get(this.state);
-                default:
-                    throw new Error('Invalid strategy: ' + this.strategy);
-            }
-        };
-        return Resolver;
-    }());
-    var emptyArray = Object.freeze([]);
-    var InvocationHandler = (function () {
-        function InvocationHandler(fn, invoker, dependencies) {
-            this.fn = fn;
-            this.invoker = invoker;
-            this.dependencies = dependencies;
-        }
-        InvocationHandler.prototype.invoke = function (container, dynamicDependencies) {
-            return dynamicDependencies !== undefined
-                ? this.invoker.invokeWithDynamicDependencies(container, this.fn, this.dependencies, dynamicDependencies)
-                : this.invoker.invoke(container, this.fn, this.dependencies);
-        };
-        return InvocationHandler;
-    }());
-    var Container = (function () {
-        function Container(configuration) {
-            if (configuration === void 0) { configuration = {}; }
-            this.parent = null;
-            this.resolvers = new Map();
-            this.configuration = configuration;
-            this.handlers = configuration.handlers || (configuration.handlers = new Map());
-        }
-        Container.prototype.register = function () {
-            var _this = this;
-            var params = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                params[_i] = arguments[_i];
-            }
-            var resolvers = this.resolvers;
-            for (var i = 0, ii = params.length; i < ii; ++i) {
-                var current = params[i];
-                if ('register' in current) {
-                    current.register(this);
-                }
-                else {
-                    Object.values(current).forEach(function (x) {
-                        if ('register' in x) {
-                            x.register(_this);
-                        }
-                    });
-                }
-            }
-        };
-        Container.prototype.registerResolver = function (key, resolver) {
-            validateKey(key);
-            var resolvers = this.resolvers;
-            var result = resolvers.get(key);
-            if (result === undefined) {
-                resolvers.set(key, resolver);
-            }
-            else if (resolver instanceof Resolver && resolver.strategy === 4) {
-                result.state.push(resolver);
-            }
-            else {
-                resolvers.set(key, new Resolver(key, 4, [result, resolver]));
-            }
-            return resolver;
-        };
-        Container.prototype.get = function (key) {
-            if (key === exports.IContainer) {
-                return this;
-            }
-            if ('get' in key) {
-                return key.get(this, this);
-            }
-            var resolver = this.resolvers.get(key);
-            if (resolver === undefined) {
-                if (this.parent === null) {
-                    return this.jitRegister(key, this).get(this, this);
-                }
-                if ('register' in key) {
-                    return key.register(this, key).get(this, this);
-                }
-                return this.parent.parentGet(key, this);
-            }
-            return resolver.get(this, this);
-        };
-        Container.prototype.parentGet = function (key, requestor) {
-            var resolver = this.resolvers.get(key);
-            if (resolver === undefined) {
-                if (this.parent === null) {
-                    return this.jitRegister(key, requestor).get(this, requestor);
-                }
-                return this.parent.parentGet(key, requestor);
-            }
-            return resolver.get(this, requestor);
-        };
-        Container.prototype.getAll = function (key) {
-            validateKey(key);
-            var resolver = this.resolvers.get(key);
-            if (resolver === undefined) {
-                if (this.parent === null) {
-                    return emptyArray;
-                }
-                return this.parent.parentGetAll(key, this);
-            }
-            return buildAllResponse(resolver, this, this);
-        };
-        Container.prototype.parentGetAll = function (key, requestor) {
-            var resolver = this.resolvers.get(key);
-            if (resolver === undefined) {
-                if (this.parent === null) {
-                    return emptyArray;
-                }
-                return this.parent.parentGetAll(key, requestor);
-            }
-            return buildAllResponse(resolver, this, requestor);
-        };
-        Container.prototype.jitRegister = function (keyAsValue, requestor) {
-            if ('register' in keyAsValue) {
-                return keyAsValue.register(this, keyAsValue);
-            }
-            var strategy = new Resolver(keyAsValue, 1, keyAsValue);
-            this.resolvers.set(keyAsValue, strategy);
-            return strategy;
-        };
-        Container.prototype.construct = function (type, dynamicDependencies) {
-            var handler = this.handlers.get(type);
-            if (handler === undefined) {
-                handler = this.createInvocationHandler(type);
-                this.handlers.set(type, handler);
-            }
-            return handler.invoke(this, dynamicDependencies);
-        };
-        Container.prototype.createInvocationHandler = function (fn) {
-            var dependencies;
-            if (fn.inject === undefined) {
-                dependencies = Reflect.getOwnMetadata('design:paramtypes', fn);
-            }
-            else {
-                dependencies = [];
-                var ctor = fn;
-                while (typeof ctor === 'function') {
-                    dependencies.push.apply(dependencies, getDependencies(ctor));
-                    ctor = Object.getPrototypeOf(ctor);
-                }
-            }
-            var invoker = classInvokers[dependencies.length] || classInvokers.fallback;
-            return new InvocationHandler(fn, invoker, dependencies);
-        };
-        Container.prototype.createChild = function () {
-            var child = new Container(this.configuration);
-            child.parent = this;
-            return child;
-        };
-        return Container;
-    }());
-    var container = new Container();
-    container.createInterface = createInterface;
-    exports.DI = container;
-    exports.Registration = {
-        instance: function (key, value) {
-            return new Resolver(key, 0, value);
-        },
-        singleton: function (key, value) {
-            return new Resolver(key, 1, value);
-        },
-        transient: function (key, value) {
-            return new Resolver(key, 2, value);
-        },
-        factory: function (key, value) {
-            return new Resolver(key, 3, value);
-        },
-        alias: function (originalKey, aliasKey) {
-            return new Resolver(aliasKey, 5, originalKey);
-        }
-    };
-    function validateKey(key) {
-        if (key === null || key === undefined) {
-            throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
-        }
-    }
-    function buildAllResponse(resolver, handler, requestor) {
-        if (resolver instanceof Resolver && resolver.strategy === 4) {
-            var state = resolver.state;
-            var i = state.length;
-            var results = new Array(i);
-            while (i--) {
-                results[i] = state[i].get(handler, requestor);
-            }
-            return results;
-        }
-        return [resolver.get(handler, requestor)];
-    }
-    function getDependencies(type) {
-        if (!type.hasOwnProperty('inject')) {
-            return [];
-        }
-        return type.inject;
-    }
-    var classInvokers = (_a = {},
-        _a[0] = {
-            invoke: function (container, Type) {
-                return new (Type());
-            },
-            invokeWithDynamicDependencies: invokeWithDynamicDependencies
-        },
-        _a[1] = {
-            invoke: function (container, Type, deps) {
-                return new (Type(container.get(deps[0])));
-            },
-            invokeWithDynamicDependencies: invokeWithDynamicDependencies
-        },
-        _a[2] = {
-            invoke: function (container, Type, deps) {
-                return new (Type(container.get(deps[0]), container.get(deps[1])));
-            },
-            invokeWithDynamicDependencies: invokeWithDynamicDependencies
-        },
-        _a[3] = {
-            invoke: function (container, Type, deps) {
-                return new (Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2])));
-            },
-            invokeWithDynamicDependencies: invokeWithDynamicDependencies
-        },
-        _a[4] = {
-            invoke: function (container, Type, deps) {
-                return new (Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3])));
-            },
-            invokeWithDynamicDependencies: invokeWithDynamicDependencies
-        },
-        _a[5] = {
-            invoke: function (container, Type, deps) {
-                return new (Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]), container.get(deps[4])));
-            },
-            invokeWithDynamicDependencies: invokeWithDynamicDependencies
-        },
-        _a.fallback = {
-            invoke: invokeWithDynamicDependencies,
-            invokeWithDynamicDependencies: invokeWithDynamicDependencies
-        },
-        _a);
-    function invokeWithDynamicDependencies(container, fn, staticDependencies, dynamicDependencies) {
-        var i = staticDependencies.length;
-        var args = new Array(i);
-        var lookup;
-        while (i--) {
-            lookup = staticDependencies[i];
-            if (lookup === null || lookup === undefined) {
-                throw new Error('Constructor Parameter with index ' + i + ' cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
-            }
-            else {
-                args[i] = container.get(lookup);
-            }
-        }
-        if (dynamicDependencies !== undefined) {
-            args = args.concat(dynamicDependencies);
-        }
-        return Reflect.construct(fn, args);
-    }
-    if (!('getOwnMetadata' in Reflect)) {
-        Reflect.getOwnMetadata = function (key, target) {
-            return target[key];
-        };
-        Reflect.metadata = function (key, value) {
-            return function (target) {
-                target[key] = value;
-            };
-        };
-    }
-    var _a;
 });
 
 

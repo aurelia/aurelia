@@ -2,15 +2,19 @@ import { IfCore } from "./if-core";
 import { IScope } from "../binding/binding-interfaces";
 import { Else } from "./else";
 import { Observer } from "../binding/property-observation";
-import { IViewResources } from "../templating/view-resources";
+import { IContainer, Registration } from "../di";
+import { IViewFactory } from "../templating/view-engine";
+import { ViewSlot } from "../templating/view-slot";
 
 export class If extends IfCore {
   private animating = false;
   private elseBehavior: Else;
 
-  static registerResources(registry: IViewResources){
-    registry.registerAttribute('if', If);
-  } 
+  static inject = [IViewFactory, ViewSlot];
+
+  static register(container: IContainer){
+    container.register(Registration.transient('if', If));
+  }
 
   $observers = {
     condition: new Observer(false, v => this.isBound ? this.conditionChanged(v) : void 0)

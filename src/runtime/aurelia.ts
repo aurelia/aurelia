@@ -1,8 +1,8 @@
 import { IComponent } from "./templating/component";
 import { PLATFORM } from "./platform";
-import { ViewResources } from "./templating/view-resources";
 import { Expression } from "./binding/expression";
 import { IExpression } from "./binding/ast";
+import { DI } from "./di";
 
 export interface SinglePageApp {
   host: HTMLElement,
@@ -19,8 +19,8 @@ class AureliaImplementation {
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
 
-  globalResources(...params: any[]) {
-    ViewResources.register(params);
+  register(...params: any[]) {
+    DI.register(...params);
     return this;
   }
 

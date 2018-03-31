@@ -1,4 +1,4 @@
-import { Template, CompiledViewSource, ITemplate } from "./template";
+import { ViewEngine, CompiledViewSource, ITemplate } from "./view-engine";
 import { IView, View, IViewOwner } from "./view";
 import { IScope, IBindScope } from "../binding/binding-interfaces";
 import { createOverrideContext } from "../binding/scope";
@@ -7,7 +7,7 @@ import { Observer } from "../binding/property-observation";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
 import { FEATURE } from "../feature";
 import { DOM } from "../dom";
-import { IViewResources } from "./view-resources";
+import { IContainer, Registration } from "../di";
 
 export interface IBindSelf {
   bind(): void;
@@ -45,14 +45,16 @@ type ConstructableComponent = Constructable & {
 
 export const Component = {
   fromCompiledSource<T extends Constructable>(ctor: T, source: CompiledElementSource): T & ConstructableComponent {
-    const template = Template.fromCompiledSource(source);
+    const template = ViewEngine.templateFromCompiledSource(source);
+
+    //TODO: Add CompiledComponent into template's container.
       
     return class CompiledComponent extends ctor implements IComponent {
       static template: ITemplate = template;
       static source: CompiledElementSource = source;
 
-      static registerResources(registry: IViewResources){
-        registry.registerElement(source.name, CompiledComponent);
+      static register(container: IContainer){
+        container.register(Registration.transient(source.name, CompiledComponent));
       }
   
       $bindable: IBindScope[] = [];

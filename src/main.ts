@@ -1,10 +1,10 @@
 import { Aurelia } from './runtime/aurelia';
-import * as StandardResources from './runtime/resources/standard';
+import * as StandardConfiguration from './runtime/configuration/standard';
 import { App } from './app';
 import { expressionCache } from './generated';
 
 Aurelia
-  .globalResources(StandardResources)
+  .register(StandardConfiguration)
   .primeExpressionCache(expressionCache)
   .app({ host: document.body, component: new App() })
   .start();

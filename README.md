@@ -26,7 +26,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] PAL
   * [x] Logging
   * [x] Task Queue
-  * [ ] Dependency Injection
+  * [x] Dependency Injection
 * Binding
   * [x] One Way
   * [x] Two Way 

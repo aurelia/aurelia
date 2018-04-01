@@ -328,13 +328,13 @@ define('name-tag',["require", "exports", "./runtime/templating/decorators", "./n
 define('runtime/aurelia',["require", "exports", "./platform", "./di"], function (require, exports, platform_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var AureliaImplementation = (function () {
-        function AureliaImplementation() {
+    var AureliaFramework = (function () {
+        function AureliaFramework() {
             this.components = [];
             this.startTasks = [];
             this.stopTasks = [];
         }
-        AureliaImplementation.prototype.register = function () {
+        AureliaFramework.prototype.register = function () {
             var params = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 params[_i] = arguments[_i];
@@ -342,10 +342,10 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di"], function 
             di_1.DI.register.apply(di_1.DI, params);
             return this;
         };
-        AureliaImplementation.prototype.enhance = function (config) {
+        AureliaFramework.prototype.enhance = function (config) {
             return this;
         };
-        AureliaImplementation.prototype.app = function (config) {
+        AureliaFramework.prototype.app = function (config) {
             var _this = this;
             var component = config.component;
             this.startTasks.push(function () {
@@ -362,17 +362,17 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di"], function 
             });
             return this;
         };
-        AureliaImplementation.prototype.start = function () {
+        AureliaFramework.prototype.start = function () {
             this.startTasks.forEach(function (x) { return x(); });
             return this;
         };
-        AureliaImplementation.prototype.stop = function () {
+        AureliaFramework.prototype.stop = function () {
             this.stopTasks.forEach(function (x) { return x(); });
             return this;
         };
-        return AureliaImplementation;
+        return AureliaFramework;
     }());
-    exports.Aurelia = new AureliaImplementation();
+    exports.Aurelia = new AureliaFramework();
     platform_1.PLATFORM.global.Aurelia = exports.Aurelia;
 });
 

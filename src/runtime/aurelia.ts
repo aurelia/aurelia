@@ -1,20 +1,18 @@
 import { IComponent } from "./templating/component";
 import { PLATFORM } from "./platform";
-import { Expression } from "./binding/expression";
-import { IExpression } from "./binding/ast";
 import { DI } from "./di";
 
-export interface SinglePageApp {
+export interface ISinglePageApp {
   host: HTMLElement,
   component: any
 }
 
-export interface ProgressiveEnhancement {
+export interface IProgressiveEnhancement {
   element: HTMLElement,
   data?: any
 }
 
-class AureliaImplementation { 
+class AureliaFramework { 
   private components: IComponent[] = [];
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
@@ -24,11 +22,11 @@ class AureliaImplementation {
     return this;
   }
 
-  enhance(config: ProgressiveEnhancement) {
+  enhance(config: IProgressiveEnhancement) {
     return this;
   }
 
-  app(config: SinglePageApp) {
+  app(config: ISinglePageApp) {
     let component: IComponent = config.component;
 
     this.startTasks.push(() => {
@@ -60,5 +58,5 @@ class AureliaImplementation {
   }
 }
 
-export const Aurelia = new AureliaImplementation();
+export const Aurelia = new AureliaFramework();
 (<any>PLATFORM.global).Aurelia = Aurelia;

@@ -108,7 +108,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('app',["require", "exports", "./app-config", "./runtime/templating/decorators"], function (require, exports, app_config_1, decorators_1) {
+define('app',["require", "exports", "./app-config", "./runtime/decorators"], function (require, exports, app_config_1, decorators_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var App = (function () {
@@ -297,7 +297,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('name-tag',["require", "exports", "./runtime/templating/decorators", "./name-tag-config"], function (require, exports, decorators_1, name_tag_config_1) {
+define('name-tag',["require", "exports", "./runtime/decorators", "./name-tag-config"], function (require, exports, decorators_1, name_tag_config_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var NameTag = (function () {
@@ -374,6 +374,19 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di"], function 
     }());
     exports.Aurelia = new AureliaFramework();
     platform_1.PLATFORM.global.Aurelia = exports.Aurelia;
+});
+
+
+
+define('runtime/decorators',["require", "exports", "./templating/component"], function (require, exports, component_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function compiledElement(source) {
+        return function (target) {
+            return component_1.Component.fromCompiledSource(target, source);
+        };
+    }
+    exports.compiledElement = compiledElement;
 });
 
 
@@ -4995,19 +5008,6 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             set: function (value) { this.$observers[name].setValue(value); }
         });
     }
-});
-
-
-
-define('runtime/templating/decorators',["require", "exports", "./component"], function (require, exports, component_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function compiledElement(source) {
-        return function (target) {
-            return component_1.Component.fromCompiledSource(target, source);
-        };
-    }
-    exports.compiledElement = compiledElement;
 });
 
 

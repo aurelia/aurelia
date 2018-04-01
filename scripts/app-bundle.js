@@ -325,7 +325,7 @@ define('name-tag',["require", "exports", "./runtime/templating/decorators", "./n
 
 
 
-define('runtime/aurelia',["require", "exports", "./platform", "./binding/expression", "./di"], function (require, exports, platform_1, expression_1, di_1) {
+define('runtime/aurelia',["require", "exports", "./platform", "./di"], function (require, exports, platform_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var AureliaImplementation = (function () {
@@ -340,10 +340,6 @@ define('runtime/aurelia',["require", "exports", "./platform", "./binding/express
                 params[_i] = arguments[_i];
             }
             di_1.DI.register.apply(di_1.DI, params);
-            return this;
-        };
-        AureliaImplementation.prototype.primeExpressionCache = function (expressionCache) {
-            expression_1.Expression.primeCache(expressionCache);
             return this;
         };
         AureliaImplementation.prototype.enhance = function (config) {

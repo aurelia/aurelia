@@ -24,11 +24,6 @@ class AureliaImplementation {
     return this;
   }
 
-  primeExpressionCache(expressionCache: Record<string, IExpression>) {
-    Expression.primeCache(expressionCache);
-    return this;
-  }
-
   enhance(config: ProgressiveEnhancement) {
     return this;
   }

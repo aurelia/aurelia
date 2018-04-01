@@ -1,0 +1,36 @@
+<template>
+  <nav class="navbar navbar-light">
+    <div class="container">
+      <a class="navbar-brand" route-href="route: home">conduit</a>
+      <ul class="nav navbar-nav pull-xs-right">
+        <li class="${'nav-item' + (activeRoute === 'home' ? ' active' : '')}">
+          <a class="nav-link" route-href="route: home">Home</a>
+        </li>
+        <li class="${'nav-item' + (activeRoute === 'create' ? ' active' : '')}"
+            show.bind="sharedState.currentUser && sharedState.isAuthenticated">
+          <a class="nav-link" route-href="route: editor">
+            <i class="ion-compose"></i>&nbsp;New Post
+          </a>
+        </li>
+        <li class="${'nav-item' + (activeRoute === 'settings' ? ' active' : '')}"
+            show.bind="sharedState.currentUser && sharedState.isAuthenticated">
+          <a class="nav-link" route-href="route: settings">
+            <i class="ion-gear-a"></i>&nbsp;Settings
+          </a>
+        </li>
+        <li class="${'nav-item' + (activeRoute === 'login' ? ' active' : '')}"
+            show.bind="!sharedState.isAuthenticated">
+          <a class="nav-link" route-href="route: login">Sign in</a>
+        </li>
+        <li class="${'nav-item' + (activeRoute === 'register' ? ' active' : '')}"
+            show.bind="!sharedState.isAuthenticated">
+          <a class="nav-link" route-href="route: register">Sign up</a>
+        </li>
+        <li class="${'nav-item' + (activeRoute === 'profile' ? ' active' : '')}"
+            show.bind="sharedState.currentUser && sharedState.isAuthenticated">
+          <a class="nav-link" route-href="route: profile; params.bind: {name: sharedState.currentUser.username}">${sharedState.currentUser.username}</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</template>

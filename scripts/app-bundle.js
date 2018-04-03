@@ -6028,4 +6028,16 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
 
 
 
+define('jit/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Expression = Object.assign(expression_1.Expression, {
+        compile: function (expression) {
+            throw new Error('Expression Compilation Not Implemented');
+        }
+    });
+});
+
+
+
 //# sourceMappingURL=app-bundle.js.map

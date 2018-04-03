@@ -1,3 +1,5 @@
+import { PLATFORM } from "./platform";
+
 type InterfaceSymbol = (target, property, index) => typeof target;
 
 function createInterface(key: string): InterfaceSymbol {
@@ -8,6 +10,22 @@ function createInterface(key: string): InterfaceSymbol {
     return target;
   };
 }
+
+if (!('getOwnMetadata' in Reflect)) {
+  (<any>Reflect).getOwnMetadata = function(key, target) {
+    return target[key];
+  };
+
+  (<any>Reflect).metadata = function(key, value) {
+    return function(target) {
+      target[key] = value;
+    }
+  };
+}
+
+function getDesignParamTypes(target: any): any[] {
+  return (<any>Reflect).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
+};
 
 export const IContainer = createInterface('IContainer');
 
@@ -67,8 +85,6 @@ interface IInvoker {
   invoke(container: IContainer, fn: Function, dependencies: any[]): any;
   invokeWithDynamicDependencies(container: IContainer, fn: Function, staticDependencies: any[], dynamicDependencies: any[]): any;
 }
-
-const emptyArray = Object.freeze([]);
 
 class InvocationHandler {
   fn: Function;
@@ -185,7 +201,7 @@ class Container implements IContainer {
 
     if (resolver === undefined) {
       if (this.parent === null) {
-        return emptyArray;
+        return PLATFORM.emptyArray;
       }
 
       return this.parent.parentGetAll(key, this);
@@ -199,7 +215,7 @@ class Container implements IContainer {
 
     if (resolver === undefined) {
       if (this.parent === null) {
-        return emptyArray;
+        return PLATFORM.emptyArray;
       }
 
       return this.parent.parentGetAll(key, requestor);
@@ -233,7 +249,7 @@ class Container implements IContainer {
     let dependencies;
 
     if (fn.inject === undefined) {
-      dependencies = (<any>Reflect).getOwnMetadata('design:paramtypes', fn) || emptyArray;
+      dependencies = getDesignParamTypes(fn);
     } else {
       dependencies = [];
       let ctor = fn;
@@ -256,8 +272,14 @@ class Container implements IContainer {
 }
 
 const container: any = new Container();
+
 container.createInterface = createInterface;
-export const DI: IContainer & { createInterface(key: string): InterfaceSymbol } = <any>container;
+container.getDesignParamTypes = getDesignParamTypes;
+
+export const DI: IContainer & { 
+  createInterface(key: string): InterfaceSymbol
+  getDesignParamTypes(target: any): any[];
+} = <any>container;
 
 export const Registration = {
   instance(key: any, value: any): IRegistration {
@@ -305,7 +327,7 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
 
 function getDependencies(type) {
   if (!type.hasOwnProperty('inject')) {
-    return [];
+    return PLATFORM.emptyArray;
   }
 
   return type.inject;
@@ -374,16 +396,4 @@ function invokeWithDynamicDependencies(container: IContainer, fn: Function, stat
   }
 
   return Reflect.construct(fn, args);
-}
-
-if (!('getOwnMetadata' in Reflect)) {
-  (<any>Reflect).getOwnMetadata = function(key, target) {
-    return target[key];
-  };
-
-  (<any>Reflect).metadata = function(key, value) {
-    return function(target) {
-      target[key] = value;
-    }
-  };
 }

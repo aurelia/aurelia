@@ -2,6 +2,7 @@ export const PLATFORM = {
   global: window,
   location: window.location,
   history: window.history,
+  emptyArray: Object.freeze([]),
   addEventListener(eventName: string, callback: Function, capture: boolean): void {
     this.global.addEventListener(eventName, callback, capture);
   },

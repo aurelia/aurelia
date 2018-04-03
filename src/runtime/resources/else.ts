@@ -4,11 +4,11 @@ import { If } from "./if";
 import { IContainer, Registration } from "../di";
 import { IViewFactory } from "../templating/view-engine";
 import { ViewSlot } from "../templating/view-slot";
+import { inject } from "../decorators";
 
+@inject(IViewFactory, ViewSlot)
 export class Else extends IfCore {
   private ifBehavior: If;
-
-  static inject = [IViewFactory, ViewSlot];
 
   static register(container: IContainer){
     container.register(Registration.transient('else', Else));

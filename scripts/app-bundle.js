@@ -378,7 +378,7 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di"], function 
 
 
 
-define('runtime/decorators',["require", "exports", "./templating/component"], function (require, exports, component_1) {
+define('runtime/decorators',["require", "exports", "./templating/component", "./di"], function (require, exports, component_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function compiledElement(source) {
@@ -387,11 +387,62 @@ define('runtime/decorators',["require", "exports", "./templating/component"], fu
         };
     }
     exports.compiledElement = compiledElement;
+    function autoinject(potentialTarget) {
+        var deco = function (target) {
+            var previousInject = target.inject ? target.inject.slice() : null;
+            var autoInject = di_1.DI.getDesignParamTypes(target);
+            if (!previousInject) {
+                target.inject = autoInject;
+            }
+            else {
+                for (var i = 0; i < autoInject.length; i++) {
+                    if (previousInject[i] && previousInject[i] !== autoInject[i]) {
+                        var prevIndex = previousInject.indexOf(autoInject[i]);
+                        if (prevIndex > -1) {
+                            previousInject.splice(prevIndex, 1);
+                        }
+                        previousInject.splice((prevIndex > -1 && prevIndex < i) ? i - 1 : i, 0, autoInject[i]);
+                    }
+                    else if (!previousInject[i]) {
+                        previousInject[i] = autoInject[i];
+                    }
+                }
+                target.inject = previousInject;
+            }
+        };
+        return potentialTarget ? deco(potentialTarget) : deco;
+    }
+    exports.autoinject = autoinject;
+    function inject() {
+        var rest = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            rest[_i] = arguments[_i];
+        }
+        return function (target, key, descriptor) {
+            if (typeof descriptor === 'number' && rest.length === 1) {
+                var params = target.inject;
+                if (!params) {
+                    params = di_1.DI.getDesignParamTypes(target).slice();
+                    target.inject = params;
+                }
+                params[descriptor] = rest[0];
+                return;
+            }
+            if (descriptor) {
+                var fn = descriptor.value;
+                fn.inject = rest;
+            }
+            else {
+                target.inject = rest;
+            }
+        };
+    }
+    exports.inject = inject;
 });
 
 
 
-define('runtime/di',["require", "exports"], function (require, exports) {
+define('runtime/di',["require", "exports", "./platform"], function (require, exports, platform_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function createInterface(key) {
@@ -402,6 +453,20 @@ define('runtime/di',["require", "exports"], function (require, exports) {
             return target;
         };
     }
+    if (!('getOwnMetadata' in Reflect)) {
+        Reflect.getOwnMetadata = function (key, target) {
+            return target[key];
+        };
+        Reflect.metadata = function (key, value) {
+            return function (target) {
+                target[key] = value;
+            };
+        };
+    }
+    function getDesignParamTypes(target) {
+        return Reflect.getOwnMetadata('design:paramtypes', target) || platform_1.PLATFORM.emptyArray;
+    }
+    ;
     exports.IContainer = createInterface('IContainer');
     var Resolver = (function () {
         function Resolver(key, strategy, state) {
@@ -435,7 +500,6 @@ define('runtime/di',["require", "exports"], function (require, exports) {
         };
         return Resolver;
     }());
-    var emptyArray = Object.freeze([]);
     var InvocationHandler = (function () {
         function InvocationHandler(fn, invoker, dependencies) {
             this.fn = fn;
@@ -527,7 +591,7 @@ define('runtime/di',["require", "exports"], function (require, exports) {
             var resolver = this.resolvers.get(key);
             if (resolver === undefined) {
                 if (this.parent === null) {
-                    return emptyArray;
+                    return platform_1.PLATFORM.emptyArray;
                 }
                 return this.parent.parentGetAll(key, this);
             }
@@ -537,7 +601,7 @@ define('runtime/di',["require", "exports"], function (require, exports) {
             var resolver = this.resolvers.get(key);
             if (resolver === undefined) {
                 if (this.parent === null) {
-                    return emptyArray;
+                    return platform_1.PLATFORM.emptyArray;
                 }
                 return this.parent.parentGetAll(key, requestor);
             }
@@ -562,7 +626,7 @@ define('runtime/di',["require", "exports"], function (require, exports) {
         Container.prototype.createInvocationHandler = function (fn) {
             var dependencies;
             if (fn.inject === undefined) {
-                dependencies = Reflect.getOwnMetadata('design:paramtypes', fn) || emptyArray;
+                dependencies = getDesignParamTypes(fn);
             }
             else {
                 dependencies = [];
@@ -584,6 +648,7 @@ define('runtime/di',["require", "exports"], function (require, exports) {
     }());
     var container = new Container();
     container.createInterface = createInterface;
+    container.getDesignParamTypes = getDesignParamTypes;
     exports.DI = container;
     exports.Registration = {
         instance: function (key, value) {
@@ -621,7 +686,7 @@ define('runtime/di',["require", "exports"], function (require, exports) {
     }
     function getDependencies(type) {
         if (!type.hasOwnProperty('inject')) {
-            return [];
+            return platform_1.PLATFORM.emptyArray;
         }
         return type.inject;
     }
@@ -684,16 +749,6 @@ define('runtime/di',["require", "exports"], function (require, exports) {
             args = args.concat(dynamicDependencies);
         }
         return Reflect.construct(fn, args);
-    }
-    if (!('getOwnMetadata' in Reflect)) {
-        Reflect.getOwnMetadata = function (key, target) {
-            return target[key];
-        };
-        Reflect.metadata = function (key, value) {
-            return function (target) {
-                target[key] = value;
-            };
-        };
     }
     var _a;
 });
@@ -1042,6 +1097,7 @@ define('runtime/platform',["require", "exports"], function (require, exports) {
         global: window,
         location: window.location,
         history: window.history,
+        emptyArray: Object.freeze([]),
         addEventListener: function (eventName, callback, capture) {
             this.global.addEventListener(eventName, callback, capture);
         },
@@ -4620,7 +4676,13 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/resources/else',["require", "exports", "./if-core", "../di", "../templating/view-engine", "../templating/view-slot"], function (require, exports, if_core_1, di_1, view_engine_1, view_slot_1) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('runtime/resources/else',["require", "exports", "./if-core", "../di", "../templating/view-engine", "../templating/view-slot", "../decorators"], function (require, exports, if_core_1, di_1, view_engine_1, view_slot_1, decorators_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Else = (function (_super) {
@@ -4628,8 +4690,9 @@ define('runtime/resources/else',["require", "exports", "./if-core", "../di", "..
         function Else() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
+        Else_1 = Else;
         Else.register = function (container) {
-            container.register(di_1.Registration.transient('else', Else));
+            container.register(di_1.Registration.transient('else', Else_1));
         };
         Else.prototype.bind = function (scope) {
             _super.prototype.bind.call(this, scope);
@@ -4648,8 +4711,11 @@ define('runtime/resources/else',["require", "exports", "./if-core", "../di", "..
             ifBehavior.link(this);
             return this;
         };
-        Else.inject = [view_engine_1.IViewFactory, view_slot_1.ViewSlot];
+        Else = Else_1 = __decorate([
+            decorators_1.inject(view_engine_1.IViewFactory, view_slot_1.ViewSlot)
+        ], Else);
         return Else;
+        var Else_1;
     }(if_core_1.IfCore));
     exports.Else = Else;
 });
@@ -4735,7 +4801,13 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation", "../di", "../templating/view-engine", "../templating/view-slot"], function (require, exports, if_core_1, property_observation_1, di_1, view_engine_1, view_slot_1) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation", "../di", "../templating/view-engine", "../templating/view-slot", "../decorators"], function (require, exports, if_core_1, property_observation_1, di_1, view_engine_1, view_slot_1, decorators_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var If = (function (_super) {
@@ -4748,8 +4820,9 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
             };
             return _this;
         }
+        If_1 = If;
         If.register = function (container) {
-            container.register(di_1.Registration.transient('if', If));
+            container.register(di_1.Registration.transient('if', If_1));
         };
         Object.defineProperty(If.prototype, "condition", {
             get: function () { return this.$observers.condition.getValue(); },
@@ -4805,8 +4878,11 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
                     return promise ? promise.then(function () { return add.show(); }) : add.show();
             }
         };
-        If.inject = [view_engine_1.IViewFactory, view_slot_1.ViewSlot];
+        If = If_1 = __decorate([
+            decorators_1.inject(view_engine_1.IViewFactory, view_slot_1.ViewSlot)
+        ], If);
         return If;
+        var If_1;
     }(if_core_1.IfCore));
     exports.If = If;
 });

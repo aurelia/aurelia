@@ -5,19 +5,17 @@ import { Observer } from "../binding/property-observation";
 import { IContainer, Registration } from "../di";
 import { IViewFactory } from "../templating/view-engine";
 import { ViewSlot } from "../templating/view-slot";
-import { inject, compiledElement } from "../decorators";
+import { inject, templateController, customAttribute } from "../decorators";
 
+@customAttribute('if')
+@templateController
 @inject(IViewFactory, ViewSlot)
 export class If extends IfCore {
   private animating = false;
   private elseBehavior: Else;
 
-  static register(container: IContainer){
-    container.register(Registration.transient('if', If));
-  }
-
   $observers = {
-    condition: new Observer(false, v => this.isBound ? this.conditionChanged(v) : void 0)
+    condition: new Observer(false, v => (<any>this).$isBound ? this.conditionChanged(v) : void 0)
   };
 
   get condition() { return this.$observers.condition.getValue(); }
@@ -25,8 +23,8 @@ export class If extends IfCore {
 
   swapOrder: 'before' | 'with' | 'after';
 
-  bind(scope: IScope) {
-    super.bind(scope);
+  bound(scope: IScope) {
+    super.bound(scope);
     this.conditionChanged(this.condition);
   }
 

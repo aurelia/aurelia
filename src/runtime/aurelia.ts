@@ -1,4 +1,4 @@
-import { IComponent } from "./templating/component";
+import { IElementComponent } from "./templating/component";
 import { PLATFORM } from "./platform";
 import { DI } from "./di";
 
@@ -13,7 +13,7 @@ export interface IProgressiveEnhancement {
 }
 
 class AureliaFramework { 
-  private components: IComponent[] = [];
+  private components: IElementComponent[] = [];
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
 
@@ -27,7 +27,7 @@ class AureliaFramework {
   }
 
   app(config: ISinglePageApp) {
-    let component: IComponent = config.component;
+    let component: IElementComponent = config.component;
 
     this.startTasks.push(() => {
       if (!this.components.includes(component)) {

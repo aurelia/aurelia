@@ -137,7 +137,7 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/configuration/standard", "./designtime/binding/expression"], function (require, exports, ast_1, StandardConfiguration, expression_1) {
+define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/configuration/standard", "./runtime/binding/expression"], function (require, exports, ast_1, StandardConfiguration, expression_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -378,15 +378,36 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di"], function 
 
 
 
-define('runtime/decorators',["require", "exports", "./templating/component", "./di"], function (require, exports, component_1, di_1) {
+define('runtime/decorators',["require", "exports", "./templating/component", "./di", "./binding/binding-mode"], function (require, exports, component_1, di_1, binding_mode_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function compiledElement(source) {
         return function (target) {
-            return component_1.Component.fromCompiledSource(target, source);
+            return component_1.Component.elementFromCompiledSource(target, source);
         };
     }
     exports.compiledElement = compiledElement;
+    function customAttribute(name, defaultBindingMode, aliases) {
+        if (defaultBindingMode === void 0) { defaultBindingMode = binding_mode_1.BindingMode.oneWay; }
+        return function (target) {
+            var source = {
+                name: name,
+                defaultBindingMode: defaultBindingMode || binding_mode_1.BindingMode.oneWay,
+                aliases: aliases,
+                isTemplateController: !!target.isTemplateController
+            };
+            return component_1.Component.attributeFromSource(target, source);
+        };
+    }
+    exports.customAttribute = customAttribute;
+    function templateController(target) {
+        var deco = function (target) {
+            target.isTemplateController = true;
+            return target;
+        };
+        return target ? deco(target) : deco;
+    }
+    exports.templateController = templateController;
     function autoinject(potentialTarget) {
         var deco = function (target) {
             var previousInject = target.inject ? target.inject.slice() : null;
@@ -1265,7 +1286,7 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
 
 
 
-define('designtime/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
+define('jit/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Expression = Object.assign(expression_1.Expression, {
@@ -1273,15 +1294,6 @@ define('designtime/binding/expression',["require", "exports", "../../runtime/bin
             throw new Error('Expression Compilation Not Implemented');
         }
     });
-});
-
-
-
-define('runtime/configuration/standard',["require", "exports", "../resources/else", "../resources/if"], function (require, exports, else_1, if_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Else = else_1.Else;
-    exports.If = if_1.If;
 });
 
 
@@ -2333,13 +2345,15 @@ define('runtime/binding/binding-interfaces',["require", "exports"], function (re
 define('runtime/binding/binding-mode',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.bindingMode = {
-        oneTime: 0,
-        toView: 1,
-        oneWay: 1,
-        twoWay: 2,
-        fromView: 3
-    };
+    var BindingMode;
+    (function (BindingMode) {
+        BindingMode[BindingMode["oneTime"] = 0] = "oneTime";
+        BindingMode[BindingMode["toView"] = 1] = "toView";
+        BindingMode[BindingMode["oneWay"] = 1] = "oneWay";
+        BindingMode[BindingMode["twoWay"] = 2] = "twoWay";
+        BindingMode[BindingMode["fromView"] = 3] = "fromView";
+    })(BindingMode = exports.BindingMode || (exports.BindingMode = {}));
+    ;
 });
 
 
@@ -2399,7 +2413,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 if (newValue !== oldValue) {
                     this.updateTarget(newValue);
                 }
-                if (this.mode !== binding_mode_1.bindingMode.oneTime) {
+                if (this.mode !== binding_mode_1.BindingMode.oneTime) {
                     this.version++;
                     this.sourceExpression.connect(this, this.source);
                     this.unobserve(false);
@@ -2428,27 +2442,27 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             }
             var mode = this.mode;
             if (!this.targetObserver) {
-                var method = mode === binding_mode_1.bindingMode.twoWay || mode === binding_mode_1.bindingMode.fromView ? 'getObserver' : 'getAccessor';
+                var method = mode === binding_mode_1.BindingMode.twoWay || mode === binding_mode_1.BindingMode.fromView ? 'getObserver' : 'getAccessor';
                 this.targetObserver = this.observerLocator[method](this.target, this.targetProperty);
             }
             if ('bind' in this.targetObserver) {
                 this.targetObserver.bind();
             }
-            if (this.mode !== binding_mode_1.bindingMode.fromView) {
+            if (this.mode !== binding_mode_1.BindingMode.fromView) {
                 var value = this.sourceExpression.evaluate(source, this.container);
                 this.updateTarget(value);
             }
-            if (mode === binding_mode_1.bindingMode.oneTime) {
+            if (mode === binding_mode_1.BindingMode.oneTime) {
                 return;
             }
-            else if (mode === binding_mode_1.bindingMode.toView) {
+            else if (mode === binding_mode_1.BindingMode.toView) {
                 connect_queue_1.enqueueBindingConnect(this);
             }
-            else if (mode === binding_mode_1.bindingMode.twoWay) {
+            else if (mode === binding_mode_1.BindingMode.twoWay) {
                 this.sourceExpression.connect(this, source);
                 this.targetObserver.subscribe(call_context_1.targetContext, this);
             }
-            else if (mode === binding_mode_1.bindingMode.fromView) {
+            else if (mode === binding_mode_1.BindingMode.fromView) {
                 this.targetObserver.subscribe(call_context_1.targetContext, this);
             }
         };
@@ -2486,7 +2500,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
         __extends(TextBinding, _super);
         function TextBinding(sourceExpression, target, container, observerLocator) {
             if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
-            var _this = _super.call(this, sourceExpression, target.nextSibling, 'textContent', binding_mode_1.bindingMode.oneWay, container) || this;
+            var _this = _super.call(this, sourceExpression, target.nextSibling, 'textContent', binding_mode_1.BindingMode.oneWay, container) || this;
             var next = target.nextSibling;
             next['auInterpolationTarget'] = true;
             target.parentNode.removeChild(target);
@@ -4666,6 +4680,15 @@ define('runtime/binding/svg',["require", "exports"], function (require, exports)
 
 
 
+define('runtime/configuration/standard',["require", "exports", "../resources/else", "../resources/if"], function (require, exports, else_1, if_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Else = else_1.Else;
+    exports.If = if_1.If;
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -4682,7 +4705,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('runtime/resources/else',["require", "exports", "./if-core", "../di", "../templating/view-engine", "../templating/view-slot", "../decorators"], function (require, exports, if_core_1, di_1, view_engine_1, view_slot_1, decorators_1) {
+define('runtime/resources/else',["require", "exports", "./if-core", "../templating/view-engine", "../templating/view-slot", "../decorators"], function (require, exports, if_core_1, view_engine_1, view_slot_1, decorators_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Else = (function (_super) {
@@ -4690,12 +4713,8 @@ define('runtime/resources/else',["require", "exports", "./if-core", "../di", "..
         function Else() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        Else_1 = Else;
-        Else.register = function (container) {
-            container.register(di_1.Registration.transient('else', Else_1));
-        };
-        Else.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
+        Else.prototype.bound = function (scope) {
+            _super.prototype.bound.call(this, scope);
             if (this.ifBehavior.condition) {
                 this.hide();
             }
@@ -4711,11 +4730,12 @@ define('runtime/resources/else',["require", "exports", "./if-core", "../di", "..
             ifBehavior.link(this);
             return this;
         };
-        Else = Else_1 = __decorate([
+        Else = __decorate([
+            decorators_1.customAttribute('else'),
+            decorators_1.templateController,
             decorators_1.inject(view_engine_1.IViewFactory, view_slot_1.ViewSlot)
         ], Else);
         return Else;
-        var Else_1;
     }(if_core_1.IfCore));
     exports.Else = Else;
 });
@@ -4732,20 +4752,17 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             this.visual = null;
             this.scope = null;
             this.showing = false;
-            this.isBound = false;
         }
-        IfCore.prototype.bind = function (scope) {
+        IfCore.prototype.bound = function (scope) {
             this.scope = scope;
-            this.isBound = true;
         };
-        IfCore.prototype.attach = function () {
+        IfCore.prototype.attached = function () {
             this.viewSlot.attach();
         };
-        IfCore.prototype.detach = function () {
+        IfCore.prototype.detached = function () {
             this.viewSlot.detach();
         };
-        IfCore.prototype.unbind = function () {
-            this.isBound = false;
+        IfCore.prototype.unbound = function () {
             if (this.visual === null) {
                 return;
             }
@@ -4807,7 +4824,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation", "../di", "../templating/view-engine", "../templating/view-slot", "../decorators"], function (require, exports, if_core_1, property_observation_1, di_1, view_engine_1, view_slot_1, decorators_1) {
+define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation", "../templating/view-engine", "../templating/view-slot", "../decorators"], function (require, exports, if_core_1, property_observation_1, view_engine_1, view_slot_1, decorators_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var If = (function (_super) {
@@ -4816,22 +4833,18 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.animating = false;
             _this.$observers = {
-                condition: new property_observation_1.Observer(false, function (v) { return _this.isBound ? _this.conditionChanged(v) : void 0; })
+                condition: new property_observation_1.Observer(false, function (v) { return _this.$isBound ? _this.conditionChanged(v) : void 0; })
             };
             return _this;
         }
-        If_1 = If;
-        If.register = function (container) {
-            container.register(di_1.Registration.transient('if', If_1));
-        };
         Object.defineProperty(If.prototype, "condition", {
             get: function () { return this.$observers.condition.getValue(); },
             set: function (value) { this.$observers.condition.setValue(value); },
             enumerable: true,
             configurable: true
         });
-        If.prototype.bind = function (scope) {
-            _super.prototype.bind.call(this, scope);
+        If.prototype.bound = function (scope) {
+            _super.prototype.bound.call(this, scope);
             this.conditionChanged(this.condition);
         };
         If.prototype.conditionChanged = function (newValue) {
@@ -4878,11 +4891,12 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
                     return promise ? promise.then(function () { return add.show(); }) : add.show();
             }
         };
-        If = If_1 = __decorate([
+        If = __decorate([
+            decorators_1.customAttribute('if'),
+            decorators_1.templateController,
             decorators_1.inject(view_engine_1.IViewFactory, view_slot_1.ViewSlot)
         ], If);
         return If;
-        var If_1;
     }(if_core_1.IfCore));
     exports.If = If;
 });
@@ -4939,7 +4953,73 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Component = {
-        fromCompiledSource: function (ctor, source) {
+        attributeFromSource: function (ctor, source) {
+            return _a = (function (_super) {
+                    __extends(CustomAttribute, _super);
+                    function CustomAttribute() {
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i] = arguments[_i];
+                        }
+                        var _this = _super.apply(this, args) || this;
+                        _this.$changeCallbacks = [];
+                        _this.$isBound = false;
+                        setupObservers(_this, source);
+                        if ('created' in _this) {
+                            _this.created();
+                        }
+                        return _this;
+                    }
+                    CustomAttribute.register = function (container) {
+                        container.register(di_1.Registration.transient(source.name, CustomAttribute));
+                        var aliases = source.aliases;
+                        if (aliases) {
+                            for (var i = 0, ii = aliases.length; i < ii; ++i) {
+                                container.register(di_1.Registration.transient(aliases[i], CustomAttribute));
+                            }
+                        }
+                    };
+                    CustomAttribute.prototype.bind = function (scope) {
+                        this.$isBound = true;
+                        var changeCallbacks = this.$changeCallbacks;
+                        for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+                            changeCallbacks[i]();
+                        }
+                        if ('bound' in this) {
+                            this.bound(scope);
+                        }
+                    };
+                    CustomAttribute.prototype.attach = function () {
+                        var _this = this;
+                        if ('attaching' in this) {
+                            this.attaching();
+                        }
+                        if ('attached' in this) {
+                            task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
+                        }
+                    };
+                    CustomAttribute.prototype.detach = function () {
+                        var _this = this;
+                        if ('detaching' in this) {
+                            this.detaching();
+                        }
+                        if ('detached' in this) {
+                            task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
+                        }
+                    };
+                    CustomAttribute.prototype.unbind = function () {
+                        if ('unbound' in this) {
+                            this.unbound();
+                        }
+                        this.$isBound = false;
+                    };
+                    return CustomAttribute;
+                }(ctor)),
+                _a.source = source,
+                _a;
+            var _a;
+        },
+        elementFromCompiledSource: function (ctor, source) {
             var template = view_engine_1.ViewEngine.templateFromCompiledSource(source);
             return _a = (function (_super) {
                     __extends(CompiledComponent, _super);
@@ -5055,6 +5135,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
     };
     function setupObservers(instance, config) {
         var observerConfigs = config.observers;
+        if (!observerConfigs) {
+            return;
+        }
         var observers = {};
         var _loop_1 = function (i, ii) {
             var observerConfig = observerConfigs[i];
@@ -5473,7 +5556,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-engine',["require", "exports", "../dom", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "../binding/binding-mode", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di"], function (require, exports, dom_1, view_1, binding_1, view_slot_1, shadow_dom_1, binding_mode_1, listener_1, call_1, ref_1, expression_1, di_1) {
+define('runtime/templating/view-engine',["require", "exports", "../dom", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode"], function (require, exports, dom_1, view_1, binding_1, view_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -5525,16 +5608,16 @@ define('runtime/templating/view-engine',["require", "exports", "../dom", "./view
                 var next = target.nextSibling;
                 dom_1.DOM.treatNodeAsNonWhitespace(next);
                 dom_1.DOM.removeNode(target);
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), next, 'textContent', binding_mode_1.bindingMode.oneWay, container));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), next, 'textContent', binding_mode_1.BindingMode.oneWay, container));
                 break;
             case 'oneWay':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.oneWay, container));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.BindingMode.oneWay, container));
                 break;
             case 'fromView':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.fromView, container));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.BindingMode.fromView, container));
                 break;
             case 'twoWay':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.bindingMode.twoWay, container));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target, instruction.target, binding_mode_1.BindingMode.twoWay, container));
                 break;
             case 'listener':
                 owner.$bindable.push(new listener_1.Listener(instruction.source, instruction.strategy, expression_1.Expression.from(instruction.target), target, instruction.preventDefault, container));
@@ -5546,7 +5629,7 @@ define('runtime/templating/view-engine',["require", "exports", "../dom", "./view
                 owner.$bindable.push(new ref_1.Ref(expression_1.Expression.from(instruction.source), target, container));
                 break;
             case 'style':
-                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target.style, instruction.target, binding_mode_1.bindingMode.oneWay, container));
+                owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), target.style, instruction.target, binding_mode_1.BindingMode.oneWay, container));
                 break;
             case 'property':
                 target[instruction.target] = instruction.value;
@@ -6100,18 +6183,6 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         };
         return TemplateView;
     }());
-});
-
-
-
-define('jit/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Expression = Object.assign(expression_1.Expression, {
-        compile: function (expression) {
-            throw new Error('Expression Compilation Not Implemented');
-        }
-    });
 });
 
 

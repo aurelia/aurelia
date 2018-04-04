@@ -13,26 +13,22 @@ export abstract class IfCore {
   // state anymore, so we use `showing` for that.
   // Eventually, `showing` and `value` should be consistent.
   protected showing = false;
-  protected isBound = false;
 
   constructor(private viewFactory: IViewFactory, protected viewSlot: ViewSlot) { }
 
-  bind(scope: IScope) {
+  bound(scope: IScope) {
     this.scope = scope;
-    this.isBound = true;
   }
 
-  attach() {
+  attached() {
     this.viewSlot.attach();
   }
 
-  detach() {
+  detached() {
     this.viewSlot.detach();
   }
 
-  unbind() {
-    this.isBound = false;
-
+  unbound() {
     if (this.visual === null) {
       return;
     }

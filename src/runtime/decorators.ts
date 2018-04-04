@@ -1,11 +1,34 @@
-import { Component, CompiledElementSource } from "./templating/component";
+import { Component, CompiledElementSource, AttributeSource } from "./templating/component";
 import { PLATFORM } from "./platform";
 import { DI } from "./di";
+import { BindingMode } from "./binding/binding-mode";
 
 export function compiledElement(source: CompiledElementSource) {
   return function<T extends { new(...args:any[]):{} }>(target: T) {
-    return Component.fromCompiledSource(target, source);
+    return Component.elementFromCompiledSource(target, source);
   }
+}
+
+export function customAttribute(name: string, defaultBindingMode: BindingMode = BindingMode.oneWay, aliases?: string[]) {
+  return function<T extends { new(...args:any[]):{} }>(target: T) {
+    let source: AttributeSource = {
+      name: name,
+      defaultBindingMode: defaultBindingMode || BindingMode.oneWay,
+      aliases: aliases,
+      isTemplateController: !!(<any>target).isTemplateController
+    };
+
+    return Component.attributeFromSource(target, source);
+  }
+}
+
+export function templateController(target?) {
+  let deco = function<T extends { new(...args:any[]):{} }>(target: T) {
+    (<any>target).isTemplateController = true;
+    return target;
+  }
+
+  return target ? deco(target) : deco;
 }
 
 /**

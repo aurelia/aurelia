@@ -1,4 +1,4 @@
-import { bindingMode } from './binding-mode';
+import { BindingMode } from './binding-mode';
 import { ConnectableBinding } from './connectable-binding';
 import { enqueueBindingConnect } from './connect-queue';
 import { sourceContext, targetContext } from './call-context';
@@ -51,7 +51,7 @@ export class Binding extends ConnectableBinding implements IBinding {
         this.updateTarget(newValue);
       }
 
-      if (this.mode !== bindingMode.oneTime) {
+      if (this.mode !== BindingMode.oneTime) {
         this.version++;
         this.sourceExpression.connect(this, this.source);
         this.unobserve(false);
@@ -90,7 +90,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     let mode = this.mode;
 
     if (!this.targetObserver) {
-      let method: 'getObserver' | 'getAccessor' = mode === bindingMode.twoWay || mode === bindingMode.fromView ? 'getObserver' : 'getAccessor';
+      let method: 'getObserver' | 'getAccessor' = mode === BindingMode.twoWay || mode === BindingMode.fromView ? 'getObserver' : 'getAccessor';
       this.targetObserver = this.observerLocator[method](this.target, this.targetProperty);
     }
 
@@ -98,19 +98,19 @@ export class Binding extends ConnectableBinding implements IBinding {
       this.targetObserver.bind();
     }
 
-    if (this.mode !== bindingMode.fromView) {
+    if (this.mode !== BindingMode.fromView) {
       let value = this.sourceExpression.evaluate(source, this.container);
       this.updateTarget(value);
     }
 
-    if (mode === bindingMode.oneTime) {
+    if (mode === BindingMode.oneTime) {
       return;
-    } else if (mode === bindingMode.toView) {
+    } else if (mode === BindingMode.toView) {
       enqueueBindingConnect(this);
-    } else if (mode === bindingMode.twoWay) {
+    } else if (mode === BindingMode.twoWay) {
       this.sourceExpression.connect(this, source);
       (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
-    } else if (mode === bindingMode.fromView) {
+    } else if (mode === BindingMode.fromView) {
       (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
     }
   }
@@ -160,7 +160,7 @@ export class TextBinding extends Binding {
     container: IContainer,
     observerLocator: ObserverLocator = ObserverLocator.instance
   ) {
-    super(sourceExpression, target.nextSibling, 'textContent', bindingMode.oneWay, container);
+    super(sourceExpression, target.nextSibling, 'textContent', BindingMode.oneWay, container);
     let next = target.nextSibling;
     next['auInterpolationTarget'] = true;
     target.parentNode.removeChild(target);

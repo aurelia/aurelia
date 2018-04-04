@@ -1,16 +1,16 @@
 import { DOM } from "../dom";
 import { View, IView, IViewOwner } from "./view";
-import { IComponent, IAttach, IBindSelf } from "./component";
+import { IElementComponent, IAttach, IBindSelf, IAttributeComponent } from "./component";
 import { IBinding, Binding } from "../binding/binding";
 import { ViewSlot } from "./view-slot";
 import { IBindScope, IScope } from "../binding/binding-interfaces";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
-import { bindingMode } from "../binding/binding-mode";
 import { Listener } from "../binding/listener";
 import { Call } from "../binding/call";
 import { Ref } from "../binding/ref";
 import { Expression } from "../binding/expression";
 import { DI, IContainer, IResolver, IRegistration} from "../di";
+import { BindingMode } from "../binding/binding-mode";
 
 export interface ITemplate {
   createFor(owner: IViewOwner, host?: Node): IView;
@@ -79,16 +79,16 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
       let next = target.nextSibling;
       DOM.treatNodeAsNonWhitespace(next);
       DOM.removeNode(target);
-      owner.$bindable.push(new Binding(Expression.from(instruction.source), next, 'textContent', bindingMode.oneWay, container));
+      owner.$bindable.push(new Binding(Expression.from(instruction.source), next, 'textContent', BindingMode.oneWay, container));
       break;
     case 'oneWay':
-      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, bindingMode.oneWay, container));
+      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, BindingMode.oneWay, container));
       break;
     case 'fromView':
-      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, bindingMode.fromView, container));
+      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, BindingMode.fromView, container));
       break;
     case 'twoWay':
-      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, bindingMode.twoWay, container));
+      owner.$bindable.push(new Binding(Expression.from(instruction.source), target, instruction.target, BindingMode.twoWay, container));
       break;
     case 'listener':
       owner.$bindable.push(new Listener(instruction.source, instruction.strategy, Expression.from(instruction.target), target, instruction.preventDefault, container));
@@ -100,7 +100,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
       owner.$bindable.push(new Ref(Expression.from(instruction.source), target, container));
       break;
     case 'style':
-      owner.$bindable.push(new Binding(Expression.from(instruction.source), (target as HTMLElement).style, instruction.target, bindingMode.oneWay, container));
+      owner.$bindable.push(new Binding(Expression.from(instruction.source), (target as HTMLElement).style, instruction.target, BindingMode.oneWay, container));
       break;
     case 'property':
       target[instruction.target] = instruction.value;
@@ -127,7 +127,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
       let elementInstructions = instruction.instructions;
 
       container.element.instance = target;
-      let elementModel = container.get<IViewOwner & IComponent>(instruction.resource);
+      let elementModel = container.get<IElementComponent>(instruction.resource);
       (<any>elementModel).$contentView = View.fromCompiledElementContent(elementModel, target);
 
       elementModel.applyTo(target);
@@ -146,7 +146,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
       let attributeInstructions = instruction.instructions;
 
       container.element.instance = target;
-      let attributeModel = container.get<IComponent>(instruction.resource);
+      let attributeModel = container.get<IAttributeComponent>(instruction.resource);
 
       for (let i = 0, ii = attributeInstructions.length; i < ii; ++i) {
         applyInstruction(owner, attributeInstructions[i], attributeModel, container);
@@ -166,7 +166,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
       container.element.instance = target;
       container.viewFactory.instance = factory;
       container.viewSlot.instance = new ViewSlot(DOM.makeElementIntoAnchor(target), false);
-      let templateControllerModel = container.get<IComponent>(instruction.resource);
+      let templateControllerModel = container.get<IAttributeComponent>(instruction.resource);
 
       if (instruction.link) {
         (<any>templateControllerModel).link(owner.$attachable[owner.$attachable.length - 1]);

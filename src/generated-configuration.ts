@@ -1,7 +1,7 @@
 import { AccessScope, TemplateLiteral, LiteralString, Conditional, CallScope, IExpression } from "./runtime/binding/ast";
 import { IContainer } from "./runtime/di";
 import * as StandardConfiguration from './runtime/configuration/standard';
-import { Expression } from "./designtime/binding/expression";
+import { Expression } from "./runtime/binding/expression";
 
 const emptyArray: any[] = [];
 

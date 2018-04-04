@@ -8,6 +8,7 @@ import { IShadowSlot, ShadowDOM } from "./shadow-dom";
 import { FEATURE } from "../feature";
 import { DOM } from "../dom";
 import { IContainer, Registration } from "../di";
+import { BindingMode } from "../binding/binding-mode";
 
 export interface IBindSelf {
   bind(): void;
@@ -22,7 +23,11 @@ export interface IApplyToTarget {
   applyTo(target: Element): this;
 }
 
-export interface IComponent extends IBindSelf, IAttach, IApplyToTarget, IViewOwner {
+export interface IElementComponent extends IBindSelf, IAttach, IApplyToTarget, IViewOwner {
+  
+}
+
+export interface IAttributeComponent extends IBindScope, IAttach {
   
 }
 
@@ -33,23 +38,106 @@ export interface CompiledElementSource extends CompiledViewSource {
   shadowOptions?: ShadowRootInit;
 }
 
+export interface AttributeSource {
+  name: string;
+  defaultBindingMode?: BindingMode;
+  aliases?: string[];
+  isTemplateController?: boolean;
+}
+
 type Constructable = {
   new(...args: any[]): {};
 }
 
-type ConstructableComponent = Constructable & {
-  new(...args: any[]): IComponent;
+type ConstructableAttributeComponent = Constructable & {
+  new(...args: any[]): IAttributeComponent;
+  source: AttributeSource;
+};
+
+type ConstructableElementComponent = Constructable & {
+  new(...args: any[]): IElementComponent;
   template: ITemplate;
   source: CompiledElementSource;
 }
 
 export const Component = {
-  fromCompiledSource<T extends Constructable>(ctor: T, source: CompiledElementSource): T & ConstructableComponent {
+  attributeFromSource<T extends Constructable>(ctor: T, source: AttributeSource): T & ConstructableAttributeComponent {
+    return class CustomAttribute extends ctor implements IAttributeComponent {
+      static source: AttributeSource = source;
+
+      static register(container: IContainer){
+        container.register(Registration.transient(source.name, CustomAttribute));
+
+        let aliases = source.aliases;
+
+        if (aliases) {
+          for(let i = 0, ii = aliases.length; i < ii; ++i) {
+            container.register(Registration.transient(aliases[i], CustomAttribute));
+          }
+        }
+      }
+
+      private $changeCallbacks: (() => void)[] = [];
+      $isBound = false;
+
+      constructor(...args:any[]) {
+        super(...args);
+        setupObservers(this, source);
+
+        if ('created' in this) {
+          (<any>this).created();
+        }
+      }
+
+      bind(scope: IScope) {
+        this.$isBound = true;
+  
+        let changeCallbacks = this.$changeCallbacks;
+  
+        for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+          changeCallbacks[i]();
+        }
+  
+        if ('bound' in this) {
+          (<any>this).bound(scope);
+        }
+      }
+
+      attach(){
+        if ('attaching' in this) {
+          (<any>this).attaching();
+        }
+      
+        if ('attached' in this) {
+          TaskQueue.instance.queueMicroTask(() => (<any>this).attached());
+        }
+      }
+
+      detach() {
+        if ('detaching' in this) {
+          (<any>this).detaching();
+        }
+  
+        if ('detached' in this) {
+          TaskQueue.instance.queueMicroTask(() => (<any>this).detached());
+        }
+      }
+
+      unbind() {
+        if ('unbound' in this) {
+          (<any>this).unbound();
+        }
+  
+        this.$isBound = false;
+      }
+    };
+  },
+  elementFromCompiledSource<T extends Constructable>(ctor: T, source: CompiledElementSource): T & ConstructableElementComponent {
     const template = ViewEngine.templateFromCompiledSource(source);
 
     //TODO: Add CompiledComponent into template's container.
       
-    return class CompiledComponent extends ctor implements IComponent {
+    return class CompiledComponent extends ctor implements IElementComponent {
       static template: ITemplate = template;
       static source: CompiledElementSource = source;
 
@@ -186,6 +274,11 @@ export const Component = {
 
 function setupObservers(instance, config) {
   let observerConfigs = config.observers;
+
+  if (!observerConfigs) {
+    return;
+  }
+
   let observers = {};
 
   for (let i = 0, ii = observerConfigs.length; i < ii; ++i) {

@@ -74,6 +74,52 @@ export function containerless(target?): any {
   return target ? deco(target) : deco;
 }
 
+export interface BindableConfig {
+  defaultBindingMode?: BindingMode;
+  changeHandler?: string;
+  attribute?: string;
+}
+
+const capitalMatcher = /([A-Z])/g;
+
+function addHyphenAndLower(char) {
+  return '-' + char.toLowerCase();
+}
+
+function hyphenate(name) {
+  return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
+}
+
+/**
+* Decorator: Specifies custom behavior for a bindable property.
+* @param config The overrides.
+*/
+export function bindable(config: BindableConfig) {
+  return function(target, key, descriptor) {
+    let bindables = target.bindables || (target.bindables = []);
+    let attributes = target.attributes || (target.attributes = {});
+    
+    if (!config.attribute) {
+      config.attribute = hyphenate(key);
+    }
+
+    if (!config.changeHandler) {
+      config.changeHandler = `${key}Changed`;
+    }
+
+    if (!config.defaultBindingMode) {
+      config.defaultBindingMode = BindingMode.oneWay;
+    }
+
+    (<any>config).name = key;
+
+    bindables.push(config);
+    attributes[config.attribute] = config;
+    
+    return target;
+  };
+}
+
 /**
 * Decorator: Directs the TypeScript transpiler to write-out type metadata for the decorated class.
 */

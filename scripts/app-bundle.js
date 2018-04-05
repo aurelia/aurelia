@@ -427,6 +427,33 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
         return target ? deco(target) : deco;
     }
     exports.containerless = containerless;
+    var capitalMatcher = /([A-Z])/g;
+    function addHyphenAndLower(char) {
+        return '-' + char.toLowerCase();
+    }
+    function hyphenate(name) {
+        return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
+    }
+    function bindable(config) {
+        return function (target, key, descriptor) {
+            var bindables = target.bindables || (target.bindables = []);
+            var attributes = target.attributes || (target.attributes = {});
+            if (!config.attribute) {
+                config.attribute = hyphenate(key);
+            }
+            if (!config.changeHandler) {
+                config.changeHandler = key + "Changed";
+            }
+            if (!config.defaultBindingMode) {
+                config.defaultBindingMode = binding_mode_1.BindingMode.oneWay;
+            }
+            config.name = key;
+            bindables.push(config);
+            attributes[config.attribute] = config;
+            return target;
+        };
+    }
+    exports.bindable = bindable;
     function autoinject(potentialTarget) {
         var deco = function (target) {
             var previousInject = target.inject ? target.inject.slice() : null;

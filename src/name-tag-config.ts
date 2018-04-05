@@ -4,7 +4,6 @@ import { CompiledElementSource } from "./runtime/templating/component";
 export const nameTagConfig: CompiledElementSource = {
   name: 'name-tag',
   hasSlots: true,
-  //shadowOptions: { mode: 'open' },
   template: `
     <header>Super Duper name tag</header>
     <div>

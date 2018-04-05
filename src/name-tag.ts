@@ -1,4 +1,4 @@
-import { compiledElement, containerless } from "./runtime/decorators"; //added by the compiler
+import { compiledElement } from "./runtime/decorators"; //added by the compiler
 import { nameTagConfig } from './name-tag-config'; //added by the compiler
 
 @compiledElement(nameTagConfig) //added by the compiler

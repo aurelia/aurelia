@@ -6,7 +6,7 @@ import * as import1 from "./name-tag";
 //this object is built up during compilation
 export const appConfig: CompiledElementSource = {
   name: 'app',
-  resources: [
+  dependencies: [
     import1
   ],
   template: `

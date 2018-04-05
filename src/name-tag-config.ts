@@ -3,7 +3,6 @@ import { CompiledElementSource } from "./runtime/templating/component";
 //this object is built up during compilation
 export const nameTagConfig: CompiledElementSource = {
   name: 'name-tag',
-  resources: [],
   hasSlots: true,
   //shadowOptions: { mode: 'open' },
   template: `

@@ -137,10 +137,8 @@ export const Component = {
     source.containerless = source.containerless || (<any>ctor).containerless || false;
     
     const template = ViewEngine.templateFromCompiledSource(source);
-
-    //TODO: Add CompiledComponent into template's container.
       
-    return class CompiledComponent extends ctor implements IElementComponent {
+    let CompiledComponent = class extends ctor implements IElementComponent {
       static template: ITemplate = template;
       static source: CompiledElementSource = source;
 
@@ -272,6 +270,11 @@ export const Component = {
         this.$isBound = false;
       }
     }
+
+    //Support Recursive Components by adding self to own view template container.
+    CompiledComponent.register(template.container);
+
+    return CompiledComponent;
   }
 };
 

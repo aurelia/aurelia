@@ -3,7 +3,7 @@ define('app-config',["require", "exports", "./name-tag"], function (require, exp
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.appConfig = {
         name: 'app',
-        resources: [
+        dependencies: [
             import1
         ],
         template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <au-content>\n        <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n      </au-content>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
@@ -189,7 +189,6 @@ define('name-tag-config',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.nameTagConfig = {
         name: 'name-tag',
-        resources: [],
         hasSlots: true,
         template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n      <slot class=\"au\"></slot>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
         observers: [
@@ -5043,9 +5042,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             source.shadowOptions = source.shadowOptions || ctor.shadowOptions || null;
             source.containerless = source.containerless || ctor.containerless || false;
             var template = view_engine_1.ViewEngine.templateFromCompiledSource(source);
-            return _a = (function (_super) {
-                    __extends(CompiledComponent, _super);
-                    function CompiledComponent() {
+            var CompiledComponent = (_a = (function (_super) {
+                    __extends(class_1, _super);
+                    function class_1() {
                         var args = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             args[_i] = arguments[_i];
@@ -5065,10 +5064,10 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         setupObservers(_this, source);
                         return _this;
                     }
-                    CompiledComponent.register = function (container) {
+                    class_1.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    CompiledComponent.prototype.applyTo = function (host) {
+                    class_1.prototype.applyTo = function (host) {
                         this.$host = source.containerless
                             ? dom_1.DOM.makeElementIntoAnchor(host, true)
                             : host;
@@ -5081,10 +5080,10 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                         return this;
                     };
-                    CompiledComponent.prototype.createView = function (host) {
+                    class_1.prototype.createView = function (host) {
                         return template.createFor(this, host);
                     };
-                    CompiledComponent.prototype.bind = function () {
+                    class_1.prototype.bind = function () {
                         var scope = this.$scope;
                         var bindable = this.$bindable;
                         for (var i = 0, ii = bindable.length; i < ii; ++i) {
@@ -5102,7 +5101,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.bound();
                         }
                     };
-                    CompiledComponent.prototype.attach = function () {
+                    class_1.prototype.attach = function () {
                         var _this = this;
                         if ('attaching' in this) {
                             this.attaching();
@@ -5121,7 +5120,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
                         }
                     };
-                    CompiledComponent.prototype.detach = function () {
+                    class_1.prototype.detach = function () {
                         var _this = this;
                         if ('detaching' in this) {
                             this.detaching();
@@ -5136,7 +5135,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
                         }
                     };
-                    CompiledComponent.prototype.unbind = function () {
+                    class_1.prototype.unbind = function () {
                         var bindable = this.$bindable;
                         var i = bindable.length;
                         while (i--) {
@@ -5147,11 +5146,13 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                         this.$isBound = false;
                     };
-                    return CompiledComponent;
+                    return class_1;
                 }(ctor)),
                 _a.template = template,
                 _a.source = source,
-                _a;
+                _a);
+            CompiledComponent.register(template.container);
+            return CompiledComponent;
             var _a;
         }
     };
@@ -5582,6 +5583,7 @@ define('runtime/templating/view-engine',["require", "exports", "../dom", "./view
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
+        container: di_1.DI,
         createFor: function (owner, host) {
             return view_1.View.none;
         }
@@ -5736,7 +5738,7 @@ define('runtime/templating/view-engine',["require", "exports", "../dom", "./view
     var CompiledTemplate = (function () {
         function CompiledTemplate(source) {
             this.source = source;
-            this.container = createTemplateContainer(source.resources);
+            this.container = createTemplateContainer(source.dependencies);
             this.element = dom_1.DOM.createTemplateElement();
             this.element.innerHTML = source.template;
         }

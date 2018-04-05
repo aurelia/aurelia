@@ -13,18 +13,20 @@ import { DI, IContainer, IResolver, IRegistration} from "../di";
 import { BindingMode } from "../binding/binding-mode";
 
 export interface ITemplate {
+  container: IContainer;
   createFor(owner: IViewOwner, host?: Node): IView;
 }
 
 export interface CompiledViewSource {
   template: string;
-  resources: any[];
+  dependencies?: any[];
   hasSlots?: boolean;
   targetInstructions: any[];
   surrogateInstructions?: any[];
 }
 
 const noViewTemplate: ITemplate = {
+  container: DI,
   createFor(owner: IViewOwner, host?: Node) {
     return View.none;
   }
@@ -213,10 +215,10 @@ function createTemplateContainer(dependencies) {
 
 class CompiledTemplate implements ITemplate {
   private element: HTMLTemplateElement;
-  private container: TemplateContainer;
+  container: TemplateContainer;
 
   constructor(private source: CompiledViewSource) {
-    this.container = createTemplateContainer(source.resources);
+    this.container = createTemplateContainer(source.dependencies);
     this.element = DOM.createTemplateElement();
     this.element.innerHTML = source.template;
   }

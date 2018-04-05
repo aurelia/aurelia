@@ -9,6 +9,12 @@ export function compiledElement(source: CompiledElementSource) {
   }
 }
 
+/**
+* Decorator: Indicates that the decorated class is a custom attribute.
+* @param name The name of the custom attribute.
+* @param defaultBindingMode The default binding mode to use when the attribute is bound with .bind.
+* @param aliases The array of aliases to associate to the custom attribute.
+*/
 export function customAttribute(name: string, defaultBindingMode: BindingMode = BindingMode.oneWay, aliases?: string[]) {
   return function<T extends { new(...args:any[]):{} }>(target: T) {
     let source: AttributeSource = {
@@ -22,6 +28,11 @@ export function customAttribute(name: string, defaultBindingMode: BindingMode = 
   }
 }
 
+/**
+* Decorator: Applied to custom attributes. Indicates that whatever element the
+* attribute is placed on should be converted into a template and that this
+* attribute controls the instantiation of the template.
+*/
 export function templateController(target?) {
   let deco = function<T extends { new(...args:any[]):{} }>(target: T) {
     (<any>target).isTemplateController = true;

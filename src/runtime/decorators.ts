@@ -94,11 +94,12 @@ function hyphenate(name) {
 * Decorator: Specifies custom behavior for a bindable property.
 * @param configOrTarget The overrides.
 */
-export function bindable(configOrTarget?: BindableConfig | Object, key?, descriptor?) {
+export function bindable(configOrTarget?: BindableConfig | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
-    let actualTarget = target.constructor;
-    let observables = actualTarget.observables || (actualTarget.observables = {});
-    let attributes = actualTarget.attributes || (actualTarget.attributes = {});
+    target = target.constructor;
+    
+    let observables = target.observables || (target.observables = {});
+    let attributes = target.attributes || (target.attributes = {});
     let config: BindableConfig = configOrTarget || {};
     
     if (!config.attribute) {
@@ -113,7 +114,7 @@ export function bindable(configOrTarget?: BindableConfig | Object, key?, descrip
       config.defaultBindingMode = BindingMode.oneWay;
     }
 
-    (<any>configOrTarget).name = key2;
+    (<any>config).name = key2;
 
     observables[key2] = config;
     attributes[config.attribute] = config;

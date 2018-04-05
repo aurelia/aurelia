@@ -436,9 +436,9 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
     }
     function bindable(configOrTarget, key, descriptor) {
         var deco = function (target, key2, descriptor2) {
-            var actualTarget = target.constructor;
-            var observables = actualTarget.observables || (actualTarget.observables = {});
-            var attributes = actualTarget.attributes || (actualTarget.attributes = {});
+            target = target.constructor;
+            var observables = target.observables || (target.observables = {});
+            var attributes = target.attributes || (target.attributes = {});
             var config = configOrTarget || {};
             if (!config.attribute) {
                 config.attribute = hyphenate(key2);
@@ -449,7 +449,7 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
             if (!config.defaultBindingMode) {
                 config.defaultBindingMode = binding_mode_1.BindingMode.oneWay;
             }
-            configOrTarget.name = key2;
+            config.name = key2;
             observables[key2] = config;
             attributes[config.attribute] = config;
         };

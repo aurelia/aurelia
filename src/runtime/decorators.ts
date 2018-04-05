@@ -31,6 +31,25 @@ export function templateController(target?) {
   return target ? deco(target) : deco;
 }
 
+const defaultShadowOptions = { mode: 'open' };
+
+/**
+* Decorator: Indicates that the custom element should render its view in Shadow
+* DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
+*/
+export function useShadowDOM(targetOrOptions?): any {
+  let options = typeof targetOrOptions === 'function' || !targetOrOptions
+    ? defaultShadowOptions
+    : targetOrOptions;
+
+  let deco = function<T extends { new(...args:any[]):{} }>(target: T) {
+    (<any>target).shadowOptions = options;
+    return target;
+  }
+
+  return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
+}
+
 /**
 * Decorator: Directs the TypeScript transpiler to write-out type metadata for the decorated class.
 */

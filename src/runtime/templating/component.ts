@@ -133,6 +133,8 @@ export const Component = {
     };
   },
   elementFromCompiledSource<T extends Constructable>(ctor: T, source: CompiledElementSource): T & ConstructableElementComponent {
+    source.shadowOptions = source.shadowOptions || (<any>ctor).shadowOptions || null;
+    
     const template = ViewEngine.templateFromCompiledSource(source);
 
     //TODO: Add CompiledComponent into template's container.

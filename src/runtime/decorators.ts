@@ -92,32 +92,40 @@ function hyphenate(name) {
 
 /**
 * Decorator: Specifies custom behavior for a bindable property.
-* @param config The overrides.
+* @param configOrTarget The overrides.
 */
-export function bindable(config: BindableConfig) {
-  return function(target, key, descriptor) {
-    let bindables = target.bindables || (target.bindables = []);
-    let attributes = target.attributes || (target.attributes = {});
+export function bindable(configOrTarget?: BindableConfig | Object, key?, descriptor?) {
+  let deco = function(target, key2, descriptor2) {
+    let actualTarget = target.constructor;
+    let observables = actualTarget.observables || (actualTarget.observables = {});
+    let attributes = actualTarget.attributes || (actualTarget.attributes = {});
+    let config: BindableConfig = configOrTarget || {};
     
     if (!config.attribute) {
-      config.attribute = hyphenate(key);
+      config.attribute = hyphenate(key2);
     }
 
     if (!config.changeHandler) {
-      config.changeHandler = `${key}Changed`;
+      config.changeHandler = `${key2}Changed`;
     }
 
     if (!config.defaultBindingMode) {
       config.defaultBindingMode = BindingMode.oneWay;
     }
 
-    (<any>config).name = key;
+    (<any>configOrTarget).name = key2;
 
-    bindables.push(config);
+    observables[key2] = config;
     attributes[config.attribute] = config;
-    
-    return target;
   };
+
+  if (key) { //placed on a property without parens
+    var target = configOrTarget;
+    configOrTarget = null; //ensure that the closure captures the fact that there's actually no config
+    return deco(target, key, descriptor);
+  }
+
+  return deco;
 }
 
 /**

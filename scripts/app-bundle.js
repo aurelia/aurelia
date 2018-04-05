@@ -434,24 +434,31 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
     function hyphenate(name) {
         return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
     }
-    function bindable(config) {
-        return function (target, key, descriptor) {
-            var bindables = target.bindables || (target.bindables = []);
-            var attributes = target.attributes || (target.attributes = {});
+    function bindable(configOrTarget, key, descriptor) {
+        var deco = function (target, key2, descriptor2) {
+            var actualTarget = target.constructor;
+            var observables = actualTarget.observables || (actualTarget.observables = {});
+            var attributes = actualTarget.attributes || (actualTarget.attributes = {});
+            var config = configOrTarget || {};
             if (!config.attribute) {
-                config.attribute = hyphenate(key);
+                config.attribute = hyphenate(key2);
             }
             if (!config.changeHandler) {
-                config.changeHandler = key + "Changed";
+                config.changeHandler = key2 + "Changed";
             }
             if (!config.defaultBindingMode) {
                 config.defaultBindingMode = binding_mode_1.BindingMode.oneWay;
             }
-            config.name = key;
-            bindables.push(config);
+            configOrTarget.name = key2;
+            observables[key2] = config;
             attributes[config.attribute] = config;
-            return target;
         };
+        if (key) {
+            var target = configOrTarget;
+            configOrTarget = null;
+            return deco(target, key, descriptor);
+        }
+        return deco;
     }
     exports.bindable = bindable;
     function autoinject(potentialTarget) {

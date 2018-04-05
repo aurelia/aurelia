@@ -420,6 +420,14 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
         return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
     }
     exports.useShadowDOM = useShadowDOM;
+    function containerless(target) {
+        var deco = function (target) {
+            target.containerless = true;
+            return target;
+        };
+        return target ? deco(target) : deco;
+    }
+    exports.containerless = containerless;
     function autoinject(potentialTarget) {
         var deco = function (target) {
             var previousInject = target.inject ? target.inject.slice() : null;
@@ -5033,6 +5041,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
         },
         elementFromCompiledSource: function (ctor, source) {
             source.shadowOptions = source.shadowOptions || ctor.shadowOptions || null;
+            source.containerless = source.containerless || ctor.containerless || false;
             var template = view_engine_1.ViewEngine.templateFromCompiledSource(source);
             return _a = (function (_super) {
                     __extends(CompiledComponent, _super);

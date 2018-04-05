@@ -51,6 +51,19 @@ export function useShadowDOM(targetOrOptions?): any {
 }
 
 /**
+* Decorator: Indicates that the custom element should be rendered without its
+* element container.
+*/
+export function containerless(target?): any {
+  let deco = function<T extends { new(...args:any[]):{} }>(target: T) {
+    (<any>target).containerless = true;
+    return target;
+  }
+
+  return target ? deco(target) : deco;
+}
+
+/**
 * Decorator: Directs the TypeScript transpiler to write-out type metadata for the decorated class.
 */
 export function autoinject(potentialTarget?: any): any {

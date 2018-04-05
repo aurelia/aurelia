@@ -134,6 +134,7 @@ export const Component = {
   },
   elementFromCompiledSource<T extends Constructable>(ctor: T, source: CompiledElementSource): T & ConstructableElementComponent {
     source.shadowOptions = source.shadowOptions || (<any>ctor).shadowOptions || null;
+    source.containerless = source.containerless || (<any>ctor).containerless || false;
     
     const template = ViewEngine.templateFromCompiledSource(source);
 

@@ -1,11 +1,9 @@
 import { IfCore } from "./if-core";
 import { IScope } from "../binding/binding-interfaces";
 import { Else } from "./else";
-import { Observer } from "../binding/property-observation";
-import { IContainer, Registration } from "../di";
 import { IViewFactory } from "../templating/view-engine";
 import { ViewSlot } from "../templating/view-slot";
-import { inject, templateController, customAttribute } from "../decorators";
+import { inject, templateController, customAttribute, bindable } from "../decorators";
 
 @customAttribute('if')
 @templateController
@@ -14,24 +12,9 @@ export class If extends IfCore {
   private animating = false;
   private elseBehavior: Else;
 
-  $observers = {
-    condition: new Observer(false, v => (<any>this).$isBound ? this.conditionChanged(v) : void 0)
-  };
+  @bindable swapOrder: 'before' | 'with' | 'after' = 'after';
+  @bindable condition: boolean = false;
 
-  get condition() { return this.$observers.condition.getValue(); }
-  set condition(value: boolean) { this.$observers.condition.setValue(value); }
-
-  swapOrder: 'before' | 'with' | 'after';
-
-  bound(scope: IScope) {
-    super.bound(scope);
-    this.conditionChanged(this.condition);
-  }
-
-  /**
-  * Invoked every time value property changes.
-  * @param newValue The new value
-  */
   conditionChanged(newValue) {
     this.update(newValue);
   }

@@ -7,14 +7,6 @@ define('app-config',["require", "exports", "./name-tag"], function (require, exp
             import1
         ],
         template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <au-content>\n        <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n      </au-content>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
-        observers: [
-            {
-                name: 'message'
-            },
-            {
-                name: 'duplicateMessage'
-            }
-        ],
         targetInstructions: [
             [
                 {
@@ -191,24 +183,6 @@ define('name-tag-config',["require", "exports"], function (require, exports) {
         name: 'name-tag',
         hasSlots: true,
         template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n      <slot class=\"au\"></slot>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
-        observers: [
-            {
-                name: 'name',
-                changeHandler: 'nameChanged'
-            },
-            {
-                name: 'color'
-            },
-            {
-                name: 'borderColor'
-            },
-            {
-                name: 'borderWidth'
-            },
-            {
-                name: 'showHeader'
-            }
-        ],
         targetInstructions: [
             [
                 {
@@ -4767,7 +4741,6 @@ define('runtime/resources/else',["require", "exports", "./if-core", "../templati
             return _super !== null && _super.apply(this, arguments) || this;
         }
         Else.prototype.bound = function (scope) {
-            _super.prototype.bound.call(this, scope);
             if (this.ifBehavior.condition) {
                 this.hide();
             }
@@ -4803,12 +4776,9 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             this.viewFactory = viewFactory;
             this.viewSlot = viewSlot;
             this.visual = null;
-            this.scope = null;
+            this.$scope = null;
             this.showing = false;
         }
-        IfCore.prototype.bound = function (scope) {
-            this.scope = scope;
-        };
         IfCore.prototype.attached = function () {
             this.viewSlot.attach();
         };
@@ -4829,7 +4799,7 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
         IfCore.prototype.show = function () {
             if (this.showing) {
                 if (!this.visual.$isBound) {
-                    this.visual.bind(this.scope);
+                    this.visual.bind(this.$scope);
                 }
                 return;
             }
@@ -4837,7 +4807,7 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
                 this.visual = this.viewFactory.create();
             }
             if (!this.visual.$isBound) {
-                this.visual.bind(this.scope);
+                this.visual.bind(this.$scope);
             }
             this.showing = true;
             return this.viewSlot.add(this.visual);
@@ -4877,7 +4847,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('runtime/resources/if',["require", "exports", "./if-core", "../binding/property-observation", "../templating/view-engine", "../templating/view-slot", "../decorators"], function (require, exports, if_core_1, property_observation_1, view_engine_1, view_slot_1, decorators_1) {
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/resources/if',["require", "exports", "./if-core", "../templating/view-engine", "../templating/view-slot", "../decorators"], function (require, exports, if_core_1, view_engine_1, view_slot_1, decorators_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var If = (function (_super) {
@@ -4885,21 +4858,10 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
         function If() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.animating = false;
-            _this.$observers = {
-                condition: new property_observation_1.Observer(false, function (v) { return _this.$isBound ? _this.conditionChanged(v) : void 0; })
-            };
+            _this.swapOrder = 'after';
+            _this.condition = false;
             return _this;
         }
-        Object.defineProperty(If.prototype, "condition", {
-            get: function () { return this.$observers.condition.getValue(); },
-            set: function (value) { this.$observers.condition.setValue(value); },
-            enumerable: true,
-            configurable: true
-        });
-        If.prototype.bound = function (scope) {
-            _super.prototype.bound.call(this, scope);
-            this.conditionChanged(this.condition);
-        };
         If.prototype.conditionChanged = function (newValue) {
             this.update(newValue);
         };
@@ -4944,6 +4906,14 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../binding/pr
                     return promise ? promise.then(function () { return add.show(); }) : add.show();
             }
         };
+        __decorate([
+            decorators_1.bindable,
+            __metadata("design:type", String)
+        ], If.prototype, "swapOrder", void 0);
+        __decorate([
+            decorators_1.bindable,
+            __metadata("design:type", Boolean)
+        ], If.prototype, "condition", void 0);
         If = __decorate([
             decorators_1.customAttribute('if'),
             decorators_1.templateController,
@@ -5017,7 +4987,8 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         var _this = _super.apply(this, args) || this;
                         _this.$changeCallbacks = [];
                         _this.$isBound = false;
-                        setupObservers(_this, source);
+                        _this.$scope = null;
+                        setupObservers(_this, CustomAttribute);
                         if ('created' in _this) {
                             _this.created();
                         }
@@ -5033,6 +5004,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                     };
                     CustomAttribute.prototype.bind = function (scope) {
+                        this.$scope = scope;
                         this.$isBound = true;
                         var changeCallbacks = this.$changeCallbacks;
                         for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
@@ -5095,7 +5067,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             overrideContext: scope_1.createOverrideContext()
                         };
                         _this.$changeCallbacks = [];
-                        setupObservers(_this, source);
+                        setupObservers(_this, CompiledComponent);
                         return _this;
                     }
                     class_1.register = function (container) {
@@ -5190,26 +5162,39 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             var _a;
         }
     };
-    function setupObservers(instance, config) {
-        var observerConfigs = config.observers;
-        if (!observerConfigs) {
-            return;
+    function setupObservers(instance, Component) {
+        var allObservables = Component.allObservables;
+        if (allObservables === undefined) {
+            var observables = Component.observables;
+            Component.allObservables = allObservables = [];
+            for (var key in instance) {
+                if (observables) {
+                    var found = observables[key];
+                    if (found) {
+                        if (found.changeHandler in instance) {
+                            allObservables.push(found);
+                        }
+                        continue;
+                    }
+                }
+                if (key + "Changed" in instance) {
+                    allObservables.push({
+                        name: key,
+                        changeHandler: key + "Changed"
+                    });
+                }
+            }
         }
         var observers = {};
         var _loop_1 = function (i, ii) {
-            var observerConfig = observerConfigs[i];
+            var observerConfig = allObservables[i];
             var name_1 = observerConfig.name;
-            if ('changeHandler' in observerConfig) {
-                var changeHandler_1 = observerConfig.changeHandler;
-                observers[name_1] = new property_observation_1.Observer(instance[name_1], function (v) { return instance.$isBound ? instance[changeHandler_1](v) : void 0; });
-                instance.$changeCallbacks.push(function () { return instance[changeHandler_1](instance[name_1]); });
-            }
-            else {
-                observers[name_1] = new property_observation_1.Observer(instance[name_1]);
-            }
+            var changeHandler = observerConfig.changeHandler;
+            observers[name_1] = new property_observation_1.Observer(instance[name_1], function (v) { return instance.$isBound ? instance[changeHandler](v) : void 0; });
+            instance.$changeCallbacks.push(function () { return instance[changeHandler](instance[name_1]); });
             createGetterSetter(instance, name_1);
         };
-        for (var i = 0, ii = observerConfigs.length; i < ii; ++i) {
+        for (var i = 0, ii = allObservables.length; i < ii; ++i) {
             _loop_1(i, ii);
         }
         Object.defineProperty(instance, '$observers', {

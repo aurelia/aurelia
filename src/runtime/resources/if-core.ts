@@ -7,7 +7,7 @@ import { IVisual, IViewFactory } from '../templating/view-engine';
 */
 export abstract class IfCore {
   private visual: IVisual = null;
-  private scope: IScope = null;
+  private $scope: IScope = null;
 
   // If the child view is animated, `value` might not reflect the internal
   // state anymore, so we use `showing` for that.
@@ -15,10 +15,6 @@ export abstract class IfCore {
   protected showing = false;
 
   constructor(private viewFactory: IViewFactory, protected viewSlot: ViewSlot) { }
-
-  bound(scope: IScope) {
-    this.scope = scope;
-  }
 
   attached() {
     this.viewSlot.attach();
@@ -49,7 +45,7 @@ export abstract class IfCore {
       // It might not be the case when the if was unbound but not detached, then rebound.
       // Typical case where this happens is nested ifs
       if (!this.visual.$isBound) {
-        this.visual.bind(this.scope);
+        this.visual.bind(this.$scope);
       }
 
       return;
@@ -60,7 +56,7 @@ export abstract class IfCore {
     }
 
     if (!this.visual.$isBound) {
-      this.visual.bind(this.scope);
+      this.visual.bind(this.$scope);
     }
 
     this.showing = true;

@@ -48,24 +48,6 @@ export const nameTagConfig: CompiledElementSource = {
     </div>
     <button class="au">Reset</button>
   `,
-  observers: [
-    {
-      name: 'name',
-      changeHandler: 'nameChanged'
-    },
-    {
-      name: 'color'
-    },
-    {
-      name: 'borderColor'
-    },
-    {
-      name: 'borderWidth'
-    },
-    {
-      name: 'showHeader'
-    }
-  ],
   targetInstructions: [
     [
       {

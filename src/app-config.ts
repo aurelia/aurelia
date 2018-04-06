@@ -21,14 +21,6 @@ export const appConfig: CompiledElementSource = {
     <au-marker class="au"></au-marker>
     <au-marker class="au"></au-marker>
   `,
-  observers: [
-    {
-      name: 'message'
-    },
-    {
-      name: 'duplicateMessage'
-    }
-  ],
   targetInstructions: [
     [
       {

@@ -33,7 +33,6 @@ export interface IAttributeComponent extends IBindScope, IAttach {
 
 export interface CompiledElementSource extends CompiledViewSource {
   name: string;
-  observers: any[];
   containerless?: boolean;
   shadowOptions?: ShadowRootInit;
 }
@@ -79,10 +78,11 @@ export const Component = {
 
       private $changeCallbacks: (() => void)[] = [];
       $isBound = false;
+      $scope: IScope = null;
 
       constructor(...args:any[]) {
         super(...args);
-        setupObservers(this, source);
+        setupObservers(this, CustomAttribute);
 
         if ('created' in this) {
           (<any>this).created();
@@ -90,6 +90,7 @@ export const Component = {
       }
 
       bind(scope: IScope) {
+        this.$scope = scope;
         this.$isBound = true;
   
         let changeCallbacks = this.$changeCallbacks;
@@ -164,7 +165,7 @@ export const Component = {
   
       constructor(...args:any[]) {
         super(...args);
-        setupObservers(this, source);
+        setupObservers(this, CompiledComponent);
       }
   
       applyTo(host: Element) { 
@@ -278,26 +279,44 @@ export const Component = {
   }
 };
 
-function setupObservers(instance, config) {
-  let observerConfigs = config.observers;
+function setupObservers(instance, Component: ConstructableElementComponent | ConstructableAttributeComponent) {
+  let allObservables = (<any>Component).allObservables;
 
-  if (!observerConfigs) {
-    return;
+  if (allObservables === undefined) {
+    let observables = (<any>Component).observables;
+    (<any>Component).allObservables = allObservables = [];
+
+    for (let key in instance) {
+      if (observables) {
+        let found = observables[key];
+
+        if (found) {
+          if (found.changeHandler in instance) {
+            allObservables.push(found);
+          }
+
+          continue;
+        }
+      }
+
+      if (`${key}Changed` in instance) {
+        allObservables.push({
+          name: key,
+          changeHandler: `${key}Changed`
+        });
+      }
+    }
   }
 
   let observers = {};
 
-  for (let i = 0, ii = observerConfigs.length; i < ii; ++i) {
-    let observerConfig = observerConfigs[i];
+  for (let i = 0, ii = allObservables.length; i < ii; ++i) {
+    let observerConfig = allObservables[i];
     let name = observerConfig.name;
+    let changeHandler = observerConfig.changeHandler;
 
-    if ('changeHandler' in observerConfig) {
-      let changeHandler = observerConfig.changeHandler;
-      observers[name] = new Observer(instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
-      instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
-    } else {
-      observers[name] = new Observer(instance[name]);
-    }
+    observers[name] = new Observer(instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
+    instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
 
     createGetterSetter(instance, name);
   }

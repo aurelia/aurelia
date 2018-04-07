@@ -16,6 +16,7 @@ class AureliaFramework {
   private components: IElementComponent[] = [];
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
+  private isStarted = false;
 
   register(...params: any[]) {
     DI.register(...params);
@@ -28,8 +29,7 @@ class AureliaFramework {
 
   app(config: ISinglePageApp) {
     let component: IElementComponent = config.component;
-
-    this.startTasks.push(() => {
+    let startTask = () => {
       if (!this.components.includes(component)) {
         this.components.push(component);
         component.applyTo(config.host);
@@ -37,22 +37,30 @@ class AureliaFramework {
 
       component.bind();
       component.attach();
-    });
+    };
+
+    this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
       component.detach();
       component.unbind();
     });
+
+    if (this.isStarted) {
+      startTask();
+    }
     
     return this;
   }
 
   start() {
+    this.isStarted = true;
     this.startTasks.forEach(x => x());
     return this;
   }
 
   stop() {
+    this.isStarted = false;
     this.stopTasks.forEach(x => x());
     return this;
   }

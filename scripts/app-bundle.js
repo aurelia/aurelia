@@ -306,6 +306,7 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di"], function 
             this.components = [];
             this.startTasks = [];
             this.stopTasks = [];
+            this.isStarted = false;
         }
         AureliaFramework.prototype.register = function () {
             var params = [];
@@ -321,25 +322,31 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di"], function 
         AureliaFramework.prototype.app = function (config) {
             var _this = this;
             var component = config.component;
-            this.startTasks.push(function () {
+            var startTask = function () {
                 if (!_this.components.includes(component)) {
                     _this.components.push(component);
                     component.applyTo(config.host);
                 }
                 component.bind();
                 component.attach();
-            });
+            };
+            this.startTasks.push(startTask);
             this.stopTasks.push(function () {
                 component.detach();
                 component.unbind();
             });
+            if (this.isStarted) {
+                startTask();
+            }
             return this;
         };
         AureliaFramework.prototype.start = function () {
+            this.isStarted = true;
             this.startTasks.forEach(function (x) { return x(); });
             return this;
         };
         AureliaFramework.prototype.stop = function () {
+            this.isStarted = false;
             this.stopTasks.forEach(function (x) { return x(); });
             return this;
         };

@@ -1,6 +1,5 @@
 import * as LogManager from '../logging';
 import { DOM } from '../dom';
-import { TaskQueue, Task } from '../task-queue';
 import { getArrayObserver } from './array-observation';
 import { getMapObserver } from './map-observation';
 import { getSetObserver } from './set-observation';
@@ -22,7 +21,7 @@ import {
 } from './element-observation';
 import { ClassObserver } from './class-observer';
 import { SVGAnalyzer } from './svg';
-import { IObserverLocator, IBindingTargetObserver, IObservable, ITaskQueue, IBindingTargetAccessor } from './binding-interfaces';
+import { IObserverLocator, IBindingTargetObserver, IObservable, IBindingTargetAccessor } from './binding-interfaces';
 
 function getPropertyDescriptor(subject: object, name: string) {
   let pd = Object.getOwnPropertyDescriptor(subject, name);
@@ -43,7 +42,6 @@ export class ObserverLocator implements IObserverLocator {
   private logger = LogManager.getLogger('observer-locator');
 
   constructor(
-    public readonly taskQueue: ITaskQueue = TaskQueue.instance,
     private eventManager: EventManager = EventManager.instance,
     private dirtyChecker: DirtyChecker = DirtyChecker.instance,
     private svgAnalyzer: SVGAnalyzer = SVGAnalyzer.instance
@@ -190,7 +188,7 @@ export class ObserverLocator implements IObserverLocator {
       return new DirtyCheckProperty(this.dirtyChecker, obj, propertyName);
     }
 
-    return new SetterObserver(this.taskQueue, obj, propertyName);
+    return new SetterObserver(obj, propertyName);
   }
 
   getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
@@ -215,15 +213,15 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   getArrayObserver(array: any[]) {
-    return getArrayObserver(this.taskQueue, array);
+    return getArrayObserver(array);
   }
 
   getMapObserver(map: Map<any, any>) {
-    return getMapObserver(this.taskQueue, map);
+    return getMapObserver(map);
   }
 
   getSetObserver(set: Set<any>) {
-    return getSetObserver(this.taskQueue, set);
+    return getSetObserver(set);
   }
 }
 

@@ -1,5 +1,39 @@
 import { DOM } from './dom';
-import { ITaskQueue, ICallable } from './binding/binding-interfaces';
+import { ICallable } from './interfaces';
+
+export interface ITaskQueue {
+  /**
+   * Whether the queue is in the process of flushing.
+   */
+  flushing: boolean;
+
+  /**
+   * Enables long stack traces for queued tasks.
+   */
+  longStacks: boolean;
+
+  /**
+  * Queues a task on the micro task queue for ASAP execution.
+  * @param task The task to queue up for ASAP execution.
+  */
+  queueMicroTask(task: ICallable & { stack?: string }): void
+
+  /**
+  * Immediately flushes the micro task queue.
+  */
+  flushMicroTaskQueue(): void
+
+  /**
+  * Queues a task on the macro task queue for turn-based execution.
+  * @param task The task to queue up for turn-based execution.
+  */
+  queueTask(task: ICallable & { stack?: string }): void
+
+  /**
+  * Immediately flushes the task queue.
+  */
+  flushTaskQueue(): void
+}
 
 let hasSetImmediate = typeof setImmediate === 'function';
 
@@ -61,37 +95,18 @@ function onError(error: any, task: any, longStacks: any) {
 }
 
 /**
-* Either a Function or a class with a call method that will do work when dequeued.
-*/
-export interface Task {
-  /**
-  * Call it.
-  */
-  call(): void;
-}
-
-/**
 * Implements an asynchronous task queue.
 */
-export class TaskQueue implements ITaskQueue {
-  public static instance = new TaskQueue();
-
-  /**
-   * Whether the queue is in the process of flushing.
-   */
-  flushing = false;
-
-  /**
-   * Enables long stack traces for queued tasks.
-   */
-  longStacks = false;
-
+class TaskQueueImplementation implements ITaskQueue {
   private microTaskQueue: ICallable[] = [];
   private taskQueue: ICallable[] = [];
   private microTaskQueueCapacity = 1024;
   private requestFlushMicroTaskQueue = makeRequestFlushFromMutationObserver(() => this.flushMicroTaskQueue());
   private requestFlushTaskQueue = makeRequestFlushFromTimer(() => this.flushTaskQueue());
   private stack: string;
+
+  flushing = false;
+  longStacks = false;
 
   /**
   * Immediately flushes the queue.
@@ -135,11 +150,7 @@ export class TaskQueue implements ITaskQueue {
     }
   }
 
-  /**
-  * Queues a task on the micro task queue for ASAP execution.
-  * @param task The task to queue up for ASAP execution.
-  */
-  queueMicroTask(task: (Task | Function) & { stack?: string }): void {
+  queueMicroTask(task: ICallable & { stack?: string }): void {
     if (this.microTaskQueue.length < 1) {
       this.requestFlushMicroTaskQueue();
     }
@@ -153,11 +164,13 @@ export class TaskQueue implements ITaskQueue {
     this.microTaskQueue.push(task);
   }
 
-  /**
-  * Queues a task on the macro task queue for turn-based execution.
-  * @param task The task to queue up for turn-based execution.
-  */
-  queueTask(task: (Task | Function) & { stack?: string }): void {
+  flushMicroTaskQueue(): void {
+    let queue = this.microTaskQueue;
+    this.flushQueue(queue, this.microTaskQueueCapacity);
+    queue.length = 0;
+  }
+
+  queueTask(task: ICallable & { stack?: string }): void {
     if (this.taskQueue.length < 1) {
       this.requestFlushTaskQueue();
     }
@@ -171,22 +184,10 @@ export class TaskQueue implements ITaskQueue {
     this.taskQueue.push(task);
   }
 
-  /**
-  * Immediately flushes the task queue.
-  */
   flushTaskQueue(): void {
     let queue = this.taskQueue;
     this.taskQueue = []; //recursive calls to queueTask should be scheduled after the next cycle
     this.flushQueue(queue, Number.MAX_VALUE);
-  }
-
-  /**
-  * Immediately flushes the micro task queue.
-  */
-  flushMicroTaskQueue(): void {
-    let queue = this.microTaskQueue;
-    this.flushQueue(queue, this.microTaskQueueCapacity);
-    queue.length = 0;
   }
 
   //DEBUG
@@ -201,6 +202,8 @@ export class TaskQueue implements ITaskQueue {
   }
   //DEBUG-END
 }
+
+export const TaskQueue: ITaskQueue = new TaskQueueImplementation();
 
 //DEBUG
 function captureStack() {

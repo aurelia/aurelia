@@ -2,33 +2,32 @@ import {ModifyCollectionObserver} from './collection-observation';
 
 let mapProto = Map.prototype;
 
-export function getMapObserver(taskQueue, map) {
-  return ModifyMapObserver.for(taskQueue, map);
+export function getMapObserver(map) {
+  return ModifyMapObserver.for(map);
 }
 
 class ModifyMapObserver extends ModifyCollectionObserver {
-  constructor(taskQueue, map) {
-    super(taskQueue, map);
+  constructor(map) {
+    super(map);
   }
 
   /**
    * Searches for observer or creates a new one associated with given map instance
-   * @param taskQueue
    * @param map instance for which observer is searched
    * @returns ModifyMapObserver always the same instance for any given map instance
    */
-  static for(taskQueue, map) {
+  static for(map) {
     if (!('__map_observer__' in map)) {
       Reflect.defineProperty(map, '__map_observer__', {
-        value: ModifyMapObserver.create(taskQueue, map),
+        value: ModifyMapObserver.create(map),
         enumerable: false, configurable: false
       });
     }
     return map.__map_observer__;
   }
 
-  static create(taskQueue, map) {
-    let observer = new ModifyMapObserver(taskQueue, map);
+  static create(map) {
+    let observer = new ModifyMapObserver(map);
     let proto: any = mapProto;
 
     if (proto.set !== map.set || proto.delete !== map.delete || proto.clear !== map.clear) {

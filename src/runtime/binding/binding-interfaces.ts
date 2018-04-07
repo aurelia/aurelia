@@ -1,8 +1,6 @@
-export type IIndexable<T extends object = object> = T & { [key: string]: any };
+import { ICallable } from "../interfaces";
 
-export interface ICallable {
-  call(...args: any[]): any;
-}
+export type IIndexable<T extends object = object> = T & { [key: string]: any };
 
 export interface IDisposable {
   dispose(): void;
@@ -11,10 +9,6 @@ export interface IDisposable {
 export interface IEventSubscriber extends IDisposable {
   readonly events: string[];
   subscribe(element: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void;
-}
-
-export interface ITaskQueue {
-  queueMicroTask(task: ICallable): void;
 }
 
 export interface IAureliaObserver<T> {
@@ -28,7 +22,6 @@ export interface IObservable<T = any> {
 }
 
 export interface IObserverLocator {
-  taskQueue: ITaskQueue;
   getObserver(obj: any, propertyName: string): IBindingTargetObserver;
   getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor;
   getArrayObserver(array: any[]): IBindingArrayObserver;

@@ -1,5 +1,7 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { IObserverLocator, IEventSubscriber, ICallable } from './binding-interfaces';
+import { IObserverLocator, IEventSubscriber } from './binding-interfaces';
+import { TaskQueue } from '../task-queue';
+import { ICallable } from '../interfaces';
 
 const checkedArrayContext = 'CheckedObserver:array';
 const checkedValueContext = 'CheckedObserver:value';
@@ -46,7 +48,7 @@ export class CheckedObserver extends SubscriberCollection {
     // queue up an initial sync after the bindings have been evaluated.
     if (!this.initialSync) {
       this.initialSync = true;
-      this.observerLocator.taskQueue.queueMicroTask(this);
+      TaskQueue.queueMicroTask(this);
     }
   }
 

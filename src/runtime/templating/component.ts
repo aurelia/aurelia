@@ -110,7 +110,7 @@ export const Component = {
         }
       
         if ('attached' in this) {
-          TaskQueue.instance.queueMicroTask(() => (<any>this).attached());
+          TaskQueue.queueMicroTask(() => (<any>this).attached());
         }
       }
 
@@ -120,7 +120,7 @@ export const Component = {
         }
   
         if ('detached' in this) {
-          TaskQueue.instance.queueMicroTask(() => (<any>this).detached());
+          TaskQueue.queueMicroTask(() => (<any>this).detached());
         }
       }
 
@@ -233,7 +233,7 @@ export const Component = {
         }
       
         if ('attached' in this) {
-          TaskQueue.instance.queueMicroTask(() => (<any>this).attached());
+          TaskQueue.queueMicroTask(() => (<any>this).attached());
         }
       }
   
@@ -252,7 +252,7 @@ export const Component = {
         }
   
         if ('detached' in this) {
-          TaskQueue.instance.queueMicroTask(() => (<any>this).detached());
+          TaskQueue.queueMicroTask(() => (<any>this).detached());
         }
       }
   

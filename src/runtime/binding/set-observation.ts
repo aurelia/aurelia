@@ -1,15 +1,14 @@
 import { ModifyCollectionObserver } from './collection-observation';
-import { ITaskQueue } from './binding-interfaces';
 
 let setProto = Set.prototype;
 
-export function getSetObserver(taskQueue: ITaskQueue, set: Set<any>) {
-  return ModifySetObserver.for(taskQueue, set);
+export function getSetObserver(set: Set<any>) {
+  return ModifySetObserver.for(set);
 }
 
 class ModifySetObserver extends ModifyCollectionObserver {
-  constructor(taskQueue: ITaskQueue, set: Set<any>) {
-    super(taskQueue, set);
+  constructor(set: Set<any>) {
+    super(set);
   }
 
   /**
@@ -18,18 +17,18 @@ class ModifySetObserver extends ModifyCollectionObserver {
    * @param set instance for which observer is searched
    * @returns ModifySetObserver always the same instance for any given set instance
    */
-  static for(taskQueue: ITaskQueue, set: Set<any> & { __set_observer__?: ModifySetObserver }) {
+  static for(set: Set<any> & { __set_observer__?: ModifySetObserver }) {
     if (!('__set_observer__' in set)) {
       Reflect.defineProperty(set, '__set_observer__', {
-        value: ModifySetObserver.create(taskQueue, set),
+        value: ModifySetObserver.create(set),
         enumerable: false, configurable: false
       });
     }
     return set.__set_observer__;
   }
 
-  static create(taskQueue: ITaskQueue, set: Set<any>) {
-    let observer = new ModifySetObserver(taskQueue, set);
+  static create(set: Set<any>) {
+    let observer = new ModifySetObserver(set);
 
     let proto: any = setProto;
     if (proto.add !== set.add || proto.delete !== set.delete || proto.clear !== set.clear) {

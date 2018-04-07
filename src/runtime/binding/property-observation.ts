@@ -1,7 +1,8 @@
 import { getLogger } from '../logging';
 import { SubscriberCollection } from './subscriber-collection';
 import { TaskQueue } from '../task-queue';
-import { IIndexable, ITaskQueue, ICallable } from './binding-interfaces';
+import { IIndexable } from './binding-interfaces';
+import { ICallable } from '../interfaces';
 
 const logger = getLogger('property-observation');
 
@@ -43,11 +44,7 @@ export class SetterObserver extends SubscriberCollection {
   private currentValue: any;
   private oldValue: any;
 
-  constructor(
-    private taskQueue: ITaskQueue,
-    private obj: any,
-    private propertyName: string
-  ) {
+  constructor(private obj: any, private propertyName: string) {
     super();
   }
 
@@ -70,7 +67,7 @@ export class SetterObserver extends SubscriberCollection {
       if (!this.queued) {
         this.oldValue = oldValue;
         this.queued = true;
-        this.taskQueue.queueMicroTask(this);
+        TaskQueue.queueMicroTask(this);
       }
 
       this.currentValue = newValue;
@@ -119,11 +116,7 @@ export class Observer<T> extends SubscriberCollection {
   private queued = false;
   private oldValue: T;
 
-  constructor(
-    private currentValue: T,
-    private selfCallback?: (newValue: T, oldValue: T) => void | T,
-    private taskQueue = TaskQueue.instance
-  ) {
+  constructor(private currentValue: T, private selfCallback?: (newValue: T, oldValue: T) => void | T) {
     super();
   }
 
@@ -138,7 +131,7 @@ export class Observer<T> extends SubscriberCollection {
       if (!this.queued) {
         this.oldValue = oldValue;
         this.queued = true;
-        this.taskQueue.queueMicroTask(this);
+        TaskQueue.queueMicroTask(this);
       }
 
       if (this.selfCallback !== undefined) {

@@ -1,5 +1,6 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { IDisposable, IEventSubscriber, ICallable } from './binding-interfaces';
+import { IDisposable, IEventSubscriber } from './binding-interfaces';
+import { ICallable } from '../interfaces';
 
 export class XLinkAttributeObserver {
   // xlink namespaced attributes require getAttributeNS/setAttributeNS

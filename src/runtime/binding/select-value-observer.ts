@@ -1,6 +1,8 @@
 import { SubscriberCollection } from './subscriber-collection';
 import { DOM } from '../dom';
-import { IEventSubscriber, IObserverLocator, ICallable } from './binding-interfaces';
+import { IEventSubscriber, IObserverLocator } from './binding-interfaces';
+import { ICallable } from '../interfaces';
+import { TaskQueue } from '../task-queue';
 
 const selectArrayContext = 'SelectValueObserver:array';
 
@@ -51,7 +53,7 @@ export class SelectValueObserver extends SubscriberCollection {
     // queue up an initial sync after the bindings have been evaluated.
     if (!this.initialSync) {
       this.initialSync = true;
-      this.observerLocator.taskQueue.queueMicroTask(this);
+      TaskQueue.queueMicroTask(this);
     }
   }
 

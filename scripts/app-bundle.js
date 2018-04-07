@@ -961,6 +961,13 @@ define('runtime/feature',["require", "exports"], function (require, exports) {
 
 
 
+define('runtime/interfaces',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+
+
+
 define('runtime/logging',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1205,18 +1212,18 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
             setTimeout(function () { throw error; }, 0);
         }
     }
-    var TaskQueue = (function () {
-        function TaskQueue() {
+    var TaskQueueImplementation = (function () {
+        function TaskQueueImplementation() {
             var _this = this;
-            this.flushing = false;
-            this.longStacks = false;
             this.microTaskQueue = [];
             this.taskQueue = [];
             this.microTaskQueueCapacity = 1024;
             this.requestFlushMicroTaskQueue = makeRequestFlushFromMutationObserver(function () { return _this.flushMicroTaskQueue(); });
             this.requestFlushTaskQueue = makeRequestFlushFromTimer(function () { return _this.flushTaskQueue(); });
+            this.flushing = false;
+            this.longStacks = false;
         }
-        TaskQueue.prototype.flushQueue = function (queue, capacity) {
+        TaskQueueImplementation.prototype.flushQueue = function (queue, capacity) {
             var index = 0;
             var task;
             try {
@@ -1244,7 +1251,7 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
                 this.flushing = false;
             }
         };
-        TaskQueue.prototype.queueMicroTask = function (task) {
+        TaskQueueImplementation.prototype.queueMicroTask = function (task) {
             if (this.microTaskQueue.length < 1) {
                 this.requestFlushMicroTaskQueue();
             }
@@ -1253,7 +1260,12 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
             }
             this.microTaskQueue.push(task);
         };
-        TaskQueue.prototype.queueTask = function (task) {
+        TaskQueueImplementation.prototype.flushMicroTaskQueue = function () {
+            var queue = this.microTaskQueue;
+            this.flushQueue(queue, this.microTaskQueueCapacity);
+            queue.length = 0;
+        };
+        TaskQueueImplementation.prototype.queueTask = function (task) {
             if (this.taskQueue.length < 1) {
                 this.requestFlushTaskQueue();
             }
@@ -1262,27 +1274,21 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
             }
             this.taskQueue.push(task);
         };
-        TaskQueue.prototype.flushTaskQueue = function () {
+        TaskQueueImplementation.prototype.flushTaskQueue = function () {
             var queue = this.taskQueue;
             this.taskQueue = [];
             this.flushQueue(queue, Number.MAX_VALUE);
         };
-        TaskQueue.prototype.flushMicroTaskQueue = function () {
-            var queue = this.microTaskQueue;
-            this.flushQueue(queue, this.microTaskQueueCapacity);
-            queue.length = 0;
-        };
-        TaskQueue.prototype.prepareQueueStack = function (separator) {
+        TaskQueueImplementation.prototype.prepareQueueStack = function (separator) {
             var stack = separator + filterQueueStack(captureStack());
             if (typeof this.stack === 'string') {
                 stack = filterFlushStack(stack) + this.stack;
             }
             return stack;
         };
-        TaskQueue.instance = new TaskQueue();
-        return TaskQueue;
+        return TaskQueueImplementation;
     }());
-    exports.TaskQueue = TaskQueue;
+    exports.TaskQueue = new TaskQueueImplementation();
     function captureStack() {
         var error = new Error();
         if (error.stack) {
@@ -1750,26 +1756,26 @@ define('runtime/binding/array-observation',["require", "exports", "./collection-
         }
         return methodCallResult;
     };
-    function getArrayObserver(taskQueue, array) {
-        return ModifyArrayObserver.for(taskQueue, array);
+    function getArrayObserver(array) {
+        return ModifyArrayObserver.for(array);
     }
     exports.getArrayObserver = getArrayObserver;
     var ModifyArrayObserver = (function (_super) {
         __extends(ModifyArrayObserver, _super);
-        function ModifyArrayObserver(taskQueue, array) {
-            return _super.call(this, taskQueue, array) || this;
+        function ModifyArrayObserver(array) {
+            return _super.call(this, array) || this;
         }
-        ModifyArrayObserver.for = function (taskQueue, array) {
+        ModifyArrayObserver.for = function (array) {
             if (!('__array_observer__' in array)) {
                 Reflect.defineProperty(array, '__array_observer__', {
-                    value: ModifyArrayObserver.create(taskQueue, array),
+                    value: ModifyArrayObserver.create(array),
                     enumerable: false, configurable: false
                 });
             }
             return array.__array_observer__;
         };
-        ModifyArrayObserver.create = function (taskQueue, array) {
-            return new ModifyArrayObserver(taskQueue, array);
+        ModifyArrayObserver.create = function (array) {
+            return new ModifyArrayObserver(array);
         };
         return ModifyArrayObserver;
     }(collection_observation_1.ModifyCollectionObserver));
@@ -2618,7 +2624,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/checked-observer',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+define('runtime/binding/checked-observer',["require", "exports", "./subscriber-collection", "../task-queue"], function (require, exports, subscriber_collection_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var checkedArrayContext = 'CheckedObserver:array';
@@ -2653,7 +2659,7 @@ define('runtime/binding/checked-observer',["require", "exports", "./subscriber-c
             this.notify();
             if (!this.initialSync) {
                 this.initialSync = true;
-                this.observerLocator.taskQueue.queueMicroTask(this);
+                task_queue_1.TaskQueue.queueMicroTask(this);
             }
         };
         CheckedObserver.prototype.call = function (context, splices) {
@@ -2806,18 +2812,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/collection-observation',["require", "exports", "./array-change-records", "./map-change-records", "./subscriber-collection"], function (require, exports, array_change_records_1, map_change_records_1, subscriber_collection_1) {
+define('runtime/binding/collection-observation',["require", "exports", "./array-change-records", "./map-change-records", "./subscriber-collection", "../task-queue"], function (require, exports, array_change_records_1, map_change_records_1, subscriber_collection_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ModifyCollectionObserver = (function (_super) {
         __extends(ModifyCollectionObserver, _super);
-        function ModifyCollectionObserver(taskQueue, collection) {
+        function ModifyCollectionObserver(collection) {
             var _this = _super.call(this) || this;
             _this.queued = false;
             _this.changeRecords = null;
             _this.oldCollection = null;
             _this.lengthObserver = null;
-            _this.taskQueue = taskQueue;
             _this.collection = collection;
             _this.lengthPropertyName = (collection instanceof Map) || (collection instanceof Set) ? 'size' : 'length';
             return _this;
@@ -2854,7 +2859,7 @@ define('runtime/binding/collection-observation',["require", "exports", "./array-
             }
             if (!this.queued) {
                 this.queued = true;
-                this.taskQueue.queueMicroTask(this);
+                task_queue_1.TaskQueue.queueMicroTask(this);
             }
         };
         ModifyCollectionObserver.prototype.flushChangeRecords = function () {
@@ -2866,7 +2871,7 @@ define('runtime/binding/collection-observation',["require", "exports", "./array-
             this.oldCollection = oldCollection;
             if (this.hasSubscribers() && !this.queued) {
                 this.queued = true;
-                this.taskQueue.queueMicroTask(this);
+                task_queue_1.TaskQueue.queueMicroTask(this);
             }
         };
         ModifyCollectionObserver.prototype.getLengthObserver = function () {
@@ -3729,26 +3734,26 @@ define('runtime/binding/map-observation',["require", "exports", "./collection-ob
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var mapProto = Map.prototype;
-    function getMapObserver(taskQueue, map) {
-        return ModifyMapObserver.for(taskQueue, map);
+    function getMapObserver(map) {
+        return ModifyMapObserver.for(map);
     }
     exports.getMapObserver = getMapObserver;
     var ModifyMapObserver = (function (_super) {
         __extends(ModifyMapObserver, _super);
-        function ModifyMapObserver(taskQueue, map) {
-            return _super.call(this, taskQueue, map) || this;
+        function ModifyMapObserver(map) {
+            return _super.call(this, map) || this;
         }
-        ModifyMapObserver.for = function (taskQueue, map) {
+        ModifyMapObserver.for = function (map) {
             if (!('__map_observer__' in map)) {
                 Reflect.defineProperty(map, '__map_observer__', {
-                    value: ModifyMapObserver.create(taskQueue, map),
+                    value: ModifyMapObserver.create(map),
                     enumerable: false, configurable: false
                 });
             }
             return map.__map_observer__;
         };
-        ModifyMapObserver.create = function (taskQueue, map) {
-            var observer = new ModifyMapObserver(taskQueue, map);
+        ModifyMapObserver.create = function (map) {
+            var observer = new ModifyMapObserver(map);
             var proto = mapProto;
             if (proto.set !== map.set || proto.delete !== map.delete || proto.clear !== map.clear) {
                 proto = {
@@ -3802,7 +3807,7 @@ define('runtime/binding/map-observation',["require", "exports", "./collection-ob
 
 
 
-define('runtime/binding/observer-locator',["require", "exports", "../logging", "../dom", "../task-queue", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checking", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg"], function (require, exports, LogManager, dom_1, task_queue_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checking_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_1) {
+define('runtime/binding/observer-locator',["require", "exports", "../logging", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checking", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg"], function (require, exports, LogManager, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checking_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function getPropertyDescriptor(subject, name) {
@@ -3815,12 +3820,10 @@ define('runtime/binding/observer-locator',["require", "exports", "../logging", "
         return pd;
     }
     var ObserverLocator = (function () {
-        function ObserverLocator(taskQueue, eventManager, dirtyChecker, svgAnalyzer) {
-            if (taskQueue === void 0) { taskQueue = task_queue_1.TaskQueue.instance; }
+        function ObserverLocator(eventManager, dirtyChecker, svgAnalyzer) {
             if (eventManager === void 0) { eventManager = event_manager_1.EventManager.instance; }
             if (dirtyChecker === void 0) { dirtyChecker = dirty_checking_1.DirtyChecker.instance; }
             if (svgAnalyzer === void 0) { svgAnalyzer = svg_1.SVGAnalyzer.instance; }
-            this.taskQueue = taskQueue;
             this.eventManager = eventManager;
             this.dirtyChecker = dirtyChecker;
             this.svgAnalyzer = svgAnalyzer;
@@ -3936,7 +3939,7 @@ define('runtime/binding/observer-locator',["require", "exports", "../logging", "
                 }
                 return new dirty_checking_1.DirtyCheckProperty(this.dirtyChecker, obj, propertyName);
             }
-            return new property_observation_1.SetterObserver(this.taskQueue, obj, propertyName);
+            return new property_observation_1.SetterObserver(obj, propertyName);
         };
         ObserverLocator.prototype.getAccessor = function (obj, propertyName) {
             if (obj instanceof dom_1.DOM.Element) {
@@ -3958,13 +3961,13 @@ define('runtime/binding/observer-locator',["require", "exports", "../logging", "
             return property_observation_1.propertyAccessor;
         };
         ObserverLocator.prototype.getArrayObserver = function (array) {
-            return array_observation_1.getArrayObserver(this.taskQueue, array);
+            return array_observation_1.getArrayObserver(array);
         };
         ObserverLocator.prototype.getMapObserver = function (map) {
-            return map_observation_1.getMapObserver(this.taskQueue, map);
+            return map_observation_1.getMapObserver(map);
         };
         ObserverLocator.prototype.getSetObserver = function (set) {
-            return set_observation_1.getSetObserver(this.taskQueue, set);
+            return set_observation_1.getSetObserver(set);
         };
         ObserverLocator.instance = new ObserverLocator();
         return ObserverLocator;
@@ -4016,9 +4019,8 @@ define('runtime/binding/property-observation',["require", "exports", "../logging
     exports.PrimitiveObserver = PrimitiveObserver;
     var SetterObserver = (function (_super) {
         __extends(SetterObserver, _super);
-        function SetterObserver(taskQueue, obj, propertyName) {
+        function SetterObserver(obj, propertyName) {
             var _this = _super.call(this) || this;
-            _this.taskQueue = taskQueue;
             _this.obj = obj;
             _this.propertyName = propertyName;
             _this.queued = false;
@@ -4040,7 +4042,7 @@ define('runtime/binding/property-observation',["require", "exports", "../logging
                 if (!this.queued) {
                     this.oldValue = oldValue;
                     this.queued = true;
-                    this.taskQueue.queueMicroTask(this);
+                    task_queue_1.TaskQueue.queueMicroTask(this);
                 }
                 this.currentValue = newValue;
             }
@@ -4080,12 +4082,10 @@ define('runtime/binding/property-observation',["require", "exports", "../logging
     exports.SetterObserver = SetterObserver;
     var Observer = (function (_super) {
         __extends(Observer, _super);
-        function Observer(currentValue, selfCallback, taskQueue) {
-            if (taskQueue === void 0) { taskQueue = task_queue_1.TaskQueue.instance; }
+        function Observer(currentValue, selfCallback) {
             var _this = _super.call(this) || this;
             _this.currentValue = currentValue;
             _this.selfCallback = selfCallback;
-            _this.taskQueue = taskQueue;
             _this.queued = false;
             return _this;
         }
@@ -4098,7 +4098,7 @@ define('runtime/binding/property-observation',["require", "exports", "../logging
                 if (!this.queued) {
                     this.oldValue = oldValue;
                     this.queued = true;
-                    this.taskQueue.queueMicroTask(this);
+                    task_queue_1.TaskQueue.queueMicroTask(this);
                 }
                 if (this.selfCallback !== undefined) {
                     var coercedValue = this.selfCallback(newValue, oldValue);
@@ -4231,7 +4231,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../dom"], function (require, exports, subscriber_collection_1, dom_1) {
+define('runtime/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../dom", "../task-queue"], function (require, exports, subscriber_collection_1, dom_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var selectArrayContext = 'SelectValueObserver:array';
@@ -4272,7 +4272,7 @@ define('runtime/binding/select-value-observer',["require", "exports", "./subscri
             this.notify();
             if (!this.initialSync) {
                 this.initialSync = true;
-                this.observerLocator.taskQueue.queueMicroTask(this);
+                task_queue_1.TaskQueue.queueMicroTask(this);
             }
         };
         SelectValueObserver.prototype.call = function (context, splices) {
@@ -4414,26 +4414,26 @@ define('runtime/binding/set-observation',["require", "exports", "./collection-ob
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var setProto = Set.prototype;
-    function getSetObserver(taskQueue, set) {
-        return ModifySetObserver.for(taskQueue, set);
+    function getSetObserver(set) {
+        return ModifySetObserver.for(set);
     }
     exports.getSetObserver = getSetObserver;
     var ModifySetObserver = (function (_super) {
         __extends(ModifySetObserver, _super);
-        function ModifySetObserver(taskQueue, set) {
-            return _super.call(this, taskQueue, set) || this;
+        function ModifySetObserver(set) {
+            return _super.call(this, set) || this;
         }
-        ModifySetObserver.for = function (taskQueue, set) {
+        ModifySetObserver.for = function (set) {
             if (!('__set_observer__' in set)) {
                 Reflect.defineProperty(set, '__set_observer__', {
-                    value: ModifySetObserver.create(taskQueue, set),
+                    value: ModifySetObserver.create(set),
                     enumerable: false, configurable: false
                 });
             }
             return set.__set_observer__;
         };
-        ModifySetObserver.create = function (taskQueue, set) {
-            var observer = new ModifySetObserver(taskQueue, set);
+        ModifySetObserver.create = function (set) {
+            var observer = new ModifySetObserver(set);
             var proto = setProto;
             if (proto.add !== set.add || proto.delete !== set.delete || proto.clear !== set.clear) {
                 proto = {
@@ -5020,7 +5020,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.attaching();
                         }
                         if ('attached' in this) {
-                            task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
+                            task_queue_1.TaskQueue.queueMicroTask(function () { return _this.attached(); });
                         }
                     };
                     CustomAttribute.prototype.detach = function () {
@@ -5029,7 +5029,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.detaching();
                         }
                         if ('detached' in this) {
-                            task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
+                            task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
                         }
                     };
                     CustomAttribute.prototype.unbind = function () {
@@ -5123,7 +5123,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.$view.appendTo(this.$shadowRoot);
                         }
                         if ('attached' in this) {
-                            task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.attached(); });
+                            task_queue_1.TaskQueue.queueMicroTask(function () { return _this.attached(); });
                         }
                     };
                     class_1.prototype.detach = function () {
@@ -5138,7 +5138,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             attachable[i].detach();
                         }
                         if ('detached' in this) {
-                            task_queue_1.TaskQueue.instance.queueMicroTask(function () { return _this.detached(); });
+                            task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
                         }
                     };
                     class_1.prototype.unbind = function () {

@@ -1,4 +1,4 @@
-import { ICallable } from "./binding-interfaces";
+import { ICallable } from "../interfaces";
 
 let arrayPool1: any[] = [];
 let arrayPool2: any[] = [];

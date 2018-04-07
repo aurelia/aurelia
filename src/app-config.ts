@@ -1,10 +1,10 @@
-import { CompiledElementSource } from "./runtime/templating/component";
+import { ICompiledElementSource } from "./runtime/templating/component";
 
 //extracted from view imports
 import * as import1 from "./name-tag";
 
 //this object is built up during compilation
-export const appConfig: CompiledElementSource = {
+export const appConfig: ICompiledElementSource = {
   name: 'app',
   dependencies: [
     import1

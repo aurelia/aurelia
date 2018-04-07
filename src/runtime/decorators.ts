@@ -1,10 +1,11 @@
-import { Component, CompiledElementSource, AttributeSource } from "./templating/component";
+import { Component, ICompiledElementSource, IAttributeSource } from "./templating/component";
 import { PLATFORM } from "./platform";
 import { DI } from "./di";
 import { BindingMode } from "./binding/binding-mode";
+import { Constructable } from "./interfaces";
 
-export function compiledElement(source: CompiledElementSource) {
-  return function<T extends { new(...args:any[]):{} }>(target: T) {
+export function compiledElement(source: ICompiledElementSource) {
+  return function<T extends Constructable>(target: T) {
     return Component.elementFromCompiledSource(target, source);
   }
 }
@@ -16,8 +17,8 @@ export function compiledElement(source: CompiledElementSource) {
 * @param aliases The array of aliases to associate to the custom attribute.
 */
 export function customAttribute(name: string, defaultBindingMode: BindingMode = BindingMode.oneWay, aliases?: string[]) {
-  return function<T extends { new(...args:any[]):{} }>(target: T) {
-    let source: AttributeSource = {
+  return function<T extends Constructable>(target: T) {
+    let source: IAttributeSource = {
       name: name,
       defaultBindingMode: defaultBindingMode || BindingMode.oneWay,
       aliases: aliases,
@@ -34,7 +35,7 @@ export function customAttribute(name: string, defaultBindingMode: BindingMode = 
 * attribute controls the instantiation of the template.
 */
 export function templateController(target?) {
-  let deco = function<T extends { new(...args:any[]):{} }>(target: T) {
+  let deco = function<T extends Constructable>(target: T) {
     (<any>target).isTemplateController = true;
     return target;
   }
@@ -53,7 +54,7 @@ export function useShadowDOM(targetOrOptions?): any {
     ? defaultShadowOptions
     : targetOrOptions;
 
-  let deco = function<T extends { new(...args:any[]):{} }>(target: T) {
+  let deco = function<T extends Constructable>(target: T) {
     (<any>target).shadowOptions = options;
     return target;
   }
@@ -66,7 +67,7 @@ export function useShadowDOM(targetOrOptions?): any {
 * element container.
 */
 export function containerless(target?): any {
-  let deco = function<T extends { new(...args:any[]):{} }>(target: T) {
+  let deco = function<T extends Constructable>(target: T) {
     (<any>target).containerless = true;
     return target;
   }
@@ -129,11 +130,13 @@ export function bindable(configOrTarget?: BindableConfig | Object, key?, descrip
   return deco;
 }
 
+type Injectable = Constructable & { inject?:any[] };
+
 /**
 * Decorator: Directs the TypeScript transpiler to write-out type metadata for the decorated class.
 */
-export function autoinject(potentialTarget?: any): any {
-  let deco = function(target) {
+export function autoinject<T extends Injectable>(potentialTarget?: T): any {
+  let deco = function<T extends Injectable>(target: T) {
     let previousInject = target.inject ? target.inject.slice() : null; //make a copy of target.inject to avoid changing parent inject
     let autoInject: any = DI.getDesignParamTypes(target);
     
@@ -164,7 +167,7 @@ export function autoinject(potentialTarget?: any): any {
 * Decorator: Specifies the dependencies that should be injected by the DI Container into the decoratored class/function.
 */
 export function inject(...rest: any[]): any {
-  return function(target, key, descriptor) {
+  return function<T extends Injectable>(target: T, key?, descriptor?) {
     // handle when used as a parameter
     if (typeof descriptor === 'number' && rest.length === 1) {
       let params = target.inject;

@@ -1,7 +1,7 @@
-import { CompiledElementSource } from "./runtime/templating/component";
+import { ICompiledElementSource } from "./runtime/templating/component";
 
 //this object is built up during compilation
-export const nameTagConfig: CompiledElementSource = {
+export const nameTagConfig: ICompiledElementSource = {
   name: 'name-tag',
   hasSlots: true,
   template: `

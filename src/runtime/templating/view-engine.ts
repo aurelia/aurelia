@@ -17,7 +17,7 @@ export interface ITemplate {
   createFor(owner: IViewOwner, host?: Node): IView;
 }
 
-export interface CompiledViewSource {
+export interface ICompiledViewSource {
   template: string;
   dependencies?: any[];
   hasSlots?: boolean;
@@ -49,7 +49,7 @@ class DefaultViewFactory implements IViewFactory {
 }
 
 export const ViewEngine = {
-  templateFromCompiledSource(source: CompiledViewSource) {
+  templateFromCompiledSource(source: ICompiledViewSource) {
     if (source && source.template) {
       return new CompiledTemplate(source);
     }
@@ -57,12 +57,12 @@ export const ViewEngine = {
     return noViewTemplate;
   },
 
-  factoryFromCompiledSource(source: CompiledViewSource): IViewFactory {
+  factoryFromCompiledSource(source: ICompiledViewSource): IViewFactory {
     const template = ViewEngine.templateFromCompiledSource(source);
 
     const CompiledVisual = class extends Visual {
       static template: ITemplate = template;
-      static source: CompiledViewSource = source;
+      static source: ICompiledViewSource = source;
 
       $slots: Record<string, IShadowSlot> = source.hasSlots ? {} : null;
 
@@ -217,7 +217,7 @@ class CompiledTemplate implements ITemplate {
   private element: HTMLTemplateElement;
   container: TemplateContainer;
 
-  constructor(private source: CompiledViewSource) {
+  constructor(private source: ICompiledViewSource) {
     this.container = createTemplateContainer(source.dependencies);
     this.element = DOM.createTemplateElement();
     this.element.innerHTML = source.template;

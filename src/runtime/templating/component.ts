@@ -1,4 +1,4 @@
-import { ViewEngine, CompiledViewSource, ITemplate } from "./view-engine";
+import { ViewEngine, ICompiledViewSource, ITemplate } from "./view-engine";
 import { IView, View, IViewOwner } from "./view";
 import { IScope, IBindScope } from "../binding/binding-interfaces";
 import { createOverrideContext } from "../binding/scope";
@@ -9,6 +9,7 @@ import { FEATURE } from "../feature";
 import { DOM } from "../dom";
 import { IContainer, Registration } from "../di";
 import { BindingMode } from "../binding/binding-mode";
+import { Constructable } from "../interfaces";
 
 export interface IBindSelf {
   bind(): void;
@@ -31,32 +32,28 @@ export interface IAttributeComponent extends IBindScope, IAttach {
   
 }
 
-export interface CompiledElementSource extends CompiledViewSource {
+export interface ICompiledElementSource extends ICompiledViewSource {
   name: string;
   containerless?: boolean;
   shadowOptions?: ShadowRootInit;
 }
 
-export interface AttributeSource {
+export interface IAttributeSource {
   name: string;
   defaultBindingMode?: BindingMode;
   aliases?: string[];
   isTemplateController?: boolean;
 }
 
-type Constructable = {
-  new(...args: any[]): {};
-}
-
 type ConstructableAttributeComponent = Constructable & {
   new(...args: any[]): IAttributeComponent;
-  source: AttributeSource;
+  source: IAttributeSource;
 };
 
 type ConstructableElementComponent = Constructable & {
   new(...args: any[]): IElementComponent;
   template: ITemplate;
-  source: CompiledElementSource;
+  source: ICompiledElementSource;
 }
 
 interface IObservableDescription {
@@ -116,9 +113,9 @@ class RuntimeCharacteristics {
 }
 
 export const Component = {
-  attributeFromSource<T extends Constructable>(ctor: T, source: AttributeSource): T & ConstructableAttributeComponent {
+  attributeFromSource<T extends Constructable>(ctor: T, source: IAttributeSource): T & ConstructableAttributeComponent {
     return class CustomAttribute extends ctor implements IAttributeComponent {
-      static source: AttributeSource = source;
+      static source: IAttributeSource = source;
 
       static register(container: IContainer){
         container.register(Registration.transient(source.name, CustomAttribute));
@@ -190,7 +187,7 @@ export const Component = {
       }
     };
   },
-  elementFromCompiledSource<T extends Constructable>(ctor: T, source: CompiledElementSource): T & ConstructableElementComponent {
+  elementFromCompiledSource<T extends Constructable>(ctor: T, source: ICompiledElementSource): T & ConstructableElementComponent {
     source.shadowOptions = source.shadowOptions || (<any>ctor).shadowOptions || null;
     source.containerless = source.containerless || (<any>ctor).containerless || false;
     
@@ -198,7 +195,7 @@ export const Component = {
       
     let CompiledComponent = class extends ctor implements IElementComponent {
       static template: ITemplate = template;
-      static source: CompiledElementSource = source;
+      static source: ICompiledElementSource = source;
 
       static register(container: IContainer){
         container.register(Registration.transient(source.name, CompiledComponent));

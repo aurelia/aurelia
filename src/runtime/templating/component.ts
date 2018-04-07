@@ -59,6 +59,62 @@ type ConstructableElementComponent = Constructable & {
   source: CompiledElementSource;
 }
 
+interface IObservableDescription {
+  name: string;
+  changeHandler: string;
+}
+
+class RuntimeCharacteristics {
+  private constructor() {}
+
+  observables: IObservableDescription[] = [];
+  hasCreated = false;
+  hasBound = false;
+  hasAttaching = false;
+  hasAttached = false;
+  hasDetaching = false;
+  hasDetached = false;
+  hasUnbound = false;
+
+  static for(instance, Component: ConstructableElementComponent | ConstructableAttributeComponent) {
+    let characteristics = new RuntimeCharacteristics();
+    let configuredObservables = (<any>Component).observables;
+    let observables: IObservableDescription[] = [];
+
+    for (let key in instance) {
+      if (configuredObservables) {
+        let found = configuredObservables[key];
+
+        if (found) {
+          if (found.changeHandler in instance) {
+            observables.push(found);
+          }
+
+          continue;
+        }
+      }
+
+      if (`${key}Changed` in instance) {
+        observables.push({
+          name: key,
+          changeHandler: `${key}Changed`
+        });
+      }
+    }
+
+    characteristics.observables = observables;
+    characteristics.hasCreated = 'created' in instance;
+    characteristics.hasBound = 'bound' in instance;
+    characteristics.hasAttaching = 'attaching' in instance;
+    characteristics.hasAttached = 'attached' in instance;
+    characteristics.hasDetaching = 'detaching' in instance;
+    characteristics.hasDetached = 'detached' in instance;
+    characteristics.hasUnbound = 'unbound' in instance;
+
+    return characteristics;
+  }
+}
+
 export const Component = {
   attributeFromSource<T extends Constructable>(ctor: T, source: AttributeSource): T & ConstructableAttributeComponent {
     return class CustomAttribute extends ctor implements IAttributeComponent {
@@ -77,14 +133,15 @@ export const Component = {
       }
 
       private $changeCallbacks: (() => void)[] = [];
+      private $characteristics: RuntimeCharacteristics = null;
       $isBound = false;
       $scope: IScope = null;
 
       constructor(...args:any[]) {
         super(...args);
-        setupObservers(this, CustomAttribute);
+        discoverAndApplyCharacteristics(this, CustomAttribute);
 
-        if ('created' in this) {
+        if (this.$characteristics.hasCreated) {
           (<any>this).created();
         }
       }
@@ -99,33 +156,33 @@ export const Component = {
           changeCallbacks[i]();
         }
   
-        if ('bound' in this) {
+        if (this.$characteristics.hasBound) {
           (<any>this).bound(scope);
         }
       }
 
       attach(){
-        if ('attaching' in this) {
+        if (this.$characteristics.hasAttaching) {
           (<any>this).attaching();
         }
       
-        if ('attached' in this) {
+        if (this.$characteristics.hasAttached) {
           TaskQueue.queueMicroTask(() => (<any>this).attached());
         }
       }
 
       detach() {
-        if ('detaching' in this) {
+        if (this.$characteristics.hasDetaching) {
           (<any>this).detaching();
         }
   
-        if ('detached' in this) {
+        if (this.$characteristics.hasDetached) {
           TaskQueue.queueMicroTask(() => (<any>this).detached());
         }
       }
 
       unbind() {
-        if ('unbound' in this) {
+        if (this.$characteristics.hasUnbound) {
           (<any>this).unbound();
         }
   
@@ -162,10 +219,11 @@ export const Component = {
       private $host: Element;
       private $shadowRoot: Element | ShadowRoot;
       private $changeCallbacks: (() => void)[] = [];
+      private $characteristics: RuntimeCharacteristics = null;
   
       constructor(...args:any[]) {
         super(...args);
-        setupObservers(this, CompiledComponent);
+        discoverAndApplyCharacteristics(this, CompiledComponent);
       }
   
       applyTo(host: Element) { 
@@ -179,7 +237,7 @@ export const Component = {
 
         this.$view = this.createView(this.$host);
   
-        if ('created' in this) {
+        if (this.$characteristics.hasCreated) {
           (<any>this).created();
         }
   
@@ -210,13 +268,13 @@ export const Component = {
           changeCallbacks[i]();
         }
   
-        if ('bound' in this) {
+        if (this.$characteristics.hasBound) {
           (<any>this).bound();
         }
       }
   
       attach() {
-        if ('attaching' in this) {
+        if (this.$characteristics.hasAttaching) {
           (<any>this).attaching();
         }
   
@@ -232,13 +290,13 @@ export const Component = {
           this.$view.appendTo(this.$shadowRoot);
         }
       
-        if ('attached' in this) {
+        if (this.$characteristics.hasAttached) {
           TaskQueue.queueMicroTask(() => (<any>this).attached());
         }
       }
   
       detach() {
-        if ('detaching' in this) {
+        if (this.$characteristics.hasDetaching) {
           (<any>this).detaching();
         }
   
@@ -251,7 +309,7 @@ export const Component = {
           attachable[i].detach();
         }
   
-        if ('detached' in this) {
+        if (this.$characteristics.hasDetached) {
           TaskQueue.queueMicroTask(() => (<any>this).detached());
         }
       }
@@ -264,7 +322,7 @@ export const Component = {
           bindable[i].unbind();
         }
   
-        if ('unbound' in this) {
+        if (this.$characteristics.hasUnbound) {
           (<any>this).unbound();
         }
   
@@ -279,39 +337,18 @@ export const Component = {
   }
 };
 
-function setupObservers(instance, Component: ConstructableElementComponent | ConstructableAttributeComponent) {
-  let allObservables = (<any>Component).allObservables;
+function discoverAndApplyCharacteristics(instance, Component: ConstructableElementComponent | ConstructableAttributeComponent) {
+  let characteristics: RuntimeCharacteristics = (<any>Component).characteristics;
 
-  if (allObservables === undefined) {
-    let observables = (<any>Component).observables;
-    (<any>Component).allObservables = allObservables = [];
-
-    for (let key in instance) {
-      if (observables) {
-        let found = observables[key];
-
-        if (found) {
-          if (found.changeHandler in instance) {
-            allObservables.push(found);
-          }
-
-          continue;
-        }
-      }
-
-      if (`${key}Changed` in instance) {
-        allObservables.push({
-          name: key,
-          changeHandler: `${key}Changed`
-        });
-      }
-    }
+  if (characteristics === undefined) {
+    characteristics = (<any>Component).characteristics = RuntimeCharacteristics.for(instance, Component);
   }
 
+  let observables = characteristics.observables;
   let observers = {};
 
-  for (let i = 0, ii = allObservables.length; i < ii; ++i) {
-    let observerConfig = allObservables[i];
+  for (let i = 0, ii = observables.length; i < ii; ++i) {
+    let observerConfig = observables[i];
     let name = observerConfig.name;
     let changeHandler = observerConfig.changeHandler;
 
@@ -320,6 +357,8 @@ function setupObservers(instance, Component: ConstructableElementComponent | Con
 
     createGetterSetter(instance, name);
   }
+
+  instance.$characteristics = characteristics;
 
   Object.defineProperty(instance, '$observers', {
     enumerable: false,

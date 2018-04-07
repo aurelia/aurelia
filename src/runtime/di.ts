@@ -277,7 +277,7 @@ container.createInterface = createInterface;
 container.getDesignParamTypes = getDesignParamTypes;
 
 export const DI: IContainer & { 
-  createInterface(key: string): InterfaceSymbol
+  createInterface(key: string): InterfaceSymbol;
   getDesignParamTypes(target: any): any[];
 } = <any>container;
 

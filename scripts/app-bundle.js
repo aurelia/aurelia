@@ -4975,6 +4975,50 @@ var __extends = (this && this.__extends) || (function () {
 define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../binding/scope", "../task-queue", "../binding/property-observation", "./shadow-dom", "../feature", "../dom", "../di"], function (require, exports, view_engine_1, view_1, scope_1, task_queue_1, property_observation_1, shadow_dom_1, feature_1, dom_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var RuntimeCharacteristics = (function () {
+        function RuntimeCharacteristics() {
+            this.observables = [];
+            this.hasCreated = false;
+            this.hasBound = false;
+            this.hasAttaching = false;
+            this.hasAttached = false;
+            this.hasDetaching = false;
+            this.hasDetached = false;
+            this.hasUnbound = false;
+        }
+        RuntimeCharacteristics.for = function (instance, Component) {
+            var characteristics = new RuntimeCharacteristics();
+            var configuredObservables = Component.observables;
+            var observables = [];
+            for (var key in instance) {
+                if (configuredObservables) {
+                    var found = configuredObservables[key];
+                    if (found) {
+                        if (found.changeHandler in instance) {
+                            observables.push(found);
+                        }
+                        continue;
+                    }
+                }
+                if (key + "Changed" in instance) {
+                    observables.push({
+                        name: key,
+                        changeHandler: key + "Changed"
+                    });
+                }
+            }
+            characteristics.observables = observables;
+            characteristics.hasCreated = 'created' in instance;
+            characteristics.hasBound = 'bound' in instance;
+            characteristics.hasAttaching = 'attaching' in instance;
+            characteristics.hasAttached = 'attached' in instance;
+            characteristics.hasDetaching = 'detaching' in instance;
+            characteristics.hasDetached = 'detached' in instance;
+            characteristics.hasUnbound = 'unbound' in instance;
+            return characteristics;
+        };
+        return RuntimeCharacteristics;
+    }());
     exports.Component = {
         attributeFromSource: function (ctor, source) {
             return _a = (function (_super) {
@@ -4986,10 +5030,11 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                         var _this = _super.apply(this, args) || this;
                         _this.$changeCallbacks = [];
+                        _this.$characteristics = null;
                         _this.$isBound = false;
                         _this.$scope = null;
-                        setupObservers(_this, CustomAttribute);
-                        if ('created' in _this) {
+                        discoverAndApplyCharacteristics(_this, CustomAttribute);
+                        if (_this.$characteristics.hasCreated) {
                             _this.created();
                         }
                         return _this;
@@ -5010,30 +5055,30 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
                             changeCallbacks[i]();
                         }
-                        if ('bound' in this) {
+                        if (this.$characteristics.hasBound) {
                             this.bound(scope);
                         }
                     };
                     CustomAttribute.prototype.attach = function () {
                         var _this = this;
-                        if ('attaching' in this) {
+                        if (this.$characteristics.hasAttaching) {
                             this.attaching();
                         }
-                        if ('attached' in this) {
+                        if (this.$characteristics.hasAttached) {
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.attached(); });
                         }
                     };
                     CustomAttribute.prototype.detach = function () {
                         var _this = this;
-                        if ('detaching' in this) {
+                        if (this.$characteristics.hasDetaching) {
                             this.detaching();
                         }
-                        if ('detached' in this) {
+                        if (this.$characteristics.hasDetached) {
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
                         }
                     };
                     CustomAttribute.prototype.unbind = function () {
-                        if ('unbound' in this) {
+                        if (this.$characteristics.hasUnbound) {
                             this.unbound();
                         }
                         this.$isBound = false;
@@ -5067,7 +5112,8 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             overrideContext: scope_1.createOverrideContext()
                         };
                         _this.$changeCallbacks = [];
-                        setupObservers(_this, CompiledComponent);
+                        _this.$characteristics = null;
+                        discoverAndApplyCharacteristics(_this, CompiledComponent);
                         return _this;
                     }
                     class_1.register = function (container) {
@@ -5081,7 +5127,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             ? host.attachShadow(source.shadowOptions)
                             : this.$host;
                         this.$view = this.createView(this.$host);
-                        if ('created' in this) {
+                        if (this.$characteristics.hasCreated) {
                             this.created();
                         }
                         return this;
@@ -5103,13 +5149,13 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
                             changeCallbacks[i]();
                         }
-                        if ('bound' in this) {
+                        if (this.$characteristics.hasBound) {
                             this.bound();
                         }
                     };
                     class_1.prototype.attach = function () {
                         var _this = this;
-                        if ('attaching' in this) {
+                        if (this.$characteristics.hasAttaching) {
                             this.attaching();
                         }
                         var attachable = this.$attachable;
@@ -5122,13 +5168,13 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         else {
                             this.$view.appendTo(this.$shadowRoot);
                         }
-                        if ('attached' in this) {
+                        if (this.$characteristics.hasAttached) {
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.attached(); });
                         }
                     };
                     class_1.prototype.detach = function () {
                         var _this = this;
-                        if ('detaching' in this) {
+                        if (this.$characteristics.hasDetaching) {
                             this.detaching();
                         }
                         this.$view.remove();
@@ -5137,7 +5183,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         while (i--) {
                             attachable[i].detach();
                         }
-                        if ('detached' in this) {
+                        if (this.$characteristics.hasDetached) {
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
                         }
                     };
@@ -5147,7 +5193,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         while (i--) {
                             bindable[i].unbind();
                         }
-                        if ('unbound' in this) {
+                        if (this.$characteristics.hasUnbound) {
                             this.unbound();
                         }
                         this.$isBound = false;
@@ -5162,41 +5208,25 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             var _a;
         }
     };
-    function setupObservers(instance, Component) {
-        var allObservables = Component.allObservables;
-        if (allObservables === undefined) {
-            var observables = Component.observables;
-            Component.allObservables = allObservables = [];
-            for (var key in instance) {
-                if (observables) {
-                    var found = observables[key];
-                    if (found) {
-                        if (found.changeHandler in instance) {
-                            allObservables.push(found);
-                        }
-                        continue;
-                    }
-                }
-                if (key + "Changed" in instance) {
-                    allObservables.push({
-                        name: key,
-                        changeHandler: key + "Changed"
-                    });
-                }
-            }
+    function discoverAndApplyCharacteristics(instance, Component) {
+        var characteristics = Component.characteristics;
+        if (characteristics === undefined) {
+            characteristics = Component.characteristics = RuntimeCharacteristics.for(instance, Component);
         }
+        var observables = characteristics.observables;
         var observers = {};
         var _loop_1 = function (i, ii) {
-            var observerConfig = allObservables[i];
+            var observerConfig = observables[i];
             var name_1 = observerConfig.name;
             var changeHandler = observerConfig.changeHandler;
             observers[name_1] = new property_observation_1.Observer(instance[name_1], function (v) { return instance.$isBound ? instance[changeHandler](v) : void 0; });
             instance.$changeCallbacks.push(function () { return instance[changeHandler](instance[name_1]); });
             createGetterSetter(instance, name_1);
         };
-        for (var i = 0, ii = allObservables.length; i < ii; ++i) {
+        for (var i = 0, ii = observables.length; i < ii; ++i) {
             _loop_1(i, ii);
         }
+        instance.$characteristics = characteristics;
         Object.defineProperty(instance, '$observers', {
             enumerable: false,
             value: observers

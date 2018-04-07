@@ -1,6 +1,8 @@
 import { DOM } from './dom';
 import { ICallable } from './interfaces';
 
+let hasSetImmediate = typeof setImmediate === 'function';
+
 export interface ITaskQueue {
   /**
    * Whether the queue is in the process of flushing.
@@ -35,14 +37,7 @@ export interface ITaskQueue {
   flushTaskQueue(): void
 }
 
-let hasSetImmediate = typeof setImmediate === 'function';
-
-//DEBUG
-const stackSeparator = '\nEnqueued in TaskQueue by:\n';
-const microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
-//DEBUG-END
-
-function makeRequestFlushFromMutationObserver(flush: any) {
+function makeRequestFlushFromMutationObserver(flush: MutationCallback) {
   let toggle = 1;
   let observer = DOM.createMutationObserver(flush);
   let node = DOM.createTextNode('');
@@ -53,7 +48,7 @@ function makeRequestFlushFromMutationObserver(flush: any) {
   };
 }
 
-function makeRequestFlushFromTimer(flush: any) {
+function makeRequestFlushFromTimer(flush: () => void) {
   return function requestFlush() {
     // We dispatch a timeout with a specified delay of 0 for engines that
     // can reliably accommodate that request. This will usually be snapped
@@ -74,29 +69,6 @@ function makeRequestFlushFromTimer(flush: any) {
   };
 }
 
-function onError(error: any, task: any, longStacks: any) {
-  //DEBUG
-  if (longStacks &&
-    task.stack &&
-    typeof error === 'object' &&
-    error !== null) {
-    // Note: IE sets error.stack when throwing but does not override a defined .stack.
-    error.stack = filterFlushStack(error.stack) + task.stack;
-  }
-  //DEBUG-END
-
-  if ('onError' in task) {
-    task.onError(error);
-  } else if (hasSetImmediate) {
-    setImmediate(() => { throw error; });
-  } else {
-    setTimeout(() => { throw error; }, 0);
-  }
-}
-
-/**
-* Implements an asynchronous task queue.
-*/
 class TaskQueueImplementation implements ITaskQueue {
   private microTaskQueue: ICallable[] = [];
   private taskQueue: ICallable[] = [];
@@ -108,11 +80,6 @@ class TaskQueueImplementation implements ITaskQueue {
   flushing = false;
   longStacks = false;
 
-  /**
-  * Immediately flushes the queue.
-  * @param queue The task queue or micro task queue
-  * @param capacity For periodically shift 1024 MicroTasks off the queue
-  */
   private flushQueue(queue: (ICallable & { stack?: string })[], capacity: number): void {
     let index = 0;
     let task;
@@ -144,7 +111,7 @@ class TaskQueueImplementation implements ITaskQueue {
         }
       }
     } catch (error) {
-      onError(error, task, this.longStacks);
+      this.onError(error, task);
     } finally {
       this.flushing = false;
     }
@@ -155,11 +122,9 @@ class TaskQueueImplementation implements ITaskQueue {
       this.requestFlushMicroTaskQueue();
     }
 
-    //DEBUG
     if (this.longStacks) {
-      task.stack = this.prepareQueueStack(microStackSeparator);
+      task.stack = this.prepareMicroTaskStack();
     }
-    //DEBUG-END
 
     this.microTaskQueue.push(task);
   }
@@ -175,11 +140,9 @@ class TaskQueueImplementation implements ITaskQueue {
       this.requestFlushTaskQueue();
     }
 
-    //DEBUG
     if (this.longStacks) {
-      task.stack = this.prepareQueueStack(stackSeparator);
+      task.stack = this.prepareTaskStack();
     }
-    //DEBUG-END
 
     this.taskQueue.push(task);
   }
@@ -190,58 +153,26 @@ class TaskQueueImplementation implements ITaskQueue {
     this.flushQueue(queue, Number.MAX_VALUE);
   }
 
-  //DEBUG
-  private prepareQueueStack(separator: string) {
-    let stack = separator + filterQueueStack(captureStack());
-
-    if (typeof this.stack === 'string') {
-      stack = filterFlushStack(stack) + this.stack;
-    }
-
-    return stack;
+  //Overwritten in debug mode.
+  private prepareTaskStack(): string {
+    throw new Error('TaskQueue long stack traces are only available in debug mode.');
   }
-  //DEBUG-END
+
+  //Overwritten in debug mode.
+  private prepareMicroTaskStack(): string {
+    throw new Error('TaskQueue long stack traces are only available in debug mode.');
+  }
+
+  //Overwritten in debug mode via late binding.
+  private onError(error: any, task: any){
+    if ('onError' in task) {
+      task.onError(error);
+    } else if (hasSetImmediate) {
+      setImmediate(() => { throw error; });
+    } else {
+      setTimeout(() => { throw error; }, 0);
+    }
+  }
 }
 
 export const TaskQueue: ITaskQueue = new TaskQueueImplementation();
-
-//DEBUG
-function captureStack() {
-  let error = new Error();
-
-  // Firefox, Chrome, Edge all have .stack defined by now, IE has not.
-  if (error.stack) {
-    return error.stack;
-  }
-
-  try {
-    throw error;
-  } catch (e) {
-    return e.stack;
-  }
-}
-
-function filterQueueStack(stack: string) {
-  // Remove everything (error message + top stack frames) up to the topmost queueTask or queueMicroTask call
-  return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
-}
-
-function filterFlushStack(stack: string) {
-  // Remove bottom frames starting with the last flushTaskQueue or flushMicroTaskQueue
-  let index = stack.lastIndexOf('flushMicroTaskQueue');
-
-  if (index < 0) {
-    index = stack.lastIndexOf('flushTaskQueue');
-    if (index < 0) {
-      return stack;
-    }
-  }
-
-  index = stack.lastIndexOf('\n', index);
-
-  return index < 0 ? stack : stack.substr(0, index);
-  // The following would work but without regex support to match from end of string,
-  // it's hard to ensure we have the last occurrence of "flushTaskQueue".
-  // return stack.replace(/\n[^\n]*?\bflush(Micro)?TaskQueue\b[\s\S]*$/, "");
-}
-//DEBUG-END

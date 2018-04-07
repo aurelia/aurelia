@@ -1172,8 +1172,6 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var hasSetImmediate = typeof setImmediate === 'function';
-    var stackSeparator = '\nEnqueued in TaskQueue by:\n';
-    var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
     function makeRequestFlushFromMutationObserver(flush) {
         var toggle = 1;
         var observer = dom_1.DOM.createMutationObserver(flush);
@@ -1194,23 +1192,6 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
                 flush();
             }
         };
-    }
-    function onError(error, task, longStacks) {
-        if (longStacks &&
-            task.stack &&
-            typeof error === 'object' &&
-            error !== null) {
-            error.stack = filterFlushStack(error.stack) + task.stack;
-        }
-        if ('onError' in task) {
-            task.onError(error);
-        }
-        else if (hasSetImmediate) {
-            setImmediate(function () { throw error; });
-        }
-        else {
-            setTimeout(function () { throw error; }, 0);
-        }
     }
     var TaskQueueImplementation = (function () {
         function TaskQueueImplementation() {
@@ -1245,7 +1226,7 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
                 }
             }
             catch (error) {
-                onError(error, task, this.longStacks);
+                this.onError(error, task);
             }
             finally {
                 this.flushing = false;
@@ -1256,7 +1237,7 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
                 this.requestFlushMicroTaskQueue();
             }
             if (this.longStacks) {
-                task.stack = this.prepareQueueStack(microStackSeparator);
+                task.stack = this.prepareMicroTaskStack();
             }
             this.microTaskQueue.push(task);
         };
@@ -1270,7 +1251,7 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
                 this.requestFlushTaskQueue();
             }
             if (this.longStacks) {
-                task.stack = this.prepareQueueStack(stackSeparator);
+                task.stack = this.prepareTaskStack();
             }
             this.taskQueue.push(task);
         };
@@ -1279,42 +1260,26 @@ define('runtime/task-queue',["require", "exports", "./dom"], function (require, 
             this.taskQueue = [];
             this.flushQueue(queue, Number.MAX_VALUE);
         };
-        TaskQueueImplementation.prototype.prepareQueueStack = function (separator) {
-            var stack = separator + filterQueueStack(captureStack());
-            if (typeof this.stack === 'string') {
-                stack = filterFlushStack(stack) + this.stack;
+        TaskQueueImplementation.prototype.prepareTaskStack = function () {
+            throw new Error('TaskQueue long stack traces are only available in debug mode.');
+        };
+        TaskQueueImplementation.prototype.prepareMicroTaskStack = function () {
+            throw new Error('TaskQueue long stack traces are only available in debug mode.');
+        };
+        TaskQueueImplementation.prototype.onError = function (error, task) {
+            if ('onError' in task) {
+                task.onError(error);
             }
-            return stack;
+            else if (hasSetImmediate) {
+                setImmediate(function () { throw error; });
+            }
+            else {
+                setTimeout(function () { throw error; }, 0);
+            }
         };
         return TaskQueueImplementation;
     }());
     exports.TaskQueue = new TaskQueueImplementation();
-    function captureStack() {
-        var error = new Error();
-        if (error.stack) {
-            return error.stack;
-        }
-        try {
-            throw error;
-        }
-        catch (e) {
-            return e.stack;
-        }
-    }
-    function filterQueueStack(stack) {
-        return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
-    }
-    function filterFlushStack(stack) {
-        var index = stack.lastIndexOf('flushMicroTaskQueue');
-        if (index < 0) {
-            index = stack.lastIndexOf('flushTaskQueue');
-            if (index < 0) {
-                return stack;
-            }
-        }
-        index = stack.lastIndexOf('\n', index);
-        return index < 0 ? stack : stack.substr(0, index);
-    }
 });
 
 
@@ -6256,6 +6221,63 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         };
         return TemplateView;
     }());
+});
+
+
+
+define('debug/task-queue',["require", "exports", "../runtime/task-queue"], function (require, exports, task_queue_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var stackSeparator = '\nEnqueued in TaskQueue by:\n';
+    var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
+    var originalOnError = task_queue_1.TaskQueue.onError.bind(task_queue_1.TaskQueue);
+    exports.TaskQueue = Object.assign(task_queue_1.TaskQueue, {
+        prepareTaskStack: function () {
+            return this.prepareStack(stackSeparator);
+        },
+        prepareMicroTaskStack: function () {
+            return this.prepareStack(microStackSeparator);
+        },
+        prepareStack: function (separator) {
+            var stack = separator + filterQueueStack(captureStack());
+            if (typeof this.stack === 'string') {
+                stack = filterFlushStack(stack) + this.stack;
+            }
+            return stack;
+        },
+        onError: function (error, task) {
+            if (this.longStacks && task.stack && typeof error === 'object' && error !== null) {
+                error.stack = filterFlushStack(error.stack) + task.stack;
+            }
+            originalOnError(error, task);
+        }
+    });
+    function captureStack() {
+        var error = new Error();
+        if (error.stack) {
+            return error.stack;
+        }
+        try {
+            throw error;
+        }
+        catch (e) {
+            return e.stack;
+        }
+    }
+    function filterQueueStack(stack) {
+        return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
+    }
+    function filterFlushStack(stack) {
+        var index = stack.lastIndexOf('flushMicroTaskQueue');
+        if (index < 0) {
+            index = stack.lastIndexOf('flushTaskQueue');
+            if (index < 0) {
+                return stack;
+            }
+        }
+        index = stack.lastIndexOf('\n', index);
+        return index < 0 ? stack : stack.substr(0, index);
+    }
 });
 
 

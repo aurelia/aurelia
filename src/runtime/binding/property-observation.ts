@@ -1,10 +1,8 @@
-import { getLogger } from '../logging';
 import { SubscriberCollection } from './subscriber-collection';
 import { TaskQueue } from '../task-queue';
 import { IIndexable } from './binding-interfaces';
 import { ICallable } from '../interfaces';
-
-const logger = getLogger('property-observation');
+import { Reporter } from '../reporter';
 
 export const propertyAccessor = {
   getValue: (obj: any, propertyName: string) => obj[propertyName],
@@ -102,12 +100,11 @@ export class SetterObserver extends SubscriberCollection {
 
     if (!Reflect.defineProperty(this.obj, this.propertyName, {
       configurable: true,
-      enumerable: this.propertyName in this.obj ?
-        this.obj.propertyIsEnumerable(this.propertyName) : true,
+      enumerable: this.propertyName in this.obj ? this.obj.propertyIsEnumerable(this.propertyName) : true,
       get: this.getValue.bind(this),
       set: this.setValue.bind(this)
     })) {
-      logger.warn(`Cannot observe property '${this.propertyName}' of object`, this.obj);
+      Reporter.write(1, this.propertyName, this.obj);
     }
   }
 }

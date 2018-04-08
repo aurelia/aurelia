@@ -1,4 +1,3 @@
-import * as LogManager from '../logging';
 import { DOM } from '../dom';
 import { getArrayObserver } from './array-observation';
 import { getMapObserver } from './map-observation';
@@ -22,6 +21,7 @@ import {
 import { ClassObserver } from './class-observer';
 import { SVGAnalyzer } from './svg';
 import { IObserverLocator, IBindingTargetObserver, IObservable, IBindingTargetAccessor } from './binding-interfaces';
+import { Reporter } from '../reporter';
 
 function getPropertyDescriptor(subject: object, name: string) {
   let pd = Object.getOwnPropertyDescriptor(subject, name);
@@ -39,7 +39,6 @@ export class ObserverLocator implements IObserverLocator {
   public static instance = new ObserverLocator();
 
   private adapters: ObjectObservationAdapter[] = [];
-  private logger = LogManager.getLogger('observer-locator');
 
   constructor(
     private eventManager: EventManager = EventManager.instance,
@@ -81,7 +80,7 @@ export class ObserverLocator implements IObserverLocator {
       writable: false,
       value: value
     })) {
-      this.logger.warn('Cannot add observers to object', obj);
+      Reporter.write(0, obj);
     }
 
     return value;

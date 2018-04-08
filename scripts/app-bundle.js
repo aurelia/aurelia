@@ -165,11 +165,11 @@ define('generated-configuration',["require", "exports", "./runtime/binding/ast",
 
 
 
-define('main',["require", "exports", "./runtime/aurelia", "./app", "./generated-configuration"], function (require, exports, aurelia_1, app_1, Configuration) {
+define('main',["require", "exports", "./runtime/aurelia", "./app", "./generated-configuration", "./debug/configuration"], function (require, exports, aurelia_1, app_1, Configuration, DebugConfiguration) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     aurelia_1.Aurelia
-        .register(Configuration)
+        .register(Configuration, DebugConfiguration)
         .app({ host: document.body, component: new app_1.App() })
         .start();
 });
@@ -283,7 +283,6 @@ define('name-tag',["require", "exports", "./runtime/decorators", "./name-tag-con
         }
         NameTag.prototype.nameChanged = function (newValue) {
             console.log("Name changed to " + newValue);
-            ;
         };
         NameTag.prototype.submit = function () {
             this.name = '' + Math.random();
@@ -294,6 +293,133 @@ define('name-tag',["require", "exports", "./runtime/decorators", "./name-tag-con
         return NameTag;
     }());
     exports.NameTag = NameTag;
+});
+
+
+
+define('debug/reporter',["require", "exports", "../runtime/reporter"], function (require, exports, reporter_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MessageType;
+    (function (MessageType) {
+        MessageType[MessageType["error"] = 0] = "error";
+        MessageType[MessageType["warn"] = 1] = "warn";
+        MessageType[MessageType["info"] = 2] = "info";
+        MessageType[MessageType["debug"] = 3] = "debug";
+    })(MessageType || (MessageType = {}));
+    exports.Reporter = Object.assign(reporter_1.Reporter, {
+        write: function (code) {
+            var params = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                params[_i - 1] = arguments[_i];
+            }
+            var info = getMessageInfoForCode(code);
+            switch (info.type) {
+                case MessageType.debug:
+                    console.debug.apply(console, [info.message].concat(params));
+                    break;
+                case MessageType.info:
+                    console.info.apply(console, [info.message].concat(params));
+                    break;
+                case MessageType.warn:
+                    console.warn.apply(console, [info.message].concat(params));
+                    break;
+                case MessageType.error:
+                    throw this.error.apply(this, [code].concat(params));
+            }
+        },
+        error: function (code) {
+            var params = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                params[_i - 1] = arguments[_i];
+            }
+            var info = getMessageInfoForCode(code);
+            var error = new Error(info.message);
+            error.data = params;
+            return error;
+        }
+    });
+    function getMessageInfoForCode(code) {
+        return codeLookup[code] || createInvalidCodeMessageInfo(code);
+    }
+    function createInvalidCodeMessageInfo(code) {
+        return {
+            type: MessageType.error,
+            message: "Attempted to report with unknown code " + code + "."
+        };
+    }
+    ;
+    var codeLookup = {
+        0: {
+            type: MessageType.warn,
+            message: 'Cannot add observers to object.'
+        },
+        1: {
+            type: MessageType.warn,
+            message: 'Cannot observe property of object.'
+        },
+        2: {
+            type: MessageType.info,
+            message: 'Starting application in debug mode.'
+        }
+    };
+});
+
+
+
+define('debug/task-queue',["require", "exports", "../runtime/task-queue"], function (require, exports, task_queue_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var stackSeparator = '\nEnqueued in TaskQueue by:\n';
+    var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
+    var originalOnError = task_queue_1.TaskQueue.onError.bind(task_queue_1.TaskQueue);
+    exports.TaskQueue = Object.assign(task_queue_1.TaskQueue, {
+        prepareTaskStack: function () {
+            return this.prepareStack(stackSeparator);
+        },
+        prepareMicroTaskStack: function () {
+            return this.prepareStack(microStackSeparator);
+        },
+        prepareStack: function (separator) {
+            var stack = separator + filterQueueStack(captureStack());
+            if (typeof this.stack === 'string') {
+                stack = filterFlushStack(stack) + this.stack;
+            }
+            return stack;
+        },
+        onError: function (error, task) {
+            if (this.longStacks && task.stack && typeof error === 'object' && error !== null) {
+                error.stack = filterFlushStack(error.stack) + task.stack;
+            }
+            originalOnError(error, task);
+        }
+    });
+    function captureStack() {
+        var error = new Error();
+        if (error.stack) {
+            return error.stack;
+        }
+        try {
+            throw error;
+        }
+        catch (e) {
+            return e.stack;
+        }
+    }
+    function filterQueueStack(stack) {
+        return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
+    }
+    function filterFlushStack(stack) {
+        var index = stack.lastIndexOf('flushMicroTaskQueue');
+        if (index < 0) {
+            index = stack.lastIndexOf('flushTaskQueue');
+            if (index < 0) {
+                return stack;
+            }
+        }
+        index = stack.lastIndexOf('\n', index);
+        return index < 0 ? stack : stack.substr(0, index);
+    }
 });
 
 
@@ -975,183 +1101,6 @@ define('runtime/interfaces',["require", "exports"], function (require, exports) 
 
 
 
-define('runtime/logging',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.logLevel = {
-        none: 0,
-        error: 10,
-        warn: 20,
-        info: 30,
-        debug: 40
-    };
-    var loggers = {};
-    var appenders = [];
-    var globalDefaultLevel = exports.logLevel.none;
-    var slice = Array.prototype.slice;
-    var standardLevels = ['none', 'error', 'warn', 'info', 'debug'];
-    function isStandardLevel(level) {
-        return standardLevels.filter(function (l) { return l === level; }).length > 0;
-    }
-    function appendArgs() {
-        return [this].concat(slice.call(arguments));
-    }
-    function logFactory(level) {
-        var threshold = exports.logLevel[level];
-        return function () {
-            if (this.level < threshold) {
-                return;
-            }
-            var args = appendArgs.apply(this, arguments);
-            var i = appenders.length;
-            while (i--) {
-                (_a = appenders[i])[level].apply(_a, args);
-            }
-            var _a;
-        };
-    }
-    function logFactoryCustom(level) {
-        var threshold = exports.logLevel[level];
-        return function () {
-            if (this.level < threshold) {
-                return;
-            }
-            var args = appendArgs.apply(this, arguments);
-            var i = appenders.length;
-            while (i--) {
-                var appender = appenders[i];
-                if (appender[level] !== undefined) {
-                    appender[level].apply(appender, args);
-                }
-            }
-        };
-    }
-    function connectLoggers() {
-        var proto = Logger.prototype;
-        for (var level in exports.logLevel) {
-            if (isStandardLevel(level)) {
-                if (level !== 'none') {
-                    proto[level] = logFactory(level);
-                }
-            }
-            else {
-                proto[level] = logFactoryCustom(level);
-            }
-        }
-    }
-    function disconnectLoggers() {
-        var proto = Logger.prototype;
-        for (var level in exports.logLevel) {
-            if (level !== 'none') {
-                proto[level] = function () { };
-            }
-        }
-    }
-    function getLogger(id) {
-        return loggers[id] || new Logger(id);
-    }
-    exports.getLogger = getLogger;
-    function addAppender(appender) {
-        if (appenders.push(appender) === 1) {
-            connectLoggers();
-        }
-    }
-    exports.addAppender = addAppender;
-    function removeAppender(appender) {
-        appenders = appenders.filter(function (a) { return a !== appender; });
-    }
-    exports.removeAppender = removeAppender;
-    function getAppenders() {
-        return appenders.slice();
-    }
-    exports.getAppenders = getAppenders;
-    function clearAppenders() {
-        appenders = [];
-        disconnectLoggers();
-    }
-    exports.clearAppenders = clearAppenders;
-    function addCustomLevel(name, value) {
-        if (exports.logLevel[name] !== undefined) {
-            throw Error("Log level \"" + name + "\" already exists.");
-        }
-        if (isNaN(value)) {
-            throw Error('Value must be a number.');
-        }
-        exports.logLevel[name] = value;
-        if (appenders.length > 0) {
-            connectLoggers();
-        }
-        else {
-            Logger.prototype[name] = function () { };
-        }
-    }
-    exports.addCustomLevel = addCustomLevel;
-    function removeCustomLevel(name) {
-        if (exports.logLevel[name] === undefined) {
-            return;
-        }
-        if (isStandardLevel(name)) {
-            throw Error("Built-in log level \"" + name + "\" cannot be removed.");
-        }
-        delete exports.logLevel[name];
-        delete Logger.prototype[name];
-    }
-    exports.removeCustomLevel = removeCustomLevel;
-    function setLevel(level) {
-        globalDefaultLevel = level;
-        for (var key in loggers) {
-            loggers[key].setLevel(level);
-        }
-    }
-    exports.setLevel = setLevel;
-    function getLevel() {
-        return globalDefaultLevel;
-    }
-    exports.getLevel = getLevel;
-    var Logger = (function () {
-        function Logger(id) {
-            var cached = loggers[id];
-            if (cached) {
-                return cached;
-            }
-            loggers[id] = this;
-            this.id = id;
-            this.level = globalDefaultLevel;
-        }
-        Logger.prototype.debug = function (message) {
-            var rest = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                rest[_i - 1] = arguments[_i];
-            }
-        };
-        Logger.prototype.info = function (message) {
-            var rest = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                rest[_i - 1] = arguments[_i];
-            }
-        };
-        Logger.prototype.warn = function (message) {
-            var rest = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                rest[_i - 1] = arguments[_i];
-            }
-        };
-        Logger.prototype.error = function (message) {
-            var rest = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                rest[_i - 1] = arguments[_i];
-            }
-        };
-        Logger.prototype.setLevel = function (level) {
-            this.level = level;
-        };
-        return Logger;
-    }());
-    exports.Logger = Logger;
-});
-
-
-
 define('runtime/platform',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1175,10 +1124,33 @@ define('runtime/platform',["require", "exports"], function (require, exports) {
 
 
 
-define('runtime/task-queue',["require", "exports", "./dom"], function (require, exports, dom_1) {
+define('runtime/reporter',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Reporter = {
+        write: function (code) {
+            var params = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                params[_i - 1] = arguments[_i];
+            }
+        },
+        error: function (code) {
+            var params = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                params[_i - 1] = arguments[_i];
+            }
+            return new Error("Code " + code);
+        }
+    };
+});
+
+
+
+define('runtime/task-queue',["require", "exports", "./dom", "./di"], function (require, exports, dom_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var hasSetImmediate = typeof setImmediate === 'function';
+    exports.ITaskQueue = di_1.DI.createInterface('ITaskQueue');
     function makeRequestFlushFromMutationObserver(flush) {
         var toggle = 1;
         var observer = dom_1.DOM.createMutationObserver(flush);
@@ -1299,6 +1271,18 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
             throw new Error('Expression Compilation Not Implemented');
         }
     });
+});
+
+
+
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue"], function (require, exports, di_1, if_1, else_1, task_queue_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function register(container) {
+        container.register(if_1.If, else_1.Else);
+        container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+    }
+    exports.register = register;
 });
 
 
@@ -3779,7 +3763,7 @@ define('runtime/binding/map-observation',["require", "exports", "./collection-ob
 
 
 
-define('runtime/binding/observer-locator',["require", "exports", "../logging", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checking", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg"], function (require, exports, LogManager, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checking_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_1) {
+define('runtime/binding/observer-locator',["require", "exports", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checking", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg", "../reporter"], function (require, exports, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checking_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function getPropertyDescriptor(subject, name) {
@@ -3800,7 +3784,6 @@ define('runtime/binding/observer-locator',["require", "exports", "../logging", "
             this.dirtyChecker = dirtyChecker;
             this.svgAnalyzer = svgAnalyzer;
             this.adapters = [];
-            this.logger = LogManager.getLogger('observer-locator');
         }
         ObserverLocator.prototype.getObserver = function (obj, propertyName) {
             var observersLookup = obj.$observers;
@@ -3828,7 +3811,7 @@ define('runtime/binding/observer-locator',["require", "exports", "../logging", "
                 writable: false,
                 value: value
             })) {
-                this.logger.warn('Cannot add observers to object', obj);
+                reporter_1.Reporter.write(0, obj);
             }
             return value;
         };
@@ -3959,10 +3942,9 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/property-observation',["require", "exports", "../logging", "./subscriber-collection", "../task-queue"], function (require, exports, logging_1, subscriber_collection_1, task_queue_1) {
+define('runtime/binding/property-observation',["require", "exports", "./subscriber-collection", "../task-queue", "../reporter"], function (require, exports, subscriber_collection_1, task_queue_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var logger = logging_1.getLogger('property-observation');
     exports.propertyAccessor = {
         getValue: function (obj, propertyName) { return obj[propertyName]; },
         setValue: function (value, obj, propertyName) { obj[propertyName] = value; }
@@ -4041,12 +4023,11 @@ define('runtime/binding/property-observation',["require", "exports", "../logging
             this.getValue = this.getterValue;
             if (!Reflect.defineProperty(this.obj, this.propertyName, {
                 configurable: true,
-                enumerable: this.propertyName in this.obj ?
-                    this.obj.propertyIsEnumerable(this.propertyName) : true,
+                enumerable: this.propertyName in this.obj ? this.obj.propertyIsEnumerable(this.propertyName) : true,
                 get: this.getValue.bind(this),
                 set: this.setValue.bind(this)
             })) {
-                logger.warn("Cannot observe property '" + this.propertyName + "' of object", this.obj);
+                reporter_1.Reporter.write(1, this.propertyName, this.obj);
             }
         };
         return SetterObserver;
@@ -4675,15 +4656,6 @@ define('runtime/binding/svg',["require", "exports"], function (require, exports)
         return SVGAnalyzer;
     }());
     exports.SVGAnalyzer = SVGAnalyzer;
-});
-
-
-
-define('runtime/configuration/standard',["require", "exports", "../resources/else", "../resources/if"], function (require, exports, else_1, if_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Else = else_1.Else;
-    exports.If = if_1.If;
 });
 
 
@@ -6232,59 +6204,14 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
 
 
 
-define('debug/task-queue',["require", "exports", "../runtime/task-queue"], function (require, exports, task_queue_1) {
+define('debug/configuration',["require", "exports", "./reporter", "./task-queue"], function (require, exports, reporter_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var stackSeparator = '\nEnqueued in TaskQueue by:\n';
-    var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
-    var originalOnError = task_queue_1.TaskQueue.onError.bind(task_queue_1.TaskQueue);
-    exports.TaskQueue = Object.assign(task_queue_1.TaskQueue, {
-        prepareTaskStack: function () {
-            return this.prepareStack(stackSeparator);
-        },
-        prepareMicroTaskStack: function () {
-            return this.prepareStack(microStackSeparator);
-        },
-        prepareStack: function (separator) {
-            var stack = separator + filterQueueStack(captureStack());
-            if (typeof this.stack === 'string') {
-                stack = filterFlushStack(stack) + this.stack;
-            }
-            return stack;
-        },
-        onError: function (error, task) {
-            if (this.longStacks && task.stack && typeof error === 'object' && error !== null) {
-                error.stack = filterFlushStack(error.stack) + task.stack;
-            }
-            originalOnError(error, task);
-        }
-    });
-    function captureStack() {
-        var error = new Error();
-        if (error.stack) {
-            return error.stack;
-        }
-        try {
-            throw error;
-        }
-        catch (e) {
-            return e.stack;
-        }
+    function register(container) {
+        reporter_1.Reporter.write(2);
+        task_queue_1.TaskQueue.longStacks = true;
     }
-    function filterQueueStack(stack) {
-        return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
-    }
-    function filterFlushStack(stack) {
-        var index = stack.lastIndexOf('flushMicroTaskQueue');
-        if (index < 0) {
-            index = stack.lastIndexOf('flushTaskQueue');
-            if (index < 0) {
-                return stack;
-            }
-        }
-        index = stack.lastIndexOf('\n', index);
-        return index < 0 ? stack : stack.substr(0, index);
-    }
+    exports.register = register;
 });
 
 

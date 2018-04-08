@@ -11,7 +11,7 @@ export class NameTag {
   showHeader = true;
 
   nameChanged(newValue: string) {
-    console.log(`Name changed to ${newValue}`);;
+    console.log(`Name changed to ${newValue}`);
   }
 
   submit() {

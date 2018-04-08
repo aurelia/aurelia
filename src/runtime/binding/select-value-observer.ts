@@ -168,7 +168,7 @@ export class SelectValueObserver extends SubscriberCollection {
       this.synchronizeOptions();
       this.synchronizeValue();
     });
-    this.domObserver.observe(this.element, { childList: true, subtree: true });
+    this.domObserver.observe(this.element, { childList: true, subtree: true, characterData: true });
   }
 
   unbind() {

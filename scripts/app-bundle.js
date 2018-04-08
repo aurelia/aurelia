@@ -4532,7 +4532,7 @@ define('runtime/binding/select-value-observer',["require", "exports", "./subscri
                 _this.synchronizeOptions();
                 _this.synchronizeValue();
             });
-            this.domObserver.observe(this.element, { childList: true, subtree: true });
+            this.domObserver.observe(this.element, { childList: true, subtree: true, characterData: true });
         };
         SelectValueObserver.prototype.unbind = function () {
             this.domObserver.disconnect();

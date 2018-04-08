@@ -129,7 +129,7 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/configuration/standard", "./runtime/binding/expression"], function (require, exports, ast_1, StandardConfiguration, expression_1) {
+define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/configuration/standard", "./runtime/binding/expression"], function (require, exports, ast_1, standard_1, expression_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -156,20 +156,22 @@ define('generated-configuration',["require", "exports", "./runtime/binding/ast",
         checked: new ast_1.AccessScope('checked'),
         nameTag: new ast_1.AccessScope('nameTag')
     };
-    function register(container) {
-        expression_1.Expression.primeCache(expressionCache);
-        container.register(StandardConfiguration);
-    }
-    exports.register = register;
+    exports.GeneratedConfiguration = {
+        register: function (container) {
+            expression_1.Expression.primeCache(expressionCache);
+            container.register(standard_1.StandardConfiguration);
+        }
+    };
+    ;
 });
 
 
 
-define('main',["require", "exports", "./runtime/aurelia", "./app", "./generated-configuration", "./debug/configuration"], function (require, exports, aurelia_1, app_1, Configuration, DebugConfiguration) {
+define('main',["require", "exports", "./runtime/aurelia", "./app", "./generated-configuration", "./debug/configuration"], function (require, exports, aurelia_1, app_1, generated_configuration_1, configuration_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     aurelia_1.Aurelia
-        .register(Configuration, DebugConfiguration)
+        .register(generated_configuration_1.GeneratedConfiguration, configuration_1.DebugConfiguration)
         .app({ host: document.body, component: new app_1.App() })
         .start();
 });
@@ -1278,11 +1280,12 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
 define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue"], function (require, exports, di_1, if_1, else_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    function register(container) {
-        container.register(if_1.If, else_1.Else);
-        container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-    }
-    exports.register = register;
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(if_1.If, else_1.Else);
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+        }
+    };
 });
 
 
@@ -6207,11 +6210,12 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
 define('debug/configuration',["require", "exports", "./reporter", "./task-queue"], function (require, exports, reporter_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    function register(container) {
-        reporter_1.Reporter.write(2);
-        task_queue_1.TaskQueue.longStacks = true;
-    }
-    exports.register = register;
+    exports.DebugConfiguration = {
+        register: function (container) {
+            reporter_1.Reporter.write(2);
+            task_queue_1.TaskQueue.longStacks = true;
+        }
+    };
 });
 
 

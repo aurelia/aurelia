@@ -1,9 +1,9 @@
 import { Aurelia } from './runtime/aurelia';
 import { App } from './app';
-import * as Configuration from './generated-configuration';
-import * as DebugConfiguration from './debug/configuration';
+import { GeneratedConfiguration } from './generated-configuration';
+import { DebugConfiguration } from './debug/configuration';
 
 Aurelia
-  .register(Configuration, DebugConfiguration)
+  .register(GeneratedConfiguration, DebugConfiguration)
   .app({ host: document.body, component: new App() })
   .start();

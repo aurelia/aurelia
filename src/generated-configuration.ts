@@ -1,6 +1,6 @@
 import { AccessScope, TemplateLiteral, LiteralString, Conditional, CallScope, IExpression } from "./runtime/binding/ast";
 import { IContainer } from "./runtime/di";
-import * as StandardConfiguration from './runtime/configuration/standard';
+import { StandardConfiguration } from './runtime/configuration/standard';
 import { Expression } from "./runtime/binding/expression";
 
 const emptyArray: any[] = [];
@@ -33,7 +33,9 @@ const expressionCache: Record<string, IExpression> = {
   nameTag: new AccessScope('nameTag')
 };
 
-export function register(container: IContainer) {
-  Expression.primeCache(expressionCache);
-  container.register(StandardConfiguration);
-}
+export const GeneratedConfiguration = {
+  register(container: IContainer) {
+    Expression.primeCache(expressionCache);
+    container.register(StandardConfiguration);
+  }
+};;

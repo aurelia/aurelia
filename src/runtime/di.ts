@@ -1,9 +1,10 @@
 import { PLATFORM } from "./platform";
+import { Injectable } from "./interfaces";
 
-type InterfaceSymbol = (target, property, index) => typeof target;
+type InterfaceSymbol = (target: Injectable, property: string, index: number) => any;
 
 function createInterface(key: string): InterfaceSymbol {
-  return function Key(target, prop, index) {
+  return function Key(target: Injectable, property: string, index: number) {
     const inject = target.inject || (target.inject = []);
     (<any>Key).key = key;
     inject[index] = Key;

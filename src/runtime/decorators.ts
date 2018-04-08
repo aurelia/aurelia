@@ -2,7 +2,7 @@ import { Component, ICompiledElementSource, IAttributeSource } from "./templatin
 import { PLATFORM } from "./platform";
 import { DI } from "./di";
 import { BindingMode } from "./binding/binding-mode";
-import { Constructable } from "./interfaces";
+import { Constructable, Injectable } from "./interfaces";
 
 export function compiledElement(source: ICompiledElementSource) {
   return function<T extends Constructable>(target: T) {
@@ -129,8 +129,6 @@ export function bindable(configOrTarget?: BindableConfig | Object, key?, descrip
 
   return deco;
 }
-
-type Injectable = Constructable & { inject?:any[] };
 
 /**
 * Decorator: Directs the TypeScript transpiler to write-out type metadata for the decorated class.

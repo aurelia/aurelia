@@ -5,6 +5,7 @@ import { DI } from './di';
 let hasSetImmediate = typeof setImmediate === 'function';
 
 export const ITaskQueue = DI.createInterface('ITaskQueue');
+
 export interface ITaskQueue {
   /**
    * Whether the queue is in the process of flushing.

@@ -9,3 +9,5 @@ export interface IDisposable {
 export type Constructable<T = {}> = {
   new(...args: any[]): T;
 }
+
+export type Injectable = Constructable & { inject?:any[] };

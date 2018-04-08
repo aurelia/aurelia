@@ -299,13 +299,14 @@ define('name-tag',["require", "exports", "./runtime/decorators", "./name-tag-con
 
 
 
-define('debug/configuration',["require", "exports", "./reporter", "./task-queue"], function (require, exports, reporter_1, task_queue_1) {
+define('debug/configuration',["require", "exports", "./reporter", "./task-queue", "./binding/unparser"], function (require, exports, reporter_1, task_queue_1, unparser_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DebugConfiguration = {
         register: function (container) {
             reporter_1.Reporter.write(2);
             task_queue_1.TaskQueue.longStacks = true;
+            unparser_1.enableImprovedExpressionDebugging();
         }
     };
 });
@@ -6215,6 +6216,198 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
             }
         };
         return TemplateView;
+    }());
+});
+
+
+
+define('debug/binding/unparser',["require", "exports", "../../runtime/binding/ast"], function (require, exports, AST) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function enableImprovedExpressionDebugging() {
+        [
+            { type: AST.AccessKeyed, name: 'AccessKeyed' },
+            { type: AST.AccessMember, name: 'AccessMember' },
+            { type: AST.AccessScope, name: 'AccessScope' },
+            { type: AST.AccessThis, name: 'AccessThis' },
+            { type: AST.Assign, name: 'Assign' },
+            { type: AST.Binary, name: 'Binary' },
+            { type: AST.BindingBehavior, name: 'BindingBehavior' },
+            { type: AST.CallFunction, name: 'CallFunction' },
+            { type: AST.CallMember, name: 'CallMember' },
+            { type: AST.CallScope, name: 'CallScope' },
+            { type: AST.Chain, name: 'Chain' },
+            { type: AST.Conditional, name: 'Conditional' },
+            { type: AST.LiteralArray, name: 'LiteralArray' },
+            { type: AST.LiteralObject, name: 'LiteralObject' },
+            { type: AST.LiteralPrimitive, name: 'LiteralPrimitive' },
+            { type: AST.LiteralString, name: 'LiteralString' },
+            { type: AST.PrefixNot, name: 'Prefix' },
+            { type: AST.TemplateLiteral, name: 'TemplateLiteral' },
+            { type: AST.ValueConverter, name: 'ValueConverter' }
+        ].forEach(function (x) { return adoptDebugMethods(x.type, x.name); });
+    }
+    exports.enableImprovedExpressionDebugging = enableImprovedExpressionDebugging;
+    function adoptDebugMethods(type, name) {
+        type.prototype.toString = function () { return Unparser.unparse(this); };
+        type.prototype.accept = function (visitor) { return visitor['visit' + name](this); };
+    }
+    var Unparser = (function () {
+        function Unparser(buffer) {
+            this.buffer = buffer;
+            this.buffer = buffer;
+        }
+        Unparser.unparse = function (expression) {
+            var buffer = [];
+            var visitor = new Unparser(buffer);
+            expression.accept(visitor);
+            return buffer.join('');
+        };
+        Unparser.prototype.write = function (text) {
+            this.buffer.push(text);
+        };
+        Unparser.prototype.writeArgs = function (args) {
+            this.write('(');
+            for (var i = 0, length_1 = args.length; i < length_1; ++i) {
+                if (i !== 0) {
+                    this.write(',');
+                }
+                args[i].accept(this);
+            }
+            this.write(')');
+        };
+        Unparser.prototype.visitChain = function (chain) {
+            var expressions = chain.expressions;
+            for (var i = 0, length_2 = expressions.length; i < length_2; ++i) {
+                if (i !== 0) {
+                    this.write(';');
+                }
+                expressions[i].accept(this);
+            }
+        };
+        Unparser.prototype.visitBindingBehavior = function (behavior) {
+            var args = behavior.args;
+            behavior.expression.accept(this);
+            this.write("&" + behavior.name);
+            for (var i = 0, length_3 = args.length; i < length_3; ++i) {
+                this.write(':');
+                args[i].accept(this);
+            }
+        };
+        Unparser.prototype.visitValueConverter = function (converter) {
+            var args = converter.args;
+            converter.expression.accept(this);
+            this.write("|" + converter.name);
+            for (var i = 0, length_4 = args.length; i < length_4; ++i) {
+                this.write(':');
+                args[i].accept(this);
+            }
+        };
+        Unparser.prototype.visitAssign = function (assign) {
+            assign.target.accept(this);
+            this.write('=');
+            assign.value.accept(this);
+        };
+        Unparser.prototype.visitConditional = function (conditional) {
+            conditional.condition.accept(this);
+            this.write('?');
+            conditional.yes.accept(this);
+            this.write(':');
+            conditional.no.accept(this);
+        };
+        Unparser.prototype.visitAccessThis = function (access) {
+            if (access.ancestor === 0) {
+                this.write('$this');
+                return;
+            }
+            this.write('$parent');
+            var i = access.ancestor - 1;
+            while (i--) {
+                this.write('.$parent');
+            }
+        };
+        Unparser.prototype.visitAccessScope = function (access) {
+            var i = access.ancestor;
+            while (i--) {
+                this.write('$parent.');
+            }
+            this.write(access.name);
+        };
+        Unparser.prototype.visitAccessMember = function (access) {
+            access.object.accept(this);
+            this.write("." + access.name);
+        };
+        Unparser.prototype.visitAccessKeyed = function (access) {
+            access.object.accept(this);
+            this.write('[');
+            access.key.accept(this);
+            this.write(']');
+        };
+        Unparser.prototype.visitCallScope = function (call) {
+            var i = call.ancestor;
+            while (i--) {
+                this.write('$parent.');
+            }
+            this.write(call.name);
+            this.writeArgs(call.args);
+        };
+        Unparser.prototype.visitCallFunction = function (call) {
+            call.func.accept(this);
+            this.writeArgs(call.args);
+        };
+        Unparser.prototype.visitCallMember = function (call) {
+            call.object.accept(this);
+            this.write("." + call.name);
+            this.writeArgs(call.args);
+        };
+        Unparser.prototype.visitPrefix = function (prefix) {
+            this.write("(" + prefix.operation);
+            prefix.expression.accept(this);
+            this.write(')');
+        };
+        Unparser.prototype.visitBinary = function (binary) {
+            binary.left.accept(this);
+            this.write(binary.operation);
+            binary.right.accept(this);
+        };
+        Unparser.prototype.visitLiteralPrimitive = function (literal) {
+            this.write("" + literal.value);
+        };
+        Unparser.prototype.visitLiteralArray = function (literal) {
+            var elements = literal.elements;
+            this.write('[');
+            for (var i = 0, length_5 = elements.length; i < length_5; ++i) {
+                if (i !== 0) {
+                    this.write(',');
+                }
+                elements[i].accept(this);
+            }
+            this.write(']');
+        };
+        Unparser.prototype.visitLiteralObject = function (literal) {
+            var keys = literal.keys;
+            var values = literal.values;
+            this.write('{');
+            for (var i = 0, length_6 = keys.length; i < length_6; ++i) {
+                if (i !== 0) {
+                    this.write(',');
+                }
+                this.write("'" + keys[i] + "':");
+                values[i].accept(this);
+            }
+            this.write('}');
+        };
+        Unparser.prototype.visitLiteralString = function (literal) {
+            var escaped = literal.value.replace(/'/g, "\'");
+            this.write("'" + escaped + "'");
+        };
+        Unparser.prototype.visitTemplateLiteral = function (node) {
+            var parts = node.parts;
+            for (var i = 0, length_7 = parts.length; i < length_7; ++i) {
+                parts[i].accept(this);
+            }
+        };
+        return Unparser;
     }());
 });
 

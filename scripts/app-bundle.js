@@ -299,6 +299,19 @@ define('name-tag',["require", "exports", "./runtime/decorators", "./name-tag-con
 
 
 
+define('debug/configuration',["require", "exports", "./reporter", "./task-queue"], function (require, exports, reporter_1, task_queue_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DebugConfiguration = {
+        register: function (container) {
+            reporter_1.Reporter.write(2);
+            task_queue_1.TaskQueue.longStacks = true;
+        }
+    };
+});
+
+
+
 define('debug/reporter',["require", "exports", "../runtime/reporter"], function (require, exports, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1273,19 +1286,6 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
             throw new Error('Expression Compilation Not Implemented');
         }
     });
-});
-
-
-
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue"], function (require, exports, di_1, if_1, else_1, task_queue_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(if_1.If, else_1.Else);
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-        }
-    };
 });
 
 
@@ -4663,6 +4663,19 @@ define('runtime/binding/svg',["require", "exports"], function (require, exports)
 
 
 
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue"], function (require, exports, di_1, if_1, else_1, task_queue_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(if_1.If, else_1.Else);
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+        }
+    };
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -6203,19 +6216,6 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         };
         return TemplateView;
     }());
-});
-
-
-
-define('debug/configuration',["require", "exports", "./reporter", "./task-queue"], function (require, exports, reporter_1, task_queue_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.DebugConfiguration = {
-        register: function (container) {
-            reporter_1.Reporter.write(2);
-            task_queue_1.TaskQueue.longStacks = true;
-        }
-    };
 });
 
 

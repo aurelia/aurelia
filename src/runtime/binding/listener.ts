@@ -1,8 +1,9 @@
 import { EventManager } from "./event-manager";
 import { IExpression } from "./ast";
 import { IBinding } from "./binding";
-import { IScope, IDisposable, IDelegationStrategy, IEventManager } from "./binding-interfaces";
+import { IScope, IDelegationStrategy, IEventManager } from "./binding-interfaces";
 import { IContainer } from "../di";
+import { IDisposable } from "../interfaces";
 
 export class Listener implements IBinding {
   private source: IScope;

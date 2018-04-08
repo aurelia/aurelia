@@ -1,10 +1,6 @@
-import { ICallable } from "../interfaces";
+import { ICallable, IDisposable } from "../interfaces";
 
 export type IIndexable<T extends object = object> = T & { [key: string]: any };
-
-export interface IDisposable {
-  dispose(): void;
-}
 
 export interface IEventSubscriber extends IDisposable {
   readonly events: string[];

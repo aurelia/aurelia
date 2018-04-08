@@ -1,5 +1,6 @@
 import { DOM } from '../dom';
-import { IDisposable, IEventSubscriber, IEventManager, IDelegationStrategy } from './binding-interfaces';
+import { IEventSubscriber, IEventManager, IDelegationStrategy } from './binding-interfaces';
+import { IDisposable } from '../interfaces';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 function findOriginalEventTarget(event: any) {

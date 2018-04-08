@@ -1,6 +1,24 @@
 import { DOM } from '../dom';
-import { IEventSubscriber, IEventManager, IDelegationStrategy } from './binding-interfaces';
 import { IDisposable } from '../interfaces';
+
+export interface IEventSubscriber extends IDisposable {
+  readonly events: string[];
+  subscribe(element: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void;
+}
+export enum DelegationStrategy {
+  none = 0,
+  capturing = 1,
+  bubbling = 2
+}
+
+export interface IEventManager {
+  addEventListener(
+    target: EventTarget,
+    targetEvent: string,
+    callbackOrListener: EventListenerOrEventListenerObject,
+    delegate: DelegationStrategy
+  ): IDisposable;
+}
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 function findOriginalEventTarget(event: any) {
@@ -126,7 +144,7 @@ interface IEventStrategy {
     target: IAureliaEventTarget,
     targetEvent: string,
     callback: EventListenerOrEventListenerObject,
-    strategy: IDelegationStrategy[keyof IDelegationStrategy]
+    strategy: DelegationStrategy
   ): IDisposable;
 }
 
@@ -176,21 +194,22 @@ class DefaultEventStrategy implements IEventStrategy {
     target: IAureliaEventTarget,
     targetEvent: string,
     callback: EventListenerOrEventListenerObject,
-    strategy: IDelegationStrategy[keyof IDelegationStrategy]
+    strategy: DelegationStrategy
   ) {
 
     let delegatedHandlers: Record<string, DelegatedHandlerEntry> | undefined;
     let capturedHandlers: Record<string, CapturedHandlerEntry> | undefined;
     let handlerEntry: DelegatedHandlerEntry | CapturedHandlerEntry | undefined;
 
-    if (strategy === delegationStrategy.bubbling) {
+    if (strategy === DelegationStrategy.bubbling) {
       delegatedHandlers = this.delegatedHandlers;
       handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new DelegatedHandlerEntry(targetEvent));
       let delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
 
       return new DelegationEntryHandler(handlerEntry, delegatedCallbacks, targetEvent, callback);
     }
-    if (strategy === delegationStrategy.capturing) {
+
+    if (strategy === DelegationStrategy.capturing) {
       capturedHandlers = this.capturedHandlers;
       handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new CapturedHandlerEntry(targetEvent));
       let capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
@@ -201,13 +220,6 @@ class DefaultEventStrategy implements IEventStrategy {
     return new EventHandler(target, targetEvent, callback);
   }
 }
-
-export const delegationStrategy: IDelegationStrategy = {
-  none: 0,
-  capturing: 1,
-  bubbling: 2
-};
-
 
 export interface IElementEventHandlerConfig extends Record<string, Record<string, string[]>> { }
 
@@ -303,7 +315,7 @@ export class EventManager implements IEventManager {
     target: EventTarget,
     targetEvent: string,
     callbackOrListener: EventListenerOrEventListenerObject,
-    delegate: IDelegationStrategy[keyof IDelegationStrategy]
+    delegate: DelegationStrategy
   ) {
     return (this.eventStrategyLookup[targetEvent] || this.defaultEventStrategy)
       .subscribe(target, targetEvent, callbackOrListener, delegate);
@@ -311,7 +323,6 @@ export class EventManager implements IEventManager {
 }
 
 export class EventSubscriber implements IEventSubscriber {
-
   private target: EventTarget;
   private handler: EventListenerOrEventListenerObject;
 

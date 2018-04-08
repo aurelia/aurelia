@@ -1,8 +1,9 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { IEventSubscriber } from './binding-interfaces';
 import { ICallable } from '../interfaces';
+import { IAccessor, ISubscribable } from './observation';
+import { IEventSubscriber } from './event-manager';
 
-export class XLinkAttributeObserver {
+export class XLinkAttributeObserver implements IAccessor {
   // xlink namespaced attributes require getAttributeNS/setAttributeNS
   // (even though the NS version doesn't work for other namespaces
   // in html5 documents)
@@ -32,7 +33,7 @@ export const dataAttributeAccessor = {
   }
 };
 
-export class DataAttributeObserver {
+export class DataAttributeObserver implements IAccessor {
   constructor(private element: Element, private propertyName: string) { }
 
   getValue() {
@@ -51,7 +52,7 @@ export class DataAttributeObserver {
   }
 }
 
-export class StyleObserver {
+export class StyleObserver implements IAccessor {
   styles: any = null;
   version = 0;
 
@@ -122,7 +123,7 @@ export class StyleObserver {
   }
 }
 
-export class ValueAttributeObserver extends SubscriberCollection {
+export class ValueAttributeObserver extends SubscriberCollection implements IAccessor, ISubscribable {
   private oldValue: any;
 
   constructor(

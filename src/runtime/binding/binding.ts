@@ -1,12 +1,12 @@
 import { BindingMode } from './binding-mode';
 import { ConnectableBinding } from './connectable-binding';
 import { enqueueBindingConnect } from './connect-queue';
-import { sourceContext, targetContext } from './call-context';
-import { ObserverLocator } from './observer-locator';
+import { ObserverLocator, IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
 import { Observer } from './property-observation';
-import { IScope, IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IObserverLocator } from './binding-interfaces';
+import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor } from './observation';
 import { IContainer } from '../di';
+import { IScope, sourceContext, targetContext } from './binding-context';
 
 export interface IBinding extends IBindScope {
   container: IContainer;
@@ -91,7 +91,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
     if (!this.targetObserver) {
       let method: 'getObserver' | 'getAccessor' = mode === BindingMode.twoWay || mode === BindingMode.fromView ? 'getObserver' : 'getAccessor';
-      this.targetObserver = this.observerLocator[method](this.target, this.targetProperty);
+      this.targetObserver = <any>this.observerLocator[method](this.target, this.targetProperty);
     }
 
     if ('bind' in this.targetObserver) {

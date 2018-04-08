@@ -1,8 +1,9 @@
 import { SubscriberCollection } from './subscriber-collection';
 import { DOM } from '../dom';
-import { IEventSubscriber, IObserverLocator } from './binding-interfaces';
 import { ICallable } from '../interfaces';
 import { TaskQueue } from '../task-queue';
+import { IEventSubscriber } from './event-manager';
+import { IObserverLocator } from './observer-locator';
 
 const selectArrayContext = 'SelectValueObserver:array';
 

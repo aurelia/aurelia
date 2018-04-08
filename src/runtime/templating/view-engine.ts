@@ -3,7 +3,6 @@ import { View, IView, IViewOwner } from "./view";
 import { IElementComponent, IAttach, IBindSelf, IAttributeComponent } from "./component";
 import { IBinding, Binding } from "../binding/binding";
 import { ViewSlot } from "./view-slot";
-import { IBindScope, IScope } from "../binding/binding-interfaces";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
 import { Listener } from "../binding/listener";
 import { Call } from "../binding/call";
@@ -11,6 +10,8 @@ import { Ref } from "../binding/ref";
 import { Expression } from "../binding/expression";
 import { DI, IContainer, IResolver, IRegistration} from "../di";
 import { BindingMode } from "../binding/binding-mode";
+import { IBindScope } from "../binding/observation";
+import { IScope } from "../binding/binding-context";
 
 export interface ITemplate {
   container: IContainer;

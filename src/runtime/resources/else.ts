@@ -1,9 +1,9 @@
 import { IfCore } from "./if-core";
-import { IScope } from "../binding/binding-interfaces";
 import { If } from "./if";
 import { IViewFactory } from "../templating/view-engine";
 import { ViewSlot } from "../templating/view-slot";
 import { inject, templateController, customAttribute } from "../decorators";
+import { IScope } from "../binding/binding-context";
 
 @customAttribute('else')
 @templateController

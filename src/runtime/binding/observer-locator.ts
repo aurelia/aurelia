@@ -3,7 +3,7 @@ import { getArrayObserver } from './array-observation';
 import { getMapObserver } from './map-observation';
 import { getSetObserver } from './set-observation';
 import { EventManager } from './event-manager';
-import { DirtyChecker, DirtyCheckProperty } from './dirty-checking';
+import { DirtyChecker } from './dirty-checker';
 import {
   SetterObserver,
   PrimitiveObserver,
@@ -20,8 +20,16 @@ import {
 } from './element-observation';
 import { ClassObserver } from './class-observer';
 import { SVGAnalyzer } from './svg';
-import { IObserverLocator, IBindingTargetObserver, IObservable, IBindingTargetAccessor } from './binding-interfaces';
+import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCollectionObserver, AccessorOrObserver, IAccessor } from './observation';
 import { Reporter } from '../reporter';
+
+export interface IObserverLocator {
+  getObserver(obj: any, propertyName: string): AccessorOrObserver;
+  getAccessor(obj: any, propertyName: string): IAccessor | IBindingTargetAccessor;
+
+  getArrayObserver(array: any[]): IBindingCollectionObserver;
+  getMapObserver(map: Map<any, any>): IBindingCollectionObserver;
+}
 
 function getPropertyDescriptor(subject: object, name: string) {
   let pd = Object.getOwnPropertyDescriptor(subject, name);
@@ -42,11 +50,10 @@ export class ObserverLocator implements IObserverLocator {
 
   constructor(
     private eventManager: EventManager = EventManager.instance,
-    private dirtyChecker: DirtyChecker = DirtyChecker.instance,
     private svgAnalyzer: SVGAnalyzer = SVGAnalyzer.instance
   ) { }
 
-  getObserver(obj: any, propertyName: string): IBindingTargetObserver {
+  getObserver(obj: any, propertyName: string): AccessorOrObserver {
     let observersLookup = obj.$observers;
     let observer;
 
@@ -163,7 +170,8 @@ export class ObserverLocator implements IObserverLocator {
         if (adapterObserver) {
           return adapterObserver;
         }
-        return new DirtyCheckProperty(this.dirtyChecker, obj, propertyName);
+
+        return DirtyChecker.createProperty(obj, propertyName);
       }
     }
 
@@ -172,19 +180,19 @@ export class ObserverLocator implements IObserverLocator {
         return this.getArrayObserver(obj).getLengthObserver();
       }
 
-      return new DirtyCheckProperty(this.dirtyChecker, obj, propertyName);
+      return DirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Map) {
       if (propertyName === 'size') {
         return this.getMapObserver(obj).getLengthObserver();
       }
 
-      return new DirtyCheckProperty(this.dirtyChecker, obj, propertyName);
+      return DirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Set) {
       if (propertyName === 'size') {
         return this.getSetObserver(obj).getLengthObserver();
       }
 
-      return new DirtyCheckProperty(this.dirtyChecker, obj, propertyName);
+      return DirtyChecker.createProperty(obj, propertyName);
     }
 
     return new SetterObserver(obj, propertyName);
@@ -198,8 +206,9 @@ export class ObserverLocator implements IObserverLocator {
         || propertyName === 'checked' && obj.tagName.toLowerCase() === 'input'
         || propertyName === 'model' && obj.tagName.toLowerCase() === 'input'
         || /^xlink:.+$/.exec(propertyName)) {
-        return this.getObserver(obj, propertyName);
+        return <any>this.getObserver(obj, propertyName);
       }
+
       if (/^\w+:|^data-|^aria-/.test(propertyName)
         || obj instanceof DOM.SVGElement && this.svgAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)
         || obj.tagName.toLowerCase() === 'img' && propertyName === 'src'
@@ -208,6 +217,7 @@ export class ObserverLocator implements IObserverLocator {
         return dataAttributeAccessor;
       }
     }
+
     return propertyAccessor;
   }
 

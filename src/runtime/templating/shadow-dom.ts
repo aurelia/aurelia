@@ -1,9 +1,10 @@
 import { DOM } from '../dom';
 import { IAttach } from './component';
-import { IScope, IBindScope } from '../binding/binding-interfaces';
 import { IView, IViewOwner } from './view';
 import { ViewSlot } from './view-slot';
 import { IVisual, IViewFactory } from './view-engine';
+import { IBindScope } from '../binding/observation';
+import { IScope } from '../binding/binding-context';
 
 type ShadowProjectionSource = ViewSlot | IShadowSlot;
 

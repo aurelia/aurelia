@@ -1,9 +1,9 @@
-import { EventManager } from "./event-manager";
+import { EventManager, IEventManager, DelegationStrategy } from "./event-manager";
 import { IExpression } from "./ast";
 import { IBinding } from "./binding";
-import { IScope, IDelegationStrategy, IEventManager } from "./binding-interfaces";
 import { IContainer } from "../di";
 import { IDisposable } from "../interfaces";
+import { IScope } from "./binding-context";
 
 export class Listener implements IBinding {
   private source: IScope;
@@ -12,7 +12,7 @@ export class Listener implements IBinding {
 
   constructor(
     private targetEvent: string,
-    private delegationStrategy: IDelegationStrategy[keyof IDelegationStrategy],
+    private delegationStrategy: DelegationStrategy,
     private sourceExpression: IExpression,
     private target: EventTarget,
     private preventDefault: boolean,

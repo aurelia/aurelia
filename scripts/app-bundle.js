@@ -377,6 +377,10 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
         2: {
             type: MessageType.info,
             message: 'Starting application in debug mode.'
+        },
+        3: {
+            type: MessageType.error,
+            message: 'Runtime expression compilation is only available when including JIT support.'
         }
     };
 });
@@ -1279,6 +1283,27 @@ define('runtime/task-queue',["require", "exports", "./dom", "./di"], function (r
 
 
 
+define('debug/binding/binding-context',["require", "exports", "../../runtime/binding/binding-context"], function (require, exports, binding_context_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.BindingContext = Object.assign(binding_context_1.BindingContext, {
+        createScopeForTest: function (bindingContext, parentBindingContext) {
+            if (parentBindingContext) {
+                return {
+                    bindingContext: bindingContext,
+                    overrideContext: this.createOverride(bindingContext, this.createOverride(parentBindingContext))
+                };
+            }
+            return {
+                bindingContext: bindingContext,
+                overrideContext: this.createOverride(bindingContext)
+            };
+        }
+    });
+});
+
+
+
 define('debug/binding/unparser',["require", "exports", "../../runtime/binding/ast"], function (require, exports, AST) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1935,7 +1960,7 @@ define('runtime/binding/array-observation',["require", "exports", "./collection-
 
 
 
-define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], function (require, exports, scope_1, signals_1) {
+define('runtime/binding/ast',["require", "exports", "./signals", "./binding-context"], function (require, exports, signals_1, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AstKind = {
@@ -2133,15 +2158,15 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
             this.ancestor = ancestor;
         }
         AccessScope.prototype.evaluate = function (scope, container) {
-            var context = scope_1.getContextFor(this.name, scope, this.ancestor);
+            var context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor);
             return context[this.name];
         };
         AccessScope.prototype.assign = function (scope, value) {
-            var context = scope_1.getContextFor(this.name, scope, this.ancestor);
+            var context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor);
             return context ? (context[this.name] = value) : undefined;
         };
         AccessScope.prototype.connect = function (binding, scope) {
-            var context = scope_1.getContextFor(this.name, scope, this.ancestor);
+            var context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor);
             binding.observeProperty(context, this.name);
         };
         return AccessScope;
@@ -2213,7 +2238,7 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
         }
         CallScope.prototype.evaluate = function (scope, container, mustEvaluate) {
             var args = evalList(scope, this.args, container);
-            var context = scope_1.getContextFor(this.name, scope, this.ancestor);
+            var context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor);
             var func = getFunction(context, this.name, mustEvaluate);
             if (func) {
                 return func.apply(context, args);
@@ -2520,9 +2545,39 @@ define('runtime/binding/ast',["require", "exports", "./scope", "./signals"], fun
 
 
 
-define('runtime/binding/binding-interfaces',["require", "exports"], function (require, exports) {
+define('runtime/binding/binding-context',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.targetContext = 'Binding:target';
+    exports.sourceContext = 'Binding:source';
+    exports.BindingContext = {
+        createOverride: function (bindingContext, parentOverrideContext) {
+            return {
+                bindingContext: bindingContext,
+                parentOverrideContext: parentOverrideContext || null
+            };
+        },
+        get: function (scope, name, ancestor) {
+            var oc = scope.overrideContext;
+            if (ancestor) {
+                while (ancestor && oc) {
+                    ancestor--;
+                    oc = oc.parentOverrideContext;
+                }
+                if (ancestor || !oc) {
+                    return undefined;
+                }
+                return name in oc ? oc : oc.bindingContext;
+            }
+            while (oc && !(name in oc) && !(oc.bindingContext && name in oc.bindingContext)) {
+                oc = oc.parentOverrideContext;
+            }
+            if (oc) {
+                return name in oc ? oc : oc.bindingContext;
+            }
+            return scope.bindingContext || scope.overrideContext;
+        }
+    };
 });
 
 
@@ -2543,19 +2598,6 @@ define('runtime/binding/binding-mode',["require", "exports"], function (require,
 
 
 
-define('runtime/binding/binding-type',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.bindingType = {
-        binding: 1,
-        listener: 2,
-        ref: 3,
-        text: 4,
-    };
-});
-
-
-
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -2566,7 +2608,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./call-context", "./observer-locator"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, call_context_1, observer_locator_1) {
+define('runtime/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./observer-locator", "./binding-context"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, observer_locator_1, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Binding = (function (_super) {
@@ -2592,7 +2634,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             if (!this.isBound) {
                 return;
             }
-            if (context === call_context_1.sourceContext) {
+            if (context === binding_context_1.sourceContext) {
                 oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
                 newValue = this.sourceExpression.evaluate(this.source, this.container);
                 if (newValue !== oldValue) {
@@ -2605,7 +2647,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 }
                 return;
             }
-            if (context === call_context_1.targetContext) {
+            if (context === binding_context_1.targetContext) {
                 if (newValue !== this.sourceExpression.evaluate(this.source, this.container)) {
                     this.updateSource(newValue);
                 }
@@ -2645,10 +2687,10 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             }
             else if (mode === binding_mode_1.BindingMode.twoWay) {
                 this.sourceExpression.connect(this, source);
-                this.targetObserver.subscribe(call_context_1.targetContext, this);
+                this.targetObserver.subscribe(binding_context_1.targetContext, this);
             }
             else if (mode === binding_mode_1.BindingMode.fromView) {
-                this.targetObserver.subscribe(call_context_1.targetContext, this);
+                this.targetObserver.subscribe(binding_context_1.targetContext, this);
             }
         };
         Binding.prototype.unbind = function () {
@@ -2664,7 +2706,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 this.targetObserver.unbind();
             }
             if ('unsubscribe' in this.targetObserver) {
-                this.targetObserver.unsubscribe(call_context_1.targetContext, this);
+                this.targetObserver.unsubscribe(binding_context_1.targetContext, this);
             }
             this.unobserve(true);
         };
@@ -2694,15 +2736,6 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
         return TextBinding;
     }(Binding));
     exports.TextBinding = TextBinding;
-});
-
-
-
-define('runtime/binding/call-context',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.targetContext = 'Binding:target';
-    exports.sourceContext = 'Binding:source';
 });
 
 
@@ -3153,7 +3186,7 @@ define('runtime/binding/connect-queue',["require", "exports", "../platform"], fu
 
 
 
-define('runtime/binding/connectable-binding',["require", "exports", "./call-context"], function (require, exports, call_context_1) {
+define('runtime/binding/connectable-binding',["require", "exports", "./binding-context"], function (require, exports, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var slotNames = [];
@@ -3177,7 +3210,7 @@ define('runtime/binding/connectable-binding',["require", "exports", "./call-cont
                     i++;
                 }
                 this[slotNames[i]] = observer;
-                observer.subscribe(call_context_1.sourceContext, this);
+                observer.subscribe(binding_context_1.sourceContext, this);
                 if (i === observerSlots) {
                     this.observerSlots = i + 1;
                 }
@@ -3202,7 +3235,7 @@ define('runtime/binding/connectable-binding',["require", "exports", "./call-cont
                     var observer = this[slotNames[i]];
                     this[slotNames[i]] = null;
                     if (observer) {
-                        observer.unsubscribe(call_context_1.sourceContext, this);
+                        observer.unsubscribe(binding_context_1.sourceContext, this);
                     }
                 }
             }
@@ -3224,30 +3257,32 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/dirty-checking',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+define('runtime/binding/dirty-checker',["require", "exports", "./subscriber-collection", "../di"], function (require, exports, subscriber_collection_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var DirtyChecker = (function () {
-        function DirtyChecker() {
-            this.tracked = [];
-            this.checkDelay = 120;
-        }
-        DirtyChecker.prototype.addProperty = function (property) {
+    exports.IDirtyChecker = di_1.DI.createInterface('IDirtyChecker');
+    var Checker = {
+        tracked: [],
+        checkDelay: 120,
+        createProperty: function (obj, propertyName) {
+            return new DirtyCheckProperty(obj, propertyName);
+        },
+        addProperty: function (property) {
             var tracked = this.tracked;
             tracked.push(property);
             if (tracked.length === 1) {
                 this.scheduleDirtyCheck();
             }
-        };
-        DirtyChecker.prototype.removeProperty = function (property) {
+        },
+        removeProperty: function (property) {
             var tracked = this.tracked;
             tracked.splice(tracked.indexOf(property), 1);
-        };
-        DirtyChecker.prototype.scheduleDirtyCheck = function () {
+        },
+        scheduleDirtyCheck: function () {
             var _this = this;
             setTimeout(function () { return _this.check(); }, this.checkDelay);
-        };
-        DirtyChecker.prototype.check = function () {
+        },
+        check: function () {
             var tracked = this.tracked;
             var i = tracked.length;
             while (i--) {
@@ -3259,20 +3294,19 @@ define('runtime/binding/dirty-checking',["require", "exports", "./subscriber-col
             if (tracked.length) {
                 this.scheduleDirtyCheck();
             }
-        };
-        DirtyChecker.instance = new DirtyChecker();
-        return DirtyChecker;
-    }());
-    exports.DirtyChecker = DirtyChecker;
+        }
+    };
     var DirtyCheckProperty = (function (_super) {
         __extends(DirtyCheckProperty, _super);
-        function DirtyCheckProperty(dirtyChecker, obj, propertyName) {
+        function DirtyCheckProperty(obj, propertyName) {
             var _this = _super.call(this) || this;
-            _this.dirtyChecker = dirtyChecker;
             _this.obj = obj;
             _this.propertyName = propertyName;
             return _this;
         }
+        DirtyCheckProperty.prototype.isDirty = function () {
+            return this.oldValue !== this.obj[this.propertyName];
+        };
         DirtyCheckProperty.prototype.getValue = function () {
             return this.obj[this.propertyName];
         };
@@ -3285,24 +3319,21 @@ define('runtime/binding/dirty-checking',["require", "exports", "./subscriber-col
             this.callSubscribers(newValue, oldValue);
             this.oldValue = newValue;
         };
-        DirtyCheckProperty.prototype.isDirty = function () {
-            return this.oldValue !== this.obj[this.propertyName];
-        };
         DirtyCheckProperty.prototype.subscribe = function (context, callable) {
             if (!this.hasSubscribers()) {
                 this.oldValue = this.getValue();
-                this.dirtyChecker.addProperty(this);
+                Checker.addProperty(this);
             }
             this.addSubscriber(context, callable);
         };
         DirtyCheckProperty.prototype.unsubscribe = function (context, callable) {
             if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
-                this.dirtyChecker.removeProperty(this);
+                Checker.removeProperty(this);
             }
         };
         return DirtyCheckProperty;
     }(subscriber_collection_1.SubscriberCollection));
-    exports.DirtyCheckProperty = DirtyCheckProperty;
+    exports.DirtyChecker = Checker;
 });
 
 
@@ -3488,6 +3519,12 @@ define('runtime/binding/element-observation',["require", "exports", "./subscribe
 define('runtime/binding/event-manager',["require", "exports", "../dom"], function (require, exports, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var DelegationStrategy;
+    (function (DelegationStrategy) {
+        DelegationStrategy[DelegationStrategy["none"] = 0] = "none";
+        DelegationStrategy[DelegationStrategy["capturing"] = 1] = "capturing";
+        DelegationStrategy[DelegationStrategy["bubbling"] = 2] = "bubbling";
+    })(DelegationStrategy = exports.DelegationStrategy || (exports.DelegationStrategy = {}));
     function findOriginalEventTarget(event) {
         return (event.path && event.path[0]) || (event.deepPath && event.deepPath[0]) || event.target;
     }
@@ -3619,13 +3656,13 @@ define('runtime/binding/event-manager',["require", "exports", "../dom"], functio
             var delegatedHandlers;
             var capturedHandlers;
             var handlerEntry;
-            if (strategy === exports.delegationStrategy.bubbling) {
+            if (strategy === DelegationStrategy.bubbling) {
                 delegatedHandlers = this.delegatedHandlers;
                 handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new DelegatedHandlerEntry(targetEvent));
                 var delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
                 return new DelegationEntryHandler(handlerEntry, delegatedCallbacks, targetEvent, callback);
             }
-            if (strategy === exports.delegationStrategy.capturing) {
+            if (strategy === DelegationStrategy.capturing) {
                 capturedHandlers = this.capturedHandlers;
                 handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new CapturedHandlerEntry(targetEvent));
                 var capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
@@ -3635,11 +3672,6 @@ define('runtime/binding/event-manager',["require", "exports", "../dom"], functio
         };
         return DefaultEventStrategy;
     }());
-    exports.delegationStrategy = {
-        none: 0,
-        capturing: 1,
-        bubbling: 2
-    };
     var EventManager = (function () {
         function EventManager() {
             this.elementHandlerLookup = {};
@@ -3749,7 +3781,7 @@ define('runtime/binding/event-manager',["require", "exports", "../dom"], functio
 
 
 
-define('runtime/binding/expression',["require", "exports"], function (require, exports) {
+define('runtime/binding/expression',["require", "exports", "../reporter"], function (require, exports, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var cache = Object.create(null);
@@ -3767,7 +3799,7 @@ define('runtime/binding/expression',["require", "exports"], function (require, e
         }
     };
     exports.Expression.compile = function (expression) {
-        throw new Error('Runtime expression compilation is only available when including designtime support.');
+        throw reporter_1.Reporter.error(3);
     };
 });
 
@@ -3959,7 +3991,14 @@ define('runtime/binding/map-observation',["require", "exports", "./collection-ob
 
 
 
-define('runtime/binding/observer-locator',["require", "exports", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checking", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg", "../reporter"], function (require, exports, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checking_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_1, reporter_1) {
+define('runtime/binding/observation',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+
+
+
+define('runtime/binding/observer-locator',["require", "exports", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checker", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg", "../reporter"], function (require, exports, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checker_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function getPropertyDescriptor(subject, name) {
@@ -3972,12 +4011,10 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
         return pd;
     }
     var ObserverLocator = (function () {
-        function ObserverLocator(eventManager, dirtyChecker, svgAnalyzer) {
+        function ObserverLocator(eventManager, svgAnalyzer) {
             if (eventManager === void 0) { eventManager = event_manager_1.EventManager.instance; }
-            if (dirtyChecker === void 0) { dirtyChecker = dirty_checking_1.DirtyChecker.instance; }
             if (svgAnalyzer === void 0) { svgAnalyzer = svg_1.SVGAnalyzer.instance; }
             this.eventManager = eventManager;
-            this.dirtyChecker = dirtyChecker;
             this.svgAnalyzer = svgAnalyzer;
             this.adapters = [];
         }
@@ -4069,26 +4106,26 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
                     if (adapterObserver) {
                         return adapterObserver;
                     }
-                    return new dirty_checking_1.DirtyCheckProperty(this.dirtyChecker, obj, propertyName);
+                    return dirty_checker_1.DirtyChecker.createProperty(obj, propertyName);
                 }
             }
             if (obj instanceof Array) {
                 if (propertyName === 'length') {
                     return this.getArrayObserver(obj).getLengthObserver();
                 }
-                return new dirty_checking_1.DirtyCheckProperty(this.dirtyChecker, obj, propertyName);
+                return dirty_checker_1.DirtyChecker.createProperty(obj, propertyName);
             }
             else if (obj instanceof Map) {
                 if (propertyName === 'size') {
                     return this.getMapObserver(obj).getLengthObserver();
                 }
-                return new dirty_checking_1.DirtyCheckProperty(this.dirtyChecker, obj, propertyName);
+                return dirty_checker_1.DirtyChecker.createProperty(obj, propertyName);
             }
             else if (obj instanceof Set) {
                 if (propertyName === 'size') {
                     return this.getSetObserver(obj).getLengthObserver();
                 }
-                return new dirty_checking_1.DirtyCheckProperty(this.dirtyChecker, obj, propertyName);
+                return dirty_checker_1.DirtyChecker.createProperty(obj, propertyName);
             }
             return new property_observation_1.SetterObserver(obj, propertyName);
         };
@@ -4160,10 +4197,8 @@ define('runtime/binding/property-observation',["require", "exports", "./subscrib
             var type = typeof this.primitive;
             throw new Error("The " + this.propertyName + " property of a " + type + " (" + this.primitive + ") cannot be assigned.");
         };
-        PrimitiveObserver.prototype.subscribe = function () {
-        };
-        PrimitiveObserver.prototype.unsubscribe = function () {
-        };
+        PrimitiveObserver.prototype.subscribe = function () { };
+        PrimitiveObserver.prototype.unsubscribe = function () { };
         return PrimitiveObserver;
     }());
     exports.PrimitiveObserver = PrimitiveObserver;
@@ -4318,54 +4353,6 @@ define('runtime/binding/ref',["require", "exports"], function (require, exports)
         return Ref;
     }());
     exports.Ref = Ref;
-});
-
-
-
-define('runtime/binding/scope',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function createOverrideContext(bindingContext, parentOverrideContext) {
-        return {
-            bindingContext: bindingContext,
-            parentOverrideContext: parentOverrideContext || null
-        };
-    }
-    exports.createOverrideContext = createOverrideContext;
-    function getContextFor(name, scope, ancestor) {
-        var oc = scope.overrideContext;
-        if (ancestor) {
-            while (ancestor && oc) {
-                ancestor--;
-                oc = oc.parentOverrideContext;
-            }
-            if (ancestor || !oc) {
-                return undefined;
-            }
-            return name in oc ? oc : oc.bindingContext;
-        }
-        while (oc && !(name in oc) && !(oc.bindingContext && name in oc.bindingContext)) {
-            oc = oc.parentOverrideContext;
-        }
-        if (oc) {
-            return name in oc ? oc : oc.bindingContext;
-        }
-        return scope.bindingContext || scope.overrideContext;
-    }
-    exports.getContextFor = getContextFor;
-    function createScopeForTest(bindingContext, parentBindingContext) {
-        if (parentBindingContext) {
-            return {
-                bindingContext: bindingContext,
-                overrideContext: createOverrideContext(bindingContext, createOverrideContext(parentBindingContext))
-            };
-        }
-        return {
-            bindingContext: bindingContext,
-            overrideContext: createOverrideContext(bindingContext)
-        };
-    }
-    exports.createScopeForTest = createScopeForTest;
 });
 
 
@@ -4856,12 +4843,13 @@ define('runtime/binding/svg',["require", "exports"], function (require, exports)
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue"], function (require, exports, di_1, if_1, else_1, task_queue_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
             container.register(if_1.If, else_1.Else);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
         }
     };
@@ -5125,7 +5113,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../binding/scope", "../task-queue", "../binding/property-observation", "./shadow-dom", "../feature", "../dom", "../di"], function (require, exports, view_engine_1, view_1, scope_1, task_queue_1, property_observation_1, shadow_dom_1, feature_1, dom_1, di_1) {
+define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../task-queue", "../binding/property-observation", "./shadow-dom", "../feature", "../dom", "../di", "../binding/binding-context"], function (require, exports, view_engine_1, view_1, task_queue_1, property_observation_1, shadow_dom_1, feature_1, dom_1, di_1, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var RuntimeCharacteristics = (function () {
@@ -5262,7 +5250,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         _this.$isBound = false;
                         _this.$scope = {
                             bindingContext: _this,
-                            overrideContext: scope_1.createOverrideContext()
+                            overrideContext: binding_context_1.BindingContext.createOverride()
                         };
                         _this.$changeCallbacks = [];
                         _this.$characteristics = null;

@@ -1,6 +1,6 @@
-import { sourceContext } from './call-context';
-import { ObserverLocator } from './observer-locator';
-import { IBindingTargetObserver, IObserverLocator, IBindingCollectionObserver } from './binding-interfaces';
+import { ObserverLocator, IObserverLocator } from './observer-locator';
+import { IBindingTargetObserver, IBindingCollectionObserver } from './observation';
+import { sourceContext } from './binding-context';
 
 const slotNames: string[] = [];
 const versionSlotNames: string[] = [];
@@ -52,7 +52,7 @@ export abstract class ConnectableBinding {
 
   observeProperty(obj: any, propertyName: string) {
     let observer = this.observerLocator.getObserver(obj, propertyName);
-    this.addObserver(observer);
+    this.addObserver(<any>observer);
   }
 
   observeArray(array: any[]) {

@@ -1,5 +1,4 @@
 import { IfCore } from "./if-core";
-import { IScope } from "../binding/binding-interfaces";
 import { Else } from "./else";
 import { IViewFactory } from "../templating/view-engine";
 import { ViewSlot } from "../templating/view-slot";

@@ -1,12 +1,14 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { IObserverLocator, IEventSubscriber } from './binding-interfaces';
 import { TaskQueue } from '../task-queue';
 import { ICallable } from '../interfaces';
+import { IEventSubscriber } from './event-manager';
+import { IObserverLocator } from './observer-locator';
+import { IAccessor, ISubscribable } from './observation';
 
 const checkedArrayContext = 'CheckedObserver:array';
 const checkedValueContext = 'CheckedObserver:value';
 
-export class CheckedObserver extends SubscriberCollection {
+export class CheckedObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
   private value: any;
   private initialSync: boolean;
   private arrayObserver: any;

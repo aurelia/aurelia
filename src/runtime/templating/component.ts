@@ -1,7 +1,5 @@
 import { ViewEngine, ICompiledViewSource, ITemplate } from "./view-engine";
 import { IView, View, IViewOwner } from "./view";
-import { IScope, IBindScope } from "../binding/binding-interfaces";
-import { createOverrideContext } from "../binding/scope";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
@@ -10,6 +8,8 @@ import { DOM } from "../dom";
 import { IContainer, Registration } from "../di";
 import { BindingMode } from "../binding/binding-mode";
 import { Constructable } from "../interfaces";
+import { IBindScope } from "../binding/observation";
+import { IScope, BindingContext } from "../binding/binding-context";
 
 export interface IBindSelf {
   bind(): void;
@@ -210,7 +210,7 @@ export const Component = {
       $isBound = false;
       $scope: IScope = {
         bindingContext: this,
-        overrideContext: createOverrideContext()
+        overrideContext: BindingContext.createOverride()
       };
       
       private $host: Element;

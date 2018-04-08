@@ -1,7 +1,8 @@
 import { DOM } from "../dom";
-import { IScope, IBindScope } from "../binding/binding-interfaces";
 import { IShadowSlot } from "./shadow-dom";
 import { IAttach } from "./component";
+import { IScope } from "../binding/binding-context";
+import { IBindScope } from "../binding/observation";
 
 export interface IView {
   firstChild: Node;

@@ -1,4 +1,6 @@
-export class ClassObserver {
+import { IAccessor } from "./observation";
+
+export class ClassObserver implements IAccessor {
   doNotCache = true;
   value = '';
   version = 0;

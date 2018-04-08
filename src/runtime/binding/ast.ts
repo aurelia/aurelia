@@ -1,8 +1,7 @@
-import { getContextFor } from './scope';
 import { connectBindingToSignal } from './signals';
 import { IBinding } from './binding';
-import { IScope } from './binding-interfaces';
 import { IContainer } from '../di';
+import { IScope, BindingContext } from './binding-context';
 
 interface AstKind {
   Base: 1;
@@ -231,17 +230,17 @@ export class AccessScope implements IExpression {
   constructor(private name: string, private ancestor: number = 0) { }
 
   evaluate(scope: IScope, container: IContainer) {
-    let context = getContextFor(this.name, scope, this.ancestor);
+    let context = BindingContext.get(scope, this.name, this.ancestor);
     return context[this.name];
   }
 
   assign(scope: IScope, value: any) {
-    let context = getContextFor(this.name, scope, this.ancestor);
+    let context = BindingContext.get(scope, this.name, this.ancestor);
     return context ? (context[this.name] = value) : undefined;
   }
 
   connect(binding: IBinding, scope: IScope) {
-    let context = getContextFor(this.name, scope, this.ancestor);
+    let context = BindingContext.get(scope, this.name, this.ancestor);
     binding.observeProperty(context, this.name);
   }
 }
@@ -312,7 +311,7 @@ export class CallScope implements IExpression {
 
   evaluate(scope: IScope, container: IContainer | null, mustEvaluate?: boolean) {
     let args = evalList(scope, this.args, container);
-    let context = getContextFor(this.name, scope, this.ancestor);
+    let context = BindingContext.get(scope, this.name, this.ancestor);
     let func = getFunction(context, this.name, mustEvaluate);
     if (func) {
       return func.apply(context, args);

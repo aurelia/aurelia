@@ -1,7 +1,7 @@
 import { IExpression } from "./ast";
 import { IBinding, IBindingTarget } from "./binding";
-import { IScope } from './binding-interfaces'
 import { IContainer } from "../di";
+import { IScope } from "./binding-context";
 
 export class Ref implements IBinding {
   private source: IScope;

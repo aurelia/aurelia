@@ -61,5 +61,9 @@ const codeLookup: Record<string, IMessageInfo> = {
   2: {
     type: MessageType.info,
     message: 'Starting application in debug mode.'
+  },
+  3: {
+    type: MessageType.error,
+    message: 'Runtime expression compilation is only available when including JIT support.'
   }
 };

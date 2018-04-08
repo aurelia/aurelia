@@ -1,21 +1,18 @@
 import { SubscriberCollection } from './subscriber-collection';
 import { TaskQueue } from '../task-queue';
-import { IIndexable } from './binding-interfaces';
-import { ICallable } from '../interfaces';
+import { ICallable, IIndexable } from '../interfaces';
 import { Reporter } from '../reporter';
+import { IAccessor, ISubscribable } from './observation';
 
 export const propertyAccessor = {
   getValue: (obj: any, propertyName: string) => obj[propertyName],
   setValue: (value: any, obj: IIndexable, propertyName: string) => { obj[propertyName] = value; }
 };
 
-export class PrimitiveObserver {
+export class PrimitiveObserver implements IAccessor, ISubscribable {
   doNotCache = true;
 
-  constructor(
-    private primitive: IIndexable,
-    private propertyName: string
-  ) {
+  constructor(private primitive: IIndexable, private propertyName: string) {
     this.primitive = primitive;
     this.propertyName = propertyName;
   }
@@ -29,14 +26,11 @@ export class PrimitiveObserver {
     throw new Error(`The ${this.propertyName} property of a ${type} (${this.primitive}) cannot be assigned.`);
   }
 
-  subscribe() {
-  }
-
-  unsubscribe() {
-  }
+  subscribe() { }
+  unsubscribe() { }
 }
 
-export class SetterObserver extends SubscriberCollection {
+export class SetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
   private queued = false;
   private observing = false;
   private currentValue: any;
@@ -85,6 +79,7 @@ export class SetterObserver extends SubscriberCollection {
     if (!this.observing) {
       this.convertProperty();
     }
+
     this.addSubscriber(context, callable);
   }
 
@@ -109,7 +104,7 @@ export class SetterObserver extends SubscriberCollection {
   }
 }
 
-export class Observer<T> extends SubscriberCollection {
+export class Observer<T> extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
   private queued = false;
   private oldValue: T;
 

@@ -1,4 +1,5 @@
 import { IExpression } from "./ast";
+import { Reporter } from "../reporter";
 
 const cache = <Record<string, IExpression>>Object.create(null);
 
@@ -19,5 +20,5 @@ export const Expression = {
 };
 
 (<any>Expression).compile = function(expression: string): IExpression {
-  throw new Error('Runtime expression compilation is only available when including designtime support.')
+  throw Reporter.error(3);
 };

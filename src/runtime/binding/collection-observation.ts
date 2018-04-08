@@ -1,9 +1,9 @@
 import { calcSplices, projectArraySplices } from './array-change-records';
 import { getChangeRecords } from './map-change-records';
 import { SubscriberCollection } from './subscriber-collection';
-import { IBindingCollectionObserver } from './binding-interfaces';
-import { ICallable } from '../interfaces';
+import { ICallable, IIndexable } from '../interfaces';
 import { TaskQueue } from '../task-queue';
+import { ISubscribable, IAccessor, IBindingCollectionObserver } from './observation';
 
 type Collection = any[] | Map<any, any> | Set<any>;
 
@@ -114,7 +114,7 @@ export class ModifyCollectionObserver extends SubscriberCollection implements IB
   }
 }
 
-export class CollectionLengthObserver extends SubscriberCollection {
+export class CollectionLengthObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
   private collection: Collection;
   private lengthPropertyName: string;
   private currentValue: number;

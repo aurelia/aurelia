@@ -1,4 +1,4 @@
-import {ModifyCollectionObserver} from './collection-observation';
+import { ModifyCollectionObserver } from './collection-observation';
 
 let mapProto = Map.prototype;
 

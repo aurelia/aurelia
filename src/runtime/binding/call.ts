@@ -1,11 +1,12 @@
 import { ObserverLocator } from "./observer-locator";
 import { IExpression } from "./ast";
-import { IBindingTargetObserver, IScope } from "./binding-interfaces";
 import { IBinding } from "./binding";
 import { IContainer } from "../di";
+import { IBindingTargetAccessor } from "./observation";
+import { IScope } from "./binding-context";
 
 export class Call implements IBinding {
-  targetObserver: IBindingTargetObserver;
+  targetObserver: IBindingTargetAccessor;
   private source: IScope;
   private isBound = false;
 
@@ -15,7 +16,7 @@ export class Call implements IBinding {
     private targetProperty: string, 
     public container: IContainer, 
     observerLocator = ObserverLocator.instance) {
-    this.targetObserver = observerLocator.getObserver(target, targetProperty);
+    this.targetObserver = <any>observerLocator.getObserver(target, targetProperty);
   }
 
   callSource($event) {

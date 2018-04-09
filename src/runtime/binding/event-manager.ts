@@ -1,24 +1,6 @@
 import { DOM } from '../dom';
 import { IDisposable } from '../interfaces';
-
-export interface IEventSubscriber extends IDisposable {
-  readonly events: string[];
-  subscribe(element: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void;
-}
-export enum DelegationStrategy {
-  none = 0,
-  capturing = 1,
-  bubbling = 2
-}
-
-export interface IEventManager {
-  addEventListener(
-    target: EventTarget,
-    targetEvent: string,
-    callbackOrListener: EventListenerOrEventListenerObject,
-    delegate: DelegationStrategy
-  ): IDisposable;
-}
+import { DI } from '../di';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 function findOriginalEventTarget(event: any) {
@@ -35,52 +17,34 @@ function handleCapturedEvent(event: Event & { propagationStopped?: boolean; stan
   let target = findOriginalEventTarget(event);
 
   let orderedCallbacks = [];
+
   /**
    * During capturing phase, event 'bubbles' down from parent. Needs to reorder callback from root down to target
    */
   while (target) {
     if (target.capturedCallbacks) {
       let callback = target.capturedCallbacks[event.type];
+
       if (callback) {
         if (event.stopPropagation !== stopPropagation) {
           event.standardStopPropagation = event.stopPropagation;
           event.stopPropagation = stopPropagation;
         }
+
         orderedCallbacks.push(callback);
       }
     }
+
     target = target.parentNode;
   }
+
   for (let i = orderedCallbacks.length - 1; i >= 0 && !event.propagationStopped; i--) {
     let orderedCallback = orderedCallbacks[i];
+
     if ('handleEvent' in orderedCallback) {
       orderedCallback.handleEvent(event);
     } else {
       orderedCallback(event);
-    }
-  }
-}
-
-class CapturedHandlerEntry {
-  count = 0;
-
-  constructor(private eventName: string) {
-    this.eventName = eventName;
-  }
-
-  increment() {
-    this.count++;
-
-    if (this.count === 1) {
-      DOM.addEventListener(this.eventName, handleCapturedEvent, true);
-    }
-  }
-
-  decrement() {
-    this.count--;
-
-    if (this.count === 0) {
-      DOM.removeEventListener(this.eventName, handleCapturedEvent, true);
     }
   }
 }
@@ -109,19 +73,20 @@ function handleDelegatedEvent(event: Event & { propagationStopped?: boolean; sta
   }
 }
 
-class DelegatedHandlerEntry {
+class ListenerTracker {
   private count = 0;
 
   constructor(
-    private eventName: string
-  ) {
-  }
+    private eventName: string, 
+    private listener: EventListenerOrEventListenerObject, 
+    private capture: boolean
+  ) { }
 
   increment() {
     this.count++;
 
     if (this.count === 1) {
-      DOM.addEventListener(this.eventName, handleDelegatedEvent, false);
+      DOM.addEventListener(this.eventName, this.listener, this.capture);
     }
   }
 
@@ -129,31 +94,17 @@ class DelegatedHandlerEntry {
     this.count--;
 
     if (this.count === 0) {
-      DOM.removeEventListener(this.eventName, handleDelegatedEvent);
+      DOM.removeEventListener(this.eventName, this.listener, this.capture);
     }
   }
-}
-
-interface IAureliaEventTarget extends EventTarget {
-  delegatedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
-  capturedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
-}
-
-interface IEventStrategy {
-  subscribe(
-    target: IAureliaEventTarget,
-    targetEvent: string,
-    callback: EventListenerOrEventListenerObject,
-    strategy: DelegationStrategy
-  ): IDisposable;
 }
 
 /**
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
-class DelegationEntryHandler {
+class DelegateOrCaptureSubscription {
   constructor(
-    public entry: DelegatedHandlerEntry | CapturedHandlerEntry,
+    public entry: ListenerTracker,
     public lookup: Record<string, EventListenerOrEventListenerObject>,
     public targetEvent: string,
     callback: EventListenerOrEventListenerObject
@@ -171,7 +122,7 @@ class DelegationEntryHandler {
 /**
  * Enable dispose() pattern for addEventListener for `trigger`
  */
-class EventHandler {
+class TriggerSubscription {
   constructor(
     public target: EventTarget,
     public targetEvent: string,
@@ -186,52 +137,72 @@ class EventHandler {
   }
 }
 
-class DefaultEventStrategy implements IEventStrategy {
-  delegatedHandlers: Record<string, DelegatedHandlerEntry> = {};
-  capturedHandlers: Record<string, CapturedHandlerEntry> = {};
+type EventTargetWithLookups = EventTarget & {
+  delegatedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
+  capturedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
+}
 
-  subscribe(
-    target: IAureliaEventTarget,
-    targetEvent: string,
-    callback: EventListenerOrEventListenerObject,
-    strategy: DelegationStrategy
-  ) {
+export enum DelegationStrategy {
+  none = 0,
+  capturing = 1,
+  bubbling = 2
+}
 
-    let delegatedHandlers: Record<string, DelegatedHandlerEntry> | undefined;
-    let capturedHandlers: Record<string, CapturedHandlerEntry> | undefined;
-    let handlerEntry: DelegatedHandlerEntry | CapturedHandlerEntry | undefined;
+export interface IElementConfiguration {
+  tagName: string;
+  properties: Record<string, string[]>;
+}
 
-    if (strategy === DelegationStrategy.bubbling) {
-      delegatedHandlers = this.delegatedHandlers;
-      handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new DelegatedHandlerEntry(targetEvent));
-      let delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
+export interface IEventSubscriber extends IDisposable {
+  subscribe(element: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void;
+}
 
-      return new DelegationEntryHandler(handlerEntry, delegatedCallbacks, targetEvent, callback);
+class EventSubscriber implements IEventSubscriber {
+  private target: EventTarget;
+  private handler: EventListenerOrEventListenerObject;
+
+  constructor(private readonly events: string[]) {
+    this.events = events;
+    this.target = null;
+    this.handler = null;
+  }
+
+  subscribe(element: EventTarget, callbackOrListener: EventListenerOrEventListenerObject) {
+    this.target = element;
+    this.handler = callbackOrListener;
+
+    let events = this.events;
+    for (let i = 0, ii = events.length; ii > i; ++i) {
+      element.addEventListener(events[i], callbackOrListener);
     }
+  }
 
-    if (strategy === DelegationStrategy.capturing) {
-      capturedHandlers = this.capturedHandlers;
-      handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new CapturedHandlerEntry(targetEvent));
-      let capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
-
-      return new DelegationEntryHandler(handlerEntry, capturedCallbacks, targetEvent, callback);
+  dispose() {
+    let element = this.target;
+    let callbackOrListener = this.handler;
+    let events = this.events;
+    for (let i = 0, ii = events.length; ii > i; ++i) {
+      element.removeEventListener(events[i], callbackOrListener);
     }
-
-    return new EventHandler(target, targetEvent, callback);
+    this.target = this.handler = null;
   }
 }
 
-export interface IElementEventHandlerConfig extends Record<string, Record<string, string[]>> { }
+export const IEventManager = DI.createInterface('IEventManager');
 
-export class EventManager implements IEventManager {
-  public static instance = new EventManager();
+export interface IEventManager {
+  registerElementConfiguration(config: IElementConfiguration): void;
+  getElementHandler(target: Element, propertyName: string): IEventSubscriber | null;
+  addEventListener(target: EventTarget, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
+}
 
-  elementHandlerLookup: IElementEventHandlerConfig = {};
-  eventStrategyLookup: Record<string, IEventStrategy> = {};
-  defaultEventStrategy = new DefaultEventStrategy();
+class EventManagerImplementation implements IEventManager {
+  elementHandlerLookup: Record<string, Record<string, string[]>> = {};
+  delegatedHandlers: Record<string, ListenerTracker> = {};
+  capturedHandlers: Record<string, ListenerTracker> = {};
 
   constructor() {
-    this.registerElementConfig({
+    this.registerElementConfiguration({
       tagName: 'input',
       properties: {
         value: ['change', 'input'],
@@ -240,28 +211,28 @@ export class EventManager implements IEventManager {
       }
     });
 
-    this.registerElementConfig({
+    this.registerElementConfiguration({
       tagName: 'textarea',
       properties: {
         value: ['change', 'input']
       }
     });
 
-    this.registerElementConfig({
+    this.registerElementConfiguration({
       tagName: 'select',
       properties: {
         value: ['change']
       }
     });
 
-    this.registerElementConfig({
+    this.registerElementConfiguration({
       tagName: 'content editable',
       properties: {
         value: ['change', 'input', 'blur', 'keyup', 'paste']
       }
     });
 
-    this.registerElementConfig({
+    this.registerElementConfiguration({
       tagName: 'scrollable element',
       properties: {
         scrollTop: ['scroll'],
@@ -270,25 +241,19 @@ export class EventManager implements IEventManager {
     });
   }
 
-  registerElementConfig(config: { tagName: string, properties: Record<string, string[]> }) {
+  registerElementConfiguration(config: IElementConfiguration) {
     let tagName = config.tagName.toLowerCase();
     let properties = config.properties;
-    let propertyName;
-
     let lookup: Record<string, string[]> = this.elementHandlerLookup[tagName] = {};
 
-    for (propertyName in properties) {
+    for (let propertyName in properties) {
       if (properties.hasOwnProperty(propertyName)) {
         lookup[propertyName] = properties[propertyName];
       }
     }
   }
 
-  registerEventStrategy(eventName: string, strategy: IEventStrategy) {
-    this.eventStrategyLookup[eventName] = strategy;
-  }
-
-  getElementHandler(target: Element, propertyName: string): EventSubscriber | null {
+  getElementHandler(target: Element, propertyName: string): IEventSubscriber | null {
     let tagName;
     let lookup = this.elementHandlerLookup;
 
@@ -315,40 +280,38 @@ export class EventManager implements IEventManager {
     target: EventTarget,
     targetEvent: string,
     callbackOrListener: EventListenerOrEventListenerObject,
-    delegate: DelegationStrategy
+    strategy: DelegationStrategy
   ) {
-    return (this.eventStrategyLookup[targetEvent] || this.defaultEventStrategy)
-      .subscribe(target, targetEvent, callbackOrListener, delegate);
+    let delegatedHandlers: Record<string, ListenerTracker> | undefined;
+    let capturedHandlers: Record<string, ListenerTracker> | undefined;
+    let handlerEntry: ListenerTracker | ListenerTracker | undefined;
+
+    if (strategy === DelegationStrategy.bubbling) {
+      delegatedHandlers = this.delegatedHandlers;
+      
+      handlerEntry = delegatedHandlers[targetEvent]
+        || (delegatedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleDelegatedEvent, false));
+      
+      let delegatedCallbacks = (<EventTargetWithLookups>target).delegatedCallbacks 
+        || ((<EventTargetWithLookups>target).delegatedCallbacks = {});
+
+      return new DelegateOrCaptureSubscription(handlerEntry, delegatedCallbacks, targetEvent, callbackOrListener);
+    }
+
+    if (strategy === DelegationStrategy.capturing) {
+      capturedHandlers = this.capturedHandlers;
+      
+      handlerEntry = capturedHandlers[targetEvent] 
+        || (capturedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleCapturedEvent, true));
+      
+      let capturedCallbacks = (<EventTargetWithLookups>target).capturedCallbacks
+        || ((<EventTargetWithLookups>target).capturedCallbacks = {});
+
+      return new DelegateOrCaptureSubscription(handlerEntry, capturedCallbacks, targetEvent, callbackOrListener);
+    }
+
+    return new TriggerSubscription(target, targetEvent, callbackOrListener);
   }
 }
 
-export class EventSubscriber implements IEventSubscriber {
-  private target: EventTarget;
-  private handler: EventListenerOrEventListenerObject;
-
-  constructor(public readonly events: string[]) {
-    this.events = events;
-    this.target = null;
-    this.handler = null;
-  }
-
-  subscribe(element: EventTarget, callbackOrListener: EventListenerOrEventListenerObject) {
-    this.target = element;
-    this.handler = callbackOrListener;
-
-    let events = this.events;
-    for (let i = 0, ii = events.length; ii > i; ++i) {
-      element.addEventListener(events[i], callbackOrListener);
-    }
-  }
-
-  dispose() {
-    let element = this.target;
-    let callbackOrListener = this.handler;
-    let events = this.events;
-    for (let i = 0, ii = events.length; ii > i; ++i) {
-      element.removeEventListener(events[i], callbackOrListener);
-    }
-    this.target = this.handler = null;
-  }
-}
+export const EventManager: IEventManager = new EventManagerImplementation();

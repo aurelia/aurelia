@@ -1508,6 +1508,22 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
 
 
 
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(if_1.If, else_1.Else);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+        }
+    };
+});
+
+
+
 define('runtime/binding/array-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -3516,15 +3532,9 @@ define('runtime/binding/element-observation',["require", "exports", "./subscribe
 
 
 
-define('runtime/binding/event-manager',["require", "exports", "../dom"], function (require, exports, dom_1) {
+define('runtime/binding/event-manager',["require", "exports", "../dom", "../di"], function (require, exports, dom_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var DelegationStrategy;
-    (function (DelegationStrategy) {
-        DelegationStrategy[DelegationStrategy["none"] = 0] = "none";
-        DelegationStrategy[DelegationStrategy["capturing"] = 1] = "capturing";
-        DelegationStrategy[DelegationStrategy["bubbling"] = 2] = "bubbling";
-    })(DelegationStrategy = exports.DelegationStrategy || (exports.DelegationStrategy = {}));
     function findOriginalEventTarget(event) {
         return (event.path && event.path[0]) || (event.deepPath && event.deepPath[0]) || event.target;
     }
@@ -3559,26 +3569,6 @@ define('runtime/binding/event-manager',["require", "exports", "../dom"], functio
             }
         }
     }
-    var CapturedHandlerEntry = (function () {
-        function CapturedHandlerEntry(eventName) {
-            this.eventName = eventName;
-            this.count = 0;
-            this.eventName = eventName;
-        }
-        CapturedHandlerEntry.prototype.increment = function () {
-            this.count++;
-            if (this.count === 1) {
-                dom_1.DOM.addEventListener(this.eventName, handleCapturedEvent, true);
-            }
-        };
-        CapturedHandlerEntry.prototype.decrement = function () {
-            this.count--;
-            if (this.count === 0) {
-                dom_1.DOM.removeEventListener(this.eventName, handleCapturedEvent, true);
-            }
-        };
-        return CapturedHandlerEntry;
-    }());
     function handleDelegatedEvent(event) {
         event.propagationStopped = false;
         var target = findOriginalEventTarget(event);
@@ -3601,155 +3591,60 @@ define('runtime/binding/event-manager',["require", "exports", "../dom"], functio
             target = target.parentNode;
         }
     }
-    var DelegatedHandlerEntry = (function () {
-        function DelegatedHandlerEntry(eventName) {
+    var ListenerTracker = (function () {
+        function ListenerTracker(eventName, listener, capture) {
             this.eventName = eventName;
+            this.listener = listener;
+            this.capture = capture;
             this.count = 0;
         }
-        DelegatedHandlerEntry.prototype.increment = function () {
+        ListenerTracker.prototype.increment = function () {
             this.count++;
             if (this.count === 1) {
-                dom_1.DOM.addEventListener(this.eventName, handleDelegatedEvent, false);
+                dom_1.DOM.addEventListener(this.eventName, this.listener, this.capture);
             }
         };
-        DelegatedHandlerEntry.prototype.decrement = function () {
+        ListenerTracker.prototype.decrement = function () {
             this.count--;
             if (this.count === 0) {
-                dom_1.DOM.removeEventListener(this.eventName, handleDelegatedEvent);
+                dom_1.DOM.removeEventListener(this.eventName, this.listener, this.capture);
             }
         };
-        return DelegatedHandlerEntry;
+        return ListenerTracker;
     }());
-    var DelegationEntryHandler = (function () {
-        function DelegationEntryHandler(entry, lookup, targetEvent, callback) {
+    var DelegateOrCaptureSubscription = (function () {
+        function DelegateOrCaptureSubscription(entry, lookup, targetEvent, callback) {
             this.entry = entry;
             this.lookup = lookup;
             this.targetEvent = targetEvent;
             lookup[targetEvent] = callback;
         }
-        DelegationEntryHandler.prototype.dispose = function () {
+        DelegateOrCaptureSubscription.prototype.dispose = function () {
             this.entry.decrement();
             this.lookup[this.targetEvent] = null;
             this.entry = this.lookup = this.targetEvent = null;
         };
-        return DelegationEntryHandler;
+        return DelegateOrCaptureSubscription;
     }());
-    var EventHandler = (function () {
-        function EventHandler(target, targetEvent, callback) {
+    var TriggerSubscription = (function () {
+        function TriggerSubscription(target, targetEvent, callback) {
             this.target = target;
             this.targetEvent = targetEvent;
             this.callback = callback;
             target.addEventListener(targetEvent, callback);
         }
-        EventHandler.prototype.dispose = function () {
+        TriggerSubscription.prototype.dispose = function () {
             this.target.removeEventListener(this.targetEvent, this.callback);
             this.target = this.targetEvent = this.callback = null;
         };
-        return EventHandler;
+        return TriggerSubscription;
     }());
-    var DefaultEventStrategy = (function () {
-        function DefaultEventStrategy() {
-            this.delegatedHandlers = {};
-            this.capturedHandlers = {};
-        }
-        DefaultEventStrategy.prototype.subscribe = function (target, targetEvent, callback, strategy) {
-            var delegatedHandlers;
-            var capturedHandlers;
-            var handlerEntry;
-            if (strategy === DelegationStrategy.bubbling) {
-                delegatedHandlers = this.delegatedHandlers;
-                handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new DelegatedHandlerEntry(targetEvent));
-                var delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
-                return new DelegationEntryHandler(handlerEntry, delegatedCallbacks, targetEvent, callback);
-            }
-            if (strategy === DelegationStrategy.capturing) {
-                capturedHandlers = this.capturedHandlers;
-                handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new CapturedHandlerEntry(targetEvent));
-                var capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
-                return new DelegationEntryHandler(handlerEntry, capturedCallbacks, targetEvent, callback);
-            }
-            return new EventHandler(target, targetEvent, callback);
-        };
-        return DefaultEventStrategy;
-    }());
-    var EventManager = (function () {
-        function EventManager() {
-            this.elementHandlerLookup = {};
-            this.eventStrategyLookup = {};
-            this.defaultEventStrategy = new DefaultEventStrategy();
-            this.registerElementConfig({
-                tagName: 'input',
-                properties: {
-                    value: ['change', 'input'],
-                    checked: ['change', 'input'],
-                    files: ['change', 'input']
-                }
-            });
-            this.registerElementConfig({
-                tagName: 'textarea',
-                properties: {
-                    value: ['change', 'input']
-                }
-            });
-            this.registerElementConfig({
-                tagName: 'select',
-                properties: {
-                    value: ['change']
-                }
-            });
-            this.registerElementConfig({
-                tagName: 'content editable',
-                properties: {
-                    value: ['change', 'input', 'blur', 'keyup', 'paste']
-                }
-            });
-            this.registerElementConfig({
-                tagName: 'scrollable element',
-                properties: {
-                    scrollTop: ['scroll'],
-                    scrollLeft: ['scroll']
-                }
-            });
-        }
-        EventManager.prototype.registerElementConfig = function (config) {
-            var tagName = config.tagName.toLowerCase();
-            var properties = config.properties;
-            var propertyName;
-            var lookup = this.elementHandlerLookup[tagName] = {};
-            for (propertyName in properties) {
-                if (properties.hasOwnProperty(propertyName)) {
-                    lookup[propertyName] = properties[propertyName];
-                }
-            }
-        };
-        EventManager.prototype.registerEventStrategy = function (eventName, strategy) {
-            this.eventStrategyLookup[eventName] = strategy;
-        };
-        EventManager.prototype.getElementHandler = function (target, propertyName) {
-            var tagName;
-            var lookup = this.elementHandlerLookup;
-            if (target.tagName) {
-                tagName = target.tagName.toLowerCase();
-                if (lookup[tagName] && lookup[tagName][propertyName]) {
-                    return new EventSubscriber(lookup[tagName][propertyName]);
-                }
-                if (propertyName === 'textContent' || propertyName === 'innerHTML') {
-                    return new EventSubscriber(lookup['content editable'].value);
-                }
-                if (propertyName === 'scrollTop' || propertyName === 'scrollLeft') {
-                    return new EventSubscriber(lookup['scrollable element'][propertyName]);
-                }
-            }
-            return null;
-        };
-        EventManager.prototype.addEventListener = function (target, targetEvent, callbackOrListener, delegate) {
-            return (this.eventStrategyLookup[targetEvent] || this.defaultEventStrategy)
-                .subscribe(target, targetEvent, callbackOrListener, delegate);
-        };
-        EventManager.instance = new EventManager();
-        return EventManager;
-    }());
-    exports.EventManager = EventManager;
+    var DelegationStrategy;
+    (function (DelegationStrategy) {
+        DelegationStrategy[DelegationStrategy["none"] = 0] = "none";
+        DelegationStrategy[DelegationStrategy["capturing"] = 1] = "capturing";
+        DelegationStrategy[DelegationStrategy["bubbling"] = 2] = "bubbling";
+    })(DelegationStrategy = exports.DelegationStrategy || (exports.DelegationStrategy = {}));
     var EventSubscriber = (function () {
         function EventSubscriber(events) {
             this.events = events;
@@ -3776,7 +3671,98 @@ define('runtime/binding/event-manager',["require", "exports", "../dom"], functio
         };
         return EventSubscriber;
     }());
-    exports.EventSubscriber = EventSubscriber;
+    exports.IEventManager = di_1.DI.createInterface('IEventManager');
+    var EventManagerImplementation = (function () {
+        function EventManagerImplementation() {
+            this.elementHandlerLookup = {};
+            this.delegatedHandlers = {};
+            this.capturedHandlers = {};
+            this.registerElementConfiguration({
+                tagName: 'input',
+                properties: {
+                    value: ['change', 'input'],
+                    checked: ['change', 'input'],
+                    files: ['change', 'input']
+                }
+            });
+            this.registerElementConfiguration({
+                tagName: 'textarea',
+                properties: {
+                    value: ['change', 'input']
+                }
+            });
+            this.registerElementConfiguration({
+                tagName: 'select',
+                properties: {
+                    value: ['change']
+                }
+            });
+            this.registerElementConfiguration({
+                tagName: 'content editable',
+                properties: {
+                    value: ['change', 'input', 'blur', 'keyup', 'paste']
+                }
+            });
+            this.registerElementConfiguration({
+                tagName: 'scrollable element',
+                properties: {
+                    scrollTop: ['scroll'],
+                    scrollLeft: ['scroll']
+                }
+            });
+        }
+        EventManagerImplementation.prototype.registerElementConfiguration = function (config) {
+            var tagName = config.tagName.toLowerCase();
+            var properties = config.properties;
+            var lookup = this.elementHandlerLookup[tagName] = {};
+            for (var propertyName in properties) {
+                if (properties.hasOwnProperty(propertyName)) {
+                    lookup[propertyName] = properties[propertyName];
+                }
+            }
+        };
+        EventManagerImplementation.prototype.getElementHandler = function (target, propertyName) {
+            var tagName;
+            var lookup = this.elementHandlerLookup;
+            if (target.tagName) {
+                tagName = target.tagName.toLowerCase();
+                if (lookup[tagName] && lookup[tagName][propertyName]) {
+                    return new EventSubscriber(lookup[tagName][propertyName]);
+                }
+                if (propertyName === 'textContent' || propertyName === 'innerHTML') {
+                    return new EventSubscriber(lookup['content editable'].value);
+                }
+                if (propertyName === 'scrollTop' || propertyName === 'scrollLeft') {
+                    return new EventSubscriber(lookup['scrollable element'][propertyName]);
+                }
+            }
+            return null;
+        };
+        EventManagerImplementation.prototype.addEventListener = function (target, targetEvent, callbackOrListener, strategy) {
+            var delegatedHandlers;
+            var capturedHandlers;
+            var handlerEntry;
+            if (strategy === DelegationStrategy.bubbling) {
+                delegatedHandlers = this.delegatedHandlers;
+                handlerEntry = delegatedHandlers[targetEvent]
+                    || (delegatedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleDelegatedEvent, false));
+                var delegatedCallbacks = target.delegatedCallbacks
+                    || (target.delegatedCallbacks = {});
+                return new DelegateOrCaptureSubscription(handlerEntry, delegatedCallbacks, targetEvent, callbackOrListener);
+            }
+            if (strategy === DelegationStrategy.capturing) {
+                capturedHandlers = this.capturedHandlers;
+                handlerEntry = capturedHandlers[targetEvent]
+                    || (capturedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleCapturedEvent, true));
+                var capturedCallbacks = target.capturedCallbacks
+                    || (target.capturedCallbacks = {});
+                return new DelegateOrCaptureSubscription(handlerEntry, capturedCallbacks, targetEvent, callbackOrListener);
+            }
+            return new TriggerSubscription(target, targetEvent, callbackOrListener);
+        };
+        return EventManagerImplementation;
+    }());
+    exports.EventManager = new EventManagerImplementation();
 });
 
 
@@ -3809,15 +3795,13 @@ define('runtime/binding/listener',["require", "exports", "./event-manager"], fun
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Listener = (function () {
-        function Listener(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, container, eventManager) {
-            if (eventManager === void 0) { eventManager = event_manager_1.EventManager.instance; }
+        function Listener(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, container) {
             this.targetEvent = targetEvent;
             this.delegationStrategy = delegationStrategy;
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.preventDefault = preventDefault;
             this.container = container;
-            this.eventManager = eventManager;
             this.isBound = false;
             this.targetEvent = targetEvent;
             this.delegationStrategy = delegationStrategy;
@@ -3852,7 +3836,7 @@ define('runtime/binding/listener',["require", "exports", "./event-manager"], fun
             if (this.sourceExpression.bind) {
                 this.sourceExpression.bind(this, source);
             }
-            this.handler = this.eventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
+            this.handler = event_manager_1.EventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
         };
         Listener.prototype.unbind = function () {
             if (!this.isBound) {
@@ -4011,9 +3995,7 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
         return pd;
     }
     var ObserverLocator = (function () {
-        function ObserverLocator(eventManager) {
-            if (eventManager === void 0) { eventManager = event_manager_1.EventManager.instance; }
-            this.eventManager = eventManager;
+        function ObserverLocator() {
             this.adapters = [];
         }
         ObserverLocator.prototype.getObserver = function (obj, propertyName) {
@@ -4073,7 +4055,7 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
                 if (propertyName === 'style' || propertyName === 'css') {
                     return new element_observation_1.StyleObserver(obj, propertyName);
                 }
-                handler = this.eventManager.getElementHandler(obj, propertyName);
+                handler = event_manager_1.EventManager.getElementHandler(obj, propertyName);
                 if (propertyName === 'value' && obj.tagName.toLowerCase() === 'select') {
                     return new select_value_observer_1.SelectValueObserver(obj, handler, this);
                 }
@@ -4831,21 +4813,6 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
     exports.SVGAnalyzer = {
         isStandardSvgAttribute: function (nodeName, attributeName) {
             return false;
-        }
-    };
-});
-
-
-
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(if_1.If, else_1.Else);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
         }
     };
 });

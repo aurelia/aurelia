@@ -16,8 +16,7 @@ export class Listener implements IBinding {
     private sourceExpression: IExpression,
     private target: EventTarget,
     private preventDefault: boolean,
-    public container: IContainer,
-    private eventManager: IEventManager = EventManager.instance
+    public container: IContainer
   ) {
     this.targetEvent = targetEvent;
     this.delegationStrategy = delegationStrategy;
@@ -63,7 +62,7 @@ export class Listener implements IBinding {
       this.sourceExpression.bind(this, source);
     }
 
-    this.handler = this.eventManager.addEventListener(
+    this.handler = EventManager.addEventListener(
       this.target,
       this.targetEvent,
       this,

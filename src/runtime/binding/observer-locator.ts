@@ -45,10 +45,7 @@ function getPropertyDescriptor(subject: object, name: string) {
 
 export class ObserverLocator implements IObserverLocator {
   public static instance = new ObserverLocator();
-
   private adapters: ObjectObservationAdapter[] = [];
-
-  constructor(private eventManager: EventManager = EventManager.instance) { }
 
   getObserver(obj: any, propertyName: string): AccessorOrObserver {
     let observersLookup = obj.$observers;
@@ -123,7 +120,7 @@ export class ObserverLocator implements IObserverLocator {
         return new StyleObserver(<HTMLElement>obj, propertyName);
       }
 
-      handler = this.eventManager.getElementHandler(obj, propertyName);
+      handler = EventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && obj.tagName.toLowerCase() === 'select') {
         return new SelectValueObserver(obj as HTMLSelectElement, handler, this);
       }

@@ -25,9 +25,8 @@ export class Binding extends ConnectableBinding implements IBinding {
     private target: IBindingTarget,
     private targetProperty: string,
     private mode: number,
-    public container: IContainer,
-    observerLocator: IObserverLocator = ObserverLocator.instance) {
-    super(observerLocator);
+    public container: IContainer) {
+    super();
   }
 
   updateTarget(value: any) {
@@ -91,7 +90,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
     if (!this.targetObserver) {
       let method: 'getObserver' | 'getAccessor' = mode === BindingMode.twoWay || mode === BindingMode.fromView ? 'getObserver' : 'getAccessor';
-      this.targetObserver = <any>this.observerLocator[method](this.target, this.targetProperty);
+      this.targetObserver = <any>ObserverLocator[method](this.target, this.targetProperty);
     }
 
     if ('bind' in this.targetObserver) {
@@ -152,57 +151,3 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.sourceExpression.connect(this, this.source);
   }
 }
-
-export class TextBinding extends Binding {
-  constructor(
-    sourceExpression: IExpression,
-    target: IBindingTarget,
-    container: IContainer,
-    observerLocator: ObserverLocator = ObserverLocator.instance
-  ) {
-    super(sourceExpression, target.nextSibling, 'textContent', BindingMode.oneWay, container);
-    let next = target.nextSibling;
-    next['auInterpolationTarget'] = true;
-    target.parentNode.removeChild(target);
-  }
-}
-
-// class NameBinding {
-//   constructor(
-//     public ast: IExpression,
-//     public target: IBindingTarget,
-//     public lookupFunctions: ILookupFunctions
-//   ) {
-//     super();
-//   }
-
-//   bind(source) {
-//     if (this.isBound) {
-//       if (this.source === source) {
-//         return;
-//       }
-//       this.unbind();
-//     }
-//     this.isBound = true;
-//     this.source = source;
-//     if (this.sourceExpression.bind) {
-//       this.sourceExpression.bind(this, source, this.lookupFunctions);
-//     }
-//     this.sourceExpression.assign(this.source, this.target, this.lookupFunctions);
-//   }
-
-//   unbind() {
-//     if (!this.isBound) {
-//       return;
-//     }
-//     this.isBound = false;
-//     if (this.sourceExpression.evaluate(this.source, this.lookupFunctions) === this.target) {
-//       this.sourceExpression.assign(this.source, null, this.lookupFunctions);
-//     }
-//     if (this.sourceExpression.unbind) {
-//       this.sourceExpression.unbind(this, this.source);
-//     }
-//     this.source = null;
-//   }
-// }
-

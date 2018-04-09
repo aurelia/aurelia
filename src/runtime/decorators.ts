@@ -1,5 +1,5 @@
 import { Component, ICompiledElementSource, IAttributeSource } from "./templating/component";
-import { PLATFORM } from "./platform";
+import { PLATFORM } from "./pal";
 import { DI } from "./di";
 import { BindingMode } from "./binding/binding-mode";
 import { Constructable, Injectable } from "./interfaces";

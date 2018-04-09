@@ -1,4 +1,4 @@
-import { DOM } from '../dom';
+import { DOM } from '../pal';
 import { IAttach } from './component';
 import { IView, IViewOwner } from './view';
 import { ViewSlot } from './view-slot';

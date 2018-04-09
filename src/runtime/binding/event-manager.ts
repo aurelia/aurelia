@@ -1,4 +1,4 @@
-import { DOM } from '../dom';
+import { DOM } from '../pal';
 import { IDisposable } from '../interfaces';
 import { DI } from '../di';
 

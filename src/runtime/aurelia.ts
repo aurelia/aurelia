@@ -1,5 +1,5 @@
 import { IElementComponent } from "./templating/component";
-import { PLATFORM } from "./platform";
+import { PLATFORM } from "./pal";
 import { DI } from "./di";
 
 export interface ISinglePageApp {

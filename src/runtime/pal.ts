@@ -1,18 +1,49 @@
-function hasAttribute(name) {
-  return this._element.hasAttribute(name);
-}
+const global = (function() {
+  // Workers don’t have `window`, only `self`
+  if (typeof self !== 'undefined') {
+    return self;
+  }
 
-function getAttribute(name) {
-  return this._element.getAttribute(name);
-}
+  if (typeof global !== 'undefined') {
+    return global;
+  }
 
-function setAttribute(name, value) {
-  this._element.setAttribute(name, value);
-}
+  // Not all environments allow eval and Function
+  // Use only as a last resort:
+  return new Function('return this')();
+})();
+
+// https://github.com/angular/angular-cli/issues/8412
+// https://github.com/ag-grid/ag-grid-react/issues/24
+global.Element = typeof Element === 'undefined' ? () => {} : Element;
+global.HTMLElement = typeof HTMLElement === 'undefined' ? () => {} : HTMLElement;
+global.SVGElement = typeof SVGElement === 'undefined' ? () => {} : SVGElement;
+global.HTMLSelectElement = typeof HTMLSelectElement === 'undefined' ? () => {} : HTMLSelectElement;
+
+export const PLATFORM = {
+  global: global,
+  emptyArray: Object.freeze([]),
+  location: global.location,
+  history: global.history,
+  performance: global.performance,
+  addEventListener(eventName: string, callback: Function, capture: boolean): void {
+    global.addEventListener(eventName, callback, capture);
+  },
+  removeEventListener(eventName: string, callback: Function, capture: boolean): void {
+    global.removeEventListener(eventName, callback, capture);
+  },
+  requestAnimationFrame(callback: Function): number {
+    return global.requestAnimationFrame(callback);
+  }
+};
+
+export const FEATURE = {
+  shadowDOM: !!global.HTMLElement.prototype.attachShadow
+};
 
 export const DOM = {
-  Element: Element,
-  SVGElement: SVGElement,
+  Element: global.Element,
+  SVGElement: global.SVGElement,
   boundary: 'aurelia-dom-boundary',
   addEventListener(eventName: string, callback: EventListenerOrEventListenerObject, capture?: boolean): void {
     document.addEventListener(eventName, callback, capture);
@@ -51,7 +82,7 @@ export const DOM = {
     document.dispatchEvent(evt);
   },
   getComputedStyle(element: Element) {
-    return window.getComputedStyle(element);
+    return global.getComputedStyle(element);
   },
   getElementById(id: string): Element {
     return document.getElementById(id);
@@ -159,3 +190,15 @@ export const DOM = {
     return node;
   }
 };
+
+function hasAttribute(name) {
+  return this._element.hasAttribute(name);
+}
+
+function getAttribute(name) {
+  return this._element.getAttribute(name);
+}
+
+function setAttribute(name, value) {
+  this._element.setAttribute(name, value);
+}

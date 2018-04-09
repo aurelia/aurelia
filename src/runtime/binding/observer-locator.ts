@@ -1,4 +1,4 @@
-import { DOM } from '../dom';
+import { DOM } from '../pal';
 import { getArrayObserver } from './array-observation';
 import { getMapObserver } from './map-observation';
 import { getSetObserver } from './set-observation';
@@ -22,13 +22,21 @@ import { ClassObserver } from './class-observer';
 import { SVGAnalyzer } from './svg-analyzer';
 import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCollectionObserver, AccessorOrObserver, IAccessor } from './observation';
 import { Reporter } from '../reporter';
+import { DI } from '../di';
+
+export interface ObjectObservationAdapter {
+  getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
+}
+
+export const IObserverLocator = DI.createInterface('IObserverLocator');
 
 export interface IObserverLocator {
   getObserver(obj: any, propertyName: string): AccessorOrObserver;
   getAccessor(obj: any, propertyName: string): IAccessor | IBindingTargetAccessor;
-
+  addAdapter(adapter: ObjectObservationAdapter);
   getArrayObserver(array: any[]): IBindingCollectionObserver;
   getMapObserver(map: Map<any, any>): IBindingCollectionObserver;
+  getSetObserver(set: Set<any>): IBindingCollectionObserver;
 }
 
 function getPropertyDescriptor(subject: object, name: string) {
@@ -43,8 +51,7 @@ function getPropertyDescriptor(subject: object, name: string) {
   return pd;
 }
 
-export class ObserverLocator implements IObserverLocator {
-  public static instance = new ObserverLocator();
+class ObserverLocatorImplementation implements IObserverLocator {
   private adapters: ObjectObservationAdapter[] = [];
 
   getObserver(obj: any, propertyName: string): AccessorOrObserver {
@@ -68,11 +75,11 @@ export class ObserverLocator implements IObserverLocator {
     return observer;
   }
 
-  getOrCreateObserversLookup(obj: IObservable) {
+  private getOrCreateObserversLookup(obj: IObservable) {
     return obj.$observers || this.createObserversLookup(obj);
   }
 
-  createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {
+  private createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {
     let value: Record<string, IBindingTargetObserver> = {};
 
     if (!Reflect.defineProperty(obj, '$observers', {
@@ -91,7 +98,7 @@ export class ObserverLocator implements IObserverLocator {
     this.adapters.push(adapter);
   }
 
-  getAdapterObserver(obj: any, propertyName: string, descriptor: PropertyDescriptor) {
+  private getAdapterObserver(obj: any, propertyName: string, descriptor: PropertyDescriptor) {
     for (let i = 0, ii = this.adapters.length; i < ii; i++) {
       let adapter = this.adapters[i];
       let observer = adapter.getObserver(obj, propertyName, descriptor);
@@ -102,7 +109,7 @@ export class ObserverLocator implements IObserverLocator {
     return null;
   }
 
-  createPropertyObserver(obj: any, propertyName: string) {
+  private createPropertyObserver(obj: any, propertyName: string) {
     let descriptor;
     let handler;
     let xlinkResult;
@@ -228,6 +235,4 @@ export class ObserverLocator implements IObserverLocator {
   }
 }
 
-export interface ObjectObservationAdapter {
-  getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
-}
+export const ObserverLocator: IObserverLocator = new ObserverLocatorImplementation();

@@ -1,6 +1,7 @@
 import { ObserverLocator, IObserverLocator } from './observer-locator';
 import { IBindingTargetObserver, IBindingCollectionObserver } from './observation';
 import { sourceContext } from './binding-context';
+import { ICallable } from '../interfaces';
 
 const slotNames: string[] = [];
 const versionSlotNames: string[] = [];
@@ -10,14 +11,9 @@ for (let i = 0; i < 100; i++) {
   versionSlotNames.push(`_observerVersion${i}`);
 }
 
-export abstract class ConnectableBinding {
-
+export abstract class ConnectableBinding implements ICallable {
   protected observerSlots: any;
   protected version: number;
-
-  [propName: string]: any;
-
-  constructor(protected observerLocator: IObserverLocator) { }
 
   abstract call(...args: any[]): any;
 
@@ -51,12 +47,12 @@ export abstract class ConnectableBinding {
   }
 
   observeProperty(obj: any, propertyName: string) {
-    let observer = this.observerLocator.getObserver(obj, propertyName);
+    let observer = ObserverLocator.getObserver(obj, propertyName);
     this.addObserver(<any>observer);
   }
 
   observeArray(array: any[]) {
-    let observer = this.observerLocator.getArrayObserver(array);
+    let observer = ObserverLocator.getArrayObserver(array);
     this.addObserver(observer);
   }
 

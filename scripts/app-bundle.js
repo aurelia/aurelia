@@ -444,7 +444,7 @@ define('debug/task-queue',["require", "exports", "../runtime/task-queue"], funct
 
 
 
-define('runtime/aurelia',["require", "exports", "./platform", "./di"], function (require, exports, platform_1, di_1) {
+define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (require, exports, pal_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var AureliaFramework = (function () {
@@ -499,7 +499,7 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di"], function 
         return AureliaFramework;
     }());
     exports.Aurelia = new AureliaFramework();
-    platform_1.PLATFORM.global.Aurelia = exports.Aurelia;
+    pal_1.PLATFORM.global.Aurelia = exports.Aurelia;
 });
 
 
@@ -643,7 +643,7 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
 
 
 
-define('runtime/di',["require", "exports", "./platform"], function (require, exports, platform_1) {
+define('runtime/di',["require", "exports", "./pal"], function (require, exports, pal_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function createInterface(key) {
@@ -665,7 +665,7 @@ define('runtime/di',["require", "exports", "./platform"], function (require, exp
         };
     }
     function getDesignParamTypes(target) {
-        return Reflect.getOwnMetadata('design:paramtypes', target) || platform_1.PLATFORM.emptyArray;
+        return Reflect.getOwnMetadata('design:paramtypes', target) || pal_1.PLATFORM.emptyArray;
     }
     ;
     exports.IContainer = createInterface('IContainer');
@@ -792,7 +792,7 @@ define('runtime/di',["require", "exports", "./platform"], function (require, exp
             var resolver = this.resolvers.get(key);
             if (resolver === undefined) {
                 if (this.parent === null) {
-                    return platform_1.PLATFORM.emptyArray;
+                    return pal_1.PLATFORM.emptyArray;
                 }
                 return this.parent.parentGetAll(key, this);
             }
@@ -802,7 +802,7 @@ define('runtime/di',["require", "exports", "./platform"], function (require, exp
             var resolver = this.resolvers.get(key);
             if (resolver === undefined) {
                 if (this.parent === null) {
-                    return platform_1.PLATFORM.emptyArray;
+                    return pal_1.PLATFORM.emptyArray;
                 }
                 return this.parent.parentGetAll(key, requestor);
             }
@@ -887,7 +887,7 @@ define('runtime/di',["require", "exports", "./platform"], function (require, exp
     }
     function getDependencies(type) {
         if (!type.hasOwnProperty('inject')) {
-            return platform_1.PLATFORM.emptyArray;
+            return pal_1.PLATFORM.emptyArray;
         }
         return type.inject;
     }
@@ -956,21 +956,51 @@ define('runtime/di',["require", "exports", "./platform"], function (require, exp
 
 
 
-define('runtime/dom',["require", "exports"], function (require, exports) {
+define('runtime/interfaces',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    function hasAttribute(name) {
-        return this._element.hasAttribute(name);
-    }
-    function getAttribute(name) {
-        return this._element.getAttribute(name);
-    }
-    function setAttribute(name, value) {
-        this._element.setAttribute(name, value);
-    }
+});
+
+
+
+define('runtime/pal',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var global = (function () {
+        if (typeof self !== 'undefined') {
+            return self;
+        }
+        if (typeof global !== 'undefined') {
+            return global;
+        }
+        return new Function('return this')();
+    })();
+    global.Element = typeof Element === 'undefined' ? function () { } : Element;
+    global.HTMLElement = typeof HTMLElement === 'undefined' ? function () { } : HTMLElement;
+    global.SVGElement = typeof SVGElement === 'undefined' ? function () { } : SVGElement;
+    global.HTMLSelectElement = typeof HTMLSelectElement === 'undefined' ? function () { } : HTMLSelectElement;
+    exports.PLATFORM = {
+        global: global,
+        emptyArray: Object.freeze([]),
+        location: global.location,
+        history: global.history,
+        performance: global.performance,
+        addEventListener: function (eventName, callback, capture) {
+            global.addEventListener(eventName, callback, capture);
+        },
+        removeEventListener: function (eventName, callback, capture) {
+            global.removeEventListener(eventName, callback, capture);
+        },
+        requestAnimationFrame: function (callback) {
+            return global.requestAnimationFrame(callback);
+        }
+    };
+    exports.FEATURE = {
+        shadowDOM: !!global.HTMLElement.prototype.attachShadow
+    };
     exports.DOM = {
-        Element: Element,
-        SVGElement: SVGElement,
+        Element: global.Element,
+        SVGElement: global.SVGElement,
         boundary: 'aurelia-dom-boundary',
         addEventListener: function (eventName, callback, capture) {
             document.addEventListener(eventName, callback, capture);
@@ -1009,7 +1039,7 @@ define('runtime/dom',["require", "exports"], function (require, exports) {
             document.dispatchEvent(evt);
         },
         getComputedStyle: function (element) {
-            return window.getComputedStyle(element);
+            return global.getComputedStyle(element);
         },
         getElementById: function (id) {
             return document.getElementById(id);
@@ -1100,46 +1130,15 @@ define('runtime/dom',["require", "exports"], function (require, exports) {
             return node;
         }
     };
-});
-
-
-
-define('runtime/feature',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.FEATURE = {
-        shadowDOM: !!HTMLElement.prototype.attachShadow
-    };
-});
-
-
-
-define('runtime/interfaces',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-});
-
-
-
-define('runtime/platform',["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.PLATFORM = {
-        global: window,
-        location: window.location,
-        history: window.history,
-        emptyArray: Object.freeze([]),
-        addEventListener: function (eventName, callback, capture) {
-            this.global.addEventListener(eventName, callback, capture);
-        },
-        removeEventListener: function (eventName, callback, capture) {
-            this.global.removeEventListener(eventName, callback, capture);
-        },
-        performance: window.performance,
-        requestAnimationFrame: function (callback) {
-            return this.global.requestAnimationFrame(callback);
-        }
-    };
+    function hasAttribute(name) {
+        return this._element.hasAttribute(name);
+    }
+    function getAttribute(name) {
+        return this._element.getAttribute(name);
+    }
+    function setAttribute(name, value) {
+        this._element.setAttribute(name, value);
+    }
 });
 
 
@@ -1166,15 +1165,15 @@ define('runtime/reporter',["require", "exports"], function (require, exports) {
 
 
 
-define('runtime/task-queue',["require", "exports", "./dom", "./di"], function (require, exports, dom_1, di_1) {
+define('runtime/task-queue',["require", "exports", "./pal", "./di"], function (require, exports, pal_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var hasSetImmediate = typeof setImmediate === 'function';
     exports.ITaskQueue = di_1.DI.createInterface('ITaskQueue');
     function makeRequestFlushFromMutationObserver(flush) {
         var toggle = 1;
-        var observer = dom_1.DOM.createMutationObserver(flush);
-        var node = dom_1.DOM.createTextNode('');
+        var observer = pal_1.DOM.createMutationObserver(flush);
+        var node = pal_1.DOM.createTextNode('');
         observer.observe(node, { characterData: true });
         return function requestFlush() {
             toggle = -toggle;
@@ -1508,7 +1507,232 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1) {
+define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/pal"], function (require, exports, svg_analyzer_1, pal_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var svgElements = {
+        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
+        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
+        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
+        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
+        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
+        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
+        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
+        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
+        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
+        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
+        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
+        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
+    };
+    var svgPresentationElements = {
+        'a': true,
+        'altGlyph': true,
+        'animate': true,
+        'animateColor': true,
+        'circle': true,
+        'clipPath': true,
+        'defs': true,
+        'ellipse': true,
+        'feBlend': true,
+        'feColorMatrix': true,
+        'feComponentTransfer': true,
+        'feComposite': true,
+        'feConvolveMatrix': true,
+        'feDiffuseLighting': true,
+        'feDisplacementMap': true,
+        'feFlood': true,
+        'feGaussianBlur': true,
+        'feImage': true,
+        'feMerge': true,
+        'feMorphology': true,
+        'feOffset': true,
+        'feSpecularLighting': true,
+        'feTile': true,
+        'feTurbulence': true,
+        'filter': true,
+        'font': true,
+        'foreignObject': true,
+        'g': true,
+        'glyph': true,
+        'glyphRef': true,
+        'image': true,
+        'line': true,
+        'linearGradient': true,
+        'marker': true,
+        'mask': true,
+        'missing-glyph': true,
+        'path': true,
+        'pattern': true,
+        'polygon': true,
+        'polyline': true,
+        'radialGradient': true,
+        'rect': true,
+        'stop': true,
+        'svg': true,
+        'switch': true,
+        'symbol': true,
+        'text': true,
+        'textPath': true,
+        'tref': true,
+        'tspan': true,
+        'use': true
+    };
+    var svgPresentationAttributes = {
+        'alignment-baseline': true,
+        'baseline-shift': true,
+        'clip-path': true,
+        'clip-rule': true,
+        'clip': true,
+        'color-interpolation-filters': true,
+        'color-interpolation': true,
+        'color-profile': true,
+        'color-rendering': true,
+        'color': true,
+        'cursor': true,
+        'direction': true,
+        'display': true,
+        'dominant-baseline': true,
+        'enable-background': true,
+        'fill-opacity': true,
+        'fill-rule': true,
+        'fill': true,
+        'filter': true,
+        'flood-color': true,
+        'flood-opacity': true,
+        'font-family': true,
+        'font-size-adjust': true,
+        'font-size': true,
+        'font-stretch': true,
+        'font-style': true,
+        'font-variant': true,
+        'font-weight': true,
+        'glyph-orientation-horizontal': true,
+        'glyph-orientation-vertical': true,
+        'image-rendering': true,
+        'kerning': true,
+        'letter-spacing': true,
+        'lighting-color': true,
+        'marker-end': true,
+        'marker-mid': true,
+        'marker-start': true,
+        'mask': true,
+        'opacity': true,
+        'overflow': true,
+        'pointer-events': true,
+        'shape-rendering': true,
+        'stop-color': true,
+        'stop-opacity': true,
+        'stroke-dasharray': true,
+        'stroke-dashoffset': true,
+        'stroke-linecap': true,
+        'stroke-linejoin': true,
+        'stroke-miterlimit': true,
+        'stroke-opacity': true,
+        'stroke-width': true,
+        'stroke': true,
+        'text-anchor': true,
+        'text-decoration': true,
+        'text-rendering': true,
+        'unicode-bidi': true,
+        'visibility': true,
+        'word-spacing': true,
+        'writing-mode': true
+    };
+    function createElement(html) {
+        var div = pal_1.DOM.createElement('div');
+        div.innerHTML = html;
+        return div.firstElementChild;
+    }
+    ;
+    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
+        svgElements.altglyph = svgElements.altGlyph;
+        delete svgElements.altGlyph;
+        svgElements.altglyphdef = svgElements.altGlyphDef;
+        delete svgElements.altGlyphDef;
+        svgElements.altglyphitem = svgElements.altGlyphItem;
+        delete svgElements.altGlyphItem;
+        svgElements.glyphref = svgElements.glyphRef;
+        delete svgElements.glyphRef;
+    }
+    exports.SVGAnalyzer = Object.assign(svg_analyzer_1.SVGAnalyzer, {
+        isStandardSvgAttribute: function (nodeName, attributeName) {
+            return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
+                || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
+        }
+    });
+});
+
+
+
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
@@ -1518,6 +1742,7 @@ define('runtime/configuration/standard',["require", "exports", "../di", "../reso
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
             container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
         }
     };
 });
@@ -2629,9 +2854,8 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
     Object.defineProperty(exports, "__esModule", { value: true });
     var Binding = (function (_super) {
         __extends(Binding, _super);
-        function Binding(sourceExpression, target, targetProperty, mode, container, observerLocator) {
-            if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
-            var _this = _super.call(this, observerLocator) || this;
+        function Binding(sourceExpression, target, targetProperty, mode, container) {
+            var _this = _super.call(this) || this;
             _this.sourceExpression = sourceExpression;
             _this.target = target;
             _this.targetProperty = targetProperty;
@@ -2686,7 +2910,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             var mode = this.mode;
             if (!this.targetObserver) {
                 var method = mode === binding_mode_1.BindingMode.twoWay || mode === binding_mode_1.BindingMode.fromView ? 'getObserver' : 'getAccessor';
-                this.targetObserver = this.observerLocator[method](this.target, this.targetProperty);
+                this.targetObserver = observer_locator_1.ObserverLocator[method](this.target, this.targetProperty);
             }
             if ('bind' in this.targetObserver) {
                 this.targetObserver.bind();
@@ -2739,19 +2963,6 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
         return Binding;
     }(connectable_binding_1.ConnectableBinding));
     exports.Binding = Binding;
-    var TextBinding = (function (_super) {
-        __extends(TextBinding, _super);
-        function TextBinding(sourceExpression, target, container, observerLocator) {
-            if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
-            var _this = _super.call(this, sourceExpression, target.nextSibling, 'textContent', binding_mode_1.BindingMode.oneWay, container) || this;
-            var next = target.nextSibling;
-            next['auInterpolationTarget'] = true;
-            target.parentNode.removeChild(target);
-            return _this;
-        }
-        return TextBinding;
-    }(Binding));
-    exports.TextBinding = TextBinding;
 });
 
 
@@ -2760,14 +2971,13 @@ define('runtime/binding/call',["require", "exports", "./observer-locator"], func
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Call = (function () {
-        function Call(sourceExpression, target, targetProperty, container, observerLocator) {
-            if (observerLocator === void 0) { observerLocator = observer_locator_1.ObserverLocator.instance; }
+        function Call(sourceExpression, target, targetProperty, container) {
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.targetProperty = targetProperty;
             this.container = container;
             this.isBound = false;
-            this.targetObserver = observerLocator.getObserver(target, targetProperty);
+            this.targetObserver = observer_locator_1.ObserverLocator.getObserver(target, targetProperty);
         }
         Call.prototype.callSource = function ($event) {
             var overrideContext = this.source.overrideContext;
@@ -3144,7 +3354,7 @@ define('runtime/binding/collection-observation',["require", "exports", "./array-
 
 
 
-define('runtime/binding/connect-queue',["require", "exports", "../platform"], function (require, exports, platform_1) {
+define('runtime/binding/connect-queue',["require", "exports", "../pal"], function (require, exports, pal_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var queue = [];
@@ -3162,13 +3372,13 @@ define('runtime/binding/connect-queue',["require", "exports", "../platform"], fu
             queued[binding.__connectQueueId] = false;
             binding.connect(true);
             i++;
-            if (i % 100 === 0 && platform_1.PLATFORM.performance.now() - animationFrameStart > frameBudget) {
+            if (i % 100 === 0 && pal_1.PLATFORM.performance.now() - animationFrameStart > frameBudget) {
                 break;
             }
         }
         queue.splice(0, i);
         if (queue.length) {
-            platform_1.PLATFORM.requestAnimationFrame(flush);
+            pal_1.PLATFORM.requestAnimationFrame(flush);
         }
         else {
             isFlushRequested = false;
@@ -3194,7 +3404,7 @@ define('runtime/binding/connect-queue',["require", "exports", "../platform"], fu
         }
         if (!isFlushRequested) {
             isFlushRequested = true;
-            platform_1.PLATFORM.requestAnimationFrame(flush);
+            pal_1.PLATFORM.requestAnimationFrame(flush);
         }
     }
     exports.enqueueBindingConnect = enqueueBindingConnect;
@@ -3202,7 +3412,7 @@ define('runtime/binding/connect-queue',["require", "exports", "../platform"], fu
 
 
 
-define('runtime/binding/connectable-binding',["require", "exports", "./binding-context"], function (require, exports, binding_context_1) {
+define('runtime/binding/connectable-binding',["require", "exports", "./observer-locator", "./binding-context"], function (require, exports, observer_locator_1, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var slotNames = [];
@@ -3212,8 +3422,7 @@ define('runtime/binding/connectable-binding',["require", "exports", "./binding-c
         versionSlotNames.push("_observerVersion" + i);
     }
     var ConnectableBinding = (function () {
-        function ConnectableBinding(observerLocator) {
-            this.observerLocator = observerLocator;
+        function ConnectableBinding() {
         }
         ConnectableBinding.prototype.addObserver = function (observer) {
             var observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
@@ -3237,11 +3446,11 @@ define('runtime/binding/connectable-binding',["require", "exports", "./binding-c
             this[versionSlotNames[i]] = this.version;
         };
         ConnectableBinding.prototype.observeProperty = function (obj, propertyName) {
-            var observer = this.observerLocator.getObserver(obj, propertyName);
+            var observer = observer_locator_1.ObserverLocator.getObserver(obj, propertyName);
             this.addObserver(observer);
         };
         ConnectableBinding.prototype.observeArray = function (array) {
-            var observer = this.observerLocator.getArrayObserver(array);
+            var observer = observer_locator_1.ObserverLocator.getArrayObserver(array);
             this.addObserver(observer);
         };
         ConnectableBinding.prototype.unobserve = function (all) {
@@ -3532,7 +3741,7 @@ define('runtime/binding/element-observation',["require", "exports", "./subscribe
 
 
 
-define('runtime/binding/event-manager',["require", "exports", "../dom", "../di"], function (require, exports, dom_1, di_1) {
+define('runtime/binding/event-manager',["require", "exports", "../pal", "../di"], function (require, exports, pal_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function findOriginalEventTarget(event) {
@@ -3601,13 +3810,13 @@ define('runtime/binding/event-manager',["require", "exports", "../dom", "../di"]
         ListenerTracker.prototype.increment = function () {
             this.count++;
             if (this.count === 1) {
-                dom_1.DOM.addEventListener(this.eventName, this.listener, this.capture);
+                pal_1.DOM.addEventListener(this.eventName, this.listener, this.capture);
             }
         };
         ListenerTracker.prototype.decrement = function () {
             this.count--;
             if (this.count === 0) {
-                dom_1.DOM.removeEventListener(this.eventName, this.listener, this.capture);
+                pal_1.DOM.removeEventListener(this.eventName, this.listener, this.capture);
             }
         };
         return ListenerTracker;
@@ -3982,9 +4191,10 @@ define('runtime/binding/observation',["require", "exports"], function (require, 
 
 
 
-define('runtime/binding/observer-locator',["require", "exports", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checker", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg-analyzer", "../reporter"], function (require, exports, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checker_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_analyzer_1, reporter_1) {
+define('runtime/binding/observer-locator',["require", "exports", "../pal", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checker", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg-analyzer", "../reporter", "../di"], function (require, exports, pal_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checker_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_analyzer_1, reporter_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IObserverLocator = di_1.DI.createInterface('IObserverLocator');
     function getPropertyDescriptor(subject, name) {
         var pd = Object.getOwnPropertyDescriptor(subject, name);
         var proto = Object.getPrototypeOf(subject);
@@ -3994,11 +4204,11 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
         }
         return pd;
     }
-    var ObserverLocator = (function () {
-        function ObserverLocator() {
+    var ObserverLocatorImplementation = (function () {
+        function ObserverLocatorImplementation() {
             this.adapters = [];
         }
-        ObserverLocator.prototype.getObserver = function (obj, propertyName) {
+        ObserverLocatorImplementation.prototype.getObserver = function (obj, propertyName) {
             var observersLookup = obj.$observers;
             var observer;
             if (observersLookup && propertyName in observersLookup) {
@@ -4013,10 +4223,10 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             }
             return observer;
         };
-        ObserverLocator.prototype.getOrCreateObserversLookup = function (obj) {
+        ObserverLocatorImplementation.prototype.getOrCreateObserversLookup = function (obj) {
             return obj.$observers || this.createObserversLookup(obj);
         };
-        ObserverLocator.prototype.createObserversLookup = function (obj) {
+        ObserverLocatorImplementation.prototype.createObserversLookup = function (obj) {
             var value = {};
             if (!Reflect.defineProperty(obj, '$observers', {
                 enumerable: false,
@@ -4028,10 +4238,10 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             }
             return value;
         };
-        ObserverLocator.prototype.addAdapter = function (adapter) {
+        ObserverLocatorImplementation.prototype.addAdapter = function (adapter) {
             this.adapters.push(adapter);
         };
-        ObserverLocator.prototype.getAdapterObserver = function (obj, propertyName, descriptor) {
+        ObserverLocatorImplementation.prototype.getAdapterObserver = function (obj, propertyName, descriptor) {
             for (var i = 0, ii = this.adapters.length; i < ii; i++) {
                 var adapter = this.adapters[i];
                 var observer = adapter.getObserver(obj, propertyName, descriptor);
@@ -4041,14 +4251,14 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             }
             return null;
         };
-        ObserverLocator.prototype.createPropertyObserver = function (obj, propertyName) {
+        ObserverLocatorImplementation.prototype.createPropertyObserver = function (obj, propertyName) {
             var descriptor;
             var handler;
             var xlinkResult;
             if (!(obj instanceof Object)) {
                 return new property_observation_1.PrimitiveObserver(obj, propertyName);
             }
-            if (obj instanceof dom_1.DOM.Element) {
+            if (obj instanceof pal_1.DOM.Element) {
                 if (propertyName === 'class') {
                     return new class_observer_1.ClassObserver(obj);
                 }
@@ -4069,9 +4279,9 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
                 if (xlinkResult) {
                     return new element_observation_1.XLinkAttributeObserver(obj, propertyName, xlinkResult[1]);
                 }
-                if (propertyName === 'role' && (obj instanceof dom_1.DOM.Element || obj instanceof dom_1.DOM.SVGElement)
+                if (propertyName === 'role' && (obj instanceof pal_1.DOM.Element || obj instanceof pal_1.DOM.SVGElement)
                     || /^\w+:|^data-|^aria-/.test(propertyName)
-                    || obj instanceof dom_1.DOM.SVGElement && svg_analyzer_1.SVGAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)) {
+                    || obj instanceof pal_1.DOM.SVGElement && svg_analyzer_1.SVGAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)) {
                     return new element_observation_1.DataAttributeObserver(obj, propertyName);
                 }
             }
@@ -4109,8 +4319,8 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             }
             return new property_observation_1.SetterObserver(obj, propertyName);
         };
-        ObserverLocator.prototype.getAccessor = function (obj, propertyName) {
-            if (obj instanceof dom_1.DOM.Element) {
+        ObserverLocatorImplementation.prototype.getAccessor = function (obj, propertyName) {
+            if (obj instanceof pal_1.DOM.Element) {
                 if (propertyName === 'class'
                     || propertyName === 'style' || propertyName === 'css'
                     || propertyName === 'value' && (obj.tagName.toLowerCase() === 'input' || obj.tagName.toLowerCase() === 'select')
@@ -4120,7 +4330,7 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
                     return this.getObserver(obj, propertyName);
                 }
                 if (/^\w+:|^data-|^aria-/.test(propertyName)
-                    || obj instanceof dom_1.DOM.SVGElement && svg_analyzer_1.SVGAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)
+                    || obj instanceof pal_1.DOM.SVGElement && svg_analyzer_1.SVGAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)
                     || obj.tagName.toLowerCase() === 'img' && propertyName === 'src'
                     || obj.tagName.toLowerCase() === 'a' && propertyName === 'href') {
                     return element_observation_1.dataAttributeAccessor;
@@ -4128,19 +4338,18 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             }
             return property_observation_1.propertyAccessor;
         };
-        ObserverLocator.prototype.getArrayObserver = function (array) {
+        ObserverLocatorImplementation.prototype.getArrayObserver = function (array) {
             return array_observation_1.getArrayObserver(array);
         };
-        ObserverLocator.prototype.getMapObserver = function (map) {
+        ObserverLocatorImplementation.prototype.getMapObserver = function (map) {
             return map_observation_1.getMapObserver(map);
         };
-        ObserverLocator.prototype.getSetObserver = function (set) {
+        ObserverLocatorImplementation.prototype.getSetObserver = function (set) {
             return set_observation_1.getSetObserver(set);
         };
-        ObserverLocator.instance = new ObserverLocator();
-        return ObserverLocator;
+        return ObserverLocatorImplementation;
     }());
-    exports.ObserverLocator = ObserverLocator;
+    exports.ObserverLocator = new ObserverLocatorImplementation();
 });
 
 
@@ -4347,7 +4556,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../dom", "../task-queue"], function (require, exports, subscriber_collection_1, dom_1, task_queue_1) {
+define('runtime/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../pal", "../task-queue"], function (require, exports, subscriber_collection_1, pal_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var selectArrayContext = 'SelectValueObserver:array';
@@ -4495,7 +4704,7 @@ define('runtime/binding/select-value-observer',["require", "exports", "./subscri
         };
         SelectValueObserver.prototype.bind = function () {
             var _this = this;
-            this.domObserver = dom_1.DOM.createMutationObserver(function () {
+            this.domObserver = pal_1.DOM.createMutationObserver(function () {
                 _this.synchronizeOptions();
                 _this.synchronizeValue();
             });
@@ -5075,7 +5284,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../task-queue", "../binding/property-observation", "./shadow-dom", "../feature", "../dom", "../di", "../binding/binding-context"], function (require, exports, view_engine_1, view_1, task_queue_1, property_observation_1, shadow_dom_1, feature_1, dom_1, di_1, binding_context_1) {
+define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../task-queue", "../binding/property-observation", "./shadow-dom", "../pal", "../di", "../binding/binding-context"], function (require, exports, view_engine_1, view_1, task_queue_1, property_observation_1, shadow_dom_1, pal_1, di_1, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var RuntimeCharacteristics = (function () {
@@ -5207,7 +5416,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         _this.$bindable = [];
                         _this.$attachable = [];
                         _this.$slots = source.hasSlots ? {} : null;
-                        _this.$useShadowDOM = source.shadowOptions && feature_1.FEATURE.shadowDOM;
+                        _this.$useShadowDOM = source.shadowOptions && pal_1.FEATURE.shadowDOM;
                         _this.$contentView = null;
                         _this.$isBound = false;
                         _this.$scope = {
@@ -5224,7 +5433,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     };
                     class_1.prototype.applyTo = function (host) {
                         this.$host = source.containerless
-                            ? dom_1.DOM.makeElementIntoAnchor(host, true)
+                            ? pal_1.DOM.makeElementIntoAnchor(host, true)
                             : host;
                         this.$shadowRoot = this.$useShadowDOM
                             ? host.attachShadow(source.shadowOptions)
@@ -5346,7 +5555,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
 
 
 
-define('runtime/templating/shadow-dom',["require", "exports", "../dom"], function (require, exports, dom_1) {
+define('runtime/templating/shadow-dom',["require", "exports", "../pal"], function (require, exports, pal_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noNodes = Object.freeze([]);
@@ -5571,7 +5780,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom"], functio
             this.destinationSlots = slots;
         };
         ShadowSlot.prototype.projectFrom = function (view, projectionSource) {
-            var anchor = dom_1.DOM.createComment('anchor');
+            var anchor = pal_1.DOM.createComment('anchor');
             var parent = this.anchor.parentNode;
             anchor.auSlotProjectFrom = projectionSource;
             anchor.auOwnerView = view;
@@ -5637,7 +5846,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom"], functio
             return node.auSlotAttribute.value;
         },
         createSlot: function (owner, name, destination, fallbackFactory) {
-            var anchor = dom_1.DOM.createComment('slot');
+            var anchor = pal_1.DOM.createComment('slot');
             if (destination) {
                 return new PassThroughSlot(owner, anchor, name, destination, fallbackFactory);
             }
@@ -5688,7 +5897,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../dom"], functio
                     i--;
                 }
                 else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) {
-                    if (nodeType === 3 && dom_1.DOM.isAllWhitespace(currentNode)) {
+                    if (nodeType === 3 && pal_1.DOM.isAllWhitespace(currentNode)) {
                         nodes.splice(i, 1);
                         ii--;
                         i--;
@@ -5731,7 +5940,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-engine',["require", "exports", "../dom", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode"], function (require, exports, dom_1, view_1, binding_1, view_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1) {
+define('runtime/templating/view-engine',["require", "exports", "../pal", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode"], function (require, exports, pal_1, view_1, binding_1, view_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -5782,8 +5991,8 @@ define('runtime/templating/view-engine',["require", "exports", "../dom", "./view
         switch (instruction.type) {
             case 'oneWayText':
                 var next = target.nextSibling;
-                dom_1.DOM.treatNodeAsNonWhitespace(next);
-                dom_1.DOM.removeNode(target);
+                pal_1.DOM.treatNodeAsNonWhitespace(next);
+                pal_1.DOM.removeNode(target);
                 owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.source), next, 'textContent', binding_mode_1.BindingMode.oneWay, container));
                 break;
             case 'oneWay':
@@ -5822,7 +6031,7 @@ define('runtime/templating/view-engine',["require", "exports", "../dom", "./view
                 owner.$slots[slot.name] = slot;
                 owner.$bindable.push(slot);
                 owner.$attachable.push(slot);
-                dom_1.DOM.replaceNode(slot.anchor, target);
+                pal_1.DOM.replaceNode(slot.anchor, target);
                 break;
             case 'element':
                 var elementInstructions = instruction.instructions;
@@ -5856,7 +6065,7 @@ define('runtime/templating/view-engine',["require", "exports", "../dom", "./view
                 }
                 container.element.instance = target;
                 container.viewFactory.instance = factory;
-                container.viewSlot.instance = new view_slot_1.ViewSlot(dom_1.DOM.makeElementIntoAnchor(target), false);
+                container.viewSlot.instance = new view_slot_1.ViewSlot(pal_1.DOM.makeElementIntoAnchor(target), false);
                 var templateControllerModel = container.get(instruction.resource);
                 if (instruction.link) {
                     templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
@@ -5891,7 +6100,7 @@ define('runtime/templating/view-engine',["require", "exports", "../dom", "./view
         function CompiledTemplate(source) {
             this.source = source;
             this.container = createTemplateContainer(source.dependencies);
-            this.element = dom_1.DOM.createTemplateElement();
+            this.element = pal_1.DOM.createTemplateElement();
             this.element.innerHTML = source.template;
         }
         CompiledTemplate.prototype.createFor = function (owner, host) {
@@ -6261,7 +6470,7 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
 
 
 
-define('runtime/templating/view',["require", "exports", "../dom"], function (require, exports, dom_1) {
+define('runtime/templating/view',["require", "exports", "../pal"], function (require, exports, pal_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noNodes = Object.freeze([]);
@@ -6283,7 +6492,7 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         fromCompiledElementContent: function (owner, element) {
             var contentElement = element.firstElementChild;
             if (contentElement !== null && contentElement !== undefined) {
-                dom_1.DOM.removeNode(contentElement);
+                pal_1.DOM.removeNode(contentElement);
                 if (owner.$useShadowDOM) {
                     while (contentElement.firstChild) {
                         element.appendChild(contentElement.firstChild);
@@ -6359,231 +6568,6 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         };
         return TemplateView;
     }());
-});
-
-
-
-define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var svgElements = {
-        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
-        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
-        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
-        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
-        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-    };
-    var svgPresentationElements = {
-        'a': true,
-        'altGlyph': true,
-        'animate': true,
-        'animateColor': true,
-        'circle': true,
-        'clipPath': true,
-        'defs': true,
-        'ellipse': true,
-        'feBlend': true,
-        'feColorMatrix': true,
-        'feComponentTransfer': true,
-        'feComposite': true,
-        'feConvolveMatrix': true,
-        'feDiffuseLighting': true,
-        'feDisplacementMap': true,
-        'feFlood': true,
-        'feGaussianBlur': true,
-        'feImage': true,
-        'feMerge': true,
-        'feMorphology': true,
-        'feOffset': true,
-        'feSpecularLighting': true,
-        'feTile': true,
-        'feTurbulence': true,
-        'filter': true,
-        'font': true,
-        'foreignObject': true,
-        'g': true,
-        'glyph': true,
-        'glyphRef': true,
-        'image': true,
-        'line': true,
-        'linearGradient': true,
-        'marker': true,
-        'mask': true,
-        'missing-glyph': true,
-        'path': true,
-        'pattern': true,
-        'polygon': true,
-        'polyline': true,
-        'radialGradient': true,
-        'rect': true,
-        'stop': true,
-        'svg': true,
-        'switch': true,
-        'symbol': true,
-        'text': true,
-        'textPath': true,
-        'tref': true,
-        'tspan': true,
-        'use': true
-    };
-    var svgPresentationAttributes = {
-        'alignment-baseline': true,
-        'baseline-shift': true,
-        'clip-path': true,
-        'clip-rule': true,
-        'clip': true,
-        'color-interpolation-filters': true,
-        'color-interpolation': true,
-        'color-profile': true,
-        'color-rendering': true,
-        'color': true,
-        'cursor': true,
-        'direction': true,
-        'display': true,
-        'dominant-baseline': true,
-        'enable-background': true,
-        'fill-opacity': true,
-        'fill-rule': true,
-        'fill': true,
-        'filter': true,
-        'flood-color': true,
-        'flood-opacity': true,
-        'font-family': true,
-        'font-size-adjust': true,
-        'font-size': true,
-        'font-stretch': true,
-        'font-style': true,
-        'font-variant': true,
-        'font-weight': true,
-        'glyph-orientation-horizontal': true,
-        'glyph-orientation-vertical': true,
-        'image-rendering': true,
-        'kerning': true,
-        'letter-spacing': true,
-        'lighting-color': true,
-        'marker-end': true,
-        'marker-mid': true,
-        'marker-start': true,
-        'mask': true,
-        'opacity': true,
-        'overflow': true,
-        'pointer-events': true,
-        'shape-rendering': true,
-        'stop-color': true,
-        'stop-opacity': true,
-        'stroke-dasharray': true,
-        'stroke-dashoffset': true,
-        'stroke-linecap': true,
-        'stroke-linejoin': true,
-        'stroke-miterlimit': true,
-        'stroke-opacity': true,
-        'stroke-width': true,
-        'stroke': true,
-        'text-anchor': true,
-        'text-decoration': true,
-        'text-rendering': true,
-        'unicode-bidi': true,
-        'visibility': true,
-        'word-spacing': true,
-        'writing-mode': true
-    };
-    function createElement(html) {
-        var div = dom_1.DOM.createElement('div');
-        div.innerHTML = html;
-        return div.firstElementChild;
-    }
-    ;
-    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
-        svgElements.altglyph = svgElements.altGlyph;
-        delete svgElements.altGlyph;
-        svgElements.altglyphdef = svgElements.altGlyphDef;
-        delete svgElements.altGlyphDef;
-        svgElements.altglyphitem = svgElements.altGlyphItem;
-        delete svgElements.altGlyphItem;
-        svgElements.glyphref = svgElements.glyphRef;
-        delete svgElements.glyphRef;
-    }
-    exports.SVGAnalyzer = Object.assign(svg_analyzer_1.SVGAnalyzer, {
-        isStandardSvgAttribute: function (nodeName, attributeName) {
-            return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
-                || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
-        }
-    });
 });
 
 

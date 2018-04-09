@@ -1,4 +1,4 @@
-import { PLATFORM } from "./platform";
+import { PLATFORM } from "./pal";
 import { Injectable } from "./interfaces";
 
 type InterfaceSymbol = (target: Injectable, property: string, index: number) => any;

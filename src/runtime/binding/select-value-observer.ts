@@ -1,5 +1,5 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { DOM } from '../dom';
+import { DOM } from '../pal';
 import { ICallable } from '../interfaces';
 import { TaskQueue } from '../task-queue';
 import { IEventSubscriber } from './event-manager';

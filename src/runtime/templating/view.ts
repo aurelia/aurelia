@@ -1,4 +1,4 @@
-import { DOM } from "../dom";
+import { DOM } from "../pal";
 import { IShadowSlot } from "./shadow-dom";
 import { IAttach } from "./component";
 import { IScope } from "../binding/binding-context";

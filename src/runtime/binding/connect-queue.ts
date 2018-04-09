@@ -1,4 +1,4 @@
-import {PLATFORM} from '../platform';
+import {PLATFORM} from '../pal';
 
 const queue = [];              // the connect queue
 const queued = {};             // tracks whether a binding with a particular id is in the queue

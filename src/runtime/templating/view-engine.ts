@@ -1,4 +1,4 @@
-import { DOM } from "../dom";
+import { DOM } from "../pal";
 import { View, IView, IViewOwner } from "./view";
 import { IElementComponent, IAttach, IBindSelf, IAttributeComponent } from "./component";
 import { IBinding, Binding } from "../binding/binding";

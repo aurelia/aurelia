@@ -1960,7 +1960,7 @@ define('runtime/binding/array-observation',["require", "exports", "./collection-
 
 
 
-define('runtime/binding/ast',["require", "exports", "./signals", "./binding-context"], function (require, exports, signals_1, binding_context_1) {
+define('runtime/binding/ast',["require", "exports", "./binding-context", "./signal"], function (require, exports, binding_context_1, signal_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AstKind = {
@@ -2089,7 +2089,7 @@ define('runtime/binding/ast',["require", "exports", "./signals", "./binding-cont
             }
             i = signals.length;
             while (i--) {
-                signals_1.connectBindingToSignal(binding, signals[i]);
+                signal_1.Signal.connect(binding, signals[i]);
             }
         };
         return ValueConverter;
@@ -4618,23 +4618,23 @@ define('runtime/binding/set-observation',["require", "exports", "./collection-ob
 
 
 
-define('runtime/binding/signals',["require", "exports"], function (require, exports) {
+define('runtime/binding/signal',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var signals = {};
-    function connectBindingToSignal(binding, name) {
-        if (!signals.hasOwnProperty(name)) {
-            signals[name] = 0;
+    exports.Signal = {
+        connect: function (binding, signalName) {
+            if (!signals.hasOwnProperty(signalName)) {
+                signals[signalName] = 0;
+            }
+            binding.observeProperty(signals, signalName);
+        },
+        notify: function (signalName) {
+            if (signals.hasOwnProperty(signalName)) {
+                signals[signalName]++;
+            }
         }
-        binding.observeProperty(signals, name);
-    }
-    exports.connectBindingToSignal = connectBindingToSignal;
-    function signalBindings(name) {
-        if (signals.hasOwnProperty(name)) {
-            signals[name]++;
-        }
-    }
-    exports.signalBindings = signalBindings;
+    };
 });
 
 
@@ -4824,19 +4824,15 @@ define('runtime/binding/subscriber-collection',["require", "exports"], function 
 
 
 
-define('runtime/binding/svg',["require", "exports"], function (require, exports) {
+define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function (require, exports, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var SVGAnalyzer = (function () {
-        function SVGAnalyzer() {
-        }
-        SVGAnalyzer.prototype.isStandardSvgAttribute = function (nodeName, attributeName) {
+    exports.ISVGAnalyzer = di_1.DI.createInterface('ISVGAnalyzer');
+    exports.SVGAnalyzer = {
+        isStandardSvgAttribute: function (nodeName, attributeName) {
             return false;
-        };
-        SVGAnalyzer.instance = new SVGAnalyzer();
-        return SVGAnalyzer;
-    }());
-    exports.SVGAnalyzer = SVGAnalyzer;
+        }
+    };
 });
 
 
@@ -6396,19 +6392,6 @@ define('runtime/templating/view',["require", "exports", "../dom"], function (req
         };
         return TemplateView;
     }());
-});
-
-
-
-define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function (require, exports, di_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ISVGAnalyzer = di_1.DI.createInterface('ISVGAnalyzer');
-    exports.SVGAnalyzer = {
-        isStandardSvgAttribute: function (nodeName, attributeName) {
-            return false;
-        }
-    };
 });
 
 

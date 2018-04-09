@@ -1,7 +1,7 @@
-import { connectBindingToSignal } from './signals';
 import { IBinding } from './binding';
 import { IContainer } from '../di';
 import { IScope, BindingContext } from './binding-context';
+import { Signal } from './signal';
 
 interface AstKind {
   Base: 1;
@@ -170,7 +170,7 @@ export class ValueConverter implements IExpression {
     }
     i = signals.length;
     while (i--) {
-      connectBindingToSignal((binding as any), signals[i]);
+      Signal.connect((binding as any), signals[i]);
     }
   }
 }

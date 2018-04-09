@@ -24,7 +24,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 
 * Core
   * [x] PAL
-  * [x] Logging
+  * [x] Reporting
   * [x] Task Queue
   * [x] Dependency Injection
 * Binding
@@ -39,6 +39,9 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] Ref
   * [x] Style
   * [x] Text
+  * [x] SVG
+  * [ ] Value Converters
+  * [ ] Binding Behaviors
 * Custom Elements
   * [x] Properties
   * [x] Binding
@@ -50,7 +53,6 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] Containerless
   * [x] Emulated ShadowDOM
   * [x] Native ShadowDOM
-  * [x] View Resources
   * [ ] Template Part Replacement
   * [ ] CSS Modules
   * [ ] `compose` Custom Element

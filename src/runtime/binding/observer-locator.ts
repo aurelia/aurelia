@@ -19,7 +19,7 @@ import {
   dataAttributeAccessor
 } from './element-observation';
 import { ClassObserver } from './class-observer';
-import { SVGAnalyzer } from './svg';
+import { SVGAnalyzer } from './svg-analyzer';
 import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCollectionObserver, AccessorOrObserver, IAccessor } from './observation';
 import { Reporter } from '../reporter';
 
@@ -48,10 +48,7 @@ export class ObserverLocator implements IObserverLocator {
 
   private adapters: ObjectObservationAdapter[] = [];
 
-  constructor(
-    private eventManager: EventManager = EventManager.instance,
-    private svgAnalyzer: SVGAnalyzer = SVGAnalyzer.instance
-  ) { }
+  constructor(private eventManager: EventManager = EventManager.instance) { }
 
   getObserver(obj: any, propertyName: string): AccessorOrObserver {
     let observersLookup = obj.$observers;
@@ -146,7 +143,7 @@ export class ObserverLocator implements IObserverLocator {
 
       if (propertyName === 'role' && (obj instanceof DOM.Element || <any>obj instanceof DOM.SVGElement)
         || /^\w+:|^data-|^aria-/.test(propertyName)
-        || obj instanceof DOM.SVGElement && this.svgAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)) {
+        || obj instanceof DOM.SVGElement && SVGAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)) {
         return new DataAttributeObserver(obj, propertyName);
       }
     }
@@ -210,7 +207,7 @@ export class ObserverLocator implements IObserverLocator {
       }
 
       if (/^\w+:|^data-|^aria-/.test(propertyName)
-        || obj instanceof DOM.SVGElement && this.svgAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)
+        || obj instanceof DOM.SVGElement && SVGAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)
         || obj.tagName.toLowerCase() === 'img' && propertyName === 'src'
         || obj.tagName.toLowerCase() === 'a' && propertyName === 'href'
       ) {

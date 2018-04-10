@@ -516,7 +516,7 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
     function customAttribute(name, defaultBindingMode, aliases) {
         if (defaultBindingMode === void 0) { defaultBindingMode = binding_mode_1.BindingMode.oneWay; }
         return function (target) {
-            return component_1.Component.attributeFromSource({
+            return component_1.Component.attribute({
                 name: name,
                 defaultBindingMode: defaultBindingMode || binding_mode_1.BindingMode.oneWay,
                 aliases: aliases,
@@ -527,13 +527,13 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
     exports.customAttribute = customAttribute;
     function valueConverter(name) {
         return function (target) {
-            return component_1.Component.valueConverterFromSource({ name: name }, target);
+            return component_1.Component.valueConverter({ name: name }, target);
         };
     }
     exports.valueConverter = valueConverter;
     function bindingBehavior(name) {
         return function (target) {
-            return component_1.Component.bindingBehaviorFromSource({ name: name }, target);
+            return component_1.Component.bindingBehavior({ name: name }, target);
         };
     }
     exports.bindingBehavior = bindingBehavior;
@@ -1514,6 +1514,23 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
             throw new Error('Expression Compilation Not Implemented');
         }
     });
+});
+
+
+
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(if_1.If, else_1.Else);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+        }
+    };
 });
 
 
@@ -4797,23 +4814,6 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(if_1.If, else_1.Else);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-        }
-    };
-});
-
-
-
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -5118,21 +5118,22 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
         return RuntimeCharacteristics;
     }());
     exports.Component = {
-        valueConverterFromSource: function (source, ctor) {
-            ctor.source = source;
+        valueConverter: function (nameOrSource, ctor) {
+            ctor.source = ensureSource(nameOrSource);
             ctor.register = function (container) {
                 container.register(di_1.Registration.singleton(name, ctor));
             };
             return ctor;
         },
-        bindingBehaviorFromSource: function (source, ctor) {
-            ctor.source = source;
+        bindingBehavior: function (nameOrSource, ctor) {
+            ctor.source = ensureSource(nameOrSource);
             ctor.register = function (container) {
                 container.register(di_1.Registration.singleton(name, ctor));
             };
             return ctor;
         },
-        attributeFromSource: function (source, ctor) {
+        attribute: function (nameOrSource, ctor) {
+            var source = ensureSource(nameOrSource);
             return _a = (function (_super) {
                     __extends(CustomAttribute, _super);
                     function CustomAttribute() {
@@ -5203,17 +5204,16 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
         },
         elementFromCompiledSource: function (source, ctor) {
             if (ctor === void 0) { ctor = null; }
-            source.shadowOptions = source.shadowOptions || ctor.shadowOptions || null;
-            source.containerless = source.containerless || ctor.containerless || false;
-            var template = view_engine_1.ViewEngine.templateFromCompiledSource(source);
-            var observables = source.observables;
             if (ctor === null) {
                 ctor = (function () {
-                    function class_1() {
+                    function HTMLOnlyElement() {
                     }
-                    return class_1;
+                    return HTMLOnlyElement;
                 }());
             }
+            source.shadowOptions = source.shadowOptions || ctor.shadowOptions || null;
+            source.containerless = source.containerless || ctor.containerless || false;
+            var observables = source.observables;
             if (observables) {
                 var observableRecord = ctor.observables || {};
                 for (var i = 0, ii = observables.length; i < ii; ++i) {
@@ -5221,9 +5221,10 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     observableRecord[current.name] = current;
                 }
             }
+            var template = view_engine_1.ViewEngine.templateFromCompiledSource(source);
             var CompiledComponent = (_a = (function (_super) {
-                    __extends(class_2, _super);
-                    function class_2() {
+                    __extends(class_1, _super);
+                    function class_1() {
                         var args = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             args[_i] = arguments[_i];
@@ -5244,10 +5245,10 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         discoverAndApplyCharacteristics(_this, CompiledComponent);
                         return _this;
                     }
-                    class_2.register = function (container) {
+                    class_1.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    class_2.prototype.applyTo = function (host) {
+                    class_1.prototype.applyTo = function (host) {
                         this.$host = source.containerless
                             ? pal_1.DOM.makeElementIntoAnchor(host, true)
                             : host;
@@ -5260,10 +5261,10 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                         return this;
                     };
-                    class_2.prototype.createView = function (host) {
+                    class_1.prototype.createView = function (host) {
                         return template.createFor(this, host);
                     };
-                    class_2.prototype.bind = function () {
+                    class_1.prototype.bind = function () {
                         var scope = this.$scope;
                         var bindable = this.$bindable;
                         for (var i = 0, ii = bindable.length; i < ii; ++i) {
@@ -5281,7 +5282,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.bound();
                         }
                     };
-                    class_2.prototype.attach = function () {
+                    class_1.prototype.attach = function () {
                         var _this = this;
                         if (this.$characteristics.hasAttaching) {
                             this.attaching();
@@ -5300,7 +5301,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.attached(); });
                         }
                     };
-                    class_2.prototype.detach = function () {
+                    class_1.prototype.detach = function () {
                         var _this = this;
                         if (this.$characteristics.hasDetaching) {
                             this.detaching();
@@ -5315,7 +5316,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
                         }
                     };
-                    class_2.prototype.unbind = function () {
+                    class_1.prototype.unbind = function () {
                         var bindable = this.$bindable;
                         var i = bindable.length;
                         while (i--) {
@@ -5326,7 +5327,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                         this.$isBound = false;
                     };
-                    return class_2;
+                    return class_1;
                 }(ctor)),
                 _a.template = template,
                 _a.source = source,
@@ -5366,6 +5367,16 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             get: function () { return this.$observers[name].getValue(); },
             set: function (value) { this.$observers[name].setValue(value); }
         });
+    }
+    function ensureSource(nameOrSource) {
+        var source;
+        if (typeof nameOrSource === 'string') {
+            source = { name: source };
+        }
+        else {
+            source = nameOrSource;
+        }
+        return source;
     }
 });
 

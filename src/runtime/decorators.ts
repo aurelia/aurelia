@@ -18,7 +18,7 @@ export function compiledElement(source: ICompiledElementSource) {
 */
 export function customAttribute(name: string, defaultBindingMode: BindingMode = BindingMode.oneWay, aliases?: string[]) {
   return function<T extends Constructable>(target: T) {
-    return Component.attributeFromSource({
+    return Component.attribute({
       name,
       defaultBindingMode: defaultBindingMode || BindingMode.oneWay,
       aliases,
@@ -29,13 +29,13 @@ export function customAttribute(name: string, defaultBindingMode: BindingMode = 
 
 export function valueConverter(name: string) {
   return function<T extends Constructable>(target: T) {
-    return Component.valueConverterFromSource({ name }, target);
+    return Component.valueConverter({ name }, target);
   }
 }
 
 export function bindingBehavior(name: string) {
   return function<T extends Constructable>(target: T) {
-    return Component.bindingBehaviorFromSource({ name }, target);
+    return Component.bindingBehavior({ name }, target);
   }
 }
 

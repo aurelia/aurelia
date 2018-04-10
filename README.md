@@ -40,8 +40,8 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] Style
   * [x] Text
   * [x] SVG
-  * [ ] Value Converters
-  * [ ] Binding Behaviors
+  * [x] Value Converters
+  * [x] Binding Behaviors
 * Custom Elements
   * [x] Properties
   * [x] Binding

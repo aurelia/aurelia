@@ -1,6 +1,6 @@
 import { Component, ICompiledElementSource, IAttributeSource } from "./templating/component";
 import { PLATFORM } from "./pal";
-import { DI } from "./di";
+import { DI, IContainer, Registration } from "./di";
 import { BindingMode } from "./binding/binding-mode";
 import { Constructable, Injectable } from "./interfaces";
 
@@ -18,14 +18,24 @@ export function compiledElement(source: ICompiledElementSource) {
 */
 export function customAttribute(name: string, defaultBindingMode: BindingMode = BindingMode.oneWay, aliases?: string[]) {
   return function<T extends Constructable>(target: T) {
-    let source: IAttributeSource = {
-      name: name,
+    return Component.attributeFromSource(target, {
+      name,
       defaultBindingMode: defaultBindingMode || BindingMode.oneWay,
-      aliases: aliases,
+      aliases,
       isTemplateController: !!(<any>target).isTemplateController
-    };
+    });
+  }
+}
 
-    return Component.attributeFromSource(target, source);
+export function valueConverter(name: string) {
+  return function<T extends Constructable>(target: T) {
+    return Component.valueConverterFromSource(target, { name });
+  }
+}
+
+export function bindingBehavior(name: string) {
+  return function<T extends Constructable>(target: T) {
+    return Component.bindingBehaviorFromSource(target, { name });
   }
 }
 

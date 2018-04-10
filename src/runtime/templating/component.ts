@@ -44,15 +44,31 @@ export interface IAttributeSource {
   isTemplateController?: boolean;
 }
 
-type ConstructableAttributeComponent = Constructable & {
+export interface IValueConverterSource {
+  name: string;
+}
+
+export interface IBindingBehaviorSource {
+  name: string;
+}
+
+type AttributeComponent = Constructable & {
   new(...args: any[]): IAttributeComponent;
   source: IAttributeSource;
 };
 
-type ConstructableElementComponent = Constructable & {
+type ElementComponent = Constructable & {
   new(...args: any[]): IElementComponent;
   template: ITemplate;
   source: ICompiledElementSource;
+}
+
+type ValueConverterComponent = Constructable & {
+  source: IValueConverterSource;
+}
+
+type BindingBehaviorComponent = Constructable & {
+  source: IBindingBehaviorSource;
 }
 
 interface IObservableDescription {
@@ -72,7 +88,7 @@ class RuntimeCharacteristics {
   hasDetached = false;
   hasUnbound = false;
 
-  static for(instance, Component: ConstructableElementComponent | ConstructableAttributeComponent) {
+  static for(instance, Component: ElementComponent | AttributeComponent) {
     let characteristics = new RuntimeCharacteristics();
     let configuredObservables = (<any>Component).observables;
     let observables: IObservableDescription[] = [];
@@ -112,7 +128,25 @@ class RuntimeCharacteristics {
 }
 
 export const Component = {
-  attributeFromSource<T extends Constructable>(ctor: T, source: IAttributeSource): T & ConstructableAttributeComponent {
+  valueConverterFromSource<T extends Constructable>(ctor: T, source: IValueConverterSource): T & ValueConverterComponent {
+    (<any>ctor).source = source;
+
+    (<any>ctor).register = function(container: IContainer) {
+      container.register(Registration.singleton(name, ctor));
+    }
+
+    return <any>ctor;
+  },
+  bindingBehaviorFromSource<T extends Constructable>(ctor: T, source: IBindingBehaviorSource): T & BindingBehaviorComponent {
+    (<any>ctor).source = source;
+
+    (<any>ctor).register = function(container: IContainer) {
+      container.register(Registration.singleton(name, ctor));
+    }
+
+    return <any>ctor;
+  },
+  attributeFromSource<T extends Constructable>(ctor: T, source: IAttributeSource): T & AttributeComponent {
     return class CustomAttribute extends ctor implements IAttributeComponent {
       static source: IAttributeSource = source;
 
@@ -186,7 +220,7 @@ export const Component = {
       }
     };
   },
-  elementFromCompiledSource<T extends Constructable>(ctor: T, source: ICompiledElementSource): T & ConstructableElementComponent {
+  elementFromCompiledSource<T extends Constructable>(ctor: T, source: ICompiledElementSource): T & ElementComponent {
     source.shadowOptions = source.shadowOptions || (<any>ctor).shadowOptions || null;
     source.containerless = source.containerless || (<any>ctor).containerless || false;
     
@@ -333,7 +367,7 @@ export const Component = {
   }
 };
 
-function discoverAndApplyCharacteristics(instance, Component: ConstructableElementComponent | ConstructableAttributeComponent) {
+function discoverAndApplyCharacteristics(instance, Component: ElementComponent | AttributeComponent) {
   let characteristics: RuntimeCharacteristics = (<any>Component).characteristics;
 
   if (characteristics === undefined) {

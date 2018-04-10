@@ -299,6 +299,151 @@ define('name-tag',["require", "exports", "./runtime/decorators", "./name-tag-con
 
 
 
+define('debug/configuration',["require", "exports", "./reporter", "./task-queue", "./binding/unparser"], function (require, exports, reporter_1, task_queue_1, unparser_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DebugConfiguration = {
+        register: function (container) {
+            reporter_1.Reporter.write(2);
+            task_queue_1.TaskQueue.longStacks = true;
+            unparser_1.enableImprovedExpressionDebugging();
+        }
+    };
+});
+
+
+
+define('debug/reporter',["require", "exports", "../runtime/reporter"], function (require, exports, reporter_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MessageType;
+    (function (MessageType) {
+        MessageType[MessageType["error"] = 0] = "error";
+        MessageType[MessageType["warn"] = 1] = "warn";
+        MessageType[MessageType["info"] = 2] = "info";
+        MessageType[MessageType["debug"] = 3] = "debug";
+    })(MessageType || (MessageType = {}));
+    exports.Reporter = Object.assign(reporter_1.Reporter, {
+        write: function (code) {
+            var params = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                params[_i - 1] = arguments[_i];
+            }
+            var info = getMessageInfoForCode(code);
+            switch (info.type) {
+                case MessageType.debug:
+                    console.debug.apply(console, [info.message].concat(params));
+                    break;
+                case MessageType.info:
+                    console.info.apply(console, [info.message].concat(params));
+                    break;
+                case MessageType.warn:
+                    console.warn.apply(console, [info.message].concat(params));
+                    break;
+                case MessageType.error:
+                    throw this.error.apply(this, [code].concat(params));
+            }
+        },
+        error: function (code) {
+            var params = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                params[_i - 1] = arguments[_i];
+            }
+            var info = getMessageInfoForCode(code);
+            var error = new Error(info.message);
+            error.data = params;
+            return error;
+        }
+    });
+    function getMessageInfoForCode(code) {
+        return codeLookup[code] || createInvalidCodeMessageInfo(code);
+    }
+    function createInvalidCodeMessageInfo(code) {
+        return {
+            type: MessageType.error,
+            message: "Attempted to report with unknown code " + code + "."
+        };
+    }
+    ;
+    var codeLookup = {
+        0: {
+            type: MessageType.warn,
+            message: 'Cannot add observers to object.'
+        },
+        1: {
+            type: MessageType.warn,
+            message: 'Cannot observe property of object.'
+        },
+        2: {
+            type: MessageType.info,
+            message: 'Starting application in debug mode.'
+        },
+        3: {
+            type: MessageType.error,
+            message: 'Runtime expression compilation is only available when including JIT support.'
+        }
+    };
+});
+
+
+
+define('debug/task-queue',["require", "exports", "../runtime/task-queue"], function (require, exports, task_queue_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var stackSeparator = '\nEnqueued in TaskQueue by:\n';
+    var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
+    var originalOnError = task_queue_1.TaskQueue.onError.bind(task_queue_1.TaskQueue);
+    exports.TaskQueue = Object.assign(task_queue_1.TaskQueue, {
+        prepareTaskStack: function () {
+            return this.prepareStack(stackSeparator);
+        },
+        prepareMicroTaskStack: function () {
+            return this.prepareStack(microStackSeparator);
+        },
+        prepareStack: function (separator) {
+            var stack = separator + filterQueueStack(captureStack());
+            if (typeof this.stack === 'string') {
+                stack = filterFlushStack(stack) + this.stack;
+            }
+            return stack;
+        },
+        onError: function (error, task) {
+            if (this.longStacks && task.stack && typeof error === 'object' && error !== null) {
+                error.stack = filterFlushStack(error.stack) + task.stack;
+            }
+            originalOnError(error, task);
+        }
+    });
+    function captureStack() {
+        var error = new Error();
+        if (error.stack) {
+            return error.stack;
+        }
+        try {
+            throw error;
+        }
+        catch (e) {
+            return e.stack;
+        }
+    }
+    function filterQueueStack(stack) {
+        return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
+    }
+    function filterFlushStack(stack) {
+        var index = stack.lastIndexOf('flushMicroTaskQueue');
+        if (index < 0) {
+            index = stack.lastIndexOf('flushTaskQueue');
+            if (index < 0) {
+                return stack;
+            }
+        }
+        index = stack.lastIndexOf('\n', index);
+        return index < 0 ? stack : stack.substr(0, index);
+    }
+});
+
+
+
 define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (require, exports, pal_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -371,16 +516,27 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
     function customAttribute(name, defaultBindingMode, aliases) {
         if (defaultBindingMode === void 0) { defaultBindingMode = binding_mode_1.BindingMode.oneWay; }
         return function (target) {
-            var source = {
+            return component_1.Component.attributeFromSource(target, {
                 name: name,
                 defaultBindingMode: defaultBindingMode || binding_mode_1.BindingMode.oneWay,
                 aliases: aliases,
                 isTemplateController: !!target.isTemplateController
-            };
-            return component_1.Component.attributeFromSource(target, source);
+            });
         };
     }
     exports.customAttribute = customAttribute;
+    function valueConverter(name) {
+        return function (target) {
+            return component_1.Component.valueConverterFromSource(target, { name: name });
+        };
+    }
+    exports.valueConverter = valueConverter;
+    function bindingBehavior(name) {
+        return function (target) {
+            return component_1.Component.bindingBehaviorFromSource(target, { name: name });
+        };
+    }
+    exports.bindingBehavior = bindingBehavior;
     function templateController(target) {
         var deco = function (target) {
             target.isTemplateController = true;
@@ -1137,19 +1293,227 @@ define('runtime/task-queue',["require", "exports", "./pal", "./di"], function (r
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1) {
+define('debug/binding/binding-context',["require", "exports", "../../runtime/binding/binding-context"], function (require, exports, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(if_1.If, else_1.Else);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+    exports.BindingContext = Object.assign(binding_context_1.BindingContext, {
+        createScopeForTest: function (bindingContext, parentBindingContext) {
+            if (parentBindingContext) {
+                return {
+                    bindingContext: bindingContext,
+                    overrideContext: this.createOverride(bindingContext, this.createOverride(parentBindingContext))
+                };
+            }
+            return {
+                bindingContext: bindingContext,
+                overrideContext: this.createOverride(bindingContext)
+            };
         }
-    };
+    });
+});
+
+
+
+define('debug/binding/unparser',["require", "exports", "../../runtime/binding/ast"], function (require, exports, AST) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function enableImprovedExpressionDebugging() {
+        [
+            { type: AST.AccessKeyed, name: 'AccessKeyed' },
+            { type: AST.AccessMember, name: 'AccessMember' },
+            { type: AST.AccessScope, name: 'AccessScope' },
+            { type: AST.AccessThis, name: 'AccessThis' },
+            { type: AST.Assign, name: 'Assign' },
+            { type: AST.Binary, name: 'Binary' },
+            { type: AST.BindingBehavior, name: 'BindingBehavior' },
+            { type: AST.CallFunction, name: 'CallFunction' },
+            { type: AST.CallMember, name: 'CallMember' },
+            { type: AST.CallScope, name: 'CallScope' },
+            { type: AST.Chain, name: 'Chain' },
+            { type: AST.Conditional, name: 'Conditional' },
+            { type: AST.LiteralArray, name: 'LiteralArray' },
+            { type: AST.LiteralObject, name: 'LiteralObject' },
+            { type: AST.LiteralPrimitive, name: 'LiteralPrimitive' },
+            { type: AST.LiteralString, name: 'LiteralString' },
+            { type: AST.PrefixNot, name: 'Prefix' },
+            { type: AST.TemplateLiteral, name: 'TemplateLiteral' },
+            { type: AST.ValueConverter, name: 'ValueConverter' }
+        ].forEach(function (x) { return adoptDebugMethods(x.type, x.name); });
+    }
+    exports.enableImprovedExpressionDebugging = enableImprovedExpressionDebugging;
+    function adoptDebugMethods(type, name) {
+        type.prototype.toString = function () { return Unparser.unparse(this); };
+        type.prototype.accept = function (visitor) { return visitor['visit' + name](this); };
+    }
+    var Unparser = (function () {
+        function Unparser(buffer) {
+            this.buffer = buffer;
+            this.buffer = buffer;
+        }
+        Unparser.unparse = function (expression) {
+            var buffer = [];
+            var visitor = new Unparser(buffer);
+            expression.accept(visitor);
+            return buffer.join('');
+        };
+        Unparser.prototype.write = function (text) {
+            this.buffer.push(text);
+        };
+        Unparser.prototype.writeArgs = function (args) {
+            this.write('(');
+            for (var i = 0, length_1 = args.length; i < length_1; ++i) {
+                if (i !== 0) {
+                    this.write(',');
+                }
+                args[i].accept(this);
+            }
+            this.write(')');
+        };
+        Unparser.prototype.visitChain = function (chain) {
+            var expressions = chain.expressions;
+            for (var i = 0, length_2 = expressions.length; i < length_2; ++i) {
+                if (i !== 0) {
+                    this.write(';');
+                }
+                expressions[i].accept(this);
+            }
+        };
+        Unparser.prototype.visitBindingBehavior = function (behavior) {
+            var args = behavior.args;
+            behavior.expression.accept(this);
+            this.write("&" + behavior.name);
+            for (var i = 0, length_3 = args.length; i < length_3; ++i) {
+                this.write(':');
+                args[i].accept(this);
+            }
+        };
+        Unparser.prototype.visitValueConverter = function (converter) {
+            var args = converter.args;
+            converter.expression.accept(this);
+            this.write("|" + converter.name);
+            for (var i = 0, length_4 = args.length; i < length_4; ++i) {
+                this.write(':');
+                args[i].accept(this);
+            }
+        };
+        Unparser.prototype.visitAssign = function (assign) {
+            assign.target.accept(this);
+            this.write('=');
+            assign.value.accept(this);
+        };
+        Unparser.prototype.visitConditional = function (conditional) {
+            conditional.condition.accept(this);
+            this.write('?');
+            conditional.yes.accept(this);
+            this.write(':');
+            conditional.no.accept(this);
+        };
+        Unparser.prototype.visitAccessThis = function (access) {
+            if (access.ancestor === 0) {
+                this.write('$this');
+                return;
+            }
+            this.write('$parent');
+            var i = access.ancestor - 1;
+            while (i--) {
+                this.write('.$parent');
+            }
+        };
+        Unparser.prototype.visitAccessScope = function (access) {
+            var i = access.ancestor;
+            while (i--) {
+                this.write('$parent.');
+            }
+            this.write(access.name);
+        };
+        Unparser.prototype.visitAccessMember = function (access) {
+            access.object.accept(this);
+            this.write("." + access.name);
+        };
+        Unparser.prototype.visitAccessKeyed = function (access) {
+            access.object.accept(this);
+            this.write('[');
+            access.key.accept(this);
+            this.write(']');
+        };
+        Unparser.prototype.visitCallScope = function (call) {
+            var i = call.ancestor;
+            while (i--) {
+                this.write('$parent.');
+            }
+            this.write(call.name);
+            this.writeArgs(call.args);
+        };
+        Unparser.prototype.visitCallFunction = function (call) {
+            call.func.accept(this);
+            this.writeArgs(call.args);
+        };
+        Unparser.prototype.visitCallMember = function (call) {
+            call.object.accept(this);
+            this.write("." + call.name);
+            this.writeArgs(call.args);
+        };
+        Unparser.prototype.visitPrefix = function (prefix) {
+            this.write("(" + prefix.operation);
+            prefix.expression.accept(this);
+            this.write(')');
+        };
+        Unparser.prototype.visitBinary = function (binary) {
+            binary.left.accept(this);
+            this.write(binary.operation);
+            binary.right.accept(this);
+        };
+        Unparser.prototype.visitLiteralPrimitive = function (literal) {
+            this.write("" + literal.value);
+        };
+        Unparser.prototype.visitLiteralArray = function (literal) {
+            var elements = literal.elements;
+            this.write('[');
+            for (var i = 0, length_5 = elements.length; i < length_5; ++i) {
+                if (i !== 0) {
+                    this.write(',');
+                }
+                elements[i].accept(this);
+            }
+            this.write(']');
+        };
+        Unparser.prototype.visitLiteralObject = function (literal) {
+            var keys = literal.keys;
+            var values = literal.values;
+            this.write('{');
+            for (var i = 0, length_6 = keys.length; i < length_6; ++i) {
+                if (i !== 0) {
+                    this.write(',');
+                }
+                this.write("'" + keys[i] + "':");
+                values[i].accept(this);
+            }
+            this.write('}');
+        };
+        Unparser.prototype.visitLiteralString = function (literal) {
+            var escaped = literal.value.replace(/'/g, "\'");
+            this.write("'" + escaped + "'");
+        };
+        Unparser.prototype.visitTemplateLiteral = function (node) {
+            var parts = node.parts;
+            for (var i = 0, length_7 = parts.length; i < length_7; ++i) {
+                parts[i].accept(this);
+            }
+        };
+        return Unparser;
+    }());
+});
+
+
+
+define('jit/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Expression = Object.assign(expression_1.Expression, {
+        compile: function (expression) {
+            throw new Error('Expression Compilation Not Implemented');
+        }
+    });
 });
 
 
@@ -4433,6 +4797,23 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(if_1.If, else_1.Else);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+        }
+    };
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -4737,6 +5118,20 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
         return RuntimeCharacteristics;
     }());
     exports.Component = {
+        valueConverterFromSource: function (ctor, source) {
+            ctor.source = source;
+            ctor.register = function (container) {
+                container.register(di_1.Registration.singleton(name, ctor));
+            };
+            return ctor;
+        },
+        bindingBehaviorFromSource: function (ctor, source) {
+            ctor.source = source;
+            ctor.register = function (container) {
+                container.register(di_1.Registration.singleton(name, ctor));
+            };
+            return ctor;
+        },
         attributeFromSource: function (ctor, source) {
             return _a = (function (_super) {
                     __extends(CustomAttribute, _super);
@@ -5973,376 +6368,6 @@ define('runtime/templating/view',["require", "exports", "../pal"], function (req
         };
         return TemplateView;
     }());
-});
-
-
-
-define('debug/configuration',["require", "exports", "./reporter", "./task-queue", "./binding/unparser"], function (require, exports, reporter_1, task_queue_1, unparser_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.DebugConfiguration = {
-        register: function (container) {
-            reporter_1.Reporter.write(2);
-            task_queue_1.TaskQueue.longStacks = true;
-            unparser_1.enableImprovedExpressionDebugging();
-        }
-    };
-});
-
-
-
-define('debug/reporter',["require", "exports", "../runtime/reporter"], function (require, exports, reporter_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MessageType;
-    (function (MessageType) {
-        MessageType[MessageType["error"] = 0] = "error";
-        MessageType[MessageType["warn"] = 1] = "warn";
-        MessageType[MessageType["info"] = 2] = "info";
-        MessageType[MessageType["debug"] = 3] = "debug";
-    })(MessageType || (MessageType = {}));
-    exports.Reporter = Object.assign(reporter_1.Reporter, {
-        write: function (code) {
-            var params = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                params[_i - 1] = arguments[_i];
-            }
-            var info = getMessageInfoForCode(code);
-            switch (info.type) {
-                case MessageType.debug:
-                    console.debug.apply(console, [info.message].concat(params));
-                    break;
-                case MessageType.info:
-                    console.info.apply(console, [info.message].concat(params));
-                    break;
-                case MessageType.warn:
-                    console.warn.apply(console, [info.message].concat(params));
-                    break;
-                case MessageType.error:
-                    throw this.error.apply(this, [code].concat(params));
-            }
-        },
-        error: function (code) {
-            var params = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                params[_i - 1] = arguments[_i];
-            }
-            var info = getMessageInfoForCode(code);
-            var error = new Error(info.message);
-            error.data = params;
-            return error;
-        }
-    });
-    function getMessageInfoForCode(code) {
-        return codeLookup[code] || createInvalidCodeMessageInfo(code);
-    }
-    function createInvalidCodeMessageInfo(code) {
-        return {
-            type: MessageType.error,
-            message: "Attempted to report with unknown code " + code + "."
-        };
-    }
-    ;
-    var codeLookup = {
-        0: {
-            type: MessageType.warn,
-            message: 'Cannot add observers to object.'
-        },
-        1: {
-            type: MessageType.warn,
-            message: 'Cannot observe property of object.'
-        },
-        2: {
-            type: MessageType.info,
-            message: 'Starting application in debug mode.'
-        },
-        3: {
-            type: MessageType.error,
-            message: 'Runtime expression compilation is only available when including JIT support.'
-        }
-    };
-});
-
-
-
-define('debug/task-queue',["require", "exports", "../runtime/task-queue"], function (require, exports, task_queue_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var stackSeparator = '\nEnqueued in TaskQueue by:\n';
-    var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
-    var originalOnError = task_queue_1.TaskQueue.onError.bind(task_queue_1.TaskQueue);
-    exports.TaskQueue = Object.assign(task_queue_1.TaskQueue, {
-        prepareTaskStack: function () {
-            return this.prepareStack(stackSeparator);
-        },
-        prepareMicroTaskStack: function () {
-            return this.prepareStack(microStackSeparator);
-        },
-        prepareStack: function (separator) {
-            var stack = separator + filterQueueStack(captureStack());
-            if (typeof this.stack === 'string') {
-                stack = filterFlushStack(stack) + this.stack;
-            }
-            return stack;
-        },
-        onError: function (error, task) {
-            if (this.longStacks && task.stack && typeof error === 'object' && error !== null) {
-                error.stack = filterFlushStack(error.stack) + task.stack;
-            }
-            originalOnError(error, task);
-        }
-    });
-    function captureStack() {
-        var error = new Error();
-        if (error.stack) {
-            return error.stack;
-        }
-        try {
-            throw error;
-        }
-        catch (e) {
-            return e.stack;
-        }
-    }
-    function filterQueueStack(stack) {
-        return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
-    }
-    function filterFlushStack(stack) {
-        var index = stack.lastIndexOf('flushMicroTaskQueue');
-        if (index < 0) {
-            index = stack.lastIndexOf('flushTaskQueue');
-            if (index < 0) {
-                return stack;
-            }
-        }
-        index = stack.lastIndexOf('\n', index);
-        return index < 0 ? stack : stack.substr(0, index);
-    }
-});
-
-
-
-define('debug/binding/binding-context',["require", "exports", "../../runtime/binding/binding-context"], function (require, exports, binding_context_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.BindingContext = Object.assign(binding_context_1.BindingContext, {
-        createScopeForTest: function (bindingContext, parentBindingContext) {
-            if (parentBindingContext) {
-                return {
-                    bindingContext: bindingContext,
-                    overrideContext: this.createOverride(bindingContext, this.createOverride(parentBindingContext))
-                };
-            }
-            return {
-                bindingContext: bindingContext,
-                overrideContext: this.createOverride(bindingContext)
-            };
-        }
-    });
-});
-
-
-
-define('debug/binding/unparser',["require", "exports", "../../runtime/binding/ast"], function (require, exports, AST) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function enableImprovedExpressionDebugging() {
-        [
-            { type: AST.AccessKeyed, name: 'AccessKeyed' },
-            { type: AST.AccessMember, name: 'AccessMember' },
-            { type: AST.AccessScope, name: 'AccessScope' },
-            { type: AST.AccessThis, name: 'AccessThis' },
-            { type: AST.Assign, name: 'Assign' },
-            { type: AST.Binary, name: 'Binary' },
-            { type: AST.BindingBehavior, name: 'BindingBehavior' },
-            { type: AST.CallFunction, name: 'CallFunction' },
-            { type: AST.CallMember, name: 'CallMember' },
-            { type: AST.CallScope, name: 'CallScope' },
-            { type: AST.Chain, name: 'Chain' },
-            { type: AST.Conditional, name: 'Conditional' },
-            { type: AST.LiteralArray, name: 'LiteralArray' },
-            { type: AST.LiteralObject, name: 'LiteralObject' },
-            { type: AST.LiteralPrimitive, name: 'LiteralPrimitive' },
-            { type: AST.LiteralString, name: 'LiteralString' },
-            { type: AST.PrefixNot, name: 'Prefix' },
-            { type: AST.TemplateLiteral, name: 'TemplateLiteral' },
-            { type: AST.ValueConverter, name: 'ValueConverter' }
-        ].forEach(function (x) { return adoptDebugMethods(x.type, x.name); });
-    }
-    exports.enableImprovedExpressionDebugging = enableImprovedExpressionDebugging;
-    function adoptDebugMethods(type, name) {
-        type.prototype.toString = function () { return Unparser.unparse(this); };
-        type.prototype.accept = function (visitor) { return visitor['visit' + name](this); };
-    }
-    var Unparser = (function () {
-        function Unparser(buffer) {
-            this.buffer = buffer;
-            this.buffer = buffer;
-        }
-        Unparser.unparse = function (expression) {
-            var buffer = [];
-            var visitor = new Unparser(buffer);
-            expression.accept(visitor);
-            return buffer.join('');
-        };
-        Unparser.prototype.write = function (text) {
-            this.buffer.push(text);
-        };
-        Unparser.prototype.writeArgs = function (args) {
-            this.write('(');
-            for (var i = 0, length_1 = args.length; i < length_1; ++i) {
-                if (i !== 0) {
-                    this.write(',');
-                }
-                args[i].accept(this);
-            }
-            this.write(')');
-        };
-        Unparser.prototype.visitChain = function (chain) {
-            var expressions = chain.expressions;
-            for (var i = 0, length_2 = expressions.length; i < length_2; ++i) {
-                if (i !== 0) {
-                    this.write(';');
-                }
-                expressions[i].accept(this);
-            }
-        };
-        Unparser.prototype.visitBindingBehavior = function (behavior) {
-            var args = behavior.args;
-            behavior.expression.accept(this);
-            this.write("&" + behavior.name);
-            for (var i = 0, length_3 = args.length; i < length_3; ++i) {
-                this.write(':');
-                args[i].accept(this);
-            }
-        };
-        Unparser.prototype.visitValueConverter = function (converter) {
-            var args = converter.args;
-            converter.expression.accept(this);
-            this.write("|" + converter.name);
-            for (var i = 0, length_4 = args.length; i < length_4; ++i) {
-                this.write(':');
-                args[i].accept(this);
-            }
-        };
-        Unparser.prototype.visitAssign = function (assign) {
-            assign.target.accept(this);
-            this.write('=');
-            assign.value.accept(this);
-        };
-        Unparser.prototype.visitConditional = function (conditional) {
-            conditional.condition.accept(this);
-            this.write('?');
-            conditional.yes.accept(this);
-            this.write(':');
-            conditional.no.accept(this);
-        };
-        Unparser.prototype.visitAccessThis = function (access) {
-            if (access.ancestor === 0) {
-                this.write('$this');
-                return;
-            }
-            this.write('$parent');
-            var i = access.ancestor - 1;
-            while (i--) {
-                this.write('.$parent');
-            }
-        };
-        Unparser.prototype.visitAccessScope = function (access) {
-            var i = access.ancestor;
-            while (i--) {
-                this.write('$parent.');
-            }
-            this.write(access.name);
-        };
-        Unparser.prototype.visitAccessMember = function (access) {
-            access.object.accept(this);
-            this.write("." + access.name);
-        };
-        Unparser.prototype.visitAccessKeyed = function (access) {
-            access.object.accept(this);
-            this.write('[');
-            access.key.accept(this);
-            this.write(']');
-        };
-        Unparser.prototype.visitCallScope = function (call) {
-            var i = call.ancestor;
-            while (i--) {
-                this.write('$parent.');
-            }
-            this.write(call.name);
-            this.writeArgs(call.args);
-        };
-        Unparser.prototype.visitCallFunction = function (call) {
-            call.func.accept(this);
-            this.writeArgs(call.args);
-        };
-        Unparser.prototype.visitCallMember = function (call) {
-            call.object.accept(this);
-            this.write("." + call.name);
-            this.writeArgs(call.args);
-        };
-        Unparser.prototype.visitPrefix = function (prefix) {
-            this.write("(" + prefix.operation);
-            prefix.expression.accept(this);
-            this.write(')');
-        };
-        Unparser.prototype.visitBinary = function (binary) {
-            binary.left.accept(this);
-            this.write(binary.operation);
-            binary.right.accept(this);
-        };
-        Unparser.prototype.visitLiteralPrimitive = function (literal) {
-            this.write("" + literal.value);
-        };
-        Unparser.prototype.visitLiteralArray = function (literal) {
-            var elements = literal.elements;
-            this.write('[');
-            for (var i = 0, length_5 = elements.length; i < length_5; ++i) {
-                if (i !== 0) {
-                    this.write(',');
-                }
-                elements[i].accept(this);
-            }
-            this.write(']');
-        };
-        Unparser.prototype.visitLiteralObject = function (literal) {
-            var keys = literal.keys;
-            var values = literal.values;
-            this.write('{');
-            for (var i = 0, length_6 = keys.length; i < length_6; ++i) {
-                if (i !== 0) {
-                    this.write(',');
-                }
-                this.write("'" + keys[i] + "':");
-                values[i].accept(this);
-            }
-            this.write('}');
-        };
-        Unparser.prototype.visitLiteralString = function (literal) {
-            var escaped = literal.value.replace(/'/g, "\'");
-            this.write("'" + escaped + "'");
-        };
-        Unparser.prototype.visitTemplateLiteral = function (node) {
-            var parts = node.parts;
-            for (var i = 0, length_7 = parts.length; i < length_7; ++i) {
-                parts[i].accept(this);
-            }
-        };
-        return Unparser;
-    }());
-});
-
-
-
-define('jit/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Expression = Object.assign(expression_1.Expression, {
-        compile: function (expression) {
-            throw new Error('Expression Compilation Not Implemented');
-        }
-    });
 });
 
 

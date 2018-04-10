@@ -18,11 +18,19 @@ export interface ITemplate {
   createFor(owner: IViewOwner, host?: Node): IView;
 }
 
+export interface IObservableDescription {
+  name: string;
+  changeHandler: string;
+}
+
 export interface ICompiledViewSource {
   template: string;
-  dependencies?: any[];
-  hasSlots?: boolean;
   targetInstructions: any[];
+  dependencies?: any[];
+  observables?: IObservableDescription[];
+  containerless?: boolean;
+  shadowOptions?: ShadowRootInit;
+  hasSlots?: boolean;
   surrogateInstructions?: any[];
 }
 

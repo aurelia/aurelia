@@ -1,4 +1,4 @@
-import { ViewEngine, ICompiledViewSource, ITemplate } from "./view-engine";
+import { ViewEngine, ICompiledViewSource, ITemplate, IObservableDescription } from "./view-engine";
 import { IView, View, IViewOwner } from "./view";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
@@ -33,8 +33,6 @@ export interface IAttributeComponent extends IBindScope, IAttach {
 
 export interface ICompiledElementSource extends ICompiledViewSource {
   name: string;
-  containerless?: boolean;
-  shadowOptions?: ShadowRootInit;
 }
 
 export interface IAttributeSource {
@@ -71,11 +69,6 @@ type BindingBehaviorComponent = Constructable & {
   source: IBindingBehaviorSource;
 }
 
-interface IObservableDescription {
-  name: string;
-  changeHandler: string;
-}
-
 class RuntimeCharacteristics {
   private constructor() {}
 
@@ -90,7 +83,7 @@ class RuntimeCharacteristics {
 
   static for(instance, Component: ElementComponent | AttributeComponent) {
     let characteristics = new RuntimeCharacteristics();
-    let configuredObservables = (<any>Component).observables;
+    let configuredObservables = <Record<string, IObservableDescription>>(<any>Component).observables;
     let observables: IObservableDescription[] = [];
 
     for (let key in instance) {
@@ -128,7 +121,7 @@ class RuntimeCharacteristics {
 }
 
 export const Component = {
-  valueConverterFromSource<T extends Constructable>(ctor: T, source: IValueConverterSource): T & ValueConverterComponent {
+  valueConverterFromSource<T extends Constructable>(source: IValueConverterSource, ctor: T): T & ValueConverterComponent {
     (<any>ctor).source = source;
 
     (<any>ctor).register = function(container: IContainer) {
@@ -137,7 +130,7 @@ export const Component = {
 
     return <any>ctor;
   },
-  bindingBehaviorFromSource<T extends Constructable>(ctor: T, source: IBindingBehaviorSource): T & BindingBehaviorComponent {
+  bindingBehaviorFromSource<T extends Constructable>(source: IBindingBehaviorSource, ctor: T): T & BindingBehaviorComponent {
     (<any>ctor).source = source;
 
     (<any>ctor).register = function(container: IContainer) {
@@ -146,7 +139,7 @@ export const Component = {
 
     return <any>ctor;
   },
-  attributeFromSource<T extends Constructable>(ctor: T, source: IAttributeSource): T & AttributeComponent {
+  attributeFromSource<T extends Constructable>(source: IAttributeSource, ctor: T): T & AttributeComponent {
     return class CustomAttribute extends ctor implements IAttributeComponent {
       static source: IAttributeSource = source;
 
@@ -220,11 +213,26 @@ export const Component = {
       }
     };
   },
-  elementFromCompiledSource<T extends Constructable>(ctor: T, source: ICompiledElementSource): T & ElementComponent {
+  elementFromCompiledSource<T extends Constructable>(source: ICompiledElementSource, ctor: T = null): T & ElementComponent {
     source.shadowOptions = source.shadowOptions || (<any>ctor).shadowOptions || null;
     source.containerless = source.containerless || (<any>ctor).containerless || false;
     
     const template = ViewEngine.templateFromCompiledSource(source);
+    const observables = source.observables;
+
+    //Support HTML-Only Elements
+    if (ctor === null) {
+      ctor = <any>class { };
+    }
+
+    if (observables) {
+      const observableRecord = <Record<string, IObservableDescription>>(<any>ctor).observables || {};
+
+      for (let i = 0, ii = observables.length; i < ii; ++i) {
+        const current = observables[i];
+        observableRecord[current.name] = current;
+      }
+    }
       
     let CompiledComponent = class extends ctor implements IElementComponent {
       static template: ITemplate = template;

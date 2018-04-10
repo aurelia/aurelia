@@ -509,31 +509,31 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
     Object.defineProperty(exports, "__esModule", { value: true });
     function compiledElement(source) {
         return function (target) {
-            return component_1.Component.elementFromCompiledSource(target, source);
+            return component_1.Component.elementFromCompiledSource(source, target);
         };
     }
     exports.compiledElement = compiledElement;
     function customAttribute(name, defaultBindingMode, aliases) {
         if (defaultBindingMode === void 0) { defaultBindingMode = binding_mode_1.BindingMode.oneWay; }
         return function (target) {
-            return component_1.Component.attributeFromSource(target, {
+            return component_1.Component.attributeFromSource({
                 name: name,
                 defaultBindingMode: defaultBindingMode || binding_mode_1.BindingMode.oneWay,
                 aliases: aliases,
                 isTemplateController: !!target.isTemplateController
-            });
+            }, target);
         };
     }
     exports.customAttribute = customAttribute;
     function valueConverter(name) {
         return function (target) {
-            return component_1.Component.valueConverterFromSource(target, { name: name });
+            return component_1.Component.valueConverterFromSource({ name: name }, target);
         };
     }
     exports.valueConverter = valueConverter;
     function bindingBehavior(name) {
         return function (target) {
-            return component_1.Component.bindingBehaviorFromSource(target, { name: name });
+            return component_1.Component.bindingBehaviorFromSource({ name: name }, target);
         };
     }
     exports.bindingBehavior = bindingBehavior;
@@ -5118,21 +5118,21 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
         return RuntimeCharacteristics;
     }());
     exports.Component = {
-        valueConverterFromSource: function (ctor, source) {
+        valueConverterFromSource: function (source, ctor) {
             ctor.source = source;
             ctor.register = function (container) {
                 container.register(di_1.Registration.singleton(name, ctor));
             };
             return ctor;
         },
-        bindingBehaviorFromSource: function (ctor, source) {
+        bindingBehaviorFromSource: function (source, ctor) {
             ctor.source = source;
             ctor.register = function (container) {
                 container.register(di_1.Registration.singleton(name, ctor));
             };
             return ctor;
         },
-        attributeFromSource: function (ctor, source) {
+        attributeFromSource: function (source, ctor) {
             return _a = (function (_super) {
                     __extends(CustomAttribute, _super);
                     function CustomAttribute() {
@@ -5201,13 +5201,29 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                 _a;
             var _a;
         },
-        elementFromCompiledSource: function (ctor, source) {
+        elementFromCompiledSource: function (source, ctor) {
+            if (ctor === void 0) { ctor = null; }
             source.shadowOptions = source.shadowOptions || ctor.shadowOptions || null;
             source.containerless = source.containerless || ctor.containerless || false;
             var template = view_engine_1.ViewEngine.templateFromCompiledSource(source);
-            var CompiledComponent = (_a = (function (_super) {
-                    __extends(class_1, _super);
+            var observables = source.observables;
+            if (ctor === null) {
+                ctor = (function () {
                     function class_1() {
+                    }
+                    return class_1;
+                }());
+            }
+            if (observables) {
+                var observableRecord = ctor.observables || {};
+                for (var i = 0, ii = observables.length; i < ii; ++i) {
+                    var current = observables[i];
+                    observableRecord[current.name] = current;
+                }
+            }
+            var CompiledComponent = (_a = (function (_super) {
+                    __extends(class_2, _super);
+                    function class_2() {
                         var args = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             args[_i] = arguments[_i];
@@ -5228,10 +5244,10 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         discoverAndApplyCharacteristics(_this, CompiledComponent);
                         return _this;
                     }
-                    class_1.register = function (container) {
+                    class_2.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    class_1.prototype.applyTo = function (host) {
+                    class_2.prototype.applyTo = function (host) {
                         this.$host = source.containerless
                             ? pal_1.DOM.makeElementIntoAnchor(host, true)
                             : host;
@@ -5244,10 +5260,10 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                         return this;
                     };
-                    class_1.prototype.createView = function (host) {
+                    class_2.prototype.createView = function (host) {
                         return template.createFor(this, host);
                     };
-                    class_1.prototype.bind = function () {
+                    class_2.prototype.bind = function () {
                         var scope = this.$scope;
                         var bindable = this.$bindable;
                         for (var i = 0, ii = bindable.length; i < ii; ++i) {
@@ -5265,7 +5281,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.bound();
                         }
                     };
-                    class_1.prototype.attach = function () {
+                    class_2.prototype.attach = function () {
                         var _this = this;
                         if (this.$characteristics.hasAttaching) {
                             this.attaching();
@@ -5284,7 +5300,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.attached(); });
                         }
                     };
-                    class_1.prototype.detach = function () {
+                    class_2.prototype.detach = function () {
                         var _this = this;
                         if (this.$characteristics.hasDetaching) {
                             this.detaching();
@@ -5299,7 +5315,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
                         }
                     };
-                    class_1.prototype.unbind = function () {
+                    class_2.prototype.unbind = function () {
                         var bindable = this.$bindable;
                         var i = bindable.length;
                         while (i--) {
@@ -5310,7 +5326,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                         this.$isBound = false;
                     };
-                    return class_1;
+                    return class_2;
                 }(ctor)),
                 _a.template = template,
                 _a.source = source,

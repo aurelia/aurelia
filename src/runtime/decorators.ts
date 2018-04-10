@@ -6,7 +6,7 @@ import { Constructable, Injectable } from "./interfaces";
 
 export function compiledElement(source: ICompiledElementSource) {
   return function<T extends Constructable>(target: T) {
-    return Component.elementFromCompiledSource(target, source);
+    return Component.elementFromCompiledSource(source, target);
   }
 }
 
@@ -18,24 +18,24 @@ export function compiledElement(source: ICompiledElementSource) {
 */
 export function customAttribute(name: string, defaultBindingMode: BindingMode = BindingMode.oneWay, aliases?: string[]) {
   return function<T extends Constructable>(target: T) {
-    return Component.attributeFromSource(target, {
+    return Component.attributeFromSource({
       name,
       defaultBindingMode: defaultBindingMode || BindingMode.oneWay,
       aliases,
       isTemplateController: !!(<any>target).isTemplateController
-    });
+    }, target);
   }
 }
 
 export function valueConverter(name: string) {
   return function<T extends Constructable>(target: T) {
-    return Component.valueConverterFromSource(target, { name });
+    return Component.valueConverterFromSource({ name }, target);
   }
 }
 
 export function bindingBehavior(name: string) {
   return function<T extends Constructable>(target: T) {
-    return Component.bindingBehaviorFromSource(target, { name });
+    return Component.bindingBehaviorFromSource({ name }, target);
   }
 }
 

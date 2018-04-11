@@ -5780,8 +5780,47 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
     var DefaultViewFactory = (function () {
         function DefaultViewFactory(type) {
             this.type = type;
+            this.cacheSize = -1;
+            this.cache = null;
+            this.isCaching = false;
         }
+        DefaultViewFactory.prototype.setCacheSize = function (size, doNotOverrideIfAlreadySet) {
+            if (size) {
+                if (size === '*') {
+                    size = Number.MAX_VALUE;
+                }
+                else if (typeof size === 'string') {
+                    size = parseInt(size, 10);
+                }
+                if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
+                    this.cacheSize = size;
+                }
+            }
+            if (this.cacheSize > 0) {
+                this.cache = [];
+            }
+            else {
+                this.cache = null;
+            }
+            this.isCaching = this.cacheSize > 0;
+        };
+        DefaultViewFactory.prototype.returnToCache = function (visual) {
+            if (visual.$isAttached) {
+                visual.detach();
+            }
+            if (visual.$isBound) {
+                visual.unbind();
+            }
+            if (this.cache !== null && this.cache.length < this.cacheSize) {
+                this.cache.push(visual);
+            }
+        };
         DefaultViewFactory.prototype.create = function () {
+            var cache = this.cache;
+            var cachedVisual = cache !== null ? (cache.pop() || null) : null;
+            if (cachedVisual !== null) {
+                return cachedVisual;
+            }
             return new this.type();
         };
         return DefaultViewFactory;
@@ -5958,6 +5997,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.$bindable = [];
             this.$attachable = [];
             this.$isBound = false;
+            this.$isAttached = false;
             this.$view = this.createView();
         }
         Visual.prototype.bind = function (scope) {
@@ -5973,6 +6013,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             for (var i = 0, ii = attachable.length; i < ii; ++i) {
                 attachable[i].attach();
             }
+            this.$isAttached = true;
         };
         Visual.prototype.detach = function () {
             var attachable = this.$attachable;
@@ -5980,6 +6021,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             while (i--) {
                 attachable[i].detach();
             }
+            this.$isAttached = false;
         };
         Visual.prototype.unbind = function () {
             var bindable = this.$bindable;

@@ -41,18 +41,90 @@ const noViewTemplate: ITemplate = {
   }
 };
 
-export interface IVisual extends IBindScope, IAttach, IViewOwner { }
+export interface IVisual extends IBindScope, IAttach, IViewOwner { 
+  $isAttached: boolean;
+}
 
 export const IViewFactory = DI.createInterface('IViewFactory');
 
 export interface IViewFactory {
+  /**
+  * Indicates whether this factory is currently using caching.
+  */
+  isCaching: boolean;
+
+  /**
+  * Sets the cache size for this factory.
+  * @param size The number of visuals to cache or "*" to cache all.
+  * @param doNotOverrideIfAlreadySet Indicates that setting the cache should not override the setting if previously set.
+  */
+  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void;
+
+  /**
+  * Returns a visual to the cache.
+  * @param view The visual to return to the cache if space is available.
+  */
+  returnToCache(view: IVisual): void;
+
+  /**
+  * Creates a visual or returns one from the internal cache, if available.
+  * @return The created visual.
+  */
   create(): IVisual;
 }
 
 class DefaultViewFactory implements IViewFactory {
+  private cacheSize = -1;
+  private cache: IVisual[] = null;
+
+  public isCaching = false;
+
   constructor(private type: any) {}
 
+  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
+    if (size) {
+      if (size === '*') {
+        size = Number.MAX_VALUE;
+      } else if (typeof size === 'string') {
+        size = parseInt(size, 10);
+      }
+
+      if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
+        this.cacheSize = size;
+      }
+    }
+
+    if (this.cacheSize > 0) {
+      this.cache = [];
+    } else {
+      this.cache = null;
+    }
+
+    this.isCaching = this.cacheSize > 0;
+  }
+
+  returnToCache(visual: IVisual): void {
+    if (visual.$isAttached) {
+      visual.detach();
+    }
+
+    if (visual.$isBound) {
+      visual.unbind();
+    }
+
+    if (this.cache !== null && this.cache.length < this.cacheSize) {
+      this.cache.push(visual);
+    }
+  }
+
   create(): IVisual {
+    const cache = this.cache;
+    const cachedVisual = cache !== null ? (cache.pop() || null) : null;
+
+    if (cachedVisual !== null) {
+      return cachedVisual;
+    }
+
     return new this.type();
   }
 }
@@ -267,6 +339,7 @@ abstract class Visual implements IVisual {
   $scope: IScope;
   $view: IView;
   $isBound = false;
+  $isAttached = false;
 
   constructor() {
     this.$view = this.createView();
@@ -292,6 +365,8 @@ abstract class Visual implements IVisual {
     for (let i = 0, ii = attachable.length; i < ii; ++i) {
       attachable[i].attach();
     }
+
+    this.$isAttached = true;
   }
 
   detach() { 
@@ -301,6 +376,8 @@ abstract class Visual implements IVisual {
     while (i--) {
       attachable[i].detach();
     }
+
+    this.$isAttached = false;
   }
 
   unbind() {

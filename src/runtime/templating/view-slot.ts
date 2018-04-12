@@ -4,12 +4,14 @@ import { IAttach } from './component';
 import { IVisual } from './view-engine';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
+import { Reporter } from '../reporter';
 
+//TODO: move this to IVisual as a getter prop with cached backing store?
 function getAnimatableElement(visual: IVisual) {
   let view = visual.$view;
 
-  if (view['$animatableElement'] !== undefined) {
-    return view['$animatableElement'];
+  if ((<any>view).$animatableElement !== undefined) {
+    return (<any>view).$animatableElement;
   }
 
   let current = view.firstChild;
@@ -19,10 +21,10 @@ function getAnimatableElement(visual: IVisual) {
   }
 
   if (current && current.nodeType === 1) {
-    return (view['$animatableElement'] = (<HTMLElement>current).classList.contains('au-animate') ? current : null);
+    return ((<any>view).$animatableElement = (<HTMLElement>current).classList.contains('au-animate') ? current : null);
   }
 
-  return (view['$animatableElement'] = null);
+  return ((<any>view).$animatableElement = null);
 }
 
 /**
@@ -30,10 +32,10 @@ function getAnimatableElement(visual: IVisual) {
 * Manages the view lifecycle for its children.
 */
 export class ViewSlot implements IBindScope, IAttach {
-  private scope: IScope;
+  private $scope: IScope;
+  private $isBound = false;
+  private $isAttached = false;
   private children: IVisual[] = [];
-  private isBound = false;
-  private isAttached = false;
   private contentSelectors = null;
   private projectToSlots: Record<string, IShadowSlot>;
 
@@ -44,8 +46,8 @@ export class ViewSlot implements IBindScope, IAttach {
   * @param animator The animator that will controll enter/leave transitions for this slot.
   */
   constructor(public anchor: Node, private anchorIsContainer: boolean, private animator: Animator = Animator.instance) {
-    anchor['viewSlot'] = this;
-    anchor['isContentProjectionSource'] = false;
+    (<any>anchor).viewSlot = this;
+    (<any>anchor).isContentProjectionSource = false;
   }
 
   /**
@@ -55,7 +57,7 @@ export class ViewSlot implements IBindScope, IAttach {
    *   @returns An animation complete Promise or undefined if no animation was run.
    */
   animateView(visual: IVisual, direction: string = 'enter'): void | Promise<boolean> {
-    let animatableElement = getAnimatableElement(visual);
+    const animatableElement = getAnimatableElement(visual);
 
     if (animatableElement !== null) {
       switch (direction) {
@@ -64,7 +66,7 @@ export class ViewSlot implements IBindScope, IAttach {
         case 'leave':
           return this.animator.leave(animatableElement);
         default:
-          throw new Error('Invalid animation direction: ' + direction);
+          throw Reporter.error(4, direction);
       }
     }
   }
@@ -73,18 +75,18 @@ export class ViewSlot implements IBindScope, IAttach {
   * Binds the slot and it's children.
   */
   bind(scope: IScope): void {
-    if (this.isBound) {
-      if (this.scope === scope) {
+    if (this.$isBound) {
+      if (this.$scope === scope) {
         return;
       }
 
       this.unbind();
     }
 
-    this.isBound = true;
-    this.scope = scope = scope || this.scope;
+    this.$isBound = true;
+    this.$scope = scope = scope || this.$scope;
 
-    let children = this.children;
+    const children = this.children;
 
     for (let i = 0, ii = children.length; i < ii; ++i) {
       children[i].bind(scope);
@@ -95,11 +97,11 @@ export class ViewSlot implements IBindScope, IAttach {
   * Unbinds the slot and its children.
   */
   unbind(): void {
-    if (this.isBound) {
-      this.isBound = false;
-      this.scope = null;
+    if (this.$isBound) {
+      this.$isBound = false;
+      this.$scope = null;
 
-      let children = this.children;
+      const children = this.children;
 
       for (let i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
@@ -121,7 +123,7 @@ export class ViewSlot implements IBindScope, IAttach {
 
     this.children.push(visual);
 
-    if (this.isAttached) {
+    if (this.$isAttached) {
       visual.attach();
       return this.animateView(visual, 'enter');
     }
@@ -134,8 +136,8 @@ export class ViewSlot implements IBindScope, IAttach {
   * @return May return a promise if the view insertion triggered an animation.
   */
   insert(index: number, visual: IVisual): void | Promise<any> {
-    let children = this.children;
-    let length = children.length;
+    const children = this.children;
+    const length = children.length;
 
     if ((index === 0 && length === 0) || index >= length) {
       return this.add(visual);
@@ -144,7 +146,7 @@ export class ViewSlot implements IBindScope, IAttach {
     visual.$view.insertBefore(children[index].$view.firstChild);
     children.splice(index, 0, visual);
 
-    if (this.isAttached) {
+    if (this.$isAttached) {
       visual.attach();
       return this.animateView(visual, 'enter');
     }
@@ -161,13 +163,13 @@ export class ViewSlot implements IBindScope, IAttach {
     }
 
     const children = this.children;
-    const component = children[sourceIndex]
-    const view = component.$view;
+    const visual = children[sourceIndex];
+    const view = visual.$view;
 
     view.remove();
     view.insertBefore(children[targetIndex].$view.firstChild);
     children.splice(sourceIndex, 1);
-    children.splice(targetIndex, 0, component);
+    children.splice(targetIndex, 0, visual);
   }
 
   /**
@@ -210,7 +212,7 @@ export class ViewSlot implements IBindScope, IAttach {
     });
 
     let removeAction = () => {
-      if (this.isAttached) {
+      if (this.$isAttached) {
         for (i = 0; i < ii; ++i) {
           visualsToRemove[i].detach();
         }
@@ -247,7 +249,7 @@ export class ViewSlot implements IBindScope, IAttach {
       visual.$view.remove();
       this.children.splice(index, 1);
 
-      if (this.isAttached) {
+      if (this.$isAttached) {
         visual.detach();
       }
 
@@ -292,7 +294,7 @@ export class ViewSlot implements IBindScope, IAttach {
     });
 
     let removeAction = () => {
-      if (this.isAttached) {
+      if (this.$isAttached) {
         for (i = 0; i < ii; ++i) {
           children[i].detach();
         }
@@ -312,11 +314,11 @@ export class ViewSlot implements IBindScope, IAttach {
   * Triggers the attach for the slot and its children.
   */
   attach(): void {
-    if (this.isAttached) {
+    if (this.$isAttached) {
       return;
     }
 
-    this.isAttached = true;
+    this.$isAttached = true;
 
     let children = this.children;
     for (let i = 0, ii = children.length; i < ii; ++i) {
@@ -330,8 +332,8 @@ export class ViewSlot implements IBindScope, IAttach {
   * Triggers the detach for the slot and its children.
   */
   detach(): void {
-    if (this.isAttached) {
-      this.isAttached = false;
+    if (this.$isAttached) {
+      this.$isAttached = false;
 
       let children = this.children;
       for (let i = 0, ii = children.length; i < ii; ++i) {
@@ -357,7 +359,7 @@ export class ViewSlot implements IBindScope, IAttach {
 
     this.children.push(visual);
 
-    if (this.isAttached) {
+    if (this.$isAttached) {
       visual.attach();
     }
   }
@@ -370,7 +372,7 @@ export class ViewSlot implements IBindScope, IAttach {
 
       this.children.splice(index, 0, visual);
 
-      if (this.isAttached) {
+      if (this.$isAttached) {
         visual.attach();
       }
     }
@@ -395,7 +397,7 @@ export class ViewSlot implements IBindScope, IAttach {
     ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
     this.children.splice(this.children.indexOf(visual), 1);
 
-    if (this.isAttached) {
+    if (this.$isAttached) {
       visual.detach();
     }
 
@@ -408,7 +410,7 @@ export class ViewSlot implements IBindScope, IAttach {
     ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
     this.children.splice(index, 1);
 
-    if (this.isAttached) {
+    if (this.$isAttached) {
       visual.detach();
     }
 
@@ -424,7 +426,7 @@ export class ViewSlot implements IBindScope, IAttach {
 
     let children = this.children;
 
-    if (this.isAttached) {
+    if (this.$isAttached) {
       for (let i = 0, ii = children.length; i < ii; ++i) {
         children[i].detach();
       }

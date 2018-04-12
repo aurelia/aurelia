@@ -65,5 +65,9 @@ const codeLookup: Record<string, IMessageInfo> = {
   3: {
     type: MessageType.error,
     message: 'Runtime expression compilation is only available when including JIT support.'
+  },
+  4: {
+    type: MessageType.error,
+    message: 'Invalid animation direction.'
   }
 };

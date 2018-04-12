@@ -9,26 +9,34 @@ export abstract class IfCore {
   private visual: IVisual = null;
   private $scope: IScope = null;
 
-  // If the child view is animated, `value` might not reflect the internal
+  // If the child view is animated, `condition` might not reflect the internal
   // state anymore, so we use `showing` for that.
-  // Eventually, `showing` and `value` should be consistent.
+  // Eventually, `showing` and `condition` should be consistent.
   protected showing = false;
 
   constructor(private viewFactory: IViewFactory, protected viewSlot: ViewSlot) { }
 
   unbound() {
-    if (this.visual === null) {
+    const visual = this.visual;
+
+    if (visual === null) {
+      return;
+    }
+
+    if (this.visual.$isBound) {
+      this.visual.unbind();
+    }
+
+    if (!this.viewFactory.isCaching) {
       return;
     }
 
     if (this.showing) {
       this.showing = false;
-      this.viewSlot.remove(this.visual, /*skipAnimation:*/true);
-      this.visual.unbind();
-    } else {
-      this.visual.unbind();
+      this.viewSlot.remove(visual, /*skipAnimation:*/true);
     }
 
+    visual.tryReturnToCache();
     this.visual = null;
   }
 
@@ -52,13 +60,15 @@ export abstract class IfCore {
       return;
     }
 
-    this.showing = false;
-    let removed = this.viewSlot.remove(this.visual);
+    const visual = this.visual;
+    const removed = this.viewSlot.remove(visual);
 
+    this.showing = false;
+    
     if (removed instanceof Promise) {
-      return removed.then(() => this.visual.unbind());
+      return removed.then(() => visual.unbind());
     }
 
-    this.visual.unbind();
+    visual.unbind();
   }
 }

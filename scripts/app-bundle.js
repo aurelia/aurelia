@@ -4882,17 +4882,21 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             this.showing = false;
         }
         IfCore.prototype.unbound = function () {
-            if (this.visual === null) {
+            var visual = this.visual;
+            if (visual === null) {
+                return;
+            }
+            if (this.visual.$isBound) {
+                this.visual.unbind();
+            }
+            if (!this.viewFactory.isCaching) {
                 return;
             }
             if (this.showing) {
                 this.showing = false;
-                this.viewSlot.remove(this.visual, true);
-                this.visual.unbind();
+                this.viewSlot.remove(visual, true);
             }
-            else {
-                this.visual.unbind();
-            }
+            visual.tryReturnToCache();
             this.visual = null;
         };
         IfCore.prototype.show = function () {
@@ -4908,16 +4912,16 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             }
         };
         IfCore.prototype.hide = function () {
-            var _this = this;
             if (!this.showing) {
                 return;
             }
+            var visual = this.visual;
+            var removed = this.viewSlot.remove(visual);
             this.showing = false;
-            var removed = this.viewSlot.remove(this.visual);
             if (removed instanceof Promise) {
-                return removed.then(function () { return _this.visual.unbind(); });
+                return removed.then(function () { return visual.unbind(); });
             }
-            this.visual.unbind();
+            visual.unbind();
         };
         return IfCore;
     }());
@@ -5998,7 +6002,6 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.$view = this.createView();
         }
         Visual.prototype.bind = function (scope) {
-            this.factory.tryPluckFromCache(this);
             this.$scope = scope;
             var bindable = this.$bindable;
             for (var i = 0, ii = bindable.length; i < ii; ++i) {
@@ -6021,13 +6024,15 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             }
             this.$isAttached = false;
         };
-        Visual.prototype.unbind = function () {
+        Visual.prototype.unbind = function (returnToCache) {
             var bindable = this.$bindable;
             var i = bindable.length;
             while (i--) {
                 bindable[i].unbind();
             }
             this.$isBound = false;
+        };
+        Visual.prototype.tryReturnToCache = function () {
             this.factory.tryReturnToCache(this);
         };
         return Visual;
@@ -6058,12 +6063,6 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 this.cache = null;
             }
             this.isCaching = this.cacheSize > 0;
-        };
-        DefaultViewFactory.prototype.tryPluckFromCache = function (visual) {
-            if (visual.$inCache) {
-                visual.$inCache = false;
-                this.cache.splice(this.cache.indexOf(visual), 1);
-            }
         };
         DefaultViewFactory.prototype.tryReturnToCache = function (visual) {
             if (this.cache !== null && this.cache.length < this.cacheSize) {

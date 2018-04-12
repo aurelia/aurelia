@@ -47,6 +47,8 @@ export interface IVisual extends IBindScope, IAttach, IViewOwner {
   * The IViewFactory that built this instance.
   */
   readonly factory: IViewFactory;
+
+  tryReturnToCache();
 }
 
 export const IViewFactory = DI.createInterface('IViewFactory');
@@ -336,7 +338,6 @@ abstract class Visual implements IVisual {
   abstract createView(): IView;
 
   bind(scope: IScope) {
-    this.factory.tryPluckFromCache(this);
     this.$scope = scope;
 
     let bindable = this.$bindable;
@@ -369,7 +370,7 @@ abstract class Visual implements IVisual {
     this.$isAttached = false;
   }
 
-  unbind() {
+  unbind(returnToCache?: boolean) {
     let bindable = this.$bindable;
     let i = bindable.length;
 
@@ -378,6 +379,9 @@ abstract class Visual implements IVisual {
     }
 
     this.$isBound = false;
+  }
+
+  tryReturnToCache() {
     this.factory.tryReturnToCache(this);
   }
 }
@@ -410,13 +414,6 @@ class DefaultViewFactory implements IViewFactory {
     }
 
     this.isCaching = this.cacheSize > 0;
-  }
-
-  tryPluckFromCache(visual: Visual) {
-    if (visual.$inCache) {
-      visual.$inCache = false;
-      this.cache.splice(this.cache.indexOf(visual), 1);
-    }
   }
 
   tryReturnToCache(visual: Visual): void {

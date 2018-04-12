@@ -9,6 +9,7 @@ import { BindingMode } from "../binding/binding-mode";
 import { Constructable } from "../interfaces";
 import { IBindScope } from "../binding/observation";
 import { IScope, BindingContext } from "../binding/binding-context";
+import { ViewSlot } from "./view-slot";
 
 export interface IBindSelf {
   bind(): void;
@@ -159,8 +160,10 @@ export const Component = {
 
       private $changeCallbacks: (() => void)[] = [];
       private $characteristics: RuntimeCharacteristics = null;
+
       $isBound = false;
       $scope: IScope = null;
+      $viewSlot: ViewSlot = null;
 
       constructor(...args:any[]) {
         super(...args);
@@ -172,7 +175,7 @@ export const Component = {
       }
 
       bind(scope: IScope) {
-        this.$scope = scope;
+        this.$scope = scope
         this.$isBound = true;
   
         let changeCallbacks = this.$changeCallbacks;
@@ -190,6 +193,10 @@ export const Component = {
         if (this.$characteristics.hasAttaching) {
           (<any>this).attaching();
         }
+
+        if (this.$viewSlot !== null) {
+          this.$viewSlot.attach();
+        }
       
         if (this.$characteristics.hasAttached) {
           TaskQueue.queueMicroTask(() => (<any>this).attached());
@@ -199,6 +206,10 @@ export const Component = {
       detach() {
         if (this.$characteristics.hasDetaching) {
           (<any>this).detaching();
+        }
+
+        if (this.$viewSlot !== null) {
+          this.$viewSlot.detach();
         }
   
         if (this.$characteristics.hasDetached) {

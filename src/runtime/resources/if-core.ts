@@ -16,41 +16,23 @@ export abstract class IfCore {
 
   constructor(private viewFactory: IViewFactory, protected viewSlot: ViewSlot) { }
 
-  attached() {
-    this.viewSlot.attach();
-  }
-
-  detached() {
-    this.viewSlot.detach();
-  }
-
   unbound() {
     if (this.visual === null) {
       return;
     }
 
-    this.visual.unbind();
-
     if (this.showing) {
       this.showing = false;
       this.viewSlot.remove(this.visual, /*skipAnimation:*/true);
+      this.visual.unbind();
+    } else {
+      this.visual.unbind();
     }
 
     this.visual = null;
   }
 
   show() {
-    if (this.showing) {
-      // Ensures the view is bound.
-      // It might not be the case when the if was unbound but not detached, then rebound.
-      // Typical case where this happens is nested ifs
-      if (!this.visual.$isBound) {
-        this.visual.bind(this.$scope);
-      }
-
-      return;
-    }
-
     if (this.visual === null) {
       this.visual = this.viewFactory.create();
     }
@@ -59,8 +41,10 @@ export abstract class IfCore {
       this.visual.bind(this.$scope);
     }
 
-    this.showing = true;
-    return this.viewSlot.add(this.visual); // Promise or void
+    if (!this.showing) {
+      this.showing = true;
+      return this.viewSlot.add(this.visual);
+    }
   }
 
   hide() {
@@ -69,7 +53,7 @@ export abstract class IfCore {
     }
 
     this.showing = false;
-    let removed = this.viewSlot.remove(this.visual); // Promise or View
+    let removed = this.viewSlot.remove(this.visual);
 
     if (removed instanceof Promise) {
       return removed.then(() => this.visual.unbind());

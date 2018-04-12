@@ -151,7 +151,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
     case 'element':
       let elementInstructions = instruction.instructions;
 
-      container.element.instance = target;
+      container.element.prepare(target);
       let elementModel = container.get<IElementComponent>(instruction.resource);
       (<any>elementModel).$contentView = View.fromCompiledElementContent(elementModel, target);
 
@@ -163,6 +163,8 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
         applyInstruction(owner, current, realTarget, container);
       }
 
+      container.element.dispose();
+
       owner.$bindable.push(elementModel);
       owner.$attachable.push(elementModel);
 
@@ -170,12 +172,14 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
     case 'attribute':
       let attributeInstructions = instruction.instructions;
 
-      container.element.instance = target;
+      container.element.prepare(target);
       let attributeModel = container.get<IAttributeComponent>(instruction.resource);
 
       for (let i = 0, ii = attributeInstructions.length; i < ii; ++i) {
         applyInstruction(owner, attributeInstructions[i], attributeModel, container);
       }
+
+      container.element.dispose();
 
       owner.$bindable.push(attributeModel);
       owner.$attachable.push(attributeModel);
@@ -188,10 +192,13 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
         instruction.factory = factory = ViewEngine.factoryFromCompiledSource(instruction.config);
       }
 
-      container.element.instance = target;
-      container.viewFactory.instance = factory;
-      container.viewSlot.instance = new ViewSlot(DOM.makeElementIntoAnchor(target), false);
+      container.element.prepare(target);
+      container.viewFactory.prepare(factory);
+      container.viewSlot.prepare(DOM.makeElementIntoAnchor(target), false);
+
       let templateControllerModel = container.get<IAttributeComponent>(instruction.resource);
+
+      container.viewSlot.tryConnect(templateControllerModel);
 
       if (instruction.link) {
         (<any>templateControllerModel).link(owner.$attachable[owner.$attachable.length - 1]);
@@ -201,33 +208,71 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
         applyInstruction(owner, templateControllerInstructions[i], templateControllerModel, container);
       }
 
+      container.element.dispose();
+      container.viewFactory.dispose();
+      container.viewSlot.dispose();
+
       owner.$bindable.push(templateControllerModel);
       owner.$attachable.push(templateControllerModel);
-
       break;
   }
 }
 
-class FastInstance<T> implements IResolver {
-  public instance: T;
+class InstanceProvider<T> implements IResolver {
+  private instance: T = null;
+
+  prepare(instance: T) {
+    this.instance = instance;
+  }
 
   get(handler: IContainer, requestor: IContainer) {
     return this.instance;
   }
+
+  dispose() {
+    this.instance = null;
+  }
+}
+
+class ViewSlotProvider implements IResolver {
+  private element: Element = null;
+  private anchorIsContainer = false;
+  private viewSlot: ViewSlot = null;
+
+  prepare(element: Element, anchorIsContainer = false) {
+    this.element = element;
+    this.anchorIsContainer = anchorIsContainer;
+  }
+
+  get(handler: IContainer, requestor: IContainer) {
+    return this.viewSlot
+      || (this.viewSlot = new ViewSlot(this.element, this.anchorIsContainer));
+  }
+
+  tryConnect(owner) {
+    if (this.viewSlot !== null) {
+      owner.$viewSlot = this.viewSlot;
+    }
+  }
+
+  dispose() {
+    this.element = null;
+    this.viewSlot = null;
+  }
 }
 
 type TemplateContainer = IContainer & {
-  element: FastInstance<Element>,
-  viewFactory: FastInstance<IViewFactory>,
-  viewSlot: FastInstance<ViewSlot>
+  element: InstanceProvider<Element>,
+  viewFactory: InstanceProvider<IViewFactory>,
+  viewSlot: ViewSlotProvider
 };
 
 function createTemplateContainer(dependencies) {
   let container = <TemplateContainer>DI.createChild();
 
-  container.registerResolver(Element, container.element = new FastInstance());
-  container.registerResolver(IViewFactory, container.viewFactory = new FastInstance());
-  container.registerResolver(ViewSlot, container.viewSlot = new FastInstance());
+  container.registerResolver(Element, container.element = new InstanceProvider());
+  container.registerResolver(IViewFactory, container.viewFactory = new InstanceProvider());
+  container.registerResolver(ViewSlot, container.viewSlot = new ViewSlotProvider());
 
   if (dependencies) {
     container.register(...dependencies);

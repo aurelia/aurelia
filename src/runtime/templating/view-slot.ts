@@ -31,9 +31,7 @@ function getAnimatableElement(visual: IVisual) {
 * Represents a slot or location within the DOM to which views can be added and removed.
 * Manages the view lifecycle for its children.
 */
-export class ViewSlot implements IBindScope, IAttach {
-  private $scope: IScope;
-  private $isBound = false;
+export class ViewSlot implements IAttach {
   private $isAttached = false;
   private children: IVisual[] = [];
   private contentSelectors = null;
@@ -67,44 +65,6 @@ export class ViewSlot implements IBindScope, IAttach {
           return this.animator.leave(animatableElement);
         default:
           throw Reporter.error(4, direction);
-      }
-    }
-  }
-
-  /**
-  * Binds the slot and it's children.
-  */
-  bind(scope: IScope): void {
-    if (this.$isBound) {
-      if (this.$scope === scope) {
-        return;
-      }
-
-      this.unbind();
-    }
-
-    this.$isBound = true;
-    this.$scope = scope = scope || this.$scope;
-
-    const children = this.children;
-
-    for (let i = 0, ii = children.length; i < ii; ++i) {
-      children[i].bind(scope);
-    }
-  }
-
-  /**
-  * Unbinds the slot and its children.
-  */
-  unbind(): void {
-    if (this.$isBound) {
-      this.$isBound = false;
-      this.$scope = null;
-
-      const children = this.children;
-
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-        children[i].unbind();
       }
     }
   }

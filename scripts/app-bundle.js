@@ -1297,6 +1297,18 @@ define('runtime/task-queue',["require", "exports", "./pal", "./di"], function (r
 
 
 
+define('jit/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Expression = Object.assign(expression_1.Expression, {
+        compile: function (expression) {
+            throw new Error('Expression Compilation Not Implemented');
+        }
+    });
+});
+
+
+
 define('debug/binding/binding-context',["require", "exports", "../../runtime/binding/binding-context"], function (require, exports, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1506,18 +1518,6 @@ define('debug/binding/unparser',["require", "exports", "../../runtime/binding/as
         };
         return Unparser;
     }());
-});
-
-
-
-define('jit/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Expression = Object.assign(expression_1.Expression, {
-        compile: function (expression) {
-            throw new Error('Expression Compilation Not Implemented');
-        }
-    });
 });
 
 
@@ -4881,38 +4881,31 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             this.$scope = null;
             this.showing = false;
         }
-        IfCore.prototype.attached = function () {
-            this.viewSlot.attach();
-        };
-        IfCore.prototype.detached = function () {
-            this.viewSlot.detach();
-        };
         IfCore.prototype.unbound = function () {
             if (this.visual === null) {
                 return;
             }
-            this.visual.unbind();
             if (this.showing) {
                 this.showing = false;
                 this.viewSlot.remove(this.visual, true);
+                this.visual.unbind();
+            }
+            else {
+                this.visual.unbind();
             }
             this.visual = null;
         };
         IfCore.prototype.show = function () {
-            if (this.showing) {
-                if (!this.visual.$isBound) {
-                    this.visual.bind(this.$scope);
-                }
-                return;
-            }
             if (this.visual === null) {
                 this.visual = this.viewFactory.create();
             }
             if (!this.visual.$isBound) {
                 this.visual.bind(this.$scope);
             }
-            this.showing = true;
-            return this.viewSlot.add(this.visual);
+            if (!this.showing) {
+                this.showing = true;
+                return this.viewSlot.add(this.visual);
+            }
         };
         IfCore.prototype.hide = function () {
             var _this = this;
@@ -5150,6 +5143,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         _this.$characteristics = null;
                         _this.$isBound = false;
                         _this.$scope = null;
+                        _this.$viewSlot = null;
                         discoverAndApplyCharacteristics(_this, CustomAttribute);
                         if (_this.$characteristics.hasCreated) {
                             _this.created();
@@ -5181,6 +5175,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         if (this.$characteristics.hasAttaching) {
                             this.attaching();
                         }
+                        if (this.$viewSlot !== null) {
+                            this.$viewSlot.attach();
+                        }
                         if (this.$characteristics.hasAttached) {
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.attached(); });
                         }
@@ -5189,6 +5186,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         var _this = this;
                         if (this.$characteristics.hasDetaching) {
                             this.detaching();
+                        }
+                        if (this.$viewSlot !== null) {
+                            this.$viewSlot.detach();
                         }
                         if (this.$characteristics.hasDetached) {
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
@@ -5857,7 +5857,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 break;
             case 'element':
                 var elementInstructions = instruction.instructions;
-                container.element.instance = target;
+                container.element.prepare(target);
                 var elementModel = container.get(instruction.resource);
                 elementModel.$contentView = view_1.View.fromCompiledElementContent(elementModel, target);
                 elementModel.applyTo(target);
@@ -5866,16 +5866,18 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                     var realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
                     applyInstruction(owner, current, realTarget, container);
                 }
+                container.element.dispose();
                 owner.$bindable.push(elementModel);
                 owner.$attachable.push(elementModel);
                 break;
             case 'attribute':
                 var attributeInstructions = instruction.instructions;
-                container.element.instance = target;
+                container.element.prepare(target);
                 var attributeModel = container.get(instruction.resource);
                 for (var i = 0, ii = attributeInstructions.length; i < ii; ++i) {
                     applyInstruction(owner, attributeInstructions[i], attributeModel, container);
                 }
+                container.element.dispose();
                 owner.$bindable.push(attributeModel);
                 owner.$attachable.push(attributeModel);
                 break;
@@ -5885,34 +5887,71 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 if (factory === undefined) {
                     instruction.factory = factory = exports.ViewEngine.factoryFromCompiledSource(instruction.config);
                 }
-                container.element.instance = target;
-                container.viewFactory.instance = factory;
-                container.viewSlot.instance = new view_slot_1.ViewSlot(pal_1.DOM.makeElementIntoAnchor(target), false);
+                container.element.prepare(target);
+                container.viewFactory.prepare(factory);
+                container.viewSlot.prepare(pal_1.DOM.makeElementIntoAnchor(target), false);
                 var templateControllerModel = container.get(instruction.resource);
+                container.viewSlot.tryConnect(templateControllerModel);
                 if (instruction.link) {
                     templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
                 }
                 for (var i = 0, ii = templateControllerInstructions.length; i < ii; ++i) {
                     applyInstruction(owner, templateControllerInstructions[i], templateControllerModel, container);
                 }
+                container.element.dispose();
+                container.viewFactory.dispose();
+                container.viewSlot.dispose();
                 owner.$bindable.push(templateControllerModel);
                 owner.$attachable.push(templateControllerModel);
                 break;
         }
     }
-    var FastInstance = (function () {
-        function FastInstance() {
+    var InstanceProvider = (function () {
+        function InstanceProvider() {
+            this.instance = null;
         }
-        FastInstance.prototype.get = function (handler, requestor) {
+        InstanceProvider.prototype.prepare = function (instance) {
+            this.instance = instance;
+        };
+        InstanceProvider.prototype.get = function (handler, requestor) {
             return this.instance;
         };
-        return FastInstance;
+        InstanceProvider.prototype.dispose = function () {
+            this.instance = null;
+        };
+        return InstanceProvider;
+    }());
+    var ViewSlotProvider = (function () {
+        function ViewSlotProvider() {
+            this.element = null;
+            this.anchorIsContainer = false;
+            this.viewSlot = null;
+        }
+        ViewSlotProvider.prototype.prepare = function (element, anchorIsContainer) {
+            if (anchorIsContainer === void 0) { anchorIsContainer = false; }
+            this.element = element;
+            this.anchorIsContainer = anchorIsContainer;
+        };
+        ViewSlotProvider.prototype.get = function (handler, requestor) {
+            return this.viewSlot
+                || (this.viewSlot = new view_slot_1.ViewSlot(this.element, this.anchorIsContainer));
+        };
+        ViewSlotProvider.prototype.tryConnect = function (owner) {
+            if (this.viewSlot !== null) {
+                owner.$viewSlot = this.viewSlot;
+            }
+        };
+        ViewSlotProvider.prototype.dispose = function () {
+            this.element = null;
+            this.viewSlot = null;
+        };
+        return ViewSlotProvider;
     }());
     function createTemplateContainer(dependencies) {
         var container = di_1.DI.createChild();
-        container.registerResolver(Element, container.element = new FastInstance());
-        container.registerResolver(exports.IViewFactory, container.viewFactory = new FastInstance());
-        container.registerResolver(view_slot_1.ViewSlot, container.viewSlot = new FastInstance());
+        container.registerResolver(Element, container.element = new InstanceProvider());
+        container.registerResolver(exports.IViewFactory, container.viewFactory = new InstanceProvider());
+        container.registerResolver(view_slot_1.ViewSlot, container.viewSlot = new ViewSlotProvider());
         if (dependencies) {
             container.register.apply(container, dependencies);
         }
@@ -6070,7 +6109,6 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             this.anchor = anchor;
             this.anchorIsContainer = anchorIsContainer;
             this.animator = animator;
-            this.$isBound = false;
             this.$isAttached = false;
             this.children = [];
             this.contentSelectors = null;
@@ -6088,30 +6126,6 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
                         return this.animator.leave(animatableElement);
                     default:
                         throw reporter_1.Reporter.error(4, direction);
-                }
-            }
-        };
-        ViewSlot.prototype.bind = function (scope) {
-            if (this.$isBound) {
-                if (this.$scope === scope) {
-                    return;
-                }
-                this.unbind();
-            }
-            this.$isBound = true;
-            this.$scope = scope = scope || this.$scope;
-            var children = this.children;
-            for (var i = 0, ii = children.length; i < ii; ++i) {
-                children[i].bind(scope);
-            }
-        };
-        ViewSlot.prototype.unbind = function () {
-            if (this.$isBound) {
-                this.$isBound = false;
-                this.$scope = null;
-                var children = this.children;
-                for (var i = 0, ii = children.length; i < ii; ++i) {
-                    children[i].unbind();
                 }
             }
         };

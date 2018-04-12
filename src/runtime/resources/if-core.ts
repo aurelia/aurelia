@@ -23,9 +23,7 @@ export abstract class IfCore {
       return;
     }
 
-    if (this.visual.$isBound) {
-      this.visual.unbind();
-    }
+    this.visual.unbind();
 
     if (!this.viewFactory.isCaching) {
       return;
@@ -45,9 +43,7 @@ export abstract class IfCore {
       this.visual = this.viewFactory.create();
     }
 
-    if (!this.visual.$isBound) {
-      this.visual.bind(this.$scope);
-    }
+    this.visual.bind(this.$scope);
 
     if (!this.showing) {
       this.showing = true;

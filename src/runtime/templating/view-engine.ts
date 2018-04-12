@@ -338,6 +338,14 @@ abstract class Visual implements IVisual {
   abstract createView(): IView;
 
   bind(scope: IScope) {
+    if (this.$isBound) {
+      if (this.$scope === scope) {
+        return;
+      }
+
+      this.unbind();
+    }
+
     this.$scope = scope;
 
     let bindable = this.$bindable;
@@ -350,6 +358,10 @@ abstract class Visual implements IVisual {
   }
 
   attach() {
+    if (this.$isAttached) {
+      return;
+    }
+
     let attachable = this.$attachable;
 
     for (let i = 0, ii = attachable.length; i < ii; ++i) {
@@ -360,6 +372,10 @@ abstract class Visual implements IVisual {
   }
 
   detach() { 
+    if (!this.$isAttached) {
+      return;
+    }
+
     let attachable = this.$attachable;
     let i = attachable.length;
 
@@ -370,7 +386,11 @@ abstract class Visual implements IVisual {
     this.$isAttached = false;
   }
 
-  unbind(returnToCache?: boolean) {
+  unbind() {
+    if (!this.$isBound) {
+      return;
+    }
+
     let bindable = this.$bindable;
     let i = bindable.length;
 
@@ -379,6 +399,7 @@ abstract class Visual implements IVisual {
     }
 
     this.$isBound = false;
+    this.$scope = null;
   }
 
   tryReturnToCache() {

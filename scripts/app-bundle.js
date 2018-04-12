@@ -4886,9 +4886,7 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             if (visual === null) {
                 return;
             }
-            if (this.visual.$isBound) {
-                this.visual.unbind();
-            }
+            this.visual.unbind();
             if (!this.viewFactory.isCaching) {
                 return;
             }
@@ -4903,9 +4901,7 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             if (this.visual === null) {
                 this.visual = this.viewFactory.create();
             }
-            if (!this.visual.$isBound) {
-                this.visual.bind(this.$scope);
-            }
+            this.visual.bind(this.$scope);
             if (!this.showing) {
                 this.showing = true;
                 return this.viewSlot.add(this.visual);
@@ -6002,6 +5998,12 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.$view = this.createView();
         }
         Visual.prototype.bind = function (scope) {
+            if (this.$isBound) {
+                if (this.$scope === scope) {
+                    return;
+                }
+                this.unbind();
+            }
             this.$scope = scope;
             var bindable = this.$bindable;
             for (var i = 0, ii = bindable.length; i < ii; ++i) {
@@ -6010,6 +6012,9 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.$isBound = true;
         };
         Visual.prototype.attach = function () {
+            if (this.$isAttached) {
+                return;
+            }
             var attachable = this.$attachable;
             for (var i = 0, ii = attachable.length; i < ii; ++i) {
                 attachable[i].attach();
@@ -6017,6 +6022,9 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.$isAttached = true;
         };
         Visual.prototype.detach = function () {
+            if (!this.$isAttached) {
+                return;
+            }
             var attachable = this.$attachable;
             var i = attachable.length;
             while (i--) {
@@ -6024,13 +6032,17 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             }
             this.$isAttached = false;
         };
-        Visual.prototype.unbind = function (returnToCache) {
+        Visual.prototype.unbind = function () {
+            if (!this.$isBound) {
+                return;
+            }
             var bindable = this.$bindable;
             var i = bindable.length;
             while (i--) {
                 bindable[i].unbind();
             }
             this.$isBound = false;
+            this.$scope = null;
         };
         Visual.prototype.tryReturnToCache = function () {
             this.factory.tryReturnToCache(this);

@@ -10,7 +10,7 @@ import { Constructable } from "../interfaces";
 import { IBindScope } from "../binding/observation";
 import { IScope, BindingContext } from "../binding/binding-context";
 import { ViewSlot } from "./view-slot";
-import { IBindSelf, IAttach, AttachAssistant, DetachAssistant } from "./lifecycle";
+import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
 
 export interface IApplyToTarget {
   applyTo(target: Element): this;
@@ -190,7 +190,7 @@ export const Component = {
         }
       }
 
-      attach(assistant: AttachAssistant){
+      attach(context: AttachContext){
         if (this.$isAttached) {
           return;
         }
@@ -200,28 +200,28 @@ export const Component = {
         }
 
         if (this.$viewSlot !== null) {
-          this.$viewSlot.attach(assistant);
+          this.$viewSlot.attach(context);
         }
       
         if (this.$characteristics.hasAttached) {
-          assistant.queueForAttachedCallback(this);
+          context.queueForAttachedCallback(this);
         }
 
         this.$isAttached = true;
       }
 
-      detach(assistant: DetachAssistant) {
+      detach(context: DetachContext) {
         if (this.$isAttached) {
           if (this.$characteristics.hasDetaching) {
             (<any>this).detaching();
           }
 
           if (this.$viewSlot !== null) {
-            this.$viewSlot.detach(assistant);
+            this.$viewSlot.detach(context);
           }
     
           if (this.$characteristics.hasDetached) {
-            assistant.queueForDetachedCallback(this);
+            context.queueForDetachedCallback(this);
           }
         }
       }
@@ -341,13 +341,13 @@ export const Component = {
         }
       }
   
-      attach(assistant?: AttachAssistant) {
+      attach(context?: AttachContext) {
         if (this.$isAttached) {
           return;
         }
 
-        if (!assistant) {
-          assistant = AttachAssistant.hire(this);
+        if (!context) {
+          context = AttachContext.open(this);
         }
 
         if (this.$characteristics.hasAttaching) {
@@ -357,7 +357,7 @@ export const Component = {
         let attachable = this.$attachable;
   
         for (let i = 0, ii = attachable.length; i < ii; ++i) {
-          attachable[i].attach(assistant);
+          attachable[i].attach(context);
         }
   
         if (source.containerless) {
@@ -367,27 +367,27 @@ export const Component = {
         }
       
         if (this.$characteristics.hasAttached) {
-          assistant.queueForAttachedCallback(this);
+          context.queueForAttachedCallback(this);
         }
 
         this.$isAttached = true;
 
-        if (assistant.isManagedBy(this)) {
-          assistant.fire();
+        if (context.wasOpenedBy(this)) {
+          context.close();
         }
       }
   
-      detach(assistant?: DetachAssistant) {
+      detach(context?: DetachContext) {
         if (this.$isAttached) {
-          if (!assistant) {
-            assistant = DetachAssistant.hire(this);
+          if (!context) {
+            context = DetachContext.open(this);
           }
 
           if (this.$characteristics.hasDetaching) {
             (<any>this).detaching();
           }
 
-          assistant.queueForViewRemoval(this);
+          context.queueForViewRemoval(this);
     
           let attachable = this.$attachable;
           let i = attachable.length;
@@ -397,13 +397,13 @@ export const Component = {
           }
     
           if (this.$characteristics.hasDetached) {
-            assistant.queueForDetachedCallback(this);
+            context.queueForDetachedCallback(this);
           }
 
           this.$isAttached = false;
 
-          if (assistant.isManagedBy(this)) {
-            assistant.fire();
+          if (context.wasOpenedBy(this)) {
+            context.close();
           }
         }
       }

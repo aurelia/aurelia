@@ -1,18 +1,18 @@
 import { IViewOwner } from "./view";
 
-export class AttachAssistant {
+export class AttachContext {
   private tail = null;
   private head = null;
   private $nextAttached = null;
   
-  private constructor(private manager) {
+  private constructor(private opener) {
     this.tail = this.head = this;
   }
 
   private attached() {}
 
-  isManagedBy(requestor) {
-    return this.manager === requestor;
+  wasOpenedBy(requestor) {
+    return this.opener === requestor;
   }
 
   queueForAttachedCallback(requestor: IAttach) {
@@ -20,7 +20,7 @@ export class AttachAssistant {
     this.tail = requestor;
   }
 
-  fire() {
+  close() {
     let current = this.head;
     let next;
 
@@ -32,27 +32,29 @@ export class AttachAssistant {
     }
   }
 
-  static hire(manager) {
-    return new AttachAssistant(manager);
+  static open(manager) {
+    return new AttachContext(manager);
   }
 }
 
-export class DetachAssistant {
+const dummyView = { remove() {} };
+
+export class DetachContext {
   private detachedHead = null; //LOL
   private detachedTail = null;
   private viewRemoveHead = null;
   private viewRemoveTail = null;
   private $nextDetached = null;
   private $nextRemoveView = null;
-  private $view = { remove() {} }
+  private $view = dummyView;
   
-  private constructor(private manager) {
+  private constructor(private opener) {
     this.detachedTail = this.detachedHead = this;
     this.viewRemoveTail = this.viewRemoveHead = this;
   }
 
-  isManagedBy(requestor) {
-    return this.manager === requestor;
+  wasOpenedBy(requestor) {
+    return this.opener === requestor;
   }
 
   private detached() {}
@@ -67,7 +69,7 @@ export class DetachAssistant {
     this.detachedTail = requestor;
   }
 
-  fire() {
+  close() {
     let current = this.detachedHead;
     let next;
 
@@ -89,14 +91,14 @@ export class DetachAssistant {
     }
   }
 
-  static hire(manager) {
-    return new DetachAssistant(manager);
+  static open(manager) {
+    return new DetachContext(manager);
   }
 }
 
 export interface IAttach {
-  attach(assistant?: AttachAssistant): void;
-  detach(assistant?: DetachAssistant): void;
+  attach(context?: AttachContext): void;
+  detach(context?: DetachContext): void;
 }
 
 export interface IBindSelf {

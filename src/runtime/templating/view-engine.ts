@@ -13,7 +13,7 @@ import { BindingMode } from "../binding/binding-mode";
 import { IBindScope } from "../binding/observation";
 import { IScope } from "../binding/binding-context";
 import { Constructable } from "../interfaces";
-import { IAttach, AttachAssistant, DetachAssistant } from "./lifecycle";
+import { IAttach, AttachContext, DetachContext } from "./lifecycle";
 
 export interface ITemplate {
   readonly container: IContainer;
@@ -358,45 +358,45 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  attach(assistant?: AttachAssistant) {
+  attach(context?: AttachContext) {
     if (this.$isAttached) {
       return;
     }
 
-    if (!assistant) {
-      assistant = AttachAssistant.hire(this);
+    if (!context) {
+      context = AttachContext.open(this);
     }
 
     let attachable = this.$attachable;
 
     for (let i = 0, ii = attachable.length; i < ii; ++i) {
-      attachable[i].attach(assistant);
+      attachable[i].attach(context);
     }
 
     this.$isAttached = true;
 
-    if (assistant.isManagedBy(this)) {
-      assistant.fire();
+    if (context.wasOpenedBy(this)) {
+      context.close();
     }
   }
 
-  detach(assistant?: DetachAssistant) { 
+  detach(context?: DetachContext) { 
     if (this.$isAttached) {
-      if (!assistant) {
-        assistant = DetachAssistant.hire(this);
+      if (!context) {
+        context = DetachContext.open(this);
       }
 
       let attachable = this.$attachable;
       let i = attachable.length;
 
       while (i--) {
-        attachable[i].detach(assistant);
+        attachable[i].detach(context);
       }
 
       this.$isAttached = false;
 
-      if (assistant.isManagedBy(this)) {
-        assistant.fire();
+      if (context.wasOpenedBy(this)) {
+        context.close();
       }
     }
   }

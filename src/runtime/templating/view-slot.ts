@@ -4,7 +4,7 @@ import { IVisual } from './view-engine';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
 import { Reporter } from '../reporter';
-import { IAttach, AttachAssistant, DetachAssistant } from './lifecycle';
+import { IAttach, AttachContext, DetachContext } from './lifecycle';
 
 //TODO: move this to IVisual as a getter prop with cached backing store?
 function getAnimatableElement(visual: IVisual) {
@@ -279,7 +279,7 @@ export class ViewSlot implements IAttach {
   /**
   * Triggers the attach for the slot and its children.
   */
-  attach(assistant: AttachAssistant): void {
+  attach(context: AttachContext): void {
     if (this.$isAttached) {
       return;
     }
@@ -288,7 +288,7 @@ export class ViewSlot implements IAttach {
 
     for (let i = 0, ii = children.length; i < ii; ++i) {
       let child = children[i];
-      child.attach(assistant);
+      child.attach(context);
       this.animateView(child, 'enter');
     }
 
@@ -298,12 +298,12 @@ export class ViewSlot implements IAttach {
   /**
   * Triggers the detach for the slot and its children.
   */
-  detach(assistant: DetachAssistant): void {
+  detach(context: DetachContext): void {
     if (this.$isAttached) {
       let children = this.children;
       
       for (let i = 0, ii = children.length; i < ii; ++i) {
-        children[i].detach(assistant);
+        children[i].detach(context);
       }
 
       this.$isAttached = false;

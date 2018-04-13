@@ -1558,23 +1558,6 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(if_1.If, else_1.Else);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-        }
-    };
-});
-
-
-
 define('runtime/binding/array-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4854,6 +4837,23 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(if_1.If, else_1.Else);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+        }
+    };
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -5213,7 +5213,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.bound(scope);
                         }
                     };
-                    CustomAttribute.prototype.attach = function (assistant) {
+                    CustomAttribute.prototype.attach = function (context) {
                         if (this.$isAttached) {
                             return;
                         }
@@ -5221,23 +5221,23 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.attaching();
                         }
                         if (this.$viewSlot !== null) {
-                            this.$viewSlot.attach(assistant);
+                            this.$viewSlot.attach(context);
                         }
                         if (this.$characteristics.hasAttached) {
-                            assistant.queueForAttachedCallback(this);
+                            context.queueForAttachedCallback(this);
                         }
                         this.$isAttached = true;
                     };
-                    CustomAttribute.prototype.detach = function (assistant) {
+                    CustomAttribute.prototype.detach = function (context) {
                         if (this.$isAttached) {
                             if (this.$characteristics.hasDetaching) {
                                 this.detaching();
                             }
                             if (this.$viewSlot !== null) {
-                                this.$viewSlot.detach(assistant);
+                                this.$viewSlot.detach(context);
                             }
                             if (this.$characteristics.hasDetached) {
-                                assistant.queueForDetachedCallback(this);
+                                context.queueForDetachedCallback(this);
                             }
                         }
                     };
@@ -5339,19 +5339,19 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.bound();
                         }
                     };
-                    class_1.prototype.attach = function (assistant) {
+                    class_1.prototype.attach = function (context) {
                         if (this.$isAttached) {
                             return;
                         }
-                        if (!assistant) {
-                            assistant = lifecycle_1.AttachAssistant.hire(this);
+                        if (!context) {
+                            context = lifecycle_1.AttachContext.open(this);
                         }
                         if (this.$characteristics.hasAttaching) {
                             this.attaching();
                         }
                         var attachable = this.$attachable;
                         for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                            attachable[i].attach(assistant);
+                            attachable[i].attach(context);
                         }
                         if (source.containerless) {
                             this.$view.insertBefore(this.$host);
@@ -5360,33 +5360,33 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.$view.appendTo(this.$shadowRoot);
                         }
                         if (this.$characteristics.hasAttached) {
-                            assistant.queueForAttachedCallback(this);
+                            context.queueForAttachedCallback(this);
                         }
                         this.$isAttached = true;
-                        if (assistant.isManagedBy(this)) {
-                            assistant.fire();
+                        if (context.wasOpenedBy(this)) {
+                            context.close();
                         }
                     };
-                    class_1.prototype.detach = function (assistant) {
+                    class_1.prototype.detach = function (context) {
                         if (this.$isAttached) {
-                            if (!assistant) {
-                                assistant = lifecycle_1.DetachAssistant.hire(this);
+                            if (!context) {
+                                context = lifecycle_1.DetachContext.open(this);
                             }
                             if (this.$characteristics.hasDetaching) {
                                 this.detaching();
                             }
-                            assistant.queueForViewRemoval(this);
+                            context.queueForViewRemoval(this);
                             var attachable = this.$attachable;
                             var i = attachable.length;
                             while (i--) {
                                 attachable[i].detach();
                             }
                             if (this.$characteristics.hasDetached) {
-                                assistant.queueForDetachedCallback(this);
+                                context.queueForDetachedCallback(this);
                             }
                             this.$isAttached = false;
-                            if (assistant.isManagedBy(this)) {
-                                assistant.fire();
+                            if (context.wasOpenedBy(this)) {
+                                context.close();
                             }
                         }
                     };
@@ -5461,23 +5461,23 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
 define('runtime/templating/lifecycle',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var AttachAssistant = (function () {
-        function AttachAssistant(manager) {
-            this.manager = manager;
+    var AttachContext = (function () {
+        function AttachContext(opener) {
+            this.opener = opener;
             this.tail = null;
             this.head = null;
             this.$nextAttached = null;
             this.tail = this.head = this;
         }
-        AttachAssistant.prototype.attached = function () { };
-        AttachAssistant.prototype.isManagedBy = function (requestor) {
-            return this.manager === requestor;
+        AttachContext.prototype.attached = function () { };
+        AttachContext.prototype.wasOpenedBy = function (requestor) {
+            return this.opener === requestor;
         };
-        AttachAssistant.prototype.queueForAttachedCallback = function (requestor) {
+        AttachContext.prototype.queueForAttachedCallback = function (requestor) {
             this.tail.$nextAttached = requestor;
             this.tail = requestor;
         };
-        AttachAssistant.prototype.fire = function () {
+        AttachContext.prototype.close = function () {
             var current = this.head;
             var next;
             while (current) {
@@ -5487,38 +5487,39 @@ define('runtime/templating/lifecycle',["require", "exports"], function (require,
                 current = next;
             }
         };
-        AttachAssistant.hire = function (manager) {
-            return new AttachAssistant(manager);
+        AttachContext.open = function (manager) {
+            return new AttachContext(manager);
         };
-        return AttachAssistant;
+        return AttachContext;
     }());
-    exports.AttachAssistant = AttachAssistant;
-    var DetachAssistant = (function () {
-        function DetachAssistant(manager) {
-            this.manager = manager;
+    exports.AttachContext = AttachContext;
+    var dummyView = { remove: function () { } };
+    var DetachContext = (function () {
+        function DetachContext(opener) {
+            this.opener = opener;
             this.detachedHead = null;
             this.detachedTail = null;
             this.viewRemoveHead = null;
             this.viewRemoveTail = null;
             this.$nextDetached = null;
             this.$nextRemoveView = null;
-            this.$view = { remove: function () { } };
+            this.$view = dummyView;
             this.detachedTail = this.detachedHead = this;
             this.viewRemoveTail = this.viewRemoveHead = this;
         }
-        DetachAssistant.prototype.isManagedBy = function (requestor) {
-            return this.manager === requestor;
+        DetachContext.prototype.wasOpenedBy = function (requestor) {
+            return this.opener === requestor;
         };
-        DetachAssistant.prototype.detached = function () { };
-        DetachAssistant.prototype.queueForViewRemoval = function (requestor) {
+        DetachContext.prototype.detached = function () { };
+        DetachContext.prototype.queueForViewRemoval = function (requestor) {
             this.viewRemoveTail.$nextRemoveView = requestor;
             this.viewRemoveTail = requestor;
         };
-        DetachAssistant.prototype.queueForDetachedCallback = function (requestor) {
+        DetachContext.prototype.queueForDetachedCallback = function (requestor) {
             this.detachedTail.$nextDetached = requestor;
             this.detachedTail = requestor;
         };
-        DetachAssistant.prototype.fire = function () {
+        DetachContext.prototype.close = function () {
             var current = this.detachedHead;
             var next;
             while (current) {
@@ -5536,12 +5537,12 @@ define('runtime/templating/lifecycle',["require", "exports"], function (require,
                 current2 = next2;
             }
         };
-        DetachAssistant.hire = function (manager) {
-            return new DetachAssistant(manager);
+        DetachContext.open = function (manager) {
+            return new DetachContext(manager);
         };
-        return DetachAssistant;
+        return DetachContext;
     }());
-    exports.DetachAssistant = DetachAssistant;
+    exports.DetachContext = DetachContext;
 });
 
 
@@ -5629,14 +5630,14 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
                 this.contentView.bind(scope);
             }
         };
-        PassThroughSlot.prototype.attach = function (assistant) {
+        PassThroughSlot.prototype.attach = function (context) {
             if (this.contentView !== null) {
-                this.contentView.attach(assistant);
+                this.contentView.attach(context);
             }
         };
-        PassThroughSlot.prototype.detach = function (assistant) {
+        PassThroughSlot.prototype.detach = function (context) {
             if (this.contentView !== null) {
-                this.contentView.detach(assistant);
+                this.contentView.detach(context);
             }
         };
         PassThroughSlot.prototype.unbind = function () {
@@ -5812,14 +5813,14 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
                 this.contentView.bind(scope);
             }
         };
-        ShadowSlot.prototype.attach = function (assistant) {
+        ShadowSlot.prototype.attach = function (context) {
             if (this.contentView !== null) {
-                this.contentView.attach(assistant);
+                this.contentView.attach(context);
             }
         };
-        ShadowSlot.prototype.detach = function (assistant) {
+        ShadowSlot.prototype.detach = function (context) {
             if (this.contentView !== null) {
-                this.contentView.detach(assistant);
+                this.contentView.detach(context);
             }
         };
         ShadowSlot.prototype.unbind = function () {
@@ -6172,35 +6173,35 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             }
             this.$isBound = true;
         };
-        Visual.prototype.attach = function (assistant) {
+        Visual.prototype.attach = function (context) {
             if (this.$isAttached) {
                 return;
             }
-            if (!assistant) {
-                assistant = lifecycle_1.AttachAssistant.hire(this);
+            if (!context) {
+                context = lifecycle_1.AttachContext.open(this);
             }
             var attachable = this.$attachable;
             for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                attachable[i].attach(assistant);
+                attachable[i].attach(context);
             }
             this.$isAttached = true;
-            if (assistant.isManagedBy(this)) {
-                assistant.fire();
+            if (context.wasOpenedBy(this)) {
+                context.close();
             }
         };
-        Visual.prototype.detach = function (assistant) {
+        Visual.prototype.detach = function (context) {
             if (this.$isAttached) {
-                if (!assistant) {
-                    assistant = lifecycle_1.DetachAssistant.hire(this);
+                if (!context) {
+                    context = lifecycle_1.DetachContext.open(this);
                 }
                 var attachable = this.$attachable;
                 var i = attachable.length;
                 while (i--) {
-                    attachable[i].detach(assistant);
+                    attachable[i].detach(context);
                 }
                 this.$isAttached = false;
-                if (assistant.isManagedBy(this)) {
-                    assistant.fire();
+                if (context.wasOpenedBy(this)) {
+                    context.close();
                 }
             }
         };
@@ -6448,23 +6449,23 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             }
             return removeAction();
         };
-        ViewSlot.prototype.attach = function (assistant) {
+        ViewSlot.prototype.attach = function (context) {
             if (this.$isAttached) {
                 return;
             }
             var children = this.children;
             for (var i = 0, ii = children.length; i < ii; ++i) {
                 var child = children[i];
-                child.attach(assistant);
+                child.attach(context);
                 this.animateView(child, 'enter');
             }
             this.$isAttached = true;
         };
-        ViewSlot.prototype.detach = function (assistant) {
+        ViewSlot.prototype.detach = function (context) {
             if (this.$isAttached) {
                 var children = this.children;
                 for (var i = 0, ii = children.length; i < ii; ++i) {
-                    children[i].detach(assistant);
+                    children[i].detach(context);
                 }
                 this.$isAttached = false;
             }

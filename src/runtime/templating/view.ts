@@ -1,8 +1,8 @@
 import { DOM } from "../pal";
 import { IShadowSlot } from "./shadow-dom";
-import { IAttach } from "./component";
 import { IScope } from "../binding/binding-context";
 import { IBindScope } from "../binding/observation";
+import { IAttach } from "./lifecycle";
 
 export interface IView {
   firstChild: Node;

@@ -17,4 +17,28 @@ export class NameTag {
   submit() {
     this.name = '' + Math.random();
   }
+
+  bound() {
+    console.log('name-tag bound');
+  }
+
+  attaching() {
+    console.log('name-tag attaching');
+  }
+
+  attached() {
+    console.log('name-tag attached');
+  }
+
+  detaching() {
+    console.log('name-tag detaching');
+  }
+
+  detached() {
+    console.log('name-tag detached');
+  }
+
+  unbound() {
+    console.log('name-tag unbound');
+  }
 }

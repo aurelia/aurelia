@@ -1,10 +1,10 @@
 import { Animator } from './animator';
 import { ShadowDOM, IShadowSlot } from './shadow-dom';
-import { IAttach } from './component';
 import { IVisual } from './view-engine';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
 import { Reporter } from '../reporter';
+import { IAttach, AttachAssistant, DetachAssistant } from './lifecycle';
 
 //TODO: move this to IVisual as a getter prop with cached backing store?
 function getAnimatableElement(visual: IVisual) {
@@ -279,32 +279,34 @@ export class ViewSlot implements IAttach {
   /**
   * Triggers the attach for the slot and its children.
   */
-  attach(): void {
+  attach(assistant: AttachAssistant): void {
     if (this.$isAttached) {
       return;
     }
 
-    this.$isAttached = true;
-
     let children = this.children;
+
     for (let i = 0, ii = children.length; i < ii; ++i) {
       let child = children[i];
-      child.attach();
+      child.attach(assistant);
       this.animateView(child, 'enter');
     }
+
+    this.$isAttached = true;
   }
 
   /**
   * Triggers the detach for the slot and its children.
   */
-  detach(): void {
+  detach(assistant: DetachAssistant): void {
     if (this.$isAttached) {
-      this.$isAttached = false;
-
       let children = this.children;
+      
       for (let i = 0, ii = children.length; i < ii; ++i) {
-        children[i].detach();
+        children[i].detach(assistant);
       }
+
+      this.$isAttached = false;
     }
   }
 

@@ -1,10 +1,10 @@
-import { DOM } from '../pal';
-import { IAttach } from './component';
+import { DOM } from '../pal';;
 import { IView, IViewOwner } from './view';
 import { ViewSlot } from './view-slot';
 import { IVisual, IViewFactory } from './view-engine';
 import { IBindScope } from '../binding/observation';
 import { IScope } from '../binding/binding-context';
+import { IAttach, AttachAssistant, DetachAssistant } from './lifecycle';
 
 type ShadowProjectionSource = ViewSlot | IShadowSlot;
 
@@ -127,15 +127,15 @@ class PassThroughSlot implements IShadowSlot {
     }
   }
 
-  attach() {
+  attach(assistant: AttachAssistant) {
     if (this.contentView !== null) {
-      this.contentView.attach();
+      this.contentView.attach(assistant);
     }
   }
 
-  detach() {
+  detach(assistant: DetachAssistant) {
     if (this.contentView !== null) {
-      this.contentView.detach();
+      this.contentView.detach(assistant);
     }
   }
 
@@ -331,15 +331,15 @@ class ShadowSlot implements IShadowSlot {
     }
   }
 
-  attach() {
+  attach(assistant: AttachAssistant) {
     if (this.contentView !== null) {
-      this.contentView.attach();
+      this.contentView.attach(assistant);
     }
   }
 
-  detach() {
+  detach(assistant: DetachAssistant) {
     if (this.contentView !== null) {
-      this.contentView.detach();
+      this.contentView.detach(assistant);
     }
   }
 

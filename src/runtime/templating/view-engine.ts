@@ -1,6 +1,6 @@
 import { DOM } from "../pal";
 import { View, IView, IViewOwner } from "./view";
-import { IElementComponent, IAttach, IBindSelf, IAttributeComponent } from "./component";
+import { IElementComponent, IAttributeComponent } from "./component";
 import { IBinding, Binding } from "../binding/binding";
 import { ViewSlot } from "./view-slot";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
@@ -13,6 +13,7 @@ import { BindingMode } from "../binding/binding-mode";
 import { IBindScope } from "../binding/observation";
 import { IScope } from "../binding/binding-context";
 import { Constructable } from "../interfaces";
+import { IAttach, AttachAssistant, DetachAssistant } from "./lifecycle";
 
 export interface ITemplate {
   readonly container: IContainer;
@@ -357,30 +358,46 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  attach() {
+  attach(assistant?: AttachAssistant) {
     if (this.$isAttached) {
       return;
+    }
+
+    if (!assistant) {
+      assistant = AttachAssistant.hire(this);
     }
 
     let attachable = this.$attachable;
 
     for (let i = 0, ii = attachable.length; i < ii; ++i) {
-      attachable[i].attach();
+      attachable[i].attach(assistant);
     }
 
     this.$isAttached = true;
+
+    if (assistant.isManagedBy(this)) {
+      assistant.fire();
+    }
   }
 
-  detach() { 
+  detach(assistant?: DetachAssistant) { 
     if (this.$isAttached) {
+      if (!assistant) {
+        assistant = DetachAssistant.hire(this);
+      }
+
       let attachable = this.$attachable;
       let i = attachable.length;
 
       while (i--) {
-        attachable[i].detach();
+        attachable[i].detach(assistant);
       }
 
       this.$isAttached = false;
+
+      if (assistant.isManagedBy(this)) {
+        assistant.fire();
+      }
     }
   }
 

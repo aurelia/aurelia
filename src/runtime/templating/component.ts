@@ -10,15 +10,7 @@ import { Constructable } from "../interfaces";
 import { IBindScope } from "../binding/observation";
 import { IScope, BindingContext } from "../binding/binding-context";
 import { ViewSlot } from "./view-slot";
-
-export interface IBindSelf {
-  bind(): void;
-  unbind(): void;
-}
-export interface IAttach {
-  attach(): void;
-  detach(): void;
-}
+import { IBindSelf, IAttach, AttachAssistant, DetachAssistant } from "./lifecycle";
 
 export interface IApplyToTarget {
   applyTo(target: Element): this;
@@ -198,7 +190,7 @@ export const Component = {
         }
       }
 
-      attach(){
+      attach(assistant: AttachAssistant){
         if (this.$isAttached) {
           return;
         }
@@ -208,28 +200,28 @@ export const Component = {
         }
 
         if (this.$viewSlot !== null) {
-          this.$viewSlot.attach();
+          this.$viewSlot.attach(assistant);
         }
       
         if (this.$characteristics.hasAttached) {
-          TaskQueue.queueMicroTask(() => (<any>this).attached());
+          assistant.queueForAttachedCallback(this);
         }
 
         this.$isAttached = true;
       }
 
-      detach() {
+      detach(assistant: DetachAssistant) {
         if (this.$isAttached) {
           if (this.$characteristics.hasDetaching) {
             (<any>this).detaching();
           }
 
           if (this.$viewSlot !== null) {
-            this.$viewSlot.detach();
+            this.$viewSlot.detach(assistant);
           }
     
           if (this.$characteristics.hasDetached) {
-            TaskQueue.queueMicroTask(() => (<any>this).detached());
+            assistant.queueForDetachedCallback(this);
           }
         }
       }
@@ -349,9 +341,13 @@ export const Component = {
         }
       }
   
-      attach() {
+      attach(assistant?: AttachAssistant) {
         if (this.$isAttached) {
           return;
+        }
+
+        if (!assistant) {
+          assistant = AttachAssistant.hire(this);
         }
 
         if (this.$characteristics.hasAttaching) {
@@ -361,7 +357,7 @@ export const Component = {
         let attachable = this.$attachable;
   
         for (let i = 0, ii = attachable.length; i < ii; ++i) {
-          attachable[i].attach();
+          attachable[i].attach(assistant);
         }
   
         if (source.containerless) {
@@ -371,17 +367,27 @@ export const Component = {
         }
       
         if (this.$characteristics.hasAttached) {
-          TaskQueue.queueMicroTask(() => (<any>this).attached());
+          assistant.queueForAttachedCallback(this);
+        }
+
+        this.$isAttached = true;
+
+        if (assistant.isManagedBy(this)) {
+          assistant.fire();
         }
       }
   
-      detach() {
+      detach(assistant?: DetachAssistant) {
         if (this.$isAttached) {
+          if (!assistant) {
+            assistant = DetachAssistant.hire(this);
+          }
+
           if (this.$characteristics.hasDetaching) {
             (<any>this).detaching();
           }
-    
-          this.$view.remove();
+
+          assistant.queueForViewRemoval(this);
     
           let attachable = this.$attachable;
           let i = attachable.length;
@@ -391,7 +397,13 @@ export const Component = {
           }
     
           if (this.$characteristics.hasDetached) {
-            TaskQueue.queueMicroTask(() => (<any>this).detached());
+            assistant.queueForDetachedCallback(this);
+          }
+
+          this.$isAttached = false;
+
+          if (assistant.isManagedBy(this)) {
+            assistant.fire();
           }
         }
       }

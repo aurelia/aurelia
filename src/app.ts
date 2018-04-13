@@ -6,4 +6,28 @@ import { compiledElement } from './runtime/decorators';
 export class App {
   message = 'Hello World';
   duplicateMessage = true;
+
+  bound() {
+    console.log('app bound');
+  }
+
+  attaching() {
+    console.log('app attaching');
+  }
+
+  attached() {
+    console.log('app attached');
+  }
+
+  detaching() {
+    console.log('app detaching');
+  }
+
+  detached() {
+    console.log('app detached');
+  }
+
+  unbound() {
+    console.log('app unbound');
+  }
 }

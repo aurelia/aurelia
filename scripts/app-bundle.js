@@ -108,6 +108,24 @@ define('app',["require", "exports", "./app-config", "./runtime/decorators"], fun
             this.message = 'Hello World';
             this.duplicateMessage = true;
         }
+        App.prototype.bound = function () {
+            console.log('app bound');
+        };
+        App.prototype.attaching = function () {
+            console.log('app attaching');
+        };
+        App.prototype.attached = function () {
+            console.log('app attached');
+        };
+        App.prototype.detaching = function () {
+            console.log('app detaching');
+        };
+        App.prototype.detached = function () {
+            console.log('app detached');
+        };
+        App.prototype.unbound = function () {
+            console.log('app unbound');
+        };
         App = __decorate([
             decorators_1.compiledElement(app_config_1.appConfig)
         ], App);
@@ -288,6 +306,24 @@ define('name-tag',["require", "exports", "./runtime/decorators", "./name-tag-con
         };
         NameTag.prototype.submit = function () {
             this.name = '' + Math.random();
+        };
+        NameTag.prototype.bound = function () {
+            console.log('name-tag bound');
+        };
+        NameTag.prototype.attaching = function () {
+            console.log('name-tag attaching');
+        };
+        NameTag.prototype.attached = function () {
+            console.log('name-tag attached');
+        };
+        NameTag.prototype.detaching = function () {
+            console.log('name-tag detaching');
+        };
+        NameTag.prototype.detached = function () {
+            console.log('name-tag detached');
+        };
+        NameTag.prototype.unbound = function () {
+            console.log('name-tag unbound');
         };
         NameTag = __decorate([
             decorators_1.compiledElement(name_tag_config_1.nameTagConfig)
@@ -1297,18 +1333,6 @@ define('runtime/task-queue',["require", "exports", "./pal", "./di"], function (r
 
 
 
-define('jit/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Expression = Object.assign(expression_1.Expression, {
-        compile: function (expression) {
-            throw new Error('Expression Compilation Not Implemented');
-        }
-    });
-});
-
-
-
 define('debug/binding/binding-context',["require", "exports", "../../runtime/binding/binding-context"], function (require, exports, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1518,6 +1542,18 @@ define('debug/binding/unparser',["require", "exports", "../../runtime/binding/as
         };
         return Unparser;
     }());
+});
+
+
+
+define('jit/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Expression = Object.assign(expression_1.Expression, {
+        compile: function (expression) {
+            throw new Error('Expression Compilation Not Implemented');
+        }
+    });
 });
 
 
@@ -5067,7 +5103,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../task-queue", "../binding/property-observation", "./shadow-dom", "../pal", "../di", "../binding/binding-context"], function (require, exports, view_engine_1, view_1, task_queue_1, property_observation_1, shadow_dom_1, pal_1, di_1, binding_context_1) {
+define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../binding/property-observation", "./shadow-dom", "../pal", "../di", "../binding/binding-context", "./lifecycle"], function (require, exports, view_engine_1, view_1, property_observation_1, shadow_dom_1, pal_1, di_1, binding_context_1, lifecycle_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var RuntimeCharacteristics = (function () {
@@ -5177,8 +5213,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.bound(scope);
                         }
                     };
-                    CustomAttribute.prototype.attach = function () {
-                        var _this = this;
+                    CustomAttribute.prototype.attach = function (assistant) {
                         if (this.$isAttached) {
                             return;
                         }
@@ -5186,24 +5221,23 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.attaching();
                         }
                         if (this.$viewSlot !== null) {
-                            this.$viewSlot.attach();
+                            this.$viewSlot.attach(assistant);
                         }
                         if (this.$characteristics.hasAttached) {
-                            task_queue_1.TaskQueue.queueMicroTask(function () { return _this.attached(); });
+                            assistant.queueForAttachedCallback(this);
                         }
                         this.$isAttached = true;
                     };
-                    CustomAttribute.prototype.detach = function () {
-                        var _this = this;
+                    CustomAttribute.prototype.detach = function (assistant) {
                         if (this.$isAttached) {
                             if (this.$characteristics.hasDetaching) {
                                 this.detaching();
                             }
                             if (this.$viewSlot !== null) {
-                                this.$viewSlot.detach();
+                                this.$viewSlot.detach(assistant);
                             }
                             if (this.$characteristics.hasDetached) {
-                                task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
+                                assistant.queueForDetachedCallback(this);
                             }
                         }
                     };
@@ -5305,17 +5339,19 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.bound();
                         }
                     };
-                    class_1.prototype.attach = function () {
-                        var _this = this;
+                    class_1.prototype.attach = function (assistant) {
                         if (this.$isAttached) {
                             return;
+                        }
+                        if (!assistant) {
+                            assistant = lifecycle_1.AttachAssistant.hire(this);
                         }
                         if (this.$characteristics.hasAttaching) {
                             this.attaching();
                         }
                         var attachable = this.$attachable;
                         for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                            attachable[i].attach();
+                            attachable[i].attach(assistant);
                         }
                         if (source.containerless) {
                             this.$view.insertBefore(this.$host);
@@ -5324,23 +5360,33 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.$view.appendTo(this.$shadowRoot);
                         }
                         if (this.$characteristics.hasAttached) {
-                            task_queue_1.TaskQueue.queueMicroTask(function () { return _this.attached(); });
+                            assistant.queueForAttachedCallback(this);
+                        }
+                        this.$isAttached = true;
+                        if (assistant.isManagedBy(this)) {
+                            assistant.fire();
                         }
                     };
-                    class_1.prototype.detach = function () {
-                        var _this = this;
+                    class_1.prototype.detach = function (assistant) {
                         if (this.$isAttached) {
+                            if (!assistant) {
+                                assistant = lifecycle_1.DetachAssistant.hire(this);
+                            }
                             if (this.$characteristics.hasDetaching) {
                                 this.detaching();
                             }
-                            this.$view.remove();
+                            assistant.queueForViewRemoval(this);
                             var attachable = this.$attachable;
                             var i = attachable.length;
                             while (i--) {
                                 attachable[i].detach();
                             }
                             if (this.$characteristics.hasDetached) {
-                                task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
+                                assistant.queueForDetachedCallback(this);
+                            }
+                            this.$isAttached = false;
+                            if (assistant.isManagedBy(this)) {
+                                assistant.fire();
                             }
                         }
                     };
@@ -5412,9 +5458,98 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
 
 
 
+define('runtime/templating/lifecycle',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var AttachAssistant = (function () {
+        function AttachAssistant(manager) {
+            this.manager = manager;
+            this.tail = null;
+            this.head = null;
+            this.$nextAttached = null;
+            this.tail = this.head = this;
+        }
+        AttachAssistant.prototype.attached = function () { };
+        AttachAssistant.prototype.isManagedBy = function (requestor) {
+            return this.manager === requestor;
+        };
+        AttachAssistant.prototype.queueForAttachedCallback = function (requestor) {
+            this.tail.$nextAttached = requestor;
+            this.tail = requestor;
+        };
+        AttachAssistant.prototype.fire = function () {
+            var current = this.head;
+            var next;
+            while (current) {
+                current.attached();
+                next = current.$nextAttached;
+                current.$nextAttached = null;
+                current = next;
+            }
+        };
+        AttachAssistant.hire = function (manager) {
+            return new AttachAssistant(manager);
+        };
+        return AttachAssistant;
+    }());
+    exports.AttachAssistant = AttachAssistant;
+    var DetachAssistant = (function () {
+        function DetachAssistant(manager) {
+            this.manager = manager;
+            this.detachedHead = null;
+            this.detachedTail = null;
+            this.viewRemoveHead = null;
+            this.viewRemoveTail = null;
+            this.$nextDetached = null;
+            this.$nextRemoveView = null;
+            this.$view = { remove: function () { } };
+            this.detachedTail = this.detachedHead = this;
+            this.viewRemoveTail = this.viewRemoveHead = this;
+        }
+        DetachAssistant.prototype.isManagedBy = function (requestor) {
+            return this.manager === requestor;
+        };
+        DetachAssistant.prototype.detached = function () { };
+        DetachAssistant.prototype.queueForViewRemoval = function (requestor) {
+            this.viewRemoveTail.$nextRemoveView = requestor;
+            this.viewRemoveTail = requestor;
+        };
+        DetachAssistant.prototype.queueForDetachedCallback = function (requestor) {
+            this.detachedTail.$nextDetached = requestor;
+            this.detachedTail = requestor;
+        };
+        DetachAssistant.prototype.fire = function () {
+            var current = this.detachedHead;
+            var next;
+            while (current) {
+                current.detached();
+                next = current.$nextDetached;
+                current.$nextDetached = null;
+                current = next;
+            }
+            var current2 = this.viewRemoveHead;
+            var next2;
+            while (current2) {
+                current2.$view.remove();
+                next2 = current2.$nextRemoveView;
+                current2.$nextRemoveView = null;
+                current2 = next2;
+            }
+        };
+        DetachAssistant.hire = function (manager) {
+            return new DetachAssistant(manager);
+        };
+        return DetachAssistant;
+    }());
+    exports.DetachAssistant = DetachAssistant;
+});
+
+
+
 define('runtime/templating/shadow-dom',["require", "exports", "../pal"], function (require, exports, pal_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    ;
     var noNodes = Object.freeze([]);
     var SlotCustomAttribute = (function () {
         function SlotCustomAttribute(element) {
@@ -5494,14 +5629,14 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
                 this.contentView.bind(scope);
             }
         };
-        PassThroughSlot.prototype.attach = function () {
+        PassThroughSlot.prototype.attach = function (assistant) {
             if (this.contentView !== null) {
-                this.contentView.attach();
+                this.contentView.attach(assistant);
             }
         };
-        PassThroughSlot.prototype.detach = function () {
+        PassThroughSlot.prototype.detach = function (assistant) {
             if (this.contentView !== null) {
-                this.contentView.detach();
+                this.contentView.detach(assistant);
             }
         };
         PassThroughSlot.prototype.unbind = function () {
@@ -5677,14 +5812,14 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
                 this.contentView.bind(scope);
             }
         };
-        ShadowSlot.prototype.attach = function () {
+        ShadowSlot.prototype.attach = function (assistant) {
             if (this.contentView !== null) {
-                this.contentView.attach();
+                this.contentView.attach(assistant);
             }
         };
-        ShadowSlot.prototype.detach = function () {
+        ShadowSlot.prototype.detach = function (assistant) {
             if (this.contentView !== null) {
-                this.contentView.detach();
+                this.contentView.detach(assistant);
             }
         };
         ShadowSlot.prototype.unbind = function () {
@@ -5797,7 +5932,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-engine',["require", "exports", "../pal", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode"], function (require, exports, pal_1, view_1, binding_1, view_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1) {
+define('runtime/templating/view-engine',["require", "exports", "../pal", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode", "./lifecycle"], function (require, exports, pal_1, view_1, binding_1, view_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1, lifecycle_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -6037,24 +6172,36 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             }
             this.$isBound = true;
         };
-        Visual.prototype.attach = function () {
+        Visual.prototype.attach = function (assistant) {
             if (this.$isAttached) {
                 return;
             }
+            if (!assistant) {
+                assistant = lifecycle_1.AttachAssistant.hire(this);
+            }
             var attachable = this.$attachable;
             for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                attachable[i].attach();
+                attachable[i].attach(assistant);
             }
             this.$isAttached = true;
+            if (assistant.isManagedBy(this)) {
+                assistant.fire();
+            }
         };
-        Visual.prototype.detach = function () {
+        Visual.prototype.detach = function (assistant) {
             if (this.$isAttached) {
+                if (!assistant) {
+                    assistant = lifecycle_1.DetachAssistant.hire(this);
+                }
                 var attachable = this.$attachable;
                 var i = attachable.length;
                 while (i--) {
-                    attachable[i].detach();
+                    attachable[i].detach(assistant);
                 }
                 this.$isAttached = false;
+                if (assistant.isManagedBy(this)) {
+                    assistant.fire();
+                }
             }
         };
         Visual.prototype.unbind = function () {
@@ -6301,25 +6448,25 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             }
             return removeAction();
         };
-        ViewSlot.prototype.attach = function () {
+        ViewSlot.prototype.attach = function (assistant) {
             if (this.$isAttached) {
                 return;
             }
-            this.$isAttached = true;
             var children = this.children;
             for (var i = 0, ii = children.length; i < ii; ++i) {
                 var child = children[i];
-                child.attach();
+                child.attach(assistant);
                 this.animateView(child, 'enter');
             }
+            this.$isAttached = true;
         };
-        ViewSlot.prototype.detach = function () {
+        ViewSlot.prototype.detach = function (assistant) {
             if (this.$isAttached) {
-                this.$isAttached = false;
                 var children = this.children;
                 for (var i = 0, ii = children.length; i < ii; ++i) {
-                    children[i].detach();
+                    children[i].detach(assistant);
                 }
+                this.$isAttached = false;
             }
         };
         ViewSlot.prototype.projectTo = function (slots) {

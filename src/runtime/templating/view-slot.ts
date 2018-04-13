@@ -6,27 +6,6 @@ import { IBindScope } from '../binding/observation';
 import { Reporter } from '../reporter';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
 
-//TODO: move this to IVisual as a getter prop with cached backing store?
-function getAnimatableElement(visual: IVisual) {
-  let view = visual.$view;
-
-  if ((<any>view).$animatableElement !== undefined) {
-    return (<any>view).$animatableElement;
-  }
-
-  let current = view.firstChild;
-
-  while (current && current.nodeType !== 1) {
-    current = current.nextSibling;
-  }
-
-  if (current && current.nodeType === 1) {
-    return ((<any>view).$animatableElement = (<HTMLElement>current).classList.contains('au-animate') ? current : null);
-  }
-
-  return ((<any>view).$animatableElement = null);
-}
-
 /**
 * Represents a slot or location within the DOM to which views can be added and removed.
 * Manages the view lifecycle for its children.
@@ -43,7 +22,7 @@ export class ViewSlot implements IAttach {
   * @param anchorIsContainer Indicates whether the node is a container.
   * @param animator The animator that will controll enter/leave transitions for this slot.
   */
-  constructor(public anchor: Node, private anchorIsContainer: boolean, private animator: Animator = Animator.instance) {
+  constructor(public anchor: Node, private anchorIsContainer: boolean) {
     (<any>anchor).viewSlot = this;
     (<any>anchor).isContentProjectionSource = false;
   }
@@ -54,18 +33,20 @@ export class ViewSlot implements IAttach {
    *   @param  direction The animation direction enter|leave.
    *   @returns An animation complete Promise or undefined if no animation was run.
    */
-  animateView(visual: IVisual, direction: string = 'enter'): void | Promise<boolean> {
-    const animatableElement = getAnimatableElement(visual);
+  animate(visual: IVisual, direction: 'enter' | 'leave' = 'enter'): void | Promise<boolean> {
+    const animatableElement = visual.animatableElement;
 
-    if (animatableElement !== null) {
-      switch (direction) {
-        case 'enter':
-          return this.animator.enter(animatableElement);
-        case 'leave':
-          return this.animator.leave(animatableElement);
-        default:
-          throw Reporter.error(4, direction);
-      }
+    if (animatableElement === null) {
+      return;
+    }
+
+    switch (direction) {
+      case 'enter':
+        return Animator.enter(animatableElement);
+      case 'leave':
+        return Animator.leave(animatableElement);
+      default:
+        throw Reporter.error(4, direction);
     }
   }
 
@@ -88,7 +69,7 @@ export class ViewSlot implements IAttach {
     this.children.push(visual);
 
     if (this.$isAttached) {
-      return this.animateView(visual, 'enter');
+      return this.animate(visual, 'enter');
     }
   }
 
@@ -114,7 +95,7 @@ export class ViewSlot implements IAttach {
     children.splice(index, 0, visual);
 
     if (this.$isAttached) {
-      return this.animateView(visual, 'enter');
+      return this.animate(visual, 'enter');
     }
   }
 
@@ -168,7 +149,7 @@ export class ViewSlot implements IAttach {
         return;
       }
 
-      let animation = this.animateView(child, 'leave');
+      let animation = this.animate(child, 'leave');
 
       if (animation) {
         rmPromises.push(animation.then(() => view.remove()));
@@ -223,7 +204,7 @@ export class ViewSlot implements IAttach {
     };
 
     if (!skipAnimation) {
-      let animation = this.animateView(visual, 'leave');
+      let animation = this.animate(visual, 'leave');
       if (animation) {
         return animation.then(() => removeAction());
       }
@@ -251,7 +232,7 @@ export class ViewSlot implements IAttach {
         return;
       }
 
-      let animation = this.animateView(child, 'leave');
+      let animation = this.animate(child, 'leave');
       if (animation) {
         rmPromises.push(animation.then(() => view.remove()));
       } else {
@@ -289,7 +270,7 @@ export class ViewSlot implements IAttach {
     for (let i = 0, ii = children.length; i < ii; ++i) {
       let child = children[i];
       child.attach(context);
-      this.animateView(child, 'enter');
+      this.animate(child, 'enter');
     }
 
     this.$isAttached = true;

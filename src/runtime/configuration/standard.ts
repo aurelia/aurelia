@@ -6,6 +6,7 @@ import { IDirtyChecker, DirtyChecker } from "../binding/dirty-checker";
 import { ISVGAnalyzer, SVGAnalyzer } from "../binding/svg-analyzer";
 import { IEventManager, EventManager } from "../binding/event-manager";
 import { IObserverLocator, ObserverLocator } from "../binding/observer-locator";
+import { IAnimator, Animator } from "../templating/animator";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
@@ -19,5 +20,6 @@ export const StandardConfiguration = {
     container.register(Registration.instance(ISVGAnalyzer, SVGAnalyzer));
     container.register(Registration.instance(IEventManager, EventManager));
     container.register(Registration.instance(IObserverLocator, ObserverLocator));
+    container.register(Registration.instance(IAnimator, Animator));
   }
 };

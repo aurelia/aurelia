@@ -45,10 +45,18 @@ const noViewTemplate: ITemplate = {
 
 export interface IVisual extends IBindScope, IAttach, IViewOwner { 
   /**
+  * If the visual requests animation upon add/remove, this property returns the element to be animated.
+  */
+  readonly animatableElement: Element;
+
+  /**
   * The IViewFactory that built this instance.
   */
   readonly factory: IViewFactory;
 
+  /**
+  * Attempts to return this view to the appropriate view cache.
+  */
   tryReturnToCache();
 }
 
@@ -331,12 +339,34 @@ abstract class Visual implements IVisual {
   $isBound = false;
   $isAttached = false;
   $inCache = false;
+  $animatableElement: Element = undefined;
 
   constructor(public factory: DefaultViewFactory) {
     this.$view = this.createView();
   }
 
   abstract createView(): IView;
+
+  get animatableElement(): Element {
+    if (this.$animatableElement !== undefined) {
+      return this.$animatableElement;
+    }
+  
+    let currentChild = this.$view.firstChild;
+    let lastChild = this.$view.lastChild;
+  
+    while (currentChild !== lastChild && currentChild.nodeType !== 1) {
+      currentChild = currentChild.nextSibling;
+    }
+  
+    if (currentChild && currentChild.nodeType === 1) {
+      return this.$animatableElement = (<Element>currentChild).classList.contains('au-animate') 
+        ? <Element>currentChild 
+        : null;
+    }
+  
+    return this.$animatableElement = null;
+  }
 
   bind(scope: IScope) {
     if (this.$isBound) {

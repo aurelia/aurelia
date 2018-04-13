@@ -75,6 +75,10 @@ export class ViewSlot implements IAttach {
   * @return May return a promise if the view addition triggered an animation.
   */
   add(visual: IVisual): void | Promise<any> {
+    if (this.$isAttached) {
+      visual.attach();
+    }
+
     if (this.anchorIsContainer) {
       visual.$view.appendTo(<Element>this.anchor);
     } else {
@@ -84,7 +88,6 @@ export class ViewSlot implements IAttach {
     this.children.push(visual);
 
     if (this.$isAttached) {
-      visual.attach();
       return this.animateView(visual, 'enter');
     }
   }
@@ -103,11 +106,14 @@ export class ViewSlot implements IAttach {
       return this.add(visual);
     }
 
+    if (this.$isAttached) {
+      visual.attach();
+    }
+
     visual.$view.insertBefore(children[index].$view.firstChild);
     children.splice(index, 0, visual);
 
     if (this.$isAttached) {
-      visual.attach();
       return this.animateView(visual, 'enter');
     }
   }
@@ -315,26 +321,24 @@ export class ViewSlot implements IAttach {
   }
 
   _projectionAdd(visual: IVisual) {
-    ShadowDOM.distributeView(visual.$view, this.projectToSlots, this);
-
-    this.children.push(visual);
-
     if (this.$isAttached) {
       visual.attach();
     }
+
+    ShadowDOM.distributeView(visual.$view, this.projectToSlots, this);
+    this.children.push(visual);
   }
 
   _projectionInsert(index: number, visual: IVisual) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(visual);
     } else {
-      ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, index);
-
-      this.children.splice(index, 0, visual);
-
       if (this.$isAttached) {
         visual.attach();
       }
+
+      ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, index);
+      this.children.splice(index, 0, visual);
     }
   }
 

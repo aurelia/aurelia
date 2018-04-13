@@ -161,6 +161,7 @@ export const Component = {
       private $changeCallbacks: (() => void)[] = [];
       private $characteristics: RuntimeCharacteristics = null;
 
+      $isAttached = false;
       $isBound = false;
       $scope: IScope = null;
       $viewSlot: ViewSlot = null;
@@ -175,6 +176,14 @@ export const Component = {
       }
 
       bind(scope: IScope) {
+        if (this.$isBound) {
+          if (this.$scope === scope) {
+            return;
+          }
+    
+          this.unbind();
+        }
+
         this.$scope = scope
         this.$isBound = true;
   
@@ -190,6 +199,10 @@ export const Component = {
       }
 
       attach(){
+        if (this.$isAttached) {
+          return;
+        }
+
         if (this.$characteristics.hasAttaching) {
           (<any>this).attaching();
         }
@@ -201,28 +214,34 @@ export const Component = {
         if (this.$characteristics.hasAttached) {
           TaskQueue.queueMicroTask(() => (<any>this).attached());
         }
+
+        this.$isAttached = true;
       }
 
       detach() {
-        if (this.$characteristics.hasDetaching) {
-          (<any>this).detaching();
-        }
+        if (this.$isAttached) {
+          if (this.$characteristics.hasDetaching) {
+            (<any>this).detaching();
+          }
 
-        if (this.$viewSlot !== null) {
-          this.$viewSlot.detach();
-        }
-  
-        if (this.$characteristics.hasDetached) {
-          TaskQueue.queueMicroTask(() => (<any>this).detached());
+          if (this.$viewSlot !== null) {
+            this.$viewSlot.detach();
+          }
+    
+          if (this.$characteristics.hasDetached) {
+            TaskQueue.queueMicroTask(() => (<any>this).detached());
+          }
         }
       }
 
       unbind() {
-        if (this.$characteristics.hasUnbound) {
-          (<any>this).unbound();
+        if (this.$isBound) {
+          if (this.$characteristics.hasUnbound) {
+            (<any>this).unbound();
+          }
+    
+          this.$isBound = false;
         }
-  
-        this.$isBound = false;
       }
     };
   },
@@ -262,6 +281,7 @@ export const Component = {
       $useShadowDOM = source.shadowOptions && FEATURE.shadowDOM;
       $view: IView;
       $contentView: IView = null;
+      $isAttached = false;
       $isBound = false;
       $scope: IScope = {
         bindingContext: this,
@@ -301,6 +321,10 @@ export const Component = {
       }
   
       bind() {
+        if (this.$isBound) {
+          return;
+        }
+
         let scope = this.$scope;
         let bindable = this.$bindable;
   
@@ -326,6 +350,10 @@ export const Component = {
       }
   
       attach() {
+        if (this.$isAttached) {
+          return;
+        }
+
         if (this.$characteristics.hasAttaching) {
           (<any>this).attaching();
         }
@@ -348,37 +376,41 @@ export const Component = {
       }
   
       detach() {
-        if (this.$characteristics.hasDetaching) {
-          (<any>this).detaching();
-        }
-  
-        this.$view.remove();
-  
-        let attachable = this.$attachable;
-        let i = attachable.length;
-  
-        while (i--) {
-          attachable[i].detach();
-        }
-  
-        if (this.$characteristics.hasDetached) {
-          TaskQueue.queueMicroTask(() => (<any>this).detached());
+        if (this.$isAttached) {
+          if (this.$characteristics.hasDetaching) {
+            (<any>this).detaching();
+          }
+    
+          this.$view.remove();
+    
+          let attachable = this.$attachable;
+          let i = attachable.length;
+    
+          while (i--) {
+            attachable[i].detach();
+          }
+    
+          if (this.$characteristics.hasDetached) {
+            TaskQueue.queueMicroTask(() => (<any>this).detached());
+          }
         }
       }
   
       unbind() {
-        let bindable = this.$bindable;
-        let i = bindable.length;
-  
-        while (i--) {
-          bindable[i].unbind();
+        if (this.$isBound) {
+          let bindable = this.$bindable;
+          let i = bindable.length;
+    
+          while (i--) {
+            bindable[i].unbind();
+          }
+    
+          if (this.$characteristics.hasUnbound) {
+            (<any>this).unbound();
+          }
+    
+          this.$isBound = false;
         }
-  
-        if (this.$characteristics.hasUnbound) {
-          (<any>this).unbound();
-        }
-  
-        this.$isBound = false;
       }
     }
 

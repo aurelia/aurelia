@@ -5141,6 +5141,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         var _this = _super.apply(this, args) || this;
                         _this.$changeCallbacks = [];
                         _this.$characteristics = null;
+                        _this.$isAttached = false;
                         _this.$isBound = false;
                         _this.$scope = null;
                         _this.$viewSlot = null;
@@ -5160,6 +5161,12 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                     };
                     CustomAttribute.prototype.bind = function (scope) {
+                        if (this.$isBound) {
+                            if (this.$scope === scope) {
+                                return;
+                            }
+                            this.unbind();
+                        }
                         this.$scope = scope;
                         this.$isBound = true;
                         var changeCallbacks = this.$changeCallbacks;
@@ -5172,6 +5179,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     };
                     CustomAttribute.prototype.attach = function () {
                         var _this = this;
+                        if (this.$isAttached) {
+                            return;
+                        }
                         if (this.$characteristics.hasAttaching) {
                             this.attaching();
                         }
@@ -5181,24 +5191,29 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         if (this.$characteristics.hasAttached) {
                             task_queue_1.TaskQueue.queueMicroTask(function () { return _this.attached(); });
                         }
+                        this.$isAttached = true;
                     };
                     CustomAttribute.prototype.detach = function () {
                         var _this = this;
-                        if (this.$characteristics.hasDetaching) {
-                            this.detaching();
-                        }
-                        if (this.$viewSlot !== null) {
-                            this.$viewSlot.detach();
-                        }
-                        if (this.$characteristics.hasDetached) {
-                            task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
+                        if (this.$isAttached) {
+                            if (this.$characteristics.hasDetaching) {
+                                this.detaching();
+                            }
+                            if (this.$viewSlot !== null) {
+                                this.$viewSlot.detach();
+                            }
+                            if (this.$characteristics.hasDetached) {
+                                task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
+                            }
                         }
                     };
                     CustomAttribute.prototype.unbind = function () {
-                        if (this.$characteristics.hasUnbound) {
-                            this.unbound();
+                        if (this.$isBound) {
+                            if (this.$characteristics.hasUnbound) {
+                                this.unbound();
+                            }
+                            this.$isBound = false;
                         }
-                        this.$isBound = false;
                     };
                     return CustomAttribute;
                 }(ctor)),
@@ -5239,6 +5254,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         _this.$slots = source.hasSlots ? {} : null;
                         _this.$useShadowDOM = source.shadowOptions && pal_1.FEATURE.shadowDOM;
                         _this.$contentView = null;
+                        _this.$isAttached = false;
                         _this.$isBound = false;
                         _this.$scope = {
                             bindingContext: _this,
@@ -5269,6 +5285,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         return template.createFor(this, host);
                     };
                     class_1.prototype.bind = function () {
+                        if (this.$isBound) {
+                            return;
+                        }
                         var scope = this.$scope;
                         var bindable = this.$bindable;
                         for (var i = 0, ii = bindable.length; i < ii; ++i) {
@@ -5288,6 +5307,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     };
                     class_1.prototype.attach = function () {
                         var _this = this;
+                        if (this.$isAttached) {
+                            return;
+                        }
                         if (this.$characteristics.hasAttaching) {
                             this.attaching();
                         }
@@ -5307,29 +5329,33 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     };
                     class_1.prototype.detach = function () {
                         var _this = this;
-                        if (this.$characteristics.hasDetaching) {
-                            this.detaching();
-                        }
-                        this.$view.remove();
-                        var attachable = this.$attachable;
-                        var i = attachable.length;
-                        while (i--) {
-                            attachable[i].detach();
-                        }
-                        if (this.$characteristics.hasDetached) {
-                            task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
+                        if (this.$isAttached) {
+                            if (this.$characteristics.hasDetaching) {
+                                this.detaching();
+                            }
+                            this.$view.remove();
+                            var attachable = this.$attachable;
+                            var i = attachable.length;
+                            while (i--) {
+                                attachable[i].detach();
+                            }
+                            if (this.$characteristics.hasDetached) {
+                                task_queue_1.TaskQueue.queueMicroTask(function () { return _this.detached(); });
+                            }
                         }
                     };
                     class_1.prototype.unbind = function () {
-                        var bindable = this.$bindable;
-                        var i = bindable.length;
-                        while (i--) {
-                            bindable[i].unbind();
+                        if (this.$isBound) {
+                            var bindable = this.$bindable;
+                            var i = bindable.length;
+                            while (i--) {
+                                bindable[i].unbind();
+                            }
+                            if (this.$characteristics.hasUnbound) {
+                                this.unbound();
+                            }
+                            this.$isBound = false;
                         }
-                        if (this.$characteristics.hasUnbound) {
-                            this.unbound();
-                        }
-                        this.$isBound = false;
                     };
                     return class_1;
                 }(ctor)),
@@ -6022,27 +6048,25 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.$isAttached = true;
         };
         Visual.prototype.detach = function () {
-            if (!this.$isAttached) {
-                return;
+            if (this.$isAttached) {
+                var attachable = this.$attachable;
+                var i = attachable.length;
+                while (i--) {
+                    attachable[i].detach();
+                }
+                this.$isAttached = false;
             }
-            var attachable = this.$attachable;
-            var i = attachable.length;
-            while (i--) {
-                attachable[i].detach();
-            }
-            this.$isAttached = false;
         };
         Visual.prototype.unbind = function () {
-            if (!this.$isBound) {
-                return;
+            if (this.$isBound) {
+                var bindable = this.$bindable;
+                var i = bindable.length;
+                while (i--) {
+                    bindable[i].unbind();
+                }
+                this.$isBound = false;
+                this.$scope = null;
             }
-            var bindable = this.$bindable;
-            var i = bindable.length;
-            while (i--) {
-                bindable[i].unbind();
-            }
-            this.$isBound = false;
-            this.$scope = null;
         };
         Visual.prototype.tryReturnToCache = function () {
             this.factory.tryReturnToCache(this);
@@ -6141,6 +6165,9 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             }
         };
         ViewSlot.prototype.add = function (visual) {
+            if (this.$isAttached) {
+                visual.attach();
+            }
             if (this.anchorIsContainer) {
                 visual.$view.appendTo(this.anchor);
             }
@@ -6149,7 +6176,6 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             }
             this.children.push(visual);
             if (this.$isAttached) {
-                visual.attach();
                 return this.animateView(visual, 'enter');
             }
         };
@@ -6159,10 +6185,12 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             if ((index === 0 && length === 0) || index >= length) {
                 return this.add(visual);
             }
+            if (this.$isAttached) {
+                visual.attach();
+            }
             visual.$view.insertBefore(children[index].$view.firstChild);
             children.splice(index, 0, visual);
             if (this.$isAttached) {
-                visual.attach();
                 return this.animateView(visual, 'enter');
             }
         };
@@ -6307,22 +6335,22 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             this.children.forEach(function (view) { return shadow_dom_1.ShadowDOM.distributeView(view.$view, slots, _this); });
         };
         ViewSlot.prototype._projectionAdd = function (visual) {
-            shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this);
-            this.children.push(visual);
             if (this.$isAttached) {
                 visual.attach();
             }
+            shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this);
+            this.children.push(visual);
         };
         ViewSlot.prototype._projectionInsert = function (index, visual) {
             if ((index === 0 && !this.children.length) || index >= this.children.length) {
                 this.add(visual);
             }
             else {
-                shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, index);
-                this.children.splice(index, 0, visual);
                 if (this.$isAttached) {
                     visual.attach();
                 }
+                shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, index);
+                this.children.splice(index, 0, visual);
             }
         };
         ViewSlot.prototype._projectionMove = function (sourceIndex, targetIndex) {

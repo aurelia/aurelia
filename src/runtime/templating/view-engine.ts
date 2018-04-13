@@ -372,34 +372,30 @@ abstract class Visual implements IVisual {
   }
 
   detach() { 
-    if (!this.$isAttached) {
-      return;
+    if (this.$isAttached) {
+      let attachable = this.$attachable;
+      let i = attachable.length;
+
+      while (i--) {
+        attachable[i].detach();
+      }
+
+      this.$isAttached = false;
     }
-
-    let attachable = this.$attachable;
-    let i = attachable.length;
-
-    while (i--) {
-      attachable[i].detach();
-    }
-
-    this.$isAttached = false;
   }
 
   unbind() {
-    if (!this.$isBound) {
-      return;
+    if (this.$isBound) {
+      let bindable = this.$bindable;
+      let i = bindable.length;
+
+      while (i--) {
+        bindable[i].unbind();
+      }
+
+      this.$isBound = false;
+      this.$scope = null;
     }
-
-    let bindable = this.$bindable;
-    let i = bindable.length;
-
-    while (i--) {
-      bindable[i].unbind();
-    }
-
-    this.$isBound = false;
-    this.$scope = null;
   }
 
   tryReturnToCache() {

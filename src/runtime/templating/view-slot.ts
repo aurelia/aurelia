@@ -34,17 +34,17 @@ export class ViewSlot implements IAttach {
    *   @returns An animation complete Promise or undefined if no animation was run.
    */
   animate(visual: IVisual, direction: 'enter' | 'leave' = 'enter'): void | Promise<boolean> {
-    const animatableElement = visual.animatableElement;
+    const element = visual.animatableElement;
 
-    if (animatableElement === null) {
+    if (element === null) {
       return;
     }
 
     switch (direction) {
       case 'enter':
-        return Animator.enter(animatableElement);
+        return Animator.enter(element);
       case 'leave':
-        return Animator.leave(animatableElement);
+        return Animator.leave(element);
       default:
         throw Reporter.error(4, direction);
     }
@@ -55,7 +55,7 @@ export class ViewSlot implements IAttach {
   * @param visual The view to add.
   * @return May return a promise if the view addition triggered an animation.
   */
-  add(visual: IVisual): void | Promise<any> {
+  add(visual: IVisual): void | Promise<boolean> {
     if (this.$isAttached) {
       visual.attach();
     }
@@ -79,7 +79,7 @@ export class ViewSlot implements IAttach {
   * @param visual The view to insert.
   * @return May return a promise if the view insertion triggered an animation.
   */
-  insert(index: number, visual: IVisual): void | Promise<any> {
+  insert(index: number, visual: IVisual): void | Promise<boolean> {
     const children = this.children;
     const length = children.length;
 
@@ -218,7 +218,7 @@ export class ViewSlot implements IAttach {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removals triggered an animation.
   */
-  removeAll(skipAnimation?: boolean): void | Promise<any> {
+  removeAll(skipAnimation?: boolean): void | Promise<void> {
     let children = this.children;
     let ii = children.length;
     let i;

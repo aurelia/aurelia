@@ -6519,15 +6519,15 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
         }
         ViewSlot.prototype.animate = function (visual, direction) {
             if (direction === void 0) { direction = 'enter'; }
-            var animatableElement = visual.animatableElement;
-            if (animatableElement === null) {
+            var element = visual.animatableElement;
+            if (element === null) {
                 return;
             }
             switch (direction) {
                 case 'enter':
-                    return animator_1.Animator.enter(animatableElement);
+                    return animator_1.Animator.enter(element);
                 case 'leave':
-                    return animator_1.Animator.leave(animatableElement);
+                    return animator_1.Animator.leave(element);
                 default:
                     throw reporter_1.Reporter.error(4, direction);
             }

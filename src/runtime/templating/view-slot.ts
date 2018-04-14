@@ -13,8 +13,7 @@ import { IAttach, AttachContext, DetachContext } from './lifecycle';
 export class ViewSlot implements IAttach {
   private $isAttached = false;
   private children: IVisual[] = [];
-  private contentSelectors = null;
-  private projectToSlots: Record<string, IShadowSlot>;
+  private projectToSlots: Record<string, IShadowSlot> = null;
 
   /**
   * Creates an instance of ViewSlot.
@@ -125,8 +124,8 @@ export class ViewSlot implements IAttach {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  remove(visual: IVisual, skipAnimation?: boolean): IVisual | Promise<IVisual> {
-    return this.removeAt(this.children.indexOf(visual), skipAnimation);
+  remove(visual: IVisual, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual> {
+    return this.removeAt(this.children.indexOf(visual), returnToCache, skipAnimation);
   }
 
   /**
@@ -135,11 +134,11 @@ export class ViewSlot implements IAttach {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  removeMany(visualsToRemove: IVisual[], skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
+  removeMany(visualsToRemove: IVisual[], returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
     const children = this.children;
-    let ii = visualsToRemove.length;
+    const ii = visualsToRemove.length;
+    const rmPromises = [];
     let i;
-    let rmPromises = [];
 
     visualsToRemove.forEach(child => {
       let view = child.$view;
@@ -162,6 +161,12 @@ export class ViewSlot implements IAttach {
       if (this.$isAttached) {
         for (i = 0; i < ii; ++i) {
           visualsToRemove[i].detach();
+        }
+      }
+
+      if (returnToCache) {
+        for (i = 0; i < ii; ++i) {
+          visualsToRemove[i].tryReturnToCache();
         }
       }
 
@@ -188,23 +193,26 @@ export class ViewSlot implements IAttach {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  removeAt(index: number, skipAnimation?: boolean): IVisual | Promise<IVisual> {
-    let visual = this.children[index];
+  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual> {
+    const visual = this.children[index];
 
-    let removeAction = () => {
-      index = this.children.indexOf(visual);
+    const removeAction = () => {
+      visual.detach();
+
       visual.$view.remove();
+
+      index = this.children.indexOf(visual);
       this.children.splice(index, 1);
 
-      if (this.$isAttached) {
-        visual.detach();
+      if (returnToCache) {
+        visual.tryReturnToCache();
       }
 
       return visual;
     };
 
     if (!skipAnimation) {
-      let animation = this.animate(visual, 'leave');
+      const animation = this.animate(visual, 'leave');
       if (animation) {
         return animation.then(() => removeAction());
       }
@@ -218,11 +226,11 @@ export class ViewSlot implements IAttach {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removals triggered an animation.
   */
-  removeAll(skipAnimation?: boolean): void | Promise<void> {
-    let children = this.children;
-    let ii = children.length;
+  removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | Promise<void> {
+    const children = this.children;
+    const ii = children.length;
+    const rmPromises = [];
     let i;
-    let rmPromises = [];
 
     children.forEach(child => {
       const view = child.$view;
@@ -232,7 +240,7 @@ export class ViewSlot implements IAttach {
         return;
       }
 
-      let animation = this.animate(child, 'leave');
+      const animation = this.animate(child, 'leave');
       if (animation) {
         rmPromises.push(animation.then(() => view.remove()));
       } else {
@@ -240,10 +248,20 @@ export class ViewSlot implements IAttach {
       }
     });
 
-    let removeAction = () => {
+    const removeAction = () => {
       if (this.$isAttached) {
         for (i = 0; i < ii; ++i) {
           children[i].detach();
+        }
+      }
+
+      if (returnToCache) {
+        for (i = 0; i < ii; ++i) {
+          const child = children[i];
+
+          if (child) {
+            child.tryReturnToCache();
+          }
         }
       }
 
@@ -293,26 +311,27 @@ export class ViewSlot implements IAttach {
 
   projectTo(slots: Record<string, IShadowSlot>): void {
     this.projectToSlots = slots;
-    this.add = this._projectionAdd;
-    this.insert = this._projectionInsert;
-    this.move = this._projectionMove;
-    this.remove = this._projectionRemove;
-    this.removeAt = this._projectionRemoveAt;
-    this.removeMany = this._projectionRemoveMany;
-    this.removeAll = this._projectionRemoveAll;
+    this.add = this.projectionAdd;
+    this.insert = this.projectionInsert;
+    this.move = this.projectionMove;
+    this.remove = this.projectionRemove;
+    this.removeAt = this.projectionRemoveAt;
+    this.removeMany = this.projectionRemoveMany;
+    this.removeAll = this.projectionRemoveAll;
     this.children.forEach(view => ShadowDOM.distributeView(view.$view, slots, this));
   }
 
-  _projectionAdd(visual: IVisual) {
+  private projectionAdd(visual: IVisual) {
     if (this.$isAttached) {
       visual.attach();
     }
 
     ShadowDOM.distributeView(visual.$view, this.projectToSlots, this);
+
     this.children.push(visual);
   }
 
-  _projectionInsert(index: number, visual: IVisual) {
+  private projectionInsert(index: number, visual: IVisual) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(visual);
     } else {
@@ -321,11 +340,12 @@ export class ViewSlot implements IAttach {
       }
 
       ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, index);
+
       this.children.splice(index, 0, visual);
     }
   }
 
-  _projectionMove(sourceIndex: number, targetIndex: number) {
+  private projectionMove(sourceIndex: number, targetIndex: number) {
     if (sourceIndex === targetIndex) {
       return;
     }
@@ -340,7 +360,7 @@ export class ViewSlot implements IAttach {
     children.splice(targetIndex, 0, visual);
   }
 
-  _projectionRemove(visual: IVisual) {
+  private projectionRemove(visual: IVisual) {
     ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
     this.children.splice(this.children.indexOf(visual), 1);
 
@@ -351,7 +371,7 @@ export class ViewSlot implements IAttach {
     return visual;
   }
 
-  _projectionRemoveAt(index: number, skipAnimation?: boolean) {
+  private projectionRemoveAt(index: number, skipAnimation?: boolean) {
     let visual = this.children[index];
 
     ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
@@ -364,11 +384,11 @@ export class ViewSlot implements IAttach {
     return visual;
   }
 
-  _projectionRemoveMany(viewsToRemove: IVisual[], skipAnimation: boolean) {
+  private projectionRemoveMany(viewsToRemove: IVisual[], skipAnimation: boolean) {
     viewsToRemove.forEach(view => this.remove(view));
   }
 
-  _projectionRemoveAll() {
+  private projectionRemoveAll() {
     ShadowDOM.undistributeAll(this.projectToSlots, this);
 
     let children = this.children;

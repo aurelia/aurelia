@@ -31,10 +31,11 @@ export abstract class IfCore {
 
     if (this.showing) {
       this.showing = false;
-      this.viewSlot.remove(visual, /*skipAnimation:*/true);
+      this.viewSlot.remove(visual, /*returnToCache:*/true, /*skipAnimation:*/true);
+    } else {
+      visual.tryReturnToCache();
     }
 
-    visual.tryReturnToCache();
     this.visual = null;
   }
 

@@ -58,12 +58,12 @@ export class If extends IfCore {
   private swap(remove: IfCore, add: IfCore) {
     switch (this.swapOrder) {
       case 'before':
-        return Promise.resolve(add.show()).then(() => remove.hide());
+        return Promise.resolve(<any>add.show()).then(() => remove.hide());
       case 'with':
-        return Promise.all([remove.hide(), add.show()]);
+        return Promise.all([<any>remove.hide(), add.show()]);
       default:  // "after", default and unknown values
         let promise = remove.hide();
-        return promise ? promise.then(() => add.show()) : add.show();
+        return promise ? promise.then(() => <any>add.show()) : add.show();
     }
   }
 }

@@ -57,7 +57,7 @@ export interface IVisual extends IBindScope, IAttach, IViewOwner {
   /**
   * Attempts to return this view to the appropriate view cache.
   */
-  tryReturnToCache();
+  tryReturnToCache(): boolean;
 }
 
 export const IViewFactory = DI.createInterface('IViewFactory');
@@ -446,7 +446,7 @@ abstract class Visual implements IVisual {
   }
 
   tryReturnToCache() {
-    this.factory.tryReturnToCache(this);
+    return this.factory.tryReturnToCache(this);
   }
 }
 
@@ -480,11 +480,14 @@ class DefaultViewFactory implements IViewFactory {
     this.isCaching = this.cacheSize > 0;
   }
 
-  tryReturnToCache(visual: Visual): void {
+  tryReturnToCache(visual: Visual): boolean {
     if (this.cache !== null && this.cache.length < this.cacheSize) {
       visual.$inCache = true;
       this.cache.push(visual);
+      return true;
     }
+
+    return false;
   }
 
   create(): Visual {

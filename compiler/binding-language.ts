@@ -233,6 +233,7 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
     }
 
     // literal.
+    parts = parts! || [];
     parts[partIndex] = new LiteralString(value.substr(pos));
     return new TemplateLiteral(parts!);
   }

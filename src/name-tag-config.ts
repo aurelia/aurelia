@@ -1,4 +1,5 @@
 import { ICompiledElementSource } from "./runtime/templating/component";
+import { ShadowDOM } from "./runtime/templating/shadow-dom";
 
 //this object is built up during compilation
 export const nameTagConfig: ICompiledElementSource = {
@@ -85,7 +86,7 @@ export const nameTagConfig: ICompiledElementSource = {
     [
       {
         type: 'slot',
-        name: '__au-default-slot-key__'
+        name: ShadowDOM.defaultSlotName
       }
     ],
     [

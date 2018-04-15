@@ -43,11 +43,13 @@ const noViewTemplate: ITemplate = {
   }
 };
 
+type RenderCallback = (visual: IVisual, owner: any, index?: number) => void;
+
 export interface IVisual extends IBindScope, IViewOwner { 
   /**
   * If the visual requests animation upon add/remove, this property returns the element to be animated.
   */
-  readonly animatableElement: Element;
+  readonly animationRoot: Element;
 
   /**
   * The IViewFactory that built this instance.
@@ -59,7 +61,7 @@ export interface IVisual extends IBindScope, IViewOwner {
   */
   tryReturnToCache(): boolean;
 
-  attach(context: AttachContext | null, render: (visual: IVisual, owner: any, index?: number) => void, owner: any, index?: number);
+  attach(context: AttachContext | null, render: RenderCallback, owner: any, index?: number);
 
   detach(context?: DetachContext);
 }
@@ -156,12 +158,10 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
         instruction.factory = fallbackFactory = ViewEngine.factoryFromCompiledSource(instruction.fallback);
       }
 
-      let slot = ShadowDOM.createSlot(owner, instruction.name, instruction.destination, fallbackFactory);
+      let slot = ShadowDOM.createSlot(target, owner, instruction.name, instruction.destination, fallbackFactory);
       owner.$slots[slot.name] = slot;
       owner.$bindable.push(slot);
       owner.$attachable.push(slot);
-      DOM.replaceNode(slot.anchor, target);
-
       break;
     case 'element':
       let elementInstructions = instruction.instructions;
@@ -181,7 +181,6 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
 
       owner.$bindable.push(elementModel);
       owner.$attachable.push(elementModel);
-
       break;
     case 'attribute':
       let attributeInstructions = instruction.instructions;
@@ -342,7 +341,7 @@ abstract class Visual implements IVisual {
   $isBound = false;
   $isAttached = false;
   $inCache = false;
-  $animatableElement: Element = undefined;
+  $animationRoot: Element = undefined;
 
   constructor(public factory: DefaultViewFactory) {
     this.$view = this.createView();
@@ -350,9 +349,9 @@ abstract class Visual implements IVisual {
 
   abstract createView(): IView;
 
-  get animatableElement(): Element {
-    if (this.$animatableElement !== undefined) {
-      return this.$animatableElement;
+  get animationRoot(): Element {
+    if (this.$animationRoot !== undefined) {
+      return this.$animationRoot;
     }
   
     let currentChild = this.$view.firstChild;
@@ -363,12 +362,12 @@ abstract class Visual implements IVisual {
     }
   
     if (currentChild && currentChild.nodeType === 1) {
-      return this.$animatableElement = (<Element>currentChild).classList.contains('au-animate') 
+      return this.$animationRoot = (<Element>currentChild).classList.contains('au-animate') 
         ? <Element>currentChild 
         : null;
     }
   
-    return this.$animatableElement = null;
+    return this.$animationRoot = null;
   }
 
   bind(scope: IScope) {
@@ -391,7 +390,7 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  attach(context: AttachContext | null, render: (visual: IVisual, owner: ViewSlot, index?: number) => void, owner: ViewSlot, index?: number) {
+  attach(context: AttachContext | null, render: RenderCallback, owner: ViewSlot, index?: number) {
     if (this.$isAttached) {
       return;
     }

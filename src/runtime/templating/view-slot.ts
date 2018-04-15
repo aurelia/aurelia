@@ -72,7 +72,7 @@ export class ViewSlot implements IAttach {
    *   @returns An animation complete Promise or undefined if no animation was run.
    */
   animate(visual: IVisual, direction: 'enter' | 'leave' = 'enter'): void | Promise<boolean> {
-    const element = visual.animatableElement;
+    const element = visual.animationRoot;
 
     if (element === null) {
       return;

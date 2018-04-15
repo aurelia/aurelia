@@ -1,6 +1,7 @@
 import { IElementComponent } from "./templating/component";
 import { PLATFORM } from "./pal";
 import { DI } from "./di";
+import { View } from "./templating/view";
 
 export interface ISinglePageApp {
   host: HTMLElement,
@@ -32,7 +33,7 @@ class AureliaFramework {
     let startTask = () => {
       if (!this.components.includes(component)) {
         this.components.push(component);
-        component.applyTo(config.host);
+        component.applyTo(config.host, View.none);
       }
 
       component.bind();

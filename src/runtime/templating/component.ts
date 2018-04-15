@@ -13,7 +13,7 @@ import { ViewSlot } from "./view-slot";
 import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
 
 export interface IApplyToTarget {
-  applyTo(target: Element): this;
+  applyTo(target: Element, content: IView): this;
 }
 
 export interface IElementComponent extends IBindSelf, IAttach, IApplyToTarget, IViewOwner {
@@ -223,6 +223,8 @@ export const Component = {
           if (this.$characteristics.hasDetached) {
             context.queueForDetachedCallback(this);
           }
+
+          this.$isAttached = false;
         }
       }
 
@@ -271,7 +273,7 @@ export const Component = {
       $attachable: IAttach[] = [];
       $slots: Record<string, IShadowSlot> = source.hasSlots ? {} : null;
       $useShadowDOM = source.shadowOptions && FEATURE.shadowDOM;
-      $view: IView;
+      $view: IView = null;
       $contentView: IView = null;
       $isAttached = false;
       $isBound = false;
@@ -280,8 +282,8 @@ export const Component = {
         overrideContext: BindingContext.createOverride()
       };
       
-      private $host: Element;
-      private $shadowRoot: Element | ShadowRoot;
+      private $host: Element = null;
+      private $shadowRoot: Element | ShadowRoot = null;
       private $changeCallbacks: (() => void)[] = [];
       private $characteristics: RuntimeCharacteristics = null;
   
@@ -290,7 +292,7 @@ export const Component = {
         discoverAndApplyCharacteristics(this, CompiledComponent);
       }
   
-      applyTo(host: Element) { 
+      applyTo(host: Element, content: IView) { 
         this.$host = source.containerless 
           ? DOM.makeElementIntoAnchor(host, true)
           : host;
@@ -299,6 +301,7 @@ export const Component = {
           ? host.attachShadow(source.shadowOptions) 
           : this.$host;
 
+        this.$contentView = content;
         this.$view = this.createView(this.$host);
   
         if (this.$characteristics.hasCreated) {
@@ -322,10 +325,6 @@ export const Component = {
   
         for (let i = 0, ii = bindable.length; i < ii; ++i) {
           bindable[i].bind(scope);
-        }
-
-        if (this.$contentView !== View.none) {
-          ShadowDOM.distributeView(this.$contentView, this.$slots);
         }
   
         this.$isBound = true;
@@ -364,6 +363,12 @@ export const Component = {
           this.$view.insertBefore(this.$host);
         } else {
           this.$view.appendTo(this.$shadowRoot);
+        }
+
+        //Native ShadowDOM would be distributed as soon as we append the view above.
+        //So, we emulate the distribution of nodes at the same time.
+        if (this.$contentView !== View.none) {
+          ShadowDOM.distributeView(this.$contentView, this.$slots);
         }
       
         if (this.$characteristics.hasAttached) {

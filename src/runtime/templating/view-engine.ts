@@ -43,7 +43,7 @@ const noViewTemplate: ITemplate = {
   }
 };
 
-export interface IVisual extends IBindScope, IAttach, IViewOwner { 
+export interface IVisual extends IBindScope, IViewOwner { 
   /**
   * If the visual requests animation upon add/remove, this property returns the element to be animated.
   */
@@ -58,6 +58,10 @@ export interface IVisual extends IBindScope, IAttach, IViewOwner {
   * Attempts to return this view to the appropriate view cache.
   */
   tryReturnToCache(): boolean;
+
+  attach(render: (visual: IVisual) => void, context?: AttachContext)
+
+  detach(context?: DetachContext);
 }
 
 export const IViewFactory = DI.createInterface('IViewFactory');
@@ -163,10 +167,9 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
       let elementInstructions = instruction.instructions;
 
       container.element.prepare(target);
+      
       let elementModel = container.get<IElementComponent>(instruction.resource);
-      (<any>elementModel).$contentView = View.fromCompiledElementContent(elementModel, target);
-
-      elementModel.applyTo(target);
+      elementModel.applyTo(target, View.fromCompiledElementContent(elementModel, target));
 
       for (let i = 0, ii = elementInstructions.length; i < ii; ++i) {
         let current = elementInstructions[i];
@@ -334,8 +337,8 @@ class CompiledTemplate implements ITemplate {
 abstract class Visual implements IVisual {
   $bindable: IBindScope[] = [];
   $attachable: IAttach[] = [];
-  $scope: IScope;
-  $view: IView;
+  $scope: IScope = null;
+  $view: IView = null;
   $isBound = false;
   $isAttached = false;
   $inCache = false;
@@ -388,7 +391,7 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  attach(context?: AttachContext) {
+  attach(render: (visual: IVisual) => void, context?: AttachContext) {
     if (this.$isAttached) {
       return;
     }
@@ -403,6 +406,8 @@ abstract class Visual implements IVisual {
       attachable[i].attach(context);
     }
 
+    render(this);
+
     this.$isAttached = true;
 
     if (context.wasOpenedBy(this)) {
@@ -415,6 +420,8 @@ abstract class Visual implements IVisual {
       if (!context) {
         context = DetachContext.open(this);
       }
+
+      context.queueForViewRemoval(this);
 
       let attachable = this.$attachable;
       let i = attachable.length;

@@ -484,7 +484,7 @@ define('debug/task-queue',["require", "exports", "../runtime/task-queue"], funct
 
 
 
-define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (require, exports, pal_1, di_1) {
+define('runtime/aurelia',["require", "exports", "./pal", "./di", "./templating/view"], function (require, exports, pal_1, di_1, view_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var AureliaFramework = (function () {
@@ -511,7 +511,7 @@ define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (requ
             var startTask = function () {
                 if (!_this.components.includes(component)) {
                     _this.components.push(component);
-                    component.applyTo(config.host);
+                    component.applyTo(config.host, view_1.View.none);
                 }
                 component.bind();
                 component.attach();
@@ -1554,6 +1554,24 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
             throw new Error('Expression Compilation Not Implemented');
         }
     });
+});
+
+
+
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(if_1.If, else_1.Else);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
+        }
+    };
 });
 
 
@@ -4837,24 +4855,6 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(if_1.If, else_1.Else);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
-        }
-    };
-});
-
-
-
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -5230,6 +5230,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             if (this.$characteristics.hasDetached) {
                                 context.queueForDetachedCallback(this);
                             }
+                            this.$isAttached = false;
                         }
                     };
                     CustomAttribute.prototype.unbind = function () {
@@ -5278,6 +5279,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         _this.$attachable = [];
                         _this.$slots = source.hasSlots ? {} : null;
                         _this.$useShadowDOM = source.shadowOptions && pal_1.FEATURE.shadowDOM;
+                        _this.$view = null;
                         _this.$contentView = null;
                         _this.$isAttached = false;
                         _this.$isBound = false;
@@ -5285,6 +5287,8 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             bindingContext: _this,
                             overrideContext: binding_context_1.BindingContext.createOverride()
                         };
+                        _this.$host = null;
+                        _this.$shadowRoot = null;
                         _this.$changeCallbacks = [];
                         _this.$characteristics = null;
                         discoverAndApplyCharacteristics(_this, CompiledComponent);
@@ -5293,13 +5297,14 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     class_1.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    class_1.prototype.applyTo = function (host) {
+                    class_1.prototype.applyTo = function (host, content) {
                         this.$host = source.containerless
                             ? pal_1.DOM.makeElementIntoAnchor(host, true)
                             : host;
                         this.$shadowRoot = this.$useShadowDOM
                             ? host.attachShadow(source.shadowOptions)
                             : this.$host;
+                        this.$contentView = content;
                         this.$view = this.createView(this.$host);
                         if (this.$characteristics.hasCreated) {
                             this.created();
@@ -5317,9 +5322,6 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         var bindable = this.$bindable;
                         for (var i = 0, ii = bindable.length; i < ii; ++i) {
                             bindable[i].bind(scope);
-                        }
-                        if (this.$contentView !== view_1.View.none) {
-                            shadow_dom_1.ShadowDOM.distributeView(this.$contentView, this.$slots);
                         }
                         this.$isBound = true;
                         var changeCallbacks = this.$changeCallbacks;
@@ -5349,6 +5351,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                         else {
                             this.$view.appendTo(this.$shadowRoot);
+                        }
+                        if (this.$contentView !== view_1.View.none) {
+                            shadow_dom_1.ShadowDOM.distributeView(this.$contentView, this.$slots);
                         }
                         if (this.$characteristics.hasAttached) {
                             context.queueForAttachedCallback(this);
@@ -5559,8 +5564,10 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             this.destinationName = destinationName;
             this.fallbackFactory = fallbackFactory;
             this.projections = 0;
-            this.contentView = null;
+            this.fallbackContentView = null;
             this.destinationSlot = null;
+            this.$isAttached = false;
+            this.$isBound = false;
             this.anchor.viewSlot = this;
             var attr = new SlotCustomAttribute(this.anchor);
             attr.value = this.destinationName;
@@ -5574,23 +5581,22 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
         });
         PassThroughSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
             if (index === void 0) { index = 0; }
-            if (this.contentView === null) {
-                this.contentView = this.fallbackFactory.create();
-                this.contentView.bind(this.owner.$scope);
+            if (this.fallbackContentView === null) {
+                this.fallbackContentView = this.fallbackFactory.create();
+                this.fallbackContentView.bind(this.owner.$scope);
                 var slots = Object.create(null);
                 slots[this.destinationSlot.name] = this.destinationSlot;
-                exports.ShadowDOM.distributeView(this.contentView.$view, slots, projectionSource, index, this.destinationSlot.name);
+                exports.ShadowDOM.distributeView(this.fallbackContentView.$view, slots, projectionSource, index, this.destinationSlot.name);
             }
         };
         PassThroughSlot.prototype.passThroughTo = function (destinationSlot) {
             this.destinationSlot = destinationSlot;
         };
         PassThroughSlot.prototype.addNode = function (view, node, projectionSource, index) {
-            if (this.contentView !== null) {
-                this.contentView.$view.remove();
-                this.contentView.detach();
-                this.contentView.unbind();
-                this.contentView = null;
+            if (this.fallbackContentView !== null) {
+                this.fallbackContentView.detach();
+                this.fallbackContentView.unbind();
+                this.fallbackContentView = null;
             }
             if (node.viewSlot instanceof PassThroughSlot) {
                 node.viewSlot.passThroughTo(this);
@@ -5617,23 +5623,38 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             this.destinationSlot.projectFrom(view, projectionSource);
         };
         PassThroughSlot.prototype.bind = function (scope) {
-            if (this.contentView !== null) {
-                this.contentView.bind(scope);
+            if (this.$isBound) {
+                return;
             }
+            if (this.fallbackContentView !== null) {
+                this.fallbackContentView.bind(scope);
+            }
+            this.$isBound = true;
         };
         PassThroughSlot.prototype.attach = function (context) {
-            if (this.contentView !== null) {
-                this.contentView.attach(context);
+            var _this = this;
+            if (this.$isAttached) {
+                return;
             }
+            if (this.fallbackContentView !== null) {
+                this.fallbackContentView.attach(function (visual) { return _this.fallbackContentView.$view.insertBefore(_this.anchor); }, context);
+            }
+            this.$isAttached = true;
         };
         PassThroughSlot.prototype.detach = function (context) {
-            if (this.contentView !== null) {
-                this.contentView.detach(context);
+            if (this.$isAttached) {
+                if (this.fallbackContentView !== null) {
+                    this.fallbackContentView.detach(context);
+                }
+                this.$isAttached = false;
             }
         };
         PassThroughSlot.prototype.unbind = function () {
-            if (this.contentView !== null) {
-                this.contentView.unbind();
+            if (this.$isBound) {
+                if (this.fallbackContentView !== null) {
+                    this.fallbackContentView.unbind();
+                }
+                this.$isBound = false;
             }
         };
         return PassThroughSlot;
@@ -5644,11 +5665,13 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             this.anchor = anchor;
             this.name = name;
             this.fallbackFactory = fallbackFactory;
-            this.contentView = null;
+            this.fallbackContentView = null;
             this.projections = 0;
             this.children = [];
             this.projectFromAnchors = null;
             this.destinationSlots = null;
+            this.$isAttached = false;
+            this.$isBound = false;
             this.anchor.isContentProjectionSource = true;
             this.anchor.viewSlot = this;
         }
@@ -5660,11 +5683,10 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             configurable: true
         });
         ShadowSlot.prototype.addNode = function (view, node, projectionSource, index, destination) {
-            if (this.contentView !== null) {
-                this.contentView.$view.remove();
-                this.contentView.detach();
-                this.contentView.unbind();
-                this.contentView = null;
+            if (this.fallbackContentView !== null) {
+                this.fallbackContentView.detach();
+                this.fallbackContentView.unbind();
+                this.fallbackContentView = null;
             }
             if (node.viewSlot instanceof PassThroughSlot) {
                 node.viewSlot.passThroughTo(this);
@@ -5688,8 +5710,8 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             if (this.destinationSlots !== null) {
                 exports.ShadowDOM.undistributeView(view, this.destinationSlots, this);
             }
-            else if (this.contentView && this.contentView.$slots) {
-                exports.ShadowDOM.undistributeView(view, this.contentView.$slots, projectionSource);
+            else if (this.fallbackContentView && this.fallbackContentView.$slots) {
+                exports.ShadowDOM.undistributeView(view, this.fallbackContentView.$slots, projectionSource);
             }
             else {
                 var found = this.children.find(function (x) { return x.auSlotProjectFrom === projectionSource; });
@@ -5715,8 +5737,8 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             if (this.destinationSlots !== null) {
                 exports.ShadowDOM.undistributeAll(this.destinationSlots, this);
             }
-            else if (this.contentView && this.contentView.$slots) {
-                exports.ShadowDOM.undistributeAll(this.contentView.$slots, projectionSource);
+            else if (this.fallbackContentView && this.fallbackContentView.$slots) {
+                exports.ShadowDOM.undistributeAll(this.fallbackContentView.$slots, projectionSource);
             }
             else {
                 var found = this.children.find(function (x) { return x.auSlotProjectFrom === projectionSource; });
@@ -5778,13 +5800,17 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
         };
         ShadowSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
             if (index === void 0) { index = 0; }
-            if (this.contentView === null) {
-                this.contentView = this.fallbackFactory.create();
-                this.contentView.bind(this.owner.$scope);
-                this.contentView.$view.insertBefore(this.anchor);
+            if (this.fallbackContentView === null) {
+                this.fallbackContentView = this.fallbackFactory.create();
+                if (this.$isBound) {
+                    this.fallbackContentView.bind(this.owner.$scope);
+                }
+                if (this.$isAttached) {
+                    this.fallbackContentView.$view.insertBefore(this.anchor);
+                }
             }
-            if (this.contentView.$slots) {
-                var slots = this.contentView.$slots;
+            if (this.fallbackContentView.$slots) {
+                var slots = this.fallbackContentView.$slots;
                 var projectFromAnchors = this.projectFromAnchors;
                 if (projectFromAnchors !== null) {
                     for (var slotName in slots) {
@@ -5800,23 +5826,38 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             }
         };
         ShadowSlot.prototype.bind = function (scope) {
-            if (this.contentView !== null) {
-                this.contentView.bind(scope);
+            if (this.$isBound) {
+                return;
             }
+            if (this.fallbackContentView !== null) {
+                this.fallbackContentView.bind(scope);
+            }
+            this.$isBound = true;
         };
         ShadowSlot.prototype.attach = function (context) {
-            if (this.contentView !== null) {
-                this.contentView.attach(context);
+            var _this = this;
+            if (this.$isAttached) {
+                return;
             }
+            if (this.fallbackContentView !== null) {
+                this.fallbackContentView.attach(function (visual) { return _this.fallbackContentView.$view.insertBefore(_this.anchor); }, context);
+            }
+            this.$isAttached = true;
         };
         ShadowSlot.prototype.detach = function (context) {
-            if (this.contentView !== null) {
-                this.contentView.detach(context);
+            if (this.$isAttached) {
+                if (this.fallbackContentView !== null) {
+                    this.fallbackContentView.detach(context);
+                }
+                this.$isAttached = false;
             }
         };
         ShadowSlot.prototype.unbind = function () {
-            if (this.contentView !== null) {
-                this.contentView.unbind();
+            if (this.$isBound) {
+                if (this.fallbackContentView !== null) {
+                    this.fallbackContentView.unbind();
+                }
+                this.$isBound = false;
             }
         };
         return ShadowSlot;
@@ -6012,8 +6053,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 var elementInstructions = instruction.instructions;
                 container.element.prepare(target);
                 var elementModel = container.get(instruction.resource);
-                elementModel.$contentView = view_1.View.fromCompiledElementContent(elementModel, target);
-                elementModel.applyTo(target);
+                elementModel.applyTo(target, view_1.View.fromCompiledElementContent(elementModel, target));
                 for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
                     var current = elementInstructions[i];
                     var realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
@@ -6145,6 +6185,8 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.factory = factory;
             this.$bindable = [];
             this.$attachable = [];
+            this.$scope = null;
+            this.$view = null;
             this.$isBound = false;
             this.$isAttached = false;
             this.$inCache = false;
@@ -6185,7 +6227,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             }
             this.$isBound = true;
         };
-        Visual.prototype.attach = function (context) {
+        Visual.prototype.attach = function (render, context) {
             if (this.$isAttached) {
                 return;
             }
@@ -6196,6 +6238,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             for (var i = 0, ii = attachable.length; i < ii; ++i) {
                 attachable[i].attach(context);
             }
+            render(this);
             this.$isAttached = true;
             if (context.wasOpenedBy(this)) {
                 context.close();
@@ -6206,6 +6249,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 if (!context) {
                     context = lifecycle_1.DetachContext.open(this);
                 }
+                context.queueForViewRemoval(this);
                 var attachable = this.$attachable;
                 var i = attachable.length;
                 while (i--) {
@@ -6283,18 +6327,24 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
 
 
 
-define('runtime/templating/view-slot',["require", "exports", "./animator", "./shadow-dom", "../reporter"], function (require, exports, animator_1, shadow_dom_1, reporter_1) {
+define('runtime/templating/view-slot',["require", "exports", "./animator", "./shadow-dom", "../reporter", "./lifecycle"], function (require, exports, animator_1, shadow_dom_1, reporter_1, lifecycle_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    function appendToContainer(visual) {
+        visual.$view.appendTo(visual.anchor);
+    }
+    function insertBeforeAnchor(visual) {
+        visual.$view.insertBefore(visual.anchor);
+    }
     var ViewSlot = (function () {
         function ViewSlot(anchor, anchorIsContainer) {
             this.anchor = anchor;
-            this.anchorIsContainer = anchorIsContainer;
             this.$isAttached = false;
             this.children = [];
             this.projectToSlots = null;
             anchor.viewSlot = this;
             anchor.isContentProjectionSource = false;
+            this.render = anchorIsContainer ? appendToContainer : insertBeforeAnchor;
         }
         ViewSlot.prototype.animate = function (visual, direction) {
             if (direction === void 0) { direction = 'enter'; }
@@ -6312,17 +6362,10 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             }
         };
         ViewSlot.prototype.add = function (visual) {
-            if (this.$isAttached) {
-                visual.attach();
-            }
-            if (this.anchorIsContainer) {
-                visual.$view.appendTo(this.anchor);
-            }
-            else {
-                visual.$view.insertBefore(this.anchor);
-            }
             this.children.push(visual);
             if (this.$isAttached) {
+                visual.anchor = this.anchor;
+                visual.attach(this.render);
                 return this.animate(visual, 'enter');
             }
         };
@@ -6332,12 +6375,10 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             if ((index === 0 && length === 0) || index >= length) {
                 return this.add(visual);
             }
-            if (this.$isAttached) {
-                visual.attach();
-            }
-            visual.$view.insertBefore(children[index].$view.firstChild);
             children.splice(index, 0, visual);
             if (this.$isAttached) {
+                visual.anchor = children[index].$view.firstChild;
+                visual.attach(this.render);
                 return this.animate(visual, 'enter');
             }
         };
@@ -6348,119 +6389,86 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             var children = this.children;
             var visual = children[sourceIndex];
             var view = visual.$view;
-            view.remove();
-            view.insertBefore(children[targetIndex].$view.firstChild);
             children.splice(sourceIndex, 1);
             children.splice(targetIndex, 0, visual);
+            if (this.$isAttached) {
+                view.remove();
+                view.insertBefore(children[targetIndex].$view.firstChild);
+            }
         };
         ViewSlot.prototype.remove = function (visual, returnToCache, skipAnimation) {
             return this.removeAt(this.children.indexOf(visual), returnToCache, skipAnimation);
+        };
+        ViewSlot.prototype.removeAt = function (index, returnToCache, skipAnimation) {
+            var _this = this;
+            var visual = this.children[index];
+            this.children.splice(index, 1);
+            var detachAndReturn = function () {
+                if (_this.$isAttached) {
+                    visual.detach();
+                }
+                if (returnToCache) {
+                    visual.tryReturnToCache();
+                }
+                return visual;
+            };
+            if (!skipAnimation && this.$isAttached) {
+                var animation = this.animate(visual, 'leave');
+                if (animation) {
+                    return animation.then(function () { return detachAndReturn(); });
+                }
+            }
+            return detachAndReturn();
+        };
+        ViewSlot.prototype.removeAll = function (returnToCache, skipAnimation) {
+            return this.removeMany(this.children, returnToCache, skipAnimation);
         };
         ViewSlot.prototype.removeMany = function (visualsToRemove, returnToCache, skipAnimation) {
             var _this = this;
             var children = this.children;
             var ii = visualsToRemove.length;
             var rmPromises = [];
+            var context = lifecycle_1.DetachContext.open(this);
             var i;
-            visualsToRemove.forEach(function (child) {
-                var view = child.$view;
-                if (skipAnimation) {
-                    view.remove();
-                    return;
-                }
-                var animation = _this.animate(child, 'leave');
-                if (animation) {
-                    rmPromises.push(animation.then(function () { return view.remove(); }));
-                }
-                else {
-                    view.remove();
-                }
-            });
-            var removeAction = function () {
-                if (_this.$isAttached) {
-                    for (i = 0; i < ii; ++i) {
-                        visualsToRemove[i].detach();
-                    }
-                }
-                if (returnToCache) {
-                    for (i = 0; i < ii; ++i) {
-                        visualsToRemove[i].tryReturnToCache();
-                    }
-                }
+            if (visualsToRemove === children) {
+                this.children = [];
+            }
+            else {
                 for (i = 0; i < ii; ++i) {
                     var index = children.indexOf(visualsToRemove[i]);
                     if (index >= 0) {
                         children.splice(index, 1);
                     }
                 }
+            }
+            if (this.$isAttached) {
+                visualsToRemove.forEach(function (child) {
+                    if (skipAnimation) {
+                        child.detach(context);
+                        return;
+                    }
+                    var animation = _this.animate(child, 'leave');
+                    if (animation) {
+                        rmPromises.push(animation.then(function () { return child.detach(context); }));
+                    }
+                    else {
+                        child.detach(context);
+                    }
+                });
+            }
+            var finalizeRemoval = function () {
+                context.close();
+                if (returnToCache) {
+                    for (i = 0; i < ii; ++i) {
+                        visualsToRemove[i].tryReturnToCache();
+                    }
+                }
                 return visualsToRemove;
             };
             if (rmPromises.length > 0) {
-                return Promise.all(rmPromises).then(function () { return removeAction(); });
+                return Promise.all(rmPromises).then(function () { return finalizeRemoval(); });
             }
-            return removeAction();
-        };
-        ViewSlot.prototype.removeAt = function (index, returnToCache, skipAnimation) {
-            var _this = this;
-            var visual = this.children[index];
-            var removeAction = function () {
-                visual.detach();
-                visual.$view.remove();
-                index = _this.children.indexOf(visual);
-                _this.children.splice(index, 1);
-                if (returnToCache) {
-                    visual.tryReturnToCache();
-                }
-                return visual;
-            };
-            if (!skipAnimation) {
-                var animation = this.animate(visual, 'leave');
-                if (animation) {
-                    return animation.then(function () { return removeAction(); });
-                }
-            }
-            return removeAction();
-        };
-        ViewSlot.prototype.removeAll = function (returnToCache, skipAnimation) {
-            var _this = this;
-            var children = this.children;
-            var ii = children.length;
-            var rmPromises = [];
-            var i;
-            children.forEach(function (child) {
-                var view = child.$view;
-                if (skipAnimation) {
-                    view.remove();
-                    return;
-                }
-                var animation = _this.animate(child, 'leave');
-                if (animation) {
-                    rmPromises.push(animation.then(function () { return view.remove(); }));
-                }
-                else {
-                    view.remove();
-                }
-            });
-            var removeAction = function () {
-                if (_this.$isAttached) {
-                    for (i = 0; i < ii; ++i) {
-                        children[i].detach();
-                    }
-                }
-                if (returnToCache) {
-                    for (i = 0; i < ii; ++i) {
-                        var child = children[i];
-                        if (child) {
-                            child.tryReturnToCache();
-                        }
-                    }
-                }
-                _this.children = [];
-            };
-            if (rmPromises.length > 0) {
-                return Promise.all(rmPromises).then(function () { return removeAction(); });
-            }
-            return removeAction();
+            return finalizeRemoval();
         };
         ViewSlot.prototype.attach = function (context) {
             if (this.$isAttached) {
@@ -6469,7 +6477,8 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             var children = this.children;
             for (var i = 0, ii = children.length; i < ii; ++i) {
                 var child = children[i];
-                child.attach(context);
+                child.anchor = this.anchor;
+                child.attach(this.render);
                 this.animate(child, 'enter');
             }
             this.$isAttached = true;
@@ -6489,29 +6498,34 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             this.add = this.projectionAdd;
             this.insert = this.projectionInsert;
             this.move = this.projectionMove;
-            this.remove = this.projectionRemove;
             this.removeAt = this.projectionRemoveAt;
             this.removeMany = this.projectionRemoveMany;
-            this.removeAll = this.projectionRemoveAll;
-            this.children.forEach(function (view) { return shadow_dom_1.ShadowDOM.distributeView(view.$view, slots, _this); });
+            this.render = function (visual) { return shadow_dom_1.ShadowDOM.distributeView(visual.$view, _this.projectToSlots, _this); };
+            if (this.$isAttached) {
+                this.children.forEach(function (visual) { return shadow_dom_1.ShadowDOM.distributeView(visual.$view, slots, _this); });
+            }
         };
         ViewSlot.prototype.projectionAdd = function (visual) {
-            if (this.$isAttached) {
-                visual.attach();
-            }
-            shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this);
+            var _this = this;
             this.children.push(visual);
+            if (this.$isAttached) {
+                this.render = function (visual) { return shadow_dom_1.ShadowDOM.distributeView(visual.$view, _this.projectToSlots, _this); };
+                visual.attach(this.render);
+                return this.animate(visual, 'enter');
+            }
         };
         ViewSlot.prototype.projectionInsert = function (index, visual) {
-            if ((index === 0 && !this.children.length) || index >= this.children.length) {
-                this.add(visual);
+            var _this = this;
+            var children = this.children;
+            var length = children.length;
+            if ((index === 0 && length === 0) || index >= length) {
+                return this.add(visual);
             }
-            else {
-                if (this.$isAttached) {
-                    visual.attach();
-                }
-                shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, index);
-                this.children.splice(index, 0, visual);
+            children.splice(index, 0, visual);
+            if (this.$isAttached) {
+                this.render = function (visual) { return shadow_dom_1.ShadowDOM.distributeView(visual.$view, _this.projectToSlots, _this, index); };
+                visual.attach(this.render);
+                return this.animate(visual, 'enter');
             }
         };
         ViewSlot.prototype.projectionMove = function (sourceIndex, targetIndex) {
@@ -6520,41 +6534,82 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             }
             var children = this.children;
             var visual = children[sourceIndex];
-            shadow_dom_1.ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
-            shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, targetIndex);
             children.splice(sourceIndex, 1);
             children.splice(targetIndex, 0, visual);
-        };
-        ViewSlot.prototype.projectionRemove = function (visual) {
-            shadow_dom_1.ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
-            this.children.splice(this.children.indexOf(visual), 1);
             if (this.$isAttached) {
-                visual.detach();
+                shadow_dom_1.ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
+                shadow_dom_1.ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, targetIndex);
             }
-            return visual;
         };
-        ViewSlot.prototype.projectionRemoveAt = function (index, skipAnimation) {
-            var visual = this.children[index];
-            shadow_dom_1.ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
-            this.children.splice(index, 1);
-            if (this.$isAttached) {
-                visual.detach();
-            }
-            return visual;
-        };
-        ViewSlot.prototype.projectionRemoveMany = function (viewsToRemove, skipAnimation) {
+        ViewSlot.prototype.projectionRemoveAt = function (index, returnToCache, skipAnimation) {
             var _this = this;
-            viewsToRemove.forEach(function (view) { return _this.remove(view); });
-        };
-        ViewSlot.prototype.projectionRemoveAll = function () {
-            shadow_dom_1.ShadowDOM.undistributeAll(this.projectToSlots, this);
-            var children = this.children;
-            if (this.$isAttached) {
-                for (var i = 0, ii = children.length; i < ii; ++i) {
-                    children[i].detach();
+            var visual = this.children[index];
+            this.children.splice(index, 1);
+            var detachAndReturn = function () {
+                if (_this.$isAttached) {
+                    visual.$view.remove = function () { return shadow_dom_1.ShadowDOM.undistributeView(visual.$view, _this.projectToSlots, _this); };
+                    visual.detach();
+                }
+                if (returnToCache) {
+                    visual.tryReturnToCache();
+                }
+                return visual;
+            };
+            if (!skipAnimation && this.$isAttached) {
+                var animation = this.animate(visual, 'leave');
+                if (animation) {
+                    return animation.then(function () { return detachAndReturn(); });
                 }
             }
-            this.children = [];
+            return detachAndReturn();
+        };
+        ViewSlot.prototype.projectionRemoveMany = function (visualsToRemove, returnToCache, skipAnimation) {
+            var _this = this;
+            var children = this.children;
+            var ii = visualsToRemove.length;
+            var rmPromises = [];
+            var context = lifecycle_1.DetachContext.open(this);
+            var i;
+            if (visualsToRemove === children) {
+                this.children = [];
+            }
+            else {
+                for (i = 0; i < ii; ++i) {
+                    var index = children.indexOf(visualsToRemove[i]);
+                    if (index >= 0) {
+                        children.splice(index, 1);
+                    }
+                }
+            }
+            if (this.$isAttached) {
+                visualsToRemove.forEach(function (child) {
+                    if (skipAnimation) {
+                        child.$view.remove = function () { return shadow_dom_1.ShadowDOM.undistributeView(child.$view, _this.projectToSlots, _this); };
+                        child.detach(context);
+                        return;
+                    }
+                    var animation = _this.animate(child, 'leave');
+                    if (animation) {
+                        rmPromises.push(animation.then(function () { return child.detach(context); }));
+                    }
+                    else {
+                        child.detach(context);
+                    }
+                });
+            }
+            var finalizeRemoval = function () {
+                context.close();
+                if (returnToCache) {
+                    for (i = 0; i < ii; ++i) {
+                        visualsToRemove[i].tryReturnToCache();
+                    }
+                }
+                return visualsToRemove;
+            };
+            if (rmPromises.length > 0) {
+                return Promise.all(rmPromises).then(function () { return finalizeRemoval(); });
+            }
+            return finalizeRemoval();
         };
         return ViewSlot;
     }());

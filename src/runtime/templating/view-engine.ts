@@ -59,7 +59,7 @@ export interface IVisual extends IBindScope, IViewOwner {
   */
   tryReturnToCache(): boolean;
 
-  attach(render: (visual: IVisual) => void, context?: AttachContext)
+  attach(context: AttachContext | null, render: (visual: IVisual, owner: any, index?: number) => void, owner: any, index?: number);
 
   detach(context?: DetachContext);
 }
@@ -391,7 +391,7 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  attach(render: (visual: IVisual) => void, context?: AttachContext) {
+  attach(context: AttachContext | null, render: (visual: IVisual, owner: ViewSlot, index?: number) => void, owner: ViewSlot, index?: number) {
     if (this.$isAttached) {
       return;
     }
@@ -406,7 +406,7 @@ abstract class Visual implements IVisual {
       attachable[i].attach(context);
     }
 
-    render(this);
+    render(this, owner, index);
 
     this.$isAttached = true;
 

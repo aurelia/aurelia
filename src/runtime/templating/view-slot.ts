@@ -7,12 +7,34 @@ import { Reporter } from '../reporter';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
 import { visitEachChild } from 'typescript';
 
-function appendToContainer(visual: IVisual & { anchor: Element }) {
-  visual.$view.appendTo(visual.anchor);
+function appendVisualToContainer(visual: IVisual, owner: ViewSlot) {
+  visual.$view.appendTo(owner.anchor);
 }
 
-function insertBeforeAnchor(visual: IVisual & { anchor: Node}) {
-  visual.$view.insertBefore(visual.anchor);
+function addVisualToList(visual: IVisual, owner: ViewSlot) {
+  visual.$view.insertBefore(owner.anchor);
+}
+
+function projectAddVisualToList(visual: IVisual, owner: ViewSlot) {
+  visual.$view.remove = () => ShadowDOM.undistributeView(visual.$view, owner.slots, owner);
+  ShadowDOM.distributeView(visual.$view, owner.slots, owner);
+}
+
+function insertVisualAtIndex(visual: IVisual, owner: ViewSlot, index: number) {
+  visual.$view.insertBefore(owner.children[index].$view.firstChild);
+}
+
+function projectInsertVisualAtIndex(visual: IVisual, owner: ViewSlot, index: number) {
+  visual.$view.remove = () => ShadowDOM.undistributeView(visual.$view, owner.slots, owner);
+  ShadowDOM.distributeView(visual.$view, owner.slots, owner, index);
+}
+
+function removeView(visual: IVisual, owner: ViewSlot) {
+  visual.$view.remove();
+}
+
+function projectRemoveView(visual: IVisual, owner: ViewSlot) {
+  ShadowDOM.undistributeView(visual.$view, owner.slots, owner);
 }
 
 /**
@@ -21,9 +43,12 @@ function insertBeforeAnchor(visual: IVisual & { anchor: Node}) {
 */
 export class ViewSlot implements IAttach {
   private $isAttached = false;
-  private children: IVisual[] = [];
-  private projectToSlots: Record<string, IShadowSlot> = null;
-  private render: (visual: IVisual & { anchor: Node}) => void;
+  public children: IVisual[] = [];
+  public slots: Record<string, IShadowSlot> = null;
+
+  private addVisualCore: (visual: IVisual, owner: ViewSlot) => void;
+  private insertVisualCore: (visual: IVisual, owner: ViewSlot, index: number) => void;
+  private removeViewCore: (visual: IVisual, owner: ViewSlot) => void;
 
   /**
   * Creates an instance of ViewSlot.
@@ -35,7 +60,9 @@ export class ViewSlot implements IAttach {
     (<any>anchor).viewSlot = this;
     (<any>anchor).isContentProjectionSource = false;
 
-    this.render = anchorIsContainer ? appendToContainer : insertBeforeAnchor;
+    this.addVisualCore = anchorIsContainer ? appendVisualToContainer : addVisualToList;
+    this.insertVisualCore = insertVisualAtIndex;
+    this.removeViewCore = removeView;
   }
 
   /**
@@ -70,8 +97,7 @@ export class ViewSlot implements IAttach {
     this.children.push(visual);
 
     if (this.$isAttached) {
-      (<any>visual).anchor = this.anchor;
-      visual.attach(this.render);
+      visual.attach(null, this.addVisualCore, this);
       return this.animate(visual, 'enter');
     }
   }
@@ -93,8 +119,7 @@ export class ViewSlot implements IAttach {
     children.splice(index, 0, visual);
 
     if (this.$isAttached) {
-      (<any>visual).anchor = children[index].$view.firstChild;
-      visual.attach(this.render);
+      visual.attach(null, this.insertVisualCore, this, index);
       return this.animate(visual, 'enter');
     }
   }
@@ -111,14 +136,13 @@ export class ViewSlot implements IAttach {
 
     const children = this.children;
     const visual = children[sourceIndex];
-    const view = visual.$view;
 
     children.splice(sourceIndex, 1);
     children.splice(targetIndex, 0, visual);
 
     if (this.$isAttached) {
-      view.remove();
-      view.insertBefore(children[targetIndex].$view.firstChild);
+      this.removeViewCore(visual, this);
+      this.insertVisualCore(visual, this, targetIndex);
     }
   }
 
@@ -172,6 +196,7 @@ export class ViewSlot implements IAttach {
   removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
     return this.removeMany(this.children, returnToCache, skipAnimation);
   }
+
   /**
   * Removes many views from the slot.
   * @param visualsToRemove The array of views to remove.
@@ -244,8 +269,7 @@ export class ViewSlot implements IAttach {
 
     for (let i = 0, ii = children.length; i < ii; ++i) {
       let child = children[i];
-      (<any>child).anchor = this.anchor;
-      child.attach(this.render);
+      child.attach(context, this.addVisualCore, this);
       this.animate(child, 'enter');
     }
 
@@ -268,142 +292,13 @@ export class ViewSlot implements IAttach {
   }
 
   projectTo(slots: Record<string, IShadowSlot>): void {
-    this.projectToSlots = slots;
-    this.add = this.projectionAdd;
-    this.insert = this.projectionInsert;
-    this.move = this.projectionMove;
-    this.removeAt = this.projectionRemoveAt;
-    this.removeMany = this.projectionRemoveMany;
-    this.render = visual => ShadowDOM.distributeView(visual.$view, this.projectToSlots, this);
+    this.slots = slots;
+    this.addVisualCore = projectAddVisualToList;
+    this.insertVisualCore = projectInsertVisualAtIndex;
+    this.removeViewCore = projectRemoveView;
 
     if (this.$isAttached) {
-      this.children.forEach(visual => ShadowDOM.distributeView(visual.$view, slots, this));
+      this.children.forEach(visual => projectAddVisualToList(visual, this));
     }
-  }
-
-  private projectionAdd(visual: IVisual) {
-    this.children.push(visual);
-
-    if (this.$isAttached) {
-      this.render = visual => ShadowDOM.distributeView(visual.$view, this.projectToSlots, this);
-      visual.attach(this.render);
-      return this.animate(visual, 'enter');
-    }
-  }
-
-  private projectionInsert(index: number, visual: IVisual) {
-    const children = this.children;
-    const length = children.length;
-
-    if ((index === 0 && length === 0) || index >= length) {
-      return this.add(visual);
-    }
-    
-    children.splice(index, 0, visual);
-
-    if (this.$isAttached) {
-      this.render = visual => ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, index);
-      visual.attach(this.render);
-      return this.animate(visual, 'enter');
-    }
-  }
-
-  private projectionMove(sourceIndex: number, targetIndex: number) {
-    if (sourceIndex === targetIndex) {
-      return;
-    }
-
-    const children = this.children;
-    const visual = children[sourceIndex];
-
-    children.splice(sourceIndex, 1);
-    children.splice(targetIndex, 0, visual);
-
-    if (this.$isAttached) {
-      ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this); //view.remove
-      ShadowDOM.distributeView(visual.$view, this.projectToSlots, this, targetIndex); //view.insertBefore
-    }
-  }
-
-  private projectionRemoveAt(index: number, returnToCache?: boolean, skipAnimation?: boolean) {
-    let visual = this.children[index];
-    this.children.splice(index, 1);
-
-    const detachAndReturn = () => {
-      if (this.$isAttached) {
-        visual.$view.remove = () => ShadowDOM.undistributeView(visual.$view, this.projectToSlots, this);
-        visual.detach();
-      }
-
-      if (returnToCache) {
-        visual.tryReturnToCache();
-      }
-
-      return visual;
-    };
-
-    if (!skipAnimation && this.$isAttached) {
-      const animation = this.animate(visual, 'leave');
-      if (animation) {
-        return animation.then(() => detachAndReturn());
-      }
-    }
-
-    return detachAndReturn();
-  }
-
-  private projectionRemoveMany(visualsToRemove: IVisual[], returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
-    const children = this.children;
-    const ii = visualsToRemove.length;
-    const rmPromises = [];
-    const context = DetachContext.open(this);
-    let i;
-
-    if (visualsToRemove === children) {
-      this.children = [];
-    } else {
-      for (i = 0; i < ii; ++i) {
-        const index = children.indexOf(visualsToRemove[i]);
-        if (index >= 0) {
-          children.splice(index, 1);
-        }
-      }
-    }
-
-    if (this.$isAttached) {
-      visualsToRemove.forEach(child => {
-        if (skipAnimation) {
-          child.$view.remove = () => ShadowDOM.undistributeView(child.$view, this.projectToSlots, this);
-          child.detach(context);
-          return;
-        }
-  
-        const animation = this.animate(child, 'leave');
-  
-        if (animation) {
-          rmPromises.push(animation.then(() => child.detach(context)));
-        } else {
-          child.detach(context);
-        }
-      });
-    }
-
-    const finalizeRemoval = () => {
-      context.close();
-
-      if (returnToCache) {
-        for (i = 0; i < ii; ++i) {
-          visualsToRemove[i].tryReturnToCache();
-        }
-      }
-
-      return visualsToRemove;
-    };
-
-    if (rmPromises.length > 0) {
-      return Promise.all(rmPromises).then(() => finalizeRemoval());
-    }
-
-    return finalizeRemoval();
   }
 }

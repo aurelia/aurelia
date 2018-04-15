@@ -45,81 +45,18 @@ class SlotCustomAttribute {
   }
 }
 
-class PassThroughSlot implements IShadowSlot {
-  private projections = 0;
-  private fallbackContentView: IVisual = null;
-  private destinationSlot: IShadowSlot = null;
-  private $isAttached = false;
-  private $isBound = false;
+abstract class ShadowSlotBase {
+  protected $isAttached = false;
+  protected $isBound = false;
+  protected fallbackContentView: IVisual = null;
+  protected projections = 0;
 
-  constructor(private owner: IViewOwner, public anchor: SlotNode, public name: string, private destinationName: string, private fallbackFactory?: IViewFactory) {
-    this.anchor.viewSlot = this;
-    let attr = new SlotCustomAttribute(this.anchor);
-    attr.value = this.destinationName;
+  constructor(public anchor: SlotNode, protected fallbackFactory?: IViewFactory) {
+    this.anchor.viewSlot = <any>this;
   }
 
   get needsFallbackRendering() {
     return this.fallbackFactory && this.projections === 0;
-  }
-
-  renderFallbackContent(view: IView, nodes: SlotNode[], projectionSource: ShadowProjectionSource, index = 0) {
-    if (this.fallbackContentView === null) {
-      this.fallbackContentView = this.fallbackFactory.create();
-      this.fallbackContentView.bind(this.owner.$scope);
-
-      let slots = Object.create(null);
-      slots[this.destinationSlot.name] = this.destinationSlot;
-
-      ShadowDOM.distributeView(
-        this.fallbackContentView.$view, 
-        slots, 
-        projectionSource, 
-        index, 
-        this.destinationSlot.name
-      );
-    }
-  }
-
-  passThroughTo(destinationSlot: IShadowSlot) {
-    this.destinationSlot = destinationSlot;
-  }
-
-  addNode(view: IView, node: SlotNode, projectionSource: ShadowProjectionSource, index: number) {
-    if (this.fallbackContentView !== null) {
-      this.fallbackContentView.detach();
-      this.fallbackContentView.unbind();
-      this.fallbackContentView = null;
-    }
-
-    if (node.viewSlot instanceof PassThroughSlot) {
-      node.viewSlot.passThroughTo(this);
-      return;
-    }
-
-    this.projections++;
-    this.destinationSlot.addNode(view, node, projectionSource, index);
-  }
-
-  removeView(view: IView, projectionSource: ShadowProjectionSource) {
-    this.projections--;
-    this.destinationSlot.removeView(view, projectionSource);
-
-    if (this.needsFallbackRendering) {
-      this.renderFallbackContent(null, noNodes, projectionSource);
-    }
-  }
-
-  removeAll(projectionSource: ShadowProjectionSource) {
-    this.projections = 0;
-    this.destinationSlot.removeAll(projectionSource);
-
-    if (this.needsFallbackRendering) {
-      this.renderFallbackContent(null, noNodes, projectionSource);
-    }
-  }
-
-  projectFrom(view: IView, projectionSource: ShadowProjectionSource) {
-    this.destinationSlot.projectFrom(view, projectionSource);
   }
 
   bind(scope: IScope) {
@@ -167,25 +104,120 @@ class PassThroughSlot implements IShadowSlot {
   }
 }
 
-class ShadowSlot implements IShadowSlot {
-  private fallbackContentView: IVisual = null;
-  private projections = 0;
+class PassThroughSlot extends ShadowSlotBase implements IShadowSlot {
+  private destinationSlot: IShadowSlot = null;
+
+  constructor(private owner: IViewOwner, anchor: SlotNode, public name: string, private destinationName: string, fallbackFactory?: IViewFactory) {
+    super(anchor, fallbackFactory);
+    let attr = new SlotCustomAttribute(this.anchor);
+    attr.value = this.destinationName;
+  }
+
+  passThroughTo(destinationSlot: IShadowSlot) {
+    this.destinationSlot = destinationSlot;
+  }
+
+  renderFallbackContent(view: IView, nodes: SlotNode[], projectionSource: ShadowProjectionSource, index = 0) {
+    if (this.fallbackContentView === null) {
+      this.fallbackContentView = this.fallbackFactory.create();
+      this.fallbackContentView.bind(this.owner.$scope);
+
+      let slots = Object.create(null);
+      slots[this.destinationSlot.name] = this.destinationSlot;
+
+      ShadowDOM.distributeView(
+        this.fallbackContentView.$view, 
+        slots, 
+        projectionSource, 
+        index, 
+        this.destinationSlot.name
+      );
+    }
+  }
+
+  addNode(view: IView, node: SlotNode, projectionSource: ShadowProjectionSource, index: number) {
+    if (this.fallbackContentView !== null) {
+      this.fallbackContentView.detach();
+      this.fallbackContentView.unbind();
+      this.fallbackContentView = null;
+    }
+
+    if (node.viewSlot instanceof PassThroughSlot) {
+      node.viewSlot.passThroughTo(this);
+      return;
+    }
+
+    this.projections++;
+    this.destinationSlot.addNode(view, node, projectionSource, index);
+  }
+
+  removeView(view: IView, projectionSource: ShadowProjectionSource) {
+    this.projections--;
+    this.destinationSlot.removeView(view, projectionSource);
+
+    if (this.needsFallbackRendering) {
+      this.renderFallbackContent(null, noNodes, projectionSource);
+    }
+  }
+
+  removeAll(projectionSource: ShadowProjectionSource) {
+    this.projections = 0;
+    this.destinationSlot.removeAll(projectionSource);
+
+    if (this.needsFallbackRendering) {
+      this.renderFallbackContent(null, noNodes, projectionSource);
+    }
+  }
+
+  projectFrom(view: IView, projectionSource: ShadowProjectionSource) {
+    this.destinationSlot.projectFrom(view, projectionSource);
+  }
+}
+
+class ShadowSlot extends ShadowSlotBase implements IShadowSlot {
   private children: SlotNode[] = [];
   private projectFromAnchors: SlotNode[] = null;
   private destinationSlots = null;
   private fallbackSlots;
-  private $isAttached = false;
-  private $isBound = false;
 
-  constructor(private owner: IViewOwner, public anchor: SlotNode, public name: string, private fallbackFactory?: IViewFactory) {
+  constructor(private owner: IViewOwner, anchor: SlotNode, public name: string, fallbackFactory?: IViewFactory) {
+    super(anchor, fallbackFactory);
     this.anchor.isContentProjectionSource = true;
-    this.anchor.viewSlot = this;
   }
 
-  get needsFallbackRendering() {
-    return this.fallbackFactory && this.projections === 0;
-  }
+  renderFallbackContent(view: IView, nodes: SlotNode[], projectionSource: ShadowProjectionSource, index = 0) {
+    if (this.fallbackContentView === null) {
+      this.fallbackContentView = this.fallbackFactory.create();
 
+      if (this.$isBound) {
+        this.fallbackContentView.bind(this.owner.$scope);
+      }
+
+      if (this.$isAttached) {
+        this.fallbackContentView.$view.insertBefore(this.anchor);
+      }
+    }
+
+    if (this.fallbackContentView.$slots) {
+      let slots = this.fallbackContentView.$slots;
+      let projectFromAnchors = this.projectFromAnchors;
+
+      if (projectFromAnchors !== null) {
+        for (let slotName in slots) {
+          let slot = slots[slotName];
+
+          for (let i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
+            let anchor = projectFromAnchors[i];
+            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
+          }
+        }
+      }
+
+      this.fallbackSlots = slots;
+      ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
+    }
+  }
+  
   addNode(view: IView, node: SlotNode, projectionSource: ShadowProjectionSource, index: number, destination: string) {
     if (this.fallbackContentView !== null) {
       this.fallbackContentView.detach();
@@ -318,83 +350,6 @@ class ShadowSlot implements IShadowSlot {
     }
 
     this.projectFromAnchors.push(anchor);
-  }
-
-  renderFallbackContent(view: IView, nodes: SlotNode[], projectionSource: ShadowProjectionSource, index = 0) {
-    if (this.fallbackContentView === null) {
-      this.fallbackContentView = this.fallbackFactory.create();
-
-      if (this.$isBound) {
-        this.fallbackContentView.bind(this.owner.$scope);
-      }
-
-      if (this.$isAttached) {
-        this.fallbackContentView.$view.insertBefore(this.anchor);
-      }
-    }
-
-    if (this.fallbackContentView.$slots) {
-      let slots = this.fallbackContentView.$slots;
-      let projectFromAnchors = this.projectFromAnchors;
-
-      if (projectFromAnchors !== null) {
-        for (let slotName in slots) {
-          let slot = slots[slotName];
-
-          for (let i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
-            let anchor = projectFromAnchors[i];
-            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
-          }
-        }
-      }
-
-      this.fallbackSlots = slots;
-      ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
-    }
-  }
-
-  bind(scope: IScope) {
-    if (this.$isBound) {
-      return;
-    }
-
-    if (this.fallbackContentView !== null) {
-      this.fallbackContentView.bind(scope);
-    }
-
-    this.$isBound = true;
-  }
-
-  attach(context: AttachContext) {
-    if (this.$isAttached) {
-      return;
-    }
-
-    if (this.fallbackContentView !== null) {
-      this.fallbackContentView.attach(visual => this.fallbackContentView.$view.insertBefore(this.anchor), context);
-    }
-
-    this.$isAttached = true;
-  }
-
-  detach(context: DetachContext) {
-    if (this.$isAttached) {
-      if (this.fallbackContentView !== null) {
-        this.fallbackContentView.detach(context);
-      }
-
-      this.$isAttached = false;
-    }
-  }
-
-  unbind() {
-    if (this.$isBound) {
-      if (this.fallbackContentView !== null) {
-        this.fallbackContentView.unbind();
-      }
-
-      this.$isBound = false;
-    }
   }
 }
 

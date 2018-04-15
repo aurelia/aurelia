@@ -5543,6 +5543,16 @@ define('runtime/templating/lifecycle',["require", "exports"], function (require,
 
 
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 define('runtime/templating/shadow-dom',["require", "exports", "../pal"], function (require, exports, pal_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -5556,29 +5566,75 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
         }
         return SlotCustomAttribute;
     }());
-    var PassThroughSlot = (function () {
-        function PassThroughSlot(owner, anchor, name, destinationName, fallbackFactory) {
-            this.owner = owner;
+    var ShadowSlotBase = (function () {
+        function ShadowSlotBase(anchor, fallbackFactory) {
             this.anchor = anchor;
-            this.name = name;
-            this.destinationName = destinationName;
             this.fallbackFactory = fallbackFactory;
-            this.projections = 0;
-            this.fallbackContentView = null;
-            this.destinationSlot = null;
             this.$isAttached = false;
             this.$isBound = false;
+            this.fallbackContentView = null;
+            this.projections = 0;
             this.anchor.viewSlot = this;
-            var attr = new SlotCustomAttribute(this.anchor);
-            attr.value = this.destinationName;
         }
-        Object.defineProperty(PassThroughSlot.prototype, "needsFallbackRendering", {
+        Object.defineProperty(ShadowSlotBase.prototype, "needsFallbackRendering", {
             get: function () {
                 return this.fallbackFactory && this.projections === 0;
             },
             enumerable: true,
             configurable: true
         });
+        ShadowSlotBase.prototype.bind = function (scope) {
+            if (this.$isBound) {
+                return;
+            }
+            if (this.fallbackContentView !== null) {
+                this.fallbackContentView.bind(scope);
+            }
+            this.$isBound = true;
+        };
+        ShadowSlotBase.prototype.attach = function (context) {
+            var _this = this;
+            if (this.$isAttached) {
+                return;
+            }
+            if (this.fallbackContentView !== null) {
+                this.fallbackContentView.attach(function (visual) { return _this.fallbackContentView.$view.insertBefore(_this.anchor); }, context);
+            }
+            this.$isAttached = true;
+        };
+        ShadowSlotBase.prototype.detach = function (context) {
+            if (this.$isAttached) {
+                if (this.fallbackContentView !== null) {
+                    this.fallbackContentView.detach(context);
+                }
+                this.$isAttached = false;
+            }
+        };
+        ShadowSlotBase.prototype.unbind = function () {
+            if (this.$isBound) {
+                if (this.fallbackContentView !== null) {
+                    this.fallbackContentView.unbind();
+                }
+                this.$isBound = false;
+            }
+        };
+        return ShadowSlotBase;
+    }());
+    var PassThroughSlot = (function (_super) {
+        __extends(PassThroughSlot, _super);
+        function PassThroughSlot(owner, anchor, name, destinationName, fallbackFactory) {
+            var _this = _super.call(this, anchor, fallbackFactory) || this;
+            _this.owner = owner;
+            _this.name = name;
+            _this.destinationName = destinationName;
+            _this.destinationSlot = null;
+            var attr = new SlotCustomAttribute(_this.anchor);
+            attr.value = _this.destinationName;
+            return _this;
+        }
+        PassThroughSlot.prototype.passThroughTo = function (destinationSlot) {
+            this.destinationSlot = destinationSlot;
+        };
         PassThroughSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
             if (index === void 0) { index = 0; }
             if (this.fallbackContentView === null) {
@@ -5588,9 +5644,6 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
                 slots[this.destinationSlot.name] = this.destinationSlot;
                 exports.ShadowDOM.distributeView(this.fallbackContentView.$view, slots, projectionSource, index, this.destinationSlot.name);
             }
-        };
-        PassThroughSlot.prototype.passThroughTo = function (destinationSlot) {
-            this.destinationSlot = destinationSlot;
         };
         PassThroughSlot.prototype.addNode = function (view, node, projectionSource, index) {
             if (this.fallbackContentView !== null) {
@@ -5622,66 +5675,47 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
         PassThroughSlot.prototype.projectFrom = function (view, projectionSource) {
             this.destinationSlot.projectFrom(view, projectionSource);
         };
-        PassThroughSlot.prototype.bind = function (scope) {
-            if (this.$isBound) {
-                return;
-            }
-            if (this.fallbackContentView !== null) {
-                this.fallbackContentView.bind(scope);
-            }
-            this.$isBound = true;
-        };
-        PassThroughSlot.prototype.attach = function (context) {
-            var _this = this;
-            if (this.$isAttached) {
-                return;
-            }
-            if (this.fallbackContentView !== null) {
-                this.fallbackContentView.attach(function (visual) { return _this.fallbackContentView.$view.insertBefore(_this.anchor); }, context);
-            }
-            this.$isAttached = true;
-        };
-        PassThroughSlot.prototype.detach = function (context) {
-            if (this.$isAttached) {
-                if (this.fallbackContentView !== null) {
-                    this.fallbackContentView.detach(context);
-                }
-                this.$isAttached = false;
-            }
-        };
-        PassThroughSlot.prototype.unbind = function () {
-            if (this.$isBound) {
-                if (this.fallbackContentView !== null) {
-                    this.fallbackContentView.unbind();
-                }
-                this.$isBound = false;
-            }
-        };
         return PassThroughSlot;
-    }());
-    var ShadowSlot = (function () {
+    }(ShadowSlotBase));
+    var ShadowSlot = (function (_super) {
+        __extends(ShadowSlot, _super);
         function ShadowSlot(owner, anchor, name, fallbackFactory) {
-            this.owner = owner;
-            this.anchor = anchor;
-            this.name = name;
-            this.fallbackFactory = fallbackFactory;
-            this.fallbackContentView = null;
-            this.projections = 0;
-            this.children = [];
-            this.projectFromAnchors = null;
-            this.destinationSlots = null;
-            this.$isAttached = false;
-            this.$isBound = false;
-            this.anchor.isContentProjectionSource = true;
-            this.anchor.viewSlot = this;
+            var _this = _super.call(this, anchor, fallbackFactory) || this;
+            _this.owner = owner;
+            _this.name = name;
+            _this.children = [];
+            _this.projectFromAnchors = null;
+            _this.destinationSlots = null;
+            _this.anchor.isContentProjectionSource = true;
+            return _this;
         }
-        Object.defineProperty(ShadowSlot.prototype, "needsFallbackRendering", {
-            get: function () {
-                return this.fallbackFactory && this.projections === 0;
-            },
-            enumerable: true,
-            configurable: true
-        });
+        ShadowSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
+            if (index === void 0) { index = 0; }
+            if (this.fallbackContentView === null) {
+                this.fallbackContentView = this.fallbackFactory.create();
+                if (this.$isBound) {
+                    this.fallbackContentView.bind(this.owner.$scope);
+                }
+                if (this.$isAttached) {
+                    this.fallbackContentView.$view.insertBefore(this.anchor);
+                }
+            }
+            if (this.fallbackContentView.$slots) {
+                var slots = this.fallbackContentView.$slots;
+                var projectFromAnchors = this.projectFromAnchors;
+                if (projectFromAnchors !== null) {
+                    for (var slotName in slots) {
+                        var slot = slots[slotName];
+                        for (var i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
+                            var anchor = projectFromAnchors[i];
+                            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
+                        }
+                    }
+                }
+                this.fallbackSlots = slots;
+                exports.ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
+            }
+        };
         ShadowSlot.prototype.addNode = function (view, node, projectionSource, index, destination) {
             if (this.fallbackContentView !== null) {
                 this.fallbackContentView.detach();
@@ -5798,70 +5832,8 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             }
             this.projectFromAnchors.push(anchor);
         };
-        ShadowSlot.prototype.renderFallbackContent = function (view, nodes, projectionSource, index) {
-            if (index === void 0) { index = 0; }
-            if (this.fallbackContentView === null) {
-                this.fallbackContentView = this.fallbackFactory.create();
-                if (this.$isBound) {
-                    this.fallbackContentView.bind(this.owner.$scope);
-                }
-                if (this.$isAttached) {
-                    this.fallbackContentView.$view.insertBefore(this.anchor);
-                }
-            }
-            if (this.fallbackContentView.$slots) {
-                var slots = this.fallbackContentView.$slots;
-                var projectFromAnchors = this.projectFromAnchors;
-                if (projectFromAnchors !== null) {
-                    for (var slotName in slots) {
-                        var slot = slots[slotName];
-                        for (var i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
-                            var anchor = projectFromAnchors[i];
-                            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
-                        }
-                    }
-                }
-                this.fallbackSlots = slots;
-                exports.ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
-            }
-        };
-        ShadowSlot.prototype.bind = function (scope) {
-            if (this.$isBound) {
-                return;
-            }
-            if (this.fallbackContentView !== null) {
-                this.fallbackContentView.bind(scope);
-            }
-            this.$isBound = true;
-        };
-        ShadowSlot.prototype.attach = function (context) {
-            var _this = this;
-            if (this.$isAttached) {
-                return;
-            }
-            if (this.fallbackContentView !== null) {
-                this.fallbackContentView.attach(function (visual) { return _this.fallbackContentView.$view.insertBefore(_this.anchor); }, context);
-            }
-            this.$isAttached = true;
-        };
-        ShadowSlot.prototype.detach = function (context) {
-            if (this.$isAttached) {
-                if (this.fallbackContentView !== null) {
-                    this.fallbackContentView.detach(context);
-                }
-                this.$isAttached = false;
-            }
-        };
-        ShadowSlot.prototype.unbind = function () {
-            if (this.$isBound) {
-                if (this.fallbackContentView !== null) {
-                    this.fallbackContentView.unbind();
-                }
-                this.$isBound = false;
-            }
-        };
         return ShadowSlot;
-    }());
+    }(ShadowSlotBase));
     exports.ShadowDOM = {
         defaultSlotKey: '__au-default-slot-key__',
         getSlotName: function (node) {

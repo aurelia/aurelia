@@ -5,7 +5,6 @@ import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
 import { Reporter } from '../reporter';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
-import { visitEachChild } from 'typescript';
 
 function appendVisualToContainer(visual: IVisual, owner: ViewSlot) {
   visual.$view.appendTo(owner.anchor);

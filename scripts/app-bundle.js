@@ -6089,7 +6089,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
     }());
     function createTemplateContainer(dependencies) {
         var container = di_1.DI.createChild();
-        container.registerResolver(Element, container.element = new InstanceProvider());
+        container.registerResolver(pal_1.DOM.Element, container.element = new InstanceProvider());
         container.registerResolver(exports.IViewFactory, container.viewFactory = new InstanceProvider());
         container.registerResolver(view_slot_1.ViewSlot, container.viewSlot = new ViewSlotProvider());
         if (dependencies) {

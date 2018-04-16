@@ -288,7 +288,7 @@ type TemplateContainer = IContainer & {
 function createTemplateContainer(dependencies) {
   let container = <TemplateContainer>DI.createChild();
 
-  container.registerResolver(Element, container.element = new InstanceProvider());
+  container.registerResolver(DOM.Element, container.element = new InstanceProvider());
   container.registerResolver(IViewFactory, container.viewFactory = new InstanceProvider());
   container.registerResolver(ViewSlot, container.viewSlot = new ViewSlotProvider());
 

@@ -1558,24 +1558,6 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(if_1.If, else_1.Else);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
-        }
-    };
-});
-
-
-
 define('runtime/binding/array-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4855,6 +4837,24 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(if_1.If, else_1.Else);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
+        }
+    };
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -5913,7 +5913,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-engine',["require", "exports", "../pal", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode", "./lifecycle"], function (require, exports, pal_1, view_1, binding_1, view_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1, lifecycle_1) {
+define('runtime/templating/view-engine',["require", "exports", "../pal", "./view", "../binding/binding", "./view-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode", "./lifecycle", "./animator", "../reporter"], function (require, exports, pal_1, view_1, binding_1, view_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1, lifecycle_1, animator_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -6140,26 +6140,37 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.$animationRoot = undefined;
             this.$view = this.createView();
         }
-        Object.defineProperty(Visual.prototype, "animationRoot", {
-            get: function () {
-                if (this.$animationRoot !== undefined) {
-                    return this.$animationRoot;
-                }
-                var currentChild = this.$view.firstChild;
-                var lastChild = this.$view.lastChild;
-                while (currentChild !== lastChild && currentChild.nodeType !== 1) {
-                    currentChild = currentChild.nextSibling;
-                }
-                if (currentChild && currentChild.nodeType === 1) {
-                    return this.$animationRoot = currentChild.classList.contains('au-animate')
-                        ? currentChild
-                        : null;
-                }
-                return this.$animationRoot = null;
-            },
-            enumerable: true,
-            configurable: true
-        });
+        Visual.prototype.getAnimationRoot = function () {
+            if (this.$animationRoot !== undefined) {
+                return this.$animationRoot;
+            }
+            var currentChild = this.$view.firstChild;
+            var lastChild = this.$view.lastChild;
+            while (currentChild !== lastChild && currentChild.nodeType !== 1) {
+                currentChild = currentChild.nextSibling;
+            }
+            if (currentChild && currentChild.nodeType === 1) {
+                return this.$animationRoot = currentChild.classList.contains('au-animate')
+                    ? currentChild
+                    : null;
+            }
+            return this.$animationRoot = null;
+        };
+        Visual.prototype.animate = function (direction) {
+            if (direction === void 0) { direction = 'enter'; }
+            var element = this.getAnimationRoot();
+            if (element === null) {
+                return;
+            }
+            switch (direction) {
+                case 'enter':
+                    return animator_1.Animator.enter(element);
+                case 'leave':
+                    return animator_1.Animator.leave(element);
+                default:
+                    throw reporter_1.Reporter.error(4, direction);
+            }
+        };
         Visual.prototype.bind = function (scope) {
             if (this.$isBound) {
                 if (this.$scope === scope) {
@@ -6274,7 +6285,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
 
 
 
-define('runtime/templating/view-slot',["require", "exports", "./animator", "./shadow-dom", "../reporter", "./lifecycle"], function (require, exports, animator_1, shadow_dom_1, reporter_1, lifecycle_1) {
+define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./lifecycle"], function (require, exports, shadow_dom_1, lifecycle_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function appendVisualToContainer(visual, owner) {
@@ -6312,26 +6323,11 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             this.insertVisualCore = insertVisualAtIndex;
             this.removeViewCore = removeView;
         }
-        ViewSlot.prototype.animate = function (visual, direction) {
-            if (direction === void 0) { direction = 'enter'; }
-            var element = visual.animationRoot;
-            if (element === null) {
-                return;
-            }
-            switch (direction) {
-                case 'enter':
-                    return animator_1.Animator.enter(element);
-                case 'leave':
-                    return animator_1.Animator.leave(element);
-                default:
-                    throw reporter_1.Reporter.error(4, direction);
-            }
-        };
         ViewSlot.prototype.add = function (visual) {
             this.children.push(visual);
             if (this.$isAttached) {
                 visual.attach(null, this.addVisualCore, this);
-                return this.animate(visual, 'enter');
+                return visual.animate('enter');
             }
         };
         ViewSlot.prototype.insert = function (index, visual) {
@@ -6343,7 +6339,7 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             children.splice(index, 0, visual);
             if (this.$isAttached) {
                 visual.attach(null, this.insertVisualCore, this, index);
-                return this.animate(visual, 'enter');
+                return visual.animate('enter');
             }
         };
         ViewSlot.prototype.move = function (sourceIndex, targetIndex) {
@@ -6376,7 +6372,7 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
                 return visual;
             };
             if (!skipAnimation && this.$isAttached) {
-                var animation = this.animate(visual, 'leave');
+                var animation = visual.animate('leave');
                 if (animation) {
                     return animation.then(function () { return detachAndReturn(); });
                 }
@@ -6387,17 +6383,15 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             return this.removeMany(this.children, returnToCache, skipAnimation);
         };
         ViewSlot.prototype.removeMany = function (visualsToRemove, returnToCache, skipAnimation) {
-            var _this = this;
             var children = this.children;
             var ii = visualsToRemove.length;
             var rmPromises = [];
             var context = lifecycle_1.DetachContext.open(this);
-            var i;
             if (visualsToRemove === children) {
                 this.children = [];
             }
             else {
-                for (i = 0; i < ii; ++i) {
+                for (var i = 0; i < ii; ++i) {
                     var index = children.indexOf(visualsToRemove[i]);
                     if (index >= 0) {
                         children.splice(index, 1);
@@ -6410,7 +6404,7 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
                         child.detach(context);
                         return;
                     }
-                    var animation = _this.animate(child, 'leave');
+                    var animation = child.animate('leave');
                     if (animation) {
                         rmPromises.push(animation.then(function () { return child.detach(context); }));
                     }
@@ -6422,7 +6416,7 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             var finalizeRemoval = function () {
                 context.close();
                 if (returnToCache) {
-                    for (i = 0; i < ii; ++i) {
+                    for (var i = 0; i < ii; ++i) {
                         visualsToRemove[i].tryReturnToCache();
                     }
                 }
@@ -6441,7 +6435,7 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             for (var i = 0, ii = children.length; i < ii; ++i) {
                 var child = children[i];
                 child.attach(context, this.addVisualCore, this);
-                this.animate(child, 'enter');
+                child.animate('enter');
             }
             this.$isAttached = true;
         };
@@ -6455,13 +6449,15 @@ define('runtime/templating/view-slot',["require", "exports", "./animator", "./sh
             }
         };
         ViewSlot.prototype.projectTo = function (slots) {
-            var _this = this;
             this.slots = slots;
             this.addVisualCore = projectAddVisualToList;
             this.insertVisualCore = projectInsertVisualAtIndex;
             this.removeViewCore = projectRemoveView;
             if (this.$isAttached) {
-                this.children.forEach(function (visual) { return projectAddVisualToList(visual, _this); });
+                var children = this.children;
+                for (var i = 0, ii = children.length; i < ii; ++i) {
+                    projectAddVisualToList(children[i], this);
+                }
             }
         };
         return ViewSlot;

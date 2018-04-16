@@ -66,29 +66,6 @@ export class ViewSlot implements IAttach {
   }
 
   /**
-   *   Runs the animator against the first animatable element found within the view's fragment
-   *   @param  visual The view to use when searching for the element.
-   *   @param  direction The animation direction enter|leave.
-   *   @returns An animation complete Promise or undefined if no animation was run.
-   */
-  animate(visual: IVisual, direction: 'enter' | 'leave' = 'enter'): void | Promise<boolean> {
-    const element = visual.animationRoot;
-
-    if (element === null) {
-      return;
-    }
-
-    switch (direction) {
-      case 'enter':
-        return Animator.enter(element);
-      case 'leave':
-        return Animator.leave(element);
-      default:
-        throw Reporter.error(4, direction);
-    }
-  }
-
-  /**
   * Adds a view to the slot.
   * @param visual The view to add.
   * @return May return a promise if the view addition triggered an animation.
@@ -98,7 +75,7 @@ export class ViewSlot implements IAttach {
 
     if (this.$isAttached) {
       visual.attach(null, this.addVisualCore, this);
-      return this.animate(visual, 'enter');
+      return visual.animate('enter');
     }
   }
 
@@ -120,7 +97,7 @@ export class ViewSlot implements IAttach {
 
     if (this.$isAttached) {
       visual.attach(null, this.insertVisualCore, this, index);
-      return this.animate(visual, 'enter');
+      return visual.animate('enter');
     }
   }
 
@@ -179,7 +156,7 @@ export class ViewSlot implements IAttach {
     };
 
     if (!skipAnimation && this.$isAttached) {
-      const animation = this.animate(visual, 'leave');
+      const animation = visual.animate('leave');
       if (animation) {
         return animation.then(() => detachAndReturn());
       }
@@ -208,12 +185,11 @@ export class ViewSlot implements IAttach {
     const ii = visualsToRemove.length;
     const rmPromises = [];
     const context = DetachContext.open(this);
-    let i;
 
     if (visualsToRemove === children) {
       this.children = [];
     } else {
-      for (i = 0; i < ii; ++i) {
+      for (let i = 0; i < ii; ++i) {
         const index = children.indexOf(visualsToRemove[i]);
         if (index >= 0) {
           children.splice(index, 1);
@@ -228,7 +204,7 @@ export class ViewSlot implements IAttach {
           return;
         }
   
-        const animation = this.animate(child, 'leave');
+        const animation = child.animate('leave');
   
         if (animation) {
           rmPromises.push(animation.then(() => child.detach(context)));
@@ -242,7 +218,7 @@ export class ViewSlot implements IAttach {
       context.close();
 
       if (returnToCache) {
-        for (i = 0; i < ii; ++i) {
+        for (let i = 0; i < ii; ++i) {
           visualsToRemove[i].tryReturnToCache();
         }
       }
@@ -265,12 +241,12 @@ export class ViewSlot implements IAttach {
       return;
     }
 
-    let children = this.children;
+    const children = this.children;
 
     for (let i = 0, ii = children.length; i < ii; ++i) {
-      let child = children[i];
+      const child = children[i];
       child.attach(context, this.addVisualCore, this);
-      this.animate(child, 'enter');
+      child.animate('enter');
     }
 
     this.$isAttached = true;
@@ -281,7 +257,7 @@ export class ViewSlot implements IAttach {
   */
   detach(context: DetachContext): void {
     if (this.$isAttached) {
-      let children = this.children;
+      const children = this.children;
       
       for (let i = 0, ii = children.length; i < ii; ++i) {
         children[i].detach(context);
@@ -298,7 +274,11 @@ export class ViewSlot implements IAttach {
     this.removeViewCore = projectRemoveView;
 
     if (this.$isAttached) {
-      this.children.forEach(visual => projectAddVisualToList(visual, this));
+      const children = this.children;
+      
+      for (let i = 0, ii = children.length; i < ii; ++i) {
+        projectAddVisualToList(children[i], this);
+      }
     }
   }
 }

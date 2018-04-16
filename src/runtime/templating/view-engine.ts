@@ -14,6 +14,8 @@ import { IBindScope } from "../binding/observation";
 import { IScope } from "../binding/binding-context";
 import { Constructable } from "../interfaces";
 import { IAttach, AttachContext, DetachContext } from "./lifecycle";
+import { Animator } from "./animator";
+import { Reporter } from "../reporter";
 
 export interface ITemplate {
   readonly container: IContainer;
@@ -47,14 +49,17 @@ type RenderCallback = (visual: IVisual, owner: any, index?: number) => void;
 
 export interface IVisual extends IBindScope, IViewOwner { 
   /**
-  * If the visual requests animation upon add/remove, this property returns the element to be animated.
-  */
-  readonly animationRoot: Element;
-
-  /**
   * The IViewFactory that built this instance.
   */
   readonly factory: IViewFactory;
+
+  /**
+   *   Runs the animator against the first animatable element found within the view's fragment
+   *   @param  visual The view to use when searching for the element.
+   *   @param  direction The animation direction enter|leave.
+   *   @returns An animation complete Promise or undefined if no animation was run.
+   */
+  animate(direction: 'enter' | 'leave'): void | Promise<boolean>;
 
   /**
   * Attempts to return this view to the appropriate view cache.
@@ -349,7 +354,7 @@ abstract class Visual implements IVisual {
 
   abstract createView(): IView;
 
-  get animationRoot(): Element {
+  getAnimationRoot(): Element {
     if (this.$animationRoot !== undefined) {
       return this.$animationRoot;
     }
@@ -368,6 +373,23 @@ abstract class Visual implements IVisual {
     }
   
     return this.$animationRoot = null;
+  }
+
+  animate(direction: 'enter' | 'leave' = 'enter'): void | Promise<boolean> {
+    const element = this.getAnimationRoot();
+
+    if (element === null) {
+      return;
+    }
+
+    switch (direction) {
+      case 'enter':
+        return Animator.enter(element);
+      case 'leave':
+        return Animator.leave(element);
+      default:
+        throw Reporter.error(4, direction);
+    }
   }
 
   bind(scope: IScope) {

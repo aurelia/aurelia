@@ -5309,7 +5309,6 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         if (this.$characteristics.hasCreated) {
                             this.created();
                         }
-                        return this;
                     };
                     class_1.prototype.createView = function (host) {
                         return template.createFor(this, host);

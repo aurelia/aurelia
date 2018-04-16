@@ -12,17 +12,11 @@ import { IScope, BindingContext } from "../binding/binding-context";
 import { ViewSlot } from "./view-slot";
 import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
 
-export interface IApplyToTarget {
-  applyTo(target: Element, content: IView): this;
+export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
+  applyTo(target: Element, content: IView): void;
 }
 
-export interface IElementComponent extends IBindSelf, IAttach, IApplyToTarget, IViewOwner {
-  
-}
-
-export interface IAttributeComponent extends IBindScope, IAttach {
-  
-}
+export interface IAttributeComponent extends IBindScope, IAttach { }
 
 export interface ICompiledElementSource extends ICompiledViewSource {
   name: string;
@@ -307,8 +301,6 @@ export const Component = {
         if (this.$characteristics.hasCreated) {
           (<any>this).created();
         }
-  
-        return this;
       }
   
       createView(host: Element) {

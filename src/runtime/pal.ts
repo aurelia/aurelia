@@ -23,6 +23,7 @@ global.HTMLSelectElement = typeof HTMLSelectElement === 'undefined' ? () => {} :
 export const PLATFORM = {
   global: global,
   emptyArray: Object.freeze([]),
+  emptyObject: Object.freeze({}),
   location: global.location,
   history: global.history,
   performance: global.performance,

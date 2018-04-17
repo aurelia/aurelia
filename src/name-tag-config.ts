@@ -1,8 +1,8 @@
-import { ICompiledElementSource } from "./runtime/templating/component";
 import { ShadowDOM } from "./runtime/templating/shadow-dom";
+import { ICompiledViewSource } from "./runtime/templating/view-engine";
 
 //this object is built up during compilation
-export const nameTagConfig: ICompiledElementSource = {
+export const nameTagConfig: ICompiledViewSource = {
   name: 'name-tag',
   hasSlots: true,
   template: `

@@ -33,7 +33,7 @@ class AureliaFramework {
     let startTask = () => {
       if (!this.components.includes(component)) {
         this.components.push(component);
-        component.applyTo(config.host, View.none);
+        component.hydrate(config.host);
       }
 
       component.bind();

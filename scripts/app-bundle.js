@@ -484,7 +484,7 @@ define('debug/task-queue',["require", "exports", "../runtime/task-queue"], funct
 
 
 
-define('runtime/aurelia',["require", "exports", "./pal", "./di", "./templating/view"], function (require, exports, pal_1, di_1, view_1) {
+define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (require, exports, pal_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var AureliaFramework = (function () {
@@ -511,7 +511,7 @@ define('runtime/aurelia',["require", "exports", "./pal", "./di", "./templating/v
             var startTask = function () {
                 if (!_this.components.includes(component)) {
                     _this.components.push(component);
-                    component.applyTo(config.host, view_1.View.none);
+                    component.hydrate(config.host);
                 }
                 component.bind();
                 component.attach();
@@ -1033,6 +1033,7 @@ define('runtime/pal',["require", "exports"], function (require, exports) {
     exports.PLATFORM = {
         global: global,
         emptyArray: Object.freeze([]),
+        emptyObject: Object.freeze({}),
         location: global.location,
         history: global.history,
         performance: global.performance,
@@ -5297,7 +5298,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     class_1.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    class_1.prototype.applyTo = function (host, content) {
+                    class_1.prototype.hydrate = function (host, content, replacements) {
+                        if (content === void 0) { content = view_1.View.none; }
+                        if (replacements === void 0) { replacements = pal_1.PLATFORM.emptyObject; }
                         this.$host = source.containerless
                             ? pal_1.DOM.makeElementIntoAnchor(host, true)
                             : host;
@@ -5305,13 +5308,13 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             ? host.attachShadow(source.shadowOptions)
                             : this.$host;
                         this.$contentView = content;
-                        this.$view = this.createView(this.$host);
+                        this.$view = this.createView(this.$host, replacements);
                         if (this.$characteristics.hasCreated) {
                             this.created();
                         }
                     };
-                    class_1.prototype.createView = function (host) {
-                        return template.createFor(this, host);
+                    class_1.prototype.createView = function (host, replacements) {
+                        return template.createFor(this, host, replacements);
                     };
                     class_1.prototype.bind = function () {
                         if (this.$isBound) {
@@ -5917,7 +5920,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
         container: di_1.DI,
-        createFor: function (owner, host) {
+        createFor: function (owner) {
             return view_1.View.none;
         }
     };
@@ -5946,11 +5949,11 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 _a.template = template,
                 _a.source = source,
                 _a);
-            return new DefaultViewFactory(CompiledVisual);
+            return new DefaultViewFactory(source.name, CompiledVisual);
             var _a;
         }
     };
-    function applyInstruction(owner, instruction, target, container) {
+    function applyInstruction(owner, instruction, target, replacements, container) {
         switch (instruction.type) {
             case 'oneWayText':
                 var next = target.nextSibling;
@@ -5999,11 +6002,11 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 var elementInstructions = instruction.instructions;
                 container.element.prepare(target);
                 var elementModel = container.get(instruction.resource);
-                elementModel.applyTo(target, view_1.View.fromCompiledElementContent(elementModel, target));
+                elementModel.hydrate(target, view_1.View.fromCompiledElementContent(elementModel, target), instruction.replacements);
                 for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
                     var current = elementInstructions[i];
                     var realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
-                    applyInstruction(owner, current, realTarget, container);
+                    applyInstruction(owner, current, realTarget, replacements, container);
                 }
                 container.element.dispose();
                 owner.$bindable.push(elementModel);
@@ -6014,7 +6017,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 container.element.prepare(target);
                 var attributeModel = container.get(instruction.resource);
                 for (var i = 0, ii = attributeInstructions.length; i < ii; ++i) {
-                    applyInstruction(owner, attributeInstructions[i], attributeModel, container);
+                    applyInstruction(owner, attributeInstructions[i], attributeModel, replacements, container);
                 }
                 container.element.dispose();
                 owner.$bindable.push(attributeModel);
@@ -6027,7 +6030,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                     instruction.factory = factory = exports.ViewEngine.factoryFromCompiledSource(instruction.config);
                 }
                 container.element.prepare(target);
-                container.viewFactory.prepare(factory);
+                container.viewFactory.prepare(factory, replacements);
                 container.viewSlot.prepare(pal_1.DOM.makeElementIntoAnchor(target), false);
                 var templateControllerModel = container.get(instruction.resource);
                 container.viewSlot.tryConnect(templateControllerModel);
@@ -6035,7 +6038,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                     templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
                 }
                 for (var i = 0, ii = templateControllerInstructions.length; i < ii; ++i) {
-                    applyInstruction(owner, templateControllerInstructions[i], templateControllerModel, container);
+                    applyInstruction(owner, templateControllerInstructions[i], templateControllerModel, replacements, container);
                 }
                 container.element.dispose();
                 container.viewFactory.dispose();
@@ -6059,6 +6062,29 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.instance = null;
         };
         return InstanceProvider;
+    }());
+    var ViewFactoryProvider = (function () {
+        function ViewFactoryProvider() {
+        }
+        ViewFactoryProvider.prototype.prepare = function (factory, replacements) {
+            this.factory = factory;
+            this.replacements = replacements || pal_1.PLATFORM.emptyObject;
+        };
+        ViewFactoryProvider.prototype.get = function (handler, requestor) {
+            var found = this.replacements[this.factory.name];
+            if (found) {
+                if (found.factory) {
+                    return found.factory;
+                }
+                return found.factory = exports.ViewEngine.factoryFromCompiledSource(found);
+            }
+            return this.factory;
+        };
+        ViewFactoryProvider.prototype.dispose = function () {
+            this.factory = null;
+            this.replacements = null;
+        };
+        return ViewFactoryProvider;
     }());
     var ViewSlotProvider = (function () {
         function ViewSlotProvider() {
@@ -6089,7 +6115,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
     function createTemplateContainer(dependencies) {
         var container = di_1.DI.createChild();
         container.registerResolver(pal_1.DOM.Element, container.element = new InstanceProvider());
-        container.registerResolver(exports.IViewFactory, container.viewFactory = new InstanceProvider());
+        container.registerResolver(exports.IViewFactory, container.viewFactory = new ViewFactoryProvider());
         container.registerResolver(view_slot_1.ViewSlot, container.viewSlot = new ViewSlotProvider());
         if (dependencies) {
             container.register.apply(container, dependencies);
@@ -6103,7 +6129,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.element = pal_1.DOM.createTemplateElement();
             this.element.innerHTML = source.template;
         }
-        CompiledTemplate.prototype.createFor = function (owner, host) {
+        CompiledTemplate.prototype.createFor = function (owner, host, replacements) {
             var source = this.source;
             var view = view_1.View.fromCompiledTemplate(this.element);
             var targets = view.findTargets();
@@ -6113,13 +6139,13 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 var instructions = targetInstructions[i];
                 var target = targets[i];
                 for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                    applyInstruction(owner, instructions[j], target, container);
+                    applyInstruction(owner, instructions[j], target, replacements, container);
                 }
             }
             if (host) {
                 var surrogateInstructions = source.surrogateInstructions;
                 for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-                    applyInstruction(owner, surrogateInstructions[i], host, container);
+                    applyInstruction(owner, surrogateInstructions[i], host, replacements, container);
                 }
             }
             return view;
@@ -6235,7 +6261,8 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
         return Visual;
     }());
     var DefaultViewFactory = (function () {
-        function DefaultViewFactory(type) {
+        function DefaultViewFactory(name, type) {
+            this.name = name;
             this.type = type;
             this.cacheSize = -1;
             this.cache = null;

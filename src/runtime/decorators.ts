@@ -1,10 +1,11 @@
-import { Component, ICompiledElementSource, IAttributeSource } from "./templating/component";
+import { Component, IAttributeSource } from "./templating/component";
 import { PLATFORM } from "./pal";
 import { DI, IContainer, Registration } from "./di";
 import { BindingMode } from "./binding/binding-mode";
 import { Constructable, Injectable } from "./interfaces";
+import { ICompiledViewSource } from "./templating/view-engine";
 
-export function compiledElement(source: ICompiledElementSource) {
+export function compiledElement(source: ICompiledViewSource) {
   return function<T extends Constructable>(target: T) {
     return Component.elementFromCompiledSource(source, target);
   }

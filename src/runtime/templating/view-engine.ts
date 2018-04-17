@@ -1,4 +1,4 @@
-import { DOM } from "../pal";
+import { DOM, PLATFORM } from "../pal";
 import { View, IView, IViewOwner } from "./view";
 import { IElementComponent, IAttributeComponent } from "./component";
 import { IBinding, Binding } from "../binding/binding";
@@ -19,7 +19,7 @@ import { Reporter } from "../reporter";
 
 export interface ITemplate {
   readonly container: IContainer;
-  createFor(owner: IViewOwner, host?: Node): IView;
+  createFor(owner: IViewOwner, host?: Node, replacements?: Record<string, ICompiledViewSource>): IView;
 }
 
 export interface IObservableDescription {
@@ -28,6 +28,7 @@ export interface IObservableDescription {
 }
 
 export interface ICompiledViewSource {
+  name: string;
   template: string;
   targetInstructions: any[];
   dependencies?: any[];
@@ -40,7 +41,7 @@ export interface ICompiledViewSource {
 
 const noViewTemplate: ITemplate = {
   container: DI,
-  createFor(owner: IViewOwner, host?: Node) {
+  createFor(owner: IViewOwner) {
     return View.none;
   }
 };
@@ -74,6 +75,8 @@ export interface IVisual extends IBindScope, IViewOwner {
 export const IViewFactory = DI.createInterface('IViewFactory');
 
 export interface IViewFactory {
+  readonly name: string;
+
   /**
   * Indicates whether this factory is currently using caching.
   */
@@ -116,11 +119,11 @@ export const ViewEngine = {
       }
     }
 
-    return new DefaultViewFactory(CompiledVisual);
+    return new DefaultViewFactory(source.name, CompiledVisual);
   }
 };
 
-function applyInstruction(owner: IViewOwner, instruction, target, container: TemplateContainer) {
+function applyInstruction(owner: IViewOwner, instruction, target, replacements: Record<string, ICompiledViewSource>, container: TemplateContainer) {
   switch(instruction.type) {
     case 'oneWayText':
       let next = target.nextSibling;
@@ -174,12 +177,12 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
       container.element.prepare(target);
       
       let elementModel = container.get<IElementComponent>(instruction.resource);
-      elementModel.applyTo(target, View.fromCompiledElementContent(elementModel, target));
+      elementModel.hydrate(target, View.fromCompiledElementContent(elementModel, target), instruction.replacements);
 
       for (let i = 0, ii = elementInstructions.length; i < ii; ++i) {
         let current = elementInstructions[i];
         let realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
-        applyInstruction(owner, current, realTarget, container);
+        applyInstruction(owner, current, realTarget, replacements, container);
       }
 
       container.element.dispose();
@@ -194,7 +197,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
       let attributeModel = container.get<IAttributeComponent>(instruction.resource);
 
       for (let i = 0, ii = attributeInstructions.length; i < ii; ++i) {
-        applyInstruction(owner, attributeInstructions[i], attributeModel, container);
+        applyInstruction(owner, attributeInstructions[i], attributeModel, replacements, container);
       }
 
       container.element.dispose();
@@ -211,7 +214,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
       }
 
       container.element.prepare(target);
-      container.viewFactory.prepare(factory);
+      container.viewFactory.prepare(factory, replacements);
       container.viewSlot.prepare(DOM.makeElementIntoAnchor(target), false);
 
       let templateControllerModel = container.get<IAttributeComponent>(instruction.resource);
@@ -223,7 +226,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, container: Tem
       }
 
       for (let i = 0, ii = templateControllerInstructions.length; i < ii; ++i) {
-        applyInstruction(owner, templateControllerInstructions[i], templateControllerModel, container);
+        applyInstruction(owner, templateControllerInstructions[i], templateControllerModel, replacements, container);
       }
 
       container.element.dispose();
@@ -249,6 +252,35 @@ class InstanceProvider<T> implements IResolver {
 
   dispose() {
     this.instance = null;
+  }
+}
+
+class ViewFactoryProvider implements IResolver {
+  private factory: IViewFactory
+  private replacements: Record<string, ICompiledViewSource>;
+
+  prepare(factory: IViewFactory, replacements: Record<string, ICompiledViewSource>) { 
+    this.factory = factory;
+    this.replacements = replacements || PLATFORM.emptyObject;
+  }
+
+  get(handler: IContainer, requestor: IContainer) {
+    let found = this.replacements[this.factory.name];
+
+    if (found) {
+      if ((<any>found).factory) {
+        return (<any>found).factory;
+      }
+
+      return (<any>found).factory = ViewEngine.factoryFromCompiledSource(found);
+    }
+
+    return this.factory;
+  }
+
+  dispose() {
+    this.factory = null;
+    this.replacements = null;
   }
 }
 
@@ -281,7 +313,7 @@ class ViewSlotProvider implements IResolver {
 
 type TemplateContainer = IContainer & {
   element: InstanceProvider<Element>,
-  viewFactory: InstanceProvider<IViewFactory>,
+  viewFactory: ViewFactoryProvider,
   viewSlot: ViewSlotProvider
 };
 
@@ -289,7 +321,7 @@ function createTemplateContainer(dependencies) {
   let container = <TemplateContainer>DI.createChild();
 
   container.registerResolver(DOM.Element, container.element = new InstanceProvider());
-  container.registerResolver(IViewFactory, container.viewFactory = new InstanceProvider());
+  container.registerResolver(IViewFactory, container.viewFactory = new ViewFactoryProvider());
   container.registerResolver(ViewSlot, container.viewSlot = new ViewSlotProvider());
 
   if (dependencies) {
@@ -309,7 +341,7 @@ class CompiledTemplate implements ITemplate {
     this.element.innerHTML = source.template;
   }
 
-  createFor(owner: IViewOwner, host?: Node): IView {
+  createFor(owner: IViewOwner, host?: Node, replacements?: Record<string, ICompiledViewSource>): IView {
     const source = this.source;
     const view = View.fromCompiledTemplate(this.element);
     const targets = view.findTargets();
@@ -322,7 +354,7 @@ class CompiledTemplate implements ITemplate {
       let target = targets[i];
 
       for (let j = 0, jj = instructions.length; j < jj; ++j) {
-        applyInstruction(owner, instructions[j], target, container);
+        applyInstruction(owner, instructions[j], target, replacements, container);
       }
     }
 
@@ -330,7 +362,7 @@ class CompiledTemplate implements ITemplate {
       const surrogateInstructions = source.surrogateInstructions;
       
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-        applyInstruction(owner, surrogateInstructions[i], host, container);
+        applyInstruction(owner, surrogateInstructions[i], host, replacements, container);
       }
     }
 
@@ -484,7 +516,7 @@ class DefaultViewFactory implements IViewFactory {
 
   public isCaching = false;
 
-  constructor(private type: Constructable<Visual>) {}
+  constructor(public name: string, private type: Constructable<Visual>) {}
 
   setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {

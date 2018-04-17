@@ -3,7 +3,7 @@ import { IView, View, IViewOwner } from "./view";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
 import { IShadowSlot, ShadowDOM } from "./shadow-dom";
-import { FEATURE, DOM } from "../pal";
+import { FEATURE, DOM, PLATFORM } from "../pal";
 import { IContainer, Registration } from "../di";
 import { BindingMode } from "../binding/binding-mode";
 import { Constructable } from "../interfaces";
@@ -13,14 +13,10 @@ import { ViewSlot } from "./view-slot";
 import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
-  applyTo(target: Element, content: IView): void;
+  hydrate(host: Element, content?: IView, replacements?: Record<string, ICompiledViewSource>): void;
 }
 
 export interface IAttributeComponent extends IBindScope, IAttach { }
-
-export interface ICompiledElementSource extends ICompiledViewSource {
-  name: string;
-}
 
 export interface IAttributeSource {
   name: string;
@@ -45,7 +41,7 @@ type AttributeType = Constructable & {
 type ElementType = Constructable & {
   new(...args: any[]): IElementComponent;
   template: ITemplate;
-  source: ICompiledElementSource;
+  source: ICompiledViewSource;
 }
 
 type ValueConverterType = Constructable & {
@@ -233,7 +229,7 @@ export const Component = {
       }
     };
   },
-  elementFromCompiledSource<T extends Constructable>(source: ICompiledElementSource, ctor: T = null): T & ElementType {
+  elementFromCompiledSource<T extends Constructable>(source: ICompiledViewSource, ctor: T = null): T & ElementType {
     //Support HTML-Only Elements by providing a generated class.
     if (ctor === null) {
       ctor = <any>class HTMLOnlyElement { };
@@ -257,7 +253,7 @@ export const Component = {
     const template = ViewEngine.templateFromCompiledSource(source);
     const CompiledComponent = class extends ctor implements IElementComponent {
       static template: ITemplate = template;
-      static source: ICompiledElementSource = source;
+      static source: ICompiledViewSource = source;
 
       static register(container: IContainer){
         container.register(Registration.transient(source.name, CompiledComponent));
@@ -286,7 +282,7 @@ export const Component = {
         discoverAndApplyCharacteristics(this, CompiledComponent);
       }
   
-      applyTo(host: Element, content: IView) { 
+      hydrate(host: Element, content: IView = View.none, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject) { 
         this.$host = source.containerless 
           ? DOM.makeElementIntoAnchor(host, true)
           : host;
@@ -296,15 +292,15 @@ export const Component = {
           : this.$host;
 
         this.$contentView = content;
-        this.$view = this.createView(this.$host);
+        this.$view = this.createView(this.$host, replacements);
   
         if (this.$characteristics.hasCreated) {
           (<any>this).created();
         }
       }
   
-      createView(host: Element) {
-        return template.createFor(this, host);
+      createView(host: Element, replacements: Record<string, ICompiledViewSource>) {
+        return template.createFor(this, host, replacements);
       }
   
       bind() {

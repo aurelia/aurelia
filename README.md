@@ -22,60 +22,108 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 
 ## Runtime
 
-* Core
-  * [x] PAL
-  * [x] Reporting
-  * [x] Task Queue
-  * [x] Dependency Injection
-* Binding
-  * [x] One Way
-  * [x] Two Way 
-  * [x] One Time
-  * [x] From View
-  * [x] Trigger
-  * [x] Delegate
-  * [x] Capture
-  * [x] Call
-  * [x] Ref
-  * [x] Style
-  * [x] Text
-  * [x] SVG
-  * [x] Value Converters
-  * [x] Binding Behaviors
-* Custom Elements
-  * [x] Properties
-  * [x] Binding
-  * [x] Bind Lifecycle
-  * [x] Attach Lifecycle
-  * [x] Fixed Views
-  * [x] Per-instance Views
-  * [x] No View
-  * [x] Containerless
-  * [x] Emulated ShadowDOM
-  * [x] Native ShadowDOM
-  * [x] HTML-Only Custom Elements
-  * [ ] Template Part Replacement
-  * [ ] CSS Modules
-  * [ ] `compose` Custom Element
-* Custom Attributes
-  * [x] Binding
-  * [x] Bind Lifecycle
-  * [x] Attach Lifecycle
-* Template Controllers
-  * [x] Binding
-  * [x] Bind Lifecycle
-  * [x] Attach Lifecycle
-  * [x] View Factories
-  * [x] View Slots
-  * [x] Plain Views
-  * [x] Linking
-    * e.g. if/else and switch/case scenarios
-  * [x] `if` Template Controller
-  * [x] `else` Template Controller
-  * [ ] `repeat` Template Controller
-* Application Startup
-  * [x] SPA Startup
-  * [ ] Progressive Enhancement
+### Core
+
+* [x] PAL
+* [x] Reporting
+* [x] Task Queue
+* [x] Dependency Injection
+
+### Binding
+
+* [x] One Way
+* [x] Two Way 
+* [x] One Time
+* [x] From View
+* [x] Trigger
+* [x] Delegate
+* [x] Capture
+* [x] Call
+* [x] Ref
+* [x] Style
+* [x] Text
+* [x] Value Converters
+* [x] Binding Behaviors
+
+### Custom Elements
+
+* [x] Properties
+* [x] Binding
+* [x] Bind Lifecycle
+* [x] Attach Lifecycle
+* [x] Fixed Views
+* [x] Per-instance Views
+* [x] No View
+* [x] Containerless
+* [x] Emulated ShadowDOM
+* [x] Native ShadowDOM
+* [x] HTML-Only Custom Elements
+* [x] Template Part Replacement
+* [ ] Basic CSS 
+* [ ] CSS Modules
+
+### Custom Attributes
+
+* [x] Binding
+* [x] Bind Lifecycle
+* [x] Attach Lifecycle
+
+### Template Controllers
+
+* [x] Binding
+* [x] Bind Lifecycle
+* [x] Attach Lifecycle
+* [x] View Factories
+* [x] View Slots
+* [x] Plain Views
+* [x] Linking
+  * e.g. if/else and switch/case scenarios
+
+### Resources
+
+* [x] `if` Template Controller
+* [x] `else` Template Controller
+* [ ] `compose` Custom Element
+* [ ] `repeat` Template Controller
+
+### Application Model
+
+* [x] Plugin Registration
+* [x] SPA Startup
+
+## JIT
+
+### Binding
+
+* [ ] Expression Parser
+
+### Templating
+
+* [ ] View Compiler
+
+### Application
+
+* [ ] Progressive Enhancement
+
+## Debugging
+
+### Core
+
+* [x] Error Messages
+
+### Binding
+
+* [x] Expression Unparsing
+
+### Task Queue
+
+* [x] Long Stack Traces
+
+## Plugins
+
+### SVG
+
+* [x] Binding to SVG Elements
 
 ## Building & Testing the Compiler
 

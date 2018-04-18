@@ -1,5 +1,6 @@
 import { PLATFORM } from "./pal";
 import { Injectable } from "./interfaces";
+import { Reporter } from "./reporter";
 
 type InterfaceSymbol = (target: Injectable, property: string, index: number) => any;
 
@@ -77,7 +78,7 @@ class Resolver implements IResolver, IRegistration {
     case 5: //alias
       return handler.get(this.state);
     default:
-      throw new Error('Invalid strategy: ' + this.strategy);
+      throw Reporter.error(6, this.strategy);
     }
   }
 }
@@ -306,7 +307,7 @@ export const Registration = {
 
 function validateKey(key: any) {
   if (key === null || key === undefined) {
-    throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+    throw Reporter.error(5);
   }
 }
 
@@ -386,7 +387,7 @@ function invokeWithDynamicDependencies(container: IContainer, fn: Function, stat
     lookup = staticDependencies[i];
 
     if (lookup === null || lookup === undefined) {
-      throw new Error('Constructor Parameter with index ' + i + ' cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+      throw Reporter.error(7, `Index ${i}.`);
     } else {
       args[i] = container.get(lookup);
     }

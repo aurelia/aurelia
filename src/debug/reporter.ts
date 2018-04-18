@@ -69,5 +69,17 @@ const codeLookup: Record<string, IMessageInfo> = {
   4: {
     type: MessageType.error,
     message: 'Invalid animation direction.'
+  },
+  5: {
+    type: MessageType.error,
+    message: 'key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
+  },
+  6: {
+    type: MessageType.error,
+    message: 'Invalid resolver strategy specified.'
+  },
+  7: {
+    type: MessageType.error,
+    message: 'Constructor Parameter with index cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
   }
 };

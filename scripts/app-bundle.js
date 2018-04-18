@@ -421,6 +421,18 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
         4: {
             type: MessageType.error,
             message: 'Invalid animation direction.'
+        },
+        5: {
+            type: MessageType.error,
+            message: 'key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
+        },
+        6: {
+            type: MessageType.error,
+            message: 'Invalid resolver strategy specified.'
+        },
+        7: {
+            type: MessageType.error,
+            message: 'Constructor Parameter with index cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
         }
     };
 });
@@ -694,7 +706,7 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
 
 
 
-define('runtime/di',["require", "exports", "./pal"], function (require, exports, pal_1) {
+define('runtime/di',["require", "exports", "./pal", "./reporter"], function (require, exports, pal_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function createInterface(key) {
@@ -747,7 +759,7 @@ define('runtime/di',["require", "exports", "./pal"], function (require, exports,
                 case 5:
                     return handler.get(this.state);
                 default:
-                    throw new Error('Invalid strategy: ' + this.strategy);
+                    throw reporter_1.Reporter.error(6, this.strategy);
             }
         };
         return Resolver;
@@ -921,7 +933,7 @@ define('runtime/di',["require", "exports", "./pal"], function (require, exports,
     };
     function validateKey(key) {
         if (key === null || key === undefined) {
-            throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+            throw reporter_1.Reporter.error(5);
         }
     }
     function buildAllResponse(resolver, handler, requestor) {
@@ -991,7 +1003,7 @@ define('runtime/di',["require", "exports", "./pal"], function (require, exports,
         while (i--) {
             lookup = staticDependencies[i];
             if (lookup === null || lookup === undefined) {
-                throw new Error('Constructor Parameter with index ' + i + ' cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+                throw reporter_1.Reporter.error(7, "Index " + i + ".");
             }
             else {
                 args[i] = container.get(lookup);

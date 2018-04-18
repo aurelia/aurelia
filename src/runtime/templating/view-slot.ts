@@ -1,5 +1,5 @@
 import { Animator } from './animator';
-import { ShadowDOM, IShadowSlot } from './shadow-dom';
+import { ShadowDOMEmulation, IEmulatedShadowSlot } from './shadow-dom';
 import { IVisual } from './view-engine';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
@@ -15,8 +15,8 @@ function addVisualToList(visual: IVisual, owner: ViewSlot) {
 }
 
 function projectAddVisualToList(visual: IVisual, owner: ViewSlot) {
-  visual.$view.remove = () => ShadowDOM.undistributeView(visual.$view, owner.slots, owner);
-  ShadowDOM.distributeView(visual.$view, owner.slots, owner);
+  visual.$view.remove = () => ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
+  ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner);
 }
 
 function insertVisualAtIndex(visual: IVisual, owner: ViewSlot, index: number) {
@@ -24,8 +24,8 @@ function insertVisualAtIndex(visual: IVisual, owner: ViewSlot, index: number) {
 }
 
 function projectInsertVisualAtIndex(visual: IVisual, owner: ViewSlot, index: number) {
-  visual.$view.remove = () => ShadowDOM.undistributeView(visual.$view, owner.slots, owner);
-  ShadowDOM.distributeView(visual.$view, owner.slots, owner, index);
+  visual.$view.remove = () => ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
+  ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner, index);
 }
 
 function removeView(visual: IVisual, owner: ViewSlot) {
@@ -33,7 +33,7 @@ function removeView(visual: IVisual, owner: ViewSlot) {
 }
 
 function projectRemoveView(visual: IVisual, owner: ViewSlot) {
-  ShadowDOM.undistributeView(visual.$view, owner.slots, owner);
+  ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
 }
 
 /**
@@ -43,7 +43,7 @@ function projectRemoveView(visual: IVisual, owner: ViewSlot) {
 export class ViewSlot implements IAttach {
   private $isAttached = false;
   public children: IVisual[] = [];
-  public slots: Record<string, IShadowSlot> = null;
+  public slots: Record<string, IEmulatedShadowSlot> = null;
 
   private addVisualCore: (visual: IVisual, owner: ViewSlot) => void;
   private insertVisualCore: (visual: IVisual, owner: ViewSlot, index: number) => void;
@@ -266,7 +266,7 @@ export class ViewSlot implements IAttach {
     }
   }
 
-  projectTo(slots: Record<string, IShadowSlot>): void {
+  projectTo(slots: Record<string, IEmulatedShadowSlot>): void {
     this.slots = slots;
     this.addVisualCore = projectAddVisualToList;
     this.insertVisualCore = projectInsertVisualAtIndex;

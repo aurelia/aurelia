@@ -1,5 +1,5 @@
 import { DOM } from "../pal";
-import { IShadowSlot } from "./shadow-dom";
+import { IEmulatedShadowSlot } from "./shadow-dom";
 import { IScope } from "../binding/binding-context";
 import { IBindScope } from "../binding/observation";
 import { IAttach } from "./lifecycle";
@@ -24,7 +24,7 @@ export interface IViewOwner {
   $bindable: IBindScope[];
   $attachable: IAttach[];
 
-  $slots?: Record<string, IShadowSlot>;
+  $slots?: Record<string, IEmulatedShadowSlot>;
   $useShadowDOM?: boolean;
 }
 

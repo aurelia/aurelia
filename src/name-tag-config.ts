@@ -1,4 +1,4 @@
-import { ShadowDOM } from "./runtime/templating/shadow-dom";
+import { ShadowDOMEmulation } from "./runtime/templating/shadow-dom";
 import { ICompiledViewSource } from "./runtime/templating/view-engine";
 
 //this object is built up during compilation
@@ -86,7 +86,7 @@ export const nameTagConfig: ICompiledViewSource = {
     [
       {
         type: 'slot',
-        name: ShadowDOM.defaultSlotName
+        name: ShadowDOMEmulation.defaultSlotName
       }
     ],
     [

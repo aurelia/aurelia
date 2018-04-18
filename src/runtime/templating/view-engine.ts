@@ -3,7 +3,7 @@ import { View, IView, IViewOwner } from "./view";
 import { IElementComponent, IAttributeComponent } from "./component";
 import { IBinding, Binding } from "../binding/binding";
 import { ViewSlot } from "./view-slot";
-import { IShadowSlot, ShadowDOM } from "./shadow-dom";
+import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
 import { Listener } from "../binding/listener";
 import { Call } from "../binding/call";
 import { Ref } from "../binding/ref";
@@ -112,7 +112,7 @@ export const ViewEngine = {
       static template: ITemplate = template;
       static source: ICompiledViewSource = source;
 
-      $slots: Record<string, IShadowSlot> = source.hasSlots ? {} : null;
+      $slots: Record<string, IEmulatedShadowSlot> = source.hasSlots ? {} : null;
 
       createView() {
         return template.createFor(this);
@@ -166,7 +166,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, replacements: 
         instruction.factory = fallbackFactory = ViewEngine.factoryFromCompiledSource(instruction.fallback);
       }
 
-      let slot = ShadowDOM.createSlot(target, owner, instruction.name, instruction.destination, fallbackFactory);
+      let slot = ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.destination, fallbackFactory);
       owner.$slots[slot.name] = slot;
       owner.$bindable.push(slot);
       owner.$attachable.push(slot);

@@ -6,22 +6,22 @@ import { IBindScope } from '../binding/observation';
 import { IScope } from '../binding/binding-context';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
 
-type ProjectionSource = ViewSlot | IShadowSlot;
+type ProjectionSource = ViewSlot | IEmulatedShadowSlot;
 
 type ShadowEmulationTracking = { 
-  viewSlot: IShadowSlot;
+  viewSlot: IEmulatedShadowSlot;
   auSlotName?: string;
   isContentProjectionSource?: boolean;
   auOwnerView?: IView;
   auProjectionSource?: ProjectionSource;
   auSlotProjectFrom?: ProjectionSource;
-  auAssignedSlot?: IShadowSlot;
+  auAssignedSlot?: IEmulatedShadowSlot;
   auProjectionChildren: SlotNode[];
 };
 
 type SlotNode = Node & ShadowEmulationTracking;
 
-export interface IShadowSlot extends IBindScope, IAttach {
+export interface IEmulatedShadowSlot extends IBindScope, IAttach {
   readonly name: string;
   readonly needsFallback: boolean;
   readonly anchor: Node;
@@ -31,7 +31,7 @@ export interface IShadowSlot extends IBindScope, IAttach {
   projectFrom(view: IView, projectionSource: ProjectionSource);
   addNode(view: IView, node: SlotNode, projectionSource: ProjectionSource, index: number, destination?: string);
   renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index: number);
-  projectTo?(slots: Record<string, IShadowSlot>);
+  projectTo?(slots: Record<string, IEmulatedShadowSlot>);
 }
 
 const noNodes = <SlotNode[]>PLATFORM.emptyArray;
@@ -42,12 +42,12 @@ function shadowSlotAddFallbackVisual(visual: IVisual, owner: ShadowSlot) {
 
 function passThroughSlotAddFallbackVisual(visual: IVisual, owner: PassThroughSlot, index: number) {
   let projectionSource = owner.currentProjectionSource;
-  let slots = <Record<string, IShadowSlot>>Object.create(null);
+  let slots = <Record<string, IEmulatedShadowSlot>>Object.create(null);
 
   owner.currentProjectionSource = null;
   slots[owner.destinationSlot.name] = owner.destinationSlot;
   
-  ShadowDOM.distributeView(
+  ShadowDOMEmulation.distributeView(
     owner.fallbackVisual.$view, 
     slots, 
     projectionSource, 
@@ -102,8 +102,8 @@ abstract class ShadowSlotBase {
   }
 }
 
-class PassThroughSlot extends ShadowSlotBase implements IShadowSlot {
-  destinationSlot: IShadowSlot = null;
+class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
+  destinationSlot: IEmulatedShadowSlot = null;
   currentProjectionSource: ProjectionSource = null;
 
   constructor(owner: IViewOwner, anchor: SlotNode, name: string, private destinationName: string, fallbackFactory?: IViewFactory) {
@@ -111,7 +111,7 @@ class PassThroughSlot extends ShadowSlotBase implements IShadowSlot {
     this.anchor.auSlotName = this.destinationName;
   }
 
-  passThroughTo(destinationSlot: IShadowSlot) {
+  passThroughTo(destinationSlot: IEmulatedShadowSlot) {
     this.destinationSlot = destinationSlot;
   }
 
@@ -159,7 +159,7 @@ class PassThroughSlot extends ShadowSlotBase implements IShadowSlot {
   }
 }
 
-class ShadowSlot extends ShadowSlotBase implements IShadowSlot {
+class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   children: SlotNode[] = [];
   projectFromAnchors: SlotNode[] = null;
   destinationSlots = null;
@@ -193,7 +193,7 @@ class ShadowSlot extends ShadowSlotBase implements IShadowSlot {
       }
 
       this.fallbackSlots = slots;
-      ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
+      ShadowDOMEmulation.distributeNodes(view, nodes, slots, projectionSource, index);
     }
   }
   
@@ -206,7 +206,7 @@ class ShadowSlot extends ShadowSlotBase implements IShadowSlot {
     }
 
     if (this.destinationSlots !== null) {
-      ShadowDOM.distributeNodes(view, [node], this.destinationSlots, this, index);
+      ShadowDOMEmulation.distributeNodes(view, [node], this.destinationSlots, this, index);
     } else {
       node.auOwnerView = view;
       node.auProjectionSource = projectionSource;
@@ -223,9 +223,9 @@ class ShadowSlot extends ShadowSlotBase implements IShadowSlot {
 
   removeView(view: IView, projectionSource: ProjectionSource) {
     if (this.destinationSlots !== null) {
-      ShadowDOM.undistributeView(view, this.destinationSlots, this);
+      ShadowDOMEmulation.undistributeView(view, this.destinationSlots, this);
     } else if (this.fallbackVisual && this.fallbackVisual.$slots) {
-      ShadowDOM.undistributeView(view, this.fallbackVisual.$slots, projectionSource);
+      ShadowDOMEmulation.undistributeView(view, this.fallbackVisual.$slots, projectionSource);
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
@@ -251,9 +251,9 @@ class ShadowSlot extends ShadowSlotBase implements IShadowSlot {
 
   removeAll(projectionSource: ProjectionSource) {
     if (this.destinationSlots !== null) {
-      ShadowDOM.undistributeAll(this.destinationSlots, this);
+      ShadowDOMEmulation.undistributeAll(this.destinationSlots, this);
     } else if (this.fallbackVisual && this.fallbackVisual.$slots) {
-      ShadowDOM.undistributeAll(this.fallbackVisual.$slots, projectionSource);
+      ShadowDOMEmulation.undistributeAll(this.fallbackVisual.$slots, projectionSource);
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
 
@@ -307,7 +307,7 @@ class ShadowSlot extends ShadowSlotBase implements IShadowSlot {
     return this.anchor;
   }
 
-  projectTo(slots: Record<string, IShadowSlot>) {
+  projectTo(slots: Record<string, IEmulatedShadowSlot>) {
     this.destinationSlots = slots;
   }
 
@@ -328,7 +328,7 @@ class ShadowSlot extends ShadowSlotBase implements IShadowSlot {
   }
 }
 
-export const ShadowDOM = {
+export const ShadowDOMEmulation = {
   defaultSlotName: 'auDefaultSlot',
 
   getSlotName(node: Node): string {
@@ -353,7 +353,7 @@ export const ShadowDOM = {
     }
   },
 
-  distributeView(view: IView, slots: Record<string, IShadowSlot>, projectionSource: ProjectionSource = null, index = 0, destinationOverride: string = null) {
+  distributeView(view: IView, slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource = null, index = 0, destinationOverride: string = null) {
     let nodes;
 
     if (view === null) {
@@ -378,19 +378,19 @@ export const ShadowDOM = {
     );
   },
 
-  undistributeView(view: IView, slots: Record<string, IShadowSlot>, projectionSource: ProjectionSource) {
+  undistributeView(view: IView, slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
     for (let slotName in slots) {
       slots[slotName].removeView(view, projectionSource);
     }
   },
 
-  undistributeAll(slots: Record<string, IShadowSlot>, projectionSource: ProjectionSource) {
+  undistributeAll(slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
     for (let slotName in slots) {
       slots[slotName].removeAll(projectionSource);
     }
   },
 
-  distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, IShadowSlot>, projectionSource: ProjectionSource, index: number, destinationOverride: string = null) {
+  distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource, index: number, destinationOverride: string = null) {
     for (let i = 0, ii = nodes.length; i < ii; ++i) {
       let currentNode = nodes[i];
       let nodeType = currentNode.nodeType;
@@ -409,7 +409,7 @@ export const ShadowDOM = {
           nodes.splice(i, 1);
           ii--; i--;
         } else {
-          let found = slots[destinationOverride || ShadowDOM.getSlotName(currentNode)];
+          let found = slots[destinationOverride || ShadowDOMEmulation.getSlotName(currentNode)];
 
           if (found) {
             found.addNode(view, currentNode, projectionSource, index);

@@ -33,22 +33,22 @@ export interface IBindingBehaviorSource {
   name: string;
 }
 
-type AttributeType = Constructable & {
+export interface IAttributeType extends Constructable {
   new(...args: any[]): IAttributeComponent;
   source: IAttributeSource;
 };
 
-type ElementType = Constructable & {
+export interface IElementType extends Constructable {
   new(...args: any[]): IElementComponent;
   template: ITemplate;
   source: ICompiledViewSource;
 }
 
-type ValueConverterType = Constructable & {
+export interface ValueConverterType extends Constructable {
   source: IValueConverterSource;
 }
 
-type BindingBehaviorType = Constructable & {
+export interface BindingBehaviorType extends Constructable {
   source: IBindingBehaviorSource;
 }
 
@@ -64,7 +64,7 @@ class RuntimeCharacteristics {
   hasDetached = false;
   hasUnbound = false;
 
-  static for(instance, Component: ElementType | AttributeType) {
+  static for(instance, Component: IElementType | IAttributeType) {
     let characteristics = new RuntimeCharacteristics();
     let configuredObservables = <Record<string, IObservableDescription>>(<any>Component).observables;
     let observables: IObservableDescription[] = [];
@@ -122,7 +122,7 @@ export const Component = {
 
     return <any>ctor;
   },
-  attribute<T extends Constructable>(nameOrSource: string | IAttributeSource, ctor: T): T & AttributeType {
+  attribute<T extends Constructable>(nameOrSource: string | IAttributeSource, ctor: T): T & IAttributeType {
     let source = ensureSource<IAttributeSource>(nameOrSource);
     
     return class CustomAttribute extends ctor implements IAttributeComponent {
@@ -229,7 +229,7 @@ export const Component = {
       }
     };
   },
-  elementFromCompiledSource<T extends Constructable>(source: ICompiledViewSource, ctor: T = null): T & ElementType {
+  elementFromCompiledSource<T extends Constructable>(source: ICompiledViewSource, ctor: T = null): T & IElementType {
     //Support HTML-Only Elements by providing a generated class.
     if (ctor === null) {
       ctor = <any>class HTMLOnlyElement { };
@@ -419,14 +419,16 @@ export const Component = {
       }
     }
 
-    //Support Recursive Components by adding self to own view template container.
-    CompiledComponent.register(template.container);
+    //If the element has a view, support Recursive Components by adding self to own view template container.
+    if (template.container !== null) {
+      CompiledComponent.register(template.container);
+    }
 
     return CompiledComponent;
   }
 };
 
-function discoverAndApplyCharacteristics(instance, Component: ElementType | AttributeType) {
+function discoverAndApplyCharacteristics(instance, Component: IElementType | IAttributeType) {
   let characteristics: RuntimeCharacteristics = (<any>Component).characteristics;
 
   if (characteristics === undefined) {

@@ -1,21 +1,30 @@
-import { DOM } from "../pal";
+import { DOM, PLATFORM } from "../pal";
 import { IEmulatedShadowSlot } from "./shadow-dom";
 import { IScope } from "../binding/binding-context";
 import { IBindScope } from "../binding/observation";
 import { IAttach } from "./lifecycle";
+import { DI, IContainer } from "../di";
+import { ICompiledViewSource, ITemplate } from "./view-engine";
+import { Constructable } from "../interfaces";
 
 export interface IView {
   firstChild: Node;
   lastChild: Node;
-  childNodes: NodeList;
+  childNodes: ArrayLike<Node>;
 
-  findTargets(): ReadonlyArray<Element>;
+  findTargets(): ReadonlyArray<Node>;
   appendChild(child: Node): void;
   insertBefore(refNode: Node): void;
   appendTo(parent: Node): void;
   remove(): void;
 }
 
+export const IViewOwner = DI.createInterface('IViewOwner');
+
+export interface IViewOwnerType extends Constructable<IViewOwner> {
+  template: ITemplate;
+  source: ICompiledViewSource;
+}
 export interface IViewOwner {
   $view: IView;
   $scope: IScope;
@@ -28,12 +37,11 @@ export interface IViewOwner {
   $useShadowDOM?: boolean;
 }
 
-const noNodes = Object.freeze([]);
 const noopView: IView = {
   firstChild: Node = null,
   lastChild: Node = null,
-  childNodes: <any>noNodes,
-  findTargets() { return noNodes; },
+  childNodes: PLATFORM.emptyArray,
+  findTargets() { return PLATFORM.emptyArray; },
   insertBefore(refNode: Node): void {},
   appendTo(parent: Node): void {},
   remove(): void {},
@@ -45,8 +53,8 @@ export const View = {
   fromCompiledTemplate(element: HTMLTemplateElement): IView {
     return new TemplateView(element);
   },
-  fromCompiledElementContent(owner: IViewOwner, element: Element): IView {
-    let contentElement = element.firstElementChild;
+  fromCompiledElementContent(owner: IViewOwner, element: Element, contentElement?: Element): IView {
+    contentElement = contentElement || element.firstElementChild;
 
     if (contentElement !== null && contentElement !== undefined) {
       DOM.removeNode(contentElement);
@@ -61,6 +69,28 @@ export const View = {
     }
     
     return noopView;
+  },
+  fromElement(element: Element): IView {
+    return {
+      firstChild: element,
+      lastChild: element,
+      childNodes: [element],
+      findTargets(): ReadonlyArray<Element> {
+        return PLATFORM.emptyArray;
+      },
+      appendChild(node: Node) {
+        element.appendChild(node);
+      },
+      insertBefore(refNode: Node): void {
+        refNode.parentNode.insertBefore(element, refNode);
+      },
+      appendTo(parent: Node): void {
+        parent.appendChild(element);
+      },
+      remove(): void {
+        element.remove();
+      }
+    };
   }
 };
 
@@ -81,7 +111,7 @@ class ContentView implements IView {
     this.element.appendChild(child);
   }
 
-  findTargets() { return noNodes; }
+  findTargets() { return PLATFORM.emptyArray; }
   insertBefore(refNode: Node): void {}
   appendTo(parent: Node): void {}
   remove(): void {}

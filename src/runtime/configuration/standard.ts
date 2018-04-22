@@ -7,12 +7,14 @@ import { ISVGAnalyzer, SVGAnalyzer } from "../binding/svg-analyzer";
 import { IEventManager, EventManager } from "../binding/event-manager";
 import { IObserverLocator, ObserverLocator } from "../binding/observer-locator";
 import { IAnimator, Animator } from "../templating/animator";
+import { Compose } from "../resources/compose";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
     container.register(
       If,
-      Else
+      Else,
+      Compose
     );
   
     container.register(Registration.instance(IDirtyChecker, DirtyChecker));

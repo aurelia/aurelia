@@ -36,6 +36,8 @@ function projectRemoveView(visual: IVisual, owner: ViewSlot) {
   ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
 }
 
+export type SwapOrder = 'before' | 'with' | 'after';
+
 /**
 * Represents a slot or location within the DOM to which views can be added and removed.
 * Manages the view lifecycle for its children.
@@ -119,6 +121,34 @@ export class ViewSlot implements IAttach {
     if (this.$isAttached) {
       this.removeViewCore(visual, this);
       this.insertVisualCore(visual, this, targetIndex);
+    }
+  }
+
+  /**
+  * Replaces the existing view slot children with the new visual.
+  * @param newVisual The visual to swap in.
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if an animation was triggered.
+  */
+  swap(newVisual: IVisual, strategy: SwapOrder = 'after', returnToCache?: boolean, skipAnimation?: boolean) {
+    let previous = this.children;
+
+    const remove = () => this.removeAll(returnToCache, skipAnimation);
+    const add = () => this.add(newVisual);
+
+    switch(strategy) {
+      case 'before':
+        const beforeAddResult = add();
+        return (beforeAddResult instanceof Promise ? beforeAddResult.then(() => <any>remove()) : remove()); 
+      case 'with':
+        const withAddResult = add();
+        const withRemoveResult = remove();
+        return (withAddResult instanceof Promise || withRemoveResult instanceof Promise)
+          ? Promise.all(<any>[withAddResult, withRemoveResult]).then(x => x[1])
+          : withRemoveResult;
+      case 'after':
+        const afterRemoveResult = remove();
+        return (afterRemoveResult instanceof Promise ? afterRemoveResult.then(() => <any>add()) : add());
     }
   }
 

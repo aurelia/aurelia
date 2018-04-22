@@ -65,7 +65,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 
 * [x] `if` Template Controller
 * [x] `else` Template Controller
-* [ ] `compose` Custom Element
+* [x] `compose` Custom Element
 * [ ] `repeat` Template Controller
 
 ### Application Model

@@ -1,6 +1,6 @@
 import { DOM, PLATFORM } from "../pal";
 import { View, IView, IViewOwner } from "./view";
-import { IElementComponent, IAttributeComponent } from "./component";
+import { IElementComponent, IAttributeComponent, IElementType } from "./component";
 import { IBinding, Binding } from "../binding/binding";
 import { ViewSlot } from "./view-slot";
 import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
@@ -18,7 +18,7 @@ import { Animator } from "./animator";
 import { Reporter } from "../reporter";
 
 export interface ITemplate {
-  readonly container: IContainer;
+  readonly container: ITemplateContainer;
   createFor(owner: IViewOwner, host?: Node, replacements?: Record<string, ICompiledViewSource>): IView;
 }
 
@@ -40,7 +40,7 @@ export interface ICompiledViewSource {
 }
 
 const noViewTemplate: ITemplate = {
-  container: DI,
+  container: null,
   createFor(owner: IViewOwner) {
     return View.none;
   }
@@ -71,6 +71,8 @@ export interface IVisual extends IBindScope, IViewOwner {
 
   detach(context?: DetachContext);
 }
+
+export type VisualWithCentralComponent = IVisual & { component: IElementComponent };
 
 export const IViewFactory = DI.createInterface('IViewFactory');
 
@@ -120,10 +122,46 @@ export const ViewEngine = {
     }
 
     return new DefaultViewFactory(source.name, CompiledVisual);
+  },
+
+  visualFromComponent(container: ITemplateContainer, componentOrType: any, instruction: IElementInstruction): VisualWithCentralComponent {
+    class ComponentVisual extends Visual {
+      static template: ITemplate = Object.assign({}, noViewTemplate, { container });
+      static source: ICompiledViewSource = null;
+
+      public component: IElementComponent;
+
+      constructor() {
+        super(null);
+      }
+
+      createView() {
+        let target: Element;
+
+        if (typeof componentOrType === 'function') {
+          target = DOM.createElement(componentOrType.source.name);
+          applyElementInstruction(instruction, container, target, this);
+          this.component = <IElementComponent>this.$attachable[this.$attachable.length - 1];
+        } else {
+          const componentType = <IElementType>componentOrType.constructor;
+          target = componentOrType.element || DOM.createElement(componentType.source.name);
+          applyElementInstructionToComponentInstance(componentOrType, instruction, container, target, this);
+          this.component = componentOrType;
+        }
+
+        return View.fromElement(target);
+      }
+
+      tryReturnToCache() {
+        return false;
+      }
+    }
+
+    return new ComponentVisual();
   }
 };
 
-function applyInstruction(owner: IViewOwner, instruction, target, replacements: Record<string, ICompiledViewSource>, container: TemplateContainer) {
+function applyInstruction(owner: IViewOwner, instruction, target, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
   switch(instruction.type) {
     case 'oneWayText':
       let next = target.nextSibling;
@@ -172,23 +210,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, replacements: 
       owner.$attachable.push(slot);
       break;
     case 'element':
-      let elementInstructions = instruction.instructions;
-
-      container.element.prepare(target);
-      
-      let elementModel = container.get<IElementComponent>(instruction.resource);
-      elementModel.hydrate(target, View.fromCompiledElementContent(elementModel, target), instruction.replacements);
-
-      for (let i = 0, ii = elementInstructions.length; i < ii; ++i) {
-        let current = elementInstructions[i];
-        let realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
-        applyInstruction(owner, current, realTarget, replacements, container);
-      }
-
-      container.element.dispose();
-
-      owner.$bindable.push(elementModel);
-      owner.$attachable.push(elementModel);
+      applyElementInstruction(instruction, container, target, owner);
       break;
     case 'attribute':
       let attributeInstructions = instruction.instructions;
@@ -219,7 +241,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, replacements: 
 
       let templateControllerModel = container.get<IAttributeComponent>(instruction.resource);
 
-      container.viewSlot.tryConnect(templateControllerModel);
+      container.viewSlot.tryConnectToAttribute(templateControllerModel);
 
       if (instruction.link) {
         (<any>templateControllerModel).link(owner.$attachable[owner.$attachable.length - 1]);
@@ -299,9 +321,15 @@ class ViewSlotProvider implements IResolver {
       || (this.viewSlot = new ViewSlot(this.element, this.anchorIsContainer));
   }
 
-  tryConnect(owner) {
+  tryConnectToAttribute(owner) {
     if (this.viewSlot !== null) {
       owner.$viewSlot = this.viewSlot;
+    }
+  }
+
+  tryConnectToViewOwner(owner: IViewOwner) {
+    if (this.viewSlot !== null) {
+      owner.$attachable.push(this.viewSlot);
     }
   }
 
@@ -311,18 +339,70 @@ class ViewSlotProvider implements IResolver {
   }
 }
 
-type TemplateContainer = IContainer & {
-  element: InstanceProvider<Element>,
-  viewFactory: ViewFactoryProvider,
-  viewSlot: ViewSlotProvider
+export interface ITemplateContainer extends IContainer {
+  element: InstanceProvider<Element>;
+  viewFactory: ViewFactoryProvider;
+  viewSlot: ViewSlotProvider;
+  viewOwner: InstanceProvider<IViewOwner>;
+  instruction: InstanceProvider<ITargetedInstruction>
 };
 
+export const ITargetedInstruction = DI.createInterface('ITargetedInstruction');
+export interface ITargetedInstruction {
+  type: string;
+}
+
+export interface IElementInstruction extends ITargetedInstruction {
+  type: 'element';
+  instructions: Array<any>;
+  resource: string;
+  replacements: Record<string, ICompiledViewSource>;
+  contentElement?: Element; //used by the compose element to pass through content
+}
+
+function applyElementInstruction(instruction: IElementInstruction, container: ITemplateContainer, target: Element, owner: IViewOwner) {
+  container.element.prepare(target);
+  container.viewOwner.prepare(owner);
+  container.instruction.prepare(instruction);
+  container.viewSlot.prepare(target, true);
+  
+  let component = container.get<IElementComponent>(instruction.resource);
+  applyElementInstructionToComponentInstance(component, instruction, container, target, owner);
+  container.viewSlot.tryConnectToViewOwner(component);
+  
+  container.element.dispose();
+  container.viewOwner.dispose();
+  container.instruction.dispose();
+  container.viewSlot.dispose();
+}
+
+function applyElementInstructionToComponentInstance(component: IElementComponent, instruction: IElementInstruction, container: ITemplateContainer, target: Element, owner: IViewOwner) {
+  let elementInstructions = instruction.instructions;
+
+  component.hydrate(
+    target, 
+    View.fromCompiledElementContent(component, target, instruction.contentElement),
+    instruction.replacements
+  );
+  
+  for (let i = 0, ii = elementInstructions.length; i < ii; ++i) {
+    let current = elementInstructions[i];
+    let realTarget = current.type === 'style' || current.type === 'listener' ? target : component;
+    applyInstruction(owner, current, realTarget, null, container);
+  }
+
+  owner.$bindable.push(component);
+  owner.$attachable.push(component);
+}
+
 function createTemplateContainer(dependencies) {
-  let container = <TemplateContainer>DI.createChild();
+  let container = <ITemplateContainer>DI.createChild();
 
   container.registerResolver(DOM.Element, container.element = new InstanceProvider());
   container.registerResolver(IViewFactory, container.viewFactory = new ViewFactoryProvider());
   container.registerResolver(ViewSlot, container.viewSlot = new ViewSlotProvider());
+  container.registerResolver(IViewOwner, container.viewOwner =  new InstanceProvider());
+  container.registerResolver(ITargetedInstruction, container.instruction = new InstanceProvider());
 
   if (dependencies) {
     container.register(...dependencies);
@@ -333,7 +413,7 @@ function createTemplateContainer(dependencies) {
 
 class CompiledTemplate implements ITemplate {
   private element: HTMLTemplateElement;
-  container: TemplateContainer;
+  container: ITemplateContainer;
 
   constructor(private source: ICompiledViewSource) {
     this.container = createTemplateContainer(source.dependencies);

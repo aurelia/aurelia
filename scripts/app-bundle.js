@@ -1065,7 +1065,6 @@ define('runtime/pal',["require", "exports"], function (require, exports) {
     exports.DOM = {
         Element: global.Element,
         SVGElement: global.SVGElement,
-        boundary: 'aurelia-dom-boundary',
         addEventListener: function (eventName, callback, capture) {
             document.addEventListener(eventName, callback, capture);
         },
@@ -1099,53 +1098,14 @@ define('runtime/pal',["require", "exports"], function (require, exports) {
         createCustomEvent: function (eventType, options) {
             return new CustomEvent(eventType, options);
         },
-        dispatchEvent: function (evt) {
-            document.dispatchEvent(evt);
-        },
-        getComputedStyle: function (element) {
-            return global.getComputedStyle(element);
-        },
-        getElementById: function (id) {
-            return document.getElementById(id);
-        },
-        querySelectorAll: function (query) {
-            return document.querySelectorAll(query);
-        },
-        nextElementSibling: function (element) {
-            if ('nextElementSibling' in element) {
-                return element['nextElementSibling'];
-            }
-            do {
-                element = element.nextSibling;
-            } while (element && element.nodeType !== 1);
-            return element;
-        },
-        createTemplateFromMarkup: function (markup) {
-            var parser = document.createElement('div');
-            parser.innerHTML = markup;
-            var temp = parser.firstElementChild;
-            if (!temp || temp.nodeName !== 'TEMPLATE') {
-                throw new Error('Template markup must be wrapped in a <template> element e.g. <template> <!-- markup here --> </template>');
-            }
-            return temp;
-        },
-        appendNode: function (newNode, parentNode) {
-            (parentNode || document.body).appendChild(newNode);
-        },
-        replaceNode: function (newNode, node, parentNode) {
+        replaceNode: function (newNode, node) {
             if (node.parentNode) {
                 node.parentNode.replaceChild(newNode, node);
             }
-            else {
-                parentNode.replaceChild(newNode, node);
-            }
         },
-        removeNode: function (node, parentNode) {
+        removeNode: function (node) {
             if (node.parentNode) {
                 node.parentNode.removeChild(node);
-            }
-            else if (parentNode) {
-                parentNode.removeChild(node);
             }
         },
         isAllWhitespace: function (node) {
@@ -1165,33 +1125,6 @@ define('runtime/pal',["require", "exports"], function (require, exports) {
             }
             exports.DOM.replaceNode(anchor, element);
             return anchor;
-        },
-        injectStyles: function (styles, destination, prepend, id) {
-            if (id) {
-                var oldStyle = document.getElementById(id);
-                if (oldStyle) {
-                    var isStyleTag = oldStyle.tagName.toLowerCase() === 'style';
-                    if (isStyleTag) {
-                        oldStyle.innerHTML = styles;
-                        return;
-                    }
-                    throw new Error('The provided id does not indicate a style tag.');
-                }
-            }
-            var node = document.createElement('style');
-            node.innerHTML = styles;
-            node.type = 'text/css';
-            if (id) {
-                node.id = id;
-            }
-            destination = destination || document.head;
-            if (prepend && destination.childNodes.length > 0) {
-                destination.insertBefore(node, destination.childNodes[0]);
-            }
-            else {
-                destination.appendChild(node);
-            }
-            return node;
         }
     };
     function hasAttribute(name) {
@@ -1567,24 +1500,6 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
             throw new Error('Expression Compilation Not Implemented');
         }
     });
-});
-
-
-
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(if_1.If, else_1.Else);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
-        }
-    };
 });
 
 
@@ -4868,6 +4783,175 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/compose"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, compose_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(if_1.If, else_1.Else, compose_1.Compose);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
+        }
+    };
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/resources/compose',["require", "exports", "../decorators", "../templating/view-slot", "../templating/view-engine", "../templating/view", "../pal"], function (require, exports, decorators_1, view_slot_1, view_engine_1, view_1, pal_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var composeSource = {
+        name: 'au-compose',
+        template: null,
+        targetInstructions: null
+    };
+    var composeProps = ['component', 'swapOrder', 'isComposing'];
+    var Compose = (function () {
+        function Compose(viewOwner, element, viewSlot, instruction) {
+            this.viewOwner = viewOwner;
+            this.element = element;
+            this.viewSlot = viewSlot;
+            this.task = null;
+            this.visual = null;
+            this.auContent = null;
+            this.viewOwner = viewOwner;
+            this.viewSlot = viewSlot;
+            var type = viewOwner.constructor;
+            var composeInstruction = instruction;
+            this.compositionContainer = type.template.container;
+            this.baseInstruction = {
+                type: 'element',
+                instructions: composeInstruction.instructions.filter(function (x) { return !composeProps.includes(x); }),
+                resource: null,
+                replacements: composeInstruction.replacements
+            };
+        }
+        Compose.prototype.componentChanged = function (toBeComposed) {
+            if (this.visual !== null && this.visual.component === toBeComposed) {
+                return;
+            }
+            if (!toBeComposed) {
+                this.clear();
+            }
+            else {
+                var previousTask = this.task;
+                var newTask_1 = this.task = new CompositionTask(this);
+                if (previousTask !== null) {
+                    var cancelResult = previousTask.cancel();
+                    if (cancelResult instanceof Promise) {
+                        cancelResult.then(function () { return newTask_1.start(toBeComposed); });
+                        return;
+                    }
+                }
+                newTask_1.start(toBeComposed);
+            }
+        };
+        Compose.prototype.compose = function (toBeComposed) {
+            var instruction = Object.assign({}, {
+                resource: toBeComposed,
+                contentElement: this.createContentElement()
+            }, this.baseInstruction);
+            return this.swap(view_engine_1.ViewEngine.visualFromComponent(this.compositionContainer, toBeComposed, instruction));
+        };
+        Compose.prototype.createContentElement = function () {
+            var auContent = this.auContent;
+            if (auContent == null) {
+                this.auContent = auContent = pal_1.DOM.createElement('au-content');
+                if (this.$contentView !== null) {
+                    var nodes = this.$contentView.childNodes;
+                    for (var i = 0, ii = nodes.length; i < ii; ++i) {
+                        auContent.appendChild(nodes[i]);
+                    }
+                }
+                else {
+                    var element = this.element;
+                    while (element.firstChild) {
+                        auContent.appendChild(element.firstChild);
+                    }
+                }
+            }
+            return auContent.cloneNode(true);
+        };
+        Compose.prototype.swap = function (newVisual) {
+            var index = this.$bindable.indexOf(this.visual);
+            if (index !== -1) {
+                this.$bindable.splice(index, 1);
+            }
+            this.visual = newVisual;
+            this.$bindable.push(newVisual);
+            if (this.$isBound) {
+                newVisual.bind(this.viewOwner.$scope);
+            }
+            return this.viewSlot.swap(newVisual, this.swapOrder || 'after');
+        };
+        Compose.prototype.clear = function () {
+            this.viewSlot.removeAll();
+        };
+        Compose = __decorate([
+            decorators_1.compiledElement(composeSource),
+            decorators_1.inject(view_1.IViewOwner, pal_1.DOM.Element, view_slot_1.ViewSlot, view_engine_1.ITargetedInstruction),
+            __metadata("design:paramtypes", [Object, HTMLElement, view_slot_1.ViewSlot, Object])
+        ], Compose);
+        return Compose;
+    }());
+    exports.Compose = Compose;
+    var CompositionTask = (function () {
+        function CompositionTask(compose) {
+            this.compose = compose;
+            this.isCancelled = false;
+            this.composeResult = null;
+        }
+        CompositionTask.prototype.start = function (toBeComposed) {
+            var _this = this;
+            if (this.isCancelled) {
+                return;
+            }
+            this.compose.isComposing = true;
+            if (toBeComposed instanceof Promise) {
+                toBeComposed.then(function (x) { return _this.render(x); });
+            }
+            else {
+                this.render(toBeComposed);
+            }
+        };
+        CompositionTask.prototype.cancel = function () {
+            this.compose.isComposing = false;
+            this.isCancelled = true;
+            return this.composeResult;
+        };
+        CompositionTask.prototype.render = function (toBeComposed) {
+            var _this = this;
+            if (this.isCancelled) {
+                return;
+            }
+            this.composeResult = this.compose.compose(toBeComposed);
+            if (this.composeResult instanceof Promise) {
+                this.composeResult = this.composeResult.then(function () { return _this.compose.isComposing = false; });
+            }
+            else {
+                this.compose.isComposing = false;
+                this.composeResult = null;
+            }
+        };
+        return CompositionTask;
+    }());
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -5110,6 +5194,7 @@ var __extends = (this && this.__extends) || (function () {
 define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../binding/property-observation", "./shadow-dom", "../pal", "../di", "../binding/binding-context", "./lifecycle"], function (require, exports, view_engine_1, view_1, property_observation_1, shadow_dom_1, pal_1, di_1, binding_context_1, lifecycle_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    ;
     var RuntimeCharacteristics = (function () {
         function RuntimeCharacteristics() {
             this.observables = [];
@@ -5418,7 +5503,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                 _a.template = template,
                 _a.source = source,
                 _a);
-            CompiledComponent.register(template.container);
+            if (template.container !== null) {
+                CompiledComponent.register(template.container);
+            }
             return CompiledComponent;
             var _a;
         }
@@ -5931,7 +6018,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
-        container: di_1.DI,
+        container: null,
         createFor: function (owner) {
             return view_1.View.none;
         }
@@ -5963,6 +6050,36 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 _a);
             return new DefaultViewFactory(source.name, CompiledVisual);
             var _a;
+        },
+        visualFromComponent: function (container, componentOrType, instruction) {
+            var ComponentVisual = (function (_super) {
+                __extends(ComponentVisual, _super);
+                function ComponentVisual() {
+                    return _super.call(this, null) || this;
+                }
+                ComponentVisual.prototype.createView = function () {
+                    var target;
+                    if (typeof componentOrType === 'function') {
+                        target = pal_1.DOM.createElement(componentOrType.source.name);
+                        applyElementInstruction(instruction, container, target, this);
+                        this.component = this.$attachable[this.$attachable.length - 1];
+                    }
+                    else {
+                        var componentType = componentOrType.constructor;
+                        target = componentOrType.element || pal_1.DOM.createElement(componentType.source.name);
+                        applyElementInstructionToComponentInstance(componentOrType, instruction, container, target, this);
+                        this.component = componentOrType;
+                    }
+                    return view_1.View.fromElement(target);
+                };
+                ComponentVisual.prototype.tryReturnToCache = function () {
+                    return false;
+                };
+                ComponentVisual.template = Object.assign({}, noViewTemplate, { container: container });
+                ComponentVisual.source = null;
+                return ComponentVisual;
+            }(Visual));
+            return new ComponentVisual();
         }
     };
     function applyInstruction(owner, instruction, target, replacements, container) {
@@ -6011,18 +6128,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 owner.$attachable.push(slot);
                 break;
             case 'element':
-                var elementInstructions = instruction.instructions;
-                container.element.prepare(target);
-                var elementModel = container.get(instruction.resource);
-                elementModel.hydrate(target, view_1.View.fromCompiledElementContent(elementModel, target), instruction.replacements);
-                for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
-                    var current = elementInstructions[i];
-                    var realTarget = current.type === 'style' || current.type === 'listener' ? target : elementModel;
-                    applyInstruction(owner, current, realTarget, replacements, container);
-                }
-                container.element.dispose();
-                owner.$bindable.push(elementModel);
-                owner.$attachable.push(elementModel);
+                applyElementInstruction(instruction, container, target, owner);
                 break;
             case 'attribute':
                 var attributeInstructions = instruction.instructions;
@@ -6045,7 +6151,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 container.viewFactory.prepare(factory, replacements);
                 container.viewSlot.prepare(pal_1.DOM.makeElementIntoAnchor(target), false);
                 var templateControllerModel = container.get(instruction.resource);
-                container.viewSlot.tryConnect(templateControllerModel);
+                container.viewSlot.tryConnectToAttribute(templateControllerModel);
                 if (instruction.link) {
                     templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
                 }
@@ -6113,9 +6219,14 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             return this.viewSlot
                 || (this.viewSlot = new view_slot_1.ViewSlot(this.element, this.anchorIsContainer));
         };
-        ViewSlotProvider.prototype.tryConnect = function (owner) {
+        ViewSlotProvider.prototype.tryConnectToAttribute = function (owner) {
             if (this.viewSlot !== null) {
                 owner.$viewSlot = this.viewSlot;
+            }
+        };
+        ViewSlotProvider.prototype.tryConnectToViewOwner = function (owner) {
+            if (this.viewSlot !== null) {
+                owner.$attachable.push(this.viewSlot);
             }
         };
         ViewSlotProvider.prototype.dispose = function () {
@@ -6124,11 +6235,39 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
         };
         return ViewSlotProvider;
     }());
+    ;
+    exports.ITargetedInstruction = di_1.DI.createInterface('ITargetedInstruction');
+    function applyElementInstruction(instruction, container, target, owner) {
+        container.element.prepare(target);
+        container.viewOwner.prepare(owner);
+        container.instruction.prepare(instruction);
+        container.viewSlot.prepare(target, true);
+        var component = container.get(instruction.resource);
+        applyElementInstructionToComponentInstance(component, instruction, container, target, owner);
+        container.viewSlot.tryConnectToViewOwner(component);
+        container.element.dispose();
+        container.viewOwner.dispose();
+        container.instruction.dispose();
+        container.viewSlot.dispose();
+    }
+    function applyElementInstructionToComponentInstance(component, instruction, container, target, owner) {
+        var elementInstructions = instruction.instructions;
+        component.hydrate(target, view_1.View.fromCompiledElementContent(component, target, instruction.contentElement), instruction.replacements);
+        for (var i = 0, ii = elementInstructions.length; i < ii; ++i) {
+            var current = elementInstructions[i];
+            var realTarget = current.type === 'style' || current.type === 'listener' ? target : component;
+            applyInstruction(owner, current, realTarget, null, container);
+        }
+        owner.$bindable.push(component);
+        owner.$attachable.push(component);
+    }
     function createTemplateContainer(dependencies) {
         var container = di_1.DI.createChild();
         container.registerResolver(pal_1.DOM.Element, container.element = new InstanceProvider());
         container.registerResolver(exports.IViewFactory, container.viewFactory = new ViewFactoryProvider());
         container.registerResolver(view_slot_1.ViewSlot, container.viewSlot = new ViewSlotProvider());
+        container.registerResolver(view_1.IViewOwner, container.viewOwner = new InstanceProvider());
+        container.registerResolver(exports.ITargetedInstruction, container.instruction = new InstanceProvider());
         if (dependencies) {
             container.register.apply(container, dependencies);
         }
@@ -6393,6 +6532,27 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
                 this.insertVisualCore(visual, this, targetIndex);
             }
         };
+        ViewSlot.prototype.swap = function (newVisual, strategy, returnToCache, skipAnimation) {
+            var _this = this;
+            if (strategy === void 0) { strategy = 'after'; }
+            var previous = this.children;
+            var remove = function () { return _this.removeAll(returnToCache, skipAnimation); };
+            var add = function () { return _this.add(newVisual); };
+            switch (strategy) {
+                case 'before':
+                    var beforeAddResult = add();
+                    return (beforeAddResult instanceof Promise ? beforeAddResult.then(function () { return remove(); }) : remove());
+                case 'with':
+                    var withAddResult = add();
+                    var withRemoveResult = remove();
+                    return (withAddResult instanceof Promise || withRemoveResult instanceof Promise)
+                        ? Promise.all([withAddResult, withRemoveResult]).then(function (x) { return x[1]; })
+                        : withRemoveResult;
+                case 'after':
+                    var afterRemoveResult = remove();
+                    return (afterRemoveResult instanceof Promise ? afterRemoveResult.then(function () { return add(); }) : add());
+            }
+        };
         ViewSlot.prototype.remove = function (visual, returnToCache, skipAnimation) {
             return this.removeAt(this.children.indexOf(visual), returnToCache, skipAnimation);
         };
@@ -6505,15 +6665,15 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
 
 
 
-define('runtime/templating/view',["require", "exports", "../pal"], function (require, exports, pal_1) {
+define('runtime/templating/view',["require", "exports", "../pal", "../di"], function (require, exports, pal_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var noNodes = Object.freeze([]);
+    exports.IViewOwner = di_1.DI.createInterface('IViewOwner');
     var noopView = {
         firstChild: Node = null,
         lastChild: Node = null,
-        childNodes: noNodes,
-        findTargets: function () { return noNodes; },
+        childNodes: pal_1.PLATFORM.emptyArray,
+        findTargets: function () { return pal_1.PLATFORM.emptyArray; },
         insertBefore: function (refNode) { },
         appendTo: function (parent) { },
         remove: function () { },
@@ -6524,8 +6684,8 @@ define('runtime/templating/view',["require", "exports", "../pal"], function (req
         fromCompiledTemplate: function (element) {
             return new TemplateView(element);
         },
-        fromCompiledElementContent: function (owner, element) {
-            var contentElement = element.firstElementChild;
+        fromCompiledElementContent: function (owner, element, contentElement) {
+            contentElement = contentElement || element.firstElementChild;
             if (contentElement !== null && contentElement !== undefined) {
                 pal_1.DOM.removeNode(contentElement);
                 if (owner.$useShadowDOM) {
@@ -6538,6 +6698,28 @@ define('runtime/templating/view',["require", "exports", "../pal"], function (req
                 }
             }
             return noopView;
+        },
+        fromElement: function (element) {
+            return {
+                firstChild: element,
+                lastChild: element,
+                childNodes: [element],
+                findTargets: function () {
+                    return pal_1.PLATFORM.emptyArray;
+                },
+                appendChild: function (node) {
+                    element.appendChild(node);
+                },
+                insertBefore: function (refNode) {
+                    refNode.parentNode.insertBefore(element, refNode);
+                },
+                appendTo: function (parent) {
+                    parent.appendChild(element);
+                },
+                remove: function () {
+                    element.remove();
+                }
+            };
         }
     };
     var ContentView = (function () {
@@ -6556,7 +6738,7 @@ define('runtime/templating/view',["require", "exports", "../pal"], function (req
         ContentView.prototype.appendChild = function (child) {
             this.element.appendChild(child);
         };
-        ContentView.prototype.findTargets = function () { return noNodes; };
+        ContentView.prototype.findTargets = function () { return pal_1.PLATFORM.emptyArray; };
         ContentView.prototype.insertBefore = function (refNode) { };
         ContentView.prototype.appendTo = function (parent) { };
         ContentView.prototype.remove = function () { };

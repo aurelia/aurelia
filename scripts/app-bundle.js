@@ -2014,7 +2014,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.expression.connect(binding, scope);
         };
         BindingBehavior.prototype.bind = function (binding, scope) {
-            if (this.expression['expression'] && this.expression.bind) {
+            if (this.expression.expression && this.expression.bind) {
                 this.expression.bind(binding, scope);
             }
             var behavior = binding.container.get(this.name);
@@ -4780,12 +4780,12 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/compose"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, compose_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/compose", "../resources/attr-binding-behavior"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, compose_1, attr_binding_behavior_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
-            container.register(if_1.If, else_1.Else, compose_1.Compose);
+            container.register(attr_binding_behavior_1.AttrBindingBehavior, if_1.If, else_1.Else, compose_1.Compose);
             container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
@@ -7011,6 +7011,32 @@ define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/
                 || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
         }
     });
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('runtime/resources/attr-binding-behavior',["require", "exports", "../binding/element-observation", "../decorators"], function (require, exports, element_observation_1, decorators_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var AttrBindingBehavior = (function () {
+        function AttrBindingBehavior() {
+        }
+        AttrBindingBehavior.prototype.bind = function (binding, scope) {
+            binding.targetObserver = new element_observation_1.DataAttributeObserver(binding.target, binding.targetProperty);
+        };
+        AttrBindingBehavior.prototype.unbind = function (binding, scope) { };
+        AttrBindingBehavior = __decorate([
+            decorators_1.bindingBehavior('attr')
+        ], AttrBindingBehavior);
+        return AttrBindingBehavior;
+    }());
+    exports.AttrBindingBehavior = AttrBindingBehavior;
 });
 
 

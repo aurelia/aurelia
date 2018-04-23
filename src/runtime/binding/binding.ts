@@ -16,14 +16,14 @@ export interface IBinding extends IBindScope {
 export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 
 export class Binding extends ConnectableBinding implements IBinding {
-  private targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
+  public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
   private source: IScope;
   private isBound = false;
 
   constructor(
     private sourceExpression: IExpression,
-    private target: IBindingTarget,
-    private targetProperty: string,
+    public target: IBindingTarget,
+    public targetProperty: string,
     private mode: number,
     public container: IContainer) {
     super();

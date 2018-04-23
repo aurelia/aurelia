@@ -8,12 +8,16 @@ import { IEventManager, EventManager } from "../binding/event-manager";
 import { IObserverLocator, ObserverLocator } from "../binding/observer-locator";
 import { IAnimator, Animator } from "../templating/animator";
 import { Compose } from "../resources/compose";
+import { AttrBindingBehavior } from "../resources/attr-binding-behavior";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
     container.register(
+      AttrBindingBehavior,
+
       If,
       Else,
+
       Compose
     );
   

@@ -95,7 +95,7 @@ export class BindingBehavior implements IExpression {
   }
 
   bind(binding: IBinding, scope: IScope) {
-    if ((this.expression as any)['expression'] && this.expression.bind) {
+    if ((this.expression as any).expression && this.expression.bind) {
       this.expression.bind(binding, scope);
     }
 

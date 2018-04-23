@@ -165,7 +165,7 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
     let open = 0;
     let quote = null;
     let interpolationStart;
-    let parts: Expression[];
+    let parts: Expression[] = [];
     let partIndex = 0;
 
     while (i >= 0 && i < ii - 2) {
@@ -203,8 +203,6 @@ export class TemplatingBindingLanguage implements IBindingLanguage {
       } while (open > 0 && i < ii);
 
       if (open === 0) {
-        // lazy allocate array
-        parts = parts! || [];
         if (value[interpolationStart - 1] === '\\' && value[interpolationStart - 2] !== '\\') {
           // escaped interpolation
           parts[partIndex] = new LiteralString(

@@ -68,6 +68,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] `oneTime`
   * [x] `oneWay`
   * [x] `twoWay`
+  * [x] `debounce`
 * Template Controllers
   * [x] `if`
   * [x] `else`

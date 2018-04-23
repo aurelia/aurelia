@@ -10,6 +10,7 @@ import { IAnimator, Animator } from "../templating/animator";
 import { Compose } from "../resources/compose";
 import { AttrBindingBehavior } from "../resources/attr-binding-behavior";
 import { OneTimeBindingBehavior, OneWayBindingBehavior, TwoWayBindingBehavior } from "../resources/binding-mode-behaviors";
+import { DebounceBindingBehavior } from "../resources/debounce-binding-behavior";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
@@ -19,6 +20,7 @@ export const StandardConfiguration = {
       OneTimeBindingBehavior,
       OneWayBindingBehavior,
       TwoWayBindingBehavior,
+      DebounceBindingBehavior,
 
       // Template Controllers
       If,

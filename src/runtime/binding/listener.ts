@@ -11,7 +11,7 @@ export class Listener implements IBinding {
   private handler: IDisposable;
 
   constructor(
-    private targetEvent: string,
+    public targetEvent: string,
     private delegationStrategy: DelegationStrategy,
     private sourceExpression: IExpression,
     private target: EventTarget,

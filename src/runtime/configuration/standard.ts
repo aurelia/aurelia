@@ -13,6 +13,7 @@ import { If } from "../resources/if";
 import { Else } from "../resources/else";
 import { Replaceable } from "../resources/replaceable";
 import { Compose } from "../resources/compose";
+import { SelfBindingBehavior } from "../resources/self-binding-behavior";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
@@ -26,6 +27,7 @@ export const StandardConfiguration = {
       OneWayBindingBehavior,
       TwoWayBindingBehavior,
       DebounceBindingBehavior,
+      SelfBindingBehavior,
 
       // Template Controllers
       If,

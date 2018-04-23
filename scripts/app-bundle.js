@@ -433,6 +433,10 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
         7: {
             type: MessageType.error,
             message: 'Constructor Parameter with index cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
+        },
+        8: {
+            type: MessageType.error,
+            message: 'Self binding behavior only supports events.'
         }
     };
 });
@@ -4780,12 +4784,12 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, compose_1.Compose);
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, compose_1.Compose);
             container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
@@ -7322,6 +7326,49 @@ define('runtime/resources/sanitize',["require", "exports", "../di", "../decorato
         return SanitizeValueConverter;
     }());
     exports.SanitizeValueConverter = SanitizeValueConverter;
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('runtime/resources/self-binding-behavior',["require", "exports", "../reporter", "../decorators"], function (require, exports, reporter_1, decorators_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function findOriginalEventTarget(event) {
+        return (event.path && event.path[0]) || (event.deepPath && event.deepPath[0]) || event.target;
+    }
+    function handleSelfEvent(event) {
+        var target = findOriginalEventTarget(event);
+        if (this.target !== target) {
+            return;
+        }
+        this.selfEventCallSource(event);
+    }
+    var SelfBindingBehavior = (function () {
+        function SelfBindingBehavior() {
+        }
+        SelfBindingBehavior.prototype.bind = function (binding, scope) {
+            if (!binding.callSource || !binding.targetEvent) {
+                throw reporter_1.Reporter.error(8);
+            }
+            binding.selfEventCallSource = binding.callSource;
+            binding.callSource = handleSelfEvent;
+        };
+        SelfBindingBehavior.prototype.unbind = function (binding, scope) {
+            binding.callSource = binding.selfEventCallSource;
+            binding.selfEventCallSource = null;
+        };
+        SelfBindingBehavior = __decorate([
+            decorators_1.bindingBehavior('self')
+        ], SelfBindingBehavior);
+        return SelfBindingBehavior;
+    }());
+    exports.SelfBindingBehavior = SelfBindingBehavior;
 });
 
 

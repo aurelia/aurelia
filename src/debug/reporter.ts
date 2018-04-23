@@ -81,5 +81,9 @@ const codeLookup: Record<string, IMessageInfo> = {
   7: {
     type: MessageType.error,
     message: 'Constructor Parameter with index cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
+  },
+  8: {
+    type: MessageType.error,
+    message: 'Self binding behavior only supports events.'
   }
 };

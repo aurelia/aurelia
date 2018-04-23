@@ -9,15 +9,22 @@ import { IObserverLocator, ObserverLocator } from "../binding/observer-locator";
 import { IAnimator, Animator } from "../templating/animator";
 import { Compose } from "../resources/compose";
 import { AttrBindingBehavior } from "../resources/attr-binding-behavior";
+import { OneTimeBindingBehavior, OneWayBindingBehavior, TwoWayBindingBehavior } from "../resources/binding-mode-behaviors";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
     container.register(
+      // Binding Behaviors
       AttrBindingBehavior,
+      OneTimeBindingBehavior,
+      OneWayBindingBehavior,
+      TwoWayBindingBehavior,
 
+      // Template Controllers
       If,
       Else,
 
+      // Custom Elements
       Compose
     );
   

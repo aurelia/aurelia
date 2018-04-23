@@ -4780,12 +4780,12 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/compose", "../resources/attr-binding-behavior"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, compose_1, attr_binding_behavior_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/compose", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, compose_1, attr_binding_behavior_1, binding_mode_behaviors_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
-            container.register(attr_binding_behavior_1.AttrBindingBehavior, if_1.If, else_1.Else, compose_1.Compose);
+            container.register(attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, if_1.If, else_1.Else, compose_1.Compose);
             container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
@@ -7037,6 +7037,82 @@ define('runtime/resources/attr-binding-behavior',["require", "exports", "../bind
         return AttrBindingBehavior;
     }());
     exports.AttrBindingBehavior = AttrBindingBehavior;
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/resources/binding-mode-behaviors',["require", "exports", "../binding/binding-mode", "../decorators"], function (require, exports, binding_mode_1, decorators_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var BindingModeBehavior = (function () {
+        function BindingModeBehavior(mode) {
+            this.mode = mode;
+        }
+        BindingModeBehavior.prototype.bind = function (binding, scope) {
+            binding.originalMode = binding.mode;
+            binding.mode = this.mode;
+        };
+        BindingModeBehavior.prototype.unbind = function (binding, scope) {
+            binding.mode = binding.originalMode;
+            binding.originalMode = null;
+        };
+        return BindingModeBehavior;
+    }());
+    var OneTimeBindingBehavior = (function (_super) {
+        __extends(OneTimeBindingBehavior, _super);
+        function OneTimeBindingBehavior() {
+            return _super.call(this, binding_mode_1.BindingMode.oneTime) || this;
+        }
+        OneTimeBindingBehavior = __decorate([
+            decorators_1.bindingBehavior('oneTime'),
+            __metadata("design:paramtypes", [])
+        ], OneTimeBindingBehavior);
+        return OneTimeBindingBehavior;
+    }(BindingModeBehavior));
+    exports.OneTimeBindingBehavior = OneTimeBindingBehavior;
+    var OneWayBindingBehavior = (function (_super) {
+        __extends(OneWayBindingBehavior, _super);
+        function OneWayBindingBehavior() {
+            return _super.call(this, binding_mode_1.BindingMode.oneWay) || this;
+        }
+        OneWayBindingBehavior = __decorate([
+            decorators_1.bindingBehavior('oneWay'),
+            __metadata("design:paramtypes", [])
+        ], OneWayBindingBehavior);
+        return OneWayBindingBehavior;
+    }(BindingModeBehavior));
+    exports.OneWayBindingBehavior = OneWayBindingBehavior;
+    var TwoWayBindingBehavior = (function (_super) {
+        __extends(TwoWayBindingBehavior, _super);
+        function TwoWayBindingBehavior() {
+            return _super.call(this, binding_mode_1.BindingMode.twoWay) || this;
+        }
+        TwoWayBindingBehavior = __decorate([
+            decorators_1.bindingBehavior('twoWay'),
+            __metadata("design:paramtypes", [])
+        ], TwoWayBindingBehavior);
+        return TwoWayBindingBehavior;
+    }(BindingModeBehavior));
+    exports.TwoWayBindingBehavior = TwoWayBindingBehavior;
 });
 
 

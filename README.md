@@ -63,11 +63,17 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 
 ### Resources
 
-* [x] `attr` Binding Behavior
-* [x] `if` Template Controller
-* [x] `else` Template Controller
-* [ ] `repeat` Template Controller
-* [x] `compose` Custom Element
+* Binding Behaviors
+  * [x] `attr`
+  * [x] `oneTime`
+  * [x] `oneWay`
+  * [x] `twoWay`
+* Template Controllers
+  * [x] `if`
+  * [x] `else`
+  * [ ] `repeat`
+* Custom Elements
+  * [x] `compose`
 
 ### Application Model
 

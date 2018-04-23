@@ -24,7 +24,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     private sourceExpression: IExpression,
     public target: IBindingTarget,
     public targetProperty: string,
-    private mode: number,
+    public mode: BindingMode,
     public container: IContainer) {
     super();
   }

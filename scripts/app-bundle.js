@@ -4780,18 +4780,19 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../resources/if", "../resources/else", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/compose", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/replaceable"], function (require, exports, di_1, if_1, else_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, compose_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, replaceable_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
-            container.register(attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, compose_1.Compose);
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, compose_1.Compose);
             container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
             container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
             container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
             container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
+            container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
         }
     };
 });
@@ -7233,6 +7234,94 @@ define('runtime/resources/replaceable',["require", "exports", "../templating/vie
         return Replaceable;
     }());
     exports.Replaceable = Replaceable;
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/resources/sanitize-html',["require", "exports", "../di", "../decorators"], function (require, exports, di_1, decorators_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+    var ISanitizer = di_1.DI.createInterface('ISanitizer');
+    var Sanitizer = (function () {
+        function Sanitizer() {
+        }
+        Sanitizer.prototype.sanitize = function (input) {
+            return input.replace(SCRIPT_REGEX, '');
+        };
+        return Sanitizer;
+    }());
+    exports.Sanitizer = Sanitizer;
+    var SanitizeValueConverter = (function () {
+        function SanitizeValueConverter(sanitizer) {
+            this.sanitizer = sanitizer;
+            this.sanitizer = sanitizer;
+        }
+        SanitizeValueConverter.prototype.toView = function (untrustedMarkup) {
+            if (untrustedMarkup === null || untrustedMarkup === undefined) {
+                return null;
+            }
+            return this.sanitizer.sanitize(untrustedMarkup);
+        };
+        SanitizeValueConverter = __decorate([
+            decorators_1.valueConverter('sanitize'),
+            decorators_1.inject(ISanitizer),
+            __metadata("design:paramtypes", [Object])
+        ], SanitizeValueConverter);
+        return SanitizeValueConverter;
+    }());
+    exports.SanitizeValueConverter = SanitizeValueConverter;
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/resources/sanitize',["require", "exports", "../di", "../decorators"], function (require, exports, di_1, decorators_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ISanitizer = di_1.DI.createInterface('ISanitizer');
+    var SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+    exports.Sanitizer = {
+        sanitize: function (input) {
+            return input.replace(SCRIPT_REGEX, '');
+        }
+    };
+    var SanitizeValueConverter = (function () {
+        function SanitizeValueConverter(sanitizer) {
+            this.sanitizer = sanitizer;
+            this.sanitizer = sanitizer;
+        }
+        SanitizeValueConverter.prototype.toView = function (untrustedMarkup) {
+            if (untrustedMarkup === null || untrustedMarkup === undefined) {
+                return null;
+            }
+            return this.sanitizer.sanitize(untrustedMarkup);
+        };
+        SanitizeValueConverter = __decorate([
+            decorators_1.valueConverter('sanitize'),
+            decorators_1.inject(exports.ISanitizer),
+            __metadata("design:paramtypes", [Object])
+        ], SanitizeValueConverter);
+        return SanitizeValueConverter;
+    }());
+    exports.SanitizeValueConverter = SanitizeValueConverter;
 });
 
 

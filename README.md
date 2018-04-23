@@ -63,6 +63,8 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 
 ### Resources
 
+* Value Converters
+  * [x] `sanitize`
 * Binding Behaviors
   * [x] `attr`
   * [x] `oneTime`

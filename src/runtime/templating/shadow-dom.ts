@@ -1,15 +1,15 @@
 import { DOM, PLATFORM } from '../pal';;
 import { IView, IViewOwner } from './view';
-import { ViewSlot } from './view-slot';
+import { IViewSlot } from './view-slot';
 import { IVisual, IViewFactory } from './view-engine';
 import { IBindScope } from '../binding/observation';
 import { IScope } from '../binding/binding-context';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
 
-type ProjectionSource = ViewSlot | IEmulatedShadowSlot;
+type ProjectionSource = IViewSlot | IEmulatedShadowSlot;
 
 type ShadowEmulationTracking = { 
-  viewSlot: IEmulatedShadowSlot;
+  viewSlot: ProjectionSource;
   auSlotName?: string;
   isContentProjectionSource?: boolean;
   auOwnerView?: IView;

@@ -2,7 +2,7 @@ import { DOM, PLATFORM } from "../pal";
 import { View, IView, IViewOwner } from "./view";
 import { IElementComponent, IAttributeComponent, IElementType } from "./component";
 import { IBinding, Binding } from "../binding/binding";
-import { ViewSlot } from "./view-slot";
+import { IViewSlot, ViewSlot } from "./view-slot";
 import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
 import { Listener } from "../binding/listener";
 import { Call } from "../binding/call";
@@ -309,7 +309,7 @@ class ViewFactoryProvider implements IResolver {
 class ViewSlotProvider implements IResolver {
   private element: Element = null;
   private anchorIsContainer = false;
-  private viewSlot: ViewSlot = null;
+  private viewSlot: IViewSlot = null;
 
   prepare(element: Element, anchorIsContainer = false) {
     this.element = element;
@@ -317,8 +317,7 @@ class ViewSlotProvider implements IResolver {
   }
 
   get(handler: IContainer, requestor: IContainer) {
-    return this.viewSlot
-      || (this.viewSlot = new ViewSlot(this.element, this.anchorIsContainer));
+    return this.viewSlot || (this.viewSlot = ViewSlot.create(this.element, this.anchorIsContainer));
   }
 
   tryConnectToAttribute(owner) {
@@ -329,7 +328,7 @@ class ViewSlotProvider implements IResolver {
 
   tryConnectToViewOwner(owner: IViewOwner) {
     if (this.viewSlot !== null) {
-      owner.$attachable.push(this.viewSlot);
+      owner.$attachable.push(this.viewSlot); //TODO: can we account for this like attributes do?
     }
   }
 
@@ -400,7 +399,7 @@ function createTemplateContainer(dependencies) {
 
   container.registerResolver(DOM.Element, container.element = new InstanceProvider());
   container.registerResolver(IViewFactory, container.viewFactory = new ViewFactoryProvider());
-  container.registerResolver(ViewSlot, container.viewSlot = new ViewSlotProvider());
+  container.registerResolver(IViewSlot, container.viewSlot = new ViewSlotProvider());
   container.registerResolver(IViewOwner, container.viewOwner =  new InstanceProvider());
   container.registerResolver(ITargetedInstruction, container.instruction = new InstanceProvider());
 
@@ -524,7 +523,7 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  attach(context: AttachContext | null, render: RenderCallback, owner: ViewSlot, index?: number) {
+  attach(context: AttachContext | null, render: RenderCallback, owner: IViewSlot, index?: number) {
     if (this.$isAttached) {
       return;
     }

@@ -9,7 +9,7 @@ import { BindingMode } from "../binding/binding-mode";
 import { Constructable } from "../interfaces";
 import { IBindScope } from "../binding/observation";
 import { IScope, BindingContext } from "../binding/binding-context";
-import { ViewSlot } from "./view-slot";
+import { IViewSlot } from "./view-slot";
 import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
@@ -146,7 +146,7 @@ export const Component = {
       $isAttached = false;
       $isBound = false;
       $scope: IScope = null;
-      $viewSlot: ViewSlot = null;
+      $viewSlot: IViewSlot = null;
 
       constructor(...args:any[]) {
         super(...args);

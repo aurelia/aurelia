@@ -1,4 +1,4 @@
-import { ViewSlot } from '../templating/view-slot';
+import { IViewSlot } from '../templating/view-slot';
 import { IVisual, IViewFactory } from '../templating/view-engine';
 import { IScope } from '../binding/binding-context';
 
@@ -14,7 +14,7 @@ export abstract class IfCore {
   // Eventually, `showing` and `condition` should be consistent.
   protected showing = false;
 
-  constructor(private viewFactory: IViewFactory, protected viewSlot: ViewSlot) { }
+  constructor(private viewFactory: IViewFactory, protected viewSlot: IViewSlot) { }
 
   unbound() {
     const visual = this.visual;

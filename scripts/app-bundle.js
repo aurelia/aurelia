@@ -4899,8 +4899,8 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
         };
         Compose = __decorate([
             decorators_1.compiledElement(composeSource),
-            decorators_1.inject(view_1.IViewOwner, pal_1.DOM.Element, view_slot_1.ViewSlot, view_engine_1.ITargetedInstruction),
-            __metadata("design:paramtypes", [Object, HTMLElement, view_slot_1.ViewSlot, Object])
+            decorators_1.inject(view_1.IViewOwner, pal_1.DOM.Element, view_slot_1.IViewSlot, view_engine_1.ITargetedInstruction),
+            __metadata("design:paramtypes", [Object, HTMLElement, Object, Object])
         ], Compose);
         return Compose;
     }());
@@ -4992,7 +4992,7 @@ define('runtime/resources/else',["require", "exports", "./if-core", "../templati
         Else = __decorate([
             decorators_1.customAttribute('else'),
             decorators_1.templateController,
-            decorators_1.inject(view_engine_1.IViewFactory, view_slot_1.ViewSlot)
+            decorators_1.inject(view_engine_1.IViewFactory, view_slot_1.IViewSlot)
         ], Else);
         return Else;
     }(if_core_1.IfCore));
@@ -5145,7 +5145,7 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../templating
         If = __decorate([
             decorators_1.customAttribute('if'),
             decorators_1.templateController,
-            decorators_1.inject(view_engine_1.IViewFactory, view_slot_1.ViewSlot)
+            decorators_1.inject(view_engine_1.IViewFactory, view_slot_1.IViewSlot)
         ], If);
         return If;
     }(if_core_1.IfCore));
@@ -6213,8 +6213,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             this.anchorIsContainer = anchorIsContainer;
         };
         ViewSlotProvider.prototype.get = function (handler, requestor) {
-            return this.viewSlot
-                || (this.viewSlot = new view_slot_1.ViewSlot(this.element, this.anchorIsContainer));
+            return this.viewSlot || (this.viewSlot = view_slot_1.ViewSlot.create(this.element, this.anchorIsContainer));
         };
         ViewSlotProvider.prototype.tryConnectToAttribute = function (owner) {
             if (this.viewSlot !== null) {
@@ -6262,7 +6261,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
         var container = di_1.DI.createChild();
         container.registerResolver(pal_1.DOM.Element, container.element = new InstanceProvider());
         container.registerResolver(exports.IViewFactory, container.viewFactory = new ViewFactoryProvider());
-        container.registerResolver(view_slot_1.ViewSlot, container.viewSlot = new ViewSlotProvider());
+        container.registerResolver(view_slot_1.IViewSlot, container.viewSlot = new ViewSlotProvider());
         container.registerResolver(view_1.IViewOwner, container.viewOwner = new InstanceProvider());
         container.registerResolver(exports.ITargetedInstruction, container.instruction = new InstanceProvider());
         if (dependencies) {
@@ -6459,7 +6458,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
 
 
 
-define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./lifecycle"], function (require, exports, shadow_dom_1, lifecycle_1) {
+define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./lifecycle", "../di"], function (require, exports, shadow_dom_1, lifecycle_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function appendVisualToContainer(visual, owner) {
@@ -6485,8 +6484,14 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
     function projectRemoveView(visual, owner) {
         shadow_dom_1.ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
     }
-    var ViewSlot = (function () {
-        function ViewSlot(anchor, anchorIsContainer) {
+    exports.IViewSlot = di_1.DI.createInterface('IViewSlot');
+    exports.ViewSlot = {
+        create: function (anchor, anchorIsContainer) {
+            return new ViewSlotImplementation(anchor, anchorIsContainer);
+        }
+    };
+    var ViewSlotImplementation = (function () {
+        function ViewSlotImplementation(anchor, anchorIsContainer) {
             this.anchor = anchor;
             this.$isAttached = false;
             this.children = [];
@@ -6497,14 +6502,14 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
             this.insertVisualCore = insertVisualAtIndex;
             this.removeViewCore = removeView;
         }
-        ViewSlot.prototype.add = function (visual) {
+        ViewSlotImplementation.prototype.add = function (visual) {
             this.children.push(visual);
             if (this.$isAttached) {
                 visual.attach(null, this.addVisualCore, this);
                 return visual.animate('enter');
             }
         };
-        ViewSlot.prototype.insert = function (index, visual) {
+        ViewSlotImplementation.prototype.insert = function (index, visual) {
             var children = this.children;
             var length = children.length;
             if ((index === 0 && length === 0) || index >= length) {
@@ -6516,7 +6521,7 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
                 return visual.animate('enter');
             }
         };
-        ViewSlot.prototype.move = function (sourceIndex, targetIndex) {
+        ViewSlotImplementation.prototype.move = function (sourceIndex, targetIndex) {
             if (sourceIndex === targetIndex) {
                 return;
             }
@@ -6529,7 +6534,7 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
                 this.insertVisualCore(visual, this, targetIndex);
             }
         };
-        ViewSlot.prototype.swap = function (newVisual, strategy, returnToCache, skipAnimation) {
+        ViewSlotImplementation.prototype.swap = function (newVisual, strategy, returnToCache, skipAnimation) {
             var _this = this;
             if (strategy === void 0) { strategy = 'after'; }
             var previous = this.children;
@@ -6550,10 +6555,10 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
                     return (afterRemoveResult instanceof Promise ? afterRemoveResult.then(function () { return add(); }) : add());
             }
         };
-        ViewSlot.prototype.remove = function (visual, returnToCache, skipAnimation) {
+        ViewSlotImplementation.prototype.remove = function (visual, returnToCache, skipAnimation) {
             return this.removeAt(this.children.indexOf(visual), returnToCache, skipAnimation);
         };
-        ViewSlot.prototype.removeAt = function (index, returnToCache, skipAnimation) {
+        ViewSlotImplementation.prototype.removeAt = function (index, returnToCache, skipAnimation) {
             var _this = this;
             var visual = this.children[index];
             this.children.splice(index, 1);
@@ -6574,10 +6579,10 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
             }
             return detachAndReturn();
         };
-        ViewSlot.prototype.removeAll = function (returnToCache, skipAnimation) {
+        ViewSlotImplementation.prototype.removeAll = function (returnToCache, skipAnimation) {
             return this.removeMany(this.children, returnToCache, skipAnimation);
         };
-        ViewSlot.prototype.removeMany = function (visualsToRemove, returnToCache, skipAnimation) {
+        ViewSlotImplementation.prototype.removeMany = function (visualsToRemove, returnToCache, skipAnimation) {
             var children = this.children;
             var ii = visualsToRemove.length;
             var rmPromises = [];
@@ -6622,7 +6627,7 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
             }
             return finalizeRemoval();
         };
-        ViewSlot.prototype.attach = function (context) {
+        ViewSlotImplementation.prototype.attach = function (context) {
             if (this.$isAttached) {
                 return;
             }
@@ -6634,7 +6639,7 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
             }
             this.$isAttached = true;
         };
-        ViewSlot.prototype.detach = function (context) {
+        ViewSlotImplementation.prototype.detach = function (context) {
             if (this.$isAttached) {
                 var children = this.children;
                 for (var i = 0, ii = children.length; i < ii; ++i) {
@@ -6643,7 +6648,7 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
                 this.$isAttached = false;
             }
         };
-        ViewSlot.prototype.projectTo = function (slots) {
+        ViewSlotImplementation.prototype.projectTo = function (slots) {
             this.slots = slots;
             this.addVisualCore = projectAddVisualToList;
             this.insertVisualCore = projectInsertVisualAtIndex;
@@ -6655,9 +6660,8 @@ define('runtime/templating/view-slot',["require", "exports", "./shadow-dom", "./
                 }
             }
         };
-        return ViewSlot;
+        return ViewSlotImplementation;
     }());
-    exports.ViewSlot = ViewSlot;
 });
 
 

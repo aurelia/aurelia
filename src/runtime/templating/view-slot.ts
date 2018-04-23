@@ -5,58 +5,126 @@ import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
 import { Reporter } from '../reporter';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
+import { DI } from '../di';
 
-function appendVisualToContainer(visual: IVisual, owner: ViewSlot) {
+function appendVisualToContainer(visual: IVisual, owner: ViewSlotImplementation) {
   visual.$view.appendTo(owner.anchor);
 }
 
-function addVisualToList(visual: IVisual, owner: ViewSlot) {
+function addVisualToList(visual: IVisual, owner: ViewSlotImplementation) {
   visual.$view.insertBefore(owner.anchor);
 }
 
-function projectAddVisualToList(visual: IVisual, owner: ViewSlot) {
+function projectAddVisualToList(visual: IVisual, owner: ViewSlotImplementation) {
   visual.$view.remove = () => ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
   ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner);
 }
 
-function insertVisualAtIndex(visual: IVisual, owner: ViewSlot, index: number) {
+function insertVisualAtIndex(visual: IVisual, owner: ViewSlotImplementation, index: number) {
   visual.$view.insertBefore(owner.children[index].$view.firstChild);
 }
 
-function projectInsertVisualAtIndex(visual: IVisual, owner: ViewSlot, index: number) {
+function projectInsertVisualAtIndex(visual: IVisual, owner: ViewSlotImplementation, index: number) {
   visual.$view.remove = () => ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
   ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner, index);
 }
 
-function removeView(visual: IVisual, owner: ViewSlot) {
+function removeView(visual: IVisual, owner: ViewSlotImplementation) {
   visual.$view.remove();
 }
 
-function projectRemoveView(visual: IVisual, owner: ViewSlot) {
+function projectRemoveView(visual: IVisual, owner: ViewSlotImplementation) {
   ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
 }
 
 export type SwapOrder = 'before' | 'with' | 'after';
 
+export const IViewSlot = DI.createInterface('IViewSlot');
+
 /**
 * Represents a slot or location within the DOM to which views can be added and removed.
 * Manages the view lifecycle for its children.
 */
-export class ViewSlot implements IAttach {
+export interface IViewSlot extends IAttach {
+  /**
+  * Adds a view to the slot.
+  * @param visual The view to add.
+  * @return May return a promise if the view addition triggered an animation.
+  */
+  add(visual: IVisual): void | Promise<boolean>;
+
+  /**
+  * Inserts a view into the slot.
+  * @param index The index to insert the view at.
+  * @param visual The view to insert.
+  * @return May return a promise if the view insertion triggered an animation.
+  */
+ insert(index: number, visual: IVisual): void | Promise<boolean>;
+
+  /**
+  * Moves a view across the slot.
+  * @param sourceIndex The index the view is currently at.
+  * @param targetIndex The index to insert the view at.
+  */
+  move(sourceIndex: number, targetIndex: number): void;
+
+  /**
+  * Replaces the existing view slot children with the new visual.
+  * @param newVisual The visual to swap in.
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if an animation was triggered.
+  */
+  swap(newVisual: IVisual, strategy: SwapOrder, returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<any>;
+
+  /**
+  * Removes a view from the slot.
+  * @param visual The view to remove.
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removal triggered an animation.
+  */
+  remove(visual: IVisual, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual>;
+
+  /**
+  * Removes a view an a specified index from the slot.
+  * @param index The index to remove the view at.
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removal triggered an animation.
+  */
+ removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual>;
+
+  /**
+  * Removes all views from the slot.
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removals triggered an animation.
+  */
+  removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]>;
+
+  /**
+  * Removes many views from the slot.
+  * @param visualsToRemove The array of views to remove.
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removal triggered an animation.
+  */
+  removeMany(visualsToRemove: IVisual[], returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]>;
+
+  projectTo(slots: Record<string, IEmulatedShadowSlot>): void;
+}
+
+export const ViewSlot = {
+  create(anchor: Node, anchorIsContainer: boolean): IViewSlot {
+    return new ViewSlotImplementation(anchor, anchorIsContainer);
+  }
+};
+
+class ViewSlotImplementation implements IViewSlot {
   private $isAttached = false;
+  private addVisualCore: (visual: IVisual, owner: ViewSlotImplementation) => void;
+  private insertVisualCore: (visual: IVisual, owner: ViewSlotImplementation, index: number) => void;
+  private removeViewCore: (visual: IVisual, owner: ViewSlotImplementation) => void;
+
   public children: IVisual[] = [];
   public slots: Record<string, IEmulatedShadowSlot> = null;
 
-  private addVisualCore: (visual: IVisual, owner: ViewSlot) => void;
-  private insertVisualCore: (visual: IVisual, owner: ViewSlot, index: number) => void;
-  private removeViewCore: (visual: IVisual, owner: ViewSlot) => void;
-
-  /**
-  * Creates an instance of ViewSlot.
-  * @param anchor The DOM node which will server as the anchor or container for insertion.
-  * @param anchorIsContainer Indicates whether the node is a container.
-  * @param animator The animator that will controll enter/leave transitions for this slot.
-  */
   constructor(public anchor: Node, anchorIsContainer: boolean) {
     (<any>anchor).viewSlot = this;
     (<any>anchor).isContentProjectionSource = false;
@@ -66,11 +134,6 @@ export class ViewSlot implements IAttach {
     this.removeViewCore = removeView;
   }
 
-  /**
-  * Adds a view to the slot.
-  * @param visual The view to add.
-  * @return May return a promise if the view addition triggered an animation.
-  */
   add(visual: IVisual) {
     this.children.push(visual);
 
@@ -80,12 +143,6 @@ export class ViewSlot implements IAttach {
     }
   }
 
-  /**
-  * Inserts a view into the slot.
-  * @param index The index to insert the view at.
-  * @param visual The view to insert.
-  * @return May return a promise if the view insertion triggered an animation.
-  */
   insert(index: number, visual: IVisual) {
     const children = this.children;
     const length = children.length;
@@ -102,11 +159,6 @@ export class ViewSlot implements IAttach {
     }
   }
 
-  /**
-   * Moves a view across the slot.
-   * @param sourceIndex The index the view is currently at.
-   * @param targetIndex The index to insert the view at.
-   */
   move(sourceIndex: number, targetIndex: number) {
     if (sourceIndex === targetIndex) {
       return;
@@ -124,12 +176,6 @@ export class ViewSlot implements IAttach {
     }
   }
 
-  /**
-  * Replaces the existing view slot children with the new visual.
-  * @param newVisual The visual to swap in.
-  * @param skipAnimation Should the removal animation be skipped?
-  * @return May return a promise if an animation was triggered.
-  */
   swap(newVisual: IVisual, strategy: SwapOrder = 'after', returnToCache?: boolean, skipAnimation?: boolean) {
     let previous = this.children;
 
@@ -152,22 +198,10 @@ export class ViewSlot implements IAttach {
     }
   }
 
-  /**
-  * Removes a view from the slot.
-  * @param visual The view to remove.
-  * @param skipAnimation Should the removal animation be skipped?
-  * @return May return a promise if the view removal triggered an animation.
-  */
   remove(visual: IVisual, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual> {
     return this.removeAt(this.children.indexOf(visual), returnToCache, skipAnimation);
   }
 
-    /**
-  * Removes a view an a specified index from the slot.
-  * @param index The index to remove the view at.
-  * @param skipAnimation Should the removal animation be skipped?
-  * @return May return a promise if the view removal triggered an animation.
-  */
   removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual> {
     const visual = this.children[index];
     this.children.splice(index, 1);
@@ -194,21 +228,10 @@ export class ViewSlot implements IAttach {
     return detachAndReturn();
   }
 
-  /**
-  * Removes all views from the slot.
-  * @param skipAnimation Should the removal animation be skipped?
-  * @return May return a promise if the view removals triggered an animation.
-  */
   removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
     return this.removeMany(this.children, returnToCache, skipAnimation);
   }
 
-  /**
-  * Removes many views from the slot.
-  * @param visualsToRemove The array of views to remove.
-  * @param skipAnimation Should the removal animation be skipped?
-  * @return May return a promise if the view removal triggered an animation.
-  */
   removeMany(visualsToRemove: IVisual[], returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
     const children = this.children;
     const ii = visualsToRemove.length;
@@ -262,9 +285,6 @@ export class ViewSlot implements IAttach {
     return finalizeRemoval();
   }
 
-  /**
-  * Triggers the attach for the slot and its children.
-  */
   attach(context: AttachContext): void {
     if (this.$isAttached) {
       return;
@@ -281,9 +301,6 @@ export class ViewSlot implements IAttach {
     this.$isAttached = true;
   }
 
-  /**
-  * Triggers the detach for the slot and its children.
-  */
   detach(context: DetachContext): void {
     if (this.$isAttached) {
       const children = this.children;

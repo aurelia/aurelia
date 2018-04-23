@@ -85,5 +85,13 @@ const codeLookup: Record<string, IMessageInfo> = {
   8: {
     type: MessageType.error,
     message: 'Self binding behavior only supports events.'
+  },
+  9: {
+    type: MessageType.error,
+    message: 'The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">'
+  },
+  10: {
+    type: MessageType.error,
+    message: 'The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.'
   }
 };

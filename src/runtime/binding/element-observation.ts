@@ -129,7 +129,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
   constructor(
     private element: Element,
     private propertyName: string,
-    private handler: IEventSubscriber
+    public handler: IEventSubscriber
   ) {
     super();
 

@@ -17,7 +17,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
 
   constructor(
     private element: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
-    private handler: IEventSubscriber,
+    public handler: IEventSubscriber,
     private observerLocator: IObserverLocator
   ) {
     super();

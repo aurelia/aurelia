@@ -437,6 +437,14 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
         8: {
             type: MessageType.error,
             message: 'Self binding behavior only supports events.'
+        },
+        9: {
+            type: MessageType.error,
+            message: 'The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">'
+        },
+        10: {
+            type: MessageType.error,
+            message: 'The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.'
         }
     };
 });
@@ -3636,6 +3644,7 @@ define('runtime/binding/event-manager',["require", "exports", "../pal", "../di"]
         };
         return EventSubscriber;
     }());
+    exports.EventSubscriber = EventSubscriber;
     exports.IEventManager = di_1.DI.createInterface('IEventManager');
     var EventManagerImplementation = (function () {
         function EventManagerImplementation() {
@@ -4784,12 +4793,12 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, compose_1.Compose);
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, compose_1.Compose);
             container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
@@ -7441,6 +7450,52 @@ define('runtime/resources/throttle-binding-behavior',["require", "exports", "../
         return ThrottleBindingBehavior;
     }());
     exports.ThrottleBindingBehavior = ThrottleBindingBehavior;
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('runtime/resources/update-trigger-binding-behavior',["require", "exports", "../binding/binding-mode", "../binding/event-manager", "../binding/observer-locator", "../reporter", "../decorators"], function (require, exports, binding_mode_1, event_manager_1, observer_locator_1, reporter_1, decorators_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var UpdateTriggerBindingBehavior = (function () {
+        function UpdateTriggerBindingBehavior() {
+        }
+        UpdateTriggerBindingBehavior.prototype.bind = function (binding, scope) {
+            var events = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                events[_i - 2] = arguments[_i];
+            }
+            if (events.length === 0) {
+                throw reporter_1.Reporter.error(9);
+            }
+            if (binding.mode !== binding_mode_1.BindingMode.twoWay && binding.mode !== binding_mode_1.BindingMode.fromView) {
+                throw reporter_1.Reporter.error(10);
+            }
+            var targetObserver = observer_locator_1.ObserverLocator.getObserver(binding.target, binding.targetProperty);
+            if (!targetObserver.handler) {
+                throw reporter_1.Reporter.error(10);
+            }
+            binding.targetObserver = targetObserver;
+            targetObserver.originalHandler = binding.targetObserver.handler;
+            targetObserver.handler = new event_manager_1.EventSubscriber(events);
+        };
+        UpdateTriggerBindingBehavior.prototype.unbind = function (binding, scope) {
+            binding.targetObserver.handler.dispose();
+            binding.targetObserver.handler = binding.targetObserver.originalHandler;
+            binding.targetObserver.originalHandler = null;
+        };
+        UpdateTriggerBindingBehavior = __decorate([
+            decorators_1.bindingBehavior('updateTrigger')
+        ], UpdateTriggerBindingBehavior);
+        return UpdateTriggerBindingBehavior;
+    }());
+    exports.UpdateTriggerBindingBehavior = UpdateTriggerBindingBehavior;
 });
 
 

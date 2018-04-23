@@ -16,7 +16,7 @@ export class SelectValueObserver extends SubscriberCollection {
 
   constructor(
     private element: HTMLSelectElement,
-    private handler: IEventSubscriber,
+    public handler: IEventSubscriber,
     private observerLocator: IObserverLocator
   ) {
     super();

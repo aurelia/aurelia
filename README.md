@@ -72,6 +72,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] `twoWay`
   * [x] `debounce`
   * [x] `throttle`
+  * [x] `updateTrigger`
   * [x] `self`
 * Template Controllers
   * [x] `if`

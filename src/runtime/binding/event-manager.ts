@@ -157,7 +157,7 @@ export interface IEventSubscriber extends IDisposable {
   subscribe(element: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void;
 }
 
-class EventSubscriber implements IEventSubscriber {
+export class EventSubscriber implements IEventSubscriber {
   private target: EventTarget;
   private handler: EventListenerOrEventListenerObject;
 

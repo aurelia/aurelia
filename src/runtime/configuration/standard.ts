@@ -11,6 +11,7 @@ import { Compose } from "../resources/compose";
 import { AttrBindingBehavior } from "../resources/attr-binding-behavior";
 import { OneTimeBindingBehavior, OneWayBindingBehavior, TwoWayBindingBehavior } from "../resources/binding-mode-behaviors";
 import { DebounceBindingBehavior } from "../resources/debounce-binding-behavior";
+import { Replaceable } from "../resources/replaceable";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
@@ -25,6 +26,7 @@ export const StandardConfiguration = {
       // Template Controllers
       If,
       Else,
+      Replaceable,
 
       // Custom Elements
       Compose

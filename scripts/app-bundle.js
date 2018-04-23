@@ -514,9 +514,6 @@ define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (requ
             di_1.DI.register.apply(di_1.DI, params);
             return this;
         };
-        AureliaFramework.prototype.enhance = function (config) {
-            return this;
-        };
         AureliaFramework.prototype.app = function (config) {
             var _this = this;
             var component = config.component;

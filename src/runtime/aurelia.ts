@@ -8,11 +8,6 @@ export interface ISinglePageApp {
   component: any
 }
 
-export interface IProgressiveEnhancement {
-  element: HTMLElement,
-  data?: any
-}
-
 class AureliaFramework { 
   private components: IElementComponent[] = [];
   private startTasks: (() => void)[] = [];
@@ -21,10 +16,6 @@ class AureliaFramework {
 
   register(...params: any[]) {
     DI.register(...params);
-    return this;
-  }
-
-  enhance(config: IProgressiveEnhancement) {
     return this;
   }
 

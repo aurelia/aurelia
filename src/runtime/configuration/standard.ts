@@ -14,6 +14,7 @@ import { Else } from "../resources/else";
 import { Replaceable } from "../resources/replaceable";
 import { Compose } from "../resources/compose";
 import { SelfBindingBehavior } from "../resources/self-binding-behavior";
+import { ThrottleBindingBehavior } from "../resources/throttle-binding-behavior";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
@@ -27,6 +28,7 @@ export const StandardConfiguration = {
       OneWayBindingBehavior,
       TwoWayBindingBehavior,
       DebounceBindingBehavior,
+      ThrottleBindingBehavior,
       SelfBindingBehavior,
 
       // Template Controllers

@@ -4784,12 +4784,12 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, compose_1.Compose);
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, compose_1.Compose);
             container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
@@ -7369,6 +7369,78 @@ define('runtime/resources/self-binding-behavior',["require", "exports", "../repo
         return SelfBindingBehavior;
     }());
     exports.SelfBindingBehavior = SelfBindingBehavior;
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('runtime/resources/throttle-binding-behavior',["require", "exports", "../binding/binding-mode", "../binding/binding", "../decorators"], function (require, exports, binding_mode_1, binding_1, decorators_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function throttle(newValue) {
+        var _this = this;
+        var state = this.throttleState;
+        var elapsed = +new Date() - state.last;
+        if (elapsed >= state.delay) {
+            clearTimeout(state.timeoutId);
+            state.timeoutId = null;
+            state.last = +new Date();
+            this.throttledMethod(newValue);
+            return;
+        }
+        state.newValue = newValue;
+        if (state.timeoutId === null) {
+            state.timeoutId = setTimeout(function () {
+                state.timeoutId = null;
+                state.last = +new Date();
+                _this.throttledMethod(state.newValue);
+            }, state.delay - elapsed);
+        }
+    }
+    var ThrottleBindingBehavior = (function () {
+        function ThrottleBindingBehavior() {
+        }
+        ThrottleBindingBehavior.prototype.bind = function (binding, scope, delay) {
+            if (delay === void 0) { delay = 200; }
+            var methodToThrottle;
+            if (binding instanceof binding_1.Binding) {
+                if (binding.mode === binding_mode_1.BindingMode.twoWay) {
+                    methodToThrottle = 'updateSource';
+                }
+                else {
+                    methodToThrottle = 'updateTarget';
+                }
+            }
+            else {
+                methodToThrottle = 'callSource';
+            }
+            binding.throttledMethod = binding[methodToThrottle];
+            binding.throttledMethod.originalName = methodToThrottle;
+            binding[methodToThrottle] = throttle;
+            binding.throttleState = {
+                delay: delay,
+                last: 0,
+                timeoutId: null
+            };
+        };
+        ThrottleBindingBehavior.prototype.unbind = function (binding, scope) {
+            var methodToRestore = binding.throttledMethod.originalName;
+            binding[methodToRestore] = binding.throttledMethod;
+            binding.throttledMethod = null;
+            clearTimeout(binding.throttleState.timeoutId);
+            binding.throttleState = null;
+        };
+        ThrottleBindingBehavior = __decorate([
+            decorators_1.bindingBehavior('throttle')
+        ], ThrottleBindingBehavior);
+        return ThrottleBindingBehavior;
+    }());
+    exports.ThrottleBindingBehavior = ThrottleBindingBehavior;
 });
 
 

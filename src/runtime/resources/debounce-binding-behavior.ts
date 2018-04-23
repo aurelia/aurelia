@@ -5,6 +5,16 @@ import { bindingBehavior } from '../decorators';
 import { Call } from '../binding/call';
 import { Listener } from '../binding/listener';
 
+type DebounceableBinding = (Binding | Call | Listener) & {
+  debouncedMethod: ((context: string, newValue: any, oldValue: any) => void) & { originalName: string };
+  debounceState: {
+    callContextToDebounce: string,
+    delay: number,
+    timeoutId: any,
+    oldValue: any
+  }
+};
+
 const unset = {};
 
 function debounceCallSource(event: Event) {
@@ -13,7 +23,7 @@ function debounceCallSource(event: Event) {
   state.timeoutId = setTimeout(() => this.debouncedMethod(event), state.delay);
 }
 
-function debounceCall(context: string, newValue: any, oldValue: any) {
+function debounceCall(this: DebounceableBinding, context: string, newValue: any, oldValue: any) {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);
   if (context !== state.callContextToDebounce) {
@@ -30,16 +40,6 @@ function debounceCall(context: string, newValue: any, oldValue: any) {
     this.debouncedMethod(context, newValue, ov);
   }, state.delay);
 }
-
-type DebounceableBinding = (Binding | Call | Listener) & {
-  debouncedMethod: string & { originalName: string };
-  debounceState: {
-    callContextToDebounce: string,
-    delay: number,
-    timeoutId: number,
-    oldValue: any
-  }
-};
 
 @bindingBehavior('debounce')
 export class DebounceBindingBehavior {

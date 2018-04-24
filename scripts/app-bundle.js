@@ -445,6 +445,14 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
         10: {
             type: MessageType.error,
             message: 'The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.'
+        },
+        11: {
+            type: MessageType.error,
+            message: 'Only property bindings and string interpolation bindings can be signaled. Trigger, delegate and call bindings cannot be signaled.'
+        },
+        12: {
+            type: MessageType.error,
+            message: 'Signal name is required.'
         }
     };
 });
@@ -4793,12 +4801,12 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
             container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
@@ -4806,6 +4814,7 @@ define('runtime/configuration/standard',["require", "exports", "../di", "../task
             container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
             container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
             container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
+            container.register(di_1.Registration.instance(signals_1.ISignaler, signals_1.Signaler));
         }
     };
 });
@@ -7540,6 +7549,87 @@ define('runtime/resources/with',["require", "exports", "../decorators", "../temp
         return With;
     }());
     exports.With = With;
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+define('runtime/resources/signals',["require", "exports", "../binding/binding-context", "../di", "../decorators", "../reporter"], function (require, exports, binding_context_1, di_1, decorators_1, reporter_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ISignaler = di_1.DI.createInterface('ISignaler');
+    var signals = {};
+    exports.Signaler = {
+        dispatchSignal: function (name) {
+            var bindings = signals[name];
+            if (!bindings) {
+                return;
+            }
+            var i = bindings.length;
+            while (i--) {
+                bindings[i].call(binding_context_1.sourceContext);
+            }
+        },
+        addSignalListener: function (name, listener) {
+            (signals[name] || (signals[name] = [])).push(listener);
+        },
+        removeSignalListener: function (name, listener) {
+            var listeners = signals[name];
+            if (listeners) {
+                listeners.splice(listeners.indexOf(listener), 1);
+            }
+        }
+    };
+    var SignalBindingBehavior = (function () {
+        function SignalBindingBehavior() {
+        }
+        SignalBindingBehavior.prototype.bind = function (binding, scope) {
+            if (!binding.updateTarget) {
+                throw reporter_1.Reporter.error(11);
+            }
+            if (arguments.length === 3) {
+                var name_1 = arguments[2];
+                exports.Signaler.addSignalListener(name_1, binding);
+                binding.signal = name_1;
+            }
+            else if (arguments.length > 3) {
+                var names = Array.prototype.slice.call(arguments, 2);
+                var i = names.length;
+                while (i--) {
+                    var name_2 = names[i];
+                    exports.Signaler.addSignalListener(name_2, binding);
+                }
+                binding.signal = names;
+            }
+            else {
+                throw reporter_1.Reporter.error(12);
+            }
+        };
+        SignalBindingBehavior.prototype.unbind = function (binding, scope) {
+            var name = binding.signal;
+            binding.signal = null;
+            if (Array.isArray(name)) {
+                var names = name;
+                var i = names.length;
+                while (i--) {
+                    exports.Signaler.removeSignalListener(names[i], binding);
+                }
+            }
+            else {
+                exports.Signaler.removeSignalListener(name, binding);
+            }
+        };
+        SignalBindingBehavior = __decorate([
+            decorators_1.bindingBehavior('signal')
+        ], SignalBindingBehavior);
+        return SignalBindingBehavior;
+    }());
+    exports.SignalBindingBehavior = SignalBindingBehavior;
 });
 
 

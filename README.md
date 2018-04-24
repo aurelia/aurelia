@@ -73,6 +73,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] `debounce`
   * [x] `throttle`
   * [x] `updateTrigger`
+  * [x] `signal`
   * [x] `self`
 * Template Controllers
   * [x] `if`

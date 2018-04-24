@@ -17,6 +17,7 @@ import { SelfBindingBehavior } from "../resources/self-binding-behavior";
 import { ThrottleBindingBehavior } from "../resources/throttle-binding-behavior";
 import { UpdateTriggerBindingBehavior } from "../resources/update-trigger-binding-behavior";
 import { With } from "../resources/with";
+import { ISignaler, Signaler, SignalBindingBehavior } from "../resources/signals";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
@@ -32,6 +33,7 @@ export const StandardConfiguration = {
       DebounceBindingBehavior,
       ThrottleBindingBehavior,
       UpdateTriggerBindingBehavior,
+      SignalBindingBehavior,
       SelfBindingBehavior,
 
       // Template Controllers
@@ -51,5 +53,6 @@ export const StandardConfiguration = {
     container.register(Registration.instance(IObserverLocator, ObserverLocator));
     container.register(Registration.instance(IAnimator, Animator));
     container.register(Registration.instance(ISanitizer, Sanitizer));
+    container.register(Registration.instance(ISignaler, Signaler));
   }
 };

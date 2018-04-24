@@ -93,5 +93,13 @@ const codeLookup: Record<string, IMessageInfo> = {
   10: {
     type: MessageType.error,
     message: 'The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.'
+  },
+  11: {
+    type: MessageType.error,
+    message: 'Only property bindings and string interpolation bindings can be signaled. Trigger, delegate and call bindings cannot be signaled.'
+  },
+  12: {
+    type: MessageType.error,
+    message: 'Signal name is required.'
   }
 };

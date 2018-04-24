@@ -9,7 +9,7 @@ import { BindingMode } from "../binding/binding-mode";
 import { Constructable } from "../interfaces";
 import { IBindScope } from "../binding/observation";
 import { IScope, BindingContext } from "../binding/binding-context";
-import { IViewSlot } from "./view-slot";
+import { IRenderSlot } from "./render-slot";
 import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
@@ -146,7 +146,7 @@ export const Component = {
       $isAttached = false;
       $isBound = false;
       $scope: IScope = null;
-      $viewSlot: IViewSlot = null;
+      $slot: IRenderSlot = null;
 
       constructor(...args:any[]) {
         super(...args);
@@ -189,8 +189,8 @@ export const Component = {
           (<any>this).attaching();
         }
 
-        if (this.$viewSlot !== null) {
-          this.$viewSlot.attach(context);
+        if (this.$slot !== null) {
+          this.$slot.attach(context);
         }
       
         if (this.$characteristics.hasAttached) {
@@ -206,8 +206,8 @@ export const Component = {
             (<any>this).detaching();
           }
 
-          if (this.$viewSlot !== null) {
-            this.$viewSlot.detach(context);
+          if (this.$slot !== null) {
+            this.$slot.detach(context);
           }
     
           if (this.$characteristics.hasDetached) {
@@ -265,6 +265,7 @@ export const Component = {
       $useShadowDOM = source.shadowOptions && FEATURE.shadowDOM;
       $view: IView = null;
       $contentView: IView = null;
+      $slot: IRenderSlot = null;
       $isAttached = false;
       $isBound = false;
       $scope: IScope = {
@@ -346,6 +347,10 @@ export const Component = {
         for (let i = 0, ii = attachable.length; i < ii; ++i) {
           attachable[i].attach(context);
         }
+
+        if (this.$slot !== null) {
+          this.$slot.attach(context);
+        }
   
         if (source.containerless) {
           this.$view.insertBefore(this.$host);
@@ -387,6 +392,10 @@ export const Component = {
     
           while (i--) {
             attachable[i].detach();
+          }
+
+          if (this.$slot !== null) {
+            this.$slot.detach(context);
           }
     
           if (this.$characteristics.hasDetached) {

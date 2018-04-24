@@ -1,17 +1,17 @@
-import { IViewFactory, IVisual } from '../templating/view-engine';
+import { IVisualFactory, IVisual } from '../templating/view-engine';
 import { inject, templateController, customAttribute } from '../decorators';
-import { IViewSlot } from '../templating/view-slot';
+import { IRenderSlot } from '../templating/render-slot';
 import { IScope } from '../binding/binding-context';
 
 @customAttribute('replaceable')
 @templateController
-@inject(IViewFactory, IViewSlot)
+@inject(IVisualFactory, IRenderSlot)
 export class Replaceable {
   private child: IVisual;
 
-  constructor(private factory: IViewFactory, private viewSlot: IViewSlot) {
+  constructor(private factory: IVisualFactory, private slot: IRenderSlot) {
     this.child = this.factory.create();
-    this.viewSlot.add(this.child);
+    this.slot.add(this.child);
   }
 
   bound(scope: IScope) {

@@ -1,13 +1,13 @@
 import { IfCore } from "./if-core";
 import { If } from "./if";
-import { IViewFactory } from "../templating/view-engine";
-import { IViewSlot } from "../templating/view-slot";
+import { IVisualFactory } from "../templating/view-engine";
+import { IRenderSlot } from "../templating/render-slot";
 import { inject, templateController, customAttribute } from "../decorators";
 import { IScope } from "../binding/binding-context";
 
 @customAttribute('else')
 @templateController
-@inject(IViewFactory, IViewSlot)
+@inject(IVisualFactory, IRenderSlot)
 export class Else extends IfCore {
   private ifBehavior: If;
 

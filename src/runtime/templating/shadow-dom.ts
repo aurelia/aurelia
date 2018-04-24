@@ -1,22 +1,22 @@
 import { DOM, PLATFORM } from '../pal';;
 import { IView, IViewOwner } from './view';
-import { IViewSlot } from './view-slot';
-import { IVisual, IViewFactory } from './view-engine';
+import { IRenderSlot } from './render-slot';
+import { IVisual, IVisualFactory } from './view-engine';
 import { IBindScope } from '../binding/observation';
 import { IScope } from '../binding/binding-context';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
 
-type ProjectionSource = IViewSlot | IEmulatedShadowSlot;
+type ProjectionSource = IRenderSlot | IEmulatedShadowSlot;
 
 type ShadowEmulationTracking = { 
-  viewSlot: ProjectionSource;
-  auSlotName?: string;
-  isContentProjectionSource?: boolean;
-  auOwnerView?: IView;
-  auProjectionSource?: ProjectionSource;
-  auSlotProjectFrom?: ProjectionSource;
-  auAssignedSlot?: IEmulatedShadowSlot;
-  auProjectionChildren: SlotNode[];
+  $slot: ProjectionSource;
+  $slotName?: string;
+  $isContentProjectionSource?: boolean;
+  $ownerView?: IView;
+  $projectionSource?: ProjectionSource;
+  $slotProjectFrom?: ProjectionSource;
+  $assignedSlot?: IEmulatedShadowSlot;
+  $projectionChildren: SlotNode[];
 };
 
 type SlotNode = Node & ShadowEmulationTracking;
@@ -62,8 +62,8 @@ abstract class ShadowSlotBase {
   $isBound = false;
   projections = 0;
 
-  constructor(public owner: IViewOwner, public anchor: SlotNode, public name: string, public fallbackFactory?: IViewFactory) {
-    this.anchor.viewSlot = <any>this;
+  constructor(public owner: IViewOwner, public anchor: SlotNode, public name: string, public fallbackFactory?: IVisualFactory) {
+    this.anchor.$slot = <any>this;
   }
 
   get needsFallback() {
@@ -106,9 +106,9 @@ class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   destinationSlot: IEmulatedShadowSlot = null;
   currentProjectionSource: ProjectionSource = null;
 
-  constructor(owner: IViewOwner, anchor: SlotNode, name: string, private destinationName: string, fallbackFactory?: IViewFactory) {
+  constructor(owner: IViewOwner, anchor: SlotNode, name: string, private destinationName: string, fallbackFactory?: IVisualFactory) {
     super(owner, anchor, name, fallbackFactory);
-    this.anchor.auSlotName = this.destinationName;
+    this.anchor.$slotName = this.destinationName;
   }
 
   passThroughTo(destinationSlot: IEmulatedShadowSlot) {
@@ -127,8 +127,8 @@ class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   addNode(view: IView, node: SlotNode, projectionSource: ProjectionSource, index: number) {
     this.removeFallbackVisual();
 
-    if (node.viewSlot instanceof PassThroughSlot) {
-      node.viewSlot.passThroughTo(this);
+    if (node.$slot instanceof PassThroughSlot) {
+      node.$slot.passThroughTo(this);
       return;
     }
 
@@ -165,9 +165,9 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   destinationSlots = null;
   fallbackSlots;
 
-  constructor(owner: IViewOwner, anchor: SlotNode, name: string, fallbackFactory?: IViewFactory) {
+  constructor(owner: IViewOwner, anchor: SlotNode, name: string, fallbackFactory?: IVisualFactory) {
     super(owner, anchor, name, fallbackFactory);
-    this.anchor.isContentProjectionSource = true;
+    this.anchor.$isContentProjectionSource = true;
   }
 
   renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index = 0) {
@@ -187,7 +187,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
 
           for (let i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
             let anchor = projectFromAnchors[i];
-            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
+            slot.projectFrom(anchor.$ownerView, anchor.$slotProjectFrom);
           }
         }
       }
@@ -200,17 +200,17 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   addNode(view: IView, node: SlotNode, projectionSource: ProjectionSource, index: number, destination: string) {
     this.removeFallbackVisual();
 
-    if (node.viewSlot instanceof PassThroughSlot) {
-      node.viewSlot.passThroughTo(this);
+    if (node.$slot instanceof PassThroughSlot) {
+      node.$slot.passThroughTo(this);
       return;
     }
 
     if (this.destinationSlots !== null) {
       ShadowDOMEmulation.distributeNodes(view, [node], this.destinationSlots, this, index);
     } else {
-      node.auOwnerView = view;
-      node.auProjectionSource = projectionSource;
-      node.auAssignedSlot = this;
+      node.$ownerView = view;
+      node.$projectionSource = projectionSource;
+      node.$assignedSlot = this;
 
       let anchor = this.findAnchor(view, node, projectionSource, index);
       let parent = anchor.parentNode;
@@ -227,14 +227,14 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
     } else if (this.fallbackVisual && this.fallbackVisual.$slots) {
       ShadowDOMEmulation.undistributeView(view, this.fallbackVisual.$slots, projectionSource);
     } else {
-      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      let found = this.children.find(x => x.$slotProjectFrom === projectionSource);
       if (found) {
-        let children = found.auProjectionChildren;
+        let children = found.$projectionChildren;
 
         for (let i = 0, ii = children.length; i < ii; ++i) {
           let child = children[i];
 
-          if (child.auOwnerView === view) {
+          if (child.$ownerView === view) {
             children.splice(i, 1);
             view.appendChild(child);
             i--; ii--;
@@ -255,17 +255,17 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
     } else if (this.fallbackVisual && this.fallbackVisual.$slots) {
       ShadowDOMEmulation.undistributeAll(this.fallbackVisual.$slots, projectionSource);
     } else {
-      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      let found = this.children.find(x => x.$slotProjectFrom === projectionSource);
 
       if (found) {
-        let children = found.auProjectionChildren;
+        let children = found.$projectionChildren;
         for (let i = 0, ii = children.length; i < ii; ++i) {
           let child = children[i];
-          child.auOwnerView.appendChild(child);
+          child.$ownerView.appendChild(child);
           this.projections--;
         }
 
-        found.auProjectionChildren = [];
+        found.$projectionChildren = [];
 
         if (this.needsFallback) {
           this.renderFallback(null, noNodes, projectionSource);
@@ -277,19 +277,19 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   private findAnchor(view: IView, node: SlotNode, projectionSource: ProjectionSource, index: number) {
     if (projectionSource) {
       //find the anchor associated with the projected view slot
-      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      let found = this.children.find(x => x.$slotProjectFrom === projectionSource);
       if (found) {
         if (index !== undefined) {
-          let children = found.auProjectionChildren;
+          let children = found.$projectionChildren;
           let viewIndex = -1;
           let lastView: IView;
 
           for (let i = 0, ii = children.length; i < ii; ++i) {
             let current = children[i];
 
-            if (current.auOwnerView !== lastView) {
+            if (current.$ownerView !== lastView) {
               viewIndex++;
-              lastView = current.auOwnerView;
+              lastView = current.$ownerView;
 
               if (viewIndex >= index && lastView !== view) {
                 children.splice(i, 0, node);
@@ -299,7 +299,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
           }
         }
 
-        found.auProjectionChildren.push(node);
+        found.$projectionChildren.push(node);
         return found;
       }
     }
@@ -314,9 +314,9 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   projectFrom(view: IView, projectionSource: ProjectionSource) {
     let anchor: SlotNode = <any>DOM.createComment('anchor');
     let parent = this.anchor.parentNode;
-    anchor.auSlotProjectFrom = projectionSource;
-    anchor.auOwnerView = view;
-    anchor.auProjectionChildren = [];
+    anchor.$slotProjectFrom = projectionSource;
+    anchor.$ownerView = view;
+    anchor.$projectionChildren = [];
     parent.insertBefore(anchor, this.anchor);
     this.children.push(anchor);
 
@@ -332,7 +332,7 @@ export const ShadowDOMEmulation = {
   defaultSlotName: 'auDefaultSlot',
 
   getSlotName(node: Node): string {
-    let name = (<any>node).auSlotName;
+    let name = (<any>node).$slotName;
 
     if (name === undefined) {
       return this.defaultSlotName;
@@ -341,7 +341,7 @@ export const ShadowDOMEmulation = {
     return name;
   },
 
-  createSlot(target: Element, owner: IViewOwner, name: string, destination?: string, fallbackFactory?: IViewFactory) {
+  createSlot(target: Element, owner: IViewOwner, name: string, destination?: string, fallbackFactory?: IVisualFactory) {
     let anchor = <any>DOM.createComment('slot');
     
     DOM.replaceNode(anchor, target);
@@ -395,16 +395,16 @@ export const ShadowDOMEmulation = {
       let currentNode = nodes[i];
       let nodeType = currentNode.nodeType;
 
-      if (currentNode.isContentProjectionSource) {
-        currentNode.viewSlot.projectTo(slots);
+      if (currentNode.$isContentProjectionSource) {
+        currentNode.$slot.projectTo(slots);
 
         for (let slotName in slots) {
-          slots[slotName].projectFrom(view, currentNode.viewSlot);
+          slots[slotName].projectFrom(view, currentNode.$slot);
         }
 
         nodes.splice(i, 1);
         ii--; i--;
-      } else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) { //project only elements and text
+      } else if (nodeType === 1 || nodeType === 3 || currentNode.$slot instanceof PassThroughSlot) { //project only elements and text
         if (nodeType === 3 && DOM.isAllWhitespace(currentNode)) {
           nodes.splice(i, 1);
           ii--; i--;

@@ -1,11 +1,11 @@
 import { customAttribute, templateController, inject } from "../decorators";
-import { IViewFactory, IVisual } from "../templating/view-engine";
-import { IViewSlot } from "../templating/view-slot";
+import { IVisualFactory, IVisual } from "../templating/view-engine";
+import { IRenderSlot } from "../templating/render-slot";
 import { IScope, BindingContext } from "../binding/binding-context";
 
 @customAttribute('with')
 @templateController
-@inject(IViewFactory, IViewSlot)
+@inject(IVisualFactory, IRenderSlot)
 export class With { 
   //#region Framework-Supplied
   private $scope: IScope;
@@ -15,9 +15,9 @@ export class With {
 
   value: any = null;
 
-  constructor(private factory: IViewFactory, private viewSlot: IViewSlot) { 
+  constructor(private factory: IVisualFactory, private slot: IRenderSlot) { 
     this.child = factory.create();
-    this.viewSlot.add(this.child);
+    this.slot.add(this.child);
   }
 
   valueChanged(newValue: any) {

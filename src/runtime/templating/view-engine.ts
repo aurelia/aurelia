@@ -2,7 +2,7 @@ import { DOM, PLATFORM } from "../pal";
 import { View, IView, IViewOwner } from "./view";
 import { IElementComponent, IAttributeComponent, IElementType } from "./component";
 import { IBinding, Binding } from "../binding/binding";
-import { IViewSlot, ViewSlot } from "./view-slot";
+import { IRenderSlot, RenderSlot } from "./render-slot";
 import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
 import { Listener } from "../binding/listener";
 import { Call } from "../binding/call";
@@ -52,7 +52,7 @@ export interface IVisual extends IBindScope, IViewOwner {
   /**
   * The IViewFactory that built this instance.
   */
-  readonly factory: IViewFactory;
+  readonly factory: IVisualFactory;
 
   /**
    *   Runs the animator against the first animatable element found within the view's fragment
@@ -74,9 +74,9 @@ export interface IVisual extends IBindScope, IViewOwner {
 
 export type VisualWithCentralComponent = IVisual & { component: IElementComponent };
 
-export const IViewFactory = DI.createInterface('IViewFactory');
+export const IVisualFactory = DI.createInterface('IVisualFactory');
 
-export interface IViewFactory {
+export interface IVisualFactory {
   readonly name: string;
 
   /**
@@ -107,7 +107,7 @@ export const ViewEngine = {
     return noViewTemplate;
   },
 
-  factoryFromCompiledSource(source: ICompiledViewSource): IViewFactory {
+  factoryFromCompiledSource(source: ICompiledViewSource): IVisualFactory {
     const template = ViewEngine.templateFromCompiledSource(source);
 
     const CompiledVisual = class extends Visual {
@@ -121,7 +121,7 @@ export const ViewEngine = {
       }
     }
 
-    return new DefaultViewFactory(source.name, CompiledVisual);
+    return new DefaultVisualFactory(source.name, CompiledVisual);
   },
 
   visualFromComponent(container: ITemplateContainer, componentOrType: any, instruction: IElementInstruction): VisualWithCentralComponent {
@@ -236,12 +236,12 @@ function applyInstruction(owner: IViewOwner, instruction, target, replacements: 
       }
 
       container.element.prepare(target);
-      container.viewFactory.prepare(factory, replacements);
-      container.viewSlot.prepare(DOM.makeElementIntoAnchor(target), false);
+      container.factory.prepare(factory, replacements);
+      container.slot.prepare(DOM.makeElementIntoAnchor(target), false);
 
       let templateControllerModel = container.get<IAttributeComponent>(instruction.resource);
 
-      container.viewSlot.connectTemplateController(templateControllerModel);
+      container.slot.connectTemplateController(templateControllerModel);
 
       if (instruction.link) {
         (<any>templateControllerModel).link(owner.$attachable[owner.$attachable.length - 1]);
@@ -252,8 +252,8 @@ function applyInstruction(owner: IViewOwner, instruction, target, replacements: 
       }
 
       container.element.dispose();
-      container.viewFactory.dispose();
-      container.viewSlot.dispose();
+      container.factory.dispose();
+      container.slot.dispose();
 
       owner.$bindable.push(templateControllerModel);
       owner.$attachable.push(templateControllerModel);
@@ -278,10 +278,10 @@ class InstanceProvider<T> implements IResolver {
 }
 
 class ViewFactoryProvider implements IResolver {
-  private factory: IViewFactory
+  private factory: IVisualFactory
   private replacements: Record<string, ICompiledViewSource>;
 
-  prepare(factory: IViewFactory, replacements: Record<string, ICompiledViewSource>) { 
+  prepare(factory: IVisualFactory, replacements: Record<string, ICompiledViewSource>) { 
     this.factory = factory;
     this.replacements = replacements || PLATFORM.emptyObject;
   }
@@ -306,10 +306,10 @@ class ViewFactoryProvider implements IResolver {
   }
 }
 
-class ViewSlotProvider implements IResolver {
+class RenderSlotProvider implements IResolver {
   private node: Node = null;
   private anchorIsContainer = false;
-  private slot: IViewSlot = null;
+  private slot: IRenderSlot = null;
 
   prepare(element: Node, anchorIsContainer = false) {
     this.node = element;
@@ -317,21 +317,23 @@ class ViewSlotProvider implements IResolver {
   }
 
   get(handler: IContainer, requestor: IContainer) {
-    return this.slot || (this.slot = ViewSlot.create(this.node, this.anchorIsContainer));
+    return this.slot || (this.slot = RenderSlot.create(this.node, this.anchorIsContainer));
   }
 
   connectTemplateController(owner) {
-    let slot = this.slot;
+    const slot = this.slot;
 
     if (slot !== null) {
-      (<any>slot).isContentProjectionSource = true; //Used by the Shadow DOM Emulation
-      owner.$viewSlot = slot;
+      (<any>slot).$isContentProjectionSource = true; // Usage: Shadow DOM Emulation
+      owner.$slot = slot; // Usage: Custom Attributes
     }
   }
 
-  connectCustomElement(owner: IViewOwner) {
-    if (this.slot !== null) {
-      owner.$attachable.push(this.slot); //TODO: can we account for this like attributes do?
+  connectCustomElement(owner) {
+    const slot = this.slot;
+
+    if (slot !== null) {
+      owner.$slot = slot; // Usage: Custom Elements
     }
   }
 
@@ -343,9 +345,9 @@ class ViewSlotProvider implements IResolver {
 
 export interface ITemplateContainer extends IContainer {
   element: InstanceProvider<Element>;
-  viewFactory: ViewFactoryProvider;
-  viewSlot: ViewSlotProvider;
-  viewOwner: InstanceProvider<IViewOwner>;
+  factory: ViewFactoryProvider;
+  slot: RenderSlotProvider;
+  owner: InstanceProvider<IViewOwner>;
   instruction: InstanceProvider<ITargetedInstruction>
 };
 
@@ -359,23 +361,23 @@ export interface IElementInstruction extends ITargetedInstruction {
   instructions: Array<any>;
   resource: string;
   replacements: Record<string, ICompiledViewSource>;
-  contentElement?: Element; //used by the compose element to pass through content
+  contentElement?: Element; // Usage: Compose
 }
 
 function applyElementInstruction(instruction: IElementInstruction, container: ITemplateContainer, target: Element, owner: IViewOwner) {
   container.element.prepare(target);
-  container.viewOwner.prepare(owner);
+  container.owner.prepare(owner);
   container.instruction.prepare(instruction);
-  container.viewSlot.prepare(target, true);
+  container.slot.prepare(target, true);
   
   let component = container.get<IElementComponent>(instruction.resource);
   applyElementInstructionToComponentInstance(component, instruction, container, target, owner);
-  container.viewSlot.connectCustomElement(component);
+  container.slot.connectCustomElement(component);
   
   container.element.dispose();
-  container.viewOwner.dispose();
+  container.owner.dispose();
   container.instruction.dispose();
-  container.viewSlot.dispose();
+  container.slot.dispose();
 }
 
 function applyElementInstructionToComponentInstance(component: IElementComponent, instruction: IElementInstruction, container: ITemplateContainer, target: Element, owner: IViewOwner) {
@@ -403,9 +405,9 @@ function createTemplateContainer(dependencies) {
   container.element = new InstanceProvider();
   DOM.registerElementResolver(container, container.element);
 
-  container.registerResolver(IViewFactory, container.viewFactory = new ViewFactoryProvider());
-  container.registerResolver(IViewSlot, container.viewSlot = new ViewSlotProvider());
-  container.registerResolver(IViewOwner, container.viewOwner =  new InstanceProvider());
+  container.registerResolver(IVisualFactory, container.factory = new ViewFactoryProvider());
+  container.registerResolver(IRenderSlot, container.slot = new RenderSlotProvider());
+  container.registerResolver(IViewOwner, container.owner =  new InstanceProvider());
   container.registerResolver(ITargetedInstruction, container.instruction = new InstanceProvider());
 
   if (dependencies) {
@@ -464,7 +466,7 @@ abstract class Visual implements IVisual {
   $inCache = false;
   $animationRoot: Element = undefined;
 
-  constructor(public factory: DefaultViewFactory) {
+  constructor(public factory: DefaultVisualFactory) {
     this.$view = this.createView();
   }
 
@@ -528,7 +530,7 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  attach(context: AttachContext | null, render: RenderCallback, owner: IViewSlot, index?: number) {
+  attach(context: AttachContext | null, render: RenderCallback, owner: IRenderSlot, index?: number) {
     if (this.$isAttached) {
       return;
     }
@@ -594,7 +596,7 @@ abstract class Visual implements IVisual {
   }
 }
 
-class DefaultViewFactory implements IViewFactory {
+class DefaultVisualFactory implements IVisualFactory {
   private cacheSize = -1;
   private cache: Visual[] = null;
 

@@ -1,5 +1,5 @@
 import { compiledElement, inject } from "../decorators";
-import { IViewSlot, SwapOrder } from "../templating/view-slot";
+import { IRenderSlot, SwapOrder } from "../templating/render-slot";
 import { ViewEngine, ITargetedInstruction, IElementInstruction, ITemplateContainer, VisualWithCentralComponent, IVisual } from "../templating/view-engine";
 import { IViewOwner, IViewOwnerType, IView } from "../templating/view";
 import { IContainer } from "../di";
@@ -15,7 +15,7 @@ const composeSource = {
 const composeProps = ['component', 'swapOrder', 'isComposing'];
 
 @compiledElement(composeSource)
-@inject(IViewOwner, DOM.Element, IViewSlot, ITargetedInstruction)
+@inject(IViewOwner, DOM.Element, IRenderSlot, ITargetedInstruction)
 export class Compose {
   //#region Framework-Supplied
   private $contentView: IView;
@@ -33,9 +33,9 @@ export class Compose {
   swapOrder: SwapOrder;
   isComposing: boolean;
 
-  constructor(private viewOwner: IViewOwner, private element: HTMLElement,  private viewSlot: IViewSlot, instruction: ITargetedInstruction) { 
+  constructor(private viewOwner: IViewOwner, private element: HTMLElement,  private slot: IRenderSlot, instruction: ITargetedInstruction) { 
     this.viewOwner = viewOwner;
-    this.viewSlot = viewSlot;
+    this.slot = slot;
 
     const type = <IViewOwnerType>viewOwner.constructor;
     const composeInstruction = <IElementInstruction>instruction;
@@ -122,11 +122,11 @@ export class Compose {
       newVisual.bind(this.viewOwner.$scope);
     }
 
-    return this.viewSlot.swap(newVisual, this.swapOrder || 'after');
+    return this.slot.swap(newVisual, this.swapOrder || 'after');
   }
 
   private clear() {
-    this.viewSlot.removeAll();
+    this.slot.removeAll();
   }
 }
 

@@ -1,5 +1,5 @@
-import { IViewSlot } from '../templating/view-slot';
-import { IVisual, IViewFactory } from '../templating/view-engine';
+import { IRenderSlot } from '../templating/render-slot';
+import { IVisual, IVisualFactory } from '../templating/view-engine';
 import { IScope } from '../binding/binding-context';
 
 /**
@@ -14,7 +14,7 @@ export abstract class IfCore {
   // Eventually, `showing` and `condition` should be consistent.
   protected showing = false;
 
-  constructor(private factory: IViewFactory, protected viewSlot: IViewSlot) { }
+  constructor(private factory: IVisualFactory, protected slot: IRenderSlot) { }
 
   unbound() {
     const visual = this.child;
@@ -31,7 +31,7 @@ export abstract class IfCore {
 
     if (this.showing) {
       this.showing = false;
-      this.viewSlot.remove(visual, /*returnToCache:*/true, /*skipAnimation:*/true);
+      this.slot.remove(visual, /*returnToCache:*/true, /*skipAnimation:*/true);
     } else {
       visual.tryReturnToCache();
     }
@@ -48,7 +48,7 @@ export abstract class IfCore {
 
     if (!this.showing) {
       this.showing = true;
-      return this.viewSlot.add(this.child);
+      return this.slot.add(this.child);
     }
   }
 
@@ -58,7 +58,7 @@ export abstract class IfCore {
     }
 
     const visual = this.child;
-    const removed = this.viewSlot.remove(visual);
+    const removed = this.slot.remove(visual);
 
     this.showing = false;
     

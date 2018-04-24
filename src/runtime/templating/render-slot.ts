@@ -7,45 +7,45 @@ import { Reporter } from '../reporter';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
 import { DI } from '../di';
 
-function appendVisualToContainer(visual: IVisual, owner: ViewSlotImplementation) {
+function appendVisualToContainer(visual: IVisual, owner: RenderSlotImplementation) {
   visual.$view.appendTo(owner.anchor);
 }
 
-function addVisualToList(visual: IVisual, owner: ViewSlotImplementation) {
+function addVisualToList(visual: IVisual, owner: RenderSlotImplementation) {
   visual.$view.insertBefore(owner.anchor);
 }
 
-function projectAddVisualToList(visual: IVisual, owner: ViewSlotImplementation) {
+function projectAddVisualToList(visual: IVisual, owner: RenderSlotImplementation) {
   visual.$view.remove = () => ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
   ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner);
 }
 
-function insertVisualAtIndex(visual: IVisual, owner: ViewSlotImplementation, index: number) {
+function insertVisualAtIndex(visual: IVisual, owner: RenderSlotImplementation, index: number) {
   visual.$view.insertBefore(owner.children[index].$view.firstChild);
 }
 
-function projectInsertVisualAtIndex(visual: IVisual, owner: ViewSlotImplementation, index: number) {
+function projectInsertVisualAtIndex(visual: IVisual, owner: RenderSlotImplementation, index: number) {
   visual.$view.remove = () => ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
   ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner, index);
 }
 
-function removeView(visual: IVisual, owner: ViewSlotImplementation) {
+function removeView(visual: IVisual, owner: RenderSlotImplementation) {
   visual.$view.remove();
 }
 
-function projectRemoveView(visual: IVisual, owner: ViewSlotImplementation) {
+function projectRemoveView(visual: IVisual, owner: RenderSlotImplementation) {
   ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
 }
 
 export type SwapOrder = 'before' | 'with' | 'after';
 
-export const IViewSlot = DI.createInterface('IViewSlot');
+export const IRenderSlot = DI.createInterface('IRenderSlot');
 
 /**
 * Represents a slot or location within the DOM to which views can be added and removed.
 * Manages the view lifecycle for its children.
 */
-export interface IViewSlot extends IAttach {
+export interface IRenderSlot extends IAttach {
   /**
   * Adds a view to the slot.
   * @param visual The view to add.
@@ -110,24 +110,24 @@ export interface IViewSlot extends IAttach {
   projectTo(slots: Record<string, IEmulatedShadowSlot>): void;
 }
 
-export const ViewSlot = {
-  create(anchor: Node, anchorIsContainer: boolean): IViewSlot {
-    return new ViewSlotImplementation(anchor, anchorIsContainer);
+export const RenderSlot = {
+  create(anchor: Node, anchorIsContainer: boolean): IRenderSlot {
+    return new RenderSlotImplementation(anchor, anchorIsContainer);
   }
 };
 
-class ViewSlotImplementation implements IViewSlot {
+class RenderSlotImplementation implements IRenderSlot {
   private $isAttached = false;
-  private addVisualCore: (visual: IVisual, owner: ViewSlotImplementation) => void;
-  private insertVisualCore: (visual: IVisual, owner: ViewSlotImplementation, index: number) => void;
-  private removeViewCore: (visual: IVisual, owner: ViewSlotImplementation) => void;
+  private addVisualCore: (visual: IVisual, owner: RenderSlotImplementation) => void;
+  private insertVisualCore: (visual: IVisual, owner: RenderSlotImplementation, index: number) => void;
+  private removeViewCore: (visual: IVisual, owner: RenderSlotImplementation) => void;
 
   public children: IVisual[] = [];
   public slots: Record<string, IEmulatedShadowSlot> = null;
 
   constructor(public anchor: Node, anchorIsContainer: boolean) {
-    (<any>anchor).viewSlot = this;
-    (<any>anchor).isContentProjectionSource = false;
+    (<any>anchor).$slot = this; // Usage: Shadow DOM Emulation
+    (<any>anchor).$isContentProjectionSource = false; // Usage: Shadow DOM Emulation
 
     this.addVisualCore = anchorIsContainer ? appendVisualToContainer : addVisualToList;
     this.insertVisualCore = insertVisualAtIndex;

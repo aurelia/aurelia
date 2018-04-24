@@ -7,18 +7,18 @@ import { IScope } from '../binding/binding-context';
 @templateController
 @inject(IViewFactory, IViewSlot)
 export class Replaceable {
-  private visual: IVisual;
+  private child: IVisual;
 
-  constructor(private viewFactory: IViewFactory, private viewSlot: IViewSlot) {
-    this.visual = this.viewFactory.create();
-    this.viewSlot.add(this.visual);
+  constructor(private factory: IViewFactory, private viewSlot: IViewSlot) {
+    this.child = this.factory.create();
+    this.viewSlot.add(this.child);
   }
 
   bound(scope: IScope) {
-    this.visual.bind(scope);
+    this.child.bind(scope);
   }
 
   unbound() {
-    this.visual.unbind();
+    this.child.unbind();
   }
 }

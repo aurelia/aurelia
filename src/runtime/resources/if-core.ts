@@ -6,7 +6,7 @@ import { IScope } from '../binding/binding-context';
 * For internal use only. May change without warning.
 */
 export abstract class IfCore {
-  private visual: IVisual = null;
+  private child: IVisual = null;
   private $scope: IScope = null;
 
   // If the child view is animated, `condition` might not reflect the internal
@@ -14,18 +14,18 @@ export abstract class IfCore {
   // Eventually, `showing` and `condition` should be consistent.
   protected showing = false;
 
-  constructor(private viewFactory: IViewFactory, protected viewSlot: IViewSlot) { }
+  constructor(private factory: IViewFactory, protected viewSlot: IViewSlot) { }
 
   unbound() {
-    const visual = this.visual;
+    const visual = this.child;
 
     if (visual === null) {
       return;
     }
 
-    this.visual.unbind();
+    this.child.unbind();
 
-    if (!this.viewFactory.isCaching) {
+    if (!this.factory.isCaching) {
       return;
     }
 
@@ -36,19 +36,19 @@ export abstract class IfCore {
       visual.tryReturnToCache();
     }
 
-    this.visual = null;
+    this.child = null;
   }
 
   show() {
-    if (this.visual === null) {
-      this.visual = this.viewFactory.create();
+    if (this.child === null) {
+      this.child = this.factory.create();
     }
 
-    this.visual.bind(this.$scope);
+    this.child.bind(this.$scope);
 
     if (!this.showing) {
       this.showing = true;
-      return this.viewSlot.add(this.visual);
+      return this.viewSlot.add(this.child);
     }
   }
 
@@ -57,7 +57,7 @@ export abstract class IfCore {
       return;
     }
 
-    const visual = this.visual;
+    const visual = this.child;
     const removed = this.viewSlot.remove(visual);
 
     this.showing = false;

@@ -78,6 +78,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
   * [x] `if`
   * [x] `else`
   * [x] `replaceable`
+  * [x] `with`
   * [ ] `repeat`
 * Custom Elements
   * [x] `compose`

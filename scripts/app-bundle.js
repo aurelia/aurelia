@@ -4793,12 +4793,12 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, compose_1.Compose);
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
             container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
@@ -5203,20 +5203,20 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var IfCore = (function () {
-        function IfCore(viewFactory, viewSlot) {
-            this.viewFactory = viewFactory;
+        function IfCore(factory, viewSlot) {
+            this.factory = factory;
             this.viewSlot = viewSlot;
-            this.visual = null;
+            this.child = null;
             this.$scope = null;
             this.showing = false;
         }
         IfCore.prototype.unbound = function () {
-            var visual = this.visual;
+            var visual = this.child;
             if (visual === null) {
                 return;
             }
-            this.visual.unbind();
-            if (!this.viewFactory.isCaching) {
+            this.child.unbind();
+            if (!this.factory.isCaching) {
                 return;
             }
             if (this.showing) {
@@ -5226,23 +5226,23 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             else {
                 visual.tryReturnToCache();
             }
-            this.visual = null;
+            this.child = null;
         };
         IfCore.prototype.show = function () {
-            if (this.visual === null) {
-                this.visual = this.viewFactory.create();
+            if (this.child === null) {
+                this.child = this.factory.create();
             }
-            this.visual.bind(this.$scope);
+            this.child.bind(this.$scope);
             if (!this.showing) {
                 this.showing = true;
-                return this.viewSlot.add(this.visual);
+                return this.viewSlot.add(this.child);
             }
         };
         IfCore.prototype.hide = function () {
             if (!this.showing) {
                 return;
             }
-            var visual = this.visual;
+            var visual = this.child;
             var removed = this.viewSlot.remove(visual);
             this.showing = false;
             if (removed instanceof Promise) {
@@ -7226,17 +7226,17 @@ define('runtime/resources/replaceable',["require", "exports", "../templating/vie
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Replaceable = (function () {
-        function Replaceable(viewFactory, viewSlot) {
-            this.viewFactory = viewFactory;
+        function Replaceable(factory, viewSlot) {
+            this.factory = factory;
             this.viewSlot = viewSlot;
-            this.visual = this.viewFactory.create();
-            this.viewSlot.add(this.visual);
+            this.child = this.factory.create();
+            this.viewSlot.add(this.child);
         }
         Replaceable.prototype.bound = function (scope) {
-            this.visual.bind(scope);
+            this.child.bind(scope);
         };
         Replaceable.prototype.unbound = function () {
-            this.visual.unbind();
+            this.child.unbind();
         };
         Replaceable = __decorate([
             decorators_1.customAttribute('replaceable'),
@@ -7496,6 +7496,50 @@ define('runtime/resources/update-trigger-binding-behavior',["require", "exports"
         return UpdateTriggerBindingBehavior;
     }());
     exports.UpdateTriggerBindingBehavior = UpdateTriggerBindingBehavior;
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/resources/with',["require", "exports", "../decorators", "../templating/view-engine", "../templating/view-slot", "../binding/binding-context"], function (require, exports, decorators_1, view_engine_1, view_slot_1, binding_context_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var With = (function () {
+        function With(factory, viewSlot) {
+            this.factory = factory;
+            this.viewSlot = viewSlot;
+            this.child = null;
+            this.value = null;
+            this.child = factory.create();
+            this.viewSlot.add(this.child);
+        }
+        With.prototype.valueChanged = function (newValue) {
+            var childScope = {
+                bindingContext: newValue,
+                overrideContext: binding_context_1.BindingContext.createOverride(newValue, this.$scope.overrideContext)
+            };
+            this.child.bind(childScope);
+        };
+        With.prototype.unbound = function () {
+            this.child.unbind();
+        };
+        With = __decorate([
+            decorators_1.customAttribute('with'),
+            decorators_1.templateController,
+            decorators_1.inject(view_engine_1.IViewFactory, view_slot_1.IViewSlot),
+            __metadata("design:paramtypes", [Object, Object])
+        ], With);
+        return With;
+    }());
+    exports.With = With;
 });
 
 

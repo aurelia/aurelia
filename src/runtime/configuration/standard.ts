@@ -16,6 +16,7 @@ import { Compose } from "../resources/compose";
 import { SelfBindingBehavior } from "../resources/self-binding-behavior";
 import { ThrottleBindingBehavior } from "../resources/throttle-binding-behavior";
 import { UpdateTriggerBindingBehavior } from "../resources/update-trigger-binding-behavior";
+import { With } from "../resources/with";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
@@ -37,6 +38,7 @@ export const StandardConfiguration = {
       If,
       Else,
       Replaceable,
+      With,
 
       // Custom Elements
       Compose

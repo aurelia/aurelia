@@ -1,3 +1,5 @@
+import { IResolver, IContainer } from "./di";
+
 const global = (function() {
   // Workers don’t have `window`, only `self`
   if (typeof self !== 'undefined') {
@@ -45,6 +47,11 @@ export const FEATURE = {
 export const DOM = {
   Element: global.Element,
   SVGElement: global.SVGElement,
+  registerElementResolver(container: IContainer, resolver: IResolver){
+    container.registerResolver(DOM.Element, resolver);
+    container.registerResolver(HTMLElement, resolver);
+    container.registerResolver(SVGElement, resolver);
+  },
   addEventListener(eventName: string, callback: EventListenerOrEventListenerObject, capture?: boolean): void {
     document.addEventListener(eventName, callback, capture);
   },

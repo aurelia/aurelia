@@ -1082,6 +1082,11 @@ define('runtime/pal',["require", "exports"], function (require, exports) {
     exports.DOM = {
         Element: global.Element,
         SVGElement: global.SVGElement,
+        registerElementResolver: function (container, resolver) {
+            container.registerResolver(exports.DOM.Element, resolver);
+            container.registerResolver(HTMLElement, resolver);
+            container.registerResolver(SVGElement, resolver);
+        },
         addEventListener: function (eventName, callback, capture) {
             document.addEventListener(eventName, callback, capture);
         },
@@ -6355,7 +6360,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 container.viewFactory.prepare(factory, replacements);
                 container.viewSlot.prepare(pal_1.DOM.makeElementIntoAnchor(target), false);
                 var templateControllerModel = container.get(instruction.resource);
-                container.viewSlot.tryConnectToAttribute(templateControllerModel);
+                container.viewSlot.connectTemplateController(templateControllerModel);
                 if (instruction.link) {
                     templateControllerModel.link(owner.$attachable[owner.$attachable.length - 1]);
                 }
@@ -6410,31 +6415,33 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
     }());
     var ViewSlotProvider = (function () {
         function ViewSlotProvider() {
-            this.element = null;
+            this.node = null;
             this.anchorIsContainer = false;
-            this.viewSlot = null;
+            this.slot = null;
         }
         ViewSlotProvider.prototype.prepare = function (element, anchorIsContainer) {
             if (anchorIsContainer === void 0) { anchorIsContainer = false; }
-            this.element = element;
+            this.node = element;
             this.anchorIsContainer = anchorIsContainer;
         };
         ViewSlotProvider.prototype.get = function (handler, requestor) {
-            return this.viewSlot || (this.viewSlot = view_slot_1.ViewSlot.create(this.element, this.anchorIsContainer));
+            return this.slot || (this.slot = view_slot_1.ViewSlot.create(this.node, this.anchorIsContainer));
         };
-        ViewSlotProvider.prototype.tryConnectToAttribute = function (owner) {
-            if (this.viewSlot !== null) {
-                owner.$viewSlot = this.viewSlot;
+        ViewSlotProvider.prototype.connectTemplateController = function (owner) {
+            var slot = this.slot;
+            if (slot !== null) {
+                slot.isContentProjectionSource = true;
+                owner.$viewSlot = slot;
             }
         };
-        ViewSlotProvider.prototype.tryConnectToViewOwner = function (owner) {
-            if (this.viewSlot !== null) {
-                owner.$attachable.push(this.viewSlot);
+        ViewSlotProvider.prototype.connectCustomElement = function (owner) {
+            if (this.slot !== null) {
+                owner.$attachable.push(this.slot);
             }
         };
         ViewSlotProvider.prototype.dispose = function () {
-            this.element = null;
-            this.viewSlot = null;
+            this.node = null;
+            this.slot = null;
         };
         return ViewSlotProvider;
     }());
@@ -6447,7 +6454,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
         container.viewSlot.prepare(target, true);
         var component = container.get(instruction.resource);
         applyElementInstructionToComponentInstance(component, instruction, container, target, owner);
-        container.viewSlot.tryConnectToViewOwner(component);
+        container.viewSlot.connectCustomElement(component);
         container.element.dispose();
         container.viewOwner.dispose();
         container.instruction.dispose();
@@ -6466,7 +6473,8 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
     }
     function createTemplateContainer(dependencies) {
         var container = di_1.DI.createChild();
-        container.registerResolver(pal_1.DOM.Element, container.element = new InstanceProvider());
+        container.element = new InstanceProvider();
+        pal_1.DOM.registerElementResolver(container, container.element);
         container.registerResolver(exports.IViewFactory, container.viewFactory = new ViewFactoryProvider());
         container.registerResolver(view_slot_1.IViewSlot, container.viewSlot = new ViewSlotProvider());
         container.registerResolver(view_1.IViewOwner, container.viewOwner = new InstanceProvider());

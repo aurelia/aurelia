@@ -241,7 +241,7 @@ function applyInstruction(owner: IViewOwner, instruction, target, replacements: 
 
       let templateControllerModel = container.get<IAttributeComponent>(instruction.resource);
 
-      container.viewSlot.tryConnectToAttribute(templateControllerModel);
+      container.viewSlot.connectTemplateController(templateControllerModel);
 
       if (instruction.link) {
         (<any>templateControllerModel).link(owner.$attachable[owner.$attachable.length - 1]);
@@ -307,34 +307,37 @@ class ViewFactoryProvider implements IResolver {
 }
 
 class ViewSlotProvider implements IResolver {
-  private element: Element = null;
+  private node: Node = null;
   private anchorIsContainer = false;
-  private viewSlot: IViewSlot = null;
+  private slot: IViewSlot = null;
 
-  prepare(element: Element, anchorIsContainer = false) {
-    this.element = element;
+  prepare(element: Node, anchorIsContainer = false) {
+    this.node = element;
     this.anchorIsContainer = anchorIsContainer;
   }
 
   get(handler: IContainer, requestor: IContainer) {
-    return this.viewSlot || (this.viewSlot = ViewSlot.create(this.element, this.anchorIsContainer));
+    return this.slot || (this.slot = ViewSlot.create(this.node, this.anchorIsContainer));
   }
 
-  tryConnectToAttribute(owner) {
-    if (this.viewSlot !== null) {
-      owner.$viewSlot = this.viewSlot;
+  connectTemplateController(owner) {
+    let slot = this.slot;
+
+    if (slot !== null) {
+      (<any>slot).isContentProjectionSource = true; //Used by the Shadow DOM Emulation
+      owner.$viewSlot = slot;
     }
   }
 
-  tryConnectToViewOwner(owner: IViewOwner) {
-    if (this.viewSlot !== null) {
-      owner.$attachable.push(this.viewSlot); //TODO: can we account for this like attributes do?
+  connectCustomElement(owner: IViewOwner) {
+    if (this.slot !== null) {
+      owner.$attachable.push(this.slot); //TODO: can we account for this like attributes do?
     }
   }
 
   dispose() {
-    this.element = null;
-    this.viewSlot = null;
+    this.node = null;
+    this.slot = null;
   }
 }
 
@@ -367,7 +370,7 @@ function applyElementInstruction(instruction: IElementInstruction, container: IT
   
   let component = container.get<IElementComponent>(instruction.resource);
   applyElementInstructionToComponentInstance(component, instruction, container, target, owner);
-  container.viewSlot.tryConnectToViewOwner(component);
+  container.viewSlot.connectCustomElement(component);
   
   container.element.dispose();
   container.viewOwner.dispose();
@@ -397,7 +400,9 @@ function applyElementInstructionToComponentInstance(component: IElementComponent
 function createTemplateContainer(dependencies) {
   let container = <ITemplateContainer>DI.createChild();
 
-  container.registerResolver(DOM.Element, container.element = new InstanceProvider());
+  container.element = new InstanceProvider();
+  DOM.registerElementResolver(container, container.element);
+
   container.registerResolver(IViewFactory, container.viewFactory = new ViewFactoryProvider());
   container.registerResolver(IViewSlot, container.viewSlot = new ViewSlotProvider());
   container.registerResolver(IViewOwner, container.viewOwner =  new InstanceProvider());

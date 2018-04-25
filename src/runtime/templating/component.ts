@@ -106,19 +106,19 @@ class RuntimeCharacteristics {
 
 export const Component = {
   valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & ValueConverterType {
-    (<any>ctor).source = ensureSource<IValueConverterSource>(nameOrSource);
+    const source = (<any>ctor).source = ensureSource<IValueConverterSource>(nameOrSource);
 
     (<any>ctor).register = function(container: IContainer) {
-      container.register(Registration.singleton(name, ctor));
+      container.register(Registration.singleton(source.name, ctor));
     }
 
     return <any>ctor;
   },
   bindingBehavior<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & BindingBehaviorType {
-    (<any>ctor).source = ensureSource<IBindingBehaviorSource>(nameOrSource);
+    const source = (<any>ctor).source = ensureSource<IBindingBehaviorSource>(nameOrSource);
 
     (<any>ctor).register = function(container: IContainer) {
-      container.register(Registration.singleton(name, ctor));
+      container.register(Registration.singleton(source.name, ctor));
     }
 
     return <any>ctor;

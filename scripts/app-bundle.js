@@ -6040,16 +6040,16 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
     }());
     exports.Component = {
         valueConverter: function (nameOrSource, ctor) {
-            ctor.source = ensureSource(nameOrSource);
+            var source = ctor.source = ensureSource(nameOrSource);
             ctor.register = function (container) {
-                container.register(di_1.Registration.singleton(name, ctor));
+                container.register(di_1.Registration.singleton(source.name, ctor));
             };
             return ctor;
         },
         bindingBehavior: function (nameOrSource, ctor) {
-            ctor.source = ensureSource(nameOrSource);
+            var source = ctor.source = ensureSource(nameOrSource);
             ctor.register = function (container) {
-                container.register(di_1.Registration.singleton(name, ctor));
+                container.register(di_1.Registration.singleton(source.name, ctor));
             };
             return ctor;
         },

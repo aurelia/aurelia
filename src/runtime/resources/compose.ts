@@ -1,6 +1,7 @@
 import { compiledElement, inject } from "../decorators";
 import { IRenderSlot, SwapOrder } from "../templating/render-slot";
-import { ViewEngine, ITargetedInstruction, IElementInstruction, ITemplateContainer, VisualWithCentralComponent, IVisual } from "../templating/view-engine";
+import { ViewEngine, ITemplateContainer, VisualWithCentralComponent, IVisual } from "../templating/view-engine";
+import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from "../templating/instructions";
 import { IViewOwner, IViewOwnerType, IView } from "../templating/view";
 import { IContainer } from "../di";
 import { IBindScope } from "../binding/observation";
@@ -26,7 +27,7 @@ export class Compose {
   private task: CompositionTask = null;
   private visual: VisualWithCentralComponent = null;
   private auContent: Element = null;
-  private baseInstruction: IElementInstruction;
+  private baseInstruction: IHydrateElementInstruction;
   private compositionContainer: ITemplateContainer;
 
   component: any;
@@ -38,13 +39,13 @@ export class Compose {
     this.slot = slot;
 
     const type = <IViewOwnerType>viewOwner.constructor;
-    const composeInstruction = <IElementInstruction>instruction;
+    const composeInstruction = <IHydrateElementInstruction>instruction;
 
     this.compositionContainer = type.template.container;
     this.baseInstruction = {
-      type: 'element',
-      instructions: composeInstruction.instructions.filter(x => !composeProps.includes(x)),
-      resource: null,
+      type: TargetedInstructionType.hydrateElement,
+      instructions: composeInstruction.instructions.filter((x: any) => !composeProps.includes(x.dest)),
+      res: null,
       replacements: composeInstruction.replacements
     };
   }

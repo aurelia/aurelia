@@ -1,4 +1,4 @@
-import { ICompiledViewSource } from "./runtime/templating/view-engine";
+import { ICompiledViewSource, TargetedInstructionType } from "./runtime/templating/instructions";
 
 //extracted from view imports
 import * as import1 from "./name-tag";
@@ -24,80 +24,80 @@ export const appConfig: ICompiledViewSource = {
   targetInstructions: [
     [
       {
-        type: 'oneWayText',
-        source: 'message'
+        type: TargetedInstructionType.textBinding,
+        src: 'message'
       }
     ],
     [
       {
-        type: 'twoWay',
-        source: 'message',
-        target: 'value'
+        type: TargetedInstructionType.twoWayBinding,
+        src: 'message',
+        dest: 'value'
       }
     ],
     [
       {
-        type: 'element',
-        resource: 'name-tag',
+        type: TargetedInstructionType.hydrateElement,
+        res: 'name-tag',
         instructions: [
           {
-            type: 'twoWay',
-            source: 'message',
-            target: 'name'
+            type: TargetedInstructionType.twoWayBinding,
+            src: 'message',
+            dest: 'name'
           },
           {
-            type: 'ref',
-            source: 'nameTag'
+            type: TargetedInstructionType.refBinding,
+            src: 'nameTag'
           }
         ]
       }
     ],
     [
       {
-        type: 'oneWayText',
-        source: 'message'
+        type: TargetedInstructionType.textBinding,
+        src: 'message'
       }
     ],
     [
       {
-        type: 'twoWay',
-        source: 'duplicateMessage',
-        target: 'checked'
+        type: TargetedInstructionType.twoWayBinding,
+        src: 'duplicateMessage',
+        dest: 'checked'
       }
     ],
     [
       {
-        type: 'templateController',
-        resource: 'if',
-        config: {
+        type: TargetedInstructionType.hydrateTemplateController,
+        res: 'if',
+        src: {
           template: `<div><au-marker class="au"></au-marker> </div>`,
           targetInstructions: [
             [
               {
-                type: 'oneWayText',
-                source: 'message'
+                type: TargetedInstructionType.textBinding,
+                src: 'message'
               }
             ]
           ]
         },
         instructions: [
           {
-            type: 'oneWay',
-            source: 'duplicateMessage',
-            target: 'condition'
+            type: TargetedInstructionType.oneWayBinding,
+            src: 'duplicateMessage',
+            dest: 'condition'
           }
         ]
       }
     ],
     [
       {
-        type: 'templateController',
-        resource: 'else',
-        link: true,
-        config: {
+        type: TargetedInstructionType.hydrateTemplateController,
+        res: 'else',
+        src: {
           template: `<div>No Message Duplicated</div>`,
           targetInstructions: []
         },
+        link: true,
         instructions: []
       }
     ]

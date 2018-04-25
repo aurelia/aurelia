@@ -1,5 +1,6 @@
 import { ShadowDOMEmulation } from "./runtime/templating/shadow-dom";
-import { ICompiledViewSource } from "./runtime/templating/view-engine";
+import { ICompiledViewSource, TargetedInstructionType } from "./runtime/templating/instructions";
+import { DelegationStrategy } from "./runtime/binding/event-manager";
 
 //this object is built up during compilation
 export const nameTagConfig: ICompiledViewSource = {
@@ -52,77 +53,76 @@ export const nameTagConfig: ICompiledViewSource = {
   targetInstructions: [
     [
       {
-        type: 'twoWay',
-        source: 'name',
-        target: 'value'
+        type: TargetedInstructionType.twoWayBinding,
+        src: 'name',
+        dest: 'value'
       }
     ],
     [
       {
-        type: 'oneWay',
-        source: 'name',
-        target: 'textContent'
+        type: TargetedInstructionType.oneWayBinding,
+        src: 'name',
+        dest: 'textContent'
       },
       {
-        type: 'style',
-        source: 'nameTagColor',
-        target: 'color'
+        type: TargetedInstructionType.stylePropertyBinding,
+        src: 'nameTagColor',
+        dest: 'color'
       }
     ],
     [
       {
-        type: 'twoWay',
-        source: 'nameTagColor',
-        target: 'value'
+        type: TargetedInstructionType.twoWayBinding,
+        src: 'nameTagColor',
+        dest: 'value'
       }
     ],
     [
       {
-        type: 'twoWay',
-        source: 'nameTagBorderColor',
-        target: 'value'
+        type: TargetedInstructionType.twoWayBinding,
+        src: 'nameTagBorderColor',
+        dest: 'value'
       }
     ],
     [
       {
-        type: 'slot',
-        name: ShadowDOMEmulation.defaultSlotName
+        type: TargetedInstructionType.hydrateSlot
       }
     ],
     [
       {
-        type: 'twoWay',
-        source: 'nameTagBorderWidth',
-        target: 'value'
+        type: TargetedInstructionType.twoWayBinding,
+        src: 'nameTagBorderWidth',
+        dest: 'value'
       }
     ],
     [
       {
-        type: 'twoWay',
-        source: 'nameTagHeaderVisible',
-        target: 'checked'
+        type: TargetedInstructionType.twoWayBinding,
+        src: 'nameTagHeaderVisible',
+        dest: 'checked'
       }
     ],
     [
       {
-        type: 'listener',
-        source: 'click',
-        target: 'submit',
+        type: TargetedInstructionType.listenerBinding,
+        src: 'click',
+        dest: 'submit',
         preventDefault: true,
-        strategy: 0
+        strategy: DelegationStrategy.none
       }
     ]
   ],
   surrogateInstructions: [
     {
-      type: 'style',
-      source: 'nameTagBorder',
-      target: 'border'
+      type: TargetedInstructionType.stylePropertyBinding,
+      src: 'nameTagBorder',
+      dest: 'border'
     },
     {
-      type: 'oneWay',
-      source: 'nameTagClasses',
-      target: 'className'
+      type: TargetedInstructionType.oneWayBinding,
+      src: 'nameTagClasses',
+      dest: 'className'
     }
   ]
 };

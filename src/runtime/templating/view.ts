@@ -4,8 +4,9 @@ import { IScope } from "../binding/binding-context";
 import { IBindScope } from "../binding/observation";
 import { IAttach } from "./lifecycle";
 import { DI, IContainer } from "../di";
-import { ICompiledViewSource, ITemplate } from "./view-engine";
+import { ITemplate } from "./view-engine";
 import { Constructable } from "../interfaces";
+import { ICompiledViewSource } from "./instructions";
 
 export interface IView {
   firstChild: Node;

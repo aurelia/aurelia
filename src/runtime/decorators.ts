@@ -3,7 +3,7 @@ import { PLATFORM } from "./pal";
 import { DI, IContainer, Registration } from "./di";
 import { BindingMode } from "./binding/binding-mode";
 import { Constructable, Injectable } from "./interfaces";
-import { ICompiledViewSource } from "./templating/view-engine";
+import { ICompiledViewSource } from "./templating/instructions";
 
 export function compiledElement(source: ICompiledViewSource) {
   return function<T extends Constructable>(target: T) {
@@ -86,7 +86,7 @@ export function containerless(target?): any {
   return target ? deco(target) : deco;
 }
 
-export interface BindableConfig {
+export interface IBindableConfig {
   defaultBindingMode?: BindingMode;
   changeHandler?: string;
   attribute?: string;
@@ -106,13 +106,13 @@ function hyphenate(name) {
 * Decorator: Specifies custom behavior for a bindable property.
 * @param configOrTarget The overrides.
 */
-export function bindable(configOrTarget?: BindableConfig | Object, key?, descriptor?): any {
+export function bindable(configOrTarget?: IBindableConfig | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
     target = target.constructor;
     
     let observables = target.observables || (target.observables = {});
     let attributes = target.attributes || (target.attributes = {});
-    let config: BindableConfig = configOrTarget || {};
+    let config: IBindableConfig = configOrTarget || {};
     
     if (!config.attribute) {
       config.attribute = hyphenate(key2);

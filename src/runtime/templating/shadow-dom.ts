@@ -341,15 +341,15 @@ export const ShadowDOMEmulation = {
     return name;
   },
 
-  createSlot(target: Element, owner: IViewOwner, name: string, destination?: string, fallbackFactory?: IVisualFactory) {
+  createSlot(target: Element, owner: IViewOwner, name?: string, destination?: string, fallbackFactory?: IVisualFactory) {
     let anchor = <any>DOM.createComment('slot');
     
     DOM.replaceNode(anchor, target);
 
     if (destination) {
-      return new PassThroughSlot(owner, anchor, name, destination, fallbackFactory);
+      return new PassThroughSlot(owner, anchor, name || ShadowDOMEmulation.defaultSlotName, destination, fallbackFactory);
     } else {
-      return new ShadowSlot(owner, anchor, name, fallbackFactory);
+      return new ShadowSlot(owner, anchor, name || ShadowDOMEmulation.defaultSlotName, fallbackFactory);
     }
   },
 

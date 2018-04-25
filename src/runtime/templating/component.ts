@@ -1,4 +1,4 @@
-import { ViewEngine, ICompiledViewSource, ITemplate, IObservableDescription } from "./view-engine";
+import { ViewEngine, ITemplate, } from "./view-engine";
 import { IView, View, IViewOwner } from "./view";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
@@ -11,6 +11,7 @@ import { IBindScope } from "../binding/observation";
 import { IScope, BindingContext } from "../binding/binding-context";
 import { IRenderSlot } from "./render-slot";
 import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
+import { ICompiledViewSource, IObservableDescription } from "./instructions";
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   hydrate(host: Element, content?: IView, replacements?: Record<string, ICompiledViewSource>): void;

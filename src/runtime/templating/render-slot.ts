@@ -107,7 +107,7 @@ export interface IRenderSlot extends IAttach {
   */
   removeMany(visualsToRemove: IVisual[], returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]>;
 
-  projectTo(slots: Record<string, IEmulatedShadowSlot>): void;
+  /** @internal */ projectTo(slots: Record<string, IEmulatedShadowSlot>): void;
 }
 
 export const RenderSlot = {
@@ -122,8 +122,8 @@ class RenderSlotImplementation implements IRenderSlot {
   private insertVisualCore: (visual: IVisual, owner: RenderSlotImplementation, index: number) => void;
   private removeViewCore: (visual: IVisual, owner: RenderSlotImplementation) => void;
 
-  public children: IVisual[] = [];
-  public slots: Record<string, IEmulatedShadowSlot> = null;
+  /** @internal */ public children: IVisual[] = [];
+  /** @internal */ public slots: Record<string, IEmulatedShadowSlot> = null;
 
   constructor(public anchor: Node, anchorIsContainer: boolean) {
     (<any>anchor).$slot = this; // Usage: Shadow DOM Emulation
@@ -138,7 +138,7 @@ class RenderSlotImplementation implements IRenderSlot {
     this.children.push(visual);
 
     if (this.$isAttached) {
-      visual.attach(null, this.addVisualCore, this);
+      visual.$attach(null, this.addVisualCore, this);
       return visual.animate('enter');
     }
   }
@@ -154,7 +154,7 @@ class RenderSlotImplementation implements IRenderSlot {
     children.splice(index, 0, visual);
 
     if (this.$isAttached) {
-      visual.attach(null, this.insertVisualCore, this, index);
+      visual.$attach(null, this.insertVisualCore, this, index);
       return visual.animate('enter');
     }
   }
@@ -177,8 +177,6 @@ class RenderSlotImplementation implements IRenderSlot {
   }
 
   swap(newVisual: IVisual, strategy: SwapOrder = 'after', returnToCache?: boolean, skipAnimation?: boolean) {
-    let previous = this.children;
-
     const remove = () => this.removeAll(returnToCache, skipAnimation);
     const add = () => this.add(newVisual);
 
@@ -208,7 +206,7 @@ class RenderSlotImplementation implements IRenderSlot {
 
     const detachAndReturn = () => {
       if (this.$isAttached) {
-        visual.detach();
+        visual.$detach();
       }
 
       if (returnToCache) {
@@ -252,16 +250,16 @@ class RenderSlotImplementation implements IRenderSlot {
     if (this.$isAttached) {
       visualsToRemove.forEach(child => {
         if (skipAnimation) {
-          child.detach(context);
+          child.$detach(context);
           return;
         }
   
         const animation = child.animate('leave');
   
         if (animation) {
-          rmPromises.push(animation.then(() => child.detach(context)));
+          rmPromises.push(animation.then(() => child.$detach(context)));
         } else {
-          child.detach(context);
+          child.$detach(context);
         }
       });
     }
@@ -294,7 +292,7 @@ class RenderSlotImplementation implements IRenderSlot {
 
     for (let i = 0, ii = children.length; i < ii; ++i) {
       const child = children[i];
-      child.attach(context, this.addVisualCore, this);
+      child.$attach(context, this.addVisualCore, this);
       child.animate('enter');
     }
 
@@ -306,7 +304,7 @@ class RenderSlotImplementation implements IRenderSlot {
       const children = this.children;
       
       for (let i = 0, ii = children.length; i < ii; ++i) {
-        children[i].detach(context);
+        children[i].$detach(context);
       }
 
       this.$isAttached = false;

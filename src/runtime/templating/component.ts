@@ -121,7 +121,7 @@ export const Component = {
         this.$scope = scope
         this.$isBound = true;
   
-        let changeCallbacks = this.$changeCallbacks;
+        const changeCallbacks = this.$changeCallbacks;
   
         for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
           changeCallbacks[i]();

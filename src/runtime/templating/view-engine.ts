@@ -51,9 +51,9 @@ export interface IVisual extends IBindScope, IViewOwner {
   */
   tryReturnToCache(): boolean;
 
-  attach(context: AttachContext | null, render: RenderCallback, owner: any, index?: number);
+  $attach(context: AttachContext | null, render: RenderCallback, owner: any, index?: number);
 
-  detach(context?: DetachContext);
+  $detach(context?: DetachContext);
 }
 
 export type VisualWithCentralComponent = IVisual & { component: IElementComponent };
@@ -216,6 +216,9 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
     let childInstructions = instruction.instructions;
 
     container.element.prepare(target);
+    container.owner.prepare(owner);
+    container.instruction.prepare(instruction);
+
     let component = container.get<IAttributeComponent>(instruction.res);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -224,6 +227,8 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
     }
 
     container.element.dispose();
+    container.owner.dispose();
+    container.instruction.dispose();
 
     owner.$bindable.push(component);
     owner.$attachable.push(component);
@@ -237,6 +242,8 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
     }
 
     container.element.prepare(target);
+    container.owner.prepare(owner);
+    container.instruction.prepare(instruction);
     container.factory.prepare(factory, replacements);
     container.slot.prepare(DOM.makeElementIntoAnchor(target), false);
 
@@ -253,6 +260,8 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
     }
 
     container.element.dispose();
+    container.owner.dispose();
+    container.instruction.dispose();
     container.factory.dispose();
     container.slot.dispose();
 
@@ -459,7 +468,7 @@ abstract class Visual implements IVisual {
     }
   
     let currentChild = this.$view.firstChild;
-    let lastChild = this.$view.lastChild;
+    const lastChild = this.$view.lastChild;
   
     while (currentChild !== lastChild && currentChild.nodeType !== 1) {
       currentChild = currentChild.nextSibling;
@@ -502,7 +511,7 @@ abstract class Visual implements IVisual {
 
     this.$scope = scope;
 
-    let bindable = this.$bindable;
+    const bindable = this.$bindable;
 
     for (let i = 0, ii = bindable.length; i < ii; ++i) {
       bindable[i].$bind(scope);
@@ -511,7 +520,7 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  attach(context: AttachContext | null, render: RenderCallback, owner: IRenderSlot, index?: number) {
+  $attach(context: AttachContext | null, render: RenderCallback, owner: IRenderSlot, index?: number) {
     if (this.$isAttached) {
       return;
     }
@@ -535,7 +544,7 @@ abstract class Visual implements IVisual {
     }
   }
 
-  detach(context?: DetachContext) { 
+  $detach(context?: DetachContext) { 
     if (this.$isAttached) {
       if (!context) {
         context = DetachContext.open(this);
@@ -543,7 +552,7 @@ abstract class Visual implements IVisual {
 
       context.queueForViewRemoval(this);
 
-      let attachable = this.$attachable;
+      const attachable = this.$attachable;
       let i = attachable.length;
 
       while (i--) {
@@ -560,7 +569,7 @@ abstract class Visual implements IVisual {
 
   $unbind() {
     if (this.$isBound) {
-      let bindable = this.$bindable;
+      const bindable = this.$bindable;
       let i = bindable.length;
 
       while (i--) {

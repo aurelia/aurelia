@@ -23,15 +23,14 @@ type SlotNode = Node & ShadowEmulationTracking;
 
 export interface IEmulatedShadowSlot extends IBindScope, IAttach {
   readonly name: string;
-  readonly needsFallback: boolean;
   readonly anchor: Node;
-
-  removeView(view: IView, projectionSource: ProjectionSource);
-  removeAll(projectionSource: ProjectionSource);
-  projectFrom(view: IView, projectionSource: ProjectionSource);
-  addNode(view: IView, node: SlotNode, projectionSource: ProjectionSource, index: number, destination?: string);
-  renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index: number);
-  projectTo?(slots: Record<string, IEmulatedShadowSlot>);
+  /** @internal */ readonly needsFallback: boolean;
+  /** @internal */ removeView(view: IView, projectionSource: ProjectionSource);
+  /** @internal */ removeAll(projectionSource: ProjectionSource);
+  /** @internal */ projectFrom(view: IView, projectionSource: ProjectionSource);
+  /** @internal */ addNode(view: IView, node: SlotNode, projectionSource: ProjectionSource, index: number, destination?: string);
+  /** @internal */ renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index: number);
+  /** @internal */ projectTo?(slots: Record<string, IEmulatedShadowSlot>);
 }
 
 const noNodes = <SlotNode[]>PLATFORM.emptyArray;
@@ -41,8 +40,8 @@ function shadowSlotAddFallbackVisual(visual: IVisual, owner: ShadowSlot) {
 }
 
 function passThroughSlotAddFallbackVisual(visual: IVisual, owner: PassThroughSlot, index: number) {
-  let projectionSource = owner.currentProjectionSource;
-  let slots = <Record<string, IEmulatedShadowSlot>>Object.create(null);
+  const projectionSource = owner.currentProjectionSource;
+  const slots = <Record<string, IEmulatedShadowSlot>>Object.create(null);
 
   owner.currentProjectionSource = null;
   slots[owner.destinationSlot.name] = owner.destinationSlot;
@@ -72,7 +71,7 @@ abstract class ShadowSlotBase {
 
   removeFallbackVisual(context?: DetachContext) {
     if (this.fallbackVisual !== null) {
-      this.fallbackVisual.detach(context);
+      this.fallbackVisual.$detach(context);
       this.fallbackVisual.$unbind();
       this.fallbackVisual = null;
     }
@@ -120,7 +119,7 @@ class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
       this.fallbackVisual = this.fallbackFactory.create();
       this.fallbackVisual.$bind(this.owner.$scope);
       this.currentProjectionSource = projectionSource;
-      this.fallbackVisual.attach(null, passThroughSlotAddFallbackVisual, this, index);
+      this.fallbackVisual.$attach(null, passThroughSlotAddFallbackVisual, this, index);
     }
   }
 
@@ -174,19 +173,19 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
     if (this.fallbackVisual === null) {
       this.fallbackVisual = this.fallbackFactory.create();
       this.fallbackVisual.$bind(this.owner.$scope);
-      this.fallbackVisual.attach(null, shadowSlotAddFallbackVisual, this);
+      this.fallbackVisual.$attach(null, shadowSlotAddFallbackVisual, this);
     }
 
     if (this.fallbackVisual.$slots) {
-      let slots = this.fallbackVisual.$slots;
-      let projectFromAnchors = this.projectFromAnchors;
+      const slots = this.fallbackVisual.$slots;
+      const projectFromAnchors = this.projectFromAnchors;
 
       if (projectFromAnchors !== null) {
-        for (let slotName in slots) {
-          let slot = slots[slotName];
+        for (const slotName in slots) {
+          const slot = slots[slotName];
 
           for (let i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
-            let anchor = projectFromAnchors[i];
+            const anchor = projectFromAnchors[i];
             slot.projectFrom(anchor.$ownerView, anchor.$slotProjectFrom);
           }
         }
@@ -212,8 +211,8 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
       node.$projectionSource = projectionSource;
       node.$assignedSlot = this;
 
-      let anchor = this.findAnchor(view, node, projectionSource, index);
-      let parent = anchor.parentNode;
+      const anchor = this.findAnchor(view, node, projectionSource, index);
+      const parent = anchor.parentNode;
 
       parent.insertBefore(node, anchor);
       this.children.push(node);
@@ -227,12 +226,13 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
     } else if (this.fallbackVisual && this.fallbackVisual.$slots) {
       ShadowDOMEmulation.undistributeView(view, this.fallbackVisual.$slots, projectionSource);
     } else {
-      let found = this.children.find(x => x.$slotProjectFrom === projectionSource);
+      const found = this.children.find(x => x.$slotProjectFrom === projectionSource);
+
       if (found) {
-        let children = found.$projectionChildren;
+        const children = found.$projectionChildren;
 
         for (let i = 0, ii = children.length; i < ii; ++i) {
-          let child = children[i];
+          const child = children[i];
 
           if (child.$ownerView === view) {
             children.splice(i, 1);
@@ -255,12 +255,13 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
     } else if (this.fallbackVisual && this.fallbackVisual.$slots) {
       ShadowDOMEmulation.undistributeAll(this.fallbackVisual.$slots, projectionSource);
     } else {
-      let found = this.children.find(x => x.$slotProjectFrom === projectionSource);
+      const found = this.children.find(x => x.$slotProjectFrom === projectionSource);
 
       if (found) {
-        let children = found.$projectionChildren;
+        const children = found.$projectionChildren;
+
         for (let i = 0, ii = children.length; i < ii; ++i) {
-          let child = children[i];
+          const child = children[i];
           child.$ownerView.appendChild(child);
           this.projections--;
         }
@@ -277,15 +278,15 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   private findAnchor(view: IView, node: SlotNode, projectionSource: ProjectionSource, index: number) {
     if (projectionSource) {
       //find the anchor associated with the projected view slot
-      let found = this.children.find(x => x.$slotProjectFrom === projectionSource);
+      const found = this.children.find(x => x.$slotProjectFrom === projectionSource);
       if (found) {
         if (index !== undefined) {
-          let children = found.$projectionChildren;
+          const children = found.$projectionChildren;
           let viewIndex = -1;
           let lastView: IView;
 
           for (let i = 0, ii = children.length; i < ii; ++i) {
-            let current = children[i];
+            const current = children[i];
 
             if (current.$ownerView !== lastView) {
               viewIndex++;
@@ -312,8 +313,9 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   }
 
   projectFrom(view: IView, projectionSource: ProjectionSource) {
-    let anchor: SlotNode = <any>DOM.createComment('anchor');
-    let parent = this.anchor.parentNode;
+    const anchor: SlotNode = <any>DOM.createComment('anchor');
+    const parent = this.anchor.parentNode;
+
     anchor.$slotProjectFrom = projectionSource;
     anchor.$ownerView = view;
     anchor.$projectionChildren = [];
@@ -332,7 +334,7 @@ export const ShadowDOMEmulation = {
   defaultSlotName: 'auDefaultSlot',
 
   getSlotName(node: Node): string {
-    let name = (<any>node).$slotName;
+    const name = (<any>node).$slotName;
 
     if (name === undefined) {
       return this.defaultSlotName;
@@ -342,7 +344,7 @@ export const ShadowDOMEmulation = {
   },
 
   createSlot(target: Element, owner: IViewOwner, name?: string, destination?: string, fallbackFactory?: IVisualFactory) {
-    let anchor = <any>DOM.createComment('slot');
+    const anchor = <any>DOM.createComment('slot');
     
     DOM.replaceNode(anchor, target);
 
@@ -359,8 +361,9 @@ export const ShadowDOMEmulation = {
     if (view === null) {
       nodes = noNodes;
     } else {
-      let childNodes = view.childNodes;
-      let ii = childNodes.length;
+      const childNodes = view.childNodes;
+      const ii = childNodes.length;
+
       nodes = new Array(ii);
 
       for (let i = 0; i < ii; ++i) {
@@ -379,26 +382,26 @@ export const ShadowDOMEmulation = {
   },
 
   undistributeView(view: IView, slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
-    for (let slotName in slots) {
+    for (const slotName in slots) {
       slots[slotName].removeView(view, projectionSource);
     }
   },
 
   undistributeAll(slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
-    for (let slotName in slots) {
+    for (const slotName in slots) {
       slots[slotName].removeAll(projectionSource);
     }
   },
 
   distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource, index: number, destinationOverride: string = null) {
     for (let i = 0, ii = nodes.length; i < ii; ++i) {
-      let currentNode = nodes[i];
-      let nodeType = currentNode.nodeType;
+      const currentNode = nodes[i];
+      const nodeType = currentNode.nodeType;
 
       if (currentNode.$isContentProjectionSource) {
         currentNode.$slot.projectTo(slots);
 
-        for (let slotName in slots) {
+        for (const slotName in slots) {
           slots[slotName].projectFrom(view, currentNode.$slot);
         }
 
@@ -409,7 +412,7 @@ export const ShadowDOMEmulation = {
           nodes.splice(i, 1);
           ii--; i--;
         } else {
-          let found = slots[destinationOverride || ShadowDOMEmulation.getSlotName(currentNode)];
+          const found = slots[destinationOverride || ShadowDOMEmulation.getSlotName(currentNode)];
 
           if (found) {
             found.addNode(view, currentNode, projectionSource, index);
@@ -423,8 +426,8 @@ export const ShadowDOMEmulation = {
       }
     }
 
-    for (let slotName in slots) {
-      let slot = slots[slotName];
+    for (const slotName in slots) {
+      const slot = slots[slotName];
 
       if (slot.needsFallback) {
         slot.renderFallback(view, nodes, projectionSource, index);

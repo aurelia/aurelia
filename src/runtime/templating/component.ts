@@ -11,7 +11,7 @@ import { IBindScope } from "../binding/observation";
 import { IScope, BindingContext } from "../binding/binding-context";
 import { IRenderSlot } from "./render-slot";
 import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
-import { ICompiledViewSource, IObservableDescription } from "./instructions";
+import { ICompiledViewSource, IBindableInstruction } from "./instructions";
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   hydrate(host: Element, content?: IView, replacements?: Record<string, ICompiledViewSource>): void;
@@ -53,57 +53,6 @@ export interface BindingBehaviorType extends Constructable {
   source: IBindingBehaviorSource;
 }
 
-class RuntimeCharacteristics {
-  private constructor() {}
-
-  observables: IObservableDescription[] = [];
-  hasCreated = false;
-  hasBound = false;
-  hasAttaching = false;
-  hasAttached = false;
-  hasDetaching = false;
-  hasDetached = false;
-  hasUnbound = false;
-
-  static for(instance, Component: IElementType | IAttributeType) {
-    let characteristics = new RuntimeCharacteristics();
-    let configuredObservables = <Record<string, IObservableDescription>>(<any>Component).observables;
-    let observables: IObservableDescription[] = [];
-
-    for (let key in instance) {
-      if (configuredObservables) {
-        let found = configuredObservables[key];
-
-        if (found) {
-          if (found.changeHandler in instance) {
-            observables.push(found);
-          }
-
-          continue;
-        }
-      }
-
-      if (`${key}Changed` in instance) {
-        observables.push({
-          name: key,
-          changeHandler: `${key}Changed`
-        });
-      }
-    }
-
-    characteristics.observables = observables;
-    characteristics.hasCreated = 'created' in instance;
-    characteristics.hasBound = 'bound' in instance;
-    characteristics.hasAttaching = 'attaching' in instance;
-    characteristics.hasAttached = 'attached' in instance;
-    characteristics.hasDetaching = 'detaching' in instance;
-    characteristics.hasDetached = 'detached' in instance;
-    characteristics.hasUnbound = 'unbound' in instance;
-
-    return characteristics;
-  }
-}
-
 export const Component = {
   valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & ValueConverterType {
     const source = (<any>ctor).source = ensureSource<IValueConverterSource>(nameOrSource);
@@ -124,7 +73,8 @@ export const Component = {
     return <any>ctor;
   },
   attribute<T extends Constructable>(nameOrSource: string | IAttributeSource, ctor: T): T & IAttributeType {
-    let source = ensureSource<IAttributeSource>(nameOrSource);
+    const source = ensureSource<IAttributeSource>(nameOrSource);
+    const observables = (<any>ctor).observables || {};
     
     return class CustomAttribute extends ctor implements IAttributeComponent {
       static source: IAttributeSource = source;
@@ -142,7 +92,7 @@ export const Component = {
       }
 
       private $changeCallbacks: (() => void)[] = [];
-      private $characteristics: RuntimeCharacteristics = null;
+      private $behavior: RuntimeBehavior = null;
 
       $isAttached = false;
       $isBound = false;
@@ -151,9 +101,10 @@ export const Component = {
 
       constructor(...args:any[]) {
         super(...args);
-        discoverAndApplyCharacteristics(this, CustomAttribute);
 
-        if (this.$characteristics.hasCreated) {
+        RuntimeBehavior.get(this, observables, CustomAttribute).applyTo(this);
+
+        if (this.$behavior.hasCreated) {
           (<any>this).created();
         }
       }
@@ -176,7 +127,7 @@ export const Component = {
           changeCallbacks[i]();
         }
   
-        if (this.$characteristics.hasBound) {
+        if (this.$behavior.hasBound) {
           (<any>this).bound(scope);
         }
       }
@@ -186,7 +137,7 @@ export const Component = {
           return;
         }
 
-        if (this.$characteristics.hasAttaching) {
+        if (this.$behavior.hasAttaching) {
           (<any>this).attaching();
         }
 
@@ -194,7 +145,7 @@ export const Component = {
           this.$slot.attach(context);
         }
       
-        if (this.$characteristics.hasAttached) {
+        if (this.$behavior.hasAttached) {
           context.queueForAttachedCallback(this);
         }
 
@@ -203,7 +154,7 @@ export const Component = {
 
       detach(context: DetachContext) {
         if (this.$isAttached) {
-          if (this.$characteristics.hasDetaching) {
+          if (this.$behavior.hasDetaching) {
             (<any>this).detaching();
           }
 
@@ -211,7 +162,7 @@ export const Component = {
             this.$slot.detach(context);
           }
     
-          if (this.$characteristics.hasDetached) {
+          if (this.$behavior.hasDetached) {
             context.queueForDetachedCallback(this);
           }
 
@@ -221,7 +172,7 @@ export const Component = {
 
       unbind() {
         if (this.$isBound) {
-          if (this.$characteristics.hasUnbound) {
+          if (this.$behavior.hasUnbound) {
             (<any>this).unbound();
           }
     
@@ -239,17 +190,12 @@ export const Component = {
     source.shadowOptions = source.shadowOptions || (<any>ctor).shadowOptions || null;
     source.containerless = source.containerless || (<any>ctor).containerless || false;
 
-    //Merge any observables from view compilation with any from bindable props on the class.
-    const observables = source.observables;
-
-    if (observables) {
-      const observableRecord = <Record<string, IObservableDescription>>(<any>ctor).observables || {};
-
-      for (let i = 0, ii = observables.length; i < ii; ++i) {
-        const current = observables[i];
-        observableRecord[current.name] = current;
-      }
-    }
+    //Merge any observables from view compilation with those from bindable props on the class.
+    const observables = Object.assign(
+      {},
+      (<any>ctor).observables,
+      source.observables
+    );
 
     const template = ViewEngine.templateFromCompiledSource(source);
     const CompiledComponent = class extends ctor implements IElementComponent {
@@ -277,11 +223,11 @@ export const Component = {
       private $host: Element = null;
       private $shadowRoot: Element | ShadowRoot = null;
       private $changeCallbacks: (() => void)[] = [];
-      private $characteristics: RuntimeCharacteristics = null;
+      private $behavior: RuntimeBehavior = null;
   
       constructor(...args:any[]) {
         super(...args);
-        discoverAndApplyCharacteristics(this, CompiledComponent);
+        RuntimeBehavior.get(this, observables, CompiledComponent).applyTo(this);
       }
   
       hydrate(host: Element, content: IView = View.none, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject) { 
@@ -296,7 +242,7 @@ export const Component = {
         this.$contentView = content;
         this.$view = this.createView(this.$host, replacements);
   
-        if (this.$characteristics.hasCreated) {
+        if (this.$behavior.hasCreated) {
           (<any>this).created();
         }
       }
@@ -325,7 +271,7 @@ export const Component = {
           changeCallbacks[i]();
         }
   
-        if (this.$characteristics.hasBound) {
+        if (this.$behavior.hasBound) {
           (<any>this).bound();
         }
       }
@@ -339,7 +285,7 @@ export const Component = {
           context = AttachContext.open(this);
         }
 
-        if (this.$characteristics.hasAttaching) {
+        if (this.$behavior.hasAttaching) {
           (<any>this).attaching();
         }
   
@@ -365,7 +311,7 @@ export const Component = {
           ShadowDOMEmulation.distributeView(this.$contentView, this.$slots);
         }
       
-        if (this.$characteristics.hasAttached) {
+        if (this.$behavior.hasAttached) {
           context.queueForAttachedCallback(this);
         }
 
@@ -382,7 +328,7 @@ export const Component = {
             context = DetachContext.open(this);
           }
 
-          if (this.$characteristics.hasDetaching) {
+          if (this.$behavior.hasDetaching) {
             (<any>this).detaching();
           }
 
@@ -399,7 +345,7 @@ export const Component = {
             this.$slot.detach(context);
           }
     
-          if (this.$characteristics.hasDetached) {
+          if (this.$behavior.hasDetached) {
             context.queueForDetachedCallback(this);
           }
 
@@ -420,7 +366,7 @@ export const Component = {
             bindable[i].unbind();
           }
     
-          if (this.$characteristics.hasUnbound) {
+          if (this.$behavior.hasUnbound) {
             (<any>this).unbound();
           }
     
@@ -438,43 +384,6 @@ export const Component = {
   }
 };
 
-function discoverAndApplyCharacteristics(instance, Component: IElementType | IAttributeType) {
-  let characteristics: RuntimeCharacteristics = (<any>Component).characteristics;
-
-  if (characteristics === undefined) {
-    characteristics = (<any>Component).characteristics = RuntimeCharacteristics.for(instance, Component);
-  }
-
-  let observables = characteristics.observables;
-  let observers = {};
-
-  for (let i = 0, ii = observables.length; i < ii; ++i) {
-    let observerConfig = observables[i];
-    let name = observerConfig.name;
-    let changeHandler = observerConfig.changeHandler;
-
-    observers[name] = new Observer(instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
-    instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
-
-    createGetterSetter(instance, name);
-  }
-
-  instance.$characteristics = characteristics;
-
-  Object.defineProperty(instance, '$observers', {
-    enumerable: false,
-    value: observers
-  });
-}
-
-function createGetterSetter(instance, name) {
-  Object.defineProperty(instance, name, {
-    enumerable: true,
-    get: function() { return this.$observers[name].getValue(); },
-    set: function(value) { this.$observers[name].setValue(value); }
-  });
-}
-
 function ensureSource<T>(nameOrSource: any): T {
   let source: any;
     
@@ -485,4 +394,92 @@ function ensureSource<T>(nameOrSource: any): T {
   }
 
   return source;
+}
+
+class RuntimeBehavior {
+  private constructor() {}
+
+  observables: Record<string, IBindableInstruction>;
+  hasCreated = false;
+  hasBound = false;
+  hasAttaching = false;
+  hasAttached = false;
+  hasDetaching = false;
+  hasDetached = false;
+  hasUnbound = false;
+
+  static get(instance, observables: Record<string, IBindableInstruction>, Component: IElementType | IAttributeType) {
+    let behavior: RuntimeBehavior = (<any>Component).behavior;
+  
+    if (behavior === undefined) {
+      behavior
+        = (<any>Component).behavior
+        = RuntimeBehavior.for(instance, observables, Component);
+    }
+
+    return behavior;
+  }
+
+  private static for(instance, observables: Record<string, IBindableInstruction>, Component: IElementType | IAttributeType) {
+    let characteristics = new RuntimeBehavior();
+
+    for (let name in instance) {
+      if (name in observables) {
+        continue;
+      }
+
+      const callback = `${name}Changed`;
+
+      if (callback in instance) {
+        observables[name] = { callback };
+      }
+    }
+
+    characteristics.observables = observables;
+    characteristics.hasCreated = 'created' in instance;
+    characteristics.hasBound = 'bound' in instance;
+    characteristics.hasAttaching = 'attaching' in instance;
+    characteristics.hasAttached = 'attached' in instance;
+    characteristics.hasDetaching = 'detaching' in instance;
+    characteristics.hasDetached = 'detached' in instance;
+    characteristics.hasUnbound = 'unbound' in instance;
+
+    return characteristics;
+  }
+
+  applyTo(instance) {
+    const observers = {};
+    const finalObservables = this.observables;
+    const observableNames = Object.getOwnPropertyNames(finalObservables);
+  
+    for (let i = 0, ii = observableNames.length; i < ii; ++i) {
+      const name = observableNames[i];
+      const observable = finalObservables[name];
+      const changeHandler = observable.callback;
+  
+      if (changeHandler in instance) {
+        observers[name] = new Observer(instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
+        instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
+      } else {
+        observers[name] = new Observer(instance[name]);
+      }
+  
+      createGetterSetter(instance, name);
+    }
+  
+    instance.$behavior = this;
+  
+    Object.defineProperty(instance, '$observers', {
+      enumerable: false,
+      value: observers
+    });
+  }
+}
+
+function createGetterSetter(instance, name) {
+  Object.defineProperty(instance, name, {
+    enumerable: true,
+    get: function() { return this.$observers[name].getValue(); },
+    set: function(value) { this.$observers[name].setValue(value); }
+  });
 }

@@ -1,5 +1,6 @@
 import { DI } from "../di";
 import { DelegationStrategy } from "../binding/event-manager";
+import { BindingMode } from "../binding/binding-mode";
 
 export enum TargetedInstructionType {
   textBinding = 0,
@@ -24,15 +25,16 @@ export interface ICompiledViewSource {
   targetInstructions: Array<TargetedInstruction[]>;
   dependencies?: any[];
   surrogateInstructions?: TargetedInstruction[];
-  observables?: IObservableDescription[];
+  observables?: Record<string, IBindableInstruction>;
   containerless?: boolean;
   shadowOptions?: ShadowRootInit;
   hasSlots?: boolean;
 }
 
-export interface IObservableDescription {
-  name: string;
-  changeHandler: string;
+export interface IBindableInstruction {
+  mode?: BindingMode;
+  callback?: string;
+  attribute?: string;
 }
 
 export const ITargetedInstruction = DI.createInterface('ITargetedInstruction');

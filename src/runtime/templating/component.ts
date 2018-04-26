@@ -14,7 +14,7 @@ import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
 import { ICompiledViewSource, IBindableInstruction } from "./instructions";
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
-  hydrate(host: Element, content?: IView, replacements?: Record<string, ICompiledViewSource>): void;
+  $hydrate(host: Element, content?: IView, replacements?: Record<string, ICompiledViewSource>): void;
 }
 
 export interface IAttributeComponent extends IBindScope, IAttach { }
@@ -230,7 +230,7 @@ export const Component = {
         RuntimeBehavior.get(this, observables, CompiledComponent).applyTo(this);
       }
   
-      hydrate(host: Element, content: IView = View.none, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject) { 
+      $hydrate(host: Element, content: IView = View.none, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject) { 
         this.$host = source.containerless 
           ? DOM.makeElementIntoAnchor(host, true)
           : host;

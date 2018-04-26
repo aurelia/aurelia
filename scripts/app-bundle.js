@@ -539,7 +539,7 @@ define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (requ
             var startTask = function () {
                 if (!_this.components.includes(component)) {
                     _this.components.push(component);
-                    component.hydrate(config.host);
+                    component.$hydrate(config.host);
                 }
                 component.bind();
                 component.attach();
@@ -5917,7 +5917,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     class_1.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    class_1.prototype.hydrate = function (host, content, replacements) {
+                    class_1.prototype.$hydrate = function (host, content, replacements) {
                         if (content === void 0) { content = view_1.View.none; }
                         if (replacements === void 0) { replacements = pal_1.PLATFORM.emptyObject; }
                         this.$host = source.containerless
@@ -6986,7 +6986,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
         _a);
     function applyElementInstructionToComponentInstance(component, instruction, container, target, owner) {
         var childInstructions = instruction.instructions;
-        component.hydrate(target, view_1.View.fromCompiledElementContent(component, target, instruction.contentElement), instruction.replacements);
+        component.$hydrate(target, view_1.View.fromCompiledElementContent(component, target, instruction.contentElement), instruction.replacements);
         for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
             var current = childInstructions[i];
             var currentType = current.type;

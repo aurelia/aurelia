@@ -264,7 +264,7 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
 function applyElementInstructionToComponentInstance(component: IElementComponent, instruction: IHydrateElementInstruction, container: ITemplateContainer, target: Element, owner: IViewOwner) {
   let childInstructions = instruction.instructions;
 
-  component.hydrate(
+  component.$hydrate(
     target, 
     View.fromCompiledElementContent(component, target, instruction.contentElement),
     instruction.replacements

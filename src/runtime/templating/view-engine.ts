@@ -491,13 +491,13 @@ abstract class Visual implements IVisual {
     }
   }
 
-  bind(scope: IScope) {
+  $bind(scope: IScope) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.unbind();
+      this.$unbind();
     }
 
     this.$scope = scope;
@@ -505,7 +505,7 @@ abstract class Visual implements IVisual {
     let bindable = this.$bindable;
 
     for (let i = 0, ii = bindable.length; i < ii; ++i) {
-      bindable[i].bind(scope);
+      bindable[i].$bind(scope);
     }
 
     this.$isBound = true;
@@ -523,7 +523,7 @@ abstract class Visual implements IVisual {
     let attachable = this.$attachable;
 
     for (let i = 0, ii = attachable.length; i < ii; ++i) {
-      attachable[i].attach(context);
+      attachable[i].$attach(context);
     }
 
     render(this, owner, index);
@@ -547,7 +547,7 @@ abstract class Visual implements IVisual {
       let i = attachable.length;
 
       while (i--) {
-        attachable[i].detach(context);
+        attachable[i].$detach(context);
       }
 
       this.$isAttached = false;
@@ -558,13 +558,13 @@ abstract class Visual implements IVisual {
     }
   }
 
-  unbind() {
+  $unbind() {
     if (this.$isBound) {
       let bindable = this.$bindable;
       let i = bindable.length;
 
       while (i--) {
-        bindable[i].unbind();
+        bindable[i].$unbind();
       }
 
       this.$isBound = false;

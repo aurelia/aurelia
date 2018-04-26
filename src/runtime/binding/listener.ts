@@ -7,7 +7,7 @@ import { IScope } from "./binding-context";
 
 export class Listener implements IBinding {
   private source: IScope;
-  private isBound = false;
+  private $isBound = false;
   private handler: IDisposable;
 
   constructor(
@@ -46,16 +46,16 @@ export class Listener implements IBinding {
     this.callSource(event);
   }
 
-  bind(source: IScope) {
-    if (this.isBound) {
+  $bind(source: IScope) {
+    if (this.$isBound) {
       if (this.source === source) {
         return;
       }
 
-      this.unbind();
+      this.$unbind();
     }
 
-    this.isBound = true;
+    this.$isBound = true;
     this.source = source;
 
     if (this.sourceExpression.bind) {
@@ -70,12 +70,12 @@ export class Listener implements IBinding {
     );
   }
 
-  unbind() {
-    if (!this.isBound) {
+  $unbind() {
+    if (!this.$isBound) {
       return;
     }
 
-    this.isBound = false;
+    this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
       this.sourceExpression.unbind(this, this.source);

@@ -90,7 +90,7 @@ export interface IRenderSlot extends IAttach {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
- removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual>;
+  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual>;
 
   /**
   * Removes all views from the slot.
@@ -285,7 +285,7 @@ class RenderSlotImplementation implements IRenderSlot {
     return finalizeRemoval();
   }
 
-  attach(context: AttachContext): void {
+  $attach(context: AttachContext): void {
     if (this.$isAttached) {
       return;
     }
@@ -301,7 +301,7 @@ class RenderSlotImplementation implements IRenderSlot {
     this.$isAttached = true;
   }
 
-  detach(context: DetachContext): void {
+  $detach(context: DetachContext): void {
     if (this.$isAttached) {
       const children = this.children;
       

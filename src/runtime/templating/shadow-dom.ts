@@ -73,31 +73,31 @@ abstract class ShadowSlotBase {
   removeFallbackVisual(context?: DetachContext) {
     if (this.fallbackVisual !== null) {
       this.fallbackVisual.detach(context);
-      this.fallbackVisual.unbind();
+      this.fallbackVisual.$unbind();
       this.fallbackVisual = null;
     }
   }
 
-  bind(scope: IScope) {
+  $bind(scope: IScope) {
     // fallbackContentView will never be created when the slot isn't already bound
     // so no need to worry about binding it here
     this.$isBound = true;
   }
 
-  attach(context: AttachContext) {
+  $attach(context: AttachContext) {
     // fallbackContentView will never be created when the slot isn't already attached
     // so no need to worry about attaching it here
     this.$isAttached = true;
   }
 
-  detach(context: DetachContext) {
+  $detach(context: DetachContext) {
     if (this.$isAttached) {
       this.removeFallbackVisual(context);
       this.$isAttached = false;
     }
   }
 
-  unbind() {
+  $unbind() {
     this.$isBound = false;
   }
 }
@@ -118,7 +118,7 @@ class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index = 0) {
     if (this.fallbackVisual === null) {
       this.fallbackVisual = this.fallbackFactory.create();
-      this.fallbackVisual.bind(this.owner.$scope);
+      this.fallbackVisual.$bind(this.owner.$scope);
       this.currentProjectionSource = projectionSource;
       this.fallbackVisual.attach(null, passThroughSlotAddFallbackVisual, this, index);
     }
@@ -173,7 +173,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index = 0) {
     if (this.fallbackVisual === null) {
       this.fallbackVisual = this.fallbackFactory.create();
-      this.fallbackVisual.bind(this.owner.$scope);
+      this.fallbackVisual.$bind(this.owner.$scope);
       this.fallbackVisual.attach(null, shadowSlotAddFallbackVisual, this);
     }
 

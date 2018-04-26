@@ -109,13 +109,13 @@ export const Component = {
         }
       }
 
-      bind(scope: IScope) {
+      $bind(scope: IScope) {
         if (this.$isBound) {
           if (this.$scope === scope) {
             return;
           }
     
-          this.unbind();
+          this.$unbind();
         }
 
         this.$scope = scope
@@ -132,7 +132,7 @@ export const Component = {
         }
       }
 
-      attach(context: AttachContext){
+      $attach(context: AttachContext){
         if (this.$isAttached) {
           return;
         }
@@ -142,7 +142,7 @@ export const Component = {
         }
 
         if (this.$slot !== null) {
-          this.$slot.attach(context);
+          this.$slot.$attach(context);
         }
       
         if (this.$behavior.hasAttached) {
@@ -152,14 +152,14 @@ export const Component = {
         this.$isAttached = true;
       }
 
-      detach(context: DetachContext) {
+      $detach(context: DetachContext) {
         if (this.$isAttached) {
           if (this.$behavior.hasDetaching) {
             (<any>this).detaching();
           }
 
           if (this.$slot !== null) {
-            this.$slot.detach(context);
+            this.$slot.$detach(context);
           }
     
           if (this.$behavior.hasDetached) {
@@ -170,7 +170,7 @@ export const Component = {
         }
       }
 
-      unbind() {
+      $unbind() {
         if (this.$isBound) {
           if (this.$behavior.hasUnbound) {
             (<any>this).unbound();
@@ -240,32 +240,34 @@ export const Component = {
           : this.$host;
 
         this.$contentView = content;
-        this.$view = this.createView(this.$host, replacements);
+        this.$view = this.$createView(this.$host, replacements);
   
         if (this.$behavior.hasCreated) {
           (<any>this).created();
         }
       }
   
-      createView(host: Element, replacements: Record<string, ICompiledViewSource>) {
-        return template.createFor(this, host, replacements);
+      $createView(host: Element, replacements: Record<string, ICompiledViewSource>) {
+        return this.$behavior.hasCreateView
+          ? (<any>this).createView(host, replacements, template)
+          : template.createFor(this, host, replacements);
       }
   
-      bind() {
+      $bind() {
         if (this.$isBound) {
           return;
         }
 
-        let scope = this.$scope;
-        let bindable = this.$bindable;
+        const scope = this.$scope;
+        const bindable = this.$bindable;
   
         for (let i = 0, ii = bindable.length; i < ii; ++i) {
-          bindable[i].bind(scope);
+          bindable[i].$bind(scope);
         }
   
         this.$isBound = true;
   
-        let changeCallbacks = this.$changeCallbacks;
+        const changeCallbacks = this.$changeCallbacks;
   
         for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
           changeCallbacks[i]();
@@ -276,7 +278,7 @@ export const Component = {
         }
       }
   
-      attach(context?: AttachContext) {
+      $attach(context?: AttachContext) {
         if (this.$isAttached) {
           return;
         }
@@ -289,14 +291,14 @@ export const Component = {
           (<any>this).attaching();
         }
   
-        let attachable = this.$attachable;
+        const attachable = this.$attachable;
   
         for (let i = 0, ii = attachable.length; i < ii; ++i) {
-          attachable[i].attach(context);
+          attachable[i].$attach(context);
         }
 
         if (this.$slot !== null) {
-          this.$slot.attach(context);
+          this.$slot.$attach(context);
         }
   
         if (source.containerless) {
@@ -322,7 +324,7 @@ export const Component = {
         }
       }
   
-      detach(context?: DetachContext) {
+      $detach(context?: DetachContext) {
         if (this.$isAttached) {
           if (!context) {
             context = DetachContext.open(this);
@@ -334,15 +336,15 @@ export const Component = {
 
           context.queueForViewRemoval(this);
     
-          let attachable = this.$attachable;
+          const attachable = this.$attachable;
           let i = attachable.length;
     
           while (i--) {
-            attachable[i].detach();
+            attachable[i].$detach();
           }
 
           if (this.$slot !== null) {
-            this.$slot.detach(context);
+            this.$slot.$detach(context);
           }
     
           if (this.$behavior.hasDetached) {
@@ -357,13 +359,13 @@ export const Component = {
         }
       }
   
-      unbind() {
+      $unbind() {
         if (this.$isBound) {
-          let bindable = this.$bindable;
+          const bindable = this.$bindable;
           let i = bindable.length;
     
           while (i--) {
-            bindable[i].unbind();
+            bindable[i].$unbind();
           }
     
           if (this.$behavior.hasUnbound) {
@@ -407,6 +409,7 @@ class RuntimeBehavior {
   hasDetaching = false;
   hasDetached = false;
   hasUnbound = false;
+  hasCreateView = false;
 
   static get(instance, observables: Record<string, IBindableInstruction>, Component: IElementType | IAttributeType) {
     let behavior: RuntimeBehavior = (<any>Component).behavior;
@@ -421,7 +424,7 @@ class RuntimeBehavior {
   }
 
   private static for(instance, observables: Record<string, IBindableInstruction>, Component: IElementType | IAttributeType) {
-    let characteristics = new RuntimeBehavior();
+    let behavior = new RuntimeBehavior();
 
     for (let name in instance) {
       if (name in observables) {
@@ -435,16 +438,17 @@ class RuntimeBehavior {
       }
     }
 
-    characteristics.observables = observables;
-    characteristics.hasCreated = 'created' in instance;
-    characteristics.hasBound = 'bound' in instance;
-    characteristics.hasAttaching = 'attaching' in instance;
-    characteristics.hasAttached = 'attached' in instance;
-    characteristics.hasDetaching = 'detaching' in instance;
-    characteristics.hasDetached = 'detached' in instance;
-    characteristics.hasUnbound = 'unbound' in instance;
+    behavior.observables = observables;
+    behavior.hasCreated = 'created' in instance;
+    behavior.hasBound = 'bound' in instance;
+    behavior.hasAttaching = 'attaching' in instance;
+    behavior.hasAttached = 'attached' in instance;
+    behavior.hasDetaching = 'detaching' in instance;
+    behavior.hasDetached = 'detached' in instance;
+    behavior.hasUnbound = 'unbound' in instance;
+    behavior.hasCreateView = 'createView' in instance;
 
-    return characteristics;
+    return behavior;
   }
 
   applyTo(instance) {

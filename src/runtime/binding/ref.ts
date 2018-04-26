@@ -5,7 +5,7 @@ import { IScope } from "./binding-context";
 
 export class Ref implements IBinding {
   private source: IScope;
-  private isBound = false;
+  private $isBound = false;
 
   constructor(
     private sourceExpression: IExpression,
@@ -13,16 +13,16 @@ export class Ref implements IBinding {
     public container: IContainer) {
   }
 
-  bind(source: IScope) {
-    if (this.isBound) {
+  $bind(source: IScope) {
+    if (this.$isBound) {
       if (this.source === source) {
         return;
       }
 
-      this.unbind();
+      this.$unbind();
     }
 
-    this.isBound = true;
+    this.$isBound = true;
     this.source = source;
 
     if (this.sourceExpression.bind) {
@@ -32,12 +32,12 @@ export class Ref implements IBinding {
     this.sourceExpression.assign(this.source, this.target, this.container);
   }
 
-  unbind() {
-    if (!this.isBound) {
+  $unbind() {
+    if (!this.$isBound) {
       return;
     }
 
-    this.isBound = false;
+    this.$isBound = false;
 
     if (this.sourceExpression.evaluate(this.source, this.container) === this.target) {
       this.sourceExpression.assign(this.source, null, this.container);

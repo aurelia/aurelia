@@ -15,10 +15,10 @@ export class Replaceable {
   }
 
   bound(scope: IScope) {
-    this.child.bind(scope);
+    this.child.$bind(scope);
   }
 
   unbound() {
-    this.child.unbind();
+    this.child.$unbind();
   }
 }

@@ -97,11 +97,11 @@ export class DetachContext {
 }
 
 export interface IAttach {
-  attach(context?: AttachContext): void;
-  detach(context?: DetachContext): void;
+  $attach(context?: AttachContext): void;
+  $detach(context?: DetachContext): void;
 }
 
 export interface IBindSelf {
-  bind(): void;
-  unbind(): void;
+  $bind(): void;
+  $unbind(): void;
 }

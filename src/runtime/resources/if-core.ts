@@ -23,7 +23,7 @@ export abstract class IfCore {
       return;
     }
 
-    this.child.unbind();
+    this.child.$unbind();
 
     if (!this.factory.isCaching) {
       return;
@@ -44,7 +44,7 @@ export abstract class IfCore {
       this.child = this.factory.create();
     }
 
-    this.child.bind(this.$scope);
+    this.child.$bind(this.$scope);
 
     if (!this.showing) {
       this.showing = true;
@@ -63,9 +63,9 @@ export abstract class IfCore {
     this.showing = false;
     
     if (removed instanceof Promise) {
-      return removed.then(() => visual.unbind());
+      return removed.then(() => visual.$unbind());
     }
 
-    visual.unbind();
+    visual.$unbind();
   }
 }

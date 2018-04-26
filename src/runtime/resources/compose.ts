@@ -120,7 +120,7 @@ export class Compose {
     this.$bindable.push(newVisual);
 
     if (this.$isBound) {
-      newVisual.bind(this.viewOwner.$scope);
+      newVisual.$bind(this.viewOwner.$scope);
     }
 
     return this.slot.swap(newVisual, this.swapOrder || 'after');

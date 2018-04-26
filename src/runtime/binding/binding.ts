@@ -18,7 +18,7 @@ export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 export class Binding extends ConnectableBinding implements IBinding {
   public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
   private source: IScope;
-  private isBound = false;
+  private $isBound = false;
 
   constructor(
     private sourceExpression: IExpression,
@@ -38,7 +38,7 @@ export class Binding extends ConnectableBinding implements IBinding {
   }
 
   call(context: string, newValue: any, oldValue: any) {
-    if (!this.isBound) {
+    if (!this.$isBound) {
       return;
     }
 
@@ -70,16 +70,16 @@ export class Binding extends ConnectableBinding implements IBinding {
     throw new Error(`Unexpected call context ${context}`);
   }
 
-  bind(source: IScope) {
-    if (this.isBound) {
+  $bind(source: IScope) {
+    if (this.$isBound) {
       if (this.source === source) {
         return;
       }
 
-      this.unbind();
+      this.$unbind();
     }
 
-    this.isBound = true;
+    this.$isBound = true;
     this.source = source;
 
     if (this.sourceExpression.bind) {
@@ -114,12 +114,12 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
   }
 
-  unbind() {
-    if (!this.isBound) {
+  $unbind() {
+    if (!this.$isBound) {
       return;
     }
 
-    this.isBound = false;
+    this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
       this.sourceExpression.unbind(this, this.source);
@@ -139,7 +139,7 @@ export class Binding extends ConnectableBinding implements IBinding {
   }
 
   connect(evaluate?: boolean) {
-    if (!this.isBound) {
+    if (!this.$isBound) {
       return;
     }
 

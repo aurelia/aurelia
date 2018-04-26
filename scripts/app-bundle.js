@@ -541,13 +541,13 @@ define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (requ
                     _this.components.push(component);
                     component.$hydrate(config.host);
                 }
-                component.bind();
-                component.attach();
+                component.$bind();
+                component.$attach();
             };
             this.startTasks.push(startTask);
             this.stopTasks.push(function () {
-                component.detach();
-                component.unbind();
+                component.$detach();
+                component.$unbind();
             });
             if (this.isStarted) {
                 startTask();
@@ -2634,7 +2634,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             _this.targetProperty = targetProperty;
             _this.mode = mode;
             _this.container = container;
-            _this.isBound = false;
+            _this.$isBound = false;
             return _this;
         }
         Binding.prototype.updateTarget = function (value) {
@@ -2644,7 +2644,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             this.sourceExpression.assign(this.source, value, this.container);
         };
         Binding.prototype.call = function (context, newValue, oldValue) {
-            if (!this.isBound) {
+            if (!this.$isBound) {
                 return;
             }
             if (context === binding_context_1.sourceContext) {
@@ -2668,14 +2668,14 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             }
             throw new Error("Unexpected call context " + context);
         };
-        Binding.prototype.bind = function (source) {
-            if (this.isBound) {
+        Binding.prototype.$bind = function (source) {
+            if (this.$isBound) {
                 if (this.source === source) {
                     return;
                 }
-                this.unbind();
+                this.$unbind();
             }
-            this.isBound = true;
+            this.$isBound = true;
             this.source = source;
             if (this.sourceExpression.bind) {
                 this.sourceExpression.bind(this, source);
@@ -2706,11 +2706,11 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 this.targetObserver.subscribe(binding_context_1.targetContext, this);
             }
         };
-        Binding.prototype.unbind = function () {
-            if (!this.isBound) {
+        Binding.prototype.$unbind = function () {
+            if (!this.$isBound) {
                 return;
             }
-            this.isBound = false;
+            this.$isBound = false;
             if (this.sourceExpression.unbind) {
                 this.sourceExpression.unbind(this, this.source);
             }
@@ -2724,7 +2724,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             this.unobserve(true);
         };
         Binding.prototype.connect = function (evaluate) {
-            if (!this.isBound) {
+            if (!this.$isBound) {
                 return;
             }
             if (evaluate) {
@@ -2749,7 +2749,7 @@ define('runtime/binding/call',["require", "exports", "./observer-locator"], func
             this.target = target;
             this.targetProperty = targetProperty;
             this.container = container;
-            this.isBound = false;
+            this.$isBound = false;
             this.targetObserver = observer_locator_1.ObserverLocator.getObserver(target, targetProperty);
         }
         Call.prototype.callSource = function ($event) {
@@ -2764,26 +2764,26 @@ define('runtime/binding/call',["require", "exports", "./observer-locator"], func
             }
             return result;
         };
-        Call.prototype.bind = function (source) {
+        Call.prototype.$bind = function (source) {
             var _this = this;
-            if (this.isBound) {
+            if (this.$isBound) {
                 if (this.source === source) {
                     return;
                 }
-                this.unbind();
+                this.$unbind();
             }
-            this.isBound = true;
+            this.$isBound = true;
             this.source = source;
             if (this.sourceExpression.bind) {
                 this.sourceExpression.bind(this, source);
             }
             this.targetObserver.setValue(function ($event) { return _this.callSource($event); }, this.target, this.targetProperty);
         };
-        Call.prototype.unbind = function () {
-            if (!this.isBound) {
+        Call.prototype.$unbind = function () {
+            if (!this.$isBound) {
                 return;
             }
-            this.isBound = false;
+            this.$isBound = false;
             if (this.sourceExpression.unbind) {
                 this.sourceExpression.unbind(this, this.source);
             }
@@ -3785,7 +3785,7 @@ define('runtime/binding/listener',["require", "exports", "./event-manager"], fun
             this.target = target;
             this.preventDefault = preventDefault;
             this.container = container;
-            this.isBound = false;
+            this.$isBound = false;
             this.targetEvent = targetEvent;
             this.delegationStrategy = delegationStrategy;
             this.sourceExpression = sourceExpression;
@@ -3807,25 +3807,25 @@ define('runtime/binding/listener',["require", "exports", "./event-manager"], fun
         Listener.prototype.handleEvent = function (event) {
             this.callSource(event);
         };
-        Listener.prototype.bind = function (source) {
-            if (this.isBound) {
+        Listener.prototype.$bind = function (source) {
+            if (this.$isBound) {
                 if (this.source === source) {
                     return;
                 }
-                this.unbind();
+                this.$unbind();
             }
-            this.isBound = true;
+            this.$isBound = true;
             this.source = source;
             if (this.sourceExpression.bind) {
                 this.sourceExpression.bind(this, source);
             }
             this.handler = event_manager_1.EventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
         };
-        Listener.prototype.unbind = function () {
-            if (!this.isBound) {
+        Listener.prototype.$unbind = function () {
+            if (!this.$isBound) {
                 return;
             }
-            this.isBound = false;
+            this.$isBound = false;
             if (this.sourceExpression.unbind) {
                 this.sourceExpression.unbind(this, this.source);
             }
@@ -4283,27 +4283,27 @@ define('runtime/binding/ref',["require", "exports"], function (require, exports)
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.container = container;
-            this.isBound = false;
+            this.$isBound = false;
         }
-        Ref.prototype.bind = function (source) {
-            if (this.isBound) {
+        Ref.prototype.$bind = function (source) {
+            if (this.$isBound) {
                 if (this.source === source) {
                     return;
                 }
-                this.unbind();
+                this.$unbind();
             }
-            this.isBound = true;
+            this.$isBound = true;
             this.source = source;
             if (this.sourceExpression.bind) {
                 this.sourceExpression.bind(this, source);
             }
             this.sourceExpression.assign(this.source, this.target, this.container);
         };
-        Ref.prototype.unbind = function () {
-            if (!this.isBound) {
+        Ref.prototype.$unbind = function () {
+            if (!this.$isBound) {
                 return;
             }
-            this.isBound = false;
+            this.$isBound = false;
             if (this.sourceExpression.evaluate(this.source, this.container) === this.target) {
                 this.sourceExpression.assign(this.source, null, this.container);
             }
@@ -5016,7 +5016,7 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
             this.visual = newVisual;
             this.$bindable.push(newVisual);
             if (this.$isBound) {
-                newVisual.bind(this.viewOwner.$scope);
+                newVisual.$bind(this.viewOwner.$scope);
             }
             return this.slot.swap(newVisual, this.swapOrder || 'after');
         };
@@ -5225,7 +5225,7 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             if (visual === null) {
                 return;
             }
-            this.child.unbind();
+            this.child.$unbind();
             if (!this.factory.isCaching) {
                 return;
             }
@@ -5242,7 +5242,7 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             if (this.child === null) {
                 this.child = this.factory.create();
             }
-            this.child.bind(this.$scope);
+            this.child.$bind(this.$scope);
             if (!this.showing) {
                 this.showing = true;
                 return this.slot.add(this.child);
@@ -5256,9 +5256,9 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
             var removed = this.slot.remove(visual);
             this.showing = false;
             if (removed instanceof Promise) {
-                return removed.then(function () { return visual.unbind(); });
+                return removed.then(function () { return visual.$unbind(); });
             }
-            visual.unbind();
+            visual.$unbind();
         };
         return IfCore;
     }());
@@ -5382,10 +5382,10 @@ define('runtime/resources/replaceable',["require", "exports", "../templating/vie
             this.slot.add(this.child);
         }
         Replaceable.prototype.bound = function (scope) {
-            this.child.bind(scope);
+            this.child.$bind(scope);
         };
         Replaceable.prototype.unbound = function () {
-            this.child.unbind();
+            this.child.$unbind();
         };
         Replaceable = __decorate([
             decorators_1.customAttribute('replaceable'),
@@ -5710,10 +5710,10 @@ define('runtime/resources/with',["require", "exports", "../decorators", "../temp
                 bindingContext: newValue,
                 overrideContext: binding_context_1.BindingContext.createOverride(newValue, this.$scope.overrideContext)
             };
-            this.child.bind(childScope);
+            this.child.$bind(childScope);
         };
         With.prototype.unbound = function () {
-            this.child.unbind();
+            this.child.$unbind();
         };
         With = __decorate([
             decorators_1.customAttribute('with'),
@@ -5813,12 +5813,12 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             }
                         }
                     };
-                    CustomAttribute.prototype.bind = function (scope) {
+                    CustomAttribute.prototype.$bind = function (scope) {
                         if (this.$isBound) {
                             if (this.$scope === scope) {
                                 return;
                             }
-                            this.unbind();
+                            this.$unbind();
                         }
                         this.$scope = scope;
                         this.$isBound = true;
@@ -5830,7 +5830,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.bound(scope);
                         }
                     };
-                    CustomAttribute.prototype.attach = function (context) {
+                    CustomAttribute.prototype.$attach = function (context) {
                         if (this.$isAttached) {
                             return;
                         }
@@ -5838,20 +5838,20 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.attaching();
                         }
                         if (this.$slot !== null) {
-                            this.$slot.attach(context);
+                            this.$slot.$attach(context);
                         }
                         if (this.$behavior.hasAttached) {
                             context.queueForAttachedCallback(this);
                         }
                         this.$isAttached = true;
                     };
-                    CustomAttribute.prototype.detach = function (context) {
+                    CustomAttribute.prototype.$detach = function (context) {
                         if (this.$isAttached) {
                             if (this.$behavior.hasDetaching) {
                                 this.detaching();
                             }
                             if (this.$slot !== null) {
-                                this.$slot.detach(context);
+                                this.$slot.$detach(context);
                             }
                             if (this.$behavior.hasDetached) {
                                 context.queueForDetachedCallback(this);
@@ -5859,7 +5859,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.$isAttached = false;
                         }
                     };
-                    CustomAttribute.prototype.unbind = function () {
+                    CustomAttribute.prototype.$unbind = function () {
                         if (this.$isBound) {
                             if (this.$behavior.hasUnbound) {
                                 this.unbound();
@@ -5927,22 +5927,24 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             ? host.attachShadow(source.shadowOptions)
                             : this.$host;
                         this.$contentView = content;
-                        this.$view = this.createView(this.$host, replacements);
+                        this.$view = this.$createView(this.$host, replacements);
                         if (this.$behavior.hasCreated) {
                             this.created();
                         }
                     };
-                    class_1.prototype.createView = function (host, replacements) {
-                        return template.createFor(this, host, replacements);
+                    class_1.prototype.$createView = function (host, replacements) {
+                        return this.$behavior.hasCreateView
+                            ? this.createView(host, replacements, template)
+                            : template.createFor(this, host, replacements);
                     };
-                    class_1.prototype.bind = function () {
+                    class_1.prototype.$bind = function () {
                         if (this.$isBound) {
                             return;
                         }
                         var scope = this.$scope;
                         var bindable = this.$bindable;
                         for (var i = 0, ii = bindable.length; i < ii; ++i) {
-                            bindable[i].bind(scope);
+                            bindable[i].$bind(scope);
                         }
                         this.$isBound = true;
                         var changeCallbacks = this.$changeCallbacks;
@@ -5953,7 +5955,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             this.bound();
                         }
                     };
-                    class_1.prototype.attach = function (context) {
+                    class_1.prototype.$attach = function (context) {
                         if (this.$isAttached) {
                             return;
                         }
@@ -5965,10 +5967,10 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         }
                         var attachable = this.$attachable;
                         for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                            attachable[i].attach(context);
+                            attachable[i].$attach(context);
                         }
                         if (this.$slot !== null) {
-                            this.$slot.attach(context);
+                            this.$slot.$attach(context);
                         }
                         if (source.containerless) {
                             this.$view.insertBefore(this.$host);
@@ -5987,7 +5989,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             context.close();
                         }
                     };
-                    class_1.prototype.detach = function (context) {
+                    class_1.prototype.$detach = function (context) {
                         if (this.$isAttached) {
                             if (!context) {
                                 context = lifecycle_1.DetachContext.open(this);
@@ -5999,10 +6001,10 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             var attachable = this.$attachable;
                             var i = attachable.length;
                             while (i--) {
-                                attachable[i].detach();
+                                attachable[i].$detach();
                             }
                             if (this.$slot !== null) {
-                                this.$slot.detach(context);
+                                this.$slot.$detach(context);
                             }
                             if (this.$behavior.hasDetached) {
                                 context.queueForDetachedCallback(this);
@@ -6013,12 +6015,12 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             }
                         }
                     };
-                    class_1.prototype.unbind = function () {
+                    class_1.prototype.$unbind = function () {
                         if (this.$isBound) {
                             var bindable = this.$bindable;
                             var i = bindable.length;
                             while (i--) {
-                                bindable[i].unbind();
+                                bindable[i].$unbind();
                             }
                             if (this.$behavior.hasUnbound) {
                                 this.unbound();
@@ -6057,6 +6059,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             this.hasDetaching = false;
             this.hasDetached = false;
             this.hasUnbound = false;
+            this.hasCreateView = false;
         }
         RuntimeBehavior.get = function (instance, observables, Component) {
             var behavior = Component.behavior;
@@ -6068,7 +6071,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             return behavior;
         };
         RuntimeBehavior.for = function (instance, observables, Component) {
-            var characteristics = new RuntimeBehavior();
+            var behavior = new RuntimeBehavior();
             for (var name_1 in instance) {
                 if (name_1 in observables) {
                     continue;
@@ -6078,15 +6081,16 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     observables[name_1] = { callback: callback };
                 }
             }
-            characteristics.observables = observables;
-            characteristics.hasCreated = 'created' in instance;
-            characteristics.hasBound = 'bound' in instance;
-            characteristics.hasAttaching = 'attaching' in instance;
-            characteristics.hasAttached = 'attached' in instance;
-            characteristics.hasDetaching = 'detaching' in instance;
-            characteristics.hasDetached = 'detached' in instance;
-            characteristics.hasUnbound = 'unbound' in instance;
-            return characteristics;
+            behavior.observables = observables;
+            behavior.hasCreated = 'created' in instance;
+            behavior.hasBound = 'bound' in instance;
+            behavior.hasAttaching = 'attaching' in instance;
+            behavior.hasAttached = 'attached' in instance;
+            behavior.hasDetaching = 'detaching' in instance;
+            behavior.hasDetached = 'detached' in instance;
+            behavior.hasUnbound = 'unbound' in instance;
+            behavior.hasCreateView = 'createView' in instance;
+            return behavior;
         };
         RuntimeBehavior.prototype.applyTo = function (instance) {
             var observers = {};
@@ -6410,7 +6414,7 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             }
             return finalizeRemoval();
         };
-        RenderSlotImplementation.prototype.attach = function (context) {
+        RenderSlotImplementation.prototype.$attach = function (context) {
             if (this.$isAttached) {
                 return;
             }
@@ -6422,7 +6426,7 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             }
             this.$isAttached = true;
         };
-        RenderSlotImplementation.prototype.detach = function (context) {
+        RenderSlotImplementation.prototype.$detach = function (context) {
             if (this.$isAttached) {
                 var children = this.children;
                 for (var i = 0, ii = children.length; i < ii; ++i) {
@@ -6496,23 +6500,23 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
         ShadowSlotBase.prototype.removeFallbackVisual = function (context) {
             if (this.fallbackVisual !== null) {
                 this.fallbackVisual.detach(context);
-                this.fallbackVisual.unbind();
+                this.fallbackVisual.$unbind();
                 this.fallbackVisual = null;
             }
         };
-        ShadowSlotBase.prototype.bind = function (scope) {
+        ShadowSlotBase.prototype.$bind = function (scope) {
             this.$isBound = true;
         };
-        ShadowSlotBase.prototype.attach = function (context) {
+        ShadowSlotBase.prototype.$attach = function (context) {
             this.$isAttached = true;
         };
-        ShadowSlotBase.prototype.detach = function (context) {
+        ShadowSlotBase.prototype.$detach = function (context) {
             if (this.$isAttached) {
                 this.removeFallbackVisual(context);
                 this.$isAttached = false;
             }
         };
-        ShadowSlotBase.prototype.unbind = function () {
+        ShadowSlotBase.prototype.$unbind = function () {
             this.$isBound = false;
         };
         return ShadowSlotBase;
@@ -6534,7 +6538,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             if (index === void 0) { index = 0; }
             if (this.fallbackVisual === null) {
                 this.fallbackVisual = this.fallbackFactory.create();
-                this.fallbackVisual.bind(this.owner.$scope);
+                this.fallbackVisual.$bind(this.owner.$scope);
                 this.currentProjectionSource = projectionSource;
                 this.fallbackVisual.attach(null, passThroughSlotAddFallbackVisual, this, index);
             }
@@ -6581,7 +6585,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             if (index === void 0) { index = 0; }
             if (this.fallbackVisual === null) {
                 this.fallbackVisual = this.fallbackFactory.create();
-                this.fallbackVisual.bind(this.owner.$scope);
+                this.fallbackVisual.$bind(this.owner.$scope);
                 this.fallbackVisual.attach(null, shadowSlotAddFallbackVisual, this);
             }
             if (this.fallbackVisual.$slots) {
@@ -7163,17 +7167,17 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                     throw reporter_1.Reporter.error(4, direction);
             }
         };
-        Visual.prototype.bind = function (scope) {
+        Visual.prototype.$bind = function (scope) {
             if (this.$isBound) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.unbind();
+                this.$unbind();
             }
             this.$scope = scope;
             var bindable = this.$bindable;
             for (var i = 0, ii = bindable.length; i < ii; ++i) {
-                bindable[i].bind(scope);
+                bindable[i].$bind(scope);
             }
             this.$isBound = true;
         };
@@ -7186,7 +7190,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             }
             var attachable = this.$attachable;
             for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                attachable[i].attach(context);
+                attachable[i].$attach(context);
             }
             render(this, owner, index);
             this.$isAttached = true;
@@ -7203,7 +7207,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 var attachable = this.$attachable;
                 var i = attachable.length;
                 while (i--) {
-                    attachable[i].detach(context);
+                    attachable[i].$detach(context);
                 }
                 this.$isAttached = false;
                 if (context.wasOpenedBy(this)) {
@@ -7211,12 +7215,12 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 }
             }
         };
-        Visual.prototype.unbind = function () {
+        Visual.prototype.$unbind = function () {
             if (this.$isBound) {
                 var bindable = this.$bindable;
                 var i = bindable.length;
                 while (i--) {
-                    bindable[i].unbind();
+                    bindable[i].$unbind();
                 }
                 this.$isBound = false;
                 this.$scope = null;

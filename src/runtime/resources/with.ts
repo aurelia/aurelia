@@ -26,10 +26,10 @@ export class With {
       overrideContext: BindingContext.createOverride(newValue, this.$scope.overrideContext)
     };
 
-    this.child.bind(childScope);
+    this.child.$bind(childScope);
   }
 
   unbound() {
-    this.child.unbind();
+    this.child.$unbind();
   }
 }

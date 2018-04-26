@@ -27,15 +27,15 @@ class AureliaFramework {
         component.$hydrate(config.host);
       }
 
-      component.bind();
-      component.attach();
+      component.$bind();
+      component.$attach();
     };
 
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      component.detach();
-      component.unbind();
+      component.$detach();
+      component.$unbind();
     });
 
     if (this.isStarted) {

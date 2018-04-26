@@ -8,7 +8,7 @@ import { IScope } from "./binding-context";
 export class Call implements IBinding {
   targetObserver: IBindingTargetAccessor;
   private source: IScope;
-  private isBound = false;
+  private $isBound = false;
 
   constructor(
     private sourceExpression: IExpression,
@@ -33,16 +33,16 @@ export class Call implements IBinding {
     return result;
   }
 
-  bind(source: IScope) {
-    if (this.isBound) {
+  $bind(source: IScope) {
+    if (this.$isBound) {
       if (this.source === source) {
         return;
       }
 
-      this.unbind();
+      this.$unbind();
     }
 
-    this.isBound = true;
+    this.$isBound = true;
     this.source = source;
 
     if (this.sourceExpression.bind) {
@@ -52,12 +52,12 @@ export class Call implements IBinding {
     this.targetObserver.setValue($event => this.callSource($event), this.target, this.targetProperty);
   }
 
-  unbind() {
-    if (!this.isBound) {
+  $unbind() {
+    if (!this.$isBound) {
       return;
     }
 
-    this.isBound = false;
+    this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
       this.sourceExpression.unbind(this, this.source);

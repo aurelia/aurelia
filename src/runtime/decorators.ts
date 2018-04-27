@@ -5,9 +5,13 @@ import { BindingMode } from "./binding/binding-mode";
 import { Constructable, Injectable } from "./interfaces";
 import { ICompiledViewSource, IBindableInstruction } from "./templating/instructions";
 
-export function compiledElement(source: ICompiledViewSource) {
+export function customElement(nameOrSource: string | ICompiledViewSource) {
   return function<T extends Constructable>(target: T) {
-    return Component.elementFromCompiledSource(source, target);
+    if (typeof nameOrSource === 'string') {
+      //TODO Patch in stub for jit components
+    } else {
+      return Component.elementFromCompiledSource(nameOrSource, target);
+    }
   }
 }
 

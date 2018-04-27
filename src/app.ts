@@ -1,8 +1,7 @@
 import { appConfig } from './app-config'; //added by the compiler
-import { compiledElement } from './runtime/decorators';
+import { customElement } from './runtime/decorators';
 
-@compiledElement(appConfig) //added by the compiler
-//@customElement //removed by the compiler
+@customElement(appConfig) //added by the compiler
 export class App {
   message = 'Hello World';
   duplicateMessage = true;

@@ -1,4 +1,4 @@
-import { compiledElement, inject } from "../decorators";
+import { customElement, inject } from "../decorators";
 import { IRenderSlot, SwapOrder } from "../templating/render-slot";
 import { ViewEngine, ITemplateContainer, VisualWithCentralComponent, IVisual } from "../templating/view-engine";
 import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from "../templating/instructions";
@@ -15,7 +15,7 @@ const composeSource = {
 
 const composeProps = ['component', 'swapOrder', 'isComposing'];
 
-@compiledElement(composeSource)
+@customElement(composeSource)
 @inject(IViewOwner, DOM.Element, IRenderSlot, ITargetedInstruction)
 export class Compose {
   //#region Framework-Supplied

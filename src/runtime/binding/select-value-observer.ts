@@ -1,9 +1,9 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { DOM } from '../pal';
 import { ICallable } from '../interfaces';
 import { TaskQueue } from '../task-queue';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
+import { INode, DOM, INodeObserver } from '../dom';
 
 const selectArrayContext = 'SelectValueObserver:array';
 
@@ -12,15 +12,15 @@ export class SelectValueObserver extends SubscriberCollection {
   private oldValue: any;
   private arrayObserver: any;
   private initialSync = false;
-  private domObserver: MutationObserver;
+  private domObserver: INodeObserver;
 
   constructor(
-    private element: HTMLSelectElement,
+    private node: HTMLSelectElement,
     public handler: IEventSubscriber,
     private observerLocator: IObserverLocator
   ) {
     super();
-    this.element = element;
+    this.node = node;
     this.handler = handler;
     this.observerLocator = observerLocator;
   }
@@ -30,22 +30,26 @@ export class SelectValueObserver extends SubscriberCollection {
   }
 
   setValue(newValue: any) {
-    if (newValue !== null && newValue !== undefined && this.element.multiple && !Array.isArray(newValue)) {
+    if (newValue !== null && newValue !== undefined && this.node.multiple && !Array.isArray(newValue)) {
       throw new Error('Only null or Array instances can be bound to a multi-select.');
     }
+
     if (this.value === newValue) {
       return;
     }
+
     // unsubscribe from old array.
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribe(selectArrayContext, this);
       this.arrayObserver = null;
     }
+
     // subscribe to new array.
     if (Array.isArray(newValue)) {
       this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
       this.arrayObserver.subscribe(selectArrayContext, this);
     }
+
     // assign and sync element.
     this.oldValue = this.value;
     this.value = newValue;
@@ -71,9 +75,10 @@ export class SelectValueObserver extends SubscriberCollection {
       isArray = true;
     }
 
-    let options = this.element.options;
+    let options = this.node.options;
     let i = options.length;
-    let matcher = this.element.matcher || ((a: any, b: any) => a === b);
+    let matcher = this.node.matcher || ((a: any, b: any) => a === b);
+
     while (i--) {
       let option = options.item(i) as HTMLOptionElement & { model?: any };
       let optionValue = option.hasOwnProperty('model') ? option.model : option.value;
@@ -86,7 +91,7 @@ export class SelectValueObserver extends SubscriberCollection {
   }
 
   synchronizeValue() {
-    let options = this.element.options;
+    let options = this.node.options;
     let count = 0;
     let value = [];
 
@@ -99,10 +104,10 @@ export class SelectValueObserver extends SubscriberCollection {
       count++;
     }
 
-    if (this.element.multiple) {
+    if (this.node.multiple) {
       // multi-select
       if (Array.isArray(this.value)) {
-        let matcher = this.element.matcher || ((a: any, b: any) => a === b);
+        let matcher = this.node.matcher || ((a: any, b: any) => a === b);
         // remove items that are no longer selected.
         let i = 0;
         while (i < this.value.length) {
@@ -153,7 +158,7 @@ export class SelectValueObserver extends SubscriberCollection {
 
   subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
-      this.handler.subscribe(this.element, this);
+      this.handler.subscribe(this.node, this);
     }
     this.addSubscriber(context, callable);
   }
@@ -165,11 +170,12 @@ export class SelectValueObserver extends SubscriberCollection {
   }
 
   bind() {
-    this.domObserver = DOM.createMutationObserver(() => {
+    this.domObserver = DOM.createObserver(() => {
       this.synchronizeOptions();
       this.synchronizeValue();
     });
-    this.domObserver.observe(this.element, { childList: true, subtree: true, characterData: true });
+    
+    this.domObserver.observe(this.node, { childList: true, subtree: true, characterData: true });
   }
 
   unbind() {

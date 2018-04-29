@@ -1,5 +1,5 @@
 import { Component, IAttributeSource } from "./templating/component";
-import { PLATFORM } from "./pal";
+import { PLATFORM } from "./platform";
 import { DI, IContainer, Registration } from "./di";
 import { BindingMode } from "./binding/binding-mode";
 import { Constructable, Injectable } from "./interfaces";

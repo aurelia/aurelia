@@ -1,10 +1,10 @@
 import { IElementComponent } from "./templating/component";
-import { PLATFORM } from "./pal";
+import { PLATFORM } from "./platform";
 import { DI } from "./di";
 import { View } from "./templating/view";
 
 export interface ISinglePageApp {
-  host: HTMLElement,
+  host: any,
   component: any
 }
 

@@ -2,7 +2,7 @@ import { ICallable, IDisposable, IIndexable } from "../interfaces";
 import { IScope } from "./binding-context";
 
 export interface IBindScope {
-  $bind(source: IScope): void;
+  $bind(scope: IScope): void;
   $unbind(): void;
 }
 export interface IAccessor<T = any> {

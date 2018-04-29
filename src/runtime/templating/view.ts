@@ -1,4 +1,4 @@
-import { DOM, PLATFORM } from "../pal";
+import { PLATFORM } from "../platform";
 import { IEmulatedShadowSlot } from "./shadow-dom";
 import { IScope } from "../binding/binding-context";
 import { IBindScope } from "../binding/observation";
@@ -7,25 +7,28 @@ import { DI, IContainer } from "../di";
 import { ITemplate } from "./view-engine";
 import { Constructable } from "../interfaces";
 import { ICompiledViewSource } from "./instructions";
+import { INode, DOM } from "../dom";
+import { IElementComponent } from "./component";
 
 export interface IView {
-  firstChild: Node;
-  lastChild: Node;
-  childNodes: ArrayLike<Node>;
+  firstChild: INode;
+  lastChild: INode;
+  childNodes: ArrayLike<INode>;
 
-  findTargets(): ReadonlyArray<Node>;
-  appendChild(child: Node): void;
-  insertBefore(refNode: Node): void;
-  appendTo(parent: Node): void;
+  findTargets(): ArrayLike<INode>;
+  appendChild(child: INode): void;
+  insertBefore(refNode: INode): void;
+  appendTo(parent: INode): void;
   remove(): void;
 }
-
-export const IViewOwner = DI.createInterface('IViewOwner');
 
 export interface IViewOwnerType extends Constructable<IViewOwner> {
   template: ITemplate;
   source: ICompiledViewSource;
 }
+
+export const IViewOwner = DI.createInterface('IViewOwner');
+
 export interface IViewOwner {
   $view: IView;
   $scope: IScope;
@@ -35,71 +38,70 @@ export interface IViewOwner {
   $attachable: IAttach[];
 
   $slots?: Record<string, IEmulatedShadowSlot>;
-  $useShadowDOM?: boolean;
 }
 
 const noopView: IView = {
-  firstChild: Node = null,
-  lastChild: Node = null,
+  firstChild: null,
+  lastChild: null,
   childNodes: PLATFORM.emptyArray,
   findTargets() { return PLATFORM.emptyArray; },
-  insertBefore(refNode: Node): void {},
-  appendTo(parent: Node): void {},
+  insertBefore(refNode: INode): void {},
+  appendTo(parent: INode): void {},
   remove(): void {},
-  appendChild(child: Node) {}
+  appendChild(child: INode) {}
 };
 
 export const View = {
   none: noopView,
-  fromCompiledTemplate(element: HTMLTemplateElement): IView {
-    return new TemplateView(element);
+  fromCompiledFactory(factory: () => INode): IView {
+    return new TemplateView(factory);
   },
-  fromCompiledElementContent(owner: IViewOwner, element: Element, contentElement?: Element): IView {
-    contentElement = contentElement || element.firstElementChild;
+  fromCompiledContent(owner: IElementComponent, node: INode, contentNode?: INode): IView {
+    contentNode = contentNode || DOM.findContentNode(node);
 
-    if (contentElement !== null && contentElement !== undefined) {
-      DOM.removeNode(contentElement);
+    if (contentNode !== null && contentNode !== undefined) {
+      DOM.removeNode(contentNode);
 
-      if (owner.$useShadowDOM) {
-        while(contentElement.firstChild) {
-          element.appendChild(contentElement.firstChild);
-        }
+      if (owner.$usingSlotEmulation) {
+        return new ContentView(contentNode);
       } else {
-        return new ContentView(contentElement);
+        while(contentNode.firstChild) {
+          DOM.appendChild(node, contentNode.firstChild);
+        }
       }
     }
     
     return noopView;
   },
-  fromElement(element: Element): IView {
+  fromNode(node: INode): IView {
     return {
-      firstChild: element,
-      lastChild: element,
-      childNodes: [element],
-      findTargets(): ReadonlyArray<Element> {
+      firstChild: node,
+      lastChild: node,
+      childNodes: [node],
+      findTargets(): ReadonlyArray<INode> {
         return PLATFORM.emptyArray;
       },
-      appendChild(node: Node) {
-        element.appendChild(node);
+      appendChild(node: INode) {
+        DOM.appendChild(node, node);
       },
-      insertBefore(refNode: Node): void {
-        refNode.parentNode.insertBefore(element, refNode);
+      insertBefore(refNode: INode): void {
+        DOM.insertBefore(node, refNode);
       },
-      appendTo(parent: Node): void {
-        parent.appendChild(element);
+      appendTo(parent: INode): void {
+        DOM.appendChild(parent, node);
       },
       remove(): void {
-        element.remove();
+        DOM.removeNode(node);
       }
     };
   }
 };
 
 class ContentView implements IView {
-  firstChild: Node;
-  lastChild: Node;
+  firstChild: INode;
+  lastChild: INode;
 
-  constructor(private element: Element) {
+  constructor(private element: INode) {
     this.firstChild = this.element.firstChild;
     this.lastChild = this.element.lastChild;
   }
@@ -108,57 +110,58 @@ class ContentView implements IView {
     return this.element.childNodes;
   }
 
-  appendChild(child: Node) {
-    this.element.appendChild(child);
+  appendChild(child: INode) {
+    DOM.appendChild(this.element, child);
   }
 
   findTargets() { return PLATFORM.emptyArray; }
-  insertBefore(refNode: Node): void {}
-  appendTo(parent: Node): void {}
+  insertBefore(refNode: INode): void {}
+  appendTo(parent: INode): void {}
   remove(): void {}
 }
 
 class TemplateView implements IView {
-  private fragment: DocumentFragment;
+  private instance: INode;
 
-  firstChild: Node;
-  lastChild: Node;
+  firstChild: INode;
+  lastChild: INode;
 
-  constructor(template: HTMLTemplateElement) {
-    this.fragment = (<HTMLTemplateElement>template.cloneNode(true)).content;
-    this.firstChild = this.fragment.firstChild;
-    this.lastChild = this.fragment.lastChild;
+  constructor(factory: () => INode) {
+    this.instance = factory();
+    this.firstChild = this.instance.firstChild;
+    this.lastChild = this.instance.lastChild;
   }
 
   get childNodes() {
-    return this.fragment.childNodes;
+    return this.instance.childNodes;
   }
 
-  appendChild(node: Node) {
-    this.fragment.appendChild(node);
+  appendChild(node: INode) {
+    DOM.appendChild(this.instance, node);
   }
 
-  findTargets(): ReadonlyArray<Element> {
-    return <any>this.fragment.querySelectorAll('.au');
+  findTargets(): ArrayLike<INode> {
+    return DOM.findCompileTargets(this.instance);
   }
 
-  insertBefore(refNode: Node): void {
-    refNode.parentNode.insertBefore(this.fragment, refNode);
+  insertBefore(refNode: INode): void {
+    DOM.insertBefore(this.instance, refNode);
   }
 
-  appendTo(parent: Node): void {
-    parent.appendChild(this.fragment);
+  appendTo(parent: INode): void {
+    DOM.appendChild(parent, this.instance);
   }
 
   remove(): void {
-    let fragment = this.fragment;
+    let fragment = this.instance;
     let current = this.firstChild;
     let end = this.lastChild;
+    let append = DOM.appendChild;
     let next;
 
     while (current) {
       next = current.nextSibling;
-      fragment.appendChild(current);
+      append(fragment, current);
 
       if (current === end) {
         break;

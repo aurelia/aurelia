@@ -1,10 +1,11 @@
-import { DOM, PLATFORM } from '../pal';;
+import { PLATFORM } from '../platform';;
 import { IView, IViewOwner } from './view';
 import { IRenderSlot } from './render-slot';
 import { IVisual, IVisualFactory } from './view-engine';
 import { IBindScope } from '../binding/observation';
 import { IScope } from '../binding/binding-context';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
+import { DOM, INode } from '../dom';
 
 type ProjectionSource = IRenderSlot | IEmulatedShadowSlot;
 
@@ -19,11 +20,11 @@ type ShadowEmulationTracking = {
   $projectionChildren: SlotNode[];
 };
 
-type SlotNode = Node & ShadowEmulationTracking;
+type SlotNode = INode & ShadowEmulationTracking;
 
 export interface IEmulatedShadowSlot extends IBindScope, IAttach {
   readonly name: string;
-  readonly anchor: Node;
+  readonly anchor: INode;
   /** @internal */ readonly needsFallback: boolean;
   /** @internal */ removeView(view: IView, projectionSource: ProjectionSource);
   /** @internal */ removeAll(projectionSource: ProjectionSource);
@@ -214,7 +215,8 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
       const anchor = this.findAnchor(view, node, projectionSource, index);
       const parent = anchor.parentNode;
 
-      parent.insertBefore(node, anchor);
+      DOM.insertBefore(node, anchor);
+
       this.children.push(node);
       this.projections++;
     }
@@ -313,13 +315,13 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   }
 
   projectFrom(view: IView, projectionSource: ProjectionSource) {
-    const anchor: SlotNode = <any>DOM.createComment('anchor');
+    const anchor: SlotNode = <any>DOM.createAnchor();
     const parent = this.anchor.parentNode;
 
     anchor.$slotProjectFrom = projectionSource;
     anchor.$ownerView = view;
     anchor.$projectionChildren = [];
-    parent.insertBefore(anchor, this.anchor);
+    DOM.insertBefore(anchor, this.anchor);
     this.children.push(anchor);
 
     if (this.projectFromAnchors === null) {
@@ -333,7 +335,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
 export const ShadowDOMEmulation = {
   defaultSlotName: 'auDefaultSlot',
 
-  getSlotName(node: Node): string {
+  getSlotName(node: INode): string {
     const name = (<any>node).$slotName;
 
     if (name === undefined) {
@@ -343,8 +345,8 @@ export const ShadowDOMEmulation = {
     return name;
   },
 
-  createSlot(target: Element, owner: IViewOwner, name?: string, destination?: string, fallbackFactory?: IVisualFactory) {
-    const anchor = <any>DOM.createComment('slot');
+  createSlot(target: INode, owner: IViewOwner, name?: string, destination?: string, fallbackFactory?: IVisualFactory) {
+    const anchor = <any>DOM.createAnchor();
     
     DOM.replaceNode(anchor, target);
 
@@ -396,7 +398,6 @@ export const ShadowDOMEmulation = {
   distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource, index: number, destinationOverride: string = null) {
     for (let i = 0, ii = nodes.length; i < ii; ++i) {
       const currentNode = nodes[i];
-      const nodeType = currentNode.nodeType;
 
       if (currentNode.$isContentProjectionSource) {
         currentNode.$slot.projectTo(slots);
@@ -407,8 +408,8 @@ export const ShadowDOMEmulation = {
 
         nodes.splice(i, 1);
         ii--; i--;
-      } else if (nodeType === 1 || nodeType === 3 || currentNode.$slot instanceof PassThroughSlot) { //project only elements and text
-        if (nodeType === 3 && DOM.isAllWhitespace(currentNode)) {
+      } else if (DOM.isElementNodeType(currentNode) || DOM.isTextNodeType(currentNode) || currentNode.$slot instanceof PassThroughSlot) { //project only elements and text
+        if (DOM.isTextNodeType(currentNode) && DOM.isAllWhitespace(currentNode)) {
           nodes.splice(i, 1);
           ii--; i--;
         } else {

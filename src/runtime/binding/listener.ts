@@ -1,9 +1,10 @@
-import { EventManager, IEventManager, DelegationStrategy } from "./event-manager";
+import { EventManager, DelegationStrategy } from "./event-manager";
 import { IExpression } from "./ast";
 import { IBinding } from "./binding";
 import { IContainer } from "../di";
 import { IDisposable } from "../interfaces";
 import { IScope } from "./binding-context";
+import { INode } from "../dom";
 
 export class Listener implements IBinding {
   private source: IScope;
@@ -14,7 +15,7 @@ export class Listener implements IBinding {
     public targetEvent: string,
     private delegationStrategy: DelegationStrategy,
     private sourceExpression: IExpression,
-    private target: EventTarget,
+    private target: INode,
     private preventDefault: boolean,
     public container: IContainer
   ) {

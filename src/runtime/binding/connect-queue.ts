@@ -1,4 +1,4 @@
-import {PLATFORM} from '../pal';
+import { PLATFORM } from '../platform';
 
 const queue = [];              // the connect queue
 const queued = {};             // tracks whether a binding with a particular id is in the queue
@@ -9,9 +9,10 @@ const frameBudget = 15;        // milliseconds allotted to each frame for flushi
 let isFlushRequested = false;  // whether a flush of the connect queue has been requested
 let immediate = 0;             // count of bindings that have been immediately connected
 
-function flush(animationFrameStart) {
+function flush(animationFrameStart: number) {
   const length = queue.length;
   let i = 0;
+  
   while (i < length) {
     const binding = queue[i];
     queued[binding.__connectQueueId] = false;
@@ -19,10 +20,11 @@ function flush(animationFrameStart) {
     i++;
     // periodically check whether the frame budget has been hit.
     // this ensures we don't call performance.now a lot and prevents starving the connect queue.
-    if (i % 100 === 0 && PLATFORM.performance.now() - animationFrameStart > frameBudget) {
+    if (i % 100 === 0 && PLATFORM.now() - animationFrameStart > frameBudget) {
       break;
     }
   }
+
   queue.splice(0, i);
 
   if (queue.length) {

@@ -127,7 +127,7 @@ define('app',["require", "exports", "./app-config", "./runtime/decorators"], fun
             console.log('app unbound');
         };
         App = __decorate([
-            decorators_1.compiledElement(app_config_1.appConfig)
+            decorators_1.customElement(app_config_1.appConfig)
         ], App);
         return App;
     }());
@@ -325,7 +325,7 @@ define('name-tag',["require", "exports", "./runtime/decorators", "./name-tag-con
             console.log('name-tag unbound');
         };
         NameTag = __decorate([
-            decorators_1.compiledElement(name_tag_config_1.nameTagConfig)
+            decorators_1.customElement(name_tag_config_1.nameTagConfig)
         ], NameTag);
         return NameTag;
     }());
@@ -452,6 +452,18 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
         12: {
             type: MessageType.error,
             message: 'Signal name is required.'
+        },
+        13: {
+            type: MessageType.error,
+            message: 'TaskQueue long stack traces are only available in debug mode.'
+        },
+        14: {
+            type: MessageType.error,
+            message: 'Property cannot be assigned.'
+        },
+        15: {
+            type: MessageType.error,
+            message: 'Unexpected call context.'
         }
     };
 });
@@ -515,7 +527,7 @@ define('debug/task-queue',["require", "exports", "../runtime/task-queue"], funct
 
 
 
-define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (require, exports, pal_1, di_1) {
+define('runtime/aurelia',["require", "exports", "./platform", "./di"], function (require, exports, platform_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var AureliaFramework = (function () {
@@ -567,7 +579,7 @@ define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (requ
         return AureliaFramework;
     }());
     exports.Aurelia = new AureliaFramework();
-    pal_1.PLATFORM.global.Aurelia = exports.Aurelia;
+    platform_1.PLATFORM.global.Aurelia = exports.Aurelia;
 });
 
 
@@ -575,12 +587,16 @@ define('runtime/aurelia',["require", "exports", "./pal", "./di"], function (requ
 define('runtime/decorators',["require", "exports", "./templating/component", "./di", "./binding/binding-mode"], function (require, exports, component_1, di_1, binding_mode_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    function compiledElement(source) {
+    function customElement(nameOrSource) {
         return function (target) {
-            return component_1.Component.elementFromCompiledSource(source, target);
+            if (typeof nameOrSource === 'string') {
+            }
+            else {
+                return component_1.Component.elementFromCompiledSource(nameOrSource, target);
+            }
         };
     }
-    exports.compiledElement = compiledElement;
+    exports.customElement = customElement;
     function customAttribute(name, defaultBindingMode, aliases) {
         if (defaultBindingMode === void 0) { defaultBindingMode = binding_mode_1.BindingMode.oneWay; }
         return function (target) {
@@ -719,7 +735,7 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
 
 
 
-define('runtime/di',["require", "exports", "./pal", "./reporter"], function (require, exports, pal_1, reporter_1) {
+define('runtime/di',["require", "exports", "./platform", "./reporter"], function (require, exports, platform_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function createInterface(key) {
@@ -741,7 +757,7 @@ define('runtime/di',["require", "exports", "./pal", "./reporter"], function (req
         };
     }
     function getDesignParamTypes(target) {
-        return Reflect.getOwnMetadata('design:paramtypes', target) || pal_1.PLATFORM.emptyArray;
+        return Reflect.getOwnMetadata('design:paramtypes', target) || platform_1.PLATFORM.emptyArray;
     }
     ;
     exports.IContainer = createInterface('IContainer');
@@ -868,7 +884,7 @@ define('runtime/di',["require", "exports", "./pal", "./reporter"], function (req
             var resolver = this.resolvers.get(key);
             if (resolver === undefined) {
                 if (this.parent === null) {
-                    return pal_1.PLATFORM.emptyArray;
+                    return platform_1.PLATFORM.emptyArray;
                 }
                 return this.parent.parentGetAll(key, this);
             }
@@ -878,7 +894,7 @@ define('runtime/di',["require", "exports", "./pal", "./reporter"], function (req
             var resolver = this.resolvers.get(key);
             if (resolver === undefined) {
                 if (this.parent === null) {
-                    return pal_1.PLATFORM.emptyArray;
+                    return platform_1.PLATFORM.emptyArray;
                 }
                 return this.parent.parentGetAll(key, requestor);
             }
@@ -963,7 +979,7 @@ define('runtime/di',["require", "exports", "./pal", "./reporter"], function (req
     }
     function getDependencies(type) {
         if (!type.hasOwnProperty('inject')) {
-            return pal_1.PLATFORM.emptyArray;
+            return platform_1.PLATFORM.emptyArray;
         }
         return type.inject;
     }
@@ -1032,6 +1048,143 @@ define('runtime/di',["require", "exports", "./pal", "./reporter"], function (req
 
 
 
+define('runtime/dom',["require", "exports", "./di"], function (require, exports, di_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.INode = di_1.DI.createInterface('INode');
+    var platformSupportsShadowDOM = function () {
+        var available = !!HTMLElement.prototype.attachShadow;
+        platformSupportsShadowDOM = function () { return available; };
+        return available;
+    };
+    exports.DOM = {
+        createFactoryFromMarkup: function (markup) {
+            var template = document.createElement('template');
+            template.innerHTML = markup;
+            return function () { return template.content.cloneNode(true); };
+        },
+        createElement: function (name) {
+            return document.createElement(name);
+        },
+        createAnchor: function () {
+            return document.createComment('anchor');
+        },
+        createObserver: function (callback) {
+            return new MutationObserver(callback);
+        },
+        createElementViewHost: function (node, options) {
+            if (options && platformSupportsShadowDOM()) {
+                return node.attachShadow(options);
+            }
+            node.$usingSlotEmulation = true;
+            return node;
+        },
+        cloneNode: function (node, deep) {
+            if (deep === void 0) { deep = true; }
+            return node.cloneNode(deep);
+        },
+        findCompileTargets: function (node) {
+            return node.querySelectorAll('.au');
+        },
+        findContentNode: function (node) {
+            return node.firstElementChild;
+        },
+        isUsingSlotEmulation: function (node) {
+            return !!node.$usingSlotEmulation;
+        },
+        isNodeInstance: function (potentialNode) {
+            return potentialNode instanceof Element;
+        },
+        isElementNodeType: function (node) {
+            return node.nodeType === 1;
+        },
+        isTextNodeType: function (node) {
+            return node.nodeType === 3;
+        },
+        normalizedTagName: function (node) {
+            var name = node.tagName;
+            return name ? name.toLowerCase() : null;
+        },
+        removeNode: function (node) {
+            if (node.parentNode) {
+                node.parentNode.removeChild(node);
+            }
+        },
+        replaceNode: function (newChild, oldChild) {
+            if (oldChild.parentNode) {
+                oldChild.parentNode.replaceChild(newChild, oldChild);
+            }
+        },
+        appendChild: function (parent, child) {
+            parent.appendChild(child);
+        },
+        insertBefore: function (nodeToInsert, referenceNode) {
+            referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
+        },
+        getAttribute: function (node, name) {
+            return node.getAttribute(name);
+        },
+        setAttribute: function (node, name, value) {
+            node.setAttribute(name, value);
+        },
+        removeAttribute: function (node, name) {
+            node.removeAttribute(name);
+        },
+        hasClass: function (node, className) {
+            return node.classList.contains(className);
+        },
+        addClass: function (node, className) {
+            node.classList.add(className);
+        },
+        removeClass: function (node, className) {
+            node.classList.remove(className);
+        },
+        addEventListener: function (eventName, subscriber, publisher, options) {
+            publisher = publisher || document;
+            publisher.addEventListener(eventName, subscriber, options);
+        },
+        removeEventListener: function (eventName, subscriber, publisher, options) {
+            publisher = publisher || document;
+            publisher.removeEventListener(eventName, subscriber, options);
+        },
+        isAllWhitespace: function (node) {
+            return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
+        },
+        treatAsNonWhitespace: function (node) {
+            node.auInterpolationTarget = true;
+        },
+        convertToAnchor: function (node, proxy) {
+            if (proxy === void 0) { proxy = false; }
+            var anchor = exports.DOM.createAnchor();
+            if (proxy) {
+                anchor.$proxyTarget = node;
+                anchor.hasAttribute = hasAttribute;
+                anchor.getAttribute = getAttribute;
+                anchor.setAttribute = setAttribute;
+            }
+            exports.DOM.replaceNode(anchor, node);
+            return anchor;
+        },
+        registerElementResolver: function (container, resolver) {
+            container.registerResolver(exports.INode, resolver);
+            container.registerResolver(Element, resolver);
+            container.registerResolver(HTMLElement, resolver);
+            container.registerResolver(SVGElement, resolver);
+        }
+    };
+    function hasAttribute(name) {
+        return this.$proxyTarget.hasAttribute(name);
+    }
+    function getAttribute(name) {
+        return this.$proxyTarget.getAttribute(name);
+    }
+    function setAttribute(name, value) {
+        this.$proxyTarget.setAttribute(name, value);
+    }
+});
+
+
+
 define('runtime/interfaces',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1039,7 +1192,7 @@ define('runtime/interfaces',["require", "exports"], function (require, exports) 
 
 
 
-define('runtime/pal',["require", "exports"], function (require, exports) {
+define('runtime/platform',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var global = (function () {
@@ -1051,109 +1204,38 @@ define('runtime/pal',["require", "exports"], function (require, exports) {
         }
         return new Function('return this')();
     })();
-    global.Element = typeof Element === 'undefined' ? function () { } : Element;
-    global.HTMLElement = typeof HTMLElement === 'undefined' ? function () { } : HTMLElement;
-    global.SVGElement = typeof SVGElement === 'undefined' ? function () { } : SVGElement;
-    global.HTMLSelectElement = typeof HTMLSelectElement === 'undefined' ? function () { } : HTMLSelectElement;
     exports.PLATFORM = {
         global: global,
         emptyArray: Object.freeze([]),
         emptyObject: Object.freeze({}),
-        location: global.location,
-        history: global.history,
-        performance: global.performance,
-        addEventListener: function (eventName, callback, capture) {
-            global.addEventListener(eventName, callback, capture);
-        },
-        removeEventListener: function (eventName, callback, capture) {
-            global.removeEventListener(eventName, callback, capture);
+        now: function () {
+            return performance.now();
         },
         requestAnimationFrame: function (callback) {
-            return global.requestAnimationFrame(callback);
+            return requestAnimationFrame(callback);
+        },
+        createTaskFlushRequester: function (callback) {
+            return function requestFlush() {
+                var timeoutHandle = setTimeout(handleFlushTimer, 0);
+                var intervalHandle = setInterval(handleFlushTimer, 50);
+                function handleFlushTimer() {
+                    clearTimeout(timeoutHandle);
+                    clearInterval(intervalHandle);
+                    callback();
+                }
+            };
+        },
+        createMicroTaskFlushRequestor: function (callback) {
+            var toggle = 1;
+            var observer = new MutationObserver(callback);
+            var node = document.createTextNode('');
+            observer.observe(node, { characterData: true });
+            return function requestFlush() {
+                toggle = -toggle;
+                node.data = toggle.toString();
+            };
         }
     };
-    exports.FEATURE = {
-        shadowDOM: !!global.HTMLElement.prototype.attachShadow
-    };
-    exports.DOM = {
-        Element: global.Element,
-        SVGElement: global.SVGElement,
-        registerElementResolver: function (container, resolver) {
-            container.registerResolver(exports.DOM.Element, resolver);
-            container.registerResolver(HTMLElement, resolver);
-            container.registerResolver(SVGElement, resolver);
-        },
-        addEventListener: function (eventName, callback, capture) {
-            document.addEventListener(eventName, callback, capture);
-        },
-        removeEventListener: function (eventName, callback, capture) {
-            document.removeEventListener(eventName, callback, capture);
-        },
-        adoptNode: function (node) {
-            return document.adoptNode(node);
-        },
-        createAttribute: function (name) {
-            return document.createAttribute(name);
-        },
-        createElement: function (tagName) {
-            return document.createElement(tagName);
-        },
-        createTextNode: function (text) {
-            return document.createTextNode(text);
-        },
-        createComment: function (text) {
-            return document.createComment(text);
-        },
-        createDocumentFragment: function () {
-            return document.createDocumentFragment();
-        },
-        createTemplateElement: function () {
-            return document.createElement('template');
-        },
-        createMutationObserver: function (callback) {
-            return new MutationObserver(callback);
-        },
-        createCustomEvent: function (eventType, options) {
-            return new CustomEvent(eventType, options);
-        },
-        replaceNode: function (newNode, node) {
-            if (node.parentNode) {
-                node.parentNode.replaceChild(newNode, node);
-            }
-        },
-        removeNode: function (node) {
-            if (node.parentNode) {
-                node.parentNode.removeChild(node);
-            }
-        },
-        isAllWhitespace: function (node) {
-            return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
-        },
-        treatNodeAsNonWhitespace: function (node) {
-            node.auInterpolationTarget = true;
-        },
-        makeElementIntoAnchor: function (element, proxy) {
-            if (proxy === void 0) { proxy = false; }
-            var anchor = exports.DOM.createComment('anchor');
-            if (proxy) {
-                anchor._element = element;
-                anchor.hasAttribute = hasAttribute;
-                anchor.getAttribute = getAttribute;
-                anchor.setAttribute = setAttribute;
-            }
-            exports.DOM.replaceNode(anchor, element);
-            return anchor;
-        }
-    };
-    function hasAttribute(name) {
-        return this._element.hasAttribute(name);
-    }
-    function getAttribute(name) {
-        return this._element.getAttribute(name);
-    }
-    function setAttribute(name, value) {
-        this._element.setAttribute(name, value);
-    }
 });
 
 
@@ -1180,40 +1262,18 @@ define('runtime/reporter',["require", "exports"], function (require, exports) {
 
 
 
-define('runtime/task-queue',["require", "exports", "./pal", "./di"], function (require, exports, pal_1, di_1) {
+define('runtime/task-queue',["require", "exports", "./di", "./reporter", "./platform"], function (require, exports, di_1, reporter_1, platform_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var hasSetImmediate = typeof setImmediate === 'function';
     exports.ITaskQueue = di_1.DI.createInterface('ITaskQueue');
-    function makeRequestFlushFromMutationObserver(flush) {
-        var toggle = 1;
-        var observer = pal_1.DOM.createMutationObserver(flush);
-        var node = pal_1.DOM.createTextNode('');
-        observer.observe(node, { characterData: true });
-        return function requestFlush() {
-            toggle = -toggle;
-            node.data = toggle.toString();
-        };
-    }
-    function makeRequestFlushFromTimer(flush) {
-        return function requestFlush() {
-            var timeoutHandle = setTimeout(handleFlushTimer, 0);
-            var intervalHandle = setInterval(handleFlushTimer, 50);
-            function handleFlushTimer() {
-                clearTimeout(timeoutHandle);
-                clearInterval(intervalHandle);
-                flush();
-            }
-        };
-    }
     var TaskQueueImplementation = (function () {
         function TaskQueueImplementation() {
             var _this = this;
             this.microTaskQueue = [];
             this.taskQueue = [];
             this.microTaskQueueCapacity = 1024;
-            this.requestFlushMicroTaskQueue = makeRequestFlushFromMutationObserver(function () { return _this.flushMicroTaskQueue(); });
-            this.requestFlushTaskQueue = makeRequestFlushFromTimer(function () { return _this.flushTaskQueue(); });
+            this.requestFlushMicroTaskQueue = platform_1.PLATFORM.createMicroTaskFlushRequestor(function () { return _this.flushMicroTaskQueue(); });
+            this.requestFlushTaskQueue = platform_1.PLATFORM.createTaskFlushRequester(function () { return _this.flushTaskQueue(); });
             this.flushing = false;
             this.longStacks = false;
         }
@@ -1274,16 +1334,16 @@ define('runtime/task-queue',["require", "exports", "./pal", "./di"], function (r
             this.flushQueue(queue, Number.MAX_VALUE);
         };
         TaskQueueImplementation.prototype.prepareTaskStack = function () {
-            throw new Error('TaskQueue long stack traces are only available in debug mode.');
+            throw reporter_1.Reporter.error(13);
         };
         TaskQueueImplementation.prototype.prepareMicroTaskStack = function () {
-            throw new Error('TaskQueue long stack traces are only available in debug mode.');
+            throw reporter_1.Reporter.error(13);
         };
         TaskQueueImplementation.prototype.onError = function (error, task) {
             if ('onError' in task) {
                 task.onError(error);
             }
-            else if (hasSetImmediate) {
+            else if (typeof setImmediate === 'function') {
                 setImmediate(function () { throw error; });
             }
             else {
@@ -1518,26 +1578,6 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
             throw new Error('Expression Compilation Not Implemented');
         }
     });
-});
-
-
-
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
-            container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
-            container.register(di_1.Registration.instance(signals_1.ISignaler, signals_1.Signaler));
-        }
-    };
 });
 
 
@@ -1997,28 +2037,6 @@ define('runtime/binding/array-observation',["require", "exports", "./collection-
 define('runtime/binding/ast',["require", "exports", "./binding-context", "./signal"], function (require, exports, binding_context_1, signal_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.AstKind = {
-        Base: 1,
-        Chain: 2,
-        ValueConverter: 3,
-        BindingBehavior: 4,
-        Assign: 5,
-        Conditional: 6,
-        AccessThis: 7,
-        AccessScope: 8,
-        AccessMember: 9,
-        AccessKeyed: 10,
-        CallScope: 11,
-        CallFunction: 12,
-        CallMember: 13,
-        PrefixNot: 14,
-        Binary: 15,
-        LiteralPrimitive: 16,
-        LiteralArray: 17,
-        LiteralObject: 18,
-        LiteralString: 19,
-        TemplateLiteral: 20,
-    };
     var Chain = (function () {
         function Chain(expressions) {
             this.expressions = expressions;
@@ -2642,7 +2660,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./observer-locator", "./binding-context"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, observer_locator_1, binding_context_1) {
+define('runtime/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./observer-locator", "./binding-context", "../reporter"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, observer_locator_1, binding_context_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Binding = (function (_super) {
@@ -2661,7 +2679,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             this.targetObserver.setValue(value, this.target, this.targetProperty);
         };
         Binding.prototype.updateSource = function (value) {
-            this.sourceExpression.assign(this.source, value, this.container);
+            this.sourceExpression.assign(this.$scope, value, this.container);
         };
         Binding.prototype.call = function (context, newValue, oldValue) {
             if (!this.$isBound) {
@@ -2669,36 +2687,36 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             }
             if (context === binding_context_1.sourceContext) {
                 oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-                newValue = this.sourceExpression.evaluate(this.source, this.container);
+                newValue = this.sourceExpression.evaluate(this.$scope, this.container);
                 if (newValue !== oldValue) {
                     this.updateTarget(newValue);
                 }
                 if (this.mode !== binding_mode_1.BindingMode.oneTime) {
                     this.version++;
-                    this.sourceExpression.connect(this, this.source);
+                    this.sourceExpression.connect(this, this.$scope);
                     this.unobserve(false);
                 }
                 return;
             }
             if (context === binding_context_1.targetContext) {
-                if (newValue !== this.sourceExpression.evaluate(this.source, this.container)) {
+                if (newValue !== this.sourceExpression.evaluate(this.$scope, this.container)) {
                     this.updateSource(newValue);
                 }
                 return;
             }
-            throw new Error("Unexpected call context " + context);
+            throw reporter_1.Reporter.error(15, context);
         };
-        Binding.prototype.$bind = function (source) {
+        Binding.prototype.$bind = function (scope) {
             if (this.$isBound) {
-                if (this.source === source) {
+                if (this.$scope === scope) {
                     return;
                 }
                 this.$unbind();
             }
             this.$isBound = true;
-            this.source = source;
+            this.$scope = scope;
             if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, source);
+                this.sourceExpression.bind(this, scope);
             }
             var mode = this.mode;
             if (!this.targetObserver) {
@@ -2709,7 +2727,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 this.targetObserver.bind();
             }
             if (this.mode !== binding_mode_1.BindingMode.fromView) {
-                var value = this.sourceExpression.evaluate(source, this.container);
+                var value = this.sourceExpression.evaluate(scope, this.container);
                 this.updateTarget(value);
             }
             if (mode === binding_mode_1.BindingMode.oneTime) {
@@ -2719,7 +2737,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 connect_queue_1.enqueueBindingConnect(this);
             }
             else if (mode === binding_mode_1.BindingMode.twoWay) {
-                this.sourceExpression.connect(this, source);
+                this.sourceExpression.connect(this, scope);
                 this.targetObserver.subscribe(binding_context_1.targetContext, this);
             }
             else if (mode === binding_mode_1.BindingMode.fromView) {
@@ -2732,9 +2750,9 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             }
             this.$isBound = false;
             if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.source);
+                this.sourceExpression.unbind(this, this.$scope);
             }
-            this.source = null;
+            this.$scope = null;
             if ('unbind' in this.targetObserver) {
                 this.targetObserver.unbind();
             }
@@ -2748,10 +2766,10 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 return;
             }
             if (evaluate) {
-                var value = this.sourceExpression.evaluate(this.source, this.container);
+                var value = this.sourceExpression.evaluate(this.$scope, this.container);
                 this.updateTarget(value);
             }
-            this.sourceExpression.connect(this, this.source);
+            this.sourceExpression.connect(this, this.$scope);
         };
         return Binding;
     }(connectable_binding_1.ConnectableBinding));
@@ -2773,29 +2791,29 @@ define('runtime/binding/call',["require", "exports", "./observer-locator"], func
             this.targetObserver = observer_locator_1.ObserverLocator.getObserver(target, targetProperty);
         }
         Call.prototype.callSource = function ($event) {
-            var overrideContext = this.source.overrideContext;
+            var overrideContext = this.$scope.overrideContext;
             Object.assign(overrideContext, $event);
             overrideContext.$event = $event;
             var mustEvaluate = true;
-            var result = this.sourceExpression.evaluate(this.source, this.container, mustEvaluate);
+            var result = this.sourceExpression.evaluate(this.$scope, this.container, mustEvaluate);
             delete overrideContext.$event;
             for (var prop in $event) {
                 delete overrideContext[prop];
             }
             return result;
         };
-        Call.prototype.$bind = function (source) {
+        Call.prototype.$bind = function (scope) {
             var _this = this;
             if (this.$isBound) {
-                if (this.source === source) {
+                if (this.$scope === scope) {
                     return;
                 }
                 this.$unbind();
             }
             this.$isBound = true;
-            this.source = source;
+            this.$scope = scope;
             if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, source);
+                this.sourceExpression.bind(this, scope);
             }
             this.targetObserver.setValue(function ($event) { return _this.callSource($event); }, this.target, this.targetProperty);
         };
@@ -2805,9 +2823,9 @@ define('runtime/binding/call',["require", "exports", "./observer-locator"], func
             }
             this.$isBound = false;
             if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.source);
+                this.sourceExpression.unbind(this, this.$scope);
             }
-            this.source = null;
+            this.$scope = null;
             this.targetObserver.setValue(null, this.target, this.targetProperty);
         };
         Call.prototype.observeProperty = function () { };
@@ -2835,9 +2853,9 @@ define('runtime/binding/checked-observer',["require", "exports", "./subscriber-c
     var checkedValueContext = 'CheckedObserver:value';
     var CheckedObserver = (function (_super) {
         __extends(CheckedObserver, _super);
-        function CheckedObserver(element, handler, observerLocator) {
+        function CheckedObserver(node, handler, observerLocator) {
             var _this = _super.call(this) || this;
-            _this.element = element;
+            _this.node = node;
             _this.handler = handler;
             _this.observerLocator = observerLocator;
             return _this;
@@ -2853,7 +2871,7 @@ define('runtime/binding/checked-observer',["require", "exports", "./subscriber-c
                 this.arrayObserver.unsubscribe(checkedArrayContext, this);
                 this.arrayObserver = null;
             }
-            if (this.element.type === 'checkbox' && Array.isArray(newValue)) {
+            if (this.node.type === 'checkbox' && Array.isArray(newValue)) {
                 this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
                 this.arrayObserver.subscribe(checkedArrayContext, this);
             }
@@ -2869,7 +2887,7 @@ define('runtime/binding/checked-observer',["require", "exports", "./subscriber-c
         CheckedObserver.prototype.call = function (context, splices) {
             this.synchronizeElement();
             if (!this.valueObserver) {
-                this.valueObserver = this.element['$observers'].model || this.element['$observers'].value;
+                this.valueObserver = this.node['$observers'].model || this.node['$observers'].value;
                 if (this.valueObserver) {
                     this.valueObserver.subscribe(checkedValueContext, this);
                 }
@@ -2877,7 +2895,7 @@ define('runtime/binding/checked-observer',["require", "exports", "./subscriber-c
         };
         CheckedObserver.prototype.synchronizeElement = function () {
             var value = this.value;
-            var element = this.element;
+            var element = this.node;
             var elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
             var isRadio = element.type === 'radio';
             var matcher = element['matcher'] || (function (a, b) { return a === b; });
@@ -2888,7 +2906,7 @@ define('runtime/binding/checked-observer',["require", "exports", "./subscriber-c
         };
         CheckedObserver.prototype.synchronizeValue = function () {
             var value = this.value;
-            var element = this.element;
+            var element = this.node;
             var elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
             var index;
             var matcher = element['matcher'] || (function (a, b) { return a === b; });
@@ -2928,7 +2946,7 @@ define('runtime/binding/checked-observer',["require", "exports", "./subscriber-c
         };
         CheckedObserver.prototype.subscribe = function (context, callable) {
             if (!this.hasSubscribers()) {
-                this.handler.subscribe(this.element, this);
+                this.handler.subscribe(this.node, this);
             }
             this.addSubscriber(context, callable);
         };
@@ -2953,12 +2971,12 @@ define('runtime/binding/checked-observer',["require", "exports", "./subscriber-c
 
 
 
-define('runtime/binding/class-observer',["require", "exports"], function (require, exports) {
+define('runtime/binding/class-observer',["require", "exports", "../dom"], function (require, exports, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ClassObserver = (function () {
-        function ClassObserver(element) {
-            this.element = element;
+        function ClassObserver(node) {
+            this.node = node;
             this.doNotCache = true;
             this.value = '';
             this.version = 0;
@@ -2967,6 +2985,8 @@ define('runtime/binding/class-observer',["require", "exports"], function (requir
             return this.value;
         };
         ClassObserver.prototype.setValue = function (newValue) {
+            var addClass = dom_1.DOM.addClass;
+            var removeClass = dom_1.DOM.removeClass;
             var nameIndex = this.nameIndex || {};
             var version = this.version;
             var names;
@@ -2979,7 +2999,7 @@ define('runtime/binding/class-observer',["require", "exports"], function (requir
                         continue;
                     }
                     nameIndex[name] = version;
-                    this.element.classList.add(name);
+                    addClass(this.node, name);
                 }
             }
             this.value = newValue;
@@ -2993,11 +3013,11 @@ define('runtime/binding/class-observer',["require", "exports"], function (requir
                 if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
                     continue;
                 }
-                this.element.classList.remove(name);
+                removeClass(this.node, name);
             }
         };
         ClassObserver.prototype.subscribe = function () {
-            throw new Error("Observation of a \"" + this.element.nodeName + "\" element's \"class\" property is not supported.");
+            throw new Error("Observation of a \"" + dom_1.DOM.normalizedTagName(this.node) + "\" element's \"class\" property is not supported.");
         };
         return ClassObserver;
     }());
@@ -3147,7 +3167,7 @@ define('runtime/binding/collection-observation',["require", "exports", "./array-
 
 
 
-define('runtime/binding/connect-queue',["require", "exports", "../pal"], function (require, exports, pal_1) {
+define('runtime/binding/connect-queue',["require", "exports", "../platform"], function (require, exports, platform_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var queue = [];
@@ -3165,13 +3185,13 @@ define('runtime/binding/connect-queue',["require", "exports", "../pal"], functio
             queued[binding.__connectQueueId] = false;
             binding.connect(true);
             i++;
-            if (i % 100 === 0 && pal_1.PLATFORM.performance.now() - animationFrameStart > frameBudget) {
+            if (i % 100 === 0 && platform_1.PLATFORM.now() - animationFrameStart > frameBudget) {
                 break;
             }
         }
         queue.splice(0, i);
         if (queue.length) {
-            pal_1.PLATFORM.requestAnimationFrame(flush);
+            platform_1.PLATFORM.requestAnimationFrame(flush);
         }
         else {
             isFlushRequested = false;
@@ -3197,7 +3217,7 @@ define('runtime/binding/connect-queue',["require", "exports", "../pal"], functio
         }
         if (!isFlushRequested) {
             isFlushRequested = true;
-            pal_1.PLATFORM.requestAnimationFrame(flush);
+            platform_1.PLATFORM.requestAnimationFrame(flush);
         }
     }
     exports.enqueueBindingConnect = enqueueBindingConnect;
@@ -3366,54 +3386,54 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/element-observation',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+define('runtime/binding/element-observation',["require", "exports", "./subscriber-collection", "../dom"], function (require, exports, subscriber_collection_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var XLinkAttributeObserver = (function () {
-        function XLinkAttributeObserver(element, propertyName, attributeName) {
-            this.element = element;
+        function XLinkAttributeObserver(node, propertyName, attributeName) {
+            this.node = node;
             this.propertyName = propertyName;
             this.attributeName = attributeName;
         }
         XLinkAttributeObserver.prototype.getValue = function () {
-            return this.element.getAttributeNS('http://www.w3.org/1999/xlink', this.attributeName);
+            return this.node.getAttributeNS('http://www.w3.org/1999/xlink', this.attributeName);
         };
         XLinkAttributeObserver.prototype.setValue = function (newValue) {
-            return this.element.setAttributeNS('http://www.w3.org/1999/xlink', this.attributeName, newValue);
+            return this.node.setAttributeNS('http://www.w3.org/1999/xlink', this.attributeName, newValue);
         };
         XLinkAttributeObserver.prototype.subscribe = function () {
-            throw new Error("Observation of a \"" + this.element.nodeName + "\" element's \"" + this.propertyName + "\" property is not supported.");
+            throw new Error("Observation of a \"" + dom_1.DOM.normalizedTagName(this.node) + "\" element's \"" + this.propertyName + "\" property is not supported.");
         };
         return XLinkAttributeObserver;
     }());
     exports.XLinkAttributeObserver = XLinkAttributeObserver;
     exports.dataAttributeAccessor = {
-        getValue: function (obj, propertyName) { return obj.getAttribute(propertyName); },
+        getValue: function (obj, propertyName) { return dom_1.DOM.getAttribute(obj, propertyName); },
         setValue: function (value, obj, propertyName) {
             if (value === null || value === undefined) {
-                obj.removeAttribute(propertyName);
+                dom_1.DOM.removeAttribute(obj, propertyName);
             }
             else {
-                obj.setAttribute(propertyName, value);
+                dom_1.DOM.setAttribute(obj, propertyName, value);
             }
         }
     };
     var DataAttributeObserver = (function () {
-        function DataAttributeObserver(element, propertyName) {
-            this.element = element;
+        function DataAttributeObserver(node, propertyName) {
+            this.node = node;
             this.propertyName = propertyName;
         }
         DataAttributeObserver.prototype.getValue = function () {
-            return this.element.getAttribute(this.propertyName);
+            return dom_1.DOM.getAttribute(this.node, this.propertyName);
         };
         DataAttributeObserver.prototype.setValue = function (newValue) {
             if (newValue === null || newValue === undefined) {
-                return this.element.removeAttribute(this.propertyName);
+                return dom_1.DOM.removeAttribute(this.node, this.propertyName);
             }
-            return this.element.setAttribute(this.propertyName, newValue);
+            return dom_1.DOM.setAttribute(this.node, this.propertyName, newValue);
         };
         DataAttributeObserver.prototype.subscribe = function () {
-            throw new Error("Observation of a \"" + this.element.nodeName + "\" element's \"" + this.propertyName + "\" property is not supported.");
+            throw new Error("Observation of a \"" + dom_1.DOM.normalizedTagName(this.node) + "\" element's \"" + this.propertyName + "\" property is not supported.");
         };
         return DataAttributeObserver;
     }());
@@ -3486,9 +3506,9 @@ define('runtime/binding/element-observation',["require", "exports", "./subscribe
     exports.StyleObserver = StyleObserver;
     var ValueAttributeObserver = (function (_super) {
         __extends(ValueAttributeObserver, _super);
-        function ValueAttributeObserver(element, propertyName, handler) {
+        function ValueAttributeObserver(node, propertyName, handler) {
             var _this = _super.call(this) || this;
-            _this.element = element;
+            _this.node = node;
             _this.propertyName = propertyName;
             _this.handler = handler;
             if (propertyName === 'files') {
@@ -3497,12 +3517,12 @@ define('runtime/binding/element-observation',["require", "exports", "./subscribe
             return _this;
         }
         ValueAttributeObserver.prototype.getValue = function () {
-            return this.element[this.propertyName];
+            return this.node[this.propertyName];
         };
         ValueAttributeObserver.prototype.setValue = function (newValue) {
             newValue = newValue === undefined || newValue === null ? '' : newValue;
-            if (this.element[this.propertyName] !== newValue) {
-                this.element[this.propertyName] = newValue;
+            if (this.node[this.propertyName] !== newValue) {
+                this.node[this.propertyName] = newValue;
                 this.notify();
             }
         };
@@ -3518,7 +3538,7 @@ define('runtime/binding/element-observation',["require", "exports", "./subscribe
         ValueAttributeObserver.prototype.subscribe = function (context, callable) {
             if (!this.hasSubscribers()) {
                 this.oldValue = this.getValue();
-                this.handler.subscribe(this.element, this);
+                this.handler.subscribe(this.node, this);
             }
             this.addSubscriber(context, callable);
         };
@@ -3534,7 +3554,7 @@ define('runtime/binding/element-observation',["require", "exports", "./subscribe
 
 
 
-define('runtime/binding/event-manager',["require", "exports", "../pal", "../di"], function (require, exports, pal_1, di_1) {
+define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"], function (require, exports, di_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function findOriginalEventTarget(event) {
@@ -3603,13 +3623,13 @@ define('runtime/binding/event-manager',["require", "exports", "../pal", "../di"]
         ListenerTracker.prototype.increment = function () {
             this.count++;
             if (this.count === 1) {
-                pal_1.DOM.addEventListener(this.eventName, this.listener, this.capture);
+                dom_1.DOM.addEventListener(this.eventName, this.listener, null, this.capture);
             }
         };
         ListenerTracker.prototype.decrement = function () {
             this.count--;
             if (this.count === 0) {
-                pal_1.DOM.removeEventListener(this.eventName, this.listener, this.capture);
+                dom_1.DOM.removeEventListener(this.eventName, this.listener, null, this.capture);
             }
         };
         return ListenerTracker;
@@ -3633,10 +3653,10 @@ define('runtime/binding/event-manager',["require", "exports", "../pal", "../di"]
             this.target = target;
             this.targetEvent = targetEvent;
             this.callback = callback;
-            target.addEventListener(targetEvent, callback);
+            dom_1.DOM.addEventListener(targetEvent, callback, target);
         }
         TriggerSubscription.prototype.dispose = function () {
-            this.target.removeEventListener(this.targetEvent, this.callback);
+            dom_1.DOM.removeEventListener(this.targetEvent, this.callback, this.target);
             this.target = this.targetEvent = this.callback = null;
         };
         return TriggerSubscription;
@@ -3654,20 +3674,22 @@ define('runtime/binding/event-manager',["require", "exports", "../pal", "../di"]
             this.target = null;
             this.handler = null;
         }
-        EventSubscriber.prototype.subscribe = function (element, callbackOrListener) {
-            this.target = element;
+        EventSubscriber.prototype.subscribe = function (node, callbackOrListener) {
+            this.target = node;
             this.handler = callbackOrListener;
+            var add = dom_1.DOM.addEventListener;
             var events = this.events;
             for (var i = 0, ii = events.length; ii > i; ++i) {
-                element.addEventListener(events[i], callbackOrListener);
+                add(events[i], callbackOrListener, node);
             }
         };
         EventSubscriber.prototype.dispose = function () {
-            var element = this.target;
+            var node = this.target;
             var callbackOrListener = this.handler;
             var events = this.events;
+            var remove = dom_1.DOM.removeEventListener;
             for (var i = 0, ii = events.length; ii > i; ++i) {
-                element.removeEventListener(events[i], callbackOrListener);
+                remove(event[i], callbackOrListener, node);
             }
             this.target = this.handler = null;
         };
@@ -3725,12 +3747,11 @@ define('runtime/binding/event-manager',["require", "exports", "../pal", "../di"]
             }
         };
         EventManagerImplementation.prototype.getElementHandler = function (target, propertyName) {
-            var tagName;
+            var name = dom_1.DOM.normalizedTagName(target);
             var lookup = this.elementHandlerLookup;
-            if (target.tagName) {
-                tagName = target.tagName.toLowerCase();
-                if (lookup[tagName] && lookup[tagName][propertyName]) {
-                    return new EventSubscriber(lookup[tagName][propertyName]);
+            if (name) {
+                if (lookup[name] && lookup[name][propertyName]) {
+                    return new EventSubscriber(lookup[name][propertyName]);
                 }
                 if (propertyName === 'textContent' || propertyName === 'innerHTML') {
                     return new EventSubscriber(lookup['content editable'].value);
@@ -3985,7 +4006,7 @@ define('runtime/binding/observation',["require", "exports"], function (require, 
 
 
 
-define('runtime/binding/observer-locator',["require", "exports", "../pal", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checker", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg-analyzer", "../reporter", "../di"], function (require, exports, pal_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checker_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_analyzer_1, reporter_1, di_1) {
+define('runtime/binding/observer-locator',["require", "exports", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checker", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg-analyzer", "../reporter", "../di"], function (require, exports, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checker_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_analyzer_1, reporter_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IObserverLocator = di_1.DI.createInterface('IObserverLocator');
@@ -4046,40 +4067,37 @@ define('runtime/binding/observer-locator',["require", "exports", "../pal", "./ar
             return null;
         };
         ObserverLocatorImplementation.prototype.createPropertyObserver = function (obj, propertyName) {
-            var descriptor;
-            var handler;
-            var xlinkResult;
             if (!(obj instanceof Object)) {
                 return new property_observation_1.PrimitiveObserver(obj, propertyName);
             }
-            if (obj instanceof pal_1.DOM.Element) {
+            if (dom_1.DOM.isNodeInstance(obj)) {
                 if (propertyName === 'class') {
                     return new class_observer_1.ClassObserver(obj);
                 }
                 if (propertyName === 'style' || propertyName === 'css') {
                     return new element_observation_1.StyleObserver(obj, propertyName);
                 }
-                handler = event_manager_1.EventManager.getElementHandler(obj, propertyName);
-                if (propertyName === 'value' && obj.tagName.toLowerCase() === 'select') {
+                var handler = event_manager_1.EventManager.getElementHandler(obj, propertyName);
+                if (propertyName === 'value' && dom_1.DOM.normalizedTagName(obj) === 'select') {
                     return new select_value_observer_1.SelectValueObserver(obj, handler, this);
                 }
-                if (propertyName === 'checked' && obj.tagName.toLowerCase() === 'input') {
+                if (propertyName === 'checked' && dom_1.DOM.normalizedTagName(obj) === 'input') {
                     return new checked_observer_1.CheckedObserver(obj, handler, this);
                 }
                 if (handler) {
                     return new element_observation_1.ValueAttributeObserver(obj, propertyName, handler);
                 }
-                xlinkResult = /^xlink:(.+)$/.exec(propertyName);
+                var xlinkResult = /^xlink:(.+)$/.exec(propertyName);
                 if (xlinkResult) {
                     return new element_observation_1.XLinkAttributeObserver(obj, propertyName, xlinkResult[1]);
                 }
-                if (propertyName === 'role' && (obj instanceof pal_1.DOM.Element || obj instanceof pal_1.DOM.SVGElement)
+                if (propertyName === 'role'
                     || /^\w+:|^data-|^aria-/.test(propertyName)
-                    || obj instanceof pal_1.DOM.SVGElement && svg_analyzer_1.SVGAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)) {
+                    || svg_analyzer_1.SVGAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
                     return new element_observation_1.DataAttributeObserver(obj, propertyName);
                 }
             }
-            descriptor = getPropertyDescriptor(obj, propertyName);
+            var descriptor = getPropertyDescriptor(obj, propertyName);
             if (descriptor) {
                 var existingGetterOrSetter = descriptor.get || descriptor.set;
                 if (existingGetterOrSetter) {
@@ -4114,19 +4132,20 @@ define('runtime/binding/observer-locator',["require", "exports", "../pal", "./ar
             return new property_observation_1.SetterObserver(obj, propertyName);
         };
         ObserverLocatorImplementation.prototype.getAccessor = function (obj, propertyName) {
-            if (obj instanceof pal_1.DOM.Element) {
+            if (dom_1.DOM.isNodeInstance(obj)) {
+                var normalizedTagName = dom_1.DOM.normalizedTagName;
                 if (propertyName === 'class'
                     || propertyName === 'style' || propertyName === 'css'
-                    || propertyName === 'value' && (obj.tagName.toLowerCase() === 'input' || obj.tagName.toLowerCase() === 'select')
-                    || propertyName === 'checked' && obj.tagName.toLowerCase() === 'input'
-                    || propertyName === 'model' && obj.tagName.toLowerCase() === 'input'
+                    || propertyName === 'value' && (normalizedTagName(obj) === 'input' || normalizedTagName(obj) === 'select')
+                    || propertyName === 'checked' && normalizedTagName(obj) === 'input'
+                    || propertyName === 'model' && normalizedTagName(obj) === 'input'
                     || /^xlink:.+$/.exec(propertyName)) {
                     return this.getObserver(obj, propertyName);
                 }
                 if (/^\w+:|^data-|^aria-/.test(propertyName)
-                    || obj instanceof pal_1.DOM.SVGElement && svg_analyzer_1.SVGAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)
-                    || obj.tagName.toLowerCase() === 'img' && propertyName === 'src'
-                    || obj.tagName.toLowerCase() === 'a' && propertyName === 'href') {
+                    || svg_analyzer_1.SVGAnalyzer.isStandardSvgAttribute(obj, propertyName)
+                    || normalizedTagName(obj) === 'img' && propertyName === 'src'
+                    || normalizedTagName(obj) === 'a' && propertyName === 'href') {
                     return element_observation_1.dataAttributeAccessor;
                 }
             }
@@ -4177,8 +4196,7 @@ define('runtime/binding/property-observation',["require", "exports", "./subscrib
             return this.primitive[this.propertyName];
         };
         PrimitiveObserver.prototype.setValue = function () {
-            var type = typeof this.primitive;
-            throw new Error("The " + this.propertyName + " property of a " + type + " (" + this.primitive + ") cannot be assigned.");
+            throw reporter_1.Reporter.error(14, typeof this.primitive + "#" + this.propertyName);
         };
         PrimitiveObserver.prototype.subscribe = function () { };
         PrimitiveObserver.prototype.unsubscribe = function () { };
@@ -4305,32 +4323,32 @@ define('runtime/binding/ref',["require", "exports"], function (require, exports)
             this.container = container;
             this.$isBound = false;
         }
-        Ref.prototype.$bind = function (source) {
+        Ref.prototype.$bind = function (scope) {
             if (this.$isBound) {
-                if (this.source === source) {
+                if (this.$scope === scope) {
                     return;
                 }
                 this.$unbind();
             }
             this.$isBound = true;
-            this.source = source;
+            this.$scope = scope;
             if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, source);
+                this.sourceExpression.bind(this, scope);
             }
-            this.sourceExpression.assign(this.source, this.target, this.container);
+            this.sourceExpression.assign(this.$scope, this.target, this.container);
         };
         Ref.prototype.$unbind = function () {
             if (!this.$isBound) {
                 return;
             }
             this.$isBound = false;
-            if (this.sourceExpression.evaluate(this.source, this.container) === this.target) {
-                this.sourceExpression.assign(this.source, null, this.container);
+            if (this.sourceExpression.evaluate(this.$scope, this.container) === this.target) {
+                this.sourceExpression.assign(this.$scope, null, this.container);
             }
             if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.source);
+                this.sourceExpression.unbind(this, this.$scope);
             }
-            this.source = null;
+            this.$scope = null;
         };
         Ref.prototype.observeProperty = function (context, name) { };
         return Ref;
@@ -4350,19 +4368,19 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../pal", "../task-queue"], function (require, exports, subscriber_collection_1, pal_1, task_queue_1) {
+define('runtime/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../task-queue", "../dom"], function (require, exports, subscriber_collection_1, task_queue_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var selectArrayContext = 'SelectValueObserver:array';
     var SelectValueObserver = (function (_super) {
         __extends(SelectValueObserver, _super);
-        function SelectValueObserver(element, handler, observerLocator) {
+        function SelectValueObserver(node, handler, observerLocator) {
             var _this = _super.call(this) || this;
-            _this.element = element;
+            _this.node = node;
             _this.handler = handler;
             _this.observerLocator = observerLocator;
             _this.initialSync = false;
-            _this.element = element;
+            _this.node = node;
             _this.handler = handler;
             _this.observerLocator = observerLocator;
             return _this;
@@ -4371,7 +4389,7 @@ define('runtime/binding/select-value-observer',["require", "exports", "./subscri
             return this.value;
         };
         SelectValueObserver.prototype.setValue = function (newValue) {
-            if (newValue !== null && newValue !== undefined && this.element.multiple && !Array.isArray(newValue)) {
+            if (newValue !== null && newValue !== undefined && this.node.multiple && !Array.isArray(newValue)) {
                 throw new Error('Only null or Array instances can be bound to a multi-select.');
             }
             if (this.value === newValue) {
@@ -4403,9 +4421,9 @@ define('runtime/binding/select-value-observer',["require", "exports", "./subscri
             if (Array.isArray(value)) {
                 isArray = true;
             }
-            var options = this.element.options;
+            var options = this.node.options;
             var i = options.length;
-            var matcher = this.element.matcher || (function (a, b) { return a === b; });
+            var matcher = this.node.matcher || (function (a, b) { return a === b; });
             var _loop_1 = function () {
                 var option = options.item(i);
                 var optionValue = option.hasOwnProperty('model') ? option.model : option.value;
@@ -4420,7 +4438,7 @@ define('runtime/binding/select-value-observer',["require", "exports", "./subscri
             }
         };
         SelectValueObserver.prototype.synchronizeValue = function () {
-            var options = this.element.options;
+            var options = this.node.options;
             var count = 0;
             var value = [];
             for (var i = 0, ii = options.length; i < ii; i++) {
@@ -4431,9 +4449,9 @@ define('runtime/binding/select-value-observer',["require", "exports", "./subscri
                 value.push(option.hasOwnProperty('model') ? option.model : option.value);
                 count++;
             }
-            if (this.element.multiple) {
+            if (this.node.multiple) {
                 if (Array.isArray(this.value)) {
-                    var matcher_1 = this.element.matcher || (function (a, b) { return a === b; });
+                    var matcher_1 = this.node.matcher || (function (a, b) { return a === b; });
                     var i = 0;
                     var _loop_2 = function () {
                         var a = this_1.value[i];
@@ -4487,7 +4505,7 @@ define('runtime/binding/select-value-observer',["require", "exports", "./subscri
         };
         SelectValueObserver.prototype.subscribe = function (context, callable) {
             if (!this.hasSubscribers()) {
-                this.handler.subscribe(this.element, this);
+                this.handler.subscribe(this.node, this);
             }
             this.addSubscriber(context, callable);
         };
@@ -4498,11 +4516,11 @@ define('runtime/binding/select-value-observer',["require", "exports", "./subscri
         };
         SelectValueObserver.prototype.bind = function () {
             var _this = this;
-            this.domObserver = pal_1.DOM.createMutationObserver(function () {
+            this.domObserver = dom_1.DOM.createObserver(function () {
                 _this.synchronizeOptions();
                 _this.synchronizeValue();
             });
-            this.domObserver.observe(this.element, { childList: true, subtree: true, characterData: true });
+            this.domObserver.observe(this.node, { childList: true, subtree: true, characterData: true });
         };
         SelectValueObserver.prototype.unbind = function () {
             this.domObserver.disconnect();
@@ -4814,8 +4832,28 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ISVGAnalyzer = di_1.DI.createInterface('ISVGAnalyzer');
     exports.SVGAnalyzer = {
-        isStandardSvgAttribute: function (nodeName, attributeName) {
+        isStandardSvgAttribute: function (node, attributeName) {
             return false;
+        }
+    };
+});
+
+
+
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
+            container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
+            container.register(di_1.Registration.instance(signals_1.ISignaler, signals_1.Signaler));
         }
     };
 });
@@ -4933,7 +4971,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/compose',["require", "exports", "../decorators", "../templating/render-slot", "../templating/view-engine", "../templating/instructions", "../templating/view", "../pal"], function (require, exports, decorators_1, render_slot_1, view_engine_1, instructions_1, view_1, pal_1) {
+define('runtime/resources/compose',["require", "exports", "../decorators", "../templating/render-slot", "../templating/view-engine", "../templating/instructions", "../templating/view", "../dom"], function (require, exports, decorators_1, render_slot_1, view_engine_1, instructions_1, view_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var composeSource = {
@@ -4943,23 +4981,20 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
     };
     var composeProps = ['component', 'swapOrder', 'isComposing'];
     var Compose = (function () {
-        function Compose(viewOwner, element, slot, instruction) {
+        function Compose(viewOwner, host, slot, instruction) {
             this.viewOwner = viewOwner;
-            this.element = element;
+            this.host = host;
             this.slot = slot;
             this.task = null;
             this.visual = null;
             this.auContent = null;
-            this.viewOwner = viewOwner;
-            this.slot = slot;
             var type = viewOwner.constructor;
-            var composeInstruction = instruction;
             this.compositionContainer = type.template.container;
             this.baseInstruction = {
                 type: instructions_1.TargetedInstructionType.hydrateElement,
-                instructions: composeInstruction.instructions.filter(function (x) { return !composeProps.includes(x.dest); }),
+                instructions: instruction.instructions.filter(function (x) { return !composeProps.includes(x.dest); }),
                 res: null,
-                replacements: composeInstruction.replacements
+                replacements: instruction.replacements
             };
         }
         Compose.prototype.componentChanged = function (toBeComposed) {
@@ -4991,22 +5026,23 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
         };
         Compose.prototype.createContentElement = function () {
             var auContent = this.auContent;
+            var append = dom_1.DOM.appendChild;
             if (auContent == null) {
-                this.auContent = auContent = pal_1.DOM.createElement('au-content');
+                this.auContent = auContent = dom_1.DOM.createElement('au-content');
                 if (this.$contentView !== null) {
                     var nodes = this.$contentView.childNodes;
                     for (var i = 0, ii = nodes.length; i < ii; ++i) {
-                        auContent.appendChild(nodes[i]);
+                        append(auContent, nodes[i]);
                     }
                 }
                 else {
-                    var element = this.element;
+                    var element = this.host;
                     while (element.firstChild) {
-                        auContent.appendChild(element.firstChild);
+                        append(auContent, element.firstChild);
                     }
                 }
             }
-            return auContent.cloneNode(true);
+            return dom_1.DOM.cloneNode(auContent);
         };
         Compose.prototype.swap = function (newVisual) {
             var index = this.$bindable.indexOf(this.visual);
@@ -5024,9 +5060,9 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
             this.slot.removeAll();
         };
         Compose = __decorate([
-            decorators_1.compiledElement(composeSource),
-            decorators_1.inject(view_1.IViewOwner, pal_1.DOM.Element, render_slot_1.IRenderSlot, instructions_1.ITargetedInstruction),
-            __metadata("design:paramtypes", [Object, HTMLElement, Object, Object])
+            decorators_1.customElement(composeSource),
+            decorators_1.inject(view_1.IViewOwner, dom_1.INode, render_slot_1.IRenderSlot, instructions_1.ITargetedInstruction),
+            __metadata("design:paramtypes", [Object, Object, Object, Object])
         ], Compose);
         return Compose;
     }());
@@ -5216,8 +5252,8 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
         function IfCore(factory, slot) {
             this.factory = factory;
             this.slot = slot;
-            this.child = null;
             this.$scope = null;
+            this.child = null;
             this.showing = false;
         }
         IfCore.prototype.unbound = function () {
@@ -5733,18 +5769,18 @@ define('runtime/templating/animator',["require", "exports", "../di"], function (
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IAnimator = di_1.DI.createInterface('IAnimator');
     exports.Animator = {
-        enter: function (element) {
+        enter: function (node) {
             return Promise.resolve(false);
         },
-        leave: function (element) {
+        leave: function (node) {
             return Promise.resolve(false);
         },
-        removeClass: function (element, className) {
-            element.classList.remove(className);
+        removeClass: function (node, className) {
+            node.classList.remove(className);
             return Promise.resolve(false);
         },
-        addClass: function (element, className) {
-            element.classList.add(className);
+        addClass: function (node, className) {
+            node.classList.add(className);
             return Promise.resolve(false);
         }
     };
@@ -5762,7 +5798,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../binding/property-observation", "./shadow-dom", "../pal", "../di", "../binding/binding-context", "./lifecycle"], function (require, exports, view_engine_1, view_1, property_observation_1, shadow_dom_1, pal_1, di_1, binding_context_1, lifecycle_1) {
+define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../binding/property-observation", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom"], function (require, exports, view_engine_1, view_1, property_observation_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
@@ -5897,7 +5933,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         _this.$bindable = [];
                         _this.$attachable = [];
                         _this.$slots = source.hasSlots ? {} : null;
-                        _this.$useShadowDOM = source.shadowOptions && pal_1.FEATURE.shadowDOM;
+                        _this.$usingSlotEmulation = source.hasSlots || false;
                         _this.$view = null;
                         _this.$contentView = null;
                         _this.$slot = null;
@@ -5919,13 +5955,10 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     };
                     class_1.prototype.$hydrate = function (host, content, replacements) {
                         if (content === void 0) { content = view_1.View.none; }
-                        if (replacements === void 0) { replacements = pal_1.PLATFORM.emptyObject; }
-                        this.$host = source.containerless
-                            ? pal_1.DOM.makeElementIntoAnchor(host, true)
-                            : host;
-                        this.$shadowRoot = this.$useShadowDOM
-                            ? host.attachShadow(source.shadowOptions)
-                            : this.$host;
+                        if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
+                        this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
+                        this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
+                        this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
                         this.$contentView = content;
                         this.$view = this.$createView(this.$host, replacements);
                         if (this.$behavior.hasCreated) {
@@ -6462,11 +6495,11 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/shadow-dom',["require", "exports", "../pal"], function (require, exports, pal_1) {
+define('runtime/templating/shadow-dom',["require", "exports", "../platform", "../dom"], function (require, exports, platform_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
-    var noNodes = pal_1.PLATFORM.emptyArray;
+    var noNodes = platform_1.PLATFORM.emptyArray;
     function shadowSlotAddFallbackVisual(visual, owner) {
         owner.fallbackVisual.$view.insertBefore(owner.anchor);
     }
@@ -6618,7 +6651,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
                 node.$assignedSlot = this;
                 var anchor = this.findAnchor(view, node, projectionSource, index);
                 var parent_1 = anchor.parentNode;
-                parent_1.insertBefore(node, anchor);
+                dom_1.DOM.insertBefore(node, anchor);
                 this.children.push(node);
                 this.projections++;
             }
@@ -6703,12 +6736,12 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             this.destinationSlots = slots;
         };
         ShadowSlot.prototype.projectFrom = function (view, projectionSource) {
-            var anchor = pal_1.DOM.createComment('anchor');
+            var anchor = dom_1.DOM.createAnchor();
             var parent = this.anchor.parentNode;
             anchor.$slotProjectFrom = projectionSource;
             anchor.$ownerView = view;
             anchor.$projectionChildren = [];
-            parent.insertBefore(anchor, this.anchor);
+            dom_1.DOM.insertBefore(anchor, this.anchor);
             this.children.push(anchor);
             if (this.projectFromAnchors === null) {
                 this.projectFromAnchors = [];
@@ -6727,8 +6760,8 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             return name;
         },
         createSlot: function (target, owner, name, destination, fallbackFactory) {
-            var anchor = pal_1.DOM.createComment('slot');
-            pal_1.DOM.replaceNode(anchor, target);
+            var anchor = dom_1.DOM.createAnchor();
+            dom_1.DOM.replaceNode(anchor, target);
             if (destination) {
                 return new PassThroughSlot(owner, anchor, name || exports.ShadowDOMEmulation.defaultSlotName, destination, fallbackFactory);
             }
@@ -6768,7 +6801,6 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
             if (destinationOverride === void 0) { destinationOverride = null; }
             for (var i = 0, ii = nodes.length; i < ii; ++i) {
                 var currentNode = nodes[i];
-                var nodeType = currentNode.nodeType;
                 if (currentNode.$isContentProjectionSource) {
                     currentNode.$slot.projectTo(slots);
                     for (var slotName in slots) {
@@ -6778,8 +6810,8 @@ define('runtime/templating/shadow-dom',["require", "exports", "../pal"], functio
                     ii--;
                     i--;
                 }
-                else if (nodeType === 1 || nodeType === 3 || currentNode.$slot instanceof PassThroughSlot) {
-                    if (nodeType === 3 && pal_1.DOM.isAllWhitespace(currentNode)) {
+                else if (dom_1.DOM.isElementNodeType(currentNode) || dom_1.DOM.isTextNodeType(currentNode) || currentNode.$slot instanceof PassThroughSlot) {
+                    if (dom_1.DOM.isTextNodeType(currentNode) && dom_1.DOM.isAllWhitespace(currentNode)) {
                         nodes.splice(i, 1);
                         ii--;
                         i--;
@@ -6822,7 +6854,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-engine',["require", "exports", "../pal", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode", "./lifecycle", "./animator", "../reporter", "./instructions"], function (require, exports, pal_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1, lifecycle_1, animator_1, reporter_1, instructions_1) {
+define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode", "./lifecycle", "./animator", "../reporter", "./instructions", "../dom"], function (require, exports, platform_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1, lifecycle_1, animator_1, reporter_1, instructions_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -6868,17 +6900,17 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
                 ComponentVisual.prototype.createView = function () {
                     var target;
                     if (typeof componentOrType === 'function') {
-                        target = pal_1.DOM.createElement(componentOrType.source.name);
+                        target = dom_1.DOM.createElement(componentOrType.source.name);
                         interpreter[instructions_1.TargetedInstructionType.hydrateElement](this, instruction, target, null, container);
                         this.component = this.$attachable[this.$attachable.length - 1];
                     }
                     else {
                         var componentType = componentOrType.constructor;
-                        target = componentOrType.element || pal_1.DOM.createElement(componentType.source.name);
+                        target = componentOrType.element || dom_1.DOM.createElement(componentType.source.name);
                         applyElementInstructionToComponentInstance(componentOrType, instruction, container, target, this);
                         this.component = componentOrType;
                     }
-                    return view_1.View.fromElement(target);
+                    return view_1.View.fromNode(target);
                 };
                 ComponentVisual.prototype.tryReturnToCache = function () {
                     return false;
@@ -6893,8 +6925,8 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
     var interpreter = (_a = {},
         _a[instructions_1.TargetedInstructionType.textBinding] = function (owner, instruction, target, replacements, container) {
             var next = target.nextSibling;
-            pal_1.DOM.treatNodeAsNonWhitespace(next);
-            pal_1.DOM.removeNode(target);
+            dom_1.DOM.treatAsNonWhitespace(next);
+            dom_1.DOM.removeNode(target);
             owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, container));
         },
         _a[instructions_1.TargetedInstructionType.oneWayBinding] = function (owner, instruction, target, replacements, container) {
@@ -6922,10 +6954,10 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             target[instruction.dest] = instruction.value;
         },
         _a[instructions_1.TargetedInstructionType.setAttribute] = function (owner, instruction, target, replacements, container) {
-            target.setAttribute(instruction.dest, instruction.value);
+            dom_1.DOM.setAttribute(target, instruction.dest, instruction.value);
         },
         _a[instructions_1.TargetedInstructionType.hydrateSlot] = function (owner, instruction, target, replacements, container) {
-            if (owner.$useShadowDOM) {
+            if (!owner.$usingSlotEmulation) {
                 return;
             }
             var fallbackFactory = instruction.factory;
@@ -6976,7 +7008,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             container.owner.prepare(owner);
             container.instruction.prepare(instruction);
             container.factory.prepare(factory, replacements);
-            container.slot.prepare(pal_1.DOM.makeElementIntoAnchor(target), false);
+            container.slot.prepare(dom_1.DOM.convertToAnchor(target), false);
             var component = container.get(instruction.res);
             container.slot.connectTemplateController(component);
             if (instruction.link) {
@@ -6997,7 +7029,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
         _a);
     function applyElementInstructionToComponentInstance(component, instruction, container, target, owner) {
         var childInstructions = instruction.instructions;
-        component.$hydrate(target, view_1.View.fromCompiledElementContent(component, target, instruction.contentElement), instruction.replacements);
+        component.$hydrate(target, view_1.View.fromCompiledContent(component, target, instruction.contentElement), instruction.replacements);
         for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
             var current = childInstructions[i];
             var currentType = current.type;
@@ -7033,7 +7065,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
         }
         ViewFactoryProvider.prototype.prepare = function (factory, replacements) {
             this.factory = factory;
-            this.replacements = replacements || pal_1.PLATFORM.emptyObject;
+            this.replacements = replacements || platform_1.PLATFORM.emptyObject;
         };
         ViewFactoryProvider.prototype.get = function (handler, requestor) {
             var found = this.replacements[this.factory.name];
@@ -7088,7 +7120,7 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
     function createTemplateContainer(dependencies) {
         var container = di_1.DI.createChild();
         container.element = new InstanceProvider();
-        pal_1.DOM.registerElementResolver(container, container.element);
+        dom_1.DOM.registerElementResolver(container, container.element);
         container.registerResolver(exports.IVisualFactory, container.factory = new ViewFactoryProvider());
         container.registerResolver(render_slot_1.IRenderSlot, container.slot = new RenderSlotProvider());
         container.registerResolver(view_1.IViewOwner, container.owner = new InstanceProvider());
@@ -7102,12 +7134,11 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
         function CompiledTemplate(source) {
             this.source = source;
             this.container = createTemplateContainer(source.dependencies);
-            this.element = pal_1.DOM.createTemplateElement();
-            this.element.innerHTML = source.template;
+            this.factory = dom_1.DOM.createFactoryFromMarkup(source.template);
         }
         CompiledTemplate.prototype.createFor = function (owner, host, replacements) {
             var source = this.source;
-            var view = view_1.View.fromCompiledTemplate(this.element);
+            var view = view_1.View.fromCompiledFactory(this.factory);
             var targets = view.findTargets();
             var container = this.container;
             var targetInstructions = source.targetInstructions;
@@ -7149,11 +7180,12 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
             }
             var currentChild = this.$view.firstChild;
             var lastChild = this.$view.lastChild;
-            while (currentChild !== lastChild && currentChild.nodeType !== 1) {
+            var isElementNodeType = dom_1.DOM.isElementNodeType;
+            while (currentChild !== lastChild && !isElementNodeType(currentChild)) {
                 currentChild = currentChild.nextSibling;
             }
-            if (currentChild && currentChild.nodeType === 1) {
-                return this.$animationRoot = currentChild.classList.contains('au-animate')
+            if (currentChild && isElementNodeType(currentChild)) {
+                return this.$animationRoot = dom_1.DOM.hasClass(currentChild, 'au-animate')
                     ? currentChild
                     : null;
             }
@@ -7290,15 +7322,15 @@ define('runtime/templating/view-engine',["require", "exports", "../pal", "./view
 
 
 
-define('runtime/templating/view',["require", "exports", "../pal", "../di"], function (require, exports, pal_1, di_1) {
+define('runtime/templating/view',["require", "exports", "../platform", "../di", "../dom"], function (require, exports, platform_1, di_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IViewOwner = di_1.DI.createInterface('IViewOwner');
     var noopView = {
-        firstChild: Node = null,
-        lastChild: Node = null,
-        childNodes: pal_1.PLATFORM.emptyArray,
-        findTargets: function () { return pal_1.PLATFORM.emptyArray; },
+        firstChild: null,
+        lastChild: null,
+        childNodes: platform_1.PLATFORM.emptyArray,
+        findTargets: function () { return platform_1.PLATFORM.emptyArray; },
         insertBefore: function (refNode) { },
         appendTo: function (parent) { },
         remove: function () { },
@@ -7306,43 +7338,43 @@ define('runtime/templating/view',["require", "exports", "../pal", "../di"], func
     };
     exports.View = {
         none: noopView,
-        fromCompiledTemplate: function (element) {
-            return new TemplateView(element);
+        fromCompiledFactory: function (factory) {
+            return new TemplateView(factory);
         },
-        fromCompiledElementContent: function (owner, element, contentElement) {
-            contentElement = contentElement || element.firstElementChild;
-            if (contentElement !== null && contentElement !== undefined) {
-                pal_1.DOM.removeNode(contentElement);
-                if (owner.$useShadowDOM) {
-                    while (contentElement.firstChild) {
-                        element.appendChild(contentElement.firstChild);
-                    }
+        fromCompiledContent: function (owner, node, contentNode) {
+            contentNode = contentNode || dom_1.DOM.findContentNode(node);
+            if (contentNode !== null && contentNode !== undefined) {
+                dom_1.DOM.removeNode(contentNode);
+                if (owner.$usingSlotEmulation) {
+                    return new ContentView(contentNode);
                 }
                 else {
-                    return new ContentView(contentElement);
+                    while (contentNode.firstChild) {
+                        dom_1.DOM.appendChild(node, contentNode.firstChild);
+                    }
                 }
             }
             return noopView;
         },
-        fromElement: function (element) {
+        fromNode: function (node) {
             return {
-                firstChild: element,
-                lastChild: element,
-                childNodes: [element],
+                firstChild: node,
+                lastChild: node,
+                childNodes: [node],
                 findTargets: function () {
-                    return pal_1.PLATFORM.emptyArray;
+                    return platform_1.PLATFORM.emptyArray;
                 },
                 appendChild: function (node) {
-                    element.appendChild(node);
+                    dom_1.DOM.appendChild(node, node);
                 },
                 insertBefore: function (refNode) {
-                    refNode.parentNode.insertBefore(element, refNode);
+                    dom_1.DOM.insertBefore(node, refNode);
                 },
                 appendTo: function (parent) {
-                    parent.appendChild(element);
+                    dom_1.DOM.appendChild(parent, node);
                 },
                 remove: function () {
-                    element.remove();
+                    dom_1.DOM.removeNode(node);
                 }
             };
         }
@@ -7361,47 +7393,48 @@ define('runtime/templating/view',["require", "exports", "../pal", "../di"], func
             configurable: true
         });
         ContentView.prototype.appendChild = function (child) {
-            this.element.appendChild(child);
+            dom_1.DOM.appendChild(this.element, child);
         };
-        ContentView.prototype.findTargets = function () { return pal_1.PLATFORM.emptyArray; };
+        ContentView.prototype.findTargets = function () { return platform_1.PLATFORM.emptyArray; };
         ContentView.prototype.insertBefore = function (refNode) { };
         ContentView.prototype.appendTo = function (parent) { };
         ContentView.prototype.remove = function () { };
         return ContentView;
     }());
     var TemplateView = (function () {
-        function TemplateView(template) {
-            this.fragment = template.cloneNode(true).content;
-            this.firstChild = this.fragment.firstChild;
-            this.lastChild = this.fragment.lastChild;
+        function TemplateView(factory) {
+            this.instance = factory();
+            this.firstChild = this.instance.firstChild;
+            this.lastChild = this.instance.lastChild;
         }
         Object.defineProperty(TemplateView.prototype, "childNodes", {
             get: function () {
-                return this.fragment.childNodes;
+                return this.instance.childNodes;
             },
             enumerable: true,
             configurable: true
         });
         TemplateView.prototype.appendChild = function (node) {
-            this.fragment.appendChild(node);
+            dom_1.DOM.appendChild(this.instance, node);
         };
         TemplateView.prototype.findTargets = function () {
-            return this.fragment.querySelectorAll('.au');
+            return dom_1.DOM.findCompileTargets(this.instance);
         };
         TemplateView.prototype.insertBefore = function (refNode) {
-            refNode.parentNode.insertBefore(this.fragment, refNode);
+            dom_1.DOM.insertBefore(this.instance, refNode);
         };
         TemplateView.prototype.appendTo = function (parent) {
-            parent.appendChild(this.fragment);
+            dom_1.DOM.appendChild(parent, this.instance);
         };
         TemplateView.prototype.remove = function () {
-            var fragment = this.fragment;
+            var fragment = this.instance;
             var current = this.firstChild;
             var end = this.lastChild;
+            var append = dom_1.DOM.appendChild;
             var next;
             while (current) {
                 next = current.nextSibling;
-                fragment.appendChild(current);
+                append(fragment, current);
                 if (current === end) {
                     break;
                 }
@@ -7414,7 +7447,7 @@ define('runtime/templating/view',["require", "exports", "../pal", "../di"], func
 
 
 
-define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/pal"], function (require, exports, svg_analyzer_1, pal_1) {
+define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var svgElements = {
@@ -7614,7 +7647,7 @@ define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/
         'writing-mode': true
     };
     function createElement(html) {
-        var div = pal_1.DOM.createElement('div');
+        var div = dom_1.DOM.createElement('div');
         div.innerHTML = html;
         return div.firstElementChild;
     }
@@ -7630,7 +7663,11 @@ define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/
         delete svgElements.glyphRef;
     }
     exports.SVGAnalyzer = Object.assign(svg_analyzer_1.SVGAnalyzer, {
-        isStandardSvgAttribute: function (nodeName, attributeName) {
+        isStandardSvgAttribute: function (node, attributeName) {
+            if (!(node instanceof SVGElement)) {
+                return false;
+            }
+            var nodeName = node.nodeName;
             return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
                 || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
         }

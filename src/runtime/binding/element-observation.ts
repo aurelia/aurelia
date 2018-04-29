@@ -2,53 +2,59 @@ import { SubscriberCollection } from './subscriber-collection';
 import { ICallable } from '../interfaces';
 import { IAccessor, ISubscribable } from './observation';
 import { IEventSubscriber } from './event-manager';
+import { INode, DOM } from '../dom';
 
 export class XLinkAttributeObserver implements IAccessor {
   // xlink namespaced attributes require getAttributeNS/setAttributeNS
   // (even though the NS version doesn't work for other namespaces
   // in html5 documents)
-  constructor(private element: Element, private propertyName: string, private attributeName: string) { }
+
+  // Using very HTML-specific code here since this isn't likely to get
+  // called unless operating against a real HTML element.
+
+  constructor(private node: INode, private propertyName: string, private attributeName: string) { }
 
   getValue() {
-    return this.element.getAttributeNS('http://www.w3.org/1999/xlink', this.attributeName);
+    return (<Element>this.node).getAttributeNS('http://www.w3.org/1999/xlink', this.attributeName);
   }
 
   setValue(newValue: any) {
-    return this.element.setAttributeNS('http://www.w3.org/1999/xlink', this.attributeName, newValue);
+    return (<Element>this.node).setAttributeNS('http://www.w3.org/1999/xlink', this.attributeName, newValue);
   }
 
   subscribe() {
-    throw new Error(`Observation of a "${this.element.nodeName}" element\'s "${this.propertyName}" property is not supported.`);
+    throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "${this.propertyName}" property is not supported.`);
   }
 }
 
 export const dataAttributeAccessor = {
-  getValue: (obj: Element, propertyName: string) => obj.getAttribute(propertyName),
-  setValue: (value: any, obj: Element, propertyName: string) => {
+  getValue: (obj: INode, propertyName: string) => DOM.getAttribute(obj, propertyName),
+  setValue: (value: any, obj: INode, propertyName: string) => {
     if (value === null || value === undefined) {
-      obj.removeAttribute(propertyName);
+      DOM.removeAttribute(obj, propertyName);
     } else {
-      obj.setAttribute(propertyName, value);
+      DOM.setAttribute(obj, propertyName, value);
     }
   }
 };
 
 export class DataAttributeObserver implements IAccessor {
-  constructor(private element: Element, private propertyName: string) { }
+  constructor(private node: INode, private propertyName: string) { }
 
   getValue() {
-    return this.element.getAttribute(this.propertyName);
+    return DOM.getAttribute(this.node, this.propertyName);
   }
 
   setValue(newValue: any) {
     if (newValue === null || newValue === undefined) {
-      return this.element.removeAttribute(this.propertyName);
+      return DOM.removeAttribute(this.node, this.propertyName);
     }
-    return this.element.setAttribute(this.propertyName, newValue);
+
+    return DOM.setAttribute(this.node, this.propertyName, newValue);
   }
 
   subscribe() {
-    throw new Error(`Observation of a "${this.element.nodeName}" element\'s "${this.propertyName}" property is not supported.`);
+    throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "${this.propertyName}" property is not supported.`);
   }
 }
 
@@ -69,6 +75,7 @@ export class StyleObserver implements IAccessor {
       priority = 'important';
       value = value.replace('!important', '');
     }
+
     this.element.style.setProperty(style, value, priority);
   }
 
@@ -127,7 +134,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
   private oldValue: any;
 
   constructor(
-    private element: Element,
+    private node: INode,
     private propertyName: string,
     public handler: IEventSubscriber
   ) {
@@ -140,13 +147,13 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
   }
 
   getValue(): any {
-    return (this.element as any)[this.propertyName];
+    return (this.node as any)[this.propertyName];
   }
 
   setValue(newValue: any) {
     newValue = newValue === undefined || newValue === null ? '' : newValue;
-    if ((this.element as any)[this.propertyName] !== newValue) {
-      (this.element as any)[this.propertyName] = newValue;
+    if ((this.node as any)[this.propertyName] !== newValue) {
+      (this.node as any)[this.propertyName] = newValue;
       this.notify();
     }
   }
@@ -167,7 +174,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
   subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
-      this.handler.subscribe(this.element, this);
+      this.handler.subscribe(this.node, this);
     }
 
     this.addSubscriber(context, callable);

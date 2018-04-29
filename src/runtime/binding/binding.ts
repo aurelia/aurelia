@@ -7,6 +7,7 @@ import { Observer } from './property-observation';
 import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor } from './observation';
 import { IContainer } from '../di';
 import { IScope, sourceContext, targetContext } from './binding-context';
+import { Reporter } from '../reporter';
 
 export interface IBinding extends IBindScope {
   container: IContainer;
@@ -17,7 +18,7 @@ export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 
 export class Binding extends ConnectableBinding implements IBinding {
   public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
-  private source: IScope;
+  private $scope: IScope;
   private $isBound = false;
 
   constructor(
@@ -34,7 +35,7 @@ export class Binding extends ConnectableBinding implements IBinding {
   }
 
   updateSource(value: any) {
-    this.sourceExpression.assign(this.source, value, this.container);
+    this.sourceExpression.assign(this.$scope, value, this.container);
   }
 
   call(context: string, newValue: any, oldValue: any) {
@@ -44,7 +45,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
     if (context === sourceContext) {
       oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-      newValue = this.sourceExpression.evaluate(this.source, this.container);
+      newValue = this.sourceExpression.evaluate(this.$scope, this.container);
 
       if (newValue !== oldValue) {
         this.updateTarget(newValue);
@@ -52,7 +53,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
       if (this.mode !== BindingMode.oneTime) {
         this.version++;
-        this.sourceExpression.connect(this, this.source);
+        this.sourceExpression.connect(this, this.$scope);
         this.unobserve(false);
       }
 
@@ -60,19 +61,19 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (context === targetContext) {
-      if (newValue !== this.sourceExpression.evaluate(this.source, this.container)) {
+      if (newValue !== this.sourceExpression.evaluate(this.$scope, this.container)) {
         this.updateSource(newValue);
       }
 
       return;
     }
 
-    throw new Error(`Unexpected call context ${context}`);
+    throw Reporter.error(15, context);
   }
 
-  $bind(source: IScope) {
+  $bind(scope: IScope) {
     if (this.$isBound) {
-      if (this.source === source) {
+      if (this.$scope === scope) {
         return;
       }
 
@@ -80,10 +81,10 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     this.$isBound = true;
-    this.source = source;
+    this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, source);
+      this.sourceExpression.bind(this, scope);
     }
 
     let mode = this.mode;
@@ -98,7 +99,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (this.mode !== BindingMode.fromView) {
-      let value = this.sourceExpression.evaluate(source, this.container);
+      let value = this.sourceExpression.evaluate(scope, this.container);
       this.updateTarget(value);
     }
 
@@ -107,7 +108,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     } else if (mode === BindingMode.toView) {
       enqueueBindingConnect(this);
     } else if (mode === BindingMode.twoWay) {
-      this.sourceExpression.connect(this, source);
+      this.sourceExpression.connect(this, scope);
       (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
     } else if (mode === BindingMode.fromView) {
       (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
@@ -122,10 +123,10 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.source);
+      this.sourceExpression.unbind(this, this.$scope);
     }
 
-    this.source = null;
+    this.$scope = null;
 
     if ('unbind' in this.targetObserver) {
       (this.targetObserver as IBindingTargetObserver).unbind();
@@ -144,10 +145,10 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (evaluate) {
-      let value = this.sourceExpression.evaluate(this.source, this.container);
+      let value = this.sourceExpression.evaluate(this.$scope, this.container);
       this.updateTarget(value);
     }
 
-    this.sourceExpression.connect(this, this.source);
+    this.sourceExpression.connect(this, this.$scope);
   }
 }

@@ -1,5 +1,5 @@
 import { SVGAnalyzer as RuntimeSVGAnalyzer, ISVGAnalyzer } from '../../runtime/binding/svg-analyzer';
-import { DOM } from '../../runtime/pal';
+import { DOM, INode } from '../../runtime/dom';
 
 const svgElements = {
   a: ['class','externalResourcesRequired','id','onactivate','onclick','onfocusin','onfocusout','onload','onmousedown','onmousemove','onmouseout','onmouseover','onmouseup','requiredExtensions','requiredFeatures','style','systemLanguage','target','transform','xlink:actuate','xlink:arcrole','xlink:href','xlink:role','xlink:show','xlink:title','xlink:type','xml:base','xml:lang','xml:space'],
@@ -202,7 +202,10 @@ const svgPresentationAttributes = {
 
 // SVG elements/attributes are case-sensitive.  Not all browsers use the same casing for all attributes.
 function createElement(html) {
-  let div = DOM.createElement('div');
+  // Using very HTML-specific code here since you won't install this module
+  // unless you are actually running in a browser, using HTML, 
+  // and dealing with browser inconsistencies.
+  let div = <HTMLElement>DOM.createElement('div');
   div.innerHTML = html;
   return div.firstElementChild;
 };
@@ -220,7 +223,17 @@ if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'alt
 }
 
 export const SVGAnalyzer: ISVGAnalyzer = Object.assign(RuntimeSVGAnalyzer, {
-  isStandardSvgAttribute(nodeName: string, attributeName: string) {
+  isStandardSvgAttribute(node: INode, attributeName: string) {
+    // Using very HTML-specific code here since you won't install this module
+    // unless you are actually running in a browser, using HTML, 
+    // and dealing with browser inconsistencies.
+
+    if (!(node instanceof SVGElement)) {
+      return false;
+    }
+
+    const nodeName = (<SVGElement>node).nodeName;
+
     return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
       || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
   }

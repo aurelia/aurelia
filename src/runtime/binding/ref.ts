@@ -4,7 +4,7 @@ import { IContainer } from "../di";
 import { IScope } from "./binding-context";
 
 export class Ref implements IBinding {
-  private source: IScope;
+  private $scope: IScope;
   private $isBound = false;
 
   constructor(
@@ -13,9 +13,9 @@ export class Ref implements IBinding {
     public container: IContainer) {
   }
 
-  $bind(source: IScope) {
+  $bind(scope: IScope) {
     if (this.$isBound) {
-      if (this.source === source) {
+      if (this.$scope === scope) {
         return;
       }
 
@@ -23,13 +23,13 @@ export class Ref implements IBinding {
     }
 
     this.$isBound = true;
-    this.source = source;
+    this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, source);
+      this.sourceExpression.bind(this, scope);
     }
 
-    this.sourceExpression.assign(this.source, this.target, this.container);
+    this.sourceExpression.assign(this.$scope, this.target, this.container);
   }
 
   $unbind() {
@@ -39,15 +39,15 @@ export class Ref implements IBinding {
 
     this.$isBound = false;
 
-    if (this.sourceExpression.evaluate(this.source, this.container) === this.target) {
-      this.sourceExpression.assign(this.source, null, this.container);
+    if (this.sourceExpression.evaluate(this.$scope, this.container) === this.target) {
+      this.sourceExpression.assign(this.$scope, null, this.container);
     }
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.source);
+      this.sourceExpression.unbind(this, this.$scope);
     }
 
-    this.source = null;
+    this.$scope = null;
   }
 
   observeProperty(context: any, name: any) { }

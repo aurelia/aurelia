@@ -101,5 +101,17 @@ const codeLookup: Record<string, IMessageInfo> = {
   12: {
     type: MessageType.error,
     message: 'Signal name is required.'
+  },
+  13: {
+    type: MessageType.error,
+    message: 'TaskQueue long stack traces are only available in debug mode.'
+  },
+  14: {
+    type: MessageType.error,
+    message: 'Property cannot be assigned.'
+  },
+  15: {
+    type: MessageType.error,
+    message: 'Unexpected call context.'
   }
 };

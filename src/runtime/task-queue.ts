@@ -1,8 +1,7 @@
-import { DOM } from './pal';
 import { ICallable } from './interfaces';
 import { DI } from './di';
-
-let hasSetImmediate = typeof setImmediate === 'function';
+import { Reporter } from './reporter';
+import { PLATFORM } from './platform';
 
 export const ITaskQueue = DI.createInterface('ITaskQueue');
 
@@ -40,44 +39,12 @@ export interface ITaskQueue {
   flushTaskQueue(): void
 }
 
-function makeRequestFlushFromMutationObserver(flush: MutationCallback) {
-  let toggle = 1;
-  let observer = DOM.createMutationObserver(flush);
-  let node = DOM.createTextNode('');
-  observer.observe(node, { characterData: true });
-  return function requestFlush() {
-    toggle = -toggle;
-    node.data = toggle.toString();
-  };
-}
-
-function makeRequestFlushFromTimer(flush: () => void) {
-  return function requestFlush() {
-    // We dispatch a timeout with a specified delay of 0 for engines that
-    // can reliably accommodate that request. This will usually be snapped
-    // to a 4 milisecond delay, but once we're flushing, there's no delay
-    // between events.
-    let timeoutHandle = setTimeout(handleFlushTimer, 0);
-    // However, since this timer gets frequently dropped in Firefox
-    // workers, we enlist an interval handle that will try to fire
-    // an event 20 times per second until it succeeds.
-    let intervalHandle = setInterval(handleFlushTimer, 50);
-    function handleFlushTimer() {
-      // Whichever timer succeeds will cancel both timers and request the
-      // flush.
-      clearTimeout(timeoutHandle);
-      clearInterval(intervalHandle);
-      flush();
-    }
-  };
-}
-
 class TaskQueueImplementation implements ITaskQueue {
   private microTaskQueue: ICallable[] = [];
   private taskQueue: ICallable[] = [];
   private microTaskQueueCapacity = 1024;
-  private requestFlushMicroTaskQueue = makeRequestFlushFromMutationObserver(() => this.flushMicroTaskQueue());
-  private requestFlushTaskQueue = makeRequestFlushFromTimer(() => this.flushTaskQueue());
+  private requestFlushMicroTaskQueue = PLATFORM.createMicroTaskFlushRequestor(() => this.flushMicroTaskQueue());
+  private requestFlushTaskQueue = PLATFORM.createTaskFlushRequester(() => this.flushTaskQueue());
   private stack: string;
 
   flushing = false;
@@ -156,21 +123,21 @@ class TaskQueueImplementation implements ITaskQueue {
     this.flushQueue(queue, Number.MAX_VALUE);
   }
 
-  //Overwritten in debug mode.
+  // Overwritten in debug mode.
   private prepareTaskStack(): string {
-    throw new Error('TaskQueue long stack traces are only available in debug mode.');
+    throw Reporter.error(13);
   }
 
-  //Overwritten in debug mode.
+  // Overwritten in debug mode.
   private prepareMicroTaskStack(): string {
-    throw new Error('TaskQueue long stack traces are only available in debug mode.');
+    throw Reporter.error(13);
   }
 
-  //Overwritten in debug mode via late binding.
+  // Overwritten in debug mode via late binding.
   private onError(error: any, task: any){
     if ('onError' in task) {
       task.onError(error);
-    } else if (hasSetImmediate) {
+    } else if (typeof setImmediate === 'function') {
       setImmediate(() => { throw error; });
     } else {
       setTimeout(() => { throw error; }, 0);

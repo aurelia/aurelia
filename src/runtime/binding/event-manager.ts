@@ -1,6 +1,6 @@
-import { DOM } from '../pal';
 import { IDisposable } from '../interfaces';
 import { DI } from '../di';
+import { INode, DOM } from '../dom';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 function findOriginalEventTarget(event: any) {
@@ -86,7 +86,7 @@ class ListenerTracker {
     this.count++;
 
     if (this.count === 1) {
-      DOM.addEventListener(this.eventName, this.listener, this.capture);
+      DOM.addEventListener(this.eventName, this.listener, null, this.capture);
     }
   }
 
@@ -94,7 +94,7 @@ class ListenerTracker {
     this.count--;
 
     if (this.count === 0) {
-      DOM.removeEventListener(this.eventName, this.listener, this.capture);
+      DOM.removeEventListener(this.eventName, this.listener, null, this.capture);
     }
   }
 }
@@ -124,20 +124,20 @@ class DelegateOrCaptureSubscription {
  */
 class TriggerSubscription {
   constructor(
-    public target: EventTarget,
+    public target: INode,
     public targetEvent: string,
     public callback: EventListenerOrEventListenerObject
   ) {
-    target.addEventListener(targetEvent, callback);
+    DOM.addEventListener(targetEvent, callback, target);
   }
 
   dispose() {
-    this.target.removeEventListener(this.targetEvent, this.callback);
+    DOM.removeEventListener(this.targetEvent, this.callback, this.target);
     this.target = this.targetEvent = this.callback = null;
   }
 }
 
-type EventTargetWithLookups = EventTarget & {
+type EventTargetWithLookups = INode & {
   delegatedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
   capturedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
 }
@@ -154,11 +154,11 @@ export interface IElementConfiguration {
 }
 
 export interface IEventSubscriber extends IDisposable {
-  subscribe(element: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void;
+  subscribe(node: INode, callbackOrListener: EventListenerOrEventListenerObject): void;
 }
 
 export class EventSubscriber implements IEventSubscriber {
-  private target: EventTarget;
+  private target: INode;
   private handler: EventListenerOrEventListenerObject;
 
   constructor(private readonly events: string[]) {
@@ -167,23 +167,28 @@ export class EventSubscriber implements IEventSubscriber {
     this.handler = null;
   }
 
-  subscribe(element: EventTarget, callbackOrListener: EventListenerOrEventListenerObject) {
-    this.target = element;
+  subscribe(node: INode, callbackOrListener: EventListenerOrEventListenerObject) {
+    this.target = node;
     this.handler = callbackOrListener;
 
-    let events = this.events;
+    const add = DOM.addEventListener;
+    const events = this.events;
+
     for (let i = 0, ii = events.length; ii > i; ++i) {
-      element.addEventListener(events[i], callbackOrListener);
+      add(events[i], callbackOrListener, node);
     }
   }
 
   dispose() {
-    let element = this.target;
-    let callbackOrListener = this.handler;
-    let events = this.events;
+    const node = this.target;
+    const callbackOrListener = this.handler;
+    const events = this.events;
+    const remove = DOM.removeEventListener;
+
     for (let i = 0, ii = events.length; ii > i; ++i) {
-      element.removeEventListener(events[i], callbackOrListener);
+      remove(event[i], callbackOrListener, node);
     }
+
     this.target = this.handler = null;
   }
 }
@@ -192,8 +197,8 @@ export const IEventManager = DI.createInterface('IEventManager');
 
 export interface IEventManager {
   registerElementConfiguration(config: IElementConfiguration): void;
-  getElementHandler(target: Element, propertyName: string): IEventSubscriber | null;
-  addEventListener(target: EventTarget, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
+  getElementHandler(target: INode, propertyName: string): IEventSubscriber | null;
+  addEventListener(target: INode, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
 
 class EventManagerImplementation implements IEventManager {
@@ -253,15 +258,13 @@ class EventManagerImplementation implements IEventManager {
     }
   }
 
-  getElementHandler(target: Element, propertyName: string): IEventSubscriber | null {
-    let tagName;
+  getElementHandler(target: INode, propertyName: string): IEventSubscriber | null {
+    let name = DOM.normalizedTagName(target);
     let lookup = this.elementHandlerLookup;
 
-    if (target.tagName) {
-      tagName = target.tagName.toLowerCase();
-
-      if (lookup[tagName] && lookup[tagName][propertyName]) {
-        return new EventSubscriber(lookup[tagName][propertyName]);
+    if (name) {
+      if (lookup[name] && lookup[name][propertyName]) {
+        return new EventSubscriber(lookup[name][propertyName]);
       }
 
       if (propertyName === 'textContent' || propertyName === 'innerHTML') {
@@ -277,7 +280,7 @@ class EventManagerImplementation implements IEventManager {
   }
 
   addEventListener(
-    target: EventTarget,
+    target: INode,
     targetEvent: string,
     callbackOrListener: EventListenerOrEventListenerObject,
     strategy: DelegationStrategy

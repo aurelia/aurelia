@@ -3,52 +3,6 @@ import { IContainer } from '../di';
 import { IScope, BindingContext } from './binding-context';
 import { Signal } from './signal';
 
-interface AstKind {
-  Base: 1;
-  Chain: 2;
-  ValueConverter: 3;
-  BindingBehavior: 4;
-  Assign: 5;
-  Conditional: 6;
-  AccessThis: 7;
-  AccessScope: 8;
-  AccessMember: 9;
-  AccessKeyed: 10;
-  CallScope: 11;
-  CallFunction: 12;
-  CallMember: 13;
-  PrefixNot: 14;
-  Binary: 15;
-  LiteralPrimitive: 16;
-  LiteralArray: 17;
-  LiteralObject: 18;
-  LiteralString: 19;
-  TemplateLiteral: 20;
-}
-
-export const AstKind: AstKind = {
-  Base: 1,
-  Chain: 2,
-  ValueConverter: 3,
-  BindingBehavior: 4,
-  Assign: 5,
-  Conditional: 6,
-  AccessThis: 7,
-  AccessScope: 8,
-  AccessMember: 9,
-  AccessKeyed: 10,
-  CallScope: 11,
-  CallFunction: 12,
-  CallMember: 13,
-  PrefixNot: 14,
-  Binary: 15,
-  LiteralPrimitive: 16,
-  LiteralArray: 17,
-  LiteralObject: 18,
-  LiteralString: 19,
-  TemplateLiteral: 20,
-};
-
 export interface IExpression {
   evaluate(scope: IScope, container: IContainer | null, mustEvaluateIfFunction?: boolean): any;
   assign?(scope: IScope, value: any, container: IContainer | null): any;

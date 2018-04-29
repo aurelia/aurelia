@@ -1,6 +1,7 @@
 import { DI } from "../di";
 import { DelegationStrategy } from "../binding/event-manager";
 import { BindingMode } from "../binding/binding-mode";
+import { INode } from "../dom";
 
 export enum TargetedInstructionType {
   textBinding = 0,
@@ -130,7 +131,7 @@ export interface IHydrateElementInstruction extends ITargetedInstruction {
   res: any;
   instructions: TargetedInstruction[];
   replacements?: Record<string, ICompiledViewSource>;
-  contentElement?: Element; // Usage: Compose
+  contentElement?: INode; // Usage: Compose
 }
 
 export interface IHydrateAttributeInstruction extends ITargetedInstruction {

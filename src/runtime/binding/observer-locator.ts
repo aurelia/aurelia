@@ -1,4 +1,4 @@
-import { DOM } from '../pal';
+import { DOM } from '../dom';
 import { getArrayObserver } from './array-observation';
 import { getMapObserver } from './map-observation';
 import { getSetObserver } from './set-observation';
@@ -110,15 +110,11 @@ class ObserverLocatorImplementation implements IObserverLocator {
   }
 
   private createPropertyObserver(obj: any, propertyName: string) {
-    let descriptor;
-    let handler;
-    let xlinkResult;
-
     if (!(obj instanceof Object)) {
       return new PrimitiveObserver(obj, propertyName);
     }
 
-    if (obj instanceof DOM.Element) {
+    if (DOM.isNodeInstance(obj)) {
       if (propertyName === 'class') {
         return new ClassObserver(obj);
       }
@@ -127,12 +123,12 @@ class ObserverLocatorImplementation implements IObserverLocator {
         return new StyleObserver(<HTMLElement>obj, propertyName);
       }
 
-      handler = EventManager.getElementHandler(obj, propertyName);
-      if (propertyName === 'value' && obj.tagName.toLowerCase() === 'select') {
-        return new SelectValueObserver(obj as HTMLSelectElement, handler, this);
+      const handler = EventManager.getElementHandler(obj, propertyName);
+      if (propertyName === 'value' && DOM.normalizedTagName(obj) === 'select') {
+        return new SelectValueObserver(<HTMLSelectElement>obj, handler, this);
       }
 
-      if (propertyName === 'checked' && obj.tagName.toLowerCase() === 'input') {
+      if (propertyName === 'checked' && DOM.normalizedTagName(obj) === 'input') {
         return new CheckedObserver(<HTMLInputElement>obj, handler, this);
       }
 
@@ -140,19 +136,19 @@ class ObserverLocatorImplementation implements IObserverLocator {
         return new ValueAttributeObserver(obj, propertyName, handler);
       }
 
-      xlinkResult = /^xlink:(.+)$/.exec(propertyName);
+      const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
       if (xlinkResult) {
         return new XLinkAttributeObserver(obj, propertyName, xlinkResult[1]);
       }
 
-      if (propertyName === 'role' && (obj instanceof DOM.Element || <any>obj instanceof DOM.SVGElement)
+      if (propertyName === 'role'
         || /^\w+:|^data-|^aria-/.test(propertyName)
-        || obj instanceof DOM.SVGElement && SVGAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)) {
+        || SVGAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
         return new DataAttributeObserver(obj, propertyName);
       }
     }
 
-    descriptor = getPropertyDescriptor(obj, propertyName);
+    const descriptor = getPropertyDescriptor(obj, propertyName);
 
     //TODO: do something with this so that it doesn't always require the full expression parser
     //if (hasDeclaredDependencies(descriptor)) {
@@ -200,20 +196,22 @@ class ObserverLocatorImplementation implements IObserverLocator {
   }
 
   getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
-    if (obj instanceof DOM.Element) {
+    if (DOM.isNodeInstance(obj)) {
+      let normalizedTagName = DOM.normalizedTagName;
+
       if (propertyName === 'class'
         || propertyName === 'style' || propertyName === 'css'
-        || propertyName === 'value' && (obj.tagName.toLowerCase() === 'input' || obj.tagName.toLowerCase() === 'select')
-        || propertyName === 'checked' && obj.tagName.toLowerCase() === 'input'
-        || propertyName === 'model' && obj.tagName.toLowerCase() === 'input'
+        || propertyName === 'value' && (normalizedTagName(obj) === 'input' || normalizedTagName(obj) === 'select')
+        || propertyName === 'checked' && normalizedTagName(obj) === 'input'
+        || propertyName === 'model' && normalizedTagName(obj) === 'input'
         || /^xlink:.+$/.exec(propertyName)) {
         return <any>this.getObserver(obj, propertyName);
       }
 
       if (/^\w+:|^data-|^aria-/.test(propertyName)
-        || obj instanceof DOM.SVGElement && SVGAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)
-        || obj.tagName.toLowerCase() === 'img' && propertyName === 'src'
-        || obj.tagName.toLowerCase() === 'a' && propertyName === 'href'
+        || SVGAnalyzer.isStandardSvgAttribute(obj, propertyName)
+        || normalizedTagName(obj) === 'img' && propertyName === 'src'
+        || normalizedTagName(obj) === 'a' && propertyName === 'href'
       ) {
         return dataAttributeAccessor;
       }

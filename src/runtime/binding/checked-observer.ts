@@ -4,6 +4,7 @@ import { ICallable } from '../interfaces';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
 import { IAccessor, ISubscribable } from './observation';
+import { INode } from '../dom';
 
 const checkedArrayContext = 'CheckedObserver:array';
 const checkedValueContext = 'CheckedObserver:value';
@@ -16,7 +17,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
   private valueObserver: any;
 
   constructor(
-    private element: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
+    private node: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
     public handler: IEventSubscriber,
     private observerLocator: IObserverLocator
   ) {
@@ -37,16 +38,19 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
       this.arrayObserver.unsubscribe(checkedArrayContext, this);
       this.arrayObserver = null;
     }
+
     // subscribe to new array.
-    if (this.element.type === 'checkbox' && Array.isArray(newValue)) {
+    if (this.node.type === 'checkbox' && Array.isArray(newValue)) {
       this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
       this.arrayObserver.subscribe(checkedArrayContext, this);
     }
+
     // assign and sync element.
     this.oldValue = this.value;
     this.value = newValue;
     this.synchronizeElement();
     this.notify();
+
     // queue up an initial sync after the bindings have been evaluated.
     if (!this.initialSync) {
       this.initialSync = true;
@@ -60,7 +64,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
     // if the input's model or value property is data-bound, subscribe to it's
     // changes to enable synchronizing the element's checked status when a change occurs.
     if (!this.valueObserver) {
-      this.valueObserver = this.element['$observers'].model || this.element['$observers'].value;
+      this.valueObserver = this.node['$observers'].model || this.node['$observers'].value;
       if (this.valueObserver) {
         this.valueObserver.subscribe(checkedValueContext, this);
       }
@@ -69,7 +73,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
 
   synchronizeElement() {
     let value = this.value;
-    let element = this.element;
+    let element = this.node;
     let elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     let isRadio = element.type === 'radio';
     let matcher = element['matcher'] || ((a: any, b: any) => a === b);
@@ -82,7 +86,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
 
   synchronizeValue() {
     let value = this.value;
-    let element = this.element;
+    let element = this.node;
     let elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     let index;
     let matcher = element['matcher'] || ((a: any, b: any) => a === b);
@@ -129,7 +133,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
 
   subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
-      this.handler.subscribe(this.element, this);
+      this.handler.subscribe(this.node, this);
     }
     this.addSubscriber(context, callable);
   }

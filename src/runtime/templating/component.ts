@@ -3,7 +3,7 @@ import { IView, View, IViewOwner } from "./view";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
 import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
-import { FEATURE, DOM, PLATFORM } from "../pal";
+import { PLATFORM } from "../platform";
 import { IContainer, Registration } from "../di";
 import { BindingMode } from "../binding/binding-mode";
 import { Constructable } from "../interfaces";
@@ -12,9 +12,13 @@ import { IScope, BindingContext } from "../binding/binding-context";
 import { IRenderSlot } from "./render-slot";
 import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
 import { ICompiledViewSource, IBindableInstruction } from "./instructions";
+import { INode, DOM } from "../dom";
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
-  $hydrate(host: Element, content?: IView, replacements?: Record<string, ICompiledViewSource>): void;
+  $slots: Record<string, IEmulatedShadowSlot>;
+  $usingSlotEmulation: boolean;
+
+  $hydrate(host: INode, content?: IView, replacements?: Record<string, ICompiledViewSource>): void;
 }
 
 export interface IAttributeComponent extends IBindScope, IAttach { }
@@ -209,7 +213,7 @@ export const Component = {
       $bindable: IBindScope[] = [];
       $attachable: IAttach[] = [];
       $slots: Record<string, IEmulatedShadowSlot> = source.hasSlots ? {} : null;
-      $useShadowDOM = source.shadowOptions && FEATURE.shadowDOM;
+      $usingSlotEmulation = source.hasSlots || false;
       $view: IView = null;
       $contentView: IView = null;
       $slot: IRenderSlot = null;
@@ -220,8 +224,8 @@ export const Component = {
         overrideContext: BindingContext.createOverride()
       };
       
-      private $host: Element = null;
-      private $shadowRoot: Element | ShadowRoot = null;
+      private $host: INode = null;
+      private $shadowRoot: INode = null;
       private $changeCallbacks: (() => void)[] = [];
       private $behavior: RuntimeBehavior = null;
   
@@ -230,15 +234,10 @@ export const Component = {
         RuntimeBehavior.get(this, observables, CompiledComponent).applyTo(this);
       }
   
-      $hydrate(host: Element, content: IView = View.none, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject) { 
-        this.$host = source.containerless 
-          ? DOM.makeElementIntoAnchor(host, true)
-          : host;
-
-        this.$shadowRoot = this.$useShadowDOM 
-          ? host.attachShadow(source.shadowOptions) 
-          : this.$host;
-
+      $hydrate(host: INode, content: IView = View.none, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject) { 
+        this.$host = source.containerless ? DOM.convertToAnchor(host, true) : host;
+        this.$shadowRoot = DOM.createElementViewHost(this.$host, source.shadowOptions);
+        this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
         this.$contentView = content;
         this.$view = this.$createView(this.$host, replacements);
   
@@ -247,7 +246,7 @@ export const Component = {
         }
       }
   
-      $createView(host: Element, replacements: Record<string, ICompiledViewSource>) {
+      $createView(host: INode, replacements: Record<string, ICompiledViewSource>) {
         return this.$behavior.hasCreateView
           ? (<any>this).createView(host, replacements, template)
           : template.createFor(this, host, replacements);

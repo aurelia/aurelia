@@ -1,4 +1,4 @@
-import { DOM, PLATFORM } from "../pal";
+import { PLATFORM } from "../platform";
 import { View, IView, IViewOwner } from "./view";
 import { IElementComponent, IAttributeComponent, IElementType } from "./component";
 import { IBinding, Binding } from "../binding/binding";
@@ -17,10 +17,11 @@ import { IAttach, AttachContext, DetachContext } from "./lifecycle";
 import { Animator } from "./animator";
 import { Reporter } from "../reporter";
 import { ITargetedInstruction, IHydrateElementInstruction, ICompiledViewSource, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController } from "./instructions";
+import { INode, DOM, } from "../dom";
 
 export interface ITemplate {
   readonly container: ITemplateContainer;
-  createFor(owner: IViewOwner, host?: Node, replacements?: Record<string, ICompiledViewSource>): IView;
+  createFor(owner: IViewOwner, host?: INode, replacements?: Record<string, ICompiledViewSource>): IView;
 }
 
 const noViewTemplate: ITemplate = {
@@ -120,7 +121,7 @@ export const ViewEngine = {
       }
 
       createView() {
-        let target: Element;
+        let target: INode;
 
         if (typeof componentOrType === 'function') {
           target = DOM.createElement(componentOrType.source.name);
@@ -133,7 +134,7 @@ export const ViewEngine = {
           this.component = componentOrType;
         }
 
-        return View.fromElement(target);
+        return View.fromNode(target);
       }
 
       tryReturnToCache() {
@@ -148,41 +149,41 @@ export const ViewEngine = {
 type InstructionApplicator = (owner: IViewOwner, instruction: ITargetedInstruction, target: any, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) => void;
 
 const interpreter: Record<string, InstructionApplicator> = <any>{
-  [TargetedInstructionType.textBinding](owner: IViewOwner, instruction: ITextBindingInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.textBinding](owner: IViewOwner, instruction: ITextBindingInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     let next = target.nextSibling;
-    DOM.treatNodeAsNonWhitespace(next);
+    DOM.treatAsNonWhitespace(next);
     DOM.removeNode(target);
     owner.$bindable.push(new Binding(Expression.from(instruction.src), next, 'textContent', BindingMode.oneWay, container));
   },
-  [TargetedInstructionType.oneWayBinding](owner: IViewOwner, instruction: IOneWayBindingInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.oneWayBinding](owner: IViewOwner, instruction: IOneWayBindingInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     owner.$bindable.push(new Binding(Expression.from(instruction.src), target, instruction.dest, BindingMode.oneWay, container));
   },
-  [TargetedInstructionType.fromViewBinding](owner: IViewOwner, instruction: IFromViewBindingInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.fromViewBinding](owner: IViewOwner, instruction: IFromViewBindingInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     owner.$bindable.push(new Binding(Expression.from(instruction.src), target, instruction.dest, BindingMode.fromView, container));
   },
-  [TargetedInstructionType.twoWayBinding](owner: IViewOwner, instruction: ITwoWayBindingInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.twoWayBinding](owner: IViewOwner, instruction: ITwoWayBindingInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     owner.$bindable.push(new Binding(Expression.from(instruction.src), target, instruction.dest, BindingMode.twoWay, container));
   },
-  [TargetedInstructionType.listenerBinding](owner: IViewOwner, instruction: IListenerBindingInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.listenerBinding](owner: IViewOwner, instruction: IListenerBindingInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     owner.$bindable.push(new Listener(instruction.src, instruction.strategy, Expression.from(instruction.dest), target, instruction.preventDefault, container));
   },
-  [TargetedInstructionType.callBinding](owner: IViewOwner, instruction: ICallBindingInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.callBinding](owner: IViewOwner, instruction: ICallBindingInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     owner.$bindable.push(new Call(Expression.from(instruction.src), target, instruction.dest, container));
   },
-  [TargetedInstructionType.refBinding](owner: IViewOwner, instruction: IRefBindingInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.refBinding](owner: IViewOwner, instruction: IRefBindingInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     owner.$bindable.push(new Ref(Expression.from(instruction.src), target, container));
   },
-  [TargetedInstructionType.stylePropertyBinding](owner: IViewOwner, instruction: IStylePropertyBindingInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.stylePropertyBinding](owner: IViewOwner, instruction: IStylePropertyBindingInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     owner.$bindable.push(new Binding(Expression.from(instruction.src), (<any>target).style, instruction.dest, BindingMode.oneWay, container));
   },
-  [TargetedInstructionType.setProperty](owner: IViewOwner, instruction: ISetPropertyInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.setProperty](owner: IViewOwner, instruction: ISetPropertyInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     target[instruction.dest] = instruction.value;
   },
-  [TargetedInstructionType.setAttribute](owner: IViewOwner, instruction: ISetAttributeInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
-    target.setAttribute(instruction.dest, instruction.value);
+  [TargetedInstructionType.setAttribute](owner: IViewOwner, instruction: ISetAttributeInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+    DOM.setAttribute(target, instruction.dest, instruction.value);
   },
-  [TargetedInstructionType.hydrateSlot](owner: IViewOwner, instruction: IHydrateSlotInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
-    if (owner.$useShadowDOM) {
+  [TargetedInstructionType.hydrateSlot](owner: IElementComponent, instruction: IHydrateSlotInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+    if (!owner.$usingSlotEmulation) {
       return;
     }
 
@@ -197,7 +198,7 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
     owner.$bindable.push(slot);
     owner.$attachable.push(slot);
   },
-  [TargetedInstructionType.hydrateElement](owner: IViewOwner, instruction: IHydrateElementInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.hydrateElement](owner: IViewOwner, instruction: IHydrateElementInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     container.element.prepare(target);
     container.owner.prepare(owner);
     container.instruction.prepare(instruction);
@@ -212,7 +213,7 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
     container.instruction.dispose();
     container.slot.dispose();
   },
-  [TargetedInstructionType.hydrateAttribute](owner: IViewOwner, instruction: IHydrateElementInstruction, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.hydrateAttribute](owner: IViewOwner, instruction: IHydrateElementInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     let childInstructions = instruction.instructions;
 
     container.element.prepare(target);
@@ -233,7 +234,7 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
     owner.$bindable.push(component);
     owner.$attachable.push(component);
   },
-  [TargetedInstructionType.hydrateTemplateController](owner: IViewOwner, instruction: IHydrateTemplateController, target: Element, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
+  [TargetedInstructionType.hydrateTemplateController](owner: IViewOwner, instruction: IHydrateTemplateController, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     let childInstructions = instruction.instructions;
     let factory = (<any>instruction).factory;
 
@@ -245,7 +246,7 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
     container.owner.prepare(owner);
     container.instruction.prepare(instruction);
     container.factory.prepare(factory, replacements);
-    container.slot.prepare(DOM.makeElementIntoAnchor(target), false);
+    container.slot.prepare(DOM.convertToAnchor(target), false);
 
     let component = container.get<IAttributeComponent>(instruction.res);
     container.slot.connectTemplateController(component);
@@ -270,12 +271,12 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
   }
 };
 
-function applyElementInstructionToComponentInstance(component: IElementComponent, instruction: IHydrateElementInstruction, container: ITemplateContainer, target: Element, owner: IViewOwner) {
+function applyElementInstructionToComponentInstance(component: IElementComponent, instruction: IHydrateElementInstruction, container: ITemplateContainer, target: INode, owner: IViewOwner) {
   let childInstructions = instruction.instructions;
 
   component.$hydrate(
     target, 
-    View.fromCompiledElementContent(component, target, instruction.contentElement),
+    View.fromCompiledContent(component, target, instruction.contentElement),
     instruction.replacements
   );
   
@@ -343,11 +344,11 @@ class ViewFactoryProvider implements IResolver {
 }
 
 class RenderSlotProvider implements IResolver {
-  private node: Node = null;
+  private node: INode = null;
   private anchorIsContainer = false;
   private slot: IRenderSlot = null;
 
-  prepare(element: Node, anchorIsContainer = false) {
+  prepare(element: INode, anchorIsContainer = false) {
     this.node = element;
     this.anchorIsContainer = anchorIsContainer;
   }
@@ -380,7 +381,7 @@ class RenderSlotProvider implements IResolver {
 }
 
 export interface ITemplateContainer extends IContainer {
-  element: InstanceProvider<Element>;
+  element: InstanceProvider<INode>;
   factory: ViewFactoryProvider;
   slot: RenderSlotProvider;
   owner: InstanceProvider<IViewOwner>;
@@ -406,18 +407,17 @@ function createTemplateContainer(dependencies) {
 }
 
 class CompiledTemplate implements ITemplate {
-  private element: HTMLTemplateElement;
+  private factory: () => INode;
   container: ITemplateContainer;
 
   constructor(private source: ICompiledViewSource) {
     this.container = createTemplateContainer(source.dependencies);
-    this.element = DOM.createTemplateElement();
-    this.element.innerHTML = source.template;
+    this.factory = DOM.createFactoryFromMarkup(source.template);
   }
 
-  createFor(owner: IViewOwner, host?: Node, replacements?: Record<string, ICompiledViewSource>): IView {
+  createFor(owner: IViewOwner, host?: INode, replacements?: Record<string, ICompiledViewSource>): IView {
     const source = this.source;
-    const view = View.fromCompiledTemplate(this.element);
+    const view = View.fromCompiledFactory(this.factory);
     const targets = view.findTargets();
     const container = this.container;
 
@@ -454,7 +454,7 @@ abstract class Visual implements IVisual {
   $isBound = false;
   $isAttached = false;
   $inCache = false;
-  $animationRoot: Element = undefined;
+  $animationRoot: INode = undefined;
 
   constructor(public factory: DefaultVisualFactory) {
     this.$view = this.createView();
@@ -462,21 +462,22 @@ abstract class Visual implements IVisual {
 
   abstract createView(): IView;
 
-  getAnimationRoot(): Element {
+  getAnimationRoot(): INode {
     if (this.$animationRoot !== undefined) {
       return this.$animationRoot;
     }
   
     let currentChild = this.$view.firstChild;
     const lastChild = this.$view.lastChild;
+    const isElementNodeType = DOM.isElementNodeType;
   
-    while (currentChild !== lastChild && currentChild.nodeType !== 1) {
+    while (currentChild !== lastChild && !isElementNodeType(currentChild)) {
       currentChild = currentChild.nextSibling;
     }
   
-    if (currentChild && currentChild.nodeType === 1) {
-      return this.$animationRoot = (<Element>currentChild).classList.contains('au-animate') 
-        ? <Element>currentChild 
+    if (currentChild && isElementNodeType(currentChild)) {
+      return this.$animationRoot = DOM.hasClass(currentChild, 'au-animate') 
+        ? currentChild 
         : null;
     }
   

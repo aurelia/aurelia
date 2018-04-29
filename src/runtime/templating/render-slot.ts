@@ -6,6 +6,7 @@ import { IBindScope } from '../binding/observation';
 import { Reporter } from '../reporter';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
 import { DI } from '../di';
+import { INode } from '../dom';
 
 function appendVisualToContainer(visual: IVisual, owner: RenderSlotImplementation) {
   visual.$view.appendTo(owner.anchor);
@@ -111,7 +112,7 @@ export interface IRenderSlot extends IAttach {
 }
 
 export const RenderSlot = {
-  create(anchor: Node, anchorIsContainer: boolean): IRenderSlot {
+  create(anchor: INode, anchorIsContainer: boolean): IRenderSlot {
     return new RenderSlotImplementation(anchor, anchorIsContainer);
   }
 };
@@ -125,7 +126,7 @@ class RenderSlotImplementation implements IRenderSlot {
   /** @internal */ public children: IVisual[] = [];
   /** @internal */ public slots: Record<string, IEmulatedShadowSlot> = null;
 
-  constructor(public anchor: Node, anchorIsContainer: boolean) {
+  constructor(public anchor: INode, anchorIsContainer: boolean) {
     (<any>anchor).$slot = this; // Usage: Shadow DOM Emulation
     (<any>anchor).$isContentProjectionSource = false; // Usage: Shadow DOM Emulation
 

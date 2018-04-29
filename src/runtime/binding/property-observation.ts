@@ -22,8 +22,7 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
   }
 
   setValue() {
-    let type = typeof this.primitive;
-    throw new Error(`The ${this.propertyName} property of a ${type} (${this.primitive}) cannot be assigned.`);
+    throw Reporter.error(14, `${typeof this.primitive}#${this.propertyName}`);
   }
 
   subscribe() { }

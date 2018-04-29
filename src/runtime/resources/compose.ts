@@ -5,7 +5,7 @@ import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionTy
 import { IViewOwner, IViewOwnerType, IView } from "../templating/view";
 import { IContainer } from "../di";
 import { IBindScope } from "../binding/observation";
-import { DOM } from "../pal";
+import { INode, DOM } from "../dom";
 
 const composeSource = {
   name: 'au-compose',
@@ -16,7 +16,7 @@ const composeSource = {
 const composeProps = ['component', 'swapOrder', 'isComposing'];
 
 @customElement(composeSource)
-@inject(IViewOwner, DOM.Element, IRenderSlot, ITargetedInstruction)
+@inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction)
 export class Compose {
   //#region Framework-Supplied
   private $contentView: IView;
@@ -26,7 +26,7 @@ export class Compose {
   
   private task: CompositionTask = null;
   private visual: VisualWithCentralComponent = null;
-  private auContent: Element = null;
+  private auContent: INode = null;
   private baseInstruction: IHydrateElementInstruction;
   private compositionContainer: ITemplateContainer;
 
@@ -34,19 +34,15 @@ export class Compose {
   swapOrder: SwapOrder;
   isComposing: boolean;
 
-  constructor(private viewOwner: IViewOwner, private element: HTMLElement,  private slot: IRenderSlot, instruction: ITargetedInstruction) { 
-    this.viewOwner = viewOwner;
-    this.slot = slot;
-
+  constructor(private viewOwner: IViewOwner, private host: INode, private slot: IRenderSlot, instruction: IHydrateElementInstruction) { 
     const type = <IViewOwnerType>viewOwner.constructor;
-    const composeInstruction = <IHydrateElementInstruction>instruction;
 
     this.compositionContainer = type.template.container;
     this.baseInstruction = {
       type: TargetedInstructionType.hydrateElement,
-      instructions: composeInstruction.instructions.filter((x: any) => !composeProps.includes(x.dest)),
+      instructions: instruction.instructions.filter((x: any) => !composeProps.includes(x.dest)),
       res: null,
-      replacements: composeInstruction.replacements
+      replacements: instruction.replacements
     };
   }
 
@@ -87,6 +83,7 @@ export class Compose {
 
   private createContentElement() {
     let auContent = this.auContent;
+    let append = DOM.appendChild;
 
     if (auContent == null) {
       this.auContent = auContent = DOM.createElement('au-content');
@@ -96,18 +93,18 @@ export class Compose {
         let nodes = this.$contentView.childNodes;
 
         for (let i = 0, ii = nodes.length; i < ii; ++i) {
-          auContent.appendChild(nodes[i]);
+          append(auContent, nodes[i]);
         }
       } else { //if the compose element is using Shadow DOM
-        let element = this.element;
+        let element = this.host;
 
         while(element.firstChild) {
-          auContent.appendChild(element.firstChild);
+          append(auContent, element.firstChild);
         }
       }
     }
 
-    return auContent.cloneNode(true);
+    return DOM.cloneNode(auContent);
   }
 
   private swap(newVisual: VisualWithCentralComponent) {

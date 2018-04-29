@@ -1,4 +1,4 @@
-import { PLATFORM } from "./pal";
+import { PLATFORM } from "./platform";
 import { Injectable } from "./interfaces";
 import { Reporter } from "./reporter";
 

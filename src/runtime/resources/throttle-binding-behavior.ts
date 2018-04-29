@@ -1,4 +1,4 @@
-import {BindingMode} from '../binding/binding-mode';
+import { BindingMode } from '../binding/binding-mode';
 import { Binding } from '../binding/binding';
 import { Call } from '../binding/call';
 import { Listener } from '../binding/listener';

@@ -6,8 +6,12 @@ import { IScope } from '../binding/binding-context';
 * For internal use only. May change without warning.
 */
 export abstract class IfCore {
-  private child: IVisual = null;
+  //#region Framework-Supplied
   private $scope: IScope = null;
+  //#endregion
+  
+  private child: IVisual = null;
+  
 
   // If the child view is animated, `condition` might not reflect the internal
   // state anymore, so we use `showing` for that.

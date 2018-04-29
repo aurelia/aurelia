@@ -4,26 +4,27 @@ import { IBinding } from "./binding";
 import { IContainer } from "../di";
 import { IBindingTargetAccessor } from "./observation";
 import { IScope } from "./binding-context";
+import { INode } from "../dom";
 
 export class Call implements IBinding {
   targetObserver: IBindingTargetAccessor;
-  private source: IScope;
+  private $scope: IScope;
   private $isBound = false;
 
   constructor(
     private sourceExpression: IExpression,
-    private target: EventTarget,
+    private target: INode,
     private targetProperty: string, 
     public container: IContainer) {
     this.targetObserver = <any>ObserverLocator.getObserver(target, targetProperty);
   }
 
   callSource($event) {
-    let overrideContext = <any>this.source.overrideContext;
+    let overrideContext = <any>this.$scope.overrideContext;
     Object.assign(overrideContext, $event);
     overrideContext.$event = $event; // deprecate this?
     let mustEvaluate = true;
-    let result = this.sourceExpression.evaluate(this.source, this.container, mustEvaluate);
+    let result = this.sourceExpression.evaluate(this.$scope, this.container, mustEvaluate);
     delete overrideContext.$event;
 
     for (let prop in $event) {
@@ -33,9 +34,9 @@ export class Call implements IBinding {
     return result;
   }
 
-  $bind(source: IScope) {
+  $bind(scope: IScope) {
     if (this.$isBound) {
-      if (this.source === source) {
+      if (this.$scope === scope) {
         return;
       }
 
@@ -43,10 +44,10 @@ export class Call implements IBinding {
     }
 
     this.$isBound = true;
-    this.source = source;
+    this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, source);
+      this.sourceExpression.bind(this, scope);
     }
 
     this.targetObserver.setValue($event => this.callSource($event), this.target, this.targetProperty);
@@ -60,10 +61,10 @@ export class Call implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.source);
+      this.sourceExpression.unbind(this, this.$scope);
     }
 
-    this.source = null;
+    this.$scope = null;
     this.targetObserver.setValue(null, this.target, this.targetProperty);
   }
 

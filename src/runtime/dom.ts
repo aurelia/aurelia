@@ -60,10 +60,6 @@ export const DOM = {
     return (<Element>node).querySelectorAll('.au');
   },
 
-  findContentNode(node: INode) {
-    return (<Element>node).firstElementChild;
-  },
-
   isUsingSlotEmulation(node: INode): boolean {
     return !!(<any>node).$usingSlotEmulation;
   },

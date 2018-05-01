@@ -18,7 +18,7 @@ export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $slots: Record<string, IEmulatedShadowSlot>;
   $usingSlotEmulation: boolean;
 
-  $hydrate(host: INode, content?: IView, replacements?: Record<string, ICompiledViewSource>): void;
+  $hydrate(host: INode, replacements?: Record<string, ICompiledViewSource>, contentNodeOverride?: INode): void;
 }
 
 export interface IAttributeComponent extends IBindScope, IAttach { }
@@ -234,11 +234,11 @@ export const Component = {
         RuntimeBehavior.get(this, observables, CompiledComponent).applyTo(this);
       }
   
-      $hydrate(host: INode, content: IView = View.none, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject) { 
+      $hydrate(host: INode, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
         this.$host = source.containerless ? DOM.convertToAnchor(host, true) : host;
         this.$shadowRoot = DOM.createElementViewHost(this.$host, source.shadowOptions);
         this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
-        this.$contentView = content;
+        this.$contentView = View.fromCompiledContent(this.$host, contentOverride);
         this.$view = this.$createView(this.$host, replacements);
   
         if (this.$behavior.hasCreated) {

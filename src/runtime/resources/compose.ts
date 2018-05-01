@@ -88,14 +88,13 @@ export class Compose {
     if (auContent == null) {
       this.auContent = auContent = DOM.createElement('au-content');
 
-      //If the compose element isn't using Shadow DOM
-      if (this.$contentView !== null) {
+      if (DOM.isUsingSlotEmulation(this.host)) {
         let nodes = this.$contentView.childNodes;
 
         for (let i = 0, ii = nodes.length; i < ii; ++i) {
           append(auContent, nodes[i]);
         }
-      } else { //if the compose element is using Shadow DOM
+      } else {
         let element = this.host;
 
         while(element.firstChild) {

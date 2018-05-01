@@ -5,5 +5,5 @@ import { DebugConfiguration } from './debug/configuration';
 
 Aurelia
   .register(GeneratedConfiguration, DebugConfiguration)
-  .app({ host: document.body, component: new App() })
+  .app({ host: document.querySelector('app'), component: new App() })
   .start();

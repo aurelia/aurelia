@@ -56,22 +56,12 @@ export const View = {
   fromCompiledFactory(factory: () => INode): IView {
     return new TemplateView(factory);
   },
-  fromCompiledContent(owner: IElementComponent, node: INode, contentNode?: INode): IView {
-    contentNode = contentNode || DOM.findContentNode(node);
-
-    if (contentNode !== null && contentNode !== undefined) {
-      DOM.removeNode(contentNode);
-
-      if (owner.$usingSlotEmulation) {
-        return new ContentView(contentNode);
-      } else {
-        while(contentNode.firstChild) {
-          DOM.appendChild(node, contentNode.firstChild);
-        }
-      }
+  fromCompiledContent(host: INode, contentOverride?: INode): IView {
+    if (DOM.isUsingSlotEmulation(host)) {
+      return new ContentView(contentOverride || host);
+    } else {
+      return noopView;
     }
-    
-    return noopView;
   },
   fromNode(node: INode): IView {
     return {
@@ -100,21 +90,24 @@ export const View = {
 class ContentView implements IView {
   firstChild: INode;
   lastChild: INode;
+  childNodes: INode[];
 
   constructor(private element: INode) {
-    this.firstChild = this.element.firstChild;
-    this.lastChild = this.element.lastChild;
-  }
+    let current: INode;
+    let childNodes = this.childNodes = new Array(element.childNodes.length);
+    let i = -1;
 
-  get childNodes() {
-    return this.element.childNodes;
-  }
+    while(current = element.firstChild) {
+      DOM.removeNode(current);
+      childNodes[++i] = current;
+    }
 
-  appendChild(child: INode) {
-    DOM.appendChild(this.element, child);
+    this.firstChild = childNodes[0];
+    this.lastChild = childNodes[i];
   }
 
   findTargets() { return PLATFORM.emptyArray; }
+  appendChild(child: INode) {}
   insertBefore(refNode: INode): void {}
   appendTo(parent: INode): void {}
   remove(): void {}

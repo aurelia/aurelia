@@ -13,9 +13,7 @@ export const appConfig: ICompiledViewSource = {
     <au-marker class="au"></au-marker> <br>
     <input type="text" class="au">
     <name-tag class="au">
-      <au-content>
-        <h2>Message: <au-marker class="au"></au-marker> </h2>
-      </au-content>
+      <h2>Message: <au-marker class="au"></au-marker> </h2>
     </name-tag>
     <input type="checkbox" class="au" />
     <au-marker class="au"></au-marker>

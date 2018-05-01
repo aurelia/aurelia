@@ -6,7 +6,7 @@ define('app-config',["require", "exports", "./runtime/templating/instructions", 
         dependencies: [
             import1
         ],
-        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <au-content>\n        <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n      </au-content>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
+        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
         targetInstructions: [
             [
                 {
@@ -190,7 +190,7 @@ define('main',["require", "exports", "./runtime/aurelia", "./app", "./generated-
     Object.defineProperty(exports, "__esModule", { value: true });
     aurelia_1.Aurelia
         .register(generated_configuration_1.GeneratedConfiguration, configuration_1.DebugConfiguration)
-        .app({ host: document.body, component: new app_1.App() })
+        .app({ host: document.querySelector('app'), component: new app_1.App() })
         .start();
 });
 
@@ -1085,9 +1085,6 @@ define('runtime/dom',["require", "exports", "./di"], function (require, exports,
         },
         findCompileTargets: function (node) {
             return node.querySelectorAll('.au');
-        },
-        findContentNode: function (node) {
-            return node.firstElementChild;
         },
         isUsingSlotEmulation: function (node) {
             return !!node.$usingSlotEmulation;
@@ -5258,7 +5255,7 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
             var append = dom_1.DOM.appendChild;
             if (auContent == null) {
                 this.auContent = auContent = dom_1.DOM.createElement('au-content');
-                if (this.$contentView !== null) {
+                if (dom_1.DOM.isUsingSlotEmulation(this.host)) {
                     var nodes = this.$contentView.childNodes;
                     for (var i = 0, ii = nodes.length; i < ii; ++i) {
                         append(auContent, nodes[i]);
@@ -6182,13 +6179,12 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     class_1.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    class_1.prototype.$hydrate = function (host, content, replacements) {
-                        if (content === void 0) { content = view_1.View.none; }
+                    class_1.prototype.$hydrate = function (host, replacements, contentOverride) {
                         if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
                         this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
                         this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
                         this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
-                        this.$contentView = content;
+                        this.$contentView = view_1.View.fromCompiledContent(this.$host, contentOverride);
                         this.$view = this.$createView(this.$host, replacements);
                         if (this.$behavior.hasCreated) {
                             this.created();
@@ -7258,7 +7254,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         _a);
     function applyElementInstructionToComponentInstance(component, instruction, container, target, owner) {
         var childInstructions = instruction.instructions;
-        component.$hydrate(target, view_1.View.fromCompiledContent(component, target, instruction.contentElement), instruction.replacements);
+        component.$hydrate(target, instruction.replacements, instruction.contentElement);
         for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
             var current = childInstructions[i];
             var currentType = current.type;
@@ -7570,20 +7566,13 @@ define('runtime/templating/view',["require", "exports", "../platform", "../di", 
         fromCompiledFactory: function (factory) {
             return new TemplateView(factory);
         },
-        fromCompiledContent: function (owner, node, contentNode) {
-            contentNode = contentNode || dom_1.DOM.findContentNode(node);
-            if (contentNode !== null && contentNode !== undefined) {
-                dom_1.DOM.removeNode(contentNode);
-                if (owner.$usingSlotEmulation) {
-                    return new ContentView(contentNode);
-                }
-                else {
-                    while (contentNode.firstChild) {
-                        dom_1.DOM.appendChild(node, contentNode.firstChild);
-                    }
-                }
+        fromCompiledContent: function (host, contentOverride) {
+            if (dom_1.DOM.isUsingSlotEmulation(host)) {
+                return new ContentView(contentOverride || host);
             }
-            return noopView;
+            else {
+                return noopView;
+            }
         },
         fromNode: function (node) {
             return {
@@ -7611,20 +7600,18 @@ define('runtime/templating/view',["require", "exports", "../platform", "../di", 
     var ContentView = (function () {
         function ContentView(element) {
             this.element = element;
-            this.firstChild = this.element.firstChild;
-            this.lastChild = this.element.lastChild;
+            var current;
+            var childNodes = this.childNodes = new Array(element.childNodes.length);
+            var i = -1;
+            while (current = element.firstChild) {
+                dom_1.DOM.removeNode(current);
+                childNodes[++i] = current;
+            }
+            this.firstChild = childNodes[0];
+            this.lastChild = childNodes[i];
         }
-        Object.defineProperty(ContentView.prototype, "childNodes", {
-            get: function () {
-                return this.element.childNodes;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        ContentView.prototype.appendChild = function (child) {
-            dom_1.DOM.appendChild(this.element, child);
-        };
         ContentView.prototype.findTargets = function () { return platform_1.PLATFORM.emptyArray; };
+        ContentView.prototype.appendChild = function (child) { };
         ContentView.prototype.insertBefore = function (refNode) { };
         ContentView.prototype.appendTo = function (parent) { };
         ContentView.prototype.remove = function () { };

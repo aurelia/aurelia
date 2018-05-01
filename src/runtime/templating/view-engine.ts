@@ -276,8 +276,8 @@ function applyElementInstructionToComponentInstance(component: IElementComponent
 
   component.$hydrate(
     target, 
-    View.fromCompiledContent(component, target, instruction.contentElement),
-    instruction.replacements
+    instruction.replacements,
+    instruction.contentElement
   );
   
   for (let i = 0, ii = childInstructions.length; i < ii; ++i) {

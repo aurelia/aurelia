@@ -373,7 +373,7 @@ export const ShadowDOMEmulation = {
       }
     }
 
-    this.distributeNodes(
+    ShadowDOMEmulation.distributeNodes(
       view,
       nodes,
       slots,

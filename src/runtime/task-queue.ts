@@ -137,8 +137,6 @@ class TaskQueueImplementation implements ITaskQueue {
   private onError(error: any, task: any){
     if ('onError' in task) {
       task.onError(error);
-    } else if (typeof setImmediate === 'function') {
-      setImmediate(() => { throw error; });
     } else {
       setTimeout(() => { throw error; }, 0);
     }

@@ -1340,9 +1340,6 @@ define('runtime/task-queue',["require", "exports", "./di", "./reporter", "./plat
             if ('onError' in task) {
                 task.onError(error);
             }
-            else if (typeof setImmediate === 'function') {
-                setImmediate(function () { throw error; });
-            }
             else {
                 setTimeout(function () { throw error; }, 0);
             }

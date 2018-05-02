@@ -3,7 +3,7 @@ import { ICallable } from '../interfaces';
 import { TaskQueue } from '../task-queue';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
-import { INode, DOM, INodeObserver } from '../dom';
+import { INode, DOM, IChildObserver } from '../dom';
 
 const selectArrayContext = 'SelectValueObserver:array';
 
@@ -12,7 +12,7 @@ export class SelectValueObserver extends SubscriberCollection {
   private oldValue: any;
   private arrayObserver: any;
   private initialSync = false;
-  private domObserver: INodeObserver;
+  private childObserver: IChildObserver;
 
   constructor(
     private node: HTMLSelectElement,
@@ -170,17 +170,15 @@ export class SelectValueObserver extends SubscriberCollection {
   }
 
   bind() {
-    this.domObserver = DOM.createObserver(() => {
+    this.childObserver = DOM.createChildObserver(this.node, () => {
       this.synchronizeOptions();
       this.synchronizeValue();
-    });
-    
-    this.domObserver.observe(this.node, { childList: true, subtree: true, characterData: true });
+    }, { childList: true, subtree: true, characterData: true });
   }
 
   unbind() {
-    this.domObserver.disconnect();
-    this.domObserver = null;
+    this.childObserver.disconnect();
+    this.childObserver = null;
 
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribe(selectArrayContext, this);

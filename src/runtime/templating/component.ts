@@ -308,7 +308,7 @@ export const Component = {
 
         //Native ShadowDOM would be distributed as soon as we append the view above.
         //So, we emulate the distribution of nodes at the same time.
-        if (this.$contentView !== View.none) {
+        if (this.$contentView !== View.none && this.$slots) {
           ShadowDOMEmulation.distributeView(this.$contentView, this.$slots);
         }
       

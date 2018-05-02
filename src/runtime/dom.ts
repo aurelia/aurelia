@@ -13,8 +13,8 @@ export interface INode {
   readonly previousSibling: INode | null;
 }
 
-export interface INodeObserver {
-  observe(node: INode, options: any): void;
+export interface IChildObserver {
+  childNodes: ArrayLike<INode>;
   disconnect(): void;
 }
 
@@ -39,8 +39,15 @@ export const DOM = {
     return document.createComment('anchor');
   },
 
-  createObserver(callback: () => void): INodeObserver {
-    return new MutationObserver(callback);
+  createChildObserver(parent: INode, callback: () => void, options?: any): IChildObserver {
+    if (DOM.isUsingSlotEmulation(parent)) {
+      throw new Error('Not Implemented');
+    } else {
+      let observer = new MutationObserver(callback);
+      (<any>observer).childNodes = parent.childNodes;
+      observer.observe(<Node>parent, options || { childList: true });
+      return <any>observer;
+    }
   },
 
   createElementViewHost(node: INode, options?: any): INode {

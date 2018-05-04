@@ -299,17 +299,17 @@ export const Component = {
         if (this.$slot !== null) {
           this.$slot.$attach(context);
         }
-  
-        if (source.containerless) {
-          this.$view.insertBefore(this.$host);
-        } else {
-          this.$view.appendTo(this.$shadowRoot);
-        }
 
         //Native ShadowDOM would be distributed as soon as we append the view above.
         //So, we emulate the distribution of nodes at the same time.
         if (this.$contentView !== View.none && this.$slots) {
           ShadowDOMEmulation.distributeView(this.$contentView, this.$slots);
+        }
+  
+        if (source.containerless) {
+          this.$view.insertBefore(this.$host);
+        } else {
+          this.$view.appendTo(this.$shadowRoot);
         }
       
         if (this.$behavior.hasAttached) {

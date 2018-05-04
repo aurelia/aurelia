@@ -6005,14 +6005,14 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         if (this.$slot !== null) {
                             this.$slot.$attach(context);
                         }
+                        if (this.$contentView !== view_1.View.none && this.$slots) {
+                            shadow_dom_1.ShadowDOMEmulation.distributeView(this.$contentView, this.$slots);
+                        }
                         if (source.containerless) {
                             this.$view.insertBefore(this.$host);
                         }
                         else {
                             this.$view.appendTo(this.$shadowRoot);
-                        }
-                        if (this.$contentView !== view_1.View.none && this.$slots) {
-                            shadow_dom_1.ShadowDOMEmulation.distributeView(this.$contentView, this.$slots);
                         }
                         if (this.$behavior.hasAttached) {
                             context.queueForAttachedCallback(this);
@@ -6801,7 +6801,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
     function getSlotName(node) {
         var name = node.$slotName;
         if (name === undefined) {
-            return this.defaultSlotName;
+            return defaultSlotName;
         }
         return name;
     }

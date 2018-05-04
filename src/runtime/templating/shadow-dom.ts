@@ -385,7 +385,7 @@ function getSlotName(node: INode): string {
   const name = (<any>node).$slotName;
 
   if (name === undefined) {
-    return this.defaultSlotName;
+    return defaultSlotName;
   }
 
   return name;

@@ -193,7 +193,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
       }
 
       this.fallbackSlots = slots;
-      ShadowDOMEmulation.distributeNodes(view, nodes, slots, projectionSource, index);
+      distributeNodes(view, nodes, slots, projectionSource, index);
     }
   }
   
@@ -206,7 +206,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
     }
 
     if (this.destinationSlots !== null) {
-      ShadowDOMEmulation.distributeNodes(view, [node], this.destinationSlots, this, index);
+      distributeNodes(view, [node], this.destinationSlots, this, index);
     } else {
       node.$ownerView = view;
       node.$projectionSource = projectionSource;
@@ -253,9 +253,9 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
 
   removeAll(projectionSource: ProjectionSource) {
     if (this.destinationSlots !== null) {
-      ShadowDOMEmulation.undistributeAll(this.destinationSlots, this);
+      undistributeAll(this.destinationSlots, this);
     } else if (this.fallbackVisual && this.fallbackVisual.$slots) {
-      ShadowDOMEmulation.undistributeAll(this.fallbackVisual.$slots, projectionSource);
+      undistributeAll(this.fallbackVisual.$slots, projectionSource);
     } else {
       const found = this.children.find(x => x.$slotProjectFrom === projectionSource);
 
@@ -332,28 +332,75 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   }
 }
 
-export const ShadowDOMEmulation = {
-  defaultSlotName: 'auDefaultSlot',
+function distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource, index: number, destinationOverride: string = null) {
+  for (let i = 0, ii = nodes.length; i < ii; ++i) {
+    const currentNode = nodes[i];
 
-  getSlotName(node: INode): string {
-    const name = (<any>node).$slotName;
+    if (currentNode.$isContentProjectionSource) {
+      currentNode.$slot.projectTo(slots);
 
-    if (name === undefined) {
-      return this.defaultSlotName;
+      for (const slotName in slots) {
+        slots[slotName].projectFrom(view, currentNode.$slot);
+      }
+
+      nodes.splice(i, 1);
+      ii--; i--;
+    } else if (DOM.isElementNodeType(currentNode) || DOM.isTextNodeType(currentNode) || currentNode.$slot instanceof PassThroughSlot) { //project only elements and text
+      if (DOM.isTextNodeType(currentNode) && DOM.isAllWhitespace(currentNode)) {
+        nodes.splice(i, 1);
+        ii--; i--;
+      } else {
+        const found = slots[destinationOverride || getSlotName(currentNode)];
+
+        if (found) {
+          found.addNode(view, currentNode, projectionSource, index);
+          nodes.splice(i, 1);
+          ii--; i--;
+        }
+      }
+    } else {
+      nodes.splice(i, 1);
+      ii--; i--;
     }
+  }
 
-    return name;
-  },
+  for (const slotName in slots) {
+    const slot = slots[slotName];
 
+    if (slot.needsFallback) {
+      slot.renderFallback(view, nodes, projectionSource, index);
+    }
+  }
+}
+
+function undistributeAll(slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
+  for (const slotName in slots) {
+    slots[slotName].removeAll(projectionSource);
+  }
+}
+
+const defaultSlotName = 'auDefaultSlot';
+
+function getSlotName(node: INode): string {
+  const name = (<any>node).$slotName;
+
+  if (name === undefined) {
+    return this.defaultSlotName;
+  }
+
+  return name;
+}
+
+export const ShadowDOMEmulation = {
   createSlot(target: INode, owner: IViewOwner, name?: string, destination?: string, fallbackFactory?: IVisualFactory) {
     const anchor = <any>DOM.createAnchor();
     
     DOM.replaceNode(anchor, target);
 
     if (destination) {
-      return new PassThroughSlot(owner, anchor, name || ShadowDOMEmulation.defaultSlotName, destination, fallbackFactory);
+      return new PassThroughSlot(owner, anchor, name || defaultSlotName, destination, fallbackFactory);
     } else {
-      return new ShadowSlot(owner, anchor, name || ShadowDOMEmulation.defaultSlotName, fallbackFactory);
+      return new ShadowSlot(owner, anchor, name || defaultSlotName, fallbackFactory);
     }
   },
 
@@ -373,7 +420,7 @@ export const ShadowDOMEmulation = {
       }
     }
 
-    ShadowDOMEmulation.distributeNodes(
+    distributeNodes(
       view,
       nodes,
       slots,
@@ -386,53 +433,6 @@ export const ShadowDOMEmulation = {
   undistributeView(view: IView, slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
     for (const slotName in slots) {
       slots[slotName].removeView(view, projectionSource);
-    }
-  },
-
-  undistributeAll(slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
-    for (const slotName in slots) {
-      slots[slotName].removeAll(projectionSource);
-    }
-  },
-
-  distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource, index: number, destinationOverride: string = null) {
-    for (let i = 0, ii = nodes.length; i < ii; ++i) {
-      const currentNode = nodes[i];
-
-      if (currentNode.$isContentProjectionSource) {
-        currentNode.$slot.projectTo(slots);
-
-        for (const slotName in slots) {
-          slots[slotName].projectFrom(view, currentNode.$slot);
-        }
-
-        nodes.splice(i, 1);
-        ii--; i--;
-      } else if (DOM.isElementNodeType(currentNode) || DOM.isTextNodeType(currentNode) || currentNode.$slot instanceof PassThroughSlot) { //project only elements and text
-        if (DOM.isTextNodeType(currentNode) && DOM.isAllWhitespace(currentNode)) {
-          nodes.splice(i, 1);
-          ii--; i--;
-        } else {
-          const found = slots[destinationOverride || ShadowDOMEmulation.getSlotName(currentNode)];
-
-          if (found) {
-            found.addNode(view, currentNode, projectionSource, index);
-            nodes.splice(i, 1);
-            ii--; i--;
-          }
-        }
-      } else {
-        nodes.splice(i, 1);
-        ii--; i--;
-      }
-    }
-
-    for (const slotName in slots) {
-      const slot = slots[slotName];
-
-      if (slot.needsFallback) {
-        slot.renderFallback(view, nodes, projectionSource, index);
-      }
     }
   }
 }

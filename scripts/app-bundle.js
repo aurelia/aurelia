@@ -1584,6 +1584,26 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
 
 
 
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
+            container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
+            container.register(di_1.Registration.instance(signals_1.ISignaler, signals_1.Signaler));
+        }
+    };
+});
+
+
+
 define('runtime/binding/array-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4841,26 +4861,6 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
-            container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
-            container.register(di_1.Registration.instance(signals_1.ISignaler, signals_1.Signaler));
-        }
-    };
-});
-
-
-
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -6633,7 +6633,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
                     }
                 }
                 this.fallbackSlots = slots;
-                exports.ShadowDOMEmulation.distributeNodes(view, nodes, slots, projectionSource, index);
+                distributeNodes(view, nodes, slots, projectionSource, index);
             }
         };
         ShadowSlot.prototype.addNode = function (view, node, projectionSource, index, destination) {
@@ -6643,7 +6643,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
                 return;
             }
             if (this.destinationSlots !== null) {
-                exports.ShadowDOMEmulation.distributeNodes(view, [node], this.destinationSlots, this, index);
+                distributeNodes(view, [node], this.destinationSlots, this, index);
             }
             else {
                 node.$ownerView = view;
@@ -6685,10 +6685,10 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
         };
         ShadowSlot.prototype.removeAll = function (projectionSource) {
             if (this.destinationSlots !== null) {
-                exports.ShadowDOMEmulation.undistributeAll(this.destinationSlots, this);
+                undistributeAll(this.destinationSlots, this);
             }
             else if (this.fallbackVisual && this.fallbackVisual.$slots) {
-                exports.ShadowDOMEmulation.undistributeAll(this.fallbackVisual.$slots, projectionSource);
+                undistributeAll(this.fallbackVisual.$slots, projectionSource);
             }
             else {
                 var found = this.children.find(function (x) { return x.$slotProjectFrom === projectionSource; });
@@ -6750,23 +6750,70 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
         };
         return ShadowSlot;
     }(ShadowSlotBase));
-    exports.ShadowDOMEmulation = {
-        defaultSlotName: 'auDefaultSlot',
-        getSlotName: function (node) {
-            var name = node.$slotName;
-            if (name === undefined) {
-                return this.defaultSlotName;
+    function distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
+        if (destinationOverride === void 0) { destinationOverride = null; }
+        for (var i = 0, ii = nodes.length; i < ii; ++i) {
+            var currentNode = nodes[i];
+            if (currentNode.$isContentProjectionSource) {
+                currentNode.$slot.projectTo(slots);
+                for (var slotName in slots) {
+                    slots[slotName].projectFrom(view, currentNode.$slot);
+                }
+                nodes.splice(i, 1);
+                ii--;
+                i--;
             }
-            return name;
-        },
+            else if (dom_1.DOM.isElementNodeType(currentNode) || dom_1.DOM.isTextNodeType(currentNode) || currentNode.$slot instanceof PassThroughSlot) {
+                if (dom_1.DOM.isTextNodeType(currentNode) && dom_1.DOM.isAllWhitespace(currentNode)) {
+                    nodes.splice(i, 1);
+                    ii--;
+                    i--;
+                }
+                else {
+                    var found = slots[destinationOverride || getSlotName(currentNode)];
+                    if (found) {
+                        found.addNode(view, currentNode, projectionSource, index);
+                        nodes.splice(i, 1);
+                        ii--;
+                        i--;
+                    }
+                }
+            }
+            else {
+                nodes.splice(i, 1);
+                ii--;
+                i--;
+            }
+        }
+        for (var slotName in slots) {
+            var slot = slots[slotName];
+            if (slot.needsFallback) {
+                slot.renderFallback(view, nodes, projectionSource, index);
+            }
+        }
+    }
+    function undistributeAll(slots, projectionSource) {
+        for (var slotName in slots) {
+            slots[slotName].removeAll(projectionSource);
+        }
+    }
+    var defaultSlotName = 'auDefaultSlot';
+    function getSlotName(node) {
+        var name = node.$slotName;
+        if (name === undefined) {
+            return this.defaultSlotName;
+        }
+        return name;
+    }
+    exports.ShadowDOMEmulation = {
         createSlot: function (target, owner, name, destination, fallbackFactory) {
             var anchor = dom_1.DOM.createAnchor();
             dom_1.DOM.replaceNode(anchor, target);
             if (destination) {
-                return new PassThroughSlot(owner, anchor, name || exports.ShadowDOMEmulation.defaultSlotName, destination, fallbackFactory);
+                return new PassThroughSlot(owner, anchor, name || defaultSlotName, destination, fallbackFactory);
             }
             else {
-                return new ShadowSlot(owner, anchor, name || exports.ShadowDOMEmulation.defaultSlotName, fallbackFactory);
+                return new ShadowSlot(owner, anchor, name || defaultSlotName, fallbackFactory);
             }
         },
         distributeView: function (view, slots, projectionSource, index, destinationOverride) {
@@ -6785,58 +6832,11 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
                     nodes[i] = childNodes[i];
                 }
             }
-            exports.ShadowDOMEmulation.distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride);
+            distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride);
         },
         undistributeView: function (view, slots, projectionSource) {
             for (var slotName in slots) {
                 slots[slotName].removeView(view, projectionSource);
-            }
-        },
-        undistributeAll: function (slots, projectionSource) {
-            for (var slotName in slots) {
-                slots[slotName].removeAll(projectionSource);
-            }
-        },
-        distributeNodes: function (view, nodes, slots, projectionSource, index, destinationOverride) {
-            if (destinationOverride === void 0) { destinationOverride = null; }
-            for (var i = 0, ii = nodes.length; i < ii; ++i) {
-                var currentNode = nodes[i];
-                if (currentNode.$isContentProjectionSource) {
-                    currentNode.$slot.projectTo(slots);
-                    for (var slotName in slots) {
-                        slots[slotName].projectFrom(view, currentNode.$slot);
-                    }
-                    nodes.splice(i, 1);
-                    ii--;
-                    i--;
-                }
-                else if (dom_1.DOM.isElementNodeType(currentNode) || dom_1.DOM.isTextNodeType(currentNode) || currentNode.$slot instanceof PassThroughSlot) {
-                    if (dom_1.DOM.isTextNodeType(currentNode) && dom_1.DOM.isAllWhitespace(currentNode)) {
-                        nodes.splice(i, 1);
-                        ii--;
-                        i--;
-                    }
-                    else {
-                        var found = slots[destinationOverride || exports.ShadowDOMEmulation.getSlotName(currentNode)];
-                        if (found) {
-                            found.addNode(view, currentNode, projectionSource, index);
-                            nodes.splice(i, 1);
-                            ii--;
-                            i--;
-                        }
-                    }
-                }
-                else {
-                    nodes.splice(i, 1);
-                    ii--;
-                    i--;
-                }
-            }
-            for (var slotName in slots) {
-                var slot = slots[slotName];
-                if (slot.needsFallback) {
-                    slot.renderFallback(view, nodes, projectionSource, index);
-                }
             }
         }
     };

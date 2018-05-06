@@ -1069,27 +1069,12 @@ define('runtime/dom',["require", "exports", "./di"], function (require, exports,
         createAnchor: function () {
             return document.createComment('anchor');
         },
-        createChildObserver: function (parent, callback, options) {
+        createChildObserver: function (parent, onChildrenChanged, options) {
             if (exports.DOM.isUsingSlotEmulation(parent)) {
-                var component = exports.DOM.getComponentForNode(parent);
-                var contentView_1 = component.$contentView;
-                var observer = {
-                    get childNodes() {
-                        return contentView_1.childNodes;
-                    },
-                    disconnect: function () {
-                        callback = null;
-                    }
-                };
-                contentView_1.notifyChildrenChanged = function () {
-                    if (callback !== null) {
-                        callback();
-                    }
-                };
-                return observer;
+                return exports.DOM.getComponentForNode(parent).$contentView.attachChildObserver(onChildrenChanged);
             }
             else {
-                var observer = new MutationObserver(callback);
+                var observer = new MutationObserver(onChildrenChanged);
                 observer.childNodes = parent.childNodes;
                 observer.observe(parent, options || { childList: true });
                 return observer;
@@ -1125,8 +1110,11 @@ define('runtime/dom',["require", "exports", "./di"], function (require, exports,
             var name = node.tagName;
             return name ? name.toLowerCase() : null;
         },
-        removeNode: function (node) {
-            if (node.parentNode) {
+        remove: function (node) {
+            if (node.remove) {
+                node.remove();
+            }
+            else if (node.parentNode) {
                 node.parentNode.removeChild(node);
             }
         },
@@ -1264,6 +1252,7 @@ define('runtime/platform',["require", "exports"], function (require, exports) {
         global: global,
         emptyArray: Object.freeze([]),
         emptyObject: Object.freeze({}),
+        noop: function () { },
         now: function () {
             return performance.now();
         },
@@ -1631,6 +1620,26 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
             throw new Error('Expression Compilation Not Implemented');
         }
     });
+});
+
+
+
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
+            container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
+            container.register(di_1.Registration.instance(signals_1.ISignaler, signals_1.Signaler));
+        }
+    };
 });
 
 
@@ -4892,26 +4901,6 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
-            container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
-            container.register(di_1.Registration.instance(signals_1.ISignaler, signals_1.Signaler));
-        }
-    };
-});
-
-
-
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -6057,8 +6046,8 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         if (this.$slot !== null) {
                             this.$slot.$attach(context);
                         }
-                        if (this.$contentView !== view_1.View.none && this.$slots) {
-                            shadow_dom_1.ShadowDOMEmulation.distributeView(this.$contentView, this.$slots);
+                        if (this.$contentView !== null && this.$slots) {
+                            shadow_dom_1.ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
                         }
                         if (source.containerless) {
                             this.$view.insertBefore(this.$host);
@@ -6340,13 +6329,19 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
         visual.$view.insertBefore(owner.anchor);
     }
     function projectAddVisualToList(visual, owner) {
-        var contentView = owner.source;
-        if (contentView.notifyChildrenChanged) {
-            var contentNodes = contentView.childNodes;
-            var contentIndex = contentNodes.indexOf(owner.anchor) + 1;
+        var logicalView = owner.logicalView;
+        var childObserver = logicalView.childObserver;
+        if (childObserver) {
+            var contentNodes = logicalView.childNodes;
+            var contentIndex = contentNodes.indexOf(owner.anchor) - 1;
             var projectedNodes = Array.from(visual.$view.childNodes);
+            projectedNodes.forEach(function (node) {
+                if (node.$isContentProjectionSource) {
+                    node.$slot.logicalView = logicalView;
+                }
+            });
             contentNodes.splice.apply(contentNodes, [contentIndex, 0].concat(projectedNodes));
-            contentView.notifyChildrenChanged();
+            childObserver.notifyChildrenChanged();
         }
         visual.$view.remove = function () { return shadow_dom_1.ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner); };
         shadow_dom_1.ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner);
@@ -6355,13 +6350,19 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
         visual.$view.insertBefore(owner.children[index].$view.firstChild);
     }
     function projectInsertVisualAtIndex(visual, owner, index) {
-        var contentView = owner.source;
-        if (contentView.notifyChildrenChanged) {
-            var contentNodes = contentView.childNodes;
+        var logicalView = owner.logicalView;
+        var childObserver = logicalView.childObserver;
+        if (childObserver) {
+            var contentNodes = logicalView.childNodes;
             var contentIndex = contentNodes.indexOf(owner.children[index].$view.firstChild);
             var projectedNodes = Array.from(visual.$view.childNodes);
-            contentNodes.splice.apply(contentNodes, [index, 0].concat(projectedNodes));
-            contentView.notifyChildrenChanged();
+            projectedNodes.forEach(function (node) {
+                if (node.$isContentProjectionSource) {
+                    node.$slot.logicalView = logicalView;
+                }
+            });
+            contentNodes.splice.apply(contentNodes, [contentIndex, 0].concat(projectedNodes));
+            childObserver.notifyChildrenChanged();
         }
         visual.$view.remove = function () { return shadow_dom_1.ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner); };
         shadow_dom_1.ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner, index);
@@ -6370,13 +6371,14 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
         visual.$view.remove();
     }
     function projectRemoveView(visual, owner) {
-        var contentView = owner.source;
-        if (contentView.notifyChildrenChanged) {
-            var contentNodes = contentView.childNodes;
+        var logicalView = owner.logicalView;
+        var childObserver = logicalView.childObserver;
+        if (childObserver) {
+            var contentNodes = logicalView.childNodes;
             var startIndex = contentNodes.indexOf(visual.$view.firstChild);
             var endIndex = contentNodes.indexOf(visual.$view.lastChild);
             contentNodes.splice(startIndex, (endIndex - startIndex) + 1);
-            contentView.notifyChildrenChanged();
+            childObserver.notifyChildrenChanged();
         }
         shadow_dom_1.ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
     }
@@ -6392,7 +6394,7 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             this.$isAttached = false;
             this.children = [];
             this.slots = null;
-            this.source = null;
+            this.logicalView = null;
             anchor.$slot = this;
             anchor.$isContentProjectionSource = false;
             this.addVisualCore = anchorIsContainer ? appendVisualToContainer : addVisualToList;
@@ -6544,12 +6546,11 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
                 this.$isAttached = false;
             }
         };
-        RenderSlotImplementation.prototype.projectTo = function (slots, source) {
+        RenderSlotImplementation.prototype.projectTo = function (slots) {
             this.slots = slots;
             this.addVisualCore = projectAddVisualToList;
             this.insertVisualCore = projectInsertVisualAtIndex;
             this.removeViewCore = projectRemoveView;
-            this.source = source;
             if (this.$isAttached) {
                 var children = this.children;
                 for (var i = 0, ii = children.length; i < ii; ++i) {
@@ -6810,7 +6811,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
             }
             return this.anchor;
         };
-        ShadowSlot.prototype.projectTo = function (slots, source) {
+        ShadowSlot.prototype.projectTo = function (slots) {
             this.destinationSlots = slots;
         };
         ShadowSlot.prototype.projectFrom = function (view, projectionSource) {
@@ -6833,7 +6834,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
         for (var i = 0, ii = nodes.length; i < ii; ++i) {
             var currentNode = nodes[i];
             if (currentNode.$isContentProjectionSource) {
-                currentNode.$slot.projectTo(slots, view);
+                currentNode.$slot.projectTo(slots);
                 for (var slotName in slots) {
                     slots[slotName].projectFrom(view, currentNode.$slot);
                 }
@@ -6883,6 +6884,21 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
         }
         return name;
     }
+    function viewToNodes(view) {
+        var nodes;
+        if (view === null) {
+            nodes = noNodes;
+        }
+        else {
+            var childNodes = view.childNodes;
+            var ii = childNodes.length;
+            nodes = new Array(ii);
+            for (var i = 0; i < ii; ++i) {
+                nodes[i] = childNodes[i];
+            }
+        }
+        return nodes;
+    }
     exports.ShadowDOMEmulation = {
         createSlot: function (target, owner, name, destination, fallbackFactory) {
             var anchor = dom_1.DOM.createAnchor();
@@ -6894,23 +6910,20 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
                 return new ShadowSlot(owner, anchor, name || defaultSlotName, fallbackFactory);
             }
         },
+        distributeContent: function (content, slots) {
+            var nodes = viewToNodes(content);
+            nodes.forEach(function (node) {
+                if (node.$isContentProjectionSource) {
+                    node.$slot.logicalView = content;
+                }
+            });
+            distributeNodes(content, nodes, slots, null, 0, null);
+        },
         distributeView: function (view, slots, projectionSource, index, destinationOverride) {
             if (projectionSource === void 0) { projectionSource = null; }
             if (index === void 0) { index = 0; }
             if (destinationOverride === void 0) { destinationOverride = null; }
-            var nodes;
-            if (view === null) {
-                nodes = noNodes;
-            }
-            else {
-                var childNodes = view.childNodes;
-                var ii = childNodes.length;
-                nodes = new Array(ii);
-                for (var i = 0; i < ii; ++i) {
-                    nodes[i] = childNodes[i];
-                }
-            }
-            distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride);
+            distributeNodes(view, viewToNodes(view), slots, projectionSource, index, destinationOverride);
         },
         undistributeView: function (view, slots, projectionSource) {
             for (var slotName in slots) {
@@ -7004,7 +7017,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         _a[instructions_1.TargetedInstructionType.textBinding] = function (owner, instruction, target, replacements, container) {
             var next = target.nextSibling;
             dom_1.DOM.treatAsNonWhitespace(next);
-            dom_1.DOM.removeNode(target);
+            dom_1.DOM.remove(target);
             owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, container));
         },
         _a[instructions_1.TargetedInstructionType.oneWayBinding] = function (owner, instruction, target, replacements, container) {
@@ -7421,7 +7434,7 @@ define('runtime/templating/view',["require", "exports", "../platform", "../di", 
                 return new ContentView(contentOverride || contentHost);
             }
             else {
-                return noopView;
+                return null;
             }
         },
         fromNode: function (node) {
@@ -7442,7 +7455,7 @@ define('runtime/templating/view',["require", "exports", "../platform", "../di", 
                     dom_1.DOM.appendChild(parent, node);
                 },
                 remove: function () {
-                    dom_1.DOM.removeNode(node);
+                    dom_1.DOM.remove(node);
                 }
             };
         }
@@ -7450,16 +7463,28 @@ define('runtime/templating/view',["require", "exports", "../platform", "../di", 
     var ContentView = (function () {
         function ContentView(contentHost) {
             this.contentHost = contentHost;
-            var current;
-            var childNodes = this.childNodes = new Array(contentHost.childNodes.length);
-            var i = -1;
-            while (current = contentHost.firstChild) {
-                dom_1.DOM.removeNode(current);
-                childNodes[++i] = current;
-            }
+            this.childObserver = null;
+            var childNodes = this.childNodes = Array.from(contentHost.childNodes);
             this.firstChild = childNodes[0];
-            this.lastChild = childNodes[i];
+            this.lastChild = childNodes[childNodes.length - 1];
         }
+        ContentView.prototype.attachChildObserver = function (onChildrenChanged) {
+            var childNodes = this.childNodes;
+            var observer = {
+                get childNodes() {
+                    return childNodes;
+                },
+                disconnect: function () {
+                    onChildrenChanged = null;
+                },
+                notifyChildrenChanged: function () {
+                    if (onChildrenChanged !== null) {
+                        onChildrenChanged();
+                    }
+                }
+            };
+            return observer;
+        };
         ContentView.prototype.findTargets = function () { return platform_1.PLATFORM.emptyArray; };
         ContentView.prototype.appendChild = function (child) { };
         ContentView.prototype.insertBefore = function (refNode) { };
@@ -7467,7 +7492,6 @@ define('runtime/templating/view',["require", "exports", "../platform", "../di", 
         ContentView.prototype.remove = function () { };
         return ContentView;
     }());
-    exports.ContentView = ContentView;
 });
 
 

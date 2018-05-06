@@ -17,6 +17,7 @@ export const PLATFORM = {
   global: global,
   emptyArray: <Array<any>>Object.freeze([]),
   emptyObject: Object.freeze({}),
+  noop: function() {},
 
   now(): number {
     return performance.now();

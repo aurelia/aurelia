@@ -1,6 +1,5 @@
 import { IContainer, IResolver, DI } from "./di";
 import { IElementComponent } from "./templating/component";
-import { ContentView } from "./templating/view";
 
 export const INode = DI.createInterface('INode');
 
@@ -52,30 +51,11 @@ export const DOM = {
     return document.createComment('anchor');
   },
 
-  createChildObserver(parent: INode, callback: () => void, options?: any): IChildObserver {
+  createChildObserver(parent: INode, onChildrenChanged: () => void, options?: any): IChildObserver {
     if (DOM.isUsingSlotEmulation(parent)) {
-      let component = DOM.getComponentForNode(parent);
-      let contentView = <ContentView>component.$contentView;
-      let observer = {
-        get childNodes() {
-          return contentView.childNodes;
-        },
-        disconnect() {
-          callback = null;
-        }
-      };
-
-      // TODO: materialize content
-
-      contentView.notifyChildrenChanged = function() {
-        if (callback !== null) {
-          callback();
-        }
-      };
-
-      return observer;
+      return DOM.getComponentForNode(parent).$contentView.attachChildObserver(onChildrenChanged);
     } else {
-      let observer = new MutationObserver(callback);
+      let observer = new MutationObserver(onChildrenChanged);
       (<any>observer).childNodes = parent.childNodes;
       observer.observe(<Node>parent, options || { childList: true });
       return <any>observer;
@@ -120,9 +100,11 @@ export const DOM = {
     return name ? name.toLowerCase() : null;
   },
 
-  removeNode(node: INode) {
-    if (node.parentNode) {
-      (<Node>node.parentNode).removeChild(<Node>node);
+  remove(node: INodeLike) {
+    if ((<any>node).remove) {
+      (<any>node).remove();
+    } else if ((<Node>node).parentNode) {
+      (<Node>node).parentNode.removeChild(<Node>node);
     }
   },
 

@@ -1,5 +1,5 @@
 import { ViewEngine, ITemplate, } from "./view-engine";
-import { View, IViewOwner } from "./view";
+import { View, IViewOwner, IContentView } from "./view";
 import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
 import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
@@ -16,7 +16,7 @@ import { INode, DOM, IView } from "../dom";
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $view: IView;
-  $contentView: IView;
+  $contentView: IContentView;
   $slots: Record<string, IEmulatedShadowSlot>;
   $usingSlotEmulation: boolean;
 
@@ -217,7 +217,7 @@ export const Component = {
       $slots: Record<string, IEmulatedShadowSlot> = source.hasSlots ? {} : null;
       $usingSlotEmulation = source.hasSlots || false;
       $view: IView = null;
-      $contentView: IView = null;
+      $contentView: IContentView = null;
       $slot: IRenderSlot = null;
       $isAttached = false;
       $isBound = false;
@@ -306,8 +306,8 @@ export const Component = {
 
         //Native ShadowDOM would be distributed as soon as we append the view below.
         //So, we emulate the distribution of nodes at the same time.
-        if (this.$contentView !== View.none && this.$slots) {
-          ShadowDOMEmulation.distributeView(this.$contentView, this.$slots);
+        if (this.$contentView !== null && this.$slots) {
+          ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
         }
   
         if (source.containerless) {

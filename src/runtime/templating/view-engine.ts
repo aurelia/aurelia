@@ -152,7 +152,7 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
   [TargetedInstructionType.textBinding](owner: IViewOwner, instruction: ITextBindingInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {
     let next = target.nextSibling;
     DOM.treatAsNonWhitespace(next);
-    DOM.removeNode(target);
+    DOM.remove(target);
     owner.$bindable.push(new Binding(Expression.from(instruction.src), next, 'textContent', BindingMode.oneWay, container));
   },
   [TargetedInstructionType.oneWayBinding](owner: IViewOwner, instruction: IOneWayBindingInstruction, target: INode, replacements: Record<string, ICompiledViewSource>, container: ITemplateContainer) {

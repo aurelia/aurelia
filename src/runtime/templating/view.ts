@@ -41,11 +41,11 @@ const noopView: IView = {
 
 export const View = {
   none: noopView,
-  fromCompiledContent(contentHost: INode, contentOverride?: INode): IView {
+  fromCompiledContent(contentHost: INode, contentOverride?: INode): IContentView | null {
     if (DOM.isUsingSlotEmulation(contentHost)) {
       return new ContentView(contentOverride || contentHost);
     } else {
-      return noopView;
+      return null;
     }
   },
   fromNode(node: INode): IView {
@@ -66,31 +66,52 @@ export const View = {
         DOM.appendChild(parent, node);
       },
       remove(): void {
-        DOM.removeNode(node);
+        DOM.remove(node);
       }
     };
   }
 };
 
-/** @internal */ export class ContentView implements IView {
+export interface IContentView extends IView {
+  childObserver?: IContentViewChildObserver;
+  attachChildObserver(onChildrenChanged: () => void): IContentViewChildObserver;
+}
+
+export interface IContentViewChildObserver extends IChildObserver {
+  notifyChildrenChanged(): void;
+}
+
+class ContentView implements IContentView {
   firstChild: INode;
   lastChild: INode;
   childNodes: INode[];
-
-  notifyChildrenChanged?: () => void; //Added by INodeObserver and called by RenderSlot
+  childObserver: IContentViewChildObserver = null;
 
   constructor(private contentHost: INode) {
-    let current: INode;
-    let childNodes = this.childNodes = new Array(contentHost.childNodes.length);
-    let i = -1;
-
-    while(current = contentHost.firstChild) {
-      DOM.removeNode(current);
-      childNodes[++i] = current;
-    }
-
+    let childNodes = this.childNodes = Array.from(contentHost.childNodes)
     this.firstChild = childNodes[0];
-    this.lastChild = childNodes[i];
+    this.lastChild = childNodes[childNodes.length - 1];
+  }
+
+  attachChildObserver(onChildrenChanged: () => void) {
+    let childNodes = this.childNodes;
+    let observer = {
+      get childNodes() {
+        return childNodes;
+      },
+      disconnect() {
+        onChildrenChanged = null;
+      },
+      notifyChildrenChanged() {
+        if (onChildrenChanged !== null) {
+          onChildrenChanged();
+        }
+      }
+    };
+
+    // TODO: materialize content
+
+    return observer;
   }
 
   findTargets() { return PLATFORM.emptyArray; }

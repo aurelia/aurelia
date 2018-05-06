@@ -2,10 +2,10 @@ import { customElement, inject } from "../decorators";
 import { IRenderSlot, SwapOrder } from "../templating/render-slot";
 import { ViewEngine, ITemplateContainer, VisualWithCentralComponent, IVisual } from "../templating/view-engine";
 import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from "../templating/instructions";
-import { IViewOwner, IViewOwnerType, IView } from "../templating/view";
+import { IViewOwner, IViewOwnerType } from "../templating/view";
 import { IContainer } from "../di";
 import { IBindScope } from "../binding/observation";
-import { INode, DOM } from "../dom";
+import { INode, DOM, IView } from "../dom";
 
 const composeSource = {
   name: 'au-compose',

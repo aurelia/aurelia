@@ -7,20 +7,8 @@ import { DI, IContainer } from "../di";
 import { ITemplate } from "./view-engine";
 import { Constructable } from "../interfaces";
 import { ICompiledViewSource } from "./instructions";
-import { INode, DOM } from "../dom";
+import { INode, DOM, IChildObserver, IView } from "../dom";
 import { IElementComponent } from "./component";
-
-export interface IView {
-  firstChild: INode;
-  lastChild: INode;
-  childNodes: ArrayLike<INode>;
-
-  findTargets(): ArrayLike<INode>;
-  appendChild(child: INode): void;
-  insertBefore(refNode: INode): void;
-  appendTo(parent: INode): void;
-  remove(): void;
-}
 
 export interface IViewOwnerType extends Constructable<IViewOwner> {
   template: ITemplate;
@@ -53,12 +41,9 @@ const noopView: IView = {
 
 export const View = {
   none: noopView,
-  fromCompiledFactory(factory: () => INode): IView {
-    return new TemplateView(factory);
-  },
-  fromCompiledContent(host: INode, contentOverride?: INode): IView {
-    if (DOM.isUsingSlotEmulation(host)) {
-      return new ContentView(contentOverride || host);
+  fromCompiledContent(contentHost: INode, contentOverride?: INode): IView {
+    if (DOM.isUsingSlotEmulation(contentHost)) {
+      return new ContentView(contentOverride || contentHost);
     } else {
       return noopView;
     }
@@ -68,7 +53,7 @@ export const View = {
       firstChild: node,
       lastChild: node,
       childNodes: [node],
-      findTargets(): ReadonlyArray<INode> {
+      findTargets(): INode[] {
         return PLATFORM.emptyArray;
       },
       appendChild(node: INode) {
@@ -87,17 +72,19 @@ export const View = {
   }
 };
 
-class ContentView implements IView {
+/** @internal */ export class ContentView implements IView {
   firstChild: INode;
   lastChild: INode;
   childNodes: INode[];
 
-  constructor(private element: INode) {
+  notifyChildrenChanged?: () => void; //Added by INodeObserver and called by RenderSlot
+
+  constructor(private contentHost: INode) {
     let current: INode;
-    let childNodes = this.childNodes = new Array(element.childNodes.length);
+    let childNodes = this.childNodes = new Array(contentHost.childNodes.length);
     let i = -1;
 
-    while(current = element.firstChild) {
+    while(current = contentHost.firstChild) {
       DOM.removeNode(current);
       childNodes[++i] = current;
     }
@@ -111,56 +98,4 @@ class ContentView implements IView {
   insertBefore(refNode: INode): void {}
   appendTo(parent: INode): void {}
   remove(): void {}
-}
-
-class TemplateView implements IView {
-  private instance: INode;
-
-  firstChild: INode;
-  lastChild: INode;
-
-  constructor(factory: () => INode) {
-    this.instance = factory();
-    this.firstChild = this.instance.firstChild;
-    this.lastChild = this.instance.lastChild;
-  }
-
-  get childNodes() {
-    return this.instance.childNodes;
-  }
-
-  appendChild(node: INode) {
-    DOM.appendChild(this.instance, node);
-  }
-
-  findTargets(): ArrayLike<INode> {
-    return DOM.findCompileTargets(this.instance);
-  }
-
-  insertBefore(refNode: INode): void {
-    DOM.insertBefore(this.instance, refNode);
-  }
-
-  appendTo(parent: INode): void {
-    DOM.appendChild(parent, this.instance);
-  }
-
-  remove(): void {
-    let fragment = this.instance;
-    let current = this.firstChild;
-    let end = this.lastChild;
-    let append = DOM.appendChild;
-    let next;
-
-    while (current) {
-      next = current.nextSibling;
-      append(fragment, current);
-
-      if (current === end) {
-        break;
-      }
-
-      current = next;
-    }
-  }
 }

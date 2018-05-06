@@ -15,7 +15,7 @@ const global = (function() {
 
 export const PLATFORM = {
   global: global,
-  emptyArray: Object.freeze([]),
+  emptyArray: <Array<any>>Object.freeze([]),
   emptyObject: Object.freeze({}),
 
   now(): number {
@@ -26,7 +26,7 @@ export const PLATFORM = {
     return requestAnimationFrame(callback);
   },
 
-  createTaskFlushRequester(callback: () => void) {
+  createTaskFlushRequester(onFlush: () => void) {
     return function requestFlush() {
       // We dispatch a timeout with a specified delay of 0 for engines that
       // can reliably accommodate that request. This will usually be snapped
@@ -44,14 +44,14 @@ export const PLATFORM = {
         // flush.
         clearTimeout(timeoutHandle);
         clearInterval(intervalHandle);
-        callback();
+        onFlush();
       }
     };
   },
 
-  createMicroTaskFlushRequestor(callback:  () => void): () => void {
+  createMicroTaskFlushRequestor(onFlush:  () => void): () => void {
     let toggle = 1;
-    const observer = new MutationObserver(callback);
+    const observer = new MutationObserver(onFlush);
     const node = document.createTextNode('');
 
     observer.observe(node, { characterData: true });

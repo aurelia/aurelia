@@ -1,16 +1,29 @@
 import { IContainer, IResolver, DI } from "./di";
+import { IElementComponent } from "./templating/component";
+import { ContentView } from "./templating/view";
 
 export const INode = DI.createInterface('INode');
-export interface INode {
-  readonly parentNode: INode | null;
 
+export interface INodeLike {
   readonly firstChild: INode | null;
   readonly lastChild: INode | null;
-
   readonly childNodes: ArrayLike<INode>;
+}
 
+export interface INode extends INodeLike {
+  readonly parentNode: INode | null;
   readonly nextSibling: INode | null;
   readonly previousSibling: INode | null;
+}
+
+export interface IView extends INodeLike {
+  childNodes: INode[];
+
+  findTargets(): ArrayLike<INode>;
+  appendChild(child: INode): void;
+  insertBefore(refNode: INode): void;
+  appendTo(parent: INode): void;
+  remove(): void;
 }
 
 export interface IChildObserver {
@@ -25,10 +38,10 @@ let platformSupportsShadowDOM = function() {
 };
 
 export const DOM = {
-  createFactoryFromMarkup(markup: string): () => INode {
+  createFactoryFromMarkup(markup: string): () => IView {
     let template = document.createElement('template');
     template.innerHTML = markup;
-    return () => <any>template.content.cloneNode(true);
+    return () => new TemplateView(template);
   },
 
   createElement(name: string): INode {
@@ -41,7 +54,26 @@ export const DOM = {
 
   createChildObserver(parent: INode, callback: () => void, options?: any): IChildObserver {
     if (DOM.isUsingSlotEmulation(parent)) {
-      throw new Error('Not Implemented');
+      let component = DOM.getComponentForNode(parent);
+      let contentView = <ContentView>component.$contentView;
+      let observer = {
+        get childNodes() {
+          return contentView.childNodes;
+        },
+        disconnect() {
+          callback = null;
+        }
+      };
+
+      // TODO: materialize content
+
+      contentView.notifyChildrenChanged = function() {
+        if (callback !== null) {
+          callback();
+        }
+      };
+
+      return observer;
     } else {
       let observer = new MutationObserver(callback);
       (<any>observer).childNodes = parent.childNodes;
@@ -63,8 +95,8 @@ export const DOM = {
     return (<Node>node).cloneNode(deep);
   },
 
-  findCompileTargets(node: INode): ArrayLike<INode> {
-    return (<Element>node).querySelectorAll('.au');
+  getComponentForNode(node: INode): IElementComponent | null {
+    return (<any>node).$component || null; //Set during component $hydrate
   },
 
   isUsingSlotEmulation(node: INode): boolean {
@@ -185,4 +217,54 @@ function getAttribute(name) {
 
 function setAttribute(name, value) {
   this.$proxyTarget.setAttribute(name, value);
+}
+
+class TemplateView implements IView {
+  private fragment: DocumentFragment;
+
+  firstChild: INode;
+  lastChild: INode;
+  childNodes: INode[];
+
+  constructor(template: HTMLTemplateElement) {
+    let container = this.fragment = <DocumentFragment>template.content.cloneNode(true);
+    this.firstChild = container.firstChild;
+    this.lastChild = container.lastChild;
+    this.childNodes = Array.from(container.childNodes);
+  }
+
+  appendChild(node: INode) {
+    DOM.appendChild(this.fragment, node);
+  }
+
+  findTargets(): ArrayLike<INode> {
+    return this.fragment.querySelectorAll('.au');
+  }
+
+  insertBefore(refNode: INode): void {
+    DOM.insertBefore(this.fragment, refNode);
+  }
+
+  appendTo(parent: INode): void {
+    DOM.appendChild(parent, this.fragment);
+  }
+
+  remove(): void {
+    let fragment = this.fragment;
+    let current = this.firstChild;
+    let end = this.lastChild;
+    let append = DOM.appendChild;
+    let next;
+
+    while (current) {
+      next = current.nextSibling;
+      append(fragment, current);
+
+      if (current === end) {
+        break;
+      }
+
+      current = next;
+    }
+  }
 }

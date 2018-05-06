@@ -1,11 +1,11 @@
 import { PLATFORM } from '../platform';;
-import { IView, IViewOwner } from './view';
+import { IViewOwner } from './view';
 import { IRenderSlot } from './render-slot';
 import { IVisual, IVisualFactory } from './view-engine';
 import { IBindScope } from '../binding/observation';
 import { IScope } from '../binding/binding-context';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
-import { DOM, INode } from '../dom';
+import { DOM, INode, IView } from '../dom';
 
 type ProjectionSource = IRenderSlot | IEmulatedShadowSlot;
 
@@ -31,7 +31,7 @@ export interface IEmulatedShadowSlot extends IBindScope, IAttach {
   /** @internal */ projectFrom(view: IView, projectionSource: ProjectionSource);
   /** @internal */ addNode(view: IView, node: SlotNode, projectionSource: ProjectionSource, index: number, destination?: string);
   /** @internal */ renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index: number);
-  /** @internal */ projectTo?(slots: Record<string, IEmulatedShadowSlot>);
+  /** @internal */ projectTo?(slots: Record<string, IEmulatedShadowSlot>, source: IView);
 }
 
 const noNodes = <SlotNode[]>PLATFORM.emptyArray;
@@ -310,7 +310,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
     return this.anchor;
   }
 
-  projectTo(slots: Record<string, IEmulatedShadowSlot>) {
+  projectTo(slots: Record<string, IEmulatedShadowSlot>, source: IView) {
     this.destinationSlots = slots;
   }
 
@@ -337,7 +337,7 @@ function distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, I
     const currentNode = nodes[i];
 
     if (currentNode.$isContentProjectionSource) {
-      currentNode.$slot.projectTo(slots);
+      currentNode.$slot.projectTo(slots, view);
 
       for (const slotName in slots) {
         slots[slotName].projectFrom(view, currentNode.$slot);
@@ -393,7 +393,7 @@ function getSlotName(node: INode): string {
 
 export const ShadowDOMEmulation = {
   createSlot(target: INode, owner: IViewOwner, name?: string, destination?: string, fallbackFactory?: IVisualFactory) {
-    const anchor = <any>DOM.createAnchor();
+    const anchor = <SlotNode>DOM.createAnchor();
     
     DOM.replaceNode(anchor, target);
 

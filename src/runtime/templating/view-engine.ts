@@ -1,5 +1,5 @@
 import { PLATFORM } from "../platform";
-import { View, IView, IViewOwner } from "./view";
+import { View, IViewOwner } from "./view";
 import { IElementComponent, IAttributeComponent, IElementType } from "./component";
 import { IBinding, Binding } from "../binding/binding";
 import { IRenderSlot, RenderSlot } from "./render-slot";
@@ -17,7 +17,7 @@ import { IAttach, AttachContext, DetachContext } from "./lifecycle";
 import { Animator } from "./animator";
 import { Reporter } from "../reporter";
 import { ITargetedInstruction, IHydrateElementInstruction, ICompiledViewSource, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController } from "./instructions";
-import { INode, DOM, } from "../dom";
+import { INode, DOM, IView, } from "../dom";
 
 export interface ITemplate {
   readonly container: ITemplateContainer;
@@ -407,17 +407,17 @@ function createTemplateContainer(dependencies) {
 }
 
 class CompiledTemplate implements ITemplate {
-  private factory: () => INode;
+  private createView: () => IView;
   container: ITemplateContainer;
 
   constructor(private source: ICompiledViewSource) {
     this.container = createTemplateContainer(source.dependencies);
-    this.factory = DOM.createFactoryFromMarkup(source.template);
+    this.createView = DOM.createFactoryFromMarkup(source.template);
   }
 
   createFor(owner: IViewOwner, host?: INode, replacements?: Record<string, ICompiledViewSource>): IView {
     const source = this.source;
-    const view = View.fromCompiledFactory(this.factory);
+    const view = this.createView();
     const targets = view.findTargets();
     const container = this.container;
 

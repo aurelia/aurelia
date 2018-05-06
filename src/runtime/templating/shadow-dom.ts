@@ -435,11 +435,11 @@ export const ShadowDOMEmulation = {
     distributeNodes(content, nodes, slots, null, 0, null);
   },
 
-  distributeView(view: IView, slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource = null, index = 0, destinationOverride: string = null) {
+  /** @internal */ distributeView(view: IView, slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource = null, index = 0, destinationOverride: string = null) {
     distributeNodes(view, viewToNodes(view), slots, projectionSource, index, destinationOverride);
   },
 
-  undistributeView(view: IView, slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
+  /** @internal */ undistributeView(view: IView, slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
     for (const slotName in slots) {
       slots[slotName].removeView(view, projectionSource);
     }

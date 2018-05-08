@@ -2,10 +2,10 @@ import { customElement, inject } from "../decorators";
 import { IRenderSlot, SwapOrder } from "../templating/render-slot";
 import { ViewEngine, ITemplateContainer, VisualWithCentralComponent, IVisual } from "../templating/view-engine";
 import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from "../templating/instructions";
-import { IViewOwner, IViewOwnerType } from "../templating/view";
+import { IViewOwner, IViewOwnerType, IContentView } from "../templating/view";
 import { IContainer } from "../di";
 import { IBindScope } from "../binding/observation";
-import { INode, DOM, IView } from "../dom";
+import { INode, DOM } from "../dom";
 
 const composeSource = {
   name: 'au-compose',
@@ -19,7 +19,7 @@ const composeProps = ['component', 'swapOrder', 'isComposing'];
 @inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction)
 export class Compose {
   //#region Framework-Supplied
-  private $contentView: IView;
+  private $contentView: IContentView;
   private $bindable: IBindScope[];
   private $isBound: boolean;
   //#endregion
@@ -70,15 +70,14 @@ export class Compose {
     }
   }
 
-  /** @internal */ compose(toBeComposed: any) {
+  /** @internal */
+  compose(toBeComposed: any) {
     const instruction = Object.assign({}, {
       resource: toBeComposed,
       contentElement: this.createContentElement()
     }, this.baseInstruction);
 
-    return this.swap(
-      ViewEngine.visualFromComponent(this.compositionContainer, toBeComposed, instruction)
-    );
+    return this.swap(ViewEngine.visualFromComponent(this.compositionContainer, toBeComposed, instruction));
   }
 
   private createContentElement() {
@@ -119,7 +118,7 @@ export class Compose {
       newVisual.$bind(this.viewOwner.$scope);
     }
 
-    return this.slot.swap(newVisual, this.swapOrder || 'after');
+    return this.slot.swap(newVisual, this.swapOrder || SwapOrder.after);
   }
 
   private clear() {

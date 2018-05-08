@@ -13,81 +13,39 @@ function appendVisualToContainer(visual: IVisual, owner: RenderSlotImplementatio
   visual.$view.appendTo(owner.anchor);
 }
 
-function addVisualToList(visual: IVisual, owner: RenderSlotImplementation) {
+function addVisual(visual: IVisual, owner: RenderSlotImplementation) {
   visual.$view.insertBefore(owner.anchor);
 }
 
-function projectAddVisualToList(visual: IVisual, owner: RenderSlotImplementation) {
-  let logicalView = owner.logicalView;
-  let childObserver = logicalView.childObserver;
-
-  if (childObserver) {
-    let contentNodes = logicalView.childNodes;
-    let contentIndex = contentNodes.indexOf(owner.anchor) - 1;
-    let projectedNodes = Array.from(visual.$view.childNodes);
-
-    projectedNodes.forEach((node: any) => {
-      if (node.$isContentProjectionSource) {
-        node.$slot.logicalView = logicalView;
-      }
-    });
-
-    contentNodes.splice(contentIndex, 0, ...projectedNodes);
-    childObserver.notifyChildrenChanged();
-  }
-
-  visual.$view.remove = () => ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
+function project_addVisual(visual: IVisual, owner: RenderSlotImplementation) {
   ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner);
+  owner.logicalView.insertVisualChildBefore(visual, owner.anchor);
+
+  visual.$view.remove = () => {
+    ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
+    owner.logicalView.removeVisualChild(visual);
+  };
 }
 
-function insertVisualAtIndex(visual: IVisual, owner: RenderSlotImplementation, index: number) {
+function insertVisual(visual: IVisual, owner: RenderSlotImplementation, index: number) {
   visual.$view.insertBefore(owner.children[index].$view.firstChild);
 }
 
-function projectInsertVisualAtIndex(visual: IVisual, owner: RenderSlotImplementation, index: number) {
-  let logicalView = owner.logicalView;
-  let childObserver = logicalView.childObserver;
-
-  if (childObserver) {
-    let contentNodes = logicalView.childNodes;
-    let contentIndex = contentNodes.indexOf(owner.children[index].$view.firstChild);
-    let projectedNodes = Array.from(visual.$view.childNodes);
-
-    projectedNodes.forEach((node: any) => {
-      if (node.$isContentProjectionSource) {
-        node.$slot.logicalView = logicalView;
-      }
-    });
-  
-    contentNodes.splice(contentIndex, 0, ...projectedNodes);
-    childObserver.notifyChildrenChanged();
-  }
-  
-  visual.$view.remove = () => ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
+function project_insertVisual(visual: IVisual, owner: RenderSlotImplementation, index: number) {
   ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner, index);
+  owner.logicalView.insertVisualChildBefore(visual, owner.children[index].$view.firstChild);
+
+  visual.$view.remove = () => {
+    ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
+    owner.logicalView.removeVisualChild(visual);
+  };
 }
 
-function removeView(visual: IVisual, owner: RenderSlotImplementation) {
-  visual.$view.remove();
+export enum SwapOrder {
+  before = 'before',
+  with = 'with',
+  after = 'after'
 }
-
-function projectRemoveView(visual: IVisual, owner: RenderSlotImplementation) {
-  let logicalView = owner.logicalView;
-  let childObserver = logicalView.childObserver;
-
-  if (childObserver) {
-    let contentNodes = logicalView.childNodes;
-    let startIndex = contentNodes.indexOf(visual.$view.firstChild);
-    let endIndex = contentNodes.indexOf(visual.$view.lastChild);
-  
-    contentNodes.splice(startIndex, (endIndex - startIndex) + 1);
-    childObserver.notifyChildrenChanged();
-  }
-  
-  ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
-}
-
-export type SwapOrder = 'before' | 'with' | 'after';
 
 export const IRenderSlot = DI.createInterface('IRenderSlot');
 
@@ -96,6 +54,8 @@ export const IRenderSlot = DI.createInterface('IRenderSlot');
 * Manages the view lifecycle for its children.
 */
 export interface IRenderSlot extends IAttach {
+  children: ReadonlyArray<IVisual>;
+
   /**
   * Adds a view to the slot.
   * @param visual The view to add.
@@ -170,9 +130,8 @@ class RenderSlotImplementation implements IRenderSlot {
   private $isAttached = false;
   private addVisualCore: (visual: IVisual, owner: RenderSlotImplementation) => void;
   private insertVisualCore: (visual: IVisual, owner: RenderSlotImplementation, index: number) => void;
-  private removeViewCore: (visual: IVisual, owner: RenderSlotImplementation) => void;
 
-  /** @internal */ public children: IVisual[] = [];
+  public children: IVisual[] = [];
   /** @internal */ public slots: Record<string, IEmulatedShadowSlot> = null;
   /** @internal */ public logicalView: IContentView = null;
 
@@ -180,9 +139,8 @@ class RenderSlotImplementation implements IRenderSlot {
     (<any>anchor).$slot = this; // Usage: Shadow DOM Emulation
     (<any>anchor).$isContentProjectionSource = false; // Usage: Shadow DOM Emulation
 
-    this.addVisualCore = anchorIsContainer ? appendVisualToContainer : addVisualToList;
-    this.insertVisualCore = insertVisualAtIndex;
-    this.removeViewCore = removeView;
+    this.addVisualCore = anchorIsContainer ? appendVisualToContainer : addVisual;
+    this.insertVisualCore = insertVisual;
   }
 
   add(visual: IVisual) {
@@ -222,26 +180,26 @@ class RenderSlotImplementation implements IRenderSlot {
     children.splice(targetIndex, 0, visual);
 
     if (this.$isAttached) {
-      this.removeViewCore(visual, this);
+      visual.$view.remove();
       this.insertVisualCore(visual, this, targetIndex);
     }
   }
 
-  swap(newVisual: IVisual, strategy: SwapOrder = 'after', returnToCache?: boolean, skipAnimation?: boolean) {
+  swap(newVisual: IVisual, strategy: SwapOrder = SwapOrder.after, returnToCache?: boolean, skipAnimation?: boolean) {
     const remove = () => this.removeAll(returnToCache, skipAnimation);
     const add = () => this.add(newVisual);
 
     switch(strategy) {
-      case 'before':
+      case SwapOrder.before:
         const beforeAddResult = add();
         return (beforeAddResult instanceof Promise ? beforeAddResult.then(() => <any>remove()) : remove()); 
-      case 'with':
+      case SwapOrder.with:
         const withAddResult = add();
         const withRemoveResult = remove();
         return (withAddResult instanceof Promise || withRemoveResult instanceof Promise)
           ? Promise.all(<any>[withAddResult, withRemoveResult]).then(x => x[1])
           : withRemoveResult;
-      case 'after':
+      case SwapOrder.after:
         const afterRemoveResult = remove();
         return (afterRemoveResult instanceof Promise ? afterRemoveResult.then(() => <any>add()) : add());
     }
@@ -364,15 +322,14 @@ class RenderSlotImplementation implements IRenderSlot {
 
   projectTo(slots: Record<string, IEmulatedShadowSlot>): void {
     this.slots = slots;
-    this.addVisualCore = projectAddVisualToList;
-    this.insertVisualCore = projectInsertVisualAtIndex;
-    this.removeViewCore = projectRemoveView;
+    this.addVisualCore = project_addVisual;
+    this.insertVisualCore = project_insertVisual;
 
     if (this.$isAttached) {
       const children = this.children;
       
       for (let i = 0, ii = children.length; i < ii; ++i) {
-        projectAddVisualToList(children[i], this);
+        project_addVisual(children[i], this);
       }
     }
   }

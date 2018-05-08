@@ -464,6 +464,10 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
         15: {
             type: MessageType.error,
             message: 'Unexpected call context.'
+        },
+        16: {
+            type: MessageType.error,
+            message: 'Only one child observer per content view is supported for the life of the content view.'
         }
     };
 });
@@ -1620,26 +1624,6 @@ define('jit/binding/expression',["require", "exports", "../../runtime/binding/ex
             throw new Error('Expression Compilation Not Implemented');
         }
     });
-});
-
-
-
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
-            container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
-            container.register(di_1.Registration.instance(signals_1.ISignaler, signals_1.Signaler));
-        }
-    };
 });
 
 
@@ -4901,6 +4885,26 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StandardConfiguration = {
+        register: function (container) {
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
+            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
+            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
+            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
+            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
+            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
+            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
+            container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
+            container.register(di_1.Registration.instance(signals_1.ISignaler, signals_1.Signaler));
+        }
+    };
+});
+
+
+
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -5095,7 +5099,7 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
             if (this.$isBound) {
                 newVisual.$bind(this.viewOwner.$scope);
             }
-            return this.slot.swap(newVisual, this.swapOrder || 'after');
+            return this.slot.swap(newVisual, this.swapOrder || render_slot_1.SwapOrder.after);
         };
         Compose.prototype.clear = function () {
             this.slot.removeAll();
@@ -6325,63 +6329,34 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
     function appendVisualToContainer(visual, owner) {
         visual.$view.appendTo(owner.anchor);
     }
-    function addVisualToList(visual, owner) {
+    function addVisual(visual, owner) {
         visual.$view.insertBefore(owner.anchor);
     }
-    function projectAddVisualToList(visual, owner) {
-        var logicalView = owner.logicalView;
-        var childObserver = logicalView.childObserver;
-        if (childObserver) {
-            var contentNodes = logicalView.childNodes;
-            var contentIndex = contentNodes.indexOf(owner.anchor) - 1;
-            var projectedNodes = Array.from(visual.$view.childNodes);
-            projectedNodes.forEach(function (node) {
-                if (node.$isContentProjectionSource) {
-                    node.$slot.logicalView = logicalView;
-                }
-            });
-            contentNodes.splice.apply(contentNodes, [contentIndex, 0].concat(projectedNodes));
-            childObserver.notifyChildrenChanged();
-        }
-        visual.$view.remove = function () { return shadow_dom_1.ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner); };
+    function project_addVisual(visual, owner) {
         shadow_dom_1.ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner);
+        owner.logicalView.insertVisualChildBefore(visual, owner.anchor);
+        visual.$view.remove = function () {
+            shadow_dom_1.ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
+            owner.logicalView.removeVisualChild(visual);
+        };
     }
-    function insertVisualAtIndex(visual, owner, index) {
+    function insertVisual(visual, owner, index) {
         visual.$view.insertBefore(owner.children[index].$view.firstChild);
     }
-    function projectInsertVisualAtIndex(visual, owner, index) {
-        var logicalView = owner.logicalView;
-        var childObserver = logicalView.childObserver;
-        if (childObserver) {
-            var contentNodes = logicalView.childNodes;
-            var contentIndex = contentNodes.indexOf(owner.children[index].$view.firstChild);
-            var projectedNodes = Array.from(visual.$view.childNodes);
-            projectedNodes.forEach(function (node) {
-                if (node.$isContentProjectionSource) {
-                    node.$slot.logicalView = logicalView;
-                }
-            });
-            contentNodes.splice.apply(contentNodes, [contentIndex, 0].concat(projectedNodes));
-            childObserver.notifyChildrenChanged();
-        }
-        visual.$view.remove = function () { return shadow_dom_1.ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner); };
+    function project_insertVisual(visual, owner, index) {
         shadow_dom_1.ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner, index);
+        owner.logicalView.insertVisualChildBefore(visual, owner.children[index].$view.firstChild);
+        visual.$view.remove = function () {
+            shadow_dom_1.ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
+            owner.logicalView.removeVisualChild(visual);
+        };
     }
-    function removeView(visual, owner) {
-        visual.$view.remove();
-    }
-    function projectRemoveView(visual, owner) {
-        var logicalView = owner.logicalView;
-        var childObserver = logicalView.childObserver;
-        if (childObserver) {
-            var contentNodes = logicalView.childNodes;
-            var startIndex = contentNodes.indexOf(visual.$view.firstChild);
-            var endIndex = contentNodes.indexOf(visual.$view.lastChild);
-            contentNodes.splice(startIndex, (endIndex - startIndex) + 1);
-            childObserver.notifyChildrenChanged();
-        }
-        shadow_dom_1.ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
-    }
+    var SwapOrder;
+    (function (SwapOrder) {
+        SwapOrder["before"] = "before";
+        SwapOrder["with"] = "with";
+        SwapOrder["after"] = "after";
+    })(SwapOrder = exports.SwapOrder || (exports.SwapOrder = {}));
     exports.IRenderSlot = di_1.DI.createInterface('IRenderSlot');
     exports.RenderSlot = {
         create: function (anchor, anchorIsContainer) {
@@ -6397,9 +6372,8 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             this.logicalView = null;
             anchor.$slot = this;
             anchor.$isContentProjectionSource = false;
-            this.addVisualCore = anchorIsContainer ? appendVisualToContainer : addVisualToList;
-            this.insertVisualCore = insertVisualAtIndex;
-            this.removeViewCore = removeView;
+            this.addVisualCore = anchorIsContainer ? appendVisualToContainer : addVisual;
+            this.insertVisualCore = insertVisual;
         }
         RenderSlotImplementation.prototype.add = function (visual) {
             this.children.push(visual);
@@ -6429,26 +6403,26 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             children.splice(sourceIndex, 1);
             children.splice(targetIndex, 0, visual);
             if (this.$isAttached) {
-                this.removeViewCore(visual, this);
+                visual.$view.remove();
                 this.insertVisualCore(visual, this, targetIndex);
             }
         };
         RenderSlotImplementation.prototype.swap = function (newVisual, strategy, returnToCache, skipAnimation) {
             var _this = this;
-            if (strategy === void 0) { strategy = 'after'; }
+            if (strategy === void 0) { strategy = SwapOrder.after; }
             var remove = function () { return _this.removeAll(returnToCache, skipAnimation); };
             var add = function () { return _this.add(newVisual); };
             switch (strategy) {
-                case 'before':
+                case SwapOrder.before:
                     var beforeAddResult = add();
                     return (beforeAddResult instanceof Promise ? beforeAddResult.then(function () { return remove(); }) : remove());
-                case 'with':
+                case SwapOrder.with:
                     var withAddResult = add();
                     var withRemoveResult = remove();
                     return (withAddResult instanceof Promise || withRemoveResult instanceof Promise)
                         ? Promise.all([withAddResult, withRemoveResult]).then(function (x) { return x[1]; })
                         : withRemoveResult;
-                case 'after':
+                case SwapOrder.after:
                     var afterRemoveResult = remove();
                     return (afterRemoveResult instanceof Promise ? afterRemoveResult.then(function () { return add(); }) : add());
             }
@@ -6548,13 +6522,12 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
         };
         RenderSlotImplementation.prototype.projectTo = function (slots) {
             this.slots = slots;
-            this.addVisualCore = projectAddVisualToList;
-            this.insertVisualCore = projectInsertVisualAtIndex;
-            this.removeViewCore = projectRemoveView;
+            this.addVisualCore = project_addVisual;
+            this.insertVisualCore = project_insertVisual;
             if (this.$isAttached) {
                 var children = this.children;
                 for (var i = 0, ii = children.length; i < ii; ++i) {
-                    projectAddVisualToList(children[i], this);
+                    project_addVisual(children[i], this);
                 }
             }
         };
@@ -7413,7 +7386,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
 
 
 
-define('runtime/templating/view',["require", "exports", "../platform", "../di", "../dom"], function (require, exports, platform_1, di_1, dom_1) {
+define('runtime/templating/view',["require", "exports", "../platform", "../di", "../dom", "../reporter"], function (require, exports, platform_1, di_1, dom_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IViewOwner = di_1.DI.createInterface('IViewOwner');
@@ -7469,21 +7442,70 @@ define('runtime/templating/view',["require", "exports", "../platform", "../di", 
             this.lastChild = childNodes[childNodes.length - 1];
         }
         ContentView.prototype.attachChildObserver = function (onChildrenChanged) {
-            var childNodes = this.childNodes;
-            var observer = {
-                get childNodes() {
-                    return childNodes;
-                },
-                disconnect: function () {
-                    onChildrenChanged = null;
-                },
-                notifyChildrenChanged: function () {
-                    if (onChildrenChanged !== null) {
-                        onChildrenChanged();
+            var contentViewNodes = this.childNodes;
+            var observer = this.childObserver;
+            if (!observer) {
+                this.childObserver = observer = {
+                    get childNodes() {
+                        return contentViewNodes;
+                    },
+                    disconnect: function () {
+                        onChildrenChanged = null;
+                    },
+                    notifyChildrenChanged: function () {
+                        if (onChildrenChanged !== null) {
+                            onChildrenChanged();
+                        }
                     }
+                };
+                var workQueue_1 = Array.from(contentViewNodes);
+                var _loop_1 = function () {
+                    var current = workQueue_1.shift();
+                    if (current.$isContentProjectionSource) {
+                        var contentIndex_1 = contentViewNodes.indexOf(current);
+                        current.$slot.children.forEach(function (x) {
+                            var childNodes = x.$view.childNodes;
+                            childNodes.forEach(function (x) { return workQueue_1.push(x); });
+                            contentViewNodes.splice.apply(contentViewNodes, [contentIndex_1, 0].concat(childNodes));
+                        });
+                        current.$slot.logicalView = this_1;
+                    }
+                };
+                var this_1 = this;
+                while (workQueue_1.length) {
+                    _loop_1();
                 }
-            };
+            }
+            else {
+                reporter_1.Reporter.error(16);
+            }
             return observer;
+        };
+        ContentView.prototype.insertVisualChildBefore = function (visual, refNode) {
+            var _this = this;
+            var childObserver = this.childObserver;
+            if (childObserver) {
+                var contentNodes = this.childNodes;
+                var contentIndex = contentNodes.indexOf(refNode);
+                var projectedNodes = Array.from(visual.$view.childNodes);
+                projectedNodes.forEach(function (node) {
+                    if (node.$isContentProjectionSource) {
+                        node.$slot.logicalView = _this;
+                    }
+                });
+                contentNodes.splice.apply(contentNodes, [contentIndex, 0].concat(projectedNodes));
+                childObserver.notifyChildrenChanged();
+            }
+        };
+        ContentView.prototype.removeVisualChild = function (visual) {
+            var childObserver = this.childObserver;
+            if (childObserver) {
+                var contentNodes = this.childNodes;
+                var startIndex = contentNodes.indexOf(visual.$view.firstChild);
+                var endIndex = contentNodes.indexOf(visual.$view.lastChild);
+                contentNodes.splice(startIndex, (endIndex - startIndex) + 1);
+                childObserver.notifyChildrenChanged();
+            }
         };
         ContentView.prototype.findTargets = function () { return platform_1.PLATFORM.emptyArray; };
         ContentView.prototype.appendChild = function (child) { };

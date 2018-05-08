@@ -113,5 +113,9 @@ const codeLookup: Record<string, IMessageInfo> = {
   15: {
     type: MessageType.error,
     message: 'Unexpected call context.'
+  },
+  16: {
+    type: MessageType.error,
+    message: 'Only one child observer per content view is supported for the life of the content view.'
   }
 };

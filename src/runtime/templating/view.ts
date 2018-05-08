@@ -4,11 +4,13 @@ import { IScope } from "../binding/binding-context";
 import { IBindScope } from "../binding/observation";
 import { IAttach } from "./lifecycle";
 import { DI, IContainer } from "../di";
-import { ITemplate } from "./view-engine";
+import { ITemplate, IVisual } from "./view-engine";
 import { Constructable } from "../interfaces";
 import { ICompiledViewSource } from "./instructions";
 import { INode, DOM, IChildObserver, IView } from "../dom";
 import { IElementComponent } from "./component";
+import { IRenderSlot } from "./render-slot";
+import { Reporter } from "../reporter";
 
 export interface IViewOwnerType extends Constructable<IViewOwner> {
   template: ITemplate;
@@ -73,11 +75,13 @@ export const View = {
 };
 
 export interface IContentView extends IView {
-  childObserver?: IContentViewChildObserver;
-  attachChildObserver(onChildrenChanged: () => void): IContentViewChildObserver;
+  childObserver?: IChildObserver;
+  insertVisualChildBefore(visual: IVisual, refNode: INode);
+  removeVisualChild(visual: IVisual);
+  attachChildObserver(onChildrenChanged: () => void): IChildObserver;
 }
 
-export interface IContentViewChildObserver extends IChildObserver {
+interface IContentViewChildObserver extends IChildObserver {
   notifyChildrenChanged(): void;
 }
 
@@ -93,25 +97,79 @@ class ContentView implements IContentView {
     this.lastChild = childNodes[childNodes.length - 1];
   }
 
-  attachChildObserver(onChildrenChanged: () => void) {
-    let childNodes = this.childNodes;
-    let observer = {
-      get childNodes() {
-        return childNodes;
-      },
-      disconnect() {
-        onChildrenChanged = null;
-      },
-      notifyChildrenChanged() {
-        if (onChildrenChanged !== null) {
-          onChildrenChanged();
+  attachChildObserver(onChildrenChanged: () => void): IChildObserver {
+    let contentViewNodes = this.childNodes;
+    let observer = this.childObserver;
+
+    if (!observer) {
+      this.childObserver = observer = {
+        get childNodes() {
+          return contentViewNodes;
+        },
+        disconnect() {
+          onChildrenChanged = null;
+        },
+        notifyChildrenChanged() {
+          if (onChildrenChanged !== null) {
+            onChildrenChanged();
+          }
+        }
+      };
+
+      let workQueue = Array.from(contentViewNodes);
+
+      while(workQueue.length) {
+        let current = workQueue.shift();
+  
+        if ((<any>current).$isContentProjectionSource) {
+          let contentIndex = contentViewNodes.indexOf(current);
+  
+          (<IRenderSlot>(<any>current).$slot).children.forEach(x => {
+            let childNodes = x.$view.childNodes;
+            childNodes.forEach(x => workQueue.push(x));
+            contentViewNodes.splice(contentIndex, 0, ...childNodes);
+          });
+  
+          (<any>current).$slot.logicalView = this;
         }
       }
-    };
-
-    // TODO: materialize content
-
+    } else {
+      Reporter.error(16);
+    }
+    
     return observer;
+  }
+
+  insertVisualChildBefore(visual: IVisual, refNode: INode) {
+    let childObserver = this.childObserver;
+
+    if (childObserver) {
+      let contentNodes = this.childNodes;
+      let contentIndex = contentNodes.indexOf(refNode);
+      let projectedNodes = Array.from(visual.$view.childNodes);
+
+      projectedNodes.forEach((node: any) => {
+        if (node.$isContentProjectionSource) {
+          node.$slot.logicalView = this;
+        }
+      });
+
+      contentNodes.splice(contentIndex, 0, ...projectedNodes);
+      childObserver.notifyChildrenChanged();
+    }
+  }
+
+  removeVisualChild(visual: IVisual) {
+    let childObserver = this.childObserver;
+
+    if (childObserver) {
+      let contentNodes = this.childNodes;
+      let startIndex = contentNodes.indexOf(visual.$view.firstChild);
+      let endIndex = contentNodes.indexOf(visual.$view.lastChild);
+    
+      contentNodes.splice(startIndex, (endIndex - startIndex) + 1);
+      childObserver.notifyChildrenChanged();
+    }
   }
 
   findTargets() { return PLATFORM.emptyArray; }

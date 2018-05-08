@@ -6,15 +6,17 @@ import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
 import { PLATFORM } from "../platform";
 import { IContainer, Registration } from "../di";
 import { BindingMode } from "../binding/binding-mode";
-import { Constructable } from "../interfaces";
-import { IBindScope } from "../binding/observation";
+import { Constructable, ICallable } from "../interfaces";
+import { IBindScope, IAccessor, ISubscribable } from "../binding/observation";
 import { IScope, BindingContext } from "../binding/binding-context";
 import { IRenderSlot } from "./render-slot";
 import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
 import { ICompiledViewSource, IBindableInstruction } from "./instructions";
-import { INode, DOM, IView } from "../dom";
+import { INode, DOM, IView, IChildObserver } from "../dom";
+import { SubscriberCollection } from "../binding/subscriber-collection";
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
+  $host: INode;
   $view: IView;
   $contentView: IContentView;
   $slots: Record<string, IEmulatedShadowSlot>;
@@ -60,6 +62,20 @@ export interface BindingBehaviorType extends Constructable {
 }
 
 export const Component = {
+  findElements(nodes: ArrayLike<INode>): IElementComponent[] {
+    let components: IElementComponent[] = [];
+  
+    for (let i = 0, ii = nodes.length; i < ii; ++i) {
+      const current = nodes[i];
+      const component = DOM.getComponentForNode(current);
+      
+      if (component !== null) {
+        components.push(component);
+      }
+    }
+  
+    return components;
+  },
   valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & ValueConverterType {
     const source = (<any>ctor).source = ensureSource<IValueConverterSource>(nameOrSource);
 
@@ -108,7 +124,7 @@ export const Component = {
       constructor(...args:any[]) {
         super(...args);
 
-        RuntimeBehavior.get(this, observables, CustomAttribute).applyTo(this);
+        RuntimeBehavior.get(this, observables, CustomAttribute).applyToAttribute(this);
 
         if (this.$behavior.hasCreated) {
           (<any>this).created();
@@ -226,14 +242,14 @@ export const Component = {
         overrideContext: BindingContext.createOverride()
       };
       
-      private $host: INode = null;
+      $host: INode = null;
       private $shadowRoot: INode = null;
       private $changeCallbacks: (() => void)[] = [];
       private $behavior: RuntimeBehavior = null;
   
       constructor(...args:any[]) {
         super(...args);
-        RuntimeBehavior.get(this, observables, CompiledComponent).applyTo(this);
+        RuntimeBehavior.get(this, observables, CompiledComponent).applyToElement(this);
       }
   
       $hydrate(host: INode, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
@@ -454,7 +470,24 @@ class RuntimeBehavior {
     return behavior;
   }
 
-  applyTo(instance) {
+  applyToAttribute(instance: IAttributeComponent) {
+    this.applyTo(instance);
+  }
+
+  applyToElement(instance: IElementComponent) {
+    const observers = this.applyTo(instance);
+
+    (<any>observers).$children = new ChildrenObserver(instance);
+
+    Reflect.defineProperty(instance, '$children', {
+      enumerable: false,
+      get: function() {
+        return this.$observers.$children.getValue();
+      }
+    });
+  }
+
+  private applyTo(instance) {
     const observers = {};
     const finalObservables = this.observables;
     const observableNames = Object.getOwnPropertyNames(finalObservables);
@@ -474,19 +507,68 @@ class RuntimeBehavior {
       createGetterSetter(instance, name);
     }
   
-    instance.$behavior = this;
-  
-    Object.defineProperty(instance, '$observers', {
+    Reflect.defineProperty(instance, '$observers', {
       enumerable: false,
       value: observers
     });
+
+    instance.$behavior = this;
+
+    return observers;
   }
 }
 
 function createGetterSetter(instance, name) {
-  Object.defineProperty(instance, name, {
+  Reflect.defineProperty(instance, name, {
     enumerable: true,
     get: function() { return this.$observers[name].getValue(); },
     set: function(value) { this.$observers[name].setValue(value); }
   });
+}
+
+export class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
+  private observer: IChildObserver = null;
+  private children: IElementComponent[] = null;
+  private queued = false;
+
+  constructor(private component: IElementComponent) {
+    super();
+  }
+
+  getValue(): IElementComponent[] {
+    if (this.observer === null) {
+      this.observer = DOM.createChildObserver(this.component.$host, () => this.onChildrenChanged());
+      this.children = Component.findElements(this.observer.childNodes);
+    }
+
+    return this.children;
+  }
+
+  setValue(newValue) {}
+
+  private onChildrenChanged() {
+    this.children = Component.findElements(this.observer.childNodes);
+
+    if ('$childrenChanged' in this.component) {
+      (<any>this.component).$childrenChanged();
+    }
+
+    if (!this.queued) {
+      this.queued = true;
+      TaskQueue.queueMicroTask(this);
+    }
+  }
+
+  call() {
+    this.queued = false;
+    this.callSubscribers(this.children);
+  }
+
+  subscribe(context: string, callable: ICallable) {
+    this.addSubscriber(context, callable);
+  }
+
+  unsubscribe(context: string, callable: ICallable) {
+    this.removeSubscriber(context, callable);
+  }
 }

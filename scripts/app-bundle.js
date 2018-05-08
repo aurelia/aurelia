@@ -5843,11 +5843,22 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../binding/property-observation", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom"], function (require, exports, view_engine_1, view_1, property_observation_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1) {
+define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../task-queue", "../binding/property-observation", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom", "../binding/subscriber-collection"], function (require, exports, view_engine_1, view_1, task_queue_1, property_observation_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
     exports.Component = {
+        findElements: function (nodes) {
+            var components = [];
+            for (var i = 0, ii = nodes.length; i < ii; ++i) {
+                var current = nodes[i];
+                var component = dom_1.DOM.getComponentForNode(current);
+                if (component !== null) {
+                    components.push(component);
+                }
+            }
+            return components;
+        },
         valueConverter: function (nameOrSource, ctor) {
             var source = ctor.source = ensureSource(nameOrSource);
             ctor.register = function (container) {
@@ -5879,7 +5890,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         _this.$isBound = false;
                         _this.$scope = null;
                         _this.$slot = null;
-                        RuntimeBehavior.get(_this, observables, CustomAttribute).applyTo(_this);
+                        RuntimeBehavior.get(_this, observables, CustomAttribute).applyToAttribute(_this);
                         if (_this.$behavior.hasCreated) {
                             _this.created();
                         }
@@ -5992,7 +6003,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         _this.$shadowRoot = null;
                         _this.$changeCallbacks = [];
                         _this.$behavior = null;
-                        RuntimeBehavior.get(_this, observables, CompiledComponent).applyTo(_this);
+                        RuntimeBehavior.get(_this, observables, CompiledComponent).applyToElement(_this);
                         return _this;
                     }
                     class_1.register = function (container) {
@@ -6170,6 +6181,19 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             behavior.hasCreateView = 'createView' in instance;
             return behavior;
         };
+        RuntimeBehavior.prototype.applyToAttribute = function (instance) {
+            this.applyTo(instance);
+        };
+        RuntimeBehavior.prototype.applyToElement = function (instance) {
+            var observers = this.applyTo(instance);
+            observers.$children = new ChildrenObserver(instance);
+            Reflect.defineProperty(instance, '$children', {
+                enumerable: false,
+                get: function () {
+                    return this.$observers.$children.getValue();
+                }
+            });
+        };
         RuntimeBehavior.prototype.applyTo = function (instance) {
             var observers = {};
             var finalObservables = this.observables;
@@ -6190,21 +6214,64 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             for (var i = 0, ii = observableNames.length; i < ii; ++i) {
                 _loop_1(i, ii);
             }
-            instance.$behavior = this;
-            Object.defineProperty(instance, '$observers', {
+            Reflect.defineProperty(instance, '$observers', {
                 enumerable: false,
                 value: observers
             });
+            instance.$behavior = this;
+            return observers;
         };
         return RuntimeBehavior;
     }());
     function createGetterSetter(instance, name) {
-        Object.defineProperty(instance, name, {
+        Reflect.defineProperty(instance, name, {
             enumerable: true,
             get: function () { return this.$observers[name].getValue(); },
             set: function (value) { this.$observers[name].setValue(value); }
         });
     }
+    var ChildrenObserver = (function (_super) {
+        __extends(ChildrenObserver, _super);
+        function ChildrenObserver(component) {
+            var _this = _super.call(this) || this;
+            _this.component = component;
+            _this.observer = null;
+            _this.children = null;
+            _this.queued = false;
+            return _this;
+        }
+        ChildrenObserver.prototype.getValue = function () {
+            var _this = this;
+            if (this.observer === null) {
+                this.observer = dom_1.DOM.createChildObserver(this.component.$host, function () { return _this.onChildrenChanged(); });
+                this.children = exports.Component.findElements(this.observer.childNodes);
+            }
+            return this.children;
+        };
+        ChildrenObserver.prototype.setValue = function (newValue) { };
+        ChildrenObserver.prototype.onChildrenChanged = function () {
+            this.children = exports.Component.findElements(this.observer.childNodes);
+            if ('$childrenChanged' in this.component) {
+                this.component.$childrenChanged();
+            }
+            if (!this.queued) {
+                this.queued = true;
+                task_queue_1.TaskQueue.queueMicroTask(this);
+            }
+        };
+        ChildrenObserver.prototype.call = function () {
+            this.queued = false;
+            this.callSubscribers(this.children);
+        };
+        ChildrenObserver.prototype.subscribe = function (context, callable) {
+            this.addSubscriber(context, callable);
+        };
+        ChildrenObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+        };
+        return ChildrenObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.ChildrenObserver = ChildrenObserver;
 });
 
 

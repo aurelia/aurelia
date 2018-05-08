@@ -41,6 +41,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [x] Native ShadowDOM
 * [x] HTML-Only Custom Elements
 * [x] Template Part Replacement
+* [x] `$children` and `$childrenChanged`
 * [ ] Basic CSS 
 * [ ] CSS Modules
 

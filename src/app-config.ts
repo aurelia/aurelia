@@ -2,6 +2,7 @@ import { ICompiledViewSource, TargetedInstructionType } from "./runtime/templati
 
 //extracted from view imports
 import * as import1 from "./name-tag";
+import { DelegationStrategy } from "./runtime/binding/event-manager";
 
 //this object is built up during compilation
 export const appConfig: ICompiledViewSource = {
@@ -18,6 +19,8 @@ export const appConfig: ICompiledViewSource = {
     <input type="checkbox" class="au" />
     <au-marker class="au"></au-marker>
     <au-marker class="au"></au-marker>
+    <au-marker class="au"></au-marker>
+    <button class="au">Add Todo</button>
   `,
   targetInstructions: [
     [
@@ -97,6 +100,44 @@ export const appConfig: ICompiledViewSource = {
         },
         link: true,
         instructions: []
+      }
+    ],
+    [
+      {
+        type: TargetedInstructionType.hydrateTemplateController,
+        res: 'repeat',
+        src: {
+          template: `<div><au-marker class="au"></au-marker> </div>`,
+          targetInstructions: [
+            [
+              {
+                type: TargetedInstructionType.textBinding,
+                src: 'description'
+              }
+            ]
+          ]
+        },
+        instructions: [
+          {
+            type: TargetedInstructionType.oneWayBinding,
+            src: 'todos',
+            dest: 'items'
+          },
+          {
+            type: TargetedInstructionType.setProperty,
+            value: 'todo',
+            dest: 'local'
+          }
+        ]
+      }
+    ],
+    [
+      {
+        type: TargetedInstructionType.listenerBinding,
+        src: 'click',
+        dest: 'addTodo',
+        preventDefault: true,
+        strategy: DelegationStrategy.none
       }
     ]
   ],

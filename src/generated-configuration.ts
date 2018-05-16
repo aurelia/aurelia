@@ -1,4 +1,4 @@
-import { AccessScope, TemplateLiteral, LiteralString, Conditional, CallScope, IExpression } from "./runtime/binding/ast";
+import { AccessScope, TemplateLiteral, LiteralString, Conditional, CallScope, IExpression, AccessMember } from "./runtime/binding/ast";
 import { IContainer } from "./runtime/di";
 import { StandardConfiguration } from './runtime/configuration/standard';
 import { Expression } from "./runtime/binding/expression";
@@ -30,7 +30,10 @@ const expressionCache: Record<string, IExpression> = {
   nameTagColor: new AccessScope('color'),
   duplicateMessage: new AccessScope('duplicateMessage'),
   checked: new AccessScope('checked'),
-  nameTag: new AccessScope('nameTag')
+  nameTag: new AccessScope('nameTag'),
+  todos: new AccessScope('todos'),
+  addTodo: new CallScope('addTodo', emptyArray, 0),
+  description: new AccessMember(new AccessScope('todo'), 'description')
 };
 
 export const GeneratedConfiguration = {

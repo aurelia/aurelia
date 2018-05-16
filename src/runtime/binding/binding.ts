@@ -22,7 +22,7 @@ export class Binding extends ConnectableBinding implements IBinding {
   private $isBound = false;
 
   constructor(
-    private sourceExpression: IExpression,
+    public sourceExpression: IExpression,
     public target: IBindingTarget,
     public targetProperty: string,
     public mode: BindingMode,
@@ -38,7 +38,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.sourceExpression.assign(this.$scope, value, this.container);
   }
 
-  call(context: string, newValue: any, oldValue: any) {
+  call(context: string, newValue?: any, oldValue?: any) {
     if (!this.$isBound) {
       return;
     }

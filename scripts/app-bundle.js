@@ -1,4 +1,4 @@
-define('app-config',["require", "exports", "./runtime/templating/instructions", "./name-tag"], function (require, exports, instructions_1, import1) {
+define('app-config',["require", "exports", "./runtime/templating/instructions", "./name-tag", "./runtime/binding/event-manager"], function (require, exports, instructions_1, import1, event_manager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.appConfig = {
@@ -6,7 +6,7 @@ define('app-config',["require", "exports", "./runtime/templating/instructions", 
         dependencies: [
             import1
         ],
-        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n  ",
+        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n    <button class=\"au\">Add Todo</button>\n  ",
         targetInstructions: [
             [
                 {
@@ -86,6 +86,44 @@ define('app-config',["require", "exports", "./runtime/templating/instructions", 
                     link: true,
                     instructions: []
                 }
+            ],
+            [
+                {
+                    type: instructions_1.TargetedInstructionType.hydrateTemplateController,
+                    res: 'repeat',
+                    src: {
+                        template: "<div><au-marker class=\"au\"></au-marker> </div>",
+                        targetInstructions: [
+                            [
+                                {
+                                    type: instructions_1.TargetedInstructionType.textBinding,
+                                    src: 'description'
+                                }
+                            ]
+                        ]
+                    },
+                    instructions: [
+                        {
+                            type: instructions_1.TargetedInstructionType.oneWayBinding,
+                            src: 'todos',
+                            dest: 'items'
+                        },
+                        {
+                            type: instructions_1.TargetedInstructionType.setProperty,
+                            value: 'todo',
+                            dest: 'local'
+                        }
+                    ]
+                }
+            ],
+            [
+                {
+                    type: instructions_1.TargetedInstructionType.listenerBinding,
+                    src: 'click',
+                    dest: 'addTodo',
+                    preventDefault: true,
+                    strategy: event_manager_1.DelegationStrategy.none
+                }
             ]
         ],
         surrogateInstructions: []
@@ -103,11 +141,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 define('app',["require", "exports", "./app-config", "./runtime/decorators"], function (require, exports, app_config_1, decorators_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var Todo = (function () {
+        function Todo(description) {
+            this.description = description;
+            this.done = false;
+        }
+        return Todo;
+    }());
     var App = (function () {
         function App() {
             this.message = 'Hello World';
             this.duplicateMessage = true;
+            this.todos = [];
         }
+        App.prototype.addTodo = function () {
+            this.todos.push(new Todo(this.message));
+        };
         App.prototype.bound = function () {
             console.log('app bound');
         };
@@ -172,7 +221,10 @@ define('generated-configuration',["require", "exports", "./runtime/binding/ast",
         nameTagColor: new ast_1.AccessScope('color'),
         duplicateMessage: new ast_1.AccessScope('duplicateMessage'),
         checked: new ast_1.AccessScope('checked'),
-        nameTag: new ast_1.AccessScope('nameTag')
+        nameTag: new ast_1.AccessScope('nameTag'),
+        todos: new ast_1.AccessScope('todos'),
+        addTodo: new ast_1.CallScope('addTodo', emptyArray, 0),
+        description: new ast_1.AccessMember(new ast_1.AccessScope('todo'), 'description')
     };
     exports.GeneratedConfiguration = {
         register: function (container) {
@@ -2649,6 +2701,9 @@ define('runtime/binding/binding-context',["require", "exports"], function (requi
     exports.targetContext = 'Binding:target';
     exports.sourceContext = 'Binding:source';
     exports.BindingContext = {
+        createScopeFromOverride: function (overrideContext) {
+            return { bindingContext: overrideContext.bindingContext, overrideContext: overrideContext };
+        },
         createOverride: function (bindingContext, parentOverrideContext) {
             return {
                 bindingContext: bindingContext,
@@ -2656,22 +2711,22 @@ define('runtime/binding/binding-context',["require", "exports"], function (requi
             };
         },
         get: function (scope, name, ancestor) {
-            var oc = scope.overrideContext;
+            var overrideContext = scope.overrideContext;
             if (ancestor) {
-                while (ancestor && oc) {
+                while (ancestor && overrideContext) {
                     ancestor--;
-                    oc = oc.parentOverrideContext;
+                    overrideContext = overrideContext.parentOverrideContext;
                 }
-                if (ancestor || !oc) {
+                if (ancestor || !overrideContext) {
                     return undefined;
                 }
-                return name in oc ? oc : oc.bindingContext;
+                return name in overrideContext ? overrideContext : overrideContext.bindingContext;
             }
-            while (oc && !(name in oc) && !(oc.bindingContext && name in oc.bindingContext)) {
-                oc = oc.parentOverrideContext;
+            while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
+                overrideContext = overrideContext.parentOverrideContext;
             }
-            if (oc) {
-                return name in oc ? oc : oc.bindingContext;
+            if (overrideContext) {
+                return name in overrideContext ? overrideContext : overrideContext.bindingContext;
             }
             return scope.bindingContext || scope.overrideContext;
         }
@@ -4885,12 +4940,13 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals", "../resources/repeat/repeat", "../resources/repeat/repeat-strategy-registry"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1, repeat_1, repeat_strategy_registry_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
+            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, repeat_1.Repeat, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
+            container.register(di_1.Registration.instance(repeat_strategy_registry_1.IRepeatStrategyRegistry, repeat_strategy_registry_1.RepeatStrategyRegistry));
             container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
@@ -5901,7 +5957,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         var aliases = source.aliases;
                         if (aliases) {
                             for (var i = 0, ii = aliases.length; i < ii; ++i) {
-                                container.register(di_1.Registration.transient(aliases[i], CustomAttribute));
+                                container.register(di_1.Registration.alias(source.name, aliases[i]));
                             }
                         }
                     };
@@ -7810,6 +7866,765 @@ define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/
                 || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
         }
     });
+});
+
+
+
+define('runtime/resources/repeat/override-contexts',["require", "exports", "../../binding/binding-context"], function (require, exports, binding_context_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function updateOverrideContexts(visuals, startIndex) {
+        var length = visuals.length;
+        if (startIndex > 0) {
+            startIndex = startIndex - 1;
+        }
+        for (; startIndex < length; ++startIndex) {
+            updateOverrideContext(visuals[startIndex].$scope.overrideContext, startIndex, length);
+        }
+    }
+    exports.updateOverrideContexts = updateOverrideContexts;
+    function createFullOverrideContext(repeat, data, index, length, key) {
+        var bindingContext = {};
+        var overrideContext = binding_context_1.BindingContext.createOverride(bindingContext, repeat.scope.overrideContext);
+        if (typeof key !== 'undefined') {
+            bindingContext[repeat.key] = key;
+            bindingContext[repeat.value] = data;
+        }
+        else {
+            bindingContext[repeat.local] = data;
+        }
+        updateOverrideContext(overrideContext, index, length);
+        return overrideContext;
+    }
+    exports.createFullOverrideContext = createFullOverrideContext;
+    function updateOverrideContext(overrideContext, index, length) {
+        var first = (index === 0);
+        var last = (index === length - 1);
+        var even = index % 2 === 0;
+        overrideContext.$index = index;
+        overrideContext.$first = first;
+        overrideContext.$last = last;
+        overrideContext.$middle = !(first || last);
+        overrideContext.$odd = !even;
+        overrideContext.$even = even;
+    }
+    exports.updateOverrideContext = updateOverrideContext;
+});
+
+
+
+define('runtime/resources/repeat/repeat-strategy-array',["require", "exports", "./override-contexts", "../../binding/array-change-records", "../../binding/observer-locator", "../../binding/binding-context"], function (require, exports, override_contexts_1, array_change_records_1, observer_locator_1, binding_context_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function indexOf(array, item, matcher, startIndex) {
+        if (startIndex === void 0) { startIndex = 0; }
+        if (matcher) {
+            var length_1 = array.length;
+            for (var index = startIndex; index < length_1; index++) {
+                if (matcher(array[index], item)) {
+                    return index;
+                }
+            }
+            return -1;
+        }
+        return array.indexOf(item);
+    }
+    var ArrayRepeatStrategy = (function () {
+        function ArrayRepeatStrategy() {
+        }
+        ArrayRepeatStrategy.prototype.handles = function (items) {
+            return items instanceof Array;
+        };
+        ArrayRepeatStrategy.prototype.getCollectionObserver = function (items) {
+            return observer_locator_1.ObserverLocator.getArrayObserver(items);
+        };
+        ArrayRepeatStrategy.prototype.instanceChanged = function (repeat, items) {
+            var _this = this;
+            var itemsLength = items.length;
+            if (!items || itemsLength === 0) {
+                repeat.removeAllVisuals(true, !repeat.visualsRequireLifecycle);
+                return;
+            }
+            var children = repeat.visuals();
+            var viewsLength = children.length;
+            if (viewsLength === 0) {
+                this.standardProcessInstanceChanged(repeat, items);
+                return;
+            }
+            if (repeat.visualsRequireLifecycle) {
+                var childrenSnapshot = children.slice(0);
+                var itemNameInBindingContext = repeat.local;
+                var matcher_1 = repeat.matcher;
+                var itemsPreviouslyInViews_1 = [];
+                var viewsToRemove = [];
+                for (var index = 0; index < viewsLength; index++) {
+                    var view = childrenSnapshot[index];
+                    var oldItem = view.$scope.bindingContext[itemNameInBindingContext];
+                    if (indexOf(items, oldItem, matcher_1) === -1) {
+                        viewsToRemove.push(view);
+                    }
+                    else {
+                        itemsPreviouslyInViews_1.push(oldItem);
+                    }
+                }
+                var updateViews = void 0;
+                var removePromise = void 0;
+                if (itemsPreviouslyInViews_1.length > 0) {
+                    removePromise = repeat.removeVisuals(viewsToRemove, true, !repeat.visualsRequireLifecycle);
+                    updateViews = function () {
+                        for (var index = 0; index < itemsLength; index++) {
+                            var item = items[index];
+                            var indexOfView = indexOf(itemsPreviouslyInViews_1, item, matcher_1, index);
+                            var view = void 0;
+                            if (indexOfView === -1) {
+                                var overrideContext = override_contexts_1.createFullOverrideContext(repeat, items[index], index, itemsLength);
+                                repeat.insertVisualWithScope(index, binding_context_1.BindingContext.createScopeFromOverride(overrideContext));
+                                itemsPreviouslyInViews_1.splice(index, 0, undefined);
+                            }
+                            else if (indexOfView === index) {
+                                view = children[indexOfView];
+                                itemsPreviouslyInViews_1[indexOfView] = undefined;
+                            }
+                            else {
+                                view = children[indexOfView];
+                                repeat.moveVisual(indexOfView, index);
+                                itemsPreviouslyInViews_1.splice(indexOfView, 1);
+                                itemsPreviouslyInViews_1.splice(index, 0, undefined);
+                            }
+                            if (view) {
+                                override_contexts_1.updateOverrideContext(view.overrideContext, index, itemsLength);
+                            }
+                        }
+                        _this.inPlaceProcessItems(repeat, items);
+                    };
+                }
+                else {
+                    removePromise = repeat.removeAllVisuals(true, !repeat.visualsRequireLifecycle);
+                    updateViews = function () { return _this.standardProcessInstanceChanged(repeat, items); };
+                }
+                if (removePromise instanceof Promise) {
+                    removePromise.then(updateViews);
+                }
+                else {
+                    updateViews();
+                }
+            }
+            else {
+                this.inPlaceProcessItems(repeat, items);
+            }
+        };
+        ArrayRepeatStrategy.prototype.standardProcessInstanceChanged = function (repeat, items) {
+            for (var i = 0, ii = items.length; i < ii; i++) {
+                var overrideContext = override_contexts_1.createFullOverrideContext(repeat, items[i], i, ii);
+                repeat.addVisualWithScope(binding_context_1.BindingContext.createScopeFromOverride(overrideContext));
+            }
+        };
+        ArrayRepeatStrategy.prototype.inPlaceProcessItems = function (repeat, items) {
+            var itemsLength = items.length;
+            var viewsLength = repeat.visualCount();
+            while (viewsLength > itemsLength) {
+                viewsLength--;
+                repeat.removeVisual(viewsLength, true, !repeat.visualsRequireLifecycle);
+            }
+            var local = repeat.local;
+            for (var i = 0; i < viewsLength; i++) {
+                var view = repeat.visualAt(i);
+                var last = i === itemsLength - 1;
+                var middle = i !== 0 && !last;
+                var scope = view.$scope;
+                var bindingContext = scope.bindingContext;
+                var overrideContext = scope.overrideContext;
+                if (bindingContext[local] === items[i]
+                    && overrideContext.$middle === middle
+                    && overrideContext.$last === last) {
+                    continue;
+                }
+                bindingContext[local] = items[i];
+                overrideContext.$middle = middle;
+                overrideContext.$last = last;
+                repeat.updateBindings(view);
+            }
+            for (var i = viewsLength; i < itemsLength; i++) {
+                var overrideContext = override_contexts_1.createFullOverrideContext(repeat, items[i], i, itemsLength);
+                repeat.addVisualWithScope(binding_context_1.BindingContext.createScopeFromOverride(overrideContext));
+            }
+        };
+        ArrayRepeatStrategy.prototype.instanceMutated = function (repeat, array, splices) {
+            var _this = this;
+            if (repeat.__queuedSplices) {
+                for (var i = 0, ii = splices.length; i < ii; ++i) {
+                    var _a = splices[i], index = _a.index, removed = _a.removed, addedCount = _a.addedCount;
+                    array_change_records_1.mergeSplice(repeat.__queuedSplices, index, removed, addedCount);
+                }
+                repeat.__array = array.slice(0);
+                return;
+            }
+            var maybePromise = this.runSplices(repeat, array.slice(0), splices);
+            if (maybePromise instanceof Promise) {
+                var queuedSplices_1 = repeat.__queuedSplices = [];
+                var runQueuedSplices_1 = function () {
+                    if (!queuedSplices_1.length) {
+                        repeat.__queuedSplices = undefined;
+                        repeat.__array = undefined;
+                        return;
+                    }
+                    var nextPromise = _this.runSplices(repeat, repeat.__array, queuedSplices_1) || Promise.resolve();
+                    queuedSplices_1 = repeat.__queuedSplices = [];
+                    nextPromise.then(runQueuedSplices_1);
+                };
+                maybePromise.then(runQueuedSplices_1);
+            }
+        };
+        ArrayRepeatStrategy.prototype.runSplices = function (repeat, array, splices) {
+            var _this = this;
+            var rmPromises = [];
+            var removeDelta = 0;
+            for (var i = 0, ii = splices.length; i < ii; ++i) {
+                var splice = splices[i];
+                var removed = splice.removed;
+                for (var j = 0, jj = removed.length; j < jj; ++j) {
+                    var viewOrPromise = repeat.removeVisual(splice.index + removeDelta + rmPromises.length, true);
+                    if (viewOrPromise instanceof Promise) {
+                        rmPromises.push(viewOrPromise);
+                    }
+                }
+                removeDelta -= splice.addedCount;
+            }
+            if (rmPromises.length > 0) {
+                return Promise.all(rmPromises).then(function () {
+                    var spliceIndexLow = _this.handleAddedSplices(repeat, array, splices);
+                    override_contexts_1.updateOverrideContexts(repeat.visuals(), spliceIndexLow);
+                });
+            }
+            var spliceIndexLow = this.handleAddedSplices(repeat, array, splices);
+            override_contexts_1.updateOverrideContexts(repeat.visuals(), spliceIndexLow);
+            return undefined;
+        };
+        ArrayRepeatStrategy.prototype.handleAddedSplices = function (repeat, array, splices) {
+            var arrayLength = array.length;
+            var spliceIndex;
+            var spliceIndexLow;
+            for (var i = 0, ii = splices.length; i < ii; ++i) {
+                var splice = splices[i];
+                var end = splice.index + splice.addedCount;
+                var addIndex = spliceIndex = splice.index;
+                if (typeof spliceIndexLow === 'undefined' || spliceIndexLow === null || spliceIndexLow > splice.index) {
+                    spliceIndexLow = spliceIndex;
+                }
+                for (; addIndex < end; ++addIndex) {
+                    var overrideContext = override_contexts_1.createFullOverrideContext(repeat, array[addIndex], addIndex, arrayLength);
+                    repeat.insertVisualWithScope(addIndex, binding_context_1.BindingContext.createScopeFromOverride(overrideContext));
+                }
+            }
+            return spliceIndexLow;
+        };
+        return ArrayRepeatStrategy;
+    }());
+    exports.ArrayRepeatStrategy = ArrayRepeatStrategy;
+});
+
+
+
+define('runtime/resources/repeat/repeat-strategy-map',["require", "exports", "./override-contexts", "../../binding/observer-locator", "../../binding/binding-context"], function (require, exports, override_contexts_1, observer_locator_1, binding_context_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MapRepeatStrategy = (function () {
+        function MapRepeatStrategy() {
+        }
+        MapRepeatStrategy.prototype.handles = function (items) {
+            return items instanceof Map;
+        };
+        MapRepeatStrategy.prototype.getCollectionObserver = function (items) {
+            return observer_locator_1.ObserverLocator.getMapObserver(items);
+        };
+        MapRepeatStrategy.prototype.instanceChanged = function (repeat, items) {
+            var _this = this;
+            var removePromise = repeat.removeAllVisuals(true, !repeat.visualsRequireLifecycle);
+            if (removePromise instanceof Promise) {
+                removePromise.then(function () { return _this.standardProcessItems(repeat, items); });
+                return;
+            }
+            this.standardProcessItems(repeat, items);
+        };
+        MapRepeatStrategy.prototype.standardProcessItems = function (repeat, items) {
+            var index = 0;
+            items.forEach(function (value, key) {
+                var overrideContext = override_contexts_1.createFullOverrideContext(repeat, value, index, items.size, key);
+                repeat.addVisualWithScope(binding_context_1.BindingContext.createScopeFromOverride(overrideContext));
+                ++index;
+            });
+        };
+        MapRepeatStrategy.prototype.instanceMutated = function (repeat, map, records) {
+            var rmPromises = [];
+            var overrideContext;
+            var removeIndex;
+            var viewOrPromise;
+            for (var i = 0, ii = records.length; i < ii; ++i) {
+                var record = records[i];
+                var key = record.key;
+                switch (record.type) {
+                    case 'update':
+                        removeIndex = this.getViewIndexByKey(repeat, key);
+                        viewOrPromise = repeat.removeVisual(removeIndex, true, !repeat.visualsRequireLifecycle);
+                        if (viewOrPromise instanceof Promise) {
+                            rmPromises.push(viewOrPromise);
+                        }
+                        overrideContext = override_contexts_1.createFullOverrideContext(repeat, map.get(key), removeIndex, map.size, key);
+                        repeat.insertVisualWithScope(removeIndex, binding_context_1.BindingContext.createScopeFromOverride(overrideContext));
+                        break;
+                    case 'add':
+                        var addIndex = repeat.visualCount() <= map.size - 1 ? repeat.visualCount() : map.size - 1;
+                        overrideContext = override_contexts_1.createFullOverrideContext(repeat, map.get(key), addIndex, map.size, key);
+                        repeat.insertVisualWithScope(map.size - 1, binding_context_1.BindingContext.createScopeFromOverride(overrideContext));
+                        break;
+                    case 'delete':
+                        if (record.oldValue === undefined) {
+                            return;
+                        }
+                        removeIndex = this.getViewIndexByKey(repeat, key);
+                        viewOrPromise = repeat.removeVisual(removeIndex, true, !repeat.visualsRequireLifecycle);
+                        if (viewOrPromise instanceof Promise) {
+                            rmPromises.push(viewOrPromise);
+                        }
+                        break;
+                    case 'clear':
+                        repeat.removeAllVisuals(true, !repeat.visualsRequireLifecycle);
+                        break;
+                    default:
+                        continue;
+                }
+            }
+            if (rmPromises.length > 0) {
+                Promise.all(rmPromises).then(function () { return override_contexts_1.updateOverrideContexts(repeat.visuals(), 0); });
+            }
+            else {
+                override_contexts_1.updateOverrideContexts(repeat.visuals(), 0);
+            }
+        };
+        MapRepeatStrategy.prototype.getViewIndexByKey = function (repeat, key) {
+            for (var i = 0, ii = repeat.visualCount(); i < ii; ++i) {
+                var child = repeat.visualAt(i);
+                if (child.$scope.bindingContext[repeat.key] === key) {
+                    return i;
+                }
+            }
+            return undefined;
+        };
+        return MapRepeatStrategy;
+    }());
+    exports.MapRepeatStrategy = MapRepeatStrategy;
+});
+
+
+
+define('runtime/resources/repeat/repeat-strategy-null',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var NullRepeatStrategy = (function () {
+        function NullRepeatStrategy() {
+        }
+        NullRepeatStrategy.prototype.handles = function (items) {
+            return items === null || items === undefined;
+        };
+        NullRepeatStrategy.prototype.instanceMutated = function (repeat, items, changes) { };
+        NullRepeatStrategy.prototype.instanceChanged = function (repeat, items) {
+            repeat.removeAllVisuals(true);
+        };
+        NullRepeatStrategy.prototype.getCollectionObserver = function (items) { return null; };
+        return NullRepeatStrategy;
+    }());
+    exports.NullRepeatStrategy = NullRepeatStrategy;
+});
+
+
+
+define('runtime/resources/repeat/repeat-strategy-number',["require", "exports", "./override-contexts", "../../binding/binding-context"], function (require, exports, override_contexts_1, binding_context_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var NumberRepeatStrategy = (function () {
+        function NumberRepeatStrategy() {
+        }
+        NumberRepeatStrategy.prototype.handles = function (items) {
+            return typeof items === 'number';
+        };
+        NumberRepeatStrategy.prototype.instanceChanged = function (repeat, value) {
+            var _this = this;
+            var removePromise = repeat.removeAllVisuals(true, !repeat.visualsRequireLifecycle);
+            if (removePromise instanceof Promise) {
+                removePromise.then(function () { return _this.standardProcessItems(repeat, value); });
+                return;
+            }
+            this.standardProcessItems(repeat, value);
+        };
+        NumberRepeatStrategy.prototype.instanceMutated = function (repeat, items, changes) { };
+        NumberRepeatStrategy.prototype.getCollectionObserver = function () { return null; };
+        NumberRepeatStrategy.prototype.standardProcessItems = function (repeat, value) {
+            value = Math.floor(value);
+            var childrenLength = repeat.visualCount();
+            var viewsToRemove = childrenLength - value;
+            if (viewsToRemove > 0) {
+                if (viewsToRemove > childrenLength) {
+                    viewsToRemove = childrenLength;
+                }
+                for (var i = 0, ii = viewsToRemove; i < ii; ++i) {
+                    repeat.removeVisual(childrenLength - (i + 1), true, !repeat.visualsRequireLifecycle);
+                }
+                return;
+            }
+            for (var i = childrenLength, ii = value; i < ii; ++i) {
+                var overrideContext = override_contexts_1.createFullOverrideContext(repeat, i, i, ii);
+                repeat.addVisualWithScope(binding_context_1.BindingContext.createScopeFromOverride(overrideContext));
+            }
+            override_contexts_1.updateOverrideContexts(repeat.visuals(), 0);
+        };
+        return NumberRepeatStrategy;
+    }());
+    exports.NumberRepeatStrategy = NumberRepeatStrategy;
+});
+
+
+
+define('runtime/resources/repeat/repeat-strategy-registry',["require", "exports", "../../di", "./repeat-strategy-null", "./repeat-strategy-array", "./repeat-strategy-map", "./repeat-strategy-set", "./repeat-strategy-number"], function (require, exports, di_1, repeat_strategy_null_1, repeat_strategy_array_1, repeat_strategy_map_1, repeat_strategy_set_1, repeat_strategy_number_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IRepeatStrategyRegistry = di_1.DI.createInterface('IRepeatStrategyRegistry');
+    var RepeatStrategyRegistryImplementation = (function () {
+        function RepeatStrategyRegistryImplementation() {
+            this.strategies = [];
+            this.register(new repeat_strategy_null_1.NullRepeatStrategy());
+            this.register(new repeat_strategy_array_1.ArrayRepeatStrategy());
+            this.register(new repeat_strategy_map_1.MapRepeatStrategy());
+            this.register(new repeat_strategy_set_1.SetRepeatStrategy());
+            this.register(new repeat_strategy_number_1.NumberRepeatStrategy());
+        }
+        RepeatStrategyRegistryImplementation.prototype.register = function (strategy) {
+            this.strategies.push(strategy);
+        };
+        RepeatStrategyRegistryImplementation.prototype.getStrategyForItems = function (items) {
+            var strategies = this.strategies;
+            for (var i = 0, ii = strategies.length; i < ii; ++i) {
+                var current = strategies[i];
+                if (current.handles(items)) {
+                    return current;
+                }
+            }
+            return null;
+        };
+        return RepeatStrategyRegistryImplementation;
+    }());
+    exports.RepeatStrategyRegistry = new RepeatStrategyRegistryImplementation();
+});
+
+
+
+define('runtime/resources/repeat/repeat-strategy-set',["require", "exports", "./override-contexts", "../../binding/observer-locator", "../../binding/binding-context"], function (require, exports, override_contexts_1, observer_locator_1, binding_context_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var SetRepeatStrategy = (function () {
+        function SetRepeatStrategy() {
+        }
+        SetRepeatStrategy.prototype.handles = function (items) {
+            return items instanceof Set;
+        };
+        SetRepeatStrategy.prototype.getCollectionObserver = function (items) {
+            return observer_locator_1.ObserverLocator.getSetObserver(items);
+        };
+        SetRepeatStrategy.prototype.instanceChanged = function (repeat, items) {
+            var _this = this;
+            var removePromise = repeat.removeAllVisuals(true, !repeat.visualsRequireLifecycle);
+            if (removePromise instanceof Promise) {
+                removePromise.then(function () { return _this.standardProcessItems(repeat, items); });
+                return;
+            }
+            this.standardProcessItems(repeat, items);
+        };
+        SetRepeatStrategy.prototype.standardProcessItems = function (repeat, items) {
+            var index = 0;
+            items.forEach(function (value) {
+                var overrideContext = override_contexts_1.createFullOverrideContext(repeat, value, index, items.size);
+                repeat.addVisualWithScope(binding_context_1.BindingContext.createScopeFromOverride(overrideContext));
+                ++index;
+            });
+        };
+        SetRepeatStrategy.prototype.instanceMutated = function (repeat, set, records) {
+            var rmPromises = [];
+            for (var i = 0, ii = records.length; i < ii; ++i) {
+                var record = records[i];
+                var value = record.value;
+                switch (record.type) {
+                    case 'add':
+                        var size = Math.max(set.size - 1, 0);
+                        var overrideContext = override_contexts_1.createFullOverrideContext(repeat, value, size, set.size);
+                        repeat.insertVisualWithScope(size, binding_context_1.BindingContext.createScopeFromOverride(overrideContext));
+                        break;
+                    case 'delete':
+                        var removeIndex = this.getViewIndexByValue(repeat, value);
+                        var viewOrPromise = repeat.removeVisual(removeIndex, true, !repeat.visualsRequireLifecycle);
+                        if (viewOrPromise instanceof Promise) {
+                            rmPromises.push(viewOrPromise);
+                        }
+                        break;
+                    case 'clear':
+                        repeat.removeAllVisuals(true, !repeat.visualsRequireLifecycle);
+                        break;
+                    default:
+                        continue;
+                }
+            }
+            if (rmPromises.length > 0) {
+                Promise.all(rmPromises).then(function () { return override_contexts_1.updateOverrideContexts(repeat.visuals(), 0); });
+            }
+            else {
+                override_contexts_1.updateOverrideContexts(repeat.visuals(), 0);
+            }
+        };
+        SetRepeatStrategy.prototype.getViewIndexByValue = function (repeat, value) {
+            for (var i = 0, ii = repeat.visualCount(); i < ii; ++i) {
+                var child = repeat.visualAt(i);
+                if (child.$scope.bindingContext[repeat.local] === value) {
+                    return i;
+                }
+            }
+            return undefined;
+        };
+        return SetRepeatStrategy;
+    }());
+    exports.SetRepeatStrategy = SetRepeatStrategy;
+});
+
+
+
+define('runtime/resources/repeat/repeat-strategy',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/resources/repeat/repeat',["require", "exports", "../../decorators", "../../templating/view-engine", "../../templating/render-slot", "../../di", "./repeat-strategy-registry", "../../binding/ast", "../../binding/binding-context", "../../../debug/task-queue", "../../binding/binding-mode", "../../templating/view"], function (require, exports, decorators_1, view_engine_1, render_slot_1, di_1, repeat_strategy_registry_1, ast_1, binding_context_1, task_queue_1, binding_mode_1, view_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var oneTime = binding_mode_1.BindingMode.oneTime;
+    function updateOneTimeBinding(binding) {
+        if (isCallableOneTimeBinding(binding)) {
+            binding.call(binding_context_1.sourceContext);
+        }
+        else if (binding.updateOneTimeBindings) {
+            binding.updateOneTimeBindings();
+        }
+    }
+    function isOneTime(expression) {
+        while (expression instanceof ast_1.BindingBehavior) {
+            if (expression.name === 'oneTime') {
+                return true;
+            }
+            expression = expression.expression;
+        }
+        return false;
+    }
+    function isCallableOneTimeBinding(binding) {
+        return binding.call && binding.mode === oneTime;
+    }
+    function unwrapExpression(expression) {
+        var unwrapped = false;
+        while (expression instanceof ast_1.BindingBehavior) {
+            expression = expression.expression;
+        }
+        while (expression instanceof ast_1.ValueConverter) {
+            expression = expression.expression;
+            unwrapped = true;
+        }
+        return unwrapped ? expression : null;
+    }
+    function getBinding(owner, behavior, propertyName) {
+        return owner.$bindable
+            .find(function (x) { return x.target === behavior && x.targetProperty === propertyName; });
+    }
+    var Repeat = (function () {
+        function Repeat(owner, viewFactory, viewSlot, container) {
+            this.owner = owner;
+            this.viewFactory = viewFactory;
+            this.viewSlot = viewSlot;
+            this.container = container;
+            this.ignoreMutation = false;
+            this.local = 'item';
+            this.key = 'key';
+            this.value = 'value';
+            this.visualsRequireLifecycle = true;
+        }
+        Repeat.prototype.call = function (context, changes) {
+            this[context](this.items, changes);
+        };
+        Repeat.prototype.bound = function (scope) {
+            this.sourceExpression = getBinding(this.owner, this, 'items').sourceExpression;
+            this.isOneTime = isOneTime(this.sourceExpression);
+            this.scope = scope;
+            this.itemsChanged();
+        };
+        Repeat.prototype.unbound = function () {
+            this.scope = null;
+            this.items = null;
+            this.viewSlot.removeAll(true, true);
+            this.unsubscribeCollection();
+        };
+        Repeat.prototype.unsubscribeCollection = function () {
+            if (this.collectionObserver) {
+                this.collectionObserver.unsubscribe(this.callContext, this);
+                this.collectionObserver = null;
+                this.callContext = null;
+            }
+        };
+        Repeat.prototype.itemsChanged = function () {
+            this.unsubscribeCollection();
+            if (!this.scope) {
+                return;
+            }
+            var items = this.items;
+            this.strategy = repeat_strategy_registry_1.RepeatStrategyRegistry.getStrategyForItems(items);
+            if (!this.strategy) {
+                throw new Error("Value for '" + this.sourceExpression + "' is non-repeatable");
+            }
+            if (!this.isOneTime && !this.observeInnerCollection()) {
+                this.observeCollection();
+            }
+            this.strategy.instanceChanged(this, items);
+        };
+        Repeat.prototype.getInnerCollection = function () {
+            var expression = unwrapExpression(this.sourceExpression);
+            if (!expression) {
+                return null;
+            }
+            return expression.evaluate(this.scope, this.container);
+        };
+        Repeat.prototype.handleCollectionMutated = function (collection, changes) {
+            if (!this.collectionObserver) {
+                return;
+            }
+            this.strategy.instanceMutated(this, collection, changes);
+        };
+        Repeat.prototype.handleInnerCollectionMutated = function (collection, changes) {
+            var _this = this;
+            if (!this.collectionObserver) {
+                return;
+            }
+            if (this.ignoreMutation) {
+                return;
+            }
+            this.ignoreMutation = true;
+            var newItems = this.sourceExpression.evaluate(this.scope, this.container);
+            task_queue_1.TaskQueue.queueMicroTask(function () { return _this.ignoreMutation = false; });
+            if (newItems === this.items) {
+                this.itemsChanged();
+            }
+            else {
+                this.items = newItems;
+            }
+        };
+        Repeat.prototype.observeInnerCollection = function () {
+            var items = this.getInnerCollection();
+            var strategy = repeat_strategy_registry_1.RepeatStrategyRegistry.getStrategyForItems(items);
+            if (!strategy) {
+                return false;
+            }
+            this.collectionObserver = strategy.getCollectionObserver(items);
+            if (!this.collectionObserver) {
+                return false;
+            }
+            this.callContext = 'handleInnerCollectionMutated';
+            this.collectionObserver.subscribe(this.callContext, this);
+            return true;
+        };
+        Repeat.prototype.observeCollection = function () {
+            var items = this.items;
+            this.collectionObserver = this.strategy.getCollectionObserver(items);
+            if (this.collectionObserver) {
+                this.callContext = 'handleCollectionMutated';
+                this.collectionObserver.subscribe(this.callContext, this);
+            }
+        };
+        Repeat.prototype.visualCount = function () {
+            return this.viewSlot.children.length;
+        };
+        Repeat.prototype.visuals = function () {
+            return this.viewSlot.children;
+        };
+        Repeat.prototype.visualAt = function (index) {
+            return this.viewSlot.children[index];
+        };
+        Repeat.prototype.addVisualWithScope = function (scope) {
+            var visual = this.viewFactory.create();
+            visual.$bind(scope);
+            this.viewSlot.add(visual);
+        };
+        Repeat.prototype.insertVisualWithScope = function (index, scope) {
+            var visual = this.viewFactory.create();
+            visual.$bind(scope);
+            this.viewSlot.insert(index, visual);
+        };
+        Repeat.prototype.moveVisual = function (sourceIndex, targetIndex) {
+            this.viewSlot.move(sourceIndex, targetIndex);
+        };
+        Repeat.prototype.removeAllVisuals = function (returnToCache, skipAnimation) {
+            return this.viewSlot.removeAll(returnToCache, skipAnimation);
+        };
+        Repeat.prototype.removeVisuals = function (viewsToRemove, returnToCache, skipAnimation) {
+            return this.viewSlot.removeMany(viewsToRemove, returnToCache, skipAnimation);
+        };
+        Repeat.prototype.removeVisual = function (index, returnToCache, skipAnimation) {
+            return this.viewSlot.removeAt(index, returnToCache, skipAnimation);
+        };
+        Repeat.prototype.updateBindings = function (visual) {
+            var bindables = visual.$bindable;
+            var j = visual.$bindable.length;
+            while (j--) {
+                updateOneTimeBinding(bindables[j]);
+            }
+        };
+        __decorate([
+            decorators_1.bindable,
+            __metadata("design:type", Object)
+        ], Repeat.prototype, "items", void 0);
+        __decorate([
+            decorators_1.bindable,
+            __metadata("design:type", String)
+        ], Repeat.prototype, "local", void 0);
+        __decorate([
+            decorators_1.bindable,
+            __metadata("design:type", Object)
+        ], Repeat.prototype, "key", void 0);
+        __decorate([
+            decorators_1.bindable,
+            __metadata("design:type", Object)
+        ], Repeat.prototype, "value", void 0);
+        __decorate([
+            decorators_1.bindable,
+            __metadata("design:type", Function)
+        ], Repeat.prototype, "matcher", void 0);
+        Repeat = __decorate([
+            decorators_1.customAttribute('repeat'),
+            decorators_1.templateController,
+            decorators_1.inject(view_1.IViewOwner, view_engine_1.IVisualFactory, render_slot_1.IRenderSlot, di_1.IContainer),
+            __metadata("design:paramtypes", [Object, Object, Object, Object])
+        ], Repeat);
+        return Repeat;
+    }());
+    exports.Repeat = Repeat;
+});
+
+
+
+define('runtime/resources/repeat/repeater',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
 });
 
 

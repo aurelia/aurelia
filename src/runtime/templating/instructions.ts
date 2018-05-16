@@ -143,7 +143,7 @@ export interface IHydrateAttributeInstruction extends ITargetedInstruction {
 export interface IHydrateTemplateController extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateTemplateController;
   res: any;
-  src: ICompiledViewSource;
   instructions: TargetedInstruction[];
+  src: ICompiledViewSource;
   link?: boolean;
 }

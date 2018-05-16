@@ -299,7 +299,7 @@ function intersect(start1: any, end1: any, start2: any, end2: any) {
   return end1 - start1; // Contained
 }
 
-export function mergeSplice(splices: any, index: any, removed: any, addedCount: any) {
+export function mergeSplice(splices: any[], index: number, removed: any, addedCount: any) {
   let splice = newSplice(index, removed, addedCount);
 
   let inserted = false;
@@ -373,7 +373,7 @@ export function mergeSplice(splices: any, index: any, removed: any, addedCount: 
   }
 }
 
-function createInitialSplices(array, changeRecords) {
+function createInitialSplices(array: any[], changeRecords: any[]) {
   let splices = [];
 
   for (let i = 0; i < changeRecords.length; i++) {
@@ -405,7 +405,7 @@ function createInitialSplices(array, changeRecords) {
   return splices;
 }
 
-export function projectArraySplices(array, changeRecords) {
+export function projectArraySplices(array: any[], changeRecords: any[]) {
   let splices = [];
 
   createInitialSplices(array, changeRecords).forEach(function(splice) {

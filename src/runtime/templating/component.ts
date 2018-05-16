@@ -108,7 +108,7 @@ export const Component = {
 
         if (aliases) {
           for(let i = 0, ii = aliases.length; i < ii; ++i) {
-            container.register(Registration.transient(aliases[i], CustomAttribute));
+            container.register(Registration.alias(source.name, aliases[i]));
           }
         }
       }

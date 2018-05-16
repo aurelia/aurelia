@@ -18,6 +18,8 @@ import { ThrottleBindingBehavior } from "../resources/throttle-binding-behavior"
 import { UpdateTriggerBindingBehavior } from "../resources/update-trigger-binding-behavior";
 import { With } from "../resources/with";
 import { ISignaler, Signaler, SignalBindingBehavior } from "../resources/signals";
+import { Repeat } from "../resources/repeat/repeat";
+import { IRepeatStrategyRegistry, RepeatStrategyRegistry } from "../resources/repeat/repeat-strategy-registry";
 
 export const StandardConfiguration = {
   register(container: IContainer) {
@@ -39,6 +41,7 @@ export const StandardConfiguration = {
       // Template Controllers
       If,
       Else,
+      Repeat,
       Replaceable,
       With,
 
@@ -46,6 +49,9 @@ export const StandardConfiguration = {
       Compose
     );
   
+    // TODO: Replace with all(IRepeatStrategy)
+    container.register(Registration.instance(IRepeatStrategyRegistry, RepeatStrategyRegistry));
+
     container.register(Registration.instance(IDirtyChecker, DirtyChecker));
     container.register(Registration.instance(ITaskQueue, TaskQueue));
     container.register(Registration.instance(ISVGAnalyzer, SVGAnalyzer));

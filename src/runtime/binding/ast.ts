@@ -34,7 +34,7 @@ export class Chain implements IExpression {
 }
 
 export class BindingBehavior implements IExpression {
-  constructor(private expression: IExpression, private name: string, private args: IExpression[]) { }
+  constructor(public expression: IExpression, public name: string, private args: IExpression[]) { }
 
   evaluate(scope: IScope, container: IContainer) {
     return this.expression.evaluate(scope, container);
@@ -80,7 +80,7 @@ export class BindingBehavior implements IExpression {
 }
 
 export class ValueConverter implements IExpression {
-  constructor(private expression: IExpression, private name: string, private args: IExpression[], private allArgs: IExpression[]) { }
+  constructor(public expression: IExpression, private name: string, private args: IExpression[], private allArgs: IExpression[]) { }
 
   evaluate(scope: IScope, container: IContainer) {
     let converter = container.get(this.name);

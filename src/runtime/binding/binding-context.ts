@@ -12,6 +12,9 @@ export interface IScope {
 }
 
 export const BindingContext = {
+  createScopeFromOverride(overrideContext: IOverrideContext): IScope {
+    return { bindingContext: overrideContext.bindingContext, overrideContext };
+  },
   createOverride(bindingContext?: any, parentOverrideContext?: IOverrideContext): IOverrideContext {
     return {
       bindingContext: bindingContext,
@@ -19,28 +22,32 @@ export const BindingContext = {
     };
   },
   get(scope: IScope, name: string, ancestor: number): any {
-    let oc = scope.overrideContext;
+    let overrideContext = scope.overrideContext;
   
     if (ancestor) {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
-      while (ancestor && oc) {
+      while (ancestor && overrideContext) {
         ancestor--;
-        oc = oc.parentOverrideContext;
+        overrideContext = overrideContext.parentOverrideContext;
       }
-      if (ancestor || !oc) {
+
+      if (ancestor || !overrideContext) {
         return undefined;
       }
-      return name in oc ? oc : oc.bindingContext;
+
+      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
   
     // traverse the context and it's ancestors, searching for a context that has the name.
-    while (oc && !(name in oc) && !(oc.bindingContext && name in oc.bindingContext)) {
-      oc = oc.parentOverrideContext;
+    while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
+      overrideContext = overrideContext.parentOverrideContext;
     }
-    if (oc) {
+
+    if (overrideContext) {
       // we located a context with the property.  return it.
-      return name in oc ? oc : oc.bindingContext;
+      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
+
     // the name wasn't found.  return the root binding context.
     return scope.bindingContext || scope.overrideContext;
   }

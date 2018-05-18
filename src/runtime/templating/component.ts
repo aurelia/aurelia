@@ -4,7 +4,7 @@ import { TaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
 import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
 import { PLATFORM } from "../platform";
-import { IContainer, Registration } from "../di";
+import { IContainer, Registration, DI } from "../di";
 import { BindingMode } from "../binding/binding-mode";
 import { Constructable, ICallable } from "../interfaces";
 import { IBindScope, IAccessor, ISubscribable } from "../binding/observation";
@@ -14,6 +14,7 @@ import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
 import { ICompiledViewSource, IBindableInstruction } from "./instructions";
 import { INode, DOM, IView, IChildObserver } from "../dom";
 import { SubscriberCollection } from "../binding/subscriber-collection";
+import { ITemplateCache } from "./template-cache";
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $host: INode;
@@ -22,7 +23,7 @@ export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $slots: Record<string, IEmulatedShadowSlot>;
   $usingSlotEmulation: boolean;
 
-  $hydrate(host: INode, replacements?: Record<string, ICompiledViewSource>, contentNodeOverride?: INode): void;
+  $hydrate(container: IContainer, host: INode, replacements?: Record<string, ICompiledViewSource>, contentNodeOverride?: INode): void;
 }
 
 export interface IAttributeComponent extends IBindScope, IAttach { }
@@ -49,7 +50,6 @@ export interface IAttributeType extends Constructable {
 
 export interface IElementType extends Constructable {
   new(...args: any[]): IElementComponent;
-  template: ITemplate;
   source: ICompiledViewSource;
 }
 
@@ -90,7 +90,7 @@ export const Component = {
 
     (<any>ctor).register = function(container: IContainer) {
       container.register(Registration.singleton(source.name, ctor));
-    }
+    };
 
     return <any>ctor;
   },
@@ -213,15 +213,9 @@ export const Component = {
     source.containerless = source.containerless || (<any>ctor).containerless || false;
 
     //Merge any observables from view compilation with those from bindable props on the class.
-    const observables = Object.assign(
-      {},
-      (<any>ctor).observables,
-      source.observables
-    );
+    const observables = Object.assign({}, (<any>ctor).observables, source.observables);
 
-    const template = ViewEngine.templateFromCompiledSource(source);
     const CompiledComponent = class extends ctor implements IElementComponent {
-      static template: ITemplate = template;
       static source: ICompiledViewSource = source;
 
       static register(container: IContainer){
@@ -252,12 +246,12 @@ export const Component = {
         RuntimeBehavior.get(this, observables, CompiledComponent).applyToElement(this);
       }
   
-      $hydrate(host: INode, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
+      $hydrate(container: IContainer, host: INode, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
         this.$host = source.containerless ? DOM.convertToAnchor(host, true) : host;
         this.$shadowRoot = DOM.createElementViewHost(this.$host, source.shadowOptions);
         this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
         this.$contentView = View.fromCompiledContent(this.$host, contentOverride);
-        this.$view = this.$createView(this.$host, replacements);
+        this.$view = this.$createView(container, this.$host, replacements);
 
         (<any>this.$host).$component = this;
   
@@ -266,7 +260,22 @@ export const Component = {
         }
       }
   
-      $createView(host: INode, replacements: Record<string, ICompiledViewSource>) {
+      $createView(container: IContainer, host: INode, replacements: Record<string, ICompiledViewSource>) {
+        let cache = container.get<ITemplateCache>(ITemplateCache);
+        let template = cache.getTemplate(
+          source,
+          container => {
+            let t = ViewEngine.templateFromCompiledSource(container, source);
+
+            //If the element has a view, support Recursive Components by adding self to own view template container.
+            if (t.container !== null) {
+              CompiledComponent.register(t.container);
+            }
+
+            return t;
+          }
+        );
+
         return this.$behavior.hasCreateView
           ? (<any>this).createView(host, replacements, template)
           : template.createFor(this, host, replacements);
@@ -394,11 +403,6 @@ export const Component = {
           this.$isBound = false;
         }
       }
-    }
-
-    //If the element has a view, support Recursive Components by adding self to own view template container.
-    if (template.container !== null) {
-      CompiledComponent.register(template.container);
     }
 
     return CompiledComponent;

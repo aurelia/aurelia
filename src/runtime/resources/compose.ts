@@ -1,9 +1,9 @@
-import { customElement, inject } from "../decorators";
+import { customElement } from "../decorators";
 import { IRenderSlot, SwapOrder } from "../templating/render-slot";
 import { ViewEngine, ITemplateContainer, VisualWithCentralComponent, IVisual } from "../templating/view-engine";
 import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from "../templating/instructions";
 import { IViewOwner, IViewOwnerType, IContentView } from "../templating/view";
-import { IContainer } from "../di";
+import { IContainer, inject } from "../di";
 import { IBindScope } from "../binding/observation";
 import { INode, DOM } from "../dom";
 

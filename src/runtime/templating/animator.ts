@@ -1,8 +1,6 @@
 import { DI } from "../di";
 import { INode } from "../dom";
 
-export const IAnimator = DI.createInterface('IAnimator');
-
 export interface IAnimator {
   /**
    * Execute an 'enter' animation on an element
@@ -35,25 +33,24 @@ export interface IAnimator {
   addClass(element: INode, className: string): Promise<boolean>;
 }
 
-/**
- * An abstract class representing a mechanism for animating the DOM during various DOM state transitions.
- */
-export const Animator: IAnimator = {
-  enter(node: INode): Promise<boolean> {
-    return Promise.resolve(false);
-  },
-
-  leave(node: INode): Promise<boolean> {
-    return Promise.resolve(false);
-  },
-
-  removeClass(node: INode, className: string): Promise<boolean> {
-    (<Element>node).classList.remove(className);
-    return Promise.resolve(false);
-  },
+export const IAnimator = DI.createInterface<IAnimator>()
+  .withDefault(x => x.instance({
+    enter(node: INode): Promise<boolean> {
+      return Promise.resolve(false);
+    },
   
-  addClass(node: INode, className: string): Promise<boolean> {
-    (<Element>node).classList.add(className);
-    return Promise.resolve(false);
-  }
-}
+    leave(node: INode): Promise<boolean> {
+      return Promise.resolve(false);
+    },
+  
+    removeClass(node: INode, className: string): Promise<boolean> {
+      (<Element>node).classList.remove(className);
+      return Promise.resolve(false);
+    },
+    
+    addClass(node: INode, className: string): Promise<boolean> {
+      (<Element>node).classList.add(className);
+      return Promise.resolve(false);
+    }
+  })
+);

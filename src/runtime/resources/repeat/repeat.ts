@@ -1,8 +1,8 @@
-import { customAttribute, templateController, inject, bindable } from "../../decorators";
+import { customAttribute, templateController, bindable } from "../../decorators";
 import { IVisualFactory, IVisual } from "../../templating/view-engine";
 import { IRenderSlot } from "../../templating/render-slot";
-import { IContainer } from "../../di";
-import { RepeatStrategyRegistry } from "./repeat-strategy-registry";
+import { IContainer, inject } from "../../di";
+import { IRepeatStrategyRegistry } from "./repeat-strategy-registry";
 import { ITargetedInstruction, IHydrateTemplateController } from "../../templating/instructions";
 import { IRepeater } from "./repeater";
 import { IExpression, BindingBehavior, ValueConverter } from "../../binding/ast";
@@ -62,7 +62,7 @@ function getBinding(owner: IViewOwner, behavior: any, propertyName: string): Bin
 
 @customAttribute('repeat')
 @templateController
-@inject(IViewOwner, IVisualFactory, IRenderSlot, IContainer)
+@inject(IViewOwner, IVisualFactory, IRenderSlot, IContainer, IRepeatStrategyRegistry)
 export class Repeat implements IRepeater {
   private ignoreMutation = false;
   private sourceExpression: IExpression;
@@ -109,7 +109,8 @@ export class Repeat implements IRepeater {
     private owner: IViewOwner,
     private viewFactory: IVisualFactory, 
     private viewSlot: IRenderSlot, 
-    private container: IContainer
+    private container: IContainer,
+    private strategyRegistry: IRepeatStrategyRegistry
   ) {
     this.local = 'item';
     this.key = 'key';
@@ -152,7 +153,7 @@ export class Repeat implements IRepeater {
     }
 
     let items = this.items;
-    this.strategy = RepeatStrategyRegistry.getStrategyForItems(items);
+    this.strategy = this.strategyRegistry.getStrategyForItems(items);
 
     if (!this.strategy) {
       throw new Error(`Value for '${this.sourceExpression}' is non-repeatable`);
@@ -212,7 +213,7 @@ export class Repeat implements IRepeater {
 
   private observeInnerCollection() {
     let items = this.getInnerCollection();
-    let strategy = RepeatStrategyRegistry.getStrategyForItems(items);
+    let strategy = this.strategyRegistry.getStrategyForItems(items);
     
     if (!strategy) {
       return false;

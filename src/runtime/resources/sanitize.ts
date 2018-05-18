@@ -1,7 +1,7 @@
-import { DI } from "../di";
-import { valueConverter, inject } from "../decorators";
+import { DI, inject } from "../di";
+import { valueConverter } from "../decorators";
 
-export const ISanitizer = DI.createInterface('ISanitizer');
+const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 
 export interface ISanitizer {
   /**
@@ -11,16 +11,13 @@ export interface ISanitizer {
   sanitize(input: string): string;
 }
 
-const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-
-/**
-* Provides basic input sanitization, to prevent script injection.
-*/
-export const Sanitizer: ISanitizer = {
-  sanitize(input: string): string {
-    return input.replace(SCRIPT_REGEX, '');
-  }
-};
+export const ISanitizer = DI.createInterface<ISanitizer>()
+  .withDefault(x => x.instance({
+    sanitize(input: string): string {
+      return input.replace(SCRIPT_REGEX, '');
+    }
+  })
+);
 
 /**
 * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.

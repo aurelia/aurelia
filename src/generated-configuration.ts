@@ -2,6 +2,10 @@ import { AccessScope, TemplateLiteral, LiteralString, Conditional, CallScope, IE
 import { IContainer } from "./runtime/di";
 import { StandardConfiguration } from './runtime/configuration/standard';
 import { Expression } from "./runtime/binding/expression";
+import { Repeat } from "./runtime/resources/repeat/repeat";
+import { If } from "./runtime/resources/if";
+import { Else } from "./runtime/resources/else";
+import { Compose } from "./runtime/resources/compose";
 
 const emptyArray: any[] = [];
 
@@ -40,5 +44,11 @@ export const GeneratedConfiguration = {
   register(container: IContainer) {
     Expression.primeCache(expressionCache);
     container.register(StandardConfiguration);
+
+    container.register(
+      Repeat,
+      If,
+      Else
+    )
   }
 };;

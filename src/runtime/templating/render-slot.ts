@@ -1,4 +1,3 @@
-import { Animator } from './animator';
 import { ShadowDOMEmulation, IEmulatedShadowSlot } from './shadow-dom';
 import { IVisual } from './view-engine';
 import { IScope } from '../binding/binding-context';
@@ -47,7 +46,7 @@ export enum SwapOrder {
   after = 'after'
 }
 
-export const IRenderSlot = DI.createInterface('IRenderSlot');
+export const IRenderSlot = DI.createInterface<IRenderSlot>();
 
 /**
 * Represents a slot or location within the DOM to which views can be added and removed.

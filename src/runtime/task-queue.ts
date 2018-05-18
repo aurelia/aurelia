@@ -3,7 +3,8 @@ import { DI } from './di';
 import { Reporter } from './reporter';
 import { PLATFORM } from './platform';
 
-export const ITaskQueue = DI.createInterface('ITaskQueue');
+export const ITaskQueue = DI.createInterface('ITaskQueue')
+  .withDefault(x => x.singleton(TaskQueueImplementation));
 
 export interface ITaskQueue {
   /**

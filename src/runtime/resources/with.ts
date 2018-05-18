@@ -1,7 +1,8 @@
-import { customAttribute, templateController, inject } from "../decorators";
+import { customAttribute, templateController } from "../decorators";
 import { IVisualFactory, IVisual } from "../templating/view-engine";
 import { IRenderSlot } from "../templating/render-slot";
 import { IScope, BindingContext } from "../binding/binding-context";
+import { inject } from "../di";
 
 @customAttribute('with')
 @templateController

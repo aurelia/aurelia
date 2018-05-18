@@ -6,8 +6,8 @@ import { MapRepeatStrategy } from "./repeat-strategy-map";
 import { SetRepeatStrategy } from "./repeat-strategy-set";
 import { NumberRepeatStrategy } from "./repeat-strategy-number";
 
-
-export const IRepeatStrategyRegistry = DI.createInterface('IRepeatStrategyRegistry');
+export const IRepeatStrategyRegistry = DI.createInterface<IRepeatStrategyRegistry>()
+  .withDefault(x => x.singleton(RepeatStrategyRegistry));
 
 /**
 * Locates the best strategy for repeating a template over different types of collections.
@@ -22,7 +22,7 @@ export interface IRepeatStrategyRegistry {
   getStrategyForItems(items: any): IRepeatStrategy;
 }
 
-class RepeatStrategyRegistryImplementation implements IRepeatStrategyRegistry {
+class RepeatStrategyRegistry implements IRepeatStrategyRegistry {
   private strategies: IRepeatStrategy[] = [];
 
   constructor() {
@@ -51,5 +51,3 @@ class RepeatStrategyRegistryImplementation implements IRepeatStrategyRegistry {
     return null;
   }
 }
-
-export const RepeatStrategyRegistry: IRepeatStrategyRegistry = new RepeatStrategyRegistryImplementation();

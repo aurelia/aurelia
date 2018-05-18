@@ -1,16 +1,84 @@
 import { PLATFORM } from "./platform";
-import { Injectable } from "./interfaces";
+import { Injectable, Constructable, IIndexable } from "./interfaces";
 import { Reporter } from "./reporter";
 
-type InterfaceSymbol = (target: Injectable, property: string, index: number) => any;
+type Factory<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
-function createInterface(key: string): InterfaceSymbol {
-  return function Key(target: Injectable, property: string, index: number) {
-    const inject = target.inject || (target.inject = []);
-    (<any>Key).key = key;
-    inject[index] = Key;
-    return target;
-  };
+interface InterfaceSymbol<T> {
+  (target: Injectable, property: string, index: number): any;
+  withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): this;
+}
+
+interface IResolverBuilder<T> {
+  instance(value: T & IIndexable): IResolver;
+  singleton(value: Constructable<T>): IResolver;
+  transient(value: Constructable<T>): IResolver;
+  factory(value: Factory<T>): IResolver;
+  alias(aliasKey: any): IResolver;
+}
+
+export const DI = { 
+  createContainer(): IContainer {
+    return new Container();
+  },
+  getDependencies(type: Function): any[] {
+    let dependencies: any[];
+
+    if ((<any>type).inject === undefined) {
+      dependencies = getDesignParamTypes(type);
+    } else {
+      dependencies = [];
+      let ctor = type;
+
+      while (typeof ctor === 'function') {
+        if (ctor.hasOwnProperty('inject')) {
+          dependencies.push(...(<any>ctor).inject);
+        }
+        
+        ctor = Object.getPrototypeOf(ctor);
+      }
+    }
+
+    return dependencies;
+  },
+  createInterface<T = any>(key?: string): InterfaceSymbol<T> {
+    const Key: any = function(target: Injectable, property: string, index: number): any {
+      const inject = target.inject || (target.inject = []);
+      (<any>Key).key = key;
+      inject[index] = Key;
+      return target;
+    };
+  
+    Key.withDefault = function(configure: (builder: IResolverBuilder<T>) => IResolver) {
+      Key.register = function(container: IContainer, key?: any) {
+        return configure({
+          instance(value: any) { 
+            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.instance, value));
+          },
+          singleton(value: Function) { 
+            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.singleton, value));
+          },
+          transient(value: Function) { 
+            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.transient, value));
+          },
+          factory(value: Factory) { 
+            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.factory, value));
+          },
+          alias(aliasKey: any) { 
+            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.alias, aliasKey));
+          },
+        });
+      }
+  
+      return Key;
+    };
+  
+    return Key;
+  }
+};
+
+function getDesignParamTypes(target: any): any[] {
+  return (<any>Reflect).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
 }
 
 if (!('getOwnMetadata' in Reflect)) {
@@ -25,18 +93,14 @@ if (!('getOwnMetadata' in Reflect)) {
   };
 }
 
-function getDesignParamTypes(target: any): any[] {
-  return (<any>Reflect).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
-};
-
-export const IContainer = createInterface('IContainer');
+export const IContainer = DI.createInterface('IContainer');
 
 export interface IContainer {
   register(...params: any[]);
   registerResolver(key: any, resolver: IResolver): IResolver;
 
-  get<T>(key: any): T;
-  getAll<T>(key: any): ReadonlyArray<T>;
+  get<T = any>(key: any): T;
+  getAll<T = any>(key: any): ReadonlyArray<T>;
   
   construct(type: Function, dynamicDependencies?: any[]): any;
 
@@ -51,10 +115,17 @@ export interface IRegistration {
   register(container: IContainer, key?: any): IResolver;
 }
 
-type Factory = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => any;
+enum ResolverStrategy {
+  instance = 0,
+  singleton = 1,
+  transient = 2,
+  factory = 3,
+  array = 4,
+  alias = 5
+}
 
 class Resolver implements IResolver, IRegistration {
-  constructor(public key: any, public strategy: number, public state: any) {}
+  constructor(public key: any, public strategy: ResolverStrategy, public state: any) {}
 
   register(container: IContainer, key?: any) {
     return container.registerResolver(key || this.key, this);
@@ -62,20 +133,20 @@ class Resolver implements IResolver, IRegistration {
 
   get(handler: IContainer, requestor: IContainer): any {
     switch (this.strategy) {
-    case 0: //instance
+    case ResolverStrategy.instance:
       return this.state;
-    case 1: //singleton
+    case ResolverStrategy.singleton:
       const singleton = handler.construct(this.state);
       this.state = singleton;
-      this.strategy = 0; //switch to instance strategy
+      this.strategy = ResolverStrategy.instance;
       return singleton;
-    case 2: //transient
+    case ResolverStrategy.transient:
       return requestor.construct(this.state); //always create transients from the requesting container
-    case 3: //function
+    case ResolverStrategy.factory:
       return (<Factory>this.state)(handler, requestor, this);
-    case 4: //array
+    case ResolverStrategy.array:
       return this.state[0].get(handler, requestor);
-    case 5: //alias
+    case ResolverStrategy.alias:
       return handler.get(this.state);
     default:
       throw Reporter.error(6, this.strategy);
@@ -172,10 +243,6 @@ class Container implements IContainer {
         return this.jitRegister(key, this).get(this, this);
       }
 
-      if (key.register) {
-        return key.register(this, key).get(this, this);
-      }
-
       return this.parent.parentGet(key, this);
     }
 
@@ -248,21 +315,8 @@ class Container implements IContainer {
   }
 
   private createInvocationHandler(fn: Function & { inject?: any }): InvocationHandler {
-    let dependencies;
-
-    if (fn.inject === undefined) {
-      dependencies = getDesignParamTypes(fn);
-    } else {
-      dependencies = [];
-      let ctor = fn;
-
-      while (typeof ctor === 'function') {
-        dependencies.push(...getDependencies(ctor));
-        ctor = Object.getPrototypeOf(ctor);
-      }
-    }
-
-    let invoker = classInvokers[dependencies.length] || classInvokers.fallback;
+    const dependencies = DI.getDependencies(fn);
+    const invoker = classInvokers[dependencies.length] || classInvokers.fallback;
     return new InvocationHandler(fn, invoker, dependencies);
   }
 
@@ -273,35 +327,25 @@ class Container implements IContainer {
   }
 }
 
-const container: any = new Container();
-
-container.createInterface = createInterface;
-container.getDesignParamTypes = getDesignParamTypes;
-
-export const DI: IContainer & { 
-  createInterface(key: string): InterfaceSymbol;
-  getDesignParamTypes(target: any): any[];
-} = <any>container;
-
 export const Registration = {
   instance(key: any, value: any): IRegistration {
-    return new Resolver(key, 0, value);
+    return new Resolver(key, ResolverStrategy.instance, value);
   },
 
   singleton(key: any, value: Function): IRegistration {
-    return new Resolver(key, 1, value);
+    return new Resolver(key, ResolverStrategy.singleton, value);
   },
 
   transient(key: any, value: Function): IRegistration {
-    return new Resolver(key, 2, value);
+    return new Resolver(key, ResolverStrategy.transient, value);
   },
 
   factory(key: any, value: Factory): IRegistration {
-    return new Resolver(key, 3, value);
+    return new Resolver(key, ResolverStrategy.factory, value);
   },
 
   alias(originalKey: any, aliasKey: any): IRegistration {
-    return new Resolver(aliasKey, 5, originalKey);
+    return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
   }
 };
 
@@ -325,14 +369,6 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
   }
 
   return [resolver.get(handler, requestor)];
-}
-
-function getDependencies(type) {
-  if (!type.hasOwnProperty('inject')) {
-    return PLATFORM.emptyArray;
-  }
-
-  return type.inject;
 }
 
 const classInvokers: Record<string, IInvoker> = {
@@ -398,4 +434,63 @@ function invokeWithDynamicDependencies(container: IContainer, fn: Function, stat
   }
 
   return Reflect.construct(fn, args);
+}
+
+/**
+* Decorator: Directs the TypeScript transpiler to write-out type metadata for the decorated class.
+*/
+export function autoinject<T extends Injectable>(potentialTarget?: T): any {
+  let deco = function<T extends Injectable>(target: T) {
+    let previousInject = target.inject ? target.inject.slice() : null; //make a copy of target.inject to avoid changing parent inject
+    let autoInject: any = getDesignParamTypes(target);
+    
+    if (!previousInject) {
+      target.inject = autoInject;
+    } else {
+      for (let i = 0; i < autoInject.length; i++) {
+        //check if previously injected.
+        if (previousInject[i] && previousInject[i] !== autoInject[i]) {
+          const prevIndex = previousInject.indexOf(autoInject[i]);
+          if (prevIndex > -1) {
+            previousInject.splice(prevIndex, 1);
+          }
+          previousInject.splice((prevIndex > -1 && prevIndex < i) ? i - 1 : i, 0, autoInject[i]);
+        } else if (!previousInject[i]) {//else add
+          previousInject[i] = autoInject[i];
+        }
+      }
+
+      target.inject = previousInject;
+    }
+  };
+
+  return potentialTarget ? deco(potentialTarget) : deco;
+}
+
+/**
+* Decorator: Specifies the dependencies that should be injected by the DI Container into the decoratored class/function.
+*/
+export function inject(...rest: any[]): any {
+  return function<T extends Injectable>(target: T, key?, descriptor?) {
+    // handle when used as a parameter
+    if (typeof descriptor === 'number' && rest.length === 1) {
+      let params = target.inject;
+
+      if (!params) {
+        params = getDesignParamTypes(target).slice();
+        target.inject = params;
+      }
+
+      params[descriptor] = rest[0];
+      return;
+    }
+
+    // if it's true then we injecting rest into function and not Class constructor
+    if (descriptor) {
+      const fn = descriptor.value;
+      fn.inject = rest;
+    } else {
+      target.inject = rest;
+    }
+  };
 }

@@ -38,7 +38,7 @@ export interface IBindableInstruction {
   attribute?: string;
 }
 
-export const ITargetedInstruction = DI.createInterface('ITargetedInstruction');
+export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>();
 export interface ITargetedInstruction {
   type: TargetedInstructionType;
 }

@@ -1,21 +1,22 @@
 import { IElementComponent } from "./templating/component";
 import { PLATFORM } from "./platform";
-import { DI } from "./di";
-import { View } from "./templating/view";
+import { IContainer, DI } from "./di";
 
 export interface ISinglePageApp {
   host: any,
   component: any
 }
 
-class AureliaFramework { 
+export class Aurelia { 
   private components: IElementComponent[] = [];
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
   private isStarted = false;
 
+  constructor(private container: IContainer = DI.createContainer()) {}
+
   register(...params: any[]) {
-    DI.register(...params);
+    this.container.register(...params);
     return this;
   }
 
@@ -24,7 +25,7 @@ class AureliaFramework {
     let startTask = () => {
       if (!this.components.includes(component)) {
         this.components.push(component);
-        component.$hydrate(config.host);
+        component.$hydrate(this.container, config.host);
       }
 
       component.$bind();
@@ -58,5 +59,4 @@ class AureliaFramework {
   }
 }
 
-export const Aurelia = new AureliaFramework();
 (<any>PLATFORM.global).Aurelia = Aurelia;

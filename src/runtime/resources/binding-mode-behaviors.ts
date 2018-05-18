@@ -1,4 +1,4 @@
-import {BindingMode} from '../binding/binding-mode';
+import { BindingMode } from '../binding/binding-mode';
 import { bindingBehavior } from '../decorators';
 import { Binding } from '../binding/binding';
 import { IScope } from '../binding/binding-context';

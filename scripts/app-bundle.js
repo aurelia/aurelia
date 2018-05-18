@@ -196,7 +196,7 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/configuration/standard", "./runtime/binding/expression"], function (require, exports, ast_1, standard_1, expression_1) {
+define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/configuration/standard", "./runtime/binding/expression", "./runtime/resources/repeat/repeat", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, ast_1, standard_1, expression_1, repeat_1, if_1, else_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -230,6 +230,7 @@ define('generated-configuration',["require", "exports", "./runtime/binding/ast",
         register: function (container) {
             expression_1.Expression.primeCache(expressionCache);
             container.register(standard_1.StandardConfiguration);
+            container.register(repeat_1.Repeat, if_1.If, else_1.Else);
         }
     };
     ;
@@ -240,7 +241,7 @@ define('generated-configuration',["require", "exports", "./runtime/binding/ast",
 define('main',["require", "exports", "./runtime/aurelia", "./app", "./generated-configuration", "./debug/configuration"], function (require, exports, aurelia_1, app_1, generated_configuration_1, configuration_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    aurelia_1.Aurelia
+    new aurelia_1.Aurelia()
         .register(generated_configuration_1.GeneratedConfiguration, configuration_1.DebugConfiguration)
         .app({ host: document.querySelector('app'), component: new app_1.App() })
         .start();
@@ -586,28 +587,31 @@ define('debug/task-queue',["require", "exports", "../runtime/task-queue"], funct
 define('runtime/aurelia',["require", "exports", "./platform", "./di"], function (require, exports, platform_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var AureliaFramework = (function () {
-        function AureliaFramework() {
+    var Aurelia = (function () {
+        function Aurelia(container) {
+            if (container === void 0) { container = di_1.DI.createContainer(); }
+            this.container = container;
             this.components = [];
             this.startTasks = [];
             this.stopTasks = [];
             this.isStarted = false;
         }
-        AureliaFramework.prototype.register = function () {
+        Aurelia.prototype.register = function () {
             var params = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 params[_i] = arguments[_i];
             }
-            di_1.DI.register.apply(di_1.DI, params);
+            (_a = this.container).register.apply(_a, params);
             return this;
+            var _a;
         };
-        AureliaFramework.prototype.app = function (config) {
+        Aurelia.prototype.app = function (config) {
             var _this = this;
             var component = config.component;
             var startTask = function () {
                 if (!_this.components.includes(component)) {
                     _this.components.push(component);
-                    component.$hydrate(config.host);
+                    component.$hydrate(_this.container, config.host);
                 }
                 component.$bind();
                 component.$attach();
@@ -622,25 +626,25 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di"], function 
             }
             return this;
         };
-        AureliaFramework.prototype.start = function () {
+        Aurelia.prototype.start = function () {
             this.isStarted = true;
             this.startTasks.forEach(function (x) { return x(); });
             return this;
         };
-        AureliaFramework.prototype.stop = function () {
+        Aurelia.prototype.stop = function () {
             this.isStarted = false;
             this.stopTasks.forEach(function (x) { return x(); });
             return this;
         };
-        return AureliaFramework;
+        return Aurelia;
     }());
-    exports.Aurelia = new AureliaFramework();
-    platform_1.PLATFORM.global.Aurelia = exports.Aurelia;
+    exports.Aurelia = Aurelia;
+    platform_1.PLATFORM.global.Aurelia = Aurelia;
 });
 
 
 
-define('runtime/decorators',["require", "exports", "./templating/component", "./di", "./binding/binding-mode"], function (require, exports, component_1, di_1, binding_mode_1) {
+define('runtime/decorators',["require", "exports", "./templating/component", "./binding/binding-mode"], function (require, exports, component_1, binding_mode_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function customElement(nameOrSource) {
@@ -736,57 +740,6 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
         return deco;
     }
     exports.bindable = bindable;
-    function autoinject(potentialTarget) {
-        var deco = function (target) {
-            var previousInject = target.inject ? target.inject.slice() : null;
-            var autoInject = di_1.DI.getDesignParamTypes(target);
-            if (!previousInject) {
-                target.inject = autoInject;
-            }
-            else {
-                for (var i = 0; i < autoInject.length; i++) {
-                    if (previousInject[i] && previousInject[i] !== autoInject[i]) {
-                        var prevIndex = previousInject.indexOf(autoInject[i]);
-                        if (prevIndex > -1) {
-                            previousInject.splice(prevIndex, 1);
-                        }
-                        previousInject.splice((prevIndex > -1 && prevIndex < i) ? i - 1 : i, 0, autoInject[i]);
-                    }
-                    else if (!previousInject[i]) {
-                        previousInject[i] = autoInject[i];
-                    }
-                }
-                target.inject = previousInject;
-            }
-        };
-        return potentialTarget ? deco(potentialTarget) : deco;
-    }
-    exports.autoinject = autoinject;
-    function inject() {
-        var rest = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            rest[_i] = arguments[_i];
-        }
-        return function (target, key, descriptor) {
-            if (typeof descriptor === 'number' && rest.length === 1) {
-                var params = target.inject;
-                if (!params) {
-                    params = di_1.DI.getDesignParamTypes(target).slice();
-                    target.inject = params;
-                }
-                params[descriptor] = rest[0];
-                return;
-            }
-            if (descriptor) {
-                var fn = descriptor.value;
-                fn.inject = rest;
-            }
-            else {
-                target.inject = rest;
-            }
-        };
-    }
-    exports.inject = inject;
 });
 
 
@@ -794,13 +747,61 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
 define('runtime/di',["require", "exports", "./platform", "./reporter"], function (require, exports, platform_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    function createInterface(key) {
-        return function Key(target, property, index) {
-            var inject = target.inject || (target.inject = []);
-            Key.key = key;
-            inject[index] = Key;
-            return target;
-        };
+    exports.DI = {
+        createContainer: function () {
+            return new Container();
+        },
+        getDependencies: function (type) {
+            var dependencies;
+            if (type.inject === undefined) {
+                dependencies = getDesignParamTypes(type);
+            }
+            else {
+                dependencies = [];
+                var ctor = type;
+                while (typeof ctor === 'function') {
+                    if (ctor.hasOwnProperty('inject')) {
+                        dependencies.push.apply(dependencies, ctor.inject);
+                    }
+                    ctor = Object.getPrototypeOf(ctor);
+                }
+            }
+            return dependencies;
+        },
+        createInterface: function (key) {
+            var Key = function (target, property, index) {
+                var inject = target.inject || (target.inject = []);
+                Key.key = key;
+                inject[index] = Key;
+                return target;
+            };
+            Key.withDefault = function (configure) {
+                Key.register = function (container, key) {
+                    return configure({
+                        instance: function (value) {
+                            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.instance, value));
+                        },
+                        singleton: function (value) {
+                            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.singleton, value));
+                        },
+                        transient: function (value) {
+                            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.transient, value));
+                        },
+                        factory: function (value) {
+                            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.factory, value));
+                        },
+                        alias: function (aliasKey) {
+                            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.alias, aliasKey));
+                        },
+                    });
+                };
+                return Key;
+            };
+            return Key;
+        }
+    };
+    function getDesignParamTypes(target) {
+        return Reflect.getOwnMetadata('design:paramtypes', target) || platform_1.PLATFORM.emptyArray;
     }
     if (!('getOwnMetadata' in Reflect)) {
         Reflect.getOwnMetadata = function (key, target) {
@@ -812,11 +813,16 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
             };
         };
     }
-    function getDesignParamTypes(target) {
-        return Reflect.getOwnMetadata('design:paramtypes', target) || platform_1.PLATFORM.emptyArray;
-    }
-    ;
-    exports.IContainer = createInterface('IContainer');
+    exports.IContainer = exports.DI.createInterface('IContainer');
+    var ResolverStrategy;
+    (function (ResolverStrategy) {
+        ResolverStrategy[ResolverStrategy["instance"] = 0] = "instance";
+        ResolverStrategy[ResolverStrategy["singleton"] = 1] = "singleton";
+        ResolverStrategy[ResolverStrategy["transient"] = 2] = "transient";
+        ResolverStrategy[ResolverStrategy["factory"] = 3] = "factory";
+        ResolverStrategy[ResolverStrategy["array"] = 4] = "array";
+        ResolverStrategy[ResolverStrategy["alias"] = 5] = "alias";
+    })(ResolverStrategy || (ResolverStrategy = {}));
     var Resolver = (function () {
         function Resolver(key, strategy, state) {
             this.key = key;
@@ -828,20 +834,20 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
         };
         Resolver.prototype.get = function (handler, requestor) {
             switch (this.strategy) {
-                case 0:
+                case ResolverStrategy.instance:
                     return this.state;
-                case 1:
+                case ResolverStrategy.singleton:
                     var singleton = handler.construct(this.state);
                     this.state = singleton;
-                    this.strategy = 0;
+                    this.strategy = ResolverStrategy.instance;
                     return singleton;
-                case 2:
+                case ResolverStrategy.transient:
                     return requestor.construct(this.state);
-                case 3:
+                case ResolverStrategy.factory:
                     return this.state(handler, requestor, this);
-                case 4:
+                case ResolverStrategy.array:
                     return this.state[0].get(handler, requestor);
-                case 5:
+                case ResolverStrategy.alias:
                     return handler.get(this.state);
                 default:
                     throw reporter_1.Reporter.error(6, this.strategy);
@@ -918,9 +924,6 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
                 if (this.parent === null) {
                     return this.jitRegister(key, this).get(this, this);
                 }
-                if (key.register) {
-                    return key.register(this, key).get(this, this);
-                }
                 return this.parent.parentGet(key, this);
             }
             return resolver.get(this, this);
@@ -973,18 +976,7 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
             return handler.invoke(this, dynamicDependencies);
         };
         Container.prototype.createInvocationHandler = function (fn) {
-            var dependencies;
-            if (fn.inject === undefined) {
-                dependencies = getDesignParamTypes(fn);
-            }
-            else {
-                dependencies = [];
-                var ctor = fn;
-                while (typeof ctor === 'function') {
-                    dependencies.push.apply(dependencies, getDependencies(ctor));
-                    ctor = Object.getPrototypeOf(ctor);
-                }
-            }
+            var dependencies = exports.DI.getDependencies(fn);
             var invoker = classInvokers[dependencies.length] || classInvokers.fallback;
             return new InvocationHandler(fn, invoker, dependencies);
         };
@@ -995,25 +987,21 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
         };
         return Container;
     }());
-    var container = new Container();
-    container.createInterface = createInterface;
-    container.getDesignParamTypes = getDesignParamTypes;
-    exports.DI = container;
     exports.Registration = {
         instance: function (key, value) {
-            return new Resolver(key, 0, value);
+            return new Resolver(key, ResolverStrategy.instance, value);
         },
         singleton: function (key, value) {
-            return new Resolver(key, 1, value);
+            return new Resolver(key, ResolverStrategy.singleton, value);
         },
         transient: function (key, value) {
-            return new Resolver(key, 2, value);
+            return new Resolver(key, ResolverStrategy.transient, value);
         },
         factory: function (key, value) {
-            return new Resolver(key, 3, value);
+            return new Resolver(key, ResolverStrategy.factory, value);
         },
         alias: function (originalKey, aliasKey) {
-            return new Resolver(aliasKey, 5, originalKey);
+            return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
         }
     };
     function validateKey(key) {
@@ -1032,12 +1020,6 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
             return results;
         }
         return [resolver.get(handler, requestor)];
-    }
-    function getDependencies(type) {
-        if (!type.hasOwnProperty('inject')) {
-            return platform_1.PLATFORM.emptyArray;
-        }
-        return type.inject;
     }
     var classInvokers = (_a = {},
         _a[0] = {
@@ -1099,6 +1081,57 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
         }
         return Reflect.construct(fn, args);
     }
+    function autoinject(potentialTarget) {
+        var deco = function (target) {
+            var previousInject = target.inject ? target.inject.slice() : null;
+            var autoInject = getDesignParamTypes(target);
+            if (!previousInject) {
+                target.inject = autoInject;
+            }
+            else {
+                for (var i = 0; i < autoInject.length; i++) {
+                    if (previousInject[i] && previousInject[i] !== autoInject[i]) {
+                        var prevIndex = previousInject.indexOf(autoInject[i]);
+                        if (prevIndex > -1) {
+                            previousInject.splice(prevIndex, 1);
+                        }
+                        previousInject.splice((prevIndex > -1 && prevIndex < i) ? i - 1 : i, 0, autoInject[i]);
+                    }
+                    else if (!previousInject[i]) {
+                        previousInject[i] = autoInject[i];
+                    }
+                }
+                target.inject = previousInject;
+            }
+        };
+        return potentialTarget ? deco(potentialTarget) : deco;
+    }
+    exports.autoinject = autoinject;
+    function inject() {
+        var rest = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            rest[_i] = arguments[_i];
+        }
+        return function (target, key, descriptor) {
+            if (typeof descriptor === 'number' && rest.length === 1) {
+                var params = target.inject;
+                if (!params) {
+                    params = getDesignParamTypes(target).slice();
+                    target.inject = params;
+                }
+                params[descriptor] = rest[0];
+                return;
+            }
+            if (descriptor) {
+                var fn = descriptor.value;
+                fn.inject = rest;
+            }
+            else {
+                target.inject = rest;
+            }
+        };
+    }
+    exports.inject = inject;
     var _a;
 });
 
@@ -1366,7 +1399,8 @@ define('runtime/reporter',["require", "exports"], function (require, exports) {
 define('runtime/task-queue',["require", "exports", "./di", "./reporter", "./platform"], function (require, exports, di_1, reporter_1, platform_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ITaskQueue = di_1.DI.createInterface('ITaskQueue');
+    exports.ITaskQueue = di_1.DI.createInterface('ITaskQueue')
+        .withDefault(function (x) { return x.singleton(TaskQueueImplementation); });
     var TaskQueueImplementation = (function () {
         function TaskQueueImplementation() {
             var _this = this;
@@ -4930,7 +4964,7 @@ define('runtime/binding/subscriber-collection',["require", "exports"], function 
 define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function (require, exports, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ISVGAnalyzer = di_1.DI.createInterface('ISVGAnalyzer');
+    exports.ISVGAnalyzer = di_1.DI.createInterface();
     exports.SVGAnalyzer = {
         isStandardSvgAttribute: function (node, attributeName) {
             return false;
@@ -4940,21 +4974,16 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
 
 
 
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator", "../templating/animator", "../resources/sanitize", "../resources/attr-binding-behavior", "../resources/binding-mode-behaviors", "../resources/debounce-binding-behavior", "../resources/if", "../resources/else", "../resources/replaceable", "../resources/compose", "../resources/self-binding-behavior", "../resources/throttle-binding-behavior", "../resources/update-trigger-binding-behavior", "../resources/with", "../resources/signals", "../resources/repeat/repeat", "../resources/repeat/repeat-strategy-registry"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1, animator_1, sanitize_1, attr_binding_behavior_1, binding_mode_behaviors_1, debounce_binding_behavior_1, if_1, else_1, replaceable_1, compose_1, self_binding_behavior_1, throttle_binding_behavior_1, update_trigger_binding_behavior_1, with_1, signals_1, repeat_1, repeat_strategy_registry_1) {
+define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StandardConfiguration = {
         register: function (container) {
-            container.register(sanitize_1.SanitizeValueConverter, attr_binding_behavior_1.AttrBindingBehavior, binding_mode_behaviors_1.OneTimeBindingBehavior, binding_mode_behaviors_1.OneWayBindingBehavior, binding_mode_behaviors_1.TwoWayBindingBehavior, debounce_binding_behavior_1.DebounceBindingBehavior, throttle_binding_behavior_1.ThrottleBindingBehavior, update_trigger_binding_behavior_1.UpdateTriggerBindingBehavior, signals_1.SignalBindingBehavior, self_binding_behavior_1.SelfBindingBehavior, if_1.If, else_1.Else, repeat_1.Repeat, replaceable_1.Replaceable, with_1.With, compose_1.Compose);
-            container.register(di_1.Registration.instance(repeat_strategy_registry_1.IRepeatStrategyRegistry, repeat_strategy_registry_1.RepeatStrategyRegistry));
             container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
             container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
             container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
             container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
             container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-            container.register(di_1.Registration.instance(animator_1.IAnimator, animator_1.Animator));
-            container.register(di_1.Registration.instance(sanitize_1.ISanitizer, sanitize_1.Sanitizer));
-            container.register(di_1.Registration.instance(signals_1.ISignaler, signals_1.Signaler));
         }
     };
 });
@@ -5072,7 +5101,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/compose',["require", "exports", "../decorators", "../templating/render-slot", "../templating/view-engine", "../templating/instructions", "../templating/view", "../dom"], function (require, exports, decorators_1, render_slot_1, view_engine_1, instructions_1, view_1, dom_1) {
+define('runtime/resources/compose',["require", "exports", "../decorators", "../templating/render-slot", "../templating/view-engine", "../templating/instructions", "../templating/view", "../di", "../dom"], function (require, exports, decorators_1, render_slot_1, view_engine_1, instructions_1, view_1, di_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var composeSource = {
@@ -5162,7 +5191,7 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
         };
         Compose = __decorate([
             decorators_1.customElement(composeSource),
-            decorators_1.inject(view_1.IViewOwner, dom_1.INode, render_slot_1.IRenderSlot, instructions_1.ITargetedInstruction),
+            di_1.inject(view_1.IViewOwner, dom_1.INode, render_slot_1.IRenderSlot, instructions_1.ITargetedInstruction),
             __metadata("design:paramtypes", [Object, Object, Object, Object])
         ], Compose);
         return Compose;
@@ -5310,7 +5339,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('runtime/resources/else',["require", "exports", "./if-core", "../templating/view-engine", "../templating/render-slot", "../decorators"], function (require, exports, if_core_1, view_engine_1, render_slot_1, decorators_1) {
+define('runtime/resources/else',["require", "exports", "./if-core", "../templating/view-engine", "../templating/render-slot", "../decorators", "../di"], function (require, exports, if_core_1, view_engine_1, render_slot_1, decorators_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Else = (function (_super) {
@@ -5337,7 +5366,7 @@ define('runtime/resources/else',["require", "exports", "./if-core", "../templati
         Else = __decorate([
             decorators_1.customAttribute('else'),
             decorators_1.templateController,
-            decorators_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot)
+            di_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot)
         ], Else);
         return Else;
     }(if_core_1.IfCore));
@@ -5423,7 +5452,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/if',["require", "exports", "./if-core", "../templating/view-engine", "../templating/render-slot", "../decorators"], function (require, exports, if_core_1, view_engine_1, render_slot_1, decorators_1) {
+define('runtime/resources/if',["require", "exports", "./if-core", "../templating/view-engine", "../templating/render-slot", "../decorators", "../di"], function (require, exports, if_core_1, view_engine_1, render_slot_1, decorators_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var If = (function (_super) {
@@ -5490,7 +5519,7 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../templating
         If = __decorate([
             decorators_1.customAttribute('if'),
             decorators_1.templateController,
-            decorators_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot)
+            di_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot)
         ], If);
         return If;
     }(if_core_1.IfCore));
@@ -5508,7 +5537,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/replaceable',["require", "exports", "../templating/view-engine", "../decorators", "../templating/render-slot"], function (require, exports, view_engine_1, decorators_1, render_slot_1) {
+define('runtime/resources/replaceable',["require", "exports", "../templating/view-engine", "../decorators", "../templating/render-slot", "../di"], function (require, exports, view_engine_1, decorators_1, render_slot_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Replaceable = (function () {
@@ -5527,7 +5556,7 @@ define('runtime/resources/replaceable',["require", "exports", "../templating/vie
         Replaceable = __decorate([
             decorators_1.customAttribute('replaceable'),
             decorators_1.templateController,
-            decorators_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot),
+            di_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot),
             __metadata("design:paramtypes", [Object, Object])
         ], Replaceable);
         return Replaceable;
@@ -5549,13 +5578,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 define('runtime/resources/sanitize',["require", "exports", "../di", "../decorators"], function (require, exports, di_1, decorators_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ISanitizer = di_1.DI.createInterface('ISanitizer');
     var SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-    exports.Sanitizer = {
+    exports.ISanitizer = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.instance({
         sanitize: function (input) {
             return input.replace(SCRIPT_REGEX, '');
         }
-    };
+    }); });
     var SanitizeValueConverter = (function () {
         function SanitizeValueConverter(sanitizer) {
             this.sanitizer = sanitizer;
@@ -5569,7 +5598,7 @@ define('runtime/resources/sanitize',["require", "exports", "../di", "../decorato
         };
         SanitizeValueConverter = __decorate([
             decorators_1.valueConverter('sanitize'),
-            decorators_1.inject(exports.ISanitizer),
+            di_1.inject(exports.ISanitizer),
             __metadata("design:paramtypes", [Object])
         ], SanitizeValueConverter);
         return SanitizeValueConverter;
@@ -5628,14 +5657,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 define('runtime/resources/signals',["require", "exports", "../binding/binding-context", "../di", "../decorators", "../reporter"], function (require, exports, binding_context_1, di_1, decorators_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ISignaler = di_1.DI.createInterface('ISignaler');
-    var signals = {};
-    exports.Signaler = {
+    exports.ISignaler = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.instance({
+        signals: {},
         dispatchSignal: function (name) {
-            var bindings = signals[name];
+            var bindings = this.signals[name];
             if (!bindings) {
                 return;
             }
@@ -5645,17 +5677,18 @@ define('runtime/resources/signals',["require", "exports", "../binding/binding-co
             }
         },
         addSignalListener: function (name, listener) {
-            (signals[name] || (signals[name] = [])).push(listener);
+            (this.signals[name] || (this.signals[name] = [])).push(listener);
         },
         removeSignalListener: function (name, listener) {
-            var listeners = signals[name];
+            var listeners = this.signals[name];
             if (listeners) {
                 listeners.splice(listeners.indexOf(listener), 1);
             }
         }
-    };
+    }); });
     var SignalBindingBehavior = (function () {
-        function SignalBindingBehavior() {
+        function SignalBindingBehavior(signaler) {
+            this.signaler = signaler;
         }
         SignalBindingBehavior.prototype.bind = function (binding, scope) {
             if (!binding.updateTarget) {
@@ -5663,7 +5696,7 @@ define('runtime/resources/signals',["require", "exports", "../binding/binding-co
             }
             if (arguments.length === 3) {
                 var name_1 = arguments[2];
-                exports.Signaler.addSignalListener(name_1, binding);
+                this.signaler.addSignalListener(name_1, binding);
                 binding.signal = name_1;
             }
             else if (arguments.length > 3) {
@@ -5671,7 +5704,7 @@ define('runtime/resources/signals',["require", "exports", "../binding/binding-co
                 var i = names.length;
                 while (i--) {
                     var name_2 = names[i];
-                    exports.Signaler.addSignalListener(name_2, binding);
+                    this.signaler.addSignalListener(name_2, binding);
                 }
                 binding.signal = names;
             }
@@ -5686,15 +5719,17 @@ define('runtime/resources/signals',["require", "exports", "../binding/binding-co
                 var names = name;
                 var i = names.length;
                 while (i--) {
-                    exports.Signaler.removeSignalListener(names[i], binding);
+                    this.signaler.removeSignalListener(names[i], binding);
                 }
             }
             else {
-                exports.Signaler.removeSignalListener(name, binding);
+                this.signaler.removeSignalListener(name, binding);
             }
         };
         SignalBindingBehavior = __decorate([
-            decorators_1.bindingBehavior('signal')
+            decorators_1.bindingBehavior('signal'),
+            di_1.inject(exports.ISignaler),
+            __metadata("design:paramtypes", [Object])
         ], SignalBindingBehavior);
         return SignalBindingBehavior;
     }());
@@ -5830,7 +5865,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/with',["require", "exports", "../decorators", "../templating/view-engine", "../templating/render-slot", "../binding/binding-context"], function (require, exports, decorators_1, view_engine_1, render_slot_1, binding_context_1) {
+define('runtime/resources/with',["require", "exports", "../decorators", "../templating/view-engine", "../templating/render-slot", "../binding/binding-context", "../di"], function (require, exports, decorators_1, view_engine_1, render_slot_1, binding_context_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var With = (function () {
@@ -5855,7 +5890,7 @@ define('runtime/resources/with',["require", "exports", "../decorators", "../temp
         With = __decorate([
             decorators_1.customAttribute('with'),
             decorators_1.templateController,
-            decorators_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot),
+            di_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot),
             __metadata("design:paramtypes", [Object, Object])
         ], With);
         return With;
@@ -5868,8 +5903,8 @@ define('runtime/resources/with',["require", "exports", "../decorators", "../temp
 define('runtime/templating/animator',["require", "exports", "../di"], function (require, exports, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.IAnimator = di_1.DI.createInterface('IAnimator');
-    exports.Animator = {
+    exports.IAnimator = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.instance({
         enter: function (node) {
             return Promise.resolve(false);
         },
@@ -5884,7 +5919,7 @@ define('runtime/templating/animator',["require", "exports", "../di"], function (
             node.classList.add(className);
             return Promise.resolve(false);
         }
-    };
+    }); });
 });
 
 
@@ -5899,7 +5934,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../task-queue", "../binding/property-observation", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom", "../binding/subscriber-collection"], function (require, exports, view_engine_1, view_1, task_queue_1, property_observation_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1, subscriber_collection_1) {
+define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../task-queue", "../binding/property-observation", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom", "../binding/subscriber-collection", "./template-cache"], function (require, exports, view_engine_1, view_1, task_queue_1, property_observation_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1, subscriber_collection_1, template_cache_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
@@ -6033,7 +6068,6 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             source.shadowOptions = source.shadowOptions || ctor.shadowOptions || null;
             source.containerless = source.containerless || ctor.containerless || false;
             var observables = Object.assign({}, ctor.observables, source.observables);
-            var template = view_engine_1.ViewEngine.templateFromCompiledSource(source);
             var CompiledComponent = (_a = (function (_super) {
                     __extends(class_1, _super);
                     function class_1() {
@@ -6065,19 +6099,27 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     class_1.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    class_1.prototype.$hydrate = function (host, replacements, contentOverride) {
+                    class_1.prototype.$hydrate = function (container, host, replacements, contentOverride) {
                         if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
                         this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
                         this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
                         this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
                         this.$contentView = view_1.View.fromCompiledContent(this.$host, contentOverride);
-                        this.$view = this.$createView(this.$host, replacements);
+                        this.$view = this.$createView(container, this.$host, replacements);
                         this.$host.$component = this;
                         if (this.$behavior.hasCreated) {
                             this.created();
                         }
                     };
-                    class_1.prototype.$createView = function (host, replacements) {
+                    class_1.prototype.$createView = function (container, host, replacements) {
+                        var cache = container.get(template_cache_1.ITemplateCache);
+                        var template = cache.getTemplate(source, function (container) {
+                            var t = view_engine_1.ViewEngine.templateFromCompiledSource(container, source);
+                            if (t.container !== null) {
+                                CompiledComponent.register(t.container);
+                            }
+                            return t;
+                        });
                         return this.$behavior.hasCreateView
                             ? this.createView(host, replacements, template)
                             : template.createFor(this, host, replacements);
@@ -6175,12 +6217,8 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     };
                     return class_1;
                 }(ctor)),
-                _a.template = template,
                 _a.source = source,
                 _a);
-            if (template.container !== null) {
-                CompiledComponent.register(template.container);
-            }
             return CompiledComponent;
             var _a;
         }
@@ -6352,7 +6390,7 @@ define('runtime/templating/instructions',["require", "exports", "../di"], functi
         TargetedInstructionType[TargetedInstructionType["hydrateAttribute"] = 12] = "hydrateAttribute";
         TargetedInstructionType[TargetedInstructionType["hydrateTemplateController"] = 13] = "hydrateTemplateController";
     })(TargetedInstructionType = exports.TargetedInstructionType || (exports.TargetedInstructionType = {}));
-    exports.ITargetedInstruction = di_1.DI.createInterface('ITargetedInstruction');
+    exports.ITargetedInstruction = di_1.DI.createInterface();
 });
 
 
@@ -6480,7 +6518,7 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
         SwapOrder["with"] = "with";
         SwapOrder["after"] = "after";
     })(SwapOrder = exports.SwapOrder || (exports.SwapOrder = {}));
-    exports.IRenderSlot = di_1.DI.createInterface('IRenderSlot');
+    exports.IRenderSlot = di_1.DI.createInterface();
     exports.RenderSlot = {
         create: function (anchor, anchorIsContainer) {
             return new RenderSlotImplementation(anchor, anchorIsContainer);
@@ -7041,7 +7079,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode", "./lifecycle", "./animator", "../reporter", "./instructions", "../dom"], function (require, exports, platform_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1, lifecycle_1, animator_1, reporter_1, instructions_1, dom_1) {
+define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode", "./lifecycle", "../reporter", "./instructions", "../dom"], function (require, exports, platform_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1, lifecycle_1, reporter_1, instructions_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -7052,14 +7090,14 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
     };
     exports.IVisualFactory = di_1.DI.createInterface('IVisualFactory');
     exports.ViewEngine = {
-        templateFromCompiledSource: function (source) {
+        templateFromCompiledSource: function (container, source) {
             if (source && source.template) {
-                return new CompiledTemplate(source);
+                return new CompiledTemplate(container, source);
             }
             return noViewTemplate;
         },
-        factoryFromCompiledSource: function (source) {
-            var template = exports.ViewEngine.templateFromCompiledSource(source);
+        factoryFromCompiledSource: function (container, source) {
+            var template = exports.ViewEngine.templateFromCompiledSource(container, source);
             var CompiledVisual = (_a = (function (_super) {
                     __extends(class_1, _super);
                     function class_1() {
@@ -7082,7 +7120,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             var ComponentVisual = (function (_super) {
                 __extends(ComponentVisual, _super);
                 function ComponentVisual() {
-                    return _super.call(this, null) || this;
+                    return _super.call(this, null, null) || this;
                 }
                 ComponentVisual.prototype.createView = function () {
                     var target;
@@ -7149,7 +7187,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             }
             var fallbackFactory = instruction.factory;
             if (fallbackFactory === undefined && instruction.fallback) {
-                instruction.factory = fallbackFactory = exports.ViewEngine.factoryFromCompiledSource(instruction.fallback);
+                instruction.factory = fallbackFactory = exports.ViewEngine.factoryFromCompiledSource(container, instruction.fallback);
             }
             var slot = shadow_dom_1.ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
             owner.$slots[slot.name] = slot;
@@ -7189,7 +7227,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             var childInstructions = instruction.instructions;
             var factory = instruction.factory;
             if (factory === undefined) {
-                instruction.factory = factory = exports.ViewEngine.factoryFromCompiledSource(instruction.src);
+                instruction.factory = factory = exports.ViewEngine.factoryFromCompiledSource(container, instruction.src);
             }
             container.element.prepare(target);
             container.owner.prepare(owner);
@@ -7216,7 +7254,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         _a);
     function applyElementInstructionToComponentInstance(component, instruction, container, target, owner) {
         var childInstructions = instruction.instructions;
-        component.$hydrate(target, instruction.replacements, instruction.contentElement);
+        component.$hydrate(container, target, instruction.replacements, instruction.contentElement);
         for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
             var current = childInstructions[i];
             var currentType = current.type;
@@ -7260,7 +7298,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
                 if (found.factory) {
                     return found.factory;
                 }
-                return found.factory = exports.ViewEngine.factoryFromCompiledSource(found);
+                return found.factory = exports.ViewEngine.factoryFromCompiledSource(requestor, found);
             }
             return this.factory;
         };
@@ -7304,8 +7342,8 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         return RenderSlotProvider;
     }());
     ;
-    function createTemplateContainer(dependencies) {
-        var container = di_1.DI.createChild();
+    function createTemplateContainer(parentContainer, dependencies) {
+        var container = parentContainer.createChild();
         container.element = new InstanceProvider();
         dom_1.DOM.registerElementResolver(container, container.element);
         container.registerResolver(exports.IVisualFactory, container.factory = new ViewFactoryProvider());
@@ -7318,9 +7356,9 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         return container;
     }
     var CompiledTemplate = (function () {
-        function CompiledTemplate(source) {
+        function CompiledTemplate(container, source) {
             this.source = source;
-            this.container = createTemplateContainer(source.dependencies);
+            this.container = createTemplateContainer(container, source.dependencies);
             this.createView = dom_1.DOM.createFactoryFromMarkup(source.template);
         }
         CompiledTemplate.prototype.createFor = function (owner, host, replacements) {
@@ -7349,21 +7387,22 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         return CompiledTemplate;
     }());
     var Visual = (function () {
-        function Visual(factory) {
+        function Visual(factory, animator) {
             this.factory = factory;
+            this.animator = animator;
             this.$bindable = [];
             this.$attachable = [];
             this.$scope = null;
             this.$view = null;
             this.$isBound = false;
             this.$isAttached = false;
-            this.$inCache = false;
-            this.$animationRoot = undefined;
+            this.inCache = false;
+            this.animationRoot = undefined;
             this.$view = this.createView();
         }
         Visual.prototype.getAnimationRoot = function () {
-            if (this.$animationRoot !== undefined) {
-                return this.$animationRoot;
+            if (this.animationRoot !== undefined) {
+                return this.animationRoot;
             }
             var currentChild = this.$view.firstChild;
             var lastChild = this.$view.lastChild;
@@ -7372,11 +7411,11 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
                 currentChild = currentChild.nextSibling;
             }
             if (currentChild && isElementNodeType(currentChild)) {
-                return this.$animationRoot = dom_1.DOM.hasClass(currentChild, 'au-animate')
+                return this.animationRoot = dom_1.DOM.hasClass(currentChild, 'au-animate')
                     ? currentChild
                     : null;
             }
-            return this.$animationRoot = null;
+            return this.animationRoot = null;
         };
         Visual.prototype.animate = function (direction) {
             if (direction === void 0) { direction = 'enter'; }
@@ -7386,9 +7425,9 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             }
             switch (direction) {
                 case 'enter':
-                    return animator_1.Animator.enter(element);
+                    return this.animator.enter(element);
                 case 'leave':
-                    return animator_1.Animator.leave(element);
+                    return this.animator.leave(element);
                 default:
                     throw reporter_1.Reporter.error(4, direction);
             }
@@ -7487,7 +7526,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         };
         DefaultVisualFactory.prototype.tryReturnToCache = function (visual) {
             if (this.cache !== null && this.cache.length < this.cacheSize) {
-                visual.$inCache = true;
+                visual.inCache = true;
                 this.cache.push(visual);
                 return true;
             }
@@ -7497,7 +7536,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             var cache = this.cache;
             if (cache !== null && cache.length > 0) {
                 var visual = cache.pop();
-                visual.$inCache = false;
+                visual.inCache = false;
                 return visual;
             }
             return new this.type(this);
@@ -8287,9 +8326,10 @@ define('runtime/resources/repeat/repeat-strategy-number',["require", "exports", 
 define('runtime/resources/repeat/repeat-strategy-registry',["require", "exports", "../../di", "./repeat-strategy-null", "./repeat-strategy-array", "./repeat-strategy-map", "./repeat-strategy-set", "./repeat-strategy-number"], function (require, exports, di_1, repeat_strategy_null_1, repeat_strategy_array_1, repeat_strategy_map_1, repeat_strategy_set_1, repeat_strategy_number_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.IRepeatStrategyRegistry = di_1.DI.createInterface('IRepeatStrategyRegistry');
-    var RepeatStrategyRegistryImplementation = (function () {
-        function RepeatStrategyRegistryImplementation() {
+    exports.IRepeatStrategyRegistry = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(RepeatStrategyRegistry); });
+    var RepeatStrategyRegistry = (function () {
+        function RepeatStrategyRegistry() {
             this.strategies = [];
             this.register(new repeat_strategy_null_1.NullRepeatStrategy());
             this.register(new repeat_strategy_array_1.ArrayRepeatStrategy());
@@ -8297,10 +8337,10 @@ define('runtime/resources/repeat/repeat-strategy-registry',["require", "exports"
             this.register(new repeat_strategy_set_1.SetRepeatStrategy());
             this.register(new repeat_strategy_number_1.NumberRepeatStrategy());
         }
-        RepeatStrategyRegistryImplementation.prototype.register = function (strategy) {
+        RepeatStrategyRegistry.prototype.register = function (strategy) {
             this.strategies.push(strategy);
         };
-        RepeatStrategyRegistryImplementation.prototype.getStrategyForItems = function (items) {
+        RepeatStrategyRegistry.prototype.getStrategyForItems = function (items) {
             var strategies = this.strategies;
             for (var i = 0, ii = strategies.length; i < ii; ++i) {
                 var current = strategies[i];
@@ -8310,9 +8350,8 @@ define('runtime/resources/repeat/repeat-strategy-registry',["require", "exports"
             }
             return null;
         };
-        return RepeatStrategyRegistryImplementation;
+        return RepeatStrategyRegistry;
     }());
-    exports.RepeatStrategyRegistry = new RepeatStrategyRegistryImplementation();
 });
 
 
@@ -8450,11 +8489,12 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
             .find(function (x) { return x.target === behavior && x.targetProperty === propertyName; });
     }
     var Repeat = (function () {
-        function Repeat(owner, viewFactory, viewSlot, container) {
+        function Repeat(owner, viewFactory, viewSlot, container, strategyRegistry) {
             this.owner = owner;
             this.viewFactory = viewFactory;
             this.viewSlot = viewSlot;
             this.container = container;
+            this.strategyRegistry = strategyRegistry;
             this.ignoreMutation = false;
             this.local = 'item';
             this.key = 'key';
@@ -8489,7 +8529,7 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
                 return;
             }
             var items = this.items;
-            this.strategy = repeat_strategy_registry_1.RepeatStrategyRegistry.getStrategyForItems(items);
+            this.strategy = this.strategyRegistry.getStrategyForItems(items);
             if (!this.strategy) {
                 throw new Error("Value for '" + this.sourceExpression + "' is non-repeatable");
             }
@@ -8531,7 +8571,7 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
         };
         Repeat.prototype.observeInnerCollection = function () {
             var items = this.getInnerCollection();
-            var strategy = repeat_strategy_registry_1.RepeatStrategyRegistry.getStrategyForItems(items);
+            var strategy = this.strategyRegistry.getStrategyForItems(items);
             if (!strategy) {
                 return false;
             }
@@ -8612,8 +8652,8 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
         Repeat = __decorate([
             decorators_1.customAttribute('repeat'),
             decorators_1.templateController,
-            decorators_1.inject(view_1.IViewOwner, view_engine_1.IVisualFactory, render_slot_1.IRenderSlot, di_1.IContainer),
-            __metadata("design:paramtypes", [Object, Object, Object, Object])
+            di_1.inject(view_1.IViewOwner, view_engine_1.IVisualFactory, render_slot_1.IRenderSlot, di_1.IContainer, repeat_strategy_registry_1.IRepeatStrategyRegistry),
+            __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
         ], Repeat);
         return Repeat;
     }());
@@ -8625,6 +8665,43 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
 define('runtime/resources/repeat/repeater',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+});
+
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/templating/template-cache',["require", "exports", "../di"], function (require, exports, di_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ITemplateCache = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(TemplateCache); });
+    var TemplateCache = (function () {
+        function TemplateCache(container) {
+            this.container = container;
+            this.lookup = new Map();
+        }
+        TemplateCache.prototype.getTemplate = function (key, onMiss) {
+            var found = this.lookup.get(key);
+            if (!found) {
+                found = onMiss(this.container);
+                this.lookup.set(key, found);
+            }
+            return found;
+        };
+        TemplateCache = __decorate([
+            di_1.inject(di_1.IContainer),
+            __metadata("design:paramtypes", [Object])
+        ], TemplateCache);
+        return TemplateCache;
+    }());
 });
 
 

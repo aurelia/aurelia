@@ -14,10 +14,10 @@ import { IBindScope } from "../binding/observation";
 import { IScope } from "../binding/binding-context";
 import { Constructable } from "../interfaces";
 import { IAttach, AttachContext, DetachContext } from "./lifecycle";
-import { Animator } from "./animator";
 import { Reporter } from "../reporter";
 import { ITargetedInstruction, IHydrateElementInstruction, ICompiledViewSource, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController } from "./instructions";
 import { INode, DOM, IView, } from "../dom";
+import { IAnimator } from "./animator";
 
 export interface ITemplate {
   readonly container: ITemplateContainer;
@@ -84,16 +84,16 @@ export interface IVisualFactory {
 }
 
 export const ViewEngine = {
-  templateFromCompiledSource(source: ICompiledViewSource) {
+  templateFromCompiledSource(container: IContainer, source: ICompiledViewSource) {
     if (source && source.template) {
-      return new CompiledTemplate(source);
+      return new CompiledTemplate(container, source);
     }
 
     return noViewTemplate;
   },
 
-  factoryFromCompiledSource(source: ICompiledViewSource): IVisualFactory {
-    const template = ViewEngine.templateFromCompiledSource(source);
+  factoryFromCompiledSource(container: IContainer, source: ICompiledViewSource): IVisualFactory {
+    const template = ViewEngine.templateFromCompiledSource(container, source);
 
     const CompiledVisual = class extends Visual {
       static template: ITemplate = template;
@@ -117,7 +117,7 @@ export const ViewEngine = {
       public component: IElementComponent;
 
       constructor() {
-        super(null);
+        super(null, null); // TODO: IAnimator inject
       }
 
       createView() {
@@ -190,7 +190,7 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
     let fallbackFactory = (<any>instruction).factory;
 
     if (fallbackFactory === undefined && instruction.fallback) {
-      (<any>instruction).factory = fallbackFactory = ViewEngine.factoryFromCompiledSource(instruction.fallback);
+      (<any>instruction).factory = fallbackFactory = ViewEngine.factoryFromCompiledSource(container, instruction.fallback);
     }
 
     let slot = ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
@@ -239,7 +239,7 @@ const interpreter: Record<string, InstructionApplicator> = <any>{
     let factory = (<any>instruction).factory;
 
     if (factory === undefined) {
-      (<any>instruction).factory = factory = ViewEngine.factoryFromCompiledSource(instruction.src);
+      (<any>instruction).factory = factory = ViewEngine.factoryFromCompiledSource(container, instruction.src);
     }
 
     container.element.prepare(target);
@@ -275,6 +275,7 @@ function applyElementInstructionToComponentInstance(component: IElementComponent
   let childInstructions = instruction.instructions;
 
   component.$hydrate(
+    container,
     target, 
     instruction.replacements,
     instruction.contentElement
@@ -331,7 +332,7 @@ class ViewFactoryProvider implements IResolver {
         return (<any>found).factory;
       }
 
-      return (<any>found).factory = ViewEngine.factoryFromCompiledSource(found);
+      return (<any>found).factory = ViewEngine.factoryFromCompiledSource(requestor, found);
     }
 
     return this.factory;
@@ -388,8 +389,8 @@ export interface ITemplateContainer extends IContainer {
   instruction: InstanceProvider<ITargetedInstruction>
 };
 
-function createTemplateContainer(dependencies) {
-  let container = <ITemplateContainer>DI.createChild();
+function createTemplateContainer(parentContainer: IContainer, dependencies: any[]) {
+  let container = <ITemplateContainer>parentContainer.createChild();
 
   container.element = new InstanceProvider();
   DOM.registerElementResolver(container, container.element);
@@ -410,8 +411,8 @@ class CompiledTemplate implements ITemplate {
   private createView: () => IView;
   container: ITemplateContainer;
 
-  constructor(private source: ICompiledViewSource) {
-    this.container = createTemplateContainer(source.dependencies);
+  constructor(container: IContainer, private source: ICompiledViewSource) {
+    this.container = createTemplateContainer(container, source.dependencies);
     this.createView = DOM.createFactoryFromMarkup(source.template);
   }
 
@@ -453,18 +454,19 @@ abstract class Visual implements IVisual {
   $view: IView = null;
   $isBound = false;
   $isAttached = false;
-  $inCache = false;
-  $animationRoot: INode = undefined;
+  
+  inCache = false;
+  private animationRoot: INode = undefined;
 
-  constructor(public factory: DefaultVisualFactory) {
+  constructor(public factory: DefaultVisualFactory, private animator: IAnimator) {
     this.$view = this.createView();
   }
 
   abstract createView(): IView;
 
-  getAnimationRoot(): INode {
-    if (this.$animationRoot !== undefined) {
-      return this.$animationRoot;
+  private getAnimationRoot(): INode {
+    if (this.animationRoot !== undefined) {
+      return this.animationRoot;
     }
   
     let currentChild = this.$view.firstChild;
@@ -476,12 +478,12 @@ abstract class Visual implements IVisual {
     }
   
     if (currentChild && isElementNodeType(currentChild)) {
-      return this.$animationRoot = DOM.hasClass(currentChild, 'au-animate') 
+      return this.animationRoot = DOM.hasClass(currentChild, 'au-animate') 
         ? currentChild 
         : null;
     }
   
-    return this.$animationRoot = null;
+    return this.animationRoot = null;
   }
 
   animate(direction: 'enter' | 'leave' = 'enter'): void | Promise<boolean> {
@@ -493,9 +495,9 @@ abstract class Visual implements IVisual {
 
     switch (direction) {
       case 'enter':
-        return Animator.enter(element);
+        return this.animator.enter(element);
       case 'leave':
-        return Animator.leave(element);
+        return this.animator.leave(element);
       default:
         throw Reporter.error(4, direction);
     }
@@ -619,7 +621,7 @@ class DefaultVisualFactory implements IVisualFactory {
 
   tryReturnToCache(visual: Visual): boolean {
     if (this.cache !== null && this.cache.length < this.cacheSize) {
-      visual.$inCache = true;
+      visual.inCache = true;
       this.cache.push(visual);
       return true;
     }
@@ -632,7 +634,7 @@ class DefaultVisualFactory implements IVisualFactory {
 
     if (cache !== null && cache.length > 0) {
       let visual = cache.pop();
-      visual.$inCache = false;
+      visual.inCache = false;
       return visual;
     }
 

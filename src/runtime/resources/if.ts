@@ -2,7 +2,8 @@ import { IfCore } from "./if-core";
 import { Else } from "./else";
 import { IVisualFactory } from "../templating/view-engine";
 import { IRenderSlot } from "../templating/render-slot";
-import { inject, templateController, customAttribute, bindable } from "../decorators";
+import { templateController, customAttribute, bindable } from "../decorators";
+import { inject } from "../di";
 
 @customAttribute('if')
 @templateController

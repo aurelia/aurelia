@@ -2,7 +2,7 @@ import { calcSplices, projectArraySplices } from './array-change-records';
 import { getChangeRecords } from './map-change-records';
 import { SubscriberCollection } from './subscriber-collection';
 import { ICallable, IIndexable } from '../interfaces';
-import { TaskQueue } from '../task-queue';
+import { ITaskQueue } from '../task-queue';
 import { ISubscribable, IAccessor, IBindingCollectionObserver } from './observation';
 
 type Collection = any[] | Map<any, any> | Set<any>;
@@ -11,13 +11,11 @@ export class ModifyCollectionObserver extends SubscriberCollection implements IB
   private queued = false;
   private changeRecords: any[] = null;
   private oldCollection: Collection = null;
-  private collection: Collection;
   private lengthPropertyName: string;
   private lengthObserver: CollectionLengthObserver = null;
 
-  constructor(collection: Collection) {
+  constructor(private taskQueue: ITaskQueue, private collection: Collection) {
     super();
-    this.collection = collection;
     this.lengthPropertyName = (collection instanceof Map) || (collection instanceof Set) ? 'size' : 'length';
   }
 
@@ -56,7 +54,7 @@ export class ModifyCollectionObserver extends SubscriberCollection implements IB
 
     if (!this.queued) {
       this.queued = true;
-      TaskQueue.queueMicroTask(this);
+      this.taskQueue.queueMicroTask(this);
     }
   }
 
@@ -71,7 +69,7 @@ export class ModifyCollectionObserver extends SubscriberCollection implements IB
 
     if (this.hasSubscribers() && !this.queued) {
       this.queued = true;
-      TaskQueue.queueMicroTask(this);
+      this.taskQueue.queueMicroTask(this);
     }
   }
 

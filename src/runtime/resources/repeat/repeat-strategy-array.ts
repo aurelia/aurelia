@@ -1,7 +1,7 @@
 import { createFullOverrideContext, updateOverrideContexts, updateOverrideContext } from './override-contexts';
 import { mergeSplice } from '../../binding/array-change-records';
 import { IRepeatStrategy } from './repeat-strategy';
-import { IObserverLocator, ObserverLocator } from '../../binding/observer-locator';
+import { IObserverLocator } from '../../binding/observer-locator';
 import { IRepeater } from './repeater';
 import { BindingContext } from '../../binding/binding-context';
 
@@ -29,12 +29,14 @@ function indexOf(array: any[], item: any, matcher: (a: any, b: any) => boolean, 
 
 /* @internal */
 export class ArrayRepeatStrategy<T = any> implements IRepeatStrategy<T[]> {
+  constructor(private observerLocator: IObserverLocator) {}
+
   handles(items: any): boolean {
     return items instanceof Array;
   }
 
   getCollectionObserver(items: T[]) {
-    return ObserverLocator.getArrayObserver(items);
+    return this.observerLocator.getArrayObserver(items);
   }
 
   instanceChanged(repeat: IRepeater, items: T[]): void {

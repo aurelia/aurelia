@@ -1,5 +1,5 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { TaskQueue } from '../task-queue';
+import { ITaskQueue } from '../task-queue';
 import { ICallable, IIndexable } from '../interfaces';
 import { Reporter } from '../reporter';
 import { IAccessor, ISubscribable } from './observation';
@@ -35,7 +35,7 @@ export class SetterObserver extends SubscriberCollection implements IAccessor, I
   private currentValue: any;
   private oldValue: any;
 
-  constructor(private obj: any, private propertyName: string) {
+  constructor(private taskQueue: ITaskQueue, private obj: any, private propertyName: string) {
     super();
   }
 
@@ -58,7 +58,7 @@ export class SetterObserver extends SubscriberCollection implements IAccessor, I
       if (!this.queued) {
         this.oldValue = oldValue;
         this.queued = true;
-        TaskQueue.queueMicroTask(this);
+        this.taskQueue.queueMicroTask(this);
       }
 
       this.currentValue = newValue;
@@ -107,7 +107,7 @@ export class Observer<T> extends SubscriberCollection implements IAccessor, ISub
   private queued = false;
   private oldValue: T;
 
-  constructor(private currentValue: T, private selfCallback?: (newValue: T, oldValue: T) => void | T) {
+  constructor(private taskQueue: ITaskQueue, private currentValue: T, private selfCallback?: (newValue: T, oldValue: T) => void | T) {
     super();
   }
 
@@ -122,7 +122,7 @@ export class Observer<T> extends SubscriberCollection implements IAccessor, ISub
       if (!this.queued) {
         this.oldValue = oldValue;
         this.queued = true;
-        TaskQueue.queueMicroTask(this);
+        this.taskQueue.queueMicroTask(this);
       }
 
       if (this.selfCallback !== undefined) {

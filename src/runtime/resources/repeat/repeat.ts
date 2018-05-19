@@ -8,11 +8,11 @@ import { IRepeater } from "./repeater";
 import { IExpression, BindingBehavior, ValueConverter } from "../../binding/ast";
 import { IScope, sourceContext } from "../../binding/binding-context";
 import { IRepeatStrategy } from "./repeat-strategy";
-import { TaskQueue } from "../../../debug/task-queue";
 import { IBindingCollectionObserver } from "../../binding/observation";
 import { Binding } from "../../binding/binding";
 import { BindingMode } from "../../binding/binding-mode";
 import { IViewOwner } from "../../templating/view";
+import { ITaskQueue } from "../../task-queue";
 
 const oneTime = BindingMode.oneTime;
 
@@ -62,7 +62,7 @@ function getBinding(owner: IViewOwner, behavior: any, propertyName: string): Bin
 
 @customAttribute('repeat')
 @templateController
-@inject(IViewOwner, IVisualFactory, IRenderSlot, IContainer, IRepeatStrategyRegistry)
+@inject(IViewOwner, IVisualFactory, IRenderSlot, IContainer, ITaskQueue, IRepeatStrategyRegistry)
 export class Repeat implements IRepeater {
   private ignoreMutation = false;
   private sourceExpression: IExpression;
@@ -110,6 +110,7 @@ export class Repeat implements IRepeater {
     private viewFactory: IVisualFactory, 
     private viewSlot: IRenderSlot, 
     private container: IContainer,
+    private taskQueue: ITaskQueue,
     private strategyRegistry: IRepeatStrategyRegistry
   ) {
     this.local = 'item';
@@ -198,7 +199,7 @@ export class Repeat implements IRepeater {
     this.ignoreMutation = true;
     let newItems = this.sourceExpression.evaluate(this.scope, this.container);
 
-    TaskQueue.queueMicroTask(() => this.ignoreMutation = false);
+    this.taskQueue.queueMicroTask(() => this.ignoreMutation = false);
 
     // call itemsChanged...
     if (newItems === this.items) {

@@ -3,9 +3,6 @@ import { DI } from './di';
 import { Reporter } from './reporter';
 import { PLATFORM } from './platform';
 
-export const ITaskQueue = DI.createInterface('ITaskQueue')
-  .withDefault(x => x.singleton(TaskQueueImplementation));
-
 export interface ITaskQueue {
   /**
    * Whether the queue is in the process of flushing.
@@ -40,7 +37,10 @@ export interface ITaskQueue {
   flushTaskQueue(): void
 }
 
-class TaskQueueImplementation implements ITaskQueue {
+export const ITaskQueue = DI.createInterface<ITaskQueue>()
+  .withDefault(x => x.singleton(TaskQueue));
+
+class TaskQueue implements ITaskQueue {
   private microTaskQueue: ICallable[] = [];
   private taskQueue: ICallable[] = [];
   private microTaskQueueCapacity = 1024;
@@ -143,5 +143,3 @@ class TaskQueueImplementation implements ITaskQueue {
     }
   }
 }
-
-export const TaskQueue: ITaskQueue = new TaskQueueImplementation();

@@ -1,4 +1,4 @@
-import { ObserverLocator } from "./observer-locator";
+import { IObserverLocator } from "./observer-locator";
 import { IExpression } from "./ast";
 import { IBinding } from "./binding";
 import { IContainer } from "../di";
@@ -14,9 +14,10 @@ export class Call implements IBinding {
   constructor(
     private sourceExpression: IExpression,
     private target: INode,
-    private targetProperty: string, 
+    private targetProperty: string,
+    private observerLocator: IObserverLocator, 
     public container: IContainer) {
-    this.targetObserver = <any>ObserverLocator.getObserver(target, targetProperty);
+    this.targetObserver = <any>observerLocator.getObserver(target, targetProperty);
   }
 
   callSource($event) {

@@ -1,4 +1,4 @@
-import { ObserverLocator, IObserverLocator } from './observer-locator';
+import { IObserverLocator } from './observer-locator';
 import { IBindingTargetObserver, IBindingCollectionObserver } from './observation';
 import { sourceContext } from './binding-context';
 import { ICallable } from '../interfaces';
@@ -14,6 +14,8 @@ for (let i = 0; i < 100; i++) {
 export abstract class ConnectableBinding implements ICallable {
   protected observerSlots: any;
   protected version: number;
+
+  protected constructor(protected observerLocator: IObserverLocator) {}
 
   abstract call(...args: any[]): any;
 
@@ -47,12 +49,12 @@ export abstract class ConnectableBinding implements ICallable {
   }
 
   observeProperty(obj: any, propertyName: string) {
-    let observer = ObserverLocator.getObserver(obj, propertyName);
+    let observer = this.observerLocator.getObserver(obj, propertyName);
     this.addObserver(<any>observer);
   }
 
   observeArray(array: any[]) {
-    let observer = ObserverLocator.getArrayObserver(array);
+    let observer = this.observerLocator.getArrayObserver(array);
     this.addObserver(observer);
   }
 

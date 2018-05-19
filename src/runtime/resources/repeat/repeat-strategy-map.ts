@@ -1,18 +1,20 @@
 import {createFullOverrideContext, updateOverrideContexts} from './override-contexts';
 import { IRepeatStrategy } from './repeat-strategy';
 import { IRepeater } from './repeater';
-import { ObserverLocator } from '../../binding/observer-locator';
+import { IObserverLocator } from '../../binding/observer-locator';
 import { IOverrideContext, BindingContext } from '../../binding/binding-context';
 import { IVisual } from '../../templating/view-engine';
 
 /* @internal */
 export class MapRepeatStrategy<T = any, K = any> implements IRepeatStrategy<Map<T, K>> {
+  constructor(private observerLocator: IObserverLocator) {}
+
   handles(items: any): boolean {
     return items instanceof Map
   }
 
   getCollectionObserver(items: Map<T, K>) {
-    return ObserverLocator.getMapObserver(items);
+    return this.observerLocator.getMapObserver(items);
   }
 
   instanceChanged(repeat: IRepeater, items: Map<T, K>): void {

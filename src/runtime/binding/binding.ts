@@ -1,7 +1,7 @@
 import { BindingMode } from './binding-mode';
 import { ConnectableBinding } from './connectable-binding';
 import { enqueueBindingConnect } from './connect-queue';
-import { ObserverLocator, IObserverLocator } from './observer-locator';
+import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
 import { Observer } from './property-observation';
 import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor } from './observation';
@@ -26,8 +26,9 @@ export class Binding extends ConnectableBinding implements IBinding {
     public target: IBindingTarget,
     public targetProperty: string,
     public mode: BindingMode,
+    observerLocator: IObserverLocator,
     public container: IContainer) {
-    super();
+    super(observerLocator);
   }
 
   updateTarget(value: any) {
@@ -91,7 +92,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
     if (!this.targetObserver) {
       let method: 'getObserver' | 'getAccessor' = mode === BindingMode.twoWay || mode === BindingMode.fromView ? 'getObserver' : 'getAccessor';
-      this.targetObserver = <any>ObserverLocator[method](this.target, this.targetProperty);
+      this.targetObserver = <any>this.observerLocator[method](this.target, this.targetProperty);
     }
 
     if ('bind' in this.targetObserver) {

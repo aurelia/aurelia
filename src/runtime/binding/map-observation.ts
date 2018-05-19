@@ -1,33 +1,32 @@
 import { ModifyCollectionObserver } from './collection-observation';
+import { ITaskQueue } from '../task-queue';
+import { IBindingCollectionObserver } from './observation';
 
-let mapProto = Map.prototype;
+const mapProto = Map.prototype;
 
-export function getMapObserver(map) {
-  return ModifyMapObserver.for(map);
+/**
+ * Searches for observer or creates a new one associated with given map instance
+ * @param map instance for which observer is searched
+ * @returns ModifyMapObserver always the same instance for any given map instance
+ */
+export function getMapObserver<T = any, K = any>(taskQueue: ITaskQueue, map: Map<T, K>): IBindingCollectionObserver {
+  let observer: IBindingCollectionObserver = (<any>map).__map_observer__;
+
+  if (!observer) {
+    Reflect.defineProperty(map, '__map_observer__', {
+      value: observer = new ModifyMapObserver<T, K>(taskQueue, map),
+      enumerable: false, configurable: false
+    });
+  }
+  
+  return observer;
 }
 
-class ModifyMapObserver extends ModifyCollectionObserver {
-  constructor(map) {
-    super(map);
-  }
+class ModifyMapObserver<T = any, K = any> extends ModifyCollectionObserver {
+  constructor(taskQueue: ITaskQueue, map: Map<T, K>) {
+    super(taskQueue, map);
 
-  /**
-   * Searches for observer or creates a new one associated with given map instance
-   * @param map instance for which observer is searched
-   * @returns ModifyMapObserver always the same instance for any given map instance
-   */
-  static for(map) {
-    if (!('__map_observer__' in map)) {
-      Reflect.defineProperty(map, '__map_observer__', {
-        value: ModifyMapObserver.create(map),
-        enumerable: false, configurable: false
-      });
-    }
-    return map.__map_observer__;
-  }
-
-  static create(map) {
-    let observer = new ModifyMapObserver(map);
+    const observer = this;
     let proto: any = mapProto;
 
     if (proto.set !== map.set || proto.delete !== map.delete || proto.clear !== map.clear) {
@@ -39,10 +38,11 @@ class ModifyMapObserver extends ModifyCollectionObserver {
     }
 
     map.set = function() {
-      let hasValue = map.has(arguments[0]);
-      let type = hasValue ? 'update' : 'add';
-      let oldValue = map.get(arguments[0]);
-      let methodCallResult = proto.set.apply(map, arguments);
+      const hasValue = map.has(arguments[0]);
+      const type = hasValue ? 'update' : 'add';
+      const oldValue = map.get(arguments[0]);
+      const methodCallResult = proto.set.apply(map, arguments);
+      
       if (!hasValue || oldValue !== map.get(arguments[0])) {
         observer.addChangeRecord({
           type: type,
@@ -51,13 +51,15 @@ class ModifyMapObserver extends ModifyCollectionObserver {
           oldValue: oldValue
         });
       }
+
       return methodCallResult;
     };
 
     map.delete = function() {
-      let hasValue = map.has(arguments[0]);
-      let oldValue = map.get(arguments[0]);
-      let methodCallResult = proto.delete.apply(map, arguments);
+      const hasValue = map.has(arguments[0]);
+      const oldValue = map.get(arguments[0]);
+      const methodCallResult = proto.delete.apply(map, arguments);
+
       if (hasValue) {
         observer.addChangeRecord({
           type: 'delete',
@@ -66,18 +68,19 @@ class ModifyMapObserver extends ModifyCollectionObserver {
           oldValue: oldValue
         });
       }
+
       return methodCallResult;
     };
 
     map.clear = function() {
-      let methodCallResult = proto.clear.apply(map, arguments);
+      const methodCallResult = proto.clear.apply(map, arguments);
+
       observer.addChangeRecord({
         type: 'clear',
         object: map
       });
+
       return methodCallResult;
     };
-
-    return observer;
   }
 }

@@ -3,18 +3,20 @@ import { DI } from '../di';
 import { ICallable } from '../interfaces';
 import { IAccessor, ISubscribable } from './observation';
 
-export const IDirtyChecker = DI.createInterface('IDirtyChecker');
 export interface IDirtyChecker {
   createProperty(obj: any, propertyName: string): IAccessor & ISubscribable & ICallable;
 }
 
-const Checker = {
-  tracked: [],
-  checkDelay: 120,
+export const IDirtyChecker = DI.createInterface<IDirtyChecker>()
+  .withDefault(x => x.singleton(DirtyChecker));
+
+class DirtyChecker {
+  private tracked = [];
+  private checkDelay = 120;
 
   createProperty(obj: any, propertyName: string) {
-    return new DirtyCheckProperty(obj, propertyName);
-  },
+    return new DirtyCheckProperty(this, obj, propertyName);
+  }
 
   addProperty(property: DirtyCheckProperty) {
     let tracked = this.tracked;
@@ -24,16 +26,16 @@ const Checker = {
     if (tracked.length === 1) {
       this.scheduleDirtyCheck();
     }
-  },
+  }
 
   removeProperty(property: DirtyCheckProperty) {
     let tracked = this.tracked;
     tracked.splice(tracked.indexOf(property), 1);
-  },
+  }
 
   scheduleDirtyCheck() {
     setTimeout(() => this.check(), this.checkDelay);
-  },
+  }
 
   check() {
     let tracked = this.tracked;
@@ -51,12 +53,12 @@ const Checker = {
       this.scheduleDirtyCheck();
     }
   }
-};
+}
 
 class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
   oldValue;
   
-  constructor(private obj: any, private propertyName: string) {
+  constructor(private dirtyChecker: DirtyChecker, private obj: any, private propertyName: string) {
     super();
   }
 
@@ -84,7 +86,7 @@ class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISub
   subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
-      Checker.addProperty(this);
+      this.dirtyChecker.addProperty(this);
     }
 
     this.addSubscriber(context, callable);
@@ -92,9 +94,7 @@ class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISub
 
   unsubscribe(context: string, callable: ICallable) {
     if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
-      Checker.removeProperty(this);
+      this.dirtyChecker.removeProperty(this);
     }
   }
 }
-
-export const DirtyChecker: IDirtyChecker = Checker;

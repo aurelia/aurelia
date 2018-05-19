@@ -1,4 +1,4 @@
-import { EventManager, DelegationStrategy } from "./event-manager";
+import { IEventManager, DelegationStrategy } from "./event-manager";
 import { IExpression } from "./ast";
 import { IBinding } from "./binding";
 import { IContainer } from "../di";
@@ -17,6 +17,7 @@ export class Listener implements IBinding {
     private sourceExpression: IExpression,
     private target: INode,
     private preventDefault: boolean,
+    private eventManager: IEventManager,
     public container: IContainer
   ) {
     this.targetEvent = targetEvent;
@@ -63,7 +64,7 @@ export class Listener implements IBinding {
       this.sourceExpression.bind(this, source);
     }
 
-    this.handler = EventManager.addEventListener(
+    this.handler = this.eventManager.addEventListener(
       this.target,
       this.targetEvent,
       this,

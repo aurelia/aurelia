@@ -10,6 +10,6 @@ export type Constructable<T = {}> = {
   new(...args: any[]): T;
 }
 
-export type Injectable = Constructable & { inject?:any[] };
+export type Injectable<T = {}> = Constructable<T> & { inject?:any[] };
 
 export type IIndexable<T extends object = object> = T & { [key: string]: any };

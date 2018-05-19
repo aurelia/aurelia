@@ -1,36 +1,35 @@
 import { ModifyCollectionObserver } from './collection-observation';
+import { ITaskQueue } from '../task-queue';
+import { IBindingCollectionObserver } from './observation';
 
-let setProto = Set.prototype;
+const setProto = Set.prototype;
 
-export function getSetObserver(set: Set<any>) {
-  return ModifySetObserver.for(set);
+/**
+ * Searches for observer or creates a new one associated with given set instance
+ * @param taskQueue
+ * @param set instance for which observer is searched
+ * @returns ModifySetObserver always the same instance for any given set instance
+ */
+export function getSetObserver<T = any>(taskQueue: ITaskQueue, set: Set<T>): IBindingCollectionObserver {
+  let observer: IBindingCollectionObserver = (<any>set).__set_observer__;
+
+  if (!observer) {
+    Reflect.defineProperty(set, '__set_observer__', {
+      value: observer = new ModifySetObserver<T>(taskQueue, set),
+      enumerable: false, configurable: false
+    });
+  }
+
+  return observer;
 }
 
-class ModifySetObserver extends ModifyCollectionObserver {
-  constructor(set: Set<any>) {
-    super(set);
-  }
+class ModifySetObserver<T> extends ModifyCollectionObserver {
+  constructor(taskQueue: ITaskQueue, set: Set<T>) {
+    super(taskQueue, set);
 
-  /**
-   * Searches for observer or creates a new one associated with given set instance
-   * @param taskQueue
-   * @param set instance for which observer is searched
-   * @returns ModifySetObserver always the same instance for any given set instance
-   */
-  static for(set: Set<any> & { __set_observer__?: ModifySetObserver }) {
-    if (!('__set_observer__' in set)) {
-      Reflect.defineProperty(set, '__set_observer__', {
-        value: ModifySetObserver.create(set),
-        enumerable: false, configurable: false
-      });
-    }
-    return set.__set_observer__;
-  }
-
-  static create(set: Set<any>) {
-    let observer = new ModifySetObserver(set);
-
+    const observer = this;
     let proto: any = setProto;
+
     if (proto.add !== set.add || proto.delete !== set.delete || proto.clear !== set.clear) {
       proto = {
         add: set.add,
@@ -40,10 +39,11 @@ class ModifySetObserver extends ModifyCollectionObserver {
     }
 
     set.add = function() {
-      let type = 'add';
-      let oldSize = set.size;
-      let methodCallResult = proto.add.apply(set, arguments);
-      let hasValue = set.size === oldSize;
+      const type = 'add';
+      const oldSize = set.size;
+      const methodCallResult = proto.add.apply(set, arguments);
+      const hasValue = set.size === oldSize;
+
       if (!hasValue) {
         observer.addChangeRecord({
           type: type,
@@ -51,12 +51,14 @@ class ModifySetObserver extends ModifyCollectionObserver {
           value: Array.from(set).pop()
         });
       }
+
       return methodCallResult;
     };
 
     set.delete = function() {
-      let hasValue = set.has(arguments[0]);
-      let methodCallResult = proto.delete.apply(set, arguments);
+      const hasValue = set.has(arguments[0]);
+      const methodCallResult = proto.delete.apply(set, arguments);
+
       if (hasValue) {
         observer.addChangeRecord({
           type: 'delete',
@@ -64,15 +66,18 @@ class ModifySetObserver extends ModifyCollectionObserver {
           value: arguments[0]
         });
       }
+
       return methodCallResult;
     };
 
     set.clear = function() {
-      let methodCallResult = proto.clear.apply(set, arguments);
+      const methodCallResult = proto.clear.apply(set, arguments);
+
       observer.addChangeRecord({
         type: 'clear',
         object: set
       });
+
       return methodCallResult;
     };
 

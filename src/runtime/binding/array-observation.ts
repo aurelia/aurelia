@@ -1,17 +1,20 @@
 /* eslint-disable no-extend-native */
 import { ModifyCollectionObserver } from './collection-observation';
+import { ITaskQueue } from '../task-queue';
+import { IBindingCollectionObserver } from './observation';
 
-let pop = Array.prototype.pop;
-let push = Array.prototype.push;
-let reverse = Array.prototype.reverse;
-let shift = Array.prototype.shift;
-let sort = Array.prototype.sort;
-let splice = Array.prototype.splice;
-let unshift = Array.prototype.unshift;
+const pop = Array.prototype.pop;
+const push = Array.prototype.push;
+const reverse = Array.prototype.reverse;
+const shift = Array.prototype.shift;
+const sort = Array.prototype.sort;
+const splice = Array.prototype.splice;
+const unshift = Array.prototype.unshift;
 
 Array.prototype.pop = function() {
-  let notEmpty = this.length > 0;
-  let methodCallResult = pop.apply(this, arguments);
+  const notEmpty = this.length > 0;
+  const methodCallResult = pop.apply(this, arguments);
+
   if (notEmpty && this.__array_observer__ !== undefined) {
     this.__array_observer__.addChangeRecord({
       type: 'delete',
@@ -20,11 +23,13 @@ Array.prototype.pop = function() {
       oldValue: methodCallResult
     });
   }
+
   return methodCallResult;
 };
 
 Array.prototype.push = function() {
-  let methodCallResult = push.apply(this, arguments);
+  const methodCallResult = push.apply(this, arguments);
+
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.addChangeRecord({
       type: 'splice',
@@ -34,25 +39,31 @@ Array.prototype.push = function() {
       addedCount: arguments.length
     });
   }
+
   return methodCallResult;
 };
 
 Array.prototype.reverse = function() {
   let oldArray;
+  
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.flushChangeRecords();
     oldArray = this.slice();
   }
-  let methodCallResult = reverse.apply(this, arguments);
+  
+  const methodCallResult = reverse.apply(this, arguments);
+  
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.reset(oldArray);
   }
+  
   return methodCallResult;
 };
 
 Array.prototype.shift = function() {
-  let notEmpty = this.length > 0;
-  let methodCallResult = shift.apply(this, arguments);
+  const notEmpty = this.length > 0;
+  const methodCallResult = shift.apply(this, arguments);
+
   if (notEmpty && this.__array_observer__ !== undefined) {
     this.__array_observer__.addChangeRecord({
       type: 'delete',
@@ -61,24 +72,30 @@ Array.prototype.shift = function() {
       oldValue: methodCallResult
     });
   }
+
   return methodCallResult;
 };
 
 Array.prototype.sort = function() {
   let oldArray;
+  
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.flushChangeRecords();
     oldArray = this.slice();
   }
-  let methodCallResult = sort.apply(this, arguments);
+
+  const methodCallResult = sort.apply(this, arguments);
+  
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.reset(oldArray);
   }
+  
   return methodCallResult;
 };
 
 Array.prototype.splice = function() {
-  let methodCallResult = splice.apply(this, arguments);
+  const methodCallResult = splice.apply(this, arguments);
+  
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.addChangeRecord({
       type: 'splice',
@@ -88,11 +105,13 @@ Array.prototype.splice = function() {
       addedCount: arguments.length > 2 ? arguments.length - 2 : 0
     });
   }
+  
   return methodCallResult;
 };
 
 Array.prototype.unshift = function() {
-  let methodCallResult = unshift.apply(this, arguments);
+  const methodCallResult = unshift.apply(this, arguments);
+  
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.addChangeRecord({
       type: 'splice',
@@ -102,35 +121,31 @@ Array.prototype.unshift = function() {
       addedCount: arguments.length
     });
   }
+  
   return methodCallResult;
 };
 
-export function getArrayObserver(array: any[]) {
-  return ModifyArrayObserver.for(array);
+/**
+ * Searches for observer or creates a new one associated with given array instance
+ * @param taskQueue
+ * @param array instance for which observer is searched
+ * @returns ModifyArrayObserver always the same instance for any given array instance
+ */
+export function getArrayObserver<T = any>(taskQueue: ITaskQueue, array: T[]): IBindingCollectionObserver {
+  let observer: IBindingCollectionObserver = (<any>array).__array_observer__;
+
+  if (!observer) {
+    Reflect.defineProperty(array, '__array_observer__', {
+      value: observer = new ModifyArrayObserver<T>(taskQueue, array),
+      enumerable: false, configurable: false
+    });
+  }
+
+  return observer;
 }
 
-class ModifyArrayObserver extends ModifyCollectionObserver {
-  constructor(array: any[]) {
-    super(array);
-  }
-
-  /**
-   * Searches for observer or creates a new one associated with given array instance
-   * @param taskQueue
-   * @param array instance for which observer is searched
-   * @returns ModifyArrayObserver always the same instance for any given array instance
-   */
-  static for(array: any[] & { __array_observer__?: ModifyArrayObserver }) {
-    if (!('__array_observer__' in array)) {
-      Reflect.defineProperty(array, '__array_observer__', {
-        value: ModifyArrayObserver.create(array),
-        enumerable: false, configurable: false
-      });
-    }
-    return array.__array_observer__;
-  }
-
-  static create(array: any[]) {
-    return new ModifyArrayObserver(array);
+class ModifyArrayObserver<T = any> extends ModifyCollectionObserver {
+  constructor(taskQueue: ITaskQueue, array: T[]) {
+    super(taskQueue, array);
   }
 }

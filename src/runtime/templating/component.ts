@@ -1,6 +1,6 @@
 import { ViewEngine, ITemplate, } from "./view-engine";
 import { View, IViewOwner, IContentView } from "./view";
-import { TaskQueue } from "../task-queue";
+import { ITaskQueue } from "../task-queue";
 import { Observer } from "../binding/property-observation";
 import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
 import { PLATFORM } from "../platform";
@@ -23,10 +23,12 @@ export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $slots: Record<string, IEmulatedShadowSlot>;
   $usingSlotEmulation: boolean;
 
-  $hydrate(container: IContainer, host: INode, replacements?: Record<string, ICompiledViewSource>, contentNodeOverride?: INode): void;
+  $hydrate(container: IContainer, taskQueue: ITaskQueue, host: INode, replacements?: Record<string, ICompiledViewSource>, contentNodeOverride?: INode): void;
 }
 
-export interface IAttributeComponent extends IBindScope, IAttach { }
+export interface IAttributeComponent extends IBindScope, IAttach { 
+  $hydrate(taskQueue: ITaskQueue);
+}
 
 export interface IAttributeSource {
   name: string;
@@ -121,10 +123,8 @@ export const Component = {
       $scope: IScope = null;
       $slot: IRenderSlot = null;
 
-      constructor(...args:any[]) {
-        super(...args);
-
-        RuntimeBehavior.get(this, observables, CustomAttribute).applyToAttribute(this);
+      $hydrate(taskQueue: ITaskQueue) {
+        RuntimeBehavior.get(this, observables, CustomAttribute).applyToAttribute(taskQueue, this);
 
         if (this.$behavior.hasCreated) {
           (<any>this).created();
@@ -241,12 +241,9 @@ export const Component = {
       private $changeCallbacks: (() => void)[] = [];
       private $behavior: RuntimeBehavior = null;
   
-      constructor(...args:any[]) {
-        super(...args);
-        RuntimeBehavior.get(this, observables, CompiledComponent).applyToElement(this);
-      }
-  
-      $hydrate(container: IContainer, host: INode, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
+      $hydrate(container: IContainer, taskQueue: ITaskQueue, host: INode, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
+        RuntimeBehavior.get(this, observables, CompiledComponent).applyToElement(taskQueue, this);
+        
         this.$host = source.containerless ? DOM.convertToAnchor(host, true) : host;
         this.$shadowRoot = DOM.createElementViewHost(this.$host, source.shadowOptions);
         this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
@@ -474,14 +471,14 @@ class RuntimeBehavior {
     return behavior;
   }
 
-  applyToAttribute(instance: IAttributeComponent) {
-    this.applyTo(instance);
+  applyToAttribute(taskQueue: ITaskQueue, instance: IAttributeComponent) {
+    this.applyTo(taskQueue, instance);
   }
 
-  applyToElement(instance: IElementComponent) {
-    const observers = this.applyTo(instance);
+  applyToElement(taskQueue: ITaskQueue, instance: IElementComponent) {
+    const observers = this.applyTo(taskQueue, instance);
 
-    (<any>observers).$children = new ChildrenObserver(instance);
+    (<any>observers).$children = new ChildrenObserver(taskQueue, instance);
 
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
@@ -491,7 +488,7 @@ class RuntimeBehavior {
     });
   }
 
-  private applyTo(instance) {
+  private applyTo(taskQueue: ITaskQueue, instance: any) {
     const observers = {};
     const finalObservables = this.observables;
     const observableNames = Object.getOwnPropertyNames(finalObservables);
@@ -502,10 +499,10 @@ class RuntimeBehavior {
       const changeHandler = observable.callback;
   
       if (changeHandler in instance) {
-        observers[name] = new Observer(instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
+        observers[name] = new Observer(taskQueue, instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
         instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
       } else {
-        observers[name] = new Observer(instance[name]);
+        observers[name] = new Observer(taskQueue, instance[name]);
       }
   
       createGetterSetter(instance, name);
@@ -535,7 +532,7 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
   private children: IElementComponent[] = null;
   private queued = false;
 
-  constructor(private component: IElementComponent) {
+  constructor(private taskQueue: ITaskQueue, private component: IElementComponent) {
     super();
   }
 
@@ -559,7 +556,7 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
 
     if (!this.queued) {
       this.queued = true;
-      TaskQueue.queueMicroTask(this);
+      this.taskQueue.queueMicroTask(this);
     }
   }
 

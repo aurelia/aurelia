@@ -1,10 +1,11 @@
-import { DI } from "../../di";
+import { DI, inject } from "../../di";
 import { IRepeatStrategy } from "./repeat-strategy";
 import { NullRepeatStrategy } from "./repeat-strategy-null";
 import { ArrayRepeatStrategy } from "./repeat-strategy-array";
 import { MapRepeatStrategy } from "./repeat-strategy-map";
 import { SetRepeatStrategy } from "./repeat-strategy-set";
 import { NumberRepeatStrategy } from "./repeat-strategy-number";
+import { IObserverLocator } from "../../binding/observer-locator";
 
 export const IRepeatStrategyRegistry = DI.createInterface<IRepeatStrategyRegistry>()
   .withDefault(x => x.singleton(RepeatStrategyRegistry));
@@ -22,14 +23,15 @@ export interface IRepeatStrategyRegistry {
   getStrategyForItems(items: any): IRepeatStrategy;
 }
 
+@inject(IObserverLocator)
 class RepeatStrategyRegistry implements IRepeatStrategyRegistry {
   private strategies: IRepeatStrategy[] = [];
 
-  constructor() {
+  constructor(observerLocator: IObserverLocator) {
     this.register(new NullRepeatStrategy());
-    this.register(new ArrayRepeatStrategy());
-    this.register(new MapRepeatStrategy());
-    this.register(new SetRepeatStrategy());
+    this.register(new ArrayRepeatStrategy(observerLocator));
+    this.register(new MapRepeatStrategy(observerLocator));
+    this.register(new SetRepeatStrategy(observerLocator));
     this.register(new NumberRepeatStrategy());
   }
 

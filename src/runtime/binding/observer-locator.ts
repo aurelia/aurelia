@@ -2,8 +2,8 @@ import { DOM } from '../dom';
 import { getArrayObserver } from './array-observation';
 import { getMapObserver } from './map-observation';
 import { getSetObserver } from './set-observation';
-import { EventManager } from './event-manager';
-import { DirtyChecker } from './dirty-checker';
+import { IEventManager } from './event-manager';
+import { IDirtyChecker } from './dirty-checker';
 import {
   SetterObserver,
   PrimitiveObserver,
@@ -19,16 +19,15 @@ import {
   dataAttributeAccessor
 } from './element-observation';
 import { ClassObserver } from './class-observer';
-import { SVGAnalyzer } from './svg-analyzer';
+import { ISVGAnalyzer } from './svg-analyzer';
 import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCollectionObserver, AccessorOrObserver, IAccessor } from './observation';
 import { Reporter } from '../reporter';
-import { DI } from '../di';
+import { DI, inject } from '../di';
+import { ITaskQueue } from '../task-queue';
 
 export interface ObjectObservationAdapter {
   getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }
-
-export const IObserverLocator = DI.createInterface('IObserverLocator');
 
 export interface IObserverLocator {
   getObserver(obj: any, propertyName: string): AccessorOrObserver;
@@ -38,6 +37,9 @@ export interface IObserverLocator {
   getMapObserver(map: Map<any, any>): IBindingCollectionObserver;
   getSetObserver(set: Set<any>): IBindingCollectionObserver;
 }
+
+export const IObserverLocator = DI.createInterface<IObserverLocator>()
+  .withDefault(x => x.singleton(ObserverLocator));
 
 function getPropertyDescriptor(subject: object, name: string) {
   let pd = Object.getOwnPropertyDescriptor(subject, name);
@@ -51,8 +53,16 @@ function getPropertyDescriptor(subject: object, name: string) {
   return pd;
 }
 
-class ObserverLocatorImplementation implements IObserverLocator {
+@inject(ITaskQueue, IEventManager, IDirtyChecker, ISVGAnalyzer)
+class ObserverLocator implements IObserverLocator {
   private adapters: ObjectObservationAdapter[] = [];
+
+  constructor(
+    private taskQueue: ITaskQueue,
+    private eventManager: IEventManager, 
+    private dirtyChecker: IDirtyChecker,
+    private svgAnalyzer: ISVGAnalyzer
+  ) {}
 
   getObserver(obj: any, propertyName: string): AccessorOrObserver {
     let observersLookup = obj.$observers;
@@ -123,13 +133,13 @@ class ObserverLocatorImplementation implements IObserverLocator {
         return new StyleObserver(<HTMLElement>obj, propertyName);
       }
 
-      const handler = EventManager.getElementHandler(obj, propertyName);
+      const handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && DOM.normalizedTagName(obj) === 'select') {
-        return new SelectValueObserver(<HTMLSelectElement>obj, handler, this);
+        return new SelectValueObserver(<HTMLSelectElement>obj, handler, this.taskQueue, this);
       }
 
       if (propertyName === 'checked' && DOM.normalizedTagName(obj) === 'input') {
-        return new CheckedObserver(<HTMLInputElement>obj, handler, this);
+        return new CheckedObserver(<HTMLInputElement>obj, handler, this.taskQueue, this);
       }
 
       if (handler) {
@@ -143,7 +153,7 @@ class ObserverLocatorImplementation implements IObserverLocator {
 
       if (propertyName === 'role'
         || /^\w+:|^data-|^aria-/.test(propertyName)
-        || SVGAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
+        || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
         return new DataAttributeObserver(obj, propertyName);
       }
     }
@@ -168,7 +178,7 @@ class ObserverLocatorImplementation implements IObserverLocator {
           return adapterObserver;
         }
 
-        return DirtyChecker.createProperty(obj, propertyName);
+        return this.dirtyChecker.createProperty(obj, propertyName);
       }
     }
 
@@ -177,22 +187,22 @@ class ObserverLocatorImplementation implements IObserverLocator {
         return this.getArrayObserver(obj).getLengthObserver();
       }
 
-      return DirtyChecker.createProperty(obj, propertyName);
+      return this.dirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Map) {
       if (propertyName === 'size') {
         return this.getMapObserver(obj).getLengthObserver();
       }
 
-      return DirtyChecker.createProperty(obj, propertyName);
+      return this.dirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Set) {
       if (propertyName === 'size') {
         return this.getSetObserver(obj).getLengthObserver();
       }
 
-      return DirtyChecker.createProperty(obj, propertyName);
+      return this.dirtyChecker.createProperty(obj, propertyName);
     }
 
-    return new SetterObserver(obj, propertyName);
+    return new SetterObserver(this.taskQueue, obj, propertyName);
   }
 
   getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
@@ -209,7 +219,7 @@ class ObserverLocatorImplementation implements IObserverLocator {
       }
 
       if (/^\w+:|^data-|^aria-/.test(propertyName)
-        || SVGAnalyzer.isStandardSvgAttribute(obj, propertyName)
+        || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)
         || normalizedTagName(obj) === 'img' && propertyName === 'src'
         || normalizedTagName(obj) === 'a' && propertyName === 'href'
       ) {
@@ -220,17 +230,15 @@ class ObserverLocatorImplementation implements IObserverLocator {
     return propertyAccessor;
   }
 
-  getArrayObserver(array: any[]) {
-    return getArrayObserver(array);
+  getArrayObserver(array: any[]): IBindingCollectionObserver {
+    return getArrayObserver(this.taskQueue, array);
   }
 
-  getMapObserver(map: Map<any, any>) {
-    return getMapObserver(map);
+  getMapObserver(map: Map<any, any>): IBindingCollectionObserver {
+    return getMapObserver(this.taskQueue, map);
   }
 
-  getSetObserver(set: Set<any>) {
-    return getSetObserver(set);
+  getSetObserver(set: Set<any>): IBindingCollectionObserver {
+    return getSetObserver(this.taskQueue, set);
   }
 }
-
-export const ObserverLocator: IObserverLocator = new ObserverLocatorImplementation();

@@ -1,6 +1,6 @@
 import { BindingMode } from '../binding/binding-mode';
 import { EventSubscriber, IEventSubscriber } from '../binding/event-manager';
-import { ObserverLocator } from '../binding/observer-locator';
+import { IObserverLocator } from '../binding/observer-locator';
 import { Binding } from '../binding/binding';
 import { IScope } from '../binding/binding-context';
 import { ValueAttributeObserver } from '../binding/element-observation';
@@ -8,6 +8,7 @@ import { CheckedObserver } from '../binding/checked-observer';
 import { SelectValueObserver } from '../binding/select-value-observer';
 import { Reporter } from '../reporter';
 import { bindingBehavior } from '../decorators';
+import { inject } from '../di';
 
 type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {
   originalHandler?: IEventSubscriber
@@ -18,7 +19,10 @@ type UpdateTriggerableBinding = Binding & {
 };
 
 @bindingBehavior('updateTrigger')
+@inject(IObserverLocator)
 export class UpdateTriggerBindingBehavior {
+  constructor(private observerLocator: IObserverLocator) {}
+
   bind(binding: UpdateTriggerableBinding, scope: IScope, ...events: string[]) {
     if (events.length === 0) {
       throw Reporter.error(9);
@@ -29,7 +33,7 @@ export class UpdateTriggerBindingBehavior {
     }
 
     // ensure the binding's target observer has been set.
-    let targetObserver = <UpdateTriggerableObserver>ObserverLocator.getObserver(binding.target, binding.targetProperty);
+    let targetObserver = <UpdateTriggerableObserver>this.observerLocator.getObserver(binding.target, binding.targetProperty);
     if (!targetObserver.handler) {
       throw Reporter.error(10);
     }

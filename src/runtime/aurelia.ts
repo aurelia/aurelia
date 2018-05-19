@@ -1,6 +1,7 @@
 import { IElementComponent } from "./templating/component";
 import { PLATFORM } from "./platform";
 import { IContainer, DI } from "./di";
+import { ITaskQueue } from "./task-queue";
 
 export interface ISinglePageApp {
   host: any,
@@ -25,7 +26,7 @@ export class Aurelia {
     let startTask = () => {
       if (!this.components.includes(component)) {
         this.components.push(component);
-        component.$hydrate(this.container, config.host);
+        component.$hydrate(this.container, this.container.get(ITaskQueue), config.host);
       }
 
       component.$bind();

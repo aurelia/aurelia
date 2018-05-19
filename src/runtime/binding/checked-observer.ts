@@ -1,5 +1,5 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { TaskQueue } from '../task-queue';
+import { ITaskQueue } from '../task-queue';
 import { ICallable } from '../interfaces';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
@@ -19,6 +19,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
   constructor(
     private node: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
     public handler: IEventSubscriber,
+    private taskQueue: ITaskQueue,
     private observerLocator: IObserverLocator
   ) {
     super();
@@ -54,7 +55,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
     // queue up an initial sync after the bindings have been evaluated.
     if (!this.initialSync) {
       this.initialSync = true;
-      TaskQueue.queueMicroTask(this);
+      this.taskQueue.queueMicroTask(this);
     }
   }
 

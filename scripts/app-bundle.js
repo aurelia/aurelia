@@ -196,7 +196,7 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/configuration/standard", "./runtime/binding/expression", "./runtime/resources/repeat/repeat", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, ast_1, standard_1, expression_1, repeat_1, if_1, else_1) {
+define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/binding/expression", "./runtime/resources/repeat/repeat", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, ast_1, expression_1, repeat_1, if_1, else_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -226,11 +226,11 @@ define('generated-configuration',["require", "exports", "./runtime/binding/ast",
         addTodo: new ast_1.CallScope('addTodo', emptyArray, 0),
         description: new ast_1.AccessMember(new ast_1.AccessScope('todo'), 'description')
     };
+    var globalResources = [repeat_1.Repeat, if_1.If, else_1.Else];
     exports.GeneratedConfiguration = {
         register: function (container) {
             expression_1.Expression.primeCache(expressionCache);
-            container.register(standard_1.StandardConfiguration);
-            container.register(repeat_1.Repeat, if_1.If, else_1.Else);
+            container.register.apply(container, globalResources);
         }
     };
     ;
@@ -238,11 +238,11 @@ define('generated-configuration',["require", "exports", "./runtime/binding/ast",
 
 
 
-define('main',["require", "exports", "./runtime/aurelia", "./app", "./generated-configuration", "./debug/configuration"], function (require, exports, aurelia_1, app_1, generated_configuration_1, configuration_1) {
+define('main',["require", "exports", "./runtime/aurelia", "./app", "./generated-configuration"], function (require, exports, aurelia_1, app_1, generated_configuration_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     new aurelia_1.Aurelia()
-        .register(generated_configuration_1.GeneratedConfiguration, configuration_1.DebugConfiguration)
+        .register(generated_configuration_1.GeneratedConfiguration)
         .app({ host: document.querySelector('app'), component: new app_1.App() })
         .start();
 });
@@ -387,13 +387,12 @@ define('name-tag',["require", "exports", "./runtime/decorators", "./name-tag-con
 
 
 
-define('debug/configuration',["require", "exports", "./reporter", "./task-queue", "./binding/unparser"], function (require, exports, reporter_1, task_queue_1, unparser_1) {
+define('debug/configuration',["require", "exports", "./reporter", "./binding/unparser"], function (require, exports, reporter_1, unparser_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DebugConfiguration = {
         register: function (container) {
             reporter_1.Reporter.write(2);
-            task_queue_1.TaskQueue.longStacks = true;
             unparser_1.enableImprovedExpressionDebugging();
         }
     };
@@ -527,64 +526,13 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
 
 
 
-define('debug/task-queue',["require", "exports", "../runtime/task-queue"], function (require, exports, task_queue_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var stackSeparator = '\nEnqueued in TaskQueue by:\n';
-    var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
-    var originalOnError = task_queue_1.TaskQueue.onError.bind(task_queue_1.TaskQueue);
-    exports.TaskQueue = Object.assign(task_queue_1.TaskQueue, {
-        prepareTaskStack: function () {
-            return this.prepareStack(stackSeparator);
-        },
-        prepareMicroTaskStack: function () {
-            return this.prepareStack(microStackSeparator);
-        },
-        prepareStack: function (separator) {
-            var stack = separator + filterQueueStack(captureStack());
-            if (typeof this.stack === 'string') {
-                stack = filterFlushStack(stack) + this.stack;
-            }
-            return stack;
-        },
-        onError: function (error, task) {
-            if (this.longStacks && task.stack && typeof error === 'object' && error !== null) {
-                error.stack = filterFlushStack(error.stack) + task.stack;
-            }
-            originalOnError(error, task);
-        }
-    });
-    function captureStack() {
-        var error = new Error();
-        if (error.stack) {
-            return error.stack;
-        }
-        try {
-            throw error;
-        }
-        catch (e) {
-            return e.stack;
-        }
-    }
-    function filterQueueStack(stack) {
-        return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
-    }
-    function filterFlushStack(stack) {
-        var index = stack.lastIndexOf('flushMicroTaskQueue');
-        if (index < 0) {
-            index = stack.lastIndexOf('flushTaskQueue');
-            if (index < 0) {
-                return stack;
-            }
-        }
-        index = stack.lastIndexOf('\n', index);
-        return index < 0 ? stack : stack.substr(0, index);
-    }
-});
 
 
 
-define('runtime/aurelia',["require", "exports", "./platform", "./di"], function (require, exports, platform_1, di_1) {
+
+define("debug/task-queue", [],function(){});
+
+define('runtime/aurelia',["require", "exports", "./platform", "./di", "./task-queue"], function (require, exports, platform_1, di_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Aurelia = (function () {
@@ -611,7 +559,7 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di"], function 
             var startTask = function () {
                 if (!_this.components.includes(component)) {
                     _this.components.push(component);
-                    component.$hydrate(_this.container, config.host);
+                    component.$hydrate(_this.container, _this.container.get(task_queue_1.ITaskQueue), config.host);
                 }
                 component.$bind();
                 component.$attach();
@@ -768,10 +716,10 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
             }
             return dependencies;
         },
-        createInterface: function (key) {
+        createInterface: function (friendlyName) {
             var Key = function (target, property, index) {
                 var inject = target.inject || (target.inject = []);
-                Key.key = key;
+                Key.friendlyName = friendlyName || 'Interface';
                 inject[index] = Key;
                 return target;
             };
@@ -779,19 +727,19 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
                 Key.register = function (container, key) {
                     return configure({
                         instance: function (value) {
-                            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.instance, value));
+                            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.instance, value));
                         },
                         singleton: function (value) {
-                            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.singleton, value));
+                            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.singleton, value));
                         },
                         transient: function (value) {
-                            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.transient, value));
+                            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.transient, value));
                         },
                         factory: function (value) {
-                            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.factory, value));
+                            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.factory, value));
                         },
-                        alias: function (aliasKey) {
-                            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.alias, aliasKey));
+                        aliasTo: function (destinationKey) {
+                            return container.registerResolver(destinationKey, new Resolver(key || Key, ResolverStrategy.alias, Key));
                         },
                     });
                 };
@@ -1399,10 +1347,10 @@ define('runtime/reporter',["require", "exports"], function (require, exports) {
 define('runtime/task-queue',["require", "exports", "./di", "./reporter", "./platform"], function (require, exports, di_1, reporter_1, platform_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ITaskQueue = di_1.DI.createInterface('ITaskQueue')
-        .withDefault(function (x) { return x.singleton(TaskQueueImplementation); });
-    var TaskQueueImplementation = (function () {
-        function TaskQueueImplementation() {
+    exports.ITaskQueue = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(TaskQueue); });
+    var TaskQueue = (function () {
+        function TaskQueue() {
             var _this = this;
             this.microTaskQueue = [];
             this.taskQueue = [];
@@ -1412,7 +1360,7 @@ define('runtime/task-queue',["require", "exports", "./di", "./reporter", "./plat
             this.flushing = false;
             this.longStacks = false;
         }
-        TaskQueueImplementation.prototype.flushQueue = function (queue, capacity) {
+        TaskQueue.prototype.flushQueue = function (queue, capacity) {
             var index = 0;
             var task;
             try {
@@ -1440,7 +1388,7 @@ define('runtime/task-queue',["require", "exports", "./di", "./reporter", "./plat
                 this.flushing = false;
             }
         };
-        TaskQueueImplementation.prototype.queueMicroTask = function (task) {
+        TaskQueue.prototype.queueMicroTask = function (task) {
             if (this.microTaskQueue.length < 1) {
                 this.requestFlushMicroTaskQueue();
             }
@@ -1449,12 +1397,12 @@ define('runtime/task-queue',["require", "exports", "./di", "./reporter", "./plat
             }
             this.microTaskQueue.push(task);
         };
-        TaskQueueImplementation.prototype.flushMicroTaskQueue = function () {
+        TaskQueue.prototype.flushMicroTaskQueue = function () {
             var queue = this.microTaskQueue;
             this.flushQueue(queue, this.microTaskQueueCapacity);
             queue.length = 0;
         };
-        TaskQueueImplementation.prototype.queueTask = function (task) {
+        TaskQueue.prototype.queueTask = function (task) {
             if (this.taskQueue.length < 1) {
                 this.requestFlushTaskQueue();
             }
@@ -1463,18 +1411,18 @@ define('runtime/task-queue',["require", "exports", "./di", "./reporter", "./plat
             }
             this.taskQueue.push(task);
         };
-        TaskQueueImplementation.prototype.flushTaskQueue = function () {
+        TaskQueue.prototype.flushTaskQueue = function () {
             var queue = this.taskQueue;
             this.taskQueue = [];
             this.flushQueue(queue, Number.MAX_VALUE);
         };
-        TaskQueueImplementation.prototype.prepareTaskStack = function () {
+        TaskQueue.prototype.prepareTaskStack = function () {
             throw reporter_1.Reporter.error(13);
         };
-        TaskQueueImplementation.prototype.prepareMicroTaskStack = function () {
+        TaskQueue.prototype.prepareMicroTaskStack = function () {
             throw reporter_1.Reporter.error(13);
         };
-        TaskQueueImplementation.prototype.onError = function (error, task) {
+        TaskQueue.prototype.onError = function (error, task) {
             if ('onError' in task) {
                 task.onError(error);
             }
@@ -1482,9 +1430,8 @@ define('runtime/task-queue',["require", "exports", "./di", "./reporter", "./plat
                 setTimeout(function () { throw error; }, 0);
             }
         };
-        return TaskQueueImplementation;
+        return TaskQueue;
     }());
-    exports.TaskQueue = new TaskQueueImplementation();
 });
 
 
@@ -2139,27 +2086,22 @@ define('runtime/binding/array-observation',["require", "exports", "./collection-
         }
         return methodCallResult;
     };
-    function getArrayObserver(array) {
-        return ModifyArrayObserver.for(array);
+    function getArrayObserver(taskQueue, array) {
+        var observer = array.__array_observer__;
+        if (!observer) {
+            Reflect.defineProperty(array, '__array_observer__', {
+                value: observer = new ModifyArrayObserver(taskQueue, array),
+                enumerable: false, configurable: false
+            });
+        }
+        return observer;
     }
     exports.getArrayObserver = getArrayObserver;
     var ModifyArrayObserver = (function (_super) {
         __extends(ModifyArrayObserver, _super);
-        function ModifyArrayObserver(array) {
-            return _super.call(this, array) || this;
+        function ModifyArrayObserver(taskQueue, array) {
+            return _super.call(this, taskQueue, array) || this;
         }
-        ModifyArrayObserver.for = function (array) {
-            if (!('__array_observer__' in array)) {
-                Reflect.defineProperty(array, '__array_observer__', {
-                    value: ModifyArrayObserver.create(array),
-                    enumerable: false, configurable: false
-                });
-            }
-            return array.__array_observer__;
-        };
-        ModifyArrayObserver.create = function (array) {
-            return new ModifyArrayObserver(array);
-        };
         return ModifyArrayObserver;
     }(collection_observation_1.ModifyCollectionObserver));
 });
@@ -2795,13 +2737,13 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./observer-locator", "./binding-context", "../reporter"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, observer_locator_1, binding_context_1, reporter_1) {
+define('runtime/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./binding-context", "../reporter"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, binding_context_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Binding = (function (_super) {
         __extends(Binding, _super);
-        function Binding(sourceExpression, target, targetProperty, mode, container) {
-            var _this = _super.call(this) || this;
+        function Binding(sourceExpression, target, targetProperty, mode, observerLocator, container) {
+            var _this = _super.call(this, observerLocator) || this;
             _this.sourceExpression = sourceExpression;
             _this.target = target;
             _this.targetProperty = targetProperty;
@@ -2856,7 +2798,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             var mode = this.mode;
             if (!this.targetObserver) {
                 var method = mode === binding_mode_1.BindingMode.twoWay || mode === binding_mode_1.BindingMode.fromView ? 'getObserver' : 'getAccessor';
-                this.targetObserver = observer_locator_1.ObserverLocator[method](this.target, this.targetProperty);
+                this.targetObserver = this.observerLocator[method](this.target, this.targetProperty);
             }
             if ('bind' in this.targetObserver) {
                 this.targetObserver.bind();
@@ -2913,17 +2855,18 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
 
 
 
-define('runtime/binding/call',["require", "exports", "./observer-locator"], function (require, exports, observer_locator_1) {
+define('runtime/binding/call',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Call = (function () {
-        function Call(sourceExpression, target, targetProperty, container) {
+        function Call(sourceExpression, target, targetProperty, observerLocator, container) {
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.targetProperty = targetProperty;
+            this.observerLocator = observerLocator;
             this.container = container;
             this.$isBound = false;
-            this.targetObserver = observer_locator_1.ObserverLocator.getObserver(target, targetProperty);
+            this.targetObserver = observerLocator.getObserver(target, targetProperty);
         }
         Call.prototype.callSource = function ($event) {
             var overrideContext = this.$scope.overrideContext;
@@ -2981,17 +2924,18 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/checked-observer',["require", "exports", "./subscriber-collection", "../task-queue"], function (require, exports, subscriber_collection_1, task_queue_1) {
+define('runtime/binding/checked-observer',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var checkedArrayContext = 'CheckedObserver:array';
     var checkedValueContext = 'CheckedObserver:value';
     var CheckedObserver = (function (_super) {
         __extends(CheckedObserver, _super);
-        function CheckedObserver(node, handler, observerLocator) {
+        function CheckedObserver(node, handler, taskQueue, observerLocator) {
             var _this = _super.call(this) || this;
             _this.node = node;
             _this.handler = handler;
+            _this.taskQueue = taskQueue;
             _this.observerLocator = observerLocator;
             return _this;
         }
@@ -3016,7 +2960,7 @@ define('runtime/binding/checked-observer',["require", "exports", "./subscriber-c
             this.notify();
             if (!this.initialSync) {
                 this.initialSync = true;
-                task_queue_1.TaskQueue.queueMicroTask(this);
+                this.taskQueue.queueMicroTask(this);
             }
         };
         CheckedObserver.prototype.call = function (context, splices) {
@@ -3171,18 +3115,19 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/collection-observation',["require", "exports", "./array-change-records", "./map-change-records", "./subscriber-collection", "../task-queue"], function (require, exports, array_change_records_1, map_change_records_1, subscriber_collection_1, task_queue_1) {
+define('runtime/binding/collection-observation',["require", "exports", "./array-change-records", "./map-change-records", "./subscriber-collection"], function (require, exports, array_change_records_1, map_change_records_1, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ModifyCollectionObserver = (function (_super) {
         __extends(ModifyCollectionObserver, _super);
-        function ModifyCollectionObserver(collection) {
+        function ModifyCollectionObserver(taskQueue, collection) {
             var _this = _super.call(this) || this;
+            _this.taskQueue = taskQueue;
+            _this.collection = collection;
             _this.queued = false;
             _this.changeRecords = null;
             _this.oldCollection = null;
             _this.lengthObserver = null;
-            _this.collection = collection;
             _this.lengthPropertyName = (collection instanceof Map) || (collection instanceof Set) ? 'size' : 'length';
             return _this;
         }
@@ -3218,7 +3163,7 @@ define('runtime/binding/collection-observation',["require", "exports", "./array-
             }
             if (!this.queued) {
                 this.queued = true;
-                task_queue_1.TaskQueue.queueMicroTask(this);
+                this.taskQueue.queueMicroTask(this);
             }
         };
         ModifyCollectionObserver.prototype.flushChangeRecords = function () {
@@ -3230,7 +3175,7 @@ define('runtime/binding/collection-observation',["require", "exports", "./array-
             this.oldCollection = oldCollection;
             if (this.hasSubscribers() && !this.queued) {
                 this.queued = true;
-                task_queue_1.TaskQueue.queueMicroTask(this);
+                this.taskQueue.queueMicroTask(this);
             }
         };
         ModifyCollectionObserver.prototype.getLengthObserver = function () {
@@ -3360,7 +3305,7 @@ define('runtime/binding/connect-queue',["require", "exports", "../platform"], fu
 
 
 
-define('runtime/binding/connectable-binding',["require", "exports", "./observer-locator", "./binding-context"], function (require, exports, observer_locator_1, binding_context_1) {
+define('runtime/binding/connectable-binding',["require", "exports", "./binding-context"], function (require, exports, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var slotNames = [];
@@ -3370,7 +3315,8 @@ define('runtime/binding/connectable-binding',["require", "exports", "./observer-
         versionSlotNames.push("_observerVersion" + i);
     }
     var ConnectableBinding = (function () {
-        function ConnectableBinding() {
+        function ConnectableBinding(observerLocator) {
+            this.observerLocator = observerLocator;
         }
         ConnectableBinding.prototype.addObserver = function (observer) {
             var observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
@@ -3394,11 +3340,11 @@ define('runtime/binding/connectable-binding',["require", "exports", "./observer-
             this[versionSlotNames[i]] = this.version;
         };
         ConnectableBinding.prototype.observeProperty = function (obj, propertyName) {
-            var observer = observer_locator_1.ObserverLocator.getObserver(obj, propertyName);
+            var observer = this.observerLocator.getObserver(obj, propertyName);
             this.addObserver(observer);
         };
         ConnectableBinding.prototype.observeArray = function (array) {
-            var observer = observer_locator_1.ObserverLocator.getArrayObserver(array);
+            var observer = this.observerLocator.getArrayObserver(array);
             this.addObserver(observer);
         };
         ConnectableBinding.prototype.unobserve = function (all) {
@@ -3433,29 +3379,32 @@ var __extends = (this && this.__extends) || (function () {
 define('runtime/binding/dirty-checker',["require", "exports", "./subscriber-collection", "../di"], function (require, exports, subscriber_collection_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.IDirtyChecker = di_1.DI.createInterface('IDirtyChecker');
-    var Checker = {
-        tracked: [],
-        checkDelay: 120,
-        createProperty: function (obj, propertyName) {
-            return new DirtyCheckProperty(obj, propertyName);
-        },
-        addProperty: function (property) {
+    exports.IDirtyChecker = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(DirtyChecker); });
+    var DirtyChecker = (function () {
+        function DirtyChecker() {
+            this.tracked = [];
+            this.checkDelay = 120;
+        }
+        DirtyChecker.prototype.createProperty = function (obj, propertyName) {
+            return new DirtyCheckProperty(this, obj, propertyName);
+        };
+        DirtyChecker.prototype.addProperty = function (property) {
             var tracked = this.tracked;
             tracked.push(property);
             if (tracked.length === 1) {
                 this.scheduleDirtyCheck();
             }
-        },
-        removeProperty: function (property) {
+        };
+        DirtyChecker.prototype.removeProperty = function (property) {
             var tracked = this.tracked;
             tracked.splice(tracked.indexOf(property), 1);
-        },
-        scheduleDirtyCheck: function () {
+        };
+        DirtyChecker.prototype.scheduleDirtyCheck = function () {
             var _this = this;
             setTimeout(function () { return _this.check(); }, this.checkDelay);
-        },
-        check: function () {
+        };
+        DirtyChecker.prototype.check = function () {
             var tracked = this.tracked;
             var i = tracked.length;
             while (i--) {
@@ -3467,12 +3416,14 @@ define('runtime/binding/dirty-checker',["require", "exports", "./subscriber-coll
             if (tracked.length) {
                 this.scheduleDirtyCheck();
             }
-        }
-    };
+        };
+        return DirtyChecker;
+    }());
     var DirtyCheckProperty = (function (_super) {
         __extends(DirtyCheckProperty, _super);
-        function DirtyCheckProperty(obj, propertyName) {
+        function DirtyCheckProperty(dirtyChecker, obj, propertyName) {
             var _this = _super.call(this) || this;
+            _this.dirtyChecker = dirtyChecker;
             _this.obj = obj;
             _this.propertyName = propertyName;
             return _this;
@@ -3495,18 +3446,17 @@ define('runtime/binding/dirty-checker',["require", "exports", "./subscriber-coll
         DirtyCheckProperty.prototype.subscribe = function (context, callable) {
             if (!this.hasSubscribers()) {
                 this.oldValue = this.getValue();
-                Checker.addProperty(this);
+                this.dirtyChecker.addProperty(this);
             }
             this.addSubscriber(context, callable);
         };
         DirtyCheckProperty.prototype.unsubscribe = function (context, callable) {
             if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
-                Checker.removeProperty(this);
+                this.dirtyChecker.removeProperty(this);
             }
         };
         return DirtyCheckProperty;
     }(subscriber_collection_1.SubscriberCollection));
-    exports.DirtyChecker = Checker;
 });
 
 
@@ -3831,9 +3781,10 @@ define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"]
         return EventSubscriber;
     }());
     exports.EventSubscriber = EventSubscriber;
-    exports.IEventManager = di_1.DI.createInterface('IEventManager');
-    var EventManagerImplementation = (function () {
-        function EventManagerImplementation() {
+    exports.IEventManager = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(EventManager); });
+    var EventManager = (function () {
+        function EventManager() {
             this.elementHandlerLookup = {};
             this.delegatedHandlers = {};
             this.capturedHandlers = {};
@@ -3871,7 +3822,7 @@ define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"]
                 }
             });
         }
-        EventManagerImplementation.prototype.registerElementConfiguration = function (config) {
+        EventManager.prototype.registerElementConfiguration = function (config) {
             var tagName = config.tagName.toLowerCase();
             var properties = config.properties;
             var lookup = this.elementHandlerLookup[tagName] = {};
@@ -3881,7 +3832,7 @@ define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"]
                 }
             }
         };
-        EventManagerImplementation.prototype.getElementHandler = function (target, propertyName) {
+        EventManager.prototype.getElementHandler = function (target, propertyName) {
             var name = dom_1.DOM.normalizedTagName(target);
             var lookup = this.elementHandlerLookup;
             if (name) {
@@ -3897,7 +3848,7 @@ define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"]
             }
             return null;
         };
-        EventManagerImplementation.prototype.addEventListener = function (target, targetEvent, callbackOrListener, strategy) {
+        EventManager.prototype.addEventListener = function (target, targetEvent, callbackOrListener, strategy) {
             var delegatedHandlers;
             var capturedHandlers;
             var handlerEntry;
@@ -3919,9 +3870,8 @@ define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"]
             }
             return new TriggerSubscription(target, targetEvent, callbackOrListener);
         };
-        return EventManagerImplementation;
+        return EventManager;
     }());
-    exports.EventManager = new EventManagerImplementation();
 });
 
 
@@ -3950,16 +3900,17 @@ define('runtime/binding/expression',["require", "exports", "../reporter"], funct
 
 
 
-define('runtime/binding/listener',["require", "exports", "./event-manager"], function (require, exports, event_manager_1) {
+define('runtime/binding/listener',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Listener = (function () {
-        function Listener(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, container) {
+        function Listener(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, container) {
             this.targetEvent = targetEvent;
             this.delegationStrategy = delegationStrategy;
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.preventDefault = preventDefault;
+            this.eventManager = eventManager;
             this.container = container;
             this.$isBound = false;
             this.targetEvent = targetEvent;
@@ -3995,7 +3946,7 @@ define('runtime/binding/listener',["require", "exports", "./event-manager"], fun
             if (this.sourceExpression.bind) {
                 this.sourceExpression.bind(this, source);
             }
-            this.handler = event_manager_1.EventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
+            this.handler = this.eventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
         };
         Listener.prototype.$unbind = function () {
             if (!this.$isBound) {
@@ -4061,26 +4012,22 @@ define('runtime/binding/map-observation',["require", "exports", "./collection-ob
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var mapProto = Map.prototype;
-    function getMapObserver(map) {
-        return ModifyMapObserver.for(map);
+    function getMapObserver(taskQueue, map) {
+        var observer = map.__map_observer__;
+        if (!observer) {
+            Reflect.defineProperty(map, '__map_observer__', {
+                value: observer = new ModifyMapObserver(taskQueue, map),
+                enumerable: false, configurable: false
+            });
+        }
+        return observer;
     }
     exports.getMapObserver = getMapObserver;
     var ModifyMapObserver = (function (_super) {
         __extends(ModifyMapObserver, _super);
-        function ModifyMapObserver(map) {
-            return _super.call(this, map) || this;
-        }
-        ModifyMapObserver.for = function (map) {
-            if (!('__map_observer__' in map)) {
-                Reflect.defineProperty(map, '__map_observer__', {
-                    value: ModifyMapObserver.create(map),
-                    enumerable: false, configurable: false
-                });
-            }
-            return map.__map_observer__;
-        };
-        ModifyMapObserver.create = function (map) {
-            var observer = new ModifyMapObserver(map);
+        function ModifyMapObserver(taskQueue, map) {
+            var _this = _super.call(this, taskQueue, map) || this;
+            var observer = _this;
             var proto = mapProto;
             if (proto.set !== map.set || proto.delete !== map.delete || proto.clear !== map.clear) {
                 proto = {
@@ -4126,8 +4073,8 @@ define('runtime/binding/map-observation',["require", "exports", "./collection-ob
                 });
                 return methodCallResult;
             };
-            return observer;
-        };
+            return _this;
+        }
         return ModifyMapObserver;
     }(collection_observation_1.ModifyCollectionObserver));
 });
@@ -4141,10 +4088,20 @@ define('runtime/binding/observation',["require", "exports"], function (require, 
 
 
 
-define('runtime/binding/observer-locator',["require", "exports", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checker", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg-analyzer", "../reporter", "../di"], function (require, exports, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checker_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_analyzer_1, reporter_1, di_1) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/binding/observer-locator',["require", "exports", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checker", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg-analyzer", "../reporter", "../di", "../task-queue"], function (require, exports, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checker_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_analyzer_1, reporter_1, di_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.IObserverLocator = di_1.DI.createInterface('IObserverLocator');
+    exports.IObserverLocator = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(ObserverLocator); });
     function getPropertyDescriptor(subject, name) {
         var pd = Object.getOwnPropertyDescriptor(subject, name);
         var proto = Object.getPrototypeOf(subject);
@@ -4154,11 +4111,15 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
         }
         return pd;
     }
-    var ObserverLocatorImplementation = (function () {
-        function ObserverLocatorImplementation() {
+    var ObserverLocator = (function () {
+        function ObserverLocator(taskQueue, eventManager, dirtyChecker, svgAnalyzer) {
+            this.taskQueue = taskQueue;
+            this.eventManager = eventManager;
+            this.dirtyChecker = dirtyChecker;
+            this.svgAnalyzer = svgAnalyzer;
             this.adapters = [];
         }
-        ObserverLocatorImplementation.prototype.getObserver = function (obj, propertyName) {
+        ObserverLocator.prototype.getObserver = function (obj, propertyName) {
             var observersLookup = obj.$observers;
             var observer;
             if (observersLookup && propertyName in observersLookup) {
@@ -4173,10 +4134,10 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             }
             return observer;
         };
-        ObserverLocatorImplementation.prototype.getOrCreateObserversLookup = function (obj) {
+        ObserverLocator.prototype.getOrCreateObserversLookup = function (obj) {
             return obj.$observers || this.createObserversLookup(obj);
         };
-        ObserverLocatorImplementation.prototype.createObserversLookup = function (obj) {
+        ObserverLocator.prototype.createObserversLookup = function (obj) {
             var value = {};
             if (!Reflect.defineProperty(obj, '$observers', {
                 enumerable: false,
@@ -4188,10 +4149,10 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             }
             return value;
         };
-        ObserverLocatorImplementation.prototype.addAdapter = function (adapter) {
+        ObserverLocator.prototype.addAdapter = function (adapter) {
             this.adapters.push(adapter);
         };
-        ObserverLocatorImplementation.prototype.getAdapterObserver = function (obj, propertyName, descriptor) {
+        ObserverLocator.prototype.getAdapterObserver = function (obj, propertyName, descriptor) {
             for (var i = 0, ii = this.adapters.length; i < ii; i++) {
                 var adapter = this.adapters[i];
                 var observer = adapter.getObserver(obj, propertyName, descriptor);
@@ -4201,7 +4162,7 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             }
             return null;
         };
-        ObserverLocatorImplementation.prototype.createPropertyObserver = function (obj, propertyName) {
+        ObserverLocator.prototype.createPropertyObserver = function (obj, propertyName) {
             if (!(obj instanceof Object)) {
                 return new property_observation_1.PrimitiveObserver(obj, propertyName);
             }
@@ -4212,12 +4173,12 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
                 if (propertyName === 'style' || propertyName === 'css') {
                     return new element_observation_1.StyleObserver(obj, propertyName);
                 }
-                var handler = event_manager_1.EventManager.getElementHandler(obj, propertyName);
+                var handler = this.eventManager.getElementHandler(obj, propertyName);
                 if (propertyName === 'value' && dom_1.DOM.normalizedTagName(obj) === 'select') {
-                    return new select_value_observer_1.SelectValueObserver(obj, handler, this);
+                    return new select_value_observer_1.SelectValueObserver(obj, handler, this.taskQueue, this);
                 }
                 if (propertyName === 'checked' && dom_1.DOM.normalizedTagName(obj) === 'input') {
-                    return new checked_observer_1.CheckedObserver(obj, handler, this);
+                    return new checked_observer_1.CheckedObserver(obj, handler, this.taskQueue, this);
                 }
                 if (handler) {
                     return new element_observation_1.ValueAttributeObserver(obj, propertyName, handler);
@@ -4228,7 +4189,7 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
                 }
                 if (propertyName === 'role'
                     || /^\w+:|^data-|^aria-/.test(propertyName)
-                    || svg_analyzer_1.SVGAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
+                    || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
                     return new element_observation_1.DataAttributeObserver(obj, propertyName);
                 }
             }
@@ -4243,30 +4204,30 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
                     if (adapterObserver) {
                         return adapterObserver;
                     }
-                    return dirty_checker_1.DirtyChecker.createProperty(obj, propertyName);
+                    return this.dirtyChecker.createProperty(obj, propertyName);
                 }
             }
             if (obj instanceof Array) {
                 if (propertyName === 'length') {
                     return this.getArrayObserver(obj).getLengthObserver();
                 }
-                return dirty_checker_1.DirtyChecker.createProperty(obj, propertyName);
+                return this.dirtyChecker.createProperty(obj, propertyName);
             }
             else if (obj instanceof Map) {
                 if (propertyName === 'size') {
                     return this.getMapObserver(obj).getLengthObserver();
                 }
-                return dirty_checker_1.DirtyChecker.createProperty(obj, propertyName);
+                return this.dirtyChecker.createProperty(obj, propertyName);
             }
             else if (obj instanceof Set) {
                 if (propertyName === 'size') {
                     return this.getSetObserver(obj).getLengthObserver();
                 }
-                return dirty_checker_1.DirtyChecker.createProperty(obj, propertyName);
+                return this.dirtyChecker.createProperty(obj, propertyName);
             }
-            return new property_observation_1.SetterObserver(obj, propertyName);
+            return new property_observation_1.SetterObserver(this.taskQueue, obj, propertyName);
         };
-        ObserverLocatorImplementation.prototype.getAccessor = function (obj, propertyName) {
+        ObserverLocator.prototype.getAccessor = function (obj, propertyName) {
             if (dom_1.DOM.isNodeInstance(obj)) {
                 var normalizedTagName = dom_1.DOM.normalizedTagName;
                 if (propertyName === 'class'
@@ -4278,7 +4239,7 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
                     return this.getObserver(obj, propertyName);
                 }
                 if (/^\w+:|^data-|^aria-/.test(propertyName)
-                    || svg_analyzer_1.SVGAnalyzer.isStandardSvgAttribute(obj, propertyName)
+                    || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)
                     || normalizedTagName(obj) === 'img' && propertyName === 'src'
                     || normalizedTagName(obj) === 'a' && propertyName === 'href') {
                     return element_observation_1.dataAttributeAccessor;
@@ -4286,18 +4247,21 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             }
             return property_observation_1.propertyAccessor;
         };
-        ObserverLocatorImplementation.prototype.getArrayObserver = function (array) {
-            return array_observation_1.getArrayObserver(array);
+        ObserverLocator.prototype.getArrayObserver = function (array) {
+            return array_observation_1.getArrayObserver(this.taskQueue, array);
         };
-        ObserverLocatorImplementation.prototype.getMapObserver = function (map) {
-            return map_observation_1.getMapObserver(map);
+        ObserverLocator.prototype.getMapObserver = function (map) {
+            return map_observation_1.getMapObserver(this.taskQueue, map);
         };
-        ObserverLocatorImplementation.prototype.getSetObserver = function (set) {
-            return set_observation_1.getSetObserver(set);
+        ObserverLocator.prototype.getSetObserver = function (set) {
+            return set_observation_1.getSetObserver(this.taskQueue, set);
         };
-        return ObserverLocatorImplementation;
+        ObserverLocator = __decorate([
+            di_1.inject(task_queue_1.ITaskQueue, event_manager_1.IEventManager, dirty_checker_1.IDirtyChecker, svg_analyzer_1.ISVGAnalyzer),
+            __metadata("design:paramtypes", [Object, Object, Object, Object])
+        ], ObserverLocator);
+        return ObserverLocator;
     }());
-    exports.ObserverLocator = new ObserverLocatorImplementation();
 });
 
 
@@ -4312,7 +4276,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/property-observation',["require", "exports", "./subscriber-collection", "../task-queue", "../reporter"], function (require, exports, subscriber_collection_1, task_queue_1, reporter_1) {
+define('runtime/binding/property-observation',["require", "exports", "./subscriber-collection", "../reporter"], function (require, exports, subscriber_collection_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.propertyAccessor = {
@@ -4340,8 +4304,9 @@ define('runtime/binding/property-observation',["require", "exports", "./subscrib
     exports.PrimitiveObserver = PrimitiveObserver;
     var SetterObserver = (function (_super) {
         __extends(SetterObserver, _super);
-        function SetterObserver(obj, propertyName) {
+        function SetterObserver(taskQueue, obj, propertyName) {
             var _this = _super.call(this) || this;
+            _this.taskQueue = taskQueue;
             _this.obj = obj;
             _this.propertyName = propertyName;
             _this.queued = false;
@@ -4363,7 +4328,7 @@ define('runtime/binding/property-observation',["require", "exports", "./subscrib
                 if (!this.queued) {
                     this.oldValue = oldValue;
                     this.queued = true;
-                    task_queue_1.TaskQueue.queueMicroTask(this);
+                    this.taskQueue.queueMicroTask(this);
                 }
                 this.currentValue = newValue;
             }
@@ -4402,8 +4367,9 @@ define('runtime/binding/property-observation',["require", "exports", "./subscrib
     exports.SetterObserver = SetterObserver;
     var Observer = (function (_super) {
         __extends(Observer, _super);
-        function Observer(currentValue, selfCallback) {
+        function Observer(taskQueue, currentValue, selfCallback) {
             var _this = _super.call(this) || this;
+            _this.taskQueue = taskQueue;
             _this.currentValue = currentValue;
             _this.selfCallback = selfCallback;
             _this.queued = false;
@@ -4418,7 +4384,7 @@ define('runtime/binding/property-observation',["require", "exports", "./subscrib
                 if (!this.queued) {
                     this.oldValue = oldValue;
                     this.queued = true;
-                    task_queue_1.TaskQueue.queueMicroTask(this);
+                    this.taskQueue.queueMicroTask(this);
                 }
                 if (this.selfCallback !== undefined) {
                     var coercedValue = this.selfCallback(newValue, oldValue);
@@ -4503,16 +4469,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../task-queue", "../dom"], function (require, exports, subscriber_collection_1, task_queue_1, dom_1) {
+define('runtime/binding/select-value-observer',["require", "exports", "./subscriber-collection", "../dom"], function (require, exports, subscriber_collection_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var selectArrayContext = 'SelectValueObserver:array';
     var SelectValueObserver = (function (_super) {
         __extends(SelectValueObserver, _super);
-        function SelectValueObserver(node, handler, observerLocator) {
+        function SelectValueObserver(node, handler, taskQueue, observerLocator) {
             var _this = _super.call(this) || this;
             _this.node = node;
             _this.handler = handler;
+            _this.taskQueue = taskQueue;
             _this.observerLocator = observerLocator;
             _this.initialSync = false;
             _this.node = node;
@@ -4544,7 +4511,7 @@ define('runtime/binding/select-value-observer',["require", "exports", "./subscri
             this.notify();
             if (!this.initialSync) {
                 this.initialSync = true;
-                task_queue_1.TaskQueue.queueMicroTask(this);
+                this.taskQueue.queueMicroTask(this);
             }
         };
         SelectValueObserver.prototype.call = function (context, splices) {
@@ -4685,26 +4652,22 @@ define('runtime/binding/set-observation',["require", "exports", "./collection-ob
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var setProto = Set.prototype;
-    function getSetObserver(set) {
-        return ModifySetObserver.for(set);
+    function getSetObserver(taskQueue, set) {
+        var observer = set.__set_observer__;
+        if (!observer) {
+            Reflect.defineProperty(set, '__set_observer__', {
+                value: observer = new ModifySetObserver(taskQueue, set),
+                enumerable: false, configurable: false
+            });
+        }
+        return observer;
     }
     exports.getSetObserver = getSetObserver;
     var ModifySetObserver = (function (_super) {
         __extends(ModifySetObserver, _super);
-        function ModifySetObserver(set) {
-            return _super.call(this, set) || this;
-        }
-        ModifySetObserver.for = function (set) {
-            if (!('__set_observer__' in set)) {
-                Reflect.defineProperty(set, '__set_observer__', {
-                    value: ModifySetObserver.create(set),
-                    enumerable: false, configurable: false
-                });
-            }
-            return set.__set_observer__;
-        };
-        ModifySetObserver.create = function (set) {
-            var observer = new ModifySetObserver(set);
+        function ModifySetObserver(taskQueue, set) {
+            var _this = _super.call(this, taskQueue, set) || this;
+            var observer = _this;
             var proto = setProto;
             if (proto.add !== set.add || proto.delete !== set.delete || proto.clear !== set.clear) {
                 proto = {
@@ -4748,7 +4711,7 @@ define('runtime/binding/set-observation',["require", "exports", "./collection-ob
                 return methodCallResult;
             };
             return observer;
-        };
+        }
         return ModifySetObserver;
     }(collection_observation_1.ModifyCollectionObserver));
 });
@@ -4964,28 +4927,12 @@ define('runtime/binding/subscriber-collection',["require", "exports"], function 
 define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function (require, exports, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ISVGAnalyzer = di_1.DI.createInterface();
-    exports.SVGAnalyzer = {
+    exports.ISVGAnalyzer = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.instance({
         isStandardSvgAttribute: function (node, attributeName) {
             return false;
         }
-    };
-});
-
-
-
-define('runtime/configuration/standard',["require", "exports", "../di", "../task-queue", "../binding/dirty-checker", "../binding/svg-analyzer", "../binding/event-manager", "../binding/observer-locator"], function (require, exports, di_1, task_queue_1, dirty_checker_1, svg_analyzer_1, event_manager_1, observer_locator_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = {
-        register: function (container) {
-            container.register(di_1.Registration.instance(dirty_checker_1.IDirtyChecker, dirty_checker_1.DirtyChecker));
-            container.register(di_1.Registration.instance(task_queue_1.ITaskQueue, task_queue_1.TaskQueue));
-            container.register(di_1.Registration.instance(svg_analyzer_1.ISVGAnalyzer, svg_analyzer_1.SVGAnalyzer));
-            container.register(di_1.Registration.instance(event_manager_1.IEventManager, event_manager_1.EventManager));
-            container.register(di_1.Registration.instance(observer_locator_1.IObserverLocator, observer_locator_1.ObserverLocator));
-        }
-    };
+    }); });
 });
 
 
@@ -5816,11 +5763,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('runtime/resources/update-trigger-binding-behavior',["require", "exports", "../binding/binding-mode", "../binding/event-manager", "../binding/observer-locator", "../reporter", "../decorators"], function (require, exports, binding_mode_1, event_manager_1, observer_locator_1, reporter_1, decorators_1) {
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/resources/update-trigger-binding-behavior',["require", "exports", "../binding/binding-mode", "../binding/event-manager", "../binding/observer-locator", "../reporter", "../decorators", "../di"], function (require, exports, binding_mode_1, event_manager_1, observer_locator_1, reporter_1, decorators_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var UpdateTriggerBindingBehavior = (function () {
-        function UpdateTriggerBindingBehavior() {
+        function UpdateTriggerBindingBehavior(observerLocator) {
+            this.observerLocator = observerLocator;
         }
         UpdateTriggerBindingBehavior.prototype.bind = function (binding, scope) {
             var events = [];
@@ -5833,7 +5784,7 @@ define('runtime/resources/update-trigger-binding-behavior',["require", "exports"
             if (binding.mode !== binding_mode_1.BindingMode.twoWay && binding.mode !== binding_mode_1.BindingMode.fromView) {
                 throw reporter_1.Reporter.error(10);
             }
-            var targetObserver = observer_locator_1.ObserverLocator.getObserver(binding.target, binding.targetProperty);
+            var targetObserver = this.observerLocator.getObserver(binding.target, binding.targetProperty);
             if (!targetObserver.handler) {
                 throw reporter_1.Reporter.error(10);
             }
@@ -5847,7 +5798,9 @@ define('runtime/resources/update-trigger-binding-behavior',["require", "exports"
             binding.targetObserver.originalHandler = null;
         };
         UpdateTriggerBindingBehavior = __decorate([
-            decorators_1.bindingBehavior('updateTrigger')
+            decorators_1.bindingBehavior('updateTrigger'),
+            di_1.inject(observer_locator_1.IObserverLocator),
+            __metadata("design:paramtypes", [Object])
         ], UpdateTriggerBindingBehavior);
         return UpdateTriggerBindingBehavior;
     }());
@@ -5934,7 +5887,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../task-queue", "../binding/property-observation", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom", "../binding/subscriber-collection", "./template-cache"], function (require, exports, view_engine_1, view_1, task_queue_1, property_observation_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1, subscriber_collection_1, template_cache_1) {
+define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../binding/property-observation", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom", "../binding/subscriber-collection", "./template-cache"], function (require, exports, view_engine_1, view_1, property_observation_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1, subscriber_collection_1, template_cache_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
@@ -5970,21 +5923,13 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             return _a = (function (_super) {
                     __extends(CustomAttribute, _super);
                     function CustomAttribute() {
-                        var args = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            args[_i] = arguments[_i];
-                        }
-                        var _this = _super.apply(this, args) || this;
+                        var _this = _super !== null && _super.apply(this, arguments) || this;
                         _this.$changeCallbacks = [];
                         _this.$behavior = null;
                         _this.$isAttached = false;
                         _this.$isBound = false;
                         _this.$scope = null;
                         _this.$slot = null;
-                        RuntimeBehavior.get(_this, observables, CustomAttribute).applyToAttribute(_this);
-                        if (_this.$behavior.hasCreated) {
-                            _this.created();
-                        }
                         return _this;
                     }
                     CustomAttribute.register = function (container) {
@@ -5994,6 +5939,12 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             for (var i = 0, ii = aliases.length; i < ii; ++i) {
                                 container.register(di_1.Registration.alias(source.name, aliases[i]));
                             }
+                        }
+                    };
+                    CustomAttribute.prototype.$hydrate = function (taskQueue) {
+                        RuntimeBehavior.get(this, observables, CustomAttribute).applyToAttribute(taskQueue, this);
+                        if (this.$behavior.hasCreated) {
+                            this.created();
                         }
                     };
                     CustomAttribute.prototype.$bind = function (scope) {
@@ -6071,11 +6022,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             var CompiledComponent = (_a = (function (_super) {
                     __extends(class_1, _super);
                     function class_1() {
-                        var args = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            args[_i] = arguments[_i];
-                        }
-                        var _this = _super.apply(this, args) || this;
+                        var _this = _super !== null && _super.apply(this, arguments) || this;
                         _this.$bindable = [];
                         _this.$attachable = [];
                         _this.$slots = source.hasSlots ? {} : null;
@@ -6093,14 +6040,14 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                         _this.$shadowRoot = null;
                         _this.$changeCallbacks = [];
                         _this.$behavior = null;
-                        RuntimeBehavior.get(_this, observables, CompiledComponent).applyToElement(_this);
                         return _this;
                     }
                     class_1.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    class_1.prototype.$hydrate = function (container, host, replacements, contentOverride) {
+                    class_1.prototype.$hydrate = function (container, taskQueue, host, replacements, contentOverride) {
                         if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
+                        RuntimeBehavior.get(this, observables, CompiledComponent).applyToElement(taskQueue, this);
                         this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
                         this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
                         this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
@@ -6275,12 +6222,12 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             behavior.hasCreateView = 'createView' in instance;
             return behavior;
         };
-        RuntimeBehavior.prototype.applyToAttribute = function (instance) {
-            this.applyTo(instance);
+        RuntimeBehavior.prototype.applyToAttribute = function (taskQueue, instance) {
+            this.applyTo(taskQueue, instance);
         };
-        RuntimeBehavior.prototype.applyToElement = function (instance) {
-            var observers = this.applyTo(instance);
-            observers.$children = new ChildrenObserver(instance);
+        RuntimeBehavior.prototype.applyToElement = function (taskQueue, instance) {
+            var observers = this.applyTo(taskQueue, instance);
+            observers.$children = new ChildrenObserver(taskQueue, instance);
             Reflect.defineProperty(instance, '$children', {
                 enumerable: false,
                 get: function () {
@@ -6288,7 +6235,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                 }
             });
         };
-        RuntimeBehavior.prototype.applyTo = function (instance) {
+        RuntimeBehavior.prototype.applyTo = function (taskQueue, instance) {
             var observers = {};
             var finalObservables = this.observables;
             var observableNames = Object.getOwnPropertyNames(finalObservables);
@@ -6297,11 +6244,11 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                 var observable = finalObservables[name_2];
                 var changeHandler = observable.callback;
                 if (changeHandler in instance) {
-                    observers[name_2] = new property_observation_1.Observer(instance[name_2], function (v) { return instance.$isBound ? instance[changeHandler](v) : void 0; });
+                    observers[name_2] = new property_observation_1.Observer(taskQueue, instance[name_2], function (v) { return instance.$isBound ? instance[changeHandler](v) : void 0; });
                     instance.$changeCallbacks.push(function () { return instance[changeHandler](instance[name_2]); });
                 }
                 else {
-                    observers[name_2] = new property_observation_1.Observer(instance[name_2]);
+                    observers[name_2] = new property_observation_1.Observer(taskQueue, instance[name_2]);
                 }
                 createGetterSetter(instance, name_2);
             };
@@ -6326,8 +6273,9 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
     }
     var ChildrenObserver = (function (_super) {
         __extends(ChildrenObserver, _super);
-        function ChildrenObserver(component) {
+        function ChildrenObserver(taskQueue, component) {
             var _this = _super.call(this) || this;
+            _this.taskQueue = taskQueue;
             _this.component = component;
             _this.observer = null;
             _this.children = null;
@@ -6350,7 +6298,7 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
             }
             if (!this.queued) {
                 this.queued = true;
-                task_queue_1.TaskQueue.queueMicroTask(this);
+                this.taskQueue.queueMicroTask(this);
             }
         };
         ChildrenObserver.prototype.call = function () {
@@ -7069,6 +7017,43 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
 
 
 
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/templating/template-cache',["require", "exports", "../di"], function (require, exports, di_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ITemplateCache = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(TemplateCache); });
+    var TemplateCache = (function () {
+        function TemplateCache(container) {
+            this.container = container;
+            this.lookup = new Map();
+        }
+        TemplateCache.prototype.getTemplate = function (key, onMiss) {
+            var found = this.lookup.get(key);
+            if (!found) {
+                found = onMiss(this.container);
+                this.lookup.set(key, found);
+            }
+            return found;
+        };
+        TemplateCache = __decorate([
+            di_1.inject(di_1.IContainer),
+            __metadata("design:paramtypes", [Object])
+        ], TemplateCache);
+        return TemplateCache;
+    }());
+});
+
+
+
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -7079,7 +7064,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode", "./lifecycle", "../reporter", "./instructions", "../dom"], function (require, exports, platform_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1, lifecycle_1, reporter_1, instructions_1, dom_1) {
+define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode", "./lifecycle", "../reporter", "./instructions", "../dom", "../task-queue", "../binding/observer-locator", "../binding/event-manager"], function (require, exports, platform_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1, lifecycle_1, reporter_1, instructions_1, dom_1, task_queue_1, observer_locator_1, event_manager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -7124,15 +7109,16 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
                 }
                 ComponentVisual.prototype.createView = function () {
                     var target;
+                    var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), this);
                     if (typeof componentOrType === 'function') {
                         target = dom_1.DOM.createElement(componentOrType.source.name);
-                        interpreter[instructions_1.TargetedInstructionType.hydrateElement](this, instruction, target, null, container);
+                        interpreter[instructions_1.TargetedInstructionType.hydrateElement](target, instruction);
                         this.component = this.$attachable[this.$attachable.length - 1];
                     }
                     else {
                         var componentType = componentOrType.constructor;
                         target = componentOrType.element || dom_1.DOM.createElement(componentType.source.name);
-                        applyElementInstructionToComponentInstance(componentOrType, instruction, container, target, this);
+                        interpreter.applyElementInstructionToComponentInstance(target, instruction, componentOrType);
                         this.component = componentOrType;
                     }
                     return view_1.View.fromNode(target);
@@ -7147,101 +7133,118 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             return new ComponentVisual();
         }
     };
-    var interpreter = (_a = {},
-        _a[instructions_1.TargetedInstructionType.textBinding] = function (owner, instruction, target, replacements, container) {
+    var InstructionInterpreter = (function () {
+        function InstructionInterpreter(container, taskQueue, observerLoator, eventManager, owner, host, replacements) {
+            this.container = container;
+            this.taskQueue = taskQueue;
+            this.observerLoator = observerLoator;
+            this.eventManager = eventManager;
+            this.owner = owner;
+            this.host = host;
+            this.replacements = replacements;
+        }
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.textBinding] = function (target, instruction) {
             var next = target.nextSibling;
             dom_1.DOM.treatAsNonWhitespace(next);
             dom_1.DOM.remove(target);
-            owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, container));
-        },
-        _a[instructions_1.TargetedInstructionType.oneWayBinding] = function (owner, instruction, target, replacements, container) {
-            owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.oneWay, container));
-        },
-        _a[instructions_1.TargetedInstructionType.fromViewBinding] = function (owner, instruction, target, replacements, container) {
-            owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.fromView, container));
-        },
-        _a[instructions_1.TargetedInstructionType.twoWayBinding] = function (owner, instruction, target, replacements, container) {
-            owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.twoWay, container));
-        },
-        _a[instructions_1.TargetedInstructionType.listenerBinding] = function (owner, instruction, target, replacements, container) {
-            owner.$bindable.push(new listener_1.Listener(instruction.src, instruction.strategy, expression_1.Expression.from(instruction.dest), target, instruction.preventDefault, container));
-        },
-        _a[instructions_1.TargetedInstructionType.callBinding] = function (owner, instruction, target, replacements, container) {
-            owner.$bindable.push(new call_1.Call(expression_1.Expression.from(instruction.src), target, instruction.dest, container));
-        },
-        _a[instructions_1.TargetedInstructionType.refBinding] = function (owner, instruction, target, replacements, container) {
-            owner.$bindable.push(new ref_1.Ref(expression_1.Expression.from(instruction.src), target, container));
-        },
-        _a[instructions_1.TargetedInstructionType.stylePropertyBinding] = function (owner, instruction, target, replacements, container) {
-            owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target.style, instruction.dest, binding_mode_1.BindingMode.oneWay, container));
-        },
-        _a[instructions_1.TargetedInstructionType.setProperty] = function (owner, instruction, target, replacements, container) {
+            this.owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.oneWayBinding] = function (target, instruction) {
+            this.owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.fromViewBinding] = function (target, instruction) {
+            this.owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.fromView, this.observerLoator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.twoWayBinding] = function (target, instruction) {
+            this.owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.twoWay, this.observerLoator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.listenerBinding] = function (target, instruction) {
+            this.owner.$bindable.push(new listener_1.Listener(instruction.src, instruction.strategy, expression_1.Expression.from(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.callBinding] = function (target, instruction) {
+            this.owner.$bindable.push(new call_1.Call(expression_1.Expression.from(instruction.src), target, instruction.dest, this.observerLoator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.refBinding] = function (target, instruction) {
+            this.owner.$bindable.push(new ref_1.Ref(expression_1.Expression.from(instruction.src), target, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.stylePropertyBinding] = function (target, instruction) {
+            this.owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target.style, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setProperty] = function (target, instruction) {
             target[instruction.dest] = instruction.value;
-        },
-        _a[instructions_1.TargetedInstructionType.setAttribute] = function (owner, instruction, target, replacements, container) {
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setAttribute] = function (target, instruction) {
             dom_1.DOM.setAttribute(target, instruction.dest, instruction.value);
-        },
-        _a[instructions_1.TargetedInstructionType.hydrateSlot] = function (owner, instruction, target, replacements, container) {
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateSlot] = function (target, instruction) {
+            var owner = this.owner;
             if (!owner.$usingSlotEmulation) {
                 return;
             }
             var fallbackFactory = instruction.factory;
             if (fallbackFactory === undefined && instruction.fallback) {
-                instruction.factory = fallbackFactory = exports.ViewEngine.factoryFromCompiledSource(container, instruction.fallback);
+                instruction.factory = fallbackFactory = exports.ViewEngine.factoryFromCompiledSource(this.container, instruction.fallback);
             }
             var slot = shadow_dom_1.ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
             owner.$slots[slot.name] = slot;
             owner.$bindable.push(slot);
             owner.$attachable.push(slot);
-        },
-        _a[instructions_1.TargetedInstructionType.hydrateElement] = function (owner, instruction, target, replacements, container) {
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateElement] = function (target, instruction) {
+            var container = this.container;
             container.element.prepare(target);
-            container.owner.prepare(owner);
+            container.owner.prepare(this.owner);
             container.instruction.prepare(instruction);
             container.slot.prepare(target, true);
             var component = container.get(instruction.res);
-            applyElementInstructionToComponentInstance(component, instruction, container, target, owner);
+            this.applyElementInstructionToComponentInstance(target, instruction, component);
             container.slot.connectCustomElement(component);
             container.element.dispose();
             container.owner.dispose();
             container.instruction.dispose();
             container.slot.dispose();
-        },
-        _a[instructions_1.TargetedInstructionType.hydrateAttribute] = function (owner, instruction, target, replacements, container) {
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateAttribute] = function (target, instruction) {
             var childInstructions = instruction.instructions;
+            var container = this.container;
+            var owner = this.owner;
             container.element.prepare(target);
             container.owner.prepare(owner);
             container.instruction.prepare(instruction);
             var component = container.get(instruction.res);
+            component.$hydrate(this.taskQueue);
             for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
                 var current = childInstructions[i];
-                interpreter[current.type](owner, current, component, replacements, container);
+                this[current.type](component, current);
             }
             container.element.dispose();
             container.owner.dispose();
             container.instruction.dispose();
             owner.$bindable.push(component);
             owner.$attachable.push(component);
-        },
-        _a[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (owner, instruction, target, replacements, container) {
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (target, instruction) {
             var childInstructions = instruction.instructions;
             var factory = instruction.factory;
+            var container = this.container;
+            var owner = this.owner;
             if (factory === undefined) {
                 instruction.factory = factory = exports.ViewEngine.factoryFromCompiledSource(container, instruction.src);
             }
             container.element.prepare(target);
             container.owner.prepare(owner);
             container.instruction.prepare(instruction);
-            container.factory.prepare(factory, replacements);
+            container.factory.prepare(factory, this.replacements);
             container.slot.prepare(dom_1.DOM.convertToAnchor(target), false);
             var component = container.get(instruction.res);
+            component.$hydrate(this.taskQueue);
             container.slot.connectTemplateController(component);
             if (instruction.link) {
                 component.link(owner.$attachable[owner.$attachable.length - 1]);
             }
             for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
                 var current = childInstructions[i];
-                interpreter[current.type](owner, current, component, replacements, container);
+                this[current.type](component, current);
             }
             container.element.dispose();
             container.owner.dispose();
@@ -7250,26 +7253,28 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             container.slot.dispose();
             owner.$bindable.push(component);
             owner.$attachable.push(component);
-        },
-        _a);
-    function applyElementInstructionToComponentInstance(component, instruction, container, target, owner) {
-        var childInstructions = instruction.instructions;
-        component.$hydrate(container, target, instruction.replacements, instruction.contentElement);
-        for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
-            var current = childInstructions[i];
-            var currentType = current.type;
-            var realTarget = void 0;
-            if (currentType === instructions_1.TargetedInstructionType.stylePropertyBinding || currentType === instructions_1.TargetedInstructionType.listenerBinding) {
-                realTarget = target;
+        };
+        InstructionInterpreter.prototype.applyElementInstructionToComponentInstance = function (target, instruction, component) {
+            var childInstructions = instruction.instructions;
+            var owner = this.owner;
+            component.$hydrate(this.container, this.taskQueue, target, instruction.replacements, instruction.contentElement);
+            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
+                var current = childInstructions[i];
+                var currentType = current.type;
+                var realTarget = void 0;
+                if (currentType === instructions_1.TargetedInstructionType.stylePropertyBinding || currentType === instructions_1.TargetedInstructionType.listenerBinding) {
+                    realTarget = target;
+                }
+                else {
+                    realTarget = component;
+                }
+                this[current.type](realTarget, current);
             }
-            else {
-                realTarget = component;
-            }
-            interpreter[current.type](owner, current, realTarget, null, container);
-        }
-        owner.$bindable.push(component);
-        owner.$attachable.push(component);
-    }
+            owner.$bindable.push(component);
+            owner.$attachable.push(component);
+        };
+        return InstructionInterpreter;
+    }());
     var InstanceProvider = (function () {
         function InstanceProvider() {
             this.instance = null;
@@ -7367,19 +7372,20 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             var targets = view.findTargets();
             var container = this.container;
             var targetInstructions = source.targetInstructions;
+            var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), owner, host, replacements);
             for (var i = 0, ii = targets.length; i < ii; ++i) {
                 var instructions = targetInstructions[i];
                 var target = targets[i];
                 for (var j = 0, jj = instructions.length; j < jj; ++j) {
                     var current = instructions[j];
-                    interpreter[current.type](owner, current, target, replacements, container);
+                    interpreter[current.type](target, current);
                 }
             }
             if (host) {
                 var surrogateInstructions = source.surrogateInstructions;
                 for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
                     var current = surrogateInstructions[i];
-                    interpreter[current.type](owner, current, host, replacements, container);
+                    interpreter[current.type](host, current);
                 }
             }
             return view;
@@ -7543,7 +7549,6 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         };
         return DefaultVisualFactory;
     }());
-    var _a;
 });
 
 
@@ -7680,234 +7685,11 @@ define('runtime/templating/view',["require", "exports", "../platform", "../di", 
 
 
 
-define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var svgElements = {
-        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
-        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
-        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
-        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
-        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-    };
-    var svgPresentationElements = {
-        'a': true,
-        'altGlyph': true,
-        'animate': true,
-        'animateColor': true,
-        'circle': true,
-        'clipPath': true,
-        'defs': true,
-        'ellipse': true,
-        'feBlend': true,
-        'feColorMatrix': true,
-        'feComponentTransfer': true,
-        'feComposite': true,
-        'feConvolveMatrix': true,
-        'feDiffuseLighting': true,
-        'feDisplacementMap': true,
-        'feFlood': true,
-        'feGaussianBlur': true,
-        'feImage': true,
-        'feMerge': true,
-        'feMorphology': true,
-        'feOffset': true,
-        'feSpecularLighting': true,
-        'feTile': true,
-        'feTurbulence': true,
-        'filter': true,
-        'font': true,
-        'foreignObject': true,
-        'g': true,
-        'glyph': true,
-        'glyphRef': true,
-        'image': true,
-        'line': true,
-        'linearGradient': true,
-        'marker': true,
-        'mask': true,
-        'missing-glyph': true,
-        'path': true,
-        'pattern': true,
-        'polygon': true,
-        'polyline': true,
-        'radialGradient': true,
-        'rect': true,
-        'stop': true,
-        'svg': true,
-        'switch': true,
-        'symbol': true,
-        'text': true,
-        'textPath': true,
-        'tref': true,
-        'tspan': true,
-        'use': true
-    };
-    var svgPresentationAttributes = {
-        'alignment-baseline': true,
-        'baseline-shift': true,
-        'clip-path': true,
-        'clip-rule': true,
-        'clip': true,
-        'color-interpolation-filters': true,
-        'color-interpolation': true,
-        'color-profile': true,
-        'color-rendering': true,
-        'color': true,
-        'cursor': true,
-        'direction': true,
-        'display': true,
-        'dominant-baseline': true,
-        'enable-background': true,
-        'fill-opacity': true,
-        'fill-rule': true,
-        'fill': true,
-        'filter': true,
-        'flood-color': true,
-        'flood-opacity': true,
-        'font-family': true,
-        'font-size-adjust': true,
-        'font-size': true,
-        'font-stretch': true,
-        'font-style': true,
-        'font-variant': true,
-        'font-weight': true,
-        'glyph-orientation-horizontal': true,
-        'glyph-orientation-vertical': true,
-        'image-rendering': true,
-        'kerning': true,
-        'letter-spacing': true,
-        'lighting-color': true,
-        'marker-end': true,
-        'marker-mid': true,
-        'marker-start': true,
-        'mask': true,
-        'opacity': true,
-        'overflow': true,
-        'pointer-events': true,
-        'shape-rendering': true,
-        'stop-color': true,
-        'stop-opacity': true,
-        'stroke-dasharray': true,
-        'stroke-dashoffset': true,
-        'stroke-linecap': true,
-        'stroke-linejoin': true,
-        'stroke-miterlimit': true,
-        'stroke-opacity': true,
-        'stroke-width': true,
-        'stroke': true,
-        'text-anchor': true,
-        'text-decoration': true,
-        'text-rendering': true,
-        'unicode-bidi': true,
-        'visibility': true,
-        'word-spacing': true,
-        'writing-mode': true
-    };
-    function createElement(html) {
-        var div = dom_1.DOM.createElement('div');
-        div.innerHTML = html;
-        return div.firstElementChild;
-    }
-    ;
-    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
-        svgElements.altglyph = svgElements.altGlyph;
-        delete svgElements.altGlyph;
-        svgElements.altglyphdef = svgElements.altGlyphDef;
-        delete svgElements.altGlyphDef;
-        svgElements.altglyphitem = svgElements.altGlyphItem;
-        delete svgElements.altGlyphItem;
-        svgElements.glyphref = svgElements.glyphRef;
-        delete svgElements.glyphRef;
-    }
-    exports.SVGAnalyzer = Object.assign(svg_analyzer_1.SVGAnalyzer, {
-        isStandardSvgAttribute: function (node, attributeName) {
-            if (!(node instanceof SVGElement)) {
-                return false;
-            }
-            var nodeName = node.nodeName;
-            return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
-                || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
-        }
-    });
-});
 
 
+
+
+define("svg/binding/svg-analyzer", [],function(){});
 
 define('runtime/resources/repeat/override-contexts',["require", "exports", "../../binding/binding-context"], function (require, exports, binding_context_1) {
     "use strict";
@@ -7952,7 +7734,7 @@ define('runtime/resources/repeat/override-contexts',["require", "exports", "../.
 
 
 
-define('runtime/resources/repeat/repeat-strategy-array',["require", "exports", "./override-contexts", "../../binding/array-change-records", "../../binding/observer-locator", "../../binding/binding-context"], function (require, exports, override_contexts_1, array_change_records_1, observer_locator_1, binding_context_1) {
+define('runtime/resources/repeat/repeat-strategy-array',["require", "exports", "./override-contexts", "../../binding/array-change-records", "../../binding/binding-context"], function (require, exports, override_contexts_1, array_change_records_1, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function indexOf(array, item, matcher, startIndex) {
@@ -7969,13 +7751,14 @@ define('runtime/resources/repeat/repeat-strategy-array',["require", "exports", "
         return array.indexOf(item);
     }
     var ArrayRepeatStrategy = (function () {
-        function ArrayRepeatStrategy() {
+        function ArrayRepeatStrategy(observerLocator) {
+            this.observerLocator = observerLocator;
         }
         ArrayRepeatStrategy.prototype.handles = function (items) {
             return items instanceof Array;
         };
         ArrayRepeatStrategy.prototype.getCollectionObserver = function (items) {
-            return observer_locator_1.ObserverLocator.getArrayObserver(items);
+            return this.observerLocator.getArrayObserver(items);
         };
         ArrayRepeatStrategy.prototype.instanceChanged = function (repeat, items) {
             var _this = this;
@@ -8164,17 +7947,18 @@ define('runtime/resources/repeat/repeat-strategy-array',["require", "exports", "
 
 
 
-define('runtime/resources/repeat/repeat-strategy-map',["require", "exports", "./override-contexts", "../../binding/observer-locator", "../../binding/binding-context"], function (require, exports, override_contexts_1, observer_locator_1, binding_context_1) {
+define('runtime/resources/repeat/repeat-strategy-map',["require", "exports", "./override-contexts", "../../binding/binding-context"], function (require, exports, override_contexts_1, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MapRepeatStrategy = (function () {
-        function MapRepeatStrategy() {
+        function MapRepeatStrategy(observerLocator) {
+            this.observerLocator = observerLocator;
         }
         MapRepeatStrategy.prototype.handles = function (items) {
             return items instanceof Map;
         };
         MapRepeatStrategy.prototype.getCollectionObserver = function (items) {
-            return observer_locator_1.ObserverLocator.getMapObserver(items);
+            return this.observerLocator.getMapObserver(items);
         };
         MapRepeatStrategy.prototype.instanceChanged = function (repeat, items) {
             var _this = this;
@@ -8323,18 +8107,27 @@ define('runtime/resources/repeat/repeat-strategy-number',["require", "exports", 
 
 
 
-define('runtime/resources/repeat/repeat-strategy-registry',["require", "exports", "../../di", "./repeat-strategy-null", "./repeat-strategy-array", "./repeat-strategy-map", "./repeat-strategy-set", "./repeat-strategy-number"], function (require, exports, di_1, repeat_strategy_null_1, repeat_strategy_array_1, repeat_strategy_map_1, repeat_strategy_set_1, repeat_strategy_number_1) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/resources/repeat/repeat-strategy-registry',["require", "exports", "../../di", "./repeat-strategy-null", "./repeat-strategy-array", "./repeat-strategy-map", "./repeat-strategy-set", "./repeat-strategy-number", "../../binding/observer-locator"], function (require, exports, di_1, repeat_strategy_null_1, repeat_strategy_array_1, repeat_strategy_map_1, repeat_strategy_set_1, repeat_strategy_number_1, observer_locator_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IRepeatStrategyRegistry = di_1.DI.createInterface()
         .withDefault(function (x) { return x.singleton(RepeatStrategyRegistry); });
     var RepeatStrategyRegistry = (function () {
-        function RepeatStrategyRegistry() {
+        function RepeatStrategyRegistry(observerLocator) {
             this.strategies = [];
             this.register(new repeat_strategy_null_1.NullRepeatStrategy());
-            this.register(new repeat_strategy_array_1.ArrayRepeatStrategy());
-            this.register(new repeat_strategy_map_1.MapRepeatStrategy());
-            this.register(new repeat_strategy_set_1.SetRepeatStrategy());
+            this.register(new repeat_strategy_array_1.ArrayRepeatStrategy(observerLocator));
+            this.register(new repeat_strategy_map_1.MapRepeatStrategy(observerLocator));
+            this.register(new repeat_strategy_set_1.SetRepeatStrategy(observerLocator));
             this.register(new repeat_strategy_number_1.NumberRepeatStrategy());
         }
         RepeatStrategyRegistry.prototype.register = function (strategy) {
@@ -8350,23 +8143,28 @@ define('runtime/resources/repeat/repeat-strategy-registry',["require", "exports"
             }
             return null;
         };
+        RepeatStrategyRegistry = __decorate([
+            di_1.inject(observer_locator_1.IObserverLocator),
+            __metadata("design:paramtypes", [Object])
+        ], RepeatStrategyRegistry);
         return RepeatStrategyRegistry;
     }());
 });
 
 
 
-define('runtime/resources/repeat/repeat-strategy-set',["require", "exports", "./override-contexts", "../../binding/observer-locator", "../../binding/binding-context"], function (require, exports, override_contexts_1, observer_locator_1, binding_context_1) {
+define('runtime/resources/repeat/repeat-strategy-set',["require", "exports", "./override-contexts", "../../binding/binding-context"], function (require, exports, override_contexts_1, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var SetRepeatStrategy = (function () {
-        function SetRepeatStrategy() {
+        function SetRepeatStrategy(observerLocator) {
+            this.observerLocator = observerLocator;
         }
         SetRepeatStrategy.prototype.handles = function (items) {
             return items instanceof Set;
         };
         SetRepeatStrategy.prototype.getCollectionObserver = function (items) {
-            return observer_locator_1.ObserverLocator.getSetObserver(items);
+            return this.observerLocator.getSetObserver(items);
         };
         SetRepeatStrategy.prototype.instanceChanged = function (repeat, items) {
             var _this = this;
@@ -8449,7 +8247,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/repeat/repeat',["require", "exports", "../../decorators", "../../templating/view-engine", "../../templating/render-slot", "../../di", "./repeat-strategy-registry", "../../binding/ast", "../../binding/binding-context", "../../../debug/task-queue", "../../binding/binding-mode", "../../templating/view"], function (require, exports, decorators_1, view_engine_1, render_slot_1, di_1, repeat_strategy_registry_1, ast_1, binding_context_1, task_queue_1, binding_mode_1, view_1) {
+define('runtime/resources/repeat/repeat',["require", "exports", "../../decorators", "../../templating/view-engine", "../../templating/render-slot", "../../di", "./repeat-strategy-registry", "../../binding/ast", "../../binding/binding-context", "../../binding/binding-mode", "../../templating/view", "../../task-queue"], function (require, exports, decorators_1, view_engine_1, render_slot_1, di_1, repeat_strategy_registry_1, ast_1, binding_context_1, binding_mode_1, view_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var oneTime = binding_mode_1.BindingMode.oneTime;
@@ -8489,11 +8287,12 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
             .find(function (x) { return x.target === behavior && x.targetProperty === propertyName; });
     }
     var Repeat = (function () {
-        function Repeat(owner, viewFactory, viewSlot, container, strategyRegistry) {
+        function Repeat(owner, viewFactory, viewSlot, container, taskQueue, strategyRegistry) {
             this.owner = owner;
             this.viewFactory = viewFactory;
             this.viewSlot = viewSlot;
             this.container = container;
+            this.taskQueue = taskQueue;
             this.strategyRegistry = strategyRegistry;
             this.ignoreMutation = false;
             this.local = 'item';
@@ -8561,7 +8360,7 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
             }
             this.ignoreMutation = true;
             var newItems = this.sourceExpression.evaluate(this.scope, this.container);
-            task_queue_1.TaskQueue.queueMicroTask(function () { return _this.ignoreMutation = false; });
+            this.taskQueue.queueMicroTask(function () { return _this.ignoreMutation = false; });
             if (newItems === this.items) {
                 this.itemsChanged();
             }
@@ -8652,8 +8451,8 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
         Repeat = __decorate([
             decorators_1.customAttribute('repeat'),
             decorators_1.templateController,
-            di_1.inject(view_1.IViewOwner, view_engine_1.IVisualFactory, render_slot_1.IRenderSlot, di_1.IContainer, repeat_strategy_registry_1.IRepeatStrategyRegistry),
-            __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
+            di_1.inject(view_1.IViewOwner, view_engine_1.IVisualFactory, render_slot_1.IRenderSlot, di_1.IContainer, task_queue_1.ITaskQueue, repeat_strategy_registry_1.IRepeatStrategyRegistry),
+            __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object])
         ], Repeat);
         return Repeat;
     }());
@@ -8665,43 +8464,6 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
 define('runtime/resources/repeat/repeater',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-});
-
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-define('runtime/templating/template-cache',["require", "exports", "../di"], function (require, exports, di_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ITemplateCache = di_1.DI.createInterface()
-        .withDefault(function (x) { return x.singleton(TemplateCache); });
-    var TemplateCache = (function () {
-        function TemplateCache(container) {
-            this.container = container;
-            this.lookup = new Map();
-        }
-        TemplateCache.prototype.getTemplate = function (key, onMiss) {
-            var found = this.lookup.get(key);
-            if (!found) {
-                found = onMiss(this.container);
-                this.lookup.set(key, found);
-            }
-            return found;
-        };
-        TemplateCache = __decorate([
-            di_1.inject(di_1.IContainer),
-            __metadata("design:paramtypes", [Object])
-        ], TemplateCache);
-        return TemplateCache;
-    }());
 });
 
 

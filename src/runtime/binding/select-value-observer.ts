@@ -1,6 +1,6 @@
 import { SubscriberCollection } from './subscriber-collection';
 import { ICallable } from '../interfaces';
-import { TaskQueue } from '../task-queue';
+import { ITaskQueue } from '../task-queue';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
 import { INode, DOM, IChildObserver } from '../dom';
@@ -17,6 +17,7 @@ export class SelectValueObserver extends SubscriberCollection {
   constructor(
     private node: HTMLSelectElement,
     public handler: IEventSubscriber,
+    private taskQueue: ITaskQueue,
     private observerLocator: IObserverLocator
   ) {
     super();
@@ -58,7 +59,7 @@ export class SelectValueObserver extends SubscriberCollection {
     // queue up an initial sync after the bindings have been evaluated.
     if (!this.initialSync) {
       this.initialSync = true;
-      TaskQueue.queueMicroTask(this);
+      this.taskQueue.queueMicroTask(this);
     }
   }
 

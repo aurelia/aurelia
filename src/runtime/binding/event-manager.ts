@@ -193,15 +193,16 @@ export class EventSubscriber implements IEventSubscriber {
   }
 }
 
-export const IEventManager = DI.createInterface('IEventManager');
-
 export interface IEventManager {
   registerElementConfiguration(config: IElementConfiguration): void;
   getElementHandler(target: INode, propertyName: string): IEventSubscriber | null;
   addEventListener(target: INode, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
 
-class EventManagerImplementation implements IEventManager {
+export const IEventManager = DI.createInterface<IEventManager>()
+  .withDefault(x => x.singleton(EventManager));
+
+class EventManager implements IEventManager {
   elementHandlerLookup: Record<string, Record<string, string[]>> = {};
   delegatedHandlers: Record<string, ListenerTracker> = {};
   capturedHandlers: Record<string, ListenerTracker> = {};
@@ -316,5 +317,3 @@ class EventManagerImplementation implements IEventManager {
     return new TriggerSubscription(target, targetEvent, callbackOrListener);
   }
 }
-
-export const EventManager: IEventManager = new EventManagerImplementation();

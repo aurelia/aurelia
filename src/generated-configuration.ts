@@ -1,6 +1,5 @@
 import { AccessScope, TemplateLiteral, LiteralString, Conditional, CallScope, IExpression, AccessMember } from "./runtime/binding/ast";
 import { IContainer } from "./runtime/di";
-import { StandardConfiguration } from './runtime/configuration/standard';
 import { Expression } from "./runtime/binding/expression";
 import { Repeat } from "./runtime/resources/repeat/repeat";
 import { If } from "./runtime/resources/if";
@@ -40,15 +39,11 @@ const expressionCache: Record<string, IExpression> = {
   description: new AccessMember(new AccessScope('todo'), 'description')
 };
 
+const globalResources = [Repeat, If, Else];
+
 export const GeneratedConfiguration = {
   register(container: IContainer) {
     Expression.primeCache(expressionCache);
-    container.register(StandardConfiguration);
-
-    container.register(
-      Repeat,
-      If,
-      Else
-    )
+    container.register(...globalResources);
   }
 };;

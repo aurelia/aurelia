@@ -14,7 +14,7 @@ interface IResolverBuilder<T> {
   singleton(value: Constructable<T>): IResolver;
   transient(value: Constructable<T>): IResolver;
   factory(value: Factory<T>): IResolver;
-  alias(aliasKey: any): IResolver;
+  aliasTo(destinationKey: any): IResolver;
 }
 
 export const DI = { 
@@ -41,10 +41,10 @@ export const DI = {
 
     return dependencies;
   },
-  createInterface<T = any>(key?: string): InterfaceSymbol<T> {
+  createInterface<T = any>(friendlyName?: string): InterfaceSymbol<T> {
     const Key: any = function(target: Injectable, property: string, index: number): any {
       const inject = target.inject || (target.inject = []);
-      (<any>Key).key = key;
+      (<any>Key).friendlyName = friendlyName || 'Interface';
       inject[index] = Key;
       return target;
     };
@@ -53,19 +53,19 @@ export const DI = {
       Key.register = function(container: IContainer, key?: any) {
         return configure({
           instance(value: any) { 
-            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.instance, value));
+            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.instance, value));
           },
           singleton(value: Function) { 
-            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.singleton, value));
+            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.singleton, value));
           },
           transient(value: Function) { 
-            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.transient, value));
+            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.transient, value));
           },
           factory(value: Factory) { 
-            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.factory, value));
+            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.factory, value));
           },
-          alias(aliasKey: any) { 
-            return container.registerResolver(Key, new Resolver(key, ResolverStrategy.alias, aliasKey));
+          aliasTo(destinationKey: any) { 
+            return container.registerResolver(destinationKey, new Resolver(key || Key, ResolverStrategy.alias, Key));
           },
         });
       }
@@ -99,10 +99,15 @@ export interface IContainer {
   register(...params: any[]);
   registerResolver(key: any, resolver: IResolver): IResolver;
 
+  get<T>(key: Constructable<T>): T;
+  get<T>(key: InterfaceSymbol<T>): T;
   get<T = any>(key: any): T;
+
+  getAll<T>(key: Constructable<T>): ReadonlyArray<T>;
+  getAll<T>(key: InterfaceSymbol<T>): ReadonlyArray<T>;
   getAll<T = any>(key: any): ReadonlyArray<T>;
   
-  construct(type: Function, dynamicDependencies?: any[]): any;
+  construct<T>(type: Constructable<T>, dynamicDependencies?: any[]): T;
 
   createChild(): IContainer;
 }
@@ -133,23 +138,23 @@ class Resolver implements IResolver, IRegistration {
 
   get(handler: IContainer, requestor: IContainer): any {
     switch (this.strategy) {
-    case ResolverStrategy.instance:
-      return this.state;
-    case ResolverStrategy.singleton:
-      const singleton = handler.construct(this.state);
-      this.state = singleton;
-      this.strategy = ResolverStrategy.instance;
-      return singleton;
-    case ResolverStrategy.transient:
-      return requestor.construct(this.state); //always create transients from the requesting container
-    case ResolverStrategy.factory:
-      return (<Factory>this.state)(handler, requestor, this);
-    case ResolverStrategy.array:
-      return this.state[0].get(handler, requestor);
-    case ResolverStrategy.alias:
-      return handler.get(this.state);
-    default:
-      throw Reporter.error(6, this.strategy);
+      case ResolverStrategy.instance:
+        return this.state;
+      case ResolverStrategy.singleton:
+        const singleton = handler.construct(this.state);
+        this.state = singleton;
+        this.strategy = ResolverStrategy.instance;
+        return singleton;
+      case ResolverStrategy.transient:
+        return requestor.construct(this.state); //always create transients from the requesting container
+      case ResolverStrategy.factory:
+        return (<Factory>this.state)(handler, requestor, this);
+      case ResolverStrategy.array:
+        return this.state[0].get(handler, requestor);
+      case ResolverStrategy.alias:
+        return handler.get(this.state);
+      default:
+        throw Reporter.error(6, this.strategy);
     }
   }
 }

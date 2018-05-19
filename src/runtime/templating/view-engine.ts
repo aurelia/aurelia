@@ -7,7 +7,7 @@ import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
 import { Listener } from "../binding/listener";
 import { Call } from "../binding/call";
 import { Ref } from "../binding/ref";
-import { Expression } from "../binding/expression";
+import { IParser } from "../binding/parser";
 import { DI, IContainer, IResolver, IRegistration } from "../di";
 import { BindingMode } from "../binding/binding-mode";
 import { IBindScope } from "../binding/observation";
@@ -131,6 +131,7 @@ export const ViewEngine = {
           container.get(ITaskQueue),
           container.get(IObserverLocator),
           container.get(IEventManager),
+          container.get(IParser),
           this
         );
 
@@ -163,6 +164,7 @@ class InstructionInterpreter {
     private taskQueue: ITaskQueue, 
     private observerLoator: IObserverLocator,
     private eventManager: IEventManager,
+    private parser: IParser,
     private owner: IViewOwner,
     private host?: INode, 
     private replacements?: Record<string, ICompiledViewSource>
@@ -172,35 +174,35 @@ class InstructionInterpreter {
     let next = target.nextSibling;
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
-    this.owner.$bindable.push(new Binding(Expression.from(instruction.src), next, 'textContent', BindingMode.oneWay, this.observerLoator, this.container));
+    this.owner.$bindable.push(new Binding(this.parser.parse(instruction.src), next, 'textContent', BindingMode.oneWay, this.observerLoator, this.container));
   }
 
   [TargetedInstructionType.oneWayBinding](target: any, instruction: IOneWayBindingInstruction) {
-    this.owner.$bindable.push(new Binding(Expression.from(instruction.src), target, instruction.dest, BindingMode.oneWay, this.observerLoator, this.container));
+    this.owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.oneWay, this.observerLoator, this.container));
   }
 
   [TargetedInstructionType.fromViewBinding](target: any, instruction: IFromViewBindingInstruction) {
-    this.owner.$bindable.push(new Binding(Expression.from(instruction.src), target, instruction.dest, BindingMode.fromView, this.observerLoator, this.container));
+    this.owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.fromView, this.observerLoator, this.container));
   }
 
   [TargetedInstructionType.twoWayBinding](target: any, instruction: ITwoWayBindingInstruction) {
-    this.owner.$bindable.push(new Binding(Expression.from(instruction.src), target, instruction.dest, BindingMode.twoWay, this.observerLoator, this.container));
+    this.owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.twoWay, this.observerLoator, this.container));
   }
 
   [TargetedInstructionType.listenerBinding](target: any, instruction: IListenerBindingInstruction) {
-    this.owner.$bindable.push(new Listener(instruction.src, instruction.strategy, Expression.from(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
+    this.owner.$bindable.push(new Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
   }
 
   [TargetedInstructionType.callBinding](target: any, instruction: ICallBindingInstruction) {
-    this.owner.$bindable.push(new Call(Expression.from(instruction.src), target, instruction.dest, this.observerLoator, this.container));
+    this.owner.$bindable.push(new Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLoator, this.container));
   }
 
   [TargetedInstructionType.refBinding](target: any, instruction: IRefBindingInstruction) {
-    this.owner.$bindable.push(new Ref(Expression.from(instruction.src), target, this.container));
+    this.owner.$bindable.push(new Ref(this.parser.parse(instruction.src), target, this.container));
   }
 
   [TargetedInstructionType.stylePropertyBinding](target: any, instruction: IStylePropertyBindingInstruction) {
-    this.owner.$bindable.push(new Binding(Expression.from(instruction.src), (<any>target).style, instruction.dest, BindingMode.oneWay, this.observerLoator, this.container));
+    this.owner.$bindable.push(new Binding(this.parser.parse(instruction.src), (<any>target).style, instruction.dest, BindingMode.oneWay, this.observerLoator, this.container));
   }
 
   [TargetedInstructionType.setProperty](target: any, instruction: ISetPropertyInstruction) {
@@ -472,6 +474,7 @@ class CompiledTemplate implements ITemplate {
       container.get(ITaskQueue),
       container.get(IObserverLocator),
       container.get(IEventManager),
+      container.get(IParser),
       owner,
       host,
       replacements

@@ -196,7 +196,7 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/binding/expression", "./runtime/resources/repeat/repeat", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, ast_1, expression_1, repeat_1, if_1, else_1) {
+define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/binding/parser", "./runtime/resources/repeat/repeat", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, ast_1, parser_1, repeat_1, if_1, else_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -229,11 +229,10 @@ define('generated-configuration',["require", "exports", "./runtime/binding/ast",
     var globalResources = [repeat_1.Repeat, if_1.If, else_1.Else];
     exports.GeneratedConfiguration = {
         register: function (container) {
-            expression_1.Expression.primeCache(expressionCache);
+            container.get(parser_1.IParser).cache(expressionCache);
             container.register.apply(container, globalResources);
         }
     };
-    ;
 });
 
 
@@ -1649,17 +1648,11 @@ define('debug/binding/unparser',["require", "exports", "../../runtime/binding/as
 
 
 
-define('jit/binding/expression',["require", "exports", "../../runtime/binding/expression"], function (require, exports, expression_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Expression = Object.assign(expression_1.Expression, {
-        compile: function (expression) {
-            throw new Error('Expression Compilation Not Implemented');
-        }
-    });
-});
 
 
+
+
+define("jit/binding/expression", [],function(){});
 
 define('runtime/binding/array-change-records',["require", "exports"], function (require, exports) {
     "use strict";
@@ -3876,30 +3869,6 @@ define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"]
 
 
 
-define('runtime/binding/expression',["require", "exports", "../reporter"], function (require, exports, reporter_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var cache = Object.create(null);
-    exports.Expression = {
-        from: function (expression) {
-            var found = cache[expression];
-            if (found === undefined) {
-                found = this.compile(expression);
-                cache[expression] = found;
-            }
-            return found;
-        },
-        primeCache: function (expressionCache) {
-            Object.assign(cache, expressionCache);
-        }
-    };
-    exports.Expression.compile = function (expression) {
-        throw reporter_1.Reporter.error(3);
-    };
-});
-
-
-
 define('runtime/binding/listener',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4261,6 +4230,35 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             __metadata("design:paramtypes", [Object, Object, Object, Object])
         ], ObserverLocator);
         return ObserverLocator;
+    }());
+});
+
+
+
+define('runtime/binding/parser',["require", "exports", "../reporter", "../di"], function (require, exports, reporter_1, di_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IParser = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(Parser); });
+    var Parser = (function () {
+        function Parser() {
+            this.lookup = Object.create(null);
+        }
+        Parser.prototype.parse = function (expression) {
+            var found = this.lookup[expression];
+            if (found === undefined) {
+                found = this.parseCore(expression);
+                this.lookup[expression] = found;
+            }
+            return found;
+        };
+        Parser.prototype.cache = function (expressions) {
+            Object.assign(this.lookup, expressions);
+        };
+        Parser.prototype.parseCore = function (expression) {
+            throw reporter_1.Reporter.error(3);
+        };
+        return Parser;
     }());
 });
 
@@ -7064,7 +7062,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/expression", "../di", "../binding/binding-mode", "./lifecycle", "../reporter", "./instructions", "../dom", "../task-queue", "../binding/observer-locator", "../binding/event-manager"], function (require, exports, platform_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, expression_1, di_1, binding_mode_1, lifecycle_1, reporter_1, instructions_1, dom_1, task_queue_1, observer_locator_1, event_manager_1) {
+define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/parser", "../di", "../binding/binding-mode", "./lifecycle", "../reporter", "./instructions", "../dom", "../task-queue", "../binding/observer-locator", "../binding/event-manager"], function (require, exports, platform_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, parser_1, di_1, binding_mode_1, lifecycle_1, reporter_1, instructions_1, dom_1, task_queue_1, observer_locator_1, event_manager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -7109,7 +7107,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
                 }
                 ComponentVisual.prototype.createView = function () {
                     var target;
-                    var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), this);
+                    var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), container.get(parser_1.IParser), this);
                     if (typeof componentOrType === 'function') {
                         target = dom_1.DOM.createElement(componentOrType.source.name);
                         interpreter[instructions_1.TargetedInstructionType.hydrateElement](target, instruction);
@@ -7134,11 +7132,12 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         }
     };
     var InstructionInterpreter = (function () {
-        function InstructionInterpreter(container, taskQueue, observerLoator, eventManager, owner, host, replacements) {
+        function InstructionInterpreter(container, taskQueue, observerLoator, eventManager, parser, owner, host, replacements) {
             this.container = container;
             this.taskQueue = taskQueue;
             this.observerLoator = observerLoator;
             this.eventManager = eventManager;
+            this.parser = parser;
             this.owner = owner;
             this.host = host;
             this.replacements = replacements;
@@ -7147,28 +7146,28 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             var next = target.nextSibling;
             dom_1.DOM.treatAsNonWhitespace(next);
             dom_1.DOM.remove(target);
-            this.owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
+            this.owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
         };
         InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.oneWayBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
+            this.owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
         };
         InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.fromViewBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.fromView, this.observerLoator, this.container));
+            this.owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.fromView, this.observerLoator, this.container));
         };
         InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.twoWayBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.twoWay, this.observerLoator, this.container));
+            this.owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.twoWay, this.observerLoator, this.container));
         };
         InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.listenerBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new listener_1.Listener(instruction.src, instruction.strategy, expression_1.Expression.from(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
+            this.owner.$bindable.push(new listener_1.Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
         };
         InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.callBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new call_1.Call(expression_1.Expression.from(instruction.src), target, instruction.dest, this.observerLoator, this.container));
+            this.owner.$bindable.push(new call_1.Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLoator, this.container));
         };
         InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.refBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new ref_1.Ref(expression_1.Expression.from(instruction.src), target, this.container));
+            this.owner.$bindable.push(new ref_1.Ref(this.parser.parse(instruction.src), target, this.container));
         };
         InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.stylePropertyBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new binding_1.Binding(expression_1.Expression.from(instruction.src), target.style, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
+            this.owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target.style, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
         };
         InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setProperty] = function (target, instruction) {
             target[instruction.dest] = instruction.value;
@@ -7372,7 +7371,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             var targets = view.findTargets();
             var container = this.container;
             var targetInstructions = source.targetInstructions;
-            var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), owner, host, replacements);
+            var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), container.get(parser_1.IParser), owner, host, replacements);
             for (var i = 0, ii = targets.length; i < ii; ++i) {
                 var instructions = targetInstructions[i];
                 var target = targets[i];

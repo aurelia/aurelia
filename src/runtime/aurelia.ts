@@ -1,7 +1,7 @@
-import { IElementComponent } from "./templating/component";
-import { PLATFORM } from "./platform";
-import { IContainer, DI } from "./di";
-import { ITaskQueue } from "./task-queue";
+import { IElementComponent } from './templating/component';
+import { PLATFORM } from './platform';
+import { IContainer, DI } from './di';
+import { ITaskQueue } from './task-queue';
 
 export interface ISinglePageApp {
   host: any,

@@ -1,5 +1,5 @@
-import { IContainer, IResolver, DI } from "./di";
-import { IElementComponent } from "./templating/component";
+import { IContainer, IResolver, DI } from './di';
+import { IElementComponent } from './templating/component';
 
 export const INode = DI.createInterface('INode');
 
@@ -84,7 +84,7 @@ export const DOM = {
   },
 
   isNodeInstance(potentialNode: any): potentialNode is INode {
-    return potentialNode instanceof Element;
+    return potentialNode instanceof Node;
   },
 
   isElementNodeType(node: INode): boolean {

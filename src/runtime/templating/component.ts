@@ -1,20 +1,20 @@
-import { ViewEngine, ITemplate, } from "./view-engine";
-import { View, IViewOwner, IContentView } from "./view";
-import { ITaskQueue } from "../task-queue";
-import { Observer } from "../binding/property-observation";
-import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
-import { PLATFORM } from "../platform";
-import { IContainer, Registration, DI } from "../di";
-import { BindingMode } from "../binding/binding-mode";
-import { Constructable, ICallable } from "../interfaces";
-import { IBindScope, IAccessor, ISubscribable } from "../binding/observation";
-import { IScope, BindingContext } from "../binding/binding-context";
-import { IRenderSlot } from "./render-slot";
-import { IBindSelf, IAttach, AttachContext, DetachContext } from "./lifecycle";
-import { ICompiledViewSource, IBindableInstruction } from "./instructions";
-import { INode, DOM, IView, IChildObserver } from "../dom";
-import { SubscriberCollection } from "../binding/subscriber-collection";
-import { ITemplateCache } from "./template-cache";
+import { ViewEngine, ITemplate, } from './view-engine';
+import { View, IViewOwner, IContentView } from './view';
+import { ITaskQueue } from '../task-queue';
+import { Observer } from '../binding/property-observation';
+import { IEmulatedShadowSlot, ShadowDOMEmulation } from './shadow-dom';
+import { PLATFORM } from '../platform';
+import { IContainer, Registration, DI } from '../di';
+import { BindingMode } from '../binding/binding-mode';
+import { Constructable, ICallable } from '../interfaces';
+import { IBindScope, IAccessor, ISubscribable } from '../binding/observation';
+import { IScope, BindingContext } from '../binding/binding-context';
+import { IRenderSlot } from './render-slot';
+import { IBindSelf, IAttach, AttachContext, DetachContext } from './lifecycle';
+import { ICompiledViewSource, IBindableInstruction } from './instructions';
+import { INode, DOM, IView, IChildObserver } from '../dom';
+import { SubscriberCollection } from '../binding/subscriber-collection';
+import { ITemplateCache } from './template-cache';
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $host: INode;
@@ -45,13 +45,11 @@ export interface IBindingBehaviorSource {
   name: string;
 }
 
-export interface IAttributeType extends Constructable {
-  new(...args: any[]): IAttributeComponent;
+export interface IAttributeType extends Constructable<IAttributeComponent> {
   source: IAttributeSource;
 };
 
-export interface IElementType extends Constructable {
-  new(...args: any[]): IElementComponent;
+export interface IElementType extends Constructable<IElementComponent> {
   source: ICompiledViewSource;
 }
 

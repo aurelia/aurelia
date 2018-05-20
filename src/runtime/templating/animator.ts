@@ -1,5 +1,5 @@
-import { DI } from "../di";
-import { INode } from "../dom";
+import { DI } from '../di';
+import { INode } from '../dom';
 
 export interface IAnimator {
   /**
@@ -34,19 +34,19 @@ export interface IAnimator {
 }
 
 export const IAnimator = DI.createInterface<IAnimator>()
-  .withDefault(x => x.instance({
+  .withDefault(x => x.singleton(class {
     enter(node: INode): Promise<boolean> {
       return Promise.resolve(false);
-    },
+    }
   
     leave(node: INode): Promise<boolean> {
       return Promise.resolve(false);
-    },
+    }
   
     removeClass(node: INode, className: string): Promise<boolean> {
       (<Element>node).classList.remove(className);
       return Promise.resolve(false);
-    },
+    }
     
     addClass(node: INode, className: string): Promise<boolean> {
       (<Element>node).classList.add(className);

@@ -1,6 +1,6 @@
-import { PLATFORM } from "./platform";
-import { Injectable, Constructable, IIndexable } from "./interfaces";
-import { Reporter } from "./reporter";
+import { PLATFORM } from './platform';
+import { Injectable, Constructable, IIndexable } from './interfaces';
+import { Reporter } from './reporter';
 
 type Factory<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 

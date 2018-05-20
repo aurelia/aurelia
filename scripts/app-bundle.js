@@ -1251,7 +1251,7 @@ define('runtime/dom',["require", "exports", "./di"], function (require, exports,
             return !!node.$usingSlotEmulation;
         },
         isNodeInstance: function (potentialNode) {
-            return potentialNode instanceof Element;
+            return potentialNode instanceof Node;
         },
         isElementNodeType: function (node) {
             return node.nodeType === 1;
@@ -5054,11 +5054,14 @@ define('runtime/binding/svg-analyzer',["require", "exports", "../di"], function 
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ISVGAnalyzer = di_1.DI.createInterface()
-        .withDefault(function (x) { return x.instance({
-        isStandardSvgAttribute: function (node, attributeName) {
-            return false;
+        .withDefault(function (x) { return x.singleton((function () {
+        function class_1() {
         }
-    }); });
+        class_1.prototype.isStandardSvgAttribute = function (node, attributeName) {
+            return false;
+        };
+        return class_1;
+    }())); });
 });
 
 
@@ -5983,22 +5986,25 @@ define('runtime/templating/animator',["require", "exports", "../di"], function (
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IAnimator = di_1.DI.createInterface()
-        .withDefault(function (x) { return x.instance({
-        enter: function (node) {
+        .withDefault(function (x) { return x.singleton((function () {
+        function class_1() {
+        }
+        class_1.prototype.enter = function (node) {
             return Promise.resolve(false);
-        },
-        leave: function (node) {
+        };
+        class_1.prototype.leave = function (node) {
             return Promise.resolve(false);
-        },
-        removeClass: function (node, className) {
+        };
+        class_1.prototype.removeClass = function (node, className) {
             node.classList.remove(className);
             return Promise.resolve(false);
-        },
-        addClass: function (node, className) {
+        };
+        class_1.prototype.addClass = function (node, className) {
             node.classList.add(className);
             return Promise.resolve(false);
-        }
-    }); });
+        };
+        return class_1;
+    }())); });
 });
 
 

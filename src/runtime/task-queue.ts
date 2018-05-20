@@ -134,7 +134,7 @@ class TaskQueue implements ITaskQueue {
     throw Reporter.error(13);
   }
 
-  // Overwritten in debug mode via late binding.
+  // Overwritten in debug mode.
   private onError(error: any, task: any){
     if ('onError' in task) {
       task.onError(error);

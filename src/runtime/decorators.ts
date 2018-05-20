@@ -1,8 +1,8 @@
-import { Component, IAttributeSource } from "./templating/component";
-import { PLATFORM } from "./platform";
-import { BindingMode } from "./binding/binding-mode";
-import { Constructable, Injectable } from "./interfaces";
-import { ICompiledViewSource, IBindableInstruction } from "./templating/instructions";
+import { Component, IAttributeSource } from './templating/component';
+import { PLATFORM } from './platform';
+import { BindingMode } from './binding/binding-mode';
+import { Constructable, Injectable } from './interfaces';
+import { ICompiledViewSource, IBindableInstruction } from './templating/instructions';
 
 export function customElement(nameOrSource: string | ICompiledViewSource) {
   return function<T extends Constructable>(target: T) {

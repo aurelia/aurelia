@@ -659,10 +659,11 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
     function customElement(nameOrSource) {
         return function (target) {
             if (typeof nameOrSource === 'string') {
+                nameOrSource = {
+                    name: nameOrSource
+                };
             }
-            else {
-                return component_1.Component.elementFromCompiledSource(nameOrSource, target);
-            }
+            return component_1.Component.element(nameOrSource, target);
         };
     }
     exports.customElement = customElement;
@@ -6133,7 +6134,7 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                 _a;
             var _a;
         },
-        elementFromCompiledSource: function (source, ctor) {
+        element: function (source, ctor) {
             if (ctor === void 0) { ctor = null; }
             if (ctor === null) {
                 ctor = (function () {
@@ -6173,12 +6174,12 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     };
                     class_1.prototype.$hydrate = function (templateEngine, host, replacements, contentOverride) {
                         if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
+                        var template = templateEngine.getElementTemplate(source, CompiledComponent);
                         this.$behavior = templateEngine.applyObservables(CompiledComponent, this, observables);
                         this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
                         this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
                         this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
                         this.$contentView = view_1.View.fromCompiledContent(this.$host, contentOverride);
-                        var template = templateEngine.getElementTemplate(source, CompiledComponent);
                         this.$view = this.$behavior.hasCreateView
                             ? this.createView(host, replacements, template)
                             : template.createFor(this, host, replacements);

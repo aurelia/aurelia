@@ -191,7 +191,7 @@ export const Component = {
       }
     };
   },
-  elementFromCompiledSource<T extends Constructable>(source: ITemplateSource, ctor: T = null): T & IElementType {
+  element<T extends Constructable>(source: ITemplateSource, ctor: T = null): T & IElementType {
     //Support HTML-Only Elements by providing a generated class.
     if (ctor === null) {
       ctor = <any>class HTMLOnlyElement { };
@@ -230,14 +230,13 @@ export const Component = {
       private $behavior: IRuntimeBehavior = null;
   
       $hydrate(templateEngine: ITemplateEngine, host: INode, replacements: Record<string, ITemplateSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
+        let template = templateEngine.getElementTemplate(source, CompiledComponent);
+        
         this.$behavior = templateEngine.applyObservables(CompiledComponent, this, observables);
         this.$host = source.containerless ? DOM.convertToAnchor(host, true) : host;
         this.$shadowRoot = DOM.createElementViewHost(this.$host, source.shadowOptions);
         this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
         this.$contentView = View.fromCompiledContent(this.$host, contentOverride);
-
-        let template = templateEngine.getElementTemplate(source, CompiledComponent);
-
         this.$view = this.$behavior.hasCreateView
           ? (<any>this).createView(host, replacements, template)
           : template.createFor(this, host, replacements);

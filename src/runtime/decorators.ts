@@ -7,10 +7,13 @@ import { ITemplateSource, IBindableInstruction } from './templating/instructions
 export function customElement(nameOrSource: string | ITemplateSource) {
   return function<T extends Constructable>(target: T) {
     if (typeof nameOrSource === 'string') {
-      //TODO Patch in stub for jit components
-    } else {
-      return Component.elementFromCompiledSource(nameOrSource, target);
+      // TODO: More setup here?
+      nameOrSource = <ITemplateSource>{
+        name: nameOrSource
+      };
     }
+
+    return Component.element(nameOrSource, target);
   }
 }
 

@@ -1,18 +1,18 @@
-import { customAttribute, templateController, bindable } from "../../decorators";
-import { IVisualFactory, IVisual } from "../../templating/view-engine";
-import { IRenderSlot } from "../../templating/render-slot";
-import { IContainer, inject } from "../../di";
-import { IRepeatStrategyRegistry } from "./repeat-strategy-registry";
-import { ITargetedInstruction, IHydrateTemplateController } from "../../templating/instructions";
-import { IRepeater } from "./repeater";
-import { IExpression, BindingBehavior, ValueConverter } from "../../binding/ast";
-import { IScope, sourceContext } from "../../binding/binding-context";
-import { IRepeatStrategy } from "./repeat-strategy";
-import { IBindingCollectionObserver } from "../../binding/observation";
-import { Binding } from "../../binding/binding";
-import { BindingMode } from "../../binding/binding-mode";
-import { IViewOwner } from "../../templating/view";
-import { ITaskQueue } from "../../task-queue";
+import { customAttribute, templateController, bindable } from '../../decorators';
+import { IVisualFactory, IVisual } from '../../templating/view-engine';
+import { IRenderSlot } from '../../templating/render-slot';
+import { IContainer, inject } from '../../di';
+import { IRepeatStrategyRegistry } from './repeat-strategy-registry';
+import { ITargetedInstruction, IHydrateTemplateController } from '../../templating/instructions';
+import { IRepeater } from './repeater';
+import { IExpression, BindingBehavior, ValueConverter } from '../../binding/ast';
+import { IScope, sourceContext } from '../../binding/binding-context';
+import { IRepeatStrategy } from './repeat-strategy';
+import { IBindingCollectionObserver } from '../../binding/observation';
+import { Binding } from '../../binding/binding';
+import { BindingMode } from '../../binding/binding-mode';
+import { IViewOwner } from '../../templating/view';
+import { ITaskQueue } from '../../task-queue';
 
 const oneTime = BindingMode.oneTime;
 

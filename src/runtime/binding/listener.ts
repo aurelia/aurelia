@@ -1,10 +1,10 @@
-import { IEventManager, DelegationStrategy } from "./event-manager";
-import { IExpression } from "./ast";
-import { IBinding } from "./binding";
-import { IContainer } from "../di";
-import { IDisposable } from "../interfaces";
-import { IScope } from "./binding-context";
-import { INode } from "../dom";
+import { IEventManager, DelegationStrategy } from './event-manager';
+import { IExpression } from './ast';
+import { IBinding } from './binding';
+import { IContainer } from '../di';
+import { IDisposable } from '../interfaces';
+import { IScope } from './binding-context';
+import { INode } from '../dom';
 
 export class Listener implements IBinding {
   private source: IScope;

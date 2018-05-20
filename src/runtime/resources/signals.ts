@@ -14,8 +14,9 @@ export interface ISignaler {
 }
 
 export const ISignaler = DI.createInterface<ISignaler>()
-  .withDefault(x => x.instance({
-    signals: {},
+  .withDefault(x => x.singleton(class {
+    private signals: {};
+
     dispatchSignal(name: Signal): void {
       let bindings = this.signals[name];
   
@@ -28,11 +29,11 @@ export const ISignaler = DI.createInterface<ISignaler>()
       while (i--) {
         bindings[i].call(sourceContext);
       }
-    },
+    }
   
     addSignalListener(name: Signal, listener: ICallable) {
       (this.signals[name] || (this.signals[name] = [])).push(listener);
-    },
+    }
   
     removeSignalListener(name: Signal, listener: ICallable) {
       let listeners = this.signals[name];

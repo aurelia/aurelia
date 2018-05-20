@@ -1,7 +1,7 @@
-import { IExpression } from "./ast";
-import { IBinding, IBindingTarget } from "./binding";
-import { IContainer } from "../di";
-import { IScope } from "./binding-context";
+import { IExpression } from './ast';
+import { IBinding, IBindingTarget } from './binding';
+import { IContainer } from '../di';
+import { IScope } from './binding-context';
 
 export class Ref implements IBinding {
   private $scope: IScope;

@@ -1,30 +1,31 @@
-import { PLATFORM } from "../platform";
-import { View, IViewOwner } from "./view";
-import { IElementComponent, IAttributeComponent, IElementType } from "./component";
-import { IBinding, Binding } from "../binding/binding";
-import { IRenderSlot, RenderSlot } from "./render-slot";
-import { IEmulatedShadowSlot, ShadowDOMEmulation } from "./shadow-dom";
-import { Listener } from "../binding/listener";
-import { Call } from "../binding/call";
-import { Ref } from "../binding/ref";
-import { IParser } from "../binding/parser";
-import { DI, IContainer, IResolver, IRegistration } from "../di";
-import { BindingMode } from "../binding/binding-mode";
-import { IBindScope } from "../binding/observation";
-import { IScope } from "../binding/binding-context";
-import { Constructable } from "../interfaces";
-import { IAttach, AttachContext, DetachContext } from "./lifecycle";
-import { Reporter } from "../reporter";
-import { ITargetedInstruction, IHydrateElementInstruction, ICompiledViewSource, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController } from "./instructions";
-import { INode, DOM, IView, } from "../dom";
-import { IAnimator } from "./animator";
-import { ITaskQueue } from "../task-queue";
-import { IObserverLocator } from "../binding/observer-locator";
-import { IEventManager } from "../binding/event-manager";
+import { PLATFORM } from '../platform';
+import { View, IViewOwner } from './view';
+import { IElementComponent, IAttributeComponent, IElementType } from './component';
+import { IBinding, Binding } from '../binding/binding';
+import { IRenderSlot, RenderSlot } from './render-slot';
+import { IEmulatedShadowSlot, ShadowDOMEmulation } from './shadow-dom';
+import { Listener } from '../binding/listener';
+import { Call } from '../binding/call';
+import { Ref } from '../binding/ref';
+import { IParser } from '../binding/parser';
+import { DI, IContainer, IResolver, IRegistration } from '../di';
+import { BindingMode } from '../binding/binding-mode';
+import { IBindScope } from '../binding/observation';
+import { IScope } from '../binding/binding-context';
+import { Constructable } from '../interfaces';
+import { IAttach, AttachContext, DetachContext } from './lifecycle';
+import { Reporter } from '../reporter';
+import { ITargetedInstruction, IHydrateElementInstruction, ITemplateSource, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController } from './instructions';
+import { INode, DOM, IView, } from '../dom';
+import { IAnimator } from './animator';
+import { ITaskQueue } from '../task-queue';
+import { IObserverLocator } from '../binding/observer-locator';
+import { IEventManager } from '../binding/event-manager';
+import { ITemplateEngine } from './template-engine';
 
 export interface ITemplate {
   readonly container: ITemplateContainer;
-  createFor(owner: IViewOwner, host?: INode, replacements?: Record<string, ICompiledViewSource>): IView;
+  createFor(owner: IViewOwner, host?: INode, replacements?: Record<string, ITemplateSource>): IView;
 }
 
 const noViewTemplate: ITemplate = {
@@ -87,7 +88,7 @@ export interface IVisualFactory {
 export type VisualWithCentralComponent = IVisual & { component: IElementComponent };
 
 export const ViewEngine = {
-  templateFromCompiledSource(container: IContainer, source: ICompiledViewSource): ITemplate {
+  templateFromCompiledSource(container: IContainer, source: ITemplateSource): ITemplate {
     if (source && source.template) {
       return new CompiledTemplate(container, source);
     }
@@ -95,12 +96,12 @@ export const ViewEngine = {
     return noViewTemplate;
   },
 
-  factoryFromCompiledSource(container: IContainer, source: ICompiledViewSource): IVisualFactory {
+  factoryFromCompiledSource(container: IContainer, source: ITemplateSource): IVisualFactory {
     const template = ViewEngine.templateFromCompiledSource(container, source);
 
     const CompiledVisual = class extends Visual {
       static template: ITemplate = template;
-      static source: ICompiledViewSource = source;
+      static source: ITemplateSource = source;
 
       $slots: Record<string, IEmulatedShadowSlot> = source.hasSlots ? {} : null;
 
@@ -115,7 +116,7 @@ export const ViewEngine = {
   visualFromComponent(container: ITemplateContainer, componentOrType: any, instruction: IHydrateElementInstruction): VisualWithCentralComponent {
     class ComponentVisual extends Visual {
       static template: ITemplate = Object.assign({}, noViewTemplate, { container });
-      static source: ICompiledViewSource = null;
+      static source: ITemplateSource = null;
 
       public component: IElementComponent;
 
@@ -132,6 +133,7 @@ export const ViewEngine = {
           container.get(IObserverLocator),
           container.get(IEventManager),
           container.get(IParser),
+          container.get(ITemplateEngine),
           this
         );
 
@@ -165,9 +167,10 @@ class InstructionInterpreter {
     private observerLoator: IObserverLocator,
     private eventManager: IEventManager,
     private parser: IParser,
+    private templateEngine: ITemplateEngine,
     private owner: IViewOwner,
     private host?: INode, 
-    private replacements?: Record<string, ICompiledViewSource>
+    private replacements?: Record<string, ITemplateSource>
   ) {}
 
   [TargetedInstructionType.textBinding](target: any, instruction: ITextBindingInstruction) {
@@ -220,13 +223,9 @@ class InstructionInterpreter {
       return;
     }
 
-    let fallbackFactory = (<any>instruction).factory;
-
-    if (fallbackFactory === undefined && instruction.fallback) {
-      (<any>instruction).factory = fallbackFactory = ViewEngine.factoryFromCompiledSource(this.container, instruction.fallback);
-    }
-
+    let fallbackFactory = this.templateEngine.getVisualFactory(this.container, instruction.fallback);
     let slot = ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
+
     owner.$slots[slot.name] = slot;
     owner.$bindable.push(slot);
     owner.$attachable.push(slot);
@@ -260,7 +259,7 @@ class InstructionInterpreter {
     container.instruction.prepare(instruction);
 
     let component = container.get<IAttributeComponent>(instruction.res);
-    component.$hydrate(this.taskQueue);
+    component.$hydrate(this.templateEngine);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       let current = childInstructions[i];
@@ -277,13 +276,9 @@ class InstructionInterpreter {
 
   [TargetedInstructionType.hydrateTemplateController](target: any, instruction: IHydrateTemplateController) {
     let childInstructions = instruction.instructions;
-    let factory = (<any>instruction).factory;
+    let factory = this.templateEngine.getVisualFactory(this.container, instruction.src);
     let container = this.container;
     let owner = this.owner;
-
-    if (factory === undefined) {
-      (<any>instruction).factory = factory = ViewEngine.factoryFromCompiledSource(container, instruction.src);
-    }
 
     container.element.prepare(target);
     container.owner.prepare(owner);
@@ -292,7 +287,7 @@ class InstructionInterpreter {
     container.slot.prepare(DOM.convertToAnchor(target), false);
 
     let component = container.get<IAttributeComponent>(instruction.res);
-    component.$hydrate(this.taskQueue);
+    component.$hydrate(this.templateEngine);
     container.slot.connectTemplateController(component);
 
     if (instruction.link) {
@@ -319,8 +314,7 @@ class InstructionInterpreter {
     let owner = this.owner;
   
     component.$hydrate(
-      this.container,
-      this.taskQueue,
+      this.templateEngine,
       target, 
       instruction.replacements,
       instruction.contentElement
@@ -363,9 +357,9 @@ class InstanceProvider<T> implements IResolver {
 
 class ViewFactoryProvider implements IResolver {
   private factory: IVisualFactory
-  private replacements: Record<string, ICompiledViewSource>;
+  private replacements: Record<string, ITemplateSource>;
 
-  prepare(factory: IVisualFactory, replacements: Record<string, ICompiledViewSource>) { 
+  prepare(factory: IVisualFactory, replacements: Record<string, ITemplateSource>) { 
     this.factory = factory;
     this.replacements = replacements || PLATFORM.emptyObject;
   }
@@ -457,12 +451,12 @@ class CompiledTemplate implements ITemplate {
   private createView: () => IView;
   container: ITemplateContainer;
 
-  constructor(container: IContainer, private source: ICompiledViewSource) {
+  constructor(container: IContainer, private source: ITemplateSource) {
     this.container = createTemplateContainer(container, source.dependencies);
     this.createView = DOM.createFactoryFromMarkup(source.template);
   }
 
-  createFor(owner: IViewOwner, host?: INode, replacements?: Record<string, ICompiledViewSource>): IView {
+  createFor(owner: IViewOwner, host?: INode, replacements?: Record<string, ITemplateSource>): IView {
     const source = this.source;
     const view = this.createView();
     const targets = view.findTargets();
@@ -475,6 +469,7 @@ class CompiledTemplate implements ITemplate {
       container.get(IObserverLocator),
       container.get(IEventManager),
       container.get(IParser),
+      container.get(ITemplateEngine),
       owner,
       host,
       replacements

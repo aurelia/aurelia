@@ -1,7 +1,7 @@
-import { DI } from "../di";
-import { DelegationStrategy } from "../binding/event-manager";
-import { BindingMode } from "../binding/binding-mode";
-import { INode } from "../dom";
+import { DI } from '../di';
+import { DelegationStrategy } from '../binding/event-manager';
+import { BindingMode } from '../binding/binding-mode';
+import { INode } from '../dom';
 
 export enum TargetedInstructionType {
   textBinding = 0,
@@ -20,7 +20,7 @@ export enum TargetedInstructionType {
   hydrateTemplateController = 13
 }
 
-export interface ICompiledViewSource {
+export interface ITemplateSource {
   name?: string;
   template: string;
   targetInstructions: Array<TargetedInstruction[]>;
@@ -123,14 +123,14 @@ export interface IHydrateSlotInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateSlot;
   name?: string;
   dest?: string;
-  fallback?: ICompiledViewSource;
+  fallback?: ITemplateSource;
 }
 
 export interface IHydrateElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: any;
   instructions: TargetedInstruction[];
-  replacements?: Record<string, ICompiledViewSource>;
+  replacements?: Record<string, ITemplateSource>;
   contentElement?: INode; // Usage: Compose
 }
 
@@ -144,6 +144,6 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateTemplateController;
   res: any;
   instructions: TargetedInstruction[];
-  src: ICompiledViewSource;
+  src: ITemplateSource;
   link?: boolean;
 }

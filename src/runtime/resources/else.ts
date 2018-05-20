@@ -1,10 +1,10 @@
-import { IfCore } from "./if-core";
-import { If } from "./if";
-import { IVisualFactory } from "../templating/view-engine";
-import { IRenderSlot } from "../templating/render-slot";
-import { templateController, customAttribute } from "../decorators";
-import { IScope } from "../binding/binding-context";
-import { inject } from "../di";
+import { IfCore } from './if-core';
+import { If } from './if';
+import { IVisualFactory } from '../templating/view-engine';
+import { IRenderSlot } from '../templating/render-slot';
+import { templateController, customAttribute } from '../decorators';
+import { IScope } from '../binding/binding-context';
+import { inject } from '../di';
 
 @customAttribute('else')
 @templateController

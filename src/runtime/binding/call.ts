@@ -1,10 +1,10 @@
-import { IObserverLocator } from "./observer-locator";
-import { IExpression } from "./ast";
-import { IBinding } from "./binding";
-import { IContainer } from "../di";
-import { IBindingTargetAccessor } from "./observation";
-import { IScope } from "./binding-context";
-import { INode } from "../dom";
+import { IObserverLocator } from './observer-locator';
+import { IExpression } from './ast';
+import { IBinding } from './binding';
+import { IContainer } from '../di';
+import { IBindingTargetAccessor } from './observation';
+import { IScope } from './binding-context';
+import { INode } from '../dom';
 
 export class Call implements IBinding {
   targetObserver: IBindingTargetAccessor;

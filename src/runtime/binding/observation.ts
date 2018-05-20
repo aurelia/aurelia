@@ -1,5 +1,5 @@
-import { ICallable, IDisposable, IIndexable } from "../interfaces";
-import { IScope } from "./binding-context";
+import { ICallable, IDisposable, IIndexable } from '../interfaces';
+import { IScope } from './binding-context';
 
 export interface IBindScope {
   $bind(scope: IScope): void;

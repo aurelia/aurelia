@@ -1,5 +1,5 @@
-import { IVisual } from "../../templating/view-engine";
-import { IScope } from "../../binding/binding-context";
+import { IVisual } from '../../templating/view-engine';
+import { IScope } from '../../binding/binding-context';
 
 export interface IRepeater {
   local: string;

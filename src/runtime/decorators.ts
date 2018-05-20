@@ -2,9 +2,9 @@ import { Component, IAttributeSource } from './templating/component';
 import { PLATFORM } from './platform';
 import { BindingMode } from './binding/binding-mode';
 import { Constructable, Injectable } from './interfaces';
-import { ICompiledViewSource, IBindableInstruction } from './templating/instructions';
+import { ITemplateSource, IBindableInstruction } from './templating/instructions';
 
-export function customElement(nameOrSource: string | ICompiledViewSource) {
+export function customElement(nameOrSource: string | ITemplateSource) {
   return function<T extends Constructable>(target: T) {
     if (typeof nameOrSource === 'string') {
       //TODO Patch in stub for jit components

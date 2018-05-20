@@ -1,5 +1,5 @@
-import { DI, inject } from "../di";
-import { valueConverter } from "../decorators";
+import { DI, inject } from '../di';
+import { valueConverter } from '../decorators';
 
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 
@@ -12,7 +12,7 @@ export interface ISanitizer {
 }
 
 export const ISanitizer = DI.createInterface<ISanitizer>()
-  .withDefault(x => x.instance({
+  .withDefault(x => x.singleton(class {
     sanitize(input: string): string {
       return input.replace(SCRIPT_REGEX, '');
     }

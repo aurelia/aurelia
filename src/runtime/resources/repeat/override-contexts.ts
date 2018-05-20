@@ -1,6 +1,6 @@
-import { IVisual } from "../../templating/view-engine";
-import { IOverrideContext, BindingContext } from "../../binding/binding-context";
-import { IRepeater } from "./repeater";
+import { IVisual } from '../../templating/view-engine';
+import { IOverrideContext, BindingContext } from '../../binding/binding-context';
+import { IRepeater } from './repeater';
 
 /**
 * Update the override context.

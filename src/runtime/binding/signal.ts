@@ -1,4 +1,4 @@
-import { ConnectableBinding } from "./connectable-binding";
+import { ConnectableBinding } from './connectable-binding';
 
 const signals: Record<string, number> = {};
 

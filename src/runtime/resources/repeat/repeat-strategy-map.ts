@@ -1,4 +1,4 @@
-import {createFullOverrideContext, updateOverrideContexts} from './override-contexts';
+import { createFullOverrideContext, updateOverrideContexts} from './override-contexts';
 import { IRepeatStrategy } from './repeat-strategy';
 import { IRepeater } from './repeater';
 import { IObserverLocator } from '../../binding/observer-locator';

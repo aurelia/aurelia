@@ -1,20 +1,20 @@
-import { PLATFORM } from "../platform";
-import { IEmulatedShadowSlot } from "./shadow-dom";
-import { IScope } from "../binding/binding-context";
-import { IBindScope } from "../binding/observation";
-import { IAttach } from "./lifecycle";
-import { DI, IContainer } from "../di";
-import { ITemplate, IVisual } from "./view-engine";
-import { Constructable } from "../interfaces";
-import { ICompiledViewSource } from "./instructions";
-import { INode, DOM, IChildObserver, IView } from "../dom";
-import { IElementComponent } from "./component";
-import { IRenderSlot } from "./render-slot";
-import { Reporter } from "../reporter";
+import { PLATFORM } from '../platform';
+import { IEmulatedShadowSlot } from './shadow-dom';
+import { IScope } from '../binding/binding-context';
+import { IBindScope } from '../binding/observation';
+import { IAttach } from './lifecycle';
+import { DI, IContainer } from '../di';
+import { ITemplate, IVisual } from './view-engine';
+import { Constructable } from '../interfaces';
+import { ITemplateSource } from './instructions';
+import { INode, DOM, IChildObserver, IView } from '../dom';
+import { IElementComponent } from './component';
+import { IRenderSlot } from './render-slot';
+import { Reporter } from '../reporter';
 
 export interface IViewOwnerType extends Constructable<IViewOwner> {
   template: ITemplate;
-  source: ICompiledViewSource;
+  source: ITemplateSource;
 }
 
 export const IViewOwner = DI.createInterface('IViewOwner');

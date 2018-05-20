@@ -11,10 +11,10 @@ import { IBindScope, IAccessor, ISubscribable } from '../binding/observation';
 import { IScope, BindingContext } from '../binding/binding-context';
 import { IRenderSlot } from './render-slot';
 import { IBindSelf, IAttach, AttachContext, DetachContext } from './lifecycle';
-import { ICompiledViewSource, IBindableInstruction } from './instructions';
+import { ITemplateSource, IBindableInstruction } from './instructions';
 import { INode, DOM, IView, IChildObserver } from '../dom';
 import { SubscriberCollection } from '../binding/subscriber-collection';
-import { ITemplateCache } from './template-cache';
+import { ITemplateEngine, IRuntimeBehavior } from './template-engine';
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $host: INode;
@@ -23,11 +23,11 @@ export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $slots: Record<string, IEmulatedShadowSlot>;
   $usingSlotEmulation: boolean;
 
-  $hydrate(container: IContainer, taskQueue: ITaskQueue, host: INode, replacements?: Record<string, ICompiledViewSource>, contentNodeOverride?: INode): void;
+  $hydrate(templateEngine: ITemplateEngine, host: INode, replacements?: Record<string, ITemplateSource>, contentNodeOverride?: INode): void;
 }
 
 export interface IAttributeComponent extends IBindScope, IAttach { 
-  $hydrate(taskQueue: ITaskQueue);
+  $hydrate(templateEngine: ITemplateEngine,);
 }
 
 export interface IAttributeSource {
@@ -47,35 +47,25 @@ export interface IBindingBehaviorSource {
 
 export interface IAttributeType extends Constructable<IAttributeComponent> {
   source: IAttributeSource;
+  register(container: IContainer);
 };
 
 export interface IElementType extends Constructable<IElementComponent> {
-  source: ICompiledViewSource;
+  source: ITemplateSource;
+  register(container: IContainer);
 }
 
 export interface ValueConverterType extends Constructable {
   source: IValueConverterSource;
+  register(container: IContainer);
 }
 
 export interface BindingBehaviorType extends Constructable {
   source: IBindingBehaviorSource;
+  register(container: IContainer);
 }
 
 export const Component = {
-  findElements(nodes: ArrayLike<INode>): IElementComponent[] {
-    let components: IElementComponent[] = [];
-  
-    for (let i = 0, ii = nodes.length; i < ii; ++i) {
-      const current = nodes[i];
-      const component = DOM.getComponentForNode(current);
-      
-      if (component !== null) {
-        components.push(component);
-      }
-    }
-  
-    return components;
-  },
   valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & ValueConverterType {
     const source = (<any>ctor).source = ensureSource<IValueConverterSource>(nameOrSource);
 
@@ -114,15 +104,15 @@ export const Component = {
       }
 
       private $changeCallbacks: (() => void)[] = [];
-      private $behavior: RuntimeBehavior = null;
+      private $behavior: IRuntimeBehavior = null;
 
       $isAttached = false;
       $isBound = false;
       $scope: IScope = null;
       $slot: IRenderSlot = null;
 
-      $hydrate(taskQueue: ITaskQueue) {
-        RuntimeBehavior.get(this, observables, CustomAttribute).applyToAttribute(taskQueue, this);
+      $hydrate(templateEngine: ITemplateEngine) {
+        this.$behavior = templateEngine.applyObservables(CustomAttribute, this, observables);
 
         if (this.$behavior.hasCreated) {
           (<any>this).created();
@@ -201,7 +191,7 @@ export const Component = {
       }
     };
   },
-  elementFromCompiledSource<T extends Constructable>(source: ICompiledViewSource, ctor: T = null): T & IElementType {
+  elementFromCompiledSource<T extends Constructable>(source: ITemplateSource, ctor: T = null): T & IElementType {
     //Support HTML-Only Elements by providing a generated class.
     if (ctor === null) {
       ctor = <any>class HTMLOnlyElement { };
@@ -214,7 +204,7 @@ export const Component = {
     const observables = Object.assign({}, (<any>ctor).observables, source.observables);
 
     const CompiledComponent = class extends ctor implements IElementComponent {
-      static source: ICompiledViewSource = source;
+      static source: ITemplateSource = source;
 
       static register(container: IContainer){
         container.register(Registration.transient(source.name, CompiledComponent));
@@ -237,43 +227,26 @@ export const Component = {
       $host: INode = null;
       private $shadowRoot: INode = null;
       private $changeCallbacks: (() => void)[] = [];
-      private $behavior: RuntimeBehavior = null;
+      private $behavior: IRuntimeBehavior = null;
   
-      $hydrate(container: IContainer, taskQueue: ITaskQueue, host: INode, replacements: Record<string, ICompiledViewSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
-        RuntimeBehavior.get(this, observables, CompiledComponent).applyToElement(taskQueue, this);
-        
+      $hydrate(templateEngine: ITemplateEngine, host: INode, replacements: Record<string, ITemplateSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
+        this.$behavior = templateEngine.applyObservables(CompiledComponent, this, observables);
         this.$host = source.containerless ? DOM.convertToAnchor(host, true) : host;
         this.$shadowRoot = DOM.createElementViewHost(this.$host, source.shadowOptions);
         this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
         this.$contentView = View.fromCompiledContent(this.$host, contentOverride);
-        this.$view = this.$createView(container, this.$host, replacements);
+
+        let template = templateEngine.getElementTemplate(source, CompiledComponent);
+
+        this.$view = this.$behavior.hasCreateView
+          ? (<any>this).createView(host, replacements, template)
+          : template.createFor(this, host, replacements);
 
         (<any>this.$host).$component = this;
   
         if (this.$behavior.hasCreated) {
           (<any>this).created();
         }
-      }
-  
-      $createView(container: IContainer, host: INode, replacements: Record<string, ICompiledViewSource>) {
-        let cache = container.get<ITemplateCache>(ITemplateCache);
-        let template = cache.getTemplate(
-          source,
-          container => {
-            let t = ViewEngine.templateFromCompiledSource(container, source);
-
-            //If the element has a view, support Recursive Components by adding self to own view template container.
-            if (t.container !== null) {
-              CompiledComponent.register(t.container);
-            }
-
-            return t;
-          }
-        );
-
-        return this.$behavior.hasCreateView
-          ? (<any>this).createView(host, replacements, template)
-          : template.createFor(this, host, replacements);
       }
   
       $bind() {
@@ -414,160 +387,4 @@ function ensureSource<T>(nameOrSource: any): T {
   }
 
   return source;
-}
-
-class RuntimeBehavior {
-  private constructor() {}
-
-  observables: Record<string, IBindableInstruction>;
-  hasCreated = false;
-  hasBound = false;
-  hasAttaching = false;
-  hasAttached = false;
-  hasDetaching = false;
-  hasDetached = false;
-  hasUnbound = false;
-  hasCreateView = false;
-
-  static get(instance, observables: Record<string, IBindableInstruction>, Component: IElementType | IAttributeType) {
-    let behavior: RuntimeBehavior = (<any>Component).behavior;
-  
-    if (behavior === undefined) {
-      behavior
-        = (<any>Component).behavior
-        = RuntimeBehavior.for(instance, observables, Component);
-    }
-
-    return behavior;
-  }
-
-  private static for(instance, observables: Record<string, IBindableInstruction>, Component: IElementType | IAttributeType) {
-    let behavior = new RuntimeBehavior();
-
-    for (let name in instance) {
-      if (name in observables) {
-        continue;
-      }
-
-      const callback = `${name}Changed`;
-
-      if (callback in instance) {
-        observables[name] = { callback };
-      }
-    }
-
-    behavior.observables = observables;
-    behavior.hasCreated = 'created' in instance;
-    behavior.hasBound = 'bound' in instance;
-    behavior.hasAttaching = 'attaching' in instance;
-    behavior.hasAttached = 'attached' in instance;
-    behavior.hasDetaching = 'detaching' in instance;
-    behavior.hasDetached = 'detached' in instance;
-    behavior.hasUnbound = 'unbound' in instance;
-    behavior.hasCreateView = 'createView' in instance;
-
-    return behavior;
-  }
-
-  applyToAttribute(taskQueue: ITaskQueue, instance: IAttributeComponent) {
-    this.applyTo(taskQueue, instance);
-  }
-
-  applyToElement(taskQueue: ITaskQueue, instance: IElementComponent) {
-    const observers = this.applyTo(taskQueue, instance);
-
-    (<any>observers).$children = new ChildrenObserver(taskQueue, instance);
-
-    Reflect.defineProperty(instance, '$children', {
-      enumerable: false,
-      get: function() {
-        return this.$observers.$children.getValue();
-      }
-    });
-  }
-
-  private applyTo(taskQueue: ITaskQueue, instance: any) {
-    const observers = {};
-    const finalObservables = this.observables;
-    const observableNames = Object.getOwnPropertyNames(finalObservables);
-  
-    for (let i = 0, ii = observableNames.length; i < ii; ++i) {
-      const name = observableNames[i];
-      const observable = finalObservables[name];
-      const changeHandler = observable.callback;
-  
-      if (changeHandler in instance) {
-        observers[name] = new Observer(taskQueue, instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
-        instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
-      } else {
-        observers[name] = new Observer(taskQueue, instance[name]);
-      }
-  
-      createGetterSetter(instance, name);
-    }
-  
-    Reflect.defineProperty(instance, '$observers', {
-      enumerable: false,
-      value: observers
-    });
-
-    instance.$behavior = this;
-
-    return observers;
-  }
-}
-
-function createGetterSetter(instance, name) {
-  Reflect.defineProperty(instance, name, {
-    enumerable: true,
-    get: function() { return this.$observers[name].getValue(); },
-    set: function(value) { this.$observers[name].setValue(value); }
-  });
-}
-
-export class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private observer: IChildObserver = null;
-  private children: IElementComponent[] = null;
-  private queued = false;
-
-  constructor(private taskQueue: ITaskQueue, private component: IElementComponent) {
-    super();
-  }
-
-  getValue(): IElementComponent[] {
-    if (this.observer === null) {
-      this.observer = DOM.createChildObserver(this.component.$host, () => this.onChildrenChanged());
-      this.children = Component.findElements(this.observer.childNodes);
-    }
-
-    return this.children;
-  }
-
-  setValue(newValue) {}
-
-  private onChildrenChanged() {
-    this.children = Component.findElements(this.observer.childNodes);
-
-    if ('$childrenChanged' in this.component) {
-      (<any>this.component).$childrenChanged();
-    }
-
-    if (!this.queued) {
-      this.queued = true;
-      this.taskQueue.queueMicroTask(this);
-    }
-  }
-
-  call() {
-    this.queued = false;
-    this.callSubscribers(this.children);
-  }
-
-  subscribe(context: string, callable: ICallable) {
-    this.addSubscriber(context, callable);
-  }
-
-  unsubscribe(context: string, callable: ICallable) {
-    this.removeSubscriber(context, callable);
-  }
 }

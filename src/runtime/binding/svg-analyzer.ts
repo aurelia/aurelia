@@ -1,5 +1,5 @@
-import { DI } from "../di";
-import { INode } from "../dom";
+import { DI } from '../di';
+import { INode } from '../dom';
 
 export interface ISVGAnalyzer {
   isStandardSvgAttribute(node: INode, attributeName: string): boolean;

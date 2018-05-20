@@ -1,4 +1,4 @@
-import { IViewOwner } from "./view";
+import { IViewOwner } from './view';
 
 export class AttachContext {
   private tail = null;

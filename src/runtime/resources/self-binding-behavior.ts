@@ -1,7 +1,7 @@
-import { IScope } from "../binding/binding-context";
-import { Listener } from "../binding/listener";
-import { Reporter } from "../reporter";
-import { bindingBehavior } from "../decorators";
+import { IScope } from '../binding/binding-context';
+import { Listener } from '../binding/listener';
+import { Reporter } from '../reporter';
+import { bindingBehavior } from '../decorators';
 
 function findOriginalEventTarget(event) {
   return (event.path && event.path[0]) || (event.deepPath && event.deepPath[0]) || event.target;

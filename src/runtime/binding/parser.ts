@@ -1,6 +1,6 @@
-import { IExpression } from "./ast";
-import { Reporter } from "../reporter";
-import { DI } from "../di";
+import { IExpression } from './ast';
+import { Reporter } from '../reporter';
+import { DI } from '../di';
 
 export interface IParser {
   cache(expressions: Record<string, IExpression>): void;

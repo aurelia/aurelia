@@ -1,11 +1,11 @@
-import { DI, inject } from "../../di";
-import { IRepeatStrategy } from "./repeat-strategy";
-import { NullRepeatStrategy } from "./repeat-strategy-null";
-import { ArrayRepeatStrategy } from "./repeat-strategy-array";
-import { MapRepeatStrategy } from "./repeat-strategy-map";
-import { SetRepeatStrategy } from "./repeat-strategy-set";
-import { NumberRepeatStrategy } from "./repeat-strategy-number";
-import { IObserverLocator } from "../../binding/observer-locator";
+import { DI, inject } from '../../di';
+import { IRepeatStrategy } from './repeat-strategy';
+import { NullRepeatStrategy } from './repeat-strategy-null';
+import { ArrayRepeatStrategy } from './repeat-strategy-array';
+import { MapRepeatStrategy } from './repeat-strategy-map';
+import { SetRepeatStrategy } from './repeat-strategy-set';
+import { NumberRepeatStrategy } from './repeat-strategy-number';
+import { IObserverLocator } from '../../binding/observer-locator';
 
 export const IRepeatStrategyRegistry = DI.createInterface<IRepeatStrategyRegistry>()
   .withDefault(x => x.singleton(RepeatStrategyRegistry));

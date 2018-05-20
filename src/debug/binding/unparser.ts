@@ -1,4 +1,4 @@
-import * as AST from "../../runtime/binding/ast";
+import * as AST from '../../runtime/binding/ast';
 
 export function enableImprovedExpressionDebugging() {
   [

@@ -593,7 +593,7 @@ define('debug/task-queue',["require", "exports", "../runtime/task-queue"], funct
 
 
 
-define('runtime/aurelia',["require", "exports", "./platform", "./di", "./task-queue"], function (require, exports, platform_1, di_1, task_queue_1) {
+define('runtime/aurelia',["require", "exports", "./platform", "./di", "./templating/template-engine"], function (require, exports, platform_1, di_1, template_engine_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Aurelia = (function () {
@@ -620,7 +620,7 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di", "./task-qu
             var startTask = function () {
                 if (!_this.components.includes(component)) {
                     _this.components.push(component);
-                    component.$hydrate(_this.container, _this.container.get(task_queue_1.ITaskQueue), config.host);
+                    component.$hydrate(_this.container.get(template_engine_1.ITemplateEngine), config.host);
                 }
                 component.$bind();
                 component.$attach();
@@ -5656,11 +5656,14 @@ define('runtime/resources/sanitize',["require", "exports", "../di", "../decorato
     Object.defineProperty(exports, "__esModule", { value: true });
     var SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
     exports.ISanitizer = di_1.DI.createInterface()
-        .withDefault(function (x) { return x.instance({
-        sanitize: function (input) {
-            return input.replace(SCRIPT_REGEX, '');
+        .withDefault(function (x) { return x.singleton((function () {
+        function class_1() {
         }
-    }); });
+        class_1.prototype.sanitize = function (input) {
+            return input.replace(SCRIPT_REGEX, '');
+        };
+        return class_1;
+    }())); });
     var SanitizeValueConverter = (function () {
         function SanitizeValueConverter(sanitizer) {
             this.sanitizer = sanitizer;
@@ -5740,9 +5743,10 @@ define('runtime/resources/signals',["require", "exports", "../binding/binding-co
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ISignaler = di_1.DI.createInterface()
-        .withDefault(function (x) { return x.instance({
-        signals: {},
-        dispatchSignal: function (name) {
+        .withDefault(function (x) { return x.singleton((function () {
+        function class_1() {
+        }
+        class_1.prototype.dispatchSignal = function (name) {
             var bindings = this.signals[name];
             if (!bindings) {
                 return;
@@ -5751,17 +5755,18 @@ define('runtime/resources/signals',["require", "exports", "../binding/binding-co
             while (i--) {
                 bindings[i].call(binding_context_1.sourceContext);
             }
-        },
-        addSignalListener: function (name, listener) {
+        };
+        class_1.prototype.addSignalListener = function (name, listener) {
             (this.signals[name] || (this.signals[name] = [])).push(listener);
-        },
-        removeSignalListener: function (name, listener) {
+        };
+        class_1.prototype.removeSignalListener = function (name, listener) {
             var listeners = this.signals[name];
             if (listeners) {
                 listeners.splice(listeners.indexOf(listener), 1);
             }
-        }
-    }); });
+        };
+        return class_1;
+    }())); });
     var SignalBindingBehavior = (function () {
         function SignalBindingBehavior(signaler) {
             this.signaler = signaler;
@@ -6019,22 +6024,11 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/component',["require", "exports", "./view-engine", "./view", "../binding/property-observation", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom", "../binding/subscriber-collection", "./template-cache"], function (require, exports, view_engine_1, view_1, property_observation_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1, subscriber_collection_1, template_cache_1) {
+define('runtime/templating/component',["require", "exports", "./view", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom"], function (require, exports, view_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
     exports.Component = {
-        findElements: function (nodes) {
-            var components = [];
-            for (var i = 0, ii = nodes.length; i < ii; ++i) {
-                var current = nodes[i];
-                var component = dom_1.DOM.getComponentForNode(current);
-                if (component !== null) {
-                    components.push(component);
-                }
-            }
-            return components;
-        },
         valueConverter: function (nameOrSource, ctor) {
             var source = ctor.source = ensureSource(nameOrSource);
             ctor.register = function (container) {
@@ -6073,8 +6067,8 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                             }
                         }
                     };
-                    CustomAttribute.prototype.$hydrate = function (taskQueue) {
-                        RuntimeBehavior.get(this, observables, CustomAttribute).applyToAttribute(taskQueue, this);
+                    CustomAttribute.prototype.$hydrate = function (templateEngine) {
+                        this.$behavior = templateEngine.applyObservables(CustomAttribute, this, observables);
                         if (this.$behavior.hasCreated) {
                             this.created();
                         }
@@ -6177,31 +6171,21 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
                     class_1.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    class_1.prototype.$hydrate = function (container, taskQueue, host, replacements, contentOverride) {
+                    class_1.prototype.$hydrate = function (templateEngine, host, replacements, contentOverride) {
                         if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
-                        RuntimeBehavior.get(this, observables, CompiledComponent).applyToElement(taskQueue, this);
+                        this.$behavior = templateEngine.applyObservables(CompiledComponent, this, observables);
                         this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
                         this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
                         this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
                         this.$contentView = view_1.View.fromCompiledContent(this.$host, contentOverride);
-                        this.$view = this.$createView(container, this.$host, replacements);
+                        var template = templateEngine.getElementTemplate(source, CompiledComponent);
+                        this.$view = this.$behavior.hasCreateView
+                            ? this.createView(host, replacements, template)
+                            : template.createFor(this, host, replacements);
                         this.$host.$component = this;
                         if (this.$behavior.hasCreated) {
                             this.created();
                         }
-                    };
-                    class_1.prototype.$createView = function (container, host, replacements) {
-                        var cache = container.get(template_cache_1.ITemplateCache);
-                        var template = cache.getTemplate(source, function (container) {
-                            var t = view_engine_1.ViewEngine.templateFromCompiledSource(container, source);
-                            if (t.container !== null) {
-                                CompiledComponent.register(t.container);
-                            }
-                            return t;
-                        });
-                        return this.$behavior.hasCreateView
-                            ? this.createView(host, replacements, template)
-                            : template.createFor(this, host, replacements);
                     };
                     class_1.prototype.$bind = function () {
                         if (this.$isBound) {
@@ -6312,140 +6296,6 @@ define('runtime/templating/component',["require", "exports", "./view-engine", ".
         }
         return source;
     }
-    var RuntimeBehavior = (function () {
-        function RuntimeBehavior() {
-            this.hasCreated = false;
-            this.hasBound = false;
-            this.hasAttaching = false;
-            this.hasAttached = false;
-            this.hasDetaching = false;
-            this.hasDetached = false;
-            this.hasUnbound = false;
-            this.hasCreateView = false;
-        }
-        RuntimeBehavior.get = function (instance, observables, Component) {
-            var behavior = Component.behavior;
-            if (behavior === undefined) {
-                behavior
-                    = Component.behavior
-                        = RuntimeBehavior.for(instance, observables, Component);
-            }
-            return behavior;
-        };
-        RuntimeBehavior.for = function (instance, observables, Component) {
-            var behavior = new RuntimeBehavior();
-            for (var name_1 in instance) {
-                if (name_1 in observables) {
-                    continue;
-                }
-                var callback = name_1 + "Changed";
-                if (callback in instance) {
-                    observables[name_1] = { callback: callback };
-                }
-            }
-            behavior.observables = observables;
-            behavior.hasCreated = 'created' in instance;
-            behavior.hasBound = 'bound' in instance;
-            behavior.hasAttaching = 'attaching' in instance;
-            behavior.hasAttached = 'attached' in instance;
-            behavior.hasDetaching = 'detaching' in instance;
-            behavior.hasDetached = 'detached' in instance;
-            behavior.hasUnbound = 'unbound' in instance;
-            behavior.hasCreateView = 'createView' in instance;
-            return behavior;
-        };
-        RuntimeBehavior.prototype.applyToAttribute = function (taskQueue, instance) {
-            this.applyTo(taskQueue, instance);
-        };
-        RuntimeBehavior.prototype.applyToElement = function (taskQueue, instance) {
-            var observers = this.applyTo(taskQueue, instance);
-            observers.$children = new ChildrenObserver(taskQueue, instance);
-            Reflect.defineProperty(instance, '$children', {
-                enumerable: false,
-                get: function () {
-                    return this.$observers.$children.getValue();
-                }
-            });
-        };
-        RuntimeBehavior.prototype.applyTo = function (taskQueue, instance) {
-            var observers = {};
-            var finalObservables = this.observables;
-            var observableNames = Object.getOwnPropertyNames(finalObservables);
-            var _loop_1 = function (i, ii) {
-                var name_2 = observableNames[i];
-                var observable = finalObservables[name_2];
-                var changeHandler = observable.callback;
-                if (changeHandler in instance) {
-                    observers[name_2] = new property_observation_1.Observer(taskQueue, instance[name_2], function (v) { return instance.$isBound ? instance[changeHandler](v) : void 0; });
-                    instance.$changeCallbacks.push(function () { return instance[changeHandler](instance[name_2]); });
-                }
-                else {
-                    observers[name_2] = new property_observation_1.Observer(taskQueue, instance[name_2]);
-                }
-                createGetterSetter(instance, name_2);
-            };
-            for (var i = 0, ii = observableNames.length; i < ii; ++i) {
-                _loop_1(i, ii);
-            }
-            Reflect.defineProperty(instance, '$observers', {
-                enumerable: false,
-                value: observers
-            });
-            instance.$behavior = this;
-            return observers;
-        };
-        return RuntimeBehavior;
-    }());
-    function createGetterSetter(instance, name) {
-        Reflect.defineProperty(instance, name, {
-            enumerable: true,
-            get: function () { return this.$observers[name].getValue(); },
-            set: function (value) { this.$observers[name].setValue(value); }
-        });
-    }
-    var ChildrenObserver = (function (_super) {
-        __extends(ChildrenObserver, _super);
-        function ChildrenObserver(taskQueue, component) {
-            var _this = _super.call(this) || this;
-            _this.taskQueue = taskQueue;
-            _this.component = component;
-            _this.observer = null;
-            _this.children = null;
-            _this.queued = false;
-            return _this;
-        }
-        ChildrenObserver.prototype.getValue = function () {
-            var _this = this;
-            if (this.observer === null) {
-                this.observer = dom_1.DOM.createChildObserver(this.component.$host, function () { return _this.onChildrenChanged(); });
-                this.children = exports.Component.findElements(this.observer.childNodes);
-            }
-            return this.children;
-        };
-        ChildrenObserver.prototype.setValue = function (newValue) { };
-        ChildrenObserver.prototype.onChildrenChanged = function () {
-            this.children = exports.Component.findElements(this.observer.childNodes);
-            if ('$childrenChanged' in this.component) {
-                this.component.$childrenChanged();
-            }
-            if (!this.queued) {
-                this.queued = true;
-                this.taskQueue.queueMicroTask(this);
-            }
-        };
-        ChildrenObserver.prototype.call = function () {
-            this.queued = false;
-            this.callSubscribers(this.children);
-        };
-        ChildrenObserver.prototype.subscribe = function (context, callable) {
-            this.addSubscriber(context, callable);
-        };
-        ChildrenObserver.prototype.unsubscribe = function (context, callable) {
-            this.removeSubscriber(context, callable);
-        };
-        return ChildrenObserver;
-    }(subscriber_collection_1.SubscriberCollection));
-    exports.ChildrenObserver = ChildrenObserver;
 });
 
 
@@ -7149,6 +6999,16 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
 
 
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7158,30 +7018,201 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/templating/template-cache',["require", "exports", "../di"], function (require, exports, di_1) {
+define('runtime/templating/template-engine',["require", "exports", "../di", "./view-engine", "../task-queue", "../binding/property-observation", "../dom", "../binding/subscriber-collection"], function (require, exports, di_1, view_engine_1, task_queue_1, property_observation_1, dom_1, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ITemplateCache = di_1.DI.createInterface()
-        .withDefault(function (x) { return x.singleton(TemplateCache); });
-    var TemplateCache = (function () {
-        function TemplateCache(container) {
+    exports.ITemplateEngine = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(TemplateEngine); });
+    var TemplateEngine = (function () {
+        function TemplateEngine(container, taskQueue) {
             this.container = container;
-            this.lookup = new Map();
+            this.taskQueue = taskQueue;
+            this.templateLookup = new Map();
+            this.factoryLookup = new Map();
+            this.behaviorLookup = new Map();
         }
-        TemplateCache.prototype.getTemplate = function (key, onMiss) {
-            var found = this.lookup.get(key);
+        TemplateEngine.prototype.getElementTemplate = function (source, componentType) {
+            if (!source) {
+                return null;
+            }
+            var found = this.templateLookup.get(source);
             if (!found) {
-                found = onMiss(this.container);
-                this.lookup.set(key, found);
+                found = view_engine_1.ViewEngine.templateFromCompiledSource(this.container, source);
+                if (found.container !== null) {
+                    componentType.register(found.container);
+                }
+                this.templateLookup.set(source, found);
             }
             return found;
         };
-        TemplateCache = __decorate([
-            di_1.inject(di_1.IContainer),
-            __metadata("design:paramtypes", [Object])
-        ], TemplateCache);
-        return TemplateCache;
+        TemplateEngine.prototype.getVisualFactory = function (container, source) {
+            if (!source) {
+                return null;
+            }
+            var found = this.factoryLookup.get(source);
+            if (!found) {
+                found = view_engine_1.ViewEngine.factoryFromCompiledSource(container, source);
+                this.factoryLookup.set(source, found);
+            }
+            return found;
+        };
+        TemplateEngine.prototype.applyObservables = function (type, instance, observables) {
+            var found = this.behaviorLookup.get(type);
+            if (!found) {
+                found = RuntimeBehavior.create(instance, observables, type);
+                this.behaviorLookup.set(type, found);
+            }
+            if ('$host' in instance) {
+                found.applyToElement(this.taskQueue, instance);
+            }
+            else {
+                found.applyToAttribute(this.taskQueue, instance);
+            }
+            return found;
+        };
+        TemplateEngine = __decorate([
+            di_1.inject(di_1.IContainer, task_queue_1.ITaskQueue),
+            __metadata("design:paramtypes", [Object, Object])
+        ], TemplateEngine);
+        return TemplateEngine;
     }());
+    var RuntimeBehavior = (function () {
+        function RuntimeBehavior() {
+            this.hasCreated = false;
+            this.hasBound = false;
+            this.hasAttaching = false;
+            this.hasAttached = false;
+            this.hasDetaching = false;
+            this.hasDetached = false;
+            this.hasUnbound = false;
+            this.hasCreateView = false;
+        }
+        RuntimeBehavior.create = function (instance, observables, Component) {
+            var behavior = new RuntimeBehavior();
+            for (var name_1 in instance) {
+                if (name_1 in observables) {
+                    continue;
+                }
+                var callback = name_1 + "Changed";
+                if (callback in instance) {
+                    observables[name_1] = { callback: callback };
+                }
+            }
+            behavior.observables = observables;
+            behavior.hasCreated = 'created' in instance;
+            behavior.hasBound = 'bound' in instance;
+            behavior.hasAttaching = 'attaching' in instance;
+            behavior.hasAttached = 'attached' in instance;
+            behavior.hasDetaching = 'detaching' in instance;
+            behavior.hasDetached = 'detached' in instance;
+            behavior.hasUnbound = 'unbound' in instance;
+            behavior.hasCreateView = 'createView' in instance;
+            return behavior;
+        };
+        RuntimeBehavior.prototype.applyToAttribute = function (taskQueue, instance) {
+            this.applyTo(taskQueue, instance);
+            return this;
+        };
+        RuntimeBehavior.prototype.applyToElement = function (taskQueue, instance) {
+            var observers = this.applyTo(taskQueue, instance);
+            observers.$children = new ChildrenObserver(taskQueue, instance);
+            Reflect.defineProperty(instance, '$children', {
+                enumerable: false,
+                get: function () {
+                    return this.$observers.$children.getValue();
+                }
+            });
+            return this;
+        };
+        RuntimeBehavior.prototype.applyTo = function (taskQueue, instance) {
+            var observers = {};
+            var finalObservables = this.observables;
+            var observableNames = Object.getOwnPropertyNames(finalObservables);
+            var _loop_1 = function (i, ii) {
+                var name_2 = observableNames[i];
+                var observable = finalObservables[name_2];
+                var changeHandler = observable.callback;
+                if (changeHandler in instance) {
+                    observers[name_2] = new property_observation_1.Observer(taskQueue, instance[name_2], function (v) { return instance.$isBound ? instance[changeHandler](v) : void 0; });
+                    instance.$changeCallbacks.push(function () { return instance[changeHandler](instance[name_2]); });
+                }
+                else {
+                    observers[name_2] = new property_observation_1.Observer(taskQueue, instance[name_2]);
+                }
+                createGetterSetter(instance, name_2);
+            };
+            for (var i = 0, ii = observableNames.length; i < ii; ++i) {
+                _loop_1(i, ii);
+            }
+            Reflect.defineProperty(instance, '$observers', {
+                enumerable: false,
+                value: observers
+            });
+            instance.$behavior = this;
+            return observers;
+        };
+        return RuntimeBehavior;
+    }());
+    function createGetterSetter(instance, name) {
+        Reflect.defineProperty(instance, name, {
+            enumerable: true,
+            get: function () { return this.$observers[name].getValue(); },
+            set: function (value) { this.$observers[name].setValue(value); }
+        });
+    }
+    var ChildrenObserver = (function (_super) {
+        __extends(ChildrenObserver, _super);
+        function ChildrenObserver(taskQueue, component) {
+            var _this = _super.call(this) || this;
+            _this.taskQueue = taskQueue;
+            _this.component = component;
+            _this.observer = null;
+            _this.children = null;
+            _this.queued = false;
+            return _this;
+        }
+        ChildrenObserver.prototype.getValue = function () {
+            var _this = this;
+            if (this.observer === null) {
+                this.observer = dom_1.DOM.createChildObserver(this.component.$host, function () { return _this.onChildrenChanged(); });
+                this.children = findElements(this.observer.childNodes);
+            }
+            return this.children;
+        };
+        ChildrenObserver.prototype.setValue = function (newValue) { };
+        ChildrenObserver.prototype.onChildrenChanged = function () {
+            this.children = findElements(this.observer.childNodes);
+            if ('$childrenChanged' in this.component) {
+                this.component.$childrenChanged();
+            }
+            if (!this.queued) {
+                this.queued = true;
+                this.taskQueue.queueMicroTask(this);
+            }
+        };
+        ChildrenObserver.prototype.call = function () {
+            this.queued = false;
+            this.callSubscribers(this.children);
+        };
+        ChildrenObserver.prototype.subscribe = function (context, callable) {
+            this.addSubscriber(context, callable);
+        };
+        ChildrenObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+        };
+        return ChildrenObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    function findElements(nodes) {
+        var components = [];
+        for (var i = 0, ii = nodes.length; i < ii; ++i) {
+            var current = nodes[i];
+            var component = dom_1.DOM.getComponentForNode(current);
+            if (component !== null) {
+                components.push(component);
+            }
+        }
+        return components;
+    }
 });
 
 
@@ -7196,7 +7227,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/parser", "../di", "../binding/binding-mode", "./lifecycle", "../reporter", "./instructions", "../dom", "../task-queue", "../binding/observer-locator", "../binding/event-manager"], function (require, exports, platform_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, parser_1, di_1, binding_mode_1, lifecycle_1, reporter_1, instructions_1, dom_1, task_queue_1, observer_locator_1, event_manager_1) {
+define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/parser", "../di", "../binding/binding-mode", "./lifecycle", "../reporter", "./instructions", "../dom", "../task-queue", "../binding/observer-locator", "../binding/event-manager", "./template-engine"], function (require, exports, platform_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, parser_1, di_1, binding_mode_1, lifecycle_1, reporter_1, instructions_1, dom_1, task_queue_1, observer_locator_1, event_manager_1, template_engine_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -7241,7 +7272,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
                 }
                 ComponentVisual.prototype.createView = function () {
                     var target;
-                    var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), container.get(parser_1.IParser), this);
+                    var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), container.get(parser_1.IParser), container.get(template_engine_1.ITemplateEngine), this);
                     if (typeof componentOrType === 'function') {
                         target = dom_1.DOM.createElement(componentOrType.source.name);
                         interpreter[instructions_1.TargetedInstructionType.hydrateElement](target, instruction);
@@ -7266,12 +7297,13 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         }
     };
     var InstructionInterpreter = (function () {
-        function InstructionInterpreter(container, taskQueue, observerLoator, eventManager, parser, owner, host, replacements) {
+        function InstructionInterpreter(container, taskQueue, observerLoator, eventManager, parser, templateEngine, owner, host, replacements) {
             this.container = container;
             this.taskQueue = taskQueue;
             this.observerLoator = observerLoator;
             this.eventManager = eventManager;
             this.parser = parser;
+            this.templateEngine = templateEngine;
             this.owner = owner;
             this.host = host;
             this.replacements = replacements;
@@ -7314,10 +7346,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             if (!owner.$usingSlotEmulation) {
                 return;
             }
-            var fallbackFactory = instruction.factory;
-            if (fallbackFactory === undefined && instruction.fallback) {
-                instruction.factory = fallbackFactory = exports.ViewEngine.factoryFromCompiledSource(this.container, instruction.fallback);
-            }
+            var fallbackFactory = this.templateEngine.getVisualFactory(this.container, instruction.fallback);
             var slot = shadow_dom_1.ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
             owner.$slots[slot.name] = slot;
             owner.$bindable.push(slot);
@@ -7345,7 +7374,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             container.owner.prepare(owner);
             container.instruction.prepare(instruction);
             var component = container.get(instruction.res);
-            component.$hydrate(this.taskQueue);
+            component.$hydrate(this.templateEngine);
             for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
                 var current = childInstructions[i];
                 this[current.type](component, current);
@@ -7358,19 +7387,16 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         };
         InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (target, instruction) {
             var childInstructions = instruction.instructions;
-            var factory = instruction.factory;
+            var factory = this.templateEngine.getVisualFactory(this.container, instruction.src);
             var container = this.container;
             var owner = this.owner;
-            if (factory === undefined) {
-                instruction.factory = factory = exports.ViewEngine.factoryFromCompiledSource(container, instruction.src);
-            }
             container.element.prepare(target);
             container.owner.prepare(owner);
             container.instruction.prepare(instruction);
             container.factory.prepare(factory, this.replacements);
             container.slot.prepare(dom_1.DOM.convertToAnchor(target), false);
             var component = container.get(instruction.res);
-            component.$hydrate(this.taskQueue);
+            component.$hydrate(this.templateEngine);
             container.slot.connectTemplateController(component);
             if (instruction.link) {
                 component.link(owner.$attachable[owner.$attachable.length - 1]);
@@ -7390,7 +7416,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         InstructionInterpreter.prototype.applyElementInstructionToComponentInstance = function (target, instruction, component) {
             var childInstructions = instruction.instructions;
             var owner = this.owner;
-            component.$hydrate(this.container, this.taskQueue, target, instruction.replacements, instruction.contentElement);
+            component.$hydrate(this.templateEngine, target, instruction.replacements, instruction.contentElement);
             for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
                 var current = childInstructions[i];
                 var currentType = current.type;
@@ -7505,7 +7531,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             var targets = view.findTargets();
             var container = this.container;
             var targetInstructions = source.targetInstructions;
-            var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), container.get(parser_1.IParser), owner, host, replacements);
+            var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), container.get(parser_1.IParser), container.get(template_engine_1.ITemplateEngine), owner, host, replacements);
             for (var i = 0, ii = targets.length; i < ii; ++i) {
                 var instructions = targetInstructions[i];
                 var target = targets[i];

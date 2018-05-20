@@ -352,7 +352,7 @@ class InstanceProvider<T> implements IResolver {
     this.instance = instance;
   }
 
-  get(handler: IContainer, requestor: IContainer) {
+  resolve(handler: IContainer, requestor: IContainer) {
     return this.instance;
   }
 
@@ -370,7 +370,7 @@ class ViewFactoryProvider implements IResolver {
     this.replacements = replacements || PLATFORM.emptyObject;
   }
 
-  get(handler: IContainer, requestor: IContainer) {
+  resolve(handler: IContainer, requestor: IContainer) {
     let found = this.replacements[this.factory.name];
 
     if (found) {
@@ -400,7 +400,7 @@ class RenderSlotProvider implements IResolver {
     this.anchorIsContainer = anchorIsContainer;
   }
 
-  get(handler: IContainer, requestor: IContainer) {
+  resolve(handler: IContainer, requestor: IContainer) {
     return this.slot || (this.slot = RenderSlot.create(this.node, this.anchorIsContainer));
   }
 

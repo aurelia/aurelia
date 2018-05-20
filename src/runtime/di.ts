@@ -4,9 +4,54 @@ import { Reporter } from "./reporter";
 
 type Factory<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
-interface InterfaceSymbol<T> {
+interface IInterfaceSymbol<T> {
   (target: Injectable, property: string, index: number): any;
-  withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): this;
+}
+
+interface IDefaultableInterfaceSymbol<T> extends IInterfaceSymbol<T> {
+  withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): IInterfaceSymbol<T>;
+}
+
+export interface IResolver<T = any> {
+  resolve(handler: IContainer, requestor: IContainer): T;
+  getConstructionHandler?(container: IContainer): IConstructionHandler<T>;
+}
+
+export interface IRegistration<T = any> {
+  register(container: IContainer, key?: any): IResolver<T>;
+}
+
+export interface IConstructionHandler<T = any> {
+  registerTransformer<T>(transformer: (instance: T) => T): boolean;
+  construct(container: IContainer, dynamicDependencies?: any[]): T;
+}
+
+export interface IContainer {
+  register(...params: any[]);
+
+  registerResolver<T>(key: Constructable<T>, resolver: IResolver<T>): IResolver<T>;
+  registerResolver<T>(key: IInterfaceSymbol<T>, resolver: IResolver<T>): IResolver<T>;
+  registerResolver<T = any>(key: any, resolver: IResolver<T>): IResolver<T>;
+
+  registerTransformer<T>(key: Constructable<T>, transformer: (instance: T) => T): boolean;
+  registerTransformer<T>(key: IInterfaceSymbol<T>, transformer: (instance: T) => T): boolean;
+  registerTransformer<T = any>(key: any, transformer: (instance: T) => T): boolean;
+
+  get<T>(key: Constructable<T>): T;
+  get<T>(key: IInterfaceSymbol<T>): T;
+  get<T = any>(key: any): T;
+
+  getAll<T>(key: Constructable<T>): ReadonlyArray<T>;
+  getAll<T>(key: IInterfaceSymbol<T>): ReadonlyArray<T>;
+  getAll<T = any>(key: any): ReadonlyArray<T>;
+
+  getResolver<T>(key: Constructable<T>, autoRegister?: boolean): IResolver<T>;
+  getResolver<T>(key: IInterfaceSymbol<T>, autoRegister?: boolean): IResolver<T>;
+  getResolver<T = any>(key: any, autoRegister?: boolean): IResolver<T>;
+
+  getConstructionHandler<T>(type: Constructable<T>): IConstructionHandler<T>;
+
+  createChild(): IContainer;
 }
 
 interface IResolverBuilder<T> {
@@ -41,7 +86,7 @@ export const DI = {
 
     return dependencies;
   },
-  createInterface<T = any>(friendlyName?: string): InterfaceSymbol<T> {
+  createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
     const Key: any = function(target: Injectable, property: string, index: number): any {
       const inject = target.inject || (target.inject = []);
       (<any>Key).friendlyName = friendlyName || 'Interface';
@@ -49,7 +94,11 @@ export const DI = {
       return target;
     };
   
-    Key.withDefault = function(configure: (builder: IResolverBuilder<T>) => IResolver) {
+    Key.withDefault = function(configure: (builder: IResolverBuilder<T>) => IResolver): IInterfaceSymbol<T> {
+      Key.withDefault = function() {
+        throw Reporter.error(17, Key);
+      };
+
       Key.register = function(container: IContainer, key?: any) {
         return configure({
           instance(value: any) { 
@@ -95,31 +144,6 @@ if (!('getOwnMetadata' in Reflect)) {
 
 export const IContainer = DI.createInterface('IContainer');
 
-export interface IContainer {
-  register(...params: any[]);
-  registerResolver(key: any, resolver: IResolver): IResolver;
-
-  get<T>(key: Constructable<T>): T;
-  get<T>(key: InterfaceSymbol<T>): T;
-  get<T = any>(key: any): T;
-
-  getAll<T>(key: Constructable<T>): ReadonlyArray<T>;
-  getAll<T>(key: InterfaceSymbol<T>): ReadonlyArray<T>;
-  getAll<T = any>(key: any): ReadonlyArray<T>;
-  
-  construct<T>(type: Constructable<T>, dynamicDependencies?: any[]): T;
-
-  createChild(): IContainer;
-}
-
-export interface IResolver {
-  get(handler: IContainer, requestor: IContainer): any;
-}
-
-export interface IRegistration {
-  register(container: IContainer, key?: any): IResolver;
-}
-
 enum ResolverStrategy {
   instance = 0,
   singleton = 1,
@@ -136,17 +160,16 @@ class Resolver implements IResolver, IRegistration {
     return container.registerResolver(key || this.key, this);
   }
 
-  get(handler: IContainer, requestor: IContainer): any {
+  resolve(handler: IContainer, requestor: IContainer): any {
     switch (this.strategy) {
       case ResolverStrategy.instance:
         return this.state;
       case ResolverStrategy.singleton:
-        const singleton = handler.construct(this.state);
-        this.state = singleton;
         this.strategy = ResolverStrategy.instance;
-        return singleton;
+        return this.state = handler.getConstructionHandler(this.state).construct(handler);
       case ResolverStrategy.transient:
-        return requestor.construct(this.state); //always create transients from the requesting container
+        //always create transients from the requesting container
+        return handler.getConstructionHandler(this.state).construct(requestor);
       case ResolverStrategy.factory:
         return (<Factory>this.state)(handler, requestor, this);
       case ResolverStrategy.array:
@@ -157,6 +180,16 @@ class Resolver implements IResolver, IRegistration {
         throw Reporter.error(6, this.strategy);
     }
   }
+
+  getConstructionHandler(container: IContainer): IConstructionHandler {
+    switch (this.strategy) {
+      case ResolverStrategy.singleton:
+      case ResolverStrategy.transient:
+        return container.getConstructionHandler(this.state);
+      default:
+        return null;
+    }
+  }
 }
 
 interface IInvoker {
@@ -164,21 +197,41 @@ interface IInvoker {
   invokeWithDynamicDependencies(container: IContainer, fn: Function, staticDependencies: any[], dynamicDependencies: any[]): any;
 }
 
-class InvocationHandler {
-  fn: Function;
-  invoker: IInvoker;
-  dependencies: any[];
+class ConstructionHandler implements IConstructionHandler {
+  private transformers: ((instance: any) => any)[] = null;
 
-  constructor(fn: Function, invoker: IInvoker, dependencies: any[]) {
-    this.fn = fn;
-    this.invoker = invoker;
-    this.dependencies = dependencies;
-  }
+  constructor(private fn: Function, private invoker: IInvoker, private dependencies: any[]) { }
 
-  invoke(container: IContainer, dynamicDependencies?: any[]): any {
-    return dynamicDependencies !== undefined
+  construct(container: IContainer, dynamicDependencies?: any[]): any {
+    let transformers = this.transformers;
+    let instance = dynamicDependencies !== undefined
       ? this.invoker.invokeWithDynamicDependencies(container, this.fn, this.dependencies, dynamicDependencies)
       : this.invoker.invoke(container, this.fn, this.dependencies);
+
+    if (transformers === null) {
+      return instance;
+    }
+
+    for (let i = 0, ii = transformers.length; i < ii; ++i) {
+      instance = transformers[i](instance);
+    }
+
+    return instance;
+  }
+
+  registerTransformer(transformer: (instance: any) => any): boolean {
+    if (this.transformers === null) {
+      this.transformers = [];
+    }
+
+    this.transformers.push(transformer);
+    return true;
+  }
+
+  static create(fn: Function & { inject?: any }): IConstructionHandler {
+    const dependencies = DI.getDependencies(fn);
+    const invoker = classInvokers[dependencies.length] || classInvokers.fallback;
+    return new ConstructionHandler(fn, invoker, dependencies);
   }
 }
 
@@ -186,8 +239,14 @@ interface IContainerConfiguration {
   handlers?: Map<Function, any>;
 }
 
+const containerResolver: IResolver = {
+  resolve(handler: IContainer, requestor: IContainer) {
+    return requestor;
+  }
+};
+
 class Container implements IContainer {
-  private parent: Container = null
+  private parent: Container = null;
   private resolvers = new Map<any, IResolver>();
   private handlers: Map<Function, any>;
   private configuration: IContainerConfiguration;
@@ -195,6 +254,7 @@ class Container implements IContainer {
   constructor(configuration: IContainerConfiguration = {}) {
     this.configuration = configuration;
     this.handlers = configuration.handlers || (configuration.handlers = new Map());
+    this.resolvers.set(IContainer, containerResolver);
   }
 
   register(...params: any[]) {
@@ -232,97 +292,115 @@ class Container implements IContainer {
     return resolver;
   }
 
-  get(key: any) {
-    if (key === IContainer) {
-      return this;
+  registerTransformer(key: any, transformer: (instance: any) => any): boolean {
+    let resolver = this.getResolver(key);
+
+    if (resolver === null) {
+      return false;
     }
 
-    if (key.get) {
-      return key.get(this, this);
-    }
+    if (resolver.getConstructionHandler) {
+      let handler = resolver.getConstructionHandler(this);
 
-    const resolver = this.resolvers.get(key);
-
-    if (resolver === undefined) {
-      if (this.parent === null) {
-        return this.jitRegister(key, this).get(this, this);
+      if (handler === null) {
+        return false;
       }
-
-      return this.parent.parentGet(key, this);
+      
+      return handler.registerTransformer(transformer);
     }
 
-    return resolver.get(this, this);
+    return false;
   }
 
-  private parentGet(key: any, requestor: IContainer) {
-    const resolver = this.resolvers.get(key);
+  getResolver(key: any, autoRegister = true): IResolver | null {
+    validateKey(key);
 
-    if (resolver === undefined) {
-      if (this.parent === null) {
-        return this.jitRegister(key, requestor).get(this, requestor);
-      }
-
-      return this.parent.parentGet(key, requestor);
+    if (key.resolve) {
+      return key;
     }
 
-    return resolver.get(this, requestor);
+    let current: Container = this;
+
+    while (current !== null) {
+      const resolver = current.resolvers.get(key);
+
+      if (resolver === undefined) {
+        if (current.parent === null) {
+          return autoRegister ? this.jitRegister(key, current) : null;
+        }
+
+        current = current.parent;
+      } else {
+        return resolver;
+      }
+    }
+
+    return null;
+  }
+
+  get(key: any) {
+    validateKey(key);
+
+    if (key.resolve) {
+      return key.resolve(this, this);
+    }
+
+    let current: Container = this;
+
+    while (current !== null) {
+      const resolver = current.resolvers.get(key);
+
+      if (resolver === undefined) {
+        if (current.parent === null) {
+          return this.jitRegister(key, current).resolve(current, this);
+        }
+  
+        current = current.parent;
+      } else {
+        return resolver.resolve(current, this);
+      }
+    }
   }
 
   getAll(key: any): ReadonlyArray<any> {
     validateKey(key);
 
-    const resolver = this.resolvers.get(key);
+    let current: Container = this;
 
-    if (resolver === undefined) {
-      if (this.parent === null) {
-        return PLATFORM.emptyArray;
+    while (current !== null) {
+      const resolver = current.resolvers.get(key);
+
+      if (resolver === undefined) {
+        if (this.parent === null) {
+          return PLATFORM.emptyArray;
+        } 
+        
+        current = current.parent;
+      } else {
+        return buildAllResponse(resolver, current, this);
       }
-
-      return this.parent.parentGetAll(key, this);
     }
-
-    return buildAllResponse(resolver, this, this);
   }
 
-  private parentGetAll(key: any, requestor: IContainer): ReadonlyArray<any> {
-    const resolver = this.resolvers.get(key);
-
-    if (resolver === undefined) {
-      if (this.parent === null) {
-        return PLATFORM.emptyArray;
-      }
-
-      return this.parent.parentGetAll(key, requestor);
-    }
-
-    return buildAllResponse(resolver, this, requestor);
-  }
-
-  private jitRegister(keyAsValue: any, requestor: IContainer): IResolver {
+  private jitRegister(keyAsValue: any, handler: Container): IResolver {
     if (keyAsValue.register) {
-      return keyAsValue.register(this, keyAsValue);
+      return keyAsValue.register(handler, keyAsValue);
     }
 
-    const strategy = new Resolver(keyAsValue, 1, keyAsValue);
-    this.resolvers.set(keyAsValue, strategy);
-    return strategy;
+    const resolver = new Resolver(keyAsValue, 1, keyAsValue);
+    handler.resolvers.set(keyAsValue, resolver);
+    return resolver;
   }
 
-  construct(type: Function, dynamicDependencies?: any[]) {
+  getConstructionHandler(type: Function): IConstructionHandler {
     let handler = this.handlers.get(type);
 
     if (handler === undefined) {
-      handler = this.createInvocationHandler(type);
+      handler = ConstructionHandler.create(type);
       this.handlers.set(type, handler);
     }
 
-    return handler.invoke(this, dynamicDependencies);
-  }
-
-  private createInvocationHandler(fn: Function & { inject?: any }): InvocationHandler {
-    const dependencies = DI.getDependencies(fn);
-    const invoker = classInvokers[dependencies.length] || classInvokers.fallback;
-    return new InvocationHandler(fn, invoker, dependencies);
+    return handler;
   }
 
   createChild(): IContainer {
@@ -373,7 +451,7 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
     return results;
   }
 
-  return [resolver.get(handler, requestor)];
+  return [resolver.resolve(handler, requestor)];
 }
 
 const classInvokers: Record<string, IInvoker> = {

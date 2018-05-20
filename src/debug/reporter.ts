@@ -117,5 +117,9 @@ const codeLookup: Record<string, IMessageInfo> = {
   16: {
     type: MessageType.error,
     message: 'Only one child observer per content view is supported for the life of the content view.'
+  },
+  17: {
+    type: MessageType.error,
+    message: 'You can only define one default implementation for an interface.'
   }
 };

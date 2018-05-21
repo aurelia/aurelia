@@ -22,7 +22,7 @@ export const appConfig: ITemplateSource = {
     <au-marker class="au"></au-marker>
     <button class="au">Add Todo</button>
   `,
-  targetInstructions: [
+  instructions: [
     [
       {
         type: TargetedInstructionType.textBinding,
@@ -72,7 +72,7 @@ export const appConfig: ITemplateSource = {
         res: 'if',
         src: {
           template: `<div><au-marker class="au"></au-marker> </div>`,
-          targetInstructions: [
+          instructions: [
             [
               {
                 type: TargetedInstructionType.textBinding,
@@ -96,7 +96,7 @@ export const appConfig: ITemplateSource = {
         res: 'else',
         src: {
           template: `<div>No Message Duplicated</div>`,
-          targetInstructions: []
+          instructions: []
         },
         link: true,
         instructions: []
@@ -108,7 +108,7 @@ export const appConfig: ITemplateSource = {
         res: 'repeat',
         src: {
           template: `<div><au-marker class="au"></au-marker> </div>`,
-          targetInstructions: [
+          instructions: [
             [
               {
                 type: TargetedInstructionType.textBinding,
@@ -141,5 +141,5 @@ export const appConfig: ITemplateSource = {
       }
     ]
   ],
-  surrogateInstructions: []
+  surrogates: []
 };

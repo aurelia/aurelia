@@ -10,7 +10,7 @@ import { INode, DOM } from '../dom';
 const composeSource = {
   name: 'au-compose',
   template: null,
-  targetInstructions: null
+  instructions: null
 };
 
 const composeProps = ['component', 'swapOrder', 'isComposing'];

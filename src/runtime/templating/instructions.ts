@@ -23,9 +23,9 @@ export enum TargetedInstructionType {
 export interface ITemplateSource {
   name?: string;
   template: string;
-  targetInstructions: Array<TargetedInstruction[]>;
+  instructions: Array<TargetedInstruction[]>;
   dependencies?: any[];
-  surrogateInstructions?: TargetedInstruction[];
+  surrogates?: TargetedInstruction[];
   observables?: Record<string, IBindableInstruction>;
   containerless?: boolean;
   shadowOptions?: ShadowRootInit;
@@ -109,14 +109,14 @@ export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
 
 export interface ISetPropertyInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.setProperty;
-  dest: string;
   value: any;
+  dest: string;
 }
 
 export interface ISetAttributeInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.setAttribute;
-  dest: string;
   value: any;
+  dest: string;
 }
 
 export interface IHydrateSlotInstruction extends ITargetedInstruction {

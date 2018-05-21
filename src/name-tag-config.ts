@@ -50,7 +50,7 @@ export const nameTagConfig: ITemplateSource = {
     </div>
     <button class="au">Reset</button>
   `,
-  targetInstructions: [
+  instructions: [
     [
       {
         type: TargetedInstructionType.twoWayBinding,
@@ -113,7 +113,7 @@ export const nameTagConfig: ITemplateSource = {
       }
     ]
   ],
-  surrogateInstructions: [
+  surrogates: [
     {
       type: TargetedInstructionType.stylePropertyBinding,
       src: 'nameTagBorder',

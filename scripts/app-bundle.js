@@ -7,7 +7,7 @@ define('app-config',["require", "exports", "./runtime/templating/instructions", 
             import1
         ],
         template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n    <button class=\"au\">Add Todo</button>\n  ",
-        targetInstructions: [
+        instructions: [
             [
                 {
                     type: instructions_1.TargetedInstructionType.textBinding,
@@ -57,7 +57,7 @@ define('app-config',["require", "exports", "./runtime/templating/instructions", 
                     res: 'if',
                     src: {
                         template: "<div><au-marker class=\"au\"></au-marker> </div>",
-                        targetInstructions: [
+                        instructions: [
                             [
                                 {
                                     type: instructions_1.TargetedInstructionType.textBinding,
@@ -81,7 +81,7 @@ define('app-config',["require", "exports", "./runtime/templating/instructions", 
                     res: 'else',
                     src: {
                         template: "<div>No Message Duplicated</div>",
-                        targetInstructions: []
+                        instructions: []
                     },
                     link: true,
                     instructions: []
@@ -93,7 +93,7 @@ define('app-config',["require", "exports", "./runtime/templating/instructions", 
                     res: 'repeat',
                     src: {
                         template: "<div><au-marker class=\"au\"></au-marker> </div>",
-                        targetInstructions: [
+                        instructions: [
                             [
                                 {
                                     type: instructions_1.TargetedInstructionType.textBinding,
@@ -126,7 +126,7 @@ define('app-config',["require", "exports", "./runtime/templating/instructions", 
                 }
             ]
         ],
-        surrogateInstructions: []
+        surrogates: []
     };
 });
 
@@ -255,7 +255,7 @@ define('name-tag-config',["require", "exports", "./runtime/templating/instructio
         name: 'name-tag',
         hasSlots: true,
         template: "\n    <header>Super Duper name tag</header>\n    <div>\n      <input type=\"text\" class=\"au\"><br/>\n      <span class=\"au\" style=\"font-weight: bold; padding: 10px 0;\"></span>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag color:\n        <select class=\"au\">\n          <option>red</option>\n          <option>green</option>\n          <option>blue</option>\n        </select>\n      </label>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border color:\n        <select class=\"au\">\n          <option>orange</option>\n          <option>black</option>\n          <option>rgba(0,0,0,0.5)</option>\n        </select>\n      </label>\n      <slot class=\"au\"></slot>\n    </div>\n    <hr/>\n    <div>\n      <label>\n        Name tag border width:\n        <input type=\"number\" class=\"au\" min=\"1\" step=\"1\" max=\"10\" />\n      </label>\n    </div>\n    <div>\n      <label>\n        Show header:\n        <input type=\"checkbox\" class=\"au\" />\n      </label>\n    </div>\n    <button class=\"au\">Reset</button>\n  ",
-        targetInstructions: [
+        instructions: [
             [
                 {
                     type: instructions_1.TargetedInstructionType.twoWayBinding,
@@ -318,7 +318,7 @@ define('name-tag-config',["require", "exports", "./runtime/templating/instructio
                 }
             ]
         ],
-        surrogateInstructions: [
+        surrogates: [
             {
                 type: instructions_1.TargetedInstructionType.stylePropertyBinding,
                 src: 'nameTagBorder',
@@ -5184,7 +5184,7 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
     var composeSource = {
         name: 'au-compose',
         template: null,
-        targetInstructions: null
+        instructions: null
     };
     var composeProps = ['component', 'swapOrder', 'isComposing'];
     var Compose = (function () {
@@ -6069,7 +6069,7 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                         }
                     };
                     CustomAttribute.prototype.$hydrate = function (templateEngine) {
-                        this.$behavior = templateEngine.applyObservables(CustomAttribute, this, observables);
+                        this.$behavior = templateEngine.applyRuntimeBehavior(CustomAttribute, this, observables);
                         if (this.$behavior.hasCreated) {
                             this.created();
                         }
@@ -6175,7 +6175,7 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     class_1.prototype.$hydrate = function (templateEngine, host, replacements, contentOverride) {
                         if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
                         var template = templateEngine.getElementTemplate(source, CompiledComponent);
-                        this.$behavior = templateEngine.applyObservables(CompiledComponent, this, observables);
+                        this.$behavior = templateEngine.applyRuntimeBehavior(CompiledComponent, this, observables);
                         this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
                         this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
                         this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
@@ -7019,15 +7019,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/templating/template-engine',["require", "exports", "../di", "./view-engine", "../task-queue", "../binding/property-observation", "../dom", "../binding/subscriber-collection"], function (require, exports, di_1, view_engine_1, task_queue_1, property_observation_1, dom_1, subscriber_collection_1) {
+define('runtime/templating/template-engine',["require", "exports", "../di", "./view-engine", "./instructions", "../task-queue", "../binding/property-observation", "../dom", "../binding/subscriber-collection", "./shadow-dom", "../binding/binding", "../binding/ref", "../binding/binding-mode", "../binding/call", "../binding/listener", "../binding/observer-locator", "../binding/event-manager", "../binding/parser"], function (require, exports, di_1, view_engine_1, instructions_1, task_queue_1, property_observation_1, dom_1, subscriber_collection_1, shadow_dom_1, binding_1, ref_1, binding_mode_1, call_1, listener_1, observer_locator_1, event_manager_1, parser_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ITemplateEngine = di_1.DI.createInterface()
         .withDefault(function (x) { return x.singleton(TemplateEngine); });
     var TemplateEngine = (function () {
-        function TemplateEngine(container, taskQueue) {
+        function TemplateEngine(container, taskQueue, observerLocator, eventManager, parser) {
             this.container = container;
             this.taskQueue = taskQueue;
+            this.observerLocator = observerLocator;
+            this.eventManager = eventManager;
+            this.parser = parser;
             this.templateLookup = new Map();
             this.factoryLookup = new Map();
             this.behaviorLookup = new Map();
@@ -7057,7 +7060,7 @@ define('runtime/templating/template-engine',["require", "exports", "../di", "./v
             }
             return found;
         };
-        TemplateEngine.prototype.applyObservables = function (type, instance, observables) {
+        TemplateEngine.prototype.applyRuntimeBehavior = function (type, instance, observables) {
             var found = this.behaviorLookup.get(type);
             if (!found) {
                 found = RuntimeBehavior.create(instance, observables, type);
@@ -7071,9 +7074,12 @@ define('runtime/templating/template-engine',["require", "exports", "../di", "./v
             }
             return found;
         };
+        TemplateEngine.prototype.createInstructionInterpreter = function (container) {
+            return new InstructionInterpreter(container, this.taskQueue, this.observerLocator, this.eventManager, this.parser, this);
+        };
         TemplateEngine = __decorate([
-            di_1.inject(di_1.IContainer, task_queue_1.ITaskQueue),
-            __metadata("design:paramtypes", [Object, Object])
+            di_1.inject(di_1.IContainer, task_queue_1.ITaskQueue, observer_locator_1.IObserverLocator, event_manager_1.IEventManager, parser_1.IParser),
+            __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
         ], TemplateEngine);
         return TemplateEngine;
     }());
@@ -7214,6 +7220,155 @@ define('runtime/templating/template-engine',["require", "exports", "../di", "./v
         }
         return components;
     }
+    var InstructionInterpreter = (function () {
+        function InstructionInterpreter(container, taskQueue, observerLocator, eventManager, parser, templateEngine) {
+            this.container = container;
+            this.taskQueue = taskQueue;
+            this.observerLocator = observerLocator;
+            this.eventManager = eventManager;
+            this.parser = parser;
+            this.templateEngine = templateEngine;
+        }
+        InstructionInterpreter.prototype.interpret = function (owner, targets, source, host, replacements) {
+            var targetInstructions = source.instructions;
+            for (var i = 0, ii = targets.length; i < ii; ++i) {
+                var instructions = targetInstructions[i];
+                var target = targets[i];
+                for (var j = 0, jj = instructions.length; j < jj; ++j) {
+                    var current = instructions[j];
+                    this[current.type](owner, target, current, replacements);
+                }
+            }
+            if (host) {
+                var surrogateInstructions = source.surrogates;
+                for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
+                    var current = surrogateInstructions[i];
+                    this[current.type](owner, host, current, replacements);
+                }
+            }
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.textBinding] = function (owner, target, instruction) {
+            var next = target.nextSibling;
+            dom_1.DOM.treatAsNonWhitespace(next);
+            dom_1.DOM.remove(target);
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.oneWayBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.fromViewBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.fromView, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.twoWayBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.twoWay, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.listenerBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new listener_1.Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.callBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new call_1.Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.refBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new ref_1.Ref(this.parser.parse(instruction.src), target, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.stylePropertyBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target.style, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setProperty] = function (owner, target, instruction) {
+            target[instruction.dest] = instruction.value;
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setAttribute] = function (owner, target, instruction) {
+            dom_1.DOM.setAttribute(target, instruction.dest, instruction.value);
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateSlot] = function (owner, target, instruction) {
+            if (!owner.$usingSlotEmulation) {
+                return;
+            }
+            var fallbackFactory = this.templateEngine.getVisualFactory(this.container, instruction.fallback);
+            var slot = shadow_dom_1.ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
+            owner.$slots[slot.name] = slot;
+            owner.$bindable.push(slot);
+            owner.$attachable.push(slot);
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateElement] = function (owner, target, instruction) {
+            var container = this.container;
+            container.element.prepare(target);
+            container.owner.prepare(owner);
+            container.instruction.prepare(instruction);
+            container.slot.prepare(target, true);
+            var component = container.get(instruction.res);
+            this.applyElementInstructionToComponentInstance(owner, target, instruction, component);
+            container.slot.connectCustomElement(component);
+            container.element.dispose();
+            container.owner.dispose();
+            container.instruction.dispose();
+            container.slot.dispose();
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateAttribute] = function (owner, target, instruction) {
+            var childInstructions = instruction.instructions;
+            var container = this.container;
+            container.element.prepare(target);
+            container.owner.prepare(owner);
+            container.instruction.prepare(instruction);
+            var component = container.get(instruction.res);
+            component.$hydrate(this.templateEngine);
+            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
+                var current = childInstructions[i];
+                this[current.type](owner, component, current);
+            }
+            container.element.dispose();
+            container.owner.dispose();
+            container.instruction.dispose();
+            owner.$bindable.push(component);
+            owner.$attachable.push(component);
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (owner, target, instruction, replacements) {
+            var childInstructions = instruction.instructions;
+            var factory = this.templateEngine.getVisualFactory(this.container, instruction.src);
+            var container = this.container;
+            container.element.prepare(target);
+            container.owner.prepare(owner);
+            container.instruction.prepare(instruction);
+            container.factory.prepare(factory, replacements);
+            container.slot.prepare(dom_1.DOM.convertToAnchor(target), false);
+            var component = container.get(instruction.res);
+            component.$hydrate(this.templateEngine);
+            container.slot.connectTemplateController(component);
+            if (instruction.link) {
+                component.link(owner.$attachable[owner.$attachable.length - 1]);
+            }
+            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
+                var current = childInstructions[i];
+                this[current.type](owner, component, current);
+            }
+            container.element.dispose();
+            container.owner.dispose();
+            container.instruction.dispose();
+            container.factory.dispose();
+            container.slot.dispose();
+            owner.$bindable.push(component);
+            owner.$attachable.push(component);
+        };
+        InstructionInterpreter.prototype.applyElementInstructionToComponentInstance = function (owner, target, instruction, component) {
+            var childInstructions = instruction.instructions;
+            component.$hydrate(this.templateEngine, target, instruction.replacements, instruction.contentElement);
+            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
+                var current = childInstructions[i];
+                var currentType = current.type;
+                var realTarget = void 0;
+                if (currentType === instructions_1.TargetedInstructionType.stylePropertyBinding || currentType === instructions_1.TargetedInstructionType.listenerBinding) {
+                    realTarget = target;
+                }
+                else {
+                    realTarget = component;
+                }
+                this[current.type](owner, realTarget, current);
+            }
+            owner.$bindable.push(component);
+            owner.$attachable.push(component);
+        };
+        return InstructionInterpreter;
+    }());
 });
 
 
@@ -7228,7 +7383,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "../binding/binding", "./render-slot", "./shadow-dom", "../binding/listener", "../binding/call", "../binding/ref", "../binding/parser", "../di", "../binding/binding-mode", "./lifecycle", "../reporter", "./instructions", "../dom", "../task-queue", "../binding/observer-locator", "../binding/event-manager", "./template-engine"], function (require, exports, platform_1, view_1, binding_1, render_slot_1, shadow_dom_1, listener_1, call_1, ref_1, parser_1, di_1, binding_mode_1, lifecycle_1, reporter_1, instructions_1, dom_1, task_queue_1, observer_locator_1, event_manager_1, template_engine_1) {
+define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "./render-slot", "../di", "./lifecycle", "../reporter", "./instructions", "../dom", "./template-engine"], function (require, exports, platform_1, view_1, render_slot_1, di_1, lifecycle_1, reporter_1, instructions_1, dom_1, template_engine_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var noViewTemplate = {
@@ -7273,16 +7428,15 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
                 }
                 ComponentVisual.prototype.createView = function () {
                     var target;
-                    var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), container.get(parser_1.IParser), container.get(template_engine_1.ITemplateEngine), this);
                     if (typeof componentOrType === 'function') {
                         target = dom_1.DOM.createElement(componentOrType.source.name);
-                        interpreter[instructions_1.TargetedInstructionType.hydrateElement](target, instruction);
+                        container.interpreter[instructions_1.TargetedInstructionType.hydrateElement](target, instruction);
                         this.component = this.$attachable[this.$attachable.length - 1];
                     }
                     else {
                         var componentType = componentOrType.constructor;
                         target = componentOrType.element || dom_1.DOM.createElement(componentType.source.name);
-                        interpreter.applyElementInstructionToComponentInstance(target, instruction, componentOrType);
+                        container.interpreter.applyElementInstructionToComponentInstance(this, target, instruction, componentOrType);
                         this.component = componentOrType;
                     }
                     return view_1.View.fromNode(target);
@@ -7297,144 +7451,6 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             return new ComponentVisual();
         }
     };
-    var InstructionInterpreter = (function () {
-        function InstructionInterpreter(container, taskQueue, observerLoator, eventManager, parser, templateEngine, owner, host, replacements) {
-            this.container = container;
-            this.taskQueue = taskQueue;
-            this.observerLoator = observerLoator;
-            this.eventManager = eventManager;
-            this.parser = parser;
-            this.templateEngine = templateEngine;
-            this.owner = owner;
-            this.host = host;
-            this.replacements = replacements;
-        }
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.textBinding] = function (target, instruction) {
-            var next = target.nextSibling;
-            dom_1.DOM.treatAsNonWhitespace(next);
-            dom_1.DOM.remove(target);
-            this.owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.oneWayBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.fromViewBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.fromView, this.observerLoator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.twoWayBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.twoWay, this.observerLoator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.listenerBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new listener_1.Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.callBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new call_1.Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLoator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.refBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new ref_1.Ref(this.parser.parse(instruction.src), target, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.stylePropertyBinding] = function (target, instruction) {
-            this.owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target.style, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLoator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setProperty] = function (target, instruction) {
-            target[instruction.dest] = instruction.value;
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setAttribute] = function (target, instruction) {
-            dom_1.DOM.setAttribute(target, instruction.dest, instruction.value);
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateSlot] = function (target, instruction) {
-            var owner = this.owner;
-            if (!owner.$usingSlotEmulation) {
-                return;
-            }
-            var fallbackFactory = this.templateEngine.getVisualFactory(this.container, instruction.fallback);
-            var slot = shadow_dom_1.ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
-            owner.$slots[slot.name] = slot;
-            owner.$bindable.push(slot);
-            owner.$attachable.push(slot);
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateElement] = function (target, instruction) {
-            var container = this.container;
-            container.element.prepare(target);
-            container.owner.prepare(this.owner);
-            container.instruction.prepare(instruction);
-            container.slot.prepare(target, true);
-            var component = container.get(instruction.res);
-            this.applyElementInstructionToComponentInstance(target, instruction, component);
-            container.slot.connectCustomElement(component);
-            container.element.dispose();
-            container.owner.dispose();
-            container.instruction.dispose();
-            container.slot.dispose();
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateAttribute] = function (target, instruction) {
-            var childInstructions = instruction.instructions;
-            var container = this.container;
-            var owner = this.owner;
-            container.element.prepare(target);
-            container.owner.prepare(owner);
-            container.instruction.prepare(instruction);
-            var component = container.get(instruction.res);
-            component.$hydrate(this.templateEngine);
-            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
-                var current = childInstructions[i];
-                this[current.type](component, current);
-            }
-            container.element.dispose();
-            container.owner.dispose();
-            container.instruction.dispose();
-            owner.$bindable.push(component);
-            owner.$attachable.push(component);
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (target, instruction) {
-            var childInstructions = instruction.instructions;
-            var factory = this.templateEngine.getVisualFactory(this.container, instruction.src);
-            var container = this.container;
-            var owner = this.owner;
-            container.element.prepare(target);
-            container.owner.prepare(owner);
-            container.instruction.prepare(instruction);
-            container.factory.prepare(factory, this.replacements);
-            container.slot.prepare(dom_1.DOM.convertToAnchor(target), false);
-            var component = container.get(instruction.res);
-            component.$hydrate(this.templateEngine);
-            container.slot.connectTemplateController(component);
-            if (instruction.link) {
-                component.link(owner.$attachable[owner.$attachable.length - 1]);
-            }
-            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
-                var current = childInstructions[i];
-                this[current.type](component, current);
-            }
-            container.element.dispose();
-            container.owner.dispose();
-            container.instruction.dispose();
-            container.factory.dispose();
-            container.slot.dispose();
-            owner.$bindable.push(component);
-            owner.$attachable.push(component);
-        };
-        InstructionInterpreter.prototype.applyElementInstructionToComponentInstance = function (target, instruction, component) {
-            var childInstructions = instruction.instructions;
-            var owner = this.owner;
-            component.$hydrate(this.templateEngine, target, instruction.replacements, instruction.contentElement);
-            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
-                var current = childInstructions[i];
-                var currentType = current.type;
-                var realTarget = void 0;
-                if (currentType === instructions_1.TargetedInstructionType.stylePropertyBinding || currentType === instructions_1.TargetedInstructionType.listenerBinding) {
-                    realTarget = target;
-                }
-                else {
-                    realTarget = component;
-                }
-                this[current.type](realTarget, current);
-            }
-            owner.$bindable.push(component);
-            owner.$attachable.push(component);
-        };
-        return InstructionInterpreter;
-    }());
     var InstanceProvider = (function () {
         function InstanceProvider() {
             this.instance = null;
@@ -7451,7 +7467,8 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         return InstanceProvider;
     }());
     var ViewFactoryProvider = (function () {
-        function ViewFactoryProvider() {
+        function ViewFactoryProvider(templateEngine) {
+            this.templateEngine = templateEngine;
         }
         ViewFactoryProvider.prototype.prepare = function (factory, replacements) {
             this.factory = factory;
@@ -7460,10 +7477,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         ViewFactoryProvider.prototype.resolve = function (handler, requestor) {
             var found = this.replacements[this.factory.name];
             if (found) {
-                if (found.factory) {
-                    return found.factory;
-                }
-                return found.factory = exports.ViewEngine.factoryFromCompiledSource(requestor, found);
+                return this.templateEngine.getVisualFactory(requestor, found);
             }
             return this.factory;
         };
@@ -7509,9 +7523,11 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
     ;
     function createTemplateContainer(parentContainer, dependencies) {
         var container = parentContainer.createChild();
+        var templateEngine = container.get(template_engine_1.ITemplateEngine);
+        container.interpreter = templateEngine.createInstructionInterpreter(container);
         container.element = new InstanceProvider();
         dom_1.DOM.registerElementResolver(container, container.element);
-        container.registerResolver(exports.IVisualFactory, container.factory = new ViewFactoryProvider());
+        container.registerResolver(exports.IVisualFactory, container.factory = new ViewFactoryProvider(templateEngine));
         container.registerResolver(render_slot_1.IRenderSlot, container.slot = new RenderSlotProvider());
         container.registerResolver(view_1.IViewOwner, container.owner = new InstanceProvider());
         container.registerResolver(instructions_1.ITargetedInstruction, container.instruction = new InstanceProvider());
@@ -7527,27 +7543,8 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             this.createView = dom_1.DOM.createFactoryFromMarkup(source.template);
         }
         CompiledTemplate.prototype.createFor = function (owner, host, replacements) {
-            var source = this.source;
             var view = this.createView();
-            var targets = view.findTargets();
-            var container = this.container;
-            var targetInstructions = source.targetInstructions;
-            var interpreter = new InstructionInterpreter(container, container.get(task_queue_1.ITaskQueue), container.get(observer_locator_1.IObserverLocator), container.get(event_manager_1.IEventManager), container.get(parser_1.IParser), container.get(template_engine_1.ITemplateEngine), owner, host, replacements);
-            for (var i = 0, ii = targets.length; i < ii; ++i) {
-                var instructions = targetInstructions[i];
-                var target = targets[i];
-                for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                    var current = instructions[j];
-                    interpreter[current.type](target, current);
-                }
-            }
-            if (host) {
-                var surrogateInstructions = source.surrogateInstructions;
-                for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-                    var current = surrogateInstructions[i];
-                    interpreter[current.type](host, current);
-                }
-            }
+            this.container.interpreter.interpret(owner, view.findTargets(), this.source, host, replacements);
             return view;
         };
         return CompiledTemplate;

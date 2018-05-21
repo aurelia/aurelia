@@ -112,7 +112,7 @@ export const Component = {
       $slot: IRenderSlot = null;
 
       $hydrate(templateEngine: ITemplateEngine) {
-        this.$behavior = templateEngine.applyObservables(CustomAttribute, this, observables);
+        this.$behavior = templateEngine.applyRuntimeBehavior(CustomAttribute, this, observables);
 
         if (this.$behavior.hasCreated) {
           (<any>this).created();
@@ -232,7 +232,7 @@ export const Component = {
       $hydrate(templateEngine: ITemplateEngine, host: INode, replacements: Record<string, ITemplateSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
         let template = templateEngine.getElementTemplate(source, CompiledComponent);
         
-        this.$behavior = templateEngine.applyObservables(CompiledComponent, this, observables);
+        this.$behavior = templateEngine.applyRuntimeBehavior(CompiledComponent, this, observables);
         this.$host = source.containerless ? DOM.convertToAnchor(host, true) : host;
         this.$shadowRoot = DOM.createElementViewHost(this.$host, source.shadowOptions);
         this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);

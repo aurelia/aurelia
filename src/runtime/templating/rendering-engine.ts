@@ -5,7 +5,7 @@ import { ITemplateSource, IBindableInstruction, ITargetedInstruction, TargetedIn
 import { ITaskQueue } from "../task-queue";
 import { IViewOwner, View } from "./view";
 import { INode, IView, DOM } from "../dom";
-import { IInstructionInterpreter, InstructionInterpreter } from "./instruction-interpreter";
+import { IRenderer, Renderer } from "./renderer";
 import { IRenderSlot, RenderSlot } from "./render-slot";
 import { Constructable } from "../interfaces";
 import { DetachContext, AttachContext, IAttach } from "./lifecycle";
@@ -15,36 +15,38 @@ import { IAnimator } from "./animator";
 import { IBindScope } from "../binding/observation";
 import { PLATFORM } from "../platform";
 import { IEmulatedShadowSlot } from "./shadow-dom";
-import { ITemplateContainer, createTemplateContainer } from "./template-container";
+import { IRenderContext, createRenderContext, IComponentOperation } from "./render-context";
 import { IVisualFactory, VisualWithCentralComponent, IVisual, RenderCallback } from "./visual";
 import { ITemplate } from "./template";
 import { IObserverLocator } from "../binding/observer-locator";
 import { IEventManager } from "../binding/event-manager";
 import { IParser } from "../binding/parser";
 
-export interface ITemplateEngine {
+export interface IRenderingEngine {
   getElementTemplate(source: ITemplateSource, componentType: IElementType): ITemplate;
-  getVisualFactory(container: IContainer, source: ITemplateSource): IVisualFactory;
+  getVisualFactory(context: IRenderContext, source: ITemplateSource): IVisualFactory;
 
   applyRuntimeBehavior(type: IAttributeType, instance: IAttributeComponent, observables: Record<string, IBindableInstruction>): IRuntimeBehavior;
   applyRuntimeBehavior(type: IElementType, instance: IElementComponent, observables: Record<string, IBindableInstruction>): IRuntimeBehavior
 
-  createVisualFromComponent(container: ITemplateContainer, componentOrType: any, instruction: IHydrateElementInstruction): VisualWithCentralComponent;
-  createInstructionInterpreter(container: ITemplateContainer): IInstructionInterpreter;
+  createVisualFromComponent(context: IRenderContext, componentOrType: any, instruction: IHydrateElementInstruction): VisualWithCentralComponent;
+  createRenderer(context: IRenderContext): IRenderer;
 }
 
-export const ITemplateEngine = DI.createInterface<ITemplateEngine>()
-  .withDefault(x => x.singleton(TemplateEngine));
+export const IRenderingEngine = DI.createInterface<IRenderingEngine>()
+  .withDefault(x => x.singleton(RenderingEngine));
 
 const noViewTemplate: ITemplate = {
-  container: null,
+  context: null,
   createFor(owner: IViewOwner) {
     return View.none;
   }
 };
 
+type ExposedContext = IRenderContext & IComponentOperation & IContainer;
+
 @inject(IContainer, ITaskQueue, IObserverLocator, IEventManager, IParser, IAnimator)
-class TemplateEngine implements ITemplateEngine {
+class RenderingEngine implements IRenderingEngine {
   private templateLookup = new Map<ITemplateSource, ITemplate>();
   private factoryLookup = new Map<ITemplateSource, IVisualFactory>();
   private behaviorLookup = new Map<IElementType | IAttributeType, RuntimeBehavior>();
@@ -66,11 +68,11 @@ class TemplateEngine implements ITemplateEngine {
     let found = this.templateLookup.get(source);
 
     if (!found) {
-      found = this.templateFromCompiledSource(this.container, source);
+      found = this.templateFromCompiledSource(<ExposedContext>this.container, source);
 
       //If the element has a view, support Recursive Components by adding self to own view template container.
-      if (found.container !== null) {
-        componentType.register(found.container);
+      if (found.context !== null) {
+        componentType.register(<ExposedContext>found.context);
       }
 
       this.templateLookup.set(source, found);
@@ -79,15 +81,15 @@ class TemplateEngine implements ITemplateEngine {
     return found;
   }
 
-  private templateFromCompiledSource(container: IContainer, source: ITemplateSource): ITemplate {
+  private templateFromCompiledSource(context: IRenderContext, source: ITemplateSource): ITemplate {
     if (source && source.template) {
-      return new CompiledTemplate(this, container, source);
+      return new CompiledTemplate(this, context, source);
     }
 
     return noViewTemplate;
   }
 
-  getVisualFactory(container: IContainer, source: ITemplateSource): IVisualFactory {
+  getVisualFactory(context: IRenderContext, source: ITemplateSource): IVisualFactory {
     if (!source) {
       return null;
     }
@@ -95,21 +97,19 @@ class TemplateEngine implements ITemplateEngine {
     let found = this.factoryLookup.get(source);
 
     if (!found) {
-      found = this.factoryFromCompiledSource(container, source);
+      found = this.factoryFromCompiledSource(context, source);
       this.factoryLookup.set(source, found);
     }
 
     return found;
   }
 
-  private factoryFromCompiledSource(container: IContainer, source: ITemplateSource): IVisualFactory {
-    const template = this.templateFromCompiledSource(container, source);
+  private factoryFromCompiledSource(context: IRenderContext, source: ITemplateSource): IVisualFactory {
+    const template = this.templateFromCompiledSource(context, source);
 
     const CompiledVisual = class extends Visual {
-      static template: ITemplate = template;
-      static source: ITemplateSource = source;
-
       $slots: Record<string, IEmulatedShadowSlot> = source.hasSlots ? {} : null;
+      $context = context;
 
       createView() {
         return template.createFor(this);
@@ -136,17 +136,15 @@ class TemplateEngine implements ITemplateEngine {
     return found;
   }
 
-  createVisualFromComponent(container: ITemplateContainer, componentOrType: any, instruction: IHydrateElementInstruction): VisualWithCentralComponent {
+  createVisualFromComponent(context: IRenderContext, componentOrType: any, instruction: IHydrateElementInstruction): VisualWithCentralComponent {
     let animator = this.animator;
     
     class ComponentVisual extends Visual {
-      static template: ITemplate = Object.assign({}, noViewTemplate, { container });
-      static source: ITemplateSource = null;
-
       public component: IElementComponent;
 
       constructor() {
         super(null, animator);
+        this.$context = context;
       }
 
       createView() {
@@ -154,12 +152,12 @@ class TemplateEngine implements ITemplateEngine {
 
         if (typeof componentOrType === 'function') {
           target = DOM.createElement(componentOrType.source.name);
-          container.interpreter[TargetedInstructionType.hydrateElement](target, instruction);
+          context.hydrateElement(this, target, instruction);
           this.component = <IElementComponent>this.$attachable[this.$attachable.length - 1];
         } else {
           const componentType = <IElementType>componentOrType.constructor;
           target = componentOrType.element || DOM.createElement(componentType.source.name);
-          container.interpreter.applyElementInstructionToComponentInstance(this, target, instruction, componentOrType);
+          context.hydrateElementInstance(this, target, instruction, componentOrType);
           this.component = componentOrType;
         }
 
@@ -174,8 +172,8 @@ class TemplateEngine implements ITemplateEngine {
     return new ComponentVisual();
   }
 
-  createInstructionInterpreter(container: ITemplateContainer): IInstructionInterpreter {
-    return new InstructionInterpreter(
+  createRenderer(container: IRenderContext): IRenderer {
+    return new Renderer(
       container,
       this.taskQueue,
       this.observerLocator,
@@ -188,16 +186,16 @@ class TemplateEngine implements ITemplateEngine {
 
 class CompiledTemplate implements ITemplate {
   private createView: () => IView;
-  container: ITemplateContainer;
+  context: IRenderContext;
 
-  constructor(templateEngine: ITemplateEngine, container: IContainer, private source: ITemplateSource) {
-    this.container = createTemplateContainer(templateEngine, container, source.dependencies);
+  constructor(renderingEngine: IRenderingEngine, parentContext: IRenderContext, private source: ITemplateSource) {
+    this.context = createRenderContext(renderingEngine, parentContext, source.dependencies);
     this.createView = DOM.createFactoryFromMarkup(source.template);
   }
 
   createFor(owner: IViewOwner, host?: INode, replacements?: Record<string, ITemplateSource>): IView {
     const view = this.createView();
-    this.container.interpreter.interpret(owner, view.findTargets(), this.source, host, replacements);
+    this.context.render(owner, view.findTargets(), this.source, host, replacements);
     return view;
   }
 }
@@ -209,6 +207,7 @@ abstract class Visual implements IVisual {
   $view: IView = null;
   $isBound = false;
   $isAttached = false;
+  $context: IRenderContext;
   
   inCache = false;
   private animationRoot: INode = undefined;

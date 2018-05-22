@@ -12,15 +12,12 @@ import { IRenderSlot } from './render-slot';
 import { Reporter } from '../reporter';
 import { ITemplate } from './template';
 import { IVisual } from './visual';
+import { IRenderContext } from './render-context';
 
-export interface IViewOwnerType extends Constructable<IViewOwner> {
-  template: ITemplate;
-  source: ITemplateSource;
-}
-
-export const IViewOwner = DI.createInterface('IViewOwner');
+export const IViewOwner = DI.createInterface<IViewOwner>();
 
 export interface IViewOwner {
+  $context: IRenderContext;
   $view: IView;
   $scope: IScope;
   $isBound: boolean;

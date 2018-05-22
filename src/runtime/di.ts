@@ -4,7 +4,7 @@ import { Reporter } from './reporter';
 
 type Factory<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
-interface IInterfaceSymbol<T> {
+export interface IInterfaceSymbol<T> {
   (target: Injectable, property: string, index: number): any;
 }
 
@@ -26,7 +26,17 @@ export interface IConstructionHandler<T = any> {
   construct(container: IContainer, dynamicDependencies?: any[]): T;
 }
 
-export interface IContainer {
+export interface IServiceLocator {
+  get<T>(key: Constructable<T>): T;
+  get<T>(key: IInterfaceSymbol<T>): T;
+  get<T = any>(key: any): T;
+
+  getAll<T>(key: Constructable<T>): ReadonlyArray<T>;
+  getAll<T>(key: IInterfaceSymbol<T>): ReadonlyArray<T>;
+  getAll<T = any>(key: any): ReadonlyArray<T>;
+}
+
+export interface IContainer extends IServiceLocator {
   register(...params: any[]);
 
   registerResolver<T>(key: Constructable<T>, resolver: IResolver<T>): IResolver<T>;
@@ -36,14 +46,6 @@ export interface IContainer {
   registerTransformer<T>(key: Constructable<T>, transformer: (instance: T) => T): boolean;
   registerTransformer<T>(key: IInterfaceSymbol<T>, transformer: (instance: T) => T): boolean;
   registerTransformer<T = any>(key: any, transformer: (instance: T) => T): boolean;
-
-  get<T>(key: Constructable<T>): T;
-  get<T>(key: IInterfaceSymbol<T>): T;
-  get<T = any>(key: any): T;
-
-  getAll<T>(key: Constructable<T>): ReadonlyArray<T>;
-  getAll<T>(key: IInterfaceSymbol<T>): ReadonlyArray<T>;
-  getAll<T = any>(key: any): ReadonlyArray<T>;
 
   getResolver<T>(key: Constructable<T>, autoRegister?: boolean): IResolver<T>;
   getResolver<T>(key: IInterfaceSymbol<T>, autoRegister?: boolean): IResolver<T>;
@@ -142,7 +144,8 @@ if (!('getOwnMetadata' in Reflect)) {
   };
 }
 
-export const IContainer = DI.createInterface('IContainer');
+export const IContainer = <IInterfaceSymbol<IContainer>>DI.createInterface<IContainer>();
+export const IServiceLocator = <IInterfaceSymbol<IServiceLocator>>IContainer;
 
 enum ResolverStrategy {
   instance = 0,

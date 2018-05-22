@@ -1,7 +1,7 @@
 import { IEventManager, DelegationStrategy } from './event-manager';
 import { IExpression } from './ast';
 import { IBinding } from './binding';
-import { IContainer } from '../di';
+import { IServiceLocator } from '../di';
 import { IDisposable } from '../interfaces';
 import { IScope } from './binding-context';
 import { INode } from '../dom';
@@ -18,22 +18,15 @@ export class Listener implements IBinding {
     private target: INode,
     private preventDefault: boolean,
     private eventManager: IEventManager,
-    public container: IContainer
-  ) {
-    this.targetEvent = targetEvent;
-    this.delegationStrategy = delegationStrategy;
-    this.sourceExpression = sourceExpression;
-    this.target = target;
-    this.preventDefault = preventDefault;
-    this.container = container;
-  }
+    public locator: IServiceLocator
+  ) { }
 
   callSource(event: Event) {
     let overrideContext = this.source.overrideContext as any;
     overrideContext['$event'] = event;
 
     let mustEvaluate = true;
-    let result = this.sourceExpression.evaluate(this.source, this.container, mustEvaluate);
+    let result = this.sourceExpression.evaluate(this.source, this.locator, mustEvaluate);
 
     delete overrideContext['$event'];
 

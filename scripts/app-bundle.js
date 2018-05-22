@@ -593,7 +593,7 @@ define('debug/task-queue',["require", "exports", "../runtime/task-queue"], funct
 
 
 
-define('runtime/aurelia',["require", "exports", "./platform", "./di", "./templating/template-engine"], function (require, exports, platform_1, di_1, template_engine_1) {
+define('runtime/aurelia',["require", "exports", "./platform", "./di", "./templating/rendering-engine"], function (require, exports, platform_1, di_1, rendering_engine_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Aurelia = (function () {
@@ -620,7 +620,7 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di", "./templat
             var startTask = function () {
                 if (!_this.components.includes(component)) {
                     _this.components.push(component);
-                    component.$hydrate(_this.container.get(template_engine_1.ITemplateEngine), config.host);
+                    component.$hydrate(_this.container.get(rendering_engine_1.IRenderingEngine), config.host);
                 }
                 component.$bind();
                 component.$attach();
@@ -826,7 +826,8 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
             };
         };
     }
-    exports.IContainer = exports.DI.createInterface('IContainer');
+    exports.IContainer = exports.DI.createInterface();
+    exports.IServiceLocator = exports.IContainer;
     var ResolverStrategy;
     (function (ResolverStrategy) {
         ResolverStrategy[ResolverStrategy["instance"] = 0] = "instance";
@@ -2237,12 +2238,12 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
         function Chain(expressions) {
             this.expressions = expressions;
         }
-        Chain.prototype.evaluate = function (scope, container) {
+        Chain.prototype.evaluate = function (scope, locator) {
             var result;
             var expressions = this.expressions;
             var last;
             for (var i = 0, length_1 = expressions.length; i < length_1; ++i) {
-                last = expressions[i].evaluate(scope, container);
+                last = expressions[i].evaluate(scope, locator);
                 if (last !== null) {
                     result = last;
                 }
@@ -2259,11 +2260,11 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.name = name;
             this.args = args;
         }
-        BindingBehavior.prototype.evaluate = function (scope, container) {
-            return this.expression.evaluate(scope, container);
+        BindingBehavior.prototype.evaluate = function (scope, locator) {
+            return this.expression.evaluate(scope, locator);
         };
-        BindingBehavior.prototype.assign = function (scope, value, container) {
-            return this.expression.assign(scope, value, container);
+        BindingBehavior.prototype.assign = function (scope, value, locator) {
+            return this.expression.assign(scope, value, locator);
         };
         BindingBehavior.prototype.connect = function (binding, scope) {
             this.expression.connect(binding, scope);
@@ -2272,7 +2273,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             if (this.expression.expression && this.expression.bind) {
                 this.expression.bind(binding, scope);
             }
-            var behavior = binding.container.get(this.name);
+            var behavior = binding.locator.get(this.name);
             if (!behavior) {
                 throw new Error("No BindingBehavior named \"" + this.name + "\" was found!");
             }
@@ -2281,7 +2282,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
                 throw new Error("A binding behavior named \"" + this.name + "\" has already been applied to \"" + this.expression + "\"");
             }
             binding[behaviorKey] = behavior;
-            behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.container)));
+            behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.locator)));
         };
         BindingBehavior.prototype.unbind = function (binding, scope) {
             var behaviorKey = "behavior-" + this.name;
@@ -2301,25 +2302,25 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.args = args;
             this.allArgs = allArgs;
         }
-        ValueConverter.prototype.evaluate = function (scope, container) {
-            var converter = container.get(this.name);
+        ValueConverter.prototype.evaluate = function (scope, locator) {
+            var converter = locator.get(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
             if ('toView' in converter) {
-                return converter.toView.apply(converter, evalList(scope, this.allArgs, container));
+                return converter.toView.apply(converter, evalList(scope, this.allArgs, locator));
             }
-            return this.allArgs[0].evaluate(scope, container);
+            return this.allArgs[0].evaluate(scope, locator);
         };
-        ValueConverter.prototype.assign = function (scope, value, container) {
-            var converter = container.get(this.name);
+        ValueConverter.prototype.assign = function (scope, value, locator) {
+            var converter = locator.get(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
             if ('fromView' in converter) {
-                value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, container)));
+                value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, locator)));
             }
-            return this.allArgs[0].assign(scope, value, container);
+            return this.allArgs[0].assign(scope, value, locator);
         };
         ValueConverter.prototype.connect = function (binding, scope) {
             var expressions = this.allArgs;
@@ -2327,7 +2328,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             while (i--) {
                 expressions[i].connect(binding, scope);
             }
-            var converter = binding.container.get(this.name);
+            var converter = binding.locator.get(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
@@ -2348,13 +2349,13 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.target = target;
             this.value = value;
         }
-        Assign.prototype.evaluate = function (scope, container) {
-            return this.target.assign(scope, this.value.evaluate(scope, container), container);
+        Assign.prototype.evaluate = function (scope, locator) {
+            return this.target.assign(scope, this.value.evaluate(scope, locator), locator);
         };
         Assign.prototype.connect = function () { };
-        Assign.prototype.assign = function (scope, value, container) {
-            this.value.assign(scope, value, container);
-            this.target.assign(scope, value, container);
+        Assign.prototype.assign = function (scope, value, locator) {
+            this.value.assign(scope, value, locator);
+            this.target.assign(scope, value, locator);
         };
         return Assign;
     }());
@@ -2365,10 +2366,10 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.yes = yes;
             this.no = no;
         }
-        Conditional.prototype.evaluate = function (scope, container) {
-            return (!!this.condition.evaluate(scope, container))
-                ? this.yes.evaluate(scope, container)
-                : this.no.evaluate(scope, container);
+        Conditional.prototype.evaluate = function (scope, locator) {
+            return (!!this.condition.evaluate(scope, locator))
+                ? this.yes.evaluate(scope, locator)
+                : this.no.evaluate(scope, locator);
         };
         Conditional.prototype.connect = function (binding, scope) {
             this.condition.connect(binding, scope);
@@ -2387,7 +2388,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             if (ancestor === void 0) { ancestor = 0; }
             this.ancestor = ancestor;
         }
-        AccessThis.prototype.evaluate = function (scope, container) {
+        AccessThis.prototype.evaluate = function (scope, locator) {
             var oc = scope.overrideContext;
             var i = this.ancestor;
             while (i-- && oc) {
@@ -2405,7 +2406,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.name = name;
             this.ancestor = ancestor;
         }
-        AccessScope.prototype.evaluate = function (scope, container) {
+        AccessScope.prototype.evaluate = function (scope, locator) {
             var context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor);
             return context[this.name];
         };
@@ -2425,15 +2426,15 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.object = object;
             this.name = name;
         }
-        AccessMember.prototype.evaluate = function (scope, container) {
-            var instance = this.object.evaluate(scope, container);
+        AccessMember.prototype.evaluate = function (scope, locator) {
+            var instance = this.object.evaluate(scope, locator);
             return instance === null || instance === undefined ? instance : instance[this.name];
         };
-        AccessMember.prototype.assign = function (scope, value, container) {
-            var instance = this.object.evaluate(scope, container);
+        AccessMember.prototype.assign = function (scope, value, locator) {
+            var instance = this.object.evaluate(scope, locator);
             if (instance === null || instance === undefined) {
                 instance = {};
-                this.object.assign(scope, instance, container);
+                this.object.assign(scope, instance, locator);
             }
             instance[this.name] = value;
             return value;
@@ -2453,14 +2454,14 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.object = object;
             this.key = key;
         }
-        AccessKeyed.prototype.evaluate = function (scope, container) {
-            var instance = this.object.evaluate(scope, container);
-            var lookup = this.key.evaluate(scope, container);
+        AccessKeyed.prototype.evaluate = function (scope, locator) {
+            var instance = this.object.evaluate(scope, locator);
+            var lookup = this.key.evaluate(scope, locator);
             return getKeyed(instance, lookup);
         };
-        AccessKeyed.prototype.assign = function (scope, value, container) {
-            var instance = this.object.evaluate(scope, container);
-            var lookup = this.key.evaluate(scope, container);
+        AccessKeyed.prototype.assign = function (scope, value, locator) {
+            var instance = this.object.evaluate(scope, locator);
+            var lookup = this.key.evaluate(scope, locator);
             return setKeyed(instance, lookup, value);
         };
         AccessKeyed.prototype.connect = function (binding, scope) {
@@ -2484,8 +2485,8 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.args = args;
             this.ancestor = ancestor;
         }
-        CallScope.prototype.evaluate = function (scope, container, mustEvaluate) {
-            var args = evalList(scope, this.args, container);
+        CallScope.prototype.evaluate = function (scope, locator, mustEvaluate) {
+            var args = evalList(scope, this.args, locator);
             var context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor);
             var func = getFunction(context, this.name, mustEvaluate);
             if (func) {
@@ -2509,9 +2510,9 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.name = name;
             this.args = args;
         }
-        CallMember.prototype.evaluate = function (scope, container, mustEvaluate) {
-            var instance = this.object.evaluate(scope, container);
-            var args = evalList(scope, this.args, container);
+        CallMember.prototype.evaluate = function (scope, locator, mustEvaluate) {
+            var instance = this.object.evaluate(scope, locator);
+            var args = evalList(scope, this.args, locator);
             var func = getFunction(instance, this.name, mustEvaluate);
             if (func) {
                 return func.apply(instance, args);
@@ -2537,10 +2538,10 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.func = func;
             this.args = args;
         }
-        CallFunction.prototype.evaluate = function (scope, container, mustEvaluate) {
-            var func = this.func.evaluate(scope, container);
+        CallFunction.prototype.evaluate = function (scope, locator, mustEvaluate) {
+            var func = this.func.evaluate(scope, locator);
             if (typeof func === 'function') {
-                return func.apply(null, evalList(scope, this.args, container));
+                return func.apply(null, evalList(scope, this.args, locator));
             }
             if (!mustEvaluate && (func === null || func === undefined)) {
                 return undefined;
@@ -2567,13 +2568,13 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.left = left;
             this.right = right;
         }
-        Binary.prototype.evaluate = function (scope, container) {
-            var left = this.left.evaluate(scope, container);
+        Binary.prototype.evaluate = function (scope, locator) {
+            var left = this.left.evaluate(scope, locator);
             switch (this.operation) {
-                case '&&': return left && this.right.evaluate(scope, container);
-                case '||': return left || this.right.evaluate(scope, container);
+                case '&&': return left && this.right.evaluate(scope, locator);
+                case '||': return left || this.right.evaluate(scope, locator);
             }
-            var right = this.right.evaluate(scope, container);
+            var right = this.right.evaluate(scope, locator);
             switch (this.operation) {
                 case '==': return left == right;
                 case '===': return left === right;
@@ -2627,8 +2628,8 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.operation = operation;
             this.expression = expression;
         }
-        PrefixNot.prototype.evaluate = function (scope, container) {
-            return !this.expression.evaluate(scope, container);
+        PrefixNot.prototype.evaluate = function (scope, locator) {
+            return !this.expression.evaluate(scope, locator);
         };
         PrefixNot.prototype.connect = function (binding, scope) {
             this.expression.connect(binding, scope);
@@ -2640,7 +2641,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
         function LiteralPrimitive(value) {
             this.value = value;
         }
-        LiteralPrimitive.prototype.evaluate = function (scope, container) {
+        LiteralPrimitive.prototype.evaluate = function (scope, locator) {
             return this.value;
         };
         LiteralPrimitive.prototype.connect = function (binding, scope) {
@@ -2652,7 +2653,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
         function LiteralString(value) {
             this.value = value;
         }
-        LiteralString.prototype.evaluate = function (scope, container) {
+        LiteralString.prototype.evaluate = function (scope, locator) {
             return this.value;
         };
         LiteralString.prototype.connect = function (binding, scope) { };
@@ -2663,11 +2664,11 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
         function TemplateLiteral(parts) {
             this.parts = parts;
         }
-        TemplateLiteral.prototype.evaluate = function (scope, container) {
+        TemplateLiteral.prototype.evaluate = function (scope, locator) {
             var elements = this.parts;
             var result = '';
             for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
-                var value = elements[i].evaluate(scope, container);
+                var value = elements[i].evaluate(scope, locator);
                 if (value === undefined || value === null) {
                     continue;
                 }
@@ -2688,11 +2689,11 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
         function LiteralArray(elements) {
             this.elements = elements;
         }
-        LiteralArray.prototype.evaluate = function (scope, container) {
+        LiteralArray.prototype.evaluate = function (scope, locator) {
             var elements = this.elements;
             var result = [];
             for (var i = 0, length_3 = elements.length; i < length_3; ++i) {
-                result[i] = elements[i].evaluate(scope, container);
+                result[i] = elements[i].evaluate(scope, locator);
             }
             return result;
         };
@@ -2710,12 +2711,12 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.keys = keys;
             this.values = values;
         }
-        LiteralObject.prototype.evaluate = function (scope, container) {
+        LiteralObject.prototype.evaluate = function (scope, locator) {
             var instance = {};
             var keys = this.keys;
             var values = this.values;
             for (var i = 0, length_4 = keys.length; i < length_4; ++i) {
-                instance[keys[i]] = values[i].evaluate(scope, container);
+                instance[keys[i]] = values[i].evaluate(scope, locator);
             }
             return instance;
         };
@@ -2728,11 +2729,11 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
         return LiteralObject;
     }());
     exports.LiteralObject = LiteralObject;
-    function evalList(scope, list, container) {
+    function evalList(scope, list, locator) {
         var length = list.length;
         var result = [];
         for (var i = 0; i < length; i++) {
-            result[i] = list[i].evaluate(scope, container);
+            result[i] = list[i].evaluate(scope, locator);
         }
         return result;
     }
@@ -2864,13 +2865,13 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
     Object.defineProperty(exports, "__esModule", { value: true });
     var Binding = (function (_super) {
         __extends(Binding, _super);
-        function Binding(sourceExpression, target, targetProperty, mode, observerLocator, container) {
+        function Binding(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
             var _this = _super.call(this, observerLocator) || this;
             _this.sourceExpression = sourceExpression;
             _this.target = target;
             _this.targetProperty = targetProperty;
             _this.mode = mode;
-            _this.container = container;
+            _this.locator = locator;
             _this.$isBound = false;
             return _this;
         }
@@ -2878,7 +2879,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             this.targetObserver.setValue(value, this.target, this.targetProperty);
         };
         Binding.prototype.updateSource = function (value) {
-            this.sourceExpression.assign(this.$scope, value, this.container);
+            this.sourceExpression.assign(this.$scope, value, this.locator);
         };
         Binding.prototype.call = function (context, newValue, oldValue) {
             if (!this.$isBound) {
@@ -2886,7 +2887,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             }
             if (context === binding_context_1.sourceContext) {
                 oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-                newValue = this.sourceExpression.evaluate(this.$scope, this.container);
+                newValue = this.sourceExpression.evaluate(this.$scope, this.locator);
                 if (newValue !== oldValue) {
                     this.updateTarget(newValue);
                 }
@@ -2898,7 +2899,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 return;
             }
             if (context === binding_context_1.targetContext) {
-                if (newValue !== this.sourceExpression.evaluate(this.$scope, this.container)) {
+                if (newValue !== this.sourceExpression.evaluate(this.$scope, this.locator)) {
                     this.updateSource(newValue);
                 }
                 return;
@@ -2926,7 +2927,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 this.targetObserver.bind();
             }
             if (this.mode !== binding_mode_1.BindingMode.fromView) {
-                var value = this.sourceExpression.evaluate(scope, this.container);
+                var value = this.sourceExpression.evaluate(scope, this.locator);
                 this.updateTarget(value);
             }
             if (mode === binding_mode_1.BindingMode.oneTime) {
@@ -2965,7 +2966,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 return;
             }
             if (evaluate) {
-                var value = this.sourceExpression.evaluate(this.$scope, this.container);
+                var value = this.sourceExpression.evaluate(this.$scope, this.locator);
                 this.updateTarget(value);
             }
             this.sourceExpression.connect(this, this.$scope);
@@ -2981,12 +2982,12 @@ define('runtime/binding/call',["require", "exports"], function (require, exports
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Call = (function () {
-        function Call(sourceExpression, target, targetProperty, observerLocator, container) {
+        function Call(sourceExpression, target, targetProperty, observerLocator, locator) {
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.targetProperty = targetProperty;
             this.observerLocator = observerLocator;
-            this.container = container;
+            this.locator = locator;
             this.$isBound = false;
             this.targetObserver = observerLocator.getObserver(target, targetProperty);
         }
@@ -2995,7 +2996,7 @@ define('runtime/binding/call',["require", "exports"], function (require, exports
             Object.assign(overrideContext, $event);
             overrideContext.$event = $event;
             var mustEvaluate = true;
-            var result = this.sourceExpression.evaluate(this.$scope, this.container, mustEvaluate);
+            var result = this.sourceExpression.evaluate(this.$scope, this.locator, mustEvaluate);
             delete overrideContext.$event;
             for (var prop in $event) {
                 delete overrideContext[prop];
@@ -4002,27 +4003,21 @@ define('runtime/binding/listener',["require", "exports"], function (require, exp
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Listener = (function () {
-        function Listener(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, container) {
+        function Listener(targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
             this.targetEvent = targetEvent;
             this.delegationStrategy = delegationStrategy;
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.preventDefault = preventDefault;
             this.eventManager = eventManager;
-            this.container = container;
+            this.locator = locator;
             this.$isBound = false;
-            this.targetEvent = targetEvent;
-            this.delegationStrategy = delegationStrategy;
-            this.sourceExpression = sourceExpression;
-            this.target = target;
-            this.preventDefault = preventDefault;
-            this.container = container;
         }
         Listener.prototype.callSource = function (event) {
             var overrideContext = this.source.overrideContext;
             overrideContext['$event'] = event;
             var mustEvaluate = true;
-            var result = this.sourceExpression.evaluate(this.source, this.container, mustEvaluate);
+            var result = this.sourceExpression.evaluate(this.source, this.locator, mustEvaluate);
             delete overrideContext['$event'];
             if (result !== true && this.preventDefault) {
                 event.preventDefault();
@@ -4545,10 +4540,10 @@ define('runtime/binding/ref',["require", "exports"], function (require, exports)
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Ref = (function () {
-        function Ref(sourceExpression, target, container) {
+        function Ref(sourceExpression, target, locator) {
             this.sourceExpression = sourceExpression;
             this.target = target;
-            this.container = container;
+            this.locator = locator;
             this.$isBound = false;
         }
         Ref.prototype.$bind = function (scope) {
@@ -4563,15 +4558,15 @@ define('runtime/binding/ref',["require", "exports"], function (require, exports)
             if (this.sourceExpression.bind) {
                 this.sourceExpression.bind(this, scope);
             }
-            this.sourceExpression.assign(this.$scope, this.target, this.container);
+            this.sourceExpression.assign(this.$scope, this.target, this.locator);
         };
         Ref.prototype.$unbind = function () {
             if (!this.$isBound) {
                 return;
             }
             this.$isBound = false;
-            if (this.sourceExpression.evaluate(this.$scope, this.container) === this.target) {
-                this.sourceExpression.assign(this.$scope, null, this.container);
+            if (this.sourceExpression.evaluate(this.$scope, this.locator) === this.target) {
+                this.sourceExpression.assign(this.$scope, null, this.locator);
             }
             if (this.sourceExpression.unbind) {
                 this.sourceExpression.unbind(this, this.$scope);
@@ -5178,7 +5173,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/compose',["require", "exports", "../decorators", "../templating/render-slot", "../templating/instructions", "../templating/view", "../di", "../dom", "../templating/template-engine"], function (require, exports, decorators_1, render_slot_1, instructions_1, view_1, di_1, dom_1, template_engine_1) {
+define('runtime/resources/compose',["require", "exports", "../decorators", "../templating/render-slot", "../templating/instructions", "../templating/view", "../di", "../dom", "../templating/rendering-engine"], function (require, exports, decorators_1, render_slot_1, instructions_1, view_1, di_1, dom_1, rendering_engine_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var composeSource = {
@@ -5188,16 +5183,15 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
     };
     var composeProps = ['component', 'swapOrder', 'isComposing'];
     var Compose = (function () {
-        function Compose(viewOwner, host, slot, instruction, templateEngine) {
+        function Compose(viewOwner, host, slot, instruction, renderingEngine) {
             this.viewOwner = viewOwner;
             this.host = host;
             this.slot = slot;
-            this.templateEngine = templateEngine;
+            this.renderingEngine = renderingEngine;
             this.task = null;
             this.visual = null;
             this.auContent = null;
-            var type = viewOwner.constructor;
-            this.compositionContainer = type.template.container;
+            this.compositionContext = viewOwner.$context;
             this.baseInstruction = {
                 type: instructions_1.TargetedInstructionType.hydrateElement,
                 instructions: instruction.instructions.filter(function (x) { return !composeProps.includes(x.dest); }),
@@ -5230,7 +5224,7 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
                 resource: toBeComposed,
                 contentElement: this.createContentElement()
             }, this.baseInstruction);
-            return this.swap(this.templateEngine.createVisualFromComponent(this.compositionContainer, toBeComposed, instruction));
+            return this.swap(this.renderingEngine.createVisualFromComponent(this.compositionContext, toBeComposed, instruction));
         };
         Compose.prototype.createContentElement = function () {
             var auContent = this.auContent;
@@ -5269,7 +5263,7 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
         };
         Compose = __decorate([
             decorators_1.customElement(composeSource),
-            di_1.inject(view_1.IViewOwner, dom_1.INode, render_slot_1.IRenderSlot, instructions_1.ITargetedInstruction, template_engine_1.ITemplateEngine),
+            di_1.inject(view_1.IViewOwner, dom_1.INode, render_slot_1.IRenderSlot, instructions_1.ITargetedInstruction, rendering_engine_1.IRenderingEngine),
             __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
         ], Compose);
         return Compose;
@@ -5989,240 +5983,6 @@ define('runtime/resources/with',["require", "exports", "../decorators", "../temp
 
 
 
-define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var svgElements = {
-        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
-        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
-        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
-        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
-        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-    };
-    var svgPresentationElements = {
-        'a': true,
-        'altGlyph': true,
-        'animate': true,
-        'animateColor': true,
-        'circle': true,
-        'clipPath': true,
-        'defs': true,
-        'ellipse': true,
-        'feBlend': true,
-        'feColorMatrix': true,
-        'feComponentTransfer': true,
-        'feComposite': true,
-        'feConvolveMatrix': true,
-        'feDiffuseLighting': true,
-        'feDisplacementMap': true,
-        'feFlood': true,
-        'feGaussianBlur': true,
-        'feImage': true,
-        'feMerge': true,
-        'feMorphology': true,
-        'feOffset': true,
-        'feSpecularLighting': true,
-        'feTile': true,
-        'feTurbulence': true,
-        'filter': true,
-        'font': true,
-        'foreignObject': true,
-        'g': true,
-        'glyph': true,
-        'glyphRef': true,
-        'image': true,
-        'line': true,
-        'linearGradient': true,
-        'marker': true,
-        'mask': true,
-        'missing-glyph': true,
-        'path': true,
-        'pattern': true,
-        'polygon': true,
-        'polyline': true,
-        'radialGradient': true,
-        'rect': true,
-        'stop': true,
-        'svg': true,
-        'switch': true,
-        'symbol': true,
-        'text': true,
-        'textPath': true,
-        'tref': true,
-        'tspan': true,
-        'use': true
-    };
-    var svgPresentationAttributes = {
-        'alignment-baseline': true,
-        'baseline-shift': true,
-        'clip-path': true,
-        'clip-rule': true,
-        'clip': true,
-        'color-interpolation-filters': true,
-        'color-interpolation': true,
-        'color-profile': true,
-        'color-rendering': true,
-        'color': true,
-        'cursor': true,
-        'direction': true,
-        'display': true,
-        'dominant-baseline': true,
-        'enable-background': true,
-        'fill-opacity': true,
-        'fill-rule': true,
-        'fill': true,
-        'filter': true,
-        'flood-color': true,
-        'flood-opacity': true,
-        'font-family': true,
-        'font-size-adjust': true,
-        'font-size': true,
-        'font-stretch': true,
-        'font-style': true,
-        'font-variant': true,
-        'font-weight': true,
-        'glyph-orientation-horizontal': true,
-        'glyph-orientation-vertical': true,
-        'image-rendering': true,
-        'kerning': true,
-        'letter-spacing': true,
-        'lighting-color': true,
-        'marker-end': true,
-        'marker-mid': true,
-        'marker-start': true,
-        'mask': true,
-        'opacity': true,
-        'overflow': true,
-        'pointer-events': true,
-        'shape-rendering': true,
-        'stop-color': true,
-        'stop-opacity': true,
-        'stroke-dasharray': true,
-        'stroke-dashoffset': true,
-        'stroke-linecap': true,
-        'stroke-linejoin': true,
-        'stroke-miterlimit': true,
-        'stroke-opacity': true,
-        'stroke-width': true,
-        'stroke': true,
-        'text-anchor': true,
-        'text-decoration': true,
-        'text-rendering': true,
-        'unicode-bidi': true,
-        'visibility': true,
-        'word-spacing': true,
-        'writing-mode': true
-    };
-    function createElement(html) {
-        var div = dom_1.DOM.createElement('div');
-        div.innerHTML = html;
-        return div.firstElementChild;
-    }
-    ;
-    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
-        svgElements.altglyph = svgElements.altGlyph;
-        delete svgElements.altGlyph;
-        svgElements.altglyphdef = svgElements.altGlyphDef;
-        delete svgElements.altGlyphDef;
-        svgElements.altglyphitem = svgElements.altGlyphItem;
-        delete svgElements.altGlyphItem;
-        svgElements.glyphref = svgElements.glyphRef;
-        delete svgElements.glyphRef;
-    }
-    function register(container) {
-        container.registerTransformer(svg_analyzer_1.ISVGAnalyzer, function (analyzer) {
-            return Object.assign(analyzer, {
-                isStandardSvgAttribute: function (node, attributeName) {
-                    if (!(node instanceof SVGElement)) {
-                        return false;
-                    }
-                    var nodeName = node.nodeName;
-                    return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
-                        || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
-                }
-            });
-        });
-    }
-    exports.register = register;
-});
-
-
-
 define('runtime/templating/animator',["require", "exports", "../di"], function (require, exports, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -6303,8 +6063,8 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                             }
                         }
                     };
-                    CustomAttribute.prototype.$hydrate = function (templateEngine) {
-                        this.$behavior = templateEngine.applyRuntimeBehavior(CustomAttribute, this, observables);
+                    CustomAttribute.prototype.$hydrate = function (renderingEngine) {
+                        this.$behavior = renderingEngine.applyRuntimeBehavior(CustomAttribute, this, observables);
                         if (this.$behavior.hasCreated) {
                             this.created();
                         }
@@ -6407,10 +6167,11 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     class_1.register = function (container) {
                         container.register(di_1.Registration.transient(source.name, CompiledComponent));
                     };
-                    class_1.prototype.$hydrate = function (templateEngine, host, replacements, contentOverride) {
+                    class_1.prototype.$hydrate = function (renderingEngine, host, replacements, contentOverride) {
                         if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
-                        var template = templateEngine.getElementTemplate(source, CompiledComponent);
-                        this.$behavior = templateEngine.applyRuntimeBehavior(CompiledComponent, this, observables);
+                        var template = renderingEngine.getElementTemplate(source, CompiledComponent);
+                        this.$context = template.context;
+                        this.$behavior = renderingEngine.applyRuntimeBehavior(CompiledComponent, this, observables);
                         this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
                         this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
                         this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
@@ -6536,163 +6297,6 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
 
 
 
-define('runtime/templating/instruction-interpreter',["require", "exports", "../dom", "./instructions", "../binding/binding-mode", "../binding/binding", "../binding/listener", "../binding/call", "../binding/ref", "./shadow-dom"], function (require, exports, dom_1, instructions_1, binding_mode_1, binding_1, listener_1, call_1, ref_1, shadow_dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var InstructionInterpreter = (function () {
-        function InstructionInterpreter(container, taskQueue, observerLocator, eventManager, parser, templateEngine) {
-            this.container = container;
-            this.taskQueue = taskQueue;
-            this.observerLocator = observerLocator;
-            this.eventManager = eventManager;
-            this.parser = parser;
-            this.templateEngine = templateEngine;
-        }
-        InstructionInterpreter.prototype.interpret = function (owner, targets, source, host, replacements) {
-            var targetInstructions = source.instructions;
-            for (var i = 0, ii = targets.length; i < ii; ++i) {
-                var instructions = targetInstructions[i];
-                var target = targets[i];
-                for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                    var current = instructions[j];
-                    this[current.type](owner, target, current, replacements);
-                }
-            }
-            if (host) {
-                var surrogateInstructions = source.surrogates;
-                for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-                    var current = surrogateInstructions[i];
-                    this[current.type](owner, host, current, replacements);
-                }
-            }
-        };
-        InstructionInterpreter.prototype.applyElementInstructionToComponentInstance = function (owner, target, instruction, component) {
-            var childInstructions = instruction.instructions;
-            component.$hydrate(this.templateEngine, target, instruction.replacements, instruction.contentElement);
-            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
-                var current = childInstructions[i];
-                var currentType = current.type;
-                var realTarget = void 0;
-                if (currentType === instructions_1.TargetedInstructionType.stylePropertyBinding || currentType === instructions_1.TargetedInstructionType.listenerBinding) {
-                    realTarget = target;
-                }
-                else {
-                    realTarget = component;
-                }
-                this[current.type](owner, realTarget, current);
-            }
-            owner.$bindable.push(component);
-            owner.$attachable.push(component);
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.textBinding] = function (owner, target, instruction) {
-            var next = target.nextSibling;
-            dom_1.DOM.treatAsNonWhitespace(next);
-            dom_1.DOM.remove(target);
-            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.oneWayBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.fromViewBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.fromView, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.twoWayBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.twoWay, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.listenerBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new listener_1.Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.callBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new call_1.Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.refBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new ref_1.Ref(this.parser.parse(instruction.src), target, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.stylePropertyBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target.style, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setProperty] = function (owner, target, instruction) {
-            target[instruction.dest] = instruction.value;
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setAttribute] = function (owner, target, instruction) {
-            dom_1.DOM.setAttribute(target, instruction.dest, instruction.value);
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateSlot] = function (owner, target, instruction) {
-            if (!owner.$usingSlotEmulation) {
-                return;
-            }
-            var fallbackFactory = this.templateEngine.getVisualFactory(this.container, instruction.fallback);
-            var slot = shadow_dom_1.ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
-            owner.$slots[slot.name] = slot;
-            owner.$bindable.push(slot);
-            owner.$attachable.push(slot);
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateElement] = function (owner, target, instruction) {
-            var container = this.container;
-            container.element.prepare(target);
-            container.owner.prepare(owner);
-            container.instruction.prepare(instruction);
-            container.slot.prepare(target, true);
-            var component = container.get(instruction.res);
-            this.applyElementInstructionToComponentInstance(owner, target, instruction, component);
-            container.slot.connectCustomElement(component);
-            container.element.dispose();
-            container.owner.dispose();
-            container.instruction.dispose();
-            container.slot.dispose();
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateAttribute] = function (owner, target, instruction) {
-            var childInstructions = instruction.instructions;
-            var container = this.container;
-            container.element.prepare(target);
-            container.owner.prepare(owner);
-            container.instruction.prepare(instruction);
-            var component = container.get(instruction.res);
-            component.$hydrate(this.templateEngine);
-            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
-                var current = childInstructions[i];
-                this[current.type](owner, component, current);
-            }
-            container.element.dispose();
-            container.owner.dispose();
-            container.instruction.dispose();
-            owner.$bindable.push(component);
-            owner.$attachable.push(component);
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (owner, target, instruction, replacements) {
-            var childInstructions = instruction.instructions;
-            var factory = this.templateEngine.getVisualFactory(this.container, instruction.src);
-            var container = this.container;
-            container.element.prepare(target);
-            container.owner.prepare(owner);
-            container.instruction.prepare(instruction);
-            container.factory.prepare(factory, replacements);
-            container.slot.prepare(dom_1.DOM.convertToAnchor(target), false);
-            var component = container.get(instruction.res);
-            component.$hydrate(this.templateEngine);
-            container.slot.connectTemplateController(component);
-            if (instruction.link) {
-                component.link(owner.$attachable[owner.$attachable.length - 1]);
-            }
-            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
-                var current = childInstructions[i];
-                this[current.type](owner, component, current);
-            }
-            container.element.dispose();
-            container.owner.dispose();
-            container.instruction.dispose();
-            container.factory.dispose();
-            container.slot.dispose();
-            owner.$bindable.push(component);
-            owner.$attachable.push(component);
-        };
-        return InstructionInterpreter;
-    }());
-    exports.InstructionInterpreter = InstructionInterpreter;
-});
-
-
-
 define('runtime/templating/instructions',["require", "exports", "../di"], function (require, exports, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -6803,6 +6407,136 @@ define('runtime/templating/lifecycle',["require", "exports"], function (require,
         return DetachContext;
     }());
     exports.DetachContext = DetachContext;
+});
+
+
+
+define('runtime/templating/render-context',["require", "exports", "./render-slot", "../dom", "../platform", "./instructions", "./view", "./visual"], function (require, exports, render_slot_1, dom_1, platform_1, instructions_1, view_1, visual_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    ;
+    function createRenderContext(renderingEngine, parentContext, dependencies) {
+        var context = parentContext.createChild();
+        var ownerProvider = new InstanceProvider();
+        var elementProvider = new InstanceProvider();
+        var instructionProvider = new InstanceProvider();
+        var factoryProvider = new ViewFactoryProvider(renderingEngine);
+        var slotProvider = new RenderSlotProvider();
+        var renderer = renderingEngine.createRenderer(context);
+        dom_1.DOM.registerElementResolver(context, elementProvider);
+        context.registerResolver(visual_1.IVisualFactory, factoryProvider);
+        context.registerResolver(render_slot_1.IRenderSlot, slotProvider);
+        context.registerResolver(view_1.IViewOwner, ownerProvider);
+        context.registerResolver(instructions_1.ITargetedInstruction, instructionProvider);
+        if (dependencies) {
+            context.register.apply(context, dependencies);
+        }
+        context.render = function (owner, targets, source, host, replacements) {
+            renderer.render(owner, targets, source, host, replacements);
+        };
+        context.beginComponentOperation = function (owner, target, instruction, factory, replacements, anchor, anchorIsContainer) {
+            ownerProvider.prepare(owner);
+            elementProvider.prepare(target);
+            instructionProvider.prepare(instruction);
+            if (factory) {
+                factoryProvider.prepare(factory, replacements);
+            }
+            if (anchor) {
+                slotProvider.prepare(anchor, anchorIsContainer);
+            }
+            return context;
+        };
+        context.hydrateElement = function (owner, target, instruction) {
+            renderer[instructions_1.TargetedInstructionType.hydrateElement](owner, target, instruction);
+        };
+        context.hydrateElementInstance = function (owner, target, instruction, component) {
+            renderer.hydrateElementInstance(owner, target, instruction, component);
+        };
+        context.tryConnectTemplateControllerToSlot = function (owner) {
+            slotProvider.tryConnectTemplateControllerToSlot(owner);
+        };
+        context.tryConnectElementToSlot = function (owner) {
+            slotProvider.tryConnectElementToSlot(owner);
+        };
+        context.dispose = function () {
+            factoryProvider.dispose();
+            slotProvider.dispose();
+            ownerProvider.dispose();
+            instructionProvider.dispose();
+            elementProvider.dispose();
+        };
+        return context;
+    }
+    exports.createRenderContext = createRenderContext;
+    var InstanceProvider = (function () {
+        function InstanceProvider() {
+            this.instance = null;
+        }
+        InstanceProvider.prototype.prepare = function (instance) {
+            this.instance = instance;
+        };
+        InstanceProvider.prototype.resolve = function (handler, requestor) {
+            return this.instance;
+        };
+        InstanceProvider.prototype.dispose = function () {
+            this.instance = null;
+        };
+        return InstanceProvider;
+    }());
+    var ViewFactoryProvider = (function () {
+        function ViewFactoryProvider(renderingEngine) {
+            this.renderingEngine = renderingEngine;
+        }
+        ViewFactoryProvider.prototype.prepare = function (factory, replacements) {
+            this.factory = factory;
+            this.replacements = replacements || platform_1.PLATFORM.emptyObject;
+        };
+        ViewFactoryProvider.prototype.resolve = function (handler, requestor) {
+            var found = this.replacements[this.factory.name];
+            if (found) {
+                return this.renderingEngine.getVisualFactory(requestor, found);
+            }
+            return this.factory;
+        };
+        ViewFactoryProvider.prototype.dispose = function () {
+            this.factory = null;
+            this.replacements = null;
+        };
+        return ViewFactoryProvider;
+    }());
+    var RenderSlotProvider = (function () {
+        function RenderSlotProvider() {
+            this.node = null;
+            this.anchorIsContainer = false;
+            this.slot = null;
+        }
+        RenderSlotProvider.prototype.prepare = function (element, anchorIsContainer) {
+            if (anchorIsContainer === void 0) { anchorIsContainer = false; }
+            this.node = element;
+            this.anchorIsContainer = anchorIsContainer;
+        };
+        RenderSlotProvider.prototype.resolve = function (handler, requestor) {
+            return this.slot || (this.slot = render_slot_1.RenderSlot.create(this.node, this.anchorIsContainer));
+        };
+        RenderSlotProvider.prototype.tryConnectTemplateControllerToSlot = function (owner) {
+            var slot = this.slot;
+            if (slot !== null) {
+                slot.$isContentProjectionSource = true;
+                owner.$slot = slot;
+            }
+        };
+        RenderSlotProvider.prototype.tryConnectElementToSlot = function (owner) {
+            var slot = this.slot;
+            if (slot !== null) {
+                owner.$slot = slot;
+            }
+        };
+        RenderSlotProvider.prototype.dispose = function () {
+            this.node = null;
+            this.slot = null;
+        };
+        return RenderSlotProvider;
+    }());
 });
 
 
@@ -7016,6 +6750,463 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             }
         };
         return RenderSlotImplementation;
+    }());
+});
+
+
+
+define('runtime/templating/renderer',["require", "exports", "../dom", "./instructions", "../binding/binding-mode", "../binding/binding", "../binding/listener", "../binding/call", "../binding/ref", "./shadow-dom"], function (require, exports, dom_1, instructions_1, binding_mode_1, binding_1, listener_1, call_1, ref_1, shadow_dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Renderer = (function () {
+        function Renderer(context, taskQueue, observerLocator, eventManager, parser, renderingEngine) {
+            this.context = context;
+            this.taskQueue = taskQueue;
+            this.observerLocator = observerLocator;
+            this.eventManager = eventManager;
+            this.parser = parser;
+            this.renderingEngine = renderingEngine;
+        }
+        Renderer.prototype.render = function (owner, targets, source, host, replacements) {
+            var targetInstructions = source.instructions;
+            for (var i = 0, ii = targets.length; i < ii; ++i) {
+                var instructions = targetInstructions[i];
+                var target = targets[i];
+                for (var j = 0, jj = instructions.length; j < jj; ++j) {
+                    var current = instructions[j];
+                    this[current.type](owner, target, current, replacements);
+                }
+            }
+            if (host) {
+                var surrogateInstructions = source.surrogates;
+                for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
+                    var current = surrogateInstructions[i];
+                    this[current.type](owner, host, current, replacements);
+                }
+            }
+        };
+        Renderer.prototype.hydrateElementInstance = function (owner, target, instruction, component) {
+            var childInstructions = instruction.instructions;
+            component.$hydrate(this.renderingEngine, target, instruction.replacements, instruction.contentElement);
+            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
+                var current = childInstructions[i];
+                var currentType = current.type;
+                var realTarget = void 0;
+                if (currentType === instructions_1.TargetedInstructionType.stylePropertyBinding || currentType === instructions_1.TargetedInstructionType.listenerBinding) {
+                    realTarget = target;
+                }
+                else {
+                    realTarget = component;
+                }
+                this[current.type](owner, realTarget, current);
+            }
+            owner.$bindable.push(component);
+            owner.$attachable.push(component);
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.textBinding] = function (owner, target, instruction) {
+            var next = target.nextSibling;
+            dom_1.DOM.treatAsNonWhitespace(next);
+            dom_1.DOM.remove(target);
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, this.observerLocator, this.context));
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.oneWayBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLocator, this.context));
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.fromViewBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.fromView, this.observerLocator, this.context));
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.twoWayBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.twoWay, this.observerLocator, this.context));
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.listenerBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new listener_1.Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.context));
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.callBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new call_1.Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLocator, this.context));
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.refBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new ref_1.Ref(this.parser.parse(instruction.src), target, this.context));
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.stylePropertyBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target.style, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLocator, this.context));
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.setProperty] = function (owner, target, instruction) {
+            target[instruction.dest] = instruction.value;
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.setAttribute] = function (owner, target, instruction) {
+            dom_1.DOM.setAttribute(target, instruction.dest, instruction.value);
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.hydrateSlot] = function (owner, target, instruction) {
+            if (!owner.$usingSlotEmulation) {
+                return;
+            }
+            var fallbackFactory = this.renderingEngine.getVisualFactory(this.context, instruction.fallback);
+            var slot = shadow_dom_1.ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
+            owner.$slots[slot.name] = slot;
+            owner.$bindable.push(slot);
+            owner.$attachable.push(slot);
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.hydrateElement] = function (owner, target, instruction) {
+            var container = this.context;
+            var context = container.beginComponentOperation(owner, target, instruction, null, null, target, true);
+            var component = container.get(instruction.res);
+            this.hydrateElementInstance(owner, target, instruction, component);
+            context.tryConnectElementToSlot(component);
+            context.dispose();
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.hydrateAttribute] = function (owner, target, instruction) {
+            var childInstructions = instruction.instructions;
+            var container = this.context;
+            var context = container.beginComponentOperation(owner, target, instruction);
+            var component = container.get(instruction.res);
+            component.$hydrate(this.renderingEngine);
+            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
+                var current = childInstructions[i];
+                this[current.type](owner, component, current);
+            }
+            owner.$bindable.push(component);
+            owner.$attachable.push(component);
+            context.dispose();
+        };
+        Renderer.prototype[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (owner, target, instruction, replacements) {
+            var childInstructions = instruction.instructions;
+            var factory = this.renderingEngine.getVisualFactory(this.context, instruction.src);
+            var container = this.context;
+            var context = container.beginComponentOperation(owner, target, instruction, factory, replacements, dom_1.DOM.convertToAnchor(target), false);
+            var component = container.get(instruction.res);
+            component.$hydrate(this.renderingEngine);
+            context.tryConnectTemplateControllerToSlot(component);
+            if (instruction.link) {
+                component.link(owner.$attachable[owner.$attachable.length - 1]);
+            }
+            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
+                var current = childInstructions[i];
+                this[current.type](owner, component, current);
+            }
+            owner.$bindable.push(component);
+            owner.$attachable.push(component);
+            context.dispose();
+        };
+        return Renderer;
+    }());
+    exports.Renderer = Renderer;
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/templating/rendering-engine',["require", "exports", "./runtime-behavior", "../di", "../task-queue", "./view", "../dom", "./renderer", "./lifecycle", "../reporter", "./animator", "./render-context", "../binding/observer-locator", "../binding/event-manager", "../binding/parser"], function (require, exports, runtime_behavior_1, di_1, task_queue_1, view_1, dom_1, renderer_1, lifecycle_1, reporter_1, animator_1, render_context_1, observer_locator_1, event_manager_1, parser_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IRenderingEngine = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(RenderingEngine); });
+    var noViewTemplate = {
+        context: null,
+        createFor: function (owner) {
+            return view_1.View.none;
+        }
+    };
+    var RenderingEngine = (function () {
+        function RenderingEngine(container, taskQueue, observerLocator, eventManager, parser, animator) {
+            this.container = container;
+            this.taskQueue = taskQueue;
+            this.observerLocator = observerLocator;
+            this.eventManager = eventManager;
+            this.parser = parser;
+            this.animator = animator;
+            this.templateLookup = new Map();
+            this.factoryLookup = new Map();
+            this.behaviorLookup = new Map();
+        }
+        RenderingEngine.prototype.getElementTemplate = function (source, componentType) {
+            if (!source) {
+                return null;
+            }
+            var found = this.templateLookup.get(source);
+            if (!found) {
+                found = this.templateFromCompiledSource(this.container, source);
+                if (found.context !== null) {
+                    componentType.register(found.context);
+                }
+                this.templateLookup.set(source, found);
+            }
+            return found;
+        };
+        RenderingEngine.prototype.templateFromCompiledSource = function (context, source) {
+            if (source && source.template) {
+                return new CompiledTemplate(this, context, source);
+            }
+            return noViewTemplate;
+        };
+        RenderingEngine.prototype.getVisualFactory = function (context, source) {
+            if (!source) {
+                return null;
+            }
+            var found = this.factoryLookup.get(source);
+            if (!found) {
+                found = this.factoryFromCompiledSource(context, source);
+                this.factoryLookup.set(source, found);
+            }
+            return found;
+        };
+        RenderingEngine.prototype.factoryFromCompiledSource = function (context, source) {
+            var template = this.templateFromCompiledSource(context, source);
+            var CompiledVisual = (function (_super) {
+                __extends(class_1, _super);
+                function class_1() {
+                    var _this = _super !== null && _super.apply(this, arguments) || this;
+                    _this.$slots = source.hasSlots ? {} : null;
+                    _this.$context = context;
+                    return _this;
+                }
+                class_1.prototype.createView = function () {
+                    return template.createFor(this);
+                };
+                return class_1;
+            }(Visual));
+            return new VisualFactory(source.name, CompiledVisual);
+        };
+        RenderingEngine.prototype.applyRuntimeBehavior = function (type, instance, observables) {
+            var found = this.behaviorLookup.get(type);
+            if (!found) {
+                found = runtime_behavior_1.RuntimeBehavior.create(instance, observables, type);
+                this.behaviorLookup.set(type, found);
+            }
+            if ('$host' in instance) {
+                found.applyToElement(this.taskQueue, instance);
+            }
+            else {
+                found.applyToAttribute(this.taskQueue, instance);
+            }
+            return found;
+        };
+        RenderingEngine.prototype.createVisualFromComponent = function (context, componentOrType, instruction) {
+            var animator = this.animator;
+            var ComponentVisual = (function (_super) {
+                __extends(ComponentVisual, _super);
+                function ComponentVisual() {
+                    var _this = _super.call(this, null, animator) || this;
+                    _this.$context = context;
+                    return _this;
+                }
+                ComponentVisual.prototype.createView = function () {
+                    var target;
+                    if (typeof componentOrType === 'function') {
+                        target = dom_1.DOM.createElement(componentOrType.source.name);
+                        context.hydrateElement(this, target, instruction);
+                        this.component = this.$attachable[this.$attachable.length - 1];
+                    }
+                    else {
+                        var componentType = componentOrType.constructor;
+                        target = componentOrType.element || dom_1.DOM.createElement(componentType.source.name);
+                        context.hydrateElementInstance(this, target, instruction, componentOrType);
+                        this.component = componentOrType;
+                    }
+                    return view_1.View.fromNode(target);
+                };
+                ComponentVisual.prototype.tryReturnToCache = function () {
+                    return false;
+                };
+                return ComponentVisual;
+            }(Visual));
+            return new ComponentVisual();
+        };
+        RenderingEngine.prototype.createRenderer = function (container) {
+            return new renderer_1.Renderer(container, this.taskQueue, this.observerLocator, this.eventManager, this.parser, this);
+        };
+        RenderingEngine = __decorate([
+            di_1.inject(di_1.IContainer, task_queue_1.ITaskQueue, observer_locator_1.IObserverLocator, event_manager_1.IEventManager, parser_1.IParser, animator_1.IAnimator),
+            __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object])
+        ], RenderingEngine);
+        return RenderingEngine;
+    }());
+    var CompiledTemplate = (function () {
+        function CompiledTemplate(renderingEngine, parentContext, source) {
+            this.source = source;
+            this.context = render_context_1.createRenderContext(renderingEngine, parentContext, source.dependencies);
+            this.createView = dom_1.DOM.createFactoryFromMarkup(source.template);
+        }
+        CompiledTemplate.prototype.createFor = function (owner, host, replacements) {
+            var view = this.createView();
+            this.context.render(owner, view.findTargets(), this.source, host, replacements);
+            return view;
+        };
+        return CompiledTemplate;
+    }());
+    var Visual = (function () {
+        function Visual(factory, animator) {
+            this.factory = factory;
+            this.animator = animator;
+            this.$bindable = [];
+            this.$attachable = [];
+            this.$scope = null;
+            this.$view = null;
+            this.$isBound = false;
+            this.$isAttached = false;
+            this.inCache = false;
+            this.animationRoot = undefined;
+            this.$view = this.createView();
+        }
+        Visual.prototype.getAnimationRoot = function () {
+            if (this.animationRoot !== undefined) {
+                return this.animationRoot;
+            }
+            var currentChild = this.$view.firstChild;
+            var lastChild = this.$view.lastChild;
+            var isElementNodeType = dom_1.DOM.isElementNodeType;
+            while (currentChild !== lastChild && !isElementNodeType(currentChild)) {
+                currentChild = currentChild.nextSibling;
+            }
+            if (currentChild && isElementNodeType(currentChild)) {
+                return this.animationRoot = dom_1.DOM.hasClass(currentChild, 'au-animate')
+                    ? currentChild
+                    : null;
+            }
+            return this.animationRoot = null;
+        };
+        Visual.prototype.animate = function (direction) {
+            if (direction === void 0) { direction = 'enter'; }
+            var element = this.getAnimationRoot();
+            if (element === null) {
+                return;
+            }
+            switch (direction) {
+                case 'enter':
+                    return this.animator.enter(element);
+                case 'leave':
+                    return this.animator.leave(element);
+                default:
+                    throw reporter_1.Reporter.error(4, direction);
+            }
+        };
+        Visual.prototype.$bind = function (scope) {
+            if (this.$isBound) {
+                if (this.$scope === scope) {
+                    return;
+                }
+                this.$unbind();
+            }
+            this.$scope = scope;
+            var bindable = this.$bindable;
+            for (var i = 0, ii = bindable.length; i < ii; ++i) {
+                bindable[i].$bind(scope);
+            }
+            this.$isBound = true;
+        };
+        Visual.prototype.$attach = function (context, render, owner, index) {
+            if (this.$isAttached) {
+                return;
+            }
+            if (!context) {
+                context = lifecycle_1.AttachContext.open(this);
+            }
+            var attachable = this.$attachable;
+            for (var i = 0, ii = attachable.length; i < ii; ++i) {
+                attachable[i].$attach(context);
+            }
+            render(this, owner, index);
+            this.$isAttached = true;
+            if (context.wasOpenedBy(this)) {
+                context.close();
+            }
+        };
+        Visual.prototype.$detach = function (context) {
+            if (this.$isAttached) {
+                if (!context) {
+                    context = lifecycle_1.DetachContext.open(this);
+                }
+                context.queueForViewRemoval(this);
+                var attachable = this.$attachable;
+                var i = attachable.length;
+                while (i--) {
+                    attachable[i].$detach(context);
+                }
+                this.$isAttached = false;
+                if (context.wasOpenedBy(this)) {
+                    context.close();
+                }
+            }
+        };
+        Visual.prototype.$unbind = function () {
+            if (this.$isBound) {
+                var bindable = this.$bindable;
+                var i = bindable.length;
+                while (i--) {
+                    bindable[i].$unbind();
+                }
+                this.$isBound = false;
+                this.$scope = null;
+            }
+        };
+        Visual.prototype.tryReturnToCache = function () {
+            return this.factory.tryReturnToCache(this);
+        };
+        return Visual;
+    }());
+    var VisualFactory = (function () {
+        function VisualFactory(name, type) {
+            this.name = name;
+            this.type = type;
+            this.cacheSize = -1;
+            this.cache = null;
+            this.isCaching = false;
+        }
+        VisualFactory.prototype.setCacheSize = function (size, doNotOverrideIfAlreadySet) {
+            if (size) {
+                if (size === '*') {
+                    size = Number.MAX_VALUE;
+                }
+                else if (typeof size === 'string') {
+                    size = parseInt(size, 10);
+                }
+                if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
+                    this.cacheSize = size;
+                }
+            }
+            if (this.cacheSize > 0) {
+                this.cache = [];
+            }
+            else {
+                this.cache = null;
+            }
+            this.isCaching = this.cacheSize > 0;
+        };
+        VisualFactory.prototype.tryReturnToCache = function (visual) {
+            if (this.cache !== null && this.cache.length < this.cacheSize) {
+                visual.inCache = true;
+                this.cache.push(visual);
+                return true;
+            }
+            return false;
+        };
+        VisualFactory.prototype.create = function () {
+            var cache = this.cache;
+            if (cache !== null && cache.length > 0) {
+                var visual = cache.pop();
+                visual.inCache = false;
+                return visual;
+            }
+            return new this.type(this);
+        };
+        return VisualFactory;
     }());
 });
 
@@ -7547,419 +7738,6 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
 
 
 
-define('runtime/templating/template-container',["require", "exports", "./render-slot", "../dom", "../platform", "./instructions", "./view", "./visual"], function (require, exports, render_slot_1, dom_1, platform_1, instructions_1, view_1, visual_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    ;
-    function createTemplateContainer(templateEngine, parentContainer, dependencies) {
-        var container = parentContainer.createChild();
-        container.interpreter = templateEngine.createInstructionInterpreter(container);
-        container.element = new InstanceProvider();
-        dom_1.DOM.registerElementResolver(container, container.element);
-        container.registerResolver(visual_1.IVisualFactory, container.factory = new ViewFactoryProvider(templateEngine));
-        container.registerResolver(render_slot_1.IRenderSlot, container.slot = new RenderSlotProvider());
-        container.registerResolver(view_1.IViewOwner, container.owner = new InstanceProvider());
-        container.registerResolver(instructions_1.ITargetedInstruction, container.instruction = new InstanceProvider());
-        if (dependencies) {
-            container.register.apply(container, dependencies);
-        }
-        return container;
-    }
-    exports.createTemplateContainer = createTemplateContainer;
-    var InstanceProvider = (function () {
-        function InstanceProvider() {
-            this.instance = null;
-        }
-        InstanceProvider.prototype.prepare = function (instance) {
-            this.instance = instance;
-        };
-        InstanceProvider.prototype.resolve = function (handler, requestor) {
-            return this.instance;
-        };
-        InstanceProvider.prototype.dispose = function () {
-            this.instance = null;
-        };
-        return InstanceProvider;
-    }());
-    var ViewFactoryProvider = (function () {
-        function ViewFactoryProvider(templateEngine) {
-            this.templateEngine = templateEngine;
-        }
-        ViewFactoryProvider.prototype.prepare = function (factory, replacements) {
-            this.factory = factory;
-            this.replacements = replacements || platform_1.PLATFORM.emptyObject;
-        };
-        ViewFactoryProvider.prototype.resolve = function (handler, requestor) {
-            var found = this.replacements[this.factory.name];
-            if (found) {
-                return this.templateEngine.getVisualFactory(requestor, found);
-            }
-            return this.factory;
-        };
-        ViewFactoryProvider.prototype.dispose = function () {
-            this.factory = null;
-            this.replacements = null;
-        };
-        return ViewFactoryProvider;
-    }());
-    var RenderSlotProvider = (function () {
-        function RenderSlotProvider() {
-            this.node = null;
-            this.anchorIsContainer = false;
-            this.slot = null;
-        }
-        RenderSlotProvider.prototype.prepare = function (element, anchorIsContainer) {
-            if (anchorIsContainer === void 0) { anchorIsContainer = false; }
-            this.node = element;
-            this.anchorIsContainer = anchorIsContainer;
-        };
-        RenderSlotProvider.prototype.resolve = function (handler, requestor) {
-            return this.slot || (this.slot = render_slot_1.RenderSlot.create(this.node, this.anchorIsContainer));
-        };
-        RenderSlotProvider.prototype.connectTemplateController = function (owner) {
-            var slot = this.slot;
-            if (slot !== null) {
-                slot.$isContentProjectionSource = true;
-                owner.$slot = slot;
-            }
-        };
-        RenderSlotProvider.prototype.connectCustomElement = function (owner) {
-            var slot = this.slot;
-            if (slot !== null) {
-                owner.$slot = slot;
-            }
-        };
-        RenderSlotProvider.prototype.dispose = function () {
-            this.node = null;
-            this.slot = null;
-        };
-        return RenderSlotProvider;
-    }());
-});
-
-
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-define('runtime/templating/template-engine',["require", "exports", "./runtime-behavior", "../di", "./instructions", "../task-queue", "./view", "../dom", "./instruction-interpreter", "./lifecycle", "../reporter", "./animator", "./template-container", "../binding/observer-locator", "../binding/event-manager", "../binding/parser"], function (require, exports, runtime_behavior_1, di_1, instructions_1, task_queue_1, view_1, dom_1, instruction_interpreter_1, lifecycle_1, reporter_1, animator_1, template_container_1, observer_locator_1, event_manager_1, parser_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ITemplateEngine = di_1.DI.createInterface()
-        .withDefault(function (x) { return x.singleton(TemplateEngine); });
-    var noViewTemplate = {
-        container: null,
-        createFor: function (owner) {
-            return view_1.View.none;
-        }
-    };
-    var TemplateEngine = (function () {
-        function TemplateEngine(container, taskQueue, observerLocator, eventManager, parser, animator) {
-            this.container = container;
-            this.taskQueue = taskQueue;
-            this.observerLocator = observerLocator;
-            this.eventManager = eventManager;
-            this.parser = parser;
-            this.animator = animator;
-            this.templateLookup = new Map();
-            this.factoryLookup = new Map();
-            this.behaviorLookup = new Map();
-        }
-        TemplateEngine.prototype.getElementTemplate = function (source, componentType) {
-            if (!source) {
-                return null;
-            }
-            var found = this.templateLookup.get(source);
-            if (!found) {
-                found = this.templateFromCompiledSource(this.container, source);
-                if (found.container !== null) {
-                    componentType.register(found.container);
-                }
-                this.templateLookup.set(source, found);
-            }
-            return found;
-        };
-        TemplateEngine.prototype.templateFromCompiledSource = function (container, source) {
-            if (source && source.template) {
-                return new CompiledTemplate(this, container, source);
-            }
-            return noViewTemplate;
-        };
-        TemplateEngine.prototype.getVisualFactory = function (container, source) {
-            if (!source) {
-                return null;
-            }
-            var found = this.factoryLookup.get(source);
-            if (!found) {
-                found = this.factoryFromCompiledSource(container, source);
-                this.factoryLookup.set(source, found);
-            }
-            return found;
-        };
-        TemplateEngine.prototype.factoryFromCompiledSource = function (container, source) {
-            var template = this.templateFromCompiledSource(container, source);
-            var CompiledVisual = (_a = (function (_super) {
-                    __extends(class_1, _super);
-                    function class_1() {
-                        var _this = _super !== null && _super.apply(this, arguments) || this;
-                        _this.$slots = source.hasSlots ? {} : null;
-                        return _this;
-                    }
-                    class_1.prototype.createView = function () {
-                        return template.createFor(this);
-                    };
-                    return class_1;
-                }(Visual)),
-                _a.template = template,
-                _a.source = source,
-                _a);
-            return new VisualFactory(source.name, CompiledVisual);
-            var _a;
-        };
-        TemplateEngine.prototype.applyRuntimeBehavior = function (type, instance, observables) {
-            var found = this.behaviorLookup.get(type);
-            if (!found) {
-                found = runtime_behavior_1.RuntimeBehavior.create(instance, observables, type);
-                this.behaviorLookup.set(type, found);
-            }
-            if ('$host' in instance) {
-                found.applyToElement(this.taskQueue, instance);
-            }
-            else {
-                found.applyToAttribute(this.taskQueue, instance);
-            }
-            return found;
-        };
-        TemplateEngine.prototype.createVisualFromComponent = function (container, componentOrType, instruction) {
-            var animator = this.animator;
-            var ComponentVisual = (function (_super) {
-                __extends(ComponentVisual, _super);
-                function ComponentVisual() {
-                    return _super.call(this, null, animator) || this;
-                }
-                ComponentVisual.prototype.createView = function () {
-                    var target;
-                    if (typeof componentOrType === 'function') {
-                        target = dom_1.DOM.createElement(componentOrType.source.name);
-                        container.interpreter[instructions_1.TargetedInstructionType.hydrateElement](target, instruction);
-                        this.component = this.$attachable[this.$attachable.length - 1];
-                    }
-                    else {
-                        var componentType = componentOrType.constructor;
-                        target = componentOrType.element || dom_1.DOM.createElement(componentType.source.name);
-                        container.interpreter.applyElementInstructionToComponentInstance(this, target, instruction, componentOrType);
-                        this.component = componentOrType;
-                    }
-                    return view_1.View.fromNode(target);
-                };
-                ComponentVisual.prototype.tryReturnToCache = function () {
-                    return false;
-                };
-                ComponentVisual.template = Object.assign({}, noViewTemplate, { container: container });
-                ComponentVisual.source = null;
-                return ComponentVisual;
-            }(Visual));
-            return new ComponentVisual();
-        };
-        TemplateEngine.prototype.createInstructionInterpreter = function (container) {
-            return new instruction_interpreter_1.InstructionInterpreter(container, this.taskQueue, this.observerLocator, this.eventManager, this.parser, this);
-        };
-        TemplateEngine = __decorate([
-            di_1.inject(di_1.IContainer, task_queue_1.ITaskQueue, observer_locator_1.IObserverLocator, event_manager_1.IEventManager, parser_1.IParser, animator_1.IAnimator),
-            __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object])
-        ], TemplateEngine);
-        return TemplateEngine;
-    }());
-    var CompiledTemplate = (function () {
-        function CompiledTemplate(templateEngine, container, source) {
-            this.source = source;
-            this.container = template_container_1.createTemplateContainer(templateEngine, container, source.dependencies);
-            this.createView = dom_1.DOM.createFactoryFromMarkup(source.template);
-        }
-        CompiledTemplate.prototype.createFor = function (owner, host, replacements) {
-            var view = this.createView();
-            this.container.interpreter.interpret(owner, view.findTargets(), this.source, host, replacements);
-            return view;
-        };
-        return CompiledTemplate;
-    }());
-    var Visual = (function () {
-        function Visual(factory, animator) {
-            this.factory = factory;
-            this.animator = animator;
-            this.$bindable = [];
-            this.$attachable = [];
-            this.$scope = null;
-            this.$view = null;
-            this.$isBound = false;
-            this.$isAttached = false;
-            this.inCache = false;
-            this.animationRoot = undefined;
-            this.$view = this.createView();
-        }
-        Visual.prototype.getAnimationRoot = function () {
-            if (this.animationRoot !== undefined) {
-                return this.animationRoot;
-            }
-            var currentChild = this.$view.firstChild;
-            var lastChild = this.$view.lastChild;
-            var isElementNodeType = dom_1.DOM.isElementNodeType;
-            while (currentChild !== lastChild && !isElementNodeType(currentChild)) {
-                currentChild = currentChild.nextSibling;
-            }
-            if (currentChild && isElementNodeType(currentChild)) {
-                return this.animationRoot = dom_1.DOM.hasClass(currentChild, 'au-animate')
-                    ? currentChild
-                    : null;
-            }
-            return this.animationRoot = null;
-        };
-        Visual.prototype.animate = function (direction) {
-            if (direction === void 0) { direction = 'enter'; }
-            var element = this.getAnimationRoot();
-            if (element === null) {
-                return;
-            }
-            switch (direction) {
-                case 'enter':
-                    return this.animator.enter(element);
-                case 'leave':
-                    return this.animator.leave(element);
-                default:
-                    throw reporter_1.Reporter.error(4, direction);
-            }
-        };
-        Visual.prototype.$bind = function (scope) {
-            if (this.$isBound) {
-                if (this.$scope === scope) {
-                    return;
-                }
-                this.$unbind();
-            }
-            this.$scope = scope;
-            var bindable = this.$bindable;
-            for (var i = 0, ii = bindable.length; i < ii; ++i) {
-                bindable[i].$bind(scope);
-            }
-            this.$isBound = true;
-        };
-        Visual.prototype.$attach = function (context, render, owner, index) {
-            if (this.$isAttached) {
-                return;
-            }
-            if (!context) {
-                context = lifecycle_1.AttachContext.open(this);
-            }
-            var attachable = this.$attachable;
-            for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                attachable[i].$attach(context);
-            }
-            render(this, owner, index);
-            this.$isAttached = true;
-            if (context.wasOpenedBy(this)) {
-                context.close();
-            }
-        };
-        Visual.prototype.$detach = function (context) {
-            if (this.$isAttached) {
-                if (!context) {
-                    context = lifecycle_1.DetachContext.open(this);
-                }
-                context.queueForViewRemoval(this);
-                var attachable = this.$attachable;
-                var i = attachable.length;
-                while (i--) {
-                    attachable[i].$detach(context);
-                }
-                this.$isAttached = false;
-                if (context.wasOpenedBy(this)) {
-                    context.close();
-                }
-            }
-        };
-        Visual.prototype.$unbind = function () {
-            if (this.$isBound) {
-                var bindable = this.$bindable;
-                var i = bindable.length;
-                while (i--) {
-                    bindable[i].$unbind();
-                }
-                this.$isBound = false;
-                this.$scope = null;
-            }
-        };
-        Visual.prototype.tryReturnToCache = function () {
-            return this.factory.tryReturnToCache(this);
-        };
-        return Visual;
-    }());
-    var VisualFactory = (function () {
-        function VisualFactory(name, type) {
-            this.name = name;
-            this.type = type;
-            this.cacheSize = -1;
-            this.cache = null;
-            this.isCaching = false;
-        }
-        VisualFactory.prototype.setCacheSize = function (size, doNotOverrideIfAlreadySet) {
-            if (size) {
-                if (size === '*') {
-                    size = Number.MAX_VALUE;
-                }
-                else if (typeof size === 'string') {
-                    size = parseInt(size, 10);
-                }
-                if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
-                    this.cacheSize = size;
-                }
-            }
-            if (this.cacheSize > 0) {
-                this.cache = [];
-            }
-            else {
-                this.cache = null;
-            }
-            this.isCaching = this.cacheSize > 0;
-        };
-        VisualFactory.prototype.tryReturnToCache = function (visual) {
-            if (this.cache !== null && this.cache.length < this.cacheSize) {
-                visual.inCache = true;
-                this.cache.push(visual);
-                return true;
-            }
-            return false;
-        };
-        VisualFactory.prototype.create = function () {
-            var cache = this.cache;
-            if (cache !== null && cache.length > 0) {
-                var visual = cache.pop();
-                visual.inCache = false;
-                return visual;
-            }
-            return new this.type(this);
-        };
-        return VisualFactory;
-    }());
-});
-
-
-
 define('runtime/templating/template',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -7970,7 +7748,7 @@ define('runtime/templating/template',["require", "exports"], function (require, 
 define('runtime/templating/view',["require", "exports", "../platform", "../di", "../dom", "../reporter"], function (require, exports, platform_1, di_1, dom_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.IViewOwner = di_1.DI.createInterface('IViewOwner');
+    exports.IViewOwner = di_1.DI.createInterface();
     var noopView = {
         firstChild: null,
         lastChild: null,
@@ -8103,6 +7881,240 @@ define('runtime/templating/visual',["require", "exports", "../di"], function (re
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IVisualFactory = di_1.DI.createInterface();
+});
+
+
+
+define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var svgElements = {
+        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
+        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
+        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
+        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
+        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
+        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
+        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
+        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
+        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
+        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
+        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
+        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
+    };
+    var svgPresentationElements = {
+        'a': true,
+        'altGlyph': true,
+        'animate': true,
+        'animateColor': true,
+        'circle': true,
+        'clipPath': true,
+        'defs': true,
+        'ellipse': true,
+        'feBlend': true,
+        'feColorMatrix': true,
+        'feComponentTransfer': true,
+        'feComposite': true,
+        'feConvolveMatrix': true,
+        'feDiffuseLighting': true,
+        'feDisplacementMap': true,
+        'feFlood': true,
+        'feGaussianBlur': true,
+        'feImage': true,
+        'feMerge': true,
+        'feMorphology': true,
+        'feOffset': true,
+        'feSpecularLighting': true,
+        'feTile': true,
+        'feTurbulence': true,
+        'filter': true,
+        'font': true,
+        'foreignObject': true,
+        'g': true,
+        'glyph': true,
+        'glyphRef': true,
+        'image': true,
+        'line': true,
+        'linearGradient': true,
+        'marker': true,
+        'mask': true,
+        'missing-glyph': true,
+        'path': true,
+        'pattern': true,
+        'polygon': true,
+        'polyline': true,
+        'radialGradient': true,
+        'rect': true,
+        'stop': true,
+        'svg': true,
+        'switch': true,
+        'symbol': true,
+        'text': true,
+        'textPath': true,
+        'tref': true,
+        'tspan': true,
+        'use': true
+    };
+    var svgPresentationAttributes = {
+        'alignment-baseline': true,
+        'baseline-shift': true,
+        'clip-path': true,
+        'clip-rule': true,
+        'clip': true,
+        'color-interpolation-filters': true,
+        'color-interpolation': true,
+        'color-profile': true,
+        'color-rendering': true,
+        'color': true,
+        'cursor': true,
+        'direction': true,
+        'display': true,
+        'dominant-baseline': true,
+        'enable-background': true,
+        'fill-opacity': true,
+        'fill-rule': true,
+        'fill': true,
+        'filter': true,
+        'flood-color': true,
+        'flood-opacity': true,
+        'font-family': true,
+        'font-size-adjust': true,
+        'font-size': true,
+        'font-stretch': true,
+        'font-style': true,
+        'font-variant': true,
+        'font-weight': true,
+        'glyph-orientation-horizontal': true,
+        'glyph-orientation-vertical': true,
+        'image-rendering': true,
+        'kerning': true,
+        'letter-spacing': true,
+        'lighting-color': true,
+        'marker-end': true,
+        'marker-mid': true,
+        'marker-start': true,
+        'mask': true,
+        'opacity': true,
+        'overflow': true,
+        'pointer-events': true,
+        'shape-rendering': true,
+        'stop-color': true,
+        'stop-opacity': true,
+        'stroke-dasharray': true,
+        'stroke-dashoffset': true,
+        'stroke-linecap': true,
+        'stroke-linejoin': true,
+        'stroke-miterlimit': true,
+        'stroke-opacity': true,
+        'stroke-width': true,
+        'stroke': true,
+        'text-anchor': true,
+        'text-decoration': true,
+        'text-rendering': true,
+        'unicode-bidi': true,
+        'visibility': true,
+        'word-spacing': true,
+        'writing-mode': true
+    };
+    function createElement(html) {
+        var div = dom_1.DOM.createElement('div');
+        div.innerHTML = html;
+        return div.firstElementChild;
+    }
+    ;
+    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
+        svgElements.altglyph = svgElements.altGlyph;
+        delete svgElements.altGlyph;
+        svgElements.altglyphdef = svgElements.altGlyphDef;
+        delete svgElements.altGlyphDef;
+        svgElements.altglyphitem = svgElements.altGlyphItem;
+        delete svgElements.altGlyphItem;
+        svgElements.glyphref = svgElements.glyphRef;
+        delete svgElements.glyphRef;
+    }
+    function register(container) {
+        container.registerTransformer(svg_analyzer_1.ISVGAnalyzer, function (analyzer) {
+            return Object.assign(analyzer, {
+                isStandardSvgAttribute: function (node, attributeName) {
+                    if (!(node instanceof SVGElement)) {
+                        return false;
+                    }
+                    var nodeName = node.nodeName;
+                    return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
+                        || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
+                }
+            });
+        });
+    }
+    exports.register = register;
 });
 
 

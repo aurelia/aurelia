@@ -6,7 +6,7 @@ import { ITaskQueue } from '../task-queue';
 import { IObserverLocator } from '../binding/observer-locator';
 import { IEventManager } from '../binding/event-manager';
 import { IParser } from '../binding/parser';
-import { ITemplateEngine } from './template-engine';
+import { IRenderingEngine } from './rendering-engine';
 import { BindingMode } from '../binding/binding-mode';
 import { Binding } from '../binding/binding';
 import { Listener } from '../binding/listener';
@@ -14,25 +14,25 @@ import { Call } from '../binding/call';
 import { Ref } from '../binding/ref';
 import { ShadowDOMEmulation } from './shadow-dom';
 import { DI, inject, IContainer } from '../di';
-import { ITemplateContainer } from './template-container';
+import { IRenderContext } from './render-context';
 
-export interface IInstructionInterpreter {
-  interpret(owner: IViewOwner, targets: ArrayLike<INode>, source: ITemplateSource, host?: INode, replacements?: Record<string, ITemplateSource>): void;
-  applyElementInstructionToComponentInstance(owner: IViewOwner, target: INode, instruction: IHydrateElementInstruction, component: IElementComponent): void;
+export interface IRenderer {
+  render(owner: IViewOwner, targets: ArrayLike<INode>, source: ITemplateSource, host?: INode, replacements?: Record<string, ITemplateSource>): void;
+  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: IHydrateElementInstruction, component: IElementComponent): void;
 }
 
 /* @internal */
-export class InstructionInterpreter {
+export class Renderer {
   constructor(
-    private container: ITemplateContainer,
+    private context: IRenderContext,
     private taskQueue: ITaskQueue, 
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
     private parser: IParser,
-    private templateEngine: ITemplateEngine
+    private renderingEngine: IRenderingEngine
   ) {}
 
-  interpret(owner: IViewOwner, targets: ArrayLike<INode>, source: ITemplateSource, host?: INode, replacements?: Record<string, ITemplateSource>): void {
+  render(owner: IViewOwner, targets: ArrayLike<INode>, source: ITemplateSource, host?: INode, replacements?: Record<string, ITemplateSource>): void {
     let targetInstructions = source.instructions;
 
     for (let i = 0, ii = targets.length; i < ii; ++i) {
@@ -55,11 +55,11 @@ export class InstructionInterpreter {
     }
   }
 
-  applyElementInstructionToComponentInstance(owner: IViewOwner, target: INode, instruction: IHydrateElementInstruction, component: IElementComponent) {
+  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: IHydrateElementInstruction, component: IElementComponent) {
     let childInstructions = instruction.instructions;
   
     component.$hydrate(
-      this.templateEngine,
+      this.renderingEngine,
       target, 
       instruction.replacements,
       instruction.contentElement
@@ -87,35 +87,35 @@ export class InstructionInterpreter {
     let next = target.nextSibling;
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), next, 'textContent', BindingMode.oneWay, this.observerLocator, this.container));
+    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), next, 'textContent', BindingMode.oneWay, this.observerLocator, this.context));
   }
 
   [TargetedInstructionType.oneWayBinding](owner: IViewOwner,target: any, instruction: IOneWayBindingInstruction) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.oneWay, this.observerLocator, this.container));
+    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.oneWay, this.observerLocator, this.context));
   }
 
   [TargetedInstructionType.fromViewBinding](owner: IViewOwner,target: any, instruction: IFromViewBindingInstruction) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.fromView, this.observerLocator, this.container));
+    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.fromView, this.observerLocator, this.context));
   }
 
   [TargetedInstructionType.twoWayBinding](owner: IViewOwner,target: any, instruction: ITwoWayBindingInstruction) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.twoWay, this.observerLocator, this.container));
+    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.twoWay, this.observerLocator, this.context));
   }
 
   [TargetedInstructionType.listenerBinding](owner: IViewOwner,target: any, instruction: IListenerBindingInstruction) {
-    owner.$bindable.push(new Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
+    owner.$bindable.push(new Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.context));
   }
 
   [TargetedInstructionType.callBinding](owner: IViewOwner,target: any, instruction: ICallBindingInstruction) {
-    owner.$bindable.push(new Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLocator, this.container));
+    owner.$bindable.push(new Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLocator, this.context));
   }
 
   [TargetedInstructionType.refBinding](owner: IViewOwner,target: any, instruction: IRefBindingInstruction) {
-    owner.$bindable.push(new Ref(this.parser.parse(instruction.src), target, this.container));
+    owner.$bindable.push(new Ref(this.parser.parse(instruction.src), target, this.context));
   }
 
   [TargetedInstructionType.stylePropertyBinding](owner: IViewOwner,target: any, instruction: IStylePropertyBindingInstruction) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), (<any>target).style, instruction.dest, BindingMode.oneWay, this.observerLocator, this.container));
+    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), (<any>target).style, instruction.dest, BindingMode.oneWay, this.observerLocator, this.context));
   }
 
   [TargetedInstructionType.setProperty](owner: IViewOwner, target: any, instruction: ISetPropertyInstruction) {
@@ -131,7 +131,7 @@ export class InstructionInterpreter {
       return;
     }
 
-    let fallbackFactory = this.templateEngine.getVisualFactory(this.container, instruction.fallback);
+    let fallbackFactory = this.renderingEngine.getVisualFactory(this.context, instruction.fallback);
     let slot = ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
 
     owner.$slots[slot.name] = slot;
@@ -140,61 +140,44 @@ export class InstructionInterpreter {
   }
 
   [TargetedInstructionType.hydrateElement](owner: IViewOwner, target: any, instruction: IHydrateElementInstruction) {
-    let container = this.container;
-
-    container.element.prepare(target);
-    container.owner.prepare(owner);
-    container.instruction.prepare(instruction);
-    container.slot.prepare(target, true);
-    
+    let container = this.context;
+    let context = container.beginComponentOperation(owner, target, instruction, null, null, target, true);
     let component = container.get<IElementComponent>(instruction.res);
-    this.applyElementInstructionToComponentInstance(owner, target, instruction, component);
-    container.slot.connectCustomElement(component);
+
+    this.hydrateElementInstance(owner, target, instruction, component);
+    context.tryConnectElementToSlot(component);
     
-    container.element.dispose();
-    container.owner.dispose();
-    container.instruction.dispose();
-    container.slot.dispose();
+    context.dispose();
   }
 
   [TargetedInstructionType.hydrateAttribute](owner: IViewOwner, target: any, instruction: IHydrateAttributeInstruction) {
     let childInstructions = instruction.instructions;
-    let container = this.container;
-
-    container.element.prepare(target);
-    container.owner.prepare(owner);
-    container.instruction.prepare(instruction);
+    let container = this.context;
+    let context = container.beginComponentOperation(owner, target, instruction);
 
     let component = container.get<IAttributeComponent>(instruction.res);
-    component.$hydrate(this.templateEngine);
+    component.$hydrate(this.renderingEngine);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       let current = childInstructions[i];
       (<any>this[current.type])(owner, component, current);
     }
 
-    container.element.dispose();
-    container.owner.dispose();
-    container.instruction.dispose();
-
     owner.$bindable.push(component);
     owner.$attachable.push(component);
+
+    context.dispose();
   }
 
   [TargetedInstructionType.hydrateTemplateController](owner: IViewOwner, target: any, instruction: IHydrateTemplateController, replacements?: Record<string, ITemplateSource>) {
     let childInstructions = instruction.instructions;
-    let factory = this.templateEngine.getVisualFactory(this.container, instruction.src);
-    let container = this.container;
-
-    container.element.prepare(target);
-    container.owner.prepare(owner);
-    container.instruction.prepare(instruction);
-    container.factory.prepare(factory, replacements);
-    container.slot.prepare(DOM.convertToAnchor(target), false);
+    let factory = this.renderingEngine.getVisualFactory(this.context, instruction.src);
+    let container = this.context;
+    let context = container.beginComponentOperation(owner, target, instruction, factory, replacements, DOM.convertToAnchor(target), false);
 
     let component = container.get<IAttributeComponent>(instruction.res);
-    component.$hydrate(this.templateEngine);
-    container.slot.connectTemplateController(component);
+    component.$hydrate(this.renderingEngine);
+    context.tryConnectTemplateControllerToSlot(component);
 
     if (instruction.link) {
       (<any>component).link(owner.$attachable[owner.$attachable.length - 1]);
@@ -205,13 +188,9 @@ export class InstructionInterpreter {
       (<any>this[current.type])(owner, component, current);
     }
 
-    container.element.dispose();
-    container.owner.dispose();
-    container.instruction.dispose();
-    container.factory.dispose();
-    container.slot.dispose();
-
     owner.$bindable.push(component);
     owner.$attachable.push(component);
+
+    context.dispose();
   }
 }

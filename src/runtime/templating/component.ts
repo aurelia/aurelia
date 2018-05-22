@@ -13,21 +13,20 @@ import { IBindSelf, IAttach, AttachContext, DetachContext } from './lifecycle';
 import { ITemplateSource, IBindableInstruction } from './instructions';
 import { INode, DOM, IView, IChildObserver } from '../dom';
 import { SubscriberCollection } from '../binding/subscriber-collection';
-import { ITemplateEngine } from './template-engine';
+import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
+import { IRenderContext } from './render-context';
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $host: INode;
-  $view: IView;
   $contentView: IContentView;
-  $slots: Record<string, IEmulatedShadowSlot>;
   $usingSlotEmulation: boolean;
 
-  $hydrate(templateEngine: ITemplateEngine, host: INode, replacements?: Record<string, ITemplateSource>, contentNodeOverride?: INode): void;
+  $hydrate(renderingEngine: IRenderingEngine, host: INode, replacements?: Record<string, ITemplateSource>, contentNodeOverride?: INode): void;
 }
 
 export interface IAttributeComponent extends IBindScope, IAttach { 
-  $hydrate(templateEngine: ITemplateEngine,);
+  $hydrate(renderingEngine: IRenderingEngine,);
 }
 
 export interface IAttributeSource {
@@ -111,8 +110,8 @@ export const Component = {
       $scope: IScope = null;
       $slot: IRenderSlot = null;
 
-      $hydrate(templateEngine: ITemplateEngine) {
-        this.$behavior = templateEngine.applyRuntimeBehavior(CustomAttribute, this, observables);
+      $hydrate(renderingEngine: IRenderingEngine) {
+        this.$behavior = renderingEngine.applyRuntimeBehavior(CustomAttribute, this, observables);
 
         if (this.$behavior.hasCreated) {
           (<any>this).created();
@@ -210,6 +209,7 @@ export const Component = {
         container.register(Registration.transient(source.name, CompiledComponent));
       }
   
+      $context: IRenderContext;
       $bindable: IBindScope[] = [];
       $attachable: IAttach[] = [];
       $slots: Record<string, IEmulatedShadowSlot> = source.hasSlots ? {} : null;
@@ -229,10 +229,11 @@ export const Component = {
       private $changeCallbacks: (() => void)[] = [];
       private $behavior: IRuntimeBehavior = null;
   
-      $hydrate(templateEngine: ITemplateEngine, host: INode, replacements: Record<string, ITemplateSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
-        let template = templateEngine.getElementTemplate(source, CompiledComponent);
+      $hydrate(renderingEngine: IRenderingEngine, host: INode, replacements: Record<string, ITemplateSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
+        let template = renderingEngine.getElementTemplate(source, CompiledComponent);
         
-        this.$behavior = templateEngine.applyRuntimeBehavior(CompiledComponent, this, observables);
+        this.$context = template.context;
+        this.$behavior = renderingEngine.applyRuntimeBehavior(CompiledComponent, this, observables);
         this.$host = source.containerless ? DOM.convertToAnchor(host, true) : host;
         this.$shadowRoot = DOM.createElementViewHost(this.$host, source.shadowOptions);
         this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);

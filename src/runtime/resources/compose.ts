@@ -1,13 +1,14 @@
 import { customElement } from '../decorators';
 import { IRenderSlot, SwapOrder } from '../templating/render-slot';
 import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from '../templating/instructions';
-import { IViewOwner, IViewOwnerType, IContentView } from '../templating/view';
+import { IViewOwner, IContentView } from '../templating/view';
 import { IContainer, inject } from '../di';
 import { IBindScope } from '../binding/observation';
 import { INode, DOM } from '../dom';
 import { VisualWithCentralComponent } from '../templating/visual';
-import { ITemplateContainer } from '../templating/template-container';
-import { ITemplateEngine } from '../templating/template-engine';
+import { IRenderContext } from '../templating/render-context';
+import { IRenderingEngine } from '../templating/rendering-engine';
+import { IElementType } from '../templating/component';
 
 const composeSource = {
   name: 'au-compose',
@@ -18,7 +19,7 @@ const composeSource = {
 const composeProps = ['component', 'swapOrder', 'isComposing'];
 
 @customElement(composeSource)
-@inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction, ITemplateEngine)
+@inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction, IRenderingEngine)
 export class Compose {
   //#region Framework-Supplied
   private $contentView: IContentView;
@@ -30,7 +31,7 @@ export class Compose {
   private visual: VisualWithCentralComponent = null;
   private auContent: INode = null;
   private baseInstruction: IHydrateElementInstruction;
-  private compositionContainer: ITemplateContainer;
+  private compositionContext: IRenderContext;
 
   component: any;
   swapOrder: SwapOrder;
@@ -41,11 +42,9 @@ export class Compose {
     private host: INode, 
     private slot: IRenderSlot, 
     instruction: IHydrateElementInstruction,
-    private templateEngine: ITemplateEngine
+    private renderingEngine: IRenderingEngine
   ) { 
-    const type = <IViewOwnerType>viewOwner.constructor;
-
-    this.compositionContainer = type.template.container;
+    this.compositionContext = viewOwner.$context;
     this.baseInstruction = {
       type: TargetedInstructionType.hydrateElement,
       instructions: instruction.instructions.filter((x: any) => !composeProps.includes(x.dest)),
@@ -85,7 +84,7 @@ export class Compose {
       contentElement: this.createContentElement()
     }, this.baseInstruction);
 
-    return this.swap(this.templateEngine.createVisualFromComponent(this.compositionContainer, toBeComposed, instruction));
+    return this.swap(this.renderingEngine.createVisualFromComponent(this.compositionContext, toBeComposed, instruction));
   }
 
   private createContentElement() {

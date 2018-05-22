@@ -5,12 +5,12 @@ import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
 import { Observer } from './property-observation';
 import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor } from './observation';
-import { IContainer } from '../di';
+import { IServiceLocator } from '../di';
 import { IScope, sourceContext, targetContext } from './binding-context';
 import { Reporter } from '../reporter';
 
 export interface IBinding extends IBindScope {
-  container: IContainer;
+  locator: IServiceLocator;
   observeProperty(context: any, name: string): void;
 }
 
@@ -27,7 +27,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     public targetProperty: string,
     public mode: BindingMode,
     observerLocator: IObserverLocator,
-    public container: IContainer) {
+    public locator: IServiceLocator) {
     super(observerLocator);
   }
 
@@ -36,7 +36,7 @@ export class Binding extends ConnectableBinding implements IBinding {
   }
 
   updateSource(value: any) {
-    this.sourceExpression.assign(this.$scope, value, this.container);
+    this.sourceExpression.assign(this.$scope, value, this.locator);
   }
 
   call(context: string, newValue?: any, oldValue?: any) {
@@ -46,7 +46,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
     if (context === sourceContext) {
       oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-      newValue = this.sourceExpression.evaluate(this.$scope, this.container);
+      newValue = this.sourceExpression.evaluate(this.$scope, this.locator);
 
       if (newValue !== oldValue) {
         this.updateTarget(newValue);
@@ -62,7 +62,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (context === targetContext) {
-      if (newValue !== this.sourceExpression.evaluate(this.$scope, this.container)) {
+      if (newValue !== this.sourceExpression.evaluate(this.$scope, this.locator)) {
         this.updateSource(newValue);
       }
 
@@ -100,7 +100,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (this.mode !== BindingMode.fromView) {
-      let value = this.sourceExpression.evaluate(scope, this.container);
+      let value = this.sourceExpression.evaluate(scope, this.locator);
       this.updateTarget(value);
     }
 
@@ -146,7 +146,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (evaluate) {
-      let value = this.sourceExpression.evaluate(this.$scope, this.container);
+      let value = this.sourceExpression.evaluate(this.$scope, this.locator);
       this.updateTarget(value);
     }
 

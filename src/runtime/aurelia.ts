@@ -2,7 +2,7 @@ import { IElementComponent } from './templating/component';
 import { PLATFORM } from './platform';
 import { IContainer, DI } from './di';
 import { ITaskQueue } from './task-queue';
-import { ITemplateEngine } from './templating/template-engine';
+import { IRenderingEngine } from './templating/rendering-engine';
 
 export interface ISinglePageApp {
   host: any,
@@ -28,7 +28,7 @@ export class Aurelia {
       if (!this.components.includes(component)) {
         this.components.push(component);
         component.$hydrate(
-          this.container.get(ITemplateEngine),
+          this.container.get(IRenderingEngine),
           config.host
         );
       }

@@ -1,6 +1,6 @@
 import { IExpression } from './ast';
 import { IBinding, IBindingTarget } from './binding';
-import { IContainer } from '../di';
+import { IServiceLocator } from '../di';
 import { IScope } from './binding-context';
 
 export class Ref implements IBinding {
@@ -10,7 +10,7 @@ export class Ref implements IBinding {
   constructor(
     private sourceExpression: IExpression,
     private target: IBindingTarget,
-    public container: IContainer) {
+    public locator: IServiceLocator) {
   }
 
   $bind(scope: IScope) {
@@ -29,7 +29,7 @@ export class Ref implements IBinding {
       this.sourceExpression.bind(this, scope);
     }
 
-    this.sourceExpression.assign(this.$scope, this.target, this.container);
+    this.sourceExpression.assign(this.$scope, this.target, this.locator);
   }
 
   $unbind() {
@@ -39,8 +39,8 @@ export class Ref implements IBinding {
 
     this.$isBound = false;
 
-    if (this.sourceExpression.evaluate(this.$scope, this.container) === this.target) {
-      this.sourceExpression.assign(this.$scope, null, this.container);
+    if (this.sourceExpression.evaluate(this.$scope, this.locator) === this.target) {
+      this.sourceExpression.assign(this.$scope, null, this.locator);
     }
 
     if (this.sourceExpression.unbind) {

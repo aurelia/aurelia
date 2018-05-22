@@ -1,7 +1,7 @@
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
 import { IBinding } from './binding';
-import { IContainer } from '../di';
+import { IServiceLocator } from '../di';
 import { IBindingTargetAccessor } from './observation';
 import { IScope } from './binding-context';
 import { INode } from '../dom';
@@ -16,7 +16,7 @@ export class Call implements IBinding {
     private target: INode,
     private targetProperty: string,
     private observerLocator: IObserverLocator, 
-    public container: IContainer) {
+    public locator: IServiceLocator) {
     this.targetObserver = <any>observerLocator.getObserver(target, targetProperty);
   }
 
@@ -25,7 +25,7 @@ export class Call implements IBinding {
     Object.assign(overrideContext, $event);
     overrideContext.$event = $event; // deprecate this?
     let mustEvaluate = true;
-    let result = this.sourceExpression.evaluate(this.$scope, this.container, mustEvaluate);
+    let result = this.sourceExpression.evaluate(this.$scope, this.locator, mustEvaluate);
     delete overrideContext.$event;
 
     for (let prop in $event) {

@@ -1,9 +1,9 @@
 import { IViewOwner } from "./view";
 import { INode, IView } from "../dom";
 import { ITemplateSource } from "./instructions";
-import { ITemplateContainer } from "./template-container";
+import { IRenderContext } from "./render-context";
 
 export interface ITemplate {
-  readonly container: ITemplateContainer;
+  readonly context: IRenderContext;
   createFor(owner: IViewOwner, host?: INode, replacements?: Record<string, ITemplateSource>): IView;
 }

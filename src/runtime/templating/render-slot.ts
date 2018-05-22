@@ -1,5 +1,4 @@
 import { ShadowDOMEmulation, IEmulatedShadowSlot } from './shadow-dom';
-import { IVisual } from './view-engine';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
 import { Reporter } from '../reporter';
@@ -7,6 +6,7 @@ import { IAttach, AttachContext, DetachContext } from './lifecycle';
 import { DI } from '../di';
 import { INode, IView } from '../dom';
 import { IContentView } from './view';
+import { IVisual } from './visual';
 
 function appendVisualToContainer(visual: IVisual, owner: RenderSlotImplementation) {
   visual.$view.appendTo(owner.anchor);

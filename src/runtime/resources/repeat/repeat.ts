@@ -1,5 +1,5 @@
 import { customAttribute, templateController, bindable } from '../../decorators';
-import { IVisualFactory, IVisual } from '../../templating/view-engine';
+import { IVisualFactory, IVisual } from '../../templating/visual';
 import { IRenderSlot } from '../../templating/render-slot';
 import { IContainer, inject } from '../../di';
 import { IRepeatStrategyRegistry } from './repeat-strategy-registry';

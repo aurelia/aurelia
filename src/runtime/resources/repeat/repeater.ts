@@ -1,4 +1,4 @@
-import { IVisual } from '../../templating/view-engine';
+import { IVisual } from '../../templating/visual';
 import { IScope } from '../../binding/binding-context';
 
 export interface IRepeater {

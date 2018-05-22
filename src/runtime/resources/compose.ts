@@ -1,11 +1,13 @@
 import { customElement } from '../decorators';
 import { IRenderSlot, SwapOrder } from '../templating/render-slot';
-import { ViewEngine, ITemplateContainer, VisualWithCentralComponent, IVisual } from '../templating/view-engine';
 import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from '../templating/instructions';
 import { IViewOwner, IViewOwnerType, IContentView } from '../templating/view';
 import { IContainer, inject } from '../di';
 import { IBindScope } from '../binding/observation';
 import { INode, DOM } from '../dom';
+import { VisualWithCentralComponent } from '../templating/visual';
+import { ITemplateContainer } from '../templating/template-container';
+import { ITemplateEngine } from '../templating/template-engine';
 
 const composeSource = {
   name: 'au-compose',
@@ -16,7 +18,7 @@ const composeSource = {
 const composeProps = ['component', 'swapOrder', 'isComposing'];
 
 @customElement(composeSource)
-@inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction)
+@inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction, ITemplateEngine)
 export class Compose {
   //#region Framework-Supplied
   private $contentView: IContentView;
@@ -34,7 +36,13 @@ export class Compose {
   swapOrder: SwapOrder;
   isComposing: boolean;
 
-  constructor(private viewOwner: IViewOwner, private host: INode, private slot: IRenderSlot, instruction: IHydrateElementInstruction) { 
+  constructor(
+    private viewOwner: IViewOwner, 
+    private host: INode, 
+    private slot: IRenderSlot, 
+    instruction: IHydrateElementInstruction,
+    private templateEngine: ITemplateEngine
+  ) { 
     const type = <IViewOwnerType>viewOwner.constructor;
 
     this.compositionContainer = type.template.container;
@@ -77,7 +85,7 @@ export class Compose {
       contentElement: this.createContentElement()
     }, this.baseInstruction);
 
-    return this.swap(ViewEngine.visualFromComponent(this.compositionContainer, toBeComposed, instruction));
+    return this.swap(this.templateEngine.createVisualFromComponent(this.compositionContainer, toBeComposed, instruction));
   }
 
   private createContentElement() {

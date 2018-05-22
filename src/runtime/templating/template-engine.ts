@@ -1,23 +1,26 @@
-import { IContainer, DI, inject } from '../di';
-import { ITemplate, ViewEngine, IVisualFactory, ITemplateContainer } from './view-engine';
-import { ITemplateSource, IBindableInstruction, TargetedInstructionType, IHydrateSlotInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IStylePropertyBindingInstruction, IRefBindingInstruction, ICallBindingInstruction, IListenerBindingInstruction, ITwoWayBindingInstruction, IFromViewBindingInstruction, IOneWayBindingInstruction, ITextBindingInstruction, ITargetedInstruction } from './instructions';
-import { IElementType, IAttributeType, IAttributeComponent, IElementComponent } from './component';
-import { ITaskQueue } from '../task-queue';
-import { Observer } from '../binding/property-observation';
-import { IChildObserver, DOM, INode } from '../dom';
-import { SubscriberCollection } from '../binding/subscriber-collection';
-import { IAccessor, ISubscribable } from '../binding/observation';
-import { ICallable } from '../interfaces';
-import { IViewOwner } from './view';
-import { ShadowDOMEmulation } from './shadow-dom';
-import { Binding } from '../binding/binding';
-import { Ref } from '../binding/ref';
-import { BindingMode } from '../binding/binding-mode';
-import { Call } from '../binding/call';
-import { Listener } from '../binding/listener';
-import { IObserverLocator } from '../binding/observer-locator';
-import { IEventManager } from '../binding/event-manager';
-import { IParser } from '../binding/parser';
+import { RuntimeBehavior, IRuntimeBehavior } from "./runtime-behavior";
+import { IAttributeType, IElementType, IAttributeComponent, IElementComponent } from "./component";
+import { DI, IContainer, inject, IResolver } from "../di";
+import { ITemplateSource, IBindableInstruction, ITargetedInstruction, TargetedInstructionType, IHydrateElementInstruction } from "./instructions";
+import { ITaskQueue } from "../task-queue";
+import { IViewOwner, View } from "./view";
+import { INode, IView, DOM } from "../dom";
+import { IInstructionInterpreter, InstructionInterpreter } from "./instruction-interpreter";
+import { IRenderSlot, RenderSlot } from "./render-slot";
+import { Constructable } from "../interfaces";
+import { DetachContext, AttachContext, IAttach } from "./lifecycle";
+import { IScope } from "../binding/binding-context";
+import { Reporter } from "../reporter";
+import { IAnimator } from "./animator";
+import { IBindScope } from "../binding/observation";
+import { PLATFORM } from "../platform";
+import { IEmulatedShadowSlot } from "./shadow-dom";
+import { ITemplateContainer, createTemplateContainer } from "./template-container";
+import { IVisualFactory, VisualWithCentralComponent, IVisual, RenderCallback } from "./visual";
+import { ITemplate } from "./template";
+import { IObserverLocator } from "../binding/observer-locator";
+import { IEventManager } from "../binding/event-manager";
+import { IParser } from "../binding/parser";
 
 export interface ITemplateEngine {
   getElementTemplate(source: ITemplateSource, componentType: IElementType): ITemplate;
@@ -26,13 +29,21 @@ export interface ITemplateEngine {
   applyRuntimeBehavior(type: IAttributeType, instance: IAttributeComponent, observables: Record<string, IBindableInstruction>): IRuntimeBehavior;
   applyRuntimeBehavior(type: IElementType, instance: IElementComponent, observables: Record<string, IBindableInstruction>): IRuntimeBehavior
 
+  createVisualFromComponent(container: ITemplateContainer, componentOrType: any, instruction: IHydrateElementInstruction): VisualWithCentralComponent;
   createInstructionInterpreter(container: ITemplateContainer): IInstructionInterpreter;
 }
 
 export const ITemplateEngine = DI.createInterface<ITemplateEngine>()
   .withDefault(x => x.singleton(TemplateEngine));
 
-@inject(IContainer, ITaskQueue, IObserverLocator, IEventManager, IParser)
+const noViewTemplate: ITemplate = {
+  container: null,
+  createFor(owner: IViewOwner) {
+    return View.none;
+  }
+};
+
+@inject(IContainer, ITaskQueue, IObserverLocator, IEventManager, IParser, IAnimator)
 class TemplateEngine implements ITemplateEngine {
   private templateLookup = new Map<ITemplateSource, ITemplate>();
   private factoryLookup = new Map<ITemplateSource, IVisualFactory>();
@@ -43,7 +54,8 @@ class TemplateEngine implements ITemplateEngine {
     private taskQueue: ITaskQueue,
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
-    private parser: IParser
+    private parser: IParser,
+    private animator: IAnimator
   ) {}
 
   getElementTemplate(source: ITemplateSource, componentType: IElementType): ITemplate {
@@ -54,7 +66,7 @@ class TemplateEngine implements ITemplateEngine {
     let found = this.templateLookup.get(source);
 
     if (!found) {
-      found = ViewEngine.templateFromCompiledSource(this.container, source);
+      found = this.templateFromCompiledSource(this.container, source);
 
       //If the element has a view, support Recursive Components by adding self to own view template container.
       if (found.container !== null) {
@@ -67,6 +79,14 @@ class TemplateEngine implements ITemplateEngine {
     return found;
   }
 
+  private templateFromCompiledSource(container: IContainer, source: ITemplateSource): ITemplate {
+    if (source && source.template) {
+      return new CompiledTemplate(this, container, source);
+    }
+
+    return noViewTemplate;
+  }
+
   getVisualFactory(container: IContainer, source: ITemplateSource): IVisualFactory {
     if (!source) {
       return null;
@@ -75,11 +95,28 @@ class TemplateEngine implements ITemplateEngine {
     let found = this.factoryLookup.get(source);
 
     if (!found) {
-      found = ViewEngine.factoryFromCompiledSource(container, source);
+      found = this.factoryFromCompiledSource(container, source);
       this.factoryLookup.set(source, found);
     }
 
     return found;
+  }
+
+  private factoryFromCompiledSource(container: IContainer, source: ITemplateSource): IVisualFactory {
+    const template = this.templateFromCompiledSource(container, source);
+
+    const CompiledVisual = class extends Visual {
+      static template: ITemplate = template;
+      static source: ITemplateSource = source;
+
+      $slots: Record<string, IEmulatedShadowSlot> = source.hasSlots ? {} : null;
+
+      createView() {
+        return template.createFor(this);
+      }
+    }
+
+    return new VisualFactory(source.name, CompiledVisual);
   }
 
   applyRuntimeBehavior(type: IAttributeType | IElementType, instance: IAttributeComponent | IElementComponent, observables: Record<string, IBindableInstruction>): IRuntimeBehavior {
@@ -99,6 +136,44 @@ class TemplateEngine implements ITemplateEngine {
     return found;
   }
 
+  createVisualFromComponent(container: ITemplateContainer, componentOrType: any, instruction: IHydrateElementInstruction): VisualWithCentralComponent {
+    let animator = this.animator;
+    
+    class ComponentVisual extends Visual {
+      static template: ITemplate = Object.assign({}, noViewTemplate, { container });
+      static source: ITemplateSource = null;
+
+      public component: IElementComponent;
+
+      constructor() {
+        super(null, animator);
+      }
+
+      createView() {
+        let target: INode;
+
+        if (typeof componentOrType === 'function') {
+          target = DOM.createElement(componentOrType.source.name);
+          container.interpreter[TargetedInstructionType.hydrateElement](target, instruction);
+          this.component = <IElementComponent>this.$attachable[this.$attachable.length - 1];
+        } else {
+          const componentType = <IElementType>componentOrType.constructor;
+          target = componentOrType.element || DOM.createElement(componentType.source.name);
+          container.interpreter.applyElementInstructionToComponentInstance(this, target, instruction, componentOrType);
+          this.component = componentOrType;
+        }
+
+        return View.fromNode(target);
+      }
+
+      tryReturnToCache() {
+        return false;
+      }
+    }
+
+    return new ComponentVisual();
+  }
+
   createInstructionInterpreter(container: ITemplateContainer): IInstructionInterpreter {
     return new InstructionInterpreter(
       container,
@@ -111,374 +186,213 @@ class TemplateEngine implements ITemplateEngine {
   }
 }
 
-export interface IRuntimeBehavior {
-  hasCreated: boolean;
-  hasBound: boolean;
-  hasAttaching: boolean;
-  hasAttached: boolean;
-  hasDetaching: boolean;
-  hasDetached: boolean;
-  hasUnbound: boolean;
-  hasCreateView: boolean;
+class CompiledTemplate implements ITemplate {
+  private createView: () => IView;
+  container: ITemplateContainer;
+
+  constructor(templateEngine: ITemplateEngine, container: IContainer, private source: ITemplateSource) {
+    this.container = createTemplateContainer(templateEngine, container, source.dependencies);
+    this.createView = DOM.createFactoryFromMarkup(source.template);
+  }
+
+  createFor(owner: IViewOwner, host?: INode, replacements?: Record<string, ITemplateSource>): IView {
+    const view = this.createView();
+    this.container.interpreter.interpret(owner, view.findTargets(), this.source, host, replacements);
+    return view;
+  }
 }
 
-class RuntimeBehavior implements IRuntimeBehavior {
-  private constructor() {}
+abstract class Visual implements IVisual {
+  $bindable: IBindScope[] = [];
+  $attachable: IAttach[] = [];
+  $scope: IScope = null;
+  $view: IView = null;
+  $isBound = false;
+  $isAttached = false;
+  
+  inCache = false;
+  private animationRoot: INode = undefined;
 
-  observables: Record<string, IBindableInstruction>;
-  hasCreated = false;
-  hasBound = false;
-  hasAttaching = false;
-  hasAttached = false;
-  hasDetaching = false;
-  hasDetached = false;
-  hasUnbound = false;
-  hasCreateView = false;
-
-  static create(instance, observables: Record<string, IBindableInstruction>, Component: IElementType | IAttributeType) {
-    let behavior = new RuntimeBehavior();
-
-    for (let name in instance) {
-      if (name in observables) {
-        continue;
-      }
-
-      const callback = `${name}Changed`;
-
-      if (callback in instance) {
-        observables[name] = { callback };
-      }
-    }
-
-    behavior.observables = observables;
-    behavior.hasCreated = 'created' in instance;
-    behavior.hasBound = 'bound' in instance;
-    behavior.hasAttaching = 'attaching' in instance;
-    behavior.hasAttached = 'attached' in instance;
-    behavior.hasDetaching = 'detaching' in instance;
-    behavior.hasDetached = 'detached' in instance;
-    behavior.hasUnbound = 'unbound' in instance;
-    behavior.hasCreateView = 'createView' in instance;
-
-    return behavior;
+  constructor(public factory: VisualFactory, private animator: IAnimator) {
+    this.$view = this.createView();
   }
 
-  applyToAttribute(taskQueue: ITaskQueue, instance: IAttributeComponent) {
-    this.applyTo(taskQueue, instance);
-    return this;
-  }
+  abstract createView(): IView;
 
-  applyToElement(taskQueue: ITaskQueue, instance: IElementComponent) {
-    const observers = this.applyTo(taskQueue, instance);
-
-    (<any>observers).$children = new ChildrenObserver(taskQueue, instance);
-
-    Reflect.defineProperty(instance, '$children', {
-      enumerable: false,
-      get: function() {
-        return this.$observers.$children.getValue();
-      }
-    });
-
-    return this;
-  }
-
-  private applyTo(taskQueue: ITaskQueue, instance: any) {
-    const observers = {};
-    const finalObservables = this.observables;
-    const observableNames = Object.getOwnPropertyNames(finalObservables);
-  
-    for (let i = 0, ii = observableNames.length; i < ii; ++i) {
-      const name = observableNames[i];
-      const observable = finalObservables[name];
-      const changeHandler = observable.callback;
-  
-      if (changeHandler in instance) {
-        observers[name] = new Observer(taskQueue, instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
-        instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
-      } else {
-        observers[name] = new Observer(taskQueue, instance[name]);
-      }
-  
-      createGetterSetter(instance, name);
+  private getAnimationRoot(): INode {
+    if (this.animationRoot !== undefined) {
+      return this.animationRoot;
     }
   
-    Reflect.defineProperty(instance, '$observers', {
-      enumerable: false,
-      value: observers
-    });
-
-    instance.$behavior = this;
-
-    return observers;
-  }
-}
-
-function createGetterSetter(instance, name) {
-  Reflect.defineProperty(instance, name, {
-    enumerable: true,
-    get: function() { return this.$observers[name].getValue(); },
-    set: function(value) { this.$observers[name].setValue(value); }
-  });
-}
-
-class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private observer: IChildObserver = null;
-  private children: IElementComponent[] = null;
-  private queued = false;
-
-  constructor(private taskQueue: ITaskQueue, private component: IElementComponent) {
-    super();
-  }
-
-  getValue(): IElementComponent[] {
-    if (this.observer === null) {
-      this.observer = DOM.createChildObserver(this.component.$host, () => this.onChildrenChanged());
-      this.children = findElements(this.observer.childNodes);
+    let currentChild = this.$view.firstChild;
+    const lastChild = this.$view.lastChild;
+    const isElementNodeType = DOM.isElementNodeType;
+  
+    while (currentChild !== lastChild && !isElementNodeType(currentChild)) {
+      currentChild = currentChild.nextSibling;
     }
-
-    return this.children;
-  }
-
-  setValue(newValue) {}
-
-  private onChildrenChanged() {
-    this.children = findElements(this.observer.childNodes);
-
-    if ('$childrenChanged' in this.component) {
-      (<any>this.component).$childrenChanged();
+  
+    if (currentChild && isElementNodeType(currentChild)) {
+      return this.animationRoot = DOM.hasClass(currentChild, 'au-animate') 
+        ? currentChild 
+        : null;
     }
-
-    if (!this.queued) {
-      this.queued = true;
-      this.taskQueue.queueMicroTask(this);
-    }
+  
+    return this.animationRoot = null;
   }
 
-  call() {
-    this.queued = false;
-    this.callSubscribers(this.children);
-  }
+  animate(direction: 'enter' | 'leave' = 'enter'): void | Promise<boolean> {
+    const element = this.getAnimationRoot();
 
-  subscribe(context: string, callable: ICallable) {
-    this.addSubscriber(context, callable);
-  }
-
-  unsubscribe(context: string, callable: ICallable) {
-    this.removeSubscriber(context, callable);
-  }
-}
-
-function findElements(nodes: ArrayLike<INode>): IElementComponent[] {
-  let components: IElementComponent[] = [];
-
-  for (let i = 0, ii = nodes.length; i < ii; ++i) {
-    const current = nodes[i];
-    const component = DOM.getComponentForNode(current);
-    
-    if (component !== null) {
-      components.push(component);
-    }
-  }
-
-  return components;
-}
-
-export interface IInstructionInterpreter {
-  interpret(owner: IViewOwner, targets: ArrayLike<INode>, source: ITemplateSource, host?: INode, replacements?: Record<string, ITemplateSource>): void;
-  applyElementInstructionToComponentInstance(owner: IViewOwner, target: INode, instruction: IHydrateElementInstruction, component: IElementComponent): void;
-}
-
-class InstructionInterpreter {
-  constructor(
-    private container: ITemplateContainer,
-    private taskQueue: ITaskQueue, 
-    private observerLocator: IObserverLocator,
-    private eventManager: IEventManager,
-    private parser: IParser,
-    private templateEngine: ITemplateEngine
-  ) {}
-
-  interpret(owner: IViewOwner, targets: ArrayLike<INode>, source: ITemplateSource, host?: INode, replacements?: Record<string, ITemplateSource>): void {
-    let targetInstructions = source.instructions;
-
-    for (let i = 0, ii = targets.length; i < ii; ++i) {
-      let instructions = targetInstructions[i];
-      let target = targets[i];
-
-      for (let j = 0, jj = instructions.length; j < jj; ++j) {
-        let current = instructions[j];
-        (<any>this[current.type])(owner, target, current, replacements);
-      }
-    }
-
-    if (host) {
-      const surrogateInstructions = source.surrogates;
-      
-      for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-        let current = surrogateInstructions[i];
-        (<any>this[current.type])(owner, host, current, replacements);
-      }
-    }
-  }
-
-  [TargetedInstructionType.textBinding](owner: IViewOwner,target: any, instruction: ITextBindingInstruction) {
-    let next = target.nextSibling;
-    DOM.treatAsNonWhitespace(next);
-    DOM.remove(target);
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), next, 'textContent', BindingMode.oneWay, this.observerLocator, this.container));
-  }
-
-  [TargetedInstructionType.oneWayBinding](owner: IViewOwner,target: any, instruction: IOneWayBindingInstruction) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.oneWay, this.observerLocator, this.container));
-  }
-
-  [TargetedInstructionType.fromViewBinding](owner: IViewOwner,target: any, instruction: IFromViewBindingInstruction) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.fromView, this.observerLocator, this.container));
-  }
-
-  [TargetedInstructionType.twoWayBinding](owner: IViewOwner,target: any, instruction: ITwoWayBindingInstruction) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.twoWay, this.observerLocator, this.container));
-  }
-
-  [TargetedInstructionType.listenerBinding](owner: IViewOwner,target: any, instruction: IListenerBindingInstruction) {
-    owner.$bindable.push(new Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
-  }
-
-  [TargetedInstructionType.callBinding](owner: IViewOwner,target: any, instruction: ICallBindingInstruction) {
-    owner.$bindable.push(new Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLocator, this.container));
-  }
-
-  [TargetedInstructionType.refBinding](owner: IViewOwner,target: any, instruction: IRefBindingInstruction) {
-    owner.$bindable.push(new Ref(this.parser.parse(instruction.src), target, this.container));
-  }
-
-  [TargetedInstructionType.stylePropertyBinding](owner: IViewOwner,target: any, instruction: IStylePropertyBindingInstruction) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), (<any>target).style, instruction.dest, BindingMode.oneWay, this.observerLocator, this.container));
-  }
-
-  [TargetedInstructionType.setProperty](owner: IViewOwner, target: any, instruction: ISetPropertyInstruction) {
-    target[instruction.dest] = instruction.value;
-  }
-
-  [TargetedInstructionType.setAttribute](owner: IViewOwner, target: any, instruction: ISetAttributeInstruction) {
-    DOM.setAttribute(target, instruction.dest, instruction.value);
-  }
-
-  [TargetedInstructionType.hydrateSlot](owner: IElementComponent, target: any, instruction: IHydrateSlotInstruction) {   
-    if (!owner.$usingSlotEmulation) {
+    if (element === null) {
       return;
     }
 
-    let fallbackFactory = this.templateEngine.getVisualFactory(this.container, instruction.fallback);
-    let slot = ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
-
-    owner.$slots[slot.name] = slot;
-    owner.$bindable.push(slot);
-    owner.$attachable.push(slot);
-  }
-
-  [TargetedInstructionType.hydrateElement](owner: IViewOwner, target: any, instruction: IHydrateElementInstruction) {
-    let container = this.container;
-
-    container.element.prepare(target);
-    container.owner.prepare(owner);
-    container.instruction.prepare(instruction);
-    container.slot.prepare(target, true);
-    
-    let component = container.get<IElementComponent>(instruction.res);
-    this.applyElementInstructionToComponentInstance(owner, target, instruction, component);
-    container.slot.connectCustomElement(component);
-    
-    container.element.dispose();
-    container.owner.dispose();
-    container.instruction.dispose();
-    container.slot.dispose();
-  }
-
-  [TargetedInstructionType.hydrateAttribute](owner: IViewOwner, target: any, instruction: IHydrateAttributeInstruction) {
-    let childInstructions = instruction.instructions;
-    let container = this.container;
-
-    container.element.prepare(target);
-    container.owner.prepare(owner);
-    container.instruction.prepare(instruction);
-
-    let component = container.get<IAttributeComponent>(instruction.res);
-    component.$hydrate(this.templateEngine);
-
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      let current = childInstructions[i];
-      (<any>this[current.type])(owner, component, current);
+    switch (direction) {
+      case 'enter':
+        return this.animator.enter(element);
+      case 'leave':
+        return this.animator.leave(element);
+      default:
+        throw Reporter.error(4, direction);
     }
-
-    container.element.dispose();
-    container.owner.dispose();
-    container.instruction.dispose();
-
-    owner.$bindable.push(component);
-    owner.$attachable.push(component);
   }
 
-  [TargetedInstructionType.hydrateTemplateController](owner: IViewOwner, target: any, instruction: IHydrateTemplateController, replacements?: Record<string, ITemplateSource>) {
-    let childInstructions = instruction.instructions;
-    let factory = this.templateEngine.getVisualFactory(this.container, instruction.src);
-    let container = this.container;
-
-    container.element.prepare(target);
-    container.owner.prepare(owner);
-    container.instruction.prepare(instruction);
-    container.factory.prepare(factory, replacements);
-    container.slot.prepare(DOM.convertToAnchor(target), false);
-
-    let component = container.get<IAttributeComponent>(instruction.res);
-    component.$hydrate(this.templateEngine);
-    container.slot.connectTemplateController(component);
-
-    if (instruction.link) {
-      (<any>component).link(owner.$attachable[owner.$attachable.length - 1]);
-    }
-
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      let current = childInstructions[i];
-      (<any>this[current.type])(owner, component, current);
-    }
-
-    container.element.dispose();
-    container.owner.dispose();
-    container.instruction.dispose();
-    container.factory.dispose();
-    container.slot.dispose();
-
-    owner.$bindable.push(component);
-    owner.$attachable.push(component);
-  }
-
-  applyElementInstructionToComponentInstance(owner: IViewOwner, target: INode, instruction: IHydrateElementInstruction, component: IElementComponent) {
-    let childInstructions = instruction.instructions;
-  
-    component.$hydrate(
-      this.templateEngine,
-      target, 
-      instruction.replacements,
-      instruction.contentElement
-    );
-    
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      let current = childInstructions[i];
-      let currentType = current.type;
-      let realTarget;
-      
-      if (currentType === TargetedInstructionType.stylePropertyBinding || currentType === TargetedInstructionType.listenerBinding) {
-        realTarget = target;
-      } else {
-        realTarget = component;
+  $bind(scope: IScope) {
+    if (this.$isBound) {
+      if (this.$scope === scope) {
+        return;
       }
-  
-      (<any>this[current.type])(owner, realTarget, current);
+
+      this.$unbind();
     }
-  
-    owner.$bindable.push(component);
-    owner.$attachable.push(component);
+
+    this.$scope = scope;
+
+    const bindable = this.$bindable;
+
+    for (let i = 0, ii = bindable.length; i < ii; ++i) {
+      bindable[i].$bind(scope);
+    }
+
+    this.$isBound = true;
+  }
+
+  $attach(context: AttachContext | null, render: RenderCallback, owner: IRenderSlot, index?: number) {
+    if (this.$isAttached) {
+      return;
+    }
+
+    if (!context) {
+      context = AttachContext.open(this);
+    }
+
+    let attachable = this.$attachable;
+
+    for (let i = 0, ii = attachable.length; i < ii; ++i) {
+      attachable[i].$attach(context);
+    }
+
+    render(this, owner, index);
+
+    this.$isAttached = true;
+
+    if (context.wasOpenedBy(this)) {
+      context.close();
+    }
+  }
+
+  $detach(context?: DetachContext) { 
+    if (this.$isAttached) {
+      if (!context) {
+        context = DetachContext.open(this);
+      }
+
+      context.queueForViewRemoval(this);
+
+      const attachable = this.$attachable;
+      let i = attachable.length;
+
+      while (i--) {
+        attachable[i].$detach(context);
+      }
+
+      this.$isAttached = false;
+
+      if (context.wasOpenedBy(this)) {
+        context.close();
+      }
+    }
+  }
+
+  $unbind() {
+    if (this.$isBound) {
+      const bindable = this.$bindable;
+      let i = bindable.length;
+
+      while (i--) {
+        bindable[i].$unbind();
+      }
+
+      this.$isBound = false;
+      this.$scope = null;
+    }
+  }
+
+  tryReturnToCache() {
+    return this.factory.tryReturnToCache(this);
+  }
+}
+
+class VisualFactory implements IVisualFactory {
+  private cacheSize = -1;
+  private cache: Visual[] = null;
+
+  public isCaching = false;
+
+  constructor(public name: string, private type: Constructable<Visual>) {}
+
+  setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
+    if (size) {
+      if (size === '*') {
+        size = Number.MAX_VALUE;
+      } else if (typeof size === 'string') {
+        size = parseInt(size, 10);
+      }
+
+      if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
+        this.cacheSize = size;
+      }
+    }
+
+    if (this.cacheSize > 0) {
+      this.cache = [];
+    } else {
+      this.cache = null;
+    }
+
+    this.isCaching = this.cacheSize > 0;
+  }
+
+  tryReturnToCache(visual: Visual): boolean {
+    if (this.cache !== null && this.cache.length < this.cacheSize) {
+      visual.inCache = true;
+      this.cache.push(visual);
+      return true;
+    }
+
+    return false;
+  }
+
+  create(): Visual {
+    const cache = this.cache;
+
+    if (cache !== null && cache.length > 0) {
+      let visual = cache.pop();
+      visual.inCache = false;
+      return visual;
+    }
+
+    return new this.type(this);
   }
 }

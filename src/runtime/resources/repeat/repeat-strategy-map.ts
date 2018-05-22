@@ -3,7 +3,7 @@ import { IRepeatStrategy } from './repeat-strategy';
 import { IRepeater } from './repeater';
 import { IObserverLocator } from '../../binding/observer-locator';
 import { IOverrideContext, BindingContext } from '../../binding/binding-context';
-import { IVisual } from '../../templating/view-engine';
+import { IVisual } from '../../templating/visual';
 
 /* @internal */
 export class MapRepeatStrategy<T = any, K = any> implements IRepeatStrategy<Map<T, K>> {

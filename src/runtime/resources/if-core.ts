@@ -1,6 +1,6 @@
 import { IRenderSlot } from '../templating/render-slot';
-import { IVisual, IVisualFactory } from '../templating/view-engine';
 import { IScope } from '../binding/binding-context';
+import { IVisualFactory, IVisual } from '../templating/visual';
 
 /**
 * For internal use only. May change without warning.

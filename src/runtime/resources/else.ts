@@ -1,6 +1,6 @@
 import { IfCore } from './if-core';
 import { If } from './if';
-import { IVisualFactory } from '../templating/view-engine';
+import { IVisualFactory } from '../templating/visual';
 import { IRenderSlot } from '../templating/render-slot';
 import { templateController, customAttribute } from '../decorators';
 import { IScope } from '../binding/binding-context';

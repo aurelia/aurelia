@@ -1,8 +1,8 @@
-import { IVisualFactory, IVisual } from '../templating/view-engine';
 import { templateController, customAttribute } from '../decorators';
 import { IRenderSlot } from '../templating/render-slot';
 import { IScope } from '../binding/binding-context';
 import { inject } from '../di';
+import { IVisualFactory, IVisual } from '../templating/visual';
 
 @customAttribute('replaceable')
 @templateController

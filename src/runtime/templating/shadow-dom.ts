@@ -1,11 +1,11 @@
 import { PLATFORM } from '../platform';;
 import { IViewOwner, IContentView } from './view';
 import { IRenderSlot } from './render-slot';
-import { IVisual, IVisualFactory } from './view-engine';
 import { IBindScope } from '../binding/observation';
 import { IScope } from '../binding/binding-context';
 import { IAttach, AttachContext, DetachContext } from './lifecycle';
 import { DOM, INode, IView } from '../dom';
+import { IVisual, IVisualFactory } from './visual';
 
 type ProjectionSource = IRenderSlot | IEmulatedShadowSlot;
 

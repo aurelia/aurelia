@@ -1,4 +1,3 @@
-import { ViewEngine, ITemplate, } from './view-engine';
 import { View, IViewOwner, IContentView } from './view';
 import { ITaskQueue } from '../task-queue';
 import { Observer } from '../binding/property-observation';
@@ -14,7 +13,8 @@ import { IBindSelf, IAttach, AttachContext, DetachContext } from './lifecycle';
 import { ITemplateSource, IBindableInstruction } from './instructions';
 import { INode, DOM, IView, IChildObserver } from '../dom';
 import { SubscriberCollection } from '../binding/subscriber-collection';
-import { ITemplateEngine, IRuntimeBehavior } from './template-engine';
+import { ITemplateEngine } from './template-engine';
+import { IRuntimeBehavior } from './runtime-behavior';
 
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $host: INode;

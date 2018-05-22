@@ -5178,7 +5178,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/compose',["require", "exports", "../decorators", "../templating/render-slot", "../templating/view-engine", "../templating/instructions", "../templating/view", "../di", "../dom"], function (require, exports, decorators_1, render_slot_1, view_engine_1, instructions_1, view_1, di_1, dom_1) {
+define('runtime/resources/compose',["require", "exports", "../decorators", "../templating/render-slot", "../templating/instructions", "../templating/view", "../di", "../dom", "../templating/template-engine"], function (require, exports, decorators_1, render_slot_1, instructions_1, view_1, di_1, dom_1, template_engine_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var composeSource = {
@@ -5188,10 +5188,11 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
     };
     var composeProps = ['component', 'swapOrder', 'isComposing'];
     var Compose = (function () {
-        function Compose(viewOwner, host, slot, instruction) {
+        function Compose(viewOwner, host, slot, instruction, templateEngine) {
             this.viewOwner = viewOwner;
             this.host = host;
             this.slot = slot;
+            this.templateEngine = templateEngine;
             this.task = null;
             this.visual = null;
             this.auContent = null;
@@ -5229,7 +5230,7 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
                 resource: toBeComposed,
                 contentElement: this.createContentElement()
             }, this.baseInstruction);
-            return this.swap(view_engine_1.ViewEngine.visualFromComponent(this.compositionContainer, toBeComposed, instruction));
+            return this.swap(this.templateEngine.createVisualFromComponent(this.compositionContainer, toBeComposed, instruction));
         };
         Compose.prototype.createContentElement = function () {
             var auContent = this.auContent;
@@ -5268,8 +5269,8 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
         };
         Compose = __decorate([
             decorators_1.customElement(composeSource),
-            di_1.inject(view_1.IViewOwner, dom_1.INode, render_slot_1.IRenderSlot, instructions_1.ITargetedInstruction),
-            __metadata("design:paramtypes", [Object, Object, Object, Object])
+            di_1.inject(view_1.IViewOwner, dom_1.INode, render_slot_1.IRenderSlot, instructions_1.ITargetedInstruction, template_engine_1.ITemplateEngine),
+            __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
         ], Compose);
         return Compose;
     }());
@@ -5416,7 +5417,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define('runtime/resources/else',["require", "exports", "./if-core", "../templating/view-engine", "../templating/render-slot", "../decorators", "../di"], function (require, exports, if_core_1, view_engine_1, render_slot_1, decorators_1, di_1) {
+define('runtime/resources/else',["require", "exports", "./if-core", "../templating/visual", "../templating/render-slot", "../decorators", "../di"], function (require, exports, if_core_1, visual_1, render_slot_1, decorators_1, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Else = (function (_super) {
@@ -5443,7 +5444,7 @@ define('runtime/resources/else',["require", "exports", "./if-core", "../templati
         Else = __decorate([
             decorators_1.customAttribute('else'),
             decorators_1.templateController,
-            di_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot)
+            di_1.inject(visual_1.IVisualFactory, render_slot_1.IRenderSlot)
         ], Else);
         return Else;
     }(if_core_1.IfCore));
@@ -5529,7 +5530,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/if',["require", "exports", "./if-core", "../templating/view-engine", "../templating/render-slot", "../decorators", "../di"], function (require, exports, if_core_1, view_engine_1, render_slot_1, decorators_1, di_1) {
+define('runtime/resources/if',["require", "exports", "./if-core", "../templating/render-slot", "../decorators", "../di", "../templating/visual"], function (require, exports, if_core_1, render_slot_1, decorators_1, di_1, visual_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var If = (function (_super) {
@@ -5596,7 +5597,7 @@ define('runtime/resources/if',["require", "exports", "./if-core", "../templating
         If = __decorate([
             decorators_1.customAttribute('if'),
             decorators_1.templateController,
-            di_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot)
+            di_1.inject(visual_1.IVisualFactory, render_slot_1.IRenderSlot)
         ], If);
         return If;
     }(if_core_1.IfCore));
@@ -5614,7 +5615,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/replaceable',["require", "exports", "../templating/view-engine", "../decorators", "../templating/render-slot", "../di"], function (require, exports, view_engine_1, decorators_1, render_slot_1, di_1) {
+define('runtime/resources/replaceable',["require", "exports", "../decorators", "../templating/render-slot", "../di", "../templating/visual"], function (require, exports, decorators_1, render_slot_1, di_1, visual_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Replaceable = (function () {
@@ -5633,7 +5634,7 @@ define('runtime/resources/replaceable',["require", "exports", "../templating/vie
         Replaceable = __decorate([
             decorators_1.customAttribute('replaceable'),
             decorators_1.templateController,
-            di_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot),
+            di_1.inject(visual_1.IVisualFactory, render_slot_1.IRenderSlot),
             __metadata("design:paramtypes", [Object, Object])
         ], Replaceable);
         return Replaceable;
@@ -5953,7 +5954,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/with',["require", "exports", "../decorators", "../templating/view-engine", "../templating/render-slot", "../binding/binding-context", "../di"], function (require, exports, decorators_1, view_engine_1, render_slot_1, binding_context_1, di_1) {
+define('runtime/resources/with',["require", "exports", "../decorators", "../templating/render-slot", "../binding/binding-context", "../di", "../templating/visual"], function (require, exports, decorators_1, render_slot_1, binding_context_1, di_1, visual_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var With = (function () {
@@ -5978,12 +5979,246 @@ define('runtime/resources/with',["require", "exports", "../decorators", "../temp
         With = __decorate([
             decorators_1.customAttribute('with'),
             decorators_1.templateController,
-            di_1.inject(view_engine_1.IVisualFactory, render_slot_1.IRenderSlot),
+            di_1.inject(visual_1.IVisualFactory, render_slot_1.IRenderSlot),
             __metadata("design:paramtypes", [Object, Object])
         ], With);
         return With;
     }());
     exports.With = With;
+});
+
+
+
+define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var svgElements = {
+        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
+        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
+        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
+        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
+        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
+        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
+        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
+        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
+        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
+        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
+        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
+        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
+    };
+    var svgPresentationElements = {
+        'a': true,
+        'altGlyph': true,
+        'animate': true,
+        'animateColor': true,
+        'circle': true,
+        'clipPath': true,
+        'defs': true,
+        'ellipse': true,
+        'feBlend': true,
+        'feColorMatrix': true,
+        'feComponentTransfer': true,
+        'feComposite': true,
+        'feConvolveMatrix': true,
+        'feDiffuseLighting': true,
+        'feDisplacementMap': true,
+        'feFlood': true,
+        'feGaussianBlur': true,
+        'feImage': true,
+        'feMerge': true,
+        'feMorphology': true,
+        'feOffset': true,
+        'feSpecularLighting': true,
+        'feTile': true,
+        'feTurbulence': true,
+        'filter': true,
+        'font': true,
+        'foreignObject': true,
+        'g': true,
+        'glyph': true,
+        'glyphRef': true,
+        'image': true,
+        'line': true,
+        'linearGradient': true,
+        'marker': true,
+        'mask': true,
+        'missing-glyph': true,
+        'path': true,
+        'pattern': true,
+        'polygon': true,
+        'polyline': true,
+        'radialGradient': true,
+        'rect': true,
+        'stop': true,
+        'svg': true,
+        'switch': true,
+        'symbol': true,
+        'text': true,
+        'textPath': true,
+        'tref': true,
+        'tspan': true,
+        'use': true
+    };
+    var svgPresentationAttributes = {
+        'alignment-baseline': true,
+        'baseline-shift': true,
+        'clip-path': true,
+        'clip-rule': true,
+        'clip': true,
+        'color-interpolation-filters': true,
+        'color-interpolation': true,
+        'color-profile': true,
+        'color-rendering': true,
+        'color': true,
+        'cursor': true,
+        'direction': true,
+        'display': true,
+        'dominant-baseline': true,
+        'enable-background': true,
+        'fill-opacity': true,
+        'fill-rule': true,
+        'fill': true,
+        'filter': true,
+        'flood-color': true,
+        'flood-opacity': true,
+        'font-family': true,
+        'font-size-adjust': true,
+        'font-size': true,
+        'font-stretch': true,
+        'font-style': true,
+        'font-variant': true,
+        'font-weight': true,
+        'glyph-orientation-horizontal': true,
+        'glyph-orientation-vertical': true,
+        'image-rendering': true,
+        'kerning': true,
+        'letter-spacing': true,
+        'lighting-color': true,
+        'marker-end': true,
+        'marker-mid': true,
+        'marker-start': true,
+        'mask': true,
+        'opacity': true,
+        'overflow': true,
+        'pointer-events': true,
+        'shape-rendering': true,
+        'stop-color': true,
+        'stop-opacity': true,
+        'stroke-dasharray': true,
+        'stroke-dashoffset': true,
+        'stroke-linecap': true,
+        'stroke-linejoin': true,
+        'stroke-miterlimit': true,
+        'stroke-opacity': true,
+        'stroke-width': true,
+        'stroke': true,
+        'text-anchor': true,
+        'text-decoration': true,
+        'text-rendering': true,
+        'unicode-bidi': true,
+        'visibility': true,
+        'word-spacing': true,
+        'writing-mode': true
+    };
+    function createElement(html) {
+        var div = dom_1.DOM.createElement('div');
+        div.innerHTML = html;
+        return div.firstElementChild;
+    }
+    ;
+    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
+        svgElements.altglyph = svgElements.altGlyph;
+        delete svgElements.altGlyph;
+        svgElements.altglyphdef = svgElements.altGlyphDef;
+        delete svgElements.altGlyphDef;
+        svgElements.altglyphitem = svgElements.altGlyphItem;
+        delete svgElements.altGlyphItem;
+        svgElements.glyphref = svgElements.glyphRef;
+        delete svgElements.glyphRef;
+    }
+    function register(container) {
+        container.registerTransformer(svg_analyzer_1.ISVGAnalyzer, function (analyzer) {
+            return Object.assign(analyzer, {
+                isStandardSvgAttribute: function (node, attributeName) {
+                    if (!(node instanceof SVGElement)) {
+                        return false;
+                    }
+                    var nodeName = node.nodeName;
+                    return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
+                        || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
+                }
+            });
+        });
+    }
+    exports.register = register;
 });
 
 
@@ -6297,6 +6532,163 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
         }
         return source;
     }
+});
+
+
+
+define('runtime/templating/instruction-interpreter',["require", "exports", "../dom", "./instructions", "../binding/binding-mode", "../binding/binding", "../binding/listener", "../binding/call", "../binding/ref", "./shadow-dom"], function (require, exports, dom_1, instructions_1, binding_mode_1, binding_1, listener_1, call_1, ref_1, shadow_dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var InstructionInterpreter = (function () {
+        function InstructionInterpreter(container, taskQueue, observerLocator, eventManager, parser, templateEngine) {
+            this.container = container;
+            this.taskQueue = taskQueue;
+            this.observerLocator = observerLocator;
+            this.eventManager = eventManager;
+            this.parser = parser;
+            this.templateEngine = templateEngine;
+        }
+        InstructionInterpreter.prototype.interpret = function (owner, targets, source, host, replacements) {
+            var targetInstructions = source.instructions;
+            for (var i = 0, ii = targets.length; i < ii; ++i) {
+                var instructions = targetInstructions[i];
+                var target = targets[i];
+                for (var j = 0, jj = instructions.length; j < jj; ++j) {
+                    var current = instructions[j];
+                    this[current.type](owner, target, current, replacements);
+                }
+            }
+            if (host) {
+                var surrogateInstructions = source.surrogates;
+                for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
+                    var current = surrogateInstructions[i];
+                    this[current.type](owner, host, current, replacements);
+                }
+            }
+        };
+        InstructionInterpreter.prototype.applyElementInstructionToComponentInstance = function (owner, target, instruction, component) {
+            var childInstructions = instruction.instructions;
+            component.$hydrate(this.templateEngine, target, instruction.replacements, instruction.contentElement);
+            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
+                var current = childInstructions[i];
+                var currentType = current.type;
+                var realTarget = void 0;
+                if (currentType === instructions_1.TargetedInstructionType.stylePropertyBinding || currentType === instructions_1.TargetedInstructionType.listenerBinding) {
+                    realTarget = target;
+                }
+                else {
+                    realTarget = component;
+                }
+                this[current.type](owner, realTarget, current);
+            }
+            owner.$bindable.push(component);
+            owner.$attachable.push(component);
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.textBinding] = function (owner, target, instruction) {
+            var next = target.nextSibling;
+            dom_1.DOM.treatAsNonWhitespace(next);
+            dom_1.DOM.remove(target);
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.oneWayBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.fromViewBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.fromView, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.twoWayBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.twoWay, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.listenerBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new listener_1.Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.callBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new call_1.Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.refBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new ref_1.Ref(this.parser.parse(instruction.src), target, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.stylePropertyBinding] = function (owner, target, instruction) {
+            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target.style, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setProperty] = function (owner, target, instruction) {
+            target[instruction.dest] = instruction.value;
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setAttribute] = function (owner, target, instruction) {
+            dom_1.DOM.setAttribute(target, instruction.dest, instruction.value);
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateSlot] = function (owner, target, instruction) {
+            if (!owner.$usingSlotEmulation) {
+                return;
+            }
+            var fallbackFactory = this.templateEngine.getVisualFactory(this.container, instruction.fallback);
+            var slot = shadow_dom_1.ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
+            owner.$slots[slot.name] = slot;
+            owner.$bindable.push(slot);
+            owner.$attachable.push(slot);
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateElement] = function (owner, target, instruction) {
+            var container = this.container;
+            container.element.prepare(target);
+            container.owner.prepare(owner);
+            container.instruction.prepare(instruction);
+            container.slot.prepare(target, true);
+            var component = container.get(instruction.res);
+            this.applyElementInstructionToComponentInstance(owner, target, instruction, component);
+            container.slot.connectCustomElement(component);
+            container.element.dispose();
+            container.owner.dispose();
+            container.instruction.dispose();
+            container.slot.dispose();
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateAttribute] = function (owner, target, instruction) {
+            var childInstructions = instruction.instructions;
+            var container = this.container;
+            container.element.prepare(target);
+            container.owner.prepare(owner);
+            container.instruction.prepare(instruction);
+            var component = container.get(instruction.res);
+            component.$hydrate(this.templateEngine);
+            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
+                var current = childInstructions[i];
+                this[current.type](owner, component, current);
+            }
+            container.element.dispose();
+            container.owner.dispose();
+            container.instruction.dispose();
+            owner.$bindable.push(component);
+            owner.$attachable.push(component);
+        };
+        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (owner, target, instruction, replacements) {
+            var childInstructions = instruction.instructions;
+            var factory = this.templateEngine.getVisualFactory(this.container, instruction.src);
+            var container = this.container;
+            container.element.prepare(target);
+            container.owner.prepare(owner);
+            container.instruction.prepare(instruction);
+            container.factory.prepare(factory, replacements);
+            container.slot.prepare(dom_1.DOM.convertToAnchor(target), false);
+            var component = container.get(instruction.res);
+            component.$hydrate(this.templateEngine);
+            container.slot.connectTemplateController(component);
+            if (instruction.link) {
+                component.link(owner.$attachable[owner.$attachable.length - 1]);
+            }
+            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
+                var current = childInstructions[i];
+                this[current.type](owner, component, current);
+            }
+            container.element.dispose();
+            container.owner.dispose();
+            container.instruction.dispose();
+            container.factory.dispose();
+            container.slot.dispose();
+            owner.$bindable.push(component);
+            owner.$attachable.push(component);
+        };
+        return InstructionInterpreter;
+    }());
+    exports.InstructionInterpreter = InstructionInterpreter;
 });
 
 
@@ -6625,6 +7017,161 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
         };
         return RenderSlotImplementation;
     }());
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('runtime/templating/runtime-behavior',["require", "exports", "../dom", "../binding/subscriber-collection", "../binding/property-observation"], function (require, exports, dom_1, subscriber_collection_1, property_observation_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var RuntimeBehavior = (function () {
+        function RuntimeBehavior() {
+            this.hasCreated = false;
+            this.hasBound = false;
+            this.hasAttaching = false;
+            this.hasAttached = false;
+            this.hasDetaching = false;
+            this.hasDetached = false;
+            this.hasUnbound = false;
+            this.hasCreateView = false;
+        }
+        RuntimeBehavior.create = function (instance, observables, Component) {
+            var behavior = new RuntimeBehavior();
+            for (var name_1 in instance) {
+                if (name_1 in observables) {
+                    continue;
+                }
+                var callback = name_1 + "Changed";
+                if (callback in instance) {
+                    observables[name_1] = { callback: callback };
+                }
+            }
+            behavior.observables = observables;
+            behavior.hasCreated = 'created' in instance;
+            behavior.hasBound = 'bound' in instance;
+            behavior.hasAttaching = 'attaching' in instance;
+            behavior.hasAttached = 'attached' in instance;
+            behavior.hasDetaching = 'detaching' in instance;
+            behavior.hasDetached = 'detached' in instance;
+            behavior.hasUnbound = 'unbound' in instance;
+            behavior.hasCreateView = 'createView' in instance;
+            return behavior;
+        };
+        RuntimeBehavior.prototype.applyToAttribute = function (taskQueue, instance) {
+            this.applyTo(taskQueue, instance);
+            return this;
+        };
+        RuntimeBehavior.prototype.applyToElement = function (taskQueue, instance) {
+            var observers = this.applyTo(taskQueue, instance);
+            observers.$children = new ChildrenObserver(taskQueue, instance);
+            Reflect.defineProperty(instance, '$children', {
+                enumerable: false,
+                get: function () {
+                    return this.$observers.$children.getValue();
+                }
+            });
+            return this;
+        };
+        RuntimeBehavior.prototype.applyTo = function (taskQueue, instance) {
+            var observers = {};
+            var finalObservables = this.observables;
+            var observableNames = Object.getOwnPropertyNames(finalObservables);
+            var _loop_1 = function (i, ii) {
+                var name_2 = observableNames[i];
+                var observable = finalObservables[name_2];
+                var changeHandler = observable.callback;
+                if (changeHandler in instance) {
+                    observers[name_2] = new property_observation_1.Observer(taskQueue, instance[name_2], function (v) { return instance.$isBound ? instance[changeHandler](v) : void 0; });
+                    instance.$changeCallbacks.push(function () { return instance[changeHandler](instance[name_2]); });
+                }
+                else {
+                    observers[name_2] = new property_observation_1.Observer(taskQueue, instance[name_2]);
+                }
+                createGetterSetter(instance, name_2);
+            };
+            for (var i = 0, ii = observableNames.length; i < ii; ++i) {
+                _loop_1(i, ii);
+            }
+            Reflect.defineProperty(instance, '$observers', {
+                enumerable: false,
+                value: observers
+            });
+            instance.$behavior = this;
+            return observers;
+        };
+        return RuntimeBehavior;
+    }());
+    exports.RuntimeBehavior = RuntimeBehavior;
+    function createGetterSetter(instance, name) {
+        Reflect.defineProperty(instance, name, {
+            enumerable: true,
+            get: function () { return this.$observers[name].getValue(); },
+            set: function (value) { this.$observers[name].setValue(value); }
+        });
+    }
+    var ChildrenObserver = (function (_super) {
+        __extends(ChildrenObserver, _super);
+        function ChildrenObserver(taskQueue, component) {
+            var _this = _super.call(this) || this;
+            _this.taskQueue = taskQueue;
+            _this.component = component;
+            _this.observer = null;
+            _this.children = null;
+            _this.queued = false;
+            return _this;
+        }
+        ChildrenObserver.prototype.getValue = function () {
+            var _this = this;
+            if (this.observer === null) {
+                this.observer = dom_1.DOM.createChildObserver(this.component.$host, function () { return _this.onChildrenChanged(); });
+                this.children = findElements(this.observer.childNodes);
+            }
+            return this.children;
+        };
+        ChildrenObserver.prototype.setValue = function (newValue) { };
+        ChildrenObserver.prototype.onChildrenChanged = function () {
+            this.children = findElements(this.observer.childNodes);
+            if ('$childrenChanged' in this.component) {
+                this.component.$childrenChanged();
+            }
+            if (!this.queued) {
+                this.queued = true;
+                this.taskQueue.queueMicroTask(this);
+            }
+        };
+        ChildrenObserver.prototype.call = function () {
+            this.queued = false;
+            this.callSubscribers(this.children);
+        };
+        ChildrenObserver.prototype.subscribe = function (context, callable) {
+            this.addSubscriber(context, callable);
+        };
+        ChildrenObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+        };
+        return ChildrenObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    function findElements(nodes) {
+        var components = [];
+        for (var i = 0, ii = nodes.length; i < ii; ++i) {
+            var current = nodes[i];
+            var component = dom_1.DOM.getComponentForNode(current);
+            if (component !== null) {
+                components.push(component);
+            }
+        }
+        return components;
+    }
 });
 
 
@@ -7000,457 +7547,25 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
 
 
 
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-define('runtime/templating/template-engine',["require", "exports", "../di", "./view-engine", "./instructions", "../task-queue", "../binding/property-observation", "../dom", "../binding/subscriber-collection", "./shadow-dom", "../binding/binding", "../binding/ref", "../binding/binding-mode", "../binding/call", "../binding/listener", "../binding/observer-locator", "../binding/event-manager", "../binding/parser"], function (require, exports, di_1, view_engine_1, instructions_1, task_queue_1, property_observation_1, dom_1, subscriber_collection_1, shadow_dom_1, binding_1, ref_1, binding_mode_1, call_1, listener_1, observer_locator_1, event_manager_1, parser_1) {
+define('runtime/templating/template-container',["require", "exports", "./render-slot", "../dom", "../platform", "./instructions", "./view", "./visual"], function (require, exports, render_slot_1, dom_1, platform_1, instructions_1, view_1, visual_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ITemplateEngine = di_1.DI.createInterface()
-        .withDefault(function (x) { return x.singleton(TemplateEngine); });
-    var TemplateEngine = (function () {
-        function TemplateEngine(container, taskQueue, observerLocator, eventManager, parser) {
-            this.container = container;
-            this.taskQueue = taskQueue;
-            this.observerLocator = observerLocator;
-            this.eventManager = eventManager;
-            this.parser = parser;
-            this.templateLookup = new Map();
-            this.factoryLookup = new Map();
-            this.behaviorLookup = new Map();
+    ;
+    function createTemplateContainer(templateEngine, parentContainer, dependencies) {
+        var container = parentContainer.createChild();
+        container.interpreter = templateEngine.createInstructionInterpreter(container);
+        container.element = new InstanceProvider();
+        dom_1.DOM.registerElementResolver(container, container.element);
+        container.registerResolver(visual_1.IVisualFactory, container.factory = new ViewFactoryProvider(templateEngine));
+        container.registerResolver(render_slot_1.IRenderSlot, container.slot = new RenderSlotProvider());
+        container.registerResolver(view_1.IViewOwner, container.owner = new InstanceProvider());
+        container.registerResolver(instructions_1.ITargetedInstruction, container.instruction = new InstanceProvider());
+        if (dependencies) {
+            container.register.apply(container, dependencies);
         }
-        TemplateEngine.prototype.getElementTemplate = function (source, componentType) {
-            if (!source) {
-                return null;
-            }
-            var found = this.templateLookup.get(source);
-            if (!found) {
-                found = view_engine_1.ViewEngine.templateFromCompiledSource(this.container, source);
-                if (found.container !== null) {
-                    componentType.register(found.container);
-                }
-                this.templateLookup.set(source, found);
-            }
-            return found;
-        };
-        TemplateEngine.prototype.getVisualFactory = function (container, source) {
-            if (!source) {
-                return null;
-            }
-            var found = this.factoryLookup.get(source);
-            if (!found) {
-                found = view_engine_1.ViewEngine.factoryFromCompiledSource(container, source);
-                this.factoryLookup.set(source, found);
-            }
-            return found;
-        };
-        TemplateEngine.prototype.applyRuntimeBehavior = function (type, instance, observables) {
-            var found = this.behaviorLookup.get(type);
-            if (!found) {
-                found = RuntimeBehavior.create(instance, observables, type);
-                this.behaviorLookup.set(type, found);
-            }
-            if ('$host' in instance) {
-                found.applyToElement(this.taskQueue, instance);
-            }
-            else {
-                found.applyToAttribute(this.taskQueue, instance);
-            }
-            return found;
-        };
-        TemplateEngine.prototype.createInstructionInterpreter = function (container) {
-            return new InstructionInterpreter(container, this.taskQueue, this.observerLocator, this.eventManager, this.parser, this);
-        };
-        TemplateEngine = __decorate([
-            di_1.inject(di_1.IContainer, task_queue_1.ITaskQueue, observer_locator_1.IObserverLocator, event_manager_1.IEventManager, parser_1.IParser),
-            __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
-        ], TemplateEngine);
-        return TemplateEngine;
-    }());
-    var RuntimeBehavior = (function () {
-        function RuntimeBehavior() {
-            this.hasCreated = false;
-            this.hasBound = false;
-            this.hasAttaching = false;
-            this.hasAttached = false;
-            this.hasDetaching = false;
-            this.hasDetached = false;
-            this.hasUnbound = false;
-            this.hasCreateView = false;
-        }
-        RuntimeBehavior.create = function (instance, observables, Component) {
-            var behavior = new RuntimeBehavior();
-            for (var name_1 in instance) {
-                if (name_1 in observables) {
-                    continue;
-                }
-                var callback = name_1 + "Changed";
-                if (callback in instance) {
-                    observables[name_1] = { callback: callback };
-                }
-            }
-            behavior.observables = observables;
-            behavior.hasCreated = 'created' in instance;
-            behavior.hasBound = 'bound' in instance;
-            behavior.hasAttaching = 'attaching' in instance;
-            behavior.hasAttached = 'attached' in instance;
-            behavior.hasDetaching = 'detaching' in instance;
-            behavior.hasDetached = 'detached' in instance;
-            behavior.hasUnbound = 'unbound' in instance;
-            behavior.hasCreateView = 'createView' in instance;
-            return behavior;
-        };
-        RuntimeBehavior.prototype.applyToAttribute = function (taskQueue, instance) {
-            this.applyTo(taskQueue, instance);
-            return this;
-        };
-        RuntimeBehavior.prototype.applyToElement = function (taskQueue, instance) {
-            var observers = this.applyTo(taskQueue, instance);
-            observers.$children = new ChildrenObserver(taskQueue, instance);
-            Reflect.defineProperty(instance, '$children', {
-                enumerable: false,
-                get: function () {
-                    return this.$observers.$children.getValue();
-                }
-            });
-            return this;
-        };
-        RuntimeBehavior.prototype.applyTo = function (taskQueue, instance) {
-            var observers = {};
-            var finalObservables = this.observables;
-            var observableNames = Object.getOwnPropertyNames(finalObservables);
-            var _loop_1 = function (i, ii) {
-                var name_2 = observableNames[i];
-                var observable = finalObservables[name_2];
-                var changeHandler = observable.callback;
-                if (changeHandler in instance) {
-                    observers[name_2] = new property_observation_1.Observer(taskQueue, instance[name_2], function (v) { return instance.$isBound ? instance[changeHandler](v) : void 0; });
-                    instance.$changeCallbacks.push(function () { return instance[changeHandler](instance[name_2]); });
-                }
-                else {
-                    observers[name_2] = new property_observation_1.Observer(taskQueue, instance[name_2]);
-                }
-                createGetterSetter(instance, name_2);
-            };
-            for (var i = 0, ii = observableNames.length; i < ii; ++i) {
-                _loop_1(i, ii);
-            }
-            Reflect.defineProperty(instance, '$observers', {
-                enumerable: false,
-                value: observers
-            });
-            instance.$behavior = this;
-            return observers;
-        };
-        return RuntimeBehavior;
-    }());
-    function createGetterSetter(instance, name) {
-        Reflect.defineProperty(instance, name, {
-            enumerable: true,
-            get: function () { return this.$observers[name].getValue(); },
-            set: function (value) { this.$observers[name].setValue(value); }
-        });
+        return container;
     }
-    var ChildrenObserver = (function (_super) {
-        __extends(ChildrenObserver, _super);
-        function ChildrenObserver(taskQueue, component) {
-            var _this = _super.call(this) || this;
-            _this.taskQueue = taskQueue;
-            _this.component = component;
-            _this.observer = null;
-            _this.children = null;
-            _this.queued = false;
-            return _this;
-        }
-        ChildrenObserver.prototype.getValue = function () {
-            var _this = this;
-            if (this.observer === null) {
-                this.observer = dom_1.DOM.createChildObserver(this.component.$host, function () { return _this.onChildrenChanged(); });
-                this.children = findElements(this.observer.childNodes);
-            }
-            return this.children;
-        };
-        ChildrenObserver.prototype.setValue = function (newValue) { };
-        ChildrenObserver.prototype.onChildrenChanged = function () {
-            this.children = findElements(this.observer.childNodes);
-            if ('$childrenChanged' in this.component) {
-                this.component.$childrenChanged();
-            }
-            if (!this.queued) {
-                this.queued = true;
-                this.taskQueue.queueMicroTask(this);
-            }
-        };
-        ChildrenObserver.prototype.call = function () {
-            this.queued = false;
-            this.callSubscribers(this.children);
-        };
-        ChildrenObserver.prototype.subscribe = function (context, callable) {
-            this.addSubscriber(context, callable);
-        };
-        ChildrenObserver.prototype.unsubscribe = function (context, callable) {
-            this.removeSubscriber(context, callable);
-        };
-        return ChildrenObserver;
-    }(subscriber_collection_1.SubscriberCollection));
-    function findElements(nodes) {
-        var components = [];
-        for (var i = 0, ii = nodes.length; i < ii; ++i) {
-            var current = nodes[i];
-            var component = dom_1.DOM.getComponentForNode(current);
-            if (component !== null) {
-                components.push(component);
-            }
-        }
-        return components;
-    }
-    var InstructionInterpreter = (function () {
-        function InstructionInterpreter(container, taskQueue, observerLocator, eventManager, parser, templateEngine) {
-            this.container = container;
-            this.taskQueue = taskQueue;
-            this.observerLocator = observerLocator;
-            this.eventManager = eventManager;
-            this.parser = parser;
-            this.templateEngine = templateEngine;
-        }
-        InstructionInterpreter.prototype.interpret = function (owner, targets, source, host, replacements) {
-            var targetInstructions = source.instructions;
-            for (var i = 0, ii = targets.length; i < ii; ++i) {
-                var instructions = targetInstructions[i];
-                var target = targets[i];
-                for (var j = 0, jj = instructions.length; j < jj; ++j) {
-                    var current = instructions[j];
-                    this[current.type](owner, target, current, replacements);
-                }
-            }
-            if (host) {
-                var surrogateInstructions = source.surrogates;
-                for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-                    var current = surrogateInstructions[i];
-                    this[current.type](owner, host, current, replacements);
-                }
-            }
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.textBinding] = function (owner, target, instruction) {
-            var next = target.nextSibling;
-            dom_1.DOM.treatAsNonWhitespace(next);
-            dom_1.DOM.remove(target);
-            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), next, 'textContent', binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.oneWayBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.fromViewBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.fromView, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.twoWayBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target, instruction.dest, binding_mode_1.BindingMode.twoWay, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.listenerBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new listener_1.Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.callBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new call_1.Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.refBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new ref_1.Ref(this.parser.parse(instruction.src), target, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.stylePropertyBinding] = function (owner, target, instruction) {
-            owner.$bindable.push(new binding_1.Binding(this.parser.parse(instruction.src), target.style, instruction.dest, binding_mode_1.BindingMode.oneWay, this.observerLocator, this.container));
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setProperty] = function (owner, target, instruction) {
-            target[instruction.dest] = instruction.value;
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.setAttribute] = function (owner, target, instruction) {
-            dom_1.DOM.setAttribute(target, instruction.dest, instruction.value);
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateSlot] = function (owner, target, instruction) {
-            if (!owner.$usingSlotEmulation) {
-                return;
-            }
-            var fallbackFactory = this.templateEngine.getVisualFactory(this.container, instruction.fallback);
-            var slot = shadow_dom_1.ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
-            owner.$slots[slot.name] = slot;
-            owner.$bindable.push(slot);
-            owner.$attachable.push(slot);
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateElement] = function (owner, target, instruction) {
-            var container = this.container;
-            container.element.prepare(target);
-            container.owner.prepare(owner);
-            container.instruction.prepare(instruction);
-            container.slot.prepare(target, true);
-            var component = container.get(instruction.res);
-            this.applyElementInstructionToComponentInstance(owner, target, instruction, component);
-            container.slot.connectCustomElement(component);
-            container.element.dispose();
-            container.owner.dispose();
-            container.instruction.dispose();
-            container.slot.dispose();
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateAttribute] = function (owner, target, instruction) {
-            var childInstructions = instruction.instructions;
-            var container = this.container;
-            container.element.prepare(target);
-            container.owner.prepare(owner);
-            container.instruction.prepare(instruction);
-            var component = container.get(instruction.res);
-            component.$hydrate(this.templateEngine);
-            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
-                var current = childInstructions[i];
-                this[current.type](owner, component, current);
-            }
-            container.element.dispose();
-            container.owner.dispose();
-            container.instruction.dispose();
-            owner.$bindable.push(component);
-            owner.$attachable.push(component);
-        };
-        InstructionInterpreter.prototype[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (owner, target, instruction, replacements) {
-            var childInstructions = instruction.instructions;
-            var factory = this.templateEngine.getVisualFactory(this.container, instruction.src);
-            var container = this.container;
-            container.element.prepare(target);
-            container.owner.prepare(owner);
-            container.instruction.prepare(instruction);
-            container.factory.prepare(factory, replacements);
-            container.slot.prepare(dom_1.DOM.convertToAnchor(target), false);
-            var component = container.get(instruction.res);
-            component.$hydrate(this.templateEngine);
-            container.slot.connectTemplateController(component);
-            if (instruction.link) {
-                component.link(owner.$attachable[owner.$attachable.length - 1]);
-            }
-            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
-                var current = childInstructions[i];
-                this[current.type](owner, component, current);
-            }
-            container.element.dispose();
-            container.owner.dispose();
-            container.instruction.dispose();
-            container.factory.dispose();
-            container.slot.dispose();
-            owner.$bindable.push(component);
-            owner.$attachable.push(component);
-        };
-        InstructionInterpreter.prototype.applyElementInstructionToComponentInstance = function (owner, target, instruction, component) {
-            var childInstructions = instruction.instructions;
-            component.$hydrate(this.templateEngine, target, instruction.replacements, instruction.contentElement);
-            for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
-                var current = childInstructions[i];
-                var currentType = current.type;
-                var realTarget = void 0;
-                if (currentType === instructions_1.TargetedInstructionType.stylePropertyBinding || currentType === instructions_1.TargetedInstructionType.listenerBinding) {
-                    realTarget = target;
-                }
-                else {
-                    realTarget = component;
-                }
-                this[current.type](owner, realTarget, current);
-            }
-            owner.$bindable.push(component);
-            owner.$attachable.push(component);
-        };
-        return InstructionInterpreter;
-    }());
-});
-
-
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-define('runtime/templating/view-engine',["require", "exports", "../platform", "./view", "./render-slot", "../di", "./lifecycle", "../reporter", "./instructions", "../dom", "./template-engine"], function (require, exports, platform_1, view_1, render_slot_1, di_1, lifecycle_1, reporter_1, instructions_1, dom_1, template_engine_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var noViewTemplate = {
-        container: null,
-        createFor: function (owner) {
-            return view_1.View.none;
-        }
-    };
-    exports.IVisualFactory = di_1.DI.createInterface('IVisualFactory');
-    exports.ViewEngine = {
-        templateFromCompiledSource: function (container, source) {
-            if (source && source.template) {
-                return new CompiledTemplate(container, source);
-            }
-            return noViewTemplate;
-        },
-        factoryFromCompiledSource: function (container, source) {
-            var template = exports.ViewEngine.templateFromCompiledSource(container, source);
-            var CompiledVisual = (_a = (function (_super) {
-                    __extends(class_1, _super);
-                    function class_1() {
-                        var _this = _super !== null && _super.apply(this, arguments) || this;
-                        _this.$slots = source.hasSlots ? {} : null;
-                        return _this;
-                    }
-                    class_1.prototype.createView = function () {
-                        return template.createFor(this);
-                    };
-                    return class_1;
-                }(Visual)),
-                _a.template = template,
-                _a.source = source,
-                _a);
-            return new DefaultVisualFactory(source.name, CompiledVisual);
-            var _a;
-        },
-        visualFromComponent: function (container, componentOrType, instruction) {
-            var ComponentVisual = (function (_super) {
-                __extends(ComponentVisual, _super);
-                function ComponentVisual() {
-                    return _super.call(this, null, null) || this;
-                }
-                ComponentVisual.prototype.createView = function () {
-                    var target;
-                    if (typeof componentOrType === 'function') {
-                        target = dom_1.DOM.createElement(componentOrType.source.name);
-                        container.interpreter[instructions_1.TargetedInstructionType.hydrateElement](target, instruction);
-                        this.component = this.$attachable[this.$attachable.length - 1];
-                    }
-                    else {
-                        var componentType = componentOrType.constructor;
-                        target = componentOrType.element || dom_1.DOM.createElement(componentType.source.name);
-                        container.interpreter.applyElementInstructionToComponentInstance(this, target, instruction, componentOrType);
-                        this.component = componentOrType;
-                    }
-                    return view_1.View.fromNode(target);
-                };
-                ComponentVisual.prototype.tryReturnToCache = function () {
-                    return false;
-                };
-                ComponentVisual.template = Object.assign({}, noViewTemplate, { container: container });
-                ComponentVisual.source = null;
-                return ComponentVisual;
-            }(Visual));
-            return new ComponentVisual();
-        }
-    };
+    exports.createTemplateContainer = createTemplateContainer;
     var InstanceProvider = (function () {
         function InstanceProvider() {
             this.instance = null;
@@ -7520,26 +7635,161 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         };
         return RenderSlotProvider;
     }());
-    ;
-    function createTemplateContainer(parentContainer, dependencies) {
-        var container = parentContainer.createChild();
-        var templateEngine = container.get(template_engine_1.ITemplateEngine);
-        container.interpreter = templateEngine.createInstructionInterpreter(container);
-        container.element = new InstanceProvider();
-        dom_1.DOM.registerElementResolver(container, container.element);
-        container.registerResolver(exports.IVisualFactory, container.factory = new ViewFactoryProvider(templateEngine));
-        container.registerResolver(render_slot_1.IRenderSlot, container.slot = new RenderSlotProvider());
-        container.registerResolver(view_1.IViewOwner, container.owner = new InstanceProvider());
-        container.registerResolver(instructions_1.ITargetedInstruction, container.instruction = new InstanceProvider());
-        if (dependencies) {
-            container.register.apply(container, dependencies);
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('runtime/templating/template-engine',["require", "exports", "./runtime-behavior", "../di", "./instructions", "../task-queue", "./view", "../dom", "./instruction-interpreter", "./lifecycle", "../reporter", "./animator", "./template-container", "../binding/observer-locator", "../binding/event-manager", "../binding/parser"], function (require, exports, runtime_behavior_1, di_1, instructions_1, task_queue_1, view_1, dom_1, instruction_interpreter_1, lifecycle_1, reporter_1, animator_1, template_container_1, observer_locator_1, event_manager_1, parser_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ITemplateEngine = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(TemplateEngine); });
+    var noViewTemplate = {
+        container: null,
+        createFor: function (owner) {
+            return view_1.View.none;
         }
-        return container;
-    }
+    };
+    var TemplateEngine = (function () {
+        function TemplateEngine(container, taskQueue, observerLocator, eventManager, parser, animator) {
+            this.container = container;
+            this.taskQueue = taskQueue;
+            this.observerLocator = observerLocator;
+            this.eventManager = eventManager;
+            this.parser = parser;
+            this.animator = animator;
+            this.templateLookup = new Map();
+            this.factoryLookup = new Map();
+            this.behaviorLookup = new Map();
+        }
+        TemplateEngine.prototype.getElementTemplate = function (source, componentType) {
+            if (!source) {
+                return null;
+            }
+            var found = this.templateLookup.get(source);
+            if (!found) {
+                found = this.templateFromCompiledSource(this.container, source);
+                if (found.container !== null) {
+                    componentType.register(found.container);
+                }
+                this.templateLookup.set(source, found);
+            }
+            return found;
+        };
+        TemplateEngine.prototype.templateFromCompiledSource = function (container, source) {
+            if (source && source.template) {
+                return new CompiledTemplate(this, container, source);
+            }
+            return noViewTemplate;
+        };
+        TemplateEngine.prototype.getVisualFactory = function (container, source) {
+            if (!source) {
+                return null;
+            }
+            var found = this.factoryLookup.get(source);
+            if (!found) {
+                found = this.factoryFromCompiledSource(container, source);
+                this.factoryLookup.set(source, found);
+            }
+            return found;
+        };
+        TemplateEngine.prototype.factoryFromCompiledSource = function (container, source) {
+            var template = this.templateFromCompiledSource(container, source);
+            var CompiledVisual = (_a = (function (_super) {
+                    __extends(class_1, _super);
+                    function class_1() {
+                        var _this = _super !== null && _super.apply(this, arguments) || this;
+                        _this.$slots = source.hasSlots ? {} : null;
+                        return _this;
+                    }
+                    class_1.prototype.createView = function () {
+                        return template.createFor(this);
+                    };
+                    return class_1;
+                }(Visual)),
+                _a.template = template,
+                _a.source = source,
+                _a);
+            return new VisualFactory(source.name, CompiledVisual);
+            var _a;
+        };
+        TemplateEngine.prototype.applyRuntimeBehavior = function (type, instance, observables) {
+            var found = this.behaviorLookup.get(type);
+            if (!found) {
+                found = runtime_behavior_1.RuntimeBehavior.create(instance, observables, type);
+                this.behaviorLookup.set(type, found);
+            }
+            if ('$host' in instance) {
+                found.applyToElement(this.taskQueue, instance);
+            }
+            else {
+                found.applyToAttribute(this.taskQueue, instance);
+            }
+            return found;
+        };
+        TemplateEngine.prototype.createVisualFromComponent = function (container, componentOrType, instruction) {
+            var animator = this.animator;
+            var ComponentVisual = (function (_super) {
+                __extends(ComponentVisual, _super);
+                function ComponentVisual() {
+                    return _super.call(this, null, animator) || this;
+                }
+                ComponentVisual.prototype.createView = function () {
+                    var target;
+                    if (typeof componentOrType === 'function') {
+                        target = dom_1.DOM.createElement(componentOrType.source.name);
+                        container.interpreter[instructions_1.TargetedInstructionType.hydrateElement](target, instruction);
+                        this.component = this.$attachable[this.$attachable.length - 1];
+                    }
+                    else {
+                        var componentType = componentOrType.constructor;
+                        target = componentOrType.element || dom_1.DOM.createElement(componentType.source.name);
+                        container.interpreter.applyElementInstructionToComponentInstance(this, target, instruction, componentOrType);
+                        this.component = componentOrType;
+                    }
+                    return view_1.View.fromNode(target);
+                };
+                ComponentVisual.prototype.tryReturnToCache = function () {
+                    return false;
+                };
+                ComponentVisual.template = Object.assign({}, noViewTemplate, { container: container });
+                ComponentVisual.source = null;
+                return ComponentVisual;
+            }(Visual));
+            return new ComponentVisual();
+        };
+        TemplateEngine.prototype.createInstructionInterpreter = function (container) {
+            return new instruction_interpreter_1.InstructionInterpreter(container, this.taskQueue, this.observerLocator, this.eventManager, this.parser, this);
+        };
+        TemplateEngine = __decorate([
+            di_1.inject(di_1.IContainer, task_queue_1.ITaskQueue, observer_locator_1.IObserverLocator, event_manager_1.IEventManager, parser_1.IParser, animator_1.IAnimator),
+            __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object])
+        ], TemplateEngine);
+        return TemplateEngine;
+    }());
     var CompiledTemplate = (function () {
-        function CompiledTemplate(container, source) {
+        function CompiledTemplate(templateEngine, container, source) {
             this.source = source;
-            this.container = createTemplateContainer(container, source.dependencies);
+            this.container = template_container_1.createTemplateContainer(templateEngine, container, source.dependencies);
             this.createView = dom_1.DOM.createFactoryFromMarkup(source.template);
         }
         CompiledTemplate.prototype.createFor = function (owner, host, replacements) {
@@ -7659,15 +7909,15 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
         };
         return Visual;
     }());
-    var DefaultVisualFactory = (function () {
-        function DefaultVisualFactory(name, type) {
+    var VisualFactory = (function () {
+        function VisualFactory(name, type) {
             this.name = name;
             this.type = type;
             this.cacheSize = -1;
             this.cache = null;
             this.isCaching = false;
         }
-        DefaultVisualFactory.prototype.setCacheSize = function (size, doNotOverrideIfAlreadySet) {
+        VisualFactory.prototype.setCacheSize = function (size, doNotOverrideIfAlreadySet) {
             if (size) {
                 if (size === '*') {
                     size = Number.MAX_VALUE;
@@ -7687,7 +7937,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             }
             this.isCaching = this.cacheSize > 0;
         };
-        DefaultVisualFactory.prototype.tryReturnToCache = function (visual) {
+        VisualFactory.prototype.tryReturnToCache = function (visual) {
             if (this.cache !== null && this.cache.length < this.cacheSize) {
                 visual.inCache = true;
                 this.cache.push(visual);
@@ -7695,7 +7945,7 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             }
             return false;
         };
-        DefaultVisualFactory.prototype.create = function () {
+        VisualFactory.prototype.create = function () {
             var cache = this.cache;
             if (cache !== null && cache.length > 0) {
                 var visual = cache.pop();
@@ -7704,8 +7954,15 @@ define('runtime/templating/view-engine',["require", "exports", "../platform", ".
             }
             return new this.type(this);
         };
-        return DefaultVisualFactory;
+        return VisualFactory;
     }());
+});
+
+
+
+define('runtime/templating/template',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
 });
 
 
@@ -7842,236 +8099,10 @@ define('runtime/templating/view',["require", "exports", "../platform", "../di", 
 
 
 
-define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
+define('runtime/templating/visual',["require", "exports", "../di"], function (require, exports, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var svgElements = {
-        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
-        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
-        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
-        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
-        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-    };
-    var svgPresentationElements = {
-        'a': true,
-        'altGlyph': true,
-        'animate': true,
-        'animateColor': true,
-        'circle': true,
-        'clipPath': true,
-        'defs': true,
-        'ellipse': true,
-        'feBlend': true,
-        'feColorMatrix': true,
-        'feComponentTransfer': true,
-        'feComposite': true,
-        'feConvolveMatrix': true,
-        'feDiffuseLighting': true,
-        'feDisplacementMap': true,
-        'feFlood': true,
-        'feGaussianBlur': true,
-        'feImage': true,
-        'feMerge': true,
-        'feMorphology': true,
-        'feOffset': true,
-        'feSpecularLighting': true,
-        'feTile': true,
-        'feTurbulence': true,
-        'filter': true,
-        'font': true,
-        'foreignObject': true,
-        'g': true,
-        'glyph': true,
-        'glyphRef': true,
-        'image': true,
-        'line': true,
-        'linearGradient': true,
-        'marker': true,
-        'mask': true,
-        'missing-glyph': true,
-        'path': true,
-        'pattern': true,
-        'polygon': true,
-        'polyline': true,
-        'radialGradient': true,
-        'rect': true,
-        'stop': true,
-        'svg': true,
-        'switch': true,
-        'symbol': true,
-        'text': true,
-        'textPath': true,
-        'tref': true,
-        'tspan': true,
-        'use': true
-    };
-    var svgPresentationAttributes = {
-        'alignment-baseline': true,
-        'baseline-shift': true,
-        'clip-path': true,
-        'clip-rule': true,
-        'clip': true,
-        'color-interpolation-filters': true,
-        'color-interpolation': true,
-        'color-profile': true,
-        'color-rendering': true,
-        'color': true,
-        'cursor': true,
-        'direction': true,
-        'display': true,
-        'dominant-baseline': true,
-        'enable-background': true,
-        'fill-opacity': true,
-        'fill-rule': true,
-        'fill': true,
-        'filter': true,
-        'flood-color': true,
-        'flood-opacity': true,
-        'font-family': true,
-        'font-size-adjust': true,
-        'font-size': true,
-        'font-stretch': true,
-        'font-style': true,
-        'font-variant': true,
-        'font-weight': true,
-        'glyph-orientation-horizontal': true,
-        'glyph-orientation-vertical': true,
-        'image-rendering': true,
-        'kerning': true,
-        'letter-spacing': true,
-        'lighting-color': true,
-        'marker-end': true,
-        'marker-mid': true,
-        'marker-start': true,
-        'mask': true,
-        'opacity': true,
-        'overflow': true,
-        'pointer-events': true,
-        'shape-rendering': true,
-        'stop-color': true,
-        'stop-opacity': true,
-        'stroke-dasharray': true,
-        'stroke-dashoffset': true,
-        'stroke-linecap': true,
-        'stroke-linejoin': true,
-        'stroke-miterlimit': true,
-        'stroke-opacity': true,
-        'stroke-width': true,
-        'stroke': true,
-        'text-anchor': true,
-        'text-decoration': true,
-        'text-rendering': true,
-        'unicode-bidi': true,
-        'visibility': true,
-        'word-spacing': true,
-        'writing-mode': true
-    };
-    function createElement(html) {
-        var div = dom_1.DOM.createElement('div');
-        div.innerHTML = html;
-        return div.firstElementChild;
-    }
-    ;
-    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
-        svgElements.altglyph = svgElements.altGlyph;
-        delete svgElements.altGlyph;
-        svgElements.altglyphdef = svgElements.altGlyphDef;
-        delete svgElements.altGlyphDef;
-        svgElements.altglyphitem = svgElements.altGlyphItem;
-        delete svgElements.altGlyphItem;
-        svgElements.glyphref = svgElements.glyphRef;
-        delete svgElements.glyphRef;
-    }
-    function register(container) {
-        container.registerTransformer(svg_analyzer_1.ISVGAnalyzer, function (analyzer) {
-            return Object.assign(analyzer, {
-                isStandardSvgAttribute: function (node, attributeName) {
-                    if (!(node instanceof SVGElement)) {
-                        return false;
-                    }
-                    var nodeName = node.nodeName;
-                    return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
-                        || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
-                }
-            });
-        });
-    }
-    exports.register = register;
+    exports.IVisualFactory = di_1.DI.createInterface();
 });
 
 
@@ -8632,7 +8663,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/repeat/repeat',["require", "exports", "../../decorators", "../../templating/view-engine", "../../templating/render-slot", "../../di", "./repeat-strategy-registry", "../../binding/ast", "../../binding/binding-context", "../../binding/binding-mode", "../../templating/view", "../../task-queue"], function (require, exports, decorators_1, view_engine_1, render_slot_1, di_1, repeat_strategy_registry_1, ast_1, binding_context_1, binding_mode_1, view_1, task_queue_1) {
+define('runtime/resources/repeat/repeat',["require", "exports", "../../decorators", "../../templating/visual", "../../templating/render-slot", "../../di", "./repeat-strategy-registry", "../../binding/ast", "../../binding/binding-context", "../../binding/binding-mode", "../../templating/view", "../../task-queue"], function (require, exports, decorators_1, visual_1, render_slot_1, di_1, repeat_strategy_registry_1, ast_1, binding_context_1, binding_mode_1, view_1, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var oneTime = binding_mode_1.BindingMode.oneTime;
@@ -8836,7 +8867,7 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
         Repeat = __decorate([
             decorators_1.customAttribute('repeat'),
             decorators_1.templateController,
-            di_1.inject(view_1.IViewOwner, view_engine_1.IVisualFactory, render_slot_1.IRenderSlot, di_1.IContainer, task_queue_1.ITaskQueue, repeat_strategy_registry_1.IRepeatStrategyRegistry),
+            di_1.inject(view_1.IViewOwner, visual_1.IVisualFactory, render_slot_1.IRenderSlot, di_1.IContainer, task_queue_1.ITaskQueue, repeat_strategy_registry_1.IRepeatStrategyRegistry),
             __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object])
         ], Repeat);
         return Repeat;

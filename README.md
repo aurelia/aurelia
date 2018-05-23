@@ -26,6 +26,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [x] Text
 * [x] Value Converters
 * [x] Binding Behaviors
+* [ ] Computed
 
 ### Custom Elements
 
@@ -96,9 +97,9 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 
 * [ ] Expression Parser
 
-### Templating
+### Rendering
 
-* [ ] View Compiler
+* [ ] Template Compiler
 
 ### Application
 

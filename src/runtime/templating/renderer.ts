@@ -5,7 +5,7 @@ import { IElementComponent, IAttributeComponent } from './component';
 import { ITaskQueue } from '../task-queue';
 import { IObserverLocator } from '../binding/observer-locator';
 import { IEventManager } from '../binding/event-manager';
-import { IParser } from '../binding/parser';
+import { IExpressionParser } from '../binding/expression-parser';
 import { IRenderingEngine } from './rendering-engine';
 import { BindingMode } from '../binding/binding-mode';
 import { Binding } from '../binding/binding';
@@ -28,7 +28,7 @@ export class Renderer {
     private taskQueue: ITaskQueue, 
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
-    private parser: IParser,
+    private parser: IExpressionParser,
     private renderingEngine: IRenderingEngine
   ) {}
 

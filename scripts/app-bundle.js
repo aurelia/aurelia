@@ -196,7 +196,7 @@ define('environment',["require", "exports"], function (require, exports) {
 
 
 
-define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/binding/parser", "./runtime/resources/repeat/repeat", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, ast_1, parser_1, repeat_1, if_1, else_1) {
+define('generated-configuration',["require", "exports", "./runtime/binding/ast", "./runtime/binding/expression-parser", "./runtime/resources/repeat/repeat", "./runtime/resources/if", "./runtime/resources/else"], function (require, exports, ast_1, expression_parser_1, repeat_1, if_1, else_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var emptyArray = [];
@@ -229,7 +229,7 @@ define('generated-configuration',["require", "exports", "./runtime/binding/ast",
     var globalResources = [repeat_1.Repeat, if_1.If, else_1.Else];
     exports.GeneratedConfiguration = {
         register: function (container) {
-            container.get(parser_1.IParser).cache(expressionCache);
+            container.get(expression_parser_1.IExpressionParser).cache(expressionCache);
             container.register.apply(container, globalResources);
         }
     };
@@ -1767,11 +1767,11 @@ define('debug/binding/unparser',["require", "exports", "../../runtime/binding/as
 
 
 
-define('jit/binding/parser',["require", "exports", "../../runtime/binding/parser"], function (require, exports, parser_1) {
+define('jit/binding/expression-parser',["require", "exports", "../../runtime/binding/expression-parser"], function (require, exports, expression_parser_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function register(container) {
-        container.registerTransformer(parser_1.IParser, function (parser) {
+        container.registerTransformer(expression_parser_1.IExpressionParser, function (parser) {
             return Object.assign(parser, {
                 parseCore: function (expression) {
                     throw Error('Full expression parser not yet implemented.');
@@ -3999,6 +3999,35 @@ define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"]
 
 
 
+define('runtime/binding/expression-parser',["require", "exports", "../reporter", "../di"], function (require, exports, reporter_1, di_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IExpressionParser = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton(ExpressionParser); });
+    var ExpressionParser = (function () {
+        function ExpressionParser() {
+            this.lookup = Object.create(null);
+        }
+        ExpressionParser.prototype.parse = function (expression) {
+            var found = this.lookup[expression];
+            if (found === undefined) {
+                found = this.parseCore(expression);
+                this.lookup[expression] = found;
+            }
+            return found;
+        };
+        ExpressionParser.prototype.cache = function (expressions) {
+            Object.assign(this.lookup, expressions);
+        };
+        ExpressionParser.prototype.parseCore = function (expression) {
+            throw reporter_1.Reporter.error(3);
+        };
+        return ExpressionParser;
+    }());
+});
+
+
+
 define('runtime/binding/listener',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4354,35 +4383,6 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             __metadata("design:paramtypes", [Object, Object, Object, Object])
         ], ObserverLocator);
         return ObserverLocator;
-    }());
-});
-
-
-
-define('runtime/binding/parser',["require", "exports", "../reporter", "../di"], function (require, exports, reporter_1, di_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.IParser = di_1.DI.createInterface()
-        .withDefault(function (x) { return x.singleton(Parser); });
-    var Parser = (function () {
-        function Parser() {
-            this.lookup = Object.create(null);
-        }
-        Parser.prototype.parse = function (expression) {
-            var found = this.lookup[expression];
-            if (found === undefined) {
-                found = this.parseCore(expression);
-                this.lookup[expression] = found;
-            }
-            return found;
-        };
-        Parser.prototype.cache = function (expressions) {
-            Object.assign(this.lookup, expressions);
-        };
-        Parser.prototype.parseCore = function (expression) {
-            throw reporter_1.Reporter.error(3);
-        };
-        return Parser;
     }());
 });
 
@@ -6913,7 +6913,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/templating/rendering-engine',["require", "exports", "./runtime-behavior", "../di", "../task-queue", "./view", "../dom", "./renderer", "./lifecycle", "../reporter", "./animator", "./render-context", "../binding/observer-locator", "../binding/event-manager", "../binding/parser"], function (require, exports, runtime_behavior_1, di_1, task_queue_1, view_1, dom_1, renderer_1, lifecycle_1, reporter_1, animator_1, render_context_1, observer_locator_1, event_manager_1, parser_1) {
+define('runtime/templating/rendering-engine',["require", "exports", "./runtime-behavior", "../di", "../task-queue", "./view", "../dom", "./renderer", "./lifecycle", "../reporter", "./animator", "./render-context", "../binding/observer-locator", "../binding/event-manager", "../binding/expression-parser"], function (require, exports, runtime_behavior_1, di_1, task_queue_1, view_1, dom_1, renderer_1, lifecycle_1, reporter_1, animator_1, render_context_1, observer_locator_1, event_manager_1, expression_parser_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IRenderingEngine = di_1.DI.createInterface()
@@ -7033,7 +7033,7 @@ define('runtime/templating/rendering-engine',["require", "exports", "./runtime-b
             return new renderer_1.Renderer(container, this.taskQueue, this.observerLocator, this.eventManager, this.parser, this);
         };
         RenderingEngine = __decorate([
-            di_1.inject(di_1.IContainer, task_queue_1.ITaskQueue, observer_locator_1.IObserverLocator, event_manager_1.IEventManager, parser_1.IParser, animator_1.IAnimator),
+            di_1.inject(di_1.IContainer, task_queue_1.ITaskQueue, observer_locator_1.IObserverLocator, event_manager_1.IEventManager, expression_parser_1.IExpressionParser, animator_1.IAnimator),
             __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object])
         ], RenderingEngine);
         return RenderingEngine;

@@ -20,7 +20,7 @@ import { IVisualFactory, VisualWithCentralComponent, IVisual, RenderCallback } f
 import { ITemplate } from "./template";
 import { IObserverLocator } from "../binding/observer-locator";
 import { IEventManager } from "../binding/event-manager";
-import { IParser } from "../binding/parser";
+import { IExpressionParser } from "../binding/expression-parser";
 
 export interface IRenderingEngine {
   getElementTemplate(source: ITemplateSource, componentType: IElementType): ITemplate;
@@ -45,7 +45,7 @@ const noViewTemplate: ITemplate = {
 
 type ExposedContext = IRenderContext & IComponentOperation & IContainer;
 
-@inject(IContainer, ITaskQueue, IObserverLocator, IEventManager, IParser, IAnimator)
+@inject(IContainer, ITaskQueue, IObserverLocator, IEventManager, IExpressionParser, IAnimator)
 class RenderingEngine implements IRenderingEngine {
   private templateLookup = new Map<ITemplateSource, ITemplate>();
   private factoryLookup = new Map<ITemplateSource, IVisualFactory>();
@@ -56,7 +56,7 @@ class RenderingEngine implements IRenderingEngine {
     private taskQueue: ITaskQueue,
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
-    private parser: IParser,
+    private parser: IExpressionParser,
     private animator: IAnimator
   ) {}
 

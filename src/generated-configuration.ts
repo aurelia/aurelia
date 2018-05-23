@@ -1,6 +1,6 @@
 import { AccessScope, TemplateLiteral, LiteralString, Conditional, CallScope, IExpression, AccessMember } from "./runtime/binding/ast";
 import { IContainer } from "./runtime/di";
-import { IParser } from "./runtime/binding/parser";
+import { IExpressionParser } from "./runtime/binding/expression-parser";
 import { Repeat } from "./runtime/resources/repeat/repeat";
 import { If } from "./runtime/resources/if";
 import { Else } from "./runtime/resources/else";
@@ -43,7 +43,7 @@ const globalResources = [Repeat, If, Else];
 
 export const GeneratedConfiguration = {
   register(container: IContainer) {
-    container.get(IParser).cache(expressionCache);
+    container.get(IExpressionParser).cache(expressionCache);
     container.register(...globalResources);
   }
 };

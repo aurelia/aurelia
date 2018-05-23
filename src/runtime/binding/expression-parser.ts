@@ -2,15 +2,15 @@ import { IExpression } from './ast';
 import { Reporter } from '../reporter';
 import { DI } from '../di';
 
-export interface IParser {
+export interface IExpressionParser {
   cache(expressions: Record<string, IExpression>): void;
   parse(expression: string): IExpression;
 }
 
-export const IParser = DI.createInterface<IParser>()
-  .withDefault(x => x.singleton(Parser));
+export const IExpressionParser = DI.createInterface<IExpressionParser>()
+  .withDefault(x => x.singleton(ExpressionParser));
 
-class Parser implements IParser {
+class ExpressionParser implements IExpressionParser {
   private lookup: Record<string, IExpression> = Object.create(null);
 
   parse(expression: string): IExpression {

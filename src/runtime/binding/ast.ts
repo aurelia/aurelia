@@ -1,7 +1,7 @@
 import { IBinding } from './binding';
 import { IServiceLocator } from '../di';
 import { IScope, BindingContext } from './binding-context';
-import { Signal } from './signal';
+import { ISignaler } from './signaler';
 
 export interface IExpression {
   evaluate(scope: IScope, locator: IServiceLocator | null, mustEvaluateIfFunction?: boolean): any;
@@ -109,22 +109,46 @@ export class ValueConverter implements IExpression {
   }
 
   connect(binding: IBinding, scope: IScope) {
-    let expressions = this.allArgs;
+    const expressions = this.allArgs;
     let i = expressions.length;
+    
     while (i--) {
       expressions[i].connect(binding, scope);
     }
-    let converter = binding.locator.get(this.name);
+
+    const converter = binding.locator.get(this.name);
+    
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
-    let signals = (converter as any).signals;
+    
+    const signals = (converter as any).signals;
+    
     if (signals === undefined) {
       return;
     }
+    
+    const signaler = binding.locator.get(ISignaler);
     i = signals.length;
+    
     while (i--) {
-      Signal.connect((binding as any), signals[i]);
+      signaler.addSignalListener(signals[i], binding as any);
+    }
+  }
+
+  unbind(binding: IBinding, scope: IScope) {
+    const converter = binding.locator.get(this.name);
+    const signals = (converter as any).signals;
+    
+    if (signals === undefined) {
+      return;
+    }
+    
+    const signaler = binding.locator.get(ISignaler);
+    let i = signals.length;
+    
+    while (i--) {
+      signaler.removeSignalListener(signals[i], binding as any);
     }
   }
 }

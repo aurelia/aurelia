@@ -2231,7 +2231,7 @@ define('runtime/binding/array-observation',["require", "exports", "./collection-
 
 
 
-define('runtime/binding/ast',["require", "exports", "./binding-context", "./signal"], function (require, exports, binding_context_1, signal_1) {
+define('runtime/binding/ast',["require", "exports", "./binding-context", "./signaler"], function (require, exports, binding_context_1, signaler_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Chain = (function () {
@@ -2336,9 +2336,22 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             if (signals === undefined) {
                 return;
             }
+            var signaler = binding.locator.get(signaler_1.ISignaler);
             i = signals.length;
             while (i--) {
-                signal_1.Signal.connect(binding, signals[i]);
+                signaler.addSignalListener(signals[i], binding);
+            }
+        };
+        ValueConverter.prototype.unbind = function (binding, scope) {
+            var converter = binding.locator.get(this.name);
+            var signals = converter.signals;
+            if (signals === undefined) {
+                return;
+            }
+            var signaler = binding.locator.get(signaler_1.ISignaler);
+            var i = signals.length;
+            while (i--) {
+                signaler.removeSignalListener(signals[i], binding);
             }
         };
         return ValueConverter;
@@ -4840,23 +4853,34 @@ define('runtime/binding/set-observation',["require", "exports", "./collection-ob
 
 
 
-define('runtime/binding/signal',["require", "exports"], function (require, exports) {
+define('runtime/binding/signaler',["require", "exports", "../di", "./binding-context"], function (require, exports, di_1, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var signals = {};
-    exports.Signal = {
-        connect: function (binding, signalName) {
-            if (!signals.hasOwnProperty(signalName)) {
-                signals[signalName] = 0;
-            }
-            binding.observeProperty(signals, signalName);
-        },
-        notify: function (signalName) {
-            if (signals.hasOwnProperty(signalName)) {
-                signals[signalName]++;
-            }
+    exports.ISignaler = di_1.DI.createInterface()
+        .withDefault(function (x) { return x.singleton((function () {
+        function class_1() {
         }
-    };
+        class_1.prototype.dispatchSignal = function (name) {
+            var bindings = this.signals[name];
+            if (!bindings) {
+                return;
+            }
+            var i = bindings.length;
+            while (i--) {
+                bindings[i].call(binding_context_1.sourceContext);
+            }
+        };
+        class_1.prototype.addSignalListener = function (name, listener) {
+            (this.signals[name] || (this.signals[name] = [])).push(listener);
+        };
+        class_1.prototype.removeSignalListener = function (name, listener) {
+            var listeners = this.signals[name];
+            if (listeners) {
+                listeners.splice(listeners.indexOf(listener), 1);
+            }
+        };
+        return class_1;
+    }())); });
 });
 
 
@@ -5735,34 +5759,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/signals',["require", "exports", "../binding/binding-context", "../di", "../decorators", "../reporter"], function (require, exports, binding_context_1, di_1, decorators_1, reporter_1) {
+define('runtime/resources/signals',["require", "exports", "../di", "../decorators", "../reporter", "../binding/signaler"], function (require, exports, di_1, decorators_1, reporter_1, signaler_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ISignaler = di_1.DI.createInterface()
-        .withDefault(function (x) { return x.singleton((function () {
-        function class_1() {
-        }
-        class_1.prototype.dispatchSignal = function (name) {
-            var bindings = this.signals[name];
-            if (!bindings) {
-                return;
-            }
-            var i = bindings.length;
-            while (i--) {
-                bindings[i].call(binding_context_1.sourceContext);
-            }
-        };
-        class_1.prototype.addSignalListener = function (name, listener) {
-            (this.signals[name] || (this.signals[name] = [])).push(listener);
-        };
-        class_1.prototype.removeSignalListener = function (name, listener) {
-            var listeners = this.signals[name];
-            if (listeners) {
-                listeners.splice(listeners.indexOf(listener), 1);
-            }
-        };
-        return class_1;
-    }())); });
     var SignalBindingBehavior = (function () {
         function SignalBindingBehavior(signaler) {
             this.signaler = signaler;
@@ -5805,7 +5804,7 @@ define('runtime/resources/signals',["require", "exports", "../binding/binding-co
         };
         SignalBindingBehavior = __decorate([
             decorators_1.bindingBehavior('signal'),
-            di_1.inject(exports.ISignaler),
+            di_1.inject(signaler_1.ISignaler),
             __metadata("design:paramtypes", [Object])
         ], SignalBindingBehavior);
         return SignalBindingBehavior;

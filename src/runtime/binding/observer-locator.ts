@@ -160,13 +160,9 @@ class ObserverLocator implements IObserverLocator {
 
     const descriptor = getPropertyDescriptor(obj, propertyName);
 
-    //TODO: do something with this so that it doesn't always require the full expression parser
-    //if (hasDeclaredDependencies(descriptor)) {
-    //  return createComputedObserver(obj, propertyName, descriptor, this);
-    //}
-
     if (descriptor) {
       const existingGetterOrSetter: ((arg?: any) => any) & { getObserver?: Function } = descriptor.get || descriptor.set;
+      
       if (existingGetterOrSetter) {
         if (existingGetterOrSetter.getObserver) {
           return existingGetterOrSetter.getObserver(obj);
@@ -177,6 +173,8 @@ class ObserverLocator implements IObserverLocator {
         if (adapterObserver) {
           return adapterObserver;
         }
+
+        // TODO: plugin in computed observer
 
         return this.dirtyChecker.createProperty(obj, propertyName);
       }

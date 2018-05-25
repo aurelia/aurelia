@@ -12,6 +12,11 @@ export class App {
   duplicateMessage = true;
   todos: Todo[] = [];
 
+  get computedMessage() {
+    //console.log('Computed');
+    return this.message + ' Computed';
+  }
+
   addTodo() {
     this.todos.push(new Todo(this.message));
   }

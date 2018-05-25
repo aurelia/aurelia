@@ -6,12 +6,18 @@ define('app-config',["require", "exports", "./runtime/templating/instructions", 
         dependencies: [
             import1
         ],
-        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n    <button class=\"au\">Add Todo</button>\n  ",
+        template: "\n    <au-marker class=\"au\"></au-marker> <br>\n    <au-marker class=\"au\"></au-marker> <br>\n    <input type=\"text\" class=\"au\">\n    <name-tag class=\"au\">\n      <h2>Message: <au-marker class=\"au\"></au-marker> </h2>\n    </name-tag>\n    <input type=\"checkbox\" class=\"au\" />\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n    <au-marker class=\"au\"></au-marker>\n    <button class=\"au\">Add Todo</button>\n  ",
         instructions: [
             [
                 {
                     type: instructions_1.TargetedInstructionType.textBinding,
                     src: 'message'
+                }
+            ],
+            [
+                {
+                    type: instructions_1.TargetedInstructionType.textBinding,
+                    src: 'computedMessage'
                 }
             ],
             [
@@ -154,6 +160,13 @@ define('app',["require", "exports", "./app-config", "./runtime/decorators"], fun
             this.duplicateMessage = true;
             this.todos = [];
         }
+        Object.defineProperty(App.prototype, "computedMessage", {
+            get: function () {
+                return this.message + ' Computed';
+            },
+            enumerable: true,
+            configurable: true
+        });
         App.prototype.addTodo = function () {
             this.todos.push(new Todo(this.message));
         };
@@ -2494,6 +2507,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
     exports.AccessKeyed = AccessKeyed;
     var CallScope = (function () {
         function CallScope(name, args, ancestor) {
+            if (ancestor === void 0) { ancestor = 0; }
             this.name = name;
             this.args = args;
             this.ancestor = ancestor;
@@ -4012,7 +4026,7 @@ define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"]
 
 
 
-define('runtime/binding/expression-parser',["require", "exports", "../reporter", "../di"], function (require, exports, reporter_1, di_1) {
+define('runtime/binding/expression-parser',["require", "exports", "./ast", "../reporter", "../di", "../platform"], function (require, exports, ast_1, reporter_1, di_1, platform_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IExpressionParser = di_1.DI.createInterface()
@@ -4033,7 +4047,32 @@ define('runtime/binding/expression-parser',["require", "exports", "../reporter",
             Object.assign(this.lookup, expressions);
         };
         ExpressionParser.prototype.parseCore = function (expression) {
-            throw reporter_1.Reporter.error(3);
+            try {
+                var parts = expression.split('.');
+                var firstPart = parts[0];
+                var current = void 0;
+                if (firstPart.endsWith('()')) {
+                    current = new ast_1.CallScope(firstPart.replace('()', ''), platform_1.PLATFORM.emptyArray);
+                }
+                else {
+                    current = new ast_1.AccessScope(parts[0]);
+                }
+                var index = 1;
+                while (index < parts.length) {
+                    var currentPart = parts[index];
+                    if (currentPart.endsWith('()')) {
+                        current = new ast_1.CallMember(current, currentPart.replace('()', ''), platform_1.PLATFORM.emptyArray);
+                    }
+                    else {
+                        current = new ast_1.AccessMember(current, parts[index]);
+                    }
+                    index++;
+                }
+                return current;
+            }
+            catch (e) {
+                throw reporter_1.Reporter.error(3, e);
+            }
         };
         return ExpressionParser;
     }());
@@ -8894,5 +8933,11 @@ define('runtime/resources/repeat/repeater',["require", "exports"], function (req
 });
 
 
+
+
+
+
+
+define("runtime/binding/computed-observer", [],function(){});
 
 //# sourceMappingURL=app-bundle.js.map

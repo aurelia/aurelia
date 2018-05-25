@@ -12,6 +12,7 @@ export const appConfig: ITemplateSource = {
   ],
   template: `
     <au-marker class="au"></au-marker> <br>
+    <au-marker class="au"></au-marker> <br>
     <input type="text" class="au">
     <name-tag class="au">
       <h2>Message: <au-marker class="au"></au-marker> </h2>
@@ -27,6 +28,12 @@ export const appConfig: ITemplateSource = {
       {
         type: TargetedInstructionType.textBinding,
         src: 'message'
+      }
+    ],
+    [
+      {
+        type: TargetedInstructionType.textBinding,
+        src: 'computedMessage'
       }
     ],
     [

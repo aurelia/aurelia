@@ -1,6 +1,7 @@
-import { IExpression } from './ast';
+import { IExpression, AccessScope, AccessMember, CallScope, CallMember } from './ast';
 import { Reporter } from '../reporter';
 import { DI } from '../di';
+import { PLATFORM } from '../platform';
 
 export interface IExpressionParser {
   cache(expressions: Record<string, IExpression>): void;
@@ -29,6 +30,34 @@ class ExpressionParser implements IExpressionParser {
   }
 
   private parseCore(expression: string): IExpression {
-    throw Reporter.error(3);
+    try {
+      const parts = expression.split('.');
+      const firstPart = parts[0];
+      let current: IExpression;
+
+      if (firstPart.endsWith('()')) {
+        current = new CallScope(firstPart.replace('()', ''), PLATFORM.emptyArray);
+      } else {
+        current = new AccessScope(parts[0]);
+      }
+
+      let index = 1;
+
+      while(index < parts.length) {
+        let currentPart = parts[index];
+
+        if (currentPart.endsWith('()')) {
+          current = new CallMember(current, currentPart.replace('()', ''), PLATFORM.emptyArray);
+        } else {
+          current = new AccessMember(current, parts[index]);
+        }
+        
+        index++;
+      }
+
+      return current;
+    } catch(e) {
+      throw Reporter.error(3, e);
+    }
   }
 }

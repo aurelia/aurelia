@@ -285,15 +285,17 @@ export class AccessKeyed implements IExpression {
 }
 
 export class CallScope implements IExpression {
-  constructor(private name: string, private args: IExpression[], private ancestor: number) { }
+  constructor(private name: string, private args: IExpression[], private ancestor: number = 0) { }
 
   evaluate(scope: IScope, locator: IServiceLocator | null, mustEvaluate?: boolean) {
     let args = evalList(scope, this.args, locator);
     let context = BindingContext.get(scope, this.name, this.ancestor);
     let func = getFunction(context, this.name, mustEvaluate);
+    
     if (func) {
       return func.apply(context, args);
     }
+
     return undefined;
   }
 

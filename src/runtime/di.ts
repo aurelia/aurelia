@@ -147,7 +147,7 @@ if (!('getOwnMetadata' in Reflect)) {
 export const IContainer = <IInterfaceSymbol<IContainer>>DI.createInterface<IContainer>();
 export const IServiceLocator = <IInterfaceSymbol<IServiceLocator>>IContainer;
 
-enum ResolverStrategy {
+const enum ResolverStrategy {
   instance = 0,
   singleton = 1,
   transient = 2,

@@ -807,19 +807,19 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
                 Key.register = function (container, key) {
                     return configure({
                         instance: function (value) {
-                            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.instance, value));
+                            return container.registerResolver(Key, new Resolver(key || Key, 0, value));
                         },
                         singleton: function (value) {
-                            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.singleton, value));
+                            return container.registerResolver(Key, new Resolver(key || Key, 1, value));
                         },
                         transient: function (value) {
-                            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.transient, value));
+                            return container.registerResolver(Key, new Resolver(key || Key, 2, value));
                         },
                         factory: function (value) {
-                            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.factory, value));
+                            return container.registerResolver(Key, new Resolver(key || Key, 3, value));
                         },
                         aliasTo: function (destinationKey) {
-                            return container.registerResolver(destinationKey, new Resolver(key || Key, ResolverStrategy.alias, Key));
+                            return container.registerResolver(destinationKey, new Resolver(key || Key, 5, Key));
                         },
                     });
                 };
@@ -843,15 +843,6 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
     }
     exports.IContainer = exports.DI.createInterface();
     exports.IServiceLocator = exports.IContainer;
-    var ResolverStrategy;
-    (function (ResolverStrategy) {
-        ResolverStrategy[ResolverStrategy["instance"] = 0] = "instance";
-        ResolverStrategy[ResolverStrategy["singleton"] = 1] = "singleton";
-        ResolverStrategy[ResolverStrategy["transient"] = 2] = "transient";
-        ResolverStrategy[ResolverStrategy["factory"] = 3] = "factory";
-        ResolverStrategy[ResolverStrategy["array"] = 4] = "array";
-        ResolverStrategy[ResolverStrategy["alias"] = 5] = "alias";
-    })(ResolverStrategy || (ResolverStrategy = {}));
     var Resolver = (function () {
         function Resolver(key, strategy, state) {
             this.key = key;
@@ -863,18 +854,18 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
         };
         Resolver.prototype.resolve = function (handler, requestor) {
             switch (this.strategy) {
-                case ResolverStrategy.instance:
+                case 0:
                     return this.state;
-                case ResolverStrategy.singleton:
-                    this.strategy = ResolverStrategy.instance;
+                case 1:
+                    this.strategy = 0;
                     return this.state = handler.getConstructionHandler(this.state).construct(handler);
-                case ResolverStrategy.transient:
+                case 2:
                     return handler.getConstructionHandler(this.state).construct(requestor);
-                case ResolverStrategy.factory:
+                case 3:
                     return this.state(handler, requestor, this);
-                case ResolverStrategy.array:
+                case 4:
                     return this.state[0].get(handler, requestor);
-                case ResolverStrategy.alias:
+                case 5:
                     return handler.get(this.state);
                 default:
                     throw reporter_1.Reporter.error(6, this.strategy);
@@ -882,8 +873,8 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
         };
         Resolver.prototype.getConstructionHandler = function (container) {
             switch (this.strategy) {
-                case ResolverStrategy.singleton:
-                case ResolverStrategy.transient:
+                case 1:
+                case 2:
                     return container.getConstructionHandler(this.state);
                 default:
                     return null;
@@ -1070,19 +1061,19 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
     }());
     exports.Registration = {
         instance: function (key, value) {
-            return new Resolver(key, ResolverStrategy.instance, value);
+            return new Resolver(key, 0, value);
         },
         singleton: function (key, value) {
-            return new Resolver(key, ResolverStrategy.singleton, value);
+            return new Resolver(key, 1, value);
         },
         transient: function (key, value) {
-            return new Resolver(key, ResolverStrategy.transient, value);
+            return new Resolver(key, 2, value);
         },
         factory: function (key, value) {
-            return new Resolver(key, ResolverStrategy.factory, value);
+            return new Resolver(key, 3, value);
         },
         alias: function (originalKey, aliasKey) {
-            return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
+            return new Resolver(aliasKey, 5, originalKey);
         }
     };
     function validateKey(key) {

@@ -1,8 +1,6 @@
 import { IContainer, IResolver, DI } from './di';
 import { IElementComponent } from './templating/component';
 
-export const INode = DI.createInterface('INode');
-
 export interface INodeLike {
   readonly firstChild: INode | null;
   readonly lastChild: INode | null;
@@ -14,6 +12,8 @@ export interface INode extends INodeLike {
   readonly nextSibling: INode | null;
   readonly previousSibling: INode | null;
 }
+
+export const INode = DI.createInterface<INode>();
 
 export interface IView extends INodeLike {
   childNodes: INode[];

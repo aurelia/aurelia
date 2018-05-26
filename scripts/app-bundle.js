@@ -1212,7 +1212,7 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
 define('runtime/dom',["require", "exports", "./di"], function (require, exports, di_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.INode = di_1.DI.createInterface('INode');
+    exports.INode = di_1.DI.createInterface();
     var platformSupportsShadowDOM = function () {
         var available = !!HTMLElement.prototype.attachShadow;
         platformSupportsShadowDOM = function () { return available; };

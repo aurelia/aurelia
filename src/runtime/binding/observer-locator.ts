@@ -24,6 +24,7 @@ import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCo
 import { Reporter } from '../reporter';
 import { DI, inject } from '../di';
 import { ITaskQueue } from '../task-queue';
+import { ComputedObserver } from './computed-observer';
 
 export interface ObjectObservationAdapter {
   getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
@@ -158,14 +159,12 @@ class ObserverLocator implements IObserverLocator {
       }
     }
 
-    const descriptor = getPropertyDescriptor(obj, propertyName);
+    const descriptor: any = getPropertyDescriptor(obj, propertyName);
 
     if (descriptor) {
-      const existingGetterOrSetter: ((arg?: any) => any) & { getObserver?: Function } = descriptor.get || descriptor.set;
-      
-      if (existingGetterOrSetter) {
-        if (existingGetterOrSetter.getObserver) {
-          return existingGetterOrSetter.getObserver(obj);
+      if (descriptor.get || descriptor.set) {
+        if (descriptor.get && descriptor.get.getObserver) {
+          return descriptor.get.getObserver(obj);
         }
 
         // attempt to use an adapter before resorting to dirty checking.
@@ -174,9 +173,7 @@ class ObserverLocator implements IObserverLocator {
           return adapterObserver;
         }
 
-        // TODO: plugin in computed observer
-
-        return this.dirtyChecker.createProperty(obj, propertyName);
+        return ComputedObserver.create(this, this.dirtyChecker, this.taskQueue, obj, propertyName, descriptor);
       }
     }
 

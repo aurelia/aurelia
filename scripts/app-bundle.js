@@ -162,7 +162,9 @@ define('app',["require", "exports", "./app-config", "./runtime/decorators"], fun
         }
         Object.defineProperty(App.prototype, "computedMessage", {
             get: function () {
-                return this.message + ' Computed';
+                console.log('Computed Called');
+                var value = "\n      " + this.message + " Computed:\n      Todo Count " + this.todos.length + "\n      Descriptions:\n      " + this.todos.map(function (x) { return x.description; }).join('\n') + "\n    ";
+                return value;
             },
             enumerable: true,
             configurable: true
@@ -4271,7 +4273,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/binding/observer-locator',["require", "exports", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checker", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg-analyzer", "../reporter", "../di", "../task-queue"], function (require, exports, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checker_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_analyzer_1, reporter_1, di_1, task_queue_1) {
+define('runtime/binding/observer-locator',["require", "exports", "../dom", "./array-observation", "./map-observation", "./set-observation", "./event-manager", "./dirty-checker", "./property-observation", "./select-value-observer", "./checked-observer", "./element-observation", "./class-observer", "./svg-analyzer", "../reporter", "../di", "../task-queue", "./computed-observer"], function (require, exports, dom_1, array_observation_1, map_observation_1, set_observation_1, event_manager_1, dirty_checker_1, property_observation_1, select_value_observer_1, checked_observer_1, element_observation_1, class_observer_1, svg_analyzer_1, reporter_1, di_1, task_queue_1, computed_observer_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IObserverLocator = di_1.DI.createInterface()
@@ -4369,16 +4371,15 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
             }
             var descriptor = getPropertyDescriptor(obj, propertyName);
             if (descriptor) {
-                var existingGetterOrSetter = descriptor.get || descriptor.set;
-                if (existingGetterOrSetter) {
-                    if (existingGetterOrSetter.getObserver) {
-                        return existingGetterOrSetter.getObserver(obj);
+                if (descriptor.get || descriptor.set) {
+                    if (descriptor.get && descriptor.get.getObserver) {
+                        return descriptor.get.getObserver(obj);
                     }
                     var adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
                     if (adapterObserver) {
                         return adapterObserver;
                     }
-                    return this.dirtyChecker.createProperty(obj, propertyName);
+                    return computed_observer_1.ComputedObserver.create(this, this.dirtyChecker, this.taskQueue, obj, propertyName, descriptor);
                 }
             }
             if (obj instanceof Array) {
@@ -8934,10 +8935,165 @@ define('runtime/resources/repeat/repeater',["require", "exports"], function (req
 
 
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('runtime/binding/computed-observer',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var proxySupported = typeof Proxy !== undefined;
+    var computedContext = 'computed-observer';
+    var ComputedController = (function () {
+        function ComputedController(instance, propertyName, descriptor, owner, observerLocator, taskQueue) {
+            this.instance = instance;
+            this.propertyName = propertyName;
+            this.owner = owner;
+            this.taskQueue = taskQueue;
+            this.queued = false;
+            this.dependencies = [];
+            this.subscriberCount = 0;
+            this.isCollecting = false;
+            this.proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
+            Reflect.defineProperty(instance, propertyName, {
+                get: descriptor.get.bind(this.proxy)
+            });
+        }
+        ComputedController.prototype.addDependency = function (subscribable) {
+            if (this.dependencies.includes(subscribable)) {
+                return;
+            }
+            this.dependencies.push(subscribable);
+        };
+        ComputedController.prototype.onSubscriberAdded = function () {
+            this.subscriberCount++;
+            if (this.subscriberCount > 1) {
+                return;
+            }
+            this.getValueAndCollectDependencies();
+        };
+        ComputedController.prototype.getValueAndCollectDependencies = function () {
+            var _this = this;
+            this.queued = false;
+            this.unsubscribeAllDependencies();
+            this.isCollecting = true;
+            var value = this.instance[this.propertyName];
+            this.isCollecting = false;
+            this.dependencies.forEach(function (x) { return x.subscribe(computedContext, _this); });
+            return value;
+        };
+        ComputedController.prototype.onSubscriberRemoved = function () {
+            this.subscriberCount--;
+            if (this.subscriberCount === 0) {
+                this.unsubscribeAllDependencies();
+            }
+        };
+        ComputedController.prototype.unsubscribeAllDependencies = function () {
+            var _this = this;
+            this.dependencies.forEach(function (x) { return x.unsubscribe(computedContext, _this); });
+            this.dependencies.length = 0;
+        };
+        ComputedController.prototype.call = function () {
+            if (!this.queued) {
+                this.queued = true;
+                this.taskQueue.queueMicroTask(this.owner);
+            }
+        };
+        return ComputedController;
+    }());
+    var ComputedObserver = (function (_super) {
+        __extends(ComputedObserver, _super);
+        function ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue) {
+            var _this = _super.call(this) || this;
+            _this.instance = instance;
+            _this.propertyName = propertyName;
+            _this.descriptor = descriptor;
+            _this.observerLocator = observerLocator;
+            _this.taskQueue = taskQueue;
+            _this.controller = new ComputedController(instance, propertyName, descriptor, _this, observerLocator, taskQueue);
+            return _this;
+        }
+        ComputedObserver.create = function (observerLocator, dirtyChecker, taskQueue, instance, propertyName, descriptor) {
+            if (!proxySupported || descriptor.configurable === false) {
+                return dirtyChecker.createProperty(instance, propertyName);
+            }
+            if (descriptor.get) {
+                if (descriptor.set) {
+                    throw new Error('Getter/Setter wrapper observer not implemented yet.');
+                }
+                return new ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue);
+            }
+            throw new Error('You cannot observer a setter only property.');
+        };
+        ComputedObserver.prototype.getValue = function () {
+            return this.currentValue;
+        };
+        ComputedObserver.prototype.setValue = function (newValue) { };
+        ComputedObserver.prototype.call = function () {
+            var oldValue = this.currentValue;
+            var newValue = this.controller.getValueAndCollectDependencies();
+            if (oldValue !== newValue) {
+                this.currentValue = newValue;
+                this.callSubscribers(newValue, oldValue);
+            }
+        };
+        ComputedObserver.prototype.subscribe = function (context, callable) {
+            this.addSubscriber(context, callable);
+            this.controller.onSubscriberAdded();
+        };
+        ComputedObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+            this.controller.onSubscriberRemoved();
+        };
+        return ComputedObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.ComputedObserver = ComputedObserver;
+    function createGetterTraps(observerLocator, controller) {
+        return {
+            get: function (instance, key) {
+                var value = instance[key];
+                if (key === '$observers' || typeof value === 'function' || !controller.isCollecting) {
+                    return value;
+                }
+                if (instance instanceof Array) {
+                    controller.addDependency(observerLocator.getArrayObserver(instance));
+                    if (key === 'length') {
+                        controller.addDependency(observerLocator.getArrayObserver(instance).getLengthObserver());
+                    }
+                }
+                else if (instance instanceof Map) {
+                    controller.addDependency(observerLocator.getMapObserver(instance));
+                    if (key === 'size') {
+                        controller.addDependency(this.getMapObserver(instance).getLengthObserver());
+                    }
+                }
+                else if (instance instanceof Set) {
+                    controller.addDependency(observerLocator.getSetObserver(instance));
+                    if (key === 'size') {
+                        return observerLocator.getSetObserver(instance).getLengthObserver();
+                    }
+                }
+                else {
+                    controller.addDependency(observerLocator.getObserver(instance, key));
+                }
+                return proxyOrValue(observerLocator, controller, value);
+            }
+        };
+    }
+    function proxyOrValue(observerLocator, controller, value) {
+        if (!(value instanceof Object)) {
+            return value;
+        }
+        return new Proxy(value, createGetterTraps(observerLocator, controller));
+    }
+});
 
 
-
-
-define("runtime/binding/computed-observer", [],function(){});
 
 //# sourceMappingURL=app-bundle.js.map

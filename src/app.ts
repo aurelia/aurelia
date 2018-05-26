@@ -13,8 +13,16 @@ export class App {
   todos: Todo[] = [];
 
   get computedMessage() {
-    //console.log('Computed');
-    return this.message + ' Computed';
+    console.log('Computed Called');
+
+    let value = `
+      ${this.message} Computed:
+      Todo Count ${this.todos.length}
+      Descriptions:
+      ${this.todos.map(x => x.description).join('\n')}
+    `;
+
+    return value;
   }
 
   addTodo() {

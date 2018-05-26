@@ -26,7 +26,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [x] Text
 * [x] Value Converters
 * [x] Binding Behaviors
-* [ ] Computed
+* [x] Computed
 
 ### Custom Elements
 

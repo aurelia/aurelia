@@ -5,6 +5,23 @@ import { IAccessor, ISubscribable } from "./observation";
 import { ICallable } from "../interfaces";
 import { ITaskQueue } from "../task-queue";
 
+/* @internal */
+export function createComputedObserver(observerLocator: IObserverLocator, dirtyChecker: IDirtyChecker, taskQueue: ITaskQueue, instance: any, propertyName: string, descriptor: PropertyDescriptor) {
+  if (!proxySupported || descriptor.configurable === false) {
+    return dirtyChecker.createProperty(instance, propertyName);
+  }
+
+  if (descriptor.get) {
+    if (descriptor.set) {
+      throw new Error('Getter/Setter wrapper observer not implemented yet.')
+    }
+
+    return new ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue);
+  }
+
+  throw new Error('You cannot observer a setter only property.');
+}
+
 const proxySupported = typeof Proxy !== undefined;
 const computedContext = 'computed-observer';
 
@@ -82,11 +99,11 @@ class ComputedController {
   }
 }
 
-export class ComputedObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
+class ComputedObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
   private currentValue: any;
   private controller: ComputedController;
   
-  private constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private taskQueue: ITaskQueue) {
+  constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private taskQueue: ITaskQueue) {
     super();
 
     this.controller = new ComputedController(
@@ -97,22 +114,6 @@ export class ComputedObserver extends SubscriberCollection implements IAccessor,
       observerLocator, 
       taskQueue
     );       
-  }
-
-  static create(observerLocator: IObserverLocator, dirtyChecker: IDirtyChecker, taskQueue: ITaskQueue, instance: any, propertyName: string, descriptor: PropertyDescriptor) {
-    if (!proxySupported || descriptor.configurable === false) {
-      return dirtyChecker.createProperty(instance, propertyName);
-    }
-
-    if (descriptor.get) {
-      if (descriptor.set) {
-        throw new Error('Getter/Setter wrapper observer not implemented yet.')
-      }
-
-      return new ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue);
-    }
-  
-    throw new Error('You cannot observer a setter only property.');
   }
 
   getValue() {

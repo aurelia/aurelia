@@ -24,7 +24,7 @@ import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCo
 import { Reporter } from '../reporter';
 import { DI, inject } from '../di';
 import { ITaskQueue } from '../task-queue';
-import { ComputedObserver } from './computed-observer';
+import { createComputedObserver } from './computed-observer';
 
 export interface ObjectObservationAdapter {
   getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
@@ -173,7 +173,7 @@ class ObserverLocator implements IObserverLocator {
           return adapterObserver;
         }
 
-        return ComputedObserver.create(this, this.dirtyChecker, this.taskQueue, obj, propertyName, descriptor);
+        return createComputedObserver(this, this.dirtyChecker, this.taskQueue, obj, propertyName, descriptor);
       }
     }
 

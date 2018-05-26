@@ -4370,7 +4370,7 @@ define('runtime/binding/observer-locator',["require", "exports", "../dom", "./ar
                     if (adapterObserver) {
                         return adapterObserver;
                     }
-                    return computed_observer_1.ComputedObserver.create(this, this.dirtyChecker, this.taskQueue, obj, propertyName, descriptor);
+                    return computed_observer_1.createComputedObserver(this, this.dirtyChecker, this.taskQueue, obj, propertyName, descriptor);
                 }
             }
             if (obj instanceof Array) {
@@ -8939,6 +8939,19 @@ var __extends = (this && this.__extends) || (function () {
 define('runtime/binding/computed-observer',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    function createComputedObserver(observerLocator, dirtyChecker, taskQueue, instance, propertyName, descriptor) {
+        if (!proxySupported || descriptor.configurable === false) {
+            return dirtyChecker.createProperty(instance, propertyName);
+        }
+        if (descriptor.get) {
+            if (descriptor.set) {
+                throw new Error('Getter/Setter wrapper observer not implemented yet.');
+            }
+            return new ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue);
+        }
+        throw new Error('You cannot observer a setter only property.');
+    }
+    exports.createComputedObserver = createComputedObserver;
     var proxySupported = typeof Proxy !== undefined;
     var computedContext = 'computed-observer';
     var ComputedController = (function () {
@@ -9010,18 +9023,6 @@ define('runtime/binding/computed-observer',["require", "exports", "./subscriber-
             _this.controller = new ComputedController(instance, propertyName, descriptor, _this, observerLocator, taskQueue);
             return _this;
         }
-        ComputedObserver.create = function (observerLocator, dirtyChecker, taskQueue, instance, propertyName, descriptor) {
-            if (!proxySupported || descriptor.configurable === false) {
-                return dirtyChecker.createProperty(instance, propertyName);
-            }
-            if (descriptor.get) {
-                if (descriptor.set) {
-                    throw new Error('Getter/Setter wrapper observer not implemented yet.');
-                }
-                return new ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue);
-            }
-            throw new Error('You cannot observer a setter only property.');
-        };
         ComputedObserver.prototype.getValue = function () {
             return this.currentValue;
         };
@@ -9044,7 +9045,6 @@ define('runtime/binding/computed-observer',["require", "exports", "./subscriber-
         };
         return ComputedObserver;
     }(subscriber_collection_1.SubscriberCollection));
-    exports.ComputedObserver = ComputedObserver;
     function createGetterTraps(observerLocator, controller) {
         return {
             get: function (instance, key) {

@@ -6,27 +6,159 @@ import { ICallable } from "../interfaces";
 import { ITaskQueue } from "../task-queue";
 import { Reporter } from "../reporter";
 
+export interface IComputedOverrides {
+  // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
+  static?: boolean;
+
+  // Indicates that the getter of a getter/setter pair can change its value based on side-effects outside the setter.
+  volatile?: boolean;
+}
+
+const noProxy = !(typeof Proxy !== undefined);
+const computedContext = 'computed-observer';
+const computedOverrideDefaults: IComputedOverrides = { static: false, volatile: false };
+
 /* @internal */
 export function createComputedObserver(observerLocator: IObserverLocator, dirtyChecker: IDirtyChecker, taskQueue: ITaskQueue, instance: any, propertyName: string, descriptor: PropertyDescriptor) {
-  if (!proxySupported || descriptor.configurable === false) {
+  if (descriptor.configurable === false) {
     return dirtyChecker.createProperty(instance, propertyName);
   }
 
   if (descriptor.get) {
+    const overrides: IComputedOverrides = instance.constructor.computed 
+      ? instance.constructor.computed[propertyName] || computedOverrideDefaults
+      : computedOverrideDefaults;
+
     if (descriptor.set) {
-      throw new Error('Getter/Setter wrapper observer not implemented yet.')
+      if (overrides.volatile) {
+        return noProxy
+          ? dirtyChecker.createProperty(instance, propertyName)
+          : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue);
+      }
+
+      return new CustomSetterObserver(instance, propertyName, descriptor, taskQueue);
     }
 
-    return new ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue);
+    return noProxy
+      ? dirtyChecker.createProperty(instance, propertyName)
+      : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue);
   }
 
   throw Reporter.error(18, propertyName);
 }
 
-const proxySupported = typeof Proxy !== undefined;
-const computedContext = 'computed-observer';
+// Used when the getter is dependent solely on changes that happen within the setter.
+export class CustomSetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
+  private queued = false;
+  private observing = false;
+  private currentValue: any;
+  private oldValue: any;
 
-class ComputedController {
+  constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private taskQueue: ITaskQueue) {
+    super();
+  }
+
+  getValue() {
+    return this.instance[this.propertyName];
+  }
+
+  setValue(newValue: any) {
+    this.instance[this.propertyName] = newValue;
+  }
+
+  call() {
+    const oldValue = this.oldValue;
+    const newValue = this.currentValue;
+
+    this.queued = false;
+    this.callSubscribers(newValue, oldValue);
+  }
+
+  subscribe(context: string, callable: ICallable) {
+    if (!this.observing) {
+      this.convertProperty();
+    }
+
+    this.addSubscriber(context, callable);
+  }
+
+  unsubscribe(context: string, callable: ICallable) {
+    this.removeSubscriber(context, callable);
+  }
+
+  convertProperty() {
+    const setter = this.descriptor.set;
+    const that = this;
+
+    this.observing = true;
+    this.currentValue = this.instance[this.propertyName];
+
+    Reflect.defineProperty(this.instance, this.propertyName, {
+      set: function(newValue) {
+        setter(newValue);
+
+        const oldValue = this.currentValue;
+
+        if (oldValue !== newValue) {
+          if (!that.queued) {
+            that.oldValue = oldValue;
+            that.queued = true;
+            that.taskQueue.queueMicroTask(that);
+          }
+
+          that.currentValue = newValue;
+        }
+      }
+    });
+  }
+}
+
+// Used when there is no setter, and the getter is dependent on other properties of the object;
+// Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
+class GetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
+  private controller: GetterController;
+  
+  constructor(private overrides: IComputedOverrides, private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private taskQueue: ITaskQueue) {
+    super();
+
+    this.controller = new GetterController(
+      overrides,
+      instance, 
+      propertyName, 
+      descriptor, 
+      this, 
+      observerLocator, 
+      taskQueue
+    );       
+  }
+
+  getValue() {
+    return this.controller.value;
+  }
+
+  setValue(newValue) { }
+
+  call() {
+    const oldValue = this.controller.value;
+    const newValue = this.controller.getValueAndCollectDependencies();
+    
+    if (oldValue !== newValue) {
+      this.callSubscribers(newValue, oldValue);
+    }
+  }
+
+  subscribe(context: string, callable: ICallable) {
+    this.addSubscriber(context, callable);
+    this.controller.onSubscriberAdded();
+  }
+
+  unsubscribe(context: string, callable: ICallable) {
+    this.removeSubscriber(context, callable);
+    this.controller.onSubscriberRemoved();
+  }
+}
+
+class GetterController {
   private queued = false;
   private dependencies: ISubscribable[] = [];
   private subscriberCount = 0;
@@ -35,16 +167,17 @@ class ComputedController {
   isCollecting = false;
 
   constructor(
+    private overrides: IComputedOverrides,
     private instance: any,
     private propertyName: string,
     descriptor: PropertyDescriptor,
-    private owner: ComputedObserver, 
+    private owner: GetterObserver, 
     observerLocator: IObserverLocator, 
     private taskQueue: ITaskQueue
   ) {
-    let proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
-    let getter = descriptor.get;
-    let ctrl = this;
+    const proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
+    const getter = descriptor.get;
+    const ctrl = this;
 
     Reflect.defineProperty(instance, propertyName, {
       get: function() {
@@ -72,18 +205,25 @@ class ComputedController {
       return;
     }
     
-    this.getValueAndCollectDependencies();
+    this.getValueAndCollectDependencies(true);
   }
 
-  getValueAndCollectDependencies() {
+  getValueAndCollectDependencies(requireCollect = false) {
     this.queued = false;
-    this.unsubscribeAllDependencies();
 
-    this.isCollecting = true;
+    const dynamicDependencies = !this.overrides.static || requireCollect;
+
+    if (dynamicDependencies) {
+      this.unsubscribeAllDependencies();
+      this.isCollecting = true;
+    }
+
     this.value = this.instance[this.propertyName]; // triggers observer collection
-    this.isCollecting = false;
-
-    this.dependencies.forEach(x => x.subscribe(computedContext, this));
+    
+    if (dynamicDependencies) {
+      this.isCollecting = false;
+      this.dependencies.forEach(x => x.subscribe(computedContext, this));
+    }
 
     return this.value;
   }
@@ -109,52 +249,10 @@ class ComputedController {
   }
 }
 
-class ComputedObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private controller: ComputedController;
-  
-  constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private taskQueue: ITaskQueue) {
-    super();
-
-    this.controller = new ComputedController(
-      instance, 
-      propertyName, 
-      descriptor, 
-      this, 
-      observerLocator, 
-      taskQueue
-    );       
-  }
-
-  getValue() {
-    return this.controller.value;
-  }
-
-  setValue(newValue) { }
-
-  call() {
-    let oldValue = this.controller.value;
-    let newValue = this.controller.getValueAndCollectDependencies();
-    
-    if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue);
-    }
-  }
-
-  subscribe(context: string, callable: ICallable) {
-    this.addSubscriber(context, callable);
-    this.controller.onSubscriberAdded();
-  }
-
-  unsubscribe(context: string, callable: ICallable) {
-    this.removeSubscriber(context, callable);
-    this.controller.onSubscriberRemoved();
-  }
-}
-
-function createGetterTraps(observerLocator: IObserverLocator, controller: ComputedController) {
+function createGetterTraps(observerLocator: IObserverLocator, controller: GetterController) {
   return {
     get: function(instance, key) {
-      let value = instance[key];
+      const value = instance[key];
 
       if (key === '$observers' || typeof value === 'function' || !controller.isCollecting) {
         return value;
@@ -187,7 +285,7 @@ function createGetterTraps(observerLocator: IObserverLocator, controller: Comput
   }
 }
 
-function proxyOrValue(observerLocator: IObserverLocator, controller: ComputedController, value: any) {
+function proxyOrValue(observerLocator: IObserverLocator, controller: GetterController, value: any) {
   if (!(value instanceof Object)) {
     return value;
   }

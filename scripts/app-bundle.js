@@ -768,6 +768,13 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
         return deco;
     }
     exports.bindable = bindable;
+    function computed(config) {
+        return function (target, key, descriptor) {
+            var computed = target.computed || (target.computed = {});
+            computed[key] = config;
+        };
+    }
+    exports.computed = computed;
 });
 
 
@@ -8942,23 +8949,125 @@ var __extends = (this && this.__extends) || (function () {
 define('runtime/binding/computed-observer',["require", "exports", "./subscriber-collection", "../reporter"], function (require, exports, subscriber_collection_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var noProxy = !(typeof Proxy !== undefined);
+    var computedContext = 'computed-observer';
+    var computedOverrideDefaults = { static: false, volatile: false };
     function createComputedObserver(observerLocator, dirtyChecker, taskQueue, instance, propertyName, descriptor) {
-        if (!proxySupported || descriptor.configurable === false) {
+        if (descriptor.configurable === false) {
             return dirtyChecker.createProperty(instance, propertyName);
         }
         if (descriptor.get) {
+            var overrides = instance.constructor.computed
+                ? instance.constructor.computed[propertyName] || computedOverrideDefaults
+                : computedOverrideDefaults;
             if (descriptor.set) {
-                throw new Error('Getter/Setter wrapper observer not implemented yet.');
+                if (overrides.volatile) {
+                    return noProxy
+                        ? dirtyChecker.createProperty(instance, propertyName)
+                        : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue);
+                }
+                return new CustomSetterObserver(instance, propertyName, descriptor, taskQueue);
             }
-            return new ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue);
+            return noProxy
+                ? dirtyChecker.createProperty(instance, propertyName)
+                : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue);
         }
         throw reporter_1.Reporter.error(18, propertyName);
     }
     exports.createComputedObserver = createComputedObserver;
-    var proxySupported = typeof Proxy !== undefined;
-    var computedContext = 'computed-observer';
-    var ComputedController = (function () {
-        function ComputedController(instance, propertyName, descriptor, owner, observerLocator, taskQueue) {
+    var CustomSetterObserver = (function (_super) {
+        __extends(CustomSetterObserver, _super);
+        function CustomSetterObserver(instance, propertyName, descriptor, taskQueue) {
+            var _this = _super.call(this) || this;
+            _this.instance = instance;
+            _this.propertyName = propertyName;
+            _this.descriptor = descriptor;
+            _this.taskQueue = taskQueue;
+            _this.queued = false;
+            _this.observing = false;
+            return _this;
+        }
+        CustomSetterObserver.prototype.getValue = function () {
+            return this.instance[this.propertyName];
+        };
+        CustomSetterObserver.prototype.setValue = function (newValue) {
+            this.instance[this.propertyName] = newValue;
+        };
+        CustomSetterObserver.prototype.call = function () {
+            var oldValue = this.oldValue;
+            var newValue = this.currentValue;
+            this.queued = false;
+            this.callSubscribers(newValue, oldValue);
+        };
+        CustomSetterObserver.prototype.subscribe = function (context, callable) {
+            if (!this.observing) {
+                this.convertProperty();
+            }
+            this.addSubscriber(context, callable);
+        };
+        CustomSetterObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+        };
+        CustomSetterObserver.prototype.convertProperty = function () {
+            var setter = this.descriptor.set;
+            var that = this;
+            this.observing = true;
+            this.currentValue = this.instance[this.propertyName];
+            Reflect.defineProperty(this.instance, this.propertyName, {
+                set: function (newValue) {
+                    setter(newValue);
+                    var oldValue = this.currentValue;
+                    if (oldValue !== newValue) {
+                        if (!that.queued) {
+                            that.oldValue = oldValue;
+                            that.queued = true;
+                            that.taskQueue.queueMicroTask(that);
+                        }
+                        that.currentValue = newValue;
+                    }
+                }
+            });
+        };
+        return CustomSetterObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.CustomSetterObserver = CustomSetterObserver;
+    var GetterObserver = (function (_super) {
+        __extends(GetterObserver, _super);
+        function GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue) {
+            var _this = _super.call(this) || this;
+            _this.overrides = overrides;
+            _this.instance = instance;
+            _this.propertyName = propertyName;
+            _this.descriptor = descriptor;
+            _this.observerLocator = observerLocator;
+            _this.taskQueue = taskQueue;
+            _this.controller = new GetterController(overrides, instance, propertyName, descriptor, _this, observerLocator, taskQueue);
+            return _this;
+        }
+        GetterObserver.prototype.getValue = function () {
+            return this.controller.value;
+        };
+        GetterObserver.prototype.setValue = function (newValue) { };
+        GetterObserver.prototype.call = function () {
+            var oldValue = this.controller.value;
+            var newValue = this.controller.getValueAndCollectDependencies();
+            if (oldValue !== newValue) {
+                this.callSubscribers(newValue, oldValue);
+            }
+        };
+        GetterObserver.prototype.subscribe = function (context, callable) {
+            this.addSubscriber(context, callable);
+            this.controller.onSubscriberAdded();
+        };
+        GetterObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+            this.controller.onSubscriberRemoved();
+        };
+        return GetterObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    var GetterController = (function () {
+        function GetterController(overrides, instance, propertyName, descriptor, owner, observerLocator, taskQueue) {
+            this.overrides = overrides;
             this.instance = instance;
             this.propertyName = propertyName;
             this.owner = owner;
@@ -8979,81 +9088,54 @@ define('runtime/binding/computed-observer',["require", "exports", "./subscriber-
                 }
             });
         }
-        ComputedController.prototype.addDependency = function (subscribable) {
+        GetterController.prototype.addDependency = function (subscribable) {
             if (this.dependencies.includes(subscribable)) {
                 return;
             }
             this.dependencies.push(subscribable);
         };
-        ComputedController.prototype.onSubscriberAdded = function () {
+        GetterController.prototype.onSubscriberAdded = function () {
             this.subscriberCount++;
             if (this.subscriberCount > 1) {
                 return;
             }
-            this.getValueAndCollectDependencies();
+            this.getValueAndCollectDependencies(true);
         };
-        ComputedController.prototype.getValueAndCollectDependencies = function () {
+        GetterController.prototype.getValueAndCollectDependencies = function (requireCollect) {
             var _this = this;
+            if (requireCollect === void 0) { requireCollect = false; }
             this.queued = false;
-            this.unsubscribeAllDependencies();
-            this.isCollecting = true;
+            var dynamicDependencies = !this.overrides.static || requireCollect;
+            if (dynamicDependencies) {
+                this.unsubscribeAllDependencies();
+                this.isCollecting = true;
+            }
             this.value = this.instance[this.propertyName];
-            this.isCollecting = false;
-            this.dependencies.forEach(function (x) { return x.subscribe(computedContext, _this); });
+            if (dynamicDependencies) {
+                this.isCollecting = false;
+                this.dependencies.forEach(function (x) { return x.subscribe(computedContext, _this); });
+            }
             return this.value;
         };
-        ComputedController.prototype.onSubscriberRemoved = function () {
+        GetterController.prototype.onSubscriberRemoved = function () {
             this.subscriberCount--;
             if (this.subscriberCount === 0) {
                 this.unsubscribeAllDependencies();
             }
         };
-        ComputedController.prototype.unsubscribeAllDependencies = function () {
+        GetterController.prototype.unsubscribeAllDependencies = function () {
             var _this = this;
             this.dependencies.forEach(function (x) { return x.unsubscribe(computedContext, _this); });
             this.dependencies.length = 0;
         };
-        ComputedController.prototype.call = function () {
+        GetterController.prototype.call = function () {
             if (!this.queued) {
                 this.queued = true;
                 this.taskQueue.queueMicroTask(this.owner);
             }
         };
-        return ComputedController;
+        return GetterController;
     }());
-    var ComputedObserver = (function (_super) {
-        __extends(ComputedObserver, _super);
-        function ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue) {
-            var _this = _super.call(this) || this;
-            _this.instance = instance;
-            _this.propertyName = propertyName;
-            _this.descriptor = descriptor;
-            _this.observerLocator = observerLocator;
-            _this.taskQueue = taskQueue;
-            _this.controller = new ComputedController(instance, propertyName, descriptor, _this, observerLocator, taskQueue);
-            return _this;
-        }
-        ComputedObserver.prototype.getValue = function () {
-            return this.controller.value;
-        };
-        ComputedObserver.prototype.setValue = function (newValue) { };
-        ComputedObserver.prototype.call = function () {
-            var oldValue = this.controller.value;
-            var newValue = this.controller.getValueAndCollectDependencies();
-            if (oldValue !== newValue) {
-                this.callSubscribers(newValue, oldValue);
-            }
-        };
-        ComputedObserver.prototype.subscribe = function (context, callable) {
-            this.addSubscriber(context, callable);
-            this.controller.onSubscriberAdded();
-        };
-        ComputedObserver.prototype.unsubscribe = function (context, callable) {
-            this.removeSubscriber(context, callable);
-            this.controller.onSubscriberRemoved();
-        };
-        return ComputedObserver;
-    }(subscriber_collection_1.SubscriberCollection));
     function createGetterTraps(observerLocator, controller) {
         return {
             get: function (instance, key) {

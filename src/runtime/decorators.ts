@@ -3,6 +3,7 @@ import { PLATFORM } from './platform';
 import { BindingMode } from './binding/binding-mode';
 import { Constructable, Injectable } from './interfaces';
 import { ITemplateSource, IBindableInstruction } from './templating/instructions';
+import { IComputedOverrides } from './binding/computed-observer';
 
 export function customElement(nameOrSource: string | ITemplateSource) {
   return function<T extends Constructable>(target: T) {
@@ -135,4 +136,11 @@ export function bindable(configOrTarget?: IBindableInstruction | Object, key?, d
   }
 
   return deco;
+}
+
+export function computed(config: IComputedOverrides) {
+  return function(target, key, descriptor) {
+    let computed = target.computed || (target.computed = {});
+    computed[key] = config;
+  };
 }

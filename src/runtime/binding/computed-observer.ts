@@ -29,6 +29,7 @@ class ComputedController {
   private queued = false;
   private dependencies: ISubscribable[] = [];
   private subscriberCount = 0;
+  
   value;
   isCollecting = false;
 
@@ -185,7 +186,7 @@ function createGetterTraps(observerLocator: IObserverLocator, controller: Comput
   }
 }
 
-function proxyOrValue(observerLocator, controller: ComputedController, value) {
+function proxyOrValue(observerLocator: IObserverLocator, controller: ComputedController, value: any) {
   if (!(value instanceof Object)) {
     return value;
   }

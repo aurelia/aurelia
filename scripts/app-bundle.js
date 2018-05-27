@@ -162,7 +162,6 @@ define('app',["require", "exports", "./app-config", "./runtime/decorators"], fun
         }
         Object.defineProperty(App.prototype, "computedMessage", {
             get: function () {
-                console.log('Computed Called');
                 var value = "\n      " + this.message + " Computed:\n      Todo Count " + this.todos.length + "\n      Descriptions:\n      " + this.todos.map(function (x) { return x.description; }).join('\n') + "\n    ";
                 return value;
             },

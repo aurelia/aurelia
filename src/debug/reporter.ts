@@ -121,5 +121,9 @@ const codeLookup: Record<string, IMessageInfo> = {
   17: {
     type: MessageType.error,
     message: 'You can only define one default implementation for an interface.'
+  },
+  18: {
+    type: MessageType.error,
+    message: 'You cannot observe a setter only property.'
   }
 };

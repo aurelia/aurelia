@@ -539,6 +539,10 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
         17: {
             type: MessageType.error,
             message: 'You can only define one default implementation for an interface.'
+        },
+        18: {
+            type: MessageType.error,
+            message: 'You cannot observe a setter only property.'
         }
     };
 });
@@ -8936,7 +8940,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/computed-observer',["require", "exports", "./subscriber-collection"], function (require, exports, subscriber_collection_1) {
+define('runtime/binding/computed-observer',["require", "exports", "./subscriber-collection", "../reporter"], function (require, exports, subscriber_collection_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function createComputedObserver(observerLocator, dirtyChecker, taskQueue, instance, propertyName, descriptor) {
@@ -8949,7 +8953,7 @@ define('runtime/binding/computed-observer',["require", "exports", "./subscriber-
             }
             return new ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue);
         }
-        throw new Error('You cannot observer a setter only property.');
+        throw reporter_1.Reporter.error(18, propertyName);
     }
     exports.createComputedObserver = createComputedObserver;
     var proxySupported = typeof Proxy !== undefined;

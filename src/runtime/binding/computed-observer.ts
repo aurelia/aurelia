@@ -4,6 +4,7 @@ import { SubscriberCollection } from "./subscriber-collection";
 import { IAccessor, ISubscribable } from "./observation";
 import { ICallable } from "../interfaces";
 import { ITaskQueue } from "../task-queue";
+import { Reporter } from "../reporter";
 
 /* @internal */
 export function createComputedObserver(observerLocator: IObserverLocator, dirtyChecker: IDirtyChecker, taskQueue: ITaskQueue, instance: any, propertyName: string, descriptor: PropertyDescriptor) {
@@ -19,7 +20,7 @@ export function createComputedObserver(observerLocator: IObserverLocator, dirtyC
     return new ComputedObserver(instance, propertyName, descriptor, observerLocator, taskQueue);
   }
 
-  throw new Error('You cannot observer a setter only property.');
+  throw Reporter.error(18, propertyName);
 }
 
 const proxySupported = typeof Proxy !== undefined;
@@ -29,7 +30,7 @@ class ComputedController {
   private queued = false;
   private dependencies: ISubscribable[] = [];
   private subscriberCount = 0;
-  
+
   value;
   isCollecting = false;
 

@@ -29,7 +29,7 @@ class ComputedController {
   private queued = false;
   private dependencies: ISubscribable[] = [];
   private subscriberCount = 0;
-  private proxy: any;
+  value;
   isCollecting = false;
 
   constructor(
@@ -40,10 +40,18 @@ class ComputedController {
     observerLocator: IObserverLocator, 
     private taskQueue: ITaskQueue
   ) {
-    this.proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
+    let proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
+    let getter = descriptor.get;
+    let ctrl = this;
 
     Reflect.defineProperty(instance, propertyName, {
-      get: descriptor.get.bind(this.proxy)
+      get: function() {
+        if (ctrl.subscriberCount < 1 || ctrl.isCollecting) {
+          ctrl.value = getter.apply(proxy);
+        }
+
+        return ctrl.value;
+      }
     });
   }
 
@@ -70,12 +78,12 @@ class ComputedController {
     this.unsubscribeAllDependencies();
 
     this.isCollecting = true;
-    let value = this.instance[this.propertyName]; // triggers observer collection
+    this.value = this.instance[this.propertyName]; // triggers observer collection
     this.isCollecting = false;
 
     this.dependencies.forEach(x => x.subscribe(computedContext, this));
 
-    return value;
+    return this.value;
   }
 
   onSubscriberRemoved() {
@@ -100,7 +108,6 @@ class ComputedController {
 }
 
 class ComputedObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private currentValue: any;
   private controller: ComputedController;
   
   constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private taskQueue: ITaskQueue) {
@@ -117,17 +124,16 @@ class ComputedObserver extends SubscriberCollection implements IAccessor, ISubsc
   }
 
   getValue() {
-    return this.currentValue;
+    return this.controller.value;
   }
 
   setValue(newValue) { }
 
   call() {
-    let oldValue = this.currentValue;
+    let oldValue = this.controller.value;
     let newValue = this.controller.getValueAndCollectDependencies();
     
     if (oldValue !== newValue) {
-      this.currentValue = newValue;
       this.callSubscribers(newValue, oldValue);
     }
   }

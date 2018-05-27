@@ -8964,9 +8964,16 @@ define('runtime/binding/computed-observer',["require", "exports", "./subscriber-
             this.dependencies = [];
             this.subscriberCount = 0;
             this.isCollecting = false;
-            this.proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
+            var proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
+            var getter = descriptor.get;
+            var ctrl = this;
             Reflect.defineProperty(instance, propertyName, {
-                get: descriptor.get.bind(this.proxy)
+                get: function () {
+                    if (ctrl.subscriberCount < 1 || ctrl.isCollecting) {
+                        ctrl.value = getter.apply(proxy);
+                    }
+                    return ctrl.value;
+                }
             });
         }
         ComputedController.prototype.addDependency = function (subscribable) {
@@ -8987,10 +8994,10 @@ define('runtime/binding/computed-observer',["require", "exports", "./subscriber-
             this.queued = false;
             this.unsubscribeAllDependencies();
             this.isCollecting = true;
-            var value = this.instance[this.propertyName];
+            this.value = this.instance[this.propertyName];
             this.isCollecting = false;
             this.dependencies.forEach(function (x) { return x.subscribe(computedContext, _this); });
-            return value;
+            return this.value;
         };
         ComputedController.prototype.onSubscriberRemoved = function () {
             this.subscriberCount--;
@@ -9024,14 +9031,13 @@ define('runtime/binding/computed-observer',["require", "exports", "./subscriber-
             return _this;
         }
         ComputedObserver.prototype.getValue = function () {
-            return this.currentValue;
+            return this.controller.value;
         };
         ComputedObserver.prototype.setValue = function (newValue) { };
         ComputedObserver.prototype.call = function () {
-            var oldValue = this.currentValue;
+            var oldValue = this.controller.value;
             var newValue = this.controller.getValueAndCollectDependencies();
             if (oldValue !== newValue) {
-                this.currentValue = newValue;
                 this.callSubscribers(newValue, oldValue);
             }
         };

@@ -8,7 +8,7 @@ import { INode, DOM } from '../dom';
 import { VisualWithCentralComponent } from '../templating/visual';
 import { IRenderContext } from '../templating/render-context';
 import { IRenderingEngine } from '../templating/rendering-engine';
-import { IElementType } from '../templating/component';
+import { IElementType, IElementComponent } from '../templating/component';
 
 const composeSource = {
   name: 'au-compose',
@@ -18,15 +18,10 @@ const composeSource = {
 
 const composeProps = ['component', 'swapOrder', 'isComposing'];
 
+export interface Compose extends IElementComponent {}
 @customElement(composeSource)
 @inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction, IRenderingEngine)
-export class Compose {
-  //#region Framework-Supplied
-  private $contentView: IContentView;
-  private $bindable: IBindScope[];
-  private $isBound: boolean;
-  //#endregion
-  
+export class Compose { 
   private task: CompositionTask = null;
   private visual: VisualWithCentralComponent = null;
   private auContent: INode = null;

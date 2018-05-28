@@ -1,17 +1,15 @@
 import { IRenderSlot } from '../templating/render-slot';
 import { IScope } from '../binding/binding-context';
 import { IVisualFactory, IVisual } from '../templating/visual';
+import { IAttributeComponent } from '../templating/component';
 
 /**
 * For internal use only. May change without warning.
 */
+
+export interface IfCore extends IAttributeComponent {}
 export abstract class IfCore {
-  //#region Framework-Supplied
-  private $scope: IScope = null;
-  //#endregion
-  
   private child: IVisual = null;
-  
 
   // If the child view is animated, `condition` might not reflect the internal
   // state anymore, so we use `showing` for that.

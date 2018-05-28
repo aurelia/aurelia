@@ -5761,7 +5761,6 @@ define('runtime/resources/if-core',["require", "exports"], function (require, ex
         function IfCore(factory, slot) {
             this.factory = factory;
             this.slot = slot;
-            this.$scope = null;
             this.child = null;
             this.showing = false;
         }

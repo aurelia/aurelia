@@ -12,7 +12,6 @@ export function enableImprovedExpressionDebugging() {
     { type: AST.CallFunction, name: 'CallFunction' },
     { type: AST.CallMember, name: 'CallMember' },
     { type: AST.CallScope, name: 'CallScope' },
-    { type: AST.Chain, name: 'Chain' },
     { type: AST.Conditional, name: 'Conditional' },
     { type: AST.LiteralArray, name: 'LiteralArray' },
     { type: AST.LiteralObject, name: 'LiteralObject' },
@@ -59,18 +58,6 @@ class Unparser {
     }
 
     this.write(')');
-  }
-
-  visitChain(chain) {
-    let expressions = chain.expressions;
-
-    for (let i = 0, length = expressions.length; i < length; ++i) {
-      if (i !== 0) {
-        this.write(';');
-      }
-
-      expressions[i].accept(this);
-    }
   }
 
   visitBindingBehavior(behavior) {

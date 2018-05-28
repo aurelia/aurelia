@@ -11,28 +11,6 @@ export interface IExpression {
   unbind?(binding: IBinding, scope: IScope): void;
 }
 
-export class Chain implements IExpression {
-  constructor(private expressions: IExpression[]) { }
-
-  evaluate(scope: IScope, locator: IServiceLocator) {
-    let result;
-    let expressions = this.expressions;
-    let last;
-
-    for (let i = 0, length = expressions.length; i < length; ++i) {
-      last = expressions[i].evaluate(scope, locator);
-
-      if (last !== null) {
-        result = last;
-      }
-    }
-
-    return result;
-  }
-
-  connect() { }
-}
-
 export class BindingBehavior implements IExpression {
   constructor(public expression: IExpression, public name: string, private args: IExpression[]) { }
 

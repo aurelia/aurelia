@@ -4094,7 +4094,6 @@ define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"]
         DelegateOrCaptureSubscription.prototype.dispose = function () {
             this.entry.decrement();
             this.lookup[this.targetEvent] = null;
-            this.entry = this.lookup = this.targetEvent = null;
         };
         return DelegateOrCaptureSubscription;
     }());
@@ -4107,7 +4106,6 @@ define('runtime/binding/event-manager',["require", "exports", "../di", "../dom"]
         }
         TriggerSubscription.prototype.dispose = function () {
             dom_1.DOM.removeEventListener(this.targetEvent, this.callback, this.target);
-            this.target = this.targetEvent = this.callback = null;
         };
         return TriggerSubscription;
     }());

@@ -115,7 +115,6 @@ class DelegateOrCaptureSubscription {
   dispose() {
     this.entry.decrement();
     this.lookup[this.targetEvent] = null;
-    this.entry = this.lookup = this.targetEvent = null;
   }
 }
 
@@ -133,7 +132,6 @@ class TriggerSubscription {
 
   dispose() {
     DOM.removeEventListener(this.targetEvent, this.callback, this.target);
-    this.target = this.targetEvent = this.callback = null;
   }
 }
 

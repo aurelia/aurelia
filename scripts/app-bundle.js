@@ -1800,6 +1800,240 @@ define('jit/binding/expression-parser',["require", "exports", "../../runtime/bin
 
 
 
+define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var svgElements = {
+        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
+        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
+        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
+        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
+        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
+        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
+        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
+        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
+        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
+        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
+        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
+        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
+    };
+    var svgPresentationElements = {
+        'a': true,
+        'altGlyph': true,
+        'animate': true,
+        'animateColor': true,
+        'circle': true,
+        'clipPath': true,
+        'defs': true,
+        'ellipse': true,
+        'feBlend': true,
+        'feColorMatrix': true,
+        'feComponentTransfer': true,
+        'feComposite': true,
+        'feConvolveMatrix': true,
+        'feDiffuseLighting': true,
+        'feDisplacementMap': true,
+        'feFlood': true,
+        'feGaussianBlur': true,
+        'feImage': true,
+        'feMerge': true,
+        'feMorphology': true,
+        'feOffset': true,
+        'feSpecularLighting': true,
+        'feTile': true,
+        'feTurbulence': true,
+        'filter': true,
+        'font': true,
+        'foreignObject': true,
+        'g': true,
+        'glyph': true,
+        'glyphRef': true,
+        'image': true,
+        'line': true,
+        'linearGradient': true,
+        'marker': true,
+        'mask': true,
+        'missing-glyph': true,
+        'path': true,
+        'pattern': true,
+        'polygon': true,
+        'polyline': true,
+        'radialGradient': true,
+        'rect': true,
+        'stop': true,
+        'svg': true,
+        'switch': true,
+        'symbol': true,
+        'text': true,
+        'textPath': true,
+        'tref': true,
+        'tspan': true,
+        'use': true
+    };
+    var svgPresentationAttributes = {
+        'alignment-baseline': true,
+        'baseline-shift': true,
+        'clip-path': true,
+        'clip-rule': true,
+        'clip': true,
+        'color-interpolation-filters': true,
+        'color-interpolation': true,
+        'color-profile': true,
+        'color-rendering': true,
+        'color': true,
+        'cursor': true,
+        'direction': true,
+        'display': true,
+        'dominant-baseline': true,
+        'enable-background': true,
+        'fill-opacity': true,
+        'fill-rule': true,
+        'fill': true,
+        'filter': true,
+        'flood-color': true,
+        'flood-opacity': true,
+        'font-family': true,
+        'font-size-adjust': true,
+        'font-size': true,
+        'font-stretch': true,
+        'font-style': true,
+        'font-variant': true,
+        'font-weight': true,
+        'glyph-orientation-horizontal': true,
+        'glyph-orientation-vertical': true,
+        'image-rendering': true,
+        'kerning': true,
+        'letter-spacing': true,
+        'lighting-color': true,
+        'marker-end': true,
+        'marker-mid': true,
+        'marker-start': true,
+        'mask': true,
+        'opacity': true,
+        'overflow': true,
+        'pointer-events': true,
+        'shape-rendering': true,
+        'stop-color': true,
+        'stop-opacity': true,
+        'stroke-dasharray': true,
+        'stroke-dashoffset': true,
+        'stroke-linecap': true,
+        'stroke-linejoin': true,
+        'stroke-miterlimit': true,
+        'stroke-opacity': true,
+        'stroke-width': true,
+        'stroke': true,
+        'text-anchor': true,
+        'text-decoration': true,
+        'text-rendering': true,
+        'unicode-bidi': true,
+        'visibility': true,
+        'word-spacing': true,
+        'writing-mode': true
+    };
+    function createElement(html) {
+        var div = dom_1.DOM.createElement('div');
+        div.innerHTML = html;
+        return div.firstElementChild;
+    }
+    ;
+    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
+        svgElements.altglyph = svgElements.altGlyph;
+        delete svgElements.altGlyph;
+        svgElements.altglyphdef = svgElements.altGlyphDef;
+        delete svgElements.altGlyphDef;
+        svgElements.altglyphitem = svgElements.altGlyphItem;
+        delete svgElements.altGlyphItem;
+        svgElements.glyphref = svgElements.glyphRef;
+        delete svgElements.glyphRef;
+    }
+    function register(container) {
+        container.registerTransformer(svg_analyzer_1.ISVGAnalyzer, function (analyzer) {
+            return Object.assign(analyzer, {
+                isStandardSvgAttribute: function (node, attributeName) {
+                    if (!(node instanceof SVGElement)) {
+                        return false;
+                    }
+                    var nodeName = node.nodeName;
+                    return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
+                        || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
+                }
+            });
+        });
+    }
+    exports.register = register;
+});
+
+
+
 define('runtime/binding/array-change-records',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -3396,6 +3630,248 @@ define('runtime/binding/collection-observation',["require", "exports", "./array-
         return CollectionLengthObserver;
     }(subscriber_collection_1.SubscriberCollection));
     exports.CollectionLengthObserver = CollectionLengthObserver;
+});
+
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+define('runtime/binding/computed-observer',["require", "exports", "./subscriber-collection", "../reporter"], function (require, exports, subscriber_collection_1, reporter_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var noProxy = !(typeof Proxy !== undefined);
+    var computedContext = 'computed-observer';
+    var computedOverrideDefaults = { static: false, volatile: false };
+    function createComputedObserver(observerLocator, dirtyChecker, taskQueue, instance, propertyName, descriptor) {
+        if (descriptor.configurable === false) {
+            return dirtyChecker.createProperty(instance, propertyName);
+        }
+        if (descriptor.get) {
+            var overrides = instance.constructor.computed
+                ? instance.constructor.computed[propertyName] || computedOverrideDefaults
+                : computedOverrideDefaults;
+            if (descriptor.set) {
+                if (overrides.volatile) {
+                    return noProxy
+                        ? dirtyChecker.createProperty(instance, propertyName)
+                        : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue);
+                }
+                return new CustomSetterObserver(instance, propertyName, descriptor, taskQueue);
+            }
+            return noProxy
+                ? dirtyChecker.createProperty(instance, propertyName)
+                : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue);
+        }
+        throw reporter_1.Reporter.error(18, propertyName);
+    }
+    exports.createComputedObserver = createComputedObserver;
+    var CustomSetterObserver = (function (_super) {
+        __extends(CustomSetterObserver, _super);
+        function CustomSetterObserver(instance, propertyName, descriptor, taskQueue) {
+            var _this = _super.call(this) || this;
+            _this.instance = instance;
+            _this.propertyName = propertyName;
+            _this.descriptor = descriptor;
+            _this.taskQueue = taskQueue;
+            _this.queued = false;
+            _this.observing = false;
+            return _this;
+        }
+        CustomSetterObserver.prototype.getValue = function () {
+            return this.instance[this.propertyName];
+        };
+        CustomSetterObserver.prototype.setValue = function (newValue) {
+            this.instance[this.propertyName] = newValue;
+        };
+        CustomSetterObserver.prototype.call = function () {
+            var oldValue = this.oldValue;
+            var newValue = this.currentValue;
+            this.queued = false;
+            this.callSubscribers(newValue, oldValue);
+        };
+        CustomSetterObserver.prototype.subscribe = function (context, callable) {
+            if (!this.observing) {
+                this.convertProperty();
+            }
+            this.addSubscriber(context, callable);
+        };
+        CustomSetterObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+        };
+        CustomSetterObserver.prototype.convertProperty = function () {
+            var setter = this.descriptor.set;
+            var that = this;
+            this.observing = true;
+            this.currentValue = this.instance[this.propertyName];
+            Reflect.defineProperty(this.instance, this.propertyName, {
+                set: function (newValue) {
+                    setter(newValue);
+                    var oldValue = this.currentValue;
+                    if (oldValue !== newValue) {
+                        if (!that.queued) {
+                            that.oldValue = oldValue;
+                            that.queued = true;
+                            that.taskQueue.queueMicroTask(that);
+                        }
+                        that.currentValue = newValue;
+                    }
+                }
+            });
+        };
+        return CustomSetterObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    exports.CustomSetterObserver = CustomSetterObserver;
+    var GetterObserver = (function (_super) {
+        __extends(GetterObserver, _super);
+        function GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue) {
+            var _this = _super.call(this) || this;
+            _this.overrides = overrides;
+            _this.instance = instance;
+            _this.propertyName = propertyName;
+            _this.descriptor = descriptor;
+            _this.observerLocator = observerLocator;
+            _this.taskQueue = taskQueue;
+            _this.controller = new GetterController(overrides, instance, propertyName, descriptor, _this, observerLocator, taskQueue);
+            return _this;
+        }
+        GetterObserver.prototype.getValue = function () {
+            return this.controller.value;
+        };
+        GetterObserver.prototype.setValue = function (newValue) { };
+        GetterObserver.prototype.call = function () {
+            var oldValue = this.controller.value;
+            var newValue = this.controller.getValueAndCollectDependencies();
+            if (oldValue !== newValue) {
+                this.callSubscribers(newValue, oldValue);
+            }
+        };
+        GetterObserver.prototype.subscribe = function (context, callable) {
+            this.addSubscriber(context, callable);
+            this.controller.onSubscriberAdded();
+        };
+        GetterObserver.prototype.unsubscribe = function (context, callable) {
+            this.removeSubscriber(context, callable);
+            this.controller.onSubscriberRemoved();
+        };
+        return GetterObserver;
+    }(subscriber_collection_1.SubscriberCollection));
+    var GetterController = (function () {
+        function GetterController(overrides, instance, propertyName, descriptor, owner, observerLocator, taskQueue) {
+            this.overrides = overrides;
+            this.instance = instance;
+            this.propertyName = propertyName;
+            this.owner = owner;
+            this.taskQueue = taskQueue;
+            this.queued = false;
+            this.dependencies = [];
+            this.subscriberCount = 0;
+            this.isCollecting = false;
+            var proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
+            var getter = descriptor.get;
+            var ctrl = this;
+            Reflect.defineProperty(instance, propertyName, {
+                get: function () {
+                    if (ctrl.subscriberCount < 1 || ctrl.isCollecting) {
+                        ctrl.value = getter.apply(proxy);
+                    }
+                    return ctrl.value;
+                }
+            });
+        }
+        GetterController.prototype.addDependency = function (subscribable) {
+            if (this.dependencies.includes(subscribable)) {
+                return;
+            }
+            this.dependencies.push(subscribable);
+        };
+        GetterController.prototype.onSubscriberAdded = function () {
+            this.subscriberCount++;
+            if (this.subscriberCount > 1) {
+                return;
+            }
+            this.getValueAndCollectDependencies(true);
+        };
+        GetterController.prototype.getValueAndCollectDependencies = function (requireCollect) {
+            var _this = this;
+            if (requireCollect === void 0) { requireCollect = false; }
+            this.queued = false;
+            var dynamicDependencies = !this.overrides.static || requireCollect;
+            if (dynamicDependencies) {
+                this.unsubscribeAllDependencies();
+                this.isCollecting = true;
+            }
+            this.value = this.instance[this.propertyName];
+            if (dynamicDependencies) {
+                this.isCollecting = false;
+                this.dependencies.forEach(function (x) { return x.subscribe(computedContext, _this); });
+            }
+            return this.value;
+        };
+        GetterController.prototype.onSubscriberRemoved = function () {
+            this.subscriberCount--;
+            if (this.subscriberCount === 0) {
+                this.unsubscribeAllDependencies();
+            }
+        };
+        GetterController.prototype.unsubscribeAllDependencies = function () {
+            var _this = this;
+            this.dependencies.forEach(function (x) { return x.unsubscribe(computedContext, _this); });
+            this.dependencies.length = 0;
+        };
+        GetterController.prototype.call = function () {
+            if (!this.queued) {
+                this.queued = true;
+                this.taskQueue.queueMicroTask(this.owner);
+            }
+        };
+        return GetterController;
+    }());
+    function createGetterTraps(observerLocator, controller) {
+        return {
+            get: function (instance, key) {
+                var value = instance[key];
+                if (key === '$observers' || typeof value === 'function' || !controller.isCollecting) {
+                    return value;
+                }
+                if (instance instanceof Array) {
+                    controller.addDependency(observerLocator.getArrayObserver(instance));
+                    if (key === 'length') {
+                        controller.addDependency(observerLocator.getArrayObserver(instance).getLengthObserver());
+                    }
+                }
+                else if (instance instanceof Map) {
+                    controller.addDependency(observerLocator.getMapObserver(instance));
+                    if (key === 'size') {
+                        controller.addDependency(this.getMapObserver(instance).getLengthObserver());
+                    }
+                }
+                else if (instance instanceof Set) {
+                    controller.addDependency(observerLocator.getSetObserver(instance));
+                    if (key === 'size') {
+                        return observerLocator.getSetObserver(instance).getLengthObserver();
+                    }
+                }
+                else {
+                    controller.addDependency(observerLocator.getObserver(instance, key));
+                }
+                return proxyOrValue(observerLocator, controller, value);
+            }
+        };
+    }
+    function proxyOrValue(observerLocator, controller, value) {
+        if (!(value instanceof Object)) {
+            return value;
+        }
+        return new Proxy(value, createGetterTraps(observerLocator, controller));
+    }
 });
 
 
@@ -6050,277 +6526,247 @@ define('runtime/templating/animator',["require", "exports", "../di"], function (
 
 
 
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 define('runtime/templating/component',["require", "exports", "./view", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom"], function (require, exports, view_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
     exports.Component = {
         valueConverter: function (nameOrSource, ctor) {
-            var source = ctor.source = ensureSource(nameOrSource);
-            ctor.register = function (container) {
-                container.register(di_1.Registration.singleton(source.name, ctor));
+            var source = ensureSource(nameOrSource);
+            var Type = ctor;
+            Type.source = source;
+            Type.register = function (container) {
+                container.register(di_1.Registration.singleton(source.name, Type));
             };
-            return ctor;
+            return Type;
         },
         bindingBehavior: function (nameOrSource, ctor) {
-            var source = ctor.source = ensureSource(nameOrSource);
-            ctor.register = function (container) {
-                container.register(di_1.Registration.singleton(source.name, ctor));
+            var source = ensureSource(nameOrSource);
+            var Type = ctor;
+            Type.source = source;
+            Type.register = function (container) {
+                container.register(di_1.Registration.singleton(source.name, Type));
             };
-            return ctor;
+            return Type;
         },
         attribute: function (nameOrSource, ctor) {
             var source = ensureSource(nameOrSource);
-            var observables = ctor.observables || {};
-            return _a = (function (_super) {
-                    __extends(CustomAttribute, _super);
-                    function CustomAttribute() {
-                        var _this = _super !== null && _super.apply(this, arguments) || this;
-                        _this.$changeCallbacks = [];
-                        _this.$behavior = null;
-                        _this.$isAttached = false;
-                        _this.$isBound = false;
-                        _this.$scope = null;
-                        _this.$slot = null;
-                        return _this;
+            var Type = ctor;
+            var proto = Type.prototype;
+            var observables = Type.observables || {};
+            Type.source = source;
+            Type.register = function register(container) {
+                container.register(di_1.Registration.transient(source.name, Type));
+                var aliases = source.aliases;
+                if (aliases) {
+                    for (var i = 0, ii = aliases.length; i < ii; ++i) {
+                        container.register(di_1.Registration.alias(source.name, aliases[i]));
                     }
-                    CustomAttribute.register = function (container) {
-                        container.register(di_1.Registration.transient(source.name, CustomAttribute));
-                        var aliases = source.aliases;
-                        if (aliases) {
-                            for (var i = 0, ii = aliases.length; i < ii; ++i) {
-                                container.register(di_1.Registration.alias(source.name, aliases[i]));
-                            }
-                        }
-                    };
-                    CustomAttribute.prototype.$hydrate = function (renderingEngine) {
-                        this.$behavior = renderingEngine.applyRuntimeBehavior(CustomAttribute, this, observables);
-                        if (this.$behavior.hasCreated) {
-                            this.created();
-                        }
-                    };
-                    CustomAttribute.prototype.$bind = function (scope) {
-                        if (this.$isBound) {
-                            if (this.$scope === scope) {
-                                return;
-                            }
-                            this.$unbind();
-                        }
-                        this.$scope = scope;
-                        this.$isBound = true;
-                        var changeCallbacks = this.$changeCallbacks;
-                        for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-                            changeCallbacks[i]();
-                        }
-                        if (this.$behavior.hasBound) {
-                            this.bound(scope);
-                        }
-                    };
-                    CustomAttribute.prototype.$attach = function (context) {
-                        if (this.$isAttached) {
-                            return;
-                        }
-                        if (this.$behavior.hasAttaching) {
-                            this.attaching();
-                        }
-                        if (this.$slot !== null) {
-                            this.$slot.$attach(context);
-                        }
-                        if (this.$behavior.hasAttached) {
-                            context.queueForAttachedCallback(this);
-                        }
-                        this.$isAttached = true;
-                    };
-                    CustomAttribute.prototype.$detach = function (context) {
-                        if (this.$isAttached) {
-                            if (this.$behavior.hasDetaching) {
-                                this.detaching();
-                            }
-                            if (this.$slot !== null) {
-                                this.$slot.$detach(context);
-                            }
-                            if (this.$behavior.hasDetached) {
-                                context.queueForDetachedCallback(this);
-                            }
-                            this.$isAttached = false;
-                        }
-                    };
-                    CustomAttribute.prototype.$unbind = function () {
-                        if (this.$isBound) {
-                            if (this.$behavior.hasUnbound) {
-                                this.unbound();
-                            }
-                            this.$isBound = false;
-                        }
-                    };
-                    return CustomAttribute;
-                }(ctor)),
-                _a.source = source,
-                _a;
-            var _a;
+                }
+            };
+            proto.$hydrate = function (renderingEngine) {
+                this.$changeCallbacks = [];
+                this.$isAttached = false;
+                this.$isBound = false;
+                this.$scope = null;
+                this.$slot = null;
+                this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, observables);
+                if (this.$behavior.hasCreated) {
+                    this.created();
+                }
+            };
+            proto.$bind = function (scope) {
+                if (this.$isBound) {
+                    if (this.$scope === scope) {
+                        return;
+                    }
+                    this.$unbind();
+                }
+                this.$scope = scope;
+                this.$isBound = true;
+                var changeCallbacks = this.$changeCallbacks;
+                for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+                    changeCallbacks[i]();
+                }
+                if (this.$behavior.hasBound) {
+                    this.bound(scope);
+                }
+            };
+            proto.$attach = function (context) {
+                if (this.$isAttached) {
+                    return;
+                }
+                if (this.$behavior.hasAttaching) {
+                    this.attaching();
+                }
+                if (this.$slot !== null) {
+                    this.$slot.$attach(context);
+                }
+                if (this.$behavior.hasAttached) {
+                    context.queueForAttachedCallback(this);
+                }
+                this.$isAttached = true;
+            };
+            proto.$detach = function (context) {
+                if (this.$isAttached) {
+                    if (this.$behavior.hasDetaching) {
+                        this.detaching();
+                    }
+                    if (this.$slot !== null) {
+                        this.$slot.$detach(context);
+                    }
+                    if (this.$behavior.hasDetached) {
+                        context.queueForDetachedCallback(this);
+                    }
+                    this.$isAttached = false;
+                }
+            };
+            proto.$unbind = function () {
+                if (this.$isBound) {
+                    if (this.$behavior.hasUnbound) {
+                        this.unbound();
+                    }
+                    this.$isBound = false;
+                }
+            };
+            return Type;
         },
         element: function (source, ctor) {
             if (ctor === void 0) { ctor = null; }
-            if (ctor === null) {
-                ctor = (function () {
-                    function HTMLOnlyElement() {
+            var Type = ctor === null ? (function () {
+                function HTMLOnlyElement() {
+                }
+                return HTMLOnlyElement;
+            }()) : ctor;
+            var proto = Type.prototype;
+            var observables = Object.assign({}, Type.observables, source.observables);
+            source.shadowOptions = source.shadowOptions || Type.shadowOptions || null;
+            source.containerless = source.containerless || Type.containerless || false;
+            Type.source = source;
+            Type.register = function (container) {
+                container.register(di_1.Registration.transient(source.name, Type));
+            };
+            proto.$hydrate = function (renderingEngine, host, replacements, contentOverride) {
+                if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
+                var template = renderingEngine.getElementTemplate(source, Type);
+                this.$bindable = [];
+                this.$attachable = [];
+                this.$changeCallbacks = [];
+                this.$slots = source.hasSlots ? {} : null;
+                this.$usingSlotEmulation = source.hasSlots || false;
+                this.$slot = null;
+                this.$isAttached = false;
+                this.$isBound = false;
+                this.$scope = {
+                    bindingContext: this,
+                    overrideContext: binding_context_1.BindingContext.createOverride()
+                };
+                this.$context = template.context;
+                this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, observables);
+                this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
+                this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
+                this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
+                this.$contentView = view_1.View.fromCompiledContent(this.$host, contentOverride);
+                this.$view = this.$behavior.hasCreateView
+                    ? this.createView(host, replacements, template)
+                    : template.createFor(this, host, replacements);
+                this.$host.$component = this;
+                if (this.$behavior.hasCreated) {
+                    this.created();
+                }
+            };
+            proto.$bind = function () {
+                if (this.$isBound) {
+                    return;
+                }
+                var scope = this.$scope;
+                var bindable = this.$bindable;
+                for (var i = 0, ii = bindable.length; i < ii; ++i) {
+                    bindable[i].$bind(scope);
+                }
+                this.$isBound = true;
+                var changeCallbacks = this.$changeCallbacks;
+                for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+                    changeCallbacks[i]();
+                }
+                if (this.$behavior.hasBound) {
+                    this.bound();
+                }
+            };
+            proto.$attach = function (context) {
+                if (this.$isAttached) {
+                    return;
+                }
+                if (!context) {
+                    context = lifecycle_1.AttachContext.open(this);
+                }
+                if (this.$behavior.hasAttaching) {
+                    this.attaching();
+                }
+                var attachable = this.$attachable;
+                for (var i = 0, ii = attachable.length; i < ii; ++i) {
+                    attachable[i].$attach(context);
+                }
+                if (this.$slot !== null) {
+                    this.$slot.$attach(context);
+                }
+                if (this.$contentView !== null && this.$slots) {
+                    shadow_dom_1.ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
+                }
+                if (source.containerless) {
+                    this.$view.insertBefore(this.$host);
+                }
+                else {
+                    this.$view.appendTo(this.$shadowRoot);
+                }
+                if (this.$behavior.hasAttached) {
+                    context.queueForAttachedCallback(this);
+                }
+                this.$isAttached = true;
+                if (context.wasOpenedBy(this)) {
+                    context.close();
+                }
+            };
+            proto.$detach = function (context) {
+                if (this.$isAttached) {
+                    if (!context) {
+                        context = lifecycle_1.DetachContext.open(this);
                     }
-                    return HTMLOnlyElement;
-                }());
-            }
-            source.shadowOptions = source.shadowOptions || ctor.shadowOptions || null;
-            source.containerless = source.containerless || ctor.containerless || false;
-            var observables = Object.assign({}, ctor.observables, source.observables);
-            var CompiledComponent = (_a = (function (_super) {
-                    __extends(class_1, _super);
-                    function class_1() {
-                        var _this = _super !== null && _super.apply(this, arguments) || this;
-                        _this.$bindable = [];
-                        _this.$attachable = [];
-                        _this.$slots = source.hasSlots ? {} : null;
-                        _this.$usingSlotEmulation = source.hasSlots || false;
-                        _this.$view = null;
-                        _this.$contentView = null;
-                        _this.$slot = null;
-                        _this.$isAttached = false;
-                        _this.$isBound = false;
-                        _this.$scope = {
-                            bindingContext: _this,
-                            overrideContext: binding_context_1.BindingContext.createOverride()
-                        };
-                        _this.$host = null;
-                        _this.$shadowRoot = null;
-                        _this.$changeCallbacks = [];
-                        _this.$behavior = null;
-                        return _this;
+                    if (this.$behavior.hasDetaching) {
+                        this.detaching();
                     }
-                    class_1.register = function (container) {
-                        container.register(di_1.Registration.transient(source.name, CompiledComponent));
-                    };
-                    class_1.prototype.$hydrate = function (renderingEngine, host, replacements, contentOverride) {
-                        if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
-                        var template = renderingEngine.getElementTemplate(source, CompiledComponent);
-                        this.$context = template.context;
-                        this.$behavior = renderingEngine.applyRuntimeBehavior(CompiledComponent, this, observables);
-                        this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
-                        this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
-                        this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
-                        this.$contentView = view_1.View.fromCompiledContent(this.$host, contentOverride);
-                        this.$view = this.$behavior.hasCreateView
-                            ? this.createView(host, replacements, template)
-                            : template.createFor(this, host, replacements);
-                        this.$host.$component = this;
-                        if (this.$behavior.hasCreated) {
-                            this.created();
-                        }
-                    };
-                    class_1.prototype.$bind = function () {
-                        if (this.$isBound) {
-                            return;
-                        }
-                        var scope = this.$scope;
-                        var bindable = this.$bindable;
-                        for (var i = 0, ii = bindable.length; i < ii; ++i) {
-                            bindable[i].$bind(scope);
-                        }
-                        this.$isBound = true;
-                        var changeCallbacks = this.$changeCallbacks;
-                        for (var i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-                            changeCallbacks[i]();
-                        }
-                        if (this.$behavior.hasBound) {
-                            this.bound();
-                        }
-                    };
-                    class_1.prototype.$attach = function (context) {
-                        if (this.$isAttached) {
-                            return;
-                        }
-                        if (!context) {
-                            context = lifecycle_1.AttachContext.open(this);
-                        }
-                        if (this.$behavior.hasAttaching) {
-                            this.attaching();
-                        }
-                        var attachable = this.$attachable;
-                        for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                            attachable[i].$attach(context);
-                        }
-                        if (this.$slot !== null) {
-                            this.$slot.$attach(context);
-                        }
-                        if (this.$contentView !== null && this.$slots) {
-                            shadow_dom_1.ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
-                        }
-                        if (source.containerless) {
-                            this.$view.insertBefore(this.$host);
-                        }
-                        else {
-                            this.$view.appendTo(this.$shadowRoot);
-                        }
-                        if (this.$behavior.hasAttached) {
-                            context.queueForAttachedCallback(this);
-                        }
-                        this.$isAttached = true;
-                        if (context.wasOpenedBy(this)) {
-                            context.close();
-                        }
-                    };
-                    class_1.prototype.$detach = function (context) {
-                        if (this.$isAttached) {
-                            if (!context) {
-                                context = lifecycle_1.DetachContext.open(this);
-                            }
-                            if (this.$behavior.hasDetaching) {
-                                this.detaching();
-                            }
-                            context.queueForViewRemoval(this);
-                            var attachable = this.$attachable;
-                            var i = attachable.length;
-                            while (i--) {
-                                attachable[i].$detach();
-                            }
-                            if (this.$slot !== null) {
-                                this.$slot.$detach(context);
-                            }
-                            if (this.$behavior.hasDetached) {
-                                context.queueForDetachedCallback(this);
-                            }
-                            this.$isAttached = false;
-                            if (context.wasOpenedBy(this)) {
-                                context.close();
-                            }
-                        }
-                    };
-                    class_1.prototype.$unbind = function () {
-                        if (this.$isBound) {
-                            var bindable = this.$bindable;
-                            var i = bindable.length;
-                            while (i--) {
-                                bindable[i].$unbind();
-                            }
-                            if (this.$behavior.hasUnbound) {
-                                this.unbound();
-                            }
-                            this.$isBound = false;
-                        }
-                    };
-                    return class_1;
-                }(ctor)),
-                _a.source = source,
-                _a);
-            return CompiledComponent;
-            var _a;
+                    context.queueForViewRemoval(this);
+                    var attachable = this.$attachable;
+                    var i = attachable.length;
+                    while (i--) {
+                        attachable[i].$detach();
+                    }
+                    if (this.$slot !== null) {
+                        this.$slot.$detach(context);
+                    }
+                    if (this.$behavior.hasDetached) {
+                        context.queueForDetachedCallback(this);
+                    }
+                    this.$isAttached = false;
+                    if (context.wasOpenedBy(this)) {
+                        context.close();
+                    }
+                }
+            };
+            proto.$unbind = function () {
+                if (this.$isBound) {
+                    var bindable = this.$bindable;
+                    var i = bindable.length;
+                    while (i--) {
+                        bindable[i].$unbind();
+                    }
+                    if (this.$behavior.hasUnbound) {
+                        this.unbound();
+                    }
+                    this.$isBound = false;
+                }
+            };
+            return Type;
         }
     };
     function ensureSource(nameOrSource) {
@@ -7925,240 +8371,6 @@ define('runtime/templating/visual',["require", "exports", "../di"], function (re
 
 
 
-define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var svgElements = {
-        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
-        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
-        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
-        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
-        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-    };
-    var svgPresentationElements = {
-        'a': true,
-        'altGlyph': true,
-        'animate': true,
-        'animateColor': true,
-        'circle': true,
-        'clipPath': true,
-        'defs': true,
-        'ellipse': true,
-        'feBlend': true,
-        'feColorMatrix': true,
-        'feComponentTransfer': true,
-        'feComposite': true,
-        'feConvolveMatrix': true,
-        'feDiffuseLighting': true,
-        'feDisplacementMap': true,
-        'feFlood': true,
-        'feGaussianBlur': true,
-        'feImage': true,
-        'feMerge': true,
-        'feMorphology': true,
-        'feOffset': true,
-        'feSpecularLighting': true,
-        'feTile': true,
-        'feTurbulence': true,
-        'filter': true,
-        'font': true,
-        'foreignObject': true,
-        'g': true,
-        'glyph': true,
-        'glyphRef': true,
-        'image': true,
-        'line': true,
-        'linearGradient': true,
-        'marker': true,
-        'mask': true,
-        'missing-glyph': true,
-        'path': true,
-        'pattern': true,
-        'polygon': true,
-        'polyline': true,
-        'radialGradient': true,
-        'rect': true,
-        'stop': true,
-        'svg': true,
-        'switch': true,
-        'symbol': true,
-        'text': true,
-        'textPath': true,
-        'tref': true,
-        'tspan': true,
-        'use': true
-    };
-    var svgPresentationAttributes = {
-        'alignment-baseline': true,
-        'baseline-shift': true,
-        'clip-path': true,
-        'clip-rule': true,
-        'clip': true,
-        'color-interpolation-filters': true,
-        'color-interpolation': true,
-        'color-profile': true,
-        'color-rendering': true,
-        'color': true,
-        'cursor': true,
-        'direction': true,
-        'display': true,
-        'dominant-baseline': true,
-        'enable-background': true,
-        'fill-opacity': true,
-        'fill-rule': true,
-        'fill': true,
-        'filter': true,
-        'flood-color': true,
-        'flood-opacity': true,
-        'font-family': true,
-        'font-size-adjust': true,
-        'font-size': true,
-        'font-stretch': true,
-        'font-style': true,
-        'font-variant': true,
-        'font-weight': true,
-        'glyph-orientation-horizontal': true,
-        'glyph-orientation-vertical': true,
-        'image-rendering': true,
-        'kerning': true,
-        'letter-spacing': true,
-        'lighting-color': true,
-        'marker-end': true,
-        'marker-mid': true,
-        'marker-start': true,
-        'mask': true,
-        'opacity': true,
-        'overflow': true,
-        'pointer-events': true,
-        'shape-rendering': true,
-        'stop-color': true,
-        'stop-opacity': true,
-        'stroke-dasharray': true,
-        'stroke-dashoffset': true,
-        'stroke-linecap': true,
-        'stroke-linejoin': true,
-        'stroke-miterlimit': true,
-        'stroke-opacity': true,
-        'stroke-width': true,
-        'stroke': true,
-        'text-anchor': true,
-        'text-decoration': true,
-        'text-rendering': true,
-        'unicode-bidi': true,
-        'visibility': true,
-        'word-spacing': true,
-        'writing-mode': true
-    };
-    function createElement(html) {
-        var div = dom_1.DOM.createElement('div');
-        div.innerHTML = html;
-        return div.firstElementChild;
-    }
-    ;
-    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
-        svgElements.altglyph = svgElements.altGlyph;
-        delete svgElements.altGlyph;
-        svgElements.altglyphdef = svgElements.altGlyphDef;
-        delete svgElements.altGlyphDef;
-        svgElements.altglyphitem = svgElements.altGlyphItem;
-        delete svgElements.altGlyphItem;
-        svgElements.glyphref = svgElements.glyphRef;
-        delete svgElements.glyphRef;
-    }
-    function register(container) {
-        container.registerTransformer(svg_analyzer_1.ISVGAnalyzer, function (analyzer) {
-            return Object.assign(analyzer, {
-                isStandardSvgAttribute: function (node, attributeName) {
-                    if (!(node instanceof SVGElement)) {
-                        return false;
-                    }
-                    var nodeName = node.nodeName;
-                    return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
-                        || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
-                }
-            });
-        });
-    }
-    exports.register = register;
-});
-
-
-
 define('runtime/resources/repeat/override-contexts',["require", "exports", "../../binding/binding-context"], function (require, exports, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -8932,248 +9144,6 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
 define('runtime/resources/repeat/repeater',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-});
-
-
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-define('runtime/binding/computed-observer',["require", "exports", "./subscriber-collection", "../reporter"], function (require, exports, subscriber_collection_1, reporter_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var noProxy = !(typeof Proxy !== undefined);
-    var computedContext = 'computed-observer';
-    var computedOverrideDefaults = { static: false, volatile: false };
-    function createComputedObserver(observerLocator, dirtyChecker, taskQueue, instance, propertyName, descriptor) {
-        if (descriptor.configurable === false) {
-            return dirtyChecker.createProperty(instance, propertyName);
-        }
-        if (descriptor.get) {
-            var overrides = instance.constructor.computed
-                ? instance.constructor.computed[propertyName] || computedOverrideDefaults
-                : computedOverrideDefaults;
-            if (descriptor.set) {
-                if (overrides.volatile) {
-                    return noProxy
-                        ? dirtyChecker.createProperty(instance, propertyName)
-                        : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue);
-                }
-                return new CustomSetterObserver(instance, propertyName, descriptor, taskQueue);
-            }
-            return noProxy
-                ? dirtyChecker.createProperty(instance, propertyName)
-                : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue);
-        }
-        throw reporter_1.Reporter.error(18, propertyName);
-    }
-    exports.createComputedObserver = createComputedObserver;
-    var CustomSetterObserver = (function (_super) {
-        __extends(CustomSetterObserver, _super);
-        function CustomSetterObserver(instance, propertyName, descriptor, taskQueue) {
-            var _this = _super.call(this) || this;
-            _this.instance = instance;
-            _this.propertyName = propertyName;
-            _this.descriptor = descriptor;
-            _this.taskQueue = taskQueue;
-            _this.queued = false;
-            _this.observing = false;
-            return _this;
-        }
-        CustomSetterObserver.prototype.getValue = function () {
-            return this.instance[this.propertyName];
-        };
-        CustomSetterObserver.prototype.setValue = function (newValue) {
-            this.instance[this.propertyName] = newValue;
-        };
-        CustomSetterObserver.prototype.call = function () {
-            var oldValue = this.oldValue;
-            var newValue = this.currentValue;
-            this.queued = false;
-            this.callSubscribers(newValue, oldValue);
-        };
-        CustomSetterObserver.prototype.subscribe = function (context, callable) {
-            if (!this.observing) {
-                this.convertProperty();
-            }
-            this.addSubscriber(context, callable);
-        };
-        CustomSetterObserver.prototype.unsubscribe = function (context, callable) {
-            this.removeSubscriber(context, callable);
-        };
-        CustomSetterObserver.prototype.convertProperty = function () {
-            var setter = this.descriptor.set;
-            var that = this;
-            this.observing = true;
-            this.currentValue = this.instance[this.propertyName];
-            Reflect.defineProperty(this.instance, this.propertyName, {
-                set: function (newValue) {
-                    setter(newValue);
-                    var oldValue = this.currentValue;
-                    if (oldValue !== newValue) {
-                        if (!that.queued) {
-                            that.oldValue = oldValue;
-                            that.queued = true;
-                            that.taskQueue.queueMicroTask(that);
-                        }
-                        that.currentValue = newValue;
-                    }
-                }
-            });
-        };
-        return CustomSetterObserver;
-    }(subscriber_collection_1.SubscriberCollection));
-    exports.CustomSetterObserver = CustomSetterObserver;
-    var GetterObserver = (function (_super) {
-        __extends(GetterObserver, _super);
-        function GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue) {
-            var _this = _super.call(this) || this;
-            _this.overrides = overrides;
-            _this.instance = instance;
-            _this.propertyName = propertyName;
-            _this.descriptor = descriptor;
-            _this.observerLocator = observerLocator;
-            _this.taskQueue = taskQueue;
-            _this.controller = new GetterController(overrides, instance, propertyName, descriptor, _this, observerLocator, taskQueue);
-            return _this;
-        }
-        GetterObserver.prototype.getValue = function () {
-            return this.controller.value;
-        };
-        GetterObserver.prototype.setValue = function (newValue) { };
-        GetterObserver.prototype.call = function () {
-            var oldValue = this.controller.value;
-            var newValue = this.controller.getValueAndCollectDependencies();
-            if (oldValue !== newValue) {
-                this.callSubscribers(newValue, oldValue);
-            }
-        };
-        GetterObserver.prototype.subscribe = function (context, callable) {
-            this.addSubscriber(context, callable);
-            this.controller.onSubscriberAdded();
-        };
-        GetterObserver.prototype.unsubscribe = function (context, callable) {
-            this.removeSubscriber(context, callable);
-            this.controller.onSubscriberRemoved();
-        };
-        return GetterObserver;
-    }(subscriber_collection_1.SubscriberCollection));
-    var GetterController = (function () {
-        function GetterController(overrides, instance, propertyName, descriptor, owner, observerLocator, taskQueue) {
-            this.overrides = overrides;
-            this.instance = instance;
-            this.propertyName = propertyName;
-            this.owner = owner;
-            this.taskQueue = taskQueue;
-            this.queued = false;
-            this.dependencies = [];
-            this.subscriberCount = 0;
-            this.isCollecting = false;
-            var proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
-            var getter = descriptor.get;
-            var ctrl = this;
-            Reflect.defineProperty(instance, propertyName, {
-                get: function () {
-                    if (ctrl.subscriberCount < 1 || ctrl.isCollecting) {
-                        ctrl.value = getter.apply(proxy);
-                    }
-                    return ctrl.value;
-                }
-            });
-        }
-        GetterController.prototype.addDependency = function (subscribable) {
-            if (this.dependencies.includes(subscribable)) {
-                return;
-            }
-            this.dependencies.push(subscribable);
-        };
-        GetterController.prototype.onSubscriberAdded = function () {
-            this.subscriberCount++;
-            if (this.subscriberCount > 1) {
-                return;
-            }
-            this.getValueAndCollectDependencies(true);
-        };
-        GetterController.prototype.getValueAndCollectDependencies = function (requireCollect) {
-            var _this = this;
-            if (requireCollect === void 0) { requireCollect = false; }
-            this.queued = false;
-            var dynamicDependencies = !this.overrides.static || requireCollect;
-            if (dynamicDependencies) {
-                this.unsubscribeAllDependencies();
-                this.isCollecting = true;
-            }
-            this.value = this.instance[this.propertyName];
-            if (dynamicDependencies) {
-                this.isCollecting = false;
-                this.dependencies.forEach(function (x) { return x.subscribe(computedContext, _this); });
-            }
-            return this.value;
-        };
-        GetterController.prototype.onSubscriberRemoved = function () {
-            this.subscriberCount--;
-            if (this.subscriberCount === 0) {
-                this.unsubscribeAllDependencies();
-            }
-        };
-        GetterController.prototype.unsubscribeAllDependencies = function () {
-            var _this = this;
-            this.dependencies.forEach(function (x) { return x.unsubscribe(computedContext, _this); });
-            this.dependencies.length = 0;
-        };
-        GetterController.prototype.call = function () {
-            if (!this.queued) {
-                this.queued = true;
-                this.taskQueue.queueMicroTask(this.owner);
-            }
-        };
-        return GetterController;
-    }());
-    function createGetterTraps(observerLocator, controller) {
-        return {
-            get: function (instance, key) {
-                var value = instance[key];
-                if (key === '$observers' || typeof value === 'function' || !controller.isCollecting) {
-                    return value;
-                }
-                if (instance instanceof Array) {
-                    controller.addDependency(observerLocator.getArrayObserver(instance));
-                    if (key === 'length') {
-                        controller.addDependency(observerLocator.getArrayObserver(instance).getLengthObserver());
-                    }
-                }
-                else if (instance instanceof Map) {
-                    controller.addDependency(observerLocator.getMapObserver(instance));
-                    if (key === 'size') {
-                        controller.addDependency(this.getMapObserver(instance).getLengthObserver());
-                    }
-                }
-                else if (instance instanceof Set) {
-                    controller.addDependency(observerLocator.getSetObserver(instance));
-                    if (key === 'size') {
-                        return observerLocator.getSetObserver(instance).getLengthObserver();
-                    }
-                }
-                else {
-                    controller.addDependency(observerLocator.getObserver(instance, key));
-                }
-                return proxyOrValue(observerLocator, controller, value);
-            }
-        };
-    }
-    function proxyOrValue(observerLocator, controller, value) {
-        if (!(value instanceof Object)) {
-            return value;
-        }
-        return new Proxy(value, createGetterTraps(observerLocator, controller));
-    }
 });
 
 

@@ -21,12 +21,28 @@ export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $host: INode;
   $contentView: IContentView;
   $usingSlotEmulation: boolean;
-
+  $isAttached: boolean;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, replacements?: Record<string, ITemplateSource>, contentNodeOverride?: INode): void;
 }
 
+interface IElementComponentImplementation extends IElementComponent {
+  $changeCallbacks: (() => void)[];
+  $behavior: IRuntimeBehavior;
+  $slot: IEmulatedShadowSlot;
+  $shadowRoot: INode;
+}
+
 export interface IAttributeComponent extends IBindScope, IAttach { 
+  $isBound: boolean;
+  $isAttached: boolean;
+  $scope: IScope;
   $hydrate(renderingEngine: IRenderingEngine,);
+}
+
+interface IAttributeComponentImplementation extends IAttributeComponent {
+  $changeCallbacks: (() => void)[];
+  $behavior: IRuntimeBehavior;
+  $slot: IEmulatedShadowSlot;
 }
 
 export interface IAttributeSource {
@@ -66,314 +82,302 @@ export interface BindingBehaviorType extends Constructable {
 
 export const Component = {
   valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & ValueConverterType {
-    const source = (<any>ctor).source = ensureSource<IValueConverterSource>(nameOrSource);
+    const source = ensureSource<IValueConverterSource>(nameOrSource);
+    const Type: T & ValueConverterType = ctor as any;
 
-    (<any>ctor).register = function(container: IContainer) {
-      container.register(Registration.singleton(source.name, ctor));
-    }
-
-    return <any>ctor;
-  },
-  bindingBehavior<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & BindingBehaviorType {
-    const source = (<any>ctor).source = ensureSource<IBindingBehaviorSource>(nameOrSource);
-
-    (<any>ctor).register = function(container: IContainer) {
-      container.register(Registration.singleton(source.name, ctor));
+    Type.source = source;
+    Type.register = function(container: IContainer) {
+      container.register(Registration.singleton(source.name, Type));
     };
 
-    return <any>ctor;
+    return Type;
+  },
+  bindingBehavior<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & BindingBehaviorType {
+    const source = ensureSource<IBindingBehaviorSource>(nameOrSource);
+    const Type: T & BindingBehaviorType = ctor as any;
+
+    Type.source = source;
+    Type.register = function(container: IContainer) {
+      container.register(Registration.singleton(source.name, Type));
+    };
+
+    return Type;
   },
   attribute<T extends Constructable>(nameOrSource: string | IAttributeSource, ctor: T): T & IAttributeType {
     const source = ensureSource<IAttributeSource>(nameOrSource);
-    const observables = (<any>ctor).observables || {};
-    
-    return class CustomAttribute extends ctor implements IAttributeComponent {
-      static source: IAttributeSource = source;
+    const Type: T & IAttributeType = ctor as any;
+    const proto: IAttributeComponent = Type.prototype;
+    const observables = (Type as any).observables || {};
 
-      static register(container: IContainer){
-        container.register(Registration.transient(source.name, CustomAttribute));
+    Type.source = source;
+    Type.register = function register(container: IContainer){
+      container.register(Registration.transient(source.name, Type));
 
-        let aliases = source.aliases;
+      let aliases = source.aliases;
 
-        if (aliases) {
-          for(let i = 0, ii = aliases.length; i < ii; ++i) {
-            container.register(Registration.alias(source.name, aliases[i]));
-          }
-        }
-      }
-
-      private $changeCallbacks: (() => void)[] = [];
-      private $behavior: IRuntimeBehavior = null;
-
-      $isAttached = false;
-      $isBound = false;
-      $scope: IScope = null;
-      $slot: IRenderSlot = null;
-
-      $hydrate(renderingEngine: IRenderingEngine) {
-        this.$behavior = renderingEngine.applyRuntimeBehavior(CustomAttribute, this, observables);
-
-        if (this.$behavior.hasCreated) {
-          (<any>this).created();
-        }
-      }
-
-      $bind(scope: IScope) {
-        if (this.$isBound) {
-          if (this.$scope === scope) {
-            return;
-          }
-    
-          this.$unbind();
-        }
-
-        this.$scope = scope
-        this.$isBound = true;
-  
-        const changeCallbacks = this.$changeCallbacks;
-  
-        for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-          changeCallbacks[i]();
-        }
-  
-        if (this.$behavior.hasBound) {
-          (<any>this).bound(scope);
-        }
-      }
-
-      $attach(context: AttachContext){
-        if (this.$isAttached) {
-          return;
-        }
-
-        if (this.$behavior.hasAttaching) {
-          (<any>this).attaching();
-        }
-
-        if (this.$slot !== null) {
-          this.$slot.$attach(context);
-        }
-      
-        if (this.$behavior.hasAttached) {
-          context.queueForAttachedCallback(this);
-        }
-
-        this.$isAttached = true;
-      }
-
-      $detach(context: DetachContext) {
-        if (this.$isAttached) {
-          if (this.$behavior.hasDetaching) {
-            (<any>this).detaching();
-          }
-
-          if (this.$slot !== null) {
-            this.$slot.$detach(context);
-          }
-    
-          if (this.$behavior.hasDetached) {
-            context.queueForDetachedCallback(this);
-          }
-
-          this.$isAttached = false;
-        }
-      }
-
-      $unbind() {
-        if (this.$isBound) {
-          if (this.$behavior.hasUnbound) {
-            (<any>this).unbound();
-          }
-    
-          this.$isBound = false;
+      if (aliases) {
+        for(let i = 0, ii = aliases.length; i < ii; ++i) {
+          container.register(Registration.alias(source.name, aliases[i]));
         }
       }
     };
+
+    proto.$hydrate = function(this: IAttributeComponentImplementation, renderingEngine: IRenderingEngine) {
+      this.$changeCallbacks = [];
+      this.$isAttached = false;
+      this.$isBound = false;
+      this.$scope = null;
+      this.$slot = null;
+      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, observables);
+
+      if (this.$behavior.hasCreated) {
+        (this as any).created();
+      }
+    };
+
+    proto.$bind = function(this: IAttributeComponentImplementation, scope: IScope) {
+      if (this.$isBound) {
+        if (this.$scope === scope) {
+          return;
+        }
+  
+        this.$unbind();
+      }
+
+      this.$scope = scope
+      this.$isBound = true;
+
+      const changeCallbacks = this.$changeCallbacks;
+
+      for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+        changeCallbacks[i]();
+      }
+
+      if (this.$behavior.hasBound) {
+        (this as any).bound(scope);
+      }
+    };
+
+    proto.$attach = function(this: IAttributeComponentImplementation, context: AttachContext){
+      if (this.$isAttached) {
+        return;
+      }
+
+      if (this.$behavior.hasAttaching) {
+        (this as any).attaching();
+      }
+
+      if (this.$slot !== null) {
+        this.$slot.$attach(context);
+      }
+    
+      if (this.$behavior.hasAttached) {
+        context.queueForAttachedCallback(this);
+      }
+
+      this.$isAttached = true;
+    };
+
+    proto.$detach = function(this: IAttributeComponentImplementation, context: DetachContext) {
+      if (this.$isAttached) {
+        if (this.$behavior.hasDetaching) {
+          (this as any).detaching();
+        }
+
+        if (this.$slot !== null) {
+          this.$slot.$detach(context);
+        }
+  
+        if (this.$behavior.hasDetached) {
+          context.queueForDetachedCallback(this);
+        }
+
+        this.$isAttached = false;
+      }
+    };
+
+    proto.$unbind = function(this: IAttributeComponentImplementation) {
+      if (this.$isBound) {
+        if (this.$behavior.hasUnbound) {
+          (this as any).unbound();
+        }
+  
+        this.$isBound = false;
+      }
+    };
+    
+    return Type;
   },
   element<T extends Constructable>(source: ITemplateSource, ctor: T = null): T & IElementType {
-    //Support HTML-Only Elements by providing a generated class.
-    if (ctor === null) {
-      ctor = <any>class HTMLOnlyElement { };
-    }
+    const Type: T & IElementType = ctor === null ? class HTMLOnlyElement { /* HTML Only */ } as any : ctor as any;
+    const proto: IElementComponent = Type.prototype;
+    const observables = Object.assign({}, (Type as any).observables, source.observables); //Merge any observables from view compilation with those from bindable props on the class.
     
-    source.shadowOptions = source.shadowOptions || (<any>ctor).shadowOptions || null;
-    source.containerless = source.containerless || (<any>ctor).containerless || false;
+    source.shadowOptions = source.shadowOptions || (Type as any).shadowOptions || null;
+    source.containerless = source.containerless || (Type as any).containerless || false;
 
-    //Merge any observables from view compilation with those from bindable props on the class.
-    const observables = Object.assign({}, (<any>ctor).observables, source.observables);
+    Type.source = source;
+    Type.register = function(container: IContainer){
+      container.register(Registration.transient(source.name, Type));
+    };
 
-    const CompiledComponent = class extends ctor implements IElementComponent {
-      static source: ITemplateSource = source;
+    proto.$hydrate = function(this: IElementComponentImplementation, renderingEngine: IRenderingEngine, host: INode, replacements: Record<string, ITemplateSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
+      let template = renderingEngine.getElementTemplate(source, Type);
 
-      static register(container: IContainer){
-        container.register(Registration.transient(source.name, CompiledComponent));
-      }
-  
-      $context: IRenderContext;
-      $bindable: IBindScope[] = [];
-      $attachable: IAttach[] = [];
-      $slots: Record<string, IEmulatedShadowSlot> = source.hasSlots ? {} : null;
-      $usingSlotEmulation = source.hasSlots || false;
-      $view: IView = null;
-      $contentView: IContentView = null;
-      $slot: IRenderSlot = null;
-      $isAttached = false;
-      $isBound = false;
-      $scope: IScope = {
+      this.$bindable = [];
+      this.$attachable = [];
+      this.$changeCallbacks = [];
+      this.$slots = source.hasSlots ? {} : null;
+      this.$usingSlotEmulation = source.hasSlots || false;
+      this.$slot = null;
+      this.$isAttached = false;
+      this.$isBound = false;
+      this.$scope = {
         bindingContext: this,
         overrideContext: BindingContext.createOverride()
       };
       
-      $host: INode = null;
-      private $shadowRoot: INode = null;
-      private $changeCallbacks: (() => void)[] = [];
-      private $behavior: IRuntimeBehavior = null;
-  
-      $hydrate(renderingEngine: IRenderingEngine, host: INode, replacements: Record<string, ITemplateSource> = PLATFORM.emptyObject, contentOverride?: INode) { 
-        let template = renderingEngine.getElementTemplate(source, CompiledComponent);
-        
-        this.$context = template.context;
-        this.$behavior = renderingEngine.applyRuntimeBehavior(CompiledComponent, this, observables);
-        this.$host = source.containerless ? DOM.convertToAnchor(host, true) : host;
-        this.$shadowRoot = DOM.createElementViewHost(this.$host, source.shadowOptions);
-        this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
-        this.$contentView = View.fromCompiledContent(this.$host, contentOverride);
-        this.$view = this.$behavior.hasCreateView
-          ? (<any>this).createView(host, replacements, template)
-          : template.createFor(this, host, replacements);
+      this.$context = template.context;
+      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, observables);
+      this.$host = source.containerless ? DOM.convertToAnchor(host, true) : host;
+      this.$shadowRoot = DOM.createElementViewHost(this.$host, source.shadowOptions);
+      this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
+      this.$contentView = View.fromCompiledContent(this.$host, contentOverride);
+      this.$view = this.$behavior.hasCreateView
+        ? (this as any).createView(host, replacements, template)
+        : template.createFor(this, host, replacements);
 
-        (<any>this.$host).$component = this;
-  
-        if (this.$behavior.hasCreated) {
-          (<any>this).created();
-        }
+      (this.$host as any).$component = this;
+
+      if (this.$behavior.hasCreated) {
+        (this as any).created();
       }
-  
-      $bind() {
-        if (this.$isBound) {
-          return;
-        }
+    };
 
-        const scope = this.$scope;
-        const bindable = this.$bindable;
-  
-        for (let i = 0, ii = bindable.length; i < ii; ++i) {
-          bindable[i].$bind(scope);
-        }
-  
-        this.$isBound = true;
-  
-        const changeCallbacks = this.$changeCallbacks;
-  
-        for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-          changeCallbacks[i]();
-        }
-  
-        if (this.$behavior.hasBound) {
-          (<any>this).bound();
-        }
+    proto.$bind = function(this: IElementComponentImplementation) {
+      if (this.$isBound) {
+        return;
       }
-  
-      $attach(context?: AttachContext) {
-        if (this.$isAttached) {
-          return;
-        }
 
+      const scope = this.$scope;
+      const bindable = this.$bindable;
+
+      for (let i = 0, ii = bindable.length; i < ii; ++i) {
+        bindable[i].$bind(scope);
+      }
+
+      this.$isBound = true;
+
+      const changeCallbacks = this.$changeCallbacks;
+
+      for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
+        changeCallbacks[i]();
+      }
+
+      if (this.$behavior.hasBound) {
+        (this as any).bound();
+      }
+    };
+
+    proto.$attach = function(this: IElementComponentImplementation, context?: AttachContext) {
+      if (this.$isAttached) {
+        return;
+      }
+
+      if (!context) {
+        context = AttachContext.open(this);
+      }
+
+      if (this.$behavior.hasAttaching) {
+        (this as any).attaching();
+      }
+
+      const attachable = this.$attachable;
+
+      for (let i = 0, ii = attachable.length; i < ii; ++i) {
+        attachable[i].$attach(context);
+      }
+
+      if (this.$slot !== null) {
+        this.$slot.$attach(context);
+      }
+
+      //Native ShadowDOM would be distributed as soon as we append the view below.
+      //So, we emulate the distribution of nodes at the same time.
+      if (this.$contentView !== null && this.$slots) {
+        ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
+      }
+
+      if (source.containerless) {
+        this.$view.insertBefore(this.$host);
+      } else {
+        this.$view.appendTo(this.$shadowRoot);
+      }
+    
+      if (this.$behavior.hasAttached) {
+        context.queueForAttachedCallback(this);
+      }
+
+      this.$isAttached = true;
+
+      if (context.wasOpenedBy(this)) {
+        context.close();
+      }
+    };
+
+    proto.$detach = function(this: IElementComponentImplementation, context?: DetachContext) {
+      if (this.$isAttached) {
         if (!context) {
-          context = AttachContext.open(this);
+          context = DetachContext.open(this);
         }
 
-        if (this.$behavior.hasAttaching) {
-          (<any>this).attaching();
+        if (this.$behavior.hasDetaching) {
+          (this as any).detaching();
         }
+
+        context.queueForViewRemoval(this);
   
         const attachable = this.$attachable;
+        let i = attachable.length;
   
-        for (let i = 0, ii = attachable.length; i < ii; ++i) {
-          attachable[i].$attach(context);
+        while (i--) {
+          attachable[i].$detach();
         }
 
         if (this.$slot !== null) {
-          this.$slot.$attach(context);
-        }
-
-        //Native ShadowDOM would be distributed as soon as we append the view below.
-        //So, we emulate the distribution of nodes at the same time.
-        if (this.$contentView !== null && this.$slots) {
-          ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
+          this.$slot.$detach(context);
         }
   
-        if (source.containerless) {
-          this.$view.insertBefore(this.$host);
-        } else {
-          this.$view.appendTo(this.$shadowRoot);
-        }
-      
-        if (this.$behavior.hasAttached) {
-          context.queueForAttachedCallback(this);
+        if (this.$behavior.hasDetached) {
+          context.queueForDetachedCallback(this);
         }
 
-        this.$isAttached = true;
+        this.$isAttached = false;
 
         if (context.wasOpenedBy(this)) {
           context.close();
         }
       }
+    };
+
+    proto.$unbind = function(this: IElementComponentImplementation) {
+      if (this.$isBound) {
+        const bindable = this.$bindable;
+        let i = bindable.length;
   
-      $detach(context?: DetachContext) {
-        if (this.$isAttached) {
-          if (!context) {
-            context = DetachContext.open(this);
-          }
-
-          if (this.$behavior.hasDetaching) {
-            (<any>this).detaching();
-          }
-
-          context.queueForViewRemoval(this);
-    
-          const attachable = this.$attachable;
-          let i = attachable.length;
-    
-          while (i--) {
-            attachable[i].$detach();
-          }
-
-          if (this.$slot !== null) {
-            this.$slot.$detach(context);
-          }
-    
-          if (this.$behavior.hasDetached) {
-            context.queueForDetachedCallback(this);
-          }
-
-          this.$isAttached = false;
-
-          if (context.wasOpenedBy(this)) {
-            context.close();
-          }
+        while (i--) {
+          bindable[i].$unbind();
         }
-      }
   
-      $unbind() {
-        if (this.$isBound) {
-          const bindable = this.$bindable;
-          let i = bindable.length;
-    
-          while (i--) {
-            bindable[i].$unbind();
-          }
-    
-          if (this.$behavior.hasUnbound) {
-            (<any>this).unbound();
-          }
-    
-          this.$isBound = false;
+        if (this.$behavior.hasUnbound) {
+          (this as any).unbound();
         }
+  
+        this.$isBound = false;
       }
-    }
+    };
 
-    return CompiledComponent;
+    return Type;
   }
 };
 

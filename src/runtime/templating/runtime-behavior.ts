@@ -33,7 +33,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   hasCreateView = false;
 
   static create(instance, observables: Record<string, IBindableInstruction>, Component: IElementType | IAttributeType) {
-    let behavior = new RuntimeBehavior();
+    const behavior = new RuntimeBehavior();
 
     for (let name in instance) {
       if (name in observables) {
@@ -167,7 +167,7 @@ class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubsc
 }
 
 function findElements(nodes: ArrayLike<INode>): IElementComponent[] {
-  let components: IElementComponent[] = [];
+  const components: IElementComponent[] = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const current = nodes[i];

@@ -33,15 +33,15 @@ export class Renderer {
   ) {}
 
   render(owner: IViewOwner, targets: ArrayLike<INode>, source: ITemplateSource, host?: INode, replacements?: Record<string, ITemplateSource>): void {
-    let targetInstructions = source.instructions;
+    const targetInstructions = source.instructions;
 
     for (let i = 0, ii = targets.length; i < ii; ++i) {
-      let instructions = targetInstructions[i];
-      let target = targets[i];
+      const instructions = targetInstructions[i];
+      const target = targets[i];
 
       for (let j = 0, jj = instructions.length; j < jj; ++j) {
-        let current = instructions[j];
-        (<any>this[current.type])(owner, target, current, replacements);
+        const current = instructions[j];
+        (this[current.type] as any)(owner, target, current, replacements);
       }
     }
 
@@ -49,8 +49,8 @@ export class Renderer {
       const surrogateInstructions = source.surrogates;
       
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-        let current = surrogateInstructions[i];
-        (<any>this[current.type])(owner, host, current, replacements);
+        const current = surrogateInstructions[i];
+        (this[current.type] as any)(owner, host, current, replacements);
       }
     }
   }
@@ -58,16 +58,11 @@ export class Renderer {
   hydrateElementInstance(owner: IViewOwner, target: INode, instruction: IHydrateElementInstruction, component: IElementComponent) {
     let childInstructions = instruction.instructions;
   
-    component.$hydrate(
-      this.renderingEngine,
-      target, 
-      instruction.replacements,
-      instruction.contentElement
-    );
+    component.$hydrate(this.renderingEngine, target, instruction.replacements, instruction.contentElement);
     
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      let current = childInstructions[i];
-      let currentType = current.type;
+      const current = childInstructions[i];
+      const currentType = current.type;
       let realTarget;
       
       if (currentType === TargetedInstructionType.stylePropertyBinding || currentType === TargetedInstructionType.listenerBinding) {
@@ -76,7 +71,7 @@ export class Renderer {
         realTarget = component;
       }
   
-      (<any>this[current.type])(owner, realTarget, current);
+      (this[current.type] as any)(owner, realTarget, current);
     }
   
     owner.$bindable.push(component);
@@ -84,7 +79,7 @@ export class Renderer {
   }
 
   [TargetedInstructionType.textBinding](owner: IViewOwner,target: any, instruction: ITextBindingInstruction) {
-    let next = target.nextSibling;
+    const next = target.nextSibling;
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
     owner.$bindable.push(new Binding(this.parser.parse(instruction.src), next, 'textContent', BindingMode.oneWay, this.observerLocator, this.context));
@@ -131,8 +126,8 @@ export class Renderer {
       return;
     }
 
-    let fallbackFactory = this.renderingEngine.getVisualFactory(this.context, instruction.fallback);
-    let slot = ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
+    const fallbackFactory = this.renderingEngine.getVisualFactory(this.context, instruction.fallback);
+    const slot = ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
 
     owner.$slots[slot.name] = slot;
     owner.$bindable.push(slot);
@@ -140,57 +135,57 @@ export class Renderer {
   }
 
   [TargetedInstructionType.hydrateElement](owner: IViewOwner, target: any, instruction: IHydrateElementInstruction) {
-    let container = this.context;
-    let context = container.beginComponentOperation(owner, target, instruction, null, null, target, true);
-    let component = container.get<IElementComponent>(instruction.res);
+    const context = this.context;
+    const operation = context.beginComponentOperation(owner, target, instruction, null, null, target, true);
+    const component = context.get<IElementComponent>(instruction.res);
 
     this.hydrateElementInstance(owner, target, instruction, component);
-    context.tryConnectElementToSlot(component);
+    operation.tryConnectElementToSlot(component);
     
-    context.dispose();
+    operation.dispose();
   }
 
   [TargetedInstructionType.hydrateAttribute](owner: IViewOwner, target: any, instruction: IHydrateAttributeInstruction) {
-    let childInstructions = instruction.instructions;
-    let container = this.context;
-    let context = container.beginComponentOperation(owner, target, instruction);
+    const childInstructions = instruction.instructions;
+    const context = this.context;
+    const operation = context.beginComponentOperation(owner, target, instruction);
 
-    let component = container.get<IAttributeComponent>(instruction.res);
+    const component = context.get<IAttributeComponent>(instruction.res);
     component.$hydrate(this.renderingEngine);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      let current = childInstructions[i];
-      (<any>this[current.type])(owner, component, current);
+      const current = childInstructions[i];
+      (this[current.type] as any)(owner, component, current);
     }
 
     owner.$bindable.push(component);
     owner.$attachable.push(component);
 
-    context.dispose();
+    operation.dispose();
   }
 
   [TargetedInstructionType.hydrateTemplateController](owner: IViewOwner, target: any, instruction: IHydrateTemplateController, replacements?: Record<string, ITemplateSource>) {
-    let childInstructions = instruction.instructions;
-    let factory = this.renderingEngine.getVisualFactory(this.context, instruction.src);
-    let container = this.context;
-    let context = container.beginComponentOperation(owner, target, instruction, factory, replacements, DOM.convertToAnchor(target), false);
+    const childInstructions = instruction.instructions;
+    const factory = this.renderingEngine.getVisualFactory(this.context, instruction.src);
+    const context = this.context;
+    const operation = context.beginComponentOperation(owner, target, instruction, factory, replacements, DOM.convertToAnchor(target), false);
 
-    let component = container.get<IAttributeComponent>(instruction.res);
+    const component = context.get<IAttributeComponent>(instruction.res);
     component.$hydrate(this.renderingEngine);
-    context.tryConnectTemplateControllerToSlot(component);
+    operation.tryConnectTemplateControllerToSlot(component);
 
     if (instruction.link) {
-      (<any>component).link(owner.$attachable[owner.$attachable.length - 1]);
+      (component as any).link(owner.$attachable[owner.$attachable.length - 1]);
     }
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      let current = childInstructions[i];
-      (<any>this[current.type])(owner, component, current);
+      const current = childInstructions[i];
+      (this[current.type] as any)(owner, component, current);
     }
 
     owner.$bindable.push(component);
     owner.$attachable.push(component);
 
-    context.dispose();
+    operation.dispose();
   }
 }

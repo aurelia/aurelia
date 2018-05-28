@@ -1,6 +1,6 @@
 import { IfCore } from './if-core';
 import { Else } from './else';
-import { IRenderSlot } from '../templating/render-slot';
+import { IRenderSlot, SwapOrder } from '../templating/render-slot';
 import { templateController, customAttribute, bindable } from '../decorators';
 import { inject } from '../di';
 import { IVisualFactory } from '../templating/visual';
@@ -12,7 +12,7 @@ export class If extends IfCore {
   private animating = false;
   private elseBehavior: Else;
 
-  @bindable swapOrder: 'before' | 'with' | 'after' = 'after';
+  @bindable swapOrder: SwapOrder = SwapOrder.after;
   @bindable condition: boolean = false;
 
   conditionChanged(newValue) {
@@ -58,9 +58,9 @@ export class If extends IfCore {
 
   private swap(remove: IfCore, add: IfCore) {
     switch (this.swapOrder) {
-      case 'before':
+      case SwapOrder.before:
         return Promise.resolve(<any>add.show()).then(() => remove.hide());
-      case 'with':
+      case SwapOrder.with:
         return Promise.all([<any>remove.hide(), add.show()]);
       default:  // "after", default and unknown values
         let promise = remove.hide();

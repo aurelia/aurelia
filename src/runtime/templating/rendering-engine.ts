@@ -16,7 +16,7 @@ import { IBindScope } from "../binding/observation";
 import { PLATFORM } from "../platform";
 import { IEmulatedShadowSlot } from "./shadow-dom";
 import { IRenderContext, createRenderContext, IComponentOperation } from "./render-context";
-import { IVisualFactory, VisualWithCentralComponent, IVisual, RenderCallback } from "./visual";
+import { IVisualFactory, VisualWithCentralComponent, IVisual, RenderCallback, MotionDirection } from "./visual";
 import { ITemplate } from "./template";
 import { IObserverLocator } from "../binding/observer-locator";
 import { IEventManager } from "../binding/event-manager";
@@ -240,7 +240,7 @@ abstract class Visual implements IVisual {
     return this.animationRoot = null;
   }
 
-  animate(direction: 'enter' | 'leave' = 'enter'): void | Promise<boolean> {
+  animate(direction: MotionDirection = MotionDirection.enter): void | Promise<boolean> {
     const element = this.getAnimationRoot();
 
     if (element === null) {
@@ -248,9 +248,9 @@ abstract class Visual implements IVisual {
     }
 
     switch (direction) {
-      case 'enter':
+      case MotionDirection.enter:
         return this.animator.enter(element);
-      case 'leave':
+      case MotionDirection.leave:
         return this.animator.leave(element);
       default:
         throw Reporter.error(4, direction);

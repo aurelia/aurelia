@@ -27,13 +27,13 @@ export interface IComponentOperation {
 type ExposedContext = IRenderContext & IComponentOperation & IContainer;
 
 export function createRenderContext(renderingEngine: IRenderingEngine, parentContext: IRenderContext, dependencies: any[]): IRenderContext {
-  let context = <ExposedContext>parentContext.createChild();
-  let ownerProvider = new InstanceProvider();
-  let elementProvider = new InstanceProvider();
-  let instructionProvider = new InstanceProvider<ITargetedInstruction>();
-  let factoryProvider = new ViewFactoryProvider(renderingEngine);
-  let slotProvider = new RenderSlotProvider();
-  let renderer = renderingEngine.createRenderer(context);
+  const context = <ExposedContext>parentContext.createChild();
+  const ownerProvider = new InstanceProvider();
+  const elementProvider = new InstanceProvider();
+  const instructionProvider = new InstanceProvider<ITargetedInstruction>();
+  const factoryProvider = new ViewFactoryProvider(renderingEngine);
+  const slotProvider = new RenderSlotProvider();
+  const renderer = renderingEngine.createRenderer(context);
 
   DOM.registerElementResolver(context, elementProvider);
 
@@ -121,7 +121,7 @@ class ViewFactoryProvider implements IResolver {
   }
 
   resolve(handler: IContainer, requestor: ExposedContext) {
-    let found = this.replacements[this.factory.name];
+    const found = this.replacements[this.factory.name];
 
     if (found) {
       return this.renderingEngine.getVisualFactory(requestor, found);
@@ -154,7 +154,7 @@ class RenderSlotProvider implements IResolver {
     const slot = this.slot;
 
     if (slot !== null) {
-      (<any>slot).$isContentProjectionSource = true; // Usage: Shadow DOM Emulation
+      (slot as any).$isContentProjectionSource = true; // Usage: Shadow DOM Emulation
       owner.$slot = slot; // Usage: Custom Attributes
     }
   }

@@ -6,7 +6,7 @@ import { IAttach, AttachContext, DetachContext } from './lifecycle';
 import { DI } from '../di';
 import { INode, IView } from '../dom';
 import { IContentView } from './view';
-import { IVisual } from './visual';
+import { IVisual, MotionDirection } from './visual';
 
 function appendVisualToContainer(visual: IVisual, owner: RenderSlotImplementation) {
   visual.$view.appendTo(owner.anchor);
@@ -135,8 +135,8 @@ class RenderSlotImplementation implements IRenderSlot {
   /** @internal */ public logicalView: IContentView = null;
 
   constructor(public anchor: INode, anchorIsContainer: boolean) {
-    (<any>anchor).$slot = this; // Usage: Shadow DOM Emulation
-    (<any>anchor).$isContentProjectionSource = false; // Usage: Shadow DOM Emulation
+    (anchor as any).$slot = this; // Usage: Shadow DOM Emulation
+    (anchor as any).$isContentProjectionSource = false; // Usage: Shadow DOM Emulation
 
     this.addVisualCore = anchorIsContainer ? appendVisualToContainer : addVisual;
     this.insertVisualCore = insertVisual;
@@ -147,7 +147,7 @@ class RenderSlotImplementation implements IRenderSlot {
 
     if (this.$isAttached) {
       visual.$attach(null, this.addVisualCore, this);
-      return visual.animate('enter');
+      return visual.animate(MotionDirection.enter);
     }
   }
 
@@ -163,7 +163,7 @@ class RenderSlotImplementation implements IRenderSlot {
 
     if (this.$isAttached) {
       visual.$attach(null, this.insertVisualCore, this, index);
-      return visual.animate('enter');
+      return visual.animate(MotionDirection.enter);
     }
   }
 
@@ -225,7 +225,7 @@ class RenderSlotImplementation implements IRenderSlot {
     };
 
     if (!skipAnimation && this.$isAttached) {
-      const animation = visual.animate('leave');
+      const animation = visual.animate(MotionDirection.enter);
       if (animation) {
         return animation.then(() => detachAndReturn());
       }
@@ -262,7 +262,7 @@ class RenderSlotImplementation implements IRenderSlot {
           return;
         }
   
-        const animation = child.animate('leave');
+        const animation = child.animate(MotionDirection.enter);
   
         if (animation) {
           rmPromises.push(animation.then(() => child.$detach(context)));
@@ -301,7 +301,7 @@ class RenderSlotImplementation implements IRenderSlot {
     for (let i = 0, ii = children.length; i < ii; ++i) {
       const child = children[i];
       child.$attach(context, this.addVisualCore, this);
-      child.animate('enter');
+      child.animate(MotionDirection.enter);
     }
 
     this.$isAttached = true;

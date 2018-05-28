@@ -90,13 +90,13 @@ class ContentView implements IContentView {
   childObserver: IContentViewChildObserver = null;
 
   constructor(private contentHost: INode) {
-    let childNodes = this.childNodes = Array.from(contentHost.childNodes)
+    const childNodes = this.childNodes = Array.from(contentHost.childNodes)
     this.firstChild = childNodes[0];
     this.lastChild = childNodes[childNodes.length - 1];
   }
 
   attachChildObserver(onChildrenChanged: () => void): IChildObserver {
-    let contentViewNodes = this.childNodes;
+    const contentViewNodes = this.childNodes;
     let observer = this.childObserver;
 
     if (!observer) {
@@ -114,21 +114,21 @@ class ContentView implements IContentView {
         }
       };
 
-      let workQueue = Array.from(contentViewNodes);
+      const workQueue = Array.from(contentViewNodes);
 
       while(workQueue.length) {
-        let current = workQueue.shift();
+        const current = workQueue.shift();
   
-        if ((<any>current).$isContentProjectionSource) {
-          let contentIndex = contentViewNodes.indexOf(current);
+        if ((current as any).$isContentProjectionSource) {
+          const contentIndex = contentViewNodes.indexOf(current);
   
-          (<IRenderSlot>(<any>current).$slot).children.forEach(x => {
-            let childNodes = x.$view.childNodes;
+          ((current as any).$slot as IRenderSlot).children.forEach(x => {
+            const childNodes = x.$view.childNodes;
             childNodes.forEach(x => workQueue.push(x));
             contentViewNodes.splice(contentIndex, 0, ...childNodes);
           });
   
-          (<any>current).$slot.logicalView = this;
+          (current as any).$slot.logicalView = this;
         }
       }
     } else {
@@ -139,12 +139,12 @@ class ContentView implements IContentView {
   }
 
   insertVisualChildBefore(visual: IVisual, refNode: INode) {
-    let childObserver = this.childObserver;
+    const childObserver = this.childObserver;
 
     if (childObserver) {
-      let contentNodes = this.childNodes;
-      let contentIndex = contentNodes.indexOf(refNode);
-      let projectedNodes = Array.from(visual.$view.childNodes);
+      const contentNodes = this.childNodes;
+      const contentIndex = contentNodes.indexOf(refNode);
+      const projectedNodes = Array.from(visual.$view.childNodes);
 
       projectedNodes.forEach((node: any) => {
         if (node.$isContentProjectionSource) {
@@ -158,12 +158,12 @@ class ContentView implements IContentView {
   }
 
   removeVisualChild(visual: IVisual) {
-    let childObserver = this.childObserver;
+    const childObserver = this.childObserver;
 
     if (childObserver) {
-      let contentNodes = this.childNodes;
-      let startIndex = contentNodes.indexOf(visual.$view.firstChild);
-      let endIndex = contentNodes.indexOf(visual.$view.lastChild);
+      const contentNodes = this.childNodes;
+      const startIndex = contentNodes.indexOf(visual.$view.firstChild);
+      const endIndex = contentNodes.indexOf(visual.$view.lastChild);
     
       contentNodes.splice(startIndex, (endIndex - startIndex) + 1);
       childObserver.notifyChildrenChanged();

@@ -6,9 +6,14 @@ import { DI } from "../di";
 
 export type RenderCallback = (visual: IVisual, owner: any, index?: number) => void;
 
+export enum MotionDirection {
+  enter = 'enter',
+  leave = 'leave'
+}
+
 export interface IVisual extends IBindScope, IViewOwner { 
   readonly factory: IVisualFactory;
-  animate(direction: 'enter' | 'leave'): void | Promise<boolean>;
+  animate(direction: MotionDirection): void | Promise<boolean>;
   tryReturnToCache(): boolean;
   $attach(context: AttachContext | null, render: RenderCallback, owner: any, index?: number);
   $detach(context?: DetachContext);

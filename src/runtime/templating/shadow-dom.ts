@@ -34,7 +34,7 @@ export interface IEmulatedShadowSlot extends IBindScope, IAttach {
   /** @internal */ projectTo?(slots: Record<string, IEmulatedShadowSlot>);
 }
 
-const noNodes = <SlotNode[]>PLATFORM.emptyArray;
+const noNodes = PLATFORM.emptyArray as SlotNode[];
 
 function shadowSlotAddFallbackVisual(visual: IVisual, owner: ShadowSlot) {
   owner.fallbackVisual.$view.insertBefore(owner.anchor);
@@ -42,7 +42,7 @@ function shadowSlotAddFallbackVisual(visual: IVisual, owner: ShadowSlot) {
 
 function passThroughSlotAddFallbackVisual(visual: IVisual, owner: PassThroughSlot, index: number) {
   const projectionSource = owner.currentProjectionSource;
-  const slots = <Record<string, IEmulatedShadowSlot>>Object.create(null);
+  const slots = Object.create(null) as Record<string, IEmulatedShadowSlot>;
 
   owner.currentProjectionSource = null;
   slots[owner.destinationSlot.name] = owner.destinationSlot;
@@ -63,7 +63,7 @@ abstract class ShadowSlotBase {
   projections = 0;
 
   constructor(public owner: IViewOwner, public anchor: SlotNode, public name: string, public fallbackFactory?: IVisualFactory) {
-    this.anchor.$slot = <any>this;
+    this.anchor.$slot = this as any;
   }
 
   get needsFallback() {
@@ -315,7 +315,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   }
 
   projectFrom(view: IView, projectionSource: ProjectionSource) {
-    const anchor: SlotNode = <any>DOM.createAnchor();
+    const anchor: SlotNode = DOM.createAnchor() as any;
     const parent = this.anchor.parentNode;
 
     anchor.$slotProjectFrom = projectionSource;
@@ -382,7 +382,7 @@ function undistributeAll(slots: Record<string, IEmulatedShadowSlot>, projectionS
 const defaultSlotName = 'auDefaultSlot';
 
 function getSlotName(node: INode): string {
-  const name = (<any>node).$slotName;
+  const name = (node as any).$slotName;
 
   if (name === undefined) {
     return defaultSlotName;
@@ -403,7 +403,7 @@ function viewToNodes(view: IView) {
     nodes = new Array(ii);
 
     for (let i = 0; i < ii; ++i) {
-      nodes[i] = <SlotNode>childNodes[i];
+      nodes[i] = childNodes[i] as SlotNode;
     }
   }
 
@@ -412,7 +412,7 @@ function viewToNodes(view: IView) {
 
 export const ShadowDOMEmulation = {
   createSlot(target: INode, owner: IViewOwner, name?: string, destination?: string, fallbackFactory?: IVisualFactory): IEmulatedShadowSlot {
-    const anchor = <SlotNode>DOM.createAnchor();
+    const anchor = DOM.createAnchor() as SlotNode;
     
     DOM.replaceNode(anchor, target);
 
@@ -428,7 +428,7 @@ export const ShadowDOMEmulation = {
 
     nodes.forEach(node => {
       if (node.$isContentProjectionSource) {
-        (<any>node.$slot).logicalView = content;
+        (node.$slot as any).logicalView = content;
       }
     });
 

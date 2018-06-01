@@ -129,6 +129,7 @@ class RenderSlotImplementation implements IRenderSlot {
   private $isAttached = false;
   private addVisualCore: (visual: IVisual, owner: RenderSlotImplementation) => void;
   private insertVisualCore: (visual: IVisual, owner: RenderSlotImplementation, index: number) => void;
+  private encapsulationSource: INode = null;
 
   public children: IVisual[] = [];
   /** @internal */ public slots: Record<string, IEmulatedShadowSlot> = null;
@@ -146,7 +147,7 @@ class RenderSlotImplementation implements IRenderSlot {
     this.children.push(visual);
 
     if (this.$isAttached) {
-      visual.$attach(null, this.addVisualCore, this);
+      visual.$attach(this.encapsulationSource, null, this.addVisualCore, this);
       return visual.animate(MotionDirection.enter);
     }
   }
@@ -162,7 +163,7 @@ class RenderSlotImplementation implements IRenderSlot {
     children.splice(index, 0, visual);
 
     if (this.$isAttached) {
-      visual.$attach(null, this.insertVisualCore, this, index);
+      visual.$attach(this.encapsulationSource, null, this.insertVisualCore, this, index);
       return visual.animate(MotionDirection.enter);
     }
   }
@@ -291,7 +292,7 @@ class RenderSlotImplementation implements IRenderSlot {
     return finalizeRemoval();
   }
 
-  $attach(lifecycle: AttachLifecycle): void {
+  $attach(encapsulationSource: INode, lifecycle: AttachLifecycle): void {
     if (this.$isAttached) {
       return;
     }
@@ -300,11 +301,12 @@ class RenderSlotImplementation implements IRenderSlot {
 
     for (let i = 0, ii = children.length; i < ii; ++i) {
       const child = children[i];
-      child.$attach(lifecycle, this.addVisualCore, this);
+      child.$attach(encapsulationSource, lifecycle, this.addVisualCore, this);
       child.animate(MotionDirection.enter);
     }
 
     this.$isAttached = true;
+    this.encapsulationSource = encapsulationSource;
   }
 
   $detach(lifecycle: DetachLifecycle): void {
@@ -316,6 +318,7 @@ class RenderSlotImplementation implements IRenderSlot {
       }
 
       this.$isAttached = false;
+      this.encapsulationSource = null;
     }
   }
 

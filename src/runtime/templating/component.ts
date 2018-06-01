@@ -158,17 +158,17 @@ export const Component = {
       }
     };
 
-    proto.$attach = function(this: IAttributeComponentImplementation, context: AttachLifecycle){
+    proto.$attach = function(this: IAttributeComponentImplementation, encapsulationSource: INode, context: AttachLifecycle){
       if (this.$isAttached) {
         return;
       }
 
       if (this.$behavior.hasAttaching) {
-        (this as any).attaching();
+        (this as any).attaching(encapsulationSource);
       }
 
       if (this.$slot !== null) {
-        this.$slot.$attach(context);
+        this.$slot.$attach(encapsulationSource, context);
       }
     
       if (this.$behavior.hasAttached) {
@@ -279,25 +279,28 @@ export const Component = {
       }
     };
 
-    proto.$attach = function(this: IElementComponentImplementation, lifecycle?: AttachLifecycle) {
+    proto.$attach = function(this: IElementComponentImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle) {
       if (this.$isAttached) {
         return;
       }
 
       lifecycle = AttachLifecycle.start(this, lifecycle);
+      encapsulationSource = this.$usingSlotEmulation 
+        ? encapsulationSource || this.$host
+        : this.$shadowRoot;
 
       if (this.$behavior.hasAttaching) {
-        (this as any).attaching();
+        (this as any).attaching(encapsulationSource);
       }
 
       const attachable = this.$attachable;
 
       for (let i = 0, ii = attachable.length; i < ii; ++i) {
-        attachable[i].$attach(lifecycle);
+        attachable[i].$attach(encapsulationSource, lifecycle);
       }
 
       if (this.$slot !== null) {
-        this.$slot.$attach(lifecycle);
+        this.$slot.$attach(encapsulationSource, lifecycle);
       }
 
       //Native ShadowDOM would be distributed as soon as we append the view below.

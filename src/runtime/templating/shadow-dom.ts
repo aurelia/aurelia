@@ -61,6 +61,7 @@ abstract class ShadowSlotBase {
   $isAttached = false;
   $isBound = false;
   projections = 0;
+  encapsulationSource: INode = null;
 
   constructor(public owner: IViewOwner, public anchor: SlotNode, public name: string, public fallbackFactory?: IVisualFactory) {
     this.anchor.$slot = this as any;
@@ -84,16 +85,18 @@ abstract class ShadowSlotBase {
     this.$isBound = true;
   }
 
-  $attach(lifecycle: AttachLifecycle) {
+  $attach(encapsulationSource: INode, lifecycle: AttachLifecycle) {
     // fallbackContentView will never be created when the slot isn't already attached
     // so no need to worry about attaching it here
     this.$isAttached = true;
+    this.encapsulationSource = encapsulationSource;
   }
 
   $detach(lifecycle: DetachLifecycle) {
     if (this.$isAttached) {
       this.removeFallbackVisual(lifecycle);
       this.$isAttached = false;
+      this.encapsulationSource = null;
     }
   }
 
@@ -120,7 +123,7 @@ class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
       this.fallbackVisual = this.fallbackFactory.create();
       this.fallbackVisual.$bind(this.owner.$scope);
       this.currentProjectionSource = projectionSource;
-      this.fallbackVisual.$attach(null, passThroughSlotAddFallbackVisual, this, index);
+      this.fallbackVisual.$attach(this.encapsulationSource, null, passThroughSlotAddFallbackVisual, this, index);
     }
   }
 
@@ -174,7 +177,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
     if (this.fallbackVisual === null) {
       this.fallbackVisual = this.fallbackFactory.create();
       this.fallbackVisual.$bind(this.owner.$scope);
-      this.fallbackVisual.$attach(null, shadowSlotAddFallbackVisual, this);
+      this.fallbackVisual.$attach(this.encapsulationSource, null, shadowSlotAddFallbackVisual, this);
     }
 
     if (this.fallbackVisual.$slots) {

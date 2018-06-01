@@ -3,6 +3,7 @@ import { AttachLifecycle, DetachLifecycle } from "./lifecycle";
 import { IViewOwner } from "./view";
 import { IElementComponent } from "./component";
 import { DI } from "../di";
+import { INode } from "../dom";
 
 export type RenderCallback = (visual: IVisual, owner: any, index?: number) => void;
 
@@ -15,7 +16,7 @@ export interface IVisual extends IBindScope, IViewOwner {
   readonly factory: IVisualFactory;
   animate(direction: MotionDirection): void | Promise<boolean>;
   tryReturnToCache(): boolean;
-  $attach(lifecycle: AttachLifecycle | null, render: RenderCallback, owner: any, index?: number);
+  $attach(encapsulationSource: INode, lifecycle: AttachLifecycle | null, render: RenderCallback, owner: any, index?: number);
   $detach(lifecycle?: DetachLifecycle);
 }
 

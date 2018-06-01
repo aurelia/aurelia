@@ -34,7 +34,7 @@ export class Aurelia {
       }
 
       component.$bind();
-      component.$attach();
+      component.$attach(config.host);
     };
 
     this.startTasks.push(startTask);

@@ -1,4 +1,5 @@
 import { IViewOwner } from './view';
+import { INode } from '../dom';
 
 export class AttachLifecycle {
   private tail = null;
@@ -93,8 +94,8 @@ export class DetachLifecycle {
 }
 
 export interface IAttach {
-  $attach(context?: AttachLifecycle): void;
-  $detach(context?: DetachLifecycle): void;
+  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void;
+  $detach(lifecycle?: DetachLifecycle): void;
 }
 
 export interface IBindSelf {

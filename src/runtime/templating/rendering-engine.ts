@@ -277,7 +277,7 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  $attach(lifecycle: AttachLifecycle | null, render: RenderCallback, owner: IRenderSlot, index?: number) {
+  $attach(encapsulationSource: INode, lifecycle: AttachLifecycle | null, render: RenderCallback, owner: IRenderSlot, index?: number) {
     if (this.$isAttached) {
       return;
     }
@@ -287,7 +287,7 @@ abstract class Visual implements IVisual {
     let attachable = this.$attachable;
 
     for (let i = 0, ii = attachable.length; i < ii; ++i) {
-      attachable[i].$attach(lifecycle);
+      attachable[i].$attach(encapsulationSource, lifecycle);
     }
 
     render(this, owner, index);

@@ -641,7 +641,7 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di", "./templat
                     component.$hydrate(_this.container.get(rendering_engine_1.IRenderingEngine), config.host);
                 }
                 component.$bind();
-                component.$attach();
+                component.$attach(config.host);
             };
             this.startTasks.push(startTask);
             this.stopTasks.push(function () {
@@ -6325,15 +6325,15 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     this.bound(scope);
                 }
             };
-            proto.$attach = function (context) {
+            proto.$attach = function (encapsulationSource, context) {
                 if (this.$isAttached) {
                     return;
                 }
                 if (this.$behavior.hasAttaching) {
-                    this.attaching();
+                    this.attaching(encapsulationSource);
                 }
                 if (this.$slot !== null) {
-                    this.$slot.$attach(context);
+                    this.$slot.$attach(encapsulationSource, context);
                 }
                 if (this.$behavior.hasAttached) {
                     context.queueAttachedCallback(this);
@@ -6426,20 +6426,23 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     this.bound();
                 }
             };
-            proto.$attach = function (lifecycle) {
+            proto.$attach = function (encapsulationSource, lifecycle) {
                 if (this.$isAttached) {
                     return;
                 }
                 lifecycle = lifecycle_1.AttachLifecycle.start(this, lifecycle);
+                encapsulationSource = this.$usingSlotEmulation
+                    ? encapsulationSource || this.$host
+                    : this.$shadowRoot;
                 if (this.$behavior.hasAttaching) {
-                    this.attaching();
+                    this.attaching(encapsulationSource);
                 }
                 var attachable = this.$attachable;
                 for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                    attachable[i].$attach(lifecycle);
+                    attachable[i].$attach(encapsulationSource, lifecycle);
                 }
                 if (this.$slot !== null) {
-                    this.$slot.$attach(lifecycle);
+                    this.$slot.$attach(encapsulationSource, lifecycle);
                 }
                 if (this.$contentView !== null && this.$slots) {
                     shadow_dom_1.ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
@@ -6794,6 +6797,7 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
         function RenderSlotImplementation(anchor, anchorIsContainer) {
             this.anchor = anchor;
             this.$isAttached = false;
+            this.encapsulationSource = null;
             this.children = [];
             this.slots = null;
             this.logicalView = null;
@@ -6805,7 +6809,7 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
         RenderSlotImplementation.prototype.add = function (visual) {
             this.children.push(visual);
             if (this.$isAttached) {
-                visual.$attach(null, this.addVisualCore, this);
+                visual.$attach(this.encapsulationSource, null, this.addVisualCore, this);
                 return visual.animate(visual_1.MotionDirection.enter);
             }
         };
@@ -6817,7 +6821,7 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             }
             children.splice(index, 0, visual);
             if (this.$isAttached) {
-                visual.$attach(null, this.insertVisualCore, this, index);
+                visual.$attach(this.encapsulationSource, null, this.insertVisualCore, this, index);
                 return visual.animate(visual_1.MotionDirection.enter);
             }
         };
@@ -6927,17 +6931,18 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             }
             return finalizeRemoval();
         };
-        RenderSlotImplementation.prototype.$attach = function (lifecycle) {
+        RenderSlotImplementation.prototype.$attach = function (encapsulationSource, lifecycle) {
             if (this.$isAttached) {
                 return;
             }
             var children = this.children;
             for (var i = 0, ii = children.length; i < ii; ++i) {
                 var child = children[i];
-                child.$attach(lifecycle, this.addVisualCore, this);
+                child.$attach(encapsulationSource, lifecycle, this.addVisualCore, this);
                 child.animate(visual_1.MotionDirection.enter);
             }
             this.$isAttached = true;
+            this.encapsulationSource = encapsulationSource;
         };
         RenderSlotImplementation.prototype.$detach = function (lifecycle) {
             if (this.$isAttached) {
@@ -6946,6 +6951,7 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
                     children[i].$detach(lifecycle);
                 }
                 this.$isAttached = false;
+                this.encapsulationSource = null;
             }
         };
         RenderSlotImplementation.prototype.projectTo = function (slots) {
@@ -7321,14 +7327,14 @@ define('runtime/templating/rendering-engine',["require", "exports", "./runtime-b
             }
             this.$isBound = true;
         };
-        Visual.prototype.$attach = function (lifecycle, render, owner, index) {
+        Visual.prototype.$attach = function (encapsulationSource, lifecycle, render, owner, index) {
             if (this.$isAttached) {
                 return;
             }
             lifecycle = lifecycle_1.AttachLifecycle.start(this, lifecycle);
             var attachable = this.$attachable;
             for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                attachable[i].$attach(lifecycle);
+                attachable[i].$attach(encapsulationSource, lifecycle);
             }
             render(this, owner, index);
             this.$isAttached = true;
@@ -7604,6 +7610,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
             this.$isAttached = false;
             this.$isBound = false;
             this.projections = 0;
+            this.encapsulationSource = null;
             this.anchor.$slot = this;
         }
         Object.defineProperty(ShadowSlotBase.prototype, "needsFallback", {
@@ -7623,13 +7630,15 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
         ShadowSlotBase.prototype.$bind = function (scope) {
             this.$isBound = true;
         };
-        ShadowSlotBase.prototype.$attach = function (lifecycle) {
+        ShadowSlotBase.prototype.$attach = function (encapsulationSource, lifecycle) {
             this.$isAttached = true;
+            this.encapsulationSource = encapsulationSource;
         };
         ShadowSlotBase.prototype.$detach = function (lifecycle) {
             if (this.$isAttached) {
                 this.removeFallbackVisual(lifecycle);
                 this.$isAttached = false;
+                this.encapsulationSource = null;
             }
         };
         ShadowSlotBase.prototype.$unbind = function () {
@@ -7656,7 +7665,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
                 this.fallbackVisual = this.fallbackFactory.create();
                 this.fallbackVisual.$bind(this.owner.$scope);
                 this.currentProjectionSource = projectionSource;
-                this.fallbackVisual.$attach(null, passThroughSlotAddFallbackVisual, this, index);
+                this.fallbackVisual.$attach(this.encapsulationSource, null, passThroughSlotAddFallbackVisual, this, index);
             }
         };
         PassThroughSlot.prototype.addNode = function (view, node, projectionSource, index) {
@@ -7702,7 +7711,7 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
             if (this.fallbackVisual === null) {
                 this.fallbackVisual = this.fallbackFactory.create();
                 this.fallbackVisual.$bind(this.owner.$scope);
-                this.fallbackVisual.$attach(null, shadowSlotAddFallbackVisual, this);
+                this.fallbackVisual.$attach(this.encapsulationSource, null, shadowSlotAddFallbackVisual, this);
             }
             if (this.fallbackVisual.$slots) {
                 var slots = this.fallbackVisual.$slots;

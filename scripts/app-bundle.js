@@ -624,13 +624,13 @@ define('runtime/aurelia',["require", "exports", "./platform", "./di", "./templat
             this.isStarted = false;
         }
         Aurelia.prototype.register = function () {
+            var _a;
             var params = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 params[_i] = arguments[_i];
             }
             (_a = this.container).register.apply(_a, params);
             return this;
-            var _a;
         };
         Aurelia.prototype.app = function (config) {
             var _this = this;
@@ -782,6 +782,7 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
 define('runtime/di',["require", "exports", "./platform", "./reporter"], function (require, exports, platform_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var _a;
     exports.DI = {
         createContainer: function () {
             return new Container();
@@ -1214,7 +1215,6 @@ define('runtime/di',["require", "exports", "./platform", "./reporter"], function
         };
     }
     exports.inject = inject;
-    var _a;
 });
 
 

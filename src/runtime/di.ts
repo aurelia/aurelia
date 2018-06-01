@@ -27,31 +27,31 @@ export interface IConstructionHandler<T = any> {
 }
 
 export interface IServiceLocator {
-  get<T>(key: Constructable<T>): T;
   get<T>(key: IInterfaceSymbol<T>): T;
+  get<T extends Constructable>(key: T): InstanceType<T>
   get<T = any>(key: any): T;
 
-  getAll<T>(key: Constructable<T>): ReadonlyArray<T>;
   getAll<T>(key: IInterfaceSymbol<T>): ReadonlyArray<T>;
+  getAll<T extends Constructable>(key: T): ReadonlyArray<InstanceType<T>>;
   getAll<T = any>(key: any): ReadonlyArray<T>;
 }
 
 export interface IContainer extends IServiceLocator {
   register(...params: any[]);
 
-  registerResolver<T>(key: Constructable<T>, resolver: IResolver<T>): IResolver<T>;
   registerResolver<T>(key: IInterfaceSymbol<T>, resolver: IResolver<T>): IResolver<T>;
+  registerResolver<T extends Constructable>(key: T, resolver: IResolver<InstanceType<T>>): IResolver<InstanceType<T>>;
   registerResolver<T = any>(key: any, resolver: IResolver<T>): IResolver<T>;
 
-  registerTransformer<T>(key: Constructable<T>, transformer: (instance: T) => T): boolean;
   registerTransformer<T>(key: IInterfaceSymbol<T>, transformer: (instance: T) => T): boolean;
+  registerTransformer<T extends Constructable>(key: T, transformer: (instance: InstanceType<T>) => T): boolean;
   registerTransformer<T = any>(key: any, transformer: (instance: T) => T): boolean;
 
-  getResolver<T>(key: Constructable<T>, autoRegister?: boolean): IResolver<T>;
   getResolver<T>(key: IInterfaceSymbol<T>, autoRegister?: boolean): IResolver<T>;
+  getResolver<T extends Constructable>(key: T, autoRegister?: boolean): IResolver<InstanceType<T>>;
   getResolver<T = any>(key: any, autoRegister?: boolean): IResolver<T>;
 
-  getConstructionHandler<T>(type: Constructable<T>): IConstructionHandler<T>;
+  getConstructionHandler<T extends Constructable>(type: T): IConstructionHandler<InstanceType<T>>;
 
   createChild(): IContainer;
 }

@@ -1,45 +1,43 @@
 import { IViewOwner } from './view';
 
-export class AttachContext {
+export class AttachLifecycle {
   private tail = null;
   private head = null;
   private $nextAttached = null;
   
-  private constructor(private opener) {
+  private constructor(private owner) {
     this.tail = this.head = this;
   }
 
   private attached() {}
 
-  wasOpenedBy(requestor) {
-    return this.opener === requestor;
-  }
-
-  queueForAttachedCallback(requestor: IAttach) {
+  queueAttachedCallback(requestor: IAttach) {
     this.tail.$nextAttached = requestor;
     this.tail = requestor;
   }
 
-  close() {
-    let current = this.head;
-    let next;
+  end(owner: any) {
+    if (owner === this.owner) {
+      let current = this.head;
+      let next;
 
-    while (current) {
-      current.attached();
-      next = current.$nextAttached;
-      current.$nextAttached = null;
-      current = next;
+      while (current) {
+        current.attached();
+        next = current.$nextAttached;
+        current.$nextAttached = null;
+        current = next;
+      }
     }
   }
 
-  static open(manager) {
-    return new AttachContext(manager);
+  static start(owner: any, existingLifecycle?: AttachLifecycle) {
+    return existingLifecycle || new AttachLifecycle(owner);
   }
 }
 
 const dummyView = { remove() {} };
 
-export class DetachContext {
+export class DetachLifecycle {
   private detachedHead = null; //LOL
   private detachedTail = null;
   private viewRemoveHead = null;
@@ -48,57 +46,55 @@ export class DetachContext {
   private $nextRemoveView = null;
   private $view = dummyView;
   
-  private constructor(private opener) {
+  private constructor(private owner) {
     this.detachedTail = this.detachedHead = this;
     this.viewRemoveTail = this.viewRemoveHead = this;
   }
 
-  wasOpenedBy(requestor) {
-    return this.opener === requestor;
-  }
-
   private detached() {}
 
-  queueForViewRemoval(requestor: IViewOwner) {
+  queueViewRemoval(requestor: IViewOwner) {
     this.viewRemoveTail.$nextRemoveView = requestor;
     this.viewRemoveTail = requestor;
   }
 
-  queueForDetachedCallback(requestor: IAttach) {
+  queueDetachedCallback(requestor: IAttach) {
     this.detachedTail.$nextDetached = requestor;
     this.detachedTail = requestor;
   }
 
-  close() {
-    let current = this.detachedHead;
-    let next;
+  end(owner: any) {
+    if (owner == this.owner) {
+      let current = this.detachedHead;
+      let next;
 
-    while (current) {
-      current.detached();
-      next = current.$nextDetached;
-      current.$nextDetached = null;
-      current = next;
-    }
+      while (current) {
+        current.detached();
+        next = current.$nextDetached;
+        current.$nextDetached = null;
+        current = next;
+      }
 
-    let current2 = this.viewRemoveHead;
-    let next2;
+      let current2 = this.viewRemoveHead;
+      let next2;
 
-    while (current2) {
-      current2.$view.remove();
-      next2 = current2.$nextRemoveView;
-      current2.$nextRemoveView = null;
-      current2 = next2;
+      while (current2) {
+        current2.$view.remove();
+        next2 = current2.$nextRemoveView;
+        current2.$nextRemoveView = null;
+        current2 = next2;
+      }
     }
   }
 
-  static open(manager) {
-    return new DetachContext(manager);
+  static start(owner: any, existingLifecycle?: DetachLifecycle) {
+    return existingLifecycle || new DetachLifecycle(owner);
   }
 }
 
 export interface IAttach {
-  $attach(context?: AttachContext): void;
-  $detach(context?: DetachContext): void;
+  $attach(context?: AttachLifecycle): void;
+  $detach(context?: DetachLifecycle): void;
 }
 
 export interface IBindSelf {

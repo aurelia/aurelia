@@ -2,7 +2,7 @@ import { ShadowDOMEmulation, IEmulatedShadowSlot } from './shadow-dom';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
 import { Reporter } from '../reporter';
-import { IAttach, AttachContext, DetachContext } from './lifecycle';
+import { IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
 import { DI } from '../di';
 import { INode, IView } from '../dom';
 import { IContentView } from './view';
@@ -242,7 +242,7 @@ class RenderSlotImplementation implements IRenderSlot {
     const children = this.children;
     const ii = visualsToRemove.length;
     const rmPromises = [];
-    const context = DetachContext.open(this);
+    const lifecycle = DetachLifecycle.start(this);
 
     if (visualsToRemove === children) {
       this.children = [];
@@ -258,22 +258,22 @@ class RenderSlotImplementation implements IRenderSlot {
     if (this.$isAttached) {
       visualsToRemove.forEach(child => {
         if (skipAnimation) {
-          child.$detach(context);
+          child.$detach(lifecycle);
           return;
         }
   
         const animation = child.animate(MotionDirection.enter);
   
         if (animation) {
-          rmPromises.push(animation.then(() => child.$detach(context)));
+          rmPromises.push(animation.then(() => child.$detach(lifecycle)));
         } else {
-          child.$detach(context);
+          child.$detach(lifecycle);
         }
       });
     }
 
     const finalizeRemoval = () => {
-      context.close();
+      lifecycle.end(this);
 
       if (returnToCache) {
         for (let i = 0; i < ii; ++i) {
@@ -291,7 +291,7 @@ class RenderSlotImplementation implements IRenderSlot {
     return finalizeRemoval();
   }
 
-  $attach(context: AttachContext): void {
+  $attach(lifecycle: AttachLifecycle): void {
     if (this.$isAttached) {
       return;
     }
@@ -300,19 +300,19 @@ class RenderSlotImplementation implements IRenderSlot {
 
     for (let i = 0, ii = children.length; i < ii; ++i) {
       const child = children[i];
-      child.$attach(context, this.addVisualCore, this);
+      child.$attach(lifecycle, this.addVisualCore, this);
       child.animate(MotionDirection.enter);
     }
 
     this.$isAttached = true;
   }
 
-  $detach(context: DetachContext): void {
+  $detach(lifecycle: DetachLifecycle): void {
     if (this.$isAttached) {
       const children = this.children;
       
       for (let i = 0, ii = children.length; i < ii; ++i) {
-        children[i].$detach(context);
+        children[i].$detach(lifecycle);
       }
 
       this.$isAttached = false;

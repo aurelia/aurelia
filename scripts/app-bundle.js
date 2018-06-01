@@ -6336,7 +6336,7 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     this.$slot.$attach(context);
                 }
                 if (this.$behavior.hasAttached) {
-                    context.queueForAttachedCallback(this);
+                    context.queueAttachedCallback(this);
                 }
                 this.$isAttached = true;
             };
@@ -6349,7 +6349,7 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                         this.$slot.$detach(context);
                     }
                     if (this.$behavior.hasDetached) {
-                        context.queueForDetachedCallback(this);
+                        context.queueDetachedCallback(this);
                     }
                     this.$isAttached = false;
                 }
@@ -6426,22 +6426,20 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     this.bound();
                 }
             };
-            proto.$attach = function (context) {
+            proto.$attach = function (lifecycle) {
                 if (this.$isAttached) {
                     return;
                 }
-                if (!context) {
-                    context = lifecycle_1.AttachContext.open(this);
-                }
+                lifecycle = lifecycle_1.AttachLifecycle.start(this, lifecycle);
                 if (this.$behavior.hasAttaching) {
                     this.attaching();
                 }
                 var attachable = this.$attachable;
                 for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                    attachable[i].$attach(context);
+                    attachable[i].$attach(lifecycle);
                 }
                 if (this.$slot !== null) {
-                    this.$slot.$attach(context);
+                    this.$slot.$attach(lifecycle);
                 }
                 if (this.$contentView !== null && this.$slots) {
                     shadow_dom_1.ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
@@ -6453,37 +6451,31 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     this.$view.appendTo(this.$shadowRoot);
                 }
                 if (this.$behavior.hasAttached) {
-                    context.queueForAttachedCallback(this);
+                    lifecycle.queueAttachedCallback(this);
                 }
                 this.$isAttached = true;
-                if (context.wasOpenedBy(this)) {
-                    context.close();
-                }
+                lifecycle.end(this);
             };
-            proto.$detach = function (context) {
+            proto.$detach = function (lifecycle) {
                 if (this.$isAttached) {
-                    if (!context) {
-                        context = lifecycle_1.DetachContext.open(this);
-                    }
+                    lifecycle = lifecycle_1.DetachLifecycle.start(this, lifecycle);
                     if (this.$behavior.hasDetaching) {
                         this.detaching();
                     }
-                    context.queueForViewRemoval(this);
+                    lifecycle.queueViewRemoval(this);
                     var attachable = this.$attachable;
                     var i = attachable.length;
                     while (i--) {
                         attachable[i].$detach();
                     }
                     if (this.$slot !== null) {
-                        this.$slot.$detach(context);
+                        this.$slot.$detach(lifecycle);
                     }
                     if (this.$behavior.hasDetached) {
-                        context.queueForDetachedCallback(this);
+                        lifecycle.queueDetachedCallback(this);
                     }
                     this.$isAttached = false;
-                    if (context.wasOpenedBy(this)) {
-                        context.close();
-                    }
+                    lifecycle.end(this);
                 }
             };
             proto.$unbind = function () {
@@ -6544,42 +6536,41 @@ define('runtime/templating/instructions',["require", "exports", "../di"], functi
 define('runtime/templating/lifecycle',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var AttachContext = (function () {
-        function AttachContext(opener) {
-            this.opener = opener;
+    var AttachLifecycle = (function () {
+        function AttachLifecycle(owner) {
+            this.owner = owner;
             this.tail = null;
             this.head = null;
             this.$nextAttached = null;
             this.tail = this.head = this;
         }
-        AttachContext.prototype.attached = function () { };
-        AttachContext.prototype.wasOpenedBy = function (requestor) {
-            return this.opener === requestor;
-        };
-        AttachContext.prototype.queueForAttachedCallback = function (requestor) {
+        AttachLifecycle.prototype.attached = function () { };
+        AttachLifecycle.prototype.queueAttachedCallback = function (requestor) {
             this.tail.$nextAttached = requestor;
             this.tail = requestor;
         };
-        AttachContext.prototype.close = function () {
-            var current = this.head;
-            var next;
-            while (current) {
-                current.attached();
-                next = current.$nextAttached;
-                current.$nextAttached = null;
-                current = next;
+        AttachLifecycle.prototype.end = function (owner) {
+            if (owner === this.owner) {
+                var current = this.head;
+                var next = void 0;
+                while (current) {
+                    current.attached();
+                    next = current.$nextAttached;
+                    current.$nextAttached = null;
+                    current = next;
+                }
             }
         };
-        AttachContext.open = function (manager) {
-            return new AttachContext(manager);
+        AttachLifecycle.start = function (owner, existingLifecycle) {
+            return existingLifecycle || new AttachLifecycle(owner);
         };
-        return AttachContext;
+        return AttachLifecycle;
     }());
-    exports.AttachContext = AttachContext;
+    exports.AttachLifecycle = AttachLifecycle;
     var dummyView = { remove: function () { } };
-    var DetachContext = (function () {
-        function DetachContext(opener) {
-            this.opener = opener;
+    var DetachLifecycle = (function () {
+        function DetachLifecycle(owner) {
+            this.owner = owner;
             this.detachedHead = null;
             this.detachedTail = null;
             this.viewRemoveHead = null;
@@ -6590,42 +6581,41 @@ define('runtime/templating/lifecycle',["require", "exports"], function (require,
             this.detachedTail = this.detachedHead = this;
             this.viewRemoveTail = this.viewRemoveHead = this;
         }
-        DetachContext.prototype.wasOpenedBy = function (requestor) {
-            return this.opener === requestor;
-        };
-        DetachContext.prototype.detached = function () { };
-        DetachContext.prototype.queueForViewRemoval = function (requestor) {
+        DetachLifecycle.prototype.detached = function () { };
+        DetachLifecycle.prototype.queueViewRemoval = function (requestor) {
             this.viewRemoveTail.$nextRemoveView = requestor;
             this.viewRemoveTail = requestor;
         };
-        DetachContext.prototype.queueForDetachedCallback = function (requestor) {
+        DetachLifecycle.prototype.queueDetachedCallback = function (requestor) {
             this.detachedTail.$nextDetached = requestor;
             this.detachedTail = requestor;
         };
-        DetachContext.prototype.close = function () {
-            var current = this.detachedHead;
-            var next;
-            while (current) {
-                current.detached();
-                next = current.$nextDetached;
-                current.$nextDetached = null;
-                current = next;
-            }
-            var current2 = this.viewRemoveHead;
-            var next2;
-            while (current2) {
-                current2.$view.remove();
-                next2 = current2.$nextRemoveView;
-                current2.$nextRemoveView = null;
-                current2 = next2;
+        DetachLifecycle.prototype.end = function (owner) {
+            if (owner == this.owner) {
+                var current = this.detachedHead;
+                var next = void 0;
+                while (current) {
+                    current.detached();
+                    next = current.$nextDetached;
+                    current.$nextDetached = null;
+                    current = next;
+                }
+                var current2 = this.viewRemoveHead;
+                var next2 = void 0;
+                while (current2) {
+                    current2.$view.remove();
+                    next2 = current2.$nextRemoveView;
+                    current2.$nextRemoveView = null;
+                    current2 = next2;
+                }
             }
         };
-        DetachContext.open = function (manager) {
-            return new DetachContext(manager);
+        DetachLifecycle.start = function (owner, existingLifecycle) {
+            return existingLifecycle || new DetachLifecycle(owner);
         };
-        return DetachContext;
+        return DetachLifecycle;
     }());
-    exports.DetachContext = DetachContext;
+    exports.DetachLifecycle = DetachLifecycle;
 });
 
 
@@ -6892,10 +6882,11 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             return this.removeMany(this.children, returnToCache, skipAnimation);
         };
         RenderSlotImplementation.prototype.removeMany = function (visualsToRemove, returnToCache, skipAnimation) {
+            var _this = this;
             var children = this.children;
             var ii = visualsToRemove.length;
             var rmPromises = [];
-            var context = lifecycle_1.DetachContext.open(this);
+            var lifecycle = lifecycle_1.DetachLifecycle.start(this);
             if (visualsToRemove === children) {
                 this.children = [];
             }
@@ -6910,20 +6901,20 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             if (this.$isAttached) {
                 visualsToRemove.forEach(function (child) {
                     if (skipAnimation) {
-                        child.$detach(context);
+                        child.$detach(lifecycle);
                         return;
                     }
                     var animation = child.animate(visual_1.MotionDirection.enter);
                     if (animation) {
-                        rmPromises.push(animation.then(function () { return child.$detach(context); }));
+                        rmPromises.push(animation.then(function () { return child.$detach(lifecycle); }));
                     }
                     else {
-                        child.$detach(context);
+                        child.$detach(lifecycle);
                     }
                 });
             }
             var finalizeRemoval = function () {
-                context.close();
+                lifecycle.end(_this);
                 if (returnToCache) {
                     for (var i = 0; i < ii; ++i) {
                         visualsToRemove[i].tryReturnToCache();
@@ -6936,23 +6927,23 @@ define('runtime/templating/render-slot',["require", "exports", "./shadow-dom", "
             }
             return finalizeRemoval();
         };
-        RenderSlotImplementation.prototype.$attach = function (context) {
+        RenderSlotImplementation.prototype.$attach = function (lifecycle) {
             if (this.$isAttached) {
                 return;
             }
             var children = this.children;
             for (var i = 0, ii = children.length; i < ii; ++i) {
                 var child = children[i];
-                child.$attach(context, this.addVisualCore, this);
+                child.$attach(lifecycle, this.addVisualCore, this);
                 child.animate(visual_1.MotionDirection.enter);
             }
             this.$isAttached = true;
         };
-        RenderSlotImplementation.prototype.$detach = function (context) {
+        RenderSlotImplementation.prototype.$detach = function (lifecycle) {
             if (this.$isAttached) {
                 var children = this.children;
                 for (var i = 0, ii = children.length; i < ii; ++i) {
-                    children[i].$detach(context);
+                    children[i].$detach(lifecycle);
                 }
                 this.$isAttached = false;
             }
@@ -7330,38 +7321,30 @@ define('runtime/templating/rendering-engine',["require", "exports", "./runtime-b
             }
             this.$isBound = true;
         };
-        Visual.prototype.$attach = function (context, render, owner, index) {
+        Visual.prototype.$attach = function (lifecycle, render, owner, index) {
             if (this.$isAttached) {
                 return;
             }
-            if (!context) {
-                context = lifecycle_1.AttachContext.open(this);
-            }
+            lifecycle = lifecycle_1.AttachLifecycle.start(this, lifecycle);
             var attachable = this.$attachable;
             for (var i = 0, ii = attachable.length; i < ii; ++i) {
-                attachable[i].$attach(context);
+                attachable[i].$attach(lifecycle);
             }
             render(this, owner, index);
             this.$isAttached = true;
-            if (context.wasOpenedBy(this)) {
-                context.close();
-            }
+            lifecycle.end(this);
         };
-        Visual.prototype.$detach = function (context) {
+        Visual.prototype.$detach = function (lifecycle) {
             if (this.$isAttached) {
-                if (!context) {
-                    context = lifecycle_1.DetachContext.open(this);
-                }
-                context.queueForViewRemoval(this);
+                lifecycle = lifecycle_1.DetachLifecycle.start(this, lifecycle);
+                lifecycle.queueViewRemoval(this);
                 var attachable = this.$attachable;
                 var i = attachable.length;
                 while (i--) {
-                    attachable[i].$detach(context);
+                    attachable[i].$detach(lifecycle);
                 }
                 this.$isAttached = false;
-                if (context.wasOpenedBy(this)) {
-                    context.close();
-                }
+                lifecycle.end(this);
             }
         };
         Visual.prototype.$unbind = function () {
@@ -7630,9 +7613,9 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
             enumerable: true,
             configurable: true
         });
-        ShadowSlotBase.prototype.removeFallbackVisual = function (context) {
+        ShadowSlotBase.prototype.removeFallbackVisual = function (lifecycle) {
             if (this.fallbackVisual !== null) {
-                this.fallbackVisual.$detach(context);
+                this.fallbackVisual.$detach(lifecycle);
                 this.fallbackVisual.$unbind();
                 this.fallbackVisual = null;
             }
@@ -7640,12 +7623,12 @@ define('runtime/templating/shadow-dom',["require", "exports", "../platform", "..
         ShadowSlotBase.prototype.$bind = function (scope) {
             this.$isBound = true;
         };
-        ShadowSlotBase.prototype.$attach = function (context) {
+        ShadowSlotBase.prototype.$attach = function (lifecycle) {
             this.$isAttached = true;
         };
-        ShadowSlotBase.prototype.$detach = function (context) {
+        ShadowSlotBase.prototype.$detach = function (lifecycle) {
             if (this.$isAttached) {
-                this.removeFallbackVisual(context);
+                this.removeFallbackVisual(lifecycle);
                 this.$isAttached = false;
             }
         };

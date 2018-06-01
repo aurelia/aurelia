@@ -8,7 +8,7 @@ import { INode, IView, DOM } from "../dom";
 import { IRenderer, Renderer } from "./renderer";
 import { IRenderSlot, RenderSlot } from "./render-slot";
 import { Constructable } from "../interfaces";
-import { DetachContext, AttachContext, IAttach } from "./lifecycle";
+import { DetachLifecycle, AttachLifecycle, IAttach } from "./lifecycle";
 import { IScope } from "../binding/binding-context";
 import { Reporter } from "../reporter";
 import { IAnimator } from "./animator";
@@ -277,50 +277,39 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  $attach(context: AttachContext | null, render: RenderCallback, owner: IRenderSlot, index?: number) {
+  $attach(lifecycle: AttachLifecycle | null, render: RenderCallback, owner: IRenderSlot, index?: number) {
     if (this.$isAttached) {
       return;
     }
 
-    if (!context) {
-      context = AttachContext.open(this);
-    }
+    lifecycle = AttachLifecycle.start(this, lifecycle);
 
     let attachable = this.$attachable;
 
     for (let i = 0, ii = attachable.length; i < ii; ++i) {
-      attachable[i].$attach(context);
+      attachable[i].$attach(lifecycle);
     }
 
     render(this, owner, index);
 
     this.$isAttached = true;
-
-    if (context.wasOpenedBy(this)) {
-      context.close();
-    }
+    lifecycle.end(this);
   }
 
-  $detach(context?: DetachContext) { 
+  $detach(lifecycle?: DetachLifecycle) { 
     if (this.$isAttached) {
-      if (!context) {
-        context = DetachContext.open(this);
-      }
-
-      context.queueForViewRemoval(this);
+      lifecycle = DetachLifecycle.start(this, lifecycle);
+      lifecycle.queueViewRemoval(this);
 
       const attachable = this.$attachable;
       let i = attachable.length;
 
       while (i--) {
-        attachable[i].$detach(context);
+        attachable[i].$detach(lifecycle);
       }
 
       this.$isAttached = false;
-
-      if (context.wasOpenedBy(this)) {
-        context.close();
-      }
+      lifecycle.end(this);
     }
   }
 

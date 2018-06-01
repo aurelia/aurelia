@@ -3,7 +3,7 @@ import { IViewOwner, IContentView } from './view';
 import { IRenderSlot } from './render-slot';
 import { IBindScope } from '../binding/observation';
 import { IScope } from '../binding/binding-context';
-import { IAttach, AttachContext, DetachContext } from './lifecycle';
+import { IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
 import { DOM, INode, IView } from '../dom';
 import { IVisual, IVisualFactory } from './visual';
 
@@ -70,9 +70,9 @@ abstract class ShadowSlotBase {
     return this.fallbackFactory !== null && this.projections === 0;
   }
 
-  removeFallbackVisual(context?: DetachContext) {
+  removeFallbackVisual(lifecycle?: DetachLifecycle) {
     if (this.fallbackVisual !== null) {
-      this.fallbackVisual.$detach(context);
+      this.fallbackVisual.$detach(lifecycle);
       this.fallbackVisual.$unbind();
       this.fallbackVisual = null;
     }
@@ -84,15 +84,15 @@ abstract class ShadowSlotBase {
     this.$isBound = true;
   }
 
-  $attach(context: AttachContext) {
+  $attach(lifecycle: AttachLifecycle) {
     // fallbackContentView will never be created when the slot isn't already attached
     // so no need to worry about attaching it here
     this.$isAttached = true;
   }
 
-  $detach(context: DetachContext) {
+  $detach(lifecycle: DetachLifecycle) {
     if (this.$isAttached) {
-      this.removeFallbackVisual(context);
+      this.removeFallbackVisual(lifecycle);
       this.$isAttached = false;
     }
   }

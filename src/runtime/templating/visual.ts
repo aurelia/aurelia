@@ -1,5 +1,5 @@
 import { IBindScope } from "../binding/observation";
-import { AttachContext, DetachContext } from "./lifecycle";
+import { AttachLifecycle, DetachLifecycle } from "./lifecycle";
 import { IViewOwner } from "./view";
 import { IElementComponent } from "./component";
 import { DI } from "../di";
@@ -15,8 +15,8 @@ export interface IVisual extends IBindScope, IViewOwner {
   readonly factory: IVisualFactory;
   animate(direction: MotionDirection): void | Promise<boolean>;
   tryReturnToCache(): boolean;
-  $attach(context: AttachContext | null, render: RenderCallback, owner: any, index?: number);
-  $detach(context?: DetachContext);
+  $attach(lifecycle: AttachLifecycle | null, render: RenderCallback, owner: any, index?: number);
+  $detach(lifecycle?: DetachLifecycle);
 }
 
 export type VisualWithCentralComponent = IVisual & { component: IElementComponent };

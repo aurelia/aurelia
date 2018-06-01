@@ -9,7 +9,7 @@ import { Constructable, ICallable } from '../interfaces';
 import { IBindScope, IAccessor, ISubscribable } from '../binding/observation';
 import { IScope, BindingContext } from '../binding/binding-context';
 import { IRenderSlot } from './render-slot';
-import { IBindSelf, IAttach, AttachContext, DetachContext } from './lifecycle';
+import { IBindSelf, IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
 import { ITemplateSource, IBindableInstruction } from './instructions';
 import { INode, DOM, IView, IChildObserver } from '../dom';
 import { SubscriberCollection } from '../binding/subscriber-collection';
@@ -158,7 +158,7 @@ export const Component = {
       }
     };
 
-    proto.$attach = function(this: IAttributeComponentImplementation, context: AttachContext){
+    proto.$attach = function(this: IAttributeComponentImplementation, context: AttachLifecycle){
       if (this.$isAttached) {
         return;
       }
@@ -172,13 +172,13 @@ export const Component = {
       }
     
       if (this.$behavior.hasAttached) {
-        context.queueForAttachedCallback(this);
+        context.queueAttachedCallback(this);
       }
 
       this.$isAttached = true;
     };
 
-    proto.$detach = function(this: IAttributeComponentImplementation, context: DetachContext) {
+    proto.$detach = function(this: IAttributeComponentImplementation, context: DetachLifecycle) {
       if (this.$isAttached) {
         if (this.$behavior.hasDetaching) {
           (this as any).detaching();
@@ -189,7 +189,7 @@ export const Component = {
         }
   
         if (this.$behavior.hasDetached) {
-          context.queueForDetachedCallback(this);
+          context.queueDetachedCallback(this);
         }
 
         this.$isAttached = false;
@@ -279,14 +279,12 @@ export const Component = {
       }
     };
 
-    proto.$attach = function(this: IElementComponentImplementation, context?: AttachContext) {
+    proto.$attach = function(this: IElementComponentImplementation, lifecycle?: AttachLifecycle) {
       if (this.$isAttached) {
         return;
       }
 
-      if (!context) {
-        context = AttachContext.open(this);
-      }
+      lifecycle = AttachLifecycle.start(this, lifecycle);
 
       if (this.$behavior.hasAttaching) {
         (this as any).attaching();
@@ -295,11 +293,11 @@ export const Component = {
       const attachable = this.$attachable;
 
       for (let i = 0, ii = attachable.length; i < ii; ++i) {
-        attachable[i].$attach(context);
+        attachable[i].$attach(lifecycle);
       }
 
       if (this.$slot !== null) {
-        this.$slot.$attach(context);
+        this.$slot.$attach(lifecycle);
       }
 
       //Native ShadowDOM would be distributed as soon as we append the view below.
@@ -315,27 +313,22 @@ export const Component = {
       }
     
       if (this.$behavior.hasAttached) {
-        context.queueForAttachedCallback(this);
+        lifecycle.queueAttachedCallback(this);
       }
 
       this.$isAttached = true;
-
-      if (context.wasOpenedBy(this)) {
-        context.close();
-      }
+      lifecycle.end(this);
     };
 
-    proto.$detach = function(this: IElementComponentImplementation, context?: DetachContext) {
+    proto.$detach = function(this: IElementComponentImplementation, lifecycle?: DetachLifecycle) {
       if (this.$isAttached) {
-        if (!context) {
-          context = DetachContext.open(this);
-        }
+        lifecycle = DetachLifecycle.start(this, lifecycle);
 
         if (this.$behavior.hasDetaching) {
           (this as any).detaching();
         }
 
-        context.queueForViewRemoval(this);
+        lifecycle.queueViewRemoval(this);
   
         const attachable = this.$attachable;
         let i = attachable.length;
@@ -345,18 +338,15 @@ export const Component = {
         }
 
         if (this.$slot !== null) {
-          this.$slot.$detach(context);
+          this.$slot.$detach(lifecycle);
         }
   
         if (this.$behavior.hasDetached) {
-          context.queueForDetachedCallback(this);
+          lifecycle.queueDetachedCallback(this);
         }
 
         this.$isAttached = false;
-
-        if (context.wasOpenedBy(this)) {
-          context.close();
-        }
+        lifecycle.end(this);
       }
     };
 

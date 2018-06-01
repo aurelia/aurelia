@@ -36,23 +36,25 @@ export interface IEmulatedShadowSlot extends IBindScope, IAttach {
 
 const noNodes = PLATFORM.emptyArray as SlotNode[];
 
-function shadowSlotAddFallbackVisual(visual: IVisual, owner: ShadowSlot) {
-  owner.fallbackVisual.$view.insertBefore(owner.anchor);
+function shadowSlotAddFallbackVisual(visual: IVisual) {
+  let parent: ShadowSlot = visual.parent as any;
+  parent.fallbackVisual.$view.insertBefore(parent.anchor);
 }
 
-function passThroughSlotAddFallbackVisual(visual: IVisual, owner: PassThroughSlot, index: number) {
-  const projectionSource = owner.currentProjectionSource;
+function passThroughSlotAddFallbackVisual(visual: IVisual) {
+  const parent: PassThroughSlot = visual.parent as any;
+  const projectionSource = parent.currentProjectionSource;
   const slots = Object.create(null) as Record<string, IEmulatedShadowSlot>;
 
-  owner.currentProjectionSource = null;
-  slots[owner.destinationSlot.name] = owner.destinationSlot;
+  parent.currentProjectionSource = null;
+  slots[parent.destinationSlot.name] = parent.destinationSlot;
   
   ShadowDOMEmulation.distributeView(
-    owner.fallbackVisual.$view, 
+    parent.fallbackVisual.$view, 
     slots, 
     projectionSource, 
-    index, 
-    owner.destinationSlot.name
+    visual.renderState, 
+    parent.destinationSlot.name
   );
 }
 
@@ -123,7 +125,10 @@ class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
       this.fallbackVisual = this.fallbackFactory.create();
       this.fallbackVisual.$bind(this.owner.$scope);
       this.currentProjectionSource = projectionSource;
-      this.fallbackVisual.$attach(this.encapsulationSource, null, passThroughSlotAddFallbackVisual, this, index);
+      this.fallbackVisual.parent = this as any;
+      this.fallbackVisual.onRender = passThroughSlotAddFallbackVisual;
+      this.fallbackVisual.renderState = index;
+      this.fallbackVisual.$attach(this.encapsulationSource);
     }
   }
 
@@ -177,7 +182,9 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
     if (this.fallbackVisual === null) {
       this.fallbackVisual = this.fallbackFactory.create();
       this.fallbackVisual.$bind(this.owner.$scope);
-      this.fallbackVisual.$attach(this.encapsulationSource, null, shadowSlotAddFallbackVisual, this);
+      this.fallbackVisual.parent = this as any;
+      this.fallbackVisual.onRender = shadowSlotAddFallbackVisual;
+      this.fallbackVisual.$attach(this.encapsulationSource);
     }
 
     if (this.fallbackVisual.$slots) {

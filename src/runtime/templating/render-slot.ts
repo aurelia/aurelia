@@ -8,35 +8,42 @@ import { INode, IView } from '../dom';
 import { IContentView } from './view';
 import { IVisual, MotionDirection } from './visual';
 
-function appendVisualToContainer(visual: IVisual, owner: RenderSlotImplementation) {
-  visual.$view.appendTo(owner.anchor);
+function appendVisualToContainer(visual: IVisual) {
+  const parent = visual.parent as RenderSlotImplementation;
+  visual.$view.appendTo(parent.anchor);
 }
 
-function addVisual(visual: IVisual, owner: RenderSlotImplementation) {
-  visual.$view.insertBefore(owner.anchor);
+function addVisual(visual: IVisual) {
+  const parent = visual.parent as RenderSlotImplementation;
+  visual.$view.insertBefore(parent.anchor);
 }
 
-function project_addVisual(visual: IVisual, owner: RenderSlotImplementation) {
-  ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner);
-  owner.logicalView.insertVisualChildBefore(visual, owner.anchor);
+function project_addVisual(visual: IVisual) {
+  const parent = visual.parent as RenderSlotImplementation;
+
+  ShadowDOMEmulation.distributeView(visual.$view, parent.slots, parent);
+  parent.logicalView.insertVisualChildBefore(visual, parent.anchor);
 
   visual.$view.remove = () => {
-    ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
-    owner.logicalView.removeVisualChild(visual);
+    ShadowDOMEmulation.undistributeView(visual.$view, parent.slots, parent);
+    parent.logicalView.removeVisualChild(visual);
   };
 }
 
-function insertVisual(visual: IVisual, owner: RenderSlotImplementation, index: number) {
-  visual.$view.insertBefore(owner.children[index].$view.firstChild);
+function insertVisual(visual: IVisual) {
+  visual.$view.insertBefore(visual.parent.children[visual.renderState].$view.firstChild);
 }
 
-function project_insertVisual(visual: IVisual, owner: RenderSlotImplementation, index: number) {
-  ShadowDOMEmulation.distributeView(visual.$view, owner.slots, owner, index);
-  owner.logicalView.insertVisualChildBefore(visual, owner.children[index].$view.firstChild);
+function project_insertVisual(visual: IVisual) {
+  const parent = visual.parent as RenderSlotImplementation;
+  const index = visual.renderState;
+
+  ShadowDOMEmulation.distributeView(visual.$view, parent.slots, parent, index);
+  parent.logicalView.insertVisualChildBefore(visual, parent.children[index].$view.firstChild);
 
   visual.$view.remove = () => {
-    ShadowDOMEmulation.undistributeView(visual.$view, owner.slots, owner);
-    owner.logicalView.removeVisualChild(visual);
+    ShadowDOMEmulation.undistributeView(visual.$view, parent.slots, parent);
+    parent.logicalView.removeVisualChild(visual);
   };
 }
 
@@ -127,8 +134,8 @@ export const RenderSlot = {
 
 class RenderSlotImplementation implements IRenderSlot {
   private $isAttached = false;
-  private addVisualCore: (visual: IVisual, owner: RenderSlotImplementation) => void;
-  private insertVisualCore: (visual: IVisual, owner: RenderSlotImplementation, index: number) => void;
+  private addVisualCore: (visual: IVisual) => void;
+  private insertVisualCore: (visual: IVisual) => void;
   private encapsulationSource: INode = null;
 
   public children: IVisual[] = [];
@@ -144,10 +151,13 @@ class RenderSlotImplementation implements IRenderSlot {
   }
 
   add(visual: IVisual) {
+    visual.parent = this;
+    visual.onRender = this.addVisualCore;
+
     this.children.push(visual);
 
     if (this.$isAttached) {
-      visual.$attach(this.encapsulationSource, null, this.addVisualCore, this);
+      visual.$attach(this.encapsulationSource);
       return visual.animate(MotionDirection.enter);
     }
   }
@@ -160,10 +170,14 @@ class RenderSlotImplementation implements IRenderSlot {
       return this.add(visual);
     }
 
+    visual.parent = this;
+    visual.onRender = this.insertVisualCore;
+    visual.renderState = index;
     children.splice(index, 0, visual);
 
     if (this.$isAttached) {
-      visual.$attach(this.encapsulationSource, null, this.insertVisualCore, this, index);
+      visual.$attach(this.encapsulationSource);
+      visual.onRender = this.addVisualCore;
       return visual.animate(MotionDirection.enter);
     }
   }
@@ -181,7 +195,8 @@ class RenderSlotImplementation implements IRenderSlot {
 
     if (this.$isAttached) {
       visual.$view.remove();
-      this.insertVisualCore(visual, this, targetIndex);
+      visual.renderState = targetIndex;
+      this.insertVisualCore(visual);
     }
   }
 
@@ -301,7 +316,7 @@ class RenderSlotImplementation implements IRenderSlot {
 
     for (let i = 0, ii = children.length; i < ii; ++i) {
       const child = children[i];
-      child.$attach(encapsulationSource, lifecycle, this.addVisualCore, this);
+      child.$attach(encapsulationSource, lifecycle);
       child.animate(MotionDirection.enter);
     }
 
@@ -331,7 +346,9 @@ class RenderSlotImplementation implements IRenderSlot {
       const children = this.children;
       
       for (let i = 0, ii = children.length; i < ii; ++i) {
-        project_addVisual(children[i], this);
+        let child = children[i];
+        child.onRender = project_addVisual;
+        project_addVisual(child);
       }
     }
   }

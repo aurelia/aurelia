@@ -1,23 +1,27 @@
 import { IBindScope } from "../binding/observation";
-import { AttachLifecycle, DetachLifecycle } from "./lifecycle";
+import { AttachLifecycle, DetachLifecycle, IAttach } from "./lifecycle";
 import { IViewOwner } from "./view";
 import { IElementComponent } from "./component";
 import { DI } from "../di";
 import { INode } from "../dom";
+import { IRenderSlot } from "./render-slot";
 
-export type RenderCallback = (visual: IVisual, owner: any, index?: number) => void;
+export type RenderCallback = (visual: IVisual) => void;
 
 export enum MotionDirection {
   enter = 'enter',
   leave = 'leave'
 }
 
-export interface IVisual extends IBindScope, IViewOwner { 
+export interface IVisual extends IBindScope, IViewOwner, IAttach { 
   readonly factory: IVisualFactory;
+
+  parent: IRenderSlot;
+  onRender: RenderCallback;
+  renderState: any;
+
   animate(direction: MotionDirection): void | Promise<boolean>;
   tryReturnToCache(): boolean;
-  $attach(encapsulationSource: INode, lifecycle: AttachLifecycle | null, render: RenderCallback, owner: any, index?: number);
-  $detach(lifecycle?: DetachLifecycle);
 }
 
 export type VisualWithCentralComponent = IVisual & { component: IElementComponent };

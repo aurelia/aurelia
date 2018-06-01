@@ -208,6 +208,9 @@ abstract class Visual implements IVisual {
   $isBound = false;
   $isAttached = false;
   $context: IRenderContext;
+  parent: IRenderSlot;
+  onRender: RenderCallback;
+  renderState: any;
   
   inCache = false;
   private animationRoot: INode = undefined;
@@ -277,7 +280,7 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  $attach(encapsulationSource: INode, lifecycle: AttachLifecycle | null, render: RenderCallback, owner: IRenderSlot, index?: number) {
+  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle) {
     if (this.$isAttached) {
       return;
     }
@@ -290,8 +293,7 @@ abstract class Visual implements IVisual {
       attachable[i].$attach(encapsulationSource, lifecycle);
     }
 
-    render(this, owner, index);
-
+    this.onRender(this);
     this.$isAttached = true;
     lifecycle.end(this);
   }

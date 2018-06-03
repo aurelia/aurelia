@@ -7,6 +7,7 @@ import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifi
 import { expect } from 'chai';
 import { DI } from '../../../../src/runtime/di';
 import { IExpressionParser } from '../../../../src/runtime/binding/expression-parser';
+import { register } from '../../../../src/jit/binding/expression-parser'
 
 /* eslint-disable no-loop-func, no-floating-decimal, key-spacing, new-cap, quotes, comma-spacing */
 
@@ -50,7 +51,9 @@ describe('Parser', () => {
 
   beforeEach(() => {
     console.log = function () {};
-    parser = DI.createContainer().get(IExpressionParser);
+    const container = DI.createContainer();
+    register(container);
+    parser = container.get(IExpressionParser);
   });
 
   afterEach(() => {

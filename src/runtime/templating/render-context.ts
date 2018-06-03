@@ -2,20 +2,20 @@ import { IContainer, IResolver, IInterfaceSymbol, IServiceLocator } from "../di"
 import { RenderSlot, IRenderSlot } from "./render-slot";
 import { INode, DOM } from "../dom";
 import { PLATFORM } from "../platform";
-import { ITemplateSource, ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from "./instructions";
+import { ITemplateSource, ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
 import { IRenderingEngine } from "./rendering-engine";
 import { IRenderer } from "./renderer";
 import { IViewOwner } from "./view";
 import { IVisualFactory } from "./visual";
 import { IAttributeComponent, IElementComponent } from "./component";
-import { Constructable } from "../interfaces";
+import { Constructable, ImmutableArray, Immutable } from "../interfaces";
 
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;
-  render(owner: IViewOwner, targets: ArrayLike<INode>, source: ITemplateSource, host?: INode, replacements?: Record<string, ITemplateSource>);
-  hydrateElement(owner: IViewOwner, target: any, instruction: IHydrateElementInstruction): void;
-  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: IHydrateElementInstruction, component: IElementComponent): void;
-  beginComponentOperation(owner: IViewOwner, target: any, instruction: ITargetedInstruction, factory?: IVisualFactory, replacements?: Record<string, ITemplateSource>, anchor?: INode, anchorIsContainer?: boolean): IComponentOperation;
+  render(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions);
+  hydrateElement(owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>): void;
+  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: IElementComponent): void;
+  beginComponentOperation(owner: IViewOwner, target: any, instruction: Immutable<ITargetedInstruction>, factory?: IVisualFactory, parts?: TemplatePartDefinitions, anchor?: INode, anchorIsContainer?: boolean): IComponentOperation;
 };
 
 export interface IComponentOperation {
@@ -26,8 +26,8 @@ export interface IComponentOperation {
 
 type ExposedContext = IRenderContext & IComponentOperation & IContainer;
 
-export function createRenderContext(renderingEngine: IRenderingEngine, parentContext: IRenderContext, dependencies: any[]): IRenderContext {
-  const context = <ExposedContext>parentContext.createChild();
+export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<any>): IRenderContext {
+  const context = <ExposedContext>parentRenderContext.createChild();
   const ownerProvider = new InstanceProvider();
   const elementProvider = new InstanceProvider();
   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
@@ -46,17 +46,17 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentCon
     context.register(...dependencies);
   }
 
-  context.render = function(owner: IViewOwner, targets: ArrayLike<INode>, source: ITemplateSource, host?: INode, replacements?: Record<string, ITemplateSource>) {
-    renderer.render(owner, targets, source, host, replacements)
+  context.render = function(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions) {
+    renderer.render(owner, targets, templateDefinition, host, parts)
   };
 
-  context.beginComponentOperation = function(owner: IViewOwner, target: any, instruction: ITargetedInstruction, factory?: IVisualFactory, replacements?: Record<string, ITemplateSource>, anchor?: INode, anchorIsContainer?: boolean) {
+  context.beginComponentOperation = function(owner: IViewOwner, target: any, instruction: ITargetedInstruction, factory?: IVisualFactory, parts?: TemplatePartDefinitions, anchor?: INode, anchorIsContainer?: boolean) {
     ownerProvider.prepare(owner);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);
     
     if (factory) {
-      factoryProvider.prepare(factory, replacements);
+      factoryProvider.prepare(factory, parts);
     }
 
     if (anchor) {
@@ -66,11 +66,11 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentCon
     return context;
   };
 
-  context.hydrateElement = function(owner: IViewOwner, target: any, instruction: IHydrateElementInstruction): void {
+  context.hydrateElement = function(owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>): void {
     renderer[TargetedInstructionType.hydrateElement](owner, target, instruction);
   };
 
-  context.hydrateElementInstance = function(owner: IViewOwner, target: INode, instruction: IHydrateElementInstruction, component: IElementComponent) {
+  context.hydrateElementInstance = function(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: IElementComponent) {
     renderer.hydrateElementInstance(owner, target, instruction, component);
   };
 
@@ -111,13 +111,13 @@ class InstanceProvider<T> implements IResolver {
 
 class ViewFactoryProvider implements IResolver {
   private factory: IVisualFactory
-  private replacements: Record<string, ITemplateSource>;
+  private replacements: TemplatePartDefinitions;
 
   constructor(private renderingEngine: IRenderingEngine) {}
 
-  prepare(factory: IVisualFactory, replacements: Record<string, ITemplateSource>) { 
+  prepare(factory: IVisualFactory, parts: TemplatePartDefinitions) { 
     this.factory = factory;
-    this.replacements = replacements || PLATFORM.emptyObject;
+    this.replacements = parts || PLATFORM.emptyObject;
   }
 
   resolve(handler: IContainer, requestor: ExposedContext) {

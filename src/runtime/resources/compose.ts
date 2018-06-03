@@ -9,6 +9,7 @@ import { VisualWithCentralComponent } from '../templating/visual';
 import { IRenderContext } from '../templating/render-context';
 import { IRenderingEngine } from '../templating/rendering-engine';
 import { IElementType, IElementComponent } from '../templating/component';
+import { Immutable } from '../interfaces';
 
 const composeSource = {
   name: 'au-compose',
@@ -25,7 +26,7 @@ export class Compose {
   private task: CompositionTask = null;
   private visual: VisualWithCentralComponent = null;
   private auContent: INode = null;
-  private baseInstruction: IHydrateElementInstruction;
+  private baseInstruction: Immutable<IHydrateElementInstruction>;
   private compositionContext: IRenderContext;
 
   component: any;
@@ -36,7 +37,7 @@ export class Compose {
     private viewOwner: IViewOwner, 
     private host: INode, 
     private slot: IRenderSlot, 
-    instruction: IHydrateElementInstruction,
+    instruction: Immutable<IHydrateElementInstruction>,
     private renderingEngine: IRenderingEngine
   ) { 
     this.compositionContext = viewOwner.$context;
@@ -44,7 +45,7 @@ export class Compose {
       type: TargetedInstructionType.hydrateElement,
       instructions: instruction.instructions.filter((x: any) => !composeProps.includes(x.dest)),
       res: null,
-      replacements: instruction.replacements
+      parts: instruction.parts
     };
   }
 

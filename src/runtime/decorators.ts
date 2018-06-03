@@ -24,11 +24,11 @@ export function customElement(nameOrSource: string | ITemplateSource) {
 * @param defaultBindingMode The default binding mode to use when the attribute is bound with .bind.
 * @param aliases The array of aliases to associate to the custom attribute.
 */
-export function customAttribute(name: string, defaultBindingMode: BindingMode = BindingMode.oneWay, aliases?: string[]) {
+export function customAttribute(name: string, defaultBindingMode?: BindingMode, aliases?: string[]) {
   return function<T extends Constructable>(target: T) {
     return Component.attribute({
       name,
-      defaultBindingMode: defaultBindingMode || BindingMode.oneWay,
+      defaultBindingMode,
       aliases,
       isTemplateController: !!(<any>target).isTemplateController
     }, target);
@@ -37,13 +37,13 @@ export function customAttribute(name: string, defaultBindingMode: BindingMode = 
 
 export function valueConverter(name: string) {
   return function<T extends Constructable>(target: T) {
-    return Component.valueConverter({ name }, target);
+    return Component.valueConverter(name, target);
   }
 }
 
 export function bindingBehavior(name: string) {
   return function<T extends Constructable>(target: T) {
-    return Component.bindingBehavior({ name }, target);
+    return Component.bindingBehavior(name, target);
   }
 }
 

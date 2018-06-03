@@ -5,7 +5,7 @@ import { ITaskQueue } from "../task-queue";
 import { SubscriberCollection } from "../binding/subscriber-collection";
 import { IAccessor, ISubscribable } from "../binding/observation";
 import { Observer } from "../binding/property-observation";
-import { IBindableInstruction } from "./instructions";
+import { IBindableInstruction, ObservableDefinitions } from "./instructions";
 
 export interface IRuntimeBehavior {
   hasCreated: boolean;
@@ -22,7 +22,7 @@ export interface IRuntimeBehavior {
 export class RuntimeBehavior implements IRuntimeBehavior {
   private constructor() {}
 
-  observables: Record<string, IBindableInstruction>;
+  observables: ObservableDefinitions;
   hasCreated = false;
   hasBound = false;
   hasAttaching = false;
@@ -32,7 +32,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   hasUnbound = false;
   hasCreateView = false;
 
-  static create(instance, observables: Record<string, IBindableInstruction>, Component: IElementType | IAttributeType) {
+  static create(instance, observables: ObservableDefinitions, Component: IElementType | IAttributeType) {
     const behavior = new RuntimeBehavior();
 
     for (let name in instance) {

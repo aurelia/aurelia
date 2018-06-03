@@ -2,6 +2,7 @@ import { DI } from '../di';
 import { DelegationStrategy } from '../binding/event-manager';
 import { BindingMode } from '../binding/binding-mode';
 import { INode } from '../dom';
+import { Immutable } from '../interfaces';
 
 export enum TargetedInstructionType {
   textBinding = 0,
@@ -22,8 +23,8 @@ export enum TargetedInstructionType {
 
 export interface ITemplateSource {
   name?: string;
-  template: string;
-  instructions: Array<TargetedInstruction[]>;
+  template?: string;
+  instructions?: Array<TargetedInstruction[]>;
   dependencies?: any[];
   surrogates?: TargetedInstruction[];
   observables?: Record<string, IBindableInstruction>;
@@ -37,6 +38,10 @@ export interface IBindableInstruction {
   callback?: string;
   attribute?: string;
 }
+
+export type TemplateDefinition = Immutable<Required<ITemplateSource>>;
+export type TemplatePartDefinitions = Record<string, Immutable<ITemplateSource>>;
+export type ObservableDefinitions = Record<string, Immutable<IBindableInstruction>>;
 
 export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>();
 export interface ITargetedInstruction {
@@ -130,7 +135,7 @@ export interface IHydrateElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: any;
   instructions: TargetedInstruction[];
-  replacements?: Record<string, ITemplateSource>;
+  parts?: Record<string, ITemplateSource>;
   contentElement?: INode; // Usage: Compose
 }
 

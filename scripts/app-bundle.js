@@ -686,11 +686,10 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
     }
     exports.customElement = customElement;
     function customAttribute(name, defaultBindingMode, aliases) {
-        if (defaultBindingMode === void 0) { defaultBindingMode = binding_mode_1.BindingMode.oneWay; }
         return function (target) {
             return component_1.Component.attribute({
                 name: name,
-                defaultBindingMode: defaultBindingMode || binding_mode_1.BindingMode.oneWay,
+                defaultBindingMode: defaultBindingMode,
                 aliases: aliases,
                 isTemplateController: !!target.isTemplateController
             }, target);
@@ -699,13 +698,13 @@ define('runtime/decorators',["require", "exports", "./templating/component", "./
     exports.customAttribute = customAttribute;
     function valueConverter(name) {
         return function (target) {
-            return component_1.Component.valueConverter({ name: name }, target);
+            return component_1.Component.valueConverter(name, target);
         };
     }
     exports.valueConverter = valueConverter;
     function bindingBehavior(name) {
         return function (target) {
-            return component_1.Component.bindingBehavior({ name: name }, target);
+            return component_1.Component.bindingBehavior(name, target);
         };
     }
     exports.bindingBehavior = bindingBehavior;
@@ -5471,7 +5470,7 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
                 type: instructions_1.TargetedInstructionType.hydrateElement,
                 instructions: instruction.instructions.filter(function (x) { return !composeProps.includes(x.dest); }),
                 res: null,
-                replacements: instruction.replacements
+                parts: instruction.parts
             };
         }
         Compose.prototype.componentChanged = function (toBeComposed) {
@@ -6493,42 +6492,40 @@ define('runtime/templating/animator',["require", "exports", "../di"], function (
 
 
 
-define('runtime/templating/component',["require", "exports", "./view", "./shadow-dom", "../platform", "../di", "../binding/binding-context", "./lifecycle", "../dom"], function (require, exports, view_1, shadow_dom_1, platform_1, di_1, binding_context_1, lifecycle_1, dom_1) {
+define('runtime/templating/component',["require", "exports", "./view", "./shadow-dom", "../platform", "../di", "../binding/binding-mode", "../binding/binding-context", "./lifecycle", "../dom"], function (require, exports, view_1, shadow_dom_1, platform_1, di_1, binding_mode_1, binding_context_1, lifecycle_1, dom_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
     exports.Component = {
         valueConverter: function (nameOrSource, ctor) {
-            var source = ensureSource(nameOrSource);
+            var validSource = createDefinition(nameOrSource);
             var Type = ctor;
-            Type.source = source;
+            Type.source = validSource;
             Type.register = function (container) {
-                container.register(di_1.Registration.singleton(source.name, Type));
+                container.register(di_1.Registration.singleton(validSource.name, Type));
             };
             return Type;
         },
         bindingBehavior: function (nameOrSource, ctor) {
-            var source = ensureSource(nameOrSource);
+            var validSource = createDefinition(nameOrSource);
             var Type = ctor;
-            Type.source = source;
+            Type.source = validSource;
             Type.register = function (container) {
-                container.register(di_1.Registration.singleton(source.name, Type));
+                container.register(di_1.Registration.singleton(validSource.name, Type));
             };
             return Type;
         },
         attribute: function (nameOrSource, ctor) {
-            var source = ensureSource(nameOrSource);
+            var validSource = createAttributeDefinition(nameOrSource);
             var Type = ctor;
             var proto = Type.prototype;
             var observables = Type.observables || {};
-            Type.source = source;
+            Type.source = validSource;
             Type.register = function register(container) {
-                container.register(di_1.Registration.transient(source.name, Type));
-                var aliases = source.aliases;
-                if (aliases) {
-                    for (var i = 0, ii = aliases.length; i < ii; ++i) {
-                        container.register(di_1.Registration.alias(source.name, aliases[i]));
-                    }
+                container.register(di_1.Registration.transient(validSource.name, Type));
+                var aliases = validSource.aliases;
+                for (var i = 0, ii = aliases.length; i < ii; ++i) {
+                    container.register(di_1.Registration.alias(validSource.name, aliases[i]));
                 }
             };
             proto.$hydrate = function (renderingEngine) {
@@ -6559,7 +6556,7 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     this.bound(scope);
                 }
             };
-            proto.$attach = function (encapsulationSource, context) {
+            proto.$attach = function (encapsulationSource, lifecycle) {
                 if (this.$isAttached) {
                     return;
                 }
@@ -6567,23 +6564,23 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     this.attaching(encapsulationSource);
                 }
                 if (this.$slot !== null) {
-                    this.$slot.$attach(encapsulationSource, context);
+                    this.$slot.$attach(encapsulationSource, lifecycle);
                 }
                 if (this.$behavior.hasAttached) {
-                    context.queueAttachedCallback(this);
+                    lifecycle.queueAttachedCallback(this);
                 }
                 this.$isAttached = true;
             };
-            proto.$detach = function (context) {
+            proto.$detach = function (lifecycle) {
                 if (this.$isAttached) {
                     if (this.$behavior.hasDetaching) {
                         this.detaching();
                     }
                     if (this.$slot !== null) {
-                        this.$slot.$detach(context);
+                        this.$slot.$detach(lifecycle);
                     }
                     if (this.$behavior.hasDetached) {
-                        context.queueDetachedCallback(this);
+                        lifecycle.queueDetachedCallback(this);
                     }
                     this.$isAttached = false;
                 }
@@ -6598,29 +6595,28 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
             };
             return Type;
         },
-        element: function (source, ctor) {
+        element: function (nameOrSource, ctor) {
             if (ctor === void 0) { ctor = null; }
             var Type = ctor === null ? (function () {
                 function HTMLOnlyElement() {
                 }
                 return HTMLOnlyElement;
             }()) : ctor;
+            var source = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
+            var validSource = createTemplateDefinition(source, Type);
             var proto = Type.prototype;
-            var observables = Object.assign({}, Type.observables, source.observables);
-            source.shadowOptions = source.shadowOptions || Type.shadowOptions || null;
-            source.containerless = source.containerless || Type.containerless || false;
-            Type.source = source;
+            Type.source = validSource;
             Type.register = function (container) {
-                container.register(di_1.Registration.transient(source.name, Type));
+                container.register(di_1.Registration.transient(validSource.name, Type));
             };
-            proto.$hydrate = function (renderingEngine, host, replacements, contentOverride) {
-                if (replacements === void 0) { replacements = platform_1.PLATFORM.emptyObject; }
-                var template = renderingEngine.getElementTemplate(source, Type);
+            proto.$hydrate = function (renderingEngine, host, parts, contentOverride) {
+                if (parts === void 0) { parts = platform_1.PLATFORM.emptyObject; }
+                var template = renderingEngine.getElementTemplate(validSource, Type);
                 this.$bindable = [];
                 this.$attachable = [];
                 this.$changeCallbacks = [];
-                this.$slots = source.hasSlots ? {} : null;
-                this.$usingSlotEmulation = source.hasSlots || false;
+                this.$slots = validSource.hasSlots ? {} : null;
+                this.$usingSlotEmulation = validSource.hasSlots || false;
                 this.$slot = null;
                 this.$isAttached = false;
                 this.$isBound = false;
@@ -6628,15 +6624,15 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                     bindingContext: this,
                     overrideContext: binding_context_1.BindingContext.createOverride()
                 };
-                this.$context = template.context;
-                this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, observables);
-                this.$host = source.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
-                this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, source.shadowOptions);
+                this.$context = template.renderContext;
+                this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, validSource.observables);
+                this.$host = validSource.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
+                this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, validSource.shadowOptions);
                 this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
                 this.$contentView = view_1.View.fromCompiledContent(this.$host, contentOverride);
                 this.$view = this.$behavior.hasCreateView
-                    ? this.createView(host, replacements, template)
-                    : template.createFor(this, host, replacements);
+                    ? this.createView(host, parts, template)
+                    : template.createFor(this, host, parts);
                 this.$host.$component = this;
                 if (this.$behavior.hasCreated) {
                     this.created();
@@ -6681,7 +6677,7 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                 if (this.$contentView !== null && this.$slots) {
                     shadow_dom_1.ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
                 }
-                if (source.containerless) {
+                if (validSource.containerless) {
                     this.$view.insertBefore(this.$host);
                 }
                 else {
@@ -6731,7 +6727,7 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
             return Type;
         }
     };
-    function ensureSource(nameOrSource) {
+    function createDefinition(nameOrSource) {
         var source;
         if (typeof nameOrSource === 'string') {
             source = { name: source };
@@ -6740,6 +6736,33 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
             source = nameOrSource;
         }
         return source;
+    }
+    function createAttributeDefinition(nameOrSource) {
+        if (typeof nameOrSource === 'string') {
+            nameOrSource = {
+                name: nameOrSource
+            };
+        }
+        return {
+            name: nameOrSource.name,
+            aliases: nameOrSource.aliases || platform_1.PLATFORM.emptyArray,
+            defaultBindingMode: nameOrSource.defaultBindingMode || binding_mode_1.BindingMode.oneWay,
+            isTemplateController: nameOrSource.isTemplateController || false
+        };
+    }
+    function createTemplateDefinition(templateSource, Type) {
+        var definition = {
+            name: templateSource.name || 'Unnamed Template',
+            template: templateSource.template || null,
+            observables: Object.assign({}, Type.observables, templateSource.observables),
+            instructions: templateSource.instructions ? Array.from(templateSource.instructions) : platform_1.PLATFORM.emptyArray,
+            dependencies: templateSource.dependencies ? Array.from(templateSource.dependencies) : platform_1.PLATFORM.emptyArray,
+            surrogates: templateSource.surrogates ? Array.from(templateSource.surrogates) : platform_1.PLATFORM.emptyArray,
+            containerless: templateSource.containerless || Type.containerless || false,
+            shadowOptions: templateSource.shadowOptions || Type.shadowOptions || null,
+            hasSlots: templateSource.hasSlots || false
+        };
+        return definition;
     }
 });
 
@@ -6861,8 +6884,8 @@ define('runtime/templating/render-context',["require", "exports", "./render-slot
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
-    function createRenderContext(renderingEngine, parentContext, dependencies) {
-        var context = parentContext.createChild();
+    function createRenderContext(renderingEngine, parentRenderContext, dependencies) {
+        var context = parentRenderContext.createChild();
         var ownerProvider = new InstanceProvider();
         var elementProvider = new InstanceProvider();
         var instructionProvider = new InstanceProvider();
@@ -6877,15 +6900,15 @@ define('runtime/templating/render-context',["require", "exports", "./render-slot
         if (dependencies) {
             context.register.apply(context, dependencies);
         }
-        context.render = function (owner, targets, source, host, replacements) {
-            renderer.render(owner, targets, source, host, replacements);
+        context.render = function (owner, targets, templateDefinition, host, parts) {
+            renderer.render(owner, targets, templateDefinition, host, parts);
         };
-        context.beginComponentOperation = function (owner, target, instruction, factory, replacements, anchor, anchorIsContainer) {
+        context.beginComponentOperation = function (owner, target, instruction, factory, parts, anchor, anchorIsContainer) {
             ownerProvider.prepare(owner);
             elementProvider.prepare(target);
             instructionProvider.prepare(instruction);
             if (factory) {
-                factoryProvider.prepare(factory, replacements);
+                factoryProvider.prepare(factory, parts);
             }
             if (anchor) {
                 slotProvider.prepare(anchor, anchorIsContainer);
@@ -6933,9 +6956,9 @@ define('runtime/templating/render-context',["require", "exports", "./render-slot
         function ViewFactoryProvider(renderingEngine) {
             this.renderingEngine = renderingEngine;
         }
-        ViewFactoryProvider.prototype.prepare = function (factory, replacements) {
+        ViewFactoryProvider.prototype.prepare = function (factory, parts) {
             this.factory = factory;
-            this.replacements = replacements || platform_1.PLATFORM.emptyObject;
+            this.replacements = parts || platform_1.PLATFORM.emptyObject;
         };
         ViewFactoryProvider.prototype.resolve = function (handler, requestor) {
             var found = this.replacements[this.factory.name];
@@ -7231,27 +7254,27 @@ define('runtime/templating/renderer',["require", "exports", "../dom", "./instruc
             this.parser = parser;
             this.renderingEngine = renderingEngine;
         }
-        Renderer.prototype.render = function (owner, targets, source, host, replacements) {
-            var targetInstructions = source.instructions;
+        Renderer.prototype.render = function (owner, targets, definition, host, parts) {
+            var targetInstructions = definition.instructions;
             for (var i = 0, ii = targets.length; i < ii; ++i) {
                 var instructions = targetInstructions[i];
                 var target = targets[i];
                 for (var j = 0, jj = instructions.length; j < jj; ++j) {
                     var current = instructions[j];
-                    this[current.type](owner, target, current, replacements);
+                    this[current.type](owner, target, current, parts);
                 }
             }
             if (host) {
-                var surrogateInstructions = source.surrogates;
+                var surrogateInstructions = definition.surrogates;
                 for (var i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
                     var current = surrogateInstructions[i];
-                    this[current.type](owner, host, current, replacements);
+                    this[current.type](owner, host, current, parts);
                 }
             }
         };
         Renderer.prototype.hydrateElementInstance = function (owner, target, instruction, component) {
             var childInstructions = instruction.instructions;
-            component.$hydrate(this.renderingEngine, target, instruction.replacements, instruction.contentElement);
+            component.$hydrate(this.renderingEngine, target, instruction.parts, instruction.contentElement);
             for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
                 var current = childInstructions[i];
                 var currentType = current.type;
@@ -7332,11 +7355,11 @@ define('runtime/templating/renderer',["require", "exports", "../dom", "./instruc
             owner.$attachable.push(component);
             operation.dispose();
         };
-        Renderer.prototype[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (owner, target, instruction, replacements) {
+        Renderer.prototype[instructions_1.TargetedInstructionType.hydrateTemplateController] = function (owner, target, instruction, parts) {
             var childInstructions = instruction.instructions;
             var factory = this.renderingEngine.getVisualFactory(this.context, instruction.src);
             var context = this.context;
-            var operation = context.beginComponentOperation(owner, target, instruction, factory, replacements, dom_1.DOM.convertToAnchor(target), false);
+            var operation = context.beginComponentOperation(owner, target, instruction, factory, parts, dom_1.DOM.convertToAnchor(target), false);
             var component = context.get(instruction.res);
             component.$hydrate(this.renderingEngine);
             operation.tryConnectTemplateControllerToSlot(component);
@@ -7377,13 +7400,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/templating/rendering-engine',["require", "exports", "./runtime-behavior", "../di", "../task-queue", "./view", "../dom", "./renderer", "./lifecycle", "../reporter", "./animator", "./render-context", "./visual", "../binding/observer-locator", "../binding/event-manager", "../binding/expression-parser"], function (require, exports, runtime_behavior_1, di_1, task_queue_1, view_1, dom_1, renderer_1, lifecycle_1, reporter_1, animator_1, render_context_1, visual_1, observer_locator_1, event_manager_1, expression_parser_1) {
+define('runtime/templating/rendering-engine',["require", "exports", "./runtime-behavior", "../di", "../task-queue", "./view", "../dom", "./renderer", "./lifecycle", "../reporter", "./animator", "../platform", "./render-context", "./visual", "../binding/observer-locator", "../binding/event-manager", "../binding/expression-parser"], function (require, exports, runtime_behavior_1, di_1, task_queue_1, view_1, dom_1, renderer_1, lifecycle_1, reporter_1, animator_1, platform_1, render_context_1, visual_1, observer_locator_1, event_manager_1, expression_parser_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IRenderingEngine = di_1.DI.createInterface()
         .withDefault(function (x) { return x.singleton(RenderingEngine); });
     var noViewTemplate = {
-        context: null,
+        renderContext: null,
         createFor: function (owner) {
             return view_1.View.none;
         }
@@ -7400,45 +7423,46 @@ define('runtime/templating/rendering-engine',["require", "exports", "./runtime-b
             this.factoryLookup = new Map();
             this.behaviorLookup = new Map();
         }
-        RenderingEngine.prototype.getElementTemplate = function (source, componentType) {
-            if (!source) {
+        RenderingEngine.prototype.getElementTemplate = function (definition, componentType) {
+            if (!definition) {
                 return null;
             }
-            var found = this.templateLookup.get(source);
+            var found = this.templateLookup.get(definition);
             if (!found) {
-                found = this.templateFromCompiledSource(this.container, source);
-                if (found.context !== null) {
-                    componentType.register(found.context);
+                found = this.templateFromCompiledSource(this.container, definition);
+                if (found.renderContext !== null) {
+                    componentType.register(found.renderContext);
                 }
-                this.templateLookup.set(source, found);
+                this.templateLookup.set(definition, found);
             }
             return found;
         };
-        RenderingEngine.prototype.templateFromCompiledSource = function (context, source) {
-            if (source && source.template) {
-                return new CompiledTemplate(this, context, source);
+        RenderingEngine.prototype.templateFromCompiledSource = function (renderContext, templateDefinition) {
+            if (templateDefinition && templateDefinition.template) {
+                return new CompiledTemplate(this, renderContext, templateDefinition);
             }
             return noViewTemplate;
         };
-        RenderingEngine.prototype.getVisualFactory = function (context, source) {
-            if (!source) {
+        RenderingEngine.prototype.getVisualFactory = function (renderContext, templateSource) {
+            if (!templateSource) {
                 return null;
             }
-            var found = this.factoryLookup.get(source);
+            var found = this.factoryLookup.get(templateSource);
             if (!found) {
-                found = this.factoryFromCompiledSource(context, source);
-                this.factoryLookup.set(source, found);
+                var validSource = createDefinition(templateSource);
+                found = this.factoryFromCompiledSource(renderContext, validSource);
+                this.factoryLookup.set(templateSource, found);
             }
             return found;
         };
-        RenderingEngine.prototype.factoryFromCompiledSource = function (context, source) {
-            var template = this.templateFromCompiledSource(context, source);
+        RenderingEngine.prototype.factoryFromCompiledSource = function (renderContext, templateDefinition) {
+            var template = this.templateFromCompiledSource(renderContext, templateDefinition);
             var CompiledVisual = (function (_super) {
                 __extends(class_1, _super);
                 function class_1() {
                     var _this = _super !== null && _super.apply(this, arguments) || this;
-                    _this.$slots = source.hasSlots ? {} : null;
-                    _this.$context = context;
+                    _this.$slots = templateDefinition.hasSlots ? {} : null;
+                    _this.$context = renderContext;
                     return _this;
                 }
                 class_1.prototype.createView = function () {
@@ -7446,7 +7470,7 @@ define('runtime/templating/rendering-engine',["require", "exports", "./runtime-b
                 };
                 return class_1;
             }(Visual));
-            return new VisualFactory(source.name, CompiledVisual);
+            return new VisualFactory(templateDefinition.name, CompiledVisual);
         };
         RenderingEngine.prototype.applyRuntimeBehavior = function (type, instance, observables) {
             var found = this.behaviorLookup.get(type);
@@ -7462,26 +7486,26 @@ define('runtime/templating/rendering-engine',["require", "exports", "./runtime-b
             }
             return found;
         };
-        RenderingEngine.prototype.createVisualFromComponent = function (context, componentOrType, instruction) {
+        RenderingEngine.prototype.createVisualFromComponent = function (renderContext, componentOrType, instruction) {
             var animator = this.animator;
             var ComponentVisual = (function (_super) {
                 __extends(ComponentVisual, _super);
                 function ComponentVisual() {
                     var _this = _super.call(this, null, animator) || this;
-                    _this.$context = context;
+                    _this.$context = renderContext;
                     return _this;
                 }
                 ComponentVisual.prototype.createView = function () {
                     var target;
                     if (typeof componentOrType === 'function') {
                         target = dom_1.DOM.createElement(componentOrType.source.name);
-                        context.hydrateElement(this, target, instruction);
+                        renderContext.hydrateElement(this, target, instruction);
                         this.component = this.$attachable[this.$attachable.length - 1];
                     }
                     else {
                         var componentType = componentOrType.constructor;
                         target = componentOrType.element || dom_1.DOM.createElement(componentType.source.name);
-                        context.hydrateElementInstance(this, target, instruction, componentOrType);
+                        renderContext.hydrateElementInstance(this, target, instruction, componentOrType);
                         this.component = componentOrType;
                     }
                     return view_1.View.fromNode(target);
@@ -7493,8 +7517,8 @@ define('runtime/templating/rendering-engine',["require", "exports", "./runtime-b
             }(Visual));
             return new ComponentVisual();
         };
-        RenderingEngine.prototype.createRenderer = function (container) {
-            return new renderer_1.Renderer(container, this.taskQueue, this.observerLocator, this.eventManager, this.parser, this);
+        RenderingEngine.prototype.createRenderer = function (renderContext) {
+            return new renderer_1.Renderer(renderContext, this.taskQueue, this.observerLocator, this.eventManager, this.parser, this);
         };
         RenderingEngine = __decorate([
             di_1.inject(di_1.IContainer, task_queue_1.ITaskQueue, observer_locator_1.IObserverLocator, event_manager_1.IEventManager, expression_parser_1.IExpressionParser, animator_1.IAnimator),
@@ -7502,15 +7526,28 @@ define('runtime/templating/rendering-engine',["require", "exports", "./runtime-b
         ], RenderingEngine);
         return RenderingEngine;
     }());
+    function createDefinition(templateSource) {
+        return {
+            name: templateSource.name || 'Unnamed Template',
+            template: templateSource.template,
+            observables: templateSource.observables || platform_1.PLATFORM.emptyObject,
+            instructions: templateSource.instructions ? Array.from(templateSource.instructions) : platform_1.PLATFORM.emptyArray,
+            dependencies: templateSource.dependencies ? Array.from(templateSource.dependencies) : platform_1.PLATFORM.emptyArray,
+            surrogates: templateSource.surrogates ? Array.from(templateSource.surrogates) : platform_1.PLATFORM.emptyArray,
+            containerless: templateSource.containerless || false,
+            shadowOptions: templateSource.shadowOptions || null,
+            hasSlots: templateSource.hasSlots || false
+        };
+    }
     var CompiledTemplate = (function () {
-        function CompiledTemplate(renderingEngine, parentContext, source) {
-            this.source = source;
-            this.context = render_context_1.createRenderContext(renderingEngine, parentContext, source.dependencies);
-            this.createView = dom_1.DOM.createFactoryFromMarkup(source.template);
+        function CompiledTemplate(renderingEngine, parentRenderContext, templateDefinition) {
+            this.templateDefinition = templateDefinition;
+            this.renderContext = render_context_1.createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
+            this.createView = dom_1.DOM.createFactoryFromMarkup(templateDefinition.template);
         }
         CompiledTemplate.prototype.createFor = function (owner, host, replacements) {
             var view = this.createView();
-            this.context.render(owner, view.findTargets(), this.source, host, replacements);
+            this.renderContext.render(owner, view.findTargets(), this.templateDefinition, host, replacements);
             return view;
         };
         return CompiledTemplate;

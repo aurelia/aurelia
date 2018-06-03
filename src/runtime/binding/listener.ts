@@ -5,6 +5,7 @@ import { IServiceLocator } from '../di';
 import { IDisposable } from '../interfaces';
 import { IScope } from './binding-context';
 import { INode } from '../dom';
+import { BindingFlags } from './binding-flags';
 
 export class Listener implements IBinding {
   private source: IScope;
@@ -25,8 +26,7 @@ export class Listener implements IBinding {
     let overrideContext = this.source.overrideContext as any;
     overrideContext['$event'] = event;
 
-    let mustEvaluate = true;
-    let result = this.sourceExpression.evaluate(this.source, this.locator, mustEvaluate);
+    let result = this.sourceExpression.evaluate(this.source, this.locator, BindingFlags.mustEvaluate);
 
     delete overrideContext['$event'];
 
@@ -54,7 +54,7 @@ export class Listener implements IBinding {
     this.source = source;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, source);
+      this.sourceExpression.bind(this, source, BindingFlags.none);
     }
 
     this.handler = this.eventManager.addEventListener(
@@ -73,7 +73,7 @@ export class Listener implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.source);
+      this.sourceExpression.unbind(this, this.source, BindingFlags.none);
     }
 
     this.source = null;

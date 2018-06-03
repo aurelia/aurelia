@@ -8,6 +8,7 @@ import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor } from './ob
 import { IServiceLocator } from '../di';
 import { IScope, sourceContext, targetContext } from './binding-context';
 import { Reporter } from '../reporter';
+import { BindingFlags } from './binding-flags';
 
 export interface IBinding extends IBindScope {
   locator: IServiceLocator;
@@ -36,7 +37,7 @@ export class Binding extends ConnectableBinding implements IBinding {
   }
 
   updateSource(value: any) {
-    this.sourceExpression.assign(this.$scope, value, this.locator);
+    this.sourceExpression.assign(this.$scope, value, this.locator, BindingFlags.none);
   }
 
   call(context: string, newValue?: any, oldValue?: any) {
@@ -46,7 +47,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
     if (context === sourceContext) {
       oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-      newValue = this.sourceExpression.evaluate(this.$scope, this.locator);
+      newValue = this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.none);
 
       if (newValue !== oldValue) {
         this.updateTarget(newValue);
@@ -54,7 +55,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
       if (this.mode !== BindingMode.oneTime) {
         this.version++;
-        this.sourceExpression.connect(this, this.$scope);
+        this.sourceExpression.connect(this, this.$scope, BindingFlags.none);
         this.unobserve(false);
       }
 
@@ -62,7 +63,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (context === targetContext) {
-      if (newValue !== this.sourceExpression.evaluate(this.$scope, this.locator)) {
+      if (newValue !== this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.none)) {
         this.updateSource(newValue);
       }
 
@@ -85,7 +86,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, scope);
+      this.sourceExpression.bind(this, scope, BindingFlags.none);
     }
 
     let mode = this.mode;
@@ -100,7 +101,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (this.mode !== BindingMode.fromView) {
-      let value = this.sourceExpression.evaluate(scope, this.locator);
+      let value = this.sourceExpression.evaluate(scope, this.locator, BindingFlags.none);
       this.updateTarget(value);
     }
 
@@ -109,7 +110,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     } else if (mode === BindingMode.toView) {
       enqueueBindingConnect(this);
     } else if (mode === BindingMode.twoWay) {
-      this.sourceExpression.connect(this, scope);
+      this.sourceExpression.connect(this, scope, BindingFlags.none);
       (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
     } else if (mode === BindingMode.fromView) {
       (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
@@ -124,7 +125,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.$scope);
+      this.sourceExpression.unbind(this, this.$scope, BindingFlags.none);
     }
 
     this.$scope = null;
@@ -146,10 +147,10 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (evaluate) {
-      let value = this.sourceExpression.evaluate(this.$scope, this.locator);
+      let value = this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.none);
       this.updateTarget(value);
     }
 
-    this.sourceExpression.connect(this, this.$scope);
+    this.sourceExpression.connect(this, this.$scope, BindingFlags.none);
   }
 }

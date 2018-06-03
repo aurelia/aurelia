@@ -5,6 +5,7 @@ import { IServiceLocator } from '../di';
 import { IBindingTargetAccessor } from './observation';
 import { IScope } from './binding-context';
 import { INode } from '../dom';
+import { BindingFlags } from './binding-flags';
 
 export class Call implements IBinding {
   targetObserver: IBindingTargetAccessor;
@@ -25,7 +26,7 @@ export class Call implements IBinding {
     Object.assign(overrideContext, $event);
     overrideContext.$event = $event; // deprecate this?
     let mustEvaluate = true;
-    let result = this.sourceExpression.evaluate(this.$scope, this.locator, mustEvaluate);
+    let result = this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.mustEvaluate);
     delete overrideContext.$event;
 
     for (let prop in $event) {
@@ -48,7 +49,7 @@ export class Call implements IBinding {
     this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, scope);
+      this.sourceExpression.bind(this, scope, BindingFlags.none);
     }
 
     this.targetObserver.setValue($event => this.callSource($event), this.target, this.targetProperty);
@@ -62,7 +63,7 @@ export class Call implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.$scope);
+      this.sourceExpression.unbind(this, this.$scope, BindingFlags.none);
     }
 
     this.$scope = null;

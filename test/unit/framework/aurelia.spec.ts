@@ -1,7 +1,7 @@
-import { Aurelia } from '../../../src/framework/aurelia';
+// import { Aurelia } from '../../../src/framework/aurelia';
 
-describe('Aurelia', () => {
-  it('should be defined', () => {
-    expect(Aurelia).toBeDefined();
-  });
-});
+// describe('Aurelia', () => {
+//   it('should be defined', () => {
+//     expect(Aurelia).toBeDefined();
+//   });
+// });

@@ -1,5 +1,5 @@
 /* Aurelia Compiler - auto generated file */
-import { AstKind, Chain, BindingBehavior, ValueConverter, Assign, Conditional, AccessThis, AccessScope, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, Binary, PrefixNot, LiteralPrimitive, LiteralString, TemplateLiteral, LiteralArray, LiteralObject } from './runtime/binding/ast';
+import { AstKind, Chain, BindingBehavior, ValueConverter, Assign, Conditional, AccessThis, AccessScope, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, Binary, Unary, LiteralPrimitive, LiteralString, TemplateLiteral, LiteralArray, LiteralObject } from './runtime/binding/ast';
 export var getAst = id => Asts[id];
 var Asts = {
     1: new TemplateLiteral(new LiteralString(""), new AccessScope("color", 0), new LiteralString("")),

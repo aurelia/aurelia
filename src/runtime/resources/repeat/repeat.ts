@@ -13,6 +13,7 @@ import { Binding } from '../../binding/binding';
 import { BindingMode } from '../../binding/binding-mode';
 import { IViewOwner } from '../../templating/view';
 import { ITaskQueue } from '../../task-queue';
+import { BindingFlags } from '../../binding/binding-flags';
 
 const oneTime = BindingMode.oneTime;
 
@@ -174,7 +175,7 @@ export class Repeat implements IRepeater {
       return null;
     }
 
-    return expression.evaluate(this.scope, this.container);
+    return expression.evaluate(this.scope, this.container, BindingFlags.none);
   }
 
   handleCollectionMutated(collection, changes) {
@@ -197,7 +198,7 @@ export class Repeat implements IRepeater {
     }
 
     this.ignoreMutation = true;
-    let newItems = this.sourceExpression.evaluate(this.scope, this.container);
+    let newItems = this.sourceExpression.evaluate(this.scope, this.container, BindingFlags.none);
 
     this.taskQueue.queueMicroTask(() => this.ignoreMutation = false);
 

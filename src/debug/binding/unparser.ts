@@ -13,12 +13,12 @@ export function enableImprovedExpressionDebugging() {
     { type: AST.CallMember, name: 'CallMember' },
     { type: AST.CallScope, name: 'CallScope' },
     { type: AST.Conditional, name: 'Conditional' },
-    { type: AST.LiteralArray, name: 'LiteralArray' },
-    { type: AST.LiteralObject, name: 'LiteralObject' },
-    { type: AST.LiteralPrimitive, name: 'LiteralPrimitive' },
-    { type: AST.LiteralString, name: 'LiteralString' },
-    { type: AST.PrefixNot, name: 'Prefix' }, //pattern variation
-    { type: AST.TemplateLiteral, name: 'TemplateLiteral' },
+    { type: AST.ArrayLiteral, name: 'LiteralArray' },
+    { type: AST.ObjectLiteral, name: 'LiteralObject' },
+    { type: AST.PrimitiveLiteral, name: 'LiteralPrimitive' },
+    { type: AST.PrimitiveLiteral, name: 'LiteralString' },
+    { type: AST.Unary, name: 'Prefix' }, //pattern variation
+    { type: AST.HtmlLiteral, name: 'TemplateLiteral' },
     { type: AST.ValueConverter, name: 'ValueConverter' }
   ].forEach(x => adoptDebugMethods(x.type, x.name));
 }

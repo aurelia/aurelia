@@ -2,6 +2,7 @@ import { IExpression } from './ast';
 import { IBinding, IBindingTarget } from './binding';
 import { IServiceLocator } from '../di';
 import { IScope } from './binding-context';
+import { BindingFlags } from './binding-flags';
 
 export class Ref implements IBinding {
   private $scope: IScope;
@@ -26,10 +27,10 @@ export class Ref implements IBinding {
     this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, scope);
+      this.sourceExpression.bind(this, scope, BindingFlags.none);
     }
 
-    this.sourceExpression.assign(this.$scope, this.target, this.locator);
+    this.sourceExpression.assign(this.$scope, this.target, this.locator, BindingFlags.none);
   }
 
   $unbind() {
@@ -39,12 +40,12 @@ export class Ref implements IBinding {
 
     this.$isBound = false;
 
-    if (this.sourceExpression.evaluate(this.$scope, this.locator) === this.target) {
-      this.sourceExpression.assign(this.$scope, null, this.locator);
+    if (this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.none) === this.target) {
+      this.sourceExpression.assign(this.$scope, null, this.locator, BindingFlags.none);
     }
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.$scope);
+      this.sourceExpression.unbind(this, this.$scope, BindingFlags.none);
     }
 
     this.$scope = null;

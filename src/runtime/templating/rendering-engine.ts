@@ -157,7 +157,7 @@ class RenderingEngine implements IRenderingEngine {
           this.component = <IElementComponent>this.$attachable[this.$attachable.length - 1];
         } else {
           const componentType = <IElementType>componentOrType.constructor;
-          target = componentOrType.element || DOM.createElement(componentType.source.name);
+          target = componentOrType.element || DOM.createElement(componentType.definition.name);
           renderContext.hydrateElementInstance(this, target, instruction, componentOrType);
           this.component = componentOrType;
         }

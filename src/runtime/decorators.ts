@@ -1,4 +1,4 @@
-import { Component, IAttributeSource } from './templating/component';
+import { Component } from './templating/component';
 import { PLATFORM } from './platform';
 import { BindingMode } from './binding/binding-mode';
 import { Constructable, Injectable } from './interfaces';

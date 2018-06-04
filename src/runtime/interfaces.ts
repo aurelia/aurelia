@@ -32,3 +32,7 @@ type ImmutableObject<T> =
 
 export interface ImmutableArray<T> extends ReadonlyArray<ImmutableObject<T>> {}
 export type Immutable<T> = { readonly [P in keyof T]: ImmutableObject<T[P]> }
+
+export type Writable<T> = {
+  -readonly [K in keyof T]: T[K]
+}

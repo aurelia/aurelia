@@ -5,12 +5,12 @@ import { ShadowDOMEmulation } from './shadow-dom';
 import { PLATFORM } from '../platform';
 import { IContainer, Registration, DI } from '../di';
 import { BindingMode } from '../binding/binding-mode';
-import { Constructable, ICallable, Immutable } from '../interfaces';
+import { Constructable, ICallable, Immutable, Writable } from '../interfaces';
 import { IBindScope, IAccessor, ISubscribable } from '../binding/observation';
 import { IScope, BindingContext } from '../binding/binding-context';
 import { IRenderSlot } from './render-slot';
 import { IBindSelf, IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
-import { ITemplateSource, IBindableInstruction, TemplateDefinition, TemplatePartDefinitions, IHydrateElementInstruction } from './instructions';
+import { ITemplateSource, IBindableInstruction, TemplateDefinition, TemplatePartDefinitions, IHydrateElementInstruction, AttributeDefinition, ValueConverterDefinition, BindingBehaviorDefinition, IValueConverterSource, IBindingBehaviorSource, IAttributeSource } from './instructions';
 import { INode, DOM, IView, IChildObserver } from '../dom';
 import { SubscriberCollection } from '../binding/subscriber-collection';
 import { IRenderingEngine } from './rendering-engine';
@@ -19,15 +19,15 @@ import { IRenderContext } from './render-context';
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'contentOverride'>>;
 
-export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
-  $host: INode;
-  $contentView: IContentView;
-  $usingSlotEmulation: boolean;
-  $isAttached: boolean;
+export interface IElementComponent extends IBindSelf, IAttach, Readonly<IViewOwner> {
+  readonly $host: INode;
+  readonly $contentView: IContentView;
+  readonly $usingSlotEmulation: boolean;
+  readonly $isAttached: boolean;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
-interface IElementComponentImplementation extends IElementComponent {
+interface IElementComponentImplementation extends Writable<IElementComponent> {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $slot: IRenderSlot;
@@ -35,90 +35,75 @@ interface IElementComponentImplementation extends IElementComponent {
 }
 
 export interface IAttributeComponent extends IBindScope, IAttach { 
-  $isBound: boolean;
-  $isAttached: boolean;
-  $scope: IScope;
-  $hydrate(renderingEngine: IRenderingEngine,);
+  readonly $isBound: boolean;
+  readonly $isAttached: boolean;
+  readonly $scope: IScope;
+  $hydrate(renderingEngine: IRenderingEngine);
 }
 
-interface IAttributeComponentImplementation extends IAttributeComponent {
+interface IAttributeComponentImplementation extends Writable<IAttributeComponent> {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $slot: IRenderSlot;
 }
 
-export interface IAttributeSource {
-  name: string;
-  defaultBindingMode?: BindingMode;
-  aliases?: string[];
-  isTemplateController?: boolean;
-}
-
-export interface IValueConverterSource {
-  name: string;
-}
-
-export interface IBindingBehaviorSource {
-  name: string;
-}
-
 export interface IAttributeType extends Constructable<IAttributeComponent> {
-  source: Immutable<Required<IAttributeSource>>;
+  readonly definition: AttributeDefinition;
   register(container: IContainer);
 };
 
 export interface IElementType extends Constructable<IElementComponent> {
-  source: TemplateDefinition;
+  readonly definition: TemplateDefinition;
   register(container: IContainer);
 }
 
 export interface ValueConverterType extends Constructable {
-  source: Immutable<IValueConverterSource>;
+  readonly definition: ValueConverterDefinition;
   register(container: IContainer);
 }
 
 export interface BindingBehaviorType extends Constructable {
-  source: Immutable<IBindingBehaviorSource>;
+  readonly definition: BindingBehaviorDefinition;
   register(container: IContainer);
 }
 
 export const Component = {
   valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & ValueConverterType {
-    const validSource = createDefinition<IValueConverterSource>(nameOrSource);
+    const definition = createDefinition<IValueConverterSource>(nameOrSource);
     const Type: T & ValueConverterType = ctor as any;
 
-    Type.source = validSource;
+    (Type as any).definition = definition;
     Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(validSource.name, Type));
+      container.register(Registration.singleton(definition.name, Type));
     };
 
     return Type;
   },
   bindingBehavior<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & BindingBehaviorType {
-    const validSource = createDefinition<IBindingBehaviorSource>(nameOrSource);
+    const definition = createDefinition<IBindingBehaviorSource>(nameOrSource);
     const Type: T & BindingBehaviorType = ctor as any;
 
-    Type.source = validSource;
+    (Type as any).definition = definition;
     Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(validSource.name, Type));
+      container.register(Registration.singleton(definition.name, Type));
     };
 
     return Type;
   },
   attribute<T extends Constructable>(nameOrSource: string | IAttributeSource, ctor: T): T & IAttributeType {
-    const validSource = createAttributeDefinition(nameOrSource);
+    const definition = createAttributeDefinition(nameOrSource);
     const Type: T & IAttributeType = ctor as any;
     const proto: IAttributeComponent = Type.prototype;
     const observables = (Type as any).observables || {};
 
-    Type.source = validSource;
+    (Type as any).definition = definition;
     Type.register = function register(container: IContainer){
-      container.register(Registration.transient(validSource.name, Type));
+      container.register(Registration.transient(definition.name, Type));
 
-      const aliases = validSource.aliases;
+      const aliases = definition.aliases;
 
       for(let i = 0, ii = aliases.length; i < ii; ++i) {
-        container.register(Registration.alias(validSource.name, aliases[i]));
+        container.register(Registration.alias(definition.name, aliases[i]));
       }
     };
 
@@ -210,23 +195,22 @@ export const Component = {
   },
   element<T extends Constructable>(nameOrSource: string | ITemplateSource, ctor: T = null): T & IElementType {
     const Type: T & IElementType = ctor === null ? class HTMLOnlyElement { /* HTML Only */ } as any : ctor as any;
-    const source: ITemplateSource = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
-    const validSource = createTemplateDefinition(source, Type);
+    const definition = createTemplateDefinition(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: IElementComponent = Type.prototype;
 
-    Type.source = validSource;
+    (Type as any).definition = definition;
     Type.register = function(container: IContainer){
-      container.register(Registration.transient(validSource.name, Type));
+      container.register(Registration.transient(definition.name, Type));
     };
 
     proto.$hydrate = function(this: IElementComponentImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject) { 
-      let template = renderingEngine.getElementTemplate(validSource, Type);
+      let template = renderingEngine.getElementTemplate(definition, Type);
 
       this.$bindable = [];
       this.$attachable = [];
       this.$changeCallbacks = [];
-      this.$slots = validSource.hasSlots ? {} : null;
-      this.$usingSlotEmulation = validSource.hasSlots || false;
+      this.$slots = definition.hasSlots ? {} : null;
+      this.$usingSlotEmulation = definition.hasSlots || false;
       this.$slot = null;
       this.$isAttached = false;
       this.$isBound = false;
@@ -236,9 +220,9 @@ export const Component = {
       };
       
       this.$context = template.renderContext;
-      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, validSource.observables);
-      this.$host = validSource.containerless ? DOM.convertToAnchor(host, true) : host;
-      this.$shadowRoot = DOM.createElementViewHost(this.$host, validSource.shadowOptions);
+      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, definition.observables);
+      this.$host = definition.containerless ? DOM.convertToAnchor(host, true) : host;
+      this.$shadowRoot = DOM.createElementViewHost(this.$host, definition.shadowOptions);
       this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
       this.$contentView = View.fromCompiledContent(this.$host, options);
       this.$view = this.$behavior.hasCreateView
@@ -307,7 +291,7 @@ export const Component = {
         ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
       }
 
-      if (validSource.containerless) {
+      if (definition.containerless) {
         this.$view.insertBefore(this.$host);
       } else {
         this.$view.appendTo(this.$shadowRoot);

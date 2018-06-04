@@ -1610,7 +1610,7 @@ define('debug/binding/unparser',["require", "exports", "../../runtime/binding/as
             { type: AST.ObjectLiteral, name: 'LiteralObject' },
             { type: AST.PrimitiveLiteral, name: 'LiteralPrimitive' },
             { type: AST.PrimitiveLiteral, name: 'LiteralString' },
-            { type: AST.Unary, name: 'Prefix' },
+            { type: AST.Unary, name: 'Unary' },
             { type: AST.HtmlLiteral, name: 'TemplateLiteral' },
             { type: AST.ValueConverter, name: 'ValueConverter' }
         ].forEach(function (x) { return adoptDebugMethods(x.type, x.name); });
@@ -1719,9 +1719,9 @@ define('debug/binding/unparser',["require", "exports", "../../runtime/binding/as
             this.write("." + call.name);
             this.writeArgs(call.args);
         };
-        Unparser.prototype.visitPrefix = function (prefix) {
-            this.write("(" + prefix.operation);
-            prefix.expression.accept(this);
+        Unparser.prototype.visitUnary = function (unary) {
+            this.write("(" + unary.operation);
+            unary.expression.accept(this);
             this.write(')');
         };
         Unparser.prototype.visitBinary = function (binary) {

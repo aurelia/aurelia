@@ -17,7 +17,7 @@ export function enableImprovedExpressionDebugging() {
     { type: AST.ObjectLiteral, name: 'LiteralObject' },
     { type: AST.PrimitiveLiteral, name: 'LiteralPrimitive' },
     { type: AST.PrimitiveLiteral, name: 'LiteralString' },
-    { type: AST.Unary, name: 'Prefix' }, //pattern variation
+    { type: AST.Unary, name: 'Unary' },
     { type: AST.HtmlLiteral, name: 'TemplateLiteral' },
     { type: AST.ValueConverter, name: 'ValueConverter' }
   ].forEach(x => adoptDebugMethods(x.type, x.name));
@@ -150,9 +150,9 @@ class Unparser {
     this.writeArgs(call.args);
   }
 
-  visitPrefix(prefix) {
-    this.write(`(${prefix.operation}`);
-    prefix.expression.accept(this);
+  visitUnary(unary) {
+    this.write(`(${unary.operation}`);
+    unary.expression.accept(this);
     this.write(')');
   }
 

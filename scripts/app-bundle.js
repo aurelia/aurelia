@@ -400,13 +400,13 @@ define('name-tag',["require", "exports", "./runtime/decorators", "./name-tag-con
 
 
 
-define('debug/configuration',["require", "exports", "./reporter", "./task-queue", "./binding/unparser"], function (require, exports, reporter_1, TaskQueueDebugConfiguration, unparser_1) {
+define('debug/configuration',["require", "exports", "./reporter", "./task-queue", "./binding/unparser"], function (require, exports, reporter_1, task_queue_1, unparser_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DebugConfiguration = {
         register: function (container) {
             reporter_1.Reporter.write(2);
-            container.register(TaskQueueDebugConfiguration);
+            task_queue_1.enableImprovedTaskQueueDebugging(container);
             unparser_1.enableImprovedExpressionDebugging();
         }
     };
@@ -555,7 +555,7 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
 define('debug/task-queue',["require", "exports", "../runtime/task-queue"], function (require, exports, task_queue_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    function register(container) {
+    function enableImprovedTaskQueueDebugging(container) {
         container.registerTransformer(task_queue_1.ITaskQueue, function (taskQueue) {
             var stackSeparator = '\nEnqueued in TaskQueue by:\n';
             var microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';
@@ -584,7 +584,7 @@ define('debug/task-queue',["require", "exports", "../runtime/task-queue"], funct
             });
         });
     }
-    exports.register = register;
+    exports.enableImprovedTaskQueueDebugging = enableImprovedTaskQueueDebugging;
     function captureStack() {
         var error = new Error();
         if (error.stack) {

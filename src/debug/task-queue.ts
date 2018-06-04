@@ -1,7 +1,7 @@
 import { ITaskQueue } from '../runtime/task-queue';
 import { IContainer } from '../runtime/di';
 
-export function register(container: IContainer) {
+export function enableImprovedTaskQueueDebugging(container: IContainer) {
   container.registerTransformer(ITaskQueue, taskQueue => {
     const stackSeparator = '\nEnqueued in TaskQueue by:\n';
     const microStackSeparator = '\nEnqueued in MicroTaskQueue by:\n';

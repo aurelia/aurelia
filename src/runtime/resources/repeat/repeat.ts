@@ -165,7 +165,9 @@ export class Repeat implements IRepeater {
       this.observeCollection();
     }
 
+    this.ignoreMutation = true;
     this.strategy.instanceChanged(this, items);
+    this.taskQueue.queueMicroTask(() => this.ignoreMutation = false);
   }
 
   private getInnerCollection() {
@@ -179,7 +181,7 @@ export class Repeat implements IRepeater {
   }
 
   handleCollectionMutated(collection, changes) {
-    if (!this.collectionObserver) {
+    if (!this.collectionObserver || this.ignoreMutation) {
       return;
     }
 

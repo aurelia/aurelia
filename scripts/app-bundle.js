@@ -9679,6 +9679,7 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
             }
         };
         Repeat.prototype.itemsChanged = function () {
+            var _this = this;
             this.unsubscribeCollection();
             if (!this.scope) {
                 return;
@@ -9691,7 +9692,9 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
             if (!this.isOneTime && !this.observeInnerCollection()) {
                 this.observeCollection();
             }
+            this.ignoreMutation = true;
             this.strategy.instanceChanged(this, items);
+            this.taskQueue.queueMicroTask(function () { return _this.ignoreMutation = false; });
         };
         Repeat.prototype.getInnerCollection = function () {
             var expression = unwrapExpression(this.sourceExpression);
@@ -9701,7 +9704,7 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
             return expression.evaluate(this.scope, this.container, binding_flags_1.BindingFlags.none);
         };
         Repeat.prototype.handleCollectionMutated = function (collection, changes) {
-            if (!this.collectionObserver) {
+            if (!this.collectionObserver || this.ignoreMutation) {
                 return;
             }
             this.strategy.instanceMutated(this, collection, changes);

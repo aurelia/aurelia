@@ -57,33 +57,33 @@ export interface IElementType extends Constructable<IElementComponent> {
   register(container: IContainer);
 }
 
-export interface ValueConverterType extends Constructable {
+export interface IValueConverterType extends Constructable {
   readonly definition: ValueConverterDefinition;
   register(container: IContainer);
 }
 
-export interface BindingBehaviorType extends Constructable {
+export interface IBindingBehaviorType extends Constructable {
   readonly definition: BindingBehaviorDefinition;
   register(container: IContainer);
 }
 
 export const Component = {
-  valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & ValueConverterType {
+  valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & IValueConverterType {
     const definition = createDefinition<IValueConverterSource>(nameOrSource);
-    const Type: T & ValueConverterType = ctor as any;
+    const Type: T & IValueConverterType = ctor as any;
 
-    (Type as any).definition = definition;
+    (Type as Writable<IValueConverterType>).definition = definition;
     Type.register = function(container: IContainer) {
       container.register(Registration.singleton(definition.name, Type));
     };
 
     return Type;
   },
-  bindingBehavior<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & BindingBehaviorType {
+  bindingBehavior<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & IBindingBehaviorType {
     const definition = createDefinition<IBindingBehaviorSource>(nameOrSource);
-    const Type: T & BindingBehaviorType = ctor as any;
+    const Type: T & IBindingBehaviorType = ctor as any;
 
-    (Type as any).definition = definition;
+    (Type as Writable<IBindingBehaviorType>).definition = definition;
     Type.register = function(container: IContainer) {
       container.register(Registration.singleton(definition.name, Type));
     };
@@ -96,7 +96,7 @@ export const Component = {
     const proto: IAttributeComponent = Type.prototype;
     const observables = (Type as any).observables || {};
 
-    (Type as any).definition = definition;
+    (Type as Writable<IAttributeType>).definition = definition;
     Type.register = function register(container: IContainer){
       container.register(Registration.transient(definition.name, Type));
 
@@ -198,7 +198,7 @@ export const Component = {
     const definition = createTemplateDefinition(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: IElementComponent = Type.prototype;
 
-    (Type as any).definition = definition;
+    (Type as Writable<IElementType>).definition = definition;
     Type.register = function(container: IContainer){
       container.register(Registration.transient(definition.name, Type));
     };

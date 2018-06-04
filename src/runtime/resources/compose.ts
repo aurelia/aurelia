@@ -75,10 +75,10 @@ export class Compose {
 
   /** @internal */
   compose(toBeComposed: any) {
-    const instruction = Object.assign({}, {
+    const instruction = Object.assign({}, this.baseInstruction, {
       resource: toBeComposed,
-      contentElement: this.createContentElement()
-    }, this.baseInstruction);
+      contentOverride: this.createContentElement()
+    });
 
     return this.swap(this.renderingEngine.createVisualFromComponent(this.compositionContext, toBeComposed, instruction));
   }

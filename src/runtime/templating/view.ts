@@ -41,9 +41,9 @@ const noopView: IView = {
 
 export const View = {
   none: noopView,
-  fromCompiledContent(contentHost: INode, contentOverride?: INode): IContentView | null {
-    if (DOM.isUsingSlotEmulation(contentHost)) {
-      return new ContentView(contentOverride || contentHost);
+  fromCompiledContent(host: INode, options: { contentOverride?: INode } = PLATFORM.emptyObject): IContentView | null {
+    if (DOM.isUsingSlotEmulation(host)) {
+      return new ContentView(options.contentOverride || host);
     } else {
       return null;
     }

@@ -10,19 +10,21 @@ import { IBindScope, IAccessor, ISubscribable } from '../binding/observation';
 import { IScope, BindingContext } from '../binding/binding-context';
 import { IRenderSlot } from './render-slot';
 import { IBindSelf, IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
-import { ITemplateSource, IBindableInstruction, TemplateDefinition, TemplatePartDefinitions } from './instructions';
+import { ITemplateSource, IBindableInstruction, TemplateDefinition, TemplatePartDefinitions, IHydrateElementInstruction } from './instructions';
 import { INode, DOM, IView, IChildObserver } from '../dom';
 import { SubscriberCollection } from '../binding/subscriber-collection';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 import { IRenderContext } from './render-context';
 
+export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'contentOverride'>>;
+
 export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
   $host: INode;
   $contentView: IContentView;
   $usingSlotEmulation: boolean;
   $isAttached: boolean;
-  $hydrate(renderingEngine: IRenderingEngine, host: INode, parts?: TemplatePartDefinitions, contentNodeOverride?: INode): void; //TODO: options instead of contentNodeOverride
+  $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
 interface IElementComponentImplementation extends IElementComponent {
@@ -217,7 +219,7 @@ export const Component = {
       container.register(Registration.transient(validSource.name, Type));
     };
 
-    proto.$hydrate = function(this: IElementComponentImplementation, renderingEngine: IRenderingEngine, host: INode, parts: TemplatePartDefinitions = PLATFORM.emptyObject, contentOverride?: INode) { 
+    proto.$hydrate = function(this: IElementComponentImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject) { 
       let template = renderingEngine.getElementTemplate(validSource, Type);
 
       this.$bindable = [];
@@ -238,10 +240,10 @@ export const Component = {
       this.$host = validSource.containerless ? DOM.convertToAnchor(host, true) : host;
       this.$shadowRoot = DOM.createElementViewHost(this.$host, validSource.shadowOptions);
       this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
-      this.$contentView = View.fromCompiledContent(this.$host, contentOverride);
+      this.$contentView = View.fromCompiledContent(this.$host, options);
       this.$view = this.$behavior.hasCreateView
-        ? (this as any).createView(host, parts, template)
-        : template.createFor(this, host, parts);
+        ? (this as any).createView(host, options.parts, template)
+        : template.createFor(this, host, options.parts);
 
       (this.$host as any).$component = this;
 

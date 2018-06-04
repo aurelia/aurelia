@@ -6152,10 +6152,10 @@ define('runtime/resources/compose',["require", "exports", "../decorators", "../t
             }
         };
         Compose.prototype.compose = function (toBeComposed) {
-            var instruction = Object.assign({}, {
+            var instruction = Object.assign({}, this.baseInstruction, {
                 resource: toBeComposed,
-                contentElement: this.createContentElement()
-            }, this.baseInstruction);
+                contentOverride: this.createContentElement()
+            });
             return this.swap(this.renderingEngine.createVisualFromComponent(this.compositionContext, toBeComposed, instruction));
         };
         Compose.prototype.createContentElement = function () {
@@ -7033,8 +7033,8 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
             Type.register = function (container) {
                 container.register(di_1.Registration.transient(validSource.name, Type));
             };
-            proto.$hydrate = function (renderingEngine, host, parts, contentOverride) {
-                if (parts === void 0) { parts = platform_1.PLATFORM.emptyObject; }
+            proto.$hydrate = function (renderingEngine, host, options) {
+                if (options === void 0) { options = platform_1.PLATFORM.emptyObject; }
                 var template = renderingEngine.getElementTemplate(validSource, Type);
                 this.$bindable = [];
                 this.$attachable = [];
@@ -7053,10 +7053,10 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
                 this.$host = validSource.containerless ? dom_1.DOM.convertToAnchor(host, true) : host;
                 this.$shadowRoot = dom_1.DOM.createElementViewHost(this.$host, validSource.shadowOptions);
                 this.$usingSlotEmulation = dom_1.DOM.isUsingSlotEmulation(this.$host);
-                this.$contentView = view_1.View.fromCompiledContent(this.$host, contentOverride);
+                this.$contentView = view_1.View.fromCompiledContent(this.$host, options);
                 this.$view = this.$behavior.hasCreateView
-                    ? this.createView(host, parts, template)
-                    : template.createFor(this, host, parts);
+                    ? this.createView(host, options.parts, template)
+                    : template.createFor(this, host, options.parts);
                 this.$host.$component = this;
                 if (this.$behavior.hasCreated) {
                     this.created();
@@ -7698,7 +7698,7 @@ define('runtime/templating/renderer',["require", "exports", "../dom", "./instruc
         };
         Renderer.prototype.hydrateElementInstance = function (owner, target, instruction, component) {
             var childInstructions = instruction.instructions;
-            component.$hydrate(this.renderingEngine, target, instruction.parts, instruction.contentElement);
+            component.$hydrate(this.renderingEngine, target, instruction);
             for (var i = 0, ii = childInstructions.length; i < ii; ++i) {
                 var current = childInstructions[i];
                 var currentType = current.type;
@@ -8688,9 +8688,10 @@ define('runtime/templating/view',["require", "exports", "../platform", "../di", 
     };
     exports.View = {
         none: noopView,
-        fromCompiledContent: function (contentHost, contentOverride) {
-            if (dom_1.DOM.isUsingSlotEmulation(contentHost)) {
-                return new ContentView(contentOverride || contentHost);
+        fromCompiledContent: function (host, options) {
+            if (options === void 0) { options = platform_1.PLATFORM.emptyObject; }
+            if (dom_1.DOM.isUsingSlotEmulation(host)) {
+                return new ContentView(options.contentOverride || host);
             }
             else {
                 return null;

@@ -59,7 +59,7 @@ export class Renderer implements IRenderer {
   hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: IElementComponent) {
     let childInstructions = instruction.instructions;
   
-    component.$hydrate(this.renderingEngine, target, instruction.parts, instruction.contentElement);
+    component.$hydrate(this.renderingEngine, target, instruction);
     
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];

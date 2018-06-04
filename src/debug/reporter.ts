@@ -125,5 +125,9 @@ const codeLookup: Record<string, IMessageInfo> = {
   18: {
     type: MessageType.error,
     message: 'You cannot observe a setter only property.'
+  },
+  19: {
+    type: MessageType.error,
+    message: 'Value for expression is non-repeatable.'
   }
 };

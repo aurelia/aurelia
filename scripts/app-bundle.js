@@ -542,6 +542,10 @@ define('debug/reporter',["require", "exports", "../runtime/reporter"], function 
         18: {
             type: MessageType.error,
             message: 'You cannot observe a setter only property.'
+        },
+        19: {
+            type: MessageType.error,
+            message: 'Value for expression is non-repeatable.'
         }
     };
 });
@@ -9603,7 +9607,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/repeat/repeat',["require", "exports", "../../decorators", "../../templating/visual", "../../templating/render-slot", "../../di", "./repeat-strategy-registry", "../../binding/ast", "../../binding/binding-context", "../../binding/binding-mode", "../../templating/view", "../../task-queue", "../../binding/binding-flags"], function (require, exports, decorators_1, visual_1, render_slot_1, di_1, repeat_strategy_registry_1, ast_1, binding_context_1, binding_mode_1, view_1, task_queue_1, binding_flags_1) {
+define('runtime/resources/repeat/repeat',["require", "exports", "../../decorators", "../../templating/visual", "../../templating/render-slot", "../../di", "./repeat-strategy-registry", "../../binding/ast", "../../binding/binding-context", "../../binding/binding-mode", "../../templating/view", "../../task-queue", "../../binding/binding-flags", "../../reporter"], function (require, exports, decorators_1, visual_1, render_slot_1, di_1, repeat_strategy_registry_1, ast_1, binding_context_1, binding_mode_1, view_1, task_queue_1, binding_flags_1, reporter_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var oneTime = binding_mode_1.BindingMode.oneTime;
@@ -9687,7 +9691,7 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
             var items = this.items;
             this.strategy = this.strategyRegistry.getStrategyForItems(items);
             if (!this.strategy) {
-                throw new Error("Value for '" + this.sourceExpression + "' is non-repeatable");
+                throw reporter_1.Reporter.error(19, this.sourceExpression);
             }
             if (!this.isOneTime && !this.observeInnerCollection()) {
                 this.observeCollection();

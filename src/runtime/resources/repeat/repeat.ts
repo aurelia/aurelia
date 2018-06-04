@@ -14,6 +14,7 @@ import { BindingMode } from '../../binding/binding-mode';
 import { IViewOwner } from '../../templating/view';
 import { ITaskQueue } from '../../task-queue';
 import { BindingFlags } from '../../binding/binding-flags';
+import { Reporter } from '../../reporter';
 
 const oneTime = BindingMode.oneTime;
 
@@ -158,7 +159,7 @@ export class Repeat implements IRepeater {
     this.strategy = this.strategyRegistry.getStrategyForItems(items);
 
     if (!this.strategy) {
-      throw new Error(`Value for '${this.sourceExpression}' is non-repeatable`);
+      throw Reporter.error(19, this.sourceExpression);
     }
 
     if (!this.isOneTime && !this.observeInnerCollection()) {

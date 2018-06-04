@@ -356,16 +356,12 @@ export const Component = {
   }
 };
 
-function createDefinition<T>(nameOrSource: any): Immutable<T> {
-  let source: any;
-    
+function createDefinition<T>(nameOrSource: string | T): Immutable<T> {
   if (typeof nameOrSource === 'string') {
-    source = { name: source };
+    return { name: nameOrSource } as any;
   } else {
-    source = nameOrSource;
+    return nameOrSource as any;
   }
-
-  return source;
 }
 
 function createAttributeDefinition(nameOrSource: string | IAttributeSource): Immutable<Required<IAttributeSource>> {

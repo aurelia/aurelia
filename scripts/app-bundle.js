@@ -7385,14 +7385,12 @@ define('runtime/templating/component',["require", "exports", "./view", "./shadow
         }
     };
     function createDefinition(nameOrSource) {
-        var source;
         if (typeof nameOrSource === 'string') {
-            source = { name: source };
+            return { name: nameOrSource };
         }
         else {
-            source = nameOrSource;
+            return nameOrSource;
         }
-        return source;
     }
     function createAttributeDefinition(nameOrSource) {
         if (typeof nameOrSource === 'string') {

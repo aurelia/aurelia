@@ -1,7 +1,7 @@
 import { View, IViewOwner, IContentView } from './view';
 import { ITaskQueue } from '../task-queue';
 import { Observer } from '../binding/property-observation';
-import { IEmulatedShadowSlot, ShadowDOMEmulation } from './shadow-dom';
+import { ShadowDOMEmulation } from './shadow-dom';
 import { PLATFORM } from '../platform';
 import { IContainer, Registration, DI } from '../di';
 import { BindingMode } from '../binding/binding-mode';
@@ -30,7 +30,7 @@ export interface IElementComponent extends IBindSelf, IAttach, IViewOwner {
 interface IElementComponentImplementation extends IElementComponent {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
-  $slot: IEmulatedShadowSlot;
+  $slot: IRenderSlot;
   $shadowRoot: INode;
 }
 
@@ -44,7 +44,7 @@ export interface IAttributeComponent extends IBindScope, IAttach {
 interface IAttributeComponentImplementation extends IAttributeComponent {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
-  $slot: IEmulatedShadowSlot;
+  $slot: IRenderSlot;
 }
 
 export interface IAttributeSource {

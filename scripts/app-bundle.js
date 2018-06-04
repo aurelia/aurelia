@@ -220,15 +220,15 @@ define('generated-configuration',["require", "exports", "./runtime/binding/ast",
         value: new ast_1.AccessScope('value'),
         nameTagBorderWidth: new ast_1.AccessScope('borderWidth'),
         nameTagBorderColor: new ast_1.AccessScope('borderColor'),
-        nameTagBorder: new ast_1.TemplateLiteral([
+        nameTagBorder: new ast_1.HtmlLiteral([
             new ast_1.AccessScope('borderWidth'),
-            new ast_1.LiteralString('px solid '),
+            new ast_1.PrimitiveLiteral('px solid '),
             new ast_1.AccessScope('borderColor')
         ]),
         nameTagHeaderVisible: new ast_1.AccessScope('showHeader'),
-        nameTagClasses: new ast_1.TemplateLiteral([
-            new ast_1.LiteralString('au name-tag '),
-            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.LiteralString('header-visible'), new ast_1.LiteralString(''))
+        nameTagClasses: new ast_1.HtmlLiteral([
+            new ast_1.PrimitiveLiteral('au name-tag '),
+            new ast_1.Conditional(new ast_1.AccessScope('showHeader'), new ast_1.PrimitiveLiteral('header-visible'), new ast_1.PrimitiveLiteral(''))
         ]),
         name: new ast_1.AccessScope('name'),
         submit: new ast_1.CallScope('submit', emptyArray, 0),
@@ -1606,12 +1606,12 @@ define('debug/binding/unparser',["require", "exports", "../../runtime/binding/as
             { type: AST.CallMember, name: 'CallMember' },
             { type: AST.CallScope, name: 'CallScope' },
             { type: AST.Conditional, name: 'Conditional' },
-            { type: AST.LiteralArray, name: 'LiteralArray' },
-            { type: AST.LiteralObject, name: 'LiteralObject' },
-            { type: AST.LiteralPrimitive, name: 'LiteralPrimitive' },
-            { type: AST.LiteralString, name: 'LiteralString' },
-            { type: AST.PrefixNot, name: 'Prefix' },
-            { type: AST.TemplateLiteral, name: 'TemplateLiteral' },
+            { type: AST.ArrayLiteral, name: 'LiteralArray' },
+            { type: AST.ObjectLiteral, name: 'LiteralObject' },
+            { type: AST.PrimitiveLiteral, name: 'LiteralPrimitive' },
+            { type: AST.PrimitiveLiteral, name: 'LiteralString' },
+            { type: AST.Unary, name: 'Prefix' },
+            { type: AST.HtmlLiteral, name: 'TemplateLiteral' },
             { type: AST.ValueConverter, name: 'ValueConverter' }
         ].forEach(function (x) { return adoptDebugMethods(x.type, x.name); });
     }
@@ -1772,19 +1772,601 @@ define('debug/binding/unparser',["require", "exports", "../../runtime/binding/as
 
 
 
-define('jit/binding/expression-parser',["require", "exports", "../../runtime/binding/expression-parser"], function (require, exports, expression_parser_1) {
+define('jit/binding/expression-parser',["require", "exports", "../../runtime/binding/ast", "../../runtime/binding/expression-parser"], function (require, exports, ast_1, expression_parser_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function register(container) {
         container.registerTransformer(expression_parser_1.IExpressionParser, function (parser) {
             return Object.assign(parser, {
                 parseCore: function (expression) {
-                    throw Error('Full expression parser not yet implemented.');
+                    return parse(new ParserState(expression), 0, 61);
                 }
             });
         });
     }
     exports.register = register;
+    var ParserState = (function () {
+        function ParserState(input) {
+            this.index = 0;
+            this.startIndex = 0;
+            this.lastIndex = 0;
+            this.input = input;
+            this.length = input.length;
+            this.currentToken = 786432;
+            this.tokenValue = '';
+            this.currentChar = input.charCodeAt(0);
+            this.assignable = true;
+            nextToken(this);
+            if (this.currentToken & 524288) {
+                error(this, 'Invalid start of expression');
+            }
+        }
+        Object.defineProperty(ParserState.prototype, "tokenRaw", {
+            get: function () {
+                return this.input.slice(this.startIndex, this.index);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return ParserState;
+    }());
+    function parse(state, access, minPrecedence) {
+        var exprStart = state.index;
+        state.assignable = 448 > minPrecedence;
+        var result = undefined;
+        if (state.currentToken & 16384) {
+            var op = TokenValues[state.currentToken & 63];
+            nextToken(state);
+            result = new ast_1.Unary(op, parse(state, access, 449));
+        }
+        else {
+            primary: switch (state.currentToken) {
+                case 1541:
+                    state.assignable = false;
+                    do {
+                        nextToken(state);
+                        access++;
+                        if (optional(state, 8200)) {
+                            if (state.currentToken === 8200) {
+                                error(state);
+                            }
+                            continue;
+                        }
+                        else if (state.currentToken & 262144) {
+                            result = new ast_1.AccessThis(access & 511);
+                            access = 512;
+                            break primary;
+                        }
+                        else {
+                            error(state);
+                        }
+                    } while (state.currentToken === 1541);
+                case 512:
+                    result = new ast_1.AccessScope(state.tokenValue, access & 511);
+                    nextToken(state);
+                    access = 1024;
+                    break;
+                case 1540:
+                    state.assignable = false;
+                    nextToken(state);
+                    result = new ast_1.AccessThis(0);
+                    access = 512;
+                    break;
+                case 335878:
+                    nextToken(state);
+                    result = parse(state, 0, 63);
+                    expect(state, 917514);
+                    break;
+                case 335884:
+                    nextToken(state);
+                    var elements = new Array();
+                    while (state.currentToken !== 655373) {
+                        if (optional(state, 262155)) {
+                            elements.push($undefined);
+                            if (state.currentToken === 655373) {
+                                elements.push($undefined);
+                                break;
+                            }
+                        }
+                        else {
+                            elements.push(parse(state, access, 62));
+                            if (!optional(state, 262155)) {
+                                break;
+                            }
+                        }
+                    }
+                    expect(state, 655373);
+                    result = new ast_1.ArrayLiteral(elements);
+                    state.assignable = false;
+                    break;
+                case 65543:
+                    var keys = new Array();
+                    var values = new Array();
+                    nextToken(state);
+                    while (state.currentToken !== 917513) {
+                        keys.push(state.tokenValue);
+                        if (state.currentToken & 6144) {
+                            nextToken(state);
+                            expect(state, 262158);
+                            values.push(parse(state, 0, 62));
+                        }
+                        else if (state.currentToken & 1536) {
+                            var _a = state, currentChar = _a.currentChar, currentToken = _a.currentToken, index = _a.index;
+                            nextToken(state);
+                            if (optional(state, 262158)) {
+                                values.push(parse(state, 0, 62));
+                            }
+                            else {
+                                state.currentChar = currentChar;
+                                state.currentToken = currentToken;
+                                state.index = index;
+                                values.push(parse(state, 0, 449));
+                            }
+                        }
+                        else {
+                            error(state);
+                        }
+                        if (state.currentToken !== 917513) {
+                            expect(state, 262155);
+                        }
+                    }
+                    expect(state, 917513);
+                    result = new ast_1.ObjectLiteral(keys, values);
+                    state.assignable = false;
+                    break;
+                case 8233:
+                    result = new ast_1.Template([state.tokenValue]);
+                    state.assignable = false;
+                    nextToken(state);
+                    break;
+                case 8234:
+                    var cooked = [state.tokenValue];
+                    expect(state, 8234);
+                    var expressions = [parse(state, access, 62)];
+                    while ((state.currentToken = scanTemplateTail(state)) !== 8233) {
+                        cooked.push(state.tokenValue);
+                        expect(state, 8234);
+                        expressions.push(parse(state, access, 62));
+                    }
+                    cooked.push(state.tokenValue);
+                    nextToken(state);
+                    result = new ast_1.Template(cooked, expressions);
+                    state.assignable = false;
+                    break;
+                case 2048:
+                case 4096:
+                    result = new ast_1.PrimitiveLiteral(state.tokenValue);
+                    state.assignable = false;
+                    nextToken(state);
+                    break;
+                case 1026:
+                case 1027:
+                case 1025:
+                case 1024:
+                    result = TokenValues[state.currentToken & 63];
+                    state.assignable = false;
+                    nextToken(state);
+                    break;
+                default:
+                    if (state.index >= state.length) {
+                        error(state, 'Unexpected end of expression');
+                    }
+                    else {
+                        error(state);
+                    }
+            }
+            if (448 < minPrecedence)
+                return result;
+            var name_1 = state.tokenValue;
+            while (state.currentToken & 8192) {
+                switch (state.currentToken) {
+                    case 8200:
+                        state.assignable = true;
+                        nextToken(state);
+                        if (!(state.currentToken & 1536)) {
+                            error(state);
+                        }
+                        name_1 = state.tokenValue;
+                        nextToken(state);
+                        access = ((access & (512 | 1024)) << 1) | (access & 2048) | ((access & 4096) >> 1);
+                        if (state.currentToken === 335878) {
+                            continue;
+                        }
+                        if (access & 1024) {
+                            result = new ast_1.AccessScope(name_1, result.ancestor);
+                        }
+                        else {
+                            result = new ast_1.AccessMember(result, name_1);
+                        }
+                        continue;
+                    case 335884:
+                        state.assignable = true;
+                        nextToken(state);
+                        access = 4096;
+                        result = new ast_1.AccessKeyed(result, parse(state, 0, 63));
+                        expect(state, 655373);
+                        break;
+                    case 335878:
+                        state.assignable = false;
+                        nextToken(state);
+                        var args = new Array();
+                        while (state.currentToken !== 917514) {
+                            args.push(parse(state, 0, 63));
+                            if (!optional(state, 262155)) {
+                                break;
+                            }
+                        }
+                        expect(state, 917514);
+                        if (access & 1024) {
+                            result = new ast_1.CallScope(name_1, args, result.ancestor);
+                        }
+                        else if (access & 2048) {
+                            result = new ast_1.CallMember(result, name_1, args);
+                        }
+                        else {
+                            result = new ast_1.CallFunction(result, args);
+                        }
+                        access = 0;
+                        break;
+                    case 8233:
+                        state.assignable = false;
+                        result = new ast_1.TaggedTemplate([state.tokenValue], [state.tokenRaw], result);
+                        nextToken(state);
+                        break;
+                    case 8234:
+                        state.assignable = false;
+                        var cooked = [state.tokenValue];
+                        var raw = [state.tokenRaw];
+                        expect(state, 8234);
+                        var expressions = [parse(state, access, 62)];
+                        while ((state.currentToken = scanTemplateTail(state)) !== 8233) {
+                            cooked.push(state.tokenValue);
+                            raw.push(state.tokenRaw);
+                            expect(state, 8234);
+                            expressions.push(parse(state, access, 62));
+                        }
+                        cooked.push(state.tokenValue);
+                        raw.push(state.tokenRaw);
+                        nextToken(state);
+                        result = new ast_1.TaggedTemplate(cooked, raw, result, expressions);
+                    default:
+                }
+            }
+        }
+        if (448 < minPrecedence)
+            return result;
+        while (state.currentToken & 32768) {
+            var opToken = state.currentToken;
+            if ((opToken & 448) < minPrecedence) {
+                break;
+            }
+            nextToken(state);
+            result = new ast_1.Binary(TokenValues[opToken & 63], result, parse(state, access, opToken & 448));
+            state.assignable = false;
+        }
+        if (63 < minPrecedence)
+            return result;
+        if (optional(state, 15)) {
+            var yes = parse(state, access, 62);
+            expect(state, 262158);
+            result = new ast_1.Conditional(result, yes, parse(state, access, 62));
+            state.assignable = false;
+        }
+        if (optional(state, 39)) {
+            if (!state.assignable) {
+                error(state, "Expression " + state.input.slice(exprStart, state.startIndex) + " is not assignable");
+            }
+            exprStart = state.index;
+            result = new ast_1.Assign(result, parse(state, access, 62));
+        }
+        if (61 < minPrecedence)
+            return result;
+        while (optional(state, 262163)) {
+            var name_2 = state.tokenValue;
+            nextToken(state);
+            var args = new Array();
+            while (optional(state, 262158)) {
+                args.push(parse(state, access, 62));
+            }
+            result = new ast_1.ValueConverter(result, name_2, args);
+        }
+        while (optional(state, 262160)) {
+            var name_3 = state.tokenValue;
+            nextToken(state);
+            var args = new Array();
+            while (optional(state, 262158)) {
+                args.push(parse(state, access, 62));
+            }
+            result = new ast_1.BindingBehavior(result, name_3, args);
+        }
+        if (state.currentToken !== 786432) {
+            error(state, "Unconsumed token " + state.tokenRaw);
+        }
+        return result;
+    }
+    function nextToken(state) {
+        while (state.index < state.length) {
+            state.startIndex = state.index;
+            if ((state.currentToken = CharScanners[state.currentChar](state)) !== null) {
+                return;
+            }
+        }
+        state.currentToken = 786432;
+    }
+    function nextChar(state) {
+        return state.currentChar = state.input.charCodeAt(++state.index);
+    }
+    function scanIdentifier(state) {
+        while (IdParts[nextChar(state)]) { }
+        return KeywordLookup[state.tokenValue = state.tokenRaw] || 512;
+    }
+    function scanNumber(state, isFloat) {
+        if (isFloat) {
+            state.tokenValue = 0;
+        }
+        else {
+            state.tokenValue = state.currentChar - 48;
+            while (nextChar(state) <= 57 && state.currentChar >= 48) {
+                state.tokenValue = state.tokenValue * 10 + state.currentChar - 48;
+            }
+        }
+        if (isFloat || state.currentChar === 46) {
+            if (!isFloat) {
+                nextChar(state);
+            }
+            var start = state.index;
+            var value = state.currentChar - 48;
+            while (nextChar(state) <= 57 && state.currentChar >= 48) {
+                value = value * 10 + state.currentChar - 48;
+            }
+            state.tokenValue = state.tokenValue + value / Math.pow(10, (state.index - start));
+        }
+        return 4096;
+    }
+    function scanString(state) {
+        var quote = state.currentChar;
+        nextChar(state);
+        var unescaped = 0;
+        var buffer = new Array();
+        var marker = state.index;
+        while (state.currentChar !== quote) {
+            if (state.currentChar === 92) {
+                buffer.push(state.input.slice(marker, state.index));
+                nextChar(state);
+                unescaped = unescape(state.currentChar);
+                nextChar(state);
+                buffer.push(String.fromCharCode(unescaped));
+                marker = state.index;
+            }
+            else if (state.currentChar === 0) {
+                error(state, 'Unterminated quote');
+            }
+            else {
+                nextChar(state);
+            }
+        }
+        var last = state.input.slice(marker, state.index);
+        nextChar(state);
+        var unescapedStr = last;
+        if (buffer !== null && buffer !== undefined) {
+            buffer.push(last);
+            unescapedStr = buffer.join('');
+        }
+        state.tokenValue = unescapedStr;
+        return 2048;
+    }
+    function scanTemplate(state) {
+        var tail = true;
+        var result = '';
+        while (nextChar(state) !== 96) {
+            if (state.currentChar === 36) {
+                if ((state.index + 1) < state.length && state.input.charCodeAt(state.index + 1) === 123) {
+                    state.index++;
+                    tail = false;
+                    break;
+                }
+                else {
+                    result += '$';
+                }
+            }
+            else if (state.currentChar === 92) {
+                result += String.fromCharCode(unescape(nextChar(state)));
+            }
+            else {
+                result += String.fromCharCode(state.currentChar);
+            }
+        }
+        nextChar(state);
+        state.tokenValue = result;
+        if (tail) {
+            return 8233;
+        }
+        return 8234;
+    }
+    function scanTemplateTail(state) {
+        if (state.index >= state.length) {
+            error(state, 'Unterminated template');
+        }
+        state.index--;
+        return scanTemplate(state);
+    }
+    function error(state, message, column) {
+        if (message === void 0) { message = "Unexpected token " + state.tokenRaw; }
+        if (column === void 0) { column = state.startIndex; }
+        throw new Error("Parser Error: " + message + " at column " + column + " in expression [" + state.input + "]");
+    }
+    function optional(state, token) {
+        if (state.currentToken === token) {
+            nextToken(state);
+            return true;
+        }
+        return false;
+    }
+    function expect(state, token) {
+        if (state.currentToken === token) {
+            nextToken(state);
+        }
+        else {
+            error(state, "Missing expected token " + TokenValues[token & 63], state.index);
+        }
+    }
+    function unescape(code) {
+        switch (code) {
+            case 98: return 8;
+            case 116: return 9;
+            case 110: return 10;
+            case 118: return 11;
+            case 102: return 12;
+            case 114: return 13;
+            case 34: return 34;
+            case 39: return 39;
+            case 92: return 92;
+            default: return code;
+        }
+    }
+    var $false = new ast_1.PrimitiveLiteral(false);
+    var $true = new ast_1.PrimitiveLiteral(true);
+    var $null = new ast_1.PrimitiveLiteral(null);
+    var $undefined = new ast_1.PrimitiveLiteral(undefined);
+    var TokenValues = [
+        $false, $true, $null, $undefined, '$this', '$parent',
+        '(', '{', '.', '}', ')', ',', '[', ']', ':', '?', '\'', '"',
+        '&', '|', '||', '&&', '==', '!=', '===', '!==', '<', '>',
+        '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
+        8233, 8234
+    ];
+    var KeywordLookup = Object.create(null);
+    KeywordLookup.true = 1025;
+    KeywordLookup.null = 1026;
+    KeywordLookup.false = 1024;
+    KeywordLookup.undefined = 1027;
+    KeywordLookup.$this = 1540;
+    KeywordLookup.$parent = 1541;
+    KeywordLookup.in = 34142;
+    KeywordLookup.instanceof = 34143;
+    KeywordLookup.typeof = 17442;
+    KeywordLookup.void = 17443;
+    var codes = {
+        AsciiIdPart: [0x24, 0, 0x30, 0x3A, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B],
+        IdStart: [0x24, 0, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B, 0xAA, 0, 0xBA, 0, 0xC0, 0xD7, 0xD8, 0xF7, 0xF8, 0x2B9, 0x2E0, 0x2E5, 0x1D00, 0x1D26, 0x1D2C, 0x1D5D, 0x1D62, 0x1D66, 0x1D6B, 0x1D78, 0x1D79, 0x1DBF, 0x1E00, 0x1F00, 0x2071, 0, 0x207F, 0, 0x2090, 0x209D, 0x212A, 0x212C, 0x2132, 0, 0x214E, 0, 0x2160, 0x2189, 0x2C60, 0x2C80, 0xA722, 0xA788, 0xA78B, 0xA7AF, 0xA7B0, 0xA7B8, 0xA7F7, 0xA800, 0xAB30, 0xAB5B, 0xAB5C, 0xAB65, 0xFB00, 0xFB07, 0xFF21, 0xFF3B, 0xFF41, 0xFF5B],
+        Digit: [0x30, 0x3A],
+        Skip: [0, 0x21, 0x7F, 0xA1]
+    };
+    function decompress(lookup, set, compressed, value) {
+        var rangeCount = compressed.length;
+        for (var i = 0; i < rangeCount; i += 2) {
+            var start = compressed[i];
+            var end = compressed[i + 1];
+            end = end > 0 ? end : start + 1;
+            if (lookup) {
+                lookup.fill(value, start, end);
+            }
+            if (set) {
+                for (var ch = start; ch < end; ch++) {
+                    set.add(ch);
+                }
+            }
+        }
+    }
+    function returnToken(token) {
+        return function (s) {
+            nextChar(s);
+            return token;
+        };
+    }
+    var unexpectedCharacter = function (s) {
+        error(s, "Unexpected character [" + String.fromCharCode(s.currentChar) + "]");
+        return null;
+    };
+    unexpectedCharacter.notMapped = true;
+    var AsciiIdParts = new Set();
+    decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
+    var IdParts = new Uint8Array(0xFFFF);
+    decompress(IdParts, null, codes.IdStart, 1);
+    decompress(IdParts, null, codes.Digit, 1);
+    var CharScanners = new Array(0xFFFF);
+    CharScanners.fill(unexpectedCharacter, 0, 0xFFFF);
+    decompress(CharScanners, null, codes.Skip, function (s) {
+        nextChar(s);
+        return null;
+    });
+    decompress(CharScanners, null, codes.IdStart, scanIdentifier);
+    decompress(CharScanners, null, codes.Digit, function (s) { return scanNumber(s, false); });
+    CharScanners[34] =
+        CharScanners[39] = function (s) {
+            return scanString(s);
+        };
+    CharScanners[96] = function (s) {
+        return scanTemplate(s);
+    };
+    CharScanners[33] = function (s) {
+        if (nextChar(s) !== 61) {
+            return 16424;
+        }
+        if (nextChar(s) !== 61) {
+            return 33047;
+        }
+        nextChar(s);
+        return 33049;
+    };
+    CharScanners[61] = function (s) {
+        if (nextChar(s) !== 61) {
+            return 39;
+        }
+        if (nextChar(s) !== 61) {
+            return 33046;
+        }
+        nextChar(s);
+        return 33048;
+    };
+    CharScanners[38] = function (s) {
+        if (nextChar(s) !== 38) {
+            return 262160;
+        }
+        nextChar(s);
+        return 32981;
+    };
+    CharScanners[124] = function (s) {
+        if (nextChar(s) !== 124) {
+            return 262163;
+        }
+        nextChar(s);
+        return 32916;
+    };
+    CharScanners[46] = function (s) {
+        if (nextChar(s) <= 57 && s.currentChar >= 48) {
+            return scanNumber(s, true);
+        }
+        return 8200;
+    };
+    CharScanners[60] = function (s) {
+        if (nextChar(s) !== 61) {
+            return 33114;
+        }
+        nextChar(s);
+        return 33116;
+    };
+    CharScanners[62] = function (s) {
+        if (nextChar(s) !== 61) {
+            return 33115;
+        }
+        nextChar(s);
+        return 33117;
+    };
+    CharScanners[37] = returnToken(33253);
+    CharScanners[40] = returnToken(335878);
+    CharScanners[41] = returnToken(917514);
+    CharScanners[42] = returnToken(33252);
+    CharScanners[43] = returnToken(49568);
+    CharScanners[44] = returnToken(262155);
+    CharScanners[45] = returnToken(49569);
+    CharScanners[47] = returnToken(33254);
+    CharScanners[58] = returnToken(262158);
+    CharScanners[63] = returnToken(15);
+    CharScanners[91] = returnToken(335884);
+    CharScanners[93] = returnToken(655373);
+    CharScanners[123] = returnToken(65543);
+    CharScanners[125] = returnToken(917513);
 });
 
 
@@ -2236,7 +2818,7 @@ define('runtime/binding/array-observation',["require", "exports", "./collection-
 
 
 
-define('runtime/binding/ast',["require", "exports", "./binding-context", "./signaler"], function (require, exports, binding_context_1, signaler_1) {
+define('runtime/binding/ast',["require", "exports", "./binding-context", "./signaler", "./binding-flags"], function (require, exports, binding_context_1, signaler_1, binding_flags_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var BindingBehavior = (function () {
@@ -2245,18 +2827,18 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.name = name;
             this.args = args;
         }
-        BindingBehavior.prototype.evaluate = function (scope, locator) {
-            return this.expression.evaluate(scope, locator);
+        BindingBehavior.prototype.evaluate = function (scope, locator, flags) {
+            return this.expression.evaluate(scope, locator, flags);
         };
-        BindingBehavior.prototype.assign = function (scope, value, locator) {
-            return this.expression.assign(scope, value, locator);
+        BindingBehavior.prototype.assign = function (scope, value, locator, flags) {
+            return this.expression.assign(scope, value, locator, flags);
         };
-        BindingBehavior.prototype.connect = function (binding, scope) {
-            this.expression.connect(binding, scope);
+        BindingBehavior.prototype.connect = function (binding, scope, flags) {
+            this.expression.connect(binding, scope, flags);
         };
-        BindingBehavior.prototype.bind = function (binding, scope) {
+        BindingBehavior.prototype.bind = function (binding, scope, flags) {
             if (this.expression.expression && this.expression.bind) {
-                this.expression.bind(binding, scope);
+                this.expression.bind(binding, scope, flags);
             }
             var behavior = binding.locator.get(this.name);
             if (!behavior) {
@@ -2267,51 +2849,51 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
                 throw new Error("A binding behavior named \"" + this.name + "\" has already been applied to \"" + this.expression + "\"");
             }
             binding[behaviorKey] = behavior;
-            behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.locator)));
+            behavior.bind.apply(behavior, [binding, scope].concat(evalList(scope, this.args, binding.locator, flags)));
         };
-        BindingBehavior.prototype.unbind = function (binding, scope) {
+        BindingBehavior.prototype.unbind = function (binding, scope, flags) {
             var behaviorKey = "behavior-" + this.name;
-            binding[behaviorKey].unbind(binding, scope);
+            binding[behaviorKey].unbind(binding, scope, flags);
             binding[behaviorKey] = null;
-            if (this.expression['expression'] && this.expression.unbind) {
-                this.expression.unbind(binding, scope);
+            if (this.expression.expression && this.expression.unbind) {
+                this.expression.unbind(binding, scope, flags);
             }
         };
         return BindingBehavior;
     }());
     exports.BindingBehavior = BindingBehavior;
     var ValueConverter = (function () {
-        function ValueConverter(expression, name, args, allArgs) {
+        function ValueConverter(expression, name, args) {
             this.expression = expression;
             this.name = name;
             this.args = args;
-            this.allArgs = allArgs;
+            this.allArgs = [expression].concat(args);
         }
-        ValueConverter.prototype.evaluate = function (scope, locator) {
+        ValueConverter.prototype.evaluate = function (scope, locator, flags) {
             var converter = locator.get(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
             if ('toView' in converter) {
-                return converter.toView.apply(converter, evalList(scope, this.allArgs, locator));
+                return converter.toView.apply(converter, evalList(scope, this.allArgs, locator, flags));
             }
-            return this.allArgs[0].evaluate(scope, locator);
+            return this.allArgs[0].evaluate(scope, locator, flags);
         };
-        ValueConverter.prototype.assign = function (scope, value, locator) {
+        ValueConverter.prototype.assign = function (scope, value, locator, flags) {
             var converter = locator.get(this.name);
             if (!converter) {
                 throw new Error("No ValueConverter named \"" + this.name + "\" was found!");
             }
             if ('fromView' in converter) {
-                value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, locator)));
+                value = converter.fromView.apply(converter, [value].concat(evalList(scope, this.args, locator, flags)));
             }
-            return this.allArgs[0].assign(scope, value, locator);
+            return this.allArgs[0].assign(scope, value, locator, flags);
         };
-        ValueConverter.prototype.connect = function (binding, scope) {
+        ValueConverter.prototype.connect = function (binding, scope, flags) {
             var expressions = this.allArgs;
             var i = expressions.length;
             while (i--) {
-                expressions[i].connect(binding, scope);
+                expressions[i].connect(binding, scope, flags);
             }
             var converter = binding.locator.get(this.name);
             if (!converter) {
@@ -2327,7 +2909,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
                 signaler.addSignalListener(signals[i], binding);
             }
         };
-        ValueConverter.prototype.unbind = function (binding, scope) {
+        ValueConverter.prototype.unbind = function (binding, scope, flags) {
             var converter = binding.locator.get(this.name);
             var signals = converter.signals;
             if (signals === undefined) {
@@ -2347,13 +2929,13 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.target = target;
             this.value = value;
         }
-        Assign.prototype.evaluate = function (scope, locator) {
-            return this.target.assign(scope, this.value.evaluate(scope, locator), locator);
+        Assign.prototype.evaluate = function (scope, locator, flags) {
+            return this.target.assign(scope, this.value.evaluate(scope, locator, flags), locator, flags);
         };
-        Assign.prototype.connect = function () { };
-        Assign.prototype.assign = function (scope, value, locator) {
-            this.value.assign(scope, value, locator);
-            this.target.assign(scope, value, locator);
+        Assign.prototype.connect = function (binding, scope, flags) { };
+        Assign.prototype.assign = function (scope, value, locator, flags) {
+            this.value.assign(scope, value, locator, flags);
+            this.target.assign(scope, value, locator, flags);
         };
         return Assign;
     }());
@@ -2364,18 +2946,18 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.yes = yes;
             this.no = no;
         }
-        Conditional.prototype.evaluate = function (scope, locator) {
-            return (!!this.condition.evaluate(scope, locator))
-                ? this.yes.evaluate(scope, locator)
-                : this.no.evaluate(scope, locator);
+        Conditional.prototype.evaluate = function (scope, locator, flags) {
+            return (!!this.condition.evaluate(scope, locator, flags))
+                ? this.yes.evaluate(scope, locator, flags)
+                : this.no.evaluate(scope, locator, flags);
         };
-        Conditional.prototype.connect = function (binding, scope) {
-            this.condition.connect(binding, scope);
-            if (this.condition.evaluate(scope, null)) {
-                this.yes.connect(binding, scope);
+        Conditional.prototype.connect = function (binding, scope, flags) {
+            this.condition.connect(binding, scope, flags);
+            if (this.condition.evaluate(scope, null, flags)) {
+                this.yes.connect(binding, scope, flags);
             }
             else {
-                this.no.connect(binding, scope);
+                this.no.connect(binding, scope, flags);
             }
         };
         return Conditional;
@@ -2386,7 +2968,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             if (ancestor === void 0) { ancestor = 0; }
             this.ancestor = ancestor;
         }
-        AccessThis.prototype.evaluate = function (scope, locator) {
+        AccessThis.prototype.evaluate = function (scope, locator, flags) {
             var oc = scope.overrideContext;
             var i = this.ancestor;
             while (i-- && oc) {
@@ -2394,7 +2976,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             }
             return i < 1 && oc ? oc.bindingContext : undefined;
         };
-        AccessThis.prototype.connect = function () { };
+        AccessThis.prototype.connect = function (binding, scope, flags) { };
         return AccessThis;
     }());
     exports.AccessThis = AccessThis;
@@ -2404,7 +2986,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.name = name;
             this.ancestor = ancestor;
         }
-        AccessScope.prototype.evaluate = function (scope, locator) {
+        AccessScope.prototype.evaluate = function (scope, locator, flags) {
             var context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor);
             return context[this.name];
         };
@@ -2412,7 +2994,7 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             var context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor);
             return context ? (context[this.name] = value) : undefined;
         };
-        AccessScope.prototype.connect = function (binding, scope) {
+        AccessScope.prototype.connect = function (binding, scope, flags) {
             var context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor);
             binding.observeProperty(context, this.name);
         };
@@ -2424,22 +3006,22 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.object = object;
             this.name = name;
         }
-        AccessMember.prototype.evaluate = function (scope, locator) {
-            var instance = this.object.evaluate(scope, locator);
+        AccessMember.prototype.evaluate = function (scope, locator, flags) {
+            var instance = this.object.evaluate(scope, locator, flags);
             return instance === null || instance === undefined ? instance : instance[this.name];
         };
-        AccessMember.prototype.assign = function (scope, value, locator) {
-            var instance = this.object.evaluate(scope, locator);
+        AccessMember.prototype.assign = function (scope, value, locator, flags) {
+            var instance = this.object.evaluate(scope, locator, flags);
             if (instance === null || instance === undefined) {
                 instance = {};
-                this.object.assign(scope, instance, locator);
+                this.object.assign(scope, instance, locator, flags);
             }
             instance[this.name] = value;
             return value;
         };
-        AccessMember.prototype.connect = function (binding, scope) {
-            this.object.connect(binding, scope);
-            var obj = this.object.evaluate(scope, null);
+        AccessMember.prototype.connect = function (binding, scope, flags) {
+            this.object.connect(binding, scope, flags);
+            var obj = this.object.evaluate(scope, null, flags);
             if (obj) {
                 binding.observeProperty(obj, this.name);
             }
@@ -2452,22 +3034,22 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.object = object;
             this.key = key;
         }
-        AccessKeyed.prototype.evaluate = function (scope, locator) {
-            var instance = this.object.evaluate(scope, locator);
-            var lookup = this.key.evaluate(scope, locator);
+        AccessKeyed.prototype.evaluate = function (scope, locator, flags) {
+            var instance = this.object.evaluate(scope, locator, flags);
+            var lookup = this.key.evaluate(scope, locator, flags);
             return getKeyed(instance, lookup);
         };
-        AccessKeyed.prototype.assign = function (scope, value, locator) {
-            var instance = this.object.evaluate(scope, locator);
-            var lookup = this.key.evaluate(scope, locator);
+        AccessKeyed.prototype.assign = function (scope, value, locator, flags) {
+            var instance = this.object.evaluate(scope, locator, flags);
+            var lookup = this.key.evaluate(scope, locator, flags);
             return setKeyed(instance, lookup, value);
         };
-        AccessKeyed.prototype.connect = function (binding, scope) {
-            this.object.connect(binding, scope);
-            var obj = this.object.evaluate(scope, null);
+        AccessKeyed.prototype.connect = function (binding, scope, flags) {
+            this.object.connect(binding, scope, flags);
+            var obj = this.object.evaluate(scope, null, flags);
             if (obj instanceof Object) {
-                this.key.connect(binding, scope);
-                var key = this.key.evaluate(scope, null);
+                this.key.connect(binding, scope, flags);
+                var key = this.key.evaluate(scope, null, flags);
                 if (key !== null && key !== undefined
                     && !(Array.isArray(obj) && typeof (key) === 'number')) {
                     binding.observeProperty(obj, key);
@@ -2484,20 +3066,20 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.args = args;
             this.ancestor = ancestor;
         }
-        CallScope.prototype.evaluate = function (scope, locator, mustEvaluate) {
-            var args = evalList(scope, this.args, locator);
+        CallScope.prototype.evaluate = function (scope, locator, flags) {
+            var args = evalList(scope, this.args, locator, flags);
             var context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor);
-            var func = getFunction(context, this.name, mustEvaluate);
+            var func = getFunction(context, this.name, flags);
             if (func) {
                 return func.apply(context, args);
             }
             return undefined;
         };
-        CallScope.prototype.connect = function (binding, scope) {
+        CallScope.prototype.connect = function (binding, scope, flags) {
             var args = this.args;
             var i = args.length;
             while (i--) {
-                args[i].connect(binding, scope);
+                args[i].connect(binding, scope, flags);
             }
         };
         return CallScope;
@@ -2509,23 +3091,23 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.name = name;
             this.args = args;
         }
-        CallMember.prototype.evaluate = function (scope, locator, mustEvaluate) {
-            var instance = this.object.evaluate(scope, locator);
-            var args = evalList(scope, this.args, locator);
-            var func = getFunction(instance, this.name, mustEvaluate);
+        CallMember.prototype.evaluate = function (scope, locator, flags) {
+            var instance = this.object.evaluate(scope, locator, flags);
+            var args = evalList(scope, this.args, locator, flags);
+            var func = getFunction(instance, this.name, flags);
             if (func) {
                 return func.apply(instance, args);
             }
             return undefined;
         };
-        CallMember.prototype.connect = function (binding, scope) {
-            this.object.connect(binding, scope);
-            var obj = this.object.evaluate(scope, null);
-            if (getFunction(obj, this.name, false)) {
+        CallMember.prototype.connect = function (binding, scope, flags) {
+            this.object.connect(binding, scope, flags);
+            var obj = this.object.evaluate(scope, null, flags);
+            if (getFunction(obj, this.name, flags & ~binding_flags_1.BindingFlags.mustEvaluate)) {
                 var args = this.args;
                 var i = args.length;
                 while (i--) {
-                    args[i].connect(binding, scope);
+                    args[i].connect(binding, scope, flags);
                 }
             }
         };
@@ -2537,24 +3119,24 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.func = func;
             this.args = args;
         }
-        CallFunction.prototype.evaluate = function (scope, locator, mustEvaluate) {
-            var func = this.func.evaluate(scope, locator);
+        CallFunction.prototype.evaluate = function (scope, locator, flags) {
+            var func = this.func.evaluate(scope, locator, flags);
             if (typeof func === 'function') {
-                return func.apply(null, evalList(scope, this.args, locator));
+                return func.apply(null, evalList(scope, this.args, locator, flags));
             }
-            if (!mustEvaluate && (func === null || func === undefined)) {
+            if (!(flags & binding_flags_1.BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
                 return undefined;
             }
             throw new Error(this.func + " is not a function");
         };
-        CallFunction.prototype.connect = function (binding, scope) {
-            this.func.connect(binding, scope);
-            var func = this.func.evaluate(scope, null);
+        CallFunction.prototype.connect = function (binding, scope, flags) {
+            this.func.connect(binding, scope, flags);
+            var func = this.func.evaluate(scope, null, flags);
             if (typeof func === 'function') {
                 var args = this.args;
                 var i = args.length;
                 while (i--) {
-                    args[i].connect(binding, scope);
+                    args[i].connect(binding, scope, flags);
                 }
             }
         };
@@ -2567,18 +3149,20 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             this.left = left;
             this.right = right;
         }
-        Binary.prototype.evaluate = function (scope, locator) {
-            var left = this.left.evaluate(scope, locator);
+        Binary.prototype.evaluate = function (scope, locator, flags) {
+            var left = this.left.evaluate(scope, locator, flags);
             switch (this.operation) {
-                case '&&': return left && this.right.evaluate(scope, locator);
-                case '||': return left || this.right.evaluate(scope, locator);
+                case '&&': return left && this.right.evaluate(scope, locator, flags);
+                case '||': return left || this.right.evaluate(scope, locator, flags);
             }
-            var right = this.right.evaluate(scope, locator);
+            var right = this.right.evaluate(scope, locator, flags);
             switch (this.operation) {
                 case '==': return left == right;
                 case '===': return left === right;
                 case '!=': return left != right;
                 case '!==': return left !== right;
+                case 'instanceof': return typeof right === 'function' && left instanceof right;
+                case 'in': return typeof right === 'object' && right !== null && left in right;
             }
             if (left === null || right === null || left === undefined || right === undefined) {
                 switch (this.operation) {
@@ -2607,67 +3191,71 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
                 case '>': return left > right;
                 case '<=': return left <= right;
                 case '>=': return left >= right;
-                case '^': return left ^ right;
             }
             throw new Error("Internal error [" + this.operation + "] not handled");
         };
-        Binary.prototype.connect = function (binding, scope) {
-            this.left.connect(binding, scope);
-            var left = this.left.evaluate(scope, null);
+        Binary.prototype.connect = function (binding, scope, flags) {
+            this.left.connect(binding, scope, flags);
+            var left = this.left.evaluate(scope, null, flags);
             if (this.operation === '&&' && !left || this.operation === '||' && left) {
                 return;
             }
-            this.right.connect(binding, scope);
+            this.right.connect(binding, scope, flags);
         };
         return Binary;
     }());
     exports.Binary = Binary;
-    var PrefixNot = (function () {
-        function PrefixNot(operation, expression) {
+    var Unary = (function () {
+        function Unary(operation, expression) {
             this.operation = operation;
             this.expression = expression;
         }
-        PrefixNot.prototype.evaluate = function (scope, locator) {
-            return !this.expression.evaluate(scope, locator);
+        Unary.prototype.evaluate = function (scope, locator, flags) {
+            switch (this.operation) {
+                case 'void':
+                    return void this.expression.evaluate(scope, locator, flags);
+                case 'typeof':
+                    return typeof this.expression.evaluate(scope, locator, flags);
+                case '!':
+                    return !this.expression.evaluate(scope, locator, flags);
+                case '-':
+                    return -this.expression.evaluate(scope, locator, flags);
+                case '+':
+                    return +this.expression.evaluate(scope, locator, flags);
+                default:
+            }
+            throw new Error("Internal error [" + this.operation + "] not handled");
         };
-        PrefixNot.prototype.connect = function (binding, scope) {
-            this.expression.connect(binding, scope);
+        Unary.prototype.connect = function (binding, scope, flags) {
+            this.expression.connect(binding, scope, flags);
         };
-        return PrefixNot;
+        Unary.prototype.assign = function (scope, value, locator, flags) {
+            throw new Error("Binding expression \"" + this + "\" cannot be assigned to.");
+        };
+        return Unary;
     }());
-    exports.PrefixNot = PrefixNot;
-    var LiteralPrimitive = (function () {
-        function LiteralPrimitive(value) {
+    exports.Unary = Unary;
+    var PrimitiveLiteral = (function () {
+        function PrimitiveLiteral(value) {
             this.value = value;
         }
-        LiteralPrimitive.prototype.evaluate = function (scope, locator) {
+        PrimitiveLiteral.prototype.evaluate = function (scope, locator, flags) {
             return this.value;
         };
-        LiteralPrimitive.prototype.connect = function (binding, scope) {
+        PrimitiveLiteral.prototype.connect = function (binding, scope, flags) {
         };
-        return LiteralPrimitive;
+        return PrimitiveLiteral;
     }());
-    exports.LiteralPrimitive = LiteralPrimitive;
-    var LiteralString = (function () {
-        function LiteralString(value) {
-            this.value = value;
-        }
-        LiteralString.prototype.evaluate = function (scope, locator) {
-            return this.value;
-        };
-        LiteralString.prototype.connect = function (binding, scope) { };
-        return LiteralString;
-    }());
-    exports.LiteralString = LiteralString;
-    var TemplateLiteral = (function () {
-        function TemplateLiteral(parts) {
+    exports.PrimitiveLiteral = PrimitiveLiteral;
+    var HtmlLiteral = (function () {
+        function HtmlLiteral(parts) {
             this.parts = parts;
         }
-        TemplateLiteral.prototype.evaluate = function (scope, locator) {
+        HtmlLiteral.prototype.evaluate = function (scope, locator, flags) {
             var elements = this.parts;
             var result = '';
             for (var i = 0, length_1 = elements.length; i < length_1; ++i) {
-                var value = elements[i].evaluate(scope, locator);
+                var value = elements[i].evaluate(scope, locator, flags);
                 if (value === undefined || value === null) {
                     continue;
                 }
@@ -2675,64 +3263,119 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
             }
             return result;
         };
-        TemplateLiteral.prototype.connect = function (binding, scope) {
+        HtmlLiteral.prototype.connect = function (binding, scope, flags) {
             var length = this.parts.length;
             for (var i = 0; i < length; i++) {
-                this.parts[i].connect(binding, scope);
+                this.parts[i].connect(binding, scope, flags);
             }
         };
-        return TemplateLiteral;
+        return HtmlLiteral;
     }());
-    exports.TemplateLiteral = TemplateLiteral;
-    var LiteralArray = (function () {
-        function LiteralArray(elements) {
+    exports.HtmlLiteral = HtmlLiteral;
+    var ArrayLiteral = (function () {
+        function ArrayLiteral(elements) {
             this.elements = elements;
         }
-        LiteralArray.prototype.evaluate = function (scope, locator) {
+        ArrayLiteral.prototype.evaluate = function (scope, locator, flags) {
             var elements = this.elements;
             var result = [];
             for (var i = 0, length_2 = elements.length; i < length_2; ++i) {
-                result[i] = elements[i].evaluate(scope, locator);
+                result[i] = elements[i].evaluate(scope, locator, flags);
             }
             return result;
         };
-        LiteralArray.prototype.connect = function (binding, scope) {
+        ArrayLiteral.prototype.connect = function (binding, scope, flags) {
             var length = this.elements.length;
             for (var i = 0; i < length; i++) {
-                this.elements[i].connect(binding, scope);
+                this.elements[i].connect(binding, scope, flags);
             }
         };
-        return LiteralArray;
+        return ArrayLiteral;
     }());
-    exports.LiteralArray = LiteralArray;
-    var LiteralObject = (function () {
-        function LiteralObject(keys, values) {
+    exports.ArrayLiteral = ArrayLiteral;
+    var ObjectLiteral = (function () {
+        function ObjectLiteral(keys, values) {
             this.keys = keys;
             this.values = values;
         }
-        LiteralObject.prototype.evaluate = function (scope, locator) {
+        ObjectLiteral.prototype.evaluate = function (scope, locator, flags) {
             var instance = {};
             var keys = this.keys;
             var values = this.values;
             for (var i = 0, length_3 = keys.length; i < length_3; ++i) {
-                instance[keys[i]] = values[i].evaluate(scope, locator);
+                instance[keys[i]] = values[i].evaluate(scope, locator, flags);
             }
             return instance;
         };
-        LiteralObject.prototype.connect = function (binding, scope) {
+        ObjectLiteral.prototype.connect = function (binding, scope, flags) {
             var length = this.keys.length;
             for (var i = 0; i < length; i++) {
-                this.values[i].connect(binding, scope);
+                this.values[i].connect(binding, scope, flags);
             }
         };
-        return LiteralObject;
+        return ObjectLiteral;
     }());
-    exports.LiteralObject = LiteralObject;
-    function evalList(scope, list, locator) {
+    exports.ObjectLiteral = ObjectLiteral;
+    var Template = (function () {
+        function Template(cooked, expressions) {
+            this.cooked = cooked;
+            this.expressions = expressions;
+            this.cooked = cooked;
+            this.expressions = expressions || [];
+            this.length = this.expressions.length;
+        }
+        Template.prototype.evaluate = function (scope, locator, flags) {
+            var results = new Array(this.length);
+            for (var i = 0; i < this.length; i++) {
+                results[i] = this.expressions[i].evaluate(scope, locator, flags);
+            }
+            var result = this.cooked[0];
+            for (var i = 0; i < this.length; i++) {
+                result = String.prototype.concat(result, results[i], this.cooked[i + 1]);
+            }
+            return result;
+        };
+        Template.prototype.connect = function (binding, scope, flags) {
+            for (var i = 0; i < this.length; i++) {
+                this.expressions[i].connect(binding, scope, flags);
+            }
+        };
+        return Template;
+    }());
+    exports.Template = Template;
+    var TaggedTemplate = (function () {
+        function TaggedTemplate(cooked, raw, func, expressions) {
+            cooked.raw = raw;
+            this.cooked = cooked;
+            this.func = func;
+            this.expressions = expressions || [];
+            this.length = this.expressions.length;
+        }
+        TaggedTemplate.prototype.evaluate = function (scope, locator, flags) {
+            var results = new Array(this.length);
+            for (var i = 0; i < this.length; i++) {
+                results[i] = this.expressions[i].evaluate(scope, locator, flags);
+            }
+            var func = this.func.evaluate(scope, locator, flags);
+            if (typeof func !== 'function') {
+                throw new Error(this.func + " is not a function");
+            }
+            return func.call.apply(func, [null, this.cooked].concat(results));
+        };
+        TaggedTemplate.prototype.connect = function (binding, scope, flags) {
+            for (var i = 0; i < this.length; i++) {
+                this.expressions[i].connect(binding, scope, flags);
+            }
+            this.func.connect(binding, scope, flags);
+        };
+        return TaggedTemplate;
+    }());
+    exports.TaggedTemplate = TaggedTemplate;
+    function evalList(scope, list, locator, flags) {
         var length = list.length;
         var result = [];
         for (var i = 0; i < length; i++) {
-            result[i] = list[i].evaluate(scope, locator);
+            result[i] = list[i].evaluate(scope, locator, flags);
         }
         return result;
     }
@@ -2754,12 +3397,12 @@ define('runtime/binding/ast',["require", "exports", "./binding-context", "./sign
         }
         return 0;
     }
-    function getFunction(obj, name, mustExist) {
+    function getFunction(obj, name, flags) {
         var func = obj === null || obj === undefined ? null : obj[name];
         if (typeof func === 'function') {
             return func;
         }
-        if (!mustExist && (func === null || func === undefined)) {
+        if (!(flags & binding_flags_1.BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
             return null;
         }
         throw new Error(name + " is not a function");
@@ -2833,6 +3476,18 @@ define('runtime/binding/binding-context',["require", "exports"], function (requi
 
 
 
+define('runtime/binding/binding-flags',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var BindingFlags;
+    (function (BindingFlags) {
+        BindingFlags[BindingFlags["none"] = 0] = "none";
+        BindingFlags[BindingFlags["mustEvaluate"] = 1] = "mustEvaluate";
+    })(BindingFlags = exports.BindingFlags || (exports.BindingFlags = {}));
+});
+
+
+
 define('runtime/binding/binding-mode',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -2859,7 +3514,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define('runtime/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./binding-context", "../reporter"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, binding_context_1, reporter_1) {
+define('runtime/binding/binding',["require", "exports", "./binding-mode", "./connectable-binding", "./connect-queue", "./binding-context", "../reporter", "./binding-flags"], function (require, exports, binding_mode_1, connectable_binding_1, connect_queue_1, binding_context_1, reporter_1, binding_flags_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Binding = (function (_super) {
@@ -2878,7 +3533,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             this.targetObserver.setValue(value, this.target, this.targetProperty);
         };
         Binding.prototype.updateSource = function (value) {
-            this.sourceExpression.assign(this.$scope, value, this.locator);
+            this.sourceExpression.assign(this.$scope, value, this.locator, binding_flags_1.BindingFlags.none);
         };
         Binding.prototype.call = function (context, newValue, oldValue) {
             if (!this.$isBound) {
@@ -2886,19 +3541,19 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             }
             if (context === binding_context_1.sourceContext) {
                 oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-                newValue = this.sourceExpression.evaluate(this.$scope, this.locator);
+                newValue = this.sourceExpression.evaluate(this.$scope, this.locator, binding_flags_1.BindingFlags.none);
                 if (newValue !== oldValue) {
                     this.updateTarget(newValue);
                 }
                 if (this.mode !== binding_mode_1.BindingMode.oneTime) {
                     this.version++;
-                    this.sourceExpression.connect(this, this.$scope);
+                    this.sourceExpression.connect(this, this.$scope, binding_flags_1.BindingFlags.none);
                     this.unobserve(false);
                 }
                 return;
             }
             if (context === binding_context_1.targetContext) {
-                if (newValue !== this.sourceExpression.evaluate(this.$scope, this.locator)) {
+                if (newValue !== this.sourceExpression.evaluate(this.$scope, this.locator, binding_flags_1.BindingFlags.none)) {
                     this.updateSource(newValue);
                 }
                 return;
@@ -2915,7 +3570,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             this.$isBound = true;
             this.$scope = scope;
             if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, scope);
+                this.sourceExpression.bind(this, scope, binding_flags_1.BindingFlags.none);
             }
             var mode = this.mode;
             if (!this.targetObserver) {
@@ -2926,7 +3581,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 this.targetObserver.bind();
             }
             if (this.mode !== binding_mode_1.BindingMode.fromView) {
-                var value = this.sourceExpression.evaluate(scope, this.locator);
+                var value = this.sourceExpression.evaluate(scope, this.locator, binding_flags_1.BindingFlags.none);
                 this.updateTarget(value);
             }
             if (mode === binding_mode_1.BindingMode.oneTime) {
@@ -2936,7 +3591,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 connect_queue_1.enqueueBindingConnect(this);
             }
             else if (mode === binding_mode_1.BindingMode.twoWay) {
-                this.sourceExpression.connect(this, scope);
+                this.sourceExpression.connect(this, scope, binding_flags_1.BindingFlags.none);
                 this.targetObserver.subscribe(binding_context_1.targetContext, this);
             }
             else if (mode === binding_mode_1.BindingMode.fromView) {
@@ -2949,7 +3604,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
             }
             this.$isBound = false;
             if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.$scope);
+                this.sourceExpression.unbind(this, this.$scope, binding_flags_1.BindingFlags.none);
             }
             this.$scope = null;
             if ('unbind' in this.targetObserver) {
@@ -2965,10 +3620,10 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
                 return;
             }
             if (evaluate) {
-                var value = this.sourceExpression.evaluate(this.$scope, this.locator);
+                var value = this.sourceExpression.evaluate(this.$scope, this.locator, binding_flags_1.BindingFlags.none);
                 this.updateTarget(value);
             }
-            this.sourceExpression.connect(this, this.$scope);
+            this.sourceExpression.connect(this, this.$scope, binding_flags_1.BindingFlags.none);
         };
         return Binding;
     }(connectable_binding_1.ConnectableBinding));
@@ -2977,7 +3632,7 @@ define('runtime/binding/binding',["require", "exports", "./binding-mode", "./con
 
 
 
-define('runtime/binding/call',["require", "exports"], function (require, exports) {
+define('runtime/binding/call',["require", "exports", "./binding-flags"], function (require, exports, binding_flags_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Call = (function () {
@@ -2995,7 +3650,7 @@ define('runtime/binding/call',["require", "exports"], function (require, exports
             Object.assign(overrideContext, $event);
             overrideContext.$event = $event;
             var mustEvaluate = true;
-            var result = this.sourceExpression.evaluate(this.$scope, this.locator, mustEvaluate);
+            var result = this.sourceExpression.evaluate(this.$scope, this.locator, binding_flags_1.BindingFlags.mustEvaluate);
             delete overrideContext.$event;
             for (var prop in $event) {
                 delete overrideContext[prop];
@@ -3013,7 +3668,7 @@ define('runtime/binding/call',["require", "exports"], function (require, exports
             this.$isBound = true;
             this.$scope = scope;
             if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, scope);
+                this.sourceExpression.bind(this, scope, binding_flags_1.BindingFlags.none);
             }
             this.targetObserver.setValue(function ($event) { return _this.callSource($event); }, this.target, this.targetProperty);
         };
@@ -3023,7 +3678,7 @@ define('runtime/binding/call',["require", "exports"], function (require, exports
             }
             this.$isBound = false;
             if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.$scope);
+                this.sourceExpression.unbind(this, this.$scope, binding_flags_1.BindingFlags.none);
             }
             this.$scope = null;
             this.targetObserver.setValue(null, this.target, this.targetProperty);
@@ -4292,7 +4947,7 @@ define('runtime/binding/expression-parser',["require", "exports", "./ast", "../r
 
 
 
-define('runtime/binding/listener',["require", "exports"], function (require, exports) {
+define('runtime/binding/listener',["require", "exports", "./binding-flags"], function (require, exports, binding_flags_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Listener = (function () {
@@ -4309,8 +4964,7 @@ define('runtime/binding/listener',["require", "exports"], function (require, exp
         Listener.prototype.callSource = function (event) {
             var overrideContext = this.source.overrideContext;
             overrideContext['$event'] = event;
-            var mustEvaluate = true;
-            var result = this.sourceExpression.evaluate(this.source, this.locator, mustEvaluate);
+            var result = this.sourceExpression.evaluate(this.source, this.locator, binding_flags_1.BindingFlags.mustEvaluate);
             delete overrideContext['$event'];
             if (result !== true && this.preventDefault) {
                 event.preventDefault();
@@ -4330,7 +4984,7 @@ define('runtime/binding/listener',["require", "exports"], function (require, exp
             this.$isBound = true;
             this.source = source;
             if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, source);
+                this.sourceExpression.bind(this, source, binding_flags_1.BindingFlags.none);
             }
             this.handler = this.eventManager.addEventListener(this.target, this.targetEvent, this, this.delegationStrategy);
         };
@@ -4340,7 +4994,7 @@ define('runtime/binding/listener',["require", "exports"], function (require, exp
             }
             this.$isBound = false;
             if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.source);
+                this.sourceExpression.unbind(this, this.source, binding_flags_1.BindingFlags.none);
             }
             this.source = null;
             this.handler.dispose();
@@ -4799,7 +5453,7 @@ define('runtime/binding/property-observation',["require", "exports", "./subscrib
 
 
 
-define('runtime/binding/ref',["require", "exports"], function (require, exports) {
+define('runtime/binding/ref',["require", "exports", "./binding-flags"], function (require, exports, binding_flags_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Ref = (function () {
@@ -4819,20 +5473,20 @@ define('runtime/binding/ref',["require", "exports"], function (require, exports)
             this.$isBound = true;
             this.$scope = scope;
             if (this.sourceExpression.bind) {
-                this.sourceExpression.bind(this, scope);
+                this.sourceExpression.bind(this, scope, binding_flags_1.BindingFlags.none);
             }
-            this.sourceExpression.assign(this.$scope, this.target, this.locator);
+            this.sourceExpression.assign(this.$scope, this.target, this.locator, binding_flags_1.BindingFlags.none);
         };
         Ref.prototype.$unbind = function () {
             if (!this.$isBound) {
                 return;
             }
             this.$isBound = false;
-            if (this.sourceExpression.evaluate(this.$scope, this.locator) === this.target) {
-                this.sourceExpression.assign(this.$scope, null, this.locator);
+            if (this.sourceExpression.evaluate(this.$scope, this.locator, binding_flags_1.BindingFlags.none) === this.target) {
+                this.sourceExpression.assign(this.$scope, null, this.locator, binding_flags_1.BindingFlags.none);
             }
             if (this.sourceExpression.unbind) {
-                this.sourceExpression.unbind(this, this.$scope);
+                this.sourceExpression.unbind(this, this.$scope, binding_flags_1.BindingFlags.none);
             }
             this.$scope = null;
         };
@@ -5197,7 +5851,7 @@ define('runtime/binding/subscriber-collection',["require", "exports"], function 
                 return true;
             }
             var callables = this._callablesRest;
-            if (callables === undefined || callables.length === 0) {
+            if (callables === null || callables.length === 0) {
                 return false;
             }
             var contexts = this._contextsRest;
@@ -6227,240 +6881,6 @@ define('runtime/resources/with',["require", "exports", "../decorators", "../temp
         return With;
     }());
     exports.With = With;
-});
-
-
-
-define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var svgElements = {
-        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
-        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
-        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
-        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
-        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
-        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
-        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
-        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
-        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
-        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
-        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
-        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
-        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
-        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
-        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
-    };
-    var svgPresentationElements = {
-        'a': true,
-        'altGlyph': true,
-        'animate': true,
-        'animateColor': true,
-        'circle': true,
-        'clipPath': true,
-        'defs': true,
-        'ellipse': true,
-        'feBlend': true,
-        'feColorMatrix': true,
-        'feComponentTransfer': true,
-        'feComposite': true,
-        'feConvolveMatrix': true,
-        'feDiffuseLighting': true,
-        'feDisplacementMap': true,
-        'feFlood': true,
-        'feGaussianBlur': true,
-        'feImage': true,
-        'feMerge': true,
-        'feMorphology': true,
-        'feOffset': true,
-        'feSpecularLighting': true,
-        'feTile': true,
-        'feTurbulence': true,
-        'filter': true,
-        'font': true,
-        'foreignObject': true,
-        'g': true,
-        'glyph': true,
-        'glyphRef': true,
-        'image': true,
-        'line': true,
-        'linearGradient': true,
-        'marker': true,
-        'mask': true,
-        'missing-glyph': true,
-        'path': true,
-        'pattern': true,
-        'polygon': true,
-        'polyline': true,
-        'radialGradient': true,
-        'rect': true,
-        'stop': true,
-        'svg': true,
-        'switch': true,
-        'symbol': true,
-        'text': true,
-        'textPath': true,
-        'tref': true,
-        'tspan': true,
-        'use': true
-    };
-    var svgPresentationAttributes = {
-        'alignment-baseline': true,
-        'baseline-shift': true,
-        'clip-path': true,
-        'clip-rule': true,
-        'clip': true,
-        'color-interpolation-filters': true,
-        'color-interpolation': true,
-        'color-profile': true,
-        'color-rendering': true,
-        'color': true,
-        'cursor': true,
-        'direction': true,
-        'display': true,
-        'dominant-baseline': true,
-        'enable-background': true,
-        'fill-opacity': true,
-        'fill-rule': true,
-        'fill': true,
-        'filter': true,
-        'flood-color': true,
-        'flood-opacity': true,
-        'font-family': true,
-        'font-size-adjust': true,
-        'font-size': true,
-        'font-stretch': true,
-        'font-style': true,
-        'font-variant': true,
-        'font-weight': true,
-        'glyph-orientation-horizontal': true,
-        'glyph-orientation-vertical': true,
-        'image-rendering': true,
-        'kerning': true,
-        'letter-spacing': true,
-        'lighting-color': true,
-        'marker-end': true,
-        'marker-mid': true,
-        'marker-start': true,
-        'mask': true,
-        'opacity': true,
-        'overflow': true,
-        'pointer-events': true,
-        'shape-rendering': true,
-        'stop-color': true,
-        'stop-opacity': true,
-        'stroke-dasharray': true,
-        'stroke-dashoffset': true,
-        'stroke-linecap': true,
-        'stroke-linejoin': true,
-        'stroke-miterlimit': true,
-        'stroke-opacity': true,
-        'stroke-width': true,
-        'stroke': true,
-        'text-anchor': true,
-        'text-decoration': true,
-        'text-rendering': true,
-        'unicode-bidi': true,
-        'visibility': true,
-        'word-spacing': true,
-        'writing-mode': true
-    };
-    function createElement(html) {
-        var div = dom_1.DOM.createElement('div');
-        div.innerHTML = html;
-        return div.firstElementChild;
-    }
-    ;
-    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
-        svgElements.altglyph = svgElements.altGlyph;
-        delete svgElements.altGlyph;
-        svgElements.altglyphdef = svgElements.altGlyphDef;
-        delete svgElements.altGlyphDef;
-        svgElements.altglyphitem = svgElements.altGlyphItem;
-        delete svgElements.altGlyphItem;
-        svgElements.glyphref = svgElements.glyphRef;
-        delete svgElements.glyphRef;
-    }
-    function register(container) {
-        container.registerTransformer(svg_analyzer_1.ISVGAnalyzer, function (analyzer) {
-            return Object.assign(analyzer, {
-                isStandardSvgAttribute: function (node, attributeName) {
-                    if (!(node instanceof SVGElement)) {
-                        return false;
-                    }
-                    var nodeName = node.nodeName;
-                    return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
-                        || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
-                }
-            });
-        });
-    }
-    exports.register = register;
 });
 
 
@@ -8393,6 +8813,240 @@ define('runtime/templating/visual',["require", "exports", "../di"], function (re
 
 
 
+define('svg/binding/svg-analyzer',["require", "exports", "../../runtime/binding/svg-analyzer", "../../runtime/dom"], function (require, exports, svg_analyzer_1, dom_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var svgElements = {
+        a: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        altGlyph: ['class', 'dx', 'dy', 'externalResourcesRequired', 'format', 'glyphRef', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        altGlyphDef: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        altGlyphItem: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        animate: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateColor: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateMotion: ['accumulate', 'additive', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keyPoints', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'origin', 'path', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'rotate', 'systemLanguage', 'to', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        animateTransform: ['accumulate', 'additive', 'attributeName', 'attributeType', 'begin', 'by', 'calcMode', 'dur', 'end', 'externalResourcesRequired', 'fill', 'from', 'id', 'keySplines', 'keyTimes', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'type', 'values', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        circle: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'r', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        clipPath: ['class', 'clipPathUnits', 'externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        'color-profile': ['id', 'local', 'name', 'rendering-intent', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        cursor: ['externalResourcesRequired', 'id', 'requiredExtensions', 'requiredFeatures', 'systemLanguage', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        defs: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        desc: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        ellipse: ['class', 'cx', 'cy', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        feBlend: ['class', 'height', 'id', 'in', 'in2', 'mode', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feColorMatrix: ['class', 'height', 'id', 'in', 'result', 'style', 'type', 'values', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feComponentTransfer: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feComposite: ['class', 'height', 'id', 'in', 'in2', 'k1', 'k2', 'k3', 'k4', 'operator', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feConvolveMatrix: ['bias', 'class', 'divisor', 'edgeMode', 'height', 'id', 'in', 'kernelMatrix', 'kernelUnitLength', 'order', 'preserveAlpha', 'result', 'style', 'targetX', 'targetY', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feDiffuseLighting: ['class', 'diffuseConstant', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feDisplacementMap: ['class', 'height', 'id', 'in', 'in2', 'result', 'scale', 'style', 'width', 'x', 'xChannelSelector', 'xml:base', 'xml:lang', 'xml:space', 'y', 'yChannelSelector'],
+        feDistantLight: ['azimuth', 'elevation', 'id', 'xml:base', 'xml:lang', 'xml:space'],
+        feFlood: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feFuncA: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncB: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncG: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feFuncR: ['amplitude', 'exponent', 'id', 'intercept', 'offset', 'slope', 'tableValues', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        feGaussianBlur: ['class', 'height', 'id', 'in', 'result', 'stdDeviation', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feImage: ['class', 'externalResourcesRequired', 'height', 'id', 'preserveAspectRatio', 'result', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feMerge: ['class', 'height', 'id', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feMergeNode: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        feMorphology: ['class', 'height', 'id', 'in', 'operator', 'radius', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feOffset: ['class', 'dx', 'dy', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        fePointLight: ['id', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
+        feSpecularLighting: ['class', 'height', 'id', 'in', 'kernelUnitLength', 'result', 'specularConstant', 'specularExponent', 'style', 'surfaceScale', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feSpotLight: ['id', 'limitingConeAngle', 'pointsAtX', 'pointsAtY', 'pointsAtZ', 'specularExponent', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'z'],
+        feTile: ['class', 'height', 'id', 'in', 'result', 'style', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        feTurbulence: ['baseFrequency', 'class', 'height', 'id', 'numOctaves', 'result', 'seed', 'stitchTiles', 'style', 'type', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        filter: ['class', 'externalResourcesRequired', 'filterRes', 'filterUnits', 'height', 'id', 'primitiveUnits', 'style', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        font: ['class', 'externalResourcesRequired', 'horiz-adv-x', 'horiz-origin-x', 'horiz-origin-y', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face': ['accent-height', 'alphabetic', 'ascent', 'bbox', 'cap-height', 'descent', 'font-family', 'font-size', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hanging', 'id', 'ideographic', 'mathematical', 'overline-position', 'overline-thickness', 'panose-1', 'slope', 'stemh', 'stemv', 'strikethrough-position', 'strikethrough-thickness', 'underline-position', 'underline-thickness', 'unicode-range', 'units-per-em', 'v-alphabetic', 'v-hanging', 'v-ideographic', 'v-mathematical', 'widths', 'x-height', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-format': ['id', 'string', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-name': ['id', 'name', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-src': ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        'font-face-uri': ['id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        foreignObject: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        g: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        glyph: ['arabic-form', 'class', 'd', 'glyph-name', 'horiz-adv-x', 'id', 'lang', 'orientation', 'style', 'unicode', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        glyphRef: ['class', 'dx', 'dy', 'format', 'glyphRef', 'id', 'style', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        hkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
+        image: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        line: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'x1', 'x2', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
+        linearGradient: ['class', 'externalResourcesRequired', 'gradientTransform', 'gradientUnits', 'id', 'spreadMethod', 'style', 'x1', 'x2', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y1', 'y2'],
+        marker: ['class', 'externalResourcesRequired', 'id', 'markerHeight', 'markerUnits', 'markerWidth', 'orient', 'preserveAspectRatio', 'refX', 'refY', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
+        mask: ['class', 'externalResourcesRequired', 'height', 'id', 'maskContentUnits', 'maskUnits', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        metadata: ['id', 'xml:base', 'xml:lang', 'xml:space'],
+        'missing-glyph': ['class', 'd', 'horiz-adv-x', 'id', 'style', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'xml:base', 'xml:lang', 'xml:space'],
+        mpath: ['externalResourcesRequired', 'id', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        path: ['class', 'd', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'pathLength', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        pattern: ['class', 'externalResourcesRequired', 'height', 'id', 'patternContentUnits', 'patternTransform', 'patternUnits', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'viewBox', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        polygon: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        polyline: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'points', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        radialGradient: ['class', 'cx', 'cy', 'externalResourcesRequired', 'fx', 'fy', 'gradientTransform', 'gradientUnits', 'id', 'r', 'spreadMethod', 'style', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        rect: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rx', 'ry', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        script: ['externalResourcesRequired', 'id', 'type', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        set: ['attributeName', 'attributeType', 'begin', 'dur', 'end', 'externalResourcesRequired', 'fill', 'id', 'max', 'min', 'onbegin', 'onend', 'onload', 'onrepeat', 'repeatCount', 'repeatDur', 'requiredExtensions', 'requiredFeatures', 'restart', 'systemLanguage', 'to', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        stop: ['class', 'id', 'offset', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        style: ['id', 'media', 'title', 'type', 'xml:base', 'xml:lang', 'xml:space'],
+        svg: ['baseProfile', 'class', 'contentScriptType', 'contentStyleType', 'externalResourcesRequired', 'height', 'id', 'onabort', 'onactivate', 'onclick', 'onerror', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onresize', 'onscroll', 'onunload', 'onzoom', 'preserveAspectRatio', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y', 'zoomAndPan'],
+        switch: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'xml:base', 'xml:lang', 'xml:space'],
+        symbol: ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'preserveAspectRatio', 'style', 'viewBox', 'xml:base', 'xml:lang', 'xml:space'],
+        text: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'transform', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        textPath: ['class', 'externalResourcesRequired', 'id', 'lengthAdjust', 'method', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'spacing', 'startOffset', 'style', 'systemLanguage', 'textLength', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
+        title: ['class', 'id', 'style', 'xml:base', 'xml:lang', 'xml:space'],
+        tref: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        tspan: ['class', 'dx', 'dy', 'externalResourcesRequired', 'id', 'lengthAdjust', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'rotate', 'style', 'systemLanguage', 'textLength', 'x', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        use: ['class', 'externalResourcesRequired', 'height', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'transform', 'width', 'x', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space', 'y'],
+        view: ['externalResourcesRequired', 'id', 'preserveAspectRatio', 'viewBox', 'viewTarget', 'xml:base', 'xml:lang', 'xml:space', 'zoomAndPan'],
+        vkern: ['g1', 'g2', 'id', 'k', 'u1', 'u2', 'xml:base', 'xml:lang', 'xml:space'],
+    };
+    var svgPresentationElements = {
+        'a': true,
+        'altGlyph': true,
+        'animate': true,
+        'animateColor': true,
+        'circle': true,
+        'clipPath': true,
+        'defs': true,
+        'ellipse': true,
+        'feBlend': true,
+        'feColorMatrix': true,
+        'feComponentTransfer': true,
+        'feComposite': true,
+        'feConvolveMatrix': true,
+        'feDiffuseLighting': true,
+        'feDisplacementMap': true,
+        'feFlood': true,
+        'feGaussianBlur': true,
+        'feImage': true,
+        'feMerge': true,
+        'feMorphology': true,
+        'feOffset': true,
+        'feSpecularLighting': true,
+        'feTile': true,
+        'feTurbulence': true,
+        'filter': true,
+        'font': true,
+        'foreignObject': true,
+        'g': true,
+        'glyph': true,
+        'glyphRef': true,
+        'image': true,
+        'line': true,
+        'linearGradient': true,
+        'marker': true,
+        'mask': true,
+        'missing-glyph': true,
+        'path': true,
+        'pattern': true,
+        'polygon': true,
+        'polyline': true,
+        'radialGradient': true,
+        'rect': true,
+        'stop': true,
+        'svg': true,
+        'switch': true,
+        'symbol': true,
+        'text': true,
+        'textPath': true,
+        'tref': true,
+        'tspan': true,
+        'use': true
+    };
+    var svgPresentationAttributes = {
+        'alignment-baseline': true,
+        'baseline-shift': true,
+        'clip-path': true,
+        'clip-rule': true,
+        'clip': true,
+        'color-interpolation-filters': true,
+        'color-interpolation': true,
+        'color-profile': true,
+        'color-rendering': true,
+        'color': true,
+        'cursor': true,
+        'direction': true,
+        'display': true,
+        'dominant-baseline': true,
+        'enable-background': true,
+        'fill-opacity': true,
+        'fill-rule': true,
+        'fill': true,
+        'filter': true,
+        'flood-color': true,
+        'flood-opacity': true,
+        'font-family': true,
+        'font-size-adjust': true,
+        'font-size': true,
+        'font-stretch': true,
+        'font-style': true,
+        'font-variant': true,
+        'font-weight': true,
+        'glyph-orientation-horizontal': true,
+        'glyph-orientation-vertical': true,
+        'image-rendering': true,
+        'kerning': true,
+        'letter-spacing': true,
+        'lighting-color': true,
+        'marker-end': true,
+        'marker-mid': true,
+        'marker-start': true,
+        'mask': true,
+        'opacity': true,
+        'overflow': true,
+        'pointer-events': true,
+        'shape-rendering': true,
+        'stop-color': true,
+        'stop-opacity': true,
+        'stroke-dasharray': true,
+        'stroke-dashoffset': true,
+        'stroke-linecap': true,
+        'stroke-linejoin': true,
+        'stroke-miterlimit': true,
+        'stroke-opacity': true,
+        'stroke-width': true,
+        'stroke': true,
+        'text-anchor': true,
+        'text-decoration': true,
+        'text-rendering': true,
+        'unicode-bidi': true,
+        'visibility': true,
+        'word-spacing': true,
+        'writing-mode': true
+    };
+    function createElement(html) {
+        var div = dom_1.DOM.createElement('div');
+        div.innerHTML = html;
+        return div.firstElementChild;
+    }
+    ;
+    if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
+        svgElements.altglyph = svgElements.altGlyph;
+        delete svgElements.altGlyph;
+        svgElements.altglyphdef = svgElements.altGlyphDef;
+        delete svgElements.altGlyphDef;
+        svgElements.altglyphitem = svgElements.altGlyphItem;
+        delete svgElements.altGlyphItem;
+        svgElements.glyphref = svgElements.glyphRef;
+        delete svgElements.glyphRef;
+    }
+    function register(container) {
+        container.registerTransformer(svg_analyzer_1.ISVGAnalyzer, function (analyzer) {
+            return Object.assign(analyzer, {
+                isStandardSvgAttribute: function (node, attributeName) {
+                    if (!(node instanceof SVGElement)) {
+                        return false;
+                    }
+                    var nodeName = node.nodeName;
+                    return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
+                        || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
+                }
+            });
+        });
+    }
+    exports.register = register;
+});
+
+
+
 define('runtime/resources/repeat/override-contexts',["require", "exports", "../../binding/binding-context"], function (require, exports, binding_context_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -8949,7 +9603,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('runtime/resources/repeat/repeat',["require", "exports", "../../decorators", "../../templating/visual", "../../templating/render-slot", "../../di", "./repeat-strategy-registry", "../../binding/ast", "../../binding/binding-context", "../../binding/binding-mode", "../../templating/view", "../../task-queue"], function (require, exports, decorators_1, visual_1, render_slot_1, di_1, repeat_strategy_registry_1, ast_1, binding_context_1, binding_mode_1, view_1, task_queue_1) {
+define('runtime/resources/repeat/repeat',["require", "exports", "../../decorators", "../../templating/visual", "../../templating/render-slot", "../../di", "./repeat-strategy-registry", "../../binding/ast", "../../binding/binding-context", "../../binding/binding-mode", "../../templating/view", "../../task-queue", "../../binding/binding-flags"], function (require, exports, decorators_1, visual_1, render_slot_1, di_1, repeat_strategy_registry_1, ast_1, binding_context_1, binding_mode_1, view_1, task_queue_1, binding_flags_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var oneTime = binding_mode_1.BindingMode.oneTime;
@@ -9044,7 +9698,7 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
             if (!expression) {
                 return null;
             }
-            return expression.evaluate(this.scope, this.container);
+            return expression.evaluate(this.scope, this.container, binding_flags_1.BindingFlags.none);
         };
         Repeat.prototype.handleCollectionMutated = function (collection, changes) {
             if (!this.collectionObserver) {
@@ -9061,7 +9715,7 @@ define('runtime/resources/repeat/repeat',["require", "exports", "../../decorator
                 return;
             }
             this.ignoreMutation = true;
-            var newItems = this.sourceExpression.evaluate(this.scope, this.container);
+            var newItems = this.sourceExpression.evaluate(this.scope, this.container, binding_flags_1.BindingFlags.none);
             this.taskQueue.queueMicroTask(function () { return _this.ignoreMutation = false; });
             if (newItems === this.items) {
                 this.itemsChanged();

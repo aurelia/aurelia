@@ -14,13 +14,11 @@ export function register(container: IContainer) {
   container.registerTransformer(IExpressionParser, parser => {
     return Object.assign(parser, {
       parseCore(expression: string): IExpression {
-        return this.lookup[expression] ||
-        (this.lookup[expression] = parse(new ParserState(expression), Access.Reset, Precedence.Variadic));
+        return parse(new ParserState(expression), Access.Reset, Precedence.Variadic);
       }
     });
   });
 }
-
 
 class ParserState {
   public index: number;

@@ -12,9 +12,9 @@ export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
 
 export interface IKarmaConfigOptions extends karma.ConfigOptions {
   webpack: webpack.Configuration;
-  coverageIstanbulReporter: any;
-  webpackServer: any;
+  coverageIstanbulReporter?: any;
   customLaunchers: any;
+  webpackMiddleware: any;
 }
 
 export default (config: IKarmaConfig): void => {
@@ -22,7 +22,7 @@ export default (config: IKarmaConfig): void => {
 
   const options: IKarmaConfigOptions = {
     basePath: config.basePath || './',
-    frameworks: ['jasmine'],
+    frameworks: ['mocha', 'chai'],
     files: ['test/setup.ts'],
     preprocessors: {
       'test/setup.ts': ['webpack', 'sourcemap']
@@ -31,7 +31,13 @@ export default (config: IKarmaConfig): void => {
       mode: 'development',
       resolve: {
         extensions: ['.ts', '.js'],
-        modules: ['src', 'node_modules']
+        modules: [
+          path.resolve(__dirname, 'src'),
+          path.resolve(__dirname, 'node_modules')
+        ],
+        alias: {
+          bluebird: path.resolve(__dirname, 'node_modules', 'bluebird', 'js', 'browser', 'bluebird.core.min')
+        }
       },
       devtool: 'cheap-module-eval-source-map',
       module: {
@@ -41,23 +47,39 @@ export default (config: IKarmaConfig): void => {
             loader: 'ts-loader',
             exclude: /node_modules/,
             options: {
-              configFile: config.tsconfig || 'tsconfig-karma.json',
+              configFile: config.tsconfig || path.resolve(__dirname, 'test', 'tsconfig.json'),
               transpileOnly: config.transpileOnly
             }
           }
         ]
+      },
+      plugins: [new webpack.ProvidePlugin({ Promise: 'bluebird' })]
+    },
+    mime: { 'text/x-typescript': ['ts'] },
+    reporters: ['mocha'],
+    webpackMiddleware: {
+      stats: {
+        colors: true,
+        hash: false,
+        version: false,
+        timings: false,
+        assets: false,
+        chunks: false,
+        modules: false,
+        reasons: false,
+        children: false,
+        source: false,
+        errors: true,
+        errorDetails: true,
+        warnings: false,
+        publicPath: false
       }
     },
-    mime: {
-      'text/x-typescript': ['ts']
-    },
-    reporters: ['mocha', 'progress'],
-    webpackServer: { noInfo: config.noInfo },
     browsers: config.browsers || ['Chrome'],
     customLaunchers: {
       ChromeDebugging: {
         base: "Chrome",
-        flags: ["--remote-debugging-port=9333"],
+        flags: ['--disable-translate', '--disable-extensions', '--remote-debugging-port=9333'],
         debug: true
       }
     }

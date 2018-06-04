@@ -1,39 +1,42 @@
-import { TaskQueue } from '../../../../src/framework/task-queue';
-import { getMapObserver } from '../../../../src/framework/binding/map-observation';
+import { getMapObserver } from '../../../../src/runtime/binding/map-observation';
+import { expect } from 'chai';
+import { spy } from 'sinon';
+import { DI } from '../../../../src/runtime/di';
+import { ITaskQueue } from '../../../../src/runtime/task-queue';
 
 describe('getMapObserver', () => {
   let taskQueue;
-  beforeAll(() => {
-    taskQueue = new TaskQueue();
+  before(() => {
+    taskQueue = DI.createContainer().get(ITaskQueue);
   });
 
   it('getMapObserver should return same observer instance for the same Map instance', () => {
-    let map = new Map();
-    let observer1 = getMapObserver(taskQueue, map);
-    let observer2 = getMapObserver(taskQueue, map);
+    const map = new Map();
+    const observer1 = getMapObserver(taskQueue, map);
+    const observer2 = getMapObserver(taskQueue, map);
 
-    expect(observer1 === observer2).toBe(true);
+    expect(observer1 === observer2).to.be.true;
   });
 
   it('getMapObserver should return different observer instances for different Map instances', () => {
-    let map1 = new Map();
-    let map2 = new Map();
-    let observer1 = getMapObserver(taskQueue, map1);
-    let observer2 = getMapObserver(taskQueue, map2);
+    const map1 = new Map();
+    const map2 = new Map();
+    const observer1 = getMapObserver(taskQueue, map1);
+    const observer2 = getMapObserver(taskQueue, map2);
 
-    expect(observer1 !== observer2).toBe(true);
+    expect(observer1 !== observer2).to.be.true;
   });
 
   it('identifies set with falsey oldValue as an "update"', done => {
-    let map = new Map();
+    const map = new Map();
     map.set('foo', 0); // falsey old value.
-    let observer = getMapObserver(taskQueue, map);
-    let callback = jasmine.createSpy('callback');
+    const observer: any = getMapObserver(taskQueue, map);
+    const callback = spy();
     observer.subscribe(callback);
     map.set('foo', 'bar');
     taskQueue.queueMicroTask({
       call: () => {
-        expect(callback).toHaveBeenCalledWith([{ type: 'update', object: map, key: 'foo', oldValue: 0 }], undefined);
+        expect(callback).to.have.been.calledWith([{ type: 'update', object: map, key: 'foo', oldValue: 0 }], undefined);
         observer.unsubscribe(callback);
         done();
       }
@@ -46,14 +49,14 @@ describe('ModifyMapObserver', () => {
   let map;
   let observer;
   let callback;
-  beforeAll(() => {
-    taskQueue = new TaskQueue();
+  before(() => {
+    taskQueue = DI.createContainer().get(ITaskQueue);
   });
 
   beforeEach(() => {
     map = new Map([['foo', 'bar'], ['falsy', undefined]]);
     observer = getMapObserver(taskQueue, map);
-    callback = jasmine.createSpy('callback');
+    callback = spy();
     observer.subscribe(callback);
   });
 
@@ -61,7 +64,7 @@ describe('ModifyMapObserver', () => {
     map.set('bar', 'foo');
     taskQueue.queueMicroTask({
       call: () => {
-        expect(callback).toHaveBeenCalledWith(
+        expect(callback).to.have.been.calledWith(
           [{ type: 'add', object: map, key: 'bar', oldValue: undefined }],
           undefined
         );
@@ -75,7 +78,7 @@ describe('ModifyMapObserver', () => {
     map.set('foo', 'baz');
     taskQueue.queueMicroTask({
       call: () => {
-        expect(callback).toHaveBeenCalledWith(
+        expect(callback).to.have.been.calledWith(
           [{ type: 'update', object: map, key: 'foo', oldValue: 'bar' }],
           undefined
         );
@@ -89,7 +92,7 @@ describe('ModifyMapObserver', () => {
     map.set('falsy', 'baz');
     taskQueue.queueMicroTask({
       call: () => {
-        expect(callback).toHaveBeenCalledWith(
+        expect(callback).to.have.been.calledWith(
           [{ type: 'update', object: map, key: 'falsy', oldValue: undefined }],
           undefined
         );
@@ -103,7 +106,7 @@ describe('ModifyMapObserver', () => {
     map.delete('foo');
     taskQueue.queueMicroTask({
       call: () => {
-        expect(callback).toHaveBeenCalledWith(
+        expect(callback).to.have.been.calledWith(
           [{ type: 'delete', object: map, key: 'foo', oldValue: 'bar' }],
           undefined
         );
@@ -117,7 +120,7 @@ describe('ModifyMapObserver', () => {
     map.delete('baz');
     taskQueue.queueMicroTask({
       call: () => {
-        expect(callback).not.toHaveBeenCalled();
+        expect(callback).not.to.have.been.called;
         observer.unsubscribe(callback);
         done();
       }
@@ -128,7 +131,7 @@ describe('ModifyMapObserver', () => {
     map.clear();
     taskQueue.queueMicroTask({
       call: () => {
-        expect(callback).toHaveBeenCalledWith([{ type: 'clear', object: map }], undefined);
+        expect(callback).to.have.been.calledWith([{ type: 'clear', object: map }], undefined);
         observer.unsubscribe(callback);
         done();
       }
@@ -141,9 +144,9 @@ describe('ModifyMapObserver of extended Map', () => {
   let map;
   let observer;
   let callback;
-  function createNumericMap() {
-    let m = new Map();
-    m.set = function(k, v) {
+  function createNumericMap(this: any): any {
+    const m = new Map();
+    m.set = function(this: any, k: any, v: any): any {
       if (typeof v !== 'number') {
         v = 0;
       }
@@ -152,8 +155,8 @@ describe('ModifyMapObserver of extended Map', () => {
     };
     return m;
   }
-  beforeAll(() => {
-    taskQueue = new TaskQueue();
+  before(() => {
+    taskQueue = DI.createContainer().get(ITaskQueue);
   });
 
   beforeEach(() => {
@@ -161,7 +164,7 @@ describe('ModifyMapObserver of extended Map', () => {
     map.set('one', 1);
     map.set('zero', 0);
     observer = getMapObserver(taskQueue, map);
-    callback = jasmine.createSpy('callback');
+    callback = spy();
     observer.subscribe(callback);
   });
 
@@ -169,7 +172,7 @@ describe('ModifyMapObserver of extended Map', () => {
     map.set('one', 'one');
     taskQueue.queueMicroTask({
       call: () => {
-        expect(callback).toHaveBeenCalledWith([{ type: 'update', object: map, key: 'one', oldValue: 1 }], undefined);
+        expect(callback).to.have.been.calledWith([{ type: 'update', object: map, key: 'one', oldValue: 1 }], undefined);
         observer.unsubscribe(callback);
         done();
       }
@@ -180,7 +183,7 @@ describe('ModifyMapObserver of extended Map', () => {
     map.set('two', 'two');
     taskQueue.queueMicroTask({
       call: () => {
-        expect(callback).toHaveBeenCalledWith(
+        expect(callback).to.have.been.calledWith(
           [{ type: 'add', object: map, key: 'two', oldValue: undefined }],
           undefined
         );
@@ -194,7 +197,7 @@ describe('ModifyMapObserver of extended Map', () => {
     map.set('zero', 0);
     taskQueue.queueMicroTask({
       call: () => {
-        expect(callback).not.toHaveBeenCalled();
+        expect(callback).not.to.have.been.called;
         observer.unsubscribe(callback);
         done();
       }

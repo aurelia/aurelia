@@ -1,4 +1,4 @@
-import { AccessScope, TemplateLiteral, LiteralString, Conditional, CallScope, IExpression, AccessMember } from "./runtime/binding/ast";
+import { AccessScope, HtmlLiteral, PrimitiveLiteral, Conditional, CallScope, IExpression, AccessMember } from "./runtime/binding/ast";
 import { IContainer } from "./runtime/di";
 import { IExpressionParser } from "./runtime/binding/expression-parser";
 import { Repeat } from "./runtime/resources/repeat/repeat";
@@ -14,18 +14,18 @@ const expressionCache: Record<string, IExpression> = {
   value: new AccessScope('value'),
   nameTagBorderWidth: new AccessScope('borderWidth'),
   nameTagBorderColor: new AccessScope('borderColor'),
-  nameTagBorder: new TemplateLiteral([
+  nameTagBorder: new HtmlLiteral([
     new AccessScope('borderWidth'),
-    new LiteralString('px solid '),
+    new PrimitiveLiteral('px solid '),
     new AccessScope('borderColor')
   ]),
   nameTagHeaderVisible: new AccessScope('showHeader'),
-  nameTagClasses: new TemplateLiteral([
-    new LiteralString('au name-tag '),
+  nameTagClasses: new HtmlLiteral([
+    new PrimitiveLiteral('au name-tag '),
     new Conditional(
       new AccessScope('showHeader'),
-      new LiteralString('header-visible'),
-      new LiteralString('')
+      new PrimitiveLiteral('header-visible'),
+      new PrimitiveLiteral('')
     )
   ]),
   name: new AccessScope('name'),

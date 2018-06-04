@@ -60,7 +60,7 @@ export abstract class SubscriberCollection {
       return true;
     }
     const callables = this._callablesRest;
-    if (callables === undefined || callables.length === 0) {
+    if (callables === null || callables.length === 0) {
       return false;
     }
     const contexts = this._contextsRest;

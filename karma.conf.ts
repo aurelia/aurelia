@@ -7,6 +7,7 @@ export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
   noInfo?: boolean;
   coverage?: boolean;
   tsconfig?: string;
+  component: 'runtime' | 'jit' | 'debug';
   set(config: IKarmaConfigOptions): void;
 }
 
@@ -19,14 +20,14 @@ export interface IKarmaConfigOptions extends karma.ConfigOptions {
 
 export default (config: IKarmaConfig): void => {
   const rules: webpack.Rule[] = [];
+  const component = config.component || 'runtime';
+  const setupFile = `test/${component}/setup.ts`;
 
   const options: IKarmaConfigOptions = {
     basePath: config.basePath || './',
     frameworks: ['mocha', 'chai'],
-    files: ['test/setup.ts'],
-    preprocessors: {
-      'test/setup.ts': ['webpack', 'sourcemap']
-    },
+    files: [setupFile],
+    preprocessors: { [setupFile]: ['webpack', 'sourcemap'] },
     webpack: {
       mode: 'development',
       resolve: {
@@ -34,10 +35,7 @@ export default (config: IKarmaConfig): void => {
         modules: [
           path.resolve(__dirname, 'src'),
           path.resolve(__dirname, 'node_modules')
-        ],
-        alias: {
-          bluebird: path.resolve(__dirname, 'node_modules', 'bluebird', 'js', 'browser', 'bluebird.core.min')
-        }
+        ]
       },
       devtool: 'cheap-module-eval-source-map',
       module: {
@@ -47,7 +45,7 @@ export default (config: IKarmaConfig): void => {
             loader: 'ts-loader',
             exclude: /node_modules/,
             options: {
-              configFile: config.tsconfig || path.resolve(__dirname, 'test', 'tsconfig.json'),
+              configFile: config.tsconfig || path.resolve(__dirname, 'test', component, 'tsconfig.json'),
               transpileOnly: config.transpileOnly
             }
           }
@@ -91,7 +89,11 @@ export default (config: IKarmaConfig): void => {
       exclude: /(node_modules|\.spec\.ts$)/,
       loader: 'istanbul-instrumenter-loader',
       options: { esModules: true },
-      test: /src[\/\\].+\.ts$/
+      test: {
+        runtime: /src[\/\\]runtime[\/\\].+\.ts$/,
+        debug: /src[\/\\]debug[\/\\].+\.ts$/,
+        jit: /src[\/\\]jit[\/\\].+\.ts$/
+      }[component]
     });
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {

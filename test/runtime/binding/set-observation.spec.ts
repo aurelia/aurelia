@@ -1,8 +1,8 @@
-import { getSetObserver } from '../../../../src/runtime/binding/set-observation';
+import { getSetObserver } from '../../../src/runtime/binding/set-observation';
 import { spy } from 'sinon';
 import { expect } from 'chai';
-import { DI } from '../../../../src/runtime/di';
-import { ITaskQueue } from '../../../../src/runtime/task-queue';
+import { DI } from '../../../src/runtime/di';
+import { ITaskQueue } from '../../../src/runtime/task-queue';
 
 describe('getSetObserver', () => {
   let taskQueue;

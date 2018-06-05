@@ -1,7 +1,7 @@
-import { SetterObserver } from '../../../../src/runtime/binding/property-observation';
+import { SetterObserver } from '../../../src/runtime/binding/property-observation';
 import { executeSharedPropertyObserverTests } from './shared';
-import { DI } from '../../../../src/runtime/di';
-import { ITaskQueue } from '../../../../src/runtime/task-queue';
+import { DI } from '../../../src/runtime/di';
+import { ITaskQueue } from '../../../src/runtime/task-queue';
 
 describe('SetterObserver', () => {
   let obj, observer;

@@ -6,12 +6,16 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2017", "dom"],
+    "lib": ["es2017", "DOM"],
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
     "skipLibCheck": true,
     "target": "es2015",
   },
-  "include": ["../src", "."]
+  "include": [
+    "../../src/runtime",
+    "../../src/jit",
+    "."
+  ]
 }

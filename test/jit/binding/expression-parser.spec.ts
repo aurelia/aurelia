@@ -2,12 +2,12 @@ import { AccessKeyed, AccessMember, AccessScope, AccessThis,
   Assign, Binary, BindingBehavior, CallFunction,
   CallMember, CallScope, Conditional,
   ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template,
-  Unary, ValueConverter, TaggedTemplate } from '../../../../src/runtime/binding/ast';
+  Unary, ValueConverter, TaggedTemplate } from '../../../src/runtime/binding/ast';
 import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
 import { expect } from 'chai';
-import { DI } from '../../../../src/runtime/di';
-import { IExpressionParser } from '../../../../src/runtime/binding/expression-parser';
-import { register } from '../../../../src/jit/binding/expression-parser'
+import { DI } from '../../../src/runtime/di';
+import { IExpressionParser } from '../../../src/runtime/binding/expression-parser';
+import { register } from '../../../src/jit/binding/expression-parser'
 
 /* eslint-disable no-loop-func, no-floating-decimal, key-spacing, new-cap, quotes, comma-spacing */
 
@@ -46,7 +46,7 @@ const unaryOps = [
   'void'
 ];
 
-describe('Parser', () => {
+describe('ExpressionParser', () => {
   let parser: IExpressionParser;
 
   beforeEach(() => {

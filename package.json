@@ -7,9 +7,15 @@
     "url": "???"
   },
   "scripts": {
-    "test:debug": "./node_modules/.bin/cross-env TS_NODE_PROJECT=\"tsconfig-tsnode.json\" ./node_modules/.bin/karma start --browsers=ChromeDebugging --single-run=false --auto-watch=true --no-info=false",
     "test": "./node_modules/.bin/cross-env TS_NODE_PROJECT=\"tsconfig-tsnode.json\" ./node_modules/.bin/karma start --browsers=ChromeHeadless --single-run=true --auto-watch=false --no-info=true --log-level=error --coverage=true",
-    "test:watch": "./node_modules/.bin/cross-env TS_NODE_PROJECT=\"tsconfig-tsnode.json\" ./node_modules/.bin/karma start --browsers=ChromeHeadless --single-run=false --auto-watch=true --no-info=true --log-level=error --coverage=true",
+    "test:debugger": "./node_modules/.bin/cross-env TS_NODE_PROJECT=\"tsconfig-tsnode.json\" ./node_modules/.bin/karma start --browsers=ChromeDebugging --single-run=false --auto-watch=true --no-info=false",
+    "test:watch": "./node_modules/.bin/cross-env TS_NODE_PROJECT=\"tsconfig-tsnode.json\" ./node_modules/.bin/karma start --browsers=ChromeHeadless --single-run=false --auto-watch=true --no-info=true --log-level=error --transpile-only=true --coverage=true",
+    "test:debug": "npm run test -- --component=debug",
+    "test:debug:debugger": "npm run test:debugger -- --component=debug",
+    "test:debug:watch": "npm run test:watch -- --component=debug",
+    "test:jit": "npm run test -- --component=jit",
+    "test:jit:debugger": "npm run test:debugger -- --component=jit",
+    "test:jit:watch": "npm run test:watch -- --component=jit",
     "transpile": "tsc src/compile.ts --outDir scripts",
     "build": "rollup -c compiler.rollup.config.js",
     "test:compile": "node compiler/test/compile",

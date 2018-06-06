@@ -2,12 +2,12 @@ import { AccessKeyed, AccessMember, AccessScope, AccessThis,
   Assign, Binary, BindingBehavior, CallFunction,
   CallMember, CallScope, Conditional,
   ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template,
-  Unary, ValueConverter, TaggedTemplate } from '../../../../src/runtime/binding/ast';
+  Unary, ValueConverter, TaggedTemplate } from '../../../src/runtime/binding/ast';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
 import { createScopeForTest } from './shared';
-import { BindingContext } from '../../../../src/runtime/binding/binding-context';
-import { BindingFlags } from '../../../../src/runtime/binding/binding-flags';
+import { BindingContext } from '../../../src/runtime/binding/binding-context';
+import { BindingFlags } from '../../../src/runtime/binding/binding-flags';
 
 describe('AccessKeyed', () => {
   let expression;

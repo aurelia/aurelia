@@ -1,5 +1,5 @@
 import { createObserverLocator, checkDelay } from './shared';
-import { ModifyCollectionObserver } from '../../../../src/runtime/binding/collection-observation';
+import { ModifyCollectionObserver } from '../../../src/runtime/binding/collection-observation';
 import { spy } from 'sinon';
 import { expect } from 'chai';
 

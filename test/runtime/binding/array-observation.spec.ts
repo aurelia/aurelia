@@ -1,8 +1,8 @@
-import { getArrayObserver } from '../../../../src/runtime/binding/array-observation';
+import { getArrayObserver } from '../../../src/runtime/binding/array-observation';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { DI } from '../../../../src/runtime/di';
-import { ITaskQueue } from '../../../../src/runtime/task-queue';
+import { DI } from '../../../src/runtime/di';
+import { ITaskQueue } from '../../../src/runtime/task-queue';
 
 describe('array observation', () => {
   let taskQueue;

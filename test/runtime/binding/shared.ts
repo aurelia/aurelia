@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { BindingContext, IScope } from '../../../../src/runtime/binding/binding-context';
-import { DI, IContainer } from '../../../../src/runtime/di';
-import { IObserverLocator } from '../../../../src/runtime/binding/observer-locator';
+import { BindingContext, IScope } from '../../../src/runtime/binding/binding-context';
+import { DI, IContainer } from '../../../src/runtime/di';
+import { IObserverLocator } from '../../../src/runtime/binding/observer-locator';
 
 export const checkDelay = 20;
 

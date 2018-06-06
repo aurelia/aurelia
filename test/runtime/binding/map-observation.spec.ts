@@ -1,8 +1,8 @@
-import { getMapObserver } from '../../../../src/runtime/binding/map-observation';
+import { getMapObserver } from '../../../src/runtime/binding/map-observation';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { DI } from '../../../../src/runtime/di';
-import { ITaskQueue } from '../../../../src/runtime/task-queue';
+import { DI } from '../../../src/runtime/di';
+import { ITaskQueue } from '../../../src/runtime/task-queue';
 
 describe('getMapObserver', () => {
   let taskQueue;

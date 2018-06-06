@@ -9,8 +9,13 @@
     "lib": ["es2017", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
+    "sourceMap": true,
     "skipLibCheck": true,
     "target": "es2015",
   },
-  "include": ["../src", "."]
+  "include": [
+    "../../src/runtime",
+    "../../src/debug",
+    "."
+  ]
 }

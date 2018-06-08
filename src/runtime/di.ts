@@ -432,6 +432,15 @@ export const Registration = {
 
   alias(originalKey: any, aliasKey: any): IRegistration {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
+  },
+
+  plugin(pluginKey: any, configuration?: any): IRegistration {
+    return {
+      register(container: IContainer): IResolver {
+        const plugin = container.get(pluginKey) as IRegistration;
+        return plugin.register(container, configuration);
+      }
+    };
   }
 };
 

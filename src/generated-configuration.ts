@@ -39,7 +39,7 @@ const expressionCache: Record<string, IExpression> = {
   description: new AccessMember(new AccessScope('todo'), 'description')
 };
 
-const globalResources = [Repeat, If, Else];
+const globalResources: any[] = [Repeat, If, Else];
 
 export const GeneratedConfiguration = {
   register(container: IContainer) {

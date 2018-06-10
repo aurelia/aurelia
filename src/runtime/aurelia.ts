@@ -1,6 +1,6 @@
 import { IElementComponent } from './templating/component';
 import { PLATFORM } from './platform';
-import { IContainer, DI } from './di';
+import { IContainer, DI, IRegistry } from './di';
 import { ITaskQueue } from './task-queue';
 import { IRenderingEngine } from './templating/rendering-engine';
 
@@ -17,7 +17,7 @@ export class Aurelia {
 
   constructor(private container: IContainer = DI.createContainer()) {}
 
-  register(...params: any[]) {
+  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]) {
     this.container.register(...params);
     return this;
   }

@@ -3,7 +3,7 @@ import { ITaskQueue } from '../task-queue';
 import { Observer } from '../binding/property-observation';
 import { ShadowDOMEmulation } from './shadow-dom';
 import { PLATFORM } from '../platform';
-import { IContainer, Registration, DI } from '../di';
+import { IContainer, Registration, DI, IRegistry } from '../di';
 import { BindingMode } from '../binding/binding-mode';
 import { Constructable, ICallable, Immutable, Writable } from '../interfaces';
 import { IBindScope, IAccessor, ISubscribable } from '../binding/observation';
@@ -47,24 +47,20 @@ interface IAttributeComponentImplementation extends Writable<IAttributeComponent
   $slot: IRenderSlot;
 }
 
-export interface IAttributeType extends Constructable<IAttributeComponent> {
+export interface IAttributeType extends Constructable<IAttributeComponent>, IRegistry {
   readonly definition: AttributeDefinition;
-  register(container: IContainer);
 };
 
-export interface IElementType extends Constructable<IElementComponent> {
+export interface IElementType extends Constructable<IElementComponent>, IRegistry {
   readonly definition: TemplateDefinition;
-  register(container: IContainer);
 }
 
-export interface IValueConverterType extends Constructable {
+export interface IValueConverterType extends Constructable, IRegistry {
   readonly definition: ValueConverterDefinition;
-  register(container: IContainer);
 }
 
-export interface IBindingBehaviorType extends Constructable {
+export interface IBindingBehaviorType extends Constructable, IRegistry {
   readonly definition: BindingBehaviorDefinition;
-  register(container: IContainer);
 }
 
 export const Component = {

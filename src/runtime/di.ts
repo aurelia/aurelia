@@ -2,7 +2,7 @@ import { PLATFORM } from './platform';
 import { Injectable, Constructable, IIndexable } from './interfaces';
 import { Reporter } from './reporter';
 
-type Factory<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
 export interface IInterfaceSymbol<T> {
   (target: Injectable, property: string, index: number): any;
@@ -14,15 +14,15 @@ interface IDefaultableInterfaceSymbol<T> extends IInterfaceSymbol<T> {
 
 export interface IResolver<T = any> {
   resolve(handler: IContainer, requestor: IContainer): T;
-  getConstructionHandler?(container: IContainer): IConstructionHandler<T>;
+  getFactory?(container: IContainer): IFactory<T>;
 }
 
 export interface IRegistration<T = any> {
   register(container: IContainer, key?: any): IResolver<T>;
 }
 
-export interface IConstructionHandler<T = any> {
-  registerTransformer<T>(transformer: (instance: T) => T): boolean;
+export interface IFactory<T = any> {
+  registerTransformer(transformer: (instance: T) => T): boolean;
   construct(container: IContainer, dynamicDependencies?: any[]): T;
 }
 
@@ -36,8 +36,12 @@ export interface IServiceLocator {
   getAll<T = any>(key: any): ReadonlyArray<T>;
 }
 
+export interface IRegistry {
+  register(container: IContainer): void;
+}
+
 export interface IContainer extends IServiceLocator {
-  register(...params: any[]);
+  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]);
 
   registerResolver<T>(key: IInterfaceSymbol<T>, resolver: IResolver<T>): IResolver<T>;
   registerResolver<T extends Constructable>(key: T, resolver: IResolver<InstanceType<T>>): IResolver<InstanceType<T>>;
@@ -51,7 +55,7 @@ export interface IContainer extends IServiceLocator {
   getResolver<T extends Constructable>(key: T, autoRegister?: boolean): IResolver<InstanceType<T>>;
   getResolver<T = any>(key: any, autoRegister?: boolean): IResolver<T>;
 
-  getConstructionHandler<T extends Constructable>(type: T): IConstructionHandler<InstanceType<T>>;
+  getFactory<T extends Constructable>(type: T): IFactory<InstanceType<T>>;
 
   createChild(): IContainer;
 }
@@ -60,19 +64,34 @@ interface IResolverBuilder<T> {
   instance(value: T & IIndexable): IResolver;
   singleton(value: Constructable<T>): IResolver;
   transient(value: Constructable<T>): IResolver;
-  factory(value: Factory<T>): IResolver;
+  callback(value: ResolveCallback<T>): IResolver;
   aliasTo(destinationKey: any): IResolver;
+}
+
+if (!('getOwnMetadata' in Reflect)) {
+  (<any>Reflect).getOwnMetadata = function(key, target) {
+    return target[key];
+  };
+
+  (<any>Reflect).metadata = function(key, value) {
+    return function(target) {
+      target[key] = value;
+    }
+  };
 }
 
 export const DI = { 
   createContainer(): IContainer {
     return new Container();
   },
+  getDesignParamTypes(target: any): any[] {
+    return (<any>Reflect).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
+  },
   getDependencies(type: Function): any[] {
     let dependencies: any[];
 
     if ((<any>type).inject === undefined) {
-      dependencies = getDesignParamTypes(type);
+      dependencies = DI.getDesignParamTypes(type);
     } else {
       dependencies = [];
       let ctor = type;
@@ -112,8 +131,8 @@ export const DI = {
           transient(value: Function) { 
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.transient, value));
           },
-          factory(value: Factory) { 
-            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.factory, value));
+          callback(value: ResolveCallback) { 
+            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.callback, value));
           },
           aliasTo(destinationKey: any) { 
             return container.registerResolver(destinationKey, new Resolver(key || Key, ResolverStrategy.alias, Key));
@@ -128,22 +147,6 @@ export const DI = {
   }
 };
 
-function getDesignParamTypes(target: any): any[] {
-  return (<any>Reflect).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
-}
-
-if (!('getOwnMetadata' in Reflect)) {
-  (<any>Reflect).getOwnMetadata = function(key, target) {
-    return target[key];
-  };
-
-  (<any>Reflect).metadata = function(key, value) {
-    return function(target) {
-      target[key] = value;
-    }
-  };
-}
-
 export const IContainer = <IInterfaceSymbol<IContainer>>DI.createInterface<IContainer>();
 export const IServiceLocator = <IInterfaceSymbol<IServiceLocator>>IContainer;
 
@@ -151,7 +154,7 @@ const enum ResolverStrategy {
   instance = 0,
   singleton = 1,
   transient = 2,
-  factory = 3,
+  callback = 3,
   array = 4,
   alias = 5
 }
@@ -169,12 +172,12 @@ class Resolver implements IResolver, IRegistration {
         return this.state;
       case ResolverStrategy.singleton:
         this.strategy = ResolverStrategy.instance;
-        return this.state = handler.getConstructionHandler(this.state).construct(handler);
+        return this.state = handler.getFactory(this.state).construct(handler);
       case ResolverStrategy.transient:
         //always create transients from the requesting container
-        return handler.getConstructionHandler(this.state).construct(requestor);
-      case ResolverStrategy.factory:
-        return (<Factory>this.state)(handler, requestor, this);
+        return handler.getFactory(this.state).construct(requestor);
+      case ResolverStrategy.callback:
+        return (<ResolveCallback>this.state)(handler, requestor, this);
       case ResolverStrategy.array:
         return this.state[0].get(handler, requestor);
       case ResolverStrategy.alias:
@@ -184,11 +187,11 @@ class Resolver implements IResolver, IRegistration {
     }
   }
 
-  getConstructionHandler(container: IContainer): IConstructionHandler {
+  getFactory(container: IContainer): IFactory {
     switch (this.strategy) {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:
-        return container.getConstructionHandler(this.state);
+        return container.getFactory(this.state);
       default:
         return null;
     }
@@ -200,7 +203,7 @@ interface IInvoker {
   invokeWithDynamicDependencies(container: IContainer, fn: Function, staticDependencies: any[], dynamicDependencies: any[]): any;
 }
 
-class ConstructionHandler implements IConstructionHandler {
+class Factory implements IFactory {
   private transformers: ((instance: any) => any)[] = null;
 
   constructor(private fn: Function, private invoker: IInvoker, private dependencies: any[]) { }
@@ -231,15 +234,15 @@ class ConstructionHandler implements IConstructionHandler {
     return true;
   }
 
-  static create(fn: Function & { inject?: any }): IConstructionHandler {
+  static create(fn: Function & { inject?: any }): IFactory {
     const dependencies = DI.getDependencies(fn);
     const invoker = classInvokers[dependencies.length] || classInvokers.fallback;
-    return new ConstructionHandler(fn, invoker, dependencies);
+    return new Factory(fn, invoker, dependencies);
   }
 }
 
 interface IContainerConfiguration {
-  handlers?: Map<Function, any>;
+  factories?: Map<Function, any>;
 }
 
 const containerResolver: IResolver = {
@@ -248,30 +251,36 @@ const containerResolver: IResolver = {
   }
 };
 
+function isRegistry(obj: any): obj is IRegistry {
+  return typeof obj.register === 'function';
+}
+
 class Container implements IContainer {
   private parent: Container = null;
   private resolvers = new Map<any, IResolver>();
-  private handlers: Map<Function, any>;
+  private factories: Map<Function, any>;
   private configuration: IContainerConfiguration;
 
   constructor(configuration: IContainerConfiguration = {}) {
     this.configuration = configuration;
-    this.handlers = configuration.handlers || (configuration.handlers = new Map());
+    this.factories = configuration.factories || (configuration.factories = new Map());
     this.resolvers.set(IContainer, containerResolver);
   }
 
-  register(...params: any[]) {
+  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]) {
     const resolvers = this.resolvers;
 
     for (let i = 0, ii = params.length; i < ii; ++i) {
       const current = params[i];
       
-      if (current.register) {
+      if (isRegistry(current)) {
         current.register(this);
       } else {
-        Object.values(current).forEach((x: any) => {
-          if (x.register) {
-            x.register(this);
+        Object.keys(current).forEach(key => {
+          const value = current[key];
+
+          if (value.register) {
+            value.register(this);
           }
         });
       }
@@ -302,8 +311,8 @@ class Container implements IContainer {
       return false;
     }
 
-    if (resolver.getConstructionHandler) {
-      let handler = resolver.getConstructionHandler(this);
+    if (resolver.getFactory) {
+      let handler = resolver.getFactory(this);
 
       if (handler === null) {
         return false;
@@ -395,15 +404,15 @@ class Container implements IContainer {
     return resolver;
   }
 
-  getConstructionHandler(type: Function): IConstructionHandler {
-    let handler = this.handlers.get(type);
+  getFactory(type: Function): IFactory {
+    let factory = this.factories.get(type);
 
-    if (handler === undefined) {
-      handler = ConstructionHandler.create(type);
-      this.handlers.set(type, handler);
+    if (factory === undefined) {
+      factory = Factory.create(type);
+      this.factories.set(type, factory);
     }
 
-    return handler;
+    return factory;
   }
 
   createChild(): IContainer {
@@ -426,19 +435,27 @@ export const Registration = {
     return new Resolver(key, ResolverStrategy.transient, value);
   },
 
-  factory(key: any, value: Factory): IRegistration {
-    return new Resolver(key, ResolverStrategy.factory, value);
+  callback(key: any, callback: ResolveCallback): IRegistration {
+    return new Resolver(key, ResolverStrategy.callback, callback);
   },
 
   alias(originalKey: any, aliasKey: any): IRegistration {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
   },
 
-  plugin(pluginKey: any, configuration?: any): IRegistration {
+  interpret(interpreterKey: any, ...rest: any[]): IRegistry {
     return {
-      register(container: IContainer): IResolver {
-        const plugin = container.get(pluginKey) as IRegistration;
-        return plugin.register(container, configuration);
+      register(container: IContainer) {
+        let registry: IRegistry;
+        const resolver = container.getResolver<IRegistry>(interpreterKey);
+
+        if (resolver.getFactory) {
+          registry = resolver.getFactory(container).construct(container, rest);
+        } else {
+          registry = resolver.resolve(container, container);
+        }
+
+        registry.register(container);
       }
     };
   }
@@ -451,8 +468,8 @@ function validateKey(key: any) {
 }
 
 function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: IContainer) {
-  if (resolver instanceof Resolver && (<Resolver>resolver).strategy === 4) {
-    const state = (<Resolver>resolver).state;
+  if (resolver instanceof Resolver && resolver.strategy === 4) {
+    const state = resolver.state;
     let i = state.length;
     const results = new Array(i);
 
@@ -537,7 +554,7 @@ function invokeWithDynamicDependencies(container: IContainer, fn: Function, stat
 export function autoinject<T extends Injectable>(potentialTarget?: T): any {
   let deco = function<T extends Injectable>(target: T) {
     let previousInject = target.inject ? target.inject.slice() : null; //make a copy of target.inject to avoid changing parent inject
-    let autoInject: any = getDesignParamTypes(target);
+    let autoInject: any = DI.getDesignParamTypes(target);
     
     if (!previousInject) {
       target.inject = autoInject;
@@ -572,7 +589,7 @@ export function inject(...rest: any[]): any {
       let params = target.inject;
 
       if (!params) {
-        params = getDesignParamTypes(target).slice();
+        params = DI.getDesignParamTypes(target).slice();
         target.inject = params;
       }
 

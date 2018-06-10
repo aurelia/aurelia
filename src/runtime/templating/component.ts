@@ -48,26 +48,33 @@ interface IAttributeComponentImplementation extends Writable<IAttributeComponent
 }
 
 export interface IAttributeType extends Constructable<IAttributeComponent>, IRegistry {
+  readonly type: 'attribute';
   readonly definition: AttributeDefinition;
 };
 
 export interface IElementType extends Constructable<IElementComponent>, IRegistry {
+  readonly type: 'element';
   readonly definition: TemplateDefinition;
 }
 
 export interface IValueConverterType extends Constructable, IRegistry {
+  readonly type: 'value-converter';
   readonly definition: ValueConverterDefinition;
 }
 
 export interface IBindingBehaviorType extends Constructable, IRegistry {
+  readonly type: 'binding-behavior';
   readonly definition: BindingBehaviorDefinition;
 }
+
+export type ComponentTypes =  IAttributeType | IElementType | IValueConverterType | IBindingBehaviorType;
 
 export const Component = {
   valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & IValueConverterType {
     const definition = createDefinition<IValueConverterSource>(nameOrSource);
     const Type: T & IValueConverterType = ctor as any;
 
+    (Type as Writable<IValueConverterType>).type = 'value-converter';
     (Type as Writable<IValueConverterType>).definition = definition;
     Type.register = function(container: IContainer) {
       container.register(Registration.singleton(definition.name, Type));
@@ -79,6 +86,7 @@ export const Component = {
     const definition = createDefinition<IBindingBehaviorSource>(nameOrSource);
     const Type: T & IBindingBehaviorType = ctor as any;
 
+    (Type as Writable<IBindingBehaviorType>).type = 'binding-behavior';
     (Type as Writable<IBindingBehaviorType>).definition = definition;
     Type.register = function(container: IContainer) {
       container.register(Registration.singleton(definition.name, Type));
@@ -92,6 +100,7 @@ export const Component = {
     const proto: IAttributeComponent = Type.prototype;
     const observables = (Type as any).observables || {};
 
+    (Type as Writable<IAttributeType>).type = 'attribute';
     (Type as Writable<IAttributeType>).definition = definition;
     Type.register = function register(container: IContainer){
       container.register(Registration.transient(definition.name, Type));
@@ -194,6 +203,7 @@ export const Component = {
     const definition = createTemplateDefinition(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: IElementComponent = Type.prototype;
 
+    (Type as Writable<IElementType>).type = 'element';
     (Type as Writable<IElementType>).definition = definition;
     Type.register = function(container: IContainer){
       container.register(Registration.transient(definition.name, Type));

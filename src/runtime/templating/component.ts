@@ -67,7 +67,7 @@ export interface IBindingBehaviorType extends Constructable, IRegistry {
   readonly definition: BindingBehaviorDefinition;
 }
 
-export type ComponentTypes =  IAttributeType | IElementType | IValueConverterType | IBindingBehaviorType;
+export type ComponentType =  IAttributeType | IElementType | IValueConverterType | IBindingBehaviorType;
 
 export const Component = {
   valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & IValueConverterType {

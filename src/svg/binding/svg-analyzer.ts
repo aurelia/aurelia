@@ -237,7 +237,7 @@ export function register(container: IContainer) {
     
         const nodeName = (<SVGElement>node).nodeName;
     
-        return svgPresentationElements[nodeName] && svgPresentationElements[attributeName]
+        return svgPresentationElements[nodeName] && svgPresentationAttributes[attributeName]
           || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
       }
     });

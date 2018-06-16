@@ -11,8 +11,8 @@ export const appConfig: ITemplateSource = {
     import1
   ],
   template: `
-    <au-marker class="au"></au-marker> <br>
-    <au-marker class="au"></au-marker> <br>
+    <au-marker class="au"></au-marker> <br/>
+    <au-marker class="au"></au-marker> <br/>
     <input type="text" class="au">
     <name-tag class="au">
       <h2>Message: <au-marker class="au"></au-marker> </h2>

@@ -51,15 +51,17 @@ export const PLATFORM = {
   },
 
   createMicroTaskFlushRequestor(onFlush:  () => void): () => void {
-    let toggle = 1;
     const observer = new MutationObserver(onFlush);
     const node = document.createTextNode('');
-
-    observer.observe(node, { characterData: true });
+    const values = Object.create(null);
+    let val = 'a';
     
+    values.a = 'b';
+    values.b = 'a';
+    observer.observe(node, { characterData: true });
+
     return function requestFlush() {
-      toggle = -toggle;
-      node.data = toggle.toString();
+      node.data = val = values[val];
     };
   }
 };

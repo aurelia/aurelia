@@ -36,3 +36,5 @@ export type Immutable<T> = { readonly [P in keyof T]: ImmutableObject<T[P]> }
 export type Writable<T> = {
   -readonly [K in keyof T]: T[K]
 }
+
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;

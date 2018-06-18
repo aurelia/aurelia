@@ -1,14 +1,13 @@
 import { customElement } from '../decorators';
 import { IRenderSlot, SwapOrder } from '../templating/render-slot';
 import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from '../templating/instructions';
-import { IViewOwner, IContentView } from '../templating/view';
-import { IContainer, inject } from '../di';
-import { IBindScope } from '../binding/observation';
+import { IViewOwner } from '../templating/view';
+import { inject } from '../di';
 import { INode, DOM } from '../dom';
 import { VisualWithCentralComponent } from '../templating/visual';
 import { IRenderContext } from '../templating/render-context';
 import { IRenderingEngine } from '../templating/rendering-engine';
-import { IElementType, IElementComponent } from '../templating/component';
+import { IElementComponent } from '../templating/component';
 import { Immutable } from '../interfaces';
 
 const composeSource = {

@@ -1,9 +1,8 @@
-import { customAttribute, templateController, bindable } from '../../decorators';
+import { templateController, bindable } from '../../decorators';
 import { IVisualFactory, IVisual } from '../../templating/visual';
 import { IRenderSlot } from '../../templating/render-slot';
 import { IContainer, inject } from '../../di';
 import { IRepeatStrategyRegistry } from './repeat-strategy-registry';
-import { ITargetedInstruction, IHydrateTemplateController } from '../../templating/instructions';
 import { IRepeater } from './repeater';
 import { IExpression, BindingBehavior, ValueConverter } from '../../binding/ast';
 import { IScope, sourceContext } from '../../binding/binding-context';
@@ -62,8 +61,7 @@ function getBinding(owner: IViewOwner, behavior: any, propertyName: string): Bin
     .find(x => x.target === behavior && x.targetProperty === propertyName);
 }
 
-@customAttribute('repeat')
-@templateController
+@templateController('repeat')
 @inject(IViewOwner, IVisualFactory, IRenderSlot, IContainer, ITaskQueue, IRepeatStrategyRegistry)
 export class Repeat implements IRepeater {
   private ignoreMutation = false;

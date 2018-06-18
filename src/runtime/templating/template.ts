@@ -1,6 +1,6 @@
 import { IViewOwner } from "./view";
 import { INode, IView } from "../dom";
-import { ITemplateSource, TemplatePartDefinitions } from "./instructions";
+import { TemplatePartDefinitions } from "./instructions";
 import { IRenderContext } from "./render-context";
 
 export interface ITemplate {

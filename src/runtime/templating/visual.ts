@@ -1,9 +1,8 @@
 import { IBindScope } from "../binding/observation";
-import { AttachLifecycle, DetachLifecycle, IAttach } from "./lifecycle";
+import { IAttach } from "./lifecycle";
 import { IViewOwner } from "./view";
 import { IElementComponent } from "./component";
 import { DI } from "../di";
-import { INode } from "../dom";
 import { IRenderSlot } from "./render-slot";
 
 export type RenderCallback = (visual: IVisual) => void;

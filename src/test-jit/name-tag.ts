@@ -1,7 +1,7 @@
-import { customElement } from "./runtime/decorators"; //added by the compiler
-import { nameTagConfig } from './name-tag-config'; //added by the compiler
+import { customElement } from "../runtime/decorators";
+import view from './name-tag.html!au';
 
-@customElement(nameTagConfig) //added by the compiler
+@customElement(view)
 export class NameTag {
   name = 'Aurelia';
   color = 'red';

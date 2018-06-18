@@ -1,13 +1,12 @@
-import { customAttribute, templateController } from '../decorators';
+import { templateController } from '../decorators';
 import { IRenderSlot } from '../templating/render-slot';
-import { IScope, BindingContext } from '../binding/binding-context';
+import { BindingContext } from '../binding/binding-context';
 import { inject } from '../di';
 import { IVisualFactory, IVisual } from '../templating/visual';
 import { IAttributeComponent } from '../templating/component';
 
 export interface With extends IAttributeComponent {}
-@customAttribute('with')
-@templateController
+@templateController('with')
 @inject(IVisualFactory, IRenderSlot)
 export class With { 
   private child: IVisual = null;

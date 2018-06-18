@@ -1,6 +1,5 @@
-import { ShadowDOMEmulation } from "./runtime/templating/shadow-dom";
-import { ITemplateSource, TargetedInstructionType } from "./runtime/templating/instructions";
-import { DelegationStrategy } from "./runtime/binding/event-manager";
+import { ITemplateSource, TargetedInstructionType } from "../runtime/templating/instructions";
+import { DelegationStrategy } from "../runtime/binding/event-manager";
 
 //this object is built up during compilation
 export const nameTagConfig: ITemplateSource = {

@@ -1,6 +1,6 @@
 import { Aurelia, ISinglePageApp } from '../../src/runtime/aurelia';
-import { App } from '../../src/app';
-import { GeneratedConfiguration } from '../../src/generated-configuration';
+import { App } from '../../src/test-aot/app';
+import { GeneratedConfiguration } from '../../src/test-aot/generated-configuration';
 import { DebugConfiguration } from '../../src/debug/configuration';
 import { expect } from 'chai';
 import { spy } from 'sinon';

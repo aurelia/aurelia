@@ -1,12 +1,12 @@
 import { RuntimeBehavior, IRuntimeBehavior } from "./runtime-behavior";
 import { IAttributeType, IElementType, IAttributeComponent, IElementComponent } from "./component";
-import { DI, IContainer, inject, IResolver } from "../di";
-import { ITemplateSource, IBindableInstruction, ITargetedInstruction, TargetedInstructionType, IHydrateElementInstruction, TemplateDefinition, TemplatePartDefinitions, ObservableDefinitions } from "./instructions";
+import { DI, IContainer, inject } from "../di";
+import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition, TemplatePartDefinitions, ObservableDefinitions } from "./instructions";
 import { ITaskQueue } from "../task-queue";
 import { IViewOwner, View } from "./view";
 import { INode, IView, DOM } from "../dom";
 import { IRenderer, Renderer } from "./renderer";
-import { IRenderSlot, RenderSlot } from "./render-slot";
+import { IRenderSlot } from "./render-slot";
 import { Constructable, Immutable } from "../interfaces";
 import { DetachLifecycle, AttachLifecycle, IAttach } from "./lifecycle";
 import { IScope } from "../binding/binding-context";

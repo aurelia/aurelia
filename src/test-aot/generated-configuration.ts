@@ -1,10 +1,9 @@
-import { AccessScope, HtmlLiteral, PrimitiveLiteral, Conditional, CallScope, IExpression, AccessMember } from "./runtime/binding/ast";
-import { IContainer } from "./runtime/di";
-import { IExpressionParser } from "./runtime/binding/expression-parser";
-import { Repeat } from "./runtime/resources/repeat/repeat";
-import { If } from "./runtime/resources/if";
-import { Else } from "./runtime/resources/else";
-import { Compose } from "./runtime/resources/compose";
+import { AccessScope, HtmlLiteral, PrimitiveLiteral, Conditional, CallScope, IExpression, AccessMember } from "../runtime/binding/ast";
+import { IContainer } from "../runtime/di";
+import { IExpressionParser } from "../runtime/binding/expression-parser";
+import { Repeat } from "../runtime/resources/repeat/repeat";
+import { If } from "../runtime/resources/if";
+import { Else } from "../runtime/resources/else";
 
 const emptyArray: any[] = [];
 

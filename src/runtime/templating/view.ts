@@ -3,14 +3,10 @@ import { IEmulatedShadowSlot } from './shadow-dom';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
 import { IAttach } from './lifecycle';
-import { DI, IContainer } from '../di';
-import { Constructable } from '../interfaces';
-import { ITemplateSource } from './instructions';
+import { DI } from '../di';
 import { INode, DOM, IChildObserver, IView } from '../dom';
-import { IElementComponent } from './component';
 import { IRenderSlot } from './render-slot';
 import { Reporter } from '../reporter';
-import { ITemplate } from './template';
 import { IVisual } from './visual';
 import { IRenderContext } from './render-context';
 

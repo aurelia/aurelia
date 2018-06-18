@@ -22,10 +22,15 @@
     "bundles": [
       {
         "name": "app-bundle.js",
-        "source": [
-          "[**/*.js]",
-          "**/*.{css,html}"
-        ]
+        "source": {
+          "include": [
+            "[**/*.js]",
+            "**/*.{css,html}"
+          ],
+          "exclude": [
+            "**/test-jit/**/*"
+          ]
+        }
       },
       {
         "name": "vendor-bundle.js",

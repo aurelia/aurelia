@@ -1,21 +1,17 @@
 import { View, IViewOwner, IContentView } from './view';
-import { ITaskQueue } from '../task-queue';
-import { Observer } from '../binding/property-observation';
 import { ShadowDOMEmulation } from './shadow-dom';
 import { PLATFORM } from '../platform';
-import { IContainer, Registration, DI, IRegistry } from '../di';
+import { IContainer, Registration, IRegistry } from '../di';
 import { BindingMode } from '../binding/binding-mode';
-import { Constructable, ICallable, Immutable, Writable } from '../interfaces';
-import { IBindScope, IAccessor, ISubscribable } from '../binding/observation';
+import { Constructable, Immutable, Writable } from '../interfaces';
+import { IBindScope } from '../binding/observation';
 import { IScope, BindingContext } from '../binding/binding-context';
 import { IRenderSlot } from './render-slot';
 import { IBindSelf, IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
-import { ITemplateSource, IBindableInstruction, TemplateDefinition, TemplatePartDefinitions, IHydrateElementInstruction, AttributeDefinition, ValueConverterDefinition, BindingBehaviorDefinition, IValueConverterSource, IBindingBehaviorSource, IAttributeSource } from './instructions';
-import { INode, DOM, IView, IChildObserver } from '../dom';
-import { SubscriberCollection } from '../binding/subscriber-collection';
+import { ITemplateSource, TemplateDefinition, IHydrateElementInstruction, AttributeDefinition, ValueConverterDefinition, BindingBehaviorDefinition, IValueConverterSource, IBindingBehaviorSource, IAttributeSource } from './instructions';
+import { INode, DOM } from '../dom';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
-import { IRenderContext } from './render-context';
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'contentOverride'>>;
 
@@ -386,8 +382,8 @@ function createAttributeDefinition(nameOrSource: string | IAttributeSource): Imm
 }
 
 function createTemplateDefinition(templateSource: ITemplateSource, Type: IElementType): TemplateDefinition {
-  let definition = {
-    name: templateSource.name || 'Unnamed Template',
+  return {
+    name: templateSource.name || 'unnamed',
     template: templateSource.template || null,
     observables: Object.assign({}, (Type as any).observables, templateSource.observables),
     instructions: templateSource.instructions ? Array.from(templateSource.instructions) : PLATFORM.emptyArray,
@@ -397,8 +393,4 @@ function createTemplateDefinition(templateSource: ITemplateSource, Type: IElemen
     shadowOptions: templateSource.shadowOptions || (Type as any).shadowOptions || null,
     hasSlots: templateSource.hasSlots || false
   };
-
-  // TODO: hook
-
-  return definition;
 }

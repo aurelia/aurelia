@@ -1,5 +1,5 @@
 import { appConfig } from './app-config'; //added by the compiler
-import { customElement } from './runtime/decorators';
+import { customElement } from '../runtime/decorators';
 
 class Todo {
   done = false;

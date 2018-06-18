@@ -1,6 +1,6 @@
 import { IViewOwner } from './view';
 import { INode, DOM } from '../dom';
-import { ITemplateSource, IHydrateElementInstruction, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
+import { IHydrateElementInstruction, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
 import { IElementComponent, IAttributeComponent } from './component';
 import { ITaskQueue } from '../task-queue';
 import { IObserverLocator } from '../binding/observer-locator';
@@ -13,7 +13,6 @@ import { Listener } from '../binding/listener';
 import { Call } from '../binding/call';
 import { Ref } from '../binding/ref';
 import { ShadowDOMEmulation } from './shadow-dom';
-import { DI, inject, IContainer } from '../di';
 import { IRenderContext } from './render-context';
 import { Immutable } from '../interfaces';
 

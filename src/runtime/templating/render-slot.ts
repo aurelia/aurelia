@@ -1,10 +1,7 @@
 import { ShadowDOMEmulation, IEmulatedShadowSlot } from './shadow-dom';
-import { IScope } from '../binding/binding-context';
-import { IBindScope } from '../binding/observation';
-import { Reporter } from '../reporter';
 import { IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
 import { DI } from '../di';
-import { INode, IView } from '../dom';
+import { INode } from '../dom';
 import { IContentView } from './view';
 import { IVisual, MotionDirection } from './visual';
 

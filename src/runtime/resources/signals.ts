@@ -1,7 +1,6 @@
-import { sourceContext, IScope } from '../binding/binding-context';
-import { DI, inject } from '../di';
-import { IBinding, Binding } from '../binding/binding';
-import { ICallable } from '../interfaces';
+import { IScope } from '../binding/binding-context';
+import { inject } from '../di';
+import { Binding } from '../binding/binding';
 import { bindingBehavior } from '../decorators';
 import { Reporter } from '../reporter';
 import { ISignaler } from '../binding/signaler';

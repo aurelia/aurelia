@@ -1,12 +1,11 @@
 import { IfCore } from './if-core';
 import { Else } from './else';
 import { IRenderSlot, SwapOrder } from '../templating/render-slot';
-import { templateController, customAttribute, bindable } from '../decorators';
+import { templateController, bindable } from '../decorators';
 import { inject } from '../di';
 import { IVisualFactory } from '../templating/visual';
 
-@customAttribute('if')
-@templateController
+@templateController('if')
 @inject(IVisualFactory, IRenderSlot)
 export class If extends IfCore {
   private animating = false;

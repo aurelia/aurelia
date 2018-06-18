@@ -1,71 +1,66 @@
 import { Component } from './templating/component';
-import { PLATFORM } from './platform';
 import { BindingMode } from './binding/binding-mode';
-import { Constructable, Injectable } from './interfaces';
-import { ITemplateSource, IBindableInstruction } from './templating/instructions';
+import { Constructable, Omit } from './interfaces';
+import { ITemplateSource, IBindableInstruction, IAttributeSource, IValueConverterSource, IBindingBehaviorSource } from './templating/instructions';
 import { IComputedOverrides } from './binding/computed-observer';
 
+/**
+* Decorator: Indicates that the decorated class is a custom element.
+*/
 export function customElement(nameOrSource: string | ITemplateSource) {
   return function<T extends Constructable>(target: T) {
-    if (typeof nameOrSource === 'string') {
-      // TODO: More setup here?
-      nameOrSource = <ITemplateSource>{
-        name: nameOrSource
-      };
-    }
-
     return Component.element(nameOrSource, target);
   }
 }
 
 /**
 * Decorator: Indicates that the decorated class is a custom attribute.
-* @param name The name of the custom attribute.
-* @param defaultBindingMode The default binding mode to use when the attribute is bound with .bind.
-* @param aliases The array of aliases to associate to the custom attribute.
 */
-export function customAttribute(name: string, defaultBindingMode?: BindingMode, aliases?: string[]) {
+export function customAttribute(nameOrSource: string | IAttributeSource) {
   return function<T extends Constructable>(target: T) {
-    return Component.attribute({
-      name,
-      defaultBindingMode,
-      aliases,
-      isTemplateController: !!(<any>target).isTemplateController
-    }, target);
+    return Component.attribute(nameOrSource, target);
   }
 }
-
-export function valueConverter(name: string) {
-  return function<T extends Constructable>(target: T) {
-    return Component.valueConverter(name, target);
-  }
-}
-
-export function bindingBehavior(name: string) {
-  return function<T extends Constructable>(target: T) {
-    return Component.bindingBehavior(name, target);
-  }
-}
-
+ 
 /**
 * Decorator: Applied to custom attributes. Indicates that whatever element the
 * attribute is placed on should be converted into a template and that this
 * attribute controls the instantiation of the template.
 */
-export function templateController(target?) {
-  let deco = function<T extends Constructable>(target: T) {
-    (<any>target).isTemplateController = true;
-    return target;
-  }
+export function templateController(nameOrSource: string | Omit<IAttributeSource, 'isTemplateController'>) {
+  return function<T extends Constructable>(target: T) {
+    let source: IAttributeSource;
 
-  return target ? deco(target) : deco;
+    if (typeof nameOrSource === 'string') {
+      source = {
+        name: nameOrSource,
+        isTemplateController: true
+      };
+    } else {
+      source = Object.assign({ isTemplateController: true }, nameOrSource);
+    }
+
+    return Component.attribute(source, target);
+  }
+}
+
+export function valueConverter(nameOrSource: string | IValueConverterSource) {
+  return function<T extends Constructable>(target: T) {
+    return Component.valueConverter(nameOrSource, target);
+  }
+}
+
+export function bindingBehavior(nameOrSource: string | IBindingBehaviorSource) {
+  return function<T extends Constructable>(target: T) {
+    return Component.bindingBehavior(nameOrSource, target);
+  }
 }
 
 const defaultShadowOptions = { mode: 'open' };
 
 /**
 * Decorator: Indicates that the custom element should render its view in Shadow
-* DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
+* DOM.
 */
 export function useShadowDOM(targetOrOptions?): any {
   let options = typeof targetOrOptions === 'function' || !targetOrOptions

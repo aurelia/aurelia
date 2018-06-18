@@ -1,11 +1,10 @@
-import { templateController, customAttribute } from '../decorators';
+import { templateController } from '../decorators';
 import { IRenderSlot } from '../templating/render-slot';
 import { IScope } from '../binding/binding-context';
 import { inject } from '../di';
 import { IVisualFactory, IVisual } from '../templating/visual';
 
-@customAttribute('replaceable')
-@templateController
+@templateController('replaceable')
 @inject(IVisualFactory, IRenderSlot)
 export class Replaceable {
   private child: IVisual;

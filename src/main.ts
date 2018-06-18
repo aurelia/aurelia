@@ -1,6 +1,6 @@
 import { Aurelia } from './runtime/aurelia';
-import { App } from './app';
-import { GeneratedConfiguration } from './generated-configuration';
+import { App } from './test-aot/app';
+import { GeneratedConfiguration } from './test-aot/generated-configuration';
 import { DebugConfiguration } from './debug/configuration';
 
 new Aurelia()

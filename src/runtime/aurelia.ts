@@ -1,7 +1,6 @@
 import { IElementComponent } from './templating/component';
 import { PLATFORM } from './platform';
 import { IContainer, DI, IRegistry } from './di';
-import { ITaskQueue } from './task-queue';
 import { IRenderingEngine } from './templating/rendering-engine';
 
 export interface ISinglePageApp {

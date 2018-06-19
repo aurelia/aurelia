@@ -1,4 +1,4 @@
-import { ICallable } from '../interfaces';
+import { ICallable } from '../../kernel/interfaces';
 
 let arrayPool1: any[] = [];
 let arrayPool2: any[] = [];

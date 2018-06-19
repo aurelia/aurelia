@@ -1,5 +1,5 @@
-import { IDisposable } from '../interfaces';
-import { DI } from '../di';
+import { IDisposable } from '../../kernel/interfaces';
+import { DI } from '../../kernel/di';
 import { INode, DOM } from '../dom';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively

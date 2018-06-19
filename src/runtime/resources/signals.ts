@@ -1,8 +1,8 @@
 import { IScope } from '../binding/binding-context';
-import { inject } from '../di';
+import { inject } from '../../kernel/decorators';
 import { Binding } from '../binding/binding';
 import { bindingBehavior } from '../decorators';
-import { Reporter } from '../reporter';
+import { Reporter } from '../../kernel/reporter';
 import { ISignaler } from '../binding/signaler';
 
 type SignalableBinding = Binding & {

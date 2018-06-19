@@ -1,5 +1,5 @@
 import { IBinding } from './binding';
-import { IServiceLocator } from '../di';
+import { IServiceLocator } from '../../kernel/di';
 import { IScope, BindingContext } from './binding-context';
 import { ISignaler } from './signaler';
 import { BindingFlags } from './binding-flags';

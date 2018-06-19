@@ -2,13 +2,13 @@ import { customElement } from '../decorators';
 import { IRenderSlot, SwapOrder } from '../templating/render-slot';
 import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from '../templating/instructions';
 import { IViewOwner } from '../templating/view';
-import { inject } from '../di';
+import { inject } from '../../kernel/decorators';
 import { INode, DOM } from '../dom';
 import { VisualWithCentralComponent } from '../templating/visual';
 import { IRenderContext } from '../templating/render-context';
 import { IRenderingEngine } from '../templating/rendering-engine';
 import { IElementComponent } from '../templating/component';
-import { Immutable } from '../interfaces';
+import { Immutable } from '../../kernel/interfaces';
 
 const composeSource = {
   name: 'au-compose',

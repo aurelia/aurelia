@@ -1,6 +1,6 @@
 import { ShadowDOMEmulation, IEmulatedShadowSlot } from './shadow-dom';
 import { IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
-import { DI } from '../di';
+import { DI } from '../../kernel/di';
 import { INode } from '../dom';
 import { IContentView } from './view';
 import { IVisual, MotionDirection } from './visual';

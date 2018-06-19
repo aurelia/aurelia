@@ -3,11 +3,10 @@ import { ConnectableBinding } from './connectable-binding';
 import { enqueueBindingConnect } from './connect-queue';
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
-import { Observer } from './property-observation';
 import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor } from './observation';
-import { IServiceLocator } from '../di';
+import { IServiceLocator } from '../../kernel/di';
 import { IScope, sourceContext, targetContext } from './binding-context';
-import { Reporter } from '../reporter';
+import { Reporter } from '../../kernel/reporter';
 import { BindingFlags } from './binding-flags';
 
 export interface IBinding extends IBindScope {

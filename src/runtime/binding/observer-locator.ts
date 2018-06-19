@@ -21,8 +21,9 @@ import {
 import { ClassObserver } from './class-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCollectionObserver, AccessorOrObserver, IAccessor } from './observation';
-import { Reporter } from '../reporter';
-import { DI, inject } from '../di';
+import { Reporter } from '../../kernel/reporter';
+import { DI } from '../../kernel/di';
+import { inject } from '../../kernel/decorators';
 import { ITaskQueue } from '../task-queue';
 import { createComputedObserver } from './computed-observer';
 

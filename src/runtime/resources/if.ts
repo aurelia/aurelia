@@ -2,7 +2,7 @@ import { IfCore } from './if-core';
 import { Else } from './else';
 import { IRenderSlot, SwapOrder } from '../templating/render-slot';
 import { templateController, bindable } from '../decorators';
-import { inject } from '../di';
+import { inject } from '../../kernel/decorators';
 import { IVisualFactory } from '../templating/visual';
 
 @templateController('if')

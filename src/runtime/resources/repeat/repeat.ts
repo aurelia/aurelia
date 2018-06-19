@@ -1,7 +1,8 @@
 import { templateController, bindable } from '../../decorators';
 import { IVisualFactory, IVisual } from '../../templating/visual';
 import { IRenderSlot } from '../../templating/render-slot';
-import { IContainer, inject } from '../../di';
+import { IContainer } from '../../../kernel/di';
+import { inject } from '../../../kernel/decorators';
 import { IRepeatStrategyRegistry } from './repeat-strategy-registry';
 import { IRepeater } from './repeater';
 import { IExpression, BindingBehavior, ValueConverter } from '../../binding/ast';
@@ -13,7 +14,7 @@ import { BindingMode } from '../../binding/binding-mode';
 import { IViewOwner } from '../../templating/view';
 import { ITaskQueue } from '../../task-queue';
 import { BindingFlags } from '../../binding/binding-flags';
-import { Reporter } from '../../reporter';
+import { Reporter } from '../../../kernel/reporter';
 
 const oneTime = BindingMode.oneTime;
 

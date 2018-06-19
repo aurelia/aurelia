@@ -1,4 +1,4 @@
-import { Reporter as RuntimeReporter } from '../runtime/reporter';
+import { Reporter as RuntimeReporter } from '../kernel/reporter';
 
 enum MessageType {
   error,

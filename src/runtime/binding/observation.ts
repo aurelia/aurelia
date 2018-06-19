@@ -1,4 +1,4 @@
-import { ICallable, IDisposable, IIndexable } from '../interfaces';
+import { ICallable, IIndexable } from '../../kernel/interfaces';
 import { IScope } from './binding-context';
 
 export interface IBindScope {

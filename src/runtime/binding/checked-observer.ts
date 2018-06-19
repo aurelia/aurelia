@@ -1,10 +1,9 @@
 import { SubscriberCollection } from './subscriber-collection';
 import { ITaskQueue } from '../task-queue';
-import { ICallable } from '../interfaces';
+import { ICallable } from '../../kernel/interfaces';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
 import { IAccessor, ISubscribable } from './observation';
-import { INode } from '../dom';
 
 const checkedArrayContext = 'CheckedObserver:array';
 const checkedValueContext = 'CheckedObserver:value';

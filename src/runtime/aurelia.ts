@@ -1,6 +1,6 @@
 import { IElementComponent } from './templating/component';
-import { PLATFORM } from './platform';
-import { IContainer, DI, IRegistry } from './di';
+import { PLATFORM } from '../kernel/platform';
+import { IContainer, DI, IRegistry } from '../kernel/di';
 import { IRenderingEngine } from './templating/rendering-engine';
 
 export interface ISinglePageApp {

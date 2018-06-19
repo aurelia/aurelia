@@ -2,7 +2,7 @@ import { IBindScope } from "../binding/observation";
 import { IAttach } from "./lifecycle";
 import { IViewOwner } from "./view";
 import { IElementComponent } from "./component";
-import { DI } from "../di";
+import { DI } from "../../kernel/di";
 import { IRenderSlot } from "./render-slot";
 
 export type RenderCallback = (visual: IVisual) => void;

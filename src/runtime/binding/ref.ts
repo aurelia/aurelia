@@ -1,6 +1,6 @@
 import { IExpression } from './ast';
 import { IBinding, IBindingTarget } from './binding';
-import { IServiceLocator } from '../di';
+import { IServiceLocator } from '../../kernel/di';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 

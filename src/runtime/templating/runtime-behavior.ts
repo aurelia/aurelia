@@ -1,11 +1,11 @@
 import { IElementComponent, IAttributeComponent, IElementType, IAttributeType } from "./component";
-import { ICallable } from "../interfaces";
+import { ICallable } from "../../kernel/interfaces";
 import { DOM, INode, IChildObserver } from "../dom";
 import { ITaskQueue } from "../task-queue";
 import { SubscriberCollection } from "../binding/subscriber-collection";
 import { IAccessor, ISubscribable } from "../binding/observation";
 import { Observer } from "../binding/property-observation";
-import { IBindableInstruction, ObservableDefinitions } from "./instructions";
+import { ObservableDefinitions } from "./instructions";
 
 export interface IRuntimeBehavior {
   hasCreated: boolean;

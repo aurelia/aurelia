@@ -1,12 +1,12 @@
-import { PLATFORM } from '../platform';
+import { PLATFORM } from '../../kernel/platform';
 import { IEmulatedShadowSlot } from './shadow-dom';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
 import { IAttach } from './lifecycle';
-import { DI } from '../di';
+import { DI } from '../../kernel/di';
 import { INode, DOM, IChildObserver, IView } from '../dom';
 import { IRenderSlot } from './render-slot';
-import { Reporter } from '../reporter';
+import { Reporter } from '../../kernel/reporter';
 import { IVisual } from './visual';
 import { IRenderContext } from './render-context';
 

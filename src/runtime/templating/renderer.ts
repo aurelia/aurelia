@@ -14,7 +14,7 @@ import { Call } from '../binding/call';
 import { Ref } from '../binding/ref';
 import { ShadowDOMEmulation } from './shadow-dom';
 import { IRenderContext } from './render-context';
-import { Immutable } from '../interfaces';
+import { Immutable } from '../../kernel/interfaces';
 
 export interface IRenderer {
   render(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;

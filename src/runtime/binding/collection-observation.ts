@@ -1,7 +1,7 @@
 import { calcSplices, projectArraySplices } from './array-change-records';
 import { getChangeRecords } from './map-change-records';
 import { SubscriberCollection } from './subscriber-collection';
-import { ICallable, IIndexable } from '../interfaces';
+import { ICallable } from '../../kernel/interfaces';
 import { ITaskQueue } from '../task-queue';
 import { ISubscribable, IAccessor, IBindingCollectionObserver } from './observation';
 

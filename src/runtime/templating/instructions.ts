@@ -1,8 +1,8 @@
-import { DI } from '../di';
+import { DI } from '../../kernel/di';
 import { DelegationStrategy } from '../binding/event-manager';
 import { BindingMode } from '../binding/binding-mode';
 import { INode } from '../dom';
-import { Immutable } from '../interfaces';
+import { Immutable } from '../../kernel/interfaces';
 
 export enum TargetedInstructionType {
   textBinding = 0,

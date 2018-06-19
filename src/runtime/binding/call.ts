@@ -1,7 +1,7 @@
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
 import { IBinding } from './binding';
-import { IServiceLocator } from '../di';
+import { IServiceLocator } from '../../kernel/di';
 import { IBindingTargetAccessor } from './observation';
 import { IScope } from './binding-context';
 import { INode } from '../dom';

@@ -6,9 +6,9 @@ import { IScope } from '../binding/binding-context';
 import { ValueAttributeObserver } from '../binding/element-observation';
 import { CheckedObserver } from '../binding/checked-observer';
 import { SelectValueObserver } from '../binding/select-value-observer';
-import { Reporter } from '../reporter';
+import { Reporter } from '../../kernel/reporter';
 import { bindingBehavior } from '../decorators';
-import { inject } from '../di';
+import { inject } from '../../kernel/decorators';
 
 type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {
   originalHandler?: IEventSubscriber

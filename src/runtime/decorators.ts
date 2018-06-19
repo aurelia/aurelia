@@ -1,6 +1,6 @@
 import { Component } from './templating/component';
 import { BindingMode } from './binding/binding-mode';
-import { Constructable, Omit } from './interfaces';
+import { Constructable, Omit } from '../kernel/interfaces';
 import { ITemplateSource, IBindableInstruction, IAttributeSource, IValueConverterSource, IBindingBehaviorSource } from './templating/instructions';
 import { IComputedOverrides } from './binding/computed-observer';
 

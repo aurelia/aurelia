@@ -1,8 +1,8 @@
 import { IEventManager, DelegationStrategy } from './event-manager';
 import { IExpression } from './ast';
 import { IBinding } from './binding';
-import { IServiceLocator } from '../di';
-import { IDisposable } from '../interfaces';
+import { IServiceLocator } from '../../kernel/di';
+import { IDisposable } from '../../kernel/interfaces';
 import { IScope } from './binding-context';
 import { INode } from '../dom';
 import { BindingFlags } from './binding-flags';

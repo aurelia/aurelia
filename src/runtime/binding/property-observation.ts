@@ -1,7 +1,7 @@
 import { SubscriberCollection } from './subscriber-collection';
 import { ITaskQueue } from '../task-queue';
-import { ICallable, IIndexable } from '../interfaces';
-import { Reporter } from '../reporter';
+import { ICallable, IIndexable } from '../../kernel/interfaces';
+import { Reporter } from '../../kernel/reporter';
 import { IAccessor, ISubscribable } from './observation';
 
 export const propertyAccessor = {

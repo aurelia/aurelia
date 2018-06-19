@@ -1,7 +1,7 @@
-import { ICallable } from './interfaces';
-import { DI } from './di';
-import { Reporter } from './reporter';
-import { PLATFORM } from './platform';
+import { ICallable } from '../kernel/interfaces';
+import { DI } from '../kernel/di';
+import { Reporter } from '../kernel/reporter';
+import { PLATFORM } from '../kernel/platform';
 
 export interface ITaskQueue {
   /**

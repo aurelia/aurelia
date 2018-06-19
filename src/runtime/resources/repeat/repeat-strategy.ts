@@ -1,5 +1,3 @@
-import { Repeat } from './repeat';
-import { IObserverLocator } from '../../binding/observer-locator';
 import { IRepeater } from './repeater';
 import { IBindingCollectionObserver } from '../../binding/observation';
 

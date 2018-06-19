@@ -1,5 +1,4 @@
 import { IRenderSlot } from '../templating/render-slot';
-import { IScope } from '../binding/binding-context';
 import { IVisualFactory, IVisual } from '../templating/visual';
 import { IAttributeComponent } from '../templating/component';
 

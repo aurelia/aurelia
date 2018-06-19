@@ -1,4 +1,4 @@
-import { IContainer } from "../runtime/di";
+import { IContainer } from "../kernel/di";
 import * as ExpressionParser from './binding/expression-parser';
 import { If } from "../runtime/resources/if";
 import { Else } from "../runtime/resources/else";

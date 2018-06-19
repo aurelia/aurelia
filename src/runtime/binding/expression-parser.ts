@@ -1,7 +1,7 @@
 import { IExpression, AccessScope, AccessMember, CallScope, CallMember } from './ast';
-import { Reporter } from '../reporter';
-import { DI } from '../di';
-import { PLATFORM } from '../platform';
+import { Reporter } from '../../kernel/reporter';
+import { DI } from '../../kernel/di';
+import { PLATFORM } from '../../kernel/platform';
 
 export interface IExpressionParser {
   cache(expressions: Record<string, IExpression>): void;

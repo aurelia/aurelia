@@ -1,5 +1,5 @@
 import { AccessScope, HtmlLiteral, PrimitiveLiteral, Conditional, CallScope, IExpression, AccessMember } from "../runtime/binding/ast";
-import { IContainer } from "../runtime/di";
+import { IContainer } from "../kernel/di";
 import { IExpressionParser } from "../runtime/binding/expression-parser";
 import { Repeat } from "../runtime/resources/repeat/repeat";
 import { If } from "../runtime/resources/if";

@@ -1,4 +1,4 @@
-import { DI } from '../di';
+import { DI } from '../../kernel/di';
 import { INode } from '../dom';
 
 export interface IAnimator {

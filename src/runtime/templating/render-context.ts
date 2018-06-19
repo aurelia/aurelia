@@ -1,13 +1,13 @@
-import { IContainer, IResolver, IServiceLocator } from "../di";
+import { IContainer, IResolver, IServiceLocator } from "../../kernel/di";
 import { RenderSlot, IRenderSlot } from "./render-slot";
 import { INode, DOM } from "../dom";
-import { PLATFORM } from "../platform";
+import { PLATFORM } from "../../kernel/platform";
 import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
 import { IRenderingEngine } from "./rendering-engine";
 import { IViewOwner } from "./view";
 import { IVisualFactory } from "./visual";
 import { IAttributeComponent, IElementComponent } from "./component";
-import { ImmutableArray, Immutable } from "../interfaces";
+import { ImmutableArray, Immutable } from "../../kernel/interfaces";
 
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;

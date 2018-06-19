@@ -1,7 +1,7 @@
 import { IObserverLocator } from './observer-locator';
 import { IBindingTargetObserver, IBindingCollectionObserver } from './observation';
 import { sourceContext } from './binding-context';
-import { ICallable } from '../interfaces';
+import { ICallable } from '../../kernel/interfaces';
 
 const slotNames: string[] = [];
 const versionSlotNames: string[] = [];

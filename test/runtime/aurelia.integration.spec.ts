@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import { DOM } from '../../src/runtime/dom';
 import { ITaskQueue } from '../../src/runtime/task-queue';
-import { IContainer, DI } from '../../src/runtime/di';
+import { IContainer, DI } from '../../src/kernel/di';
 
 describe('Aurelia', () => {
   let container: IContainer;

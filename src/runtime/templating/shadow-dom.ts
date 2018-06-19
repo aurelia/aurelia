@@ -1,4 +1,4 @@
-import { PLATFORM } from '../platform';;
+import { PLATFORM } from '../../kernel/platform';;
 import { IViewOwner, IContentView } from './view';
 import { IRenderSlot } from './render-slot';
 import { IBindScope } from '../binding/observation';

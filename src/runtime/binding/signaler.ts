@@ -1,5 +1,5 @@
-import { ICallable } from "../interfaces";
-import { DI } from "../di";
+import { ICallable } from "../../kernel/interfaces";
+import { DI } from "../../kernel/di";
 import { sourceContext } from "./binding-context";
 
 type Signal = string;

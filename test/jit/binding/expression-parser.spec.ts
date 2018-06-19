@@ -5,7 +5,7 @@ import { AccessKeyed, AccessMember, AccessScope, AccessThis,
   Unary, ValueConverter, TaggedTemplate } from '../../../src/runtime/binding/ast';
 import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
 import { expect } from 'chai';
-import { DI } from '../../../src/runtime/di';
+import { DI } from '../../../src/kernel/di';
 import { IExpressionParser } from '../../../src/runtime/binding/expression-parser';
 import { register } from '../../../src/jit/binding/expression-parser'
 

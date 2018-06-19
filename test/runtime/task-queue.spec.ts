@@ -1,5 +1,5 @@
 import { ITaskQueue } from '../../src/runtime/task-queue';
-import { DI } from '../../src/runtime/di';
+import { DI } from '../../src/kernel/di';
 import { expect } from 'chai';
 
 describe('TaskQueue', () => {

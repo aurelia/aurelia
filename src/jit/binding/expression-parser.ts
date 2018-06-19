@@ -7,7 +7,7 @@ import {
   IsLeftHandSide, IsAssign, IsBinary, IsBindingBehavior, IsConditional,
   IsPrimary
 } from '../../runtime/binding/ast';
-import { IContainer } from '../../runtime/di';
+import { IContainer } from '../../kernel/di';
 import { IExpressionParser } from '../../runtime/binding/expression-parser';
 
 export function register(container: IContainer) {

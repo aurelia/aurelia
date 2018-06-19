@@ -1,5 +1,5 @@
 import { ITaskQueue } from '../runtime/task-queue';
-import { IContainer } from '../runtime/di';
+import { IContainer } from '../kernel/di';
 
 export function enableImprovedTaskQueueDebugging(container: IContainer) {
   container.registerTransformer(ITaskQueue, taskQueue => {

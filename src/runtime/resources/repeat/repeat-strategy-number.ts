@@ -1,6 +1,5 @@
 import { createFullOverrideContext, updateOverrideContexts } from './override-contexts';
 import { IRepeatStrategy } from './repeat-strategy';
-import { Repeat } from './repeat';
 import { IRepeater } from './repeater';
 import { BindingContext } from '../../binding/binding-context';
 

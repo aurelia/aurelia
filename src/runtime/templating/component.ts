@@ -1,9 +1,9 @@
 import { View, IViewOwner, IContentView } from './view';
 import { ShadowDOMEmulation } from './shadow-dom';
-import { PLATFORM } from '../platform';
-import { IContainer, Registration, IRegistry } from '../di';
+import { PLATFORM } from '../../kernel/platform';
+import { IContainer, Registration, IRegistry } from '../../kernel/di';
 import { BindingMode } from '../binding/binding-mode';
-import { Constructable, Immutable, Writable } from '../interfaces';
+import { Constructable, Immutable, Writable } from '../../kernel/interfaces';
 import { IBindScope } from '../binding/observation';
 import { IScope, BindingContext } from '../binding/binding-context';
 import { IRenderSlot } from './render-slot';

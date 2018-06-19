@@ -1,6 +1,6 @@
 import { IScope } from '../binding/binding-context';
 import { Listener } from '../binding/listener';
-import { Reporter } from '../reporter';
+import { Reporter } from '../../kernel/reporter';
 import { bindingBehavior } from '../decorators';
 
 function findOriginalEventTarget(event) {

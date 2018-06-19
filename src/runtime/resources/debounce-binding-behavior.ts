@@ -1,6 +1,6 @@
 import { sourceContext, targetContext, IScope } from '../binding/binding-context';
 import { BindingMode } from '../binding/binding-mode';
-import { IBinding, Binding } from '../binding/binding';
+import { Binding } from '../binding/binding';
 import { bindingBehavior } from '../decorators';
 import { Call } from '../binding/call';
 import { Listener } from '../binding/listener';

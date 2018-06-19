@@ -1,6 +1,6 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { DI } from '../di';
-import { ICallable } from '../interfaces';
+import { DI } from '../../kernel/di';
+import { ICallable } from '../../kernel/interfaces';
 import { IAccessor, ISubscribable } from './observation';
 
 export interface IDirtyChecker {

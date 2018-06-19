@@ -1,4 +1,4 @@
-import { IContainer, IResolver, DI } from './di';
+import { IContainer, IResolver, DI } from '../kernel/di';
 import { IElementComponent } from './templating/component';
 
 export interface INodeLike {

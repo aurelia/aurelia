@@ -1,4 +1,5 @@
-import { DI, inject } from '../../di';
+import { DI } from '../../../kernel/di';
+import { inject } from '../../../kernel/decorators';
 import { IRepeatStrategy } from './repeat-strategy';
 import { NullRepeatStrategy } from './repeat-strategy-null';
 import { ArrayRepeatStrategy } from './repeat-strategy-array';

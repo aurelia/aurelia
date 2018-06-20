@@ -6,7 +6,7 @@ class Todo {
   constructor(public description: string) {}
 }
 
-@customElement(view) //added by the compiler
+@customElement(view)
 export class App {
   message = 'Hello World';
   duplicateMessage = true;

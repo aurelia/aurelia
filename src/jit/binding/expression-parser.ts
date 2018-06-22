@@ -479,7 +479,7 @@ function parse<T extends Precedence>(state: ParserState, access: Access, minPrec
    */
   while (state.currentToken & Token.BinaryOp) {
     const opToken = state.currentToken;
-    if ((opToken & Token.Precedence) < minPrecedence) {
+    if ((opToken & Token.Precedence) <= minPrecedence) {
       break;
     }
     nextToken(state);

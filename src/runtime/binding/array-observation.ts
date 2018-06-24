@@ -3,127 +3,140 @@ import { ModifyCollectionObserver } from './collection-observation';
 import { ITaskQueue } from '../task-queue';
 import { IBindingCollectionObserver } from './observation';
 
-const pop = Array.prototype.pop;
-const push = Array.prototype.push;
-const reverse = Array.prototype.reverse;
-const shift = Array.prototype.shift;
-const sort = Array.prototype.sort;
-const splice = Array.prototype.splice;
-const unshift = Array.prototype.unshift;
+const proto = Array.prototype;
+const pop = proto.pop;
+const push = proto.push;
+const reverse = proto.reverse;
+const shift = proto.shift;
+const sort = proto.sort;
+const splice = proto.splice;
+const unshift = proto.unshift;
 
-Array.prototype.pop = function() {
-  const notEmpty = this.length > 0;
-  const methodCallResult = pop.apply(this, arguments);
-
-  if (notEmpty && this.__array_observer__ !== undefined) {
-    this.__array_observer__.addChangeRecord({
-      type: 'delete',
-      object: this,
-      name: this.length,
-      oldValue: methodCallResult
-    });
-  }
-
-  return methodCallResult;
-};
-
-Array.prototype.push = function() {
-  const methodCallResult = push.apply(this, arguments);
-
-  if (this.__array_observer__ !== undefined) {
-    this.__array_observer__.addChangeRecord({
-      type: 'splice',
-      object: this,
-      index: this.length - arguments.length,
-      removed: [],
-      addedCount: arguments.length
-    });
-  }
-
-  return methodCallResult;
-};
-
-Array.prototype.reverse = function() {
-  let oldArray;
+export function enableArrayObservation() {
+  proto.pop = function() {
+    const notEmpty = this.length > 0;
+    const methodCallResult = pop.apply(this, arguments);
   
-  if (this.__array_observer__ !== undefined) {
-    this.__array_observer__.flushChangeRecords();
-    oldArray = this.slice();
-  }
+    if (notEmpty && this.__array_observer__ !== undefined) {
+      this.__array_observer__.addChangeRecord({
+        type: 'delete',
+        object: this,
+        name: this.length,
+        oldValue: methodCallResult
+      });
+    }
   
-  const methodCallResult = reverse.apply(this, arguments);
+    return methodCallResult;
+  };
   
-  if (this.__array_observer__ !== undefined) {
-    this.__array_observer__.reset(oldArray);
-  }
+  proto.push = function() {
+    const methodCallResult = push.apply(this, arguments);
   
-  return methodCallResult;
-};
+    if (this.__array_observer__ !== undefined) {
+      this.__array_observer__.addChangeRecord({
+        type: 'splice',
+        object: this,
+        index: this.length - arguments.length,
+        removed: [],
+        addedCount: arguments.length
+      });
+    }
+  
+    return methodCallResult;
+  };
+  
+  proto.reverse = function() {
+    let oldArray;
+    
+    if (this.__array_observer__ !== undefined) {
+      this.__array_observer__.flushChangeRecords();
+      oldArray = this.slice();
+    }
+    
+    const methodCallResult = reverse.apply(this, arguments);
+    
+    if (this.__array_observer__ !== undefined) {
+      this.__array_observer__.reset(oldArray);
+    }
+    
+    return methodCallResult;
+  };
+  
+  proto.shift = function() {
+    const notEmpty = this.length > 0;
+    const methodCallResult = shift.apply(this, arguments);
+  
+    if (notEmpty && this.__array_observer__ !== undefined) {
+      this.__array_observer__.addChangeRecord({
+        type: 'delete',
+        object: this,
+        name: 0,
+        oldValue: methodCallResult
+      });
+    }
+  
+    return methodCallResult;
+  };
+  
+  proto.sort = function() {
+    let oldArray;
+    
+    if (this.__array_observer__ !== undefined) {
+      this.__array_observer__.flushChangeRecords();
+      oldArray = this.slice();
+    }
+  
+    const methodCallResult = sort.apply(this, arguments);
+    
+    if (this.__array_observer__ !== undefined) {
+      this.__array_observer__.reset(oldArray);
+    }
+    
+    return methodCallResult;
+  };
+  
+  proto.splice = function() {
+    const methodCallResult = splice.apply(this, arguments);
+    
+    if (this.__array_observer__ !== undefined) {
+      this.__array_observer__.addChangeRecord({
+        type: 'splice',
+        object: this,
+        index: +arguments[0],
+        removed: methodCallResult,
+        addedCount: arguments.length > 2 ? arguments.length - 2 : 0
+      });
+    }
+    
+    return methodCallResult;
+  };
+  
+  proto.unshift = function() {
+    const methodCallResult = unshift.apply(this, arguments);
+    
+    if (this.__array_observer__ !== undefined) {
+      this.__array_observer__.addChangeRecord({
+        type: 'splice',
+        object: this,
+        index: 0,
+        removed: [],
+        addedCount: arguments.length
+      });
+    }
+    
+    return methodCallResult;
+  };
+}
 
-Array.prototype.shift = function() {
-  const notEmpty = this.length > 0;
-  const methodCallResult = shift.apply(this, arguments);
-
-  if (notEmpty && this.__array_observer__ !== undefined) {
-    this.__array_observer__.addChangeRecord({
-      type: 'delete',
-      object: this,
-      name: 0,
-      oldValue: methodCallResult
-    });
-  }
-
-  return methodCallResult;
-};
-
-Array.prototype.sort = function() {
-  let oldArray;
-  
-  if (this.__array_observer__ !== undefined) {
-    this.__array_observer__.flushChangeRecords();
-    oldArray = this.slice();
-  }
-
-  const methodCallResult = sort.apply(this, arguments);
-  
-  if (this.__array_observer__ !== undefined) {
-    this.__array_observer__.reset(oldArray);
-  }
-  
-  return methodCallResult;
-};
-
-Array.prototype.splice = function() {
-  const methodCallResult = splice.apply(this, arguments);
-  
-  if (this.__array_observer__ !== undefined) {
-    this.__array_observer__.addChangeRecord({
-      type: 'splice',
-      object: this,
-      index: +arguments[0],
-      removed: methodCallResult,
-      addedCount: arguments.length > 2 ? arguments.length - 2 : 0
-    });
-  }
-  
-  return methodCallResult;
-};
-
-Array.prototype.unshift = function() {
-  const methodCallResult = unshift.apply(this, arguments);
-  
-  if (this.__array_observer__ !== undefined) {
-    this.__array_observer__.addChangeRecord({
-      type: 'splice',
-      object: this,
-      index: 0,
-      removed: [],
-      addedCount: arguments.length
-    });
-  }
-  
-  return methodCallResult;
-};
+export function disableArrayObservation() {
+  proto.pop = pop;
+  proto.push = push;
+  proto.reverse = reverse;
+  proto.shift = shift;
+  proto.sort = sort;
+  proto.splice = splice;
+  proto.unshift = unshift;
+}
 
 /**
  * Searches for observer or creates a new one associated with given array instance

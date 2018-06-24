@@ -1,4 +1,4 @@
-import { getArrayObserver } from '../../../src/runtime/binding/array-observation';
+import { getArrayObserver, enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/array-observation';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { DI } from '../../../src/kernel/di';
@@ -9,6 +9,14 @@ describe('array observation', () => {
 
   before(() => {
     taskQueue = DI.createContainer().get(ITaskQueue);
+  });
+
+  beforeEach(() => {
+    enableArrayObservation();
+  });
+
+  afterEach(() => {
+    disableArrayObservation();
   });
 
   it('getArrayObserver should return same observer instance for the same Array instance', () => {

@@ -1,5 +1,5 @@
 import { IElementType, Component, IElementComponent } from '../../../src/runtime/templating/component';
-import { IContainer, DI } from '../../../src/runtime/di';
+import { IContainer, DI } from '../../../src/kernel/di';
 import { ITaskQueue } from '../../../src/runtime/task-queue';
 import { IRenderingEngine } from '../../../src/runtime/templating/rendering-engine';
 import { expect } from 'chai';
@@ -8,6 +8,7 @@ import { customElement } from '../../../src/runtime/decorators';
 import { Repeat } from '../../../src/runtime/resources/repeat/repeat';
 import { IExpressionParser } from '../../../src/runtime/binding/expression-parser';
 import { AccessScope, AccessMember } from '../../../src/runtime/binding/ast';
+import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/array-observation';
 
 const initialStates  = [
   {text: '', todos: []},
@@ -29,6 +30,7 @@ for (const {todos: initialTodos, text: initialText} of initialStates) {
     let app: App & IElementComponent;
 
     beforeEach(() => {
+      enableArrayObservation();
       container = DI.createContainer();
       container.register(Repeat);
       container.get(IExpressionParser).cache({
@@ -86,6 +88,10 @@ for (const {todos: initialTodos, text: initialText} of initialStates) {
       app.$bind();
       app.$attach(host);
       taskQueue.flushMicroTaskQueue();
+    });
+
+    afterEach(() => {
+      disableArrayObservation();
     });
 
     it('should render correctly', () => {

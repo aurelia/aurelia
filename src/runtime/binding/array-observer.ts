@@ -1,24 +1,6 @@
 import { IDisposable } from './../../kernel/interfaces';
 
-export const enum MutationType {
-  none       = 0,
-  add        = 0b001 << 4,
-  delete     = 0b010 << 4,
-  update     = 0b100 << 4
-};
-
-export const enum MutationOrigin {
-  mask       = 0b1111,
-  push       = 0b0001 | MutationType.add,
-  unshift    = 0b0010 | MutationType.add,
-  fill       = 0b0011 | MutationType.update,
-  pop        = 0b0100 | MutationType.delete,
-  shift      = 0b0101 | MutationType.delete,
-  splice     = 0b0110 | MutationType.add | MutationType.delete,
-  copyWithin = 0b0111 | MutationType.update,
-  reverse    = 0b1000 | MutationType.update,
-  sort       = 0b1001 | MutationType.update
-};
+export type MutationOrigin = 'push' | 'unshift' | 'pop' | 'shift' | 'splice' | 'reverse' | 'sort';
 
 export interface IObservedArray<T = any> extends Array<T> {
   $observer: ArrayObserver<T>;
@@ -43,15 +25,14 @@ function observePush(this: IObservedArray): ReturnType<typeof push> {
   if (argCount === 0) {
     return len;
   }
-  const changes = this.$observer.newChangeSet(len + argCount);
-  this.length = len + argCount
+  const o = this.$observer;
+  this.length = o.indexMap.length = len + argCount
   let i = len;
   while (i < this.length) {
-    this[i] = arguments[i - len];
-    changes[i] = MutationType.add;
+    this[i] = arguments[i - len]; o.indexMap[i] = o.nextIndex;
     i++;
   }
-  this.$observer.notify(MutationOrigin.push, arguments);
+  o.notifyImmediate('push', arguments);
   return this.length;
 };
 
@@ -62,20 +43,19 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof unshift>  {
   if (argCount === 0) {
     return len;
   }
-  const changes = this.$observer.newChangeSet(len + argCount);
-  this.length = len + argCount;
+  const o = this.$observer;
+  this.length = o.indexMap.length = len + argCount
   let k = len;
   while (k > 0) {
-    this[k + argCount - 1] = this[k - 1];
+    this[k + argCount - 1] = this[k - 1]; o.indexMap[k + argCount - 1] = o.indexMap[k - 1];
     k--;
   }
   let j = 0;
   while (j < argCount) {
-    this[j] = arguments[j];
-    changes[j] = MutationType.add;
+    this[j] = arguments[j]; o.indexMap[j] = o.nextIndex;
     j++;
   }
-  this.$observer.notify(MutationOrigin.unshift, arguments);
+  o.notifyImmediate('unshift', arguments);
   return this.length;
 };
 
@@ -85,10 +65,10 @@ function observePop(this: IObservedArray): ReturnType<typeof pop> {
   if (len === 0) {
     return undefined;
   }
-  this.$observer.newChangeSet(len)[len - 1] = MutationType.delete;
+  const o = this.$observer;
   const element = this[len - 1];
-  this.length = len - 1;
-  this.$observer.notify(MutationOrigin.pop);
+  this.length = o.indexMap.length = len - 1;
+  o.notifyImmediate('pop');
   return element;
 };
 
@@ -98,15 +78,15 @@ function observeShift(this: IObservedArray): ReturnType<typeof shift> {
   if (len === 0) {
     return undefined;
   }
-  this.$observer.newChangeSet(len)[0] = MutationType.delete;
+  const o = this.$observer;
   const first = this[0];
   let k = 1;
   while (k < len) {
-    this[k - 1] = this[k];
+    this[k - 1] = this[k]; o.indexMap[k - 1] = o.indexMap[k];
     k++;
   }
-  this.length = len - 1;
-  this.$observer.notify(MutationOrigin.shift);
+  this.length = o.indexMap.length = len - 1;
+  o.notifyImmediate('shift');
   return first;
 };
 
@@ -125,36 +105,27 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
   }
   const itemCount = items.length;
   const netSizeChange = itemCount - actualDeleteCount;
-  const newLen = len + netSizeChange;
-  const changes = this.$observer.newChangeSet(len < newLen ? newLen : len);
+  const o = this.$observer;
   if (netSizeChange < 0) {
     k = actualStart;
     while (k < (len - actualDeleteCount)) {
-      this[k + itemCount] = this[k + actualDeleteCount];
-      changes[k + itemCount] = MutationType.update;
+      this[k + itemCount] = this[k + actualDeleteCount]; o.indexMap[k + itemCount] = o.indexMap[k + actualDeleteCount];
       k++;
-    }
-    k = len;
-    while (k > (len - actualDeleteCount + itemCount)) {
-      changes[k] = MutationType.delete;
-      k--;
     }
   } else if (netSizeChange > 0) {
     k = len - actualDeleteCount;
     while (k > actualStart) {
-      this[k + itemCount - 1] = this[k + actualDeleteCount - 1];
-      changes[k + itemCount - 1] = MutationType.update;
+      this[k + itemCount - 1] = this[k + actualDeleteCount - 1]; o.indexMap[k + itemCount - 1] = o.indexMap[k + actualDeleteCount - 1];
       k--;
     }
   }
   k = actualStart;
   while (k < (actualStart + itemCount)) {
-    this[k] = items[k - actualStart];
-    changes[k] = MutationType.update;
+    this[k] = items[k - actualStart]; o.indexMap[k] = o.nextIndex;
     k++;
   }
-  this.length = len - actualDeleteCount + itemCount;
-  this.$observer.notify(MutationOrigin.splice, arguments);
+  this.length = o.indexMap.length = len - actualDeleteCount + itemCount;
+  o.notifyImmediate('splice', arguments);
   return A;
 };
 
@@ -162,18 +133,17 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
 function observeReverse(this: IObservedArray): ReturnType<typeof reverse> {
   const len = this.length;
   const middle = (len / 2) | 0;
-  const changes = this.$observer.newChangeSet(len);
+  const o = this.$observer;
   let lower = 0;
   while (lower !== middle) {
     let upper = len - lower - 1;
-    const lowerValue = this[lower];
-    const upperValue = this[upper];
-    this[lower] = upperValue;
-    this[upper] = lowerValue;
-    changes[lower] = changes[upper] = MutationType.update;
+    const lowerValue = this[lower]; const lowerIndex = o.indexMap[lower];
+    const upperValue = this[upper]; const upperIndex = o.indexMap[upper];
+    this[lower] = upperValue; o.indexMap[lower] = upperIndex;
+    this[upper] = lowerValue; o.indexMap[upper] = lowerIndex;
     lower++;
   }
-  this.$observer.notify(MutationOrigin.reverse);
+  o.notifyImmediate('reverse');
   return this;
 };
 
@@ -184,8 +154,8 @@ function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => numbe
   if (len < 2) {
     return this;
   }
-
-  quickSort(this, 0, len, preSortCompare);
+  const o = this.$observer;
+  quickSort(this, o.indexMap, 0, len, preSortCompare);
   let i = 0;
   while (i < len) {
     if (this[i] === undefined) {
@@ -196,14 +166,11 @@ function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => numbe
   if (i === 0) {
     return this;
   }
-
   if (compareFn === undefined || typeof compareFn !== 'function'/*spec says throw a TypeError, should we do that too?*/) {
     compareFn = sortCompare;
   }
-  quickSort(this, 0, i, compareFn);
-  // todo: proper change tracking
-  const changes = this.$observer.newChangeSet(len);
-  changes.fill(MutationType.update);
+  quickSort(this, o.indexMap, 0, i, compareFn);
+  o.notifyImmediate('sort');
   return this;
 }
 
@@ -234,76 +201,77 @@ function preSortCompare(x: any, y: any): number {
   return 0;
 }
 
-function insertionSort(arr: Array<any>, from: number, to: number, compareFn: (a: any, b: any) => number): void {
-  let element, tmp, order;
+function insertionSort(arr: IObservedArray<any>, indexMap: Array<number>, from: number, to: number, compareFn: (a: any, b: any) => number): void {
+  let velement, ielement, vtmp, itmp, order;
   let i, j;
   for (i = from + 1; i < to; i++) {
-    element = arr[i];
+    velement = arr[i]; ielement = indexMap[i];
     for (j = i - 1; j >= from; j--) {
-      tmp = arr[j];
-      order = compareFn(tmp, element);
+      vtmp = arr[j]; itmp = indexMap[j];
+      order = compareFn(vtmp, velement);
       if (order > 0) {
-        arr[j + 1] = tmp;
+        arr[j + 1] = vtmp; indexMap[j + 1] = itmp;
       } else {
         break;
       }
     }
-    arr[j + 1] = element;
+    arr[j + 1] = velement; indexMap[j + 1] = ielement;
   }
 }  
 
-function quickSort(arr: Array<any>, from: number, to: number, compareFn: (a: any, b: any) => number): void {
+function quickSort(arr: IObservedArray<any>, indexMap: Array<number>, from: number, to: number, compareFn: (a: any, b: any) => number): void {
   let thirdIndex = 0, i = 0;
   let v0, v1, v2;
+  let i0, i1, i2;
   let c01, c02, c12;
-  let tmp;
-  let pivot, lowEnd, highStart;
-  let element, order, topElement;
+  let vtmp, itmp;
+  let vpivot, ipivot, lowEnd, highStart;
+  let velement, ielement, order, vtopElement, itopElement;
 
   while (true) {
     if (to - from <= 10) {
-      insertionSort(arr, from, to, compareFn);
+      insertionSort(arr, indexMap, from, to, compareFn);
       return;
     }
 
     thirdIndex = from + ((to - from) >> 1);
-    v0 = arr[from];
-    v1 = arr[to - 1];
-    v2 = arr[thirdIndex];
+    v0 = arr[from];       i0 = indexMap[from];
+    v1 = arr[to - 1];     i1 = indexMap[to - 1];
+    v2 = arr[thirdIndex]; i2 = indexMap[thirdIndex];
     c01 = compareFn(v0, v1);
     if (c01 > 0) {
-      tmp = v0;
-      v0 = v1;
-      v1 = tmp;
+      vtmp = v0; itmp = i0;
+      v0 = v1;   i0 = i1;
+      v1 = vtmp; i1 = itmp;
     }
     c02 = compareFn(v0, v2);
     if (c02 >= 0) {
-      tmp = v0;
-      v0 = v2;
-      v2 = v1;
-      v1 = tmp;
+      vtmp = v0; itmp = i0;
+      v0 = v2;   i0 = i2;
+      v2 = v1;   i2 = i1;
+      v1 = vtmp; i1 = itmp;
     } else {
       c12 = compareFn(v1, v2);
       if (c12 > 0) {
-        tmp = v1;
-        v1 = v2;
-        v2 = tmp;
+        vtmp = v1; itmp = i1;
+        v1 = v2;   i1 = i2;
+        v2 = vtmp; i2 = itmp;
       }
     }
-    arr[from] = v0;
-    arr[to - 1] = v2;
-    pivot = v1;
+    arr[from] = v0;   indexMap[from] = i0;
+    arr[to - 1] = v2; indexMap[to - 1] = i2;
+    vpivot = v1;      ipivot = i1;
     lowEnd = from + 1;
     highStart = to - 1;
-    arr[thirdIndex] = arr[lowEnd];
-    arr[lowEnd] = pivot;
+    arr[thirdIndex] = arr[lowEnd]; indexMap[thirdIndex] = indexMap[lowEnd];
+    arr[lowEnd] = vpivot;          indexMap[lowEnd] = ipivot;
 
     partition: for (i = lowEnd + 1; i < highStart; i++) {
-      element = arr[i];
-      order = compareFn(element, pivot);
+      velement = arr[i]; ielement = indexMap[i];
+      order = compareFn(velement, vpivot);
       if (order < 0) {
-        arr[i] = arr[lowEnd];
-        arr[lowEnd] = element;
+        arr[i] = arr[lowEnd];   indexMap[i] = indexMap[lowEnd];
+        arr[lowEnd] = velement; indexMap[lowEnd] = ielement;
         lowEnd++;
       } else if (order > 0) {
         do {
@@ -311,40 +279,52 @@ function quickSort(arr: Array<any>, from: number, to: number, compareFn: (a: any
           if (highStart == i) {
             break partition;
           }
-          topElement = arr[highStart];
-          order = compareFn(topElement, pivot);
+          vtopElement = arr[highStart]; itopElement = indexMap[highStart];
+          order = compareFn(vtopElement, vpivot);
         } while (order > 0);
-        arr[i] = arr[highStart];
-        arr[highStart] = element;
+        arr[i] = arr[highStart];   indexMap[i] = indexMap[highStart];
+        arr[highStart] = velement; indexMap[highStart] = ielement;
         if (order < 0) {
-          element = arr[i];
-          arr[i] = arr[lowEnd];
-          arr[lowEnd] = element;
+          velement = arr[i];      ielement = indexMap[i];
+          arr[i] = arr[lowEnd];   indexMap[i] = indexMap[lowEnd];
+          arr[lowEnd] = velement; indexMap[lowEnd] = ielement;
           lowEnd++;
         }
       }
     }
     if (to - highStart < lowEnd - from) {
-      quickSort(arr, highStart, to, compareFn);
+      quickSort(arr, indexMap, highStart, to, compareFn);
       to = lowEnd;
     } else {
-      quickSort(arr, from, lowEnd, compareFn);
+      quickSort(arr, indexMap, from, lowEnd, compareFn);
       from = highStart;
     }
   }
 }
 
+export interface IImmediateSubscriber {
+  (origin: MutationOrigin, args?: IArguments): void;
+}
+
+export interface IBatchedSubscriber {
+  (indexMap: Array<number>): void;
+}
+
 export class ArrayObserver<T = any> implements IDisposable {
   public array: IObservedArray<any>;
-  public changeSets: Array<Uint16Array>;
-  public mutationCount: number;
+  public indexMap: Array<number>;
+  public get nextIndex(): number {
+    return this.index++;
+  }
+  public hasChanges: boolean;
+  private index: number;
+  private batchedSubscribers: Set<IBatchedSubscriber>;
+  private immediateSubscribers: Set<IImmediateSubscriber>;
 
   constructor(array: Array<T>) {
     if (!Array.isArray(array)) {
       throw new Error(Object.prototype.toString.call(array) + ' is not an array!');
     }
-    this.changeSets = new Array(0xFF);
-    this.mutationCount = 0;
     (<any>array).$observer = this;
     array.push = observePush;
     array.unshift = observeUnshift;
@@ -354,14 +334,59 @@ export class ArrayObserver<T = any> implements IDisposable {
     array.reverse = observeReverse;
     array.sort = observeSort;
     this.array = <any>array;
+    this.resetIndexMap();
+    this.hasChanges = false;
+    this.batchedSubscribers = new Set();
+    this.immediateSubscribers = new Set();
   }
 
-  newChangeSet(length: number): Uint16Array {
-    return this.changeSets[this.mutationCount++] = new Uint16Array(length);
+  resetIndexMap(): void {
+    const len = this.array.length;
+    this.indexMap = new Array(len);
+    let i = 0;
+    while (i < len) {
+      this.indexMap[i] = i++;
+    }
+    this.index = i;
   }
 
-  notify(origin: MutationOrigin, args?: IArguments): void {
+  notifyImmediate(origin: MutationOrigin, args?: IArguments): void {
+    // todo: optimize
+    this.hasChanges = true;
+    this.immediateSubscribers.forEach(call => {
+      call(origin, args);
+    });
+  }
 
+  notifyBatched(indexMap: Array<number>): void {
+    // todo: optimize
+    this.batchedSubscribers.forEach(call => {
+      call(indexMap);
+    });
+  }
+
+  flushChanges(): void {
+    if (this.hasChanges) {
+      this.notifyBatched(this.indexMap);
+      this.resetIndexMap();
+      this.hasChanges = false;
+    }
+  }
+
+  subscribeBatched(subscriber: IBatchedSubscriber): void {
+    this.batchedSubscribers.add(subscriber);
+  }
+
+  unsubscribeBatched(subscriber: IBatchedSubscriber): void {
+    this.batchedSubscribers.delete(subscriber);
+  }
+
+  subscribeImmediate(subscriber: IImmediateSubscriber): void {
+    this.immediateSubscribers.add(subscriber);
+  }
+
+  unsubscribeImmediate(subscriber: IImmediateSubscriber): void {
+    this.immediateSubscribers.delete(subscriber);
   }
   
   dispose(): void {
@@ -377,6 +402,11 @@ export class ArrayObserver<T = any> implements IDisposable {
       (<any>array).$observer = undefined;
     }
     this.array = null;
-    this.changeSets = null;
+    this.indexMap = null;
+    this.index = 0;
+    this.batchedSubscribers.clear();
+    this.immediateSubscribers.clear();
+    this.batchedSubscribers = null;
+    this.immediateSubscribers = null;
   }
 }

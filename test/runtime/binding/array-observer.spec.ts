@@ -1,10 +1,5 @@
-import { ArrayObserver, MutationType } from './../../../src/runtime/binding/array-observer';
+import { ArrayObserver } from './../../../src/runtime/binding/array-observer';
 import { expect } from 'chai';
-
-const a = MutationType.add;
-const d = MutationType.delete;
-const u = MutationType.update;
-const n = MutationType.none;
 
 describe(`ArrayObserver`, () => {
   let sut: ArrayObserver;
@@ -13,16 +8,16 @@ describe(`ArrayObserver`, () => {
     sut.dispose();
   });
 
-  describe(`observePush should work like native push`, () => {
+  describe(`observePush`, () => {
     const initArr = [[], [1], [1, 2]];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2, 3];
     for (const init of initArr) {
       for (const items of itemsArr) {
         for (const repeat of repeatArr) {
-          const arr = init.slice();
-          const expectedArr = init.slice();
-          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat}`, () => {
+          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
+            const arr = init.slice();
+            const expectedArr = init.slice();
             sut = new ArrayObserver(arr);
             let expectedResult;
             let actualResult;
@@ -40,55 +35,39 @@ describe(`ArrayObserver`, () => {
               i++;
             }
           });
+
+          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
+            const arr = init.slice();
+            const copy = init.slice();
+            sut = new ArrayObserver(arr);
+            let i = 0;
+            while (i < repeat) {
+              if (items === undefined) {
+                arr.push();
+              } else {
+                arr.push(...items);
+              }
+              synchronize(copy, sut.indexMap, arr);
+              expect(copy).to.deep.equal(arr);
+              sut.resetIndexMap();
+              i++;
+            }
+          });
         }
       }
     }
   });
 
-  describe(`observePush should track changes`, () => {
-    const tests = [
-      {
-        init: [],
-        items: [1],
-        changes: [a]
-      },
-      {
-        init: [],
-        items: [1, 2],
-        changes: [a, a]
-      },
-      {
-        init: [1, 2],
-        items: [3],
-        changes: [n, n, a]
-      },
-      {
-        init: [1, 2],
-        items: [3, 4],
-        changes: [n, n, a, a]
-      }
-    ];
-
-    for (const { init, items, changes } of tests) {
-      const arr = init.slice();
-      it(`size=${padRight(init.length, 2)} itemCount=${items.length}`, () => {
-        sut = new ArrayObserver(arr);
-        arr.push(...items);
-        expect(sut.changeSets[sut.mutationCount - 1]).to.deep.equal(new Uint16Array(changes));
-      });
-    }
-  });
-
-  describe(`observeUnshift should work like native unshift`, () => {
+  describe(`observeUnshift`, () => {
     const initArr = [[], [1], [1, 2]];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2, 3];
     for (const init of initArr) {
       for (const items of itemsArr) {
         for (const repeat of repeatArr) {
-          const arr = init.slice();
-          const expectedArr = init.slice();
-          it(`size=${padRight(init.length, 2)} items=${padRight(items && items.length, 9)} repeat=${repeat}`, () => {
+          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
+            const arr = init.slice();
+            const expectedArr = init.slice();
             sut = new ArrayObserver(arr);
             let expectedResult;
             let actualResult;
@@ -106,53 +85,37 @@ describe(`ArrayObserver`, () => {
               i++;
             }
           });
+
+          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
+            const arr = init.slice();
+            const copy = init.slice();
+            sut = new ArrayObserver(arr);
+            let i = 0;
+            while (i < repeat) {
+              if (items === undefined) {
+                arr.unshift();
+              } else {
+                arr.unshift(...items);
+              }
+              synchronize(copy, sut.indexMap, arr);
+              expect(copy).to.deep.equal(arr.slice());
+              sut.resetIndexMap();
+              i++;
+            }
+          });
         }
       }
     }
   });
 
-  describe(`observeUnshift should track changes`, () => {
-    const tests = [
-      {
-        init: [],
-        items: [1],
-        changes: [a]
-      },
-      {
-        init: [],
-        items: [1, 2],
-        changes: [a, a]
-      },
-      {
-        init: [1, 2],
-        items: [3],
-        changes: [a, n, n]
-      },
-      {
-        init: [1, 2],
-        items: [3, 4],
-        changes: [a, a, n, n]
-      }
-    ];
-
-    for (const { init, items, changes } of tests) {
-      const arr = init.slice();
-      it(`size=${padRight(init.length, 2)} itemCount=${items.length}`, () => {
-        sut = new ArrayObserver(arr);
-        arr.unshift(...items);
-        expect(sut.changeSets[sut.mutationCount - 1]).to.deep.equal(new Uint16Array(changes));
-      });
-    }
-  });
-
-  describe(`observePop should work like native pop`, () => {
+  describe(`observePop`, () => {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
       for (const repeat of repeatArr) {
         const arr = init.slice();
         const expectedArr = init.slice();
-        it(`size=${padRight(init.length, 2)} repeat=${repeat}`, () => {
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
           sut = new ArrayObserver(arr);
           let expectedResult;
           let actualResult;
@@ -169,49 +132,14 @@ describe(`ArrayObserver`, () => {
     }
   });
 
-  describe('observePop should track changes', () => {
-    const tests = [
-      {
-        init: [],
-        changes: []
-      },
-      {
-        init: [1],
-        changes: [d]
-      },
-      {
-        init: [1, 2],
-        changes: [n, d]
-      },
-      {
-        init: [1, 2, 3],
-        changes: [n, n, d]
-      }
-    ];
-
-    for (const { init, changes } of tests) {
-      const arr = init.slice();
-      it(`size=${init.length}`, () => {
-        sut = new ArrayObserver(arr);
-        arr.pop();
-        if (init.length) {
-          expect(sut.mutationCount).to.equal(1);
-          expect(sut.changeSets[sut.mutationCount - 1]).to.deep.equal(new Uint16Array(changes));
-        } else {
-          expect(sut.mutationCount).to.equal(0);
-        }
-      });
-    }
-  });
-
-  describe(`observeShift should work like native shift`, () => {
+  describe(`observeShift`, () => {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
       for (const repeat of repeatArr) {
         const arr = init.slice();
         const expectedArr = init.slice();
-        it(`size=${padRight(init.length, 2)} repeat=${repeat}`, () => {
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
           sut = new ArrayObserver(arr);
           let expectedResult;
           let actualResult;
@@ -228,42 +156,7 @@ describe(`ArrayObserver`, () => {
     }
   });
 
-  describe('observeShift should track changes', () => {
-    const tests = [
-      {
-        init: [],
-        changes: []
-      },
-      {
-        init: [1],
-        changes: [d]
-      },
-      {
-        init: [1, 2],
-        changes: [d, n]
-      },
-      {
-        init: [1, 2, 3],
-        changes: [d, n, n]
-      }
-    ];
-
-    for (const { init, changes } of tests) {
-      const arr = init.slice();
-      it(`size=${init.length}`, () => {
-        sut = new ArrayObserver(arr);
-        arr.shift();
-        if (init.length) {
-          expect(sut.mutationCount).to.equal(1);
-          expect(sut.changeSets[sut.mutationCount - 1]).to.deep.equal(new Uint16Array(changes));
-        } else {
-          expect(sut.mutationCount).to.equal(0);
-        }
-      });
-    }
-  });
-
-  describe(`observeSplice should work like native splice`, () => {
+  describe(`observeSplice`, () => {
     const initArr = [[], [1], [1, 2]];
     const startArr = [undefined, -1, 0, 1, 2];
     const deleteCountArr = [undefined, -1, 0, 1, 2, 3];
@@ -276,7 +169,7 @@ describe(`ArrayObserver`, () => {
             for (const repeat of repeatArr) {
               const arr = init.slice();
               const expectedArr = init.slice();
-              it(`size=${padRight(arr.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat}`, () => {
+              it(`size=${padRight(arr.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
                 sut = new ArrayObserver(arr);
                 let expectedResult;
                 let actualResult;
@@ -306,14 +199,14 @@ describe(`ArrayObserver`, () => {
     }
   });
 
-  describe(`observeReverse should work like native reverse`, () => {
+  describe(`observeReverse`, () => {
     const initArr = [[], [1], [1, 2], [1, 2, 3], [1, 2, 3, 4], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6]];
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
       for (const repeat of repeatArr) {
         const arr = init.slice();
         const expectedArr = init.slice();
-        it(`size=${padRight(init.length, 2)} repeat=${repeat}`, () => {
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
           sut = new ArrayObserver(arr);
           let expectedResult;
           let actualResult;
@@ -330,7 +223,7 @@ describe(`ArrayObserver`, () => {
     }
   });
 
-  describe(`observeSort should work like native sort`, () => {
+  describe(`observeSort`, () => {
     const arraySizes = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 50, 500, 1000];
     const types = ['undefined', 'null', 'boolean', 'string', 'number', 'object', 'mixed'];
     const compareFns = [
@@ -358,7 +251,7 @@ describe(`ArrayObserver`, () => {
               arr = arr.reverse();
               expectedArr = expectedArr.reverse();
             }
-            it(`reverse=${padRight(reverse, 5)} size=${padRight(init.length, 4)} type=${padRight(type, 9)} sortFunc=${compareFn}`, () => {
+            it(`reverse=${padRight(reverse, 5)} size=${padRight(init.length, 4)} type=${padRight(type, 9)} sortFunc=${compareFn} - behaves as native`, () => {
               sut = new ArrayObserver(arr);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
@@ -392,24 +285,24 @@ describe(`ArrayObserver`, () => {
 
 });
 
-function padLeft(str, len) {
+function padLeft(str: any, len: number): string {
   str = str + '';
   return new Array(len - str.length + 1).join(' ') + str;
 }
 
-function padRight(str, len) {
+function padRight(str: any, len: number): string {
   str = str + '';
   return str + new Array(len - str.length + 1).join(' ');
 }
 
-function getNumberFactory(arraySize) {
+function getNumberFactory(arraySize: number) {
   const middle = (arraySize / 2) | 0;
   return (i) => {
     return i < middle ? arraySize - i : i;
   }
 }
 
-function getValueFactory(getNumber, type, types) {
+function getValueFactory(getNumber: Function, type: string, types: string[]): Function {
   switch (type) {
     case 'undefined':
       return () => undefined;
@@ -433,5 +326,57 @@ function getValueFactory(getNumber, type, types) {
         getValueFactory(getNumber, types[5], types)
       ];
       return (i) => factories[i % 6](i);
+  }
+}
+
+function synchronize(oldArr: Array<Object>, indexMap: Array<number>, newArr: Array<Object>): void {
+  if (oldArr.length === newArr.length && newArr.length === 0) {
+    return;
+  }
+
+  // first clean up any items that were removed
+  let oldIndex = 0;
+  let oldLen = oldArr.length;
+  while (oldIndex < oldLen) {
+    const newIndex = indexMap.indexOf(oldIndex);
+    if (newIndex === -1) {
+      oldArr[oldIndex] = undefined; // simulate remove
+    }
+    oldIndex++;
+  }
+
+  // then move any of the existing items if they were moved
+  let hasMoved = false;
+  // todo: fix this (that's enough sorting algorithms for today..)
+  //do {
+    hasMoved = false;
+    oldIndex = 0;
+    while (oldIndex < oldLen) {
+      const newIndex = indexMap.indexOf(oldIndex);
+      if (newIndex !== -1 && oldIndex !== newIndex) {
+        if (oldArr[oldIndex] !== undefined) {
+          if (oldArr[newIndex] !== undefined) {
+            let tmp = oldArr[oldIndex]; // simulate swap
+            oldArr[oldIndex] =  oldArr[newIndex];
+            oldArr[newIndex] = tmp;
+          } else {
+            oldArr[newIndex] = oldArr[oldIndex]; // simulate move;
+            oldArr[oldIndex] = undefined;
+          }
+          hasMoved = true;
+        }
+      }
+      oldIndex++;
+    }
+  //} while (hasMoved)
+
+  // now that everything is in place, we can safely create the new items
+  let newIndex = 0;
+  let newLen = newArr.length;
+  while (newIndex < newLen) {
+    if (oldArr[newIndex] === undefined) {
+      oldArr[newIndex] = newArr[newIndex]; // simulate create
+    }
+    newIndex++;
   }
 }

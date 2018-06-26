@@ -21,11 +21,17 @@ export enum TargetedInstructionType {
   hydrateTemplateController = 13
 }
 
+export interface IBuildInstruction {
+  required: boolean;
+  compiler: string;
+}
+
 export interface ITemplateSource {
   name?: string;
   template?: string;
   instructions?: Array<TargetedInstruction[]>;
   dependencies?: any[];
+  build?: IBuildInstruction;
   surrogates?: TargetedInstruction[];
   observables?: Record<string, IBindableInstruction>;
   containerless?: boolean;

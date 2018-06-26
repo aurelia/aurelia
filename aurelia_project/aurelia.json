@@ -26,11 +26,11 @@
           "include": [
             "[**/*.js]",
             "**/*.{css,html}"
-          ],
-          "exclude": [
-            "**/test-jit/**/*"
           ]
-        }
+        },
+        "dependencies": [
+          "text"
+        ]
       },
       {
         "name": "vendor-bundle.js",
@@ -97,6 +97,7 @@
     "elements": "resources/elements",
     "attributes": "resources/attributes",
     "valueConverters": "resources/value-converters",
-    "bindingBehaviors": "resources/binding-behaviors"
+    "bindingBehaviors": "resources/binding-behaviors",
+    "view": "../loaders/requirejs/view"
   }
 }

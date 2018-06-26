@@ -69,7 +69,7 @@ class RenderingEngine implements IRenderingEngine {
     let found = this.templateLookup.get(definition);
 
     if (!found) {
-      found = this.templateFromCompiledSource(<ExposedContext>this.container, definition);
+      found = this.templateFromSource(<ExposedContext>this.container, definition);
 
       //If the element has a view, support Recursive Components by adding self to own view template container.
       if (found.renderContext !== null) {
@@ -82,8 +82,12 @@ class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  private templateFromCompiledSource(renderContext: IRenderContext, templateDefinition: TemplateDefinition): ITemplate {
+  private templateFromSource(renderContext: IRenderContext, templateDefinition: TemplateDefinition): ITemplate {
     if (templateDefinition && templateDefinition.template) {
+      if (templateDefinition.build.required) {
+        throw new Error('Template compilation not yet implemented.');
+      }
+
       return new CompiledTemplate(this, renderContext, templateDefinition);
     }
 
@@ -107,7 +111,7 @@ class RenderingEngine implements IRenderingEngine {
   }
 
   private factoryFromCompiledSource(renderContext: IRenderContext, templateDefinition: TemplateDefinition): IVisualFactory {
-    const template = this.templateFromCompiledSource(renderContext, templateDefinition);
+    const template = this.templateFromSource(renderContext, templateDefinition);
 
     const CompiledVisual = class extends Visual {
       $slots: Record<string, IEmulatedShadowSlot> = templateDefinition.hasSlots ? {} : null;
@@ -190,6 +194,10 @@ function createDefinition(templateSource: Immutable<ITemplateSource>): TemplateD
   return {
     name: templateSource.name || 'Unnamed Template',
     template: templateSource.template,
+    build: templateSource.build || {
+      required: false,
+      compiler: 'default'
+    },
     observables: templateSource.observables || PLATFORM.emptyObject,
     instructions: templateSource.instructions ? Array.from(templateSource.instructions) : PLATFORM.emptyArray,
     dependencies: templateSource.dependencies ? Array.from(templateSource.dependencies) : PLATFORM.emptyArray,

@@ -1,5 +1,5 @@
 
-declare module '*.html!au' {
+declare module 'view!*.html' {
   interface ITemplateSource {
     name: string;
     template: string;

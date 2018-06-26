@@ -1,5 +1,5 @@
 import { customElement } from '../runtime/decorators';
-import view from './app.html!au';
+import view from 'view!./app.html';
 
 class Todo {
   done = false;

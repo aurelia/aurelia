@@ -385,6 +385,10 @@ function createTemplateDefinition(templateSource: ITemplateSource, Type: IElemen
   return {
     name: templateSource.name || 'unnamed',
     template: templateSource.template || null,
+    build: templateSource.build || {
+      required: false,
+      compiler: 'default'
+    },
     observables: Object.assign({}, (Type as any).observables, templateSource.observables),
     instructions: templateSource.instructions ? Array.from(templateSource.instructions) : PLATFORM.emptyArray,
     dependencies: templateSource.dependencies ? Array.from(templateSource.dependencies) : PLATFORM.emptyArray,

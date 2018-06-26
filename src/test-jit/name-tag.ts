@@ -1,5 +1,5 @@
 import { customElement } from "../runtime/decorators";
-import view from './name-tag.html!au';
+import view from 'view!./name-tag.html';
 
 @customElement(view)
 export class NameTag {

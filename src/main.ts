@@ -1,9 +1,8 @@
-import { Aurelia } from './runtime/aurelia';
-import { App } from './test-aot/app';
-import { GeneratedConfiguration } from './test-aot/generated-configuration';
-import { DebugConfiguration } from './debug/configuration';
+import './test-aot/startup';
 
-new Aurelia()
-  .register(GeneratedConfiguration, DebugConfiguration)
-  .app({ host: document.querySelector('app'), component: new App() })
-  .start();
+// import { installRequireJSPlugins } from './plugins/requirejs/configuration';
+
+// declare function require(imports: string[]);
+
+// installRequireJSPlugins();
+// require(['./test-jit/startup']);

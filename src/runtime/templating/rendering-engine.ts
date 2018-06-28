@@ -82,47 +82,47 @@ class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  private templateFromSource(renderContext: IRenderContext, templateDefinition: TemplateDefinition): ITemplate {
-    if (templateDefinition && templateDefinition.template) {
-      if (templateDefinition.build.required) {
+  private templateFromSource(context: IRenderContext, definition: TemplateDefinition): ITemplate {
+    if (definition && definition.template) {
+      if (definition.build.required) {
         throw new Error('Template compilation not yet implemented.');
       }
 
-      return new CompiledTemplate(this, renderContext, templateDefinition);
+      return new CompiledTemplate(this, context, definition);
     }
 
     return noViewTemplate;
   }
 
-  getVisualFactory(renderContext: IRenderContext, templateSource: Immutable<ITemplateSource>): IVisualFactory {
-    if (!templateSource) {
+  getVisualFactory(context: IRenderContext, definition: Immutable<ITemplateSource>): IVisualFactory {
+    if (!definition) {
       return null;
     }
 
-    let found = this.factoryLookup.get(templateSource);
+    let found = this.factoryLookup.get(definition);
 
     if (!found) {
-      let validSource = createDefinition(templateSource);
-      found = this.factoryFromCompiledSource(renderContext, validSource);
-      this.factoryLookup.set(templateSource, found);
+      let validSource = createDefinition(definition);
+      found = this.factoryFromSource(context, validSource);
+      this.factoryLookup.set(definition, found);
     }
 
     return found;
   }
 
-  private factoryFromCompiledSource(renderContext: IRenderContext, templateDefinition: TemplateDefinition): IVisualFactory {
-    const template = this.templateFromSource(renderContext, templateDefinition);
+  private factoryFromSource(context: IRenderContext, definition: TemplateDefinition): IVisualFactory {
+    const template = this.templateFromSource(context, definition);
 
     const CompiledVisual = class extends Visual {
-      $slots: Record<string, IEmulatedShadowSlot> = templateDefinition.hasSlots ? {} : null;
-      $context = renderContext;
+      $slots: Record<string, IEmulatedShadowSlot> = definition.hasSlots ? {} : null;
+      $context = context;
 
       createView() {
         return template.createFor(this);
       }
     }
 
-    return new VisualFactory(templateDefinition.name, CompiledVisual);
+    return new VisualFactory(definition.name, CompiledVisual);
   }
 
   applyRuntimeBehavior(type: IAttributeType | IElementType, instance: IAttributeComponent | IElementComponent, observables: ObservableDefinitions): IRuntimeBehavior {
@@ -142,7 +142,7 @@ class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  createVisualFromComponent(renderContext: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): VisualWithCentralComponent {
+  createVisualFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): VisualWithCentralComponent {
     let animator = this.animator;
     
     class ComponentVisual extends Visual {
@@ -150,7 +150,7 @@ class RenderingEngine implements IRenderingEngine {
 
       constructor() {
         super(null, animator);
-        this.$context = renderContext;
+        this.$context = context;
       }
 
       createView() {
@@ -158,12 +158,12 @@ class RenderingEngine implements IRenderingEngine {
 
         if (typeof componentOrType === 'function') {
           target = DOM.createElement(componentOrType.source.name);
-          renderContext.hydrateElement(this, target, instruction);
+          context.hydrateElement(this, target, instruction);
           this.component = <IElementComponent>this.$attachable[this.$attachable.length - 1];
         } else {
           const componentType = <IElementType>componentOrType.constructor;
           target = componentOrType.element || DOM.createElement(componentType.definition.name);
-          renderContext.hydrateElementInstance(this, target, instruction, componentOrType);
+          context.hydrateElementInstance(this, target, instruction, componentOrType);
           this.component = componentOrType;
         }
 
@@ -178,9 +178,9 @@ class RenderingEngine implements IRenderingEngine {
     return new ComponentVisual();
   }
 
-  createRenderer(renderContext: IRenderContext): IRenderer {
+  createRenderer(context: IRenderContext): IRenderer {
     return new Renderer(
-      renderContext,
+      context,
       this.taskQueue,
       this.observerLocator,
       this.eventManager,
@@ -190,21 +190,21 @@ class RenderingEngine implements IRenderingEngine {
   }
 }
 
-function createDefinition(templateSource: Immutable<ITemplateSource>): TemplateDefinition {
+function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefinition {
   return {
-    name: templateSource.name || 'Unnamed Template',
-    template: templateSource.template,
-    build: templateSource.build || {
+    name: definition.name || 'Unnamed Template',
+    template: definition.template,
+    build: definition.build || {
       required: false,
       compiler: 'default'
     },
-    observables: templateSource.observables || PLATFORM.emptyObject,
-    instructions: templateSource.instructions ? Array.from(templateSource.instructions) : PLATFORM.emptyArray,
-    dependencies: templateSource.dependencies ? Array.from(templateSource.dependencies) : PLATFORM.emptyArray,
-    surrogates: templateSource.surrogates ? Array.from(templateSource.surrogates) : PLATFORM.emptyArray,
-    containerless: templateSource.containerless || false,
-    shadowOptions: templateSource.shadowOptions || null,
-    hasSlots: templateSource.hasSlots || false
+    observables: definition.observables || PLATFORM.emptyObject,
+    instructions: definition.instructions ? Array.from(definition.instructions) : PLATFORM.emptyArray,
+    dependencies: definition.dependencies ? Array.from(definition.dependencies) : PLATFORM.emptyArray,
+    surrogates: definition.surrogates ? Array.from(definition.surrogates) : PLATFORM.emptyArray,
+    containerless: definition.containerless || false,
+    shadowOptions: definition.shadowOptions || null,
+    hasSlots: definition.hasSlots || false
   };
 }
 

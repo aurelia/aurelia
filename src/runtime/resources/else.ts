@@ -4,7 +4,7 @@ import { IVisualFactory } from '../templating/visual';
 import { IRenderSlot } from '../templating/render-slot';
 import { templateController } from '../decorators';
 import { IScope } from '../binding/binding-context';
-import { inject } from '../../kernel/decorators';
+import { inject } from '../../kernel/di';
 
 @templateController('else')
 @inject(IVisualFactory, IRenderSlot)

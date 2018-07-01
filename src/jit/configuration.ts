@@ -1,4 +1,4 @@
-import { IContainer } from "../kernel/di";
+import { IContainer, Registration } from "../kernel/di";
 import * as ExpressionParser from './binding/expression-parser';
 import { If } from "../runtime/resources/if";
 import { Else } from "../runtime/resources/else";
@@ -14,6 +14,8 @@ import { SelfBindingBehavior } from "../runtime/resources/self-binding-behavior"
 import { SignalBindingBehavior } from "../runtime/resources/signals";
 import { ThrottleBindingBehavior } from "../runtime/resources/throttle-binding-behavior";
 import { UpdateTriggerBindingBehavior } from "../runtime/resources/update-trigger-binding-behavior";
+import { ITemplateCompiler } from "../runtime/templating/template-compiler";
+import { TemplateCompiler } from "./templating/template-compiler";
 
 const globalResources: any[] = [
   Compose,
@@ -38,6 +40,7 @@ export const BasicConfiguration = {
   register(container: IContainer) { 
     container.register(
       ExpressionParser,
+      Registration.singleton(ITemplateCompiler, TemplateCompiler),
       ...globalResources
     );
   }

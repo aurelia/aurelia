@@ -25,7 +25,6 @@ export interface IRenderer {
 export class Renderer implements IRenderer {
   constructor(
     private context: IRenderContext,
-    private taskQueue: ITaskQueue, 
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
     private parser: IExpressionParser,

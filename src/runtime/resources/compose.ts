@@ -2,7 +2,7 @@ import { customElement } from '../decorators';
 import { IRenderSlot, SwapOrder } from '../templating/render-slot';
 import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from '../templating/instructions';
 import { IViewOwner } from '../templating/view';
-import { inject } from '../../kernel/decorators';
+import { inject } from '../../kernel/di';
 import { INode, DOM } from '../dom';
 import { VisualWithCentralComponent } from '../templating/visual';
 import { IRenderContext } from '../templating/render-context';

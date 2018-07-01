@@ -1,8 +1,7 @@
 import { templateController, bindable } from '../../decorators';
 import { IVisualFactory, IVisual } from '../../templating/visual';
 import { IRenderSlot } from '../../templating/render-slot';
-import { IContainer } from '../../../kernel/di';
-import { inject } from '../../../kernel/decorators';
+import { IContainer, inject } from '../../../kernel/di';
 import { IRepeatStrategyRegistry } from './repeat-strategy-registry';
 import { IRepeater } from './repeater';
 import { IExpression, BindingBehavior, ValueConverter } from '../../binding/ast';

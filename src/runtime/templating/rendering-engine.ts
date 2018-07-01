@@ -1,7 +1,6 @@
 import { RuntimeBehavior, IRuntimeBehavior } from "./runtime-behavior";
 import { IAttributeType, IElementType, IAttributeComponent, IElementComponent } from "./component";
-import { DI, IContainer } from "../../kernel/di";
-import { inject } from '../../kernel/decorators';
+import { DI, IContainer, inject, all } from "../../kernel/di";
 import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition, TemplatePartDefinitions, ObservableDefinitions } from "./instructions";
 import { ITaskQueue } from "../task-queue";
 import { IViewOwner, View } from "./view";
@@ -22,6 +21,7 @@ import { ITemplate } from "./template";
 import { IObserverLocator } from "../binding/observer-locator";
 import { IEventManager } from "../binding/event-manager";
 import { IExpressionParser } from "../binding/expression-parser";
+import { ITemplateCompiler } from "./template-compiler";
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType: IElementType): ITemplate;
@@ -46,11 +46,12 @@ const noViewTemplate: ITemplate = {
 
 type ExposedContext = IRenderContext & IComponentOperation & IContainer;
 
-@inject(IContainer, ITaskQueue, IObserverLocator, IEventManager, IExpressionParser, IAnimator)
+@inject(IContainer, ITaskQueue, IObserverLocator, IEventManager, IExpressionParser, IAnimator, all(ITemplateCompiler))
 class RenderingEngine implements IRenderingEngine {
   private templateLookup = new Map<TemplateDefinition, ITemplate>();
   private factoryLookup = new Map<Immutable<ITemplateSource>, IVisualFactory>();
   private behaviorLookup = new Map<IElementType | IAttributeType, RuntimeBehavior>();
+  private compilers: Record<string, ITemplateCompiler>;
 
   constructor(
     private container: IContainer, 
@@ -58,8 +59,14 @@ class RenderingEngine implements IRenderingEngine {
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
     private parser: IExpressionParser,
-    private animator: IAnimator
-  ) {}
+    private animator: IAnimator,
+    templateCompilers: ITemplateCompiler[]
+  ) {
+    this.compilers = templateCompilers.reduce((acc, item) => {
+      acc[item.name] = item;
+      return acc;
+    }, Object.create(null));
+  }
 
   getElementTemplate(definition: TemplateDefinition, componentType: IElementType): ITemplate {
     if (!definition) {
@@ -85,7 +92,13 @@ class RenderingEngine implements IRenderingEngine {
   private templateFromSource(context: IRenderContext, definition: TemplateDefinition): ITemplate {
     if (definition && definition.template) {
       if (definition.build.required) {
-        throw new Error('Template compilation not yet implemented.');
+        const compiler = this.compilers[definition.build.compiler];
+
+        if (!compiler) {
+          throw Reporter.error(20, `Requested Compiler: ${compiler.name}`);
+        }
+        
+        definition = compiler.compile(definition, context);
       }
 
       return new CompiledTemplate(this, context, definition);
@@ -181,7 +194,6 @@ class RenderingEngine implements IRenderingEngine {
   createRenderer(context: IRenderContext): IRenderer {
     return new Renderer(
       context,
-      this.taskQueue,
       this.observerLocator,
       this.eventManager,
       this.parser,

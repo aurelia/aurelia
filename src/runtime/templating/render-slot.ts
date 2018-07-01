@@ -50,7 +50,7 @@ export enum SwapOrder {
   after = 'after'
 }
 
-export const IRenderSlot = DI.createInterface<IRenderSlot>();
+export const IRenderSlot = DI.createInterface<IRenderSlot>().noDefault();
 
 /**
 * Represents a slot or location within the DOM to which views can be added and removed.

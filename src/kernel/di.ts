@@ -10,6 +10,7 @@ export interface IInterfaceSymbol<T> {
 
 interface IDefaultableInterfaceSymbol<T> extends IInterfaceSymbol<T> {
   withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): IInterfaceSymbol<T>;
+  noDefault(): IInterfaceSymbol<T>;
 }
 
 export interface IResolver<T = any> {
@@ -27,6 +28,8 @@ export interface IFactory<T = any> {
 }
 
 export interface IServiceLocator {
+  has(key: any, searchAncestors: boolean): boolean;
+
   get<T>(key: IInterfaceSymbol<T>): T;
   get<T extends Constructable>(key: T): InstanceType<T>
   get<T = any>(key: any): T;
@@ -84,9 +87,11 @@ export const DI = {
   createContainer(): IContainer {
     return new Container();
   },
+
   getDesignParamTypes(target: any): any[] {
     return (<any>Reflect).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
+
   getDependencies(type: Function): any[] {
     let dependencies: any[];
 
@@ -107,12 +112,17 @@ export const DI = {
 
     return dependencies;
   },
+
   createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
     const Key: any = function(target: Injectable, property: string, index: number): any {
       const inject = target.inject || (target.inject = []);
       (<any>Key).friendlyName = friendlyName || 'Interface';
       inject[index] = Key;
       return target;
+    };
+
+    Key.noDefault = function(): IInterfaceSymbol<T> {
+      return Key;
     };
   
     Key.withDefault = function(configure: (builder: IResolverBuilder<T>) => IResolver): IInterfaceSymbol<T> {
@@ -144,11 +154,67 @@ export const DI = {
     };
   
     return Key;
+  },
+
+  inject(...dependencies: any[]): (target: any, property?: string, descriptor?: PropertyDescriptor | number) => any {
+    return function(target: any, key?, descriptor?) {
+      if (typeof descriptor === 'number') { // It's a parameter decorator.
+        if (!target.hasOwnProperty('inject')) {
+          target.inject = DI.getDesignParamTypes(target).slice();
+        }
+
+        if (dependencies.length === 1) {
+          target.inject[descriptor] = dependencies[0];
+        }
+      } else if (key) { // It's a property decorator. Not supported by the container without plugins.
+        const actualTarget = target.constructor;
+        const inject = actualTarget.inject || (actualTarget.inject = {});
+        inject[key] = dependencies[0];
+      } else if (descriptor) { // It's a function decorator (not a Class constructor)
+        const fn = descriptor.value;
+        fn.inject = dependencies;
+      } else { // It's a class decorator.
+        if (!dependencies || dependencies.length === 0) {
+          target.inject = DI.getDesignParamTypes(target).slice();
+        } else {
+          target.inject = dependencies;
+        }
+      }
+    };
   }
 };
 
-export const IContainer = <IInterfaceSymbol<IContainer>>DI.createInterface<IContainer>();
+export const IContainer = DI.createInterface<IContainer>().noDefault();
 export const IServiceLocator = <IInterfaceSymbol<IServiceLocator>>IContainer;
+
+function createResolver(getter: (key: any, handler: IContainer, requestor: IContainer) => any): (key: any) => ReturnType<typeof DI.inject> {
+  return function (key: any): ReturnType<typeof DI.inject> {
+    const Key = function Key(target: Injectable, property?: string, descriptor?: PropertyDescriptor | number): void {
+      return DI.inject(Key)(target, property, descriptor);
+    };
+
+    (Key as any).resolve = function(handler: IContainer, requestor: IContainer): any {
+      return getter(key, handler, requestor);
+    };
+
+    return Key;
+  };
+}
+
+export const inject = DI.inject;
+
+export const all = createResolver((key: any, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
+
+export const lazy = createResolver((key: any, handler: IContainer, requestor: IContainer) =>  {
+  let instance: any = null; // cache locally so that lazy always returns the same instance once resolved
+  return () => {
+    if (instance === null) {
+      instance = requestor.get(key);
+    }
+
+    return instance;
+  };
+});
 
 const enum ResolverStrategy {
   instance = 0,
@@ -348,6 +414,14 @@ class Container implements IContainer {
     }
 
     return null;
+  }
+
+  has(key: any, searchAncestors: boolean = false): boolean {
+    return this.resolvers.has(key) 
+      ? true 
+      : searchAncestors && this.parent !== null 
+      ? this.parent.has(key, true) 
+      : false;
   }
 
   get(key: any) {

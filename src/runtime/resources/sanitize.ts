@@ -1,5 +1,5 @@
 import { DI } from '../../kernel/di';
-import { inject } from '../../kernel/decorators';
+import { inject } from '../../kernel/di';
 import { valueConverter } from '../decorators';
 
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;

@@ -8,7 +8,7 @@ import { CheckedObserver } from '../binding/checked-observer';
 import { SelectValueObserver } from '../binding/select-value-observer';
 import { Reporter } from '../../kernel/reporter';
 import { bindingBehavior } from '../decorators';
-import { inject } from '../../kernel/decorators';
+import { inject } from '../../kernel/di';
 
 type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {
   originalHandler?: IEventSubscriber

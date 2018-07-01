@@ -1,5 +1,5 @@
 import { IScope } from '../binding/binding-context';
-import { inject } from '../../kernel/decorators';
+import { inject } from '../../kernel/di';
 import { Binding } from '../binding/binding';
 import { bindingBehavior } from '../decorators';
 import { Reporter } from '../../kernel/reporter';

@@ -1,7 +1,7 @@
 import { templateController } from '../decorators';
 import { IRenderSlot } from '../templating/render-slot';
 import { IScope } from '../binding/binding-context';
-import { inject } from '../../kernel/decorators';
+import { inject } from '../../kernel/di';
 import { IVisualFactory, IVisual } from '../templating/visual';
 
 @templateController('replaceable')

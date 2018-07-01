@@ -184,7 +184,7 @@ export class EventSubscriber implements IEventSubscriber {
     const remove = DOM.removeEventListener;
 
     for (let i = 0, ii = events.length; ii > i; ++i) {
-      remove(event[i], callbackOrListener, node);
+      remove(events[i], callbackOrListener, node);
     }
 
     this.target = this.handler = null;

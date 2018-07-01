@@ -1,6 +1,6 @@
 import { Reporter as RuntimeReporter } from '../kernel/reporter';
 
-enum MessageType {
+const enum MessageType {
   error,
   warn,
   info,
@@ -129,5 +129,9 @@ const codeLookup: Record<string, IMessageInfo> = {
   19: {
     type: MessageType.error,
     message: 'Value for expression is non-repeatable.'
+  },
+  20: {
+    type: MessageType.error,
+    message: 'No template compiler found with the specified name. JIT support or a custom compiler is required.'
   }
 };

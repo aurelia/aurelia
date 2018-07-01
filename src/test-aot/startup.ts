@@ -3,7 +3,7 @@ import { App } from './app';
 import { GeneratedConfiguration } from './generated-configuration';
 import { DebugConfiguration } from '../debug/configuration';
 
-new Aurelia()
+window['au'] = new Aurelia()
   .register(GeneratedConfiguration, DebugConfiguration)
   .app({ host: document.querySelector('app'), component: new App() })
   .start();

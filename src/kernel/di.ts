@@ -216,6 +216,14 @@ export const lazy = createResolver((key: any, handler: IContainer, requestor: IC
   };
 });
 
+export const optional = createResolver((key: any, handler: IContainer, requestor: IContainer) =>  {
+  if (requestor.has(key, true)) {
+    return requestor.get(key);
+  } else {
+    return null;
+  }
+});
+
 const enum ResolverStrategy {
   instance = 0,
   singleton = 1,

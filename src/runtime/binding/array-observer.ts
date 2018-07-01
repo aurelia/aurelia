@@ -18,8 +18,37 @@ const sort = proto.sort;
 const min = Math.min;
 const max = Math.max;
 
+/* about -2:
+The index of a new item is stored in the indexMap by making it negative (so we can efficiently tell it apart from existing items)
+and then subtracting 2, to account for index 0 and -1 (the latter indicates an existing item was removed)
+This operation is then reversed during synchronization to get back the actual index the new item should have in the old array.
+*/
+
+export function enableArrayObservation(): void {
+  proto.push = observePush;
+  proto.unshift = observeUnshift;
+  proto.pop = observePop;
+  proto.shift = observeShift;
+  proto.splice = observeSplice;
+  proto.reverse = observeReverse;
+  proto.sort = observeSort;
+}
+
+export function disableArrayObservation(): void {
+  proto.push = push;
+  proto.unshift = unshift;
+  proto.pop = pop;
+  proto.shift = shift;
+  proto.splice = splice;
+  proto.reverse = reverse;
+  proto.sort = sort;
+}
+
 // https://tc39.github.io/ecma262/#sec-array.prototype.push
 function observePush(this: IObservedArray): ReturnType<typeof push> {
+  if (this.$observer === undefined) {
+    return push.apply(this, arguments);
+  }
   const len = this.length;
   const argCount = arguments.length;
   if (argCount === 0) {
@@ -29,7 +58,7 @@ function observePush(this: IObservedArray): ReturnType<typeof push> {
   this.length = o.indexMap.length = len + argCount
   let i = len;
   while (i < this.length) {
-    this[i] = arguments[i - len]; o.indexMap[i] = o.nextIndex;
+    this[i] = arguments[i - len]; o.indexMap[i] = -i - 2; // see "about -2" at the top
     i++;
   }
   o.notifyImmediate('push', arguments);
@@ -38,6 +67,9 @@ function observePush(this: IObservedArray): ReturnType<typeof push> {
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
 function observeUnshift(this: IObservedArray): ReturnType<typeof unshift>  {
+  if (this.$observer === undefined) {
+    return unshift.apply(this, arguments);
+  }
   const len = this.length;
   const argCount = arguments.length;
   if (argCount === 0) {
@@ -52,7 +84,7 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof unshift>  {
   }
   let j = 0;
   while (j < argCount) {
-    this[j] = arguments[j]; o.indexMap[j] = o.nextIndex;
+    this[j] = arguments[j]; o.indexMap[j] = -j - 2; // see "about -2" at the top
     j++;
   }
   o.notifyImmediate('unshift', arguments);
@@ -61,6 +93,9 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof unshift>  {
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.pop
 function observePop(this: IObservedArray): ReturnType<typeof pop> {
+  if (this.$observer === undefined) {
+    return pop.call(this);
+  }
   const len = this.length;
   if (len === 0) {
     return undefined;
@@ -74,6 +109,9 @@ function observePop(this: IObservedArray): ReturnType<typeof pop> {
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.shift
 function observeShift(this: IObservedArray): ReturnType<typeof shift> {
+  if (this.$observer === undefined) {
+    return shift.call(this);
+  }
   const len = this.length;
   if (len === 0) {
     return undefined;
@@ -92,6 +130,9 @@ function observeShift(this: IObservedArray): ReturnType<typeof shift> {
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.splice
 function observeSplice(this: IObservedArray, start: number, deleteCount?: number, ...items: any[]): ReturnType<typeof splice> {
+  if (this.$observer === undefined) {
+    return splice.apply(this, arguments);
+  }
   const len = this.length;
   const argCount = arguments.length;
   const relativeStart = start | 0;
@@ -121,7 +162,7 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
   }
   k = actualStart;
   while (k < (actualStart + itemCount)) {
-    this[k] = items[k - actualStart]; o.indexMap[k] = o.nextIndex;
+    this[k] = items[k - actualStart]; o.indexMap[k] = -k - 2; // see "about -2" at the top
     k++;
   }
   this.length = o.indexMap.length = len - actualDeleteCount + itemCount;
@@ -131,6 +172,9 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
 function observeReverse(this: IObservedArray): ReturnType<typeof reverse> {
+  if (this.$observer === undefined) {
+    return reverse.call(this);
+  }
   const len = this.length;
   const middle = (len / 2) | 0;
   const o = this.$observer;
@@ -150,6 +194,9 @@ function observeReverse(this: IObservedArray): ReturnType<typeof reverse> {
 // https://tc39.github.io/ecma262/#sec-array.prototype.sort
 // https://github.com/v8/v8/blob/master/src/js/array.js
 function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => number) {
+  if (this.$observer === undefined) {
+    return sort.call(this, compareFn);
+  }
   const len = this.length;
   if (len < 2) {
     return this;
@@ -313,11 +360,7 @@ export interface IBatchedSubscriber {
 export class ArrayObserver<T = any> implements IDisposable {
   public array: IObservedArray<any>;
   public indexMap: Array<number>;
-  public get nextIndex(): number {
-    return this.index++;
-  }
   public hasChanges: boolean;
-  private index: number;
   private batchedSubscribers: Set<IBatchedSubscriber>;
   private immediateSubscribers: Set<IImmediateSubscriber>;
 
@@ -325,15 +368,8 @@ export class ArrayObserver<T = any> implements IDisposable {
     if (!Array.isArray(array)) {
       throw new Error(Object.prototype.toString.call(array) + ' is not an array!');
     }
-    (<any>array).$observer = this;
-    array.push = observePush;
-    array.unshift = observeUnshift;
-    array.pop = observePop;
-    array.shift = observeShift;
-    array.splice = observeSplice;
-    array.reverse = observeReverse;
-    array.sort = observeSort;
     this.array = <any>array;
+    this.array.$observer = this;
     this.resetIndexMap();
     this.hasChanges = false;
     this.batchedSubscribers = new Set();
@@ -347,7 +383,6 @@ export class ArrayObserver<T = any> implements IDisposable {
     while (i < len) {
       this.indexMap[i] = i++;
     }
-    this.index = i;
   }
 
   notifyImmediate(origin: MutationOrigin, args?: IArguments): void {
@@ -390,20 +425,9 @@ export class ArrayObserver<T = any> implements IDisposable {
   }
   
   dispose(): void {
-    const array = <Array<any>>this.array;
-    if (array) {
-      array.push = push;
-      array.unshift = unshift;
-      array.pop = pop;
-      array.shift = shift;
-      array.splice = splice;
-      array.reverse = reverse;
-      array.sort = sort;
-      (<any>array).$observer = undefined;
-    }
+    this.array.$observer = undefined;
     this.array = null;
     this.indexMap = null;
-    this.index = 0;
     this.batchedSubscribers.clear();
     this.immediateSubscribers.clear();
     this.batchedSubscribers = null;

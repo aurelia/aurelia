@@ -1,11 +1,49 @@
-import { ArrayObserver } from './../../../src/runtime/binding/array-observer';
+import { ArrayObserver, enableArrayObservation, disableArrayObservation } from './../../../src/runtime/binding/array-observer';
 import { expect } from 'chai';
+
+function assertArrayEqual(actual: any[], expected: any[]): void {
+  const len = actual.length;
+  expect(len).to.equal(expected.length, `expected.length=${expected.length}, actual.length=${actual.length}`);
+  let i = 0;
+  while (i < len) {
+    if (actual[i] !== expected[i]) {
+      const start = Math.max(i - 3, 0);
+      const end = Math.min(i + 3, len);
+      let $actual = actual.slice(start, end).map(stringify).join(',');
+      let $expected = expected.slice(start, end).map(stringify).join(',');
+      const prefix = `[${start > 0 ? '...,' : ''}`;
+      const suffix = `${end < len ? ',...' : ''}]`;
+      throw new Error(`expected ${prefix}${$actual}${suffix} to equal ${prefix}${$expected}${suffix}`);
+    }
+    i++;
+  }
+}
+
+function stringify(value) {
+  if (value === undefined) {
+    return 'undefined';
+  } else if (value === null) {
+    return 'null';
+  } else {
+    return value.toString();
+  }
+}
 
 describe(`ArrayObserver`, () => {
   let sut: ArrayObserver;
 
+  before(() => {
+    enableArrayObservation();
+  });
+
+  after(() => {
+    disableArrayObservation();
+  });
+
   afterEach(() => {
-    sut.dispose();
+    if (sut) {
+      sut.dispose();
+    }
   });
 
   describe(`observePush`, () => {
@@ -30,8 +68,8 @@ describe(`ArrayObserver`, () => {
                 expectedResult = expectedArr.push(...items);
                 actualResult = arr.push(...items);
               }
-              expect(actualResult).to.deep.equal(expectedResult);
-              expect(arr).to.deep.equal(expectedArr);
+              assertArrayEqual(actualResult, expectedResult);
+              assertArrayEqual(arr, expectedArr);
               i++;
             }
           });
@@ -48,7 +86,7 @@ describe(`ArrayObserver`, () => {
                 arr.push(...items);
               }
               synchronize(copy, sut.indexMap, arr);
-              expect(copy).to.deep.equal(arr);
+              assertArrayEqual(copy, arr);
               sut.resetIndexMap();
               i++;
             }
@@ -80,8 +118,8 @@ describe(`ArrayObserver`, () => {
                 expectedResult = expectedArr.unshift(...items);
                 actualResult = arr.unshift(...items);
               }
-              expect(actualResult).to.deep.equal(expectedResult);
-              expect(arr).to.deep.equal(expectedArr);
+              assertArrayEqual(actualResult, expectedResult);
+              assertArrayEqual(arr, expectedArr);
               i++;
             }
           });
@@ -98,7 +136,7 @@ describe(`ArrayObserver`, () => {
                 arr.unshift(...items);
               }
               synchronize(copy, sut.indexMap, arr);
-              expect(copy).to.deep.equal(arr.slice());
+              assertArrayEqual(copy, arr);
               sut.resetIndexMap();
               i++;
             }
@@ -113,9 +151,9 @@ describe(`ArrayObserver`, () => {
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
       for (const repeat of repeatArr) {
-        const arr = init.slice();
-        const expectedArr = init.slice();
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
+          const arr = init.slice();
+          const expectedArr = init.slice();
           sut = new ArrayObserver(arr);
           let expectedResult;
           let actualResult;
@@ -124,7 +162,21 @@ describe(`ArrayObserver`, () => {
             expectedResult = expectedArr.pop();
             actualResult = arr.pop();
             expect(actualResult).to.equal(expectedResult);
-            expect(arr).to.deep.equal(expectedArr);
+            assertArrayEqual(arr, expectedArr);
+            i++;
+          }
+        });
+
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
+          const arr = init.slice();
+          const copy = init.slice();
+          sut = new ArrayObserver(arr);
+          let i = 0;
+          while (i < repeat) {
+            arr.pop();
+            synchronize(copy, sut.indexMap, arr);
+            assertArrayEqual(copy, arr);
+            sut.resetIndexMap();
             i++;
           }
         });
@@ -148,7 +200,21 @@ describe(`ArrayObserver`, () => {
             expectedResult = expectedArr.shift();
             actualResult = arr.shift();
             expect(actualResult).to.equal(expectedResult);
-            expect(arr).to.deep.equal(expectedArr);
+            assertArrayEqual(arr, expectedArr);
+            i++;
+          }
+        });
+
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
+          const arr = init.slice();
+          const copy = init.slice();
+          sut = new ArrayObserver(arr);
+          let i = 0;
+          while (i < repeat) {
+            arr.shift();
+            synchronize(copy, sut.indexMap, arr);
+            assertArrayEqual(copy, arr);
+            sut.resetIndexMap();
             i++;
           }
         });
@@ -167,9 +233,9 @@ describe(`ArrayObserver`, () => {
         for (const deleteCount of deleteCountArr) {
           for (const items of itemsArr) {
             for (const repeat of repeatArr) {
-              const arr = init.slice();
-              const expectedArr = init.slice();
-              it(`size=${padRight(arr.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
+              it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
+                const arr = init.slice();
+                const expectedArr = init.slice();
                 sut = new ArrayObserver(arr);
                 let expectedResult;
                 let actualResult;
@@ -187,8 +253,30 @@ describe(`ArrayObserver`, () => {
                     expectedResult = expectedArr.splice(start, deleteCount, ...items);
                     actualResult = arr.splice(start, deleteCount, ...items);
                   }
-                  expect(actualResult).to.deep.equal(expectedResult);
-                  expect(arr).to.deep.equal(expectedArr);
+                  assertArrayEqual(actualResult, expectedResult);
+                  assertArrayEqual(arr, expectedArr);
+                  i++;
+                }
+              });
+
+              it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
+                const arr = init.slice();
+                const copy = init.slice();
+                sut = new ArrayObserver(arr);
+                let i = 0;
+                while (i < repeat) {
+                  if (items === undefined) {
+                    if (deleteCount === undefined) {
+                      arr.splice(start);
+                    } else {
+                      arr.splice(start, deleteCount);
+                    }
+                  } else {
+                    arr.splice(start, deleteCount, ...items);
+                  }
+                  synchronize(copy, sut.indexMap, arr);
+                  assertArrayEqual(copy, arr);
+                  sut.resetIndexMap();
                   i++;
                 }
               });
@@ -204,9 +292,9 @@ describe(`ArrayObserver`, () => {
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
       for (const repeat of repeatArr) {
-        const arr = init.slice();
-        const expectedArr = init.slice();
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
+          const arr = init.slice();
+          const expectedArr = init.slice();
           sut = new ArrayObserver(arr);
           let expectedResult;
           let actualResult;
@@ -214,8 +302,22 @@ describe(`ArrayObserver`, () => {
           while (i < repeat) {
             expectedResult = expectedArr.reverse();
             actualResult = arr.reverse();
-            expect(actualResult).to.deep.equal(expectedResult);
-            expect(arr).to.deep.equal(expectedArr);
+            assertArrayEqual(actualResult, expectedResult);
+            assertArrayEqual(arr, expectedArr);
+            i++;
+          }
+        });
+
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
+          const arr = init.slice();
+          const copy = init.slice();
+          sut = new ArrayObserver(arr);
+          let i = 0;
+          while (i < repeat) {
+            arr.reverse();
+            synchronize(copy, sut.indexMap, arr);
+            assertArrayEqual(copy, arr);
+            sut.resetIndexMap();
             i++;
           }
         });
@@ -224,7 +326,7 @@ describe(`ArrayObserver`, () => {
   });
 
   describe(`observeSort`, () => {
-    const arraySizes = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 50, 500, 1000];
+    const arraySizes = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 50, 500, 1000, 2500];
     const types = ['undefined', 'null', 'boolean', 'string', 'number', 'object', 'mixed'];
     const compareFns = [
       undefined,
@@ -233,32 +335,33 @@ describe(`ArrayObserver`, () => {
       (a, b) => a === b ? 0 : a < b ? -1 : 1
     ];
     const reverseOrNot = [true, false];
-    for (const reverse of reverseOrNot) {
-      for (const compareFn of compareFns) {
-        for (const arraySize of arraySizes) {
-          const getNumber = getNumberFactory(arraySize);
-          for (const type of types) {
-            const getValue = getValueFactory(getNumber, type, types);
-            const init = new Array(arraySize);
-            let i = 0;
-            while (i < arraySize) {
-              init[i] = getValue(i);
-              i++;
-            }
-            let arr = init.slice();
-            let expectedArr = init.slice();
-            if (reverse) {
-              arr = arr.reverse();
-              expectedArr = expectedArr.reverse();
-            }
-            it(`reverse=${padRight(reverse, 5)} size=${padRight(init.length, 4)} type=${padRight(type, 9)} sortFunc=${compareFn} - behaves as native`, () => {
+    for (const arraySize of arraySizes) {
+      const getNumber = getNumberFactory(arraySize);
+      let init = new Array(arraySize);
+
+      for (const type of types) {
+        const getValue = getValueFactory(getNumber, type, types);
+        let i = 0;
+        while (i < arraySize) {
+          init[i] = getValue(i);
+          i++;
+        }
+
+        for (const reverse of reverseOrNot) {
+          if (reverse) {
+            init = init.reverse();
+          }
+          for (const compareFn of compareFns) {
+            it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - behaves as native`, () => {
+              const arr = init.slice();
+              const expectedArr = init.slice();
               sut = new ArrayObserver(arr);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
               expect(expectedResult).to.equal(expectedArr);
               expect(actualResult).to.equal(arr);
               try {
-                expect(arr).to.deep.equal(expectedArr);
+                assertArrayEqual(arr, expectedArr);
               } catch(e) {
                 if (compareFn !== undefined) {
                   // a browser may wrap a custom sort function to normalize the results
@@ -277,12 +380,21 @@ describe(`ArrayObserver`, () => {
                 }
               }
             });
+            
+            it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - tracks changes`, () => {
+              let arr = init.slice();
+              const copy = init.slice();
+              sut = new ArrayObserver(arr);
+              arr.sort(compareFn);
+              synchronize(copy, sut.indexMap, arr);
+              assertArrayEqual(copy, arr);
+              sut.resetIndexMap();
+            });
           }
         }
       }
     }
   });
-
 });
 
 function padLeft(str: any, len: number): string {
@@ -330,53 +442,31 @@ function getValueFactory(getNumber: Function, type: string, types: string[]): Fu
 }
 
 function synchronize(oldArr: Array<Object>, indexMap: Array<number>, newArr: Array<Object>): void {
-  if (oldArr.length === newArr.length && newArr.length === 0) {
+  if (newArr.length === 0 && oldArr.length === 0) {
     return;
   }
 
-  // first clean up any items that were removed
-  let oldIndex = 0;
-  let oldLen = oldArr.length;
-  while (oldIndex < oldLen) {
-    const newIndex = indexMap.indexOf(oldIndex);
-    if (newIndex === -1) {
-      oldArr[oldIndex] = undefined; // simulate remove
+  const copy = oldArr.slice();
+  const len = indexMap.length;
+  let to = 0;
+  let from = 0;
+  while (to < len) {
+    from = indexMap[to];
+    if (from > -1) {
+      // move existing
+      oldArr[to] = copy[from];
+    } else if (from < -1) {
+      // add new
+      // detach/unbind oldArr[to] if newArr.indexOf(oldArr[to]) === -1
+      oldArr[to] = newArr[-from - 2];
+    } else if (from === -1) {
+      // delete existing
+      // always detach/unbind oldArr[to]
+    } else {
+      // todo: implement length observation and add a method on the array object
+      // that provides an observed means of directly assigning to an index
     }
-    oldIndex++;
+    to++;
   }
-
-  // then move any of the existing items if they were moved
-  let hasMoved = false;
-  // todo: fix this (that's enough sorting algorithms for today..)
-  //do {
-    hasMoved = false;
-    oldIndex = 0;
-    while (oldIndex < oldLen) {
-      const newIndex = indexMap.indexOf(oldIndex);
-      if (newIndex !== -1 && oldIndex !== newIndex) {
-        if (oldArr[oldIndex] !== undefined) {
-          if (oldArr[newIndex] !== undefined) {
-            let tmp = oldArr[oldIndex]; // simulate swap
-            oldArr[oldIndex] =  oldArr[newIndex];
-            oldArr[newIndex] = tmp;
-          } else {
-            oldArr[newIndex] = oldArr[oldIndex]; // simulate move;
-            oldArr[oldIndex] = undefined;
-          }
-          hasMoved = true;
-        }
-      }
-      oldIndex++;
-    }
-  //} while (hasMoved)
-
-  // now that everything is in place, we can safely create the new items
-  let newIndex = 0;
-  let newLen = newArr.length;
-  while (newIndex < newLen) {
-    if (oldArr[newIndex] === undefined) {
-      oldArr[newIndex] = newArr[newIndex]; // simulate create
-    }
-    newIndex++;
-  }
+  oldArr.length = newArr.length;
 }

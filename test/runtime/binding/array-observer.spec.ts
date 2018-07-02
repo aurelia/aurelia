@@ -49,7 +49,7 @@ describe(`ArrayObserver`, () => {
   describe(`observePush`, () => {
     const initArr = [[], [1], [1, 2]];
     const itemsArr = [undefined, [], [1], [1, 2]];
-    const repeatArr = [1, 2, 3];
+    const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const items of itemsArr) {
         for (const repeat of repeatArr) {
@@ -103,7 +103,7 @@ describe(`ArrayObserver`, () => {
   describe(`observeUnshift`, () => {
     const initArr = [[], [1], [1, 2]];
     const itemsArr = [undefined, [], [1], [1, 2]];
-    const repeatArr = [1, 2, 3];
+    const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const items of itemsArr) {
         for (const repeat of repeatArr) {
@@ -158,7 +158,7 @@ describe(`ArrayObserver`, () => {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
-      for (const repeat of repeatArr) {
+      for (const repeat of repeatArr.filter(r => r < (init.length + 1))) {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
           const arr = init.slice();
           const expectedArr = init.slice();
@@ -196,7 +196,7 @@ describe(`ArrayObserver`, () => {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
-      for (const repeat of repeatArr) {
+      for (const repeat of repeatArr.filter(r => r < (init.length + 1))) {
         const arr = init.slice();
         const expectedArr = init.slice();
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
@@ -235,10 +235,10 @@ describe(`ArrayObserver`, () => {
     const startArr = [undefined, -1, 0, 1, 2];
     const deleteCountArr = [undefined, -1, 0, 1, 2, 3];
     const itemsArr = [undefined, [], [1], [1, 2]];
-    const repeatArr = [1, 2, 3];
+    const repeatArr = [1, 2];
     for (const init of initArr) {
-      for (const start of startArr) {
-        for (const deleteCount of deleteCountArr) {
+      for (const start of startArr.filter(s => s === undefined || s < (init.length + 1))) {
+        for (const deleteCount of deleteCountArr.filter(d => d === undefined || d < (init.length + 1))) {
           for (const items of itemsArr) {
             for (const repeat of repeatArr) {
               it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
@@ -300,8 +300,8 @@ describe(`ArrayObserver`, () => {
   });
 
   describe(`observeReverse`, () => {
-    const initArr = [[], [1], [1, 2], [1, 2, 3], [1, 2, 3, 4], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6]];
-    const repeatArr = [1, 2, 3, 4];
+    const initArr = [[], [1], [1, 2], [1, 2, 3], [1, 2, 3, 4]];
+    const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const repeat of repeatArr) {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
@@ -338,7 +338,7 @@ describe(`ArrayObserver`, () => {
   });
 
   describe(`observeSort`, () => {
-    const arraySizes = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 50, 500, 1000, 2500];
+    const arraySizes = [0, 1, 2, 3, 5, 10, 500, 2500];
     const types = ['undefined', 'null', 'boolean', 'string', 'number', 'object', 'mixed'];
     const compareFns = [
       undefined,

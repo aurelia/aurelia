@@ -140,13 +140,13 @@ describe('ArrayRepeater', () => {
   });
 
   describe('synchronize', () => {
-    const initArr = [[], [1], [1, 2], [1, 2, 3]];
+    const initArr = [[], [1], [1, 2]];
     const startArr = [0, 1, 2];
     const deleteCountArr = [0, 1, 2];
-    const itemsArr = [[], [4], [4, 5], [4, 5, 6]];
+    const itemsArr = [[], [4], [4, 5]];
     const localNameArr = ['foo', 'item'];
     const flushArr = ['never', 'once', 'every'];
-    const timesArr = [1, 2, 3];
+    const timesArr = [1, 2];
     const title1 = 'ArrayRepeater splice: ';
 
     for (const localName of localNameArr) {

@@ -603,6 +603,34 @@ export class TaggedTemplate {
   }
 }
 
+// todo: destructuring, etc
+export class ForDeclaration {
+  public name: string;
+  constructor(name: string) {
+    this.name = name;
+  }
+}
+
+// https://tc39.github.io/ecma262/#sec-iteration-statements
+// https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
+// todo: magic stuff (maybe)
+export class ForOfStatement {
+  public declaration: ForDeclaration;
+  public iterable: IsAssign;
+  constructor(declaration: ForDeclaration, iterable: IsAssign) {
+    this.declaration = declaration;
+    this.iterable = iterable;
+  }
+
+  evaluate(scope: IScope, locator: IServiceLocator, flags: BindingFlags): any[] {
+    const result = this.iterable.evaluate(scope, locator, flags);
+    if (!Array.isArray(result)) {
+      throw new Error(`${result} is not an array`);
+    }
+    return result;
+  }
+}
+
 /// Evaluate the [list] in context of the [scope].
 function evalList(scope: IScope, list: IExpression[], locator: IServiceLocator, flags: BindingFlags) {
   const length = list.length;

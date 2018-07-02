@@ -56,17 +56,19 @@ describe(`ArrayObserver`, () => {
           it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
             const arr = init.slice();
             const expectedArr = init.slice();
+            const newItems = items && items.slice();
             sut = new ArrayObserver(arr);
             let expectedResult;
             let actualResult;
             let i = 0;
             while (i < repeat) {
-              if (items === undefined) {
+              incrementItems(newItems, i);
+              if (newItems === undefined) {
                 expectedResult = expectedArr.push();
                 actualResult = arr.push();
               } else {
-                expectedResult = expectedArr.push(...items);
-                actualResult = arr.push(...items);
+                expectedResult = expectedArr.push(...newItems);
+                actualResult = arr.push(...newItems);
               }
               assertArrayEqual(actualResult, expectedResult);
               assertArrayEqual(arr, expectedArr);
@@ -77,13 +79,15 @@ describe(`ArrayObserver`, () => {
           it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
             const arr = init.slice();
             const copy = init.slice();
+            const newItems = items && items.slice();
             sut = new ArrayObserver(arr);
             let i = 0;
             while (i < repeat) {
-              if (items === undefined) {
+              incrementItems(newItems, i);
+              if (newItems === undefined) {
                 arr.push();
               } else {
-                arr.push(...items);
+                arr.push(...newItems);
               }
               synchronize(copy, sut.indexMap, arr);
               assertArrayEqual(copy, arr);
@@ -106,17 +110,19 @@ describe(`ArrayObserver`, () => {
           it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
             const arr = init.slice();
             const expectedArr = init.slice();
+            const newItems = items && items.slice();
             sut = new ArrayObserver(arr);
             let expectedResult;
             let actualResult;
             let i = 0;
             while (i < repeat) {
-              if (items === undefined) {
+              incrementItems(newItems, i);
+              if (newItems === undefined) {
                 expectedResult = expectedArr.unshift();
                 actualResult = arr.unshift();
               } else {
-                expectedResult = expectedArr.unshift(...items);
-                actualResult = arr.unshift(...items);
+                expectedResult = expectedArr.unshift(...newItems);
+                actualResult = arr.unshift(...newItems);
               }
               assertArrayEqual(actualResult, expectedResult);
               assertArrayEqual(arr, expectedArr);
@@ -127,13 +133,15 @@ describe(`ArrayObserver`, () => {
           it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
             const arr = init.slice();
             const copy = init.slice();
+            const newItems = items && items.slice();
             sut = new ArrayObserver(arr);
             let i = 0;
             while (i < repeat) {
-              if (items === undefined) {
+              incrementItems(newItems, i);
+              if (newItems === undefined) {
                 arr.unshift();
               } else {
-                arr.unshift(...items);
+                arr.unshift(...newItems);
               }
               synchronize(copy, sut.indexMap, arr);
               assertArrayEqual(copy, arr);
@@ -236,12 +244,14 @@ describe(`ArrayObserver`, () => {
               it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
                 const arr = init.slice();
                 const expectedArr = init.slice();
+                const newItems = items && items.slice();
                 sut = new ArrayObserver(arr);
                 let expectedResult;
                 let actualResult;
                 let i = 0;
                 while (i < repeat) {
-                  if (items === undefined) {
+                  incrementItems(newItems, i);
+                  if (newItems === undefined) {
                     if (deleteCount === undefined) {
                       expectedResult = expectedArr.splice(start);
                       actualResult = arr.splice(start);
@@ -250,8 +260,8 @@ describe(`ArrayObserver`, () => {
                       actualResult = arr.splice(start, deleteCount);
                     }
                   } else {
-                    expectedResult = expectedArr.splice(start, deleteCount, ...items);
-                    actualResult = arr.splice(start, deleteCount, ...items);
+                    expectedResult = expectedArr.splice(start, deleteCount, ...newItems);
+                    actualResult = arr.splice(start, deleteCount, ...newItems);
                   }
                   assertArrayEqual(actualResult, expectedResult);
                   assertArrayEqual(arr, expectedArr);
@@ -262,17 +272,19 @@ describe(`ArrayObserver`, () => {
               it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
                 const arr = init.slice();
                 const copy = init.slice();
+                const newItems = items && items.slice();
                 sut = new ArrayObserver(arr);
                 let i = 0;
                 while (i < repeat) {
-                  if (items === undefined) {
+                  incrementItems(newItems, i);
+                  if (newItems === undefined) {
                     if (deleteCount === undefined) {
                       arr.splice(start);
                     } else {
                       arr.splice(start, deleteCount);
                     }
                   } else {
-                    arr.splice(start, deleteCount, ...items);
+                    arr.splice(start, deleteCount, ...newItems);
                   }
                   synchronize(copy, sut.indexMap, arr);
                   assertArrayEqual(copy, arr);
@@ -469,4 +481,18 @@ function synchronize(oldArr: Array<Object>, indexMap: Array<number>, newArr: Arr
     to++;
   }
   oldArr.length = newArr.length;
+}
+
+function incrementItems(items: number[], by: number): void {
+  if (items === undefined) {
+    return;
+  }
+  let i = 0;
+  let len = items.length;
+  while (i < len) {
+    if (typeof items[i] === 'number') {
+      items[i] += by;
+    }
+    i++;
+  }
 }

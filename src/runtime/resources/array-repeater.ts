@@ -4,7 +4,7 @@ import { ITaskQueue } from '../task-queue';
 import { IRenderSlot } from '../templating/render-slot';
 import { IViewOwner } from '../templating/view';
 import { IVisualFactory, IVisual } from '../templating/visual';
-import { IScope } from '../binding/binding-context';
+import { IScope, IOverrideContext } from '../binding/binding-context';
 import { ForOfStatement } from '../binding/ast';
 import { Binding } from '../binding/binding';
 
@@ -21,6 +21,9 @@ export class ArrayRepeater {
       this.observer = newValue.$observer || new ArrayObserver(newValue);
       this.observer.subscribeImmediate(this.handleImmediateItemsMutation);
       this.observer.subscribeBatched(this.handleBatchedItemsMutation);
+      this.handleInstanceMutation(newValue);
+    } else {
+      this.hasPendingInstanceMutation = true;
     }
   }
   public get items(): IObservedArray {
@@ -35,18 +38,15 @@ export class ArrayRepeater {
   public observer: ArrayObserver;
   public isQueued: boolean;
   public isBound: boolean;
+  public hasPendingInstanceMutation: boolean;
   public sourceExpression: ForOfStatement;
 
-  constructor(
-    public tq: ITaskQueue,
-    public slot: IRenderSlot,
-    public owner: IViewOwner,
-    public factory: IVisualFactory,
-    public container: IContainer) {
+  constructor(public tq: ITaskQueue, public slot: IRenderSlot, public owner: IViewOwner, public factory: IVisualFactory, public container: IContainer) {
     this.scope = null;
     this.observer = null;
     this.isQueued = false;
     this.isBound = false;
+    this.hasPendingInstanceMutation = false;
   }
 
   call(): void {
@@ -61,6 +61,9 @@ export class ArrayRepeater {
     this.observer.subscribeImmediate(this.handleImmediateItemsMutation);
     this.observer.subscribeBatched(this.handleBatchedItemsMutation);
     this.isBound = true;
+    if (this.hasPendingInstanceMutation) {
+      this.handleInstanceMutation(this.items);
+    }
   }
 
   unbound(): void {
@@ -84,71 +87,69 @@ export class ArrayRepeater {
     if (children.length === 0 && items.length === 0) {
       return;
     }
-    // this is a two-pass thing; first process removed items, then move/add
     const childrenCopy = children.slice();
     const len = indexMap.length;
-    let to = 0;
     let from = 0;
 
-    // first pass
+    let to = 0;
     while (to < len) {
       from = indexMap[to];
-      if (from === to) {
-        to++;
-        continue;
-      }
-      // remove
-      if (from === -1) {
-        const visual = children[to];
+      if (from > -1) {
+        // move
+        children[to] = childrenCopy[from];
         if (this.slot['$isAttached']) {
+          const visual = children[to];
+          visual.$view.remove();
+          visual.renderState = to;
+          this.slot['insertVisualCore'](visual);
+        }
+      } else if (from < -1) {
+        // add
+        const visual = children[to] = this.factory.create();
+        this.addVisual(visual, items[to]);
+      } else if (from === -1) {
+        // remove
+        if (this.slot['$isAttached']) {
+          const visual = childrenCopy[to];
           visual.$detach();
           visual.tryReturnToCache();
         }
       }
       to++;
     }
-    to = 0;
-
-    // second pass
-    while (to < len) {
-      from = indexMap[to];
-      if (from === to) {
-        to++;
-        continue;
-      }
-      if (from > -1) {
-        // move existing
-        const visual = children[to] = childrenCopy[from];
-        if (this.slot['$isAttached']) {
-          visual.$view.remove();
-          visual.renderState = to;
-          this.slot['insertVisualCore'](visual);
-        }
-      } else if (from < -1) {
-        // add new
-        const visual = children[to] = this.factory.create();
-        const bindingContext = { [this.local]: items[-from - 2] };
-        const scope = {
-          bindingContext,
-          overrideContext: {
-            bindingContext,
-            parentOverrideContext: this.scope.overrideContext
-          }
-        };
-        visual.$scope = scope;
-        for (const bindable of visual.$bindable) {
-          bindable.$bind(scope);
-        }
-        if (this.slot['$isAttached']) {
-          visual.$attach(this.slot['encapsulationSource']);
-          visual.onRender = this.slot['addVisualCore'];
-        }
-      } else if (from === undefined) {
-        // todo: implement length observation and add a method on the array object
-        // that provides an observed means of directly assigning to an index
-      }
-      to++;
-    }
     children.length = items.length;
+  };
+
+  addVisual(visual: IVisual, item: any): void {
+    visual.$scope = createChildScope(this.scope.overrideContext, { [this.local]: item });
+    for (const bindable of visual.$bindable) {
+      bindable.$bind(visual.$scope);
+    }
+    if (this.slot['$isAttached']) {
+      visual.$attach(this.slot['encapsulationSource']);
+      visual.onRender = this.slot['addVisualCore'];
+    }
+  }
+
+  handleInstanceMutation(items: any[]): void {
+    this.slot.removeAll(true, true);
+    const children = <IVisual[]>this.slot.children;
+    let len = (children.length = items.length);
+    let i = 0;
+    while (i < len) {
+      this.addVisual((children[i] = this.factory.create()), items[i]);
+      i++;
+    }
+    this.hasPendingInstanceMutation = true;
+  }
+}
+
+function createChildScope(parentOverrideContext: IOverrideContext, bindingContext: { [key: string]: any }): IScope {
+  return {
+    bindingContext,
+    overrideContext: {
+      bindingContext,
+      parentOverrideContext
+    }
   };
 }

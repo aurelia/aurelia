@@ -23,6 +23,7 @@ export interface IRegistration<T = any> {
 }
 
 export interface IFactory<T = any> {
+  readonly type: Function;
   registerTransformer(transformer: (instance: T) => T): boolean;
   construct(container: IContainer, dynamicDependencies?: any[]): T;
 }
@@ -261,7 +262,7 @@ class Resolver implements IResolver, IRegistration {
     }
   }
 
-  getFactory(container: IContainer): IFactory {
+  getFactory(container: IContainer): IFactory | null {
     switch (this.strategy) {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:
@@ -280,13 +281,13 @@ interface IInvoker {
 class Factory implements IFactory {
   private transformers: ((instance: any) => any)[] = null;
 
-  constructor(private fn: Function, private invoker: IInvoker, private dependencies: any[]) { }
+  constructor(public type: Function, private invoker: IInvoker, private dependencies: any[]) { }
 
   construct(container: IContainer, dynamicDependencies?: any[]): any {
     let transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
-      ? this.invoker.invokeWithDynamicDependencies(container, this.fn, this.dependencies, dynamicDependencies)
-      : this.invoker.invoke(container, this.fn, this.dependencies);
+      ? this.invoker.invokeWithDynamicDependencies(container, this.type, this.dependencies, dynamicDependencies)
+      : this.invoker.invoke(container, this.type, this.dependencies);
 
     if (transformers === null) {
       return instance;
@@ -308,10 +309,10 @@ class Factory implements IFactory {
     return true;
   }
 
-  static create(fn: Function & { inject?: any }): IFactory {
-    const dependencies = DI.getDependencies(fn);
+  static create(type: Function): IFactory {
+    const dependencies = DI.getDependencies(type);
     const invoker = classInvokers[dependencies.length] || classInvokers.fallback;
-    return new Factory(fn, invoker, dependencies);
+    return new Factory(type, invoker, dependencies);
   }
 }
 
@@ -332,7 +333,7 @@ function isRegistry(obj: any): obj is IRegistry {
 class Container implements IContainer {
   private parent: Container = null;
   private resolvers = new Map<any, IResolver>();
-  private factories: Map<Function, any>;
+  private factories: Map<Function, IFactory>;
   private configuration: IContainerConfiguration;
 
   constructor(configuration: IContainerConfiguration = {}) {

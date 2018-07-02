@@ -106,7 +106,7 @@ export function bindable(configOrTarget?: IBindableInstruction | Object, key?, d
   let deco = function(target, key2, descriptor2) {
     target = target.constructor;
     
-    let observables: Record<string, IBindableInstruction> = target.observables || (target.observables = {});
+    let bindables: Record<string, IBindableInstruction> = target.bindables || (target.bindables = {});
     let config: IBindableInstruction = configOrTarget || {};
     
     if (!config.attribute) {
@@ -121,7 +121,7 @@ export function bindable(configOrTarget?: IBindableInstruction | Object, key?, d
       config.mode = BindingMode.oneWay;
     }
 
-    observables[key2] = config;
+    bindables[key2] = config;
   };
 
   if (key) { //placed on a property without parens

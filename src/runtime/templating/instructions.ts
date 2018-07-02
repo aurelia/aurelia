@@ -33,10 +33,14 @@ export interface ITemplateSource {
   dependencies?: any[];
   build?: IBuildInstruction;
   surrogates?: TargetedInstruction[];
-  observables?: Record<string, IBindableInstruction>;
+  bindables?: Record<string, IBindableInstruction>;
   containerless?: boolean;
   shadowOptions?: ShadowRootInit;
   hasSlots?: boolean;
+}
+
+export interface IElementDescription extends Pick<TemplateDefinition, 'name' | 'bindables'> {
+  bindables: Record<string, Required<IBindableInstruction>>;
 }
 
 export interface IAttributeSource {
@@ -44,6 +48,11 @@ export interface IAttributeSource {
   defaultBindingMode?: BindingMode;
   aliases?: string[];
   isTemplateController?: boolean;
+  bindables?: Record<string, IBindableInstruction>;
+}
+
+export interface IAttributeDescription extends AttributeDefinition {
+  bindables: Record<string, Required<IBindableInstruction>>;
 }
 
 export interface IValueConverterSource {
@@ -62,7 +71,7 @@ export interface IBindableInstruction {
 
 export type TemplateDefinition = Immutable<Required<ITemplateSource>>;
 export type TemplatePartDefinitions = Record<string, Immutable<ITemplateSource>>;
-export type ObservableDefinitions = Record<string, Immutable<IBindableInstruction>>;
+export type BindableDefinitions = Record<string, Immutable<IBindableInstruction>>;
 export type AttributeDefinition = Immutable<Required<IAttributeSource>>;
 export type ValueConverterDefinition = Immutable<Required<IValueConverterSource>>;
 export type BindingBehaviorDefinition = Immutable<Required<IBindingBehaviorSource>>;

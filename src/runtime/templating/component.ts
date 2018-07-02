@@ -91,10 +91,9 @@ export const Component = {
     return Type;
   },
   attribute<T extends Constructable>(nameOrSource: string | IAttributeSource, ctor: T): T & IAttributeType {
-    const definition = createAttributeDefinition(nameOrSource);
     const Type: T & IAttributeType = ctor as any;
+    const definition = createAttributeDefinition(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: IAttributeComponent = Type.prototype;
-    const observables = (Type as any).observables || {};
 
     (Type as Writable<IAttributeType>).type = 'attribute';
     (Type as Writable<IAttributeType>).definition = definition;
@@ -114,7 +113,7 @@ export const Component = {
       this.$isBound = false;
       this.$scope = null;
       this.$slot = null;
-      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, observables);
+      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, definition.bindables);
 
       if (this.$behavior.hasCreated) {
         (this as any).created();
@@ -222,7 +221,7 @@ export const Component = {
       };
       
       this.$context = template.renderContext;
-      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, definition.observables);
+      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, definition.bindables);
       this.$host = definition.containerless ? DOM.convertToAnchor(host, true) : host;
       this.$shadowRoot = DOM.createElementViewHost(this.$host, definition.shadowOptions);
       this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
@@ -366,18 +365,13 @@ function createDefinition<T>(nameOrSource: string | T): Immutable<T> {
   }
 }
 
-function createAttributeDefinition(nameOrSource: string | IAttributeSource): Immutable<Required<IAttributeSource>> {
-  if (typeof nameOrSource === 'string') {
-    nameOrSource = {
-      name: nameOrSource
-    };
-  }
-
+function createAttributeDefinition(attributeSource:IAttributeSource, Type: IAttributeType): Immutable<Required<IAttributeSource>> {
   return {
-    name: nameOrSource.name,
-    aliases: nameOrSource.aliases || PLATFORM.emptyArray,
-    defaultBindingMode: nameOrSource.defaultBindingMode || BindingMode.oneWay,
-    isTemplateController: nameOrSource.isTemplateController || false
+    name: attributeSource.name,
+    aliases: attributeSource.aliases || PLATFORM.emptyArray,
+    defaultBindingMode: attributeSource.defaultBindingMode || BindingMode.oneWay,
+    isTemplateController: attributeSource.isTemplateController || false,
+    bindables: Object.assign({}, (Type as any).bindables, attributeSource.bindables)
   };
 }
 
@@ -389,7 +383,7 @@ function createTemplateDefinition(templateSource: ITemplateSource, Type: IElemen
       required: false,
       compiler: 'default'
     },
-    observables: Object.assign({}, (Type as any).observables, templateSource.observables),
+    bindables: Object.assign({}, (Type as any).bindables, templateSource.bindables),
     instructions: templateSource.instructions ? Array.from(templateSource.instructions) : PLATFORM.emptyArray,
     dependencies: templateSource.dependencies ? Array.from(templateSource.dependencies) : PLATFORM.emptyArray,
     surrogates: templateSource.surrogates ? Array.from(templateSource.surrogates) : PLATFORM.emptyArray,

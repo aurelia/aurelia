@@ -1,4 +1,4 @@
-import { ITemplateCompiler, Resources } from "../../runtime/templating/template-compiler";
+import { ITemplateCompiler, ICompilationResources } from "../../runtime/templating/template-compiler";
 import { TemplateDefinition } from "../../runtime/templating/instructions";
 
 export class TemplateCompiler implements ITemplateCompiler {
@@ -6,7 +6,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return 'default';
   }
   
-  compile(definition: TemplateDefinition, resources: Resources): TemplateDefinition {
+  compile(definition: TemplateDefinition, resources: ICompilationResources): TemplateDefinition {
     throw new Error('Template Compiler Not Yet Implemented');
   }
 }

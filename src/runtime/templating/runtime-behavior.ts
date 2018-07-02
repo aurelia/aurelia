@@ -5,7 +5,7 @@ import { ITaskQueue } from "../task-queue";
 import { SubscriberCollection } from "../binding/subscriber-collection";
 import { IAccessor, ISubscribable } from "../binding/observation";
 import { Observer } from "../binding/property-observation";
-import { ObservableDefinitions } from "./instructions";
+import { BindableDefinitions } from "./instructions";
 
 export interface IRuntimeBehavior {
   hasCreated: boolean;
@@ -22,7 +22,7 @@ export interface IRuntimeBehavior {
 export class RuntimeBehavior implements IRuntimeBehavior {
   private constructor() {}
 
-  observables: ObservableDefinitions;
+  bindables: BindableDefinitions;
   hasCreated = false;
   hasBound = false;
   hasAttaching = false;
@@ -32,22 +32,22 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   hasUnbound = false;
   hasCreateView = false;
 
-  static create(instance, observables: ObservableDefinitions, Component: IElementType | IAttributeType) {
+  static create(instance, bindables: BindableDefinitions, Component: IElementType | IAttributeType) {
     const behavior = new RuntimeBehavior();
 
     for (let name in instance) {
-      if (name in observables) {
+      if (name in bindables) {
         continue;
       }
 
       const callback = `${name}Changed`;
 
       if (callback in instance) {
-        observables[name] = { callback };
+        bindables[name] = { callback };
       }
     }
 
-    behavior.observables = observables;
+    behavior.bindables = bindables;
     behavior.hasCreated = 'created' in instance;
     behavior.hasBound = 'bound' in instance;
     behavior.hasAttaching = 'attaching' in instance;
@@ -82,12 +82,12 @@ export class RuntimeBehavior implements IRuntimeBehavior {
 
   private applyTo(taskQueue: ITaskQueue, instance: any) {
     const observers = {};
-    const finalObservables = this.observables;
-    const observableNames = Object.getOwnPropertyNames(finalObservables);
+    const finalBindables = this.bindables;
+    const observableNames = Object.getOwnPropertyNames(finalBindables);
   
     for (let i = 0, ii = observableNames.length; i < ii; ++i) {
       const name = observableNames[i];
-      const observable = finalObservables[name];
+      const observable = finalBindables[name];
       const changeHandler = observable.callback;
   
       if (changeHandler in instance) {

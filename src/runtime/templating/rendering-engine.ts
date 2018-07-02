@@ -1,7 +1,7 @@
 import { RuntimeBehavior, IRuntimeBehavior } from "./runtime-behavior";
 import { IAttributeType, IElementType, IAttributeComponent, IElementComponent } from "./component";
 import { DI, IContainer, inject, all } from "../../kernel/di";
-import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition, TemplatePartDefinitions, ObservableDefinitions } from "./instructions";
+import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition, TemplatePartDefinitions, BindableDefinitions, IElementDescription, IAttributeDescription } from "./instructions";
 import { ITaskQueue } from "../task-queue";
 import { IViewOwner, View } from "./view";
 import { INode, IView, DOM } from "../dom";
@@ -21,14 +21,14 @@ import { ITemplate } from "./template";
 import { IObserverLocator } from "../binding/observer-locator";
 import { IEventManager } from "../binding/event-manager";
 import { IExpressionParser } from "../binding/expression-parser";
-import { ITemplateCompiler } from "./template-compiler";
+import { ITemplateCompiler, ICompilationResources } from "./template-compiler";
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType: IElementType): ITemplate;
   getVisualFactory(context: IRenderContext, source: Immutable<ITemplateSource>): IVisualFactory;
 
-  applyRuntimeBehavior(type: IAttributeType, instance: IAttributeComponent, observables: ObservableDefinitions): IRuntimeBehavior;
-  applyRuntimeBehavior(type: IElementType, instance: IElementComponent, observables: ObservableDefinitions): IRuntimeBehavior
+  applyRuntimeBehavior(type: IAttributeType, instance: IAttributeComponent, bindables: BindableDefinitions): IRuntimeBehavior;
+  applyRuntimeBehavior(type: IElementType, instance: IElementComponent, bindables: BindableDefinitions): IRuntimeBehavior
 
   createVisualFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): VisualWithCentralComponent;
   createRenderer(context: IRenderContext): IRenderer;
@@ -98,7 +98,7 @@ class RenderingEngine implements IRenderingEngine {
           throw Reporter.error(20, `Requested Compiler: ${compiler.name}`);
         }
         
-        definition = compiler.compile(definition, context);
+        definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>context));
       }
 
       return new CompiledTemplate(this, context, definition);
@@ -138,11 +138,11 @@ class RenderingEngine implements IRenderingEngine {
     return new VisualFactory(definition.name, CompiledVisual);
   }
 
-  applyRuntimeBehavior(type: IAttributeType | IElementType, instance: IAttributeComponent | IElementComponent, observables: ObservableDefinitions): IRuntimeBehavior {
+  applyRuntimeBehavior(type: IAttributeType | IElementType, instance: IAttributeComponent | IElementComponent, bindables: BindableDefinitions): IRuntimeBehavior {
     let found = this.behaviorLookup.get(type);
 
     if (!found) {
-      found = RuntimeBehavior.create(instance, observables, type);
+      found = RuntimeBehavior.create(instance, bindables, type);
       this.behaviorLookup.set(type, found);
     }
 
@@ -210,7 +210,7 @@ function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefin
       required: false,
       compiler: 'default'
     },
-    observables: definition.observables || PLATFORM.emptyObject,
+    bindables: definition.bindables || PLATFORM.emptyObject,
     instructions: definition.instructions ? Array.from(definition.instructions) : PLATFORM.emptyArray,
     dependencies: definition.dependencies ? Array.from(definition.dependencies) : PLATFORM.emptyArray,
     surrogates: definition.surrogates ? Array.from(definition.surrogates) : PLATFORM.emptyArray,
@@ -233,6 +233,32 @@ class CompiledTemplate implements ITemplate {
     const view = this.createView();
     this.renderContext.render(owner, view.findTargets(), this.templateDefinition, host, replacements);
     return view;
+  }
+}
+
+class RuntimeCompilationResources implements ICompilationResources {
+  constructor(private context: ExposedContext) {}
+
+  tryGetElement(name: string): IElementDescription | null {
+    return this.getDescription<IElementDescription>(name);
+  }
+
+  tryGetAttribute(name: string): IAttributeDescription | null {
+    return this.getDescription<IAttributeDescription>(name);
+  }
+
+  private getDescription<T extends (IElementDescription | IAttributeDescription)>(name: string) {
+    const resolver = this.context.getResolver(name);
+
+    if (resolver !== null && resolver.getFactory) {
+      let factory = resolver.getFactory(this.context);
+
+      if (factory !== null) {
+        return (factory.type as IElementType | IAttributeType).definition as T;
+      }
+    }
+
+    return null;
   }
 }
 

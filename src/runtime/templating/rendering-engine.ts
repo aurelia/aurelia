@@ -1,5 +1,5 @@
 import { RuntimeBehavior, IRuntimeBehavior } from "./runtime-behavior";
-import { IAttributeType, IElementType, IAttributeComponent, IElementComponent } from "./component";
+import { ICustomAttributeType, ICustomElementType, ICustomAttribute, ICustomElement } from "./component";
 import { DI, IContainer, inject, all } from "../../kernel/di";
 import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition, TemplatePartDefinitions, BindableDefinitions, IElementDescription, IAttributeDescription } from "./instructions";
 import { ITaskQueue } from "../task-queue";
@@ -25,11 +25,11 @@ import { ITemplateCompiler, ICompilationResources } from "./template-compiler";
 import { Resource } from "../resource";
 
 export interface IRenderingEngine {
-  getElementTemplate(definition: TemplateDefinition, componentType: IElementType): ITemplate;
+  getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate;
   getVisualFactory(context: IRenderContext, source: Immutable<ITemplateSource>): IVisualFactory;
 
-  applyRuntimeBehavior(type: IAttributeType, instance: IAttributeComponent, bindables: BindableDefinitions): IRuntimeBehavior;
-  applyRuntimeBehavior(type: IElementType, instance: IElementComponent, bindables: BindableDefinitions): IRuntimeBehavior
+  applyRuntimeBehavior(type: ICustomAttributeType, instance: ICustomAttribute, bindables: BindableDefinitions): IRuntimeBehavior;
+  applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement, bindables: BindableDefinitions): IRuntimeBehavior
 
   createVisualFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): VisualWithCentralComponent;
   createRenderer(context: IRenderContext): IRenderer;
@@ -51,7 +51,7 @@ type ExposedContext = IRenderContext & IComponentOperation & IContainer;
 class RenderingEngine implements IRenderingEngine {
   private templateLookup = new Map<TemplateDefinition, ITemplate>();
   private factoryLookup = new Map<Immutable<ITemplateSource>, IVisualFactory>();
-  private behaviorLookup = new Map<IElementType | IAttributeType, RuntimeBehavior>();
+  private behaviorLookup = new Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>();
   private compilers: Record<string, ITemplateCompiler>;
 
   constructor(
@@ -69,7 +69,7 @@ class RenderingEngine implements IRenderingEngine {
     }, Object.create(null));
   }
 
-  getElementTemplate(definition: TemplateDefinition, componentType: IElementType): ITemplate {
+  getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate {
     if (!definition) {
       return null;
     }
@@ -139,7 +139,7 @@ class RenderingEngine implements IRenderingEngine {
     return new VisualFactory(definition.name, CompiledVisual);
   }
 
-  applyRuntimeBehavior(type: IAttributeType | IElementType, instance: IAttributeComponent | IElementComponent, bindables: BindableDefinitions): IRuntimeBehavior {
+  applyRuntimeBehavior(type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement, bindables: BindableDefinitions): IRuntimeBehavior {
     let found = this.behaviorLookup.get(type);
 
     if (!found) {
@@ -160,7 +160,7 @@ class RenderingEngine implements IRenderingEngine {
     let animator = this.animator;
     
     class ComponentVisual extends Visual {
-      public component: IElementComponent;
+      public component: ICustomElement;
 
       constructor() {
         super(null, animator);
@@ -173,9 +173,9 @@ class RenderingEngine implements IRenderingEngine {
         if (typeof componentOrType === 'function') {
           target = DOM.createElement(componentOrType.source.name);
           context.hydrateElement(this, target, instruction);
-          this.component = <IElementComponent>this.$attachable[this.$attachable.length - 1];
+          this.component = <ICustomElement>this.$attachable[this.$attachable.length - 1];
         } else {
-          const componentType = <IElementType>componentOrType.constructor;
+          const componentType = <ICustomElementType>componentOrType.constructor;
           target = componentOrType.element || DOM.createElement(componentType.definition.name);
           context.hydrateElementInstance(this, target, instruction, componentOrType);
           this.component = componentOrType;
@@ -255,7 +255,7 @@ class RuntimeCompilationResources implements ICompilationResources {
       let factory = resolver.getFactory(this.context);
 
       if (factory !== null) {
-        return (factory.type as IElementType | IAttributeType).definition as T;
+        return (factory.type as ICustomElementType | ICustomAttributeType).definition as T;
       }
     }
 

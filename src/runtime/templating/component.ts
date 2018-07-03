@@ -16,7 +16,7 @@ import { Resource, IResourceKind, IResourceType } from '../resource';
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'contentOverride'>>;
 
-export interface IElementComponent extends IBindSelf, IAttach, Readonly<IViewOwner> {
+export interface ICustomElement extends IBindSelf, IAttach, Readonly<IViewOwner> {
   readonly $host: INode;
   readonly $contentView: IContentView;
   readonly $usingSlotEmulation: boolean;
@@ -24,31 +24,31 @@ export interface IElementComponent extends IBindSelf, IAttach, Readonly<IViewOwn
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
-interface IElementComponentImplementation extends Writable<IElementComponent> {
+interface ICustomElementImplementation extends Writable<ICustomElement> {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $slot: IRenderSlot;
   $shadowRoot: INode;
 }
 
-export interface IAttributeComponent extends IBindScope, IAttach { 
+export interface ICustomAttribute extends IBindScope, IAttach { 
   readonly $isBound: boolean;
   readonly $isAttached: boolean;
   readonly $scope: IScope;
   $hydrate(renderingEngine: IRenderingEngine);
 }
 
-interface IAttributeComponentImplementation extends Writable<IAttributeComponent> {
+interface ICustomAttributeImplementation extends Writable<ICustomAttribute> {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $slot: IRenderSlot;
 }
 
-export interface IAttributeType extends IResourceType<IAttributeComponent> {
+export interface ICustomAttributeType extends IResourceType<ICustomAttribute> {
   readonly definition: AttributeDefinition;
 };
 
-export interface IElementType extends IResourceType<IElementComponent> {
+export interface ICustomElementType extends IResourceType<ICustomElement> {
   readonly definition: TemplateDefinition;
 }
 
@@ -85,13 +85,13 @@ export const Component = {
 
     return Type;
   },
-  attribute<T extends Constructable>(nameOrSource: string | IAttributeSource, ctor: T): T & IAttributeType {
-    const Type: T & IAttributeType = ctor as any;
+  attribute<T extends Constructable>(nameOrSource: string | IAttributeSource, ctor: T): T & ICustomAttributeType {
+    const Type: T & ICustomAttributeType = ctor as any;
     const definition = createAttributeDefinition(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
-    const proto: IAttributeComponent = Type.prototype;
+    const proto: ICustomAttribute = Type.prototype;
 
-    (Type as Writable<IAttributeType>).kind = Resource.attribute;
-    (Type as Writable<IAttributeType>).definition = definition;
+    (Type as Writable<ICustomAttributeType>).kind = Resource.attribute;
+    (Type as Writable<ICustomAttributeType>).definition = definition;
     Type.register = function register(container: IContainer){
       const resourceKey = Type.kind.key(definition.name);
 
@@ -104,7 +104,7 @@ export const Component = {
       }
     };
 
-    proto.$hydrate = function(this: IAttributeComponentImplementation, renderingEngine: IRenderingEngine) {
+    proto.$hydrate = function(this: ICustomAttributeImplementation, renderingEngine: IRenderingEngine) {
       this.$changeCallbacks = [];
       this.$isAttached = false;
       this.$isBound = false;
@@ -117,7 +117,7 @@ export const Component = {
       }
     };
 
-    proto.$bind = function(this: IAttributeComponentImplementation, scope: IScope) {
+    proto.$bind = function(this: ICustomAttributeImplementation, scope: IScope) {
       if (this.$isBound) {
         if (this.$scope === scope) {
           return;
@@ -140,7 +140,7 @@ export const Component = {
       }
     };
 
-    proto.$attach = function(this: IAttributeComponentImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle){
+    proto.$attach = function(this: ICustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle){
       if (this.$isAttached) {
         return;
       }
@@ -160,7 +160,7 @@ export const Component = {
       this.$isAttached = true;
     };
 
-    proto.$detach = function(this: IAttributeComponentImplementation, lifecycle: DetachLifecycle) {
+    proto.$detach = function(this: ICustomAttributeImplementation, lifecycle: DetachLifecycle) {
       if (this.$isAttached) {
         if (this.$behavior.hasDetaching) {
           (this as any).detaching();
@@ -178,7 +178,7 @@ export const Component = {
       }
     };
 
-    proto.$unbind = function(this: IAttributeComponentImplementation) {
+    proto.$unbind = function(this: ICustomAttributeImplementation) {
       if (this.$isBound) {
         if (this.$behavior.hasUnbound) {
           (this as any).unbound();
@@ -190,18 +190,18 @@ export const Component = {
     
     return Type;
   },
-  element<T extends Constructable>(nameOrSource: string | ITemplateSource, ctor: T = null): T & IElementType {
-    const Type: T & IElementType = ctor === null ? class HTMLOnlyElement { /* HTML Only */ } as any : ctor as any;
+  element<T extends Constructable>(nameOrSource: string | ITemplateSource, ctor: T = null): T & ICustomElementType {
+    const Type: T & ICustomElementType = ctor === null ? class HTMLOnlyElement { /* HTML Only */ } as any : ctor as any;
     const definition = createTemplateDefinition(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
-    const proto: IElementComponent = Type.prototype;
+    const proto: ICustomElement = Type.prototype;
 
-    (Type as Writable<IElementType>).kind = Resource.element;
-    (Type as Writable<IElementType>).definition = definition;
+    (Type as Writable<ICustomElementType>).kind = Resource.element;
+    (Type as Writable<ICustomElementType>).definition = definition;
     Type.register = function(container: IContainer){
       container.register(Registration.transient(Type.kind.key(definition.name), Type));
     };
 
-    proto.$hydrate = function(this: IElementComponentImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject) { 
+    proto.$hydrate = function(this: ICustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject) { 
       let template = renderingEngine.getElementTemplate(definition, Type);
 
       this.$bindable = [];
@@ -234,7 +234,7 @@ export const Component = {
       }
     };
 
-    proto.$bind = function(this: IElementComponentImplementation) {
+    proto.$bind = function(this: ICustomElementImplementation) {
       if (this.$isBound) {
         return;
       }
@@ -259,7 +259,7 @@ export const Component = {
       }
     };
 
-    proto.$attach = function(this: IElementComponentImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle) {
+    proto.$attach = function(this: ICustomElementImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle) {
       if (this.$isAttached) {
         return;
       }
@@ -303,7 +303,7 @@ export const Component = {
       lifecycle.end(this);
     };
 
-    proto.$detach = function(this: IElementComponentImplementation, lifecycle?: DetachLifecycle) {
+    proto.$detach = function(this: ICustomElementImplementation, lifecycle?: DetachLifecycle) {
       if (this.$isAttached) {
         lifecycle = DetachLifecycle.start(this, lifecycle);
 
@@ -333,7 +333,7 @@ export const Component = {
       }
     };
 
-    proto.$unbind = function(this: IElementComponentImplementation) {
+    proto.$unbind = function(this: ICustomElementImplementation) {
       if (this.$isBound) {
         const bindable = this.$bindable;
         let i = bindable.length;
@@ -362,7 +362,7 @@ function createDefinition<T>(nameOrSource: string | T): Immutable<T> {
   }
 }
 
-function createAttributeDefinition(attributeSource:IAttributeSource, Type: IAttributeType): Immutable<Required<IAttributeSource>> {
+function createAttributeDefinition(attributeSource:IAttributeSource, Type: ICustomAttributeType): Immutable<Required<IAttributeSource>> {
   return {
     name: attributeSource.name,
     aliases: attributeSource.aliases || PLATFORM.emptyArray,
@@ -372,7 +372,7 @@ function createAttributeDefinition(attributeSource:IAttributeSource, Type: IAttr
   };
 }
 
-function createTemplateDefinition(templateSource: ITemplateSource, Type: IElementType): TemplateDefinition {
+function createTemplateDefinition(templateSource: ITemplateSource, Type: ICustomElementType): TemplateDefinition {
   return {
     name: templateSource.name || 'unnamed',
     template: templateSource.template || null,

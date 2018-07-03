@@ -1,12 +1,12 @@
 import { IRenderSlot } from '../templating/render-slot';
 import { IVisualFactory, IVisual } from '../templating/visual';
-import { IAttributeComponent } from '../templating/component';
+import { ICustomAttribute } from '../templating/component';
 
 /**
 * For internal use only. May change without warning.
 */
 
-export interface IfCore extends IAttributeComponent {}
+export interface IfCore extends ICustomAttribute {}
 export abstract class IfCore {
   private child: IVisual = null;
 

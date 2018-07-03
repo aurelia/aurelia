@@ -1,7 +1,7 @@
 import { IBindScope } from "../binding/observation";
 import { IAttach } from "./lifecycle";
 import { IViewOwner } from "./view";
-import { IElementComponent } from "./component";
+import { ICustomElement } from "./component";
 import { DI } from "../../kernel/di";
 import { IRenderSlot } from "./render-slot";
 
@@ -23,7 +23,7 @@ export interface IVisual extends IBindScope, IViewOwner, IAttach {
   tryReturnToCache(): boolean;
 }
 
-export type VisualWithCentralComponent = IVisual & { component: IElementComponent };
+export type VisualWithCentralComponent = IVisual & { component: ICustomElement };
 
 export interface IVisualFactory {
   readonly name: string;

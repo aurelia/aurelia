@@ -1,5 +1,5 @@
 import { IContainer, IResolver, DI } from '../kernel/di';
-import { IElementComponent } from './templating/component';
+import { ICustomElement } from './templating/component';
 
 export interface INodeLike {
   readonly firstChild: INode | null;
@@ -53,7 +53,7 @@ export const DOM = {
 
   createChildObserver(parent: INode, onChildrenChanged: () => void, options?: any): IChildObserver {
     if (DOM.isUsingSlotEmulation(parent)) {
-      return DOM.getComponentForNode(parent).$contentView.attachChildObserver(onChildrenChanged);
+      return DOM.getCustomElementForNode(parent).$contentView.attachChildObserver(onChildrenChanged);
     } else {
       let observer = new MutationObserver(onChildrenChanged);
       (<any>observer).childNodes = parent.childNodes;
@@ -75,7 +75,7 @@ export const DOM = {
     return (<Node>node).cloneNode(deep);
   },
 
-  getComponentForNode(node: INode): IElementComponent | null {
+  getCustomElementForNode(node: INode): ICustomElement | null {
     return (<any>node).$component || null; //Set during component $hydrate
   },
 

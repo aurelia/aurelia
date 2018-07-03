@@ -1,4 +1,4 @@
-import { IElementComponent } from './templating/component';
+import { ICustomElement } from './templating/component';
 import { PLATFORM } from '../kernel/platform';
 import { IContainer, DI, IRegistry } from '../kernel/di';
 import { IRenderingEngine } from './templating/rendering-engine';
@@ -9,7 +9,7 @@ export interface ISinglePageApp {
 }
 
 export class Aurelia { 
-  private components: IElementComponent[] = [];
+  private components: ICustomElement[] = [];
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
   private isStarted = false;
@@ -22,7 +22,7 @@ export class Aurelia {
   }
 
   app(config: ISinglePageApp) {
-    let component: IElementComponent = config.component;
+    let component: ICustomElement = config.component;
     let startTask = () => {
       if (!this.components.includes(component)) {
         this.components.push(component);

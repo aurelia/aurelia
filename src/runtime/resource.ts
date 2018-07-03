@@ -14,7 +14,7 @@ export interface IResourceDescription {
 }
 
 export interface IResourceKind {
-  name: 'attribute' | 'element' | 'value-converter' | 'binding-behavior';
+  name: 'custom-attribute' | 'custom-element' | 'value-converter' | 'binding-behavior';
   key(name: string): string;
   isType(type: Function): boolean;
 }
@@ -26,12 +26,12 @@ export interface IResourceType<T = {}> extends Constructable<T>, IRegistry {
 
 export const Resource = {
   attribute: {
-    name: 'attribute',
+    name: 'custom-attribute',
     key: resourceName,
     isType: isType
   } as IResourceKind,
   element: {
-    name: 'element',
+    name: 'custom-element',
     key: resourceName,
     isType: isType
   } as IResourceKind,

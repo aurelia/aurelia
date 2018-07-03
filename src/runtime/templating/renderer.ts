@@ -1,7 +1,7 @@
 import { IViewOwner } from './view';
 import { INode, DOM } from '../dom';
 import { IHydrateElementInstruction, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
-import { IElementComponent, IAttributeComponent } from './component';
+import { ICustomElement, ICustomAttribute } from './component';
 import { IObserverLocator } from '../binding/observer-locator';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
@@ -18,7 +18,7 @@ import { Resource } from '../resource';
 
 export interface IRenderer {
   render(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: IElementComponent): void;
+  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
 }
 
 /* @internal */
@@ -54,7 +54,7 @@ export class Renderer implements IRenderer {
     }
   }
 
-  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: IElementComponent) {
+  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement) {
     let childInstructions = instruction.instructions;
   
     component.$hydrate(this.renderingEngine, target, instruction);
@@ -120,7 +120,7 @@ export class Renderer implements IRenderer {
     DOM.setAttribute(target, instruction.dest, instruction.value);
   }
 
-  [TargetedInstructionType.hydrateSlot](owner: IElementComponent, target: any, instruction: Immutable<IHydrateSlotInstruction>) {   
+  [TargetedInstructionType.hydrateSlot](owner: ICustomElement, target: any, instruction: Immutable<IHydrateSlotInstruction>) {   
     if (!owner.$usingSlotEmulation) {
       return;
     }
@@ -136,7 +136,7 @@ export class Renderer implements IRenderer {
   [TargetedInstructionType.hydrateElement](owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>) {
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction, null, null, target, true);
-    const component = context.get<IElementComponent>(Resource.element.key(instruction.res));
+    const component = context.get<ICustomElement>(Resource.element.key(instruction.res));
 
     this.hydrateElementInstance(owner, target, instruction, component);
     operation.tryConnectElementToSlot(component);
@@ -149,7 +149,7 @@ export class Renderer implements IRenderer {
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction);
 
-    const component = context.get<IAttributeComponent>(Resource.attribute.key(instruction.res));
+    const component = context.get<ICustomAttribute>(Resource.attribute.key(instruction.res));
     component.$hydrate(this.renderingEngine);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -169,7 +169,7 @@ export class Renderer implements IRenderer {
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction, factory, parts, DOM.convertToAnchor(target), false);
 
-    const component = context.get<IAttributeComponent>(Resource.attribute.key(instruction.res));
+    const component = context.get<ICustomAttribute>(Resource.attribute.key(instruction.res));
     component.$hydrate(this.renderingEngine);
     operation.tryConnectTemplateControllerToSlot(component);
 

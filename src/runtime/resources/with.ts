@@ -3,9 +3,9 @@ import { IRenderSlot } from '../templating/render-slot';
 import { BindingContext } from '../binding/binding-context';
 import { inject } from '../../kernel/di';
 import { IVisualFactory, IVisual } from '../templating/visual';
-import { IAttributeComponent } from '../templating/component';
+import { ICustomAttribute } from '../templating/component';
 
-export interface With extends IAttributeComponent {}
+export interface With extends ICustomAttribute {}
 @templateController('with')
 @inject(IVisualFactory, IRenderSlot)
 export class With { 

@@ -1,4 +1,4 @@
-import { IElementComponent, IAttributeComponent, IElementType, IAttributeType } from "./component";
+import { ICustomElement, ICustomAttribute, ICustomElementType, ICustomAttributeType } from "./component";
 import { ICallable } from "../../kernel/interfaces";
 import { DOM, INode, IChildObserver } from "../dom";
 import { ITaskQueue } from "../task-queue";
@@ -32,7 +32,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   hasUnbound = false;
   hasCreateView = false;
 
-  static create(instance, bindables: BindableDefinitions, Component: IElementType | IAttributeType) {
+  static create(instance, bindables: BindableDefinitions, Component: ICustomElementType | ICustomAttributeType) {
     const behavior = new RuntimeBehavior();
 
     for (let name in instance) {
@@ -60,12 +60,12 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     return behavior;
   }
 
-  applyToAttribute(taskQueue: ITaskQueue, instance: IAttributeComponent) {
+  applyToAttribute(taskQueue: ITaskQueue, instance: ICustomAttribute) {
     this.applyTo(taskQueue, instance);
     return this;
   }
 
-  applyToElement(taskQueue: ITaskQueue, instance: IElementComponent) {
+  applyToElement(taskQueue: ITaskQueue, instance: ICustomElement) {
     const observers = this.applyTo(taskQueue, instance);
 
     (<any>observers).$children = new ChildrenObserver(taskQueue, instance);
@@ -121,14 +121,14 @@ function createGetterSetter(instance, name) {
 
 class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
   private observer: IChildObserver = null;
-  private children: IElementComponent[] = null;
+  private children: ICustomElement[] = null;
   private queued = false;
 
-  constructor(private taskQueue: ITaskQueue, private component: IElementComponent) {
+  constructor(private taskQueue: ITaskQueue, private component: ICustomElement) {
     super();
   }
 
-  getValue(): IElementComponent[] {
+  getValue(): ICustomElement[] {
     if (this.observer === null) {
       this.observer = DOM.createChildObserver(this.component.$host, () => this.onChildrenChanged());
       this.children = findElements(this.observer.childNodes);
@@ -166,12 +166,12 @@ class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubsc
   }
 }
 
-function findElements(nodes: ArrayLike<INode>): IElementComponent[] {
-  const components: IElementComponent[] = [];
+function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
+  const components: ICustomElement[] = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const current = nodes[i];
-    const component = DOM.getComponentForNode(current);
+    const component = DOM.getCustomElementForNode(current);
     
     if (component !== null) {
       components.push(component);

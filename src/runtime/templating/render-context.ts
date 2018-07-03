@@ -6,20 +6,20 @@ import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionTy
 import { IRenderingEngine } from "./rendering-engine";
 import { IViewOwner } from "./view";
 import { IVisualFactory } from "./visual";
-import { IAttributeComponent, IElementComponent } from "./component";
+import { ICustomAttribute, ICustomElement } from "./component";
 import { ImmutableArray, Immutable } from "../../kernel/interfaces";
 
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;
   render(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions);
   hydrateElement(owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>): void;
-  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: IElementComponent): void;
+  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
   beginComponentOperation(owner: IViewOwner, target: any, instruction: Immutable<ITargetedInstruction>, factory?: IVisualFactory, parts?: TemplatePartDefinitions, anchor?: INode, anchorIsContainer?: boolean): IComponentOperation;
 };
 
 export interface IComponentOperation {
-  tryConnectTemplateControllerToSlot(owner: IAttributeComponent): void;
-  tryConnectElementToSlot(owner: IElementComponent): void;
+  tryConnectTemplateControllerToSlot(owner: ICustomAttribute): void;
+  tryConnectElementToSlot(owner: ICustomElement): void;
   dispose();
 }
 
@@ -69,15 +69,15 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     renderer[TargetedInstructionType.hydrateElement](owner, target, instruction);
   };
 
-  context.hydrateElementInstance = function(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: IElementComponent) {
+  context.hydrateElementInstance = function(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement) {
     renderer.hydrateElementInstance(owner, target, instruction, component);
   };
 
-  context.tryConnectTemplateControllerToSlot = function(owner: IAttributeComponent) {
+  context.tryConnectTemplateControllerToSlot = function(owner: ICustomAttribute) {
     slotProvider.tryConnectTemplateControllerToSlot(owner);
   };
 
-  context.tryConnectElementToSlot = function(owner: IElementComponent) {
+  context.tryConnectElementToSlot = function(owner: ICustomElement) {
     slotProvider.tryConnectElementToSlot(owner);
   };
 

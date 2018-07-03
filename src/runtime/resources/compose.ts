@@ -7,7 +7,7 @@ import { INode, DOM } from '../dom';
 import { VisualWithCentralComponent } from '../templating/visual';
 import { IRenderContext } from '../templating/render-context';
 import { IRenderingEngine } from '../templating/rendering-engine';
-import { IElementComponent } from '../templating/component';
+import { ICustomElement } from '../templating/component';
 import { Immutable } from '../../kernel/interfaces';
 
 const composeSource = {
@@ -18,7 +18,7 @@ const composeSource = {
 
 const composeProps = ['component', 'swapOrder', 'isComposing'];
 
-export interface Compose extends IElementComponent {}
+export interface Compose extends ICustomElement {}
 @customElement(composeSource)
 @inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction, IRenderingEngine)
 export class Compose { 

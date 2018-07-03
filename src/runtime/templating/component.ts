@@ -12,6 +12,7 @@ import { ITemplateSource, TemplateDefinition, IHydrateElementInstruction, Attrib
 import { INode, DOM } from '../dom';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
+import { Resource, IResourceKind, IResourceType } from '../resource';
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'contentOverride'>>;
 
@@ -43,37 +44,31 @@ interface IAttributeComponentImplementation extends Writable<IAttributeComponent
   $slot: IRenderSlot;
 }
 
-export interface IAttributeType extends Constructable<IAttributeComponent>, IRegistry {
-  readonly type: 'attribute';
+export interface IAttributeType extends IResourceType<IAttributeComponent> {
   readonly definition: AttributeDefinition;
 };
 
-export interface IElementType extends Constructable<IElementComponent>, IRegistry {
-  readonly type: 'element';
+export interface IElementType extends IResourceType<IElementComponent> {
   readonly definition: TemplateDefinition;
 }
 
-export interface IValueConverterType extends Constructable, IRegistry {
-  readonly type: 'value-converter';
+export interface IValueConverterType extends IResourceType {
   readonly definition: ValueConverterDefinition;
 }
 
-export interface IBindingBehaviorType extends Constructable, IRegistry {
-  readonly type: 'binding-behavior';
+export interface IBindingBehaviorType extends IResourceType {
   readonly definition: BindingBehaviorDefinition;
 }
-
-export type ComponentType =  IAttributeType | IElementType | IValueConverterType | IBindingBehaviorType;
 
 export const Component = {
   valueConverter<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & IValueConverterType {
     const definition = createDefinition<IValueConverterSource>(nameOrSource);
     const Type: T & IValueConverterType = ctor as any;
 
-    (Type as Writable<IValueConverterType>).type = 'value-converter';
+    (Type as Writable<IValueConverterType>).kind = Resource.valueConverter;
     (Type as Writable<IValueConverterType>).definition = definition;
     Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(definition.name, Type));
+      container.register(Registration.singleton(Type.kind.key(definition.name), Type));
     };
 
     return Type;
@@ -82,10 +77,10 @@ export const Component = {
     const definition = createDefinition<IBindingBehaviorSource>(nameOrSource);
     const Type: T & IBindingBehaviorType = ctor as any;
 
-    (Type as Writable<IBindingBehaviorType>).type = 'binding-behavior';
+    (Type as Writable<IBindingBehaviorType>).kind = Resource.bindingBehavior;
     (Type as Writable<IBindingBehaviorType>).definition = definition;
     Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(definition.name, Type));
+      container.register(Registration.singleton(Type.kind.key(definition.name), Type));
     };
 
     return Type;
@@ -95,15 +90,17 @@ export const Component = {
     const definition = createAttributeDefinition(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: IAttributeComponent = Type.prototype;
 
-    (Type as Writable<IAttributeType>).type = 'attribute';
+    (Type as Writable<IAttributeType>).kind = Resource.attribute;
     (Type as Writable<IAttributeType>).definition = definition;
     Type.register = function register(container: IContainer){
-      container.register(Registration.transient(definition.name, Type));
+      const resourceKey = Type.kind.key(definition.name);
+
+      container.register(Registration.transient(resourceKey, Type));
 
       const aliases = definition.aliases;
 
       for(let i = 0, ii = aliases.length; i < ii; ++i) {
-        container.register(Registration.alias(definition.name, aliases[i]));
+        container.register(Registration.alias(resourceKey, aliases[i]));
       }
     };
 
@@ -198,10 +195,10 @@ export const Component = {
     const definition = createTemplateDefinition(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: IElementComponent = Type.prototype;
 
-    (Type as Writable<IElementType>).type = 'element';
+    (Type as Writable<IElementType>).kind = Resource.element;
     (Type as Writable<IElementType>).definition = definition;
     Type.register = function(container: IContainer){
-      container.register(Registration.transient(definition.name, Type));
+      container.register(Registration.transient(Type.kind.key(definition.name), Type));
     };
 
     proto.$hydrate = function(this: IElementComponentImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject) { 

@@ -3,6 +3,7 @@ import { IServiceLocator } from '../../kernel/di';
 import { IScope, BindingContext } from './binding-context';
 import { ISignaler } from './signaler';
 import { BindingFlags } from './binding-flags';
+import { Resource } from '../resource';
 
 export type IsPrimary = AccessThis | AccessScope | ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;
 export type IsUnary = IsPrimary | Unary;
@@ -42,12 +43,13 @@ export class BindingBehavior implements IExpression {
       (<any>this.expression).bind(binding, scope, flags);
     }
 
-    let behavior = binding.locator.get(this.name);
+    const behaviorKey = Resource.bindingBehavior.key(this.name);
+    const behavior = binding.locator.get(behaviorKey);
+
     if (!behavior) {
       throw new Error(`No BindingBehavior named "${this.name}" was found!`);
     }
 
-    let behaviorKey = `behavior-${this.name}`;
     if ((binding as any)[behaviorKey]) {
       throw new Error(`A binding behavior named "${this.name}" has already been applied to "${this.expression}"`);
     }
@@ -57,7 +59,7 @@ export class BindingBehavior implements IExpression {
   }
 
   unbind(binding: IBinding, scope: IScope, flags: BindingFlags) {
-    let behaviorKey = `behavior-${this.name}`;
+    const behaviorKey = Resource.bindingBehavior.key(this.name);
 
     (binding as any)[behaviorKey].unbind(binding, scope, flags);
     (binding as any)[behaviorKey] = null;
@@ -75,7 +77,9 @@ export class ValueConverter implements IExpression {
   }
 
   evaluate(scope: IScope, locator: IServiceLocator, flags: BindingFlags) {
-    let converter = locator.get(this.name);
+    const converterKey = Resource.valueConverter.key(this.name);
+    const converter = locator.get(converterKey);
+
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
@@ -88,7 +92,9 @@ export class ValueConverter implements IExpression {
   }
 
   assign(scope: IScope, value: any, locator: IServiceLocator, flags: BindingFlags) {
-    let converter = locator.get(this.name);
+    const converterKey = Resource.valueConverter.key(this.name);
+    const converter = locator.get(converterKey);
+
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
@@ -108,7 +114,8 @@ export class ValueConverter implements IExpression {
       expressions[i].connect(binding, scope, flags);
     }
 
-    const converter = binding.locator.get(this.name);
+    const converterKey = Resource.valueConverter.key(this.name);
+    const converter = binding.locator.get(converterKey);
     
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
@@ -129,7 +136,8 @@ export class ValueConverter implements IExpression {
   }
 
   unbind(binding: IBinding, scope: IScope, flags: BindingFlags) {
-    const converter = binding.locator.get(this.name);
+    const converterKey = Resource.valueConverter.key(this.name);
+    const converter = binding.locator.get(converterKey);
     const signals = (converter as any).signals;
     
     if (signals === undefined) {

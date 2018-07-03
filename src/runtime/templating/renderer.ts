@@ -2,7 +2,6 @@ import { IViewOwner } from './view';
 import { INode, DOM } from '../dom';
 import { IHydrateElementInstruction, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
 import { IElementComponent, IAttributeComponent } from './component';
-import { ITaskQueue } from '../task-queue';
 import { IObserverLocator } from '../binding/observer-locator';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
@@ -15,6 +14,7 @@ import { Ref } from '../binding/ref';
 import { ShadowDOMEmulation } from './shadow-dom';
 import { IRenderContext } from './render-context';
 import { Immutable } from '../../kernel/interfaces';
+import { Resource } from '../resource';
 
 export interface IRenderer {
   render(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
@@ -136,7 +136,7 @@ export class Renderer implements IRenderer {
   [TargetedInstructionType.hydrateElement](owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>) {
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction, null, null, target, true);
-    const component = context.get<IElementComponent>(instruction.res);
+    const component = context.get<IElementComponent>(Resource.element.key(instruction.res));
 
     this.hydrateElementInstance(owner, target, instruction, component);
     operation.tryConnectElementToSlot(component);
@@ -149,7 +149,7 @@ export class Renderer implements IRenderer {
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction);
 
-    const component = context.get<IAttributeComponent>(instruction.res);
+    const component = context.get<IAttributeComponent>(Resource.attribute.key(instruction.res));
     component.$hydrate(this.renderingEngine);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -169,7 +169,7 @@ export class Renderer implements IRenderer {
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction, factory, parts, DOM.convertToAnchor(target), false);
 
-    const component = context.get<IAttributeComponent>(instruction.res);
+    const component = context.get<IAttributeComponent>(Resource.attribute.key(instruction.res));
     component.$hydrate(this.renderingEngine);
     operation.tryConnectTemplateControllerToSlot(component);
 

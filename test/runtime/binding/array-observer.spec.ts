@@ -1,3 +1,4 @@
+import { spy, match, SinonSpy } from 'sinon';
 import { ArrayObserver, enableArrayObservation, disableArrayObservation } from './../../../src/runtime/binding/array-observer';
 import { expect } from 'chai';
 
@@ -44,6 +45,95 @@ describe(`ArrayObserver`, () => {
     if (sut) {
       sut.dispose();
     }
+  });
+
+  describe('should throw when given a non-array', () => {
+    const inputs = [new Map(), new Set(), new WeakMap(), new WeakSet(), new Uint8Array()];
+    for (const input of inputs) {
+      it(input.toString(), () => {
+        expect(() => new ArrayObserver(<any>input)).to.throw();
+      });
+    }
+  });
+
+  describe('should allow subscribing for immediate notification', () => {
+    it('push', () => {
+      const s = spy();
+      const arr = [];
+      sut = new ArrayObserver(arr);
+      sut.subscribeImmediate(s);
+      arr.push(1);
+      expect(s).to.have.been.calledWith('push', match(x => x[0] === 1));
+    });
+
+    it('push', () => {
+      const s = spy();
+      const arr = [];
+      sut = new ArrayObserver(arr);
+      sut.subscribeImmediate(s);
+      arr.push(1, 2);
+      expect(s).to.have.been.calledWith('push', match(x => x[0] === 1 && x[1] === 2));
+    });
+  });
+
+  describe('should allow unsubscribing for immediate notification', () => {
+    it('push', () => {
+      const s = spy();
+      const arr = [];
+      sut = new ArrayObserver(arr);
+      sut.subscribeImmediate(s);
+      sut.unsubscribeImmediate(s);
+      arr.push(1);
+      expect(s).not.to.have.been.called;
+    });
+  });
+
+  describe('should allow subscribing for batched notification', () => {
+    it('push', () => {
+      const s = spy();
+      const arr = [];
+      sut = new ArrayObserver(arr);
+      sut.subscribeBatched(s);
+      arr.push(1);
+      const indexMap = sut.indexMap.slice();
+      sut.flushChanges();
+      expect(s).to.have.been.calledWith(indexMap);
+    });
+
+    it('push', () => {
+      const s = spy();
+      const arr = [];
+      sut = new ArrayObserver(arr);
+      sut.subscribeBatched(s);
+      arr.push(1, 2);
+      const indexMap = sut.indexMap.slice();
+      sut.flushChanges();
+      expect(s).to.have.been.calledWith(indexMap);
+    });
+  });
+
+  describe('should allow unsubscribing for batched notification', () => {
+    it('push', () => {
+      const s = spy();
+      const arr = [];
+      sut = new ArrayObserver(arr);
+      sut.subscribeBatched(s);
+      sut.unsubscribeBatched(s);
+      arr.push(1);
+      sut.flushChanges();
+      expect(s).not.to.have.been.called;
+    });
+  });
+
+  describe('should not notify batched subscribers if there are no changes', () => {
+    it('push', () => {
+      const s = spy();
+      const arr = [];
+      sut = new ArrayObserver(arr);
+      sut.subscribeBatched(s);
+      sut.flushChanges();
+      expect(s).not.to.have.been.called;
+    });
   });
 
   describe(`observePush`, () => {
@@ -158,7 +248,7 @@ describe(`ArrayObserver`, () => {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
-      for (const repeat of repeatArr.filter(r => r < (init.length + 1))) {
+      for (const repeat of repeatArr.filter(r => r <= (init.length + 1))) {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
           const arr = init.slice();
           const expectedArr = init.slice();
@@ -196,7 +286,7 @@ describe(`ArrayObserver`, () => {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
-      for (const repeat of repeatArr.filter(r => r < (init.length + 1))) {
+      for (const repeat of repeatArr.filter(r => r <= (init.length + 1))) {
         const arr = init.slice();
         const expectedArr = init.slice();
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
@@ -237,8 +327,8 @@ describe(`ArrayObserver`, () => {
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
     for (const init of initArr) {
-      for (const start of startArr.filter(s => s === undefined || s < (init.length + 1))) {
-        for (const deleteCount of deleteCountArr.filter(d => d === undefined || d < (init.length + 1))) {
+      for (const start of startArr.filter(s => s === undefined || s <= (init.length + 1))) {
+        for (const deleteCount of deleteCountArr.filter(d => d === undefined || d <= (init.length + 1))) {
           for (const items of itemsArr) {
             for (const repeat of repeatArr) {
               it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
@@ -251,10 +341,15 @@ describe(`ArrayObserver`, () => {
                 let i = 0;
                 while (i < repeat) {
                   incrementItems(newItems, i);
-                  if (newItems === undefined) {
+                  if (items === undefined) {
                     if (deleteCount === undefined) {
-                      expectedResult = expectedArr.splice(start);
-                      actualResult = arr.splice(start);
+                      if (start === undefined) {
+                        expectedResult = (<any>expectedArr).splice();
+                        actualResult = (<any>arr).splice();
+                      } else {
+                        expectedResult = expectedArr.splice(start);
+                        actualResult = arr.splice(start);
+                      }
                     } else {
                       expectedResult = expectedArr.splice(start, deleteCount);
                       actualResult = arr.splice(start, deleteCount);

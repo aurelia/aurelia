@@ -210,9 +210,6 @@ function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => numbe
     }
     i++;
   }
-  if (i === 0) {
-    return this;
-  }
   if (compareFn === undefined || typeof compareFn !== 'function'/*spec says throw a TypeError, should we do that too?*/) {
     compareFn = sortCompare;
   }
@@ -228,9 +225,6 @@ function sortCompare(x: any, y: any): number {
   }
   x = x === null ? 'null' : x.toString();
   y = y === null ? 'null' : y.toString();
-  if (x === y) {
-    return 0;
-  }
   return x < y ? -1 : 1;
 }
 

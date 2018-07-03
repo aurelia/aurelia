@@ -248,8 +248,8 @@ class RuntimeCompilationResources implements ICompilationResources {
     return this.getDescription<IAttributeDescription>(Resource.attribute.key(attributeName));
   }
 
-  private getDescription<T extends (IElementDescription | IAttributeDescription)>(name: string) {
-    const resolver = this.context.getResolver(name);
+  private getDescription<T extends (IElementDescription | IAttributeDescription)>(key: string) {
+    const resolver = this.context.getResolver(key);
 
     if (resolver !== null && resolver.getFactory) {
       let factory = resolver.getFactory(this.context);

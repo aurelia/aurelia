@@ -43,7 +43,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
       const callback = `${name}Changed`;
 
       if (callback in instance) {
-        bindables[name] = { callback };
+        bindables[name] = { callback, property: name };
       }
     }
 

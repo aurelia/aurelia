@@ -102,7 +102,7 @@ function hyphenate(name) {
 * Decorator: Specifies custom behavior for a bindable property.
 * @param configOrTarget The overrides.
 */
-export function bindable(configOrTarget?: IBindableInstruction | Object, key?, descriptor?): any {
+export function bindable(configOrTarget?: Omit<IBindableInstruction, 'property'> | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
     target = target.constructor;
     
@@ -121,6 +121,7 @@ export function bindable(configOrTarget?: IBindableInstruction | Object, key?, d
       config.mode = BindingMode.oneWay;
     }
 
+    config.property = key2;
     bindables[key2] = config;
   };
 

@@ -67,6 +67,7 @@ export interface IBindableInstruction {
   mode?: BindingMode;
   callback?: string;
   attribute?: string;
+  property?: string;
 }
 
 export type TemplateDefinition = Immutable<Required<ITemplateSource>>;

@@ -139,7 +139,7 @@ describe('ArrayRepeater', () => {
     sut = new ArrayRepeater(taskQueue, slot, owner, factory, container);
   });
 
-  describe('synchronize', () => {
+  describe('splice - synchronize', () => {
     const initArr = [[], [1], [1, 2]];
     const startArr = [0, 1, 2];
     const deleteCountArr = [0, 1, 2];
@@ -158,7 +158,7 @@ describe('ArrayRepeater', () => {
       for (const init of initArr) {
         const title3 = title2 + ' size=' + padRight(init.length, 2);
 
-        for (const start of startArr.filter(s => s <= init.length)) { // todo: should include this and ensure undefined items are created too
+        for (const start of startArr.filter(s => s < (init.length + 1))) { // todo: should include this and ensure undefined items are created too
           const title4 = title3 + ' start=' + padRight(start, 2);
 
           for (const deleteCount of deleteCountArr.filter(d => d <= init.length)) {
@@ -214,6 +214,121 @@ describe('ArrayRepeater', () => {
         }
       }
     }
+  });
+
+  describe('assign - synchronize', () => {
+    const initArr = [[], [1], [1, 2]];
+    const assignArr = [[], [1], [1, 2]];
+    const localNameArr = ['foo', 'item'];
+    const flushArr = ['never', 'once', 'every'];
+    const timesArr = [1, 2];
+    const title1 = 'ArrayRepeater assign: ';
+  
+    for (const localName of localNameArr) {
+      const title2 = title1 + ' localName=' + padRight(localName, 5);
+      const declaration = new ForDeclaration(localName);
+      const iterable = new AccessScope(''); // we don't use this in this test anyway
+      const sourceExpression = new ForOfStatement(declaration, iterable);
+  
+      for (const init of initArr) {
+        const title3 = title2 + ' size=' + padRight(init.length, 2);
+  
+        for (const assign of assignArr) {
+          const title4 = title3 + ' assign=' + padRight(assign.length, 2);
+  
+          for (const flush of flushArr) {
+            const title5 = title4 + ' flush=' + padRight(flush, 6);
+  
+            for (const times of timesArr) {
+              const title = title5 + ' times=' + padRight(times, 2);
+  
+              it(title, () => {
+                const binding = new Binding(<any>sourceExpression, sut, 'items', <any>null, <any>null, <any>null);
+                owner.$bindable = [binding];
+                const initItems = init.slice();
+                let assignItems = assign.slice();
+                sut.items = initItems as any;
+  
+                const bindingContext = {}; // normally the items would be in here
+                const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
+                sut.bound(scope);
+                let i = 0;
+                while (i < times) {
+                  assignItems = assignItems.slice();
+                  incrementItems(assignItems, i);
+                  i++;
+                  sut.items = <any>assignItems;
+                  switch (flush) {
+                    case 'never':
+                      assertSynchronized(<any>sut.slot.children, init, localName);
+                      break;
+                    case 'once':
+                      if (i === times) {
+                        taskQueue.flushMicroTaskQueue();
+                        assertSynchronized(<any>sut.slot.children, sut.items, localName);
+                      } else {
+                        assertSynchronized(<any>sut.slot.children, init, localName);
+                      }
+                      break;
+                    case 'every':
+                      taskQueue.flushMicroTaskQueue();
+                      assertSynchronized(<any>sut.slot.children, sut.items, localName);
+                      break;
+                  }
+                }
+              });
+            }
+          }
+        }
+      }
+    }
+  });
+
+  describe('assign - instance mutation', () => {
+    it('should not trigger instance mutation when assigning the same instance', () => {
+      const arr: any = [];
+      (<any>sut)._items = arr;
+
+      sut.items = arr;
+      expect(sut.hasPendingInstanceMutation).to.be.false;
+    });
+
+    it('should trigger instance mutation when assigning a different instance', () => {
+      (<any>sut)._items = [];
+
+      sut.items = <any>[];
+      expect(sut.hasPendingInstanceMutation).to.be.true;
+    });
+
+    it('should ignore pending changes from previous instance when assigning a new instance', () => {
+      (<any>sut)._items = [];
+      owner.$bindable = [new Binding(<any>new ForOfStatement(new ForDeclaration('foo'), new AccessScope('')), sut, 'items', <any>null, <any>null, <any>null)];
+      sut.bound(<any>{ });
+
+      sut.items.push(1);
+      expect(sut.items.length).to.equal(1);
+      expect(sut.slot.children.length).to.equal(0);
+      const items: any = [];
+      sut.items = items;
+      taskQueue.flushMicroTaskQueue();
+      expect(sut.items.length).to.equal(0);
+      expect(sut.slot.children.length).to.equal(0);
+    });
+
+    it('should include pending changes from new instance when assigning a new instance', () => {
+      (<any>sut)._items = [];
+      owner.$bindable = [new Binding(<any>new ForOfStatement(new ForDeclaration('foo'), new AccessScope('')), sut, 'items', <any>null, <any>null, <any>null)];
+      sut.bound(<any>{ });
+
+      expect(sut.items.length).to.equal(0);
+      expect(sut.slot.children.length).to.equal(0);
+      const items: any = [];
+      sut.items = items;
+      sut.items.push(1);
+      taskQueue.flushMicroTaskQueue();
+      expect(sut.items.length).to.equal(1);
+      expect(sut.slot.children.length).to.equal(1);
+    });
   });
 });
 

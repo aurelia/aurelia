@@ -12,19 +12,21 @@ export class ArrayRepeater {
   private _items: IObservedArray;
   public set items(newValue: IObservedArray) {
     if (this._items === newValue) {
+      // don't do anything if the same instance is re-assigned (the existing observer should pick up on any changes)
       return;
     }
     this._items = newValue;
     if (this.isBound) {
+      // if already bound before, but currently unbound, then unbound will have taken care of unsubscribing
       this.observer.unsubscribeImmediate(this.handleImmediateItemsMutation);
       this.observer.unsubscribeBatched(this.handleBatchedItemsMutation);
+      // if not bound, then bound will take care of creating the observer and subscribing
       this.observer = newValue.$observer || new ArrayObserver(newValue);
       this.observer.subscribeImmediate(this.handleImmediateItemsMutation);
       this.observer.subscribeBatched(this.handleBatchedItemsMutation);
-      this.handleInstanceMutation(newValue);
-    } else {
-      this.hasPendingInstanceMutation = true;
+      this.tq.queueMicroTask(this);
     }
+    this.hasPendingInstanceMutation = true;
   }
   public get items(): IObservedArray {
     return this._items;
@@ -51,7 +53,16 @@ export class ArrayRepeater {
 
   call(): void {
     this.isQueued = false;
-    this.observer.flushChanges();
+    if (this.hasPendingInstanceMutation) {
+      // if a new array instance is assigned, disregard the observer state and start from scratch
+      if (this.observer.hasChanges) {
+        this.observer.resetIndexMap();
+        this.observer.hasChanges = false;
+      }
+      this.handleInstanceMutation(this.items);
+    } else {
+      this.observer.flushChanges();
+    }
   }
 
   bound(scope: IScope): void {
@@ -140,7 +151,7 @@ export class ArrayRepeater {
       this.addVisual((children[i] = this.factory.create()), items[i]);
       i++;
     }
-    this.hasPendingInstanceMutation = true;
+    this.hasPendingInstanceMutation = false;
   }
 }
 

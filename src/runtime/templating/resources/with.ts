@@ -1,8 +1,8 @@
-import { templateController, ICustomAttribute } from '../templating/custom-attribute';
-import { IRenderSlot } from '../templating/render-slot';
-import { BindingContext } from '../binding/binding-context';
-import { inject } from '../../kernel/di';
-import { IVisualFactory, IVisual } from '../templating/visual';
+import { templateController, ICustomAttribute } from '../custom-attribute';
+import { IRenderSlot } from '../render-slot';
+import { BindingContext } from '../../binding/binding-context';
+import { inject } from '../../../kernel/di';
+import { IVisualFactory, IVisual } from '../visual';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')

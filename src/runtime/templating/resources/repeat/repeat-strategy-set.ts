@@ -1,8 +1,8 @@
 import {createFullOverrideContext, updateOverrideContexts} from './override-contexts';
 import { IRepeatStrategy } from './repeat-strategy';
-import { IObserverLocator } from '../../binding/observer-locator';
+import { IObserverLocator } from '../../../binding/observer-locator';
 import { IRepeater } from './repeater';
-import { BindingContext } from '../../binding/binding-context';
+import { BindingContext } from '../../../binding/binding-context';
 
 /* @internal */
 export class SetRepeatStrategy<T = any> implements IRepeatStrategy<Set<T>> {

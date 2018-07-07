@@ -1,5 +1,5 @@
 import { IRepeater } from './repeater';
-import { IBindingCollectionObserver } from '../../binding/observation';
+import { IBindingCollectionObserver } from '../../../binding/observation';
 
 /**
 * A strategy is for repeating a template over an iterable or iterable-like object.

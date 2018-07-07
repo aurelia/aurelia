@@ -1,7 +1,7 @@
-import { BindingMode } from '../binding/binding-mode';
-import { bindingBehavior } from '../binding/binding-behavior';
-import { Binding } from '../binding/binding';
-import { IScope } from '../binding/binding-context';
+import { BindingMode } from '../binding-mode';
+import { bindingBehavior } from '../binding-behavior';
+import { Binding } from '../binding';
+import { IScope } from '../binding-context';
 
 class BindingModeBehavior {
   constructor(private mode: BindingMode) {}

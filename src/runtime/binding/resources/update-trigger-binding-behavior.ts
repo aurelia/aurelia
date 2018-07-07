@@ -1,14 +1,14 @@
-import { BindingMode } from '../binding/binding-mode';
-import { EventSubscriber, IEventSubscriber } from '../binding/event-manager';
-import { IObserverLocator } from '../binding/observer-locator';
-import { Binding } from '../binding/binding';
-import { IScope } from '../binding/binding-context';
-import { ValueAttributeObserver } from '../binding/element-observation';
-import { CheckedObserver } from '../binding/checked-observer';
-import { SelectValueObserver } from '../binding/select-value-observer';
-import { Reporter } from '../../kernel/reporter';
-import { bindingBehavior } from '../binding/binding-behavior';
-import { inject } from '../../kernel/di';
+import { BindingMode } from '../binding-mode';
+import { EventSubscriber, IEventSubscriber } from '../event-manager';
+import { IObserverLocator } from '../observer-locator';
+import { Binding } from '../binding';
+import { IScope } from '../binding-context';
+import { ValueAttributeObserver } from '../element-observation';
+import { CheckedObserver } from '../checked-observer';
+import { SelectValueObserver } from '../select-value-observer';
+import { Reporter } from '../../../kernel/reporter';
+import { bindingBehavior } from '../binding-behavior';
+import { inject } from '../../../kernel/di';
 
 type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {
   originalHandler?: IEventSubscriber

@@ -1,13 +1,13 @@
-import { customElement, ICustomElement } from '../templating/custom-element';
-import { IRenderSlot, SwapOrder } from '../templating/render-slot';
-import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from '../templating/instructions';
-import { IViewOwner } from '../templating/view';
-import { inject } from '../../kernel/di';
-import { INode, DOM } from '../dom';
-import { VisualWithCentralComponent } from '../templating/visual';
-import { IRenderContext } from '../templating/render-context';
-import { IRenderingEngine } from '../templating/rendering-engine';
-import { Immutable } from '../../kernel/interfaces';
+import { customElement, ICustomElement } from '../custom-element';
+import { IRenderSlot, SwapOrder } from '../render-slot';
+import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from '../instructions';
+import { IViewOwner } from '../view';
+import { INode, DOM } from '../../dom';
+import { VisualWithCentralComponent } from '../visual';
+import { IRenderContext } from '../render-context';
+import { IRenderingEngine } from '../rendering-engine';
+import { Immutable } from '../../../kernel/interfaces';
+import { inject } from '../../../kernel/di';
 
 const composeSource = {
   name: 'au-compose',

@@ -1,9 +1,9 @@
 import { createFullOverrideContext, updateOverrideContexts, updateOverrideContext } from './override-contexts';
-import { mergeSplice } from '../../binding/array-change-records';
+import { mergeSplice } from '../../../binding/array-change-records';
 import { IRepeatStrategy } from './repeat-strategy';
-import { IObserverLocator } from '../../binding/observer-locator';
+import { IObserverLocator } from '../../../binding/observer-locator';
 import { IRepeater } from './repeater';
-import { BindingContext } from '../../binding/binding-context';
+import { BindingContext } from '../../../binding/binding-context';
 
 interface IArrayStorageOnRepeater {
   __array: any[];

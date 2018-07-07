@@ -1,7 +1,7 @@
 import { createFullOverrideContext, updateOverrideContexts } from './override-contexts';
 import { IRepeatStrategy } from './repeat-strategy';
 import { IRepeater } from './repeater';
-import { BindingContext } from '../../binding/binding-context';
+import { BindingContext } from '../../../binding/binding-context';
 
 /* @internal */
 export class NumberRepeatStrategy implements IRepeatStrategy<number> {

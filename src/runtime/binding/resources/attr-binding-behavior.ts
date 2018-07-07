@@ -1,7 +1,7 @@
-import { DataAttributeObserver } from '../binding/element-observation';
-import { bindingBehavior } from '../binding/binding-behavior';
-import { Binding } from '../binding/binding';
-import { IScope } from '../binding/binding-context';
+import { DataAttributeObserver } from '../element-observation';
+import { bindingBehavior } from '../binding-behavior';
+import { Binding } from '../binding';
+import { IScope } from '../binding-context';
 
 @bindingBehavior('attr')
 export class AttrBindingBehavior {

@@ -1,10 +1,10 @@
 import { IfCore } from './if-core';
 import { Else } from './else';
-import { IRenderSlot, SwapOrder } from '../templating/render-slot';
-import { templateController } from '../templating/custom-attribute';
-import { inject } from '../../kernel/di';
-import { IVisualFactory } from '../templating/visual';
-import { bindable } from '../templating/bindable';
+import { IRenderSlot, SwapOrder } from '../render-slot';
+import { templateController } from '../custom-attribute';
+import { inject } from '../../../kernel/di';
+import { IVisualFactory } from '../visual';
+import { bindable } from '../bindable';
 
 @templateController('if')
 @inject(IVisualFactory, IRenderSlot)

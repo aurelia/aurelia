@@ -1,20 +1,20 @@
-import { templateController } from '../../templating/custom-attribute';
-import { IVisualFactory, IVisual } from '../../templating/visual';
-import { IRenderSlot } from '../../templating/render-slot';
-import { IContainer, inject } from '../../../kernel/di';
+import { templateController } from '../../custom-attribute';
+import { IVisualFactory, IVisual } from '../../visual';
+import { IRenderSlot } from '../../render-slot';
+import { IContainer, inject } from '../../../../kernel/di';
 import { IRepeatStrategyRegistry } from './repeat-strategy-registry';
 import { IRepeater } from './repeater';
-import { IExpression, BindingBehavior, ValueConverter } from '../../binding/ast';
-import { IScope, sourceContext } from '../../binding/binding-context';
+import { IExpression, BindingBehavior, ValueConverter } from '../../../binding/ast';
+import { IScope, sourceContext } from '../../../binding/binding-context';
 import { IRepeatStrategy } from './repeat-strategy';
-import { IBindingCollectionObserver } from '../../binding/observation';
-import { Binding } from '../../binding/binding';
-import { BindingMode } from '../../binding/binding-mode';
-import { IViewOwner } from '../../templating/view';
-import { ITaskQueue } from '../../task-queue';
-import { BindingFlags } from '../../binding/binding-flags';
-import { Reporter } from '../../../kernel/reporter';
-import { bindable } from '../../templating/bindable';
+import { IBindingCollectionObserver } from '../../../binding/observation';
+import { Binding } from '../../../binding/binding';
+import { BindingMode } from '../../../binding/binding-mode';
+import { IViewOwner } from '../../view';
+import { ITaskQueue } from '../../../task-queue';
+import { BindingFlags } from '../../../binding/binding-flags';
+import { Reporter } from '../../../../kernel/reporter';
+import { bindable } from '../../bindable';
 
 const oneTime = BindingMode.oneTime;
 

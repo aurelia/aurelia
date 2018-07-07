@@ -1,5 +1,5 @@
-import { IVisual } from '../../templating/visual';
-import { IOverrideContext, BindingContext } from '../../binding/binding-context';
+import { IVisual } from '../../visual';
+import { IOverrideContext, BindingContext } from '../../../binding/binding-context';
 import { IRepeater } from './repeater';
 
 /**

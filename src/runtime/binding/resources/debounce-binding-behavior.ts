@@ -1,9 +1,9 @@
-import { sourceContext, targetContext, IScope } from '../binding/binding-context';
-import { BindingMode } from '../binding/binding-mode';
-import { Binding } from '../binding/binding';
-import { bindingBehavior } from '../binding/binding-behavior';
-import { Call } from '../binding/call';
-import { Listener } from '../binding/listener';
+import { sourceContext, targetContext, IScope } from '../binding-context';
+import { BindingMode } from '../binding-mode';
+import { Binding } from '../binding';
+import { bindingBehavior } from '../binding-behavior';
+import { Call } from '../call';
+import { Listener } from '../listener';
 
 type DebounceableBinding = (Binding | Call | Listener) & {
   debouncedMethod: ((context: string, newValue: any, oldValue: any) => void) & { originalName: string };

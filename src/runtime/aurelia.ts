@@ -1,4 +1,4 @@
-import { ICustomElement } from './templating/component';
+import { ICustomElement } from './templating/custom-element';
 import { PLATFORM } from '../kernel/platform';
 import { IContainer, DI, IRegistry } from '../kernel/di';
 import { IRenderingEngine } from './templating/rendering-engine';

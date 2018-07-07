@@ -3,7 +3,7 @@ import { Binding } from '../binding/binding';
 import { Call } from '../binding/call';
 import { Listener } from '../binding/listener';
 import { IScope } from '../binding/binding-context';
-import { bindingBehavior } from '../decorators';
+import { bindingBehavior } from '../templating/binding-behavior';
 
 type ThrottleableBinding = (Binding | Call | Listener) & {
   throttledMethod: ((value) => any) & { originalName: string };

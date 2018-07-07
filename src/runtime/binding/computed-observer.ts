@@ -14,6 +14,13 @@ export interface IComputedOverrides {
   volatile?: boolean;
 }
 
+export function computed(config: IComputedOverrides) {
+  return function(target, key, descriptor) {
+    let computed = target.computed || (target.computed = {});
+    computed[key] = config;
+  };
+}
+
 const noProxy = !(typeof Proxy !== undefined);
 const computedContext = 'computed-observer';
 const computedOverrideDefaults: IComputedOverrides = { static: false, volatile: false };

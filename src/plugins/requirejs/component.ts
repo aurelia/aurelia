@@ -1,4 +1,4 @@
-import { Component } from "../../runtime/templating/component";
+import { defineCustomElement } from "../../runtime/templating/custom-element";
 import { escape, parseImport, createTemplateDescription, loadFromFile, processImports, kebabCase } from './processing';
 
 const buildMap = {};
@@ -31,7 +31,7 @@ export function load(name: string, req, onLoad, config) {
           dependencies: Array.prototype.slice.call(arguments, 1)
         };
 
-        onLoad({default: Component.element(templateSource)});
+        onLoad({default: defineCustomElement(templateSource)});
       });
     });
   }

@@ -1,5 +1,5 @@
 import { BindingMode } from '../binding/binding-mode';
-import { bindingBehavior } from '../decorators';
+import { bindingBehavior } from '../templating/binding-behavior';
 import { Binding } from '../binding/binding';
 import { IScope } from '../binding/binding-context';
 

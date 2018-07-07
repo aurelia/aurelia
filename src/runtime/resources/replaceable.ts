@@ -1,4 +1,4 @@
-import { templateController } from '../decorators';
+import { templateController } from '../templating/custom-attribute';
 import { IRenderSlot } from '../templating/render-slot';
 import { IScope } from '../binding/binding-context';
 import { inject } from '../../kernel/di';

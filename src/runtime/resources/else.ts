@@ -2,7 +2,7 @@ import { IfCore } from './if-core';
 import { If } from './if';
 import { IVisualFactory } from '../templating/visual';
 import { IRenderSlot } from '../templating/render-slot';
-import { templateController } from '../decorators';
+import { templateController } from '../templating/custom-attribute';
 import { IScope } from '../binding/binding-context';
 import { inject } from '../../kernel/di';
 

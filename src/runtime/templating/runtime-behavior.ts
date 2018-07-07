@@ -1,4 +1,4 @@
-import { ICustomElement, ICustomAttribute, ICustomElementType, ICustomAttributeType } from "./component";
+import { ICustomAttribute, ICustomAttributeType } from "./custom-attribute";
 import { ICallable } from "../../kernel/interfaces";
 import { DOM, INode, IChildObserver } from "../dom";
 import { ITaskQueue } from "../task-queue";
@@ -6,6 +6,7 @@ import { SubscriberCollection } from "../binding/subscriber-collection";
 import { IAccessor, ISubscribable } from "../binding/observation";
 import { Observer } from "../binding/property-observation";
 import { BindableDefinitions } from "./instructions";
+import { ICustomElementType, ICustomElement } from "./custom-element";
 
 export interface IRuntimeBehavior {
   hasCreated: boolean;

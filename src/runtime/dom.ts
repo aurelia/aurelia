@@ -1,5 +1,5 @@
 import { IContainer, IResolver, DI } from '../kernel/di';
-import { ICustomElement } from './templating/component';
+import { ICustomElement } from './templating/custom-element';
 
 export interface INodeLike {
   readonly firstChild: INode | null;

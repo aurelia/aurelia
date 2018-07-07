@@ -6,8 +6,9 @@ import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionTy
 import { IRenderingEngine } from "./rendering-engine";
 import { IViewOwner } from "./view";
 import { IVisualFactory } from "./visual";
-import { ICustomAttribute, ICustomElement } from "./component";
+import { ICustomAttribute } from "./custom-attribute";
 import { ImmutableArray, Immutable } from "../../kernel/interfaces";
+import { ICustomElement } from "./custom-element";
 
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;

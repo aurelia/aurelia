@@ -1,4 +1,4 @@
-import { customElement } from "../runtime/decorators";
+import { customElement } from "../runtime/templating/custom-element";
 import view from 'view!./name-tag.html';
 
 @customElement(view)

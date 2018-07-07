@@ -1,7 +1,7 @@
 import { IViewOwner } from './view';
 import { INode, DOM } from '../dom';
 import { IHydrateElementInstruction, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
-import { ICustomElement, ICustomAttribute } from './component';
+import { ICustomAttribute } from './custom-attribute';
 import { IObserverLocator } from '../binding/observer-locator';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
@@ -15,6 +15,7 @@ import { ShadowDOMEmulation } from './shadow-dom';
 import { IRenderContext } from './render-context';
 import { Immutable } from '../../kernel/interfaces';
 import { Resource } from '../resource';
+import { ICustomElement } from './custom-element';
 
 export interface IRenderer {
   render(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;

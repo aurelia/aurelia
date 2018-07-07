@@ -1,6 +1,6 @@
 import { IRenderSlot } from '../templating/render-slot';
 import { IVisualFactory, IVisual } from '../templating/visual';
-import { ICustomAttribute } from '../templating/component';
+import { ICustomAttribute } from '../templating/custom-attribute';
 
 /**
 * For internal use only. May change without warning.

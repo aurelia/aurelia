@@ -1,4 +1,4 @@
-import { templateController, bindable } from '../../decorators';
+import { templateController } from '../../templating/custom-attribute';
 import { IVisualFactory, IVisual } from '../../templating/visual';
 import { IRenderSlot } from '../../templating/render-slot';
 import { IContainer, inject } from '../../../kernel/di';
@@ -14,6 +14,7 @@ import { IViewOwner } from '../../templating/view';
 import { ITaskQueue } from '../../task-queue';
 import { BindingFlags } from '../../binding/binding-flags';
 import { Reporter } from '../../../kernel/reporter';
+import { bindable } from '../../templating/bindable';
 
 const oneTime = BindingMode.oneTime;
 

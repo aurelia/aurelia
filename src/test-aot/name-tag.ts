@@ -1,4 +1,4 @@
-import { customElement } from "../runtime/decorators"; //added by the compiler
+import { customElement } from "../runtime/templating/custom-element"; //added by the compiler
 import { nameTagConfig } from './name-tag-config'; //added by the compiler
 
 @customElement(nameTagConfig) //added by the compiler

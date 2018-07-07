@@ -1,7 +1,7 @@
 import { IBindScope } from "../binding/observation";
 import { IAttach } from "./lifecycle";
 import { IViewOwner } from "./view";
-import { ICustomElement } from "./component";
+import { ICustomElement } from "./custom-element";
 import { DI } from "../../kernel/di";
 import { IRenderSlot } from "./render-slot";
 

@@ -1,5 +1,5 @@
 import { RuntimeBehavior, IRuntimeBehavior } from "./runtime-behavior";
-import { ICustomAttributeType, ICustomAttribute, IAttributeDescription } from "./custom-attribute";
+import { ICustomAttributeType, ICustomAttribute } from "./custom-attribute";
 import { DI, IContainer, inject, all } from "../../kernel/di";
 import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition, TemplatePartDefinitions, BindableDefinitions } from "./instructions";
 import { ITaskQueue } from "../task-queue";
@@ -21,9 +21,9 @@ import { ITemplate } from "./template";
 import { IObserverLocator } from "../binding/observer-locator";
 import { IEventManager } from "../binding/event-manager";
 import { IExpressionParser } from "../binding/expression-parser";
-import { ITemplateCompiler, ICompilationResources } from "./template-compiler";
-import { Resource } from "../resource";
-import { ICustomElementType, ICustomElement, IElementDescription } from "./custom-element";
+import { ITemplateCompiler } from "./template-compiler";
+import { ICustomElementType, ICustomElement } from "./custom-element";
+import { IResourceKind, IResourceType, ResourceDescription, IResourceDescriptions } from "../resource";
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate;
@@ -238,25 +238,18 @@ class CompiledTemplate implements ITemplate {
   }
 }
 
-class RuntimeCompilationResources implements ICompilationResources {
+class RuntimeCompilationResources implements IResourceDescriptions {
   constructor(private context: ExposedContext) {}
 
-  tryGetElement(elementName: string): IElementDescription | null {
-    return this.getDescription<IElementDescription>(Resource.element.key(elementName));
-  }
-
-  tryGetAttribute(attributeName: string): IAttributeDescription | null {
-    return this.getDescription<IAttributeDescription>(Resource.attribute.key(attributeName));
-  }
-
-  private getDescription<T extends (IElementDescription | IAttributeDescription)>(key: string) {
+  get<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null {
+    const key = kind.key(name);
     const resolver = this.context.getResolver(key);
 
     if (resolver !== null && resolver.getFactory) {
       let factory = resolver.getFactory(this.context);
 
       if (factory !== null) {
-        return (factory.type as ICustomElementType | ICustomAttributeType).definition as T;
+        return (factory.type as IResourceType<TSource>).definition;
       }
     }
 

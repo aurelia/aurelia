@@ -3,7 +3,8 @@ import { IServiceLocator } from '../../kernel/di';
 import { IScope, BindingContext } from './binding-context';
 import { ISignaler } from './signaler';
 import { BindingFlags } from './binding-flags';
-import { Resource } from '../resource';
+import { BindingBehaviorResource } from './binding-behavior';
+import { ValueConverterResource } from './value-converter';
 
 export type IsPrimary = AccessThis | AccessScope | ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;
 export type IsUnary = IsPrimary | Unary;
@@ -43,7 +44,7 @@ export class BindingBehavior implements IExpression {
       (<any>this.expression).bind(binding, scope, flags);
     }
 
-    const behaviorKey = Resource.bindingBehavior.key(this.name);
+    const behaviorKey = BindingBehaviorResource.key(this.name);
     const behavior = binding.locator.get(behaviorKey);
 
     if (!behavior) {
@@ -59,7 +60,7 @@ export class BindingBehavior implements IExpression {
   }
 
   unbind(binding: IBinding, scope: IScope, flags: BindingFlags) {
-    const behaviorKey = Resource.bindingBehavior.key(this.name);
+    const behaviorKey = BindingBehaviorResource.key(this.name);
 
     (binding as any)[behaviorKey].unbind(binding, scope, flags);
     (binding as any)[behaviorKey] = null;
@@ -77,7 +78,7 @@ export class ValueConverter implements IExpression {
   }
 
   evaluate(scope: IScope, locator: IServiceLocator, flags: BindingFlags) {
-    const converterKey = Resource.valueConverter.key(this.name);
+    const converterKey = ValueConverterResource.key(this.name);
     const converter = locator.get(converterKey);
 
     if (!converter) {
@@ -92,7 +93,7 @@ export class ValueConverter implements IExpression {
   }
 
   assign(scope: IScope, value: any, locator: IServiceLocator, flags: BindingFlags) {
-    const converterKey = Resource.valueConverter.key(this.name);
+    const converterKey = ValueConverterResource.key(this.name);
     const converter = locator.get(converterKey);
 
     if (!converter) {
@@ -114,7 +115,7 @@ export class ValueConverter implements IExpression {
       expressions[i].connect(binding, scope, flags);
     }
 
-    const converterKey = Resource.valueConverter.key(this.name);
+    const converterKey = ValueConverterResource.key(this.name);
     const converter = binding.locator.get(converterKey);
     
     if (!converter) {
@@ -136,7 +137,7 @@ export class ValueConverter implements IExpression {
   }
 
   unbind(binding: IBinding, scope: IScope, flags: BindingFlags) {
-    const converterKey = Resource.valueConverter.key(this.name);
+    const converterKey = ValueConverterResource.key(this.name);
     const converter = binding.locator.get(converterKey);
     const signals = (converter as any).signals;
     

@@ -1,7 +1,7 @@
 import { IViewOwner } from './view';
 import { INode, DOM } from '../dom';
 import { IHydrateElementInstruction, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
-import { ICustomAttribute } from './custom-attribute';
+import { ICustomAttribute, CustomAttributeResource } from './custom-attribute';
 import { IObserverLocator } from '../binding/observer-locator';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
@@ -14,8 +14,7 @@ import { Ref } from '../binding/ref';
 import { ShadowDOMEmulation } from './shadow-dom';
 import { IRenderContext } from './render-context';
 import { Immutable } from '../../kernel/interfaces';
-import { Resource } from '../resource';
-import { ICustomElement } from './custom-element';
+import { ICustomElement, CustomElementResource } from './custom-element';
 
 export interface IRenderer {
   render(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
@@ -137,7 +136,7 @@ export class Renderer implements IRenderer {
   [TargetedInstructionType.hydrateElement](owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>) {
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction, null, null, target, true);
-    const component = context.get<ICustomElement>(Resource.element.key(instruction.res));
+    const component = context.get<ICustomElement>(CustomElementResource.key(instruction.res));
 
     this.hydrateElementInstance(owner, target, instruction, component);
     operation.tryConnectElementToSlot(component);
@@ -150,7 +149,7 @@ export class Renderer implements IRenderer {
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction);
 
-    const component = context.get<ICustomAttribute>(Resource.attribute.key(instruction.res));
+    const component = context.get<ICustomAttribute>(CustomAttributeResource.key(instruction.res));
     component.$hydrate(this.renderingEngine);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -170,7 +169,7 @@ export class Renderer implements IRenderer {
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction, factory, parts, DOM.convertToAnchor(target), false);
 
-    const component = context.get<ICustomAttribute>(Resource.attribute.key(instruction.res));
+    const component = context.get<ICustomAttribute>(CustomAttributeResource.key(instruction.res));
     component.$hydrate(this.renderingEngine);
     operation.tryConnectTemplateControllerToSlot(component);
 

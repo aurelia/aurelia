@@ -1,40 +1,40 @@
-import { IResourceType, Resource } from "../resource";
-import { Constructable, Writable, Immutable } from "../../kernel/interfaces";
+import { IResourceType, IResourceKind } from "../resource";
+import { Constructable, Writable } from "../../kernel/interfaces";
 import { IContainer, Registration } from "../../kernel/di";
 
 export interface IBindingBehaviorSource {
   name: string;
 }
 
-export type BindingBehaviorDefinition = Immutable<Required<IBindingBehaviorSource>>;
-
-export interface IBindingBehaviorType extends IResourceType {
-  readonly definition: BindingBehaviorDefinition;
-}
+export type IBindingBehaviorType = IResourceType<IBindingBehaviorSource>;
 
 export function bindingBehavior(nameOrSource: string | IBindingBehaviorSource) {
   return function<T extends Constructable>(target: T) {
-    return defineBindingBehavior(nameOrSource, target);
+    return BindingBehaviorResource.define(nameOrSource, target);
   }
 }
 
-export function defineBindingBehavior<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & IBindingBehaviorType {
-  const definition = createDefinition(nameOrSource);
-  const Type: T & IBindingBehaviorType = ctor as any;
+export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBindingBehaviorType> = {
+  name: 'binding-behavior',
 
-  (Type as Writable<IBindingBehaviorType>).kind = Resource.bindingBehavior;
-  (Type as Writable<IBindingBehaviorType>).definition = definition;
-  Type.register = function(container: IContainer) {
-    container.register(Registration.singleton(Type.kind.key(definition.name), Type));
-  };
+  key(name: string) {
+    return `${this.name}:${name}`;
+  },
 
-  return Type;
-}
+  isType<T extends Constructable>(type: T): type is T & IBindingBehaviorType {
+    return (type as any).kind === this;
+  },
 
-function createDefinition(nameOrSource: string | IBindingBehaviorSource): Immutable<IBindingBehaviorSource> {
-  if (typeof nameOrSource === 'string') {
-    return { name: nameOrSource };
-  } else {
-    return nameOrSource;
+  define<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & IBindingBehaviorType {
+    const definition = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
+    const Type: T & IBindingBehaviorType = ctor as any;
+  
+    (Type as Writable<IBindingBehaviorType>).kind = BindingBehaviorResource;
+    (Type as Writable<IBindingBehaviorType>).definition = definition;
+    Type.register = function(container: IContainer) {
+      container.register(Registration.singleton(Type.kind.key(definition.name), Type));
+    };
+  
+    return Type;
   }
-}
+};

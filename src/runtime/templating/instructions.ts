@@ -3,6 +3,7 @@ import { DelegationStrategy } from '../binding/event-manager';
 import { BindingMode } from '../binding/binding-mode';
 import { INode } from '../dom';
 import { Immutable } from '../../kernel/interfaces';
+import { ResourceDescription } from '../resource';
 
 export enum TargetedInstructionType {
   textBinding = 0,
@@ -46,7 +47,7 @@ export interface IBindableInstruction {
   property?: string;
 }
 
-export type TemplateDefinition = Immutable<Required<ITemplateSource>>;
+export type TemplateDefinition = ResourceDescription<ITemplateSource>;
 export type TemplatePartDefinitions = Record<string, Immutable<ITemplateSource>>;
 export type BindableDefinitions = Record<string, Immutable<IBindableInstruction>>;
 

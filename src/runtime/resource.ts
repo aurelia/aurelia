@@ -1,48 +1,20 @@
-import { Constructable } from "../kernel/interfaces";
+import { Constructable, Immutable } from "../kernel/interfaces";
 import { IRegistry } from "../kernel/di";
 
-function resourceName(this: IResourceKind, name: string) {
-  return `${this.name}:${name}`;
-}
-
-function isType(this: IResourceKind, type: Function) {
-  return (<any>type).kind === this;
-}
-
-export interface IResourceDescription {
+export interface IResourceKind<TSource, TType extends IResourceType<TSource> = IResourceType<TSource>> {
   name: string;
-}
-
-export interface IResourceKind {
-  name: 'custom-attribute' | 'custom-element' | 'value-converter' | 'binding-behavior';
   key(name: string): string;
-  isType(type: Function): boolean;
+  isType<T extends Constructable>(type: T): type is T & TType;
+  define<T extends Constructable>(nameOrSource: string | TSource, ctor: T): T & TType;
 }
 
-export interface IResourceType<T = {}> extends Constructable<T>, IRegistry {
-  kind: IResourceKind;
-  description: IResourceDescription;
+export type ResourceDescription<TSource> = Immutable<Required<TSource>>;
+
+export interface IResourceType<TSource = {}, T = {}> extends Constructable<T>, IRegistry {
+  readonly kind: IResourceKind<TSource, this>;
+  readonly definition: ResourceDescription<TSource>;
 }
 
-export const Resource = {
-  attribute: {
-    name: 'custom-attribute',
-    key: resourceName,
-    isType: isType
-  } as IResourceKind,
-  element: {
-    name: 'custom-element',
-    key: resourceName,
-    isType: isType
-  } as IResourceKind,
-  valueConverter: {
-    name: 'value-converter',
-    key: resourceName,
-    isType: isType
-  } as IResourceKind,
-  bindingBehavior: {
-    name: 'binding-behavior',
-    key: resourceName,
-    isType: isType
-  } as IResourceKind
-};
+export interface IResourceDescriptions {
+  get<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null; 
+}

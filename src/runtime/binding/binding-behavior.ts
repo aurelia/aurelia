@@ -1,7 +1,12 @@
 import { IResourceType, Resource } from "../resource";
-import { BindingBehaviorDefinition, IBindingBehaviorSource } from "./instructions";
 import { Constructable, Writable, Immutable } from "../../kernel/interfaces";
 import { IContainer, Registration } from "../../kernel/di";
+
+export interface IBindingBehaviorSource {
+  name: string;
+}
+
+export type BindingBehaviorDefinition = Immutable<Required<IBindingBehaviorSource>>;
 
 export interface IBindingBehaviorType extends IResourceType {
   readonly definition: BindingBehaviorDefinition;

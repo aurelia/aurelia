@@ -7,7 +7,7 @@ import { ValueAttributeObserver } from '../binding/element-observation';
 import { CheckedObserver } from '../binding/checked-observer';
 import { SelectValueObserver } from '../binding/select-value-observer';
 import { Reporter } from '../../kernel/reporter';
-import { bindingBehavior } from '../templating/binding-behavior';
+import { bindingBehavior } from '../binding/binding-behavior';
 import { inject } from '../../kernel/di';
 
 type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {

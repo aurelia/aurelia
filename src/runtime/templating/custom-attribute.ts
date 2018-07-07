@@ -6,11 +6,25 @@ import { Writable, Constructable, Immutable, Omit } from '../../kernel/interface
 import { IRuntimeBehavior } from './runtime-behavior';
 import { IRenderSlot } from './render-slot';
 import { IResourceType, Resource } from '../resource';
-import { AttributeDefinition, IAttributeSource } from './instructions';
+import { IBindableInstruction } from './instructions';
 import { IContainer, Registration } from '../../kernel/di';
 import { INode } from '../dom';
 import { PLATFORM } from '../../kernel/platform';
 import { BindingMode } from '../binding/binding-mode';
+
+export interface IAttributeSource {
+  name: string;
+  defaultBindingMode?: BindingMode;
+  aliases?: string[];
+  isTemplateController?: boolean;
+  bindables?: Record<string, IBindableInstruction>;
+}
+
+export type AttributeDefinition = Immutable<Required<IAttributeSource>>;
+
+export interface IAttributeDescription extends AttributeDefinition {
+  bindables: Record<string, Required<IBindableInstruction>>;
+}
 
 export interface ICustomAttribute extends IBindScope, IAttach { 
   readonly $isBound: boolean;
@@ -19,7 +33,7 @@ export interface ICustomAttribute extends IBindScope, IAttach {
   $hydrate(renderingEngine: IRenderingEngine);
 }
 
-interface ICustomAttributeImplementation extends Writable<ICustomAttribute> {
+interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $slot: IRenderSlot;
@@ -79,7 +93,7 @@ export function defineCustomAttribute<T extends Constructable>(nameOrSource: str
     }
   };
 
-  proto.$hydrate = function(this: ICustomAttributeImplementation, renderingEngine: IRenderingEngine) {
+  proto.$hydrate = function(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine) {
     this.$changeCallbacks = [];
     this.$isAttached = false;
     this.$isBound = false;
@@ -92,7 +106,7 @@ export function defineCustomAttribute<T extends Constructable>(nameOrSource: str
     }
   };
 
-  proto.$bind = function(this: ICustomAttributeImplementation, scope: IScope) {
+  proto.$bind = function(this: IInternalCustomAttributeImplementation, scope: IScope) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -115,7 +129,7 @@ export function defineCustomAttribute<T extends Constructable>(nameOrSource: str
     }
   };
 
-  proto.$attach = function(this: ICustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle){
+  proto.$attach = function(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle){
     if (this.$isAttached) {
       return;
     }
@@ -135,7 +149,7 @@ export function defineCustomAttribute<T extends Constructable>(nameOrSource: str
     this.$isAttached = true;
   };
 
-  proto.$detach = function(this: ICustomAttributeImplementation, lifecycle: DetachLifecycle) {
+  proto.$detach = function(this: IInternalCustomAttributeImplementation, lifecycle: DetachLifecycle) {
     if (this.$isAttached) {
       if (this.$behavior.hasDetaching) {
         (this as any).detaching();
@@ -153,7 +167,7 @@ export function defineCustomAttribute<T extends Constructable>(nameOrSource: str
     }
   };
 
-  proto.$unbind = function(this: ICustomAttributeImplementation) {
+  proto.$unbind = function(this: IInternalCustomAttributeImplementation) {
     if (this.$isBound) {
       if (this.$behavior.hasUnbound) {
         (this as any).unbound();

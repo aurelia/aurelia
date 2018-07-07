@@ -1,7 +1,7 @@
 import { RuntimeBehavior, IRuntimeBehavior } from "./runtime-behavior";
-import { ICustomAttributeType, ICustomAttribute } from "./custom-attribute";
+import { ICustomAttributeType, ICustomAttribute, IAttributeDescription } from "./custom-attribute";
 import { DI, IContainer, inject, all } from "../../kernel/di";
-import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition, TemplatePartDefinitions, BindableDefinitions, IElementDescription, IAttributeDescription } from "./instructions";
+import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition, TemplatePartDefinitions, BindableDefinitions } from "./instructions";
 import { ITaskQueue } from "../task-queue";
 import { IViewOwner, View } from "./view";
 import { INode, IView, DOM } from "../dom";
@@ -23,7 +23,7 @@ import { IEventManager } from "../binding/event-manager";
 import { IExpressionParser } from "../binding/expression-parser";
 import { ITemplateCompiler, ICompilationResources } from "./template-compiler";
 import { Resource } from "../resource";
-import { ICustomElementType, ICustomElement } from "./custom-element";
+import { ICustomElementType, ICustomElement, IElementDescription } from "./custom-element";
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate;

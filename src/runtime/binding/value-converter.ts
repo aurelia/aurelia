@@ -1,8 +1,12 @@
-import { ValueConverterDefinition, IValueConverterSource } from "./instructions";
 import { IResourceType, Resource } from "../resource";
 import { Constructable, Immutable, Writable } from "../../kernel/interfaces";
 import { IContainer, Registration } from "../../kernel/di";
 
+export interface IValueConverterSource {
+  name: string;
+}
+
+export type ValueConverterDefinition = Immutable<Required<IValueConverterSource>>;
 export interface IValueConverterType extends IResourceType {
   readonly definition: ValueConverterDefinition;
 }

@@ -39,30 +39,6 @@ export interface ITemplateSource {
   hasSlots?: boolean;
 }
 
-export interface IElementDescription extends Pick<TemplateDefinition, 'name' | 'bindables'> {
-  bindables: Record<string, Required<IBindableInstruction>>;
-}
-
-export interface IAttributeSource {
-  name: string;
-  defaultBindingMode?: BindingMode;
-  aliases?: string[];
-  isTemplateController?: boolean;
-  bindables?: Record<string, IBindableInstruction>;
-}
-
-export interface IAttributeDescription extends AttributeDefinition {
-  bindables: Record<string, Required<IBindableInstruction>>;
-}
-
-export interface IValueConverterSource {
-  name: string;
-}
-
-export interface IBindingBehaviorSource {
-  name: string;
-}
-
 export interface IBindableInstruction {
   mode?: BindingMode;
   callback?: string;
@@ -73,9 +49,6 @@ export interface IBindableInstruction {
 export type TemplateDefinition = Immutable<Required<ITemplateSource>>;
 export type TemplatePartDefinitions = Record<string, Immutable<ITemplateSource>>;
 export type BindableDefinitions = Record<string, Immutable<IBindableInstruction>>;
-export type AttributeDefinition = Immutable<Required<IAttributeSource>>;
-export type ValueConverterDefinition = Immutable<Required<IValueConverterSource>>;
-export type BindingBehaviorDefinition = Immutable<Required<IBindingBehaviorSource>>;
 
 export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>();
 export interface ITargetedInstruction {

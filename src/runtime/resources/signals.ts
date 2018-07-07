@@ -1,7 +1,7 @@
 import { IScope } from '../binding/binding-context';
 import { inject } from '../../kernel/di';
 import { Binding } from '../binding/binding';
-import { bindingBehavior } from '../templating/binding-behavior';
+import { bindingBehavior } from '../binding/binding-behavior';
 import { Reporter } from '../../kernel/reporter';
 import { ISignaler } from '../binding/signaler';
 

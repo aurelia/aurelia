@@ -1,5 +1,5 @@
 import { Constructable, Immutable, Writable } from '../../kernel/interfaces';
-import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition } from './instructions';
+import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition, IBindableInstruction } from './instructions';
 import { IBindSelf, IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
 import { IViewOwner, IContentView, View } from './view';
 import { INode, DOM } from '../dom';
@@ -11,6 +11,10 @@ import { IContainer, Registration } from '../../kernel/di';
 import { BindingContext } from '../binding/binding-context';
 import { ShadowDOMEmulation } from './shadow-dom';
 import { PLATFORM } from '../../kernel/platform';
+
+export interface IElementDescription extends Pick<TemplateDefinition, 'name' | 'bindables'> {
+  bindables: Record<string, Required<IBindableInstruction>>;
+}
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'contentOverride'>>;
 

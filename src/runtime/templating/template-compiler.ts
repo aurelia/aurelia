@@ -1,5 +1,7 @@
-import { TemplateDefinition, IElementDescription, IAttributeDescription } from "./instructions";
+import { TemplateDefinition } from "./instructions";
 import { DI } from "../../kernel/di";
+import { IElementDescription } from "./custom-element";
+import { IAttributeDescription } from "./custom-attribute";
 
 export interface ICompilationResources {
   tryGetElement(name: string): IElementDescription | null;

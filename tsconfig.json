@@ -10,6 +10,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowJs": false,
+    "stripInternal": true,
     "moduleResolution": "node",
     "lib": [
       "es2017",

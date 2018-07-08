@@ -1,4 +1,5 @@
 /.rollup-cache
+/.rollupcache
 /coverage
 /test/**/coverage
 /node_modules

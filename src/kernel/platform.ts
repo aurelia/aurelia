@@ -1,20 +1,18 @@
-const global = (function() {
-  // Workers don’t have `window`, only `self`
-  if (typeof self !== 'undefined') {
-    return self;
-  }
-
-  if (typeof global !== 'undefined') {
-    return global;
-  }
-
-  // Not all environments allow eval and Function
-  // Use only as a last resort:
-  return new Function('return this')();
-})();
-
 export const PLATFORM = {
-  global: global,
+  global: (function() {
+    // Workers don’t have `window`, only `self`
+    if (typeof self !== 'undefined') {
+      return self;
+    }
+  
+    if (typeof global !== 'undefined') {
+      return global;
+    }
+  
+    // Not all environments allow eval and Function
+    // Use only as a last resort:
+    return new Function('return this')();
+  })(),
   emptyArray: <Array<any>>Object.freeze([]),
   emptyObject: Object.freeze({}),
   noop: function() {},

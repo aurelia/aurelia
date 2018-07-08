@@ -1,4 +1,3 @@
-import { spy } from 'sinon';
 import { IContainer, DI, Registration } from '../../../src/kernel/di';
 import { ArrayRepeater } from '../../../src/runtime/resources/array-repeater';
 import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/array-observer';
@@ -15,34 +14,7 @@ import { INode, IView } from '../../../src/runtime/dom';
 import { IRenderContext } from '../../../src/runtime/templating/render-context';
 import { IBindScope } from '../../../src/runtime/binding/observation';
 import { IEmulatedShadowSlot } from '../../../src/runtime/templating/shadow-dom';
-
-function assertSynchronized(visuals: IVisual[], items: any[], localName: string): void {
-  const len = visuals.length;
-  expect(len).to.equal(items.length, `visuals.length=${visuals.length}, items.length=${items.length}`);
-  let i = 0;
-  while (i < len) {
-    const visual = visuals[i];
-    if (visual.$scope.bindingContext[localName] !== items[i]) {
-      let $actual = visuals
-        .map(v => v.$scope.bindingContext[localName])
-        .map(stringify)
-        .join(',');
-      let $expected = items.map(stringify).join(',');
-      throw new Error(`expected visuals[${$actual}] to equal items[${$expected}]`);
-    }
-    i++;
-  }
-}
-
-function stringify(value) {
-  if (value === undefined) {
-    return 'undefined';
-  } else if (value === null) {
-    return 'null';
-  } else {
-    return value.toString();
-  }
-}
+import { padRight, incrementItems, assertVisualsSynchronized } from '../util';
 
 class TestViewOwner implements IViewOwner {
   $context: IRenderContext;
@@ -144,32 +116,39 @@ describe('ArrayRepeater', () => {
     const startArr = [0, 1, 2];
     const deleteCountArr = [0, 1, 2];
     const itemsArr = [[], [4], [4, 5]];
-    const localNameArr = ['foo', 'item'];
-    const flushArr = ['never', 'once', 'every'];
+    const itemNameArr = ['foo', 'item'];
+    const flushModeArr = ['never', 'once', 'every'];
     const timesArr = [1, 2];
-    const title1 = 'ArrayRepeater splice: ';
+    const title1 = 'ArrayRepeater splice (sync): ';
 
-    for (const localName of localNameArr) {
-      const title2 = title1 + ' localName=' + padRight(localName, 5);
-      const declaration = new ForDeclaration(localName);
+    // test with different item names
+    for (const itemName of itemNameArr) {
+      const title2 = title1 + ' itemName=' + padRight(itemName, 5);
+      const declaration = new ForDeclaration(itemName);
       const iterable = new AccessScope(''); // we don't use this in this test anyway
       const sourceExpression = new ForOfStatement(declaration, iterable);
 
+      // test with differently sized initial collections
       for (const init of initArr) {
         const title3 = title2 + ' size=' + padRight(init.length, 2);
 
-        for (const start of startArr.filter(s => s < (init.length + 1))) { // todo: should include this and ensure undefined items are created too
+        // test with different splice starting indices (only up to one position out of array bounds to reduce test redundancy)
+        for (const start of startArr.filter(s => s <= init.length + 1)) {
           const title4 = title3 + ' start=' + padRight(start, 2);
 
-          for (const deleteCount of deleteCountArr.filter(d => d <= init.length)) {
+          // test with different splice deleteCount (only up to one higher than initial item count to reduce test redundancy)
+          for (const deleteCount of deleteCountArr.filter(d => d <= init.length + 1)) {
             const title5 = title4 + ' deleteCount=' + padRight(deleteCount, 2);
 
+            // test with different amounts of items added
             for (const items of itemsArr) {
               const title6 = title5 + ' itemCount=' + padRight(items.length, 2);
 
-              for (const flush of flushArr) {
-                const title7 = title6 + ' flush=' + padRight(flush, 6);
+              // test with never flushing after mutation, flushing only after all mutations are done, or flushing after every mutation
+              for (const flushMode of flushModeArr) {
+                const title7 = title6 + ' flushMode=' + padRight(flushMode, 6);
 
+                // repeat the operation different amounts of times to simulate complexer chained operations
                 for (const times of timesArr) {
                   const title = title7 + ' times=' + padRight(times, 2);
 
@@ -177,6 +156,7 @@ describe('ArrayRepeater', () => {
                     const binding = new Binding(<any>sourceExpression, sut, 'items', <any>null, <any>null, <any>null);
                     owner.$bindable = [binding];
                     const initItems = init.slice();
+                    const initItemsCopy = initItems.slice();
                     const newItems = items.slice();
                     sut.items = initItems as any;
   
@@ -185,24 +165,28 @@ describe('ArrayRepeater', () => {
                     sut.bound(scope);
                     let i = 0;
                     while (i < times) {
+                      // change the properties of the newly added items with each iteration to verify bindingTarget is updated correctly
                       incrementItems(newItems, i);
                       i++;
                       sut.items.splice(start, deleteCount, ...newItems);
-                      switch (flush) {
+                      switch (flushMode) {
                         case 'never':
-                          assertSynchronized(<any>sut.slot.children, init, localName);
+                          // never flushed; verify everything is identical to the initial state after each mutation
+                          assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
                           break;
                         case 'once':
+                          // flushed once; verify everything is identical to the initial state except for the last iteration
                           if (i === times) {
                             taskQueue.flushMicroTaskQueue();
-                            assertSynchronized(<any>sut.slot.children, sut.items, localName);
+                            assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                           } else {
-                            assertSynchronized(<any>sut.slot.children, init, localName);
+                            assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
                           }
                           break;
                         case 'every':
+                          // flushed every; verify changes propagate to the DOM after each mutation
                           taskQueue.flushMicroTaskQueue();
-                          assertSynchronized(<any>sut.slot.children, sut.items, localName);
+                          assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                           break;
                       }
                     }
@@ -219,14 +203,14 @@ describe('ArrayRepeater', () => {
   describe('assign - synchronize', () => {
     const initArr = [[], [1], [1, 2]];
     const assignArr = [[], [1], [1, 2]];
-    const localNameArr = ['foo', 'item'];
-    const flushArr = ['never', 'once', 'every'];
+    const itemNameArr = ['foo', 'item'];
+    const flushModeArr = ['never', 'once', 'every'];
     const timesArr = [1, 2];
-    const title1 = 'ArrayRepeater assign: ';
+    const title1 = 'ArrayRepeater assign (sync): ';
   
-    for (const localName of localNameArr) {
-      const title2 = title1 + ' localName=' + padRight(localName, 5);
-      const declaration = new ForDeclaration(localName);
+    for (const itemName of itemNameArr) {
+      const title2 = title1 + ' itemName=' + padRight(itemName, 5);
+      const declaration = new ForDeclaration(itemName);
       const iterable = new AccessScope(''); // we don't use this in this test anyway
       const sourceExpression = new ForOfStatement(declaration, iterable);
   
@@ -236,8 +220,8 @@ describe('ArrayRepeater', () => {
         for (const assign of assignArr) {
           const title4 = title3 + ' assign=' + padRight(assign.length, 2);
   
-          for (const flush of flushArr) {
-            const title5 = title4 + ' flush=' + padRight(flush, 6);
+          for (const flushMode of flushModeArr) {
+            const title5 = title4 + ' flush=' + padRight(flushMode, 6);
   
             for (const times of timesArr) {
               const title = title5 + ' times=' + padRight(times, 2);
@@ -258,21 +242,21 @@ describe('ArrayRepeater', () => {
                   incrementItems(assignItems, i);
                   i++;
                   sut.items = <any>assignItems;
-                  switch (flush) {
+                  switch (flushMode) {
                     case 'never':
-                      assertSynchronized(<any>sut.slot.children, init, localName);
+                      assertVisualsSynchronized(<any>sut.slot.children, init, itemName);
                       break;
                     case 'once':
                       if (i === times) {
                         taskQueue.flushMicroTaskQueue();
-                        assertSynchronized(<any>sut.slot.children, sut.items, localName);
+                        assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                       } else {
-                        assertSynchronized(<any>sut.slot.children, init, localName);
+                        assertVisualsSynchronized(<any>sut.slot.children, init, itemName);
                       }
                       break;
                     case 'every':
                       taskQueue.flushMicroTaskQueue();
-                      assertSynchronized(<any>sut.slot.children, sut.items, localName);
+                      assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                       break;
                   }
                 }
@@ -332,17 +316,3 @@ describe('ArrayRepeater', () => {
   });
 });
 
-function padRight(str: any, len: number): string {
-  str = str + '';
-  return str + new Array(len - str.length + 1).join(' ');
-}
-
-
-function incrementItems(items: number[], by: number): void {
-  let i = 0;
-  let len = items.length;
-  while (i < len) {
-    items[i] += by;
-    i++;
-  }
-}

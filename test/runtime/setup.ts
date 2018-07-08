@@ -8,7 +8,7 @@ initialize();
 chai.should();
 chai.use(sinonChai);
 
-const testContext = require.context('.', true, /array\-(observer|repeater)\.spec\.ts$/i);
+const testContext = require.context('.', true, /.*\.spec\.ts$/i);
 for (const key of testContext.keys()) {
   testContext(key);
 }

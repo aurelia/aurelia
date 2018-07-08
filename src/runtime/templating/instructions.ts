@@ -1,9 +1,9 @@
 import { DI } from '../../kernel/di';
 import { DelegationStrategy } from '../binding/event-manager';
-import { BindingMode } from '../binding/binding-mode';
 import { INode } from '../dom';
 import { Immutable } from '../../kernel/interfaces';
 import { ResourceDescription } from '../resource';
+import { IBindableDescription } from './bindable';
 
 export enum TargetedInstructionType {
   textBinding = 0,
@@ -34,22 +34,15 @@ export interface ITemplateSource {
   dependencies?: any[];
   build?: IBuildInstruction;
   surrogates?: TargetedInstruction[];
-  bindables?: Record<string, IBindableInstruction>;
+  bindables?: Record<string, IBindableDescription>;
   containerless?: boolean;
   shadowOptions?: ShadowRootInit;
   hasSlots?: boolean;
 }
 
-export interface IBindableInstruction {
-  mode?: BindingMode;
-  callback?: string;
-  attribute?: string;
-  property?: string;
-}
-
 export type TemplateDefinition = ResourceDescription<ITemplateSource>;
 export type TemplatePartDefinitions = Record<string, Immutable<ITemplateSource>>;
-export type BindableDefinitions = Record<string, Immutable<IBindableInstruction>>;
+export type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
 
 export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>();
 export interface ITargetedInstruction {

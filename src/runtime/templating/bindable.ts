@@ -1,6 +1,5 @@
 import { BindingMode } from '../binding/binding-mode';
 import { Omit } from '../../kernel/interfaces';
-import { IBindableInstruction } from './instructions';
 
 const capitalMatcher = /([A-Z])/g;
 
@@ -12,16 +11,25 @@ function hyphenate(name) {
   return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
 }
 
+export type BindableSource = Omit<IBindableDescription, 'property'>;
+
+export interface IBindableDescription {
+  mode?: BindingMode;
+  callback?: string;
+  attribute?: string;
+  property?: string;
+}
+
 /**
 * Decorator: Specifies custom behavior for a bindable property.
 * @param configOrTarget The overrides.
 */
-export function bindable(configOrTarget?: Omit<IBindableInstruction, 'property'> | Object, key?, descriptor?): any {
+export function bindable(configOrTarget?: BindableSource | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
     target = target.constructor;
     
-    let bindables: Record<string, IBindableInstruction> = target.bindables || (target.bindables = {});
-    let config: IBindableInstruction = configOrTarget || {};
+    let bindables: Record<string, IBindableDescription> = target.bindables || (target.bindables = {});
+    let config: IBindableDescription = configOrTarget || {};
     
     if (!config.attribute) {
       config.attribute = hyphenate(key2);

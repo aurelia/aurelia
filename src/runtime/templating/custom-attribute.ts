@@ -6,18 +6,18 @@ import { Writable, Constructable, Immutable, Omit } from '../../kernel/interface
 import { IRuntimeBehavior } from './runtime-behavior';
 import { IRenderSlot } from './render-slot';
 import { IResourceType, IResourceKind } from '../resource';
-import { IBindableInstruction } from './instructions';
 import { IContainer, Registration } from '../../kernel/di';
 import { INode } from '../dom';
 import { PLATFORM } from '../../kernel/platform';
 import { BindingMode } from '../binding/binding-mode';
+import { IBindableDescription } from './bindable';
 
 export interface ICustomAttributeSource {
   name: string;
   defaultBindingMode?: BindingMode;
   aliases?: string[];
   isTemplateController?: boolean;
-  bindables?: Record<string, IBindableInstruction>;
+  bindables?: Record<string, IBindableDescription>;
 }
 
 export type ICustomAttributeType = IResourceType<ICustomAttributeSource, ICustomAttribute>;

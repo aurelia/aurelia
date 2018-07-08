@@ -1,5 +1,4 @@
-import { ICustomAttributeType, ICustomAttributeSource, CustomAttributeResource } from '../custom-attribute';
-import { IExpression } from '../../binding/ast';
+import { ICustomAttributeSource, CustomAttributeResource } from '../custom-attribute';
 import { AttachLifecycle, DetachLifecycle } from '../../templating/lifecycle';
 import { IRuntimeBehavior, RuntimeBehavior } from '../../templating/runtime-behavior';
 import { IRenderingEngine } from '../../templating/rendering-engine';
@@ -23,6 +22,7 @@ import { ICustomAttribute } from '../custom-attribute';
 
 @inject(ITaskQueue, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
 export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
+  // #region custom-attribute definition
   // attribute
   public static kind: IResourceKind<ICustomAttributeSource, IResourceType<ICustomAttributeSource, ICustomAttribute>> = CustomAttributeResource;
   public static description: Immutable<Required<ICustomAttributeSource>> = {
@@ -97,6 +97,7 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
       this.$isBound = false;
     }
   }
+  // #endregion
 
   private _items: IObservedArray;
   public set items(newValue: IObservedArray) {
@@ -148,7 +149,11 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
     this.hasPendingInstanceMutation = false;
   }
 
-  call(): void {
+  /**
+   * Process any pending array or instance mutations
+   * - called by the TaskQueue
+   */
+  public call(): void {
     this.isQueued = false;
     if (this.hasPendingInstanceMutation) {
       // if a new array instance is assigned, disregard the observer state and start from scratch
@@ -162,7 +167,11 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
     }
   }
 
-  bound(scope: IScope): void {
+  /**
+   * Initialize array observation and process any pending instance mutation (if this is a re-bind)
+   * - called by $bind
+   */
+  public bound(scope: IScope): void {
     this.sourceExpression = <any>(<Binding[]>this.owner.$bindable).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
     this.scope = scope;
     this.observer = this.items.$observer || new ArrayObserver(this.items);
@@ -174,7 +183,11 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
     }
   }
 
-  unbound(): void {
+  /**
+   * Cleanup subscriptions and remove rendered items from the DOM
+   * - called by $unbind
+   */
+  public unbound(): void {
     this.isBound = false;
     this.observer.unsubscribeImmediate(this.handleImmediateItemsMutation);
     this.observer.unsubscribeBatched(this.handleBatchedItemsMutation);
@@ -182,14 +195,35 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
     this.slot.removeAll(true, true);
   }
 
-  handleImmediateItemsMutation = (): void => {
+  /**
+   * Add a new visual to this instance with the specified item in the bindingContext
+   */
+  public addVisual(visual: IVisual, item: any): void {
+    const scope = createChildScope(this.scope.overrideContext, { [this.local]: item });
+    visual.$bind(scope);
+    visual.parent = this.slot;
+    visual.onRender = this.slot['addVisualCore'];
+    if (this.slot['$isAttached']) {
+      visual.$attach(this.slot['encapsulationSource']);
+    }
+  }
+
+  /**
+   * Queue this.call() in the TaskQueue
+   * - called automatically by the ArrayObserver on any array mutation
+   */
+  private handleImmediateItemsMutation = (): void => {
     if (this.isQueued === false) {
       this.isQueued = true;
       this.tq.queueMicroTask(this);
     }
   };
 
-  handleBatchedItemsMutation = (indexMap: Array<number>): void => {
+  /**
+   * Process all pending array mutations (add/move/remove), update bindings and views (if attached)
+   * - called manually by ArrayObserver.flushChanges
+   */
+  private handleBatchedItemsMutation = (indexMap: Array<number>): void => {
     const visuals = <IVisual[]>this.slot.children;
     const items = this.items;
     const visualCount = visuals.length;
@@ -242,17 +276,11 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
     }
   };
 
-  addVisual(visual: IVisual, item: any): void {
-    const scope = createChildScope(this.scope.overrideContext, { [this.local]: item });
-    visual.$bind(scope);
-    visual.parent = this.slot;
-    visual.onRender = this.slot['addVisualCore'];
-    if (this.slot['$isAttached']) {
-      visual.$attach(this.slot['encapsulationSource']);
-    }
-  }
-
-  handleInstanceMutation(items: any[]): void {
+  /**
+   * Process an instance mutation (completely replace the visuals)
+   * - called by the items setter
+   */
+  private handleInstanceMutation(items: any[]): void {
     this.slot.removeAll(true, true);
     const children = <IVisual[]>this.slot.children;
     let len = (children.length = items.length);

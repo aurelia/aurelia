@@ -1,4 +1,4 @@
-import { ArrayRepeater } from './../runtime/resources/array-repeater';
+import { ArrayRepeater } from '../runtime/templating/resources/array-repeater';
 import { AccessScope, HtmlLiteral, PrimitiveLiteral, Conditional, CallScope, IExpression, AccessMember } from "../runtime/binding/ast";
 import { IContainer } from "../kernel/di";
 import { IExpressionParser } from "../runtime/binding/expression-parser";

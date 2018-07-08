@@ -1,11 +1,11 @@
 import { Aurelia } from '../../../src/runtime/aurelia';
-import { ICustomElement } from './../../../src/runtime/templating/component';
-import { ArrayRepeater } from './../../../src/runtime/resources/array-repeater';
+import { ArrayRepeater } from '../../../src/runtime/templating/resources/array-repeater';
 import { IContainer, DI } from '../../../src/kernel/di';
 import { ITaskQueue } from '../../../src/runtime/task-queue';
 import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/array-observer';
 import { DOM, INode } from '../../../src/runtime/dom';
 import { createAureliaConfig, IFixture, padRight, createComponent, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../util';
+import { ICustomElement } from '../../../src/runtime/templating/custom-element';
 
 describe('ArrayRepeater', () => {
   let container: IContainer;

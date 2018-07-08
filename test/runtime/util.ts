@@ -1,10 +1,11 @@
+import { CustomElementResource } from './../../src/runtime/templating/custom-element';
 import { TargetedInstructionType, ITemplateSource } from "../../src/runtime/templating/instructions";
 import { IVisual } from "../../src/runtime/templating/visual";
-import { ICustomElement, Component } from "../../src/runtime/templating/component";
 import { IExpressionParser } from "../../src/runtime/binding/expression-parser";
 import { IContainer } from "../../src/kernel/di";
 import { AccessMember, AccessScope } from "../../src/runtime/binding/ast";
-import { ArrayRepeater } from "../../src/runtime/resources/array-repeater";
+import { ArrayRepeater } from "../../src/runtime/templating/resources/array-repeater";
+import { ICustomElement } from "../../src/runtime/templating/custom-element";
 
 /**
  * stringify primitive value (null -> 'null' and undefined -> 'undefined')
@@ -118,7 +119,7 @@ export function createAureliaConfig({ colName, itemName, propName }: IFixture): 
  */
 export function createComponent(fixture: IFixture, initialItems: any[]): ICustomElement {
   const appConfig = createAppConfig(fixture);
-  const Type = Component.element(appConfig, class {});
+  const Type = CustomElementResource.define(appConfig, class {});
   const component = new Type();
   component[fixture.colName] = initialItems;
   return component;

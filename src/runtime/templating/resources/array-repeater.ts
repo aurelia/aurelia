@@ -1,31 +1,31 @@
-import { IExpression } from './../binding/ast';
-import { AttachLifecycle, DetachLifecycle } from '../templating/lifecycle';
-import { IRuntimeBehavior, RuntimeBehavior } from '../templating/runtime-behavior';
-import { IRenderingEngine } from '../templating/rendering-engine';
-import { PLATFORM } from '../../kernel/platform';
+import { ICustomAttributeType, ICustomAttributeSource, CustomAttributeResource } from '../custom-attribute';
+import { IExpression } from '../../binding/ast';
+import { AttachLifecycle, DetachLifecycle } from '../../templating/lifecycle';
+import { IRuntimeBehavior, RuntimeBehavior } from '../../templating/runtime-behavior';
+import { IRenderingEngine } from '../../templating/rendering-engine';
+import { PLATFORM } from '../../../kernel/platform';
 import { IRepeater } from './repeat/repeater';
-import { IContainer, inject, Registration } from '../../kernel/di';
-import { ArrayObserver, IObservedArray } from '../binding/array-observer';
-import { ITaskQueue } from '../task-queue';
-import { IRenderSlot } from '../templating/render-slot';
-import { IViewOwner } from '../templating/view';
-import { IVisualFactory, IVisual } from '../templating/visual';
-import { IScope, IOverrideContext } from '../binding/binding-context';
-import { ForOfStatement } from '../binding/ast';
-import { Binding } from '../binding/binding';
-import { BindingMode } from '../binding/binding-mode';
-import { Immutable } from '../../kernel/interfaces';
-import { IAttributeSource } from '../templating/instructions';
-import { Resource, IResourceKind } from '../resource';
-import { ICustomAttribute } from '../templating/component';
-import { INode } from '../dom';
-import { BindingFlags } from '../binding/binding-flags';
+import { IContainer, inject, Registration } from '../../../kernel/di';
+import { ArrayObserver, IObservedArray } from '../../binding/array-observer';
+import { ITaskQueue } from '../../task-queue';
+import { IRenderSlot } from '../../templating/render-slot';
+import { IViewOwner } from '../../templating/view';
+import { IVisualFactory, IVisual } from '../../templating/visual';
+import { IScope, IOverrideContext } from '../../binding/binding-context';
+import { ForOfStatement } from '../../binding/ast';
+import { Binding } from '../../binding/binding';
+import { BindingMode } from '../../binding/binding-mode';
+import { Immutable } from '../../../kernel/interfaces';
+import { IResourceKind, IResourceType } from '../../resource';
+import { INode } from '../../dom';
+import { BindingFlags } from '../../binding/binding-flags';
+import { ICustomAttribute } from '../custom-attribute';
 
 @inject(ITaskQueue, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
 export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
   // attribute
-  public static kind: IResourceKind = Resource.attribute;
-  public static definition: Immutable<Required<IAttributeSource>> = {
+  public static kind: IResourceKind<ICustomAttributeSource, IResourceType<ICustomAttributeSource, ICustomAttribute>> = CustomAttributeResource;
+  public static description: Immutable<Required<ICustomAttributeSource>> = {
     name: 'repeat',
     aliases: PLATFORM.emptyArray,
     defaultBindingMode: BindingMode.toView,
@@ -50,7 +50,7 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
     let b: RuntimeBehavior = renderingEngine['behaviorLookup'].get(ArrayRepeater);
     if (!b) {
       b = new (<any>RuntimeBehavior)();
-      b.bindables = ArrayRepeater.definition.bindables;
+      b.bindables = ArrayRepeater.description.bindables;
       b.hasCreated = b.hasAttaching = b.hasAttached = b.hasDetaching = b.hasDetached = b.hasCreateView = false;
       b.hasBound = b.hasUnbound = true;
       renderingEngine['behaviorLookup'].set(ArrayRepeater, b);

@@ -1,5 +1,5 @@
 import { IContainer, DI, Registration } from '../../../src/kernel/di';
-import { ArrayRepeater } from '../../../src/runtime/resources/array-repeater';
+import { ArrayRepeater } from '../../../src/runtime/templating/resources/array-repeater';
 import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/array-observer';
 import { ITaskQueue } from '../../../src/runtime/task-queue';
 import { IRenderSlot, RenderSlot } from '../../../src/runtime/templating/render-slot';

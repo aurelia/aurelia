@@ -268,9 +268,9 @@ function createGetterTraps(observerLocator: IObserverLocator, controller: Getter
       if (instance instanceof Array) {
         controller.addDependency(observerLocator.getArrayObserver(instance));
 
-        if (key === 'length') {
-          controller.addDependency(observerLocator.getArrayObserver(instance).getLengthObserver());
-        }
+        // if (key === 'length') {
+        //   controller.addDependency(observerLocator.getArrayObserver(instance).getLengthObserver());
+        // }
       } else if (instance instanceof Map) {
         controller.addDependency(observerLocator.getMapObserver(instance));
 

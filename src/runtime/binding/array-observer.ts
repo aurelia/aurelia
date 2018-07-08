@@ -417,6 +417,10 @@ export class ArrayObserver<T = any> implements IDisposable {
   unsubscribeImmediate(subscriber: IImmediateSubscriber): void {
     this.immediateSubscribers.delete(subscriber);
   }
+
+  subscribe(subscriber: IImmediateSubscriber): void { }
+
+  unsubscribe(subscriber: IImmediateSubscriber): void { }
   
   dispose(): void {
     this.array.$observer = undefined;

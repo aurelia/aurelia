@@ -428,3 +428,7 @@ export class ArrayObserver<T = any> implements IDisposable {
     this.immediateSubscribers = null;
   }
 }
+
+export function getArrayObserver(array: any): ArrayObserver {
+  return array.$observer || new ArrayObserver(array);
+}

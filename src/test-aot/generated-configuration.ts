@@ -1,3 +1,4 @@
+import { ArrayRepeater } from './../runtime/resources/array-repeater';
 import { AccessScope, HtmlLiteral, PrimitiveLiteral, Conditional, CallScope, IExpression, AccessMember } from "../runtime/binding/ast";
 import { IContainer } from "../kernel/di";
 import { IExpressionParser } from "../runtime/binding/expression-parser";
@@ -38,7 +39,7 @@ const expressionCache: Record<string, IExpression> = {
   description: new AccessMember(new AccessScope('todo'), 'description')
 };
 
-const globalResources: any[] = [Repeat, If, Else];
+const globalResources: any[] = [ArrayRepeater, If, Else];
 
 export const GeneratedConfiguration = {
   register(container: IContainer) {

@@ -55,13 +55,16 @@ export class SetterObserver extends SubscriberCollection implements IAccessor, I
     let oldValue = this.currentValue;
 
     if (oldValue !== newValue) {
-      if (!this.queued) {
-        this.oldValue = oldValue;
-        this.queued = true;
-        this.taskQueue.queueMicroTask(this);
-      }
-
       this.currentValue = newValue;
+      this.oldValue = oldValue;
+      this.callSubscribers(newValue, oldValue);
+      // if (!this.queued) {
+      //   this.oldValue = oldValue;
+      //   this.queued = true;
+      //   this.taskQueue.queueMicroTask(this);
+      // }
+
+      // this.currentValue = newValue;
     }
   }
 

@@ -1,4 +1,10 @@
-import { IContainer } from './../../kernel/di';
+import { IExpression } from './../binding/ast';
+import { AttachLifecycle, DetachLifecycle } from '../templating/lifecycle';
+import { IRuntimeBehavior, RuntimeBehavior } from '../templating/runtime-behavior';
+import { IRenderingEngine } from '../templating/rendering-engine';
+import { PLATFORM } from '../../kernel/platform';
+import { IRepeater } from './repeat/repeater';
+import { IContainer, inject, Registration } from '../../kernel/di';
 import { ArrayObserver, IObservedArray } from '../binding/array-observer';
 import { ITaskQueue } from '../task-queue';
 import { IRenderSlot } from '../templating/render-slot';
@@ -7,11 +13,95 @@ import { IVisualFactory, IVisual } from '../templating/visual';
 import { IScope, IOverrideContext } from '../binding/binding-context';
 import { ForOfStatement } from '../binding/ast';
 import { Binding } from '../binding/binding';
+import { BindingMode } from '../binding/binding-mode';
+import { Immutable } from '../../kernel/interfaces';
+import { IAttributeSource } from '../templating/instructions';
+import { Resource, IResourceKind } from '../resource';
+import { ICustomAttribute } from '../templating/component';
+import { INode } from '../dom';
+import { BindingFlags } from '../binding/binding-flags';
 
-export class ArrayRepeater {
+@inject(ITaskQueue, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
+export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
+  // attribute
+  public static kind: IResourceKind = Resource.attribute;
+  public static definition: Immutable<Required<IAttributeSource>> = {
+    name: 'repeat',
+    aliases: PLATFORM.emptyArray,
+    defaultBindingMode: BindingMode.toView,
+    isTemplateController: true,
+    bindables: {
+      items: { attribute: 'items', mode: BindingMode.toView, property: 'items' },
+      local: { attribute: 'local', mode: BindingMode.toView, property: 'local' }
+    }
+  };
+  public static register(container: IContainer): void {
+    container.register(Registration.transient('custom-attribute:repeat', ArrayRepeater));
+  }
+
+  // attribute proto.$hydrate
+  public $changeCallbacks: (() => void)[] = [];
+  public $isAttached: boolean = false;
+  public $isBound: boolean = false;
+  public $scope: IScope = null;
+  public $slot: IRenderSlot;
+  public $behavior: IRuntimeBehavior = new (<any>RuntimeBehavior)();
+  public $hydrate(renderingEngine: IRenderingEngine): void {
+    let b: RuntimeBehavior = renderingEngine['behaviorLookup'].get(ArrayRepeater);
+    if (!b) {
+      b = new (<any>RuntimeBehavior)();
+      b.bindables = ArrayRepeater.definition.bindables;
+      b.hasCreated = b.hasAttaching = b.hasAttached = b.hasDetaching = b.hasDetached = b.hasCreateView = false;
+      b.hasBound = b.hasUnbound = true;
+      renderingEngine['behaviorLookup'].set(ArrayRepeater, b);
+    }
+    this.$behavior = b;
+  }
+
+  // attribute proto.$bind
+  public $bind(scope: IScope): void {      
+    if (this.$isBound) {
+      if (this.$scope === scope) {
+        return;
+      }
+      this.$unbind();
+    }
+    this.$scope = scope
+    this.$isBound = true;
+    this.bound(scope);
+  }
+
+  // attribute proto.$attach
+  public $attach(encapsulationSource: INode, lifecycle: AttachLifecycle): void {
+    if (this.$isAttached) {
+      return;
+    }
+    if (this.$slot !== null) {
+      this.$slot.$attach(encapsulationSource, lifecycle);
+    }
+    this.$isAttached = true;
+  }
+  // attribute proto.$detach
+  public $detach(lifecycle: DetachLifecycle): void {
+    if (this.$isAttached) {
+      if (this.$slot !== null) {
+        this.$slot.$detach(lifecycle);
+      }
+      this.$isAttached = false;
+    }
+  }
+  // attribute proto.$unbind
+  public $unbind(): void {
+    if (this.$isBound) {
+      this.unbound();
+      this.$isBound = false;
+    }
+  }
+
   private _items: IObservedArray;
   public set items(newValue: IObservedArray) {
-    if (this._items === newValue) {
+    const oldValue = this._items;
+    if (oldValue === newValue) {
       // don't do anything if the same instance is re-assigned (the existing observer should pick up on any changes)
       return;
     }
@@ -20,10 +110,11 @@ export class ArrayRepeater {
       // if already bound before, but currently unbound, then unbound will have taken care of unsubscribing
       this.observer.unsubscribeImmediate(this.handleImmediateItemsMutation);
       this.observer.unsubscribeBatched(this.handleBatchedItemsMutation);
-      // if not bound, then bound will take care of creating the observer and subscribing
-      this.observer = newValue.$observer || new ArrayObserver(newValue);
-      this.observer.subscribeImmediate(this.handleImmediateItemsMutation);
-      this.observer.subscribeBatched(this.handleBatchedItemsMutation);
+      if (newValue !== null && newValue !== undefined) {
+        this.observer = newValue.$observer || new ArrayObserver(newValue);
+        this.observer.subscribeImmediate(this.handleImmediateItemsMutation);
+        this.observer.subscribeBatched(this.handleBatchedItemsMutation);
+      }
       this.tq.queueMicroTask(this);
     }
     this.hasPendingInstanceMutation = true;
@@ -32,9 +123,15 @@ export class ArrayRepeater {
     return this._items;
   }
 
+  private _local: string;
   public get local(): string {
-    return this.sourceExpression.declaration.name;
+    return this._local || this.sourceExpression.declaration.name;
   }
+  public set local(value: string) {
+    this._local = value;
+  }
+
+  public visualsRequireLifecycle: boolean;
 
   public scope: IScope;
   public observer: ArrayObserver;
@@ -81,7 +178,7 @@ export class ArrayRepeater {
     this.isBound = false;
     this.observer.unsubscribeImmediate(this.handleImmediateItemsMutation);
     this.observer.unsubscribeBatched(this.handleBatchedItemsMutation);
-    this.observer = this._items = null;
+    this.observer = this.items = null;
     this.slot.removeAll(true, true);
   }
 
@@ -93,52 +190,65 @@ export class ArrayRepeater {
   };
 
   handleBatchedItemsMutation = (indexMap: Array<number>): void => {
-    const children = <IVisual[]>this.slot.children;
+    const visuals = <IVisual[]>this.slot.children;
     const items = this.items;
-    if (children.length === 0 && items.length === 0) {
+    const visualCount = visuals.length;
+    if (visualCount === 0 && items.length === 0) {
       return;
     }
-    const childrenCopy = children.slice();
+    const previousVisuals = visuals.slice();
     const len = indexMap.length;
     let from = 0;
-
     let to = 0;
     while (to < len) {
       from = indexMap[to];
-      if (from > -1) {
-        // move
-        children[to] = childrenCopy[from];
-        if (this.slot['$isAttached']) {
-          const visual = children[to];
-          visual.$view.remove();
-          visual.renderState = to;
-          this.slot['insertVisualCore'](visual);
-        }
-      } else if (from < -1) {
-        // add
-        const visual = children[to] = this.factory.create();
-        this.addVisual(visual, items[to]);
-      } else if (from === -1) {
-        // remove
-        if (this.slot['$isAttached']) {
-          const visual = childrenCopy[to];
-          visual.$detach();
-          visual.tryReturnToCache();
+      if (from !== to) {
+        if (from > -1) { // move
+          visuals[to] = previousVisuals[from];
+        } else { // add new (if it's not 0 or higher, it will always be -2 or lower)
+          const visual = visuals[to] = this.factory.create();
+          this.addVisual(visual, items[to]);
         }
       }
       to++;
     }
-    children.length = items.length;
+    visuals.length = len;
+    const isAttached = this.slot['$isAttached'];
+    to = 0;
+    while (to < visualCount) {
+      const visual = previousVisuals[to];
+      if (visuals.indexOf(visual) === -1) {
+        // remove
+        if (isAttached) {
+          visual.$detach();
+        }
+        visual.tryReturnToCache();
+      }
+      to++;
+    }
+    if (isAttached) {
+      const container = this.container;
+      to = 0;
+      while (to < len) {
+        // reorder the children by re-appending them to the parent
+        // todo: identify+move only the ones that actually need to move
+        const visual = visuals[to];
+        const el = <Node>visual.$view.firstChild;
+        el.parentNode.appendChild(el);
+
+        updateBindingTargets(visual, container);
+        to++;
+      }
+    }
   };
 
   addVisual(visual: IVisual, item: any): void {
-    visual.$scope = createChildScope(this.scope.overrideContext, { [this.local]: item });
-    for (const bindable of visual.$bindable) {
-      bindable.$bind(visual.$scope);
-    }
+    const scope = createChildScope(this.scope.overrideContext, { [this.local]: item });
+    visual.$bind(scope);
+    visual.parent = this.slot;
+    visual.onRender = this.slot['addVisualCore'];
     if (this.slot['$isAttached']) {
       visual.$attach(this.slot['encapsulationSource']);
-      visual.onRender = this.slot['addVisualCore'];
     }
   }
 
@@ -148,7 +258,8 @@ export class ArrayRepeater {
     let len = (children.length = items.length);
     let i = 0;
     while (i < len) {
-      this.addVisual((children[i] = this.factory.create()), items[i]);
+      const visual = children[i] = this.factory.create();
+      this.addVisual(visual, items[i]);
       i++;
     }
     this.hasPendingInstanceMutation = false;
@@ -163,4 +274,17 @@ function createChildScope(parentOverrideContext: IOverrideContext, bindingContex
       parentOverrideContext
     }
   };
+}
+
+function updateBindingTargets(visual: IVisual, container: IContainer): void {
+  const bindable = visual.$bindable;
+  const bindableCount = bindable.length;
+  const scope = visual.$scope;
+  let i = 0;
+  while (i < bindableCount) {
+    const binding = bindable[i];
+    const value = binding['sourceExpression'].evaluate(scope, container, BindingFlags.none);
+    binding['updateTarget'](value);
+    i++;
+  }
 }

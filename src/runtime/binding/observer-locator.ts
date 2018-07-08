@@ -1,5 +1,5 @@
 import { DOM } from '../dom';
-import { getArrayObserver } from './array-observation';
+import { getArrayObserver } from './array-observer';
 import { getMapObserver } from './map-observation';
 import { getSetObserver } from './set-observation';
 import { IEventManager } from './event-manager';
@@ -178,9 +178,9 @@ class ObserverLocator implements IObserverLocator {
     }
 
     if (obj instanceof Array) {
-      if (propertyName === 'length') {
-        return this.getArrayObserver(obj).getLengthObserver();
-      }
+      // if (propertyName === 'length') {
+      //   return this.getArrayObserver(obj).getLengthObserver();
+      // }
 
       return this.dirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Map) {
@@ -226,7 +226,7 @@ class ObserverLocator implements IObserverLocator {
   }
 
   getArrayObserver(array: any[]): IBindingCollectionObserver {
-    return getArrayObserver(this.taskQueue, array);
+    return <any>getArrayObserver(array);
   }
 
   getMapObserver(map: Map<any, any>): IBindingCollectionObserver {

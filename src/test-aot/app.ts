@@ -10,7 +10,7 @@ class Todo {
 export class App {
   message = 'Hello World';
   duplicateMessage = true;
-  todos: Todo[] = [];
+  todos: Todo[] = [{description: 'foo', done: false}];
 
   get computedMessage() {
     let value = `

@@ -12,7 +12,7 @@ export type ResourceDescription<TSource> = Immutable<Required<TSource>>;
 
 export interface IResourceType<TSource = {}, T = {}> extends Constructable<T>, IRegistry {
   readonly kind: IResourceKind<TSource, this>;
-  readonly definition: ResourceDescription<TSource>;
+  readonly description: ResourceDescription<TSource>;
 }
 
 export interface IResourceDescriptions {

@@ -26,13 +26,13 @@ export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBin
   },
 
   define<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & IBindingBehaviorType {
-    const definition = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
+    const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
     const Type: T & IBindingBehaviorType = ctor as any;
   
     (Type as Writable<IBindingBehaviorType>).kind = BindingBehaviorResource;
-    (Type as Writable<IBindingBehaviorType>).definition = definition;
+    (Type as Writable<IBindingBehaviorType>).description = description;
     Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(Type.kind.key(definition.name), Type));
+      container.register(Registration.singleton(Type.kind.key(description.name), Type));
     };
   
     return Type;

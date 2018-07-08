@@ -177,7 +177,7 @@ class RenderingEngine implements IRenderingEngine {
           this.component = <ICustomElement>this.$attachable[this.$attachable.length - 1];
         } else {
           const componentType = <ICustomElementType>componentOrType.constructor;
-          target = componentOrType.element || DOM.createElement(componentType.definition.name);
+          target = componentOrType.element || DOM.createElement(componentType.description.name);
           context.hydrateElementInstance(this, target, instruction, componentOrType);
           this.component = componentOrType;
         }
@@ -249,7 +249,7 @@ class RuntimeCompilationResources implements IResourceDescriptions {
       let factory = resolver.getFactory(this.context);
 
       if (factory !== null) {
-        return (factory.type as IResourceType<TSource>).definition;
+        return (factory.type as IResourceType<TSource>).description;
       }
     }
 

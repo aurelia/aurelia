@@ -5,7 +5,7 @@ import { IRenderingEngine } from './rendering-engine';
 import { Writable, Constructable, Immutable, Omit } from '../../kernel/interfaces';
 import { IRuntimeBehavior } from './runtime-behavior';
 import { IRenderSlot } from './render-slot';
-import { IResourceType, IResourceKind } from '../resource';
+import { IResourceType, IResourceKind, ResourceDescription } from '../resource';
 import { IContainer, Registration } from '../../kernel/di';
 import { INode } from '../dom';
 import { PLATFORM } from '../../kernel/platform';
@@ -80,17 +80,17 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
 
   define<T extends Constructable>(nameOrSource: string | ICustomAttributeSource, ctor: T): T & ICustomAttributeType { 
     const Type: T & ICustomAttributeType = ctor as any;
-    const definition = createAttributeDefinition(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
+    const description = createDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: ICustomAttribute = Type.prototype;
 
     (Type as Writable<ICustomAttributeType>).kind = CustomAttributeResource;
-    (Type as Writable<ICustomAttributeType>).definition = definition;
+    (Type as Writable<ICustomAttributeType>).description = description;
     Type.register = function register(container: IContainer){
-      const resourceKey = Type.kind.key(definition.name);
+      const resourceKey = Type.kind.key(description.name);
 
       container.register(Registration.transient(resourceKey, Type));
 
-      const aliases = definition.aliases;
+      const aliases = description.aliases;
 
       for(let i = 0, ii = aliases.length; i < ii; ++i) {
         container.register(Registration.alias(resourceKey, aliases[i]));
@@ -103,7 +103,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       this.$isBound = false;
       this.$scope = null;
       this.$slot = null;
-      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, definition.bindables);
+      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
 
       if (this.$behavior.hasCreated) {
         (this as any).created();
@@ -185,7 +185,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
   }
 };
 
-function createAttributeDefinition(attributeSource: ICustomAttributeSource, Type: ICustomAttributeType): Immutable<Required<ICustomAttributeSource>> {
+function createDescription(attributeSource: ICustomAttributeSource, Type: ICustomAttributeType): ResourceDescription<ICustomAttributeSource> {
   return {
     name: attributeSource.name,
     aliases: attributeSource.aliases || PLATFORM.emptyArray,

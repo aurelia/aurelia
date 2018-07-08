@@ -85,23 +85,23 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
 
   define<T extends Constructable>(nameOrSource: string | ITemplateSource, ctor: T = null): T & ICustomElementType {
     const Type: T & ICustomElementType = ctor === null ? class HTMLOnlyElement { /* HTML Only */ } as any : ctor as any;
-    const definition = createTemplateDefinition(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
+    const description = createDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: ICustomElement = Type.prototype;
   
     (Type as Writable<ICustomElementType>).kind = CustomElementResource;
-    (Type as Writable<ICustomElementType>).definition = definition;
+    (Type as Writable<ICustomElementType>).description = description;
     Type.register = function(container: IContainer){
-      container.register(Registration.transient(Type.kind.key(definition.name), Type));
+      container.register(Registration.transient(Type.kind.key(description.name), Type));
     };
   
     proto.$hydrate = function(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject) { 
-      let template = renderingEngine.getElementTemplate(definition, Type);
+      let template = renderingEngine.getElementTemplate(description, Type);
   
       this.$bindable = [];
       this.$attachable = [];
       this.$changeCallbacks = [];
-      this.$slots = definition.hasSlots ? {} : null;
-      this.$usingSlotEmulation = definition.hasSlots || false;
+      this.$slots = description.hasSlots ? {} : null;
+      this.$usingSlotEmulation = description.hasSlots || false;
       this.$slot = null;
       this.$isAttached = false;
       this.$isBound = false;
@@ -111,9 +111,9 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       };
       
       this.$context = template.renderContext;
-      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, definition.bindables);
-      this.$host = definition.containerless ? DOM.convertToAnchor(host, true) : host;
-      this.$shadowRoot = DOM.createElementViewHost(this.$host, definition.shadowOptions);
+      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
+      this.$host = description.containerless ? DOM.convertToAnchor(host, true) : host;
+      this.$shadowRoot = DOM.createElementViewHost(this.$host, description.shadowOptions);
       this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
       this.$contentView = View.fromCompiledContent(this.$host, options);
       this.$view = this.$behavior.hasCreateView
@@ -182,7 +182,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
         ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
       }
   
-      if (definition.containerless) {
+      if (description.containerless) {
         this.$view.insertBefore(this.$host);
       } else {
         this.$view.appendTo(this.$shadowRoot);
@@ -247,7 +247,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
   }
 };
 
-function createTemplateDefinition(templateSource: ITemplateSource, Type: ICustomElementType): TemplateDefinition {
+function createDescription(templateSource: ITemplateSource, Type: ICustomElementType): TemplateDefinition {
   return {
     name: templateSource.name || 'unnamed',
     template: templateSource.template || null,

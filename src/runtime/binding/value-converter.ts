@@ -26,13 +26,13 @@ export const ValueConverterResource: IResourceKind<IValueConverterSource, IValue
   },
 
   define<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & IValueConverterType {
-    const definition = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
+    const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
     const Type: T & IValueConverterType = ctor as any;
   
     (Type as Writable<IValueConverterType>).kind = ValueConverterResource;
-    (Type as Writable<IValueConverterType>).definition = definition;
+    (Type as Writable<IValueConverterType>).description = description;
     Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(Type.kind.key(definition.name), Type));
+      container.register(Registration.singleton(Type.kind.key(description.name), Type));
     };
   
     return Type;

@@ -46,7 +46,8 @@ export function disableArrayObservation(): void {
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.push
 function observePush(this: IObservedArray): ReturnType<typeof push> {
-  if (this.$observer === undefined) {
+  const o = this.$observer;
+  if (o === undefined) {
     return push.apply(this, arguments);
   }
   const len = this.length;
@@ -54,7 +55,6 @@ function observePush(this: IObservedArray): ReturnType<typeof push> {
   if (argCount === 0) {
     return len;
   }
-  const o = this.$observer;
   this.length = o.indexMap.length = len + argCount
   let i = len;
   while (i < this.length) {
@@ -67,7 +67,8 @@ function observePush(this: IObservedArray): ReturnType<typeof push> {
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
 function observeUnshift(this: IObservedArray): ReturnType<typeof unshift>  {
-  if (this.$observer === undefined) {
+  const o = this.$observer;
+  if (o === undefined) {
     return unshift.apply(this, arguments);
   }
   const len = this.length;
@@ -75,7 +76,6 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof unshift>  {
   if (argCount === 0) {
     return len;
   }
-  const o = this.$observer;
   this.length = o.indexMap.length = len + argCount
   let k = len;
   while (k > 0) {
@@ -93,14 +93,14 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof unshift>  {
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.pop
 function observePop(this: IObservedArray): ReturnType<typeof pop> {
-  if (this.$observer === undefined) {
+  const o = this.$observer;
+  if (o === undefined) {
     return pop.call(this);
   }
   const len = this.length;
   if (len === 0) {
     return undefined;
   }
-  const o = this.$observer;
   const element = this[len - 1];
   this.length = o.indexMap.length = len - 1;
   o.notifyImmediate('pop');
@@ -109,14 +109,14 @@ function observePop(this: IObservedArray): ReturnType<typeof pop> {
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.shift
 function observeShift(this: IObservedArray): ReturnType<typeof shift> {
-  if (this.$observer === undefined) {
+  const o = this.$observer;
+  if (o === undefined) {
     return shift.call(this);
   }
   const len = this.length;
   if (len === 0) {
     return undefined;
   }
-  const o = this.$observer;
   const first = this[0];
   let k = 1;
   while (k < len) {
@@ -130,7 +130,8 @@ function observeShift(this: IObservedArray): ReturnType<typeof shift> {
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.splice
 function observeSplice(this: IObservedArray, start: number, deleteCount?: number, ...items: any[]): ReturnType<typeof splice> {
-  if (this.$observer === undefined) {
+  const o = this.$observer;
+  if (o === undefined) {
     return splice.apply(this, arguments);
   }
   const len = this.length;
@@ -146,7 +147,6 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
   }
   const itemCount = items.length;
   const netSizeChange = itemCount - actualDeleteCount;
-  const o = this.$observer;
   if (netSizeChange < 0) {
     k = actualStart;
     while (k < (len - actualDeleteCount)) {
@@ -172,12 +172,12 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
 function observeReverse(this: IObservedArray): ReturnType<typeof reverse> {
-  if (this.$observer === undefined) {
+  const o = this.$observer;
+  if (o === undefined) {
     return reverse.call(this);
   }
   const len = this.length;
   const middle = (len / 2) | 0;
-  const o = this.$observer;
   let lower = 0;
   while (lower !== middle) {
     let upper = len - lower - 1;
@@ -194,14 +194,14 @@ function observeReverse(this: IObservedArray): ReturnType<typeof reverse> {
 // https://tc39.github.io/ecma262/#sec-array.prototype.sort
 // https://github.com/v8/v8/blob/master/src/js/array.js
 function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => number) {
-  if (this.$observer === undefined) {
+  const o = this.$observer;
+  if (o === undefined) {
     return sort.call(this, compareFn);
   }
   const len = this.length;
   if (len < 2) {
     return this;
   }
-  const o = this.$observer;
   quickSort(this, o.indexMap, 0, len, preSortCompare);
   let i = 0;
   while (i < len) {
@@ -355,8 +355,14 @@ export class ArrayObserver<T = any> implements IDisposable {
   public array: IObservedArray<any>;
   public indexMap: Array<number>;
   public hasChanges: boolean;
-  private batchedSubscribers: Set<IBatchedSubscriber>;
-  private immediateSubscribers: Set<IImmediateSubscriber>;
+  private immediateSubscriber0: IImmediateSubscriber;
+  private immediateSubscriber1: IImmediateSubscriber;
+  private immediateSubscribers: Array<IImmediateSubscriber>;
+  private immediateSubscriberCount: number;
+  private batchedSubscriber0: IBatchedSubscriber;
+  private batchedSubscriber1: IBatchedSubscriber;
+  private batchedSubscribers: Array<IBatchedSubscriber>;
+  private batchedSubscriberCount: number;
 
   constructor(array: Array<T>) {
     if (!Array.isArray(array)) {
@@ -366,8 +372,10 @@ export class ArrayObserver<T = any> implements IDisposable {
     this.array.$observer = this;
     this.resetIndexMap();
     this.hasChanges = false;
-    this.batchedSubscribers = new Set();
-    this.immediateSubscribers = new Set();
+    this.immediateSubscribers = new Array();
+    this.batchedSubscribers = new Array();
+    this.immediateSubscriberCount = 0;
+    this.batchedSubscriberCount = 0;
   }
 
   resetIndexMap(): void {
@@ -380,18 +388,52 @@ export class ArrayObserver<T = any> implements IDisposable {
   }
 
   notifyImmediate(origin: MutationOrigin, args?: IArguments): void {
-    // todo: optimize
+    // todo: optimize / generalize
     this.hasChanges = true;
-    this.immediateSubscribers.forEach(call => {
-      call(origin, args);
-    });
+    const count = this.immediateSubscriberCount;
+    switch(count) {
+      case 0:
+        return;
+      case 1:
+        this.immediateSubscriber0(origin, args);
+        return;
+      case 2:
+        this.immediateSubscriber0(origin, args);
+        this.immediateSubscriber1(origin, args);
+        return;
+      default:
+        this.immediateSubscriber0(origin, args);
+        this.immediateSubscriber1(origin, args);
+        let i = 2;
+        while (i < count) {
+          this.immediateSubscribers[i](origin, args);
+          i++;
+        }
+    }
   }
 
   notifyBatched(indexMap: Array<number>): void {
-    // todo: optimize
-    this.batchedSubscribers.forEach(call => {
-      call(indexMap);
-    });
+    // todo: optimize / generalize
+    const count = this.batchedSubscriberCount;
+    switch(count) {
+      case 0:
+        return;
+      case 1:
+        this.batchedSubscriber0(indexMap);
+        return;
+      case 2:
+        this.batchedSubscriber0(indexMap);
+        this.batchedSubscriber1(indexMap);
+        return;
+      default:
+        this.batchedSubscriber0(indexMap);
+        this.batchedSubscriber1(indexMap);
+        let i = 2;
+        while (i < count) {
+          this.batchedSubscribers[i](indexMap);
+          i++;
+        }
+    }
   }
 
   flushChanges(): void {
@@ -403,19 +445,63 @@ export class ArrayObserver<T = any> implements IDisposable {
   }
 
   subscribeBatched(subscriber: IBatchedSubscriber): void {
-    this.batchedSubscribers.add(subscriber);
+    switch (this.batchedSubscriberCount) {
+      case 0:
+        this.batchedSubscriber0 = subscriber;
+        break;
+      case 1:
+        this.batchedSubscriber1 = subscriber;
+        break;
+      default:
+        this.batchedSubscribers.push(subscriber);
+        break;
+    }
+    this.batchedSubscriberCount++;
   }
 
   unsubscribeBatched(subscriber: IBatchedSubscriber): void {
-    this.batchedSubscribers.delete(subscriber);
+    if (subscriber === this.batchedSubscriber0) {
+      this.batchedSubscriber0 = this.batchedSubscriber1;
+      this.batchedSubscriber1 = this.batchedSubscribers.shift();
+    } else if (subscriber === this.batchedSubscriber1) {
+      this.batchedSubscriber1 = this.batchedSubscribers.shift();
+    } else {
+      const i = this.batchedSubscribers.indexOf(subscriber);
+      if (i > -1) {
+        this.batchedSubscribers.splice(i, 1);
+      }
+    }
+    this.batchedSubscriberCount--;
   }
 
   subscribeImmediate(subscriber: IImmediateSubscriber): void {
-    this.immediateSubscribers.add(subscriber);
+    switch (this.immediateSubscriberCount) {
+      case 0:
+        this.immediateSubscriber0 = subscriber;
+        break;
+      case 1:
+        this.immediateSubscriber1 = subscriber;
+        break;
+      default:
+        this.immediateSubscribers.push(subscriber);
+        break;
+    }
+    this.immediateSubscriberCount++;
   }
 
   unsubscribeImmediate(subscriber: IImmediateSubscriber): void {
-    this.immediateSubscribers.delete(subscriber);
+    if (subscriber === this.immediateSubscriber0) {
+      this.immediateSubscriber0 = this.immediateSubscriber1;
+      this.immediateSubscriber1 = this.immediateSubscribers.shift();
+    } else if (subscriber === this.immediateSubscriber1) {
+      this.immediateSubscriber1 = this.immediateSubscribers.shift();
+    } else {
+      const i = this.immediateSubscribers.indexOf(subscriber);
+      if (i > -1) {
+        this.immediateSubscribers.splice(i, 1);
+      }
+    }
+    this.immediateSubscriberCount--;
   }
 
   subscribe(subscriber: IImmediateSubscriber): void { }
@@ -426,8 +512,12 @@ export class ArrayObserver<T = any> implements IDisposable {
     this.array.$observer = undefined;
     this.array = null;
     this.indexMap = null;
-    this.batchedSubscribers.clear();
-    this.immediateSubscribers.clear();
+    this.batchedSubscriber0 = null;
+    this.batchedSubscriber1 = null;
+    this.batchedSubscribers = null;
+    this.immediateSubscriber0 = null;
+    this.immediateSubscriber1 = null;
+    this.immediateSubscribers = null;
     this.batchedSubscribers = null;
     this.immediateSubscribers = null;
   }

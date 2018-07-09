@@ -1,103 +1,31 @@
-import { IDisposable } from './../../kernel/interfaces';
+import { IDisposable } from "../../../kernel/interfaces";
 
-export type MutationOrigin = 'set' | 'clear' | 'delete';
+export type Collection = any[] | Map<any, any> | Set<any>;
+export type IObservedCollection = Collection & { $observer: CollectionObserver };
 
-export interface IObservedMap<K = any, V = any> extends Map<K, V> {
-  $observer: MapObserver<K, V>;
+export const enum CollectionKind {
+  indexed = 0b1000,
+  keyed   = 0b0100,
+  array   = 0b1001,
+  map     = 0b0110,
+  set     = 0b0111
 }
-
-const proto = Map.prototype;
-const set = proto.set;
-const clear = proto.clear;
-const del = proto.delete;
-
-export function enableMapObservation(): void {
-  proto.set = observeSet;
-  proto.clear = observeClear;
-  proto.delete = observeDelete;
-}
-
-export function disableMapObservation(): void {
-  proto.set = set;
-  proto.clear = clear;
-  proto.delete = del;
-}
-
-// note: we can't really do much with Map due to the internal data structure not being accessible so we're just using the native calls
-// fortunately, map/delete/clear are easy to reconstruct for the indexMap
-
-// https://tc39.github.io/ecma262/#sec-map.prototype.map
-function observeSet(this: IObservedMap, key: any, value: any): ReturnType<typeof set> {
-  const o = this.$observer;
-  if (o === undefined) {
-    return set.call(this, key, value);
-  }
-  const oldSize = this.size;
-  set.call(this, key, value);
-  const newSize = this.size;
-  if (newSize === oldSize) {
-    let i = 0
-    for (const entry of this.entries()) {
-      if (entry[0] === key) {
-        if (entry[1] !== value) {
-          o.indexMap[i] = -i - 2;
-        }
-        return this;
-      }
-      i++;
-    }
-    return this;
-  }
-  o.indexMap[oldSize] = -oldSize - 2;
-  o.notifyImmediate('set', arguments);
-  return this;
-};
-
-// https://tc39.github.io/ecma262/#sec-map.prototype.clear
-function observeClear(this: IObservedMap): ReturnType<typeof clear>  {
-  const o = this.$observer;
-  if (o === undefined) {
-    return clear.call(this);
-  }
-  clear.call(this);
-  o.indexMap.length = 0;
-  o.notifyImmediate('clear');
-  return undefined;
-};
-
-// https://tc39.github.io/ecma262/#sec-map.prototype.delete
-function observeDelete(this: IObservedMap, value: any): ReturnType<typeof del> {
-  const o = this.$observer;
-  if (o === undefined) {
-    return del.call(this, value);
-  }
-  const size = this.size;
-  if (size === 0) {
-    return false;
-  }
-  let i = 0;
-  for (const entry of this.keys()) {
-    if (entry === value) {
-      o.indexMap.splice(i, 1);
-      return del.call(this, value);
-    }
-    i++;
-  }
-  return false;
-};
 
 export interface IImmediateSubscriber {
-  (origin: MutationOrigin, args?: IArguments): void;
+  (origin: string, args?: IArguments): void;
 }
 
 export interface IBatchedSubscriber {
   (indexMap: Array<number>): void;
 }
 
-export class MapObserver<K = any, V = any> implements IDisposable {
-  public map: IObservedMap<any>;
+export abstract class CollectionObserver implements IDisposable {
+  public collection: IObservedCollection;
   public indexMap: Array<number>;
   public hasChanges: boolean;
+  public lengthPropertyName: 'size' | 'length';
+  public collectionKind: CollectionKind;
+
   private immediateSubscriber0: IImmediateSubscriber;
   private immediateSubscriber1: IImmediateSubscriber;
   private immediateSubscribers: Array<IImmediateSubscriber>;
@@ -107,12 +35,11 @@ export class MapObserver<K = any, V = any> implements IDisposable {
   private batchedSubscribers: Array<IBatchedSubscriber>;
   private batchedSubscriberCount: number;
 
-  constructor(map: Map<K, V>) {
-    if (!(map instanceof Map)) {
-      throw new Error(Object.prototype.toString.call(map) + ' is not a map!');
-    }
-    this.map = <any>map;
-    this.map.$observer = this;
+  constructor(collection: Collection, lengthPropertyName: 'size' | 'length', collectionKind: CollectionKind) {
+    this.collection = <any>collection;
+    this.lengthPropertyName = lengthPropertyName;
+    this.collectionKind = collectionKind;
+    this.collection.$observer = <any>this;
     this.resetIndexMap();
     this.hasChanges = false;
     this.immediateSubscribers = new Array();
@@ -122,7 +49,7 @@ export class MapObserver<K = any, V = any> implements IDisposable {
   }
 
   resetIndexMap(): void {
-    const len = this.map.size;
+    const len = this.collection[this.lengthPropertyName];
     this.indexMap = new Array(len);
     let i = 0;
     while (i < len) {
@@ -130,7 +57,7 @@ export class MapObserver<K = any, V = any> implements IDisposable {
     }
   }
 
-  notifyImmediate(origin: MutationOrigin, args?: IArguments): void {
+  notifyImmediate(origin: string, args?: IArguments): void {
     // todo: optimize / generalize
     this.hasChanges = true;
     const count = this.immediateSubscriberCount;
@@ -252,8 +179,8 @@ export class MapObserver<K = any, V = any> implements IDisposable {
   unsubscribe(subscriber: IImmediateSubscriber): void { }
   
   dispose(): void {
-    this.map.$observer = undefined;
-    this.map = null;
+    this.collection.$observer = undefined;
+    this.collection = null;
     this.indexMap = null;
     this.batchedSubscriber0 = null;
     this.batchedSubscriber1 = null;
@@ -264,8 +191,4 @@ export class MapObserver<K = any, V = any> implements IDisposable {
     this.batchedSubscribers = null;
     this.immediateSubscribers = null;
   }
-}
-
-export function getMapObserver(array: any): MapObserver {
-  return array.$observer || new MapObserver(array);
 }

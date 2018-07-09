@@ -4,7 +4,7 @@ import { IVisual } from "../../src/runtime/templating/visual";
 import { IExpressionParser } from "../../src/runtime/binding/expression-parser";
 import { IContainer } from "../../src/kernel/di";
 import { AccessMember, AccessScope } from "../../src/runtime/binding/ast";
-import { ArrayRepeater } from "../../src/runtime/templating/resources/array-repeater";
+import { Repeater } from "../../src/runtime/templating/resources/repeater";
 import { ICustomElement } from "../../src/runtime/templating/custom-element";
 
 /**
@@ -98,7 +98,7 @@ export function createAppConfig({ elName, colName, itemName, propName }: IFixtur
  * (currently specific to repeater)
  */
 export function createAureliaConfig({ colName, itemName, propName }: IFixture): { register(container: IContainer): void } {
-  const globalResources: any[] = [ArrayRepeater];
+  const globalResources: any[] = [Repeater];
   const expressionCache = {
     [colName]: new AccessScope(colName),
     [propName]: new AccessMember(new AccessScope(itemName), propName)

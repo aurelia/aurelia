@@ -1,6 +1,7 @@
 import { spy, match, SinonSpy } from 'sinon';
-import { ArrayObserver, enableArrayObservation, disableArrayObservation } from './../../../src/runtime/binding/array-observer';
+import { ArrayObserver, enableArrayObservation, disableArrayObservation } from './../../../src/runtime/binding/observation/array-observer';
 import { expect } from 'chai';
+import { stringify } from '../util';
 
 function assertArrayEqual(actual: any[], expected: any[]): void {
   const len = actual.length;
@@ -20,16 +21,6 @@ function assertArrayEqual(actual: any[], expected: any[]): void {
   }
 }
 
-function stringify(value) {
-  if (value === undefined) {
-    return 'undefined';
-  } else if (value === null) {
-    return 'null';
-  } else {
-    return value.toString();
-  }
-}
-
 describe(`ArrayObserver`, () => {
   let sut: ArrayObserver;
 
@@ -44,15 +35,6 @@ describe(`ArrayObserver`, () => {
   afterEach(() => {
     if (sut) {
       sut.dispose();
-    }
-  });
-
-  describe('should throw when given a non-array', () => {
-    const inputs = [new Map(), new Set(), new WeakMap(), new WeakSet(), new Uint8Array()];
-    for (const input of inputs) {
-      it(input.toString(), () => {
-        expect(() => new ArrayObserver(<any>input)).to.throw();
-      });
     }
   });
 

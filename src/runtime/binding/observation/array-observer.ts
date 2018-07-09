@@ -1,9 +1,7 @@
-import { IDisposable } from './../../kernel/interfaces';
+import { CollectionObserver, CollectionKind } from './collection-observer';
 
-export type MutationOrigin = 'push' | 'unshift' | 'pop' | 'shift' | 'splice' | 'reverse' | 'sort';
-
-export interface IObservedArray<T = any> extends Array<T> {
-  $observer: ArrayObserver<T>;
+export interface IObservedArray extends Array<any> {
+  $observer: CollectionObserver;
 }
 
 const proto = Array.prototype;
@@ -242,7 +240,7 @@ function preSortCompare(x: any, y: any): number {
   return 0;
 }
 
-function insertionSort(arr: IObservedArray<any>, indexMap: Array<number>, from: number, to: number, compareFn: (a: any, b: any) => number): void {
+function insertionSort(arr: IObservedArray, indexMap: Array<number>, from: number, to: number, compareFn: (a: any, b: any) => number): void {
   let velement, ielement, vtmp, itmp, order;
   let i, j;
   for (i = from + 1; i < to; i++) {
@@ -260,7 +258,7 @@ function insertionSort(arr: IObservedArray<any>, indexMap: Array<number>, from: 
   }
 }  
 
-function quickSort(arr: IObservedArray<any>, indexMap: Array<number>, from: number, to: number, compareFn: (a: any, b: any) => number): void {
+function quickSort(arr: IObservedArray, indexMap: Array<number>, from: number, to: number, compareFn: (a: any, b: any) => number): void {
   let thirdIndex = 0, i = 0;
   let v0, v1, v2;
   let i0, i1, i2;
@@ -343,183 +341,9 @@ function quickSort(arr: IObservedArray<any>, indexMap: Array<number>, from: numb
   }
 }
 
-export interface IImmediateSubscriber {
-  (origin: MutationOrigin, args?: IArguments): void;
-}
-
-export interface IBatchedSubscriber {
-  (indexMap: Array<number>): void;
-}
-
-export class ArrayObserver<T = any> implements IDisposable {
-  public array: IObservedArray<any>;
-  public indexMap: Array<number>;
-  public hasChanges: boolean;
-  private immediateSubscriber0: IImmediateSubscriber;
-  private immediateSubscriber1: IImmediateSubscriber;
-  private immediateSubscribers: Array<IImmediateSubscriber>;
-  private immediateSubscriberCount: number;
-  private batchedSubscriber0: IBatchedSubscriber;
-  private batchedSubscriber1: IBatchedSubscriber;
-  private batchedSubscribers: Array<IBatchedSubscriber>;
-  private batchedSubscriberCount: number;
-
-  constructor(array: Array<T>) {
-    if (!Array.isArray(array)) {
-      throw new Error(Object.prototype.toString.call(array) + ' is not an array!');
-    }
-    this.array = <any>array;
-    this.array.$observer = this;
-    this.resetIndexMap();
-    this.hasChanges = false;
-    this.immediateSubscribers = new Array();
-    this.batchedSubscribers = new Array();
-    this.immediateSubscriberCount = 0;
-    this.batchedSubscriberCount = 0;
-  }
-
-  resetIndexMap(): void {
-    const len = this.array.length;
-    this.indexMap = new Array(len);
-    let i = 0;
-    while (i < len) {
-      this.indexMap[i] = i++;
-    }
-  }
-
-  notifyImmediate(origin: MutationOrigin, args?: IArguments): void {
-    // todo: optimize / generalize
-    this.hasChanges = true;
-    const count = this.immediateSubscriberCount;
-    switch(count) {
-      case 0:
-        return;
-      case 1:
-        this.immediateSubscriber0(origin, args);
-        return;
-      case 2:
-        this.immediateSubscriber0(origin, args);
-        this.immediateSubscriber1(origin, args);
-        return;
-      default:
-        this.immediateSubscriber0(origin, args);
-        this.immediateSubscriber1(origin, args);
-        let i = 2;
-        while (i < count) {
-          this.immediateSubscribers[i](origin, args);
-          i++;
-        }
-    }
-  }
-
-  notifyBatched(indexMap: Array<number>): void {
-    // todo: optimize / generalize
-    const count = this.batchedSubscriberCount;
-    switch(count) {
-      case 0:
-        return;
-      case 1:
-        this.batchedSubscriber0(indexMap);
-        return;
-      case 2:
-        this.batchedSubscriber0(indexMap);
-        this.batchedSubscriber1(indexMap);
-        return;
-      default:
-        this.batchedSubscriber0(indexMap);
-        this.batchedSubscriber1(indexMap);
-        let i = 2;
-        while (i < count) {
-          this.batchedSubscribers[i](indexMap);
-          i++;
-        }
-    }
-  }
-
-  flushChanges(): void {
-    if (this.hasChanges) {
-      this.notifyBatched(this.indexMap);
-      this.resetIndexMap();
-      this.hasChanges = false;
-    }
-  }
-
-  subscribeBatched(subscriber: IBatchedSubscriber): void {
-    switch (this.batchedSubscriberCount) {
-      case 0:
-        this.batchedSubscriber0 = subscriber;
-        break;
-      case 1:
-        this.batchedSubscriber1 = subscriber;
-        break;
-      default:
-        this.batchedSubscribers.push(subscriber);
-        break;
-    }
-    this.batchedSubscriberCount++;
-  }
-
-  unsubscribeBatched(subscriber: IBatchedSubscriber): void {
-    if (subscriber === this.batchedSubscriber0) {
-      this.batchedSubscriber0 = this.batchedSubscriber1;
-      this.batchedSubscriber1 = this.batchedSubscribers.shift();
-    } else if (subscriber === this.batchedSubscriber1) {
-      this.batchedSubscriber1 = this.batchedSubscribers.shift();
-    } else {
-      const i = this.batchedSubscribers.indexOf(subscriber);
-      if (i > -1) {
-        this.batchedSubscribers.splice(i, 1);
-      }
-    }
-    this.batchedSubscriberCount--;
-  }
-
-  subscribeImmediate(subscriber: IImmediateSubscriber): void {
-    switch (this.immediateSubscriberCount) {
-      case 0:
-        this.immediateSubscriber0 = subscriber;
-        break;
-      case 1:
-        this.immediateSubscriber1 = subscriber;
-        break;
-      default:
-        this.immediateSubscribers.push(subscriber);
-        break;
-    }
-    this.immediateSubscriberCount++;
-  }
-
-  unsubscribeImmediate(subscriber: IImmediateSubscriber): void {
-    if (subscriber === this.immediateSubscriber0) {
-      this.immediateSubscriber0 = this.immediateSubscriber1;
-      this.immediateSubscriber1 = this.immediateSubscribers.shift();
-    } else if (subscriber === this.immediateSubscriber1) {
-      this.immediateSubscriber1 = this.immediateSubscribers.shift();
-    } else {
-      const i = this.immediateSubscribers.indexOf(subscriber);
-      if (i > -1) {
-        this.immediateSubscribers.splice(i, 1);
-      }
-    }
-    this.immediateSubscriberCount--;
-  }
-
-  subscribe(subscriber: IImmediateSubscriber): void { }
-
-  unsubscribe(subscriber: IImmediateSubscriber): void { }
-  
-  dispose(): void {
-    this.array.$observer = undefined;
-    this.array = null;
-    this.indexMap = null;
-    this.batchedSubscriber0 = null;
-    this.batchedSubscriber1 = null;
-    this.batchedSubscribers = null;
-    this.immediateSubscriber0 = null;
-    this.immediateSubscriber1 = null;
-    this.immediateSubscribers = null;
-    this.batchedSubscribers = null;
-    this.immediateSubscribers = null;
+export class ArrayObserver extends CollectionObserver {
+  constructor(array: Array<any>) {
+    super(array, 'length', CollectionKind.array);
   }
 }
 

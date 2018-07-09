@@ -1,6 +1,6 @@
 import { IContainer, DI, Registration } from '../../../src/kernel/di';
-import { ArrayRepeater } from '../../../src/runtime/templating/resources/array-repeater';
-import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/array-observer';
+import { Repeater } from '../../../src/runtime/templating/resources/repeater';
+import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/observation/array-observer';
 import { ITaskQueue } from '../../../src/runtime/task-queue';
 import { IRenderSlot, RenderSlot } from '../../../src/runtime/templating/render-slot';
 import { IViewOwner } from '../../../src/runtime/templating/view';
@@ -89,7 +89,7 @@ describe('ArrayRepeater', () => {
   let owner: IViewOwner;
   let factory: IVisualFactory;
   let host: HTMLElement;
-  let sut: ArrayRepeater;
+  let sut: Repeater<Array<any>>;
 
   before(() => {
     enableArrayObservation();
@@ -108,7 +108,7 @@ describe('ArrayRepeater', () => {
     slot = RenderSlot.create(host, true);
     owner = container.get(IViewOwner);
     factory = container.get(IVisualFactory);
-    sut = new ArrayRepeater(taskQueue, slot, owner, factory, container);
+    sut = new Repeater(taskQueue, slot, owner, factory, container);
   });
 
   describe('splice - synchronize', () => {

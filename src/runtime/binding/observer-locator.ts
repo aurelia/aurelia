@@ -1,7 +1,7 @@
 import { DOM } from '../dom';
-import { getArrayObserver } from './array-observer';
-import { getMapObserver } from './map-observation';
-import { getSetObserver } from './set-observation';
+import { getArrayObserver } from './observation/array-observer';
+import { getMapObserver } from './observation/map-observer';
+import { getSetObserver } from './observation/set-observer';
 import { IEventManager } from './event-manager';
 import { IDirtyChecker } from './dirty-checker';
 import {
@@ -177,23 +177,12 @@ class ObserverLocator implements IObserverLocator {
       }
     }
 
+    // todo: proxy for length
     if (obj instanceof Array) {
-      // if (propertyName === 'length') {
-      //   return this.getArrayObserver(obj).getLengthObserver();
-      // }
-
       return this.dirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Map) {
-      if (propertyName === 'size') {
-        return this.getMapObserver(obj).getLengthObserver();
-      }
-
       return this.dirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Set) {
-      if (propertyName === 'size') {
-        return this.getSetObserver(obj).getLengthObserver();
-      }
-
       return this.dirtyChecker.createProperty(obj, propertyName);
     }
 
@@ -230,10 +219,10 @@ class ObserverLocator implements IObserverLocator {
   }
 
   getMapObserver(map: Map<any, any>): IBindingCollectionObserver {
-    return getMapObserver(this.taskQueue, map);
+    return <any>getMapObserver(map);
   }
 
   getSetObserver(set: Set<any>): IBindingCollectionObserver {
-    return getSetObserver(this.taskQueue, set);
+    return <any>getSetObserver(set);
   }
 }

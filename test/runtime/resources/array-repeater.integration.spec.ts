@@ -1,8 +1,8 @@
 import { Aurelia } from '../../../src/runtime/aurelia';
-import { ArrayRepeater } from '../../../src/runtime/templating/resources/array-repeater';
+import { Repeater } from '../../../src/runtime/templating/resources/repeater';
 import { IContainer, DI } from '../../../src/kernel/di';
 import { ITaskQueue } from '../../../src/runtime/task-queue';
-import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/array-observer';
+import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/observation/array-observer';
 import { DOM, INode } from '../../../src/runtime/dom';
 import { createAureliaConfig, IFixture, padRight, createComponent, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../util';
 import { ICustomElement } from '../../../src/runtime/templating/custom-element';
@@ -12,7 +12,7 @@ describe('ArrayRepeater', () => {
   let taskQueue: ITaskQueue;
   let au: Aurelia;
   let host: INode;
-  let sut: ArrayRepeater;
+  let sut: Repeater<Array<any>>;
 
   let aureliaConfig: ReturnType<typeof createAureliaConfig>;
   let component: ICustomElement;
@@ -35,8 +35,8 @@ describe('ArrayRepeater', () => {
 
   describe('splice should render correctly', () => {
     const fixtures: IFixture[] = [
-      { type: ArrayRepeater, elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
-      { type: ArrayRepeater, elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
+      { type: Repeater, elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
+      { type: Repeater, elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
     ];
     const initArr = [[], [1], [1, 2]];
     const startArr = [0, 1, 2];
@@ -219,8 +219,8 @@ describe('ArrayRepeater', () => {
   
   describe('reverse should render correctly', () => {
     const fixtures: IFixture[] = [
-      { type: ArrayRepeater, elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
-      { type: ArrayRepeater, elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
+      { type: Repeater, elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
+      { type: Repeater, elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
     ];
     const initArr = [[], [1], [1, 2], [1, 2, 3], [1, 2, 3, 4]];
     const flushArr = ['never', 'once', 'every'];

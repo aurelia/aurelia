@@ -1,3 +1,4 @@
+import { Collection, CollectionObserver } from './../../binding/observation/collection-observer';
 import { ICustomAttributeSource, CustomAttributeResource } from '../custom-attribute';
 import { AttachLifecycle, DetachLifecycle } from '../../templating/lifecycle';
 import { IRuntimeBehavior, RuntimeBehavior } from '../../templating/runtime-behavior';
@@ -5,7 +6,7 @@ import { IRenderingEngine } from '../../templating/rendering-engine';
 import { PLATFORM } from '../../../kernel/platform';
 import { IRepeater } from './repeat/repeater';
 import { IContainer, inject, Registration } from '../../../kernel/di';
-import { ArrayObserver, IObservedArray } from '../../binding/array-observer';
+import { ArrayObserver, getArrayObserver } from '../../binding/observation/array-observer';
 import { ITaskQueue } from '../../task-queue';
 import { IRenderSlot } from '../../templating/render-slot';
 import { IViewOwner } from '../../templating/view';
@@ -19,9 +20,22 @@ import { IResourceKind, IResourceType } from '../../resource';
 import { INode } from '../../dom';
 import { BindingFlags } from '../../binding/binding-flags';
 import { ICustomAttribute } from '../custom-attribute';
+import { getMapObserver } from '../../binding/observation/map-observer';
+import { getSetObserver } from '../../binding/observation/set-observer';
+
+
+export function getCollectionObserver(collection: any): CollectionObserver {
+  if (Array.isArray(collection)) {
+    return <any>getArrayObserver(collection);
+  } else if (collection instanceof Map) {
+    return <any>getMapObserver(collection);
+  } else if (collection instanceof Set) {
+    return <any>getSetObserver(collection);
+  }
+}
 
 @inject(ITaskQueue, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
-export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
+export class Repeater<T extends Collection> implements Partial<IRepeater>, ICustomAttribute {
   // #region custom-attribute definition
   // attribute
   public static kind: IResourceKind<ICustomAttributeSource, IResourceType<ICustomAttributeSource, ICustomAttribute>> = CustomAttributeResource;
@@ -36,7 +50,7 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
     }
   };
   public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:repeat', ArrayRepeater));
+    container.register(Registration.transient('custom-attribute:repeat', Repeater));
   }
 
   // attribute proto.$hydrate
@@ -47,13 +61,13 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
   public $slot: IRenderSlot;
   public $behavior: IRuntimeBehavior = new (<any>RuntimeBehavior)();
   public $hydrate(renderingEngine: IRenderingEngine): void {
-    let b: RuntimeBehavior = renderingEngine['behaviorLookup'].get(ArrayRepeater);
+    let b: RuntimeBehavior = renderingEngine['behaviorLookup'].get(Repeater);
     if (!b) {
       b = new (<any>RuntimeBehavior)();
-      b.bindables = ArrayRepeater.description.bindables;
+      b.bindables = Repeater.description.bindables;
       b.hasCreated = b.hasAttaching = b.hasAttached = b.hasDetaching = b.hasDetached = b.hasCreateView = false;
       b.hasBound = b.hasUnbound = true;
-      renderingEngine['behaviorLookup'].set(ArrayRepeater, b);
+      renderingEngine['behaviorLookup'].set(Repeater, b);
     }
     this.$behavior = b;
   }
@@ -99,8 +113,8 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
   }
   // #endregion
 
-  private _items: IObservedArray;
-  public set items(newValue: IObservedArray) {
+  private _items: T & { $observer: CollectionObserver };
+  public set items(newValue: T & { $observer: CollectionObserver }) {
     const oldValue = this._items;
     if (oldValue === newValue) {
       // don't do anything if the same instance is re-assigned (the existing observer should pick up on any changes)
@@ -112,7 +126,7 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
       this.observer.unsubscribeImmediate(this.handleImmediateItemsMutation);
       this.observer.unsubscribeBatched(this.handleBatchedItemsMutation);
       if (newValue !== null && newValue !== undefined) {
-        this.observer = newValue.$observer || new ArrayObserver(newValue);
+        this.observer = getCollectionObserver(newValue);
         this.observer.subscribeImmediate(this.handleImmediateItemsMutation);
         this.observer.subscribeBatched(this.handleBatchedItemsMutation);
       }
@@ -120,7 +134,7 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
     }
     this.hasPendingInstanceMutation = true;
   }
-  public get items(): IObservedArray {
+  public get items(): T & { $observer: CollectionObserver } {
     return this._items;
   }
 
@@ -174,7 +188,7 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
   public bound(scope: IScope): void {
     this.sourceExpression = <any>(<Binding[]>this.owner.$bindable).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
     this.scope = scope;
-    this.observer = this.items.$observer || new ArrayObserver(this.items);
+    this.observer = getCollectionObserver(this.items);
     this.observer.subscribeImmediate(this.handleImmediateItemsMutation);
     this.observer.subscribeBatched(this.handleBatchedItemsMutation);
     this.isBound = true;
@@ -227,7 +241,8 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
     const visuals = <IVisual[]>this.slot.children;
     const items = this.items;
     const visualCount = visuals.length;
-    if (visualCount === 0 && items.length === 0) {
+    const itemCount = items[this.observer.lengthPropertyName];
+    if (visualCount === 0 && itemCount === 0) {
       return;
     }
     const previousVisuals = visuals.slice();
@@ -280,10 +295,10 @@ export class ArrayRepeater implements Partial<IRepeater>, ICustomAttribute {
    * Process an instance mutation (completely replace the visuals)
    * - called by the items setter
    */
-  private handleInstanceMutation(items: any[]): void {
+  private handleInstanceMutation(items: T & { $observer: CollectionObserver }): void {
     this.slot.removeAll(true, true);
     const children = <IVisual[]>this.slot.children;
-    let len = (children.length = items.length);
+    let len = (children.length = items[this.observer.lengthPropertyName]);
     let i = 0;
     while (i < len) {
       const visual = children[i] = this.factory.create();

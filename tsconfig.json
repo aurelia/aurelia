@@ -2,8 +2,8 @@
   "compileOnSave": false,
   "compilerOptions": {
     "sourceMap": true,
-    "target": "es5",
-    "module": "amd",
+    "target": "es2015",
+    "module": "commonjs",
     "declaration": false,
     "noImplicitAny": false,
     "removeComments": true,
@@ -12,21 +12,10 @@
     "allowJs": false,
     "stripInternal": true,
     "moduleResolution": "node",
-    "lib": [
-      "es2017",
-      "dom"
-    ]
+    "outDir": "dist",
+    "lib": ["es2017", "dom"]
   },
-  "exclude": [
-    "node_modules",
-    "aurelia_project"
-  ],
-  "filesGlob": [
-    "./compiler/**/*.ts",
-    "./src/**/*.ts",
-    "./test/**/*.ts",
-    "./custom_typings/**/*.d.ts"
-  ],
+  "include": ["src"],
   "atom": {
     "rewriteTsconfig": false
   }

@@ -280,10 +280,15 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
       to = 0;
       while (to < len) {
         // reorder the children by re-appending them to the parent
-        // todo: identify+move only the ones that actually need to move
+        // todo: use insertion to reorder the elements in fewer operations
         const visual = visuals[to];
-        const el = <Node>visual.$view.firstChild;
-        el.parentNode.appendChild(el);
+        const firstChild = <Node>visual.$view.firstChild;
+        const parent = firstChild.parentNode;
+        let current = parent.childNodes.item(to);
+        while (current !== firstChild) {
+          parent.appendChild(current);
+          current = parent.childNodes.item(to);
+        }
 
         updateBindingTargets(visual, container);
         to++;

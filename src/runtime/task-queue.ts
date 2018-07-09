@@ -40,7 +40,8 @@ export interface ITaskQueue {
 export const ITaskQueue = DI.createInterface<ITaskQueue>()
   .withDefault(x => x.singleton(TaskQueue));
 
-class TaskQueue implements ITaskQueue {
+/*@internal*/
+export class TaskQueue implements ITaskQueue {
   private microTaskQueue: ICallable[] = [];
   private taskQueue: ICallable[] = [];
   private microTaskQueueCapacity = 1024;

@@ -49,17 +49,23 @@ export const PLATFORM = {
   },
 
   createMicroTaskFlushRequestor(onFlush:  () => void): () => void {
-    const observer = new MutationObserver(onFlush);
-    const node = document.createTextNode('');
-    const values = Object.create(null);
-    let val = 'a';
-    
-    values.a = 'b';
-    values.b = 'a';
-    observer.observe(node, { characterData: true });
-
-    return function requestFlush() {
-      node.data = val = values[val];
-    };
+    if (typeof MutationObserver === 'function') {
+      const observer = new MutationObserver(onFlush);
+      const node = document.createTextNode('');
+      const values = Object.create(null);
+      let val = 'a';
+      
+      values.a = 'b';
+      values.b = 'a';
+      observer.observe(node, { characterData: true });
+  
+      return function requestFlush() {
+        node.data = val = values[val];
+      };
+    } else {
+      return function requestFlush() {
+        Promise.resolve().then(onFlush);
+      };
+    }
   }
 };

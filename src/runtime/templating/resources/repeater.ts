@@ -282,12 +282,14 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
         // reorder the children by re-appending them to the parent
         // todo: use insertion to reorder the elements in fewer operations
         const visual = visuals[to];
-        const firstChild = <Node>visual.$view.firstChild;
-        const parent = firstChild.parentNode;
-        let current = parent.childNodes.item(to);
-        while (current !== firstChild) {
-          parent.appendChild(current);
-          current = parent.childNodes.item(to);
+        if (len > 1) {
+          const firstChild = <Node>visual.$view.firstChild;
+          const parent = firstChild.parentNode;
+          let current = parent.childNodes.item(to);
+          while (current !== firstChild) {
+            parent.appendChild(current);
+            current = parent.childNodes.item(to);
+          }
         }
 
         updateBindingTargets(visual, container);
@@ -332,7 +334,9 @@ function updateBindingTargets(visual: IVisual, container: IContainer): void {
   while (i < bindableCount) {
     const binding = bindable[i];
     const value = binding['sourceExpression'].evaluate(scope, container, BindingFlags.none);
-    binding['updateTarget'](value);
+    if (value !== binding['target'][binding['targetProperty']]) {
+      binding['updateTarget'](value);
+    }
     i++;
   }
 }

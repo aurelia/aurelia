@@ -1,4 +1,4 @@
-import { Collection, CollectionObserver } from './../../binding/observation/collection-observer';
+import { Collection, CollectionObserver, CollectionKind } from './../../binding/observation/collection-observer';
 import { ICustomAttributeSource, CustomAttributeResource } from '../custom-attribute';
 import { AttachLifecycle, DetachLifecycle } from '../../templating/lifecycle';
 import { IRuntimeBehavior, RuntimeBehavior } from '../../templating/runtime-behavior';
@@ -239,7 +239,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
    */
   private handleBatchedItemsMutation = (indexMap: Array<number>): void => {
     const visuals = <IVisual[]>this.slot.children;
-    const items = this.items;
+    const items = this.observer.collectionKind & CollectionKind.indexed ? this.items : Array.from(this.items);
     const visualCount = visuals.length;
     const itemCount = items[this.observer.lengthPropertyName];
     if (visualCount === 0 && itemCount === 0) {
@@ -303,6 +303,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
    * - called by the items setter
    */
   private handleInstanceMutation(items: T & { $observer: CollectionObserver }): void {
+    items = this.observer.collectionKind & CollectionKind.indexed ? items : <any>Array.from(items);
     this.slot.removeAll(true, true);
     const children = <IVisual[]>this.slot.children;
     let len = (children.length = items[this.observer.lengthPropertyName]);

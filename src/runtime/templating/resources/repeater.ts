@@ -17,7 +17,7 @@ import { Binding } from '../../binding/binding';
 import { BindingMode } from '../../binding/binding-mode';
 import { Immutable } from '../../../kernel/interfaces';
 import { IResourceKind, IResourceType } from '../../resource';
-import { INode } from '../../dom';
+import { INode, DOM } from '../../dom';
 import { BindingFlags } from '../../binding/binding-flags';
 import { ICustomAttribute } from '../custom-attribute';
 import { getMapObserver } from '../../binding/observation/map-observer';
@@ -262,7 +262,8 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
       to++;
     }
     visuals.length = len;
-    const isAttached = this.slot['$isAttached'];
+    const slot = this.slot;
+    const isAttached = slot['$isAttached'];
     to = 0;
     while (to < visualCount) {
       const visual = previousVisuals[to];
@@ -277,23 +278,18 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     }
     if (isAttached) {
       const container = this.container;
-      to = 0;
-      while (to < len) {
-        // reorder the children by re-appending them to the parent
-        // todo: use insertion to reorder the elements in fewer operations
+      let anchor = <Node>slot['anchor'];
+      to = len - 1;
+      // reorder the children by inserting them before the next visual (or anchor if it's the last), going backwards
+      while (to > 0) {
         const visual = visuals[to];
-        if (len > 1) {
-          const firstChild = <Node>visual.$view.firstChild;
-          const parent = firstChild.parentNode;
-          let current = parent.childNodes.item(to);
-          while (current !== firstChild) {
-            parent.appendChild(current);
-            current = parent.childNodes.item(to);
-          }
+        const el = <Node>visual.$view.firstChild;
+        if (el !== anchor.previousSibling) {
+          DOM.insertBefore(el, anchor);
         }
-
+        anchor = el;
         updateBindingTargets(visual, container);
-        to++;
+        to--;
       }
     }
   };
@@ -335,7 +331,7 @@ function updateBindingTargets(visual: IVisual, container: IContainer): void {
   while (i < bindableCount) {
     const binding = bindable[i];
     const value = binding['sourceExpression'].evaluate(scope, container, BindingFlags.none);
-    if (value !== binding['target'][binding['targetProperty']]) {
+    if (value.toString() !== binding['target'][binding['targetProperty']]) {
       binding['updateTarget'](value);
     }
     i++;

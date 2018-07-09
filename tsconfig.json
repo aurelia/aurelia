@@ -3,7 +3,7 @@
   "compilerOptions": {
     "sourceMap": true,
     "target": "es2015",
-    "module": "commonjs",
+    "module": "amd",
     "declaration": false,
     "noImplicitAny": false,
     "removeComments": true,
@@ -12,7 +12,6 @@
     "allowJs": false,
     "stripInternal": true,
     "moduleResolution": "node",
-    "outDir": "dist",
     "lib": ["es2017", "dom"]
   },
   "include": ["src"],

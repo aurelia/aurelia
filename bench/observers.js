@@ -7,7 +7,7 @@
 
 const V0 = { enableArrayObservation(){}, disableArrayObservation(){} };
 const V1 = require('../dist/runtime/binding/array-observation');
-const V2 = require('../dist/runtime/binding/array-observer');
+const V2 = require('../dist/runtime/binding/observation/array-observer');
 
 const { Benchmark, Column } = require('./util');
 

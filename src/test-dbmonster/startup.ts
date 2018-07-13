@@ -4,6 +4,6 @@ import { GeneratedConfiguration } from './generated-configuration';
 import { DebugConfiguration } from '../debug/configuration';
 
 window['au'] = new Aurelia()
-  .register(GeneratedConfiguration, DebugConfiguration)
+  .register(GeneratedConfiguration)
   .app({ host: document.querySelector('app'), component: new App() })
   .start();

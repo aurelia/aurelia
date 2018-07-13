@@ -1,13 +1,19 @@
 import { AttributeParser } from './attribute-parser';
 import { ITemplateCompiler } from "../../runtime/templating/template-compiler";
-import { TemplateDefinition, ITargetedInstruction, ITemplateSource } from "../../runtime/templating/instructions";
+import { TemplateDefinition, ITemplateSource } from "../../runtime/templating/instructions";
 import { IResourceDescriptions } from "../../runtime/resource";
 import { IExpressionParser } from "../../runtime/binding/expression-parser";
+import { IObserverLocator } from '../../runtime/binding/observer-locator';
+import { IContainer, inject } from '../../kernel/di';
 
 const domParser = new DOMParser();
-export class TemplateCompiler implements ITemplateCompiler {
-  constructor(private attributeParser: AttributeParser) {
 
+@inject(IExpressionParser, IObserverLocator, IContainer)
+export class TemplateCompiler implements ITemplateCompiler {
+  constructor(
+    private expressionParser: IExpressionParser,
+    private observerLocator: IObserverLocator,
+    private container: IContainer) {
   }
 
   get name() {
@@ -17,7 +23,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   compile(definition: TemplateDefinition, resources: IResourceDescriptions): TemplateDefinition {
     // yeah this is major overkill, but I'm not sure yet what input I can expect here
     const node = domParser.parseFromString(definition.template, 'text/html').body.firstChild;
-    const state = new CompilerState(this.attributeParser, node, definition, resources);
+    const state = new CompilerState(this.expressionParser, this.observerLocator, this.container, node, definition, resources);
     nodeCompilers[node.nodeType](state, Context.none);
     return definition;
   }
@@ -31,16 +37,24 @@ class CompilerState {
   public root: Node;
   public currentNode: Node;
   public currentInstruction: ITemplateSource;
+  public currentSymbolKind: SymbolKind;
+  public symbolValue: string;
   public definition: TemplateDefinition;
   public resources: IResourceDescriptions;
-  public parser: AttributeParser;
+  public expressionParser: IExpressionParser;
+  public observerLocator: IObserverLocator;
+  public container: IContainer;
 
   constructor(
-    parser: AttributeParser,
+    expressionParser: IExpressionParser,
+    observerLocator: IObserverLocator,
+    container: IContainer,
     root: Node,
     definition: TemplateDefinition,
     resources: IResourceDescriptions) {
-    this.parser = parser;
+    this.expressionParser = expressionParser;
+    this.observerLocator = observerLocator;
+    this.container = container;
     this.root = this.currentNode = root;
     this.definition = definition;
     this.resources = resources;
@@ -71,14 +85,13 @@ const enum Behavior {
 function compileElementNode(state: CompilerState, context: Context): Behavior {
   const node = <Element>state.currentNode;
   const attributes = node.attributes;
-  const parser = state.parser;
   const currentInstruction = state.currentInstruction;
-  const bindables = currentInstruction.bindables = {};
+  const instructions = currentInstruction.instructions = [];
   let i = 0;
   while (i < attributes.length) {
     const attr = attributes.item(i);
-    const binding = parser.parse(attr);
-    bindables[binding.targetProperty] = binding; // not really correct, just a skeleton
+    const binding: any = compileAttribute(state, attr);
+    instructions[binding.targetProperty] = binding; // not really correct, just a skeleton
     i++;
   }
   let next = node.nextSibling;
@@ -129,3 +142,20 @@ nodeCompilers[NodeType.COMMENT_NODE] = compileCommentNode;
 nodeCompilers[NodeType.DOCUMENT_NODE] = compileDocumentNode;
 nodeCompilers[NodeType.DOCUMENT_TYPE_NODE] = compileDocumentTypeNode;
 nodeCompilers[NodeType.DOCUMENT_FRAGMENT_NODE] = compileDocumentFragmentNode;
+
+function compileAttribute(state: CompilerState, attribute: Attr) {
+
+}
+
+const enum SymbolKind {
+  Attribute = 1,
+  BindingCommand = 2,
+  Expression = 3,
+  StringLiteral = 4
+}
+
+interface ISymbol {
+  name: string;
+  kind: SymbolKind;
+  containingSymbol: ISymbol;
+}

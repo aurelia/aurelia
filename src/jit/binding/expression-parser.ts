@@ -9,6 +9,7 @@ import {
 } from '../../runtime/binding/ast';
 import { IContainer } from '../../kernel/di';
 import { IExpressionParser } from '../../runtime/binding/expression-parser';
+import { decompress } from '../utilities';
 
 export function register(container: IContainer) {
   container.registerTransformer(IExpressionParser, parser => {
@@ -949,26 +950,6 @@ const codes = {
   Skip: /*Skippable*/[0, 0x21, 0x7F, 0xA1]
 };
 
-/**
- * Decompress the ranges into an array of numbers so that the char code
- * can be used as an index to the lookup
- */
-function decompress(lookup: Array<CharScanner | number> | null, set: Set<number> | null, compressed: number[], value: CharScanner | number | boolean): void {
-  const rangeCount = compressed.length;
-  for (let i = 0; i < rangeCount; i += 2) {
-    const start = compressed[i];
-    let end = compressed[i + 1];
-    end = end > 0 ? end : start + 1;
-    if (lookup) {
-      lookup.fill(<CharScanner | number>value, start, end);
-    }
-    if (set) {
-      for (let ch = start; ch < end; ch++) {
-        set.add(ch);
-      }
-    }
-  }
-}
 
 // CharFuncLookup functions
 function returnToken(token: Token): (s: ParserState) => Token {

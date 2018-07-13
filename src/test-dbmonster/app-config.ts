@@ -59,7 +59,8 @@ export const appConfig: ITemplateSource = {
                 },
                 instructions: [
                   { type: TargetedInstructionType.oneWayBinding, src: 'topFiveQueries', dest: 'items' },
-                  { type: TargetedInstructionType.setProperty, value: 'q', dest: 'local' }
+                  { type: TargetedInstructionType.setProperty, value: 'q', dest: 'local' },
+                  { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
                 ]
               }
             ]

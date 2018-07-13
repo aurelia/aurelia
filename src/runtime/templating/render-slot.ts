@@ -152,7 +152,6 @@ class RenderSlotImplementation implements IRenderSlot {
   add(visual: IVisual) {
     visual.parent = this;
     visual.onRender = this.addVisualCore;
-
     this.children.push(visual);
 
     if (this.$isAttached) {
@@ -170,13 +169,15 @@ class RenderSlotImplementation implements IRenderSlot {
     }
 
     visual.parent = this;
-    visual.onRender = this.insertVisualCore;
-    visual.renderState = index;
     children.splice(index, 0, visual);
 
     if (this.$isAttached) {
+      visual.onRender = this.insertVisualCore;
+      visual.renderState = index + 1; // We've already added this to the children, so we need to bump the index to get the right dom node.
       visual.$attach(this.encapsulationSource);
       return visual.animate(MotionDirection.enter);
+    } else {
+      visual.onRender = this.addVisualCore;
     }
   }
 

@@ -4,6 +4,7 @@ import { IRepeatStrategy } from './repeat-strategy';
 import { IObserverLocator } from '../../../binding/observer-locator';
 import { IRepeater } from './repeater';
 import { BindingContext } from '../../../binding/binding-context';
+import { IVisual } from '../../visual';
 
 interface IArrayStorageOnRepeater {
   __array: any[];
@@ -91,7 +92,7 @@ export class ArrayRepeatStrategy<T = any> implements IRepeatStrategy<T[]> {
           for (let index = 0; index < itemsLength; index++) {
             const item = items[index];
             const indexOfView = indexOf(itemsPreviouslyInViews, item, matcher, index);
-            let view;
+            let view: IVisual;
 
             if (indexOfView === -1) { // create views for new items
               const overrideContext = createFullOverrideContext(repeat, items[index], index, itemsLength);
@@ -109,7 +110,7 @@ export class ArrayRepeatStrategy<T = any> implements IRepeatStrategy<T[]> {
             }
 
             if (view) {
-              updateOverrideContext(view.overrideContext, index, itemsLength);
+              updateOverrideContext(view.$scope.overrideContext, index, itemsLength);
             }
           }
 

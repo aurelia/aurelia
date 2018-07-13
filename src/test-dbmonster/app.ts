@@ -7,9 +7,6 @@ export class App {
   databases = [];
 
   attached() {
-    // remove this line below to run the "real" test, this is just to make it possible to get into the debugger
-    ENV.timeout = 500;
-    
     const load = () => {
       this.databases = ENV.generateData().toArray();
       Monitoring.renderRate.ping();

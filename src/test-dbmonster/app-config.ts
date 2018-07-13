@@ -22,10 +22,10 @@ export const appConfig: ITemplateSource = {
           template: `
             <tr>
               <td class="dbname">
-                <au-marker class="au"></au-marker>
+                <au-marker class="au"></au-marker> 
               </td>
               <td class="query-count">
-                <au-marker class="au"></au-marker>
+                <au-marker class="au"></au-marker> 
               </td>
               <td class="au">
               </td>
@@ -44,7 +44,7 @@ export const appConfig: ITemplateSource = {
                     <au-marker class="au"></au-marker>
                     <div class="popover left">
                       <div class="popover-content">
-                        <au-marker class="au"></au-marker>
+                        <au-marker class="au"></au-marker> 
                       </div>
                       <div class="arrow"></div>
                     </div>

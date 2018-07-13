@@ -251,6 +251,7 @@ function createDescription(templateSource: ITemplateSource, Type: ICustomElement
   return {
     name: templateSource.name || 'unnamed',
     template: templateSource.template || null,
+    cache: 0,
     build: templateSource.build || {
       required: false,
       compiler: 'default'

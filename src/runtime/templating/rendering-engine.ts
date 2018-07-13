@@ -137,7 +137,9 @@ class RenderingEngine implements IRenderingEngine {
       }
     }
 
-    return new VisualFactory(definition.name, CompiledVisual);
+    let factory = new VisualFactory(definition.name, CompiledVisual);
+    factory.setCacheSize(definition.cache, true);
+    return factory;
   }
 
   applyRuntimeBehavior(type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement, bindables: BindableDefinitions): IRuntimeBehavior {
@@ -208,6 +210,7 @@ function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefin
   return {
     name: definition.name || 'Unnamed Template',
     template: definition.template,
+    cache: definition.cache || 0,
     build: definition.build || {
       required: false,
       compiler: 'default'

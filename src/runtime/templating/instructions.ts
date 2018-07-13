@@ -29,6 +29,7 @@ export interface IBuildInstruction {
 
 export interface ITemplateSource {
   name?: string;
+  cache?: "*" | number;
   template?: string;
   instructions?: Array<TargetedInstruction[]>;
   dependencies?: any[];

@@ -19,6 +19,7 @@ export const appConfig: ITemplateSource = {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'repeat',
         src: {
+          cache: "*",
           template: `
             <tr>
               <td class="dbname">
@@ -39,6 +40,7 @@ export const appConfig: ITemplateSource = {
                 type: TargetedInstructionType.hydrateTemplateController,
                 res: 'repeat',
                 src: {
+                  cache: "*",
                   template: `
                   <td>
                     <au-marker class="au"></au-marker>
@@ -65,7 +67,8 @@ export const appConfig: ITemplateSource = {
         },
         instructions: [
           { type: TargetedInstructionType.oneWayBinding, src: 'databases', dest: 'items' },
-          { type: TargetedInstructionType.setProperty, value: 'db', dest: 'local' }
+          { type: TargetedInstructionType.setProperty, value: 'db', dest: 'local' },
+          { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
         ]
       }
     ]

@@ -29,6 +29,7 @@ function project_addVisual(visual: IVisual) {
 
 function insertVisual(visual: IVisual) {
   visual.$view.insertBefore(visual.parent.children[visual.renderState].$view.firstChild);
+  visual.onRender = (visual.parent as RenderSlotImplementation).addVisualCore;
 }
 
 function project_insertVisual(visual: IVisual) {
@@ -37,6 +38,7 @@ function project_insertVisual(visual: IVisual) {
 
   ShadowDOMEmulation.distributeView(visual.$view, parent.slots, parent, index);
   parent.logicalView.insertVisualChildBefore(visual, parent.children[index].$view.firstChild);
+  visual.onRender = (visual.parent as RenderSlotImplementation).addVisualCore;
 
   visual.$view.remove = () => {
     ShadowDOMEmulation.undistributeView(visual.$view, parent.slots, parent);
@@ -131,7 +133,7 @@ export const RenderSlot = {
 
 class RenderSlotImplementation implements IRenderSlot {
   private $isAttached = false;
-  private addVisualCore: (visual: IVisual) => void;
+  public addVisualCore: (visual: IVisual) => void;
   private insertVisualCore: (visual: IVisual) => void;
   private encapsulationSource: INode = null;
 
@@ -174,7 +176,6 @@ class RenderSlotImplementation implements IRenderSlot {
 
     if (this.$isAttached) {
       visual.$attach(this.encapsulationSource);
-      visual.onRender = this.addVisualCore;
       return visual.animate(MotionDirection.enter);
     }
   }

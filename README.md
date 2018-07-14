@@ -1,17 +1,29 @@
-# experiment
+# Aurelia vNext
 
-An experimental re-working of Aurelia, oriented around compile-time reflection and code generation.
+Early work on Aurelia vNext...
 
-## Runtime
+## Progress
 
-### Core
+### Kernel
 
 * [x] PAL
 * [x] Reporting
-* [x] Task Queue
 * [x] Dependency Injection
 
-### Binding
+### Runtime
+
+#### Core
+
+* [x] Task Queue
+* [x] Resources
+* [x] DOM
+
+#### Application Model
+
+* [x] Plugin Registration
+* [x] SPA Startup
+
+#### Binding
 
 * [x] One Way
 * [x] Two Way 
@@ -28,7 +40,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [x] Binding Behaviors
 * [x] Computed
 
-### Custom Elements
+#### Custom Elements
 
 * [x] Properties
 * [x] Binding
@@ -46,13 +58,13 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [ ] Basic CSS 
 * [ ] CSS Modules
 
-### Custom Attributes
+#### Custom Attributes
 
 * [x] Binding
 * [x] Bind Lifecycle
 * [x] Attach Lifecycle
 
-### Template Controllers
+#### Template Controllers
 
 * [x] Binding
 * [x] Bind Lifecycle
@@ -63,7 +75,7 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * [x] Linking
   * e.g. if/else and switch/case scenarios
 
-### Resources
+#### Resources
 
 * Value Converters
   * [x] `sanitize`
@@ -86,66 +98,71 @@ An experimental re-working of Aurelia, oriented around compile-time reflection a
 * Custom Elements
   * [x] `compose`
 
-### Application Model
+### JIT
 
-* [x] Plugin Registration
-* [x] SPA Startup
+#### Binding
 
-## JIT
+* [x] Expression Parser
 
-### Binding
-
-* [ ] Expression Parser
-
-### Rendering
+#### Rendering
 
 * [ ] Template Compiler
 
-### Application
+#### Application Model
 
 * [ ] Progressive Enhancement
 
-## AOT
+### AOT
 
-* [ ] View Precompilation:
-  * [x] One Way Bindings
-  * [x] Two Way Bindings
-  * [x] From View Bindings
-  * [x] Listener Bindings
-  * [ ] Ref Bindings
-  * [ ] Template Controllers
-* [ ] AST
-  * [x] Centralized AST Registry
-  * [ ] Getter / Setter Methods
-* [ ] Components
-  * [x] Link view / view model
-  * [ ] Single File Component
-  * [ ] Lifecycle Optimization
-  * [x] <import from="..." />
+#### Core
 
-## Debug
+* Conventions
+  * [ ] AOT
+* Resource Descriptions
+  * [x] JIT
+  * [ ] AOT
+* Single File Components
+  * [ ] Parser
 
-### Core
+#### Compiler Plugins
+
+* [ ] TypeScript
+* [ ] Babel
+
+#### Loader Plugins
+
+* Require.js
+  * [x] JIT
+  * [ ] AOT
+* [ ] System.js
+  * [ ] JIT
+  * [ ] AOT
+* [ ] Parcel
+* [ ] Webpack
+
+### Debug
+
+#### Core
 
 * [x] Error Messages
 
-### Binding
+#### Binding
 
 * [x] Expression Unparsing
 
-### Task Queue
+#### Task Queue
 
 * [x] Long Stack Traces
 
-## Plugins
+### Plugins
 
-### SVG
+#### SVG
 
 * [x] Binding to SVG Elements
 
 ## Build and Test
 
-### Runtime
+### Running the Default Demo
 
 To test the sample application:
 
@@ -153,35 +170,7 @@ To test the sample application:
 * Install the project dependencies with `npm install`
 * Run the application with `au run --watch`
 
-### Compiler
-
-This project has a temporary dependency on `aurelia-path` and `aurelia-dependency-injection`. Those need to be manually `npm install`ed first.
-
-* Build compiler
-
-```shell
-npm run build
-```
-
-* Test compiler
-
-```shell
-npm run test
-```
-
-* Build then test
-
-```shell
-npm run start
-```
-
-### Running the sample App
-
-```shell
-au run [--watch]
-```
-
-### Running the unit tests
+### Running the Unit Tests
 
 * Single run
 
@@ -195,8 +184,7 @@ npm run karma
 npm run karma-watch
 ```
 
-#### Debugging the unit tests from VS Code:
-
+#### Debugging the Unit Tests from VS Code:
 
 ```shell
 npm run karma-debug
@@ -213,7 +201,7 @@ npm run karma-debug
 By default no coverage is generated in debug mode.
 
 
-#### Custom options (defaults are shown)
+#### Custom Options (defaults are shown)
 
 ```shell
 npm run karma -- --transpile-only=true --no-info=true --coverage=true --tsconfig=tsconfig-karma.json

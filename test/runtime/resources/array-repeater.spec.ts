@@ -15,6 +15,7 @@ import { IRenderContext } from '../../../src/runtime/templating/render-context';
 import { IBindScope } from '../../../src/runtime/binding/observation';
 import { IEmulatedShadowSlot } from '../../../src/runtime/templating/shadow-dom';
 import { padRight, incrementItems, assertVisualsSynchronized } from '../util';
+import { BindingFlags } from '../../../src/runtime/binding/binding-flags';
 
 class TestViewOwner implements IViewOwner {
   $context: IRenderContext;
@@ -162,7 +163,7 @@ describe('ArrayRepeater', () => {
   
                     const bindingContext = {}; // normally the items would be in here
                     const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-                    sut.bound(scope);
+                    sut.bound(scope, BindingFlags.none);
                     let i = 0;
                     while (i < times) {
                       // change the properties of the newly added items with each iteration to verify bindingTarget is updated correctly
@@ -235,7 +236,7 @@ describe('ArrayRepeater', () => {
   
                 const bindingContext = {}; // normally the items would be in here
                 const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-                sut.bound(scope);
+                sut.bound(scope, BindingFlags.none);
                 let i = 0;
                 while (i < times) {
                   assignItems = assignItems.slice();
@@ -287,7 +288,7 @@ describe('ArrayRepeater', () => {
     it('should ignore pending changes from previous instance when assigning a new instance', () => {
       (<any>sut)._items = [];
       owner.$bindable = [new Binding(<any>new ForOfStatement(new ForDeclaration('foo'), new AccessScope('')), sut, 'items', <any>null, <any>null, <any>null)];
-      sut.bound(<any>{ });
+      sut.bound(<any>{ }, BindingFlags.none);
 
       sut.items.push(1);
       expect(sut.items.length).to.equal(1);
@@ -302,7 +303,7 @@ describe('ArrayRepeater', () => {
     it('should include pending changes from new instance when assigning a new instance', () => {
       (<any>sut)._items = [];
       owner.$bindable = [new Binding(<any>new ForOfStatement(new ForDeclaration('foo'), new AccessScope('')), sut, 'items', <any>null, <any>null, <any>null)];
-      sut.bound(<any>{ });
+      sut.bound(<any>{ }, BindingFlags.none);
 
       expect(sut.items.length).to.equal(0);
       expect(sut.slot.children.length).to.equal(0);

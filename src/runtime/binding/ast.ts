@@ -235,9 +235,13 @@ export class AccessMember implements IExpression {
   public assign(scope: IScope, value: any, locator: IServiceLocator, flags: BindingFlags): any {
     let instance = this.object.evaluate(scope, locator, flags);
 
-    if (instance === null || instance === undefined) {
-      instance = {};
-      this.object.assign(scope, instance, locator, flags);
+    if (instance === null || typeof instance !== 'object') {
+      if (flags & BindingFlags.createObjects) {
+        instance = {};
+        this.object.assign(scope, instance, locator, flags);
+      } else {
+        return value;
+      }
     }
 
     instance[this.name] = value;

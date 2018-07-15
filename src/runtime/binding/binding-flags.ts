@@ -1,7 +1,8 @@
 export enum BindingFlags {
-  none             = 0b0000,
-  mustEvaluate     = 0b0001,
-  instanceMutation = 0b0010,
-  itemsMutation    = 0b0100,
-  connectImmediate = 0b1000
+  none             = 0b00000,
+  mustEvaluate     = 0b00001,
+  instanceMutation = 0b00010,
+  itemsMutation    = 0b00100,
+  connectImmediate = 0b01000,
+  createObjects    = 0b10000
 }

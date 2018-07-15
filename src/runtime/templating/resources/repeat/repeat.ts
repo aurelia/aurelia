@@ -259,13 +259,13 @@ export class Repeat implements IRepeater {
 
   addVisualWithScope(scope: IScope) {
     let visual = this.viewFactory.create();
-    visual.$bind(scope);
+    visual.$bind(scope, BindingFlags.none);
     this.viewSlot.add(visual);
   }
 
   insertVisualWithScope(index, scope: IScope) {
     let visual = this.viewFactory.create();
-    visual.$bind(scope);
+    visual.$bind(scope, BindingFlags.none);
     this.viewSlot.insert(index, visual);
   }
 

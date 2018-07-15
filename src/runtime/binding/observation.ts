@@ -1,9 +1,10 @@
 import { ICallable, IIndexable } from '../../kernel/interfaces';
 import { IScope } from './binding-context';
+import { BindingFlags } from './binding-flags';
 
 export interface IBindScope {
-  $bind(scope: IScope): void;
-  $unbind(): void;
+  $bind(scope: IScope, flags: BindingFlags): void;
+  $unbind(flags: BindingFlags): void;
 }
 export interface IAccessor<T = any> {
   getValue(): T;
@@ -23,8 +24,8 @@ export interface IBindingTargetAccessor<TGetReturn = any, TSetValue = TGetReturn
 export interface IBindingTargetObserver<TGetReturn = any, TSetValue = TGetReturn>
   extends IBindingTargetAccessor<TGetReturn, TSetValue>, ISubscribable {
 
-  bind?(): void;
-  unbind?(): void;
+  bind?(flags: BindingFlags): void;
+  unbind?(flags: BindingFlags): void;
 }
 
 export interface IBindingCollectionObserver extends ISubscribable, ICallable {

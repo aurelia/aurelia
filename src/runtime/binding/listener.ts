@@ -41,20 +41,20 @@ export class Listener implements IBinding {
     this.callSource(event);
   }
 
-  $bind(source: IScope) {
+  $bind(source: IScope, flags: BindingFlags) {
     if (this.$isBound) {
       if (this.source === source) {
         return;
       }
 
-      this.$unbind();
+      this.$unbind(flags);
     }
 
     this.$isBound = true;
     this.source = source;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, source, BindingFlags.none);
+      this.sourceExpression.bind(this, source, flags);
     }
 
     this.handler = this.eventManager.addEventListener(
@@ -65,7 +65,7 @@ export class Listener implements IBinding {
     );
   }
 
-  $unbind() {
+  $unbind(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
@@ -73,7 +73,7 @@ export class Listener implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.source, BindingFlags.none);
+      this.sourceExpression.unbind(this, this.source, flags);
     }
 
     this.source = null;

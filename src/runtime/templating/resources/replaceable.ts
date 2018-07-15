@@ -3,6 +3,7 @@ import { IRenderSlot } from '../render-slot';
 import { IScope } from '../../binding/binding-context';
 import { inject } from '../../../kernel/di';
 import { IVisualFactory, IVisual } from '../visual';
+import { BindingFlags } from '../../binding/binding-flags';
 
 @templateController('replaceable')
 @inject(IVisualFactory, IRenderSlot)
@@ -15,10 +16,10 @@ export class Replaceable {
   }
 
   bound(scope: IScope) {
-    this.child.$bind(scope);
+    this.child.$bind(scope, BindingFlags.none);
   }
 
   unbound() {
-    this.child.$unbind();
+    this.child.$unbind(BindingFlags.none);
   }
 }

@@ -6,6 +6,7 @@ import { IScope } from '../binding/binding-context';
 import { IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
 import { DOM, INode, IView } from '../dom';
 import { IVisual, IVisualFactory } from './visual';
+import { BindingFlags } from '../binding/binding-flags';
 
 type ProjectionSource = IRenderSlot | IEmulatedShadowSlot;
 
@@ -76,12 +77,12 @@ abstract class ShadowSlotBase {
   removeFallbackVisual(lifecycle?: DetachLifecycle) {
     if (this.fallbackVisual !== null) {
       this.fallbackVisual.$detach(lifecycle);
-      this.fallbackVisual.$unbind();
+      this.fallbackVisual.$unbind(BindingFlags.none);
       this.fallbackVisual = null;
     }
   }
 
-  $bind(scope: IScope) {
+  $bind(scope: IScope, flags: BindingFlags) {
     // fallbackContentView will never be created when the slot isn't already bound
     // so no need to worry about binding it here
     this.$isBound = true;
@@ -102,7 +103,7 @@ abstract class ShadowSlotBase {
     }
   }
 
-  $unbind() {
+  $unbind(flags: BindingFlags) {
     this.$isBound = false;
   }
 }
@@ -123,7 +124,7 @@ class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index = 0) {
     if (this.fallbackVisual === null) {
       this.fallbackVisual = this.fallbackFactory.create();
-      this.fallbackVisual.$bind(this.owner.$scope);
+      this.fallbackVisual.$bind(this.owner.$scope, BindingFlags.none);
       this.currentProjectionSource = projectionSource;
       this.fallbackVisual.parent = this as any;
       this.fallbackVisual.onRender = passThroughSlotAddFallbackVisual;
@@ -181,7 +182,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index = 0) {
     if (this.fallbackVisual === null) {
       this.fallbackVisual = this.fallbackFactory.create();
-      this.fallbackVisual.$bind(this.owner.$scope);
+      this.fallbackVisual.$bind(this.owner.$scope, BindingFlags.none);
       this.fallbackVisual.parent = this as any;
       this.fallbackVisual.onRender = shadowSlotAddFallbackVisual;
       this.fallbackVisual.$attach(this.encapsulationSource);

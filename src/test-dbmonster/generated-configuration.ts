@@ -1,8 +1,8 @@
-//import { Repeater } from '../runtime/templating/resources/repeater';
+import { Repeater } from '../runtime/templating/resources/repeater';
 import { AccessScope, IExpression, AccessMember } from "../runtime/binding/ast";
 import { IContainer } from "../kernel/di";
 import { IExpressionParser } from "../runtime/binding/expression-parser";
-import { Repeat } from "../runtime/templating/resources/repeat/repeat";
+//import { Repeat } from "../runtime/templating/resources/repeat/repeat";
 
 const expressionCache: Record<string, IExpression> = {
   databases: new AccessScope('databases'),
@@ -15,7 +15,7 @@ const expressionCache: Record<string, IExpression> = {
   query: new AccessMember(new AccessScope('q'), 'query')
 };
 
-const globalResources: any[] = [Repeat];
+const globalResources: any[] = [Repeater];
 
 export const GeneratedConfiguration = {
   register(container: IContainer) {

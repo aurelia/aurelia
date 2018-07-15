@@ -24,6 +24,7 @@ import { IExpressionParser } from "../binding/expression-parser";
 import { ITemplateCompiler } from "./template-compiler";
 import { ICustomElementType, ICustomElement } from "./custom-element";
 import { IResourceKind, IResourceType, ResourceDescription, IResourceDescriptions } from "../resource";
+import { BindingFlags } from "../binding/binding-flags";
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate;
@@ -320,13 +321,13 @@ abstract class Visual implements IVisual {
     }
   }
 
-  $bind(scope: IScope) {
+  $bind(scope: IScope, flags: BindingFlags) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind();
+      this.$unbind(flags);
     }
 
     this.$scope = scope;
@@ -334,7 +335,7 @@ abstract class Visual implements IVisual {
     const bindable = this.$bindable;
 
     for (let i = 0, ii = bindable.length; i < ii; ++i) {
-      bindable[i].$bind(scope);
+      bindable[i].$bind(scope, flags);
     }
 
     this.$isBound = true;
@@ -375,13 +376,13 @@ abstract class Visual implements IVisual {
     }
   }
 
-  $unbind() {
+  $unbind(flags: BindingFlags) {
     if (this.$isBound) {
       const bindable = this.$bindable;
       let i = bindable.length;
 
       while (i--) {
-        bindable[i].$unbind();
+        bindable[i].$unbind(flags);
       }
 
       this.$isBound = false;

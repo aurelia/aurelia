@@ -72,20 +72,20 @@ export class Binding extends ConnectableBinding implements IBinding {
     throw Reporter.error(15, context);
   }
 
-  $bind(scope: IScope) {
+  $bind(scope: IScope, flags: BindingFlags) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind();
+      this.$unbind(flags);
     }
 
     this.$isBound = true;
     this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, scope, BindingFlags.none);
+      this.sourceExpression.bind(this, scope, flags);
     }
 
     let mode = this.mode;
@@ -96,11 +96,11 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if ('bind' in this.targetObserver) {
-      this.targetObserver.bind();
+      this.targetObserver.bind(flags);
     }
 
     if (this.mode !== BindingMode.fromView) {
-      let value = this.sourceExpression.evaluate(scope, this.locator, BindingFlags.none);
+      let value = this.sourceExpression.evaluate(scope, this.locator, flags);
       this.updateTarget(value);
     }
 
@@ -109,14 +109,14 @@ export class Binding extends ConnectableBinding implements IBinding {
     } else if (mode === BindingMode.toView) {
       enqueueBindingConnect(this);
     } else if (mode === BindingMode.twoWay) {
-      this.sourceExpression.connect(this, scope, BindingFlags.none);
+      this.sourceExpression.connect(this, scope, flags);
       (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
     } else if (mode === BindingMode.fromView) {
       (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
     }
   }
 
-  $unbind() {
+  $unbind(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
@@ -124,13 +124,13 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.$scope, BindingFlags.none);
+      this.sourceExpression.unbind(this, this.$scope, flags);
     }
 
     this.$scope = null;
 
     if ('unbind' in this.targetObserver) {
-      (this.targetObserver as IBindingTargetObserver).unbind();
+      (this.targetObserver as IBindingTargetObserver).unbind(flags);
     }
 
     if ('unsubscribe' in this.targetObserver) {
@@ -140,16 +140,16 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.unobserve(true);
   }
 
-  connect(evaluate?: boolean) {
+  connect(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
 
-    if (evaluate) {
-      let value = this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.none);
+    if (flags & BindingFlags.mustEvaluate) {
+      let value = this.sourceExpression.evaluate(this.$scope, this.locator, flags);
       this.updateTarget(value);
     }
 
-    this.sourceExpression.connect(this, this.$scope, BindingFlags.none);
+    this.sourceExpression.connect(this, this.$scope, flags);
   }
 }

@@ -73,16 +73,16 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
   }
 
   // attribute proto.$bind
-  public $bind(scope: IScope): void {      
+  public $bind(scope: IScope, flags: BindingFlags): void {      
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind();
+      this.$unbind(flags);
     }
     this.$scope = scope
     this.$isBound = true;
-    this.bound(scope);
+    this.bound(scope, flags);
   }
 
   // attribute proto.$attach
@@ -105,9 +105,9 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     }
   }
   // attribute proto.$unbind
-  public $unbind(): void {
+  public $unbind(flags: BindingFlags): void {
     if (this.$isBound) {
-      this.unbound();
+      this.unbound(flags);
       this.$isBound = false;
     }
   }
@@ -175,7 +175,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
         this.observer.resetIndexMap();
         this.observer.hasChanges = false;
       }
-      this.handleInstanceMutation(this.items);
+      this.handleInstanceMutation(<any>this.items);
     } else {
       this.observer.flushChanges();
     }
@@ -185,7 +185,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
    * Initialize array observation and process any pending instance mutation (if this is a re-bind)
    * - called by $bind
    */
-  public bound(scope: IScope): void {
+  public bound(scope: IScope, flags: BindingFlags): void {
     this.sourceExpression = <any>(<Binding[]>this.owner.$bindable).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
     this.scope = scope;
     this.observer = getCollectionObserver(this.items);
@@ -193,7 +193,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     this.observer.subscribeBatched(this.handleBatchedItemsMutation);
     this.isBound = true;
     if (this.hasPendingInstanceMutation) {
-      this.handleInstanceMutation(this.items);
+      this.handleInstanceMutation(<any>this.items);
     }
   }
 
@@ -201,12 +201,15 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
    * Cleanup subscriptions and remove rendered items from the DOM
    * - called by $unbind
    */
-  public unbound(): void {
+  public unbound(flags: BindingFlags): void {
     this.isBound = false;
     this.observer.unsubscribeImmediate(this.handleImmediateItemsMutation);
     this.observer.unsubscribeBatched(this.handleBatchedItemsMutation);
     this.observer = this.items = null;
-    this.slot.removeAll(true, true);
+    // if this is a re-bind triggered by some ancestor repeater, then keep the visuals so we can reuse them
+    if (!(flags & (BindingFlags.instanceMutation | BindingFlags.itemsMutation))) {
+      this.slot.removeAll(true, true);
+    }
   }
 
   /**
@@ -214,7 +217,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
    */
   public addVisual(visual: IVisual, item: any): void {
     const scope = createChildScope(this.scope.overrideContext, { [this.local]: item });
-    visual.$bind(scope);
+    visual.$bind(scope, BindingFlags.none);
     visual.parent = this.slot;
     visual.onRender = this.slot['addVisualCore'];
     if (this.slot['$isAttached']) {
@@ -239,15 +242,17 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
    */
   private handleBatchedItemsMutation = (indexMap: Array<number>): void => {
     const visuals = <IVisual[]>this.slot.children;
-    const items = this.observer.collectionKind & CollectionKind.indexed ? this.items : Array.from(this.items);
+    const items = <any[]>(this.observer.collectionKind & CollectionKind.indexed ? this.items : Array.from(this.items));
     const oldLength = visuals.length;
     const newLength = indexMap.length;
-    if (oldLength === 0 && newLength === 0) {
-      return;
+    if (newLength === 0) {
+      if (oldLength === 0) {
+        return;
+      } else {
+        this.slot.removeAll(true, true);
+      }
     }
 
-    const slot = this.slot;
-    const isAttached = slot['$isAttached'];
     // store the scopes of the current indices so we can reuse them for moved visuals
     const previousScopes = new Array<IScope>(oldLength);
     let i = 0;
@@ -257,29 +262,9 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     }
 
     if (oldLength < newLength) {
-      // make sure we have a visual for every item
-      visuals.length = newLength;
-      const factory = this.factory;
-      i = oldLength;
-      while (i < newLength) {
-        const visual = visuals[i] = factory.create();
-        this.addVisual(visual, items[i]);
-        // set this field so we know we don't need to update the bindings down below
-        visual.renderState = -1;
-        i++;
-      }
+      this.addMissingVisuals(oldLength, newLength, visuals, items);
     } else if (newLength < oldLength) {
-      // remove any surplus visuals
-      i = newLength;
-      while (i < oldLength) {
-        const visual = visuals[i];
-        if (isAttached) {
-          visual.$detach();
-        }
-        visual.tryReturnToCache();
-        i++;
-      }
-      visuals.length = newLength;
+      this.removeSurplusVisuals(oldLength, newLength, visuals);
     }
 
     i = 0;
@@ -291,11 +276,11 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
         if (previousIndex !== i) {
           if (previousIndex >= 0) {
             // item moved to another item's position; reuse the scope of the item at that position
-            visual.$bind(previousScopes[previousIndex]);
+            visual.$bind(previousScopes[previousIndex], BindingFlags.itemsMutation);
           } else {
             // item is new; create a new scope
             const scope = createChildScope(this.scope.overrideContext, { [this.local]: items[i] });
-            visual.$bind(scope);
+            visual.$bind(scope, BindingFlags.itemsMutation);
           }
         } else {
           // item hasn't moved; only update the bindings
@@ -313,18 +298,68 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
    * Process an instance mutation (completely replace the visuals)
    * - called by the items setter
    */
-  private handleInstanceMutation(items: T & { $observer: CollectionObserver }): void {
+  private handleInstanceMutation(items: Array<any> & { $observer: CollectionObserver }): void {
     items = this.observer.collectionKind & CollectionKind.indexed ? items : <any>Array.from(items);
-    this.slot.removeAll(true, true);
-    const children = <IVisual[]>this.slot.children;
-    let len = (children.length = items[this.observer.lengthPropertyName]);
+    const visuals = <IVisual[]>this.slot.children;
+    const oldLength = visuals.length;
+    const newLength = items.length;
+    if (newLength === 0) {
+      if (oldLength === 0) {
+        return;
+      } else {
+        this.slot.removeAll(true, true);
+      }
+    }
+
+    if (oldLength < newLength) {
+      this.addMissingVisuals(oldLength, newLength, visuals, items);
+    } else if (newLength < oldLength) {
+      this.removeSurplusVisuals(oldLength, newLength, visuals);
+    }
+
     let i = 0;
-    while (i < len) {
-      const visual = children[i] = this.factory.create();
-      this.addVisual(visual, items[i]);
+    while (i < newLength) {
+      const visual = visuals[i];
+      if (visual.renderState !== -1) {
+        // item is new; create a new scopes
+        const scope = createChildScope(this.scope.overrideContext, { [this.local]: items[i] });
+        visual.$bind(scope, BindingFlags.instanceMutation);
+      } else {
+        // reset the renderState of newly added item (so we don't ignore it again next flush)
+        visual.renderState = undefined;
+      }
       i++;
     }
     this.hasPendingInstanceMutation = false;
+  }
+
+  private addMissingVisuals(oldLength: number, newLength: number, visuals: IVisual[], items: any[]): void {
+    // make sure we have a visual for every item
+    visuals.length = newLength;
+    const factory = this.factory;
+    let i = oldLength;
+    while (i < newLength) {
+      const visual = visuals[i] = factory.create();
+      this.addVisual(visual, items[i]);
+      // set this field so we know we don't need to update the bindings down below
+      visual.renderState = -1;
+      i++;
+    }
+  }
+
+  private removeSurplusVisuals(oldLength: number, newLength: number, visuals: IVisual[],): void {
+    // remove any surplus visuals
+    const isAttached = this.slot['$isAttached'];
+    let i = newLength;
+    while (i < oldLength) {
+      const visual = visuals[i];
+      if (isAttached) {
+        visual.$detach();
+      }
+      visual.tryReturnToCache();
+      i++;
+    }
+    visuals.length = newLength;
   }
 }
 

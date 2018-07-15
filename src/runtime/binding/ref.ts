@@ -14,38 +14,38 @@ export class Ref implements IBinding {
     public locator: IServiceLocator) {
   }
 
-  $bind(scope: IScope) {
+  $bind(scope: IScope, flags: BindingFlags) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind();
+      this.$unbind(flags);
     }
 
     this.$isBound = true;
     this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, scope, BindingFlags.none);
+      this.sourceExpression.bind(this, scope, flags);
     }
 
-    this.sourceExpression.assign(this.$scope, this.target, this.locator, BindingFlags.none);
+    this.sourceExpression.assign(this.$scope, this.target, this.locator, flags);
   }
 
-  $unbind() {
+  $unbind(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
 
     this.$isBound = false;
 
-    if (this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.none) === this.target) {
-      this.sourceExpression.assign(this.$scope, null, this.locator, BindingFlags.none);
+    if (this.sourceExpression.evaluate(this.$scope, this.locator, flags) === this.target) {
+      this.sourceExpression.assign(this.$scope, null, this.locator, flags);
     }
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.$scope, BindingFlags.none);
+      this.sourceExpression.unbind(this, this.$scope, flags);
     }
 
     this.$scope = null;

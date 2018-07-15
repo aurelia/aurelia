@@ -1,3 +1,4 @@
+import { BindingFlags } from './binding/binding-flags';
 import { ICustomElement } from './templating/custom-element';
 import { PLATFORM } from '../kernel/platform';
 import { IContainer, DI, IRegistry } from '../kernel/di';
@@ -32,7 +33,7 @@ export class Aurelia {
         );
       }
 
-      component.$bind();
+      component.$bind(component.$scope, BindingFlags.none);
       component.$attach(config.host);
     };
 
@@ -40,7 +41,7 @@ export class Aurelia {
 
     this.stopTasks.push(() => {
       component.$detach();
-      component.$unbind();
+      component.$unbind(BindingFlags.none);
     });
 
     if (this.isStarted) {

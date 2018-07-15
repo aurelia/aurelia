@@ -268,7 +268,6 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     }
 
     i = 0;
-    const container = this.container;
     while (i < newLength) {
       const visual = visuals[i];
       const previousIndex = indexMap[i];
@@ -282,9 +281,6 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
             const scope = createChildScope(this.scope.overrideContext, { [this.local]: items[i] });
             visual.$bind(scope, BindingFlags.itemsMutation);
           }
-        } else {
-          // item hasn't moved; only update the bindings
-          updateBindingTargets(visual, container);
         }
       } else {
         // reset the renderState of newly added item (so we don't ignore it again next flush)
@@ -371,17 +367,4 @@ function createChildScope(parentOverrideContext: IOverrideContext, bindingContex
       parentOverrideContext
     }
   };
-}
-
-function updateBindingTargets(visual: IVisual, container: IContainer): void {
-  const bindable = visual.$bindable;
-  const bindableCount = bindable.length;
-  let i = 0;
-  while (i < bindableCount) {
-    const binding = bindable[i];
-    if (binding['call'] && binding['mode'] === BindingMode.oneTime) {
-      binding['call'](sourceContext);
-    }
-    i++;
-  }
 }

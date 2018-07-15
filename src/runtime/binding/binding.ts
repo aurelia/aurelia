@@ -15,11 +15,13 @@ export interface IBinding extends IBindScope {
 }
 
 export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
+const primitiveTypes = { string: true, number: true, boolean: true, undefined: true };
 
 export class Binding extends ConnectableBinding implements IBinding {
   public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
   private $scope: IScope;
   private $isBound = false;
+  private prevValue: any;
 
   constructor(
     public sourceExpression: IExpression,
@@ -32,6 +34,13 @@ export class Binding extends ConnectableBinding implements IBinding {
   }
 
   updateTarget(value: any) {
+    if (primitiveTypes[typeof value]) {
+      if (value === this.prevValue) {
+        return;
+      } else {
+        this.prevValue = value;
+      }
+    }
     this.targetObserver.setValue(value, this.target, this.targetProperty);
   }
 
@@ -100,21 +109,19 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (mode === BindingMode.oneTime) {
-      const value = this.sourceExpression.evaluate(scope, this.locator, flags);
-      this.updateTarget(value);
+      this.updateTarget(this.sourceExpression.evaluate(scope, this.locator, flags));
     } else {
       if (mode & BindingMode.toView) {
-        const value = this.sourceExpression.evaluate(scope, this.locator, flags);
-        this.updateTarget(value);
-        if (flags & BindingFlags.connectImmediate) {
-          this.sourceExpression.connect(this, this.$scope, flags);
-        } else {
-          enqueueBindingConnect(this);
-        }
+        this.updateTarget(this.sourceExpression.evaluate(scope, this.locator, flags));
       }
-      if (mode & BindingMode.fromView) {
-        (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
+      if (flags & BindingFlags.connectImmediate) {
+        this.sourceExpression.connect(this, this.$scope, flags);
+      } else {
+        enqueueBindingConnect(this);
       }
+    }
+    if (mode & BindingMode.fromView) {
+      (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
     }
   }
 

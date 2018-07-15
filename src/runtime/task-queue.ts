@@ -42,9 +42,12 @@ export const ITaskQueue = DI.createInterface<ITaskQueue>()
 
 /*@internal*/
 export class TaskQueue implements ITaskQueue {
-  private microTaskQueue: ICallable[] = [];
-  private taskQueue: ICallable[] = [];
-  private microTaskQueueCapacity = 1024;
+  private microTaskQueue: ICallable[] = new Array(0xFF);
+  private microTaskCursor = 0;
+  private microTaskIndex = 0;
+  private taskQueue: ICallable[] = new Array(0xFF);
+  private taskCursor = 0;
+  private taskIndex = 0;
   private requestFlushMicroTaskQueue = PLATFORM.createMicroTaskFlushRequestor(() => this.flushMicroTaskQueue());
   private requestFlushTaskQueue = PLATFORM.createTaskFlushRequester(() => this.flushTaskQueue());
   private stack: string;
@@ -52,77 +55,79 @@ export class TaskQueue implements ITaskQueue {
   flushing = false;
   longStacks = false;
 
-  private flushQueue(queue: (ICallable & { stack?: string })[], capacity: number): void {
-    let index = 0;
-    let task;
-
-    try {
-      this.flushing = true;
-      while (index < queue.length) {
-        task = queue[index];
-        if (this.longStacks) {
-          this.stack = typeof task.stack === 'string' ? task.stack : undefined;
-        }
-        task.call();
-        index++;
-
-        // Prevent leaking memory for long chains of recursive calls to `queueMicroTask`.
-        // If we call `queueMicroTask` within a MicroTask scheduled by `queueMicroTask`, the queue will
-        // grow, but to avoid an O(n) walk for every MicroTask we execute, we don't
-        // shift MicroTasks off the queue after they have been executed.
-        // Instead, we periodically shift 1024 MicroTasks off the queue.
-        if (index > capacity) {
-          // Manually shift all values starting at the index back to the
-          // beginning of the queue.
-          for (let scan = 0, newLength = queue.length - index; scan < newLength; scan++) {
-            queue[scan] = queue[scan + index];
-          }
-
-          queue.length -= index;
-          index = 0;
-        }
-      }
-    } catch (error) {
-      this.onError(error, task);
-    } finally {
-      this.flushing = false;
-    }
-  }
-
   queueMicroTask(task: ICallable & { stack?: string }): void {
-    if (this.microTaskQueue.length < 1) {
+    if (this.microTaskIndex === this.microTaskCursor) {
       this.requestFlushMicroTaskQueue();
     }
-
     if (this.longStacks) {
       task.stack = this.prepareMicroTaskStack();
     }
-
-    this.microTaskQueue.push(task);
+    this.microTaskQueue[this.microTaskCursor++] = task;
+    if (this.microTaskCursor === this.microTaskQueue.length) {
+      this.microTaskQueue.length += 0xFF;
+    }
   }
 
   flushMicroTaskQueue(): void {
-    let queue = this.microTaskQueue;
-    this.flushQueue(queue, this.microTaskQueueCapacity);
-    queue.length = 0;
+    let task;
+    const longStacks = this.longStacks;
+    const queue = this.microTaskQueue;
+
+    this.flushing = true;
+    while (this.microTaskIndex < this.microTaskCursor) {
+      task = queue[this.microTaskIndex];
+      queue[this.microTaskIndex] = undefined;
+      if (longStacks) {
+        this.stack = typeof task.stack === 'string' ? task.stack : undefined;
+      }
+      try {
+        task.call();
+      } catch (error) {
+        this.onError(error, task);
+        break;
+      }
+      this.microTaskIndex++;
+    }
+    this.microTaskIndex = this.microTaskCursor = 0;
+    this.flushing = false;
   }
 
   queueTask(task: ICallable & { stack?: string }): void {
-    if (this.taskQueue.length < 1) {
+    if (this.taskIndex === this.taskCursor) {
+      this.taskIndex = this.taskCursor = 0;
       this.requestFlushTaskQueue();
     }
-
     if (this.longStacks) {
       task.stack = this.prepareTaskStack();
     }
-
-    this.taskQueue.push(task);
+    this.taskQueue[this.taskCursor++] = task;
+    if (this.taskCursor === this.taskQueue.length) {
+      this.taskQueue.length += 0xFF;
+    }
   }
 
   flushTaskQueue(): void {
-    let queue = this.taskQueue;
-    this.taskQueue = []; //recursive calls to queueTask should be scheduled after the next cycle
-    this.flushQueue(queue, Number.MAX_VALUE);
+    let task;
+    const longStacks = this.longStacks;
+    const queue = this.taskQueue;
+    const cursor = this.taskCursor;
+
+    this.flushing = true;
+    while (this.taskIndex !== cursor) {
+      task = queue[this.taskIndex];
+      queue[this.taskIndex] = undefined;
+      if (longStacks) {
+        this.stack = typeof task.stack === 'string' ? task.stack : undefined;
+      }
+      try {
+        task.call();
+      } catch (error) {
+        this.onError(error, task);
+        break;
+      }
+      this.taskIndex++;
+    }
+    this.flushing = false;
   }
 
   // Overwritten in debug mode.

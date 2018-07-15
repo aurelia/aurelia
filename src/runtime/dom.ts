@@ -15,12 +15,33 @@ export interface INode extends INodeLike {
 
 export const INode = DI.createInterface<INode>();
 
+/**
+ * Represents a DocumentFragment
+ */
 export interface IView extends INodeLike {
+  /**
+   * The child nodes of this view
+   */
   childNodes: INode[];
 
+  /**
+   * Find all au-targets underneath this view
+   */
   findTargets(): ArrayLike<INode>;
+
+  /**
+   * Append child to this view
+   */
   appendChild(child: INode): void;
+
+  /**
+   * Insert this view as a sibling before refNode
+   */
   insertBefore(refNode: INode): void;
+
+  /**
+   * Append this view as a child to parent
+   */
   appendTo(parent: INode): void;
   remove(): void;
 }
@@ -30,49 +51,85 @@ export interface IChildObserver {
   disconnect(): void;
 }
 
-let platformSupportsShadowDOM = function() {
-  let available = !!HTMLElement.prototype.attachShadow;
-  platformSupportsShadowDOM = () => available;
-  return available;
-};
+function createView(fragment: DocumentFragment): IView {
+  return new TemplateView(<DocumentFragment>fragment.cloneNode(true));
+}
+
+// don't create a new options object for each call to createChildObserver
+const childObserverOptions = { childList: true };
+
+// pre-declare certain functions whose behavior depends on a once-checked global condition for better performance
+function returnTrue(): true {
+  return true;
+}
+function returnFalse(): false {
+  return false;
+}
+function createElementViewHostWithShadowDOM(node: Element, options?: ShadowRootInit): INode {
+  if (options) {
+    return node.attachShadow(options);
+  }
+
+  (<any>node).$usingSlotEmulation = true;
+  return node;
+}
+function createElementViewHostWithNoShadowDOM(node: Element): INode {
+  (<any>node).$usingSlotEmulation = true;
+  return node;
+}
+function removeNormal(node: Element): void {
+  node.remove();
+}
+function removePolyfilled(node: Element): void {
+  node.parentNode.removeChild(node);
+}
 
 export const DOM = {
   createFactoryFromMarkup(markup: string): () => IView {
-    let template = document.createElement('template');
+    const template = <HTMLTemplateElement>DOM.createTemplate();
     template.innerHTML = markup;
-    return () => new TemplateView(template);
+    return createView.bind(null, template.content);
   },
 
   createElement(name: string): INode {
-    return <any>document.createElement(name);
+    return document.createElement(name);
   },
-
   createAnchor(): INode {
     return document.createComment('anchor');
   },
+  createTemplate(): INode {
+    return document.createElement('template');
+  },
 
-  createChildObserver(parent: INode, onChildrenChanged: () => void, options?: any): IChildObserver {
-    if (DOM.isUsingSlotEmulation(parent)) {
-      return DOM.getCustomElementForNode(parent).$contentView.attachChildObserver(onChildrenChanged);
+  createChildObserver(parent: INode, onChildrenChanged: MutationCallback, options?: MutationObserverInit): IChildObserver {
+    if ((<any>parent).$usingSlotEmulation) {
+      return (<any>parent).$component.$contentView.attachChildObserver(onChildrenChanged);
     } else {
-      let observer = new MutationObserver(onChildrenChanged);
+      const observer = new MutationObserver(onChildrenChanged);
       (<any>observer).childNodes = parent.childNodes;
-      observer.observe(<Node>parent, options || { childList: true });
+      observer.observe(<Node>parent, options || childObserverOptions);
       return <any>observer;
     }
   },
 
-  createElementViewHost(node: INode, options?: any): INode {
-    if (options && platformSupportsShadowDOM()) {
-      return (<Element>node).attachShadow(options);
+  platformSupportsShadowDOM(): boolean {
+    if (HTMLElement.prototype.attachShadow === undefined) {
+      return (DOM.platformSupportsShadowDOM = returnFalse)();
+    } else {
+      return (DOM.platformSupportsShadowDOM = returnTrue)();
     }
-
-    (<any>node).$usingSlotEmulation = true;
-    return node;
   },
 
-  cloneNode(node: INode, deep = true): INode {
-    return (<Node>node).cloneNode(deep);
+  createElementViewHost(node: INode, options?: ShadowRootInit): INode {
+    if (DOM.platformSupportsShadowDOM()) {
+      return (DOM.createElementViewHost = createElementViewHostWithShadowDOM)(<Element>node, options);
+    } else {
+      return (DOM.createElementViewHost = createElementViewHostWithNoShadowDOM)(<Element>node);
+    }
+  },
+
+  cloneNode(node: INode, deep?: boolean): INode {
+    return (<Node>node).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
   },
 
   getCustomElementForNode(node: INode): ICustomElement | null {
@@ -80,7 +137,7 @@ export const DOM = {
   },
 
   isUsingSlotEmulation(node: INode): boolean {
-    return !!(<any>node).$usingSlotEmulation;
+    return (<any>node).$usingSlotEmulation === true;
   },
 
   isNodeInstance(potentialNode: any): potentialNode is INode {
@@ -95,16 +152,17 @@ export const DOM = {
     return (<Node>node).nodeType === 3;
   },
 
+  // todo: get rid of this (the spec has clear and simple rules about tagNames and we should write our logic accordingly, not wasting CPU on normalizing)
   normalizedTagName(node: INode): string {
     let name = (<Element>node).tagName;
     return name ? name.toLowerCase() : null;
   },
 
-  remove(node: INodeLike) {
-    if ((<any>node).remove) {
-      (<any>node).remove();
-    } else if ((<Node>node).parentNode) {
-      (<Node>node).parentNode.removeChild(<Node>node);
+  remove(node: INodeLike): void {
+    if (Element.prototype.remove === undefined) {
+      (DOM.remove = removePolyfilled)(<Element>node);
+    } else {
+      (DOM.remove = removeNormal)(<Element>node);
     }
   },
 
@@ -147,36 +205,47 @@ export const DOM = {
   },
 
   addEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any) {
-    publisher = publisher || document;
-    (<Node>publisher).addEventListener(eventName, subscriber, options);
+    (<Node>publisher || document).addEventListener(eventName, subscriber, options);
   },
 
   removeEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any) {
-    publisher = publisher || document;
-    (<Node>publisher).removeEventListener(eventName, subscriber, options);
+    (<Node>publisher || document).removeEventListener(eventName, subscriber, options);
   },
 
   isAllWhitespace(node: INode): boolean {
-    // Use ECMA-262 Edition 3 String and RegExp features
-    return !((<any>node).auInterpolationTarget || (/[^\t\n\r ]/.test((<Node>node).textContent)));
+    if ((<any>node).auInterpolationTarget === true) {
+      return false;
+    }
+    const text = (<any>node).textContent;
+    const len = text.length;
+    let i = 0;
+    // for perf benchmark of this compared to the regex method: http://jsben.ch/p70q2 (also a general case against using regex)
+    while (i < len) {
+      // charCodes 0-0x20(32) can all be considered whitespace (non-whitespace chars in this range don't have a visual representation anyway)
+      if (text.charCodeAt(i) > 0x20) {
+        return false;
+      }
+      i++;
+    }
+    return true;
   },
 
   treatAsNonWhitespace(node: INode): void {
-    //See isWhitespace above for an explanation.
+    // see isAllWhitespace above
     (<any>node).auInterpolationTarget = true;
   },
 
-  convertToAnchor(node: INode, proxy = false): INode {
-    let anchor = <any>DOM.createAnchor();
-  
+  convertToAnchor(node: INode, proxy?: boolean): INode {
+    const anchor = <CommentProxy>DOM.createAnchor();
     if (proxy) {
-      anchor.$proxyTarget = node;
-      anchor.hasAttribute = hasAttribute;
-      anchor.getAttribute = getAttribute;
-      anchor.setAttribute = setAttribute;
+      anchor.$proxyTarget = <Element>node;
+      anchor.hasAttribute = hasAttribute.bind(anchor);
+      anchor.getAttribute = getAttribute.bind(anchor);
+      anchor.setAttribute = setAttribute.bind(anchor);
     }
-  
-    DOM.replaceNode(anchor, node);
+
+    // let this throw if node does not have a parent
+    (<Node>node.parentNode).replaceChild(anchor, <any>node);
   
     return anchor;
   },
@@ -189,58 +258,75 @@ export const DOM = {
   }
 }
 
-function hasAttribute(name) {
-  return this.$proxyTarget.hasAttribute(name);
+interface CommentProxy extends Comment {
+  $proxyTarget: Element;
+  hasAttribute: typeof Element.prototype.hasAttribute;
+  getAttribute: typeof Element.prototype.getAttribute;
+  setAttribute: typeof Element.prototype.setAttribute;
 }
 
-function getAttribute(name) {
-  return this.$proxyTarget.getAttribute(name);
+function hasAttribute(this: CommentProxy, qualifiedName: string): boolean {
+  return this.$proxyTarget.hasAttribute(qualifiedName);
 }
 
-function setAttribute(name, value) {
-  this.$proxyTarget.setAttribute(name, value);
+function getAttribute(this: CommentProxy, qualifiedName: string): string {
+  return this.$proxyTarget.getAttribute(qualifiedName);
 }
 
-class TemplateView implements IView {
+function setAttribute(this: CommentProxy, qualifiedName: string, value: string): void {
+  this.$proxyTarget.setAttribute(qualifiedName, value);
+}
+
+/*@internal*/
+export class TemplateView implements IView {
   private fragment: DocumentFragment;
 
-  firstChild: INode;
-  lastChild: INode;
-  childNodes: INode[];
+  firstChild: Node;
+  lastChild: Node;
+  childNodes: Node[];
 
-  constructor(template: HTMLTemplateElement) {
-    let container = this.fragment = <DocumentFragment>template.content.cloneNode(true);
-    this.firstChild = container.firstChild;
-    this.lastChild = container.lastChild;
-    this.childNodes = Array.from(container.childNodes);
+  constructor(fragment: DocumentFragment) {
+    this.fragment = fragment;
+    this.firstChild = fragment.firstChild;
+    this.lastChild = fragment.lastChild;
+
+    const childNodes = fragment.childNodes;
+    const len = childNodes.length;
+    const childNodesArr = new Array(len);
+    let i = 0;
+    while (i < len) {
+      childNodesArr[i] = childNodes.item(i);
+      i++;
+    }
+    this.childNodes = childNodesArr;
   }
 
-  appendChild(node: INode) {
-    DOM.appendChild(this.fragment, node);
+  appendChild(child: Node) {
+    this.fragment.appendChild(child);
   }
 
-  findTargets(): ArrayLike<INode> {
+  findTargets(): ArrayLike<Node> {
     return this.fragment.querySelectorAll('.au');
   }
 
-  insertBefore(refNode: INode): void {
-    DOM.insertBefore(this.fragment, refNode);
+  insertBefore(refNode: Node): void {
+    refNode.parentNode.insertBefore(this.fragment, refNode);
   }
 
-  appendTo(parent: INode): void {
-    DOM.appendChild(parent, this.fragment);
+  appendTo(parent: Node): void {
+    parent.appendChild(this.fragment);
   }
 
   remove(): void {
-    let fragment = this.fragment;
+    const fragment = this.fragment;
+    const append = fragment.appendChild.bind(fragment);
     let current = this.firstChild;
-    let end = this.lastChild;
-    let append = DOM.appendChild;
-    let next;
+    const end = this.lastChild;
+    let next: Node;
 
     while (current) {
       next = current.nextSibling;
-      append(fragment, current);
+      append(current);
 
       if (current === end) {
         break;

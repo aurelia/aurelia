@@ -7,19 +7,20 @@ import { IBindableDescription } from './bindable';
 
 export enum TargetedInstructionType {
   textBinding = 0,
-  oneWayBinding = 1,
-  fromViewBinding = 2,
-  twoWayBinding = 3,
-  listenerBinding = 4,
-  callBinding = 5,
-  refBinding = 6,
-  stylePropertyBinding = 7,
-  setProperty = 8,
-  setAttribute = 9,
-  hydrateSlot = 10,
-  hydrateElement = 11,
-  hydrateAttribute = 12,
-  hydrateTemplateController = 13
+  oneTimeBinding = 1,
+  toViewBinding = 2,
+  fromViewBinding = 3,
+  twoWayBinding = 4,
+  listenerBinding = 5,
+  callBinding = 6,
+  refBinding = 7,
+  stylePropertyBinding = 8,
+  setProperty = 9,
+  setAttribute = 10,
+  hydrateSlot = 11,
+  hydrateElement = 12,
+  hydrateAttribute = 13,
+  hydrateTemplateController = 14
 }
 
 export interface IBuildInstruction {
@@ -67,12 +68,13 @@ type TargetedInstruction =
   IHydrateTemplateController;
 
 export interface ITextBindingInstruction extends ITargetedInstruction {
+  oneTime?: boolean;
   type: TargetedInstructionType.textBinding;
   src: string;
 }
 
 export interface IOneWayBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.oneWayBinding;
+  type: TargetedInstructionType.toViewBinding;
   src: string;
   dest: string;
 }

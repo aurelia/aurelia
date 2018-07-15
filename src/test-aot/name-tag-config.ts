@@ -59,7 +59,7 @@ export const nameTagConfig: ITemplateSource = {
     ],
     [
       {
-        type: TargetedInstructionType.oneWayBinding,
+        type: TargetedInstructionType.toViewBinding,
         src: 'name',
         dest: 'textContent'
       },
@@ -119,7 +119,7 @@ export const nameTagConfig: ITemplateSource = {
       dest: 'border'
     },
     {
-      type: TargetedInstructionType.oneWayBinding,
+      type: TargetedInstructionType.toViewBinding,
       src: 'nameTagClasses',
       dest: 'className'
     }

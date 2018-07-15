@@ -101,6 +101,7 @@ export interface IAttach {
 }
 
 export interface IBindSelf {
+  $flags?: BindingFlags;
   $bind(scope: IScope, flags: BindingFlags): void;
   $unbind(flags: BindingFlags): void;
 }

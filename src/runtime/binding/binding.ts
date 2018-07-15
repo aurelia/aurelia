@@ -91,7 +91,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     let mode = this.mode;
 
     if (!this.targetObserver) {
-      let method: 'getObserver' | 'getAccessor' = mode === BindingMode.twoWay || mode === BindingMode.fromView ? 'getObserver' : 'getAccessor';
+      let method: 'getObserver' | 'getAccessor' = mode & BindingMode.fromView ? 'getObserver' : 'getAccessor';
       this.targetObserver = <any>this.observerLocator[method](this.target, this.targetProperty);
     }
 
@@ -99,20 +99,22 @@ export class Binding extends ConnectableBinding implements IBinding {
       this.targetObserver.bind(flags);
     }
 
-    if (this.mode !== BindingMode.fromView) {
-      let value = this.sourceExpression.evaluate(scope, this.locator, flags);
-      this.updateTarget(value);
-    }
-
     if (mode === BindingMode.oneTime) {
-      return;
-    } else if (mode === BindingMode.toView) {
-      enqueueBindingConnect(this);
-    } else if (mode === BindingMode.twoWay) {
-      this.sourceExpression.connect(this, scope, flags);
-      (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
-    } else if (mode === BindingMode.fromView) {
-      (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
+      const value = this.sourceExpression.evaluate(scope, this.locator, flags);
+      this.updateTarget(value);
+    } else {
+      if (mode & BindingMode.toView) {
+        const value = this.sourceExpression.evaluate(scope, this.locator, flags);
+        this.updateTarget(value);
+        if (flags & BindingFlags.connectImmediate) {
+          this.sourceExpression.connect(this, this.$scope, flags);
+        } else {
+          enqueueBindingConnect(this);
+        }
+      }
+      if (mode & BindingMode.fromView) {
+        (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
+      }
     }
   }
 

@@ -81,7 +81,7 @@ export class SyntaxInterpreter {
     //   return resources.attributes[attrName].defaultBindingMode;
     // }
 
-    return bindingMode.oneWay;
+    return bindingMode.toView;
   }
 
   bind(el: Element, info: IInsepctionInfo, targetIndex: number, elRes: IResourceElement, factory: ITemplateFactory, auModule: IAureliaModule): IBinding | null {

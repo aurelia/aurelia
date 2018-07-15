@@ -1,7 +1,6 @@
 export enum BindingMode {
-  oneTime = 0,
-  toView = 1,
-  oneWay = 1,
-  twoWay = 2,
-  fromView = 3
+  oneTime  = 0b00,
+  toView   = 0b01,
+  fromView = 0b10,
+  twoWay   = 0b11
 };

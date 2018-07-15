@@ -75,7 +75,7 @@ export function createAppConfig({ elName, colName, itemName, propName }: IFixtur
           },
           instructions: [
             {
-              type: TargetedInstructionType.oneWayBinding,
+              type: TargetedInstructionType.toViewBinding,
               src: colName,
               dest: 'items'
             },

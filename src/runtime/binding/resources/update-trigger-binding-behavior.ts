@@ -28,7 +28,7 @@ export class UpdateTriggerBindingBehavior {
       throw Reporter.error(9);
     }
 
-    if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
+    if (!(binding.mode & BindingMode.fromView)) {
       throw Reporter.error(10);
     }
 

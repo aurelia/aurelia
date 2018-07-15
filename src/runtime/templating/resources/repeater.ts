@@ -11,7 +11,7 @@ import { ITaskQueue } from '../../task-queue';
 import { IRenderSlot } from '../../templating/render-slot';
 import { IViewOwner } from '../../templating/view';
 import { IVisualFactory, IVisual } from '../../templating/visual';
-import { IScope, IOverrideContext } from '../../binding/binding-context';
+import { IScope, IOverrideContext, sourceContext } from '../../binding/binding-context';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
 import { BindingMode } from '../../binding/binding-mode';
@@ -376,13 +376,11 @@ function createChildScope(parentOverrideContext: IOverrideContext, bindingContex
 function updateBindingTargets(visual: IVisual, container: IContainer): void {
   const bindable = visual.$bindable;
   const bindableCount = bindable.length;
-  const scope = visual.$scope;
   let i = 0;
   while (i < bindableCount) {
     const binding = bindable[i];
-    const value = binding['sourceExpression'].evaluate(scope, container, BindingFlags.none);
-    if (value.toString() !== binding['target'][binding['targetProperty']]) {
-      binding['updateTarget'](value);
+    if (binding['call'] && binding['mode'] === BindingMode.oneTime) {
+      binding['call'](sourceContext);
     }
     i++;
   }

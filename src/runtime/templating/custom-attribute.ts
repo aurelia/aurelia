@@ -190,7 +190,7 @@ function createDescription(attributeSource: ICustomAttributeSource, Type: ICusto
   return {
     name: attributeSource.name,
     aliases: attributeSource.aliases || PLATFORM.emptyArray,
-    defaultBindingMode: attributeSource.defaultBindingMode || BindingMode.oneWay,
+    defaultBindingMode: attributeSource.defaultBindingMode || BindingMode.toView,
     isTemplateController: attributeSource.isTemplateController || false,
     bindables: Object.assign({}, (Type as any).bindables, attributeSource.bindables)
   };

@@ -52,9 +52,7 @@ export class DebounceBindingBehavior {
       const mode = binding.mode;
       methodToDebounce = 'call';
       debouncer = debounceCall;
-      callContextToDebounce = mode === BindingMode.twoWay || mode === BindingMode.fromView 
-        ? targetContext 
-        : sourceContext;
+      callContextToDebounce = mode & BindingMode.fromView ? targetContext : sourceContext;
     } else {
       methodToDebounce = 'callSource';
       debouncer = debounceCallSource;

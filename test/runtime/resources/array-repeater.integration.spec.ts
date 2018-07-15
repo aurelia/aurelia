@@ -6,6 +6,7 @@ import { enableArrayObservation, disableArrayObservation } from '../../../src/ru
 import { DOM, INode } from '../../../src/runtime/dom';
 import { createAureliaConfig, IFixture, padRight, createComponent, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../util';
 import { ICustomElement } from '../../../src/runtime/templating/custom-element';
+import { BindingFlags } from '../../../src/runtime/binding/binding-flags';
 
 describe('ArrayRepeater', () => {
   let container: IContainer;
@@ -82,6 +83,8 @@ describe('ArrayRepeater', () => {
                     const initItemsCopy = initItems.slice();
                     const newItems = items.map(i => ({ [propName]: i }));
                     component = createComponent(fixture, initItems);
+                    // connectQueue causes tests with bindings to be non-deterministic, so we need to turn it off (and test it explicitly in some other way)
+                    component.$flags = BindingFlags.connectImmediate; 
                     au.app({ host, component });
                     au.start();
                     sut = <any>au['components'][0].$attachable[0];
@@ -250,6 +253,8 @@ describe('ArrayRepeater', () => {
               const initItems = init.map(i => ({ [propName]: i }));
               const initItemsCopy = initItems.slice();
               component = createComponent(fixture, initItems);
+              // connectQueue causes tests with bindings to be non-deterministic, so we need to turn it off (and test it explicitly in some other way)
+              component.$flags = BindingFlags.connectImmediate; 
               au.app({ host, component });
               au.start();
               sut = <any>au['components'][0].$attachable[0];

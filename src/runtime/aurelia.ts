@@ -33,7 +33,7 @@ export class Aurelia {
         );
       }
 
-      component.$bind(component.$scope, BindingFlags.none);
+      component.$bind(component.$scope, component.$flags || BindingFlags.none);
       component.$attach(config.host);
     };
 
@@ -41,7 +41,7 @@ export class Aurelia {
 
     this.stopTasks.push(() => {
       component.$detach();
-      component.$unbind(BindingFlags.none);
+      component.$unbind(component.$flags || BindingFlags.none);
     });
 
     if (this.isStarted) {

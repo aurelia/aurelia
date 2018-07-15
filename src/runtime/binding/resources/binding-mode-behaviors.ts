@@ -24,10 +24,17 @@ export class OneTimeBindingBehavior extends BindingModeBehavior {
   }
 }
 
-@bindingBehavior('oneWay')
-export class OneWayBindingBehavior extends BindingModeBehavior {
+@bindingBehavior('toView')
+export class ToViewBindingBehavior extends BindingModeBehavior {
   constructor() {
-    super(BindingMode.oneWay);
+    super(BindingMode.toView);
+  }
+}
+
+@bindingBehavior('fromView')
+export class FromViewBindingBehavior extends BindingModeBehavior {
+  constructor() {
+    super(BindingMode.fromView);
   }
 }
 

@@ -240,57 +240,72 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
   private handleBatchedItemsMutation = (indexMap: Array<number>): void => {
     const visuals = <IVisual[]>this.slot.children;
     const items = this.observer.collectionKind & CollectionKind.indexed ? this.items : Array.from(this.items);
-    const visualCount = visuals.length;
-    const itemCount = items[this.observer.lengthPropertyName];
-    if (visualCount === 0 && itemCount === 0) {
+    const oldLength = visuals.length;
+    const newLength = indexMap.length;
+    if (oldLength === 0 && newLength === 0) {
       return;
     }
-    const previousVisuals = visuals.slice();
-    const len = indexMap.length;
-    let from = 0;
-    let to = 0;
-    while (to < len) {
-      from = indexMap[to];
-      if (from !== to) {
-        if (from > -1) { // move
-          visuals[to] = previousVisuals[from];
-        } else { // add new (if it's not 0 or higher, it will always be -2 or lower)
-          const visual = visuals[to] = this.factory.create();
-          this.addVisual(visual, items[to]);
-        }
-      }
-      to++;
-    }
-    visuals.length = len;
+
     const slot = this.slot;
     const isAttached = slot['$isAttached'];
-    to = 0;
-    while (to < visualCount) {
-      const visual = previousVisuals[to];
-      if (visuals.indexOf(visual) === -1) {
-        // remove
+    // store the scopes of the current indices so we can reuse them for moved visuals
+    const previousScopes = new Array<IScope>(oldLength);
+    let i = 0;
+    while (i < oldLength) {
+      previousScopes[i] = visuals[i].$scope;
+      i++;
+    }
+
+    if (oldLength < newLength) {
+      // make sure we have a visual for every item
+      visuals.length = newLength;
+      const factory = this.factory;
+      i = oldLength;
+      while (i < newLength) {
+        const visual = visuals[i] = factory.create();
+        this.addVisual(visual, items[i]);
+        // set this field so we know we don't need to update the bindings down below
+        visual.renderState = -1;
+        i++;
+      }
+    } else if (newLength < oldLength) {
+      // remove any surplus visuals
+      i = newLength;
+      while (i < oldLength) {
+        const visual = visuals[i];
         if (isAttached) {
           visual.$detach();
         }
         visual.tryReturnToCache();
+        i++;
       }
-      to++;
+      visuals.length = newLength;
     }
-    if (isAttached) {
-      const container = this.container;
-      let anchor = <Node>slot['anchor'];
-      to = len - 1;
-      // reorder the children by inserting them before the next visual (or anchor if it's the last), going backwards
-      while (to > 0) {
-        const visual = visuals[to];
-        const el = <Node>visual.$view.firstChild;
-        if (el !== anchor.previousSibling) {
-          DOM.insertBefore(el, anchor);
+
+    i = 0;
+    const container = this.container;
+    while (i < newLength) {
+      const visual = visuals[i];
+      const previousIndex = indexMap[i];
+      if (visual.renderState !== -1) {
+        if (previousIndex !== i) {
+          if (previousIndex >= 0) {
+            // item moved to another item's position; reuse the scope of the item at that position
+            visual.$bind(previousScopes[previousIndex]);
+          } else {
+            // item is new; create a new scope
+            const scope = createChildScope(this.scope.overrideContext, { [this.local]: items[i] });
+            visual.$bind(scope);
+          }
+        } else {
+          // item hasn't moved; only update the bindings
+          updateBindingTargets(visual, container);
         }
-        anchor = el;
-        updateBindingTargets(visual, container);
-        to--;
+      } else {
+        // reset the renderState of newly added item (so we don't ignore it again next flush)
+        visual.renderState = undefined;
       }
+      i++;
     }
   };
 

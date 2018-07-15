@@ -369,19 +369,19 @@ describe('Binary', () => {
 
     expression = new Binary('+', new PrimitiveLiteral('a'), new PrimitiveLiteral(null));
     scope = createScopeForTest({});
-    expect(expression.evaluate(scope, null, 0)).to.equal('a');
+    expect(expression.evaluate(scope, null, 0)).to.equal('anull');
 
     expression = new Binary('+', new PrimitiveLiteral(null), new PrimitiveLiteral('b'));
     scope = createScopeForTest({});
-    expect(expression.evaluate(scope, null, 0)).to.equal('b');
+    expect(expression.evaluate(scope, null, 0)).to.equal('nullb');
 
     expression = new Binary('+', new PrimitiveLiteral('a'), new PrimitiveLiteral(undefined));
     scope = createScopeForTest({});
-    expect(expression.evaluate(scope, null, 0)).to.equal('a');
+    expect(expression.evaluate(scope, null, 0)).to.equal('aundefined');
 
     expression = new Binary('+', new PrimitiveLiteral(undefined), new PrimitiveLiteral('b'));
     scope = createScopeForTest({});
-    expect(expression.evaluate(scope, null, 0)).to.equal('b');
+    expect(expression.evaluate(scope, null, 0)).to.equal('undefinedb');
   });
 
   it('adds numbers', () => {
@@ -399,11 +399,11 @@ describe('Binary', () => {
 
     expression = new Binary('+', new PrimitiveLiteral(1), new PrimitiveLiteral(undefined));
     scope = createScopeForTest({});
-    expect(expression.evaluate(scope, null, 0)).to.equal(1);
+    expect(expression.evaluate(scope, null, 0)).to.be.NaN;
 
     expression = new Binary('+', new PrimitiveLiteral(undefined), new PrimitiveLiteral(2));
     scope = createScopeForTest({});
-    expect(expression.evaluate(scope, null, 0)).to.equal(2);
+    expect(expression.evaluate(scope, null, 0)).to.be.NaN;
   });
 
   describe('performs \'in\'', () => {

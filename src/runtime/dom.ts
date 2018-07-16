@@ -81,6 +81,7 @@ function removeNormal(node: Element): void {
   node.remove();
 }
 function removePolyfilled(node: Element): void {
+  // not sure if we still actually need this, this used to be an IE9/10 thing
   node.parentNode.removeChild(node);
 }
 
@@ -88,6 +89,7 @@ export const DOM = {
   createFactoryFromMarkup(markup: string): () => IView {
     const template = <HTMLTemplateElement>DOM.createTemplate();
     template.innerHTML = markup;
+    // bind performs a bit better and gives a cleaner closure than an arrow function
     return createView.bind(null, template.content);
   },
 
@@ -121,6 +123,7 @@ export const DOM = {
   },
 
   createElementViewHost(node: INode, options?: ShadowRootInit): INode {
+    // only check shadowDOM availability once and then set a short-circuited function directly to save a few cycles
     if (DOM.platformSupportsShadowDOM()) {
       return (DOM.createElementViewHost = createElementViewHostWithShadowDOM)(<Element>node, options);
     } else {
@@ -159,6 +162,7 @@ export const DOM = {
   },
 
   remove(node: INodeLike): void {
+    // only check the prototype once and then permanently set a polyfilled or non-polyfilled call to save a few cycles
     if (Element.prototype.remove === undefined) {
       (DOM.remove = removePolyfilled)(<Element>node);
     } else {
@@ -239,6 +243,7 @@ export const DOM = {
     const anchor = <CommentProxy>DOM.createAnchor();
     if (proxy) {
       anchor.$proxyTarget = <Element>node;
+      // binding explicitly to the anchor instead of implicitly to ensure the correct 'this' assignment
       anchor.hasAttribute = hasAttribute.bind(anchor);
       anchor.getAttribute = getAttribute.bind(anchor);
       anchor.setAttribute = setAttribute.bind(anchor);
@@ -291,6 +296,7 @@ export class TemplateView implements IView {
     this.lastChild = fragment.lastChild;
 
     const childNodes = fragment.childNodes;
+    // pre-allocated array with a manual while loop is 3-10x faster than Array.from()
     const len = childNodes.length;
     const childNodesArr = new Array(len);
     let i = 0;
@@ -319,6 +325,7 @@ export class TemplateView implements IView {
 
   remove(): void {
     const fragment = this.fragment;
+    // this bind is a small perf tweak to minimize member accessors
     const append = fragment.appendChild.bind(fragment);
     let current = this.firstChild;
     const end = this.lastChild;

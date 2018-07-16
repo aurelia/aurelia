@@ -42,9 +42,9 @@ export const ITaskQueue = DI.createInterface<ITaskQueue>()
 
 /*@internal*/
 export class TaskQueue implements ITaskQueue {
-  private microTaskQueue: ICallable[] = new Array(0xFF);
-  private microTaskCursor = 0;
-  private microTaskIndex = 0;
+  private microTaskQueue: ICallable[] = new Array(0xFF); // a "fixed-size" preallocated task queue (it will be expanded in steps of 255 if it runs full)
+  private microTaskCursor = 0; // the index of that last microTask that was queued
+  private microTaskIndex = 0; // the index of the current microTask being executed
   private taskQueue: ICallable[] = new Array(0xFF);
   private taskCursor = 0;
   private taskIndex = 0;
@@ -56,6 +56,8 @@ export class TaskQueue implements ITaskQueue {
   longStacks = false;
 
   queueMicroTask(task: ICallable & { stack?: string }): void {
+    // the cursor and the index being the same number, is the equivalent of an empty queue
+    // note: when a queue is done flushing, both of these are set to 0 again to keep queue expansion to a minimum
     if (this.microTaskIndex === this.microTaskCursor) {
       this.requestFlushMicroTaskQueue();
     }
@@ -63,6 +65,7 @@ export class TaskQueue implements ITaskQueue {
       task.stack = this.prepareMicroTaskStack();
     }
     this.microTaskQueue[this.microTaskCursor++] = task;
+    // if the queue is full, simply increase its size
     if (this.microTaskCursor === this.microTaskQueue.length) {
       this.microTaskQueue.length += 0xFF;
     }
@@ -74,12 +77,17 @@ export class TaskQueue implements ITaskQueue {
     const queue = this.microTaskQueue;
 
     this.flushing = true;
+    // when the index catches up to the cursor, that means the queue is empty
+    // note: the cursor can change during flushing (if new microTasks are queued from within microTasks)
     while (this.microTaskIndex < this.microTaskCursor) {
       task = queue[this.microTaskIndex];
+      // immediately clear the array item to minimize memory usage
       queue[this.microTaskIndex] = undefined;
       if (longStacks) {
         this.stack = typeof task.stack === 'string' ? task.stack : undefined;
       }
+      // doing the try/catch only on the bit that really needs it, so the loop itself can more
+      // easily be optimized by the browser runtime
       try {
         task.call();
       } catch (error) {
@@ -93,7 +101,11 @@ export class TaskQueue implements ITaskQueue {
   }
 
   queueTask(task: ICallable & { stack?: string }): void {
+    // works similar to queueMicroTask, with the difference being that the taskQueue will
+    // only run tasks up to the cursor of when the flush was invoked
     if (this.taskIndex === this.taskCursor) {
+      // because flushTaskQueue isn't allowed to run up to the current value of the cursor, it also
+      // can't reset the indices to 0 without potentially causing tasks to get lost, so we do it here
       this.taskIndex = this.taskCursor = 0;
       this.requestFlushTaskQueue();
     }
@@ -113,6 +125,7 @@ export class TaskQueue implements ITaskQueue {
     const cursor = this.taskCursor;
 
     this.flushing = true;
+    // only run up to the cursor that it was at the time of flushing
     while (this.taskIndex !== cursor) {
       task = queue[this.taskIndex];
       queue[this.taskIndex] = undefined;

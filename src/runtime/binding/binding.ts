@@ -35,6 +35,15 @@ export class Binding extends ConnectableBinding implements IBinding {
 
   updateTarget(value: any) {
     if (primitiveTypes[typeof value]) {
+      // this is a "last defense" of sorts against unnecessary setters, particularly beneficial for
+      // the performance and simplicity of the repeater 
+
+      // this might not be the best place to be checking if the target value needs to be set or not
+      // and the mechanism of checking that might not be correct / robust enough (are there any cases when it absolutely
+      // must be done by the observer?) and this may promote sloppy code ("binding will take care of it anyway")
+
+      // in other words, this is a hack and we should not rest until we found the ultimate clean method of
+      // preventing redundant setters
       if (value === this.prevValue) {
         return;
       } else {

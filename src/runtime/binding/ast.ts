@@ -370,6 +370,9 @@ export class CallFunction implements IExpression {
 
 export class Binary implements IExpression {
   constructor(public operation: string, public left: IExpression, public right: IExpression) {
+    // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
+    // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less 
+    // work to do; we can do this because the operation can't change after it's parsed
     this.evaluate = this[operation];
   }
 
@@ -451,6 +454,7 @@ export class Binary implements IExpression {
 
 export class Unary {
   constructor(public operation: 'void' | 'typeof' | '!' | '-' | '+', public expression: IsLeftHandSide) {
+    // see Binary (we're doing the same thing here)
     this.evaluate = this[operation];
   }
 
@@ -710,6 +714,7 @@ function getFunction(obj: any, name: string, flags: BindingFlags) {
   throw new Error(`${name} is not a function`);
 }
 
+// 
 function isNumeric(value: string): boolean {
   const type = typeof value;
   if (type === 'number') return true;
@@ -719,7 +724,7 @@ function isNumeric(value: string): boolean {
   let i = 0;
   while (i < len) {
     const char = value.charCodeAt(i);
-    if (char < 0x30 || char > 0x39) {
+    if (char < 0x30/*0*/ || char > 0x39/*9*/) {
       return false;
     }
     i++;

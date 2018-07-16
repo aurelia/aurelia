@@ -33,9 +33,33 @@ export function getCollectionObserver(collection: any): CollectionObserver {
     return <any>getSetObserver(collection);
   }
 }
-
+/* 
+ * How the repeater works
+ * ----------------------
+ * 
+ * There are 2 main flows: ItemsMutation and InstanceMutation
+ * 
+ * ItemsMutation is triggered from the CollectionObserver
+ * 1. A change comes in at handleImmediateItemsMutation (called synchronously by the observer with each mutation)
+ * 2. handleImmediateItemsMutation queues this.call() to the microTaskQueue; consecutive calls before the next flush are ignored
+ * 3. this.call() tells the observer to flush its changes which in turn calls this.handleBatchedItemsMutation with an indexMap
+ *    this is something that still needs to be changed (observer should do the queueing)
+ * 4. indexMap contains a mapping of the items current indices and their previous indices, which is used to efficiently
+ *    update the visual state
+ * 
+ * InstanceMutation is triggered by the items setter on this class when assigned by an observer
+ * 1. The observer is re-subscribed to the new collection instance and this.call() is queued
+ * 2. The same process for occurs as for ItemsMutation, but instead this.handleInstanceMutation() is called
+ * 3. The logic is largely similar, except all items are considered "new" and so there is less reusing of binding contexts
+ *  
+ */
 @inject(ITaskQueue, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
 export class Repeater<T extends Collection> implements Partial<IRepeater>, ICustomAttribute {
+  // note: everything declared from #region to #endregion is more-or-less copy-paste from what the
+  // @templateController decorator would apply to this class, but we have more information here than the decorator
+  // does, so we can take a few shortcuts for slightly better perf (and one can argue that this makes the repeater
+  // as a whole easier to understand)
+
   // #region custom-attribute definition
   // attribute
   public static kind: IResourceKind<ICustomAttributeSource, IResourceType<ICustomAttributeSource, ICustomAttribute>> = CustomAttributeResource;
@@ -122,7 +146,8 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     }
     this._items = newValue;
     if (this.isBound) {
-      // if already bound before, but currently unbound, then unbound will have taken care of unsubscribing
+      // only re-subscribe and queue if we're bound; otherwise bound() below will pick up hasPendingInstanceMutation
+      // and act accordingly
       this.observer.unsubscribeImmediate(this.handleImmediateItemsMutation);
       this.observer.unsubscribeBatched(this.handleBatchedItemsMutation);
       if (newValue !== null && newValue !== undefined) {
@@ -207,6 +232,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     this.observer.unsubscribeBatched(this.handleBatchedItemsMutation);
     this.observer = this.items = null;
     // if this is a re-bind triggered by some ancestor repeater, then keep the visuals so we can reuse them
+    // (this flag is passed down from handleInstanceMutation/handleItemsMutation down below at visual.$bind)
     if (!(flags & (BindingFlags.instanceMutation | BindingFlags.itemsMutation))) {
       this.slot.removeAll(true, true);
     }
@@ -247,9 +273,12 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     const newLength = indexMap.length;
     if (newLength === 0) {
       if (oldLength === 0) {
+        // if we had 0 items and still have 0 items, we don't need to do anything
         return;
       } else {
+        // if we had >0 items and now have 0 items, just remove all and return
         this.slot.removeAll(true, true);
+        return;
       }
     }
 
@@ -271,7 +300,11 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     while (i < newLength) {
       const visual = visuals[i];
       const previousIndex = indexMap[i];
+      // renderState is set to -1 by addMissingVisuals, so we know we don't need to refresh bindings on those
       if (visual.renderState !== -1) {
+        // for some reason we don't need to refresh bindings when an item hasn't changed index.. this feels weird though,
+        // may need to investigate and try to break this with some well-placed oneTime bindings;
+        // if it does break, we simply need to refreshBindings in the "else"
         if (previousIndex !== i) {
           if (previousIndex >= 0) {
             // item moved to another item's position; reuse the scope of the item at that position
@@ -304,6 +337,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
         return;
       } else {
         this.slot.removeAll(true, true);
+        return;
       }
     }
 
@@ -312,7 +346,10 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     } else if (newLength < oldLength) {
       this.removeSurplusVisuals(oldLength, newLength, visuals);
     }
+    // up to this point the logic is identical to handleItemsMutation
 
+    // this piece is also similar to handleItemsMutation, with the key difference that all items are considered "new" here
+    // (maybe that's not true and some further optimization is possible?)
     let i = 0;
     while (i < newLength) {
       const visual = visuals[i];
@@ -329,6 +366,9 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     this.hasPendingInstanceMutation = false;
   }
 
+  // addMissingVisuals and removeSurplusVisuals are simply to make sure that we have the same amount of visuals
+  // as items, without necessarily checking if the correct item is added or if the visual being removed also corresponds
+  // to an item that was removed, so here's a potential perf improvement for better reusing of scopes/bindings
   private addMissingVisuals(oldLength: number, newLength: number, visuals: IVisual[], items: any[]): void {
     // make sure we have a visual for every item
     visuals.length = newLength;

@@ -1,4 +1,3 @@
-import { AttributeParser } from './attribute-parser';
 import { ITemplateCompiler } from "../../runtime/templating/template-compiler";
 import { TemplateDefinition, ITemplateSource } from "../../runtime/templating/instructions";
 import { IResourceDescriptions } from "../../runtime/resource";

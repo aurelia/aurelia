@@ -2,7 +2,7 @@ import { IContainer, Registration } from "../kernel/di";
 import * as ExpressionParser from './binding/expression-parser';
 import { If } from "../runtime/templating/resources/if";
 import { Else } from "../runtime/templating/resources/else";
-import { Repeat } from "../runtime/templating/resources/repeat/repeat";
+import { Repeater } from "../runtime/templating/resources/repeater";
 import { Compose } from "../runtime/templating/resources/compose";
 import { AttrBindingBehavior } from "../runtime/binding/resources/attr-binding-behavior";
 import { OneTimeBindingBehavior, TwoWayBindingBehavior, ToViewBindingBehavior } from "../runtime/binding/resources/binding-mode-behaviors";
@@ -21,7 +21,7 @@ const globalResources: any[] = [
   Compose,
   If,
   Else,
-  Repeat,
+  Repeater,
   Replaceable,
   With,
   SanitizeValueConverter,

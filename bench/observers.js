@@ -6,8 +6,8 @@
  */
 
 const V0 = { enableArrayObservation(){}, disableArrayObservation(){} };
-const V1 = require('../dist/runtime/binding/array-observation');
-const V2 = require('../dist/runtime/binding/observation/array-observer');
+//const V1 = require('../dist/runtime/binding/array-observation');
+const V2 = require('../dist/runtime/binding/observers/array-observer');
 
 const { Benchmark, Column } = require('./util');
 
@@ -16,34 +16,34 @@ const rotations = process.argv[3] || 1;
 
 
 const tests = [
-  { op: 'push',    expr: 'push (observed, flush every 1)',     weight: 6,  imports: [V0, V1, V2], flush: 1,  observe: true },
-  { op: 'unshift', expr: 'unshift (observed, flush every 1)',  weight: 3,  imports: [V0, V1, V2], flush: 1,  observe: true },
-  { op: 'pop',     expr: 'pop (observed, flush every 1)',      weight: 6,  imports: [V0, V1, V2], flush: 1,  observe: true },
-  { op: 'shift',   expr: 'shift (observed, flush every 1)',    weight: 3,  imports: [V0, V1, V2], flush: 1,  observe: true },
-  { op: 'splice',  expr: 'splice (observed, flush every 1)',   weight: 3,  imports: [V0, V1, V2], flush: 1,  observe: true },
-  { op: 'reverse', expr: 'reverse (observed, flush every 1)',  weight: 3,  imports: [V0, V1, V2], flush: 1,  observe: true },
-  { op: 'sort',    expr: 'sort (observed, flush every 1)',     weight: 6,  imports: [V0, V1, V2], flush: 1,  observe: true },
-  { op: 'push',    expr: 'push (observed, flush every 5)',     weight: 6,  imports: [V0, V1, V2], flush: 5,  observe: true },
-  { op: 'unshift', expr: 'unshift (observed, flush every 5)',  weight: 3,  imports: [V0, V1, V2], flush: 5,  observe: true },
-  { op: 'pop',     expr: 'pop (observed, flush every 5)',      weight: 6,  imports: [V0, V1, V2], flush: 5,  observe: true },
-  { op: 'shift',   expr: 'shift (observed, flush every 5)',    weight: 3,  imports: [V0, V1, V2], flush: 5,  observe: true },
-  { op: 'splice',  expr: 'splice (observed, flush every 5)',   weight: 3,  imports: [V0, V1, V2], flush: 5,  observe: true },
-  { op: 'reverse', expr: 'reverse (observed, flush every 5)',  weight: 3,  imports: [V0, V1, V2], flush: 5,  observe: true },
-  { op: 'sort',    expr: 'sort (observed, flush every 5)',     weight: 6,  imports: [V0, V1, V2], flush: 5,  observe: true },
-  { op: 'push',    expr: 'push (observed, flush every 10)',    weight: 10, imports: [V0, V1, V2], flush: 10, observe: true },
-  { op: 'unshift', expr: 'unshift (observed, flush every 10)', weight: 5,  imports: [V0, V1, V2], flush: 10, observe: true },
-  { op: 'pop',     expr: 'pop (observed, flush every 10)',     weight: 10, imports: [V0, V1, V2], flush: 10, observe: true },
-  { op: 'shift',   expr: 'shift (observed, flush every 10)',   weight: 5,  imports: [V0, V1, V2], flush: 10, observe: true },
-  { op: 'splice',  expr: 'splice (observed, flush every 10)',  weight: 5,  imports: [V0, V1, V2], flush: 10, observe: true },
-  { op: 'reverse', expr: 'reverse (observed, flush every 10)', weight: 5,  imports: [V0, V1, V2], flush: 10, observe: true },
-  { op: 'sort',    expr: 'sort (observed, flush every 10)',    weight: 10, imports: [V0, V1, V2], flush: 10, observe: true },
-  { op: 'push',    expr: 'push',                               weight: 2,  imports: [V0, V1, V2], flush: 0,  observe: false },
-  { op: 'unshift', expr: 'unshift',                            weight: 1,  imports: [V0, V1, V2], flush: 0,  observe: false },
-  { op: 'pop',     expr: 'pop',                                weight: 2,  imports: [V0, V1, V2], flush: 0,  observe: false },
-  { op: 'shift',   expr: 'shift',                              weight: 1,  imports: [V0, V1, V2], flush: 0,  observe: false },
-  { op: 'splice',  expr: 'splice',                             weight: 1,  imports: [V0, V1, V2], flush: 0,  observe: false },
-  { op: 'reverse', expr: 'reverse',                            weight: 1,  imports: [V0, V1, V2], flush: 0,  observe: false },
-  { op: 'sort',    expr: 'sort',                               weight: 2,  imports: [V0, V1, V2], flush: 0,  observe: false }
+  { op: 'push',    expr: 'push (observed, flush every 1)',     weight: 6,  imports: [V0, /*V1,*/ V2], flush: 1,  observe: true },
+  { op: 'unshift', expr: 'unshift (observed, flush every 1)',  weight: 3,  imports: [V0, /*V1,*/ V2], flush: 1,  observe: true },
+  { op: 'pop',     expr: 'pop (observed, flush every 1)',      weight: 6,  imports: [V0, /*V1,*/ V2], flush: 1,  observe: true },
+  { op: 'shift',   expr: 'shift (observed, flush every 1)',    weight: 3,  imports: [V0, /*V1,*/ V2], flush: 1,  observe: true },
+  { op: 'splice',  expr: 'splice (observed, flush every 1)',   weight: 3,  imports: [V0, /*V1,*/ V2], flush: 1,  observe: true },
+  { op: 'reverse', expr: 'reverse (observed, flush every 1)',  weight: 3,  imports: [V0, /*V1,*/ V2], flush: 1,  observe: true },
+  { op: 'sort',    expr: 'sort (observed, flush every 1)',     weight: 6,  imports: [V0, /*V1,*/ V2], flush: 1,  observe: true },
+  { op: 'push',    expr: 'push (observed, flush every 5)',     weight: 6,  imports: [V0, /*V1,*/ V2], flush: 5,  observe: true },
+  { op: 'unshift', expr: 'unshift (observed, flush every 5)',  weight: 3,  imports: [V0, /*V1,*/ V2], flush: 5,  observe: true },
+  { op: 'pop',     expr: 'pop (observed, flush every 5)',      weight: 6,  imports: [V0, /*V1,*/ V2], flush: 5,  observe: true },
+  { op: 'shift',   expr: 'shift (observed, flush every 5)',    weight: 3,  imports: [V0, /*V1,*/ V2], flush: 5,  observe: true },
+  { op: 'splice',  expr: 'splice (observed, flush every 5)',   weight: 3,  imports: [V0, /*V1,*/ V2], flush: 5,  observe: true },
+  { op: 'reverse', expr: 'reverse (observed, flush every 5)',  weight: 3,  imports: [V0, /*V1,*/ V2], flush: 5,  observe: true },
+  { op: 'sort',    expr: 'sort (observed, flush every 5)',     weight: 6,  imports: [V0, /*V1,*/ V2], flush: 5,  observe: true },
+  { op: 'push',    expr: 'push (observed, flush every 10)',    weight: 10, imports: [V0, /*V1,*/ V2], flush: 10, observe: true },
+  { op: 'unshift', expr: 'unshift (observed, flush every 10)', weight: 5,  imports: [V0, /*V1,*/ V2], flush: 10, observe: true },
+  { op: 'pop',     expr: 'pop (observed, flush every 10)',     weight: 10, imports: [V0, /*V1,*/ V2], flush: 10, observe: true },
+  { op: 'shift',   expr: 'shift (observed, flush every 10)',   weight: 5,  imports: [V0, /*V1,*/ V2], flush: 10, observe: true },
+  { op: 'splice',  expr: 'splice (observed, flush every 10)',  weight: 5,  imports: [V0, /*V1,*/ V2], flush: 10, observe: true },
+  { op: 'reverse', expr: 'reverse (observed, flush every 10)', weight: 5,  imports: [V0, /*V1,*/ V2], flush: 10, observe: true },
+  { op: 'sort',    expr: 'sort (observed, flush every 10)',    weight: 10, imports: [V0, /*V1,*/ V2], flush: 10, observe: true },
+  { op: 'push',    expr: 'push',                               weight: 2,  imports: [V0, /*V1,*/ V2], flush: 0,  observe: false },
+  { op: 'unshift', expr: 'unshift',                            weight: 1,  imports: [V0, /*V1,*/ V2], flush: 0,  observe: false },
+  { op: 'pop',     expr: 'pop',                                weight: 2,  imports: [V0, /*V1,*/ V2], flush: 0,  observe: false },
+  { op: 'shift',   expr: 'shift',                              weight: 1,  imports: [V0, /*V1,*/ V2], flush: 0,  observe: false },
+  { op: 'splice',  expr: 'splice',                             weight: 1,  imports: [V0, /*V1,*/ V2], flush: 0,  observe: false },
+  { op: 'reverse', expr: 'reverse',                            weight: 1,  imports: [V0, /*V1,*/ V2], flush: 0,  observe: false },
+  { op: 'sort',    expr: 'sort',                               weight: 2,  imports: [V0, /*V1,*/ V2], flush: 0,  observe: false }
 ];
 
 function run(iterations, dry) {
@@ -51,12 +51,12 @@ function run(iterations, dry) {
     new Column('Weight', 8, 'left'),
     new Column('Operation', 40, 'left'),
     new Column('Nat', 12, 'right'),
-    new Column('v1', 12, 'right'),
-    new Column('Nat/v1', 9, 'right'),
+    //new Column('v1', 12, 'right'),
+    //new Column('Nat/v1', 9, 'right'),
     new Column('v2', 12, 'right'),
     new Column('Nat/v2', 9, 'right'),
-    new Column('v1/v2', 9, 'right')
-  ], tests, 3, iterations, rotations);
+    //new Column('v1/v2', 9, 'right')
+  ], tests, 2, iterations, rotations);
 
   benchmark.writeHeader();
 
@@ -72,11 +72,11 @@ function run(iterations, dry) {
         let getObserver;
         let subscribe;
         let flush;
-        if ($import === V1) {
+        /*if ($import === V1) {
           getObserver = $import.getArrayObserver.bind(null, tq);
           subscribe = (o, fn) => o.subscribe(fn);
           flush = o => tq.flushMicroTaskQueue();
-        } else if ($import === V2) {
+        } else */if ($import === V2) {
           getObserver = $import.getArrayObserver.bind(null);
           subscribe = (o, fn) => o.subscribeBatched(fn);
           flush = o => o.flushChanges();

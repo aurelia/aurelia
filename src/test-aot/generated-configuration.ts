@@ -1,8 +1,7 @@
-import { Repeater } from '../runtime/templating/resources/repeater';
 import { AccessScope, HtmlLiteral, PrimitiveLiteral, Conditional, CallScope, IExpression, AccessMember } from "../runtime/binding/ast";
 import { IContainer } from "../kernel/di";
 import { IExpressionParser } from "../runtime/binding/expression-parser";
-import { Repeat } from "../runtime/templating/resources/repeat/repeat";
+import { Repeater } from "../runtime/templating/resources/repeater";
 import { If } from "../runtime/templating/resources/if";
 import { Else } from "../runtime/templating/resources/else";
 

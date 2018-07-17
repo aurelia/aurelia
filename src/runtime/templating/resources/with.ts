@@ -24,7 +24,7 @@ export class With {
       overrideContext: BindingContext.createOverride(newValue, this.$scope.overrideContext)
     };
 
-    this.child.$bind(childScope, BindingFlags.none);
+    this.child.$bind(BindingFlags.none, childScope);
   }
 
   unbound() {

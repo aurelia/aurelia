@@ -111,7 +111,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
     };
 
-    proto.$bind = function(this: IInternalCustomAttributeImplementation, scope: IScope, flags: BindingFlags) {
+    proto.$bind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope) {
       if (this.$isBound) {
         if (this.$scope === scope) {
           return;
@@ -130,7 +130,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
 
       if (this.$behavior.hasBound) {
-        (this as any).bound(scope, flags);
+        (this as any).bound(flags, scope);
       }
     };
 

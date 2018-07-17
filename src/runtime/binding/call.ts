@@ -25,7 +25,7 @@ export class Call implements IBinding {
     let overrideContext = <any>this.$scope.overrideContext;
     Object.assign(overrideContext, $event);
     overrideContext.$event = $event; // deprecate this?
-    let result = this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.mustEvaluate);
+    let result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.$scope, this.locator);
     delete overrideContext.$event;
 
     for (let prop in $event) {
@@ -35,7 +35,7 @@ export class Call implements IBinding {
     return result;
   }
 
-  $bind(scope: IScope, flags: BindingFlags) {
+  $bind(flags: BindingFlags, scope: IScope) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -48,7 +48,7 @@ export class Call implements IBinding {
     this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, scope, flags);
+      this.sourceExpression.bind(flags, scope, this);
     }
 
     this.targetObserver.setValue($event => this.callSource($event), this.target, this.targetProperty);
@@ -62,7 +62,7 @@ export class Call implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.$scope, flags);
+      this.sourceExpression.unbind(flags, this.$scope, this);
     }
 
     this.$scope = null;

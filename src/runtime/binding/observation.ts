@@ -3,7 +3,7 @@ import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 
 export interface IBindScope {
-  $bind(scope: IScope, flags: BindingFlags): void;
+  $bind(flags: BindingFlags, scope: IScope): void;
   $unbind(flags: BindingFlags): void;
 }
 export interface IAccessor<T = any> {

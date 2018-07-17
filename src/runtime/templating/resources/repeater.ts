@@ -97,7 +97,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
   }
 
   // attribute proto.$bind
-  public $bind(scope: IScope, flags: BindingFlags): void {      
+  public $bind(flags: BindingFlags, scope: IScope): void {      
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -106,7 +106,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
     }
     this.$scope = scope
     this.$isBound = true;
-    this.bound(scope, flags);
+    this.bound(flags, scope);
   }
 
   // attribute proto.$attach
@@ -210,7 +210,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
    * Initialize array observation and process any pending instance mutation (if this is a re-bind)
    * - called by $bind
    */
-  public bound(scope: IScope, flags: BindingFlags): void {
+  public bound(flags: BindingFlags, scope: IScope): void {
     this.sourceExpression = <any>(<Binding[]>this.owner.$bindable).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
     this.scope = scope;
     this.observer = getCollectionObserver(this.items);
@@ -243,7 +243,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
    */
   public addVisual(visual: IVisual, item: any): void {
     const scope = createChildScope(this.scope.overrideContext, { [this.local]: item });
-    visual.$bind(scope, BindingFlags.none);
+    visual.$bind(BindingFlags.none, scope);
     visual.parent = this.slot;
     visual.onRender = this.slot['addVisualCore'];
     if (this.slot['$isAttached']) {
@@ -308,11 +308,11 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
         if (previousIndex !== i) {
           if (previousIndex >= 0) {
             // item moved to another item's position; reuse the scope of the item at that position
-            visual.$bind(previousScopes[previousIndex], BindingFlags.itemsMutation);
+            visual.$bind(BindingFlags.itemsMutation, previousScopes[previousIndex]);
           } else {
             // item is new; create a new scope
             const scope = createChildScope(this.scope.overrideContext, { [this.local]: items[i] });
-            visual.$bind(scope, BindingFlags.itemsMutation);
+            visual.$bind(BindingFlags.itemsMutation, scope);
           }
         }
       } else {
@@ -356,7 +356,7 @@ export class Repeater<T extends Collection> implements Partial<IRepeater>, ICust
       if (visual.renderState !== -1) {
         // item is new; create a new scopes
         const scope = createChildScope(this.scope.overrideContext, { [this.local]: items[i] });
-        visual.$bind(scope, BindingFlags.instanceMutation);
+        visual.$bind(BindingFlags.instanceMutation, scope);
       } else {
         // reset the renderState of newly added item (so we don't ignore it again next flush)
         visual.renderState = undefined;

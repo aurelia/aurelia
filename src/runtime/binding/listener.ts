@@ -26,7 +26,7 @@ export class Listener implements IBinding {
     let overrideContext = this.source.overrideContext as any;
     overrideContext['$event'] = event;
 
-    let result = this.sourceExpression.evaluate(this.source, this.locator, BindingFlags.mustEvaluate);
+    let result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.source, this.locator);
 
     delete overrideContext['$event'];
 
@@ -41,7 +41,7 @@ export class Listener implements IBinding {
     this.callSource(event);
   }
 
-  $bind(source: IScope, flags: BindingFlags) {
+  $bind(flags: BindingFlags, source: IScope) {
     if (this.$isBound) {
       if (this.source === source) {
         return;
@@ -54,7 +54,7 @@ export class Listener implements IBinding {
     this.source = source;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, source, flags);
+      this.sourceExpression.bind(flags, source, this);
     }
 
     this.handler = this.eventManager.addEventListener(
@@ -73,7 +73,7 @@ export class Listener implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.source, flags);
+      this.sourceExpression.unbind(flags, this.source, this);
     }
 
     this.source = null;

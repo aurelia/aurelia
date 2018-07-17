@@ -321,7 +321,7 @@ abstract class Visual implements IVisual {
     }
   }
 
-  $bind(scope: IScope, flags: BindingFlags) {
+  $bind(flags: BindingFlags, scope: IScope) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -335,7 +335,7 @@ abstract class Visual implements IVisual {
     const bindable = this.$bindable;
 
     for (let i = 0, ii = bindable.length; i < ii; ++i) {
-      bindable[i].$bind(scope, flags);
+      bindable[i].$bind(flags, scope);
     }
 
     this.$isBound = true;

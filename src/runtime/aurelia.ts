@@ -33,7 +33,7 @@ export class Aurelia {
         );
       }
 
-      component.$bind(component.$scope, component.$flags || BindingFlags.none);
+      component.$bind(component.$flags || BindingFlags.none);
       component.$attach(config.host);
     };
 

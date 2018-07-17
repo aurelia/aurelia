@@ -46,7 +46,7 @@ export abstract class IfCore {
       this.child = this.factory.create();
     }
 
-    this.child.$bind(this.$scope, BindingFlags.none);
+    this.child.$bind(BindingFlags.none, this.$scope);
 
     if (!this.showing) {
       this.showing = true;

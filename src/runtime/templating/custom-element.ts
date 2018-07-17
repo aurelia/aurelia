@@ -128,15 +128,16 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       }
     };
   
-    proto.$bind = function(this: IInternalCustomElementImplementation, scope: IScope, flags: BindingFlags) {
+    proto.$bind = function(this: IInternalCustomElementImplementation, flags: BindingFlags) {
       if (this.$isBound) {
         return;
       }
   
+      const scope = this.$scope;
       const bindable = this.$bindable;
   
       for (let i = 0, ii = bindable.length; i < ii; ++i) {
-        bindable[i].$bind(scope, flags);
+        bindable[i].$bind(flags, scope);
       }
   
       this.$isBound = true;

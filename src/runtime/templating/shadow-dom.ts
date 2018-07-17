@@ -82,7 +82,7 @@ abstract class ShadowSlotBase {
     }
   }
 
-  $bind(scope: IScope, flags: BindingFlags) {
+  $bind(flags: BindingFlags, scope: IScope) {
     // fallbackContentView will never be created when the slot isn't already bound
     // so no need to worry about binding it here
     this.$isBound = true;
@@ -124,7 +124,7 @@ class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index = 0) {
     if (this.fallbackVisual === null) {
       this.fallbackVisual = this.fallbackFactory.create();
-      this.fallbackVisual.$bind(this.owner.$scope, BindingFlags.none);
+      this.fallbackVisual.$bind(BindingFlags.none, this.owner.$scope);
       this.currentProjectionSource = projectionSource;
       this.fallbackVisual.parent = this as any;
       this.fallbackVisual.onRender = passThroughSlotAddFallbackVisual;
@@ -182,7 +182,7 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   renderFallback(view: IView, nodes: SlotNode[], projectionSource: ProjectionSource, index = 0) {
     if (this.fallbackVisual === null) {
       this.fallbackVisual = this.fallbackFactory.create();
-      this.fallbackVisual.$bind(this.owner.$scope, BindingFlags.none);
+      this.fallbackVisual.$bind(BindingFlags.none, this.owner.$scope);
       this.fallbackVisual.parent = this as any;
       this.fallbackVisual.onRender = shadowSlotAddFallbackVisual;
       this.fallbackVisual.$attach(this.encapsulationSource);

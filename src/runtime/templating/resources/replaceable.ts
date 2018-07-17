@@ -16,7 +16,7 @@ export class Replaceable {
   }
 
   bound(scope: IScope) {
-    this.child.$bind(scope, BindingFlags.none);
+    this.child.$bind(BindingFlags.none, scope);
   }
 
   unbound() {

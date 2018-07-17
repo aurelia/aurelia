@@ -57,7 +57,7 @@ class TestVisual implements IVisual {
   }
   
   // IBindScope impl
-  $bind(scope: IScope): void {
+  $bind(flags: BindingFlags, scope: IScope): void {
     this.$scope = scope;
   }
   $unbind(): void {}
@@ -163,7 +163,7 @@ describe('ArrayRepeater', () => {
   
                     const bindingContext = {}; // normally the items would be in here
                     const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-                    sut.bound(scope, BindingFlags.none);
+                    sut.bound(BindingFlags.none, scope);
                     let i = 0;
                     while (i < times) {
                       // change the properties of the newly added items with each iteration to verify bindingTarget is updated correctly
@@ -236,7 +236,7 @@ describe('ArrayRepeater', () => {
   
                 const bindingContext = {}; // normally the items would be in here
                 const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-                sut.bound(scope, BindingFlags.none);
+                sut.bound(BindingFlags.none, scope);
                 let i = 0;
                 while (i < times) {
                   assignItems = assignItems.slice();
@@ -288,7 +288,7 @@ describe('ArrayRepeater', () => {
     it('should ignore pending changes from previous instance when assigning a new instance', () => {
       (<any>sut)._items = [];
       owner.$bindable = [new Binding(<any>new ForOfStatement(new ForDeclaration('foo'), new AccessScope('')), sut, 'items', <any>null, <any>null, <any>null)];
-      sut.bound(<any>{ }, BindingFlags.none);
+      sut.bound(BindingFlags.none, <any>{ });
 
       sut.items.push(1);
       expect(sut.items.length).to.equal(1);
@@ -303,7 +303,7 @@ describe('ArrayRepeater', () => {
     it('should include pending changes from new instance when assigning a new instance', () => {
       (<any>sut)._items = [];
       owner.$bindable = [new Binding(<any>new ForOfStatement(new ForDeclaration('foo'), new AccessScope('')), sut, 'items', <any>null, <any>null, <any>null)];
-      sut.bound(<any>{ }, BindingFlags.none);
+      sut.bound(BindingFlags.none, <any>{ });
 
       expect(sut.items.length).to.equal(0);
       expect(sut.slot.children.length).to.equal(0);

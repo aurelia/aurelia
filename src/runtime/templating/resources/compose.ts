@@ -117,7 +117,7 @@ export class Compose {
     this.$bindable.push(newVisual);
 
     if (this.$isBound) {
-      newVisual.$bind(this.viewOwner.$scope, BindingFlags.none);
+      newVisual.$bind(BindingFlags.none, this.viewOwner.$scope);
     }
 
     return this.slot.swap(newVisual, this.swapOrder || SwapOrder.after);

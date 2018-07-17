@@ -1,10 +1,10 @@
-import { IDirtyChecker } from "./dirty-checker";
-import { IObserverLocator } from "./observer-locator";
-import { SubscriberCollection } from "./subscriber-collection";
-import { IAccessor, ISubscribable } from "./observation";
-import { ICallable } from "../../kernel/interfaces";
-import { ITaskQueue } from "../task-queue";
-import { Reporter } from "../../kernel/reporter";
+import { IDirtyChecker } from "../dirty-checker";
+import { IObserverLocator } from "../observer-locator";
+import { SubscriberCollection } from "../subscriber-collection";
+import { IAccessor, ISubscribable } from "../observation";
+import { ICallable } from "../../../kernel/interfaces";
+import { ITaskQueue } from "../../task-queue";
+import { Reporter } from "../../../kernel/reporter";
 
 export interface IComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.

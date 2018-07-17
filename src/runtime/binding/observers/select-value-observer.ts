@@ -1,9 +1,9 @@
-import { SubscriberCollection } from './subscriber-collection';
-import { ICallable } from '../../kernel/interfaces';
-import { ITaskQueue } from '../task-queue';
-import { IEventSubscriber } from './event-manager';
-import { IObserverLocator } from './observer-locator';
-import { DOM, IChildObserver } from '../dom';
+import { SubscriberCollection } from '../subscriber-collection';
+import { ICallable } from '../../../kernel/interfaces';
+import { ITaskQueue } from '../../task-queue';
+import { IEventSubscriber } from '../event-manager';
+import { IObserverLocator } from '../observer-locator';
+import { DOM, IChildObserver } from '../../dom';
 
 const selectArrayContext = 'SelectValueObserver:array';
 

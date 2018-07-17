@@ -1,4 +1,4 @@
-import { SetterObserver } from '../../../src/runtime/binding/property-observation';
+import { SetterObserver } from '../../../src/runtime/binding/observers/property-observation';
 import { executeSharedPropertyObserverTests } from './shared';
 import { DI } from '../../../src/kernel/di';
 import { ITaskQueue } from '../../../src/runtime/task-queue';

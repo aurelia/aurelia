@@ -1,8 +1,8 @@
-import { SubscriberCollection } from './subscriber-collection';
-import { ITaskQueue } from '../task-queue';
-import { ICallable, IIndexable } from '../../kernel/interfaces';
-import { Reporter } from '../../kernel/reporter';
-import { IAccessor, ISubscribable } from './observation';
+import { SubscriberCollection } from '../subscriber-collection';
+import { ITaskQueue } from '../../task-queue';
+import { ICallable, IIndexable } from '../../../kernel/interfaces';
+import { Reporter } from '../../../kernel/reporter';
+import { IAccessor, ISubscribable } from '../observation';
 
 export const propertyAccessor = {
   getValue: (obj: any, propertyName: string) => obj[propertyName],

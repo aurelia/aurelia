@@ -1,8 +1,8 @@
-import { SubscriberCollection } from './subscriber-collection';
-import { ICallable } from '../../kernel/interfaces';
-import { IAccessor, ISubscribable } from './observation';
-import { IEventSubscriber } from './event-manager';
-import { INode, DOM } from '../dom';
+import { SubscriberCollection } from '../subscriber-collection';
+import { ICallable } from '../../../kernel/interfaces';
+import { IAccessor, ISubscribable } from '../observation';
+import { IEventSubscriber } from '../event-manager';
+import { INode, DOM } from '../../dom';
 
 export class XLinkAttributeObserver implements IAccessor {
   // xlink namespaced attributes require getAttributeNS/setAttributeNS

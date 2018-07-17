@@ -1,5 +1,5 @@
 import { spy, match, SinonSpy } from 'sinon';
-import { ArrayObserver, enableArrayObservation, disableArrayObservation } from './../../../src/runtime/binding/observation/array-observer';
+import { ArrayObserver, enableArrayObservation, disableArrayObservation } from './../../../src/runtime/binding/observers/array-observer';
 import { expect } from 'chai';
 import { stringify } from '../util';
 

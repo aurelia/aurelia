@@ -1,4 +1,4 @@
-import { DataAttributeObserver } from '../element-observation';
+import { DataAttributeObserver } from '../observers/element-observation';
 import { bindingBehavior } from '../binding-behavior';
 import { Binding } from '../binding';
 import { IScope } from '../binding-context';

@@ -1,4 +1,4 @@
-import { IExpressionParser } from './../../runtime/binding/expression-parser';
+import { IExpressionParser } from '../../runtime/binding/expression-parser';
 import { Binding } from '../../runtime/binding/binding';
 import { BindingMode } from '../../runtime/binding/binding-mode';
 import { IObserverLocator } from '../../runtime/binding/observer-locator';

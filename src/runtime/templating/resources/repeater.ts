@@ -1,15 +1,15 @@
-import { Collection, CollectionObserver, CollectionKind } from './../../binding/observation/collection-observer';
+import { Collection, CollectionObserver, CollectionKind } from '../../binding/observers/collection-observer';
 import { ICustomAttributeSource, CustomAttributeResource } from '../custom-attribute';
-import { AttachLifecycle, DetachLifecycle } from '../../templating/lifecycle';
-import { IRuntimeBehavior, RuntimeBehavior } from '../../templating/runtime-behavior';
-import { IRenderingEngine } from '../../templating/rendering-engine';
+import { AttachLifecycle, DetachLifecycle } from '../lifecycle';
+import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
+import { IRenderingEngine } from '../rendering-engine';
 import { PLATFORM } from '../../../kernel/platform';
 import { IContainer, inject, Registration } from '../../../kernel/di';
-import { ArrayObserver, getArrayObserver } from '../../binding/observation/array-observer';
+import { ArrayObserver, getArrayObserver } from '../../binding/observers/array-observer';
 import { ITaskQueue } from '../../task-queue';
-import { IRenderSlot } from '../../templating/render-slot';
-import { IViewOwner } from '../../templating/view';
-import { IVisualFactory, IVisual } from '../../templating/visual';
+import { IRenderSlot } from '../render-slot';
+import { IViewOwner } from '../view';
+import { IVisualFactory, IVisual } from '../visual';
 import { IScope, IOverrideContext } from '../../binding/binding-context';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding, BindingMode, BindingFlags } from '../../binding/binding';
@@ -17,8 +17,8 @@ import { Immutable } from '../../../kernel/interfaces';
 import { IResourceKind, IResourceType } from '../../resource';
 import { INode } from '../../dom';
 import { ICustomAttribute } from '../custom-attribute';
-import { getMapObserver } from '../../binding/observation/map-observer';
-import { getSetObserver } from '../../binding/observation/set-observer';
+import { getMapObserver } from '../../binding/observers/map-observer';
+import { getSetObserver } from '../../binding/observers/set-observer';
 
 
 export function getCollectionObserver(collection: any): CollectionObserver {

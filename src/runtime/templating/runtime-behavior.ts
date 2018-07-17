@@ -4,7 +4,7 @@ import { DOM, INode, IChildObserver } from "../dom";
 import { ITaskQueue } from "../task-queue";
 import { SubscriberCollection } from "../binding/subscriber-collection";
 import { IAccessor, ISubscribable } from "../binding/observation";
-import { Observer } from "../binding/property-observation";
+import { Observer } from "../binding/observers/property-observation";
 import { BindableDefinitions } from "./instructions";
 import { ICustomElementType, ICustomElement } from "./custom-element";
 

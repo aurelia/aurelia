@@ -2,7 +2,7 @@ import { Aurelia } from '../../../src/runtime/aurelia';
 import { Repeater } from '../../../src/runtime/templating/resources/repeater';
 import { IContainer, DI } from '../../../src/kernel/di';
 import { ITaskQueue } from '../../../src/runtime/task-queue';
-import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/observation/array-observer';
+import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/observers/array-observer';
 import { DOM, INode } from '../../../src/runtime/dom';
 import { createAureliaConfig, IFixture, padRight, createComponent, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../util';
 import { ICustomElement } from '../../../src/runtime/templating/custom-element';

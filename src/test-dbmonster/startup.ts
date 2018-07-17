@@ -1,7 +1,7 @@
 import { Aurelia } from '../runtime/aurelia';
 import { App } from './app';
 import { GeneratedConfiguration } from './generated-configuration';
-import { enableArrayObservation } from '../runtime/binding/observation/array-observer';
+import { enableArrayObservation } from '../runtime/binding/observers/array-observer';
 
 enableArrayObservation();
 window['au'] = new Aurelia()

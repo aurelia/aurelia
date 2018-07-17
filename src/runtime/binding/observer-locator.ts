@@ -1,30 +1,30 @@
 import { DOM } from '../dom';
-import { getArrayObserver } from './observation/array-observer';
-import { getMapObserver } from './observation/map-observer';
-import { getSetObserver } from './observation/set-observer';
+import { getArrayObserver } from './observers/array-observer';
+import { getMapObserver } from './observers/map-observer';
+import { getSetObserver } from './observers/set-observer';
 import { IEventManager } from './event-manager';
 import { IDirtyChecker } from './dirty-checker';
 import {
   SetterObserver,
   PrimitiveObserver,
   propertyAccessor
-} from './property-observation';
-import { SelectValueObserver } from './select-value-observer';
-import { CheckedObserver } from './checked-observer';
+} from './observers/property-observation';
+import { SelectValueObserver } from './observers/select-value-observer';
+import { CheckedObserver } from './observers/checked-observer';
 import {
   ValueAttributeObserver,
   XLinkAttributeObserver,
   DataAttributeObserver,
   StyleObserver,
   dataAttributeAccessor
-} from './element-observation';
-import { ClassObserver } from './class-observer';
+} from './observers/element-observation';
+import { ClassObserver } from './observers/class-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCollectionObserver, AccessorOrObserver, IAccessor } from './observation';
 import { Reporter } from '../../kernel/reporter';
 import { DI, inject } from '../../kernel/di';
 import { ITaskQueue } from '../task-queue';
-import { createComputedObserver } from './computed-observer';
+import { createComputedObserver } from './observers/computed-observer';
 
 export interface ObjectObservationAdapter {
   getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;

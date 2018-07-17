@@ -9,9 +9,8 @@ import { IResourceType, IResourceKind, ResourceDescription } from '../resource';
 import { IContainer, Registration } from '../../kernel/di';
 import { INode } from '../dom';
 import { PLATFORM } from '../../kernel/platform';
-import { BindingMode } from '../binding/binding-mode';
 import { IBindableDescription } from './bindable';
-import { BindingFlags } from '../binding/binding-flags';
+import { BindingFlags, BindingMode } from '../binding/binding';
 
 export interface ICustomAttributeSource {
   name: string;

@@ -1,5 +1,5 @@
-import { BindingMode } from '../binding/binding-mode';
 import { Omit } from '../../kernel/interfaces';
+import { BindingMode } from '../binding/binding';
 
 const capitalMatcher = /([A-Z])/g;
 

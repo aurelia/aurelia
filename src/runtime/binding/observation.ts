@@ -1,6 +1,6 @@
 import { ICallable, IIndexable } from '../../kernel/interfaces';
 import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
+import { BindingFlags } from './binding';
 
 export interface IBindScope {
   $bind(flags: BindingFlags, scope: IScope): void;

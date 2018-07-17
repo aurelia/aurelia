@@ -1,7 +1,6 @@
-import { BindingMode } from '../binding-mode';
 import { EventSubscriber, IEventSubscriber } from '../event-manager';
 import { IObserverLocator } from '../observer-locator';
-import { Binding } from '../binding';
+import { Binding, BindingMode } from '../binding';
 import { IScope } from '../binding-context';
 import { ValueAttributeObserver } from '../element-observation';
 import { CheckedObserver } from '../checked-observer';

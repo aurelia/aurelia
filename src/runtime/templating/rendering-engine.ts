@@ -24,7 +24,7 @@ import { IExpressionParser } from "../binding/expression-parser";
 import { ITemplateCompiler } from "./template-compiler";
 import { ICustomElementType, ICustomElement } from "./custom-element";
 import { IResourceKind, IResourceType, ResourceDescription, IResourceDescriptions } from "../resource";
-import { BindingFlags } from "../binding/binding-flags";
+import { BindingFlags } from "../binding/binding";
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate;

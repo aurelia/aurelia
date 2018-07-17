@@ -8,14 +8,13 @@ import { IVisualFactory, IVisual, MotionDirection, RenderCallback } from '../../
 import { expect } from 'chai';
 import { IScope } from '../../../src/runtime/binding/binding-context';
 import { ForOfStatement, ForDeclaration, AccessScope } from '../../../src/runtime/binding/ast';
-import { Binding } from '../../../src/runtime/binding/binding';
+import { Binding, BindingFlags } from '../../../src/runtime/binding/binding';
 import { DetachLifecycle, AttachLifecycle, IAttach } from '../../../src/runtime/templating/lifecycle';
 import { INode, IView } from '../../../src/runtime/dom';
 import { IRenderContext } from '../../../src/runtime/templating/render-context';
 import { IBindScope } from '../../../src/runtime/binding/observation';
 import { IEmulatedShadowSlot } from '../../../src/runtime/templating/shadow-dom';
 import { padRight, incrementItems, assertVisualsSynchronized } from '../util';
-import { BindingFlags } from '../../../src/runtime/binding/binding-flags';
 
 class TestViewOwner implements IViewOwner {
   $context: IRenderContext;

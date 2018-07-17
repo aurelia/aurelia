@@ -7,7 +7,7 @@ import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
 import { createScopeForTest } from './shared';
 import { BindingContext } from '../../../src/runtime/binding/binding-context';
-import { BindingFlags } from '../../../src/runtime/binding/binding-flags';
+import { BindingFlags } from '../../../src/runtime/binding/binding';
 
 describe('AccessKeyed', () => {
   let expression: AccessKeyed;

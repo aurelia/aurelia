@@ -3,7 +3,7 @@ import { IRenderSlot } from '../render-slot';
 import { BindingContext } from '../../binding/binding-context';
 import { inject } from '../../../kernel/di';
 import { IVisualFactory, IVisual } from '../visual';
-import { BindingFlags } from '../../binding/binding-flags';
+import { BindingFlags } from '../../binding/binding';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')

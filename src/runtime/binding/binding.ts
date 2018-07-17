@@ -1,4 +1,3 @@
-import { BindingMode } from './binding-mode';
 import { ConnectableBinding } from './connectable-binding';
 import { enqueueBindingConnect } from './connect-queue';
 import { IObserverLocator } from './observer-locator';
@@ -7,7 +6,22 @@ import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor } from './ob
 import { IServiceLocator } from '../../kernel/di';
 import { IScope, sourceContext, targetContext } from './binding-context';
 import { Reporter } from '../../kernel/reporter';
-import { BindingFlags } from './binding-flags';
+
+export enum BindingFlags {
+  none             = 0b00000,
+  mustEvaluate     = 0b00001,
+  instanceMutation = 0b00010,
+  itemsMutation    = 0b00100,
+  connectImmediate = 0b01000,
+  createObjects    = 0b10000
+}
+
+export enum BindingMode {
+  oneTime  = 0b00,
+  toView   = 0b01,
+  fromView = 0b10,
+  twoWay   = 0b11
+}
 
 export interface IBinding extends IBindScope {
   locator: IServiceLocator;

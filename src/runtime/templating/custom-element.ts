@@ -8,10 +8,10 @@ import { IRuntimeBehavior } from './runtime-behavior';
 import { IRenderSlot } from './render-slot';
 import { IResourceType, IResourceKind } from '../resource';
 import { IContainer, Registration } from '../../kernel/di';
-import { BindingContext, IScope } from '../binding/binding-context';
+import { BindingContext } from '../binding/binding-context';
 import { ShadowDOMEmulation } from './shadow-dom';
 import { PLATFORM } from '../../kernel/platform';
-import { BindingFlags } from '../binding/binding-flags';
+import { BindingFlags } from '../binding/binding';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 

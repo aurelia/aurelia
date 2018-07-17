@@ -1,8 +1,7 @@
-import { IBinding } from './binding';
+import { IBinding, BindingFlags } from './binding';
 import { IServiceLocator } from '../../kernel/di';
 import { IScope, BindingContext } from './binding-context';
 import { ISignaler } from './signaler';
-import { BindingFlags } from './binding-flags';
 import { BindingBehaviorResource } from './binding-behavior';
 import { ValueConverterResource } from './value-converter';
 

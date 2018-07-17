@@ -1,8 +1,7 @@
 import { IExpression } from './ast';
-import { IBinding, IBindingTarget } from './binding';
+import { IBinding, IBindingTarget, BindingFlags } from './binding';
 import { IServiceLocator } from '../../kernel/di';
 import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 
 export class Ref implements IBinding {
   private $scope: IScope;

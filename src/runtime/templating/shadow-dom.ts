@@ -6,7 +6,7 @@ import { IScope } from '../binding/binding-context';
 import { IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
 import { DOM, INode, IView } from '../dom';
 import { IVisual, IVisualFactory } from './visual';
-import { BindingFlags } from '../binding/binding-flags';
+import { BindingFlags } from '../binding/binding';
 
 type ProjectionSource = IRenderSlot | IEmulatedShadowSlot;
 

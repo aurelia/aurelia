@@ -1,11 +1,10 @@
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
-import { IBinding } from './binding';
+import { IBinding, BindingFlags } from './binding';
 import { IServiceLocator } from '../../kernel/di';
 import { IBindingTargetAccessor } from './observation';
 import { IScope } from './binding-context';
 import { INode } from '../dom';
-import { BindingFlags } from './binding-flags';
 
 export class Call implements IBinding {
   targetObserver: IBindingTargetAccessor;

@@ -8,7 +8,7 @@ import { IRenderContext } from '../render-context';
 import { IRenderingEngine } from '../rendering-engine';
 import { Immutable } from '../../../kernel/interfaces';
 import { inject } from '../../../kernel/di';
-import { BindingFlags } from '../../binding/binding-flags';
+import { BindingFlags } from '../../binding/binding';
 
 const composeSource = {
   name: 'au-compose',

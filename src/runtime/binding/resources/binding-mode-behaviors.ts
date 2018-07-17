@@ -1,6 +1,5 @@
-import { BindingMode } from '../binding-mode';
 import { bindingBehavior } from '../binding-behavior';
-import { Binding } from '../binding';
+import { Binding, BindingMode } from '../binding';
 import { IScope } from '../binding-context';
 
 class BindingModeBehavior {

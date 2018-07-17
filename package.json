@@ -20,7 +20,7 @@
     "build": "rollup -c compiler.rollup.config.js",
     "test:compile": "node compiler/test/compile",
     "start": "npm run build && npm run test",
-    "dbmonster": "au build && copyfiles scripts/* dbmonster && http-server -c-1 -p 8000 ./dbmonster",
+    "dbmonster": "au build && copyfiles scripts/* bench/dbmonster && http-server -c-1 -p 8000 ./bench/dbmonster",
     "bench": "rimraf ./dist && tsc --outDir ./dist --module commonjs && node bench/observers.js"
   },
   "license": "MIT",

@@ -5,7 +5,7 @@
 /test/**/coverage
 /node_modules
 /scripts
-/dbmonster/scripts
+/bench/dbmonster/scripts
 
 .idea
 .DS_STORE

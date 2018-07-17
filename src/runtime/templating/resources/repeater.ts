@@ -4,7 +4,6 @@ import { AttachLifecycle, DetachLifecycle } from '../../templating/lifecycle';
 import { IRuntimeBehavior, RuntimeBehavior } from '../../templating/runtime-behavior';
 import { IRenderingEngine } from '../../templating/rendering-engine';
 import { PLATFORM } from '../../../kernel/platform';
-import { IRepeater } from './repeat/repeater';
 import { IContainer, inject, Registration } from '../../../kernel/di';
 import { ArrayObserver, getArrayObserver } from '../../binding/observation/array-observer';
 import { ITaskQueue } from '../../task-queue';
@@ -54,7 +53,7 @@ export function getCollectionObserver(collection: any): CollectionObserver {
  *  
  */
 @inject(ITaskQueue, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
-export class Repeater<T extends Collection> implements Partial<IRepeater>, ICustomAttribute {
+export class Repeater<T extends Collection> implements ICustomAttribute {
   // note: everything declared from #region to #endregion is more-or-less copy-paste from what the
   // @templateController decorator would apply to this class, but we have more information here than the decorator
   // does, so we can take a few shortcuts for slightly better perf (and one can argue that this makes the repeater

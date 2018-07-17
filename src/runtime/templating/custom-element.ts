@@ -108,7 +108,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       this.$isBound = false;
       this.$scope = {
         bindingContext: this,
-        overrideContext: BindingContext.createOverride()
+        overrideContext: BindingContext.createOverride(this)
       };
       
       this.$context = template.renderContext;

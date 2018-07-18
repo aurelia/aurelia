@@ -1,7 +1,7 @@
 import { spy, match, SinonSpy } from 'sinon';
-import { ArrayObserver, enableArrayObservation, disableArrayObservation } from './../../../src/runtime/binding/observers/array-observer';
+import { ArrayObserver, enableArrayObservation, disableArrayObservation } from '../../../../src/runtime/binding/observers/array-observer';
 import { expect } from 'chai';
-import { stringify } from '../util';
+import { stringify } from '../../util';
 
 function assertArrayEqual(actual: any[], expected: any[]): void {
   const len = actual.length;

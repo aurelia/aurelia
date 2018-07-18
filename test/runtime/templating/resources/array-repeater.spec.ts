@@ -1,20 +1,20 @@
-import { IContainer, DI, Registration } from '../../../src/kernel/di';
-import { Repeater } from '../../../src/runtime/templating/resources/repeater';
-import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/observers/array-observer';
-import { ITaskQueue } from '../../../src/runtime/task-queue';
-import { IRenderSlot, RenderSlot } from '../../../src/runtime/templating/render-slot';
-import { IViewOwner } from '../../../src/runtime/templating/view';
-import { IVisualFactory, IVisual, MotionDirection, RenderCallback } from '../../../src/runtime/templating/visual';
+import { IContainer, DI, Registration } from '../../../../src/kernel/di';
+import { Repeater } from '../../../../src/runtime/templating/resources/repeater';
+import { enableArrayObservation, disableArrayObservation } from '../../../../src/runtime/binding/observers/array-observer';
+import { ITaskQueue } from '../../../../src/runtime/task-queue';
+import { IRenderSlot, RenderSlot } from '../../../../src/runtime/templating/render-slot';
+import { IViewOwner } from '../../../../src/runtime/templating/view';
+import { IVisualFactory, IVisual, MotionDirection, RenderCallback } from '../../../../src/runtime/templating/visual';
 import { expect } from 'chai';
-import { IScope } from '../../../src/runtime/binding/binding-context';
-import { ForOfStatement, ForDeclaration, AccessScope } from '../../../src/runtime/binding/ast';
-import { Binding, BindingFlags } from '../../../src/runtime/binding/binding';
-import { DetachLifecycle, AttachLifecycle, IAttach } from '../../../src/runtime/templating/lifecycle';
-import { INode, IView } from '../../../src/runtime/dom';
-import { IRenderContext } from '../../../src/runtime/templating/render-context';
-import { IBindScope } from '../../../src/runtime/binding/observation';
-import { IEmulatedShadowSlot } from '../../../src/runtime/templating/shadow-dom';
-import { padRight, incrementItems, assertVisualsSynchronized } from '../util';
+import { IScope } from '../../../../src/runtime/binding/binding-context';
+import { ForOfStatement, ForDeclaration, AccessScope } from '../../../../src/runtime/binding/ast';
+import { Binding, BindingFlags } from '../../../../src/runtime/binding/binding';
+import { DetachLifecycle, AttachLifecycle, IAttach } from '../../../../src/runtime/templating/lifecycle';
+import { INode, IView } from '../../../../src/runtime/dom';
+import { IRenderContext } from '../../../../src/runtime/templating/render-context';
+import { IBindScope } from '../../../../src/runtime/binding/observation';
+import { IEmulatedShadowSlot } from '../../../../src/runtime/templating/shadow-dom';
+import { padRight, incrementItems, assertVisualsSynchronized } from '../../util';
 
 class TestViewOwner implements IViewOwner {
   $context: IRenderContext;

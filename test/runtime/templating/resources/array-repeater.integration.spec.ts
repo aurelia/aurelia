@@ -1,12 +1,12 @@
-import { Aurelia } from '../../../src/runtime/aurelia';
-import { Repeater } from '../../../src/runtime/templating/resources/repeater';
-import { IContainer, DI } from '../../../src/kernel/di';
-import { ITaskQueue } from '../../../src/runtime/task-queue';
-import { enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/observers/array-observer';
-import { DOM, INode } from '../../../src/runtime/dom';
-import { createAureliaConfig, IFixture, padRight, createComponent, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../util';
-import { ICustomElement } from '../../../src/runtime/templating/custom-element';
-import { BindingFlags } from '../../../src/runtime/binding/binding';
+import { Aurelia } from '../../../../src/runtime/aurelia';
+import { Repeater } from '../../../../src/runtime/templating/resources/repeater';
+import { IContainer, DI } from '../../../../src/kernel/di';
+import { ITaskQueue } from '../../../../src/runtime/task-queue';
+import { enableArrayObservation, disableArrayObservation } from '../../../../src/runtime/binding/observers/array-observer';
+import { DOM, INode } from '../../../../src/runtime/dom';
+import { createAureliaConfig, IFixture, padRight, createComponent, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../../util';
+import { ICustomElement } from '../../../../src/runtime/templating/custom-element';
+import { BindingFlags } from '../../../../src/runtime/binding/binding';
 
 describe('ArrayRepeater', () => {
   let container: IContainer;

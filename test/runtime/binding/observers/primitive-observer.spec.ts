@@ -1,5 +1,5 @@
-import { PLATFORM } from './../../../src/kernel/platform';
-import { PrimitiveObserver } from '../../../src/runtime/binding/observers/property-observation';
+import { PLATFORM } from '../../../../src/kernel/platform';
+import { PrimitiveObserver } from '../../../../src/runtime/binding/observers/property-observation';
 import { expect } from 'chai';
 
 describe('PrimitiveObserver', () => {

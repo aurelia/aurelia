@@ -50,10 +50,10 @@ export abstract class CollectionObserver implements IDisposable {
 
   resetIndexMap(): void {
     const len = this.collection[this.lengthPropertyName];
-    this.indexMap = new Array(len);
+    const indexMap = this.indexMap = new Array(len);
     let i = 0;
     while (i < len) {
-      this.indexMap[i] = i++;
+      indexMap[i] = i++;
     }
   }
 

@@ -3,30 +3,49 @@ import { ITaskQueue } from '../../task-queue';
 import { ICallable, IIndexable } from '../../../kernel/interfaces';
 import { Reporter } from '../../../kernel/reporter';
 import { IAccessor, ISubscribable } from '../observation';
+import { PLATFORM } from '../../../kernel/platform';
+
+const noop = PLATFORM.noop;
 
 export const propertyAccessor = {
   getValue: (obj: any, propertyName: string) => obj[propertyName],
   setValue: (value: any, obj: IIndexable, propertyName: string) => { obj[propertyName] = value; }
 };
 
+export type Primitive = undefined | null | number | boolean | symbol | string;
+
+// note: string.length is the only property of any primitive that is not a function,
+// so we can hardwire it to that and simply return undefined for anything else
+// note#2: a modified primitive constructor prototype would not work (and really, it shouldn't..)
 export class PrimitiveObserver implements IAccessor, ISubscribable {
-  doNotCache = true;
+  public doNotCache = true;
+  private primitive: Primitive;
 
-  constructor(private primitive: IIndexable, private propertyName: string) {
-    this.primitive = primitive;
-    this.propertyName = propertyName;
+  constructor(primitive: Primitive, propertyName: PropertyKey) {
+    // we don't need to store propertyName because only 'length' can return a useful value
+    if (propertyName === 'length') {
+      // deliberately not checking for typeof string as users probably still want to know via an error that their string is undefined
+      this.primitive = primitive;
+      this.getValue = this.getStringLength;
+    } else {
+      this.getValue = this.returnUndefined;
+    }
   }
 
-  getValue() {
-    return this.primitive[this.propertyName];
+  public getValue: () => undefined | number;
+  private getStringLength(): number {
+    return (<any>this.primitive).length;
+  }
+  private returnUndefined(): undefined {
+    return undefined;
   }
 
-  setValue() {
-    throw Reporter.error(14, `${typeof this.primitive}#${this.propertyName}`);
-  }
-
-  subscribe() { }
-  unsubscribe() { }
+  // removed the error reporter here because technically any primitive property that can get, can also set,
+  // but since that never serves any purpose (e.g. setting string.length doesn't throw but doesn't change the length either),
+  // we could best just leave this as a no-op and so don't need to store the propertyName
+  public setValue: () => void = noop;
+  public subscribe: () => void = noop;
+  public unsubscribe: () => void = noop;
 }
 
 export class SetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {

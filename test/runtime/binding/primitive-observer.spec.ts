@@ -1,87 +1,58 @@
+import { PLATFORM } from './../../../src/kernel/platform';
 import { PrimitiveObserver } from '../../../src/runtime/binding/observers/property-observation';
-import { createObserverLocator } from './shared';
 import { expect } from 'chai';
 
 describe('PrimitiveObserver', () => {
-  let observerLocator;
+  let sut: PrimitiveObserver;
 
-  before(() => {
-    observerLocator = createObserverLocator();
+  describe('getValue()', () => {
+    const primitiveArr = [
+      undefined, null, true, false, '', 'foo',
+      Number.MAX_VALUE, Number.MAX_SAFE_INTEGER, Number.MIN_VALUE, Number.MIN_SAFE_INTEGER, 0, +Infinity, -Infinity, NaN,
+      Symbol(), Symbol('foo'), Symbol.for('bar')
+    ];
+    const propertyNameArr = [undefined, null, 1, Symbol(), '', 'foo', 'length', 'valueOf'];
+    for (const primitive of primitiveArr) {
+      for (const propertyName of propertyNameArr) {
+        it(`should correctly handle ${typeof primitive}[${typeof propertyName === 'string' ? `'${propertyName}'` : typeof propertyName}]`, () => {
+          sut = new PrimitiveObserver(primitive, propertyName);
+          if (propertyName === 'length') {
+            if (typeof primitive === 'string') {
+              const actual = sut.getValue();
+              expect(actual).to.equal(primitive.length);
+            } else {
+              expect(() => sut.getValue()).to.throw;
+            }
+          } else {
+            const actual = sut.getValue();
+            expect(actual).to.be.undefined;
+          }
+        });
+      }
+    }
   });
 
-  it('handles numbers', () => {
-    expect(observerLocator.getObserver(0, 'foo') instanceof PrimitiveObserver).to.be.true;
-    expect(observerLocator.getObserver(Number.NaN, 'foo') instanceof PrimitiveObserver).to.be.true;
-    expect(observerLocator.getObserver(Infinity, 'foo') instanceof PrimitiveObserver).to.be.true;
-
-    const observer = observerLocator.getObserver(0, 'foo');
-    expect(observer.getValue()).to.equal(undefined);
-
-    let threw = false;
-    try {
-      observer.subscribe();
-      observer.unsubscribe();
-    } catch (e) {
-      threw = true;
-    }
-    expect(threw).to.be.false;
-
-    let error;
-    try {
-      observer.setValue('bar');
-    } catch (e) {
-      error = e;
-    }
-    expect(error.message).not.to.be.empty;
+  describe('setValue()', () => {
+    it('is a no-op', () => {
+      expect(new PrimitiveObserver(null, 0).setValue === PLATFORM.noop).to.be.true;
+    });
   });
 
-  it('handles strings', () => {
-    expect(observerLocator.getObserver('foo', 'bar') instanceof PrimitiveObserver).to.be.true;
-        expect(observerLocator.getObserver(new String('foo'), 'bar') instanceof PrimitiveObserver).to.be.false;
-
-    const observer = observerLocator.getObserver('foo', 'length');
-    expect(observer.getValue()).to.equal(3);
-
-    let threw = false;
-    try {
-      observer.subscribe();
-      observer.unsubscribe();
-    } catch (e) {
-      threw = true;
-    }
-    expect(threw).to.be.false;
-
-    let error;
-    try {
-      observer.setValue('bar');
-    } catch (e) {
-      error = e;
-    }
-    expect(error.message).not.to.be.empty;
+  describe('subscribe()', () => {
+    it('is a no-op', () => {
+      expect(new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop).to.be.true;
+    });
   });
 
-  it('handles booleans', () => {
-    expect(observerLocator.getObserver(true, 'foo') instanceof PrimitiveObserver).to.be.true;
-    expect(observerLocator.getObserver(false, 'foo') instanceof PrimitiveObserver).to.be.true;
+  describe('unsubscribe()', () => {
+    it('is a no-op', () => {
+      expect(new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop).to.be.true;
+    });
+  });
 
-    const observer = observerLocator.getObserver(true, 'foo');
-    expect(observer.getValue()).to.equal(undefined);
-
-    let threw = false;
-    try {
-      observer.subscribe();
-      observer.unsubscribe();
-    } catch (e) {
-      threw = true;
-    }
-    expect(threw).to.be.false;
-
-    let error;
-    try {
-      observer.setValue('bar');
-    } catch (e) {
-      error = e;
-    }
-    expect(error.message).not.to.be.empty;
+  describe('doNotCache', () => {
+    it('is true', () => {
+      expect(new PrimitiveObserver(null, 0).doNotCache).to.be.true;
+    });
   });
 });

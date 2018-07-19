@@ -546,14 +546,7 @@ function synchronize(oldArr: Array<Object>, indexMap: Array<number>, newArr: Arr
       oldArr[to] = copy[from];
     } else if (from < -1) {
       // add new
-      // detach/unbind oldArr[to] if newArr.indexOf(oldArr[to]) === -1
-      oldArr[to] = newArr[-from - 2];
-    } else if (from === -1) {
-      // delete existing
-      // always detach/unbind oldArr[to]
-    } else {
-      // todo: implement length observation and add a method on the array object
-      // that provides an observed means of directly assigning to an index
+      oldArr[to] = newArr[to];
     }
     to++;
   }

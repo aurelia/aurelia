@@ -13,15 +13,6 @@ const splice = proto.splice;
 const reverse = proto.reverse;
 const sort = proto.sort;
 
-const min = Math.min;
-const max = Math.max;
-
-/* about -2:
-The index of a new item is stored in the indexMap by making it negative (so we can efficiently tell it apart from existing items)
-and then subtracting 2, to account for index 0 and -1 (the latter indicates an existing item was removed)
-This operation is then reversed during synchronization to get back the actual index the new item should have in the old array.
-*/
-
 export function enableArrayObservation(): void {
   proto.push = observePush;
   proto.unshift = observeUnshift;
@@ -56,7 +47,7 @@ function observePush(this: IObservedArray): ReturnType<typeof push> {
   this.length = o.indexMap.length = len + argCount
   let i = len;
   while (i < this.length) {
-    this[i] = arguments[i - len]; o.indexMap[i] = -i - 2; // see "about -2" at the top
+    this[i] = arguments[i - len]; o.indexMap[i] = - 2;
     i++;
   }
   o.notifyImmediate('push', arguments);
@@ -69,24 +60,16 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof unshift>  {
   if (o === undefined) {
     return unshift.apply(this, arguments);
   }
-  const len = this.length;
   const argCount = arguments.length;
-  if (argCount === 0) {
-    return len;
+  const inserts = new Array(argCount);
+  let i = 0;
+  while (i < argCount) {
+    inserts[i++] = - 2;
   }
-  this.length = o.indexMap.length = len + argCount
-  let k = len;
-  while (k > 0) {
-    this[k + argCount - 1] = this[k - 1]; o.indexMap[k + argCount - 1] = o.indexMap[k - 1];
-    k--;
-  }
-  let j = 0;
-  while (j < argCount) {
-    this[j] = arguments[j]; o.indexMap[j] = -j - 2; // see "about -2" at the top
-    j++;
-  }
+  unshift.apply(o.indexMap, inserts);
+  const len = unshift.apply(this, arguments);
   o.notifyImmediate('unshift', arguments);
-  return this.length;
+  return len;
 };
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.pop
@@ -95,12 +78,8 @@ function observePop(this: IObservedArray): ReturnType<typeof pop> {
   if (o === undefined) {
     return pop.call(this);
   }
-  const len = this.length;
-  if (len === 0) {
-    return undefined;
-  }
-  const element = this[len - 1];
-  this.length = o.indexMap.length = len - 1;
+  pop.call(o.indexMap);
+  const element = pop.call(this);
   o.notifyImmediate('pop');
   return element;
 };
@@ -111,61 +90,33 @@ function observeShift(this: IObservedArray): ReturnType<typeof shift> {
   if (o === undefined) {
     return shift.call(this);
   }
-  const len = this.length;
-  if (len === 0) {
-    return undefined;
-  }
-  const first = this[0];
-  let k = 1;
-  while (k < len) {
-    this[k - 1] = this[k]; o.indexMap[k - 1] = o.indexMap[k];
-    k++;
-  }
-  this.length = o.indexMap.length = len - 1;
+  shift.call(o.indexMap);
+  const element = shift.call(this);
   o.notifyImmediate('shift');
-  return first;
+  return element;
 };
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-function observeSplice(this: IObservedArray, start: number, deleteCount?: number, ...items: any[]): ReturnType<typeof splice> {
+function observeSplice(this: IObservedArray, start: number, deleteCount?: number): ReturnType<typeof splice> {
   const o = this.$observer;
   if (o === undefined) {
     return splice.apply(this, arguments);
   }
-  const len = this.length;
   const argCount = arguments.length;
-  const relativeStart = start | 0;
-  const actualStart = relativeStart < 0 ? max((len + relativeStart), 0) : min(relativeStart, len);
-  const actualDeleteCount = argCount === 0 ? 0 : argCount === 1 ? len - actualStart : min(max(deleteCount | 0, 0), len - actualStart);
-  const A = new Array(actualDeleteCount);
-  let k = 0;
-  while (k < actualDeleteCount) {
-    A[k] = this[actualStart + k];
-    k++;
-  }
-  const itemCount = items.length;
-  const netSizeChange = itemCount - actualDeleteCount;
-  if (netSizeChange < 0) {
-    k = actualStart;
-    while (k < (len - actualDeleteCount)) {
-      this[k + itemCount] = this[k + actualDeleteCount]; o.indexMap[k + itemCount] = o.indexMap[k + actualDeleteCount];
-      k++;
+  if (argCount > 2) {
+    const itemCount = argCount - 2;
+    const inserts = new Array(itemCount);
+    let i = 0;
+    while (i < itemCount) {
+      inserts[i++] = - 2;
     }
-  } else if (netSizeChange > 0) {
-    k = len - actualDeleteCount;
-    while (k > actualStart) {
-      this[k + itemCount - 1] = this[k + actualDeleteCount - 1]; o.indexMap[k + itemCount - 1] = o.indexMap[k + actualDeleteCount - 1];
-      k--;
-    }
+    splice.call(o.indexMap, start, deleteCount, ...inserts);
+  } else if (argCount === 2) {
+    splice.call(o.indexMap, start, deleteCount);
   }
-  k = actualStart;
-  while (k < (actualStart + itemCount)) {
-    this[k] = items[k - actualStart]; o.indexMap[k] = -k - 2; // see "about -2" at the top
-    k++;
-  }
-  this.length = o.indexMap.length = len - actualDeleteCount + itemCount;
+  const deleted = splice.apply(this, arguments);
   o.notifyImmediate('splice', arguments);
-  return A;
+  return deleted;
 };
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.reverse

@@ -121,7 +121,8 @@ class ObserverLocator implements IObserverLocator {
   }
 
   private createPropertyObserver(obj: any, propertyName: string) {
-    if (!(obj instanceof Object)) {
+    // note: this was instanceof Object, but that fails for Object.create(null) and this is a little faster
+    if (typeof obj !== 'object' || obj === null) {
       return new PrimitiveObserver(obj, propertyName);
     }
 
@@ -186,7 +187,7 @@ class ObserverLocator implements IObserverLocator {
       return this.dirtyChecker.createProperty(obj, propertyName);
     }
 
-    return new SetterObserver(this.taskQueue, obj, propertyName);
+    return new SetterObserver(obj, propertyName);
   }
 
   getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {

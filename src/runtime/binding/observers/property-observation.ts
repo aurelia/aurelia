@@ -49,54 +49,44 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
 }
 
 export class SetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private queued = false;
   private observing = false;
   private currentValue: any;
   private oldValue: any;
 
-  constructor(private taskQueue: ITaskQueue, private obj: any, private propertyName: string) {
+  constructor(private obj: IIndexable, private propertyName: string) {
     super();
   }
 
-  getValue() {
+  public getValue(): any {
     return this.obj[this.propertyName];
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any): void {
     this.obj[this.propertyName] = newValue;
   }
 
-  getterValue() {
+  private getterValue(): any {
     return this.currentValue;
   }
 
-  setterValue(newValue: any) {
+  private setterValue(newValue: any): void {
     let oldValue = this.currentValue;
 
     if (oldValue !== newValue) {
       this.currentValue = newValue;
       this.oldValue = oldValue;
       this.callSubscribers(newValue, oldValue);
-      // if (!this.queued) {
-      //   this.oldValue = oldValue;
-      //   this.queued = true;
-      //   this.taskQueue.queueMicroTask(this);
-      // }
-
-      // this.currentValue = newValue;
     }
   }
 
-  call() {
+  public call(): void {
     let oldValue = this.oldValue;
     let newValue = this.currentValue;
-
-    this.queued = false;
 
     this.callSubscribers(newValue, oldValue);
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable): void {
     if (!this.observing) {
       this.convertProperty();
     }
@@ -104,11 +94,11 @@ export class SetterObserver extends SubscriberCollection implements IAccessor, I
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable): void {
     this.removeSubscriber(context, callable);
   }
 
-  convertProperty() {
+  public convertProperty(): void {
     this.observing = true;
     this.currentValue = this.obj[this.propertyName];
     this.setValue = this.setterValue;
@@ -116,7 +106,9 @@ export class SetterObserver extends SubscriberCollection implements IAccessor, I
 
     if (!Reflect.defineProperty(this.obj, this.propertyName, {
       configurable: true,
-      enumerable: this.propertyName in this.obj ? this.obj.propertyIsEnumerable(this.propertyName) : true,
+      // note: removed the enumerable check because it's a performance killer on this hot path, and it chokes on Object.create(null)
+      // do we really need it?
+      enumerable: true,
       get: this.getValue.bind(this),
       set: this.setValue.bind(this)
     })) {

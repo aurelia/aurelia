@@ -18,7 +18,7 @@ export type Primitive = undefined | null | number | boolean | symbol | string;
 // so we can hardwire it to that and simply return undefined for anything else
 // note#2: a modified primitive constructor prototype would not work (and really, it shouldn't..)
 export class PrimitiveObserver implements IAccessor, ISubscribable {
-  public doNotCache = true;
+  public doNotCache: boolean = true;
   private primitive: Primitive;
 
   constructor(primitive: Primitive, propertyName: PropertyKey) {
@@ -49,7 +49,7 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
 }
 
 export class SetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private observing = false;
+  private observing: boolean = false;
   private currentValue: any;
   private oldValue: any;
 
@@ -118,19 +118,22 @@ export class SetterObserver extends SubscriberCollection implements IAccessor, I
 }
 
 export class Observer<T> extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private queued = false;
+  private queued: boolean = false;
   private oldValue: T;
 
-  constructor(private taskQueue: ITaskQueue, private currentValue: T, private selfCallback?: (newValue: T, oldValue: T) => void | T) {
+  constructor(
+    private taskQueue: ITaskQueue,
+    private currentValue: T,
+    private selfCallback?: (newValue: T, oldValue: T) => void | T) {
     super();
   }
 
-  getValue(): T {
+  public getValue(): T {
     return this.currentValue;
   }
 
-  setValue(newValue: T) {
-    let oldValue = this.currentValue;
+  public setValue(newValue: T): void {
+    const oldValue = this.currentValue;
 
     if (oldValue !== newValue) {
       if (!this.queued) {
@@ -140,7 +143,7 @@ export class Observer<T> extends SubscriberCollection implements IAccessor, ISub
       }
 
       if (this.selfCallback !== undefined) {
-        let coercedValue = this.selfCallback(newValue, oldValue);
+        const coercedValue = this.selfCallback(newValue, oldValue);
 
         if (coercedValue !== undefined) {
           newValue = <T>coercedValue;
@@ -151,18 +154,18 @@ export class Observer<T> extends SubscriberCollection implements IAccessor, ISub
     }
   }
 
-  call() {
-    let oldValue = this.oldValue;
-    let newValue = this.currentValue;
+  public call(): void {
+    const oldValue = this.oldValue;
+    const newValue = this.currentValue;
     this.queued = false;
     this.callSubscribers(newValue, oldValue);
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable): void {
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable): void {
     this.removeSubscriber(context, callable);
   }
 }

@@ -14,7 +14,7 @@ export abstract class SubscriberCollection {
   private _contextsRest: any[] = null;
   private _callablesRest: ICallable[] = null;
 
-  protected addSubscriber(context: string, callable: ICallable) {
+  protected addSubscriber(context: string, callable: ICallable): boolean {
     if (this.hasSubscriber(context, callable)) {
       return false;
     }
@@ -43,7 +43,7 @@ export abstract class SubscriberCollection {
     return true;
   }
 
-  protected removeSubscriber(context: string, callable: ICallable) {
+  protected removeSubscriber(context: string, callable: ICallable): boolean {
     if (this._context0 === context && this._callable0 === callable) {
       this._context0 = null;
       this._callable0 = null;
@@ -76,7 +76,7 @@ export abstract class SubscriberCollection {
     return true;
   }
 
-  protected callSubscribers(newValue: any, oldValue?: any) {
+  protected callSubscribers(newValue: any, oldValue?: any): void {
     let context0 = this._context0;
     let callable0 = this._callable0;
     let context1 = this._context1;
@@ -151,7 +151,7 @@ export abstract class SubscriberCollection {
     }
   }
 
-  protected hasSubscribers() {
+  protected hasSubscribers(): boolean {
     return !!(
       this._context0
       || this._context1
@@ -159,19 +159,19 @@ export abstract class SubscriberCollection {
       || this._contextsRest && this._contextsRest.length);
   }
 
-  protected hasSubscriber(context: string, callable: ICallable) {
-    let has = this._context0 === context && this._callable0 === callable
+  protected hasSubscriber(context: string, callable: ICallable): boolean {
+    const has = this._context0 === context && this._callable0 === callable
       || this._context1 === context && this._callable1 === callable
       || this._context2 === context && this._callable2 === callable;
     if (has) {
       return true;
     }
     let index;
-    let contexts = this._contextsRest;
+    const contexts = this._contextsRest;
     if (!contexts || (index = contexts.length) === 0) { // eslint-disable-line no-cond-assign
       return false;
     }
-    let callables = this._callablesRest;
+    const callables = this._callablesRest;
     while (index--) {
       if (contexts[index] === context && callables[index] === callable) {
         return true;

@@ -6,23 +6,23 @@ import { IScope, sourceContext, targetContext } from './binding-context';
 import { Reporter } from '../../kernel/reporter';
 import { PLATFORM } from '../../kernel/platform';
 
-const queue = [];              // the connect queue
-const queued = {};             // tracks whether a binding with a particular id is in the queue
-let nextId = 0;                // next available id that can be assigned to a binding for queue tracking purposes
-const minimumImmediate = 100;  // number of bindings we should connect immediately before resorting to queueing
-const frameBudget = 15;        // milliseconds allotted to each frame for flushing queue
+const queue: Binding[] = new Array();       // the connect queue
+const queued: {[id: number]: boolean} = {}; // tracks whether a binding with a particular id is in the queue
+let nextId: number = 0;                     // next available id that can be assigned to a binding for queue tracking purposes
+const minimumImmediate: number = 100;       // number of bindings we should connect immediately before resorting to queueing
+const frameBudget: number = 15;             // milliseconds allotted to each frame for flushing queue
 
-let isFlushRequested = false;  // whether a flush of the connect queue has been requested
-let immediate = 0;             // count of bindings that have been immediately connected
+let isFlushRequested = false;               // whether a flush of the connect queue has been requested
+let immediate = 0;                          // count of bindings that have been immediately connected
 
-function flush(animationFrameStart: number) {
+function flush(animationFrameStart: number): void {
   const length = queue.length;
   let i = 0;
   
   while (i < length) {
     const binding = queue[i];
     queued[binding.__connectQueueId] = false;
-    binding.connect(true);
+    binding.connect(BindingFlags.mustEvaluate);
     i++;
     // periodically check whether the frame budget has been hit.
     // this ensures we don't call performance.now a lot and prevents starving the connect queue.
@@ -41,10 +41,10 @@ function flush(animationFrameStart: number) {
   }
 }
 
-export function enqueueBindingConnect(binding) {
+function enqueueBindingConnect(binding: Binding): void {
   if (immediate < minimumImmediate) {
     immediate++;
-    binding.connect(false);
+    binding.connect(BindingFlags.none);
   } else {
     // get or assign the binding's id that enables tracking whether it's been queued.
     let id = binding.__connectQueueId;
@@ -99,6 +99,8 @@ export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 const primitiveTypes = { string: true, number: true, boolean: true, undefined: true };
 
 export class Binding implements IBinding {
+  /*@internal*/
+  public __connectQueueId: number;
   private observerSlots: any;
   private version: number;
   public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;

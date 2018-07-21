@@ -1,8 +1,4 @@
-import { CollectionObserver, CollectionKind } from './collection-observer';
-
-export interface IObservedMap extends Map<any, any> {
-  $observer: CollectionObserver;
-}
+import { CollectionKind, collectionObserver, IImmediateSubscriber, IBatchedSubscriber, IObservedMap, IMapObserver } from './collection-observer';
 
 const proto = Map.prototype;
 const set = proto.set;
@@ -84,10 +80,41 @@ function observeDelete(this: IObservedMap, value: any): ReturnType<typeof del> {
   return false;
 };
 
-export class MapObserver extends CollectionObserver {
-  constructor(map: Map<any, any>) {
-    super(map, 'size', CollectionKind.map);
+
+@collectionObserver(CollectionKind.map)
+export class MapObserver implements IMapObserver {
+  public collection: IObservedMap;
+  public indexMap: Array<number>;
+  public hasChanges: boolean;
+  public lengthPropertyName: 'size';
+  public collectionKind: CollectionKind.map;
+
+  public immediateSubscriber0: IImmediateSubscriber;
+  public immediateSubscriber1: IImmediateSubscriber;
+  public immediateSubscribers: Array<IImmediateSubscriber>;
+  public immediateSubscriberCount: number;
+  public batchedSubscriber0: IBatchedSubscriber;
+  public batchedSubscriber1: IBatchedSubscriber;
+  public batchedSubscribers: Array<IBatchedSubscriber>;
+  public batchedSubscriberCount: number;
+
+  constructor(map: Partial<IObservedMap>) {
+    map.$observer = this;
+    this.collection = <any>map;
+    this.resetIndexMap();
+    this.immediateSubscribers = new Array();
+    this.batchedSubscribers = new Array();
   }
+
+  public resetIndexMap: () => void;
+  public notifyImmediate: (origin: string, args?: IArguments) => void;
+  public notifyBatched: (indexMap: Array<number>) => void;
+  public subscribeBatched: (subscriber: IBatchedSubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedSubscriber) => void;
+  public subscribeImmediate: (subscriber: IImmediateSubscriber) => void;
+  public unsubscribeImmediate: (subscriber: IImmediateSubscriber) => void;
+  public flushChanges: () => void;
+  public dispose: () => void;
 }
 
 export function getMapObserver(map: any): MapObserver {

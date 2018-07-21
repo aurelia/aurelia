@@ -1,17 +1,14 @@
-import { CollectionObserver, CollectionKind } from './collection-observer';
+import { CollectionKind, IImmediateSubscriber, IBatchedSubscriber, collectionObserver, IArrayObserver, IObservedArray } from './collection-observer';
 
-export interface IObservedArray extends Array<any> {
-  $observer: CollectionObserver;
-}
 
 const proto = Array.prototype;
-const push = proto.push;
-const unshift = proto.unshift;
-const pop = proto.pop;
-const shift = proto.shift;
-const splice = proto.splice;
-const reverse = proto.reverse;
-const sort = proto.sort;
+const nativePush = proto.push;
+const nativeUnshift = proto.unshift;
+const nativePop = proto.pop;
+const nativeShift = proto.shift;
+const nativeSplice = proto.splice;
+const nativeReverse = proto.reverse;
+const nativeSort = proto.sort;
 
 export function enableArrayObservation(): void {
   proto.push = observePush;
@@ -24,20 +21,20 @@ export function enableArrayObservation(): void {
 }
 
 export function disableArrayObservation(): void {
-  proto.push = push;
-  proto.unshift = unshift;
-  proto.pop = pop;
-  proto.shift = shift;
-  proto.splice = splice;
-  proto.reverse = reverse;
-  proto.sort = sort;
+  proto.push = nativePush;
+  proto.unshift = nativeUnshift;
+  proto.pop = nativePop;
+  proto.shift = nativeShift;
+  proto.splice = nativeSplice;
+  proto.reverse = nativeReverse;
+  proto.sort = nativeSort;
 }
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.push
-function observePush(this: IObservedArray): ReturnType<typeof push> {
+function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
   const o = this.$observer;
   if (o === undefined) {
-    return push.apply(this, arguments);
+    return nativePush.apply(this, arguments);
   }
   const len = this.length;
   const argCount = arguments.length;
@@ -55,10 +52,10 @@ function observePush(this: IObservedArray): ReturnType<typeof push> {
 };
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-function observeUnshift(this: IObservedArray): ReturnType<typeof unshift>  {
+function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift>  {
   const o = this.$observer;
   if (o === undefined) {
-    return unshift.apply(this, arguments);
+    return nativeUnshift.apply(this, arguments);
   }
   const argCount = arguments.length;
   const inserts = new Array(argCount);
@@ -66,41 +63,41 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof unshift>  {
   while (i < argCount) {
     inserts[i++] = - 2;
   }
-  unshift.apply(o.indexMap, inserts);
-  const len = unshift.apply(this, arguments);
+  nativeUnshift.apply(o.indexMap, inserts);
+  const len = nativeUnshift.apply(this, arguments);
   o.notifyImmediate('unshift', arguments);
   return len;
 };
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.pop
-function observePop(this: IObservedArray): ReturnType<typeof pop> {
+function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
   const o = this.$observer;
   if (o === undefined) {
-    return pop.call(this);
+    return nativePop.call(this);
   }
-  pop.call(o.indexMap);
-  const element = pop.call(this);
+  nativePop.call(o.indexMap);
+  const element = nativePop.call(this);
   o.notifyImmediate('pop');
   return element;
 };
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.shift
-function observeShift(this: IObservedArray): ReturnType<typeof shift> {
+function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
   const o = this.$observer;
   if (o === undefined) {
-    return shift.call(this);
+    return nativeShift.call(this);
   }
-  shift.call(o.indexMap);
-  const element = shift.call(this);
+  nativeShift.call(o.indexMap);
+  const element = nativeShift.call(this);
   o.notifyImmediate('shift');
   return element;
 };
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-function observeSplice(this: IObservedArray, start: number, deleteCount?: number): ReturnType<typeof splice> {
+function observeSplice(this: IObservedArray, start: number, deleteCount?: number): ReturnType<typeof nativeSplice> {
   const o = this.$observer;
   if (o === undefined) {
-    return splice.apply(this, arguments);
+    return nativeSplice.apply(this, arguments);
   }
   const argCount = arguments.length;
   if (argCount > 2) {
@@ -110,20 +107,20 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
     while (i < itemCount) {
       inserts[i++] = - 2;
     }
-    splice.call(o.indexMap, start, deleteCount, ...inserts);
+    nativeSplice.call(o.indexMap, start, deleteCount, ...inserts);
   } else if (argCount === 2) {
-    splice.call(o.indexMap, start, deleteCount);
+    nativeSplice.call(o.indexMap, start, deleteCount);
   }
-  const deleted = splice.apply(this, arguments);
+  const deleted = nativeSplice.apply(this, arguments);
   o.notifyImmediate('splice', arguments);
   return deleted;
 };
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
-function observeReverse(this: IObservedArray): ReturnType<typeof reverse> {
+function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> {
   const o = this.$observer;
   if (o === undefined) {
-    return reverse.call(this);
+    return nativeReverse.call(this);
   }
   const len = this.length;
   const middle = (len / 2) | 0;
@@ -145,7 +142,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof reverse> {
 function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => number) {
   const o = this.$observer;
   if (o === undefined) {
-    return sort.call(this, compareFn);
+    return nativeSort.call(this, compareFn);
   }
   const len = this.length;
   if (len < 2) {
@@ -292,10 +289,40 @@ function quickSort(arr: IObservedArray, indexMap: Array<number>, from: number, t
   }
 }
 
-export class ArrayObserver extends CollectionObserver {
-  constructor(array: Array<any>) {
-    super(array, 'length', CollectionKind.array);
+@collectionObserver(CollectionKind.array)
+export class ArrayObserver implements IArrayObserver {
+  public collection: IObservedArray;
+  public indexMap: Array<number>;
+  public hasChanges: boolean;
+  public lengthPropertyName: 'length';
+  public collectionKind: CollectionKind.array;
+
+  public immediateSubscriber0: IImmediateSubscriber;
+  public immediateSubscriber1: IImmediateSubscriber;
+  public immediateSubscribers: Array<IImmediateSubscriber>;
+  public immediateSubscriberCount: number;
+  public batchedSubscriber0: IBatchedSubscriber;
+  public batchedSubscriber1: IBatchedSubscriber;
+  public batchedSubscribers: Array<IBatchedSubscriber>;
+  public batchedSubscriberCount: number;
+
+  constructor(array: Partial<IObservedArray>) {
+    array.$observer = this;
+    this.collection = <any>array;
+    this.resetIndexMap();
+    this.immediateSubscribers = new Array();
+    this.batchedSubscribers = new Array();
   }
+
+  public resetIndexMap: () => void;
+  public notifyImmediate: (origin: string, args?: IArguments) => void;
+  public notifyBatched: (indexMap: Array<number>) => void;
+  public subscribeBatched: (subscriber: IBatchedSubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedSubscriber) => void;
+  public subscribeImmediate: (subscriber: IImmediateSubscriber) => void;
+  public unsubscribeImmediate: (subscriber: IImmediateSubscriber) => void;
+  public flushChanges: () => void;
+  public dispose: () => void;
 }
 
 export function getArrayObserver(array: any): ArrayObserver {

@@ -1,4 +1,4 @@
-import { CollectionObserver, CollectionKind } from './collection-observer';
+import { CollectionObserver, CollectionKind, collectionObserver, ISetObserver, IImmediateSubscriber, IBatchedSubscriber, IObservedArray } from './collection-observer';
 
 export interface IObservedSet extends Set<any> {
   $observer: CollectionObserver;
@@ -74,10 +74,40 @@ function observeDelete(this: IObservedSet, value: any): ReturnType<typeof del> {
   return false;
 };
 
-export class SetObserver extends CollectionObserver {
-  constructor(set: Set<any>) {
-    super(set, 'size', CollectionKind.set);
+@collectionObserver(CollectionKind.set)
+export class SetObserver implements ISetObserver {
+  public collection: IObservedSet;
+  public indexMap: Array<number>;
+  public hasChanges: boolean;
+  public lengthPropertyName: 'size';
+  public collectionKind: CollectionKind.set;
+
+  public immediateSubscriber0: IImmediateSubscriber;
+  public immediateSubscriber1: IImmediateSubscriber;
+  public immediateSubscribers: Array<IImmediateSubscriber>;
+  public immediateSubscriberCount: number;
+  public batchedSubscriber0: IBatchedSubscriber;
+  public batchedSubscriber1: IBatchedSubscriber;
+  public batchedSubscribers: Array<IBatchedSubscriber>;
+  public batchedSubscriberCount: number;
+
+  constructor(array: Partial<IObservedArray>) {
+    array.$observer = this;
+    this.collection = <any>array;
+    this.resetIndexMap();
+    this.immediateSubscribers = new Array();
+    this.batchedSubscribers = new Array();
   }
+
+  public resetIndexMap: () => void;
+  public notifyImmediate: (origin: string, args?: IArguments) => void;
+  public notifyBatched: (indexMap: Array<number>) => void;
+  public subscribeBatched: (subscriber: IBatchedSubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedSubscriber) => void;
+  public subscribeImmediate: (subscriber: IImmediateSubscriber) => void;
+  public unsubscribeImmediate: (subscriber: IImmediateSubscriber) => void;
+  public flushChanges: () => void;
+  public dispose: () => void;
 }
 
 export function getSetObserver(set: any): SetObserver {

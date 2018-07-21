@@ -1,11 +1,18 @@
-import { ConnectableBinding } from './connectable-binding';
 import { enqueueBindingConnect } from './connect-queue';
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
-import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor } from './observation';
+import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IBindingCollectionObserver } from './observation';
 import { IServiceLocator } from '../../kernel/di';
 import { IScope, sourceContext, targetContext } from './binding-context';
 import { Reporter } from '../../kernel/reporter';
+
+const slotNames: string[] = [];
+const versionSlotNames: string[] = [];
+
+for (let i = 0; i < 100; i++) {
+  slotNames.push(`_observer${i}`);
+  versionSlotNames.push(`_observerVersion${i}`);
+}
 
 export enum BindingFlags {
   none             = 0b00000,
@@ -31,7 +38,9 @@ export interface IBinding extends IBindScope {
 export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 const primitiveTypes = { string: true, number: true, boolean: true, undefined: true };
 
-export class Binding extends ConnectableBinding implements IBinding {
+export class Binding implements IBinding {
+  private observerSlots: any;
+  private version: number;
   public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
   private $scope: IScope;
   private $isBound = false;
@@ -42,12 +51,11 @@ export class Binding extends ConnectableBinding implements IBinding {
     public target: IBindingTarget,
     public targetProperty: string,
     public mode: BindingMode,
-    observerLocator: IObserverLocator,
+    private observerLocator: IObserverLocator,
     public locator: IServiceLocator) {
-    super(observerLocator);
   }
 
-  updateTarget(value: any) {
+  public updateTarget(value: any): void {
     if (primitiveTypes[typeof value]) {
       // this is a "last defense" of sorts against unnecessary setters, particularly beneficial for
       // the performance and simplicity of the repeater 
@@ -67,11 +75,11 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.targetObserver.setValue(value, this.target, this.targetProperty);
   }
 
-  updateSource(value: any) {
+  public updateSource(value: any): void {
     this.sourceExpression.assign(BindingFlags.none, this.$scope, this.locator, value);
   }
 
-  call(context: string, newValue?: any, oldValue?: any) {
+  public call(context: string, newValue?: any, oldValue?: any): void {
     if (!this.$isBound) {
       return;
     }
@@ -104,7 +112,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     throw Reporter.error(15, context);
   }
 
-  $bind(flags: BindingFlags, scope: IScope) {
+  public $bind(flags: BindingFlags, scope: IScope): void {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -148,7 +156,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
   }
 
-  $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
@@ -172,7 +180,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.unobserve(true);
   }
 
-  connect(flags: BindingFlags) {
+  public connect(flags: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
@@ -183,5 +191,57 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     this.sourceExpression.connect(flags, this.$scope, this);
+  }
+
+  public addObserver(observer: IBindingTargetObserver | IBindingCollectionObserver): void {
+    // find the observer.
+    let observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
+    let i = observerSlots;
+
+    while (i-- && this[slotNames[i]] !== observer) {
+      // Do nothing
+    }
+
+    // if we are not already observing, put the observer in an open slot and subscribe.
+    if (i === -1) {
+      i = 0;
+      while (this[slotNames[i]]) {
+        i++;
+      }
+      this[slotNames[i]] = observer;
+      observer.subscribe(sourceContext, this);
+      // increment the slot count.
+      if (i === observerSlots) {
+        this.observerSlots = i + 1;
+      }
+    }
+    // set the "version" when the observer was used.
+    if (this.version === undefined) {
+      this.version = 0;
+    }
+    this[versionSlotNames[i]] = this.version;
+  }
+
+  public observeProperty(obj: any, propertyName: string): void {
+    let observer = this.observerLocator.getObserver(obj, propertyName);
+    this.addObserver(<any>observer);
+  }
+
+  public observeArray(array: any[]): void {
+    let observer = this.observerLocator.getArrayObserver(array);
+    this.addObserver(observer);
+  }
+
+  public unobserve(all?: boolean): void {
+    let i = this.observerSlots;
+    while (i--) {
+      if (all || this[versionSlotNames[i]] !== this.version) {
+        let observer = this[slotNames[i]];
+        this[slotNames[i]] = null;
+        if (observer) {
+          observer.unsubscribe(sourceContext, this);
+        }
+      }
+    }
   }
 }

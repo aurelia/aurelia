@@ -55,7 +55,9 @@ function getPropertyDescriptor(subject: object, name: string) {
 
   return pd;
 }
-
+const xlinkCapturingMatcher = /^xlink:(.+)$/;
+const xlinkNonCapturingMatcher = /^xlink:.+$/;
+const ariaMatcher = /^\w+:|^data-|^aria-/;
 @inject(ITaskQueue, IEventManager, IDirtyChecker, ISVGAnalyzer)
 class ObserverLocator implements IObserverLocator {
   private adapters: ObjectObservationAdapter[] = [];
@@ -138,11 +140,12 @@ class ObserverLocator implements IObserverLocator {
       }
 
       const handler = this.eventManager.getElementHandler(obj, propertyName);
-      if (propertyName === 'value' && DOM.normalizedTagName(obj) === 'select') {
+      const name = obj['tagName'];
+      if (propertyName === 'value' && name === 'SELECT') {
         return new SelectValueObserver(<HTMLSelectElement>obj, handler, this.taskQueue, this);
       }
 
-      if (propertyName === 'checked' && DOM.normalizedTagName(obj) === 'input') {
+      if (propertyName === 'checked' && name === 'INPUT') {
         return new CheckedObserver(<HTMLInputElement>obj, handler, this.taskQueue, this);
       }
 
@@ -150,13 +153,13 @@ class ObserverLocator implements IObserverLocator {
         return new ValueAttributeObserver(obj, propertyName, handler);
       }
 
-      const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
+      const xlinkResult = xlinkCapturingMatcher.exec(propertyName);
       if (xlinkResult) {
         return new XLinkAttributeObserver(obj, propertyName, xlinkResult[1]);
       }
 
       if (propertyName === 'role'
-        || /^\w+:|^data-|^aria-/.test(propertyName)
+        || ariaMatcher.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
         return new DataAttributeObserver(obj, propertyName);
       }
@@ -194,21 +197,21 @@ class ObserverLocator implements IObserverLocator {
 
   getAccessor(flags: BindingFlags, obj: any, propertyName: string): IAccessor {
     if (DOM.isNodeInstance(obj)) {
-      let normalizedTagName = DOM.normalizedTagName;
+      const name = obj['tagName'];
 
       if (propertyName === 'class'
         || propertyName === 'style' || propertyName === 'css'
-        || propertyName === 'value' && (normalizedTagName(obj) === 'input' || normalizedTagName(obj) === 'select')
-        || propertyName === 'checked' && normalizedTagName(obj) === 'input'
-        || propertyName === 'model' && normalizedTagName(obj) === 'input'
-        || /^xlink:.+$/.exec(propertyName)) {
+        || propertyName === 'value' && (name === 'INPUT' || name === 'SELECT')
+        || propertyName === 'checked' && name === 'INPUT'
+        || propertyName === 'model' && name === 'INPUT'
+        || xlinkNonCapturingMatcher.test(propertyName)) {
         return <any>this.getObserver(flags, obj, propertyName);
       }
 
-      if (/^\w+:|^data-|^aria-/.test(propertyName)
+      if (ariaMatcher.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)
-        || normalizedTagName(obj) === 'img' && propertyName === 'src'
-        || normalizedTagName(obj) === 'a' && propertyName === 'href'
+        || name === 'IMG' && propertyName === 'src'
+        || name === 'A' && propertyName === 'href'
       ) {
         return dataAttributeAccessor(obj, propertyName);
       }

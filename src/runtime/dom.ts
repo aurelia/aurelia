@@ -155,12 +155,6 @@ export const DOM = {
     return (<Node>node).nodeType === 3;
   },
 
-  // todo: get rid of this (the spec has clear and simple rules about tagNames and we should write our logic accordingly, not wasting CPU on normalizing)
-  normalizedTagName(node: INode): string {
-    let name = (<Element>node).tagName;
-    return name ? name.toLowerCase() : null;
-  },
-
   remove(node: INodeLike): void {
     // only check the prototype once and then permanently set a polyfilled or non-polyfilled call to save a few cycles
     if (Element.prototype.remove === undefined) {

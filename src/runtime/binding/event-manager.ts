@@ -258,7 +258,7 @@ class EventManager implements IEventManager {
   }
 
   getElementHandler(target: INode, propertyName: string): IEventSubscriber | null {
-    let name = DOM.normalizedTagName(target);
+    let name = target['tagName'];
     let lookup = this.elementHandlerLookup;
 
     if (name) {

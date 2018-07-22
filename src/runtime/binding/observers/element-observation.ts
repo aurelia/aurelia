@@ -4,6 +4,9 @@ import { IAccessor, ISubscribable } from '../observation';
 import { IEventSubscriber } from '../event-manager';
 import { INode, DOM } from '../../dom';
 
+const styleAttributeMatcher = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:^"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
+const capitalMatcher = /([A-Z])/g;
+
 export class XLinkAttributeObserver implements IAccessor {
   // xlink namespaced attributes require getAttributeNS/setAttributeNS
   // (even though the NS version doesn't work for other namespaces
@@ -23,7 +26,7 @@ export class XLinkAttributeObserver implements IAccessor {
   }
 
   subscribe() {
-    throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "${this.propertyName}" property is not supported.`);
+    throw new Error(`Observation of a "${this.node['tagName']}" element\'s "${this.propertyName}" property is not supported.`);
   }
 }
 
@@ -64,7 +67,7 @@ export class DataAttributeObserver implements IAccessor {
   }
 
   subscribe() {
-    throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "${this.propertyName}" property is not supported.`);
+    throw new Error(`Observation of a "${this.node['tagName']}" element\'s "${this.propertyName}" property is not supported.`);
   }
 }
 
@@ -100,15 +103,14 @@ export class StyleObserver implements IAccessor {
         for (style in newValue) {
           if (newValue.hasOwnProperty(style)) {
             value = newValue[style];
-            style = style.replace(/([A-Z])/g, m => '-' + m.toLowerCase());
+            style = style.replace(capitalMatcher, m => '-' + m.toLowerCase());
             styles[style] = version;
             this._setProperty(style, value);
           }
         }
       } else if (newValue.length) {
-        let rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:^"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
         let pair;
-        while ((pair = rx.exec(newValue)) !== null) {
+        while ((pair = styleAttributeMatcher.exec(newValue)) !== null) {
           style = pair[1];
           if (!style) { continue; }
 

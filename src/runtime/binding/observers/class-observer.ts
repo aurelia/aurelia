@@ -1,6 +1,7 @@
 import { IAccessor } from '../observation';
 import { INode, DOM } from '../../dom';
 
+const wsMatcher = /\s+/;
 export class ClassObserver implements IAccessor {
   doNotCache = true;
   value = '';
@@ -24,7 +25,7 @@ export class ClassObserver implements IAccessor {
 
     // Add the classes, tracking the version at which they were added.
     if (newValue !== null && newValue !== undefined && newValue.length) {
-      names = newValue.split(/\s+/);
+      names = newValue.split(wsMatcher);
       for (let i = 0, length = names.length; i < length; i++) {
         name = names[i];
 
@@ -60,6 +61,6 @@ export class ClassObserver implements IAccessor {
   }
 
   subscribe() {
-    throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "class" property is not supported.`);
+    throw new Error(`Observation of a "${this.node['tagName']}" element\'s "class" property is not supported.`);
   }
 }

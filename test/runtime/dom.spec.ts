@@ -427,10 +427,6 @@ describe('DOM', () => {
     }
   });
 
-  describe('normalizedTagName', () => {
-    // should be deprecated, so not testing right now
-  });
-
   describe('remove', () => {
     it('should remove the childNode from its parent (non-polyfilled)', () => {
       const node = document.createElement('div');

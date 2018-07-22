@@ -17,7 +17,7 @@ function setPropertyValueAsync(this: any, propertyName: string, tq: ITaskQueue, 
 }
 
 export function propertyAccessor(flags: BindingFlags, tq: ITaskQueue, obj: any, propertyName: string): IAccessor {
-  if (flags & BindingFlags.updateAsync) {
+  if (flags & BindingFlags.useTaskQueue) {
     return {
       getValue: getPropertyValue.bind(obj, propertyName),
       setValue: setPropertyValueAsync.bind(obj, propertyName, tq)

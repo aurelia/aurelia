@@ -26,7 +26,7 @@ export abstract class IfCore {
       return;
     }
 
-    this.child.$unbind(BindingFlags.updateAsync);
+    this.child.$unbind(BindingFlags.useTaskQueue);
 
     if (!this.factory.isCaching) {
       return;
@@ -47,7 +47,7 @@ export abstract class IfCore {
       this.child = this.factory.create();
     }
 
-    this.child.$bind(BindingFlags.updateAsync, this.$scope);
+    this.child.$bind(BindingFlags.useTaskQueue, this.$scope);
 
     if (!this.showing) {
       this.showing = true;

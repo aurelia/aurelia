@@ -81,7 +81,7 @@ export enum BindingFlags {
   itemsMutation    = 0b000100,
   connectImmediate = 0b001000,
   createObjects    = 0b010000,
-  updateAsync      = 0b100000
+  useTaskQueue     = 0b100000
 }
 
 export enum BindingMode {
@@ -295,7 +295,7 @@ export class Binding implements IBinding {
         i++;
       }
       this[slotNames[i]] = observer;
-      if (flags & BindingFlags.updateAsync) {
+      if (flags & BindingFlags.useTaskQueue) {
         observer.subscribeBatched(this);
       } else {
         observer.subscribe(this);

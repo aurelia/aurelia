@@ -325,14 +325,31 @@ export class Binding implements IBinding {
   // }
 
   public unobserve(all?: boolean): void {
-    let i = this.observerSlots;
-    while (i--) {
-      if (all || this[versionSlotNames[i]] !== this.version) {
-        let observer = this[slotNames[i]];
-        this[slotNames[i]] = null;
-        if (observer) {
+    const slots = this.observerSlots;
+    let i = 0;
+    let slotName;
+    let observer;
+    if (all) {
+      // forward array processing is easier on the cpu than backwards (unlike a loop without array processing)
+      while (i < slots) {
+        slotName = slotNames[i];
+        if (observer = this[slotName]) {
+          this[slotName] = null;
           observer.unsubscribe(this);
         }
+        i++;
+      }
+    } else {
+      const version = this.version;
+      while (i < slots) {
+        if (this[versionSlotNames[i]] !== version) {
+          slotName = slotNames[i];
+          if (observer = this[slotName]) {
+            this[slotName] = null;
+            observer.unsubscribe(this);
+          }
+        }
+        i++;
       }
     }
   }

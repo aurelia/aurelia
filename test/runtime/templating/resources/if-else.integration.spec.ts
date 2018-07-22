@@ -103,7 +103,7 @@ describe('If', () => {
     DOM.appendChild(document.body, host);
   });
 
-  describe('splice - synchronize', () => {
+  describe('if (render)', () => {
     const fixtures: IIfFixture[] = [
       { type: If, elName: 'foo1', conditionName: 'foo', propName: 'bar' },
       { type: If, elName: 'foo2', conditionName: 'baz', propName: 'qux' }

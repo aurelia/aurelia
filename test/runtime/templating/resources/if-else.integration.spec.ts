@@ -14,7 +14,7 @@ import { INode, IView, DOM } from '../../../../src/runtime/dom';
 import { IRenderContext } from '../../../../src/runtime/templating/render-context';
 import { IBindScope, IObservedArray } from '../../../../src/runtime/binding/observation';
 import { IEmulatedShadowSlot } from '../../../../src/runtime/templating/shadow-dom';
-import { padRight, incrementItems, assertVisualsSynchronized, createAureliaRepeaterConfig, IRepeaterFixture, createRepeater, createIf, createAureliaIfConfig, IIfFixture } from '../../util';
+import { padRight, incrementItems, assertVisualsSynchronized, createAureliaRepeaterConfig, IRepeaterFixture, createRepeater, createIf, createAureliaIfConfig, IIfFixture, createIfTemplateSource, createTextBindingTemplateSource } from '../../util';
 import { If } from '../../../../src/runtime/templating/resources/if';
 import { Aurelia } from '../../../../src/runtime/aurelia';
 import { ICustomElement } from '../../../../src/runtime/templating/custom-element';
@@ -142,7 +142,8 @@ describe('If', () => {
                 it(title, async () => {
                   aureliaConfig = createAureliaIfConfig(fixture);
                   au.register(aureliaConfig);
-                  component = createIf(fixture, initialCondition, value);
+                  const templateSource = createIfTemplateSource(fixture, createTextBindingTemplateSource(propName));
+                  component = createIf(fixture, initialCondition, value, templateSource);
                   component.$flags = BindingFlags.connectImmediate; 
                   au.app({ host, component });
                   au.start();

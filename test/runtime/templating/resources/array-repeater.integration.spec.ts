@@ -1,13 +1,17 @@
+import { ITemplateSource, TargetedInstructionType } from './../../../../src/runtime/templating/instructions';
 import { Aurelia } from '../../../../src/runtime/aurelia';
 import { Repeater } from '../../../../src/runtime/templating/resources/repeater';
 import { IContainer, DI } from '../../../../src/kernel/di';
 import { ITaskQueue } from '../../../../src/runtime/task-queue';
 import { enableArrayObservation, disableArrayObservation } from '../../../../src/runtime/binding/observers/array-observer';
 import { DOM, INode } from '../../../../src/runtime/dom';
-import { createAureliaRepeaterConfig, IRepeaterFixture, padRight, createRepeater, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../../util';
+import { createAureliaRepeaterConfig, IRepeaterFixture, padRight, createRepeater, assertVisualsSynchronized, assertDOMSynchronized, incrementItems, createRepeaterTemplateSource, createTextBindingTemplateSource } from '../../util';
 import { ICustomElement } from '../../../../src/runtime/templating/custom-element';
 import { BindingFlags } from '../../../../src/runtime/binding/binding';
 import { IObservedArray } from '../../../../src/runtime/binding/observation';
+import { IExpressionParser } from '../../../../src/runtime/binding/expression-parser';
+import { AccessScope, AccessMember } from '../../../../src/runtime/binding/ast';
+import { expect } from 'chai';
 
 describe('ArrayRepeater', () => {
   let container: IContainer;
@@ -37,8 +41,8 @@ describe('ArrayRepeater', () => {
 
   describe('splice should render correctly', () => {
     const fixtures: IRepeaterFixture[] = [
-      { type: Repeater, elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
-      { type: Repeater, elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
+      { elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
+      { elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
     ];
     const initArr = [[], [1], [1, 2]];
     const startArr = [0, 1, 2];
@@ -83,7 +87,8 @@ describe('ArrayRepeater', () => {
                     const initItems = init.map(i => ({ [propName]: i }));
                     const initItemsCopy = initItems.slice();
                     const newItems = items.map(i => ({ [propName]: i }));
-                    component = createRepeater(fixture, initItems);
+                    const templateSource = createRepeaterTemplateSource(fixture, createTextBindingTemplateSource(propName));
+                    component = createRepeater(fixture, initItems, templateSource);
                     // connectQueue causes tests with bindings to be non-deterministic, so we need to turn it off (and test it explicitly in some other way)
                     component.$flags = BindingFlags.connectImmediate; 
                     au.app({ host, component });
@@ -136,8 +141,8 @@ describe('ArrayRepeater', () => {
 
   describe('assign should render correctly', () => {
     const fixtures: IRepeaterFixture[] = [
-      { type: Repeater, elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
-      { type: Repeater, elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
+      { elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
+      { elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
     ];
     const initArr = [[], [1], [1, 2]];
     const assignArr = [[], [4], [4, 5]];
@@ -172,7 +177,8 @@ describe('ArrayRepeater', () => {
                 const initItems = init.map(i => ({ [propName]: i }));
                 const initItemsCopy = initItems.slice();
                 let assignItems = assign.map(i => ({ [propName]: i }));
-                component = createRepeater(fixture, initItems);
+                const templateSource = createRepeaterTemplateSource(fixture, createTextBindingTemplateSource(propName));
+                component = createRepeater(fixture, initItems, templateSource);
                 component.$flags = BindingFlags.connectImmediate; 
                 au.app({ host, component });
                 au.start();
@@ -224,8 +230,8 @@ describe('ArrayRepeater', () => {
   
   describe('reverse should render correctly', () => {
     const fixtures: IRepeaterFixture[] = [
-      { type: Repeater, elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
-      { type: Repeater, elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
+      { elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
+      { elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
     ];
     const initArr = [[], [1], [1, 2], [1, 2, 3], [1, 2, 3, 4]];
     const flushArr = ['never', 'once', 'every'];
@@ -254,7 +260,8 @@ describe('ArrayRepeater', () => {
               au.register(aureliaConfig);
               const initItems = init.map(i => ({ [propName]: i }));
               const initItemsCopy = initItems.slice();
-              component = createRepeater(fixture, initItems);
+              const templateSource = createRepeaterTemplateSource(fixture, createTextBindingTemplateSource(propName));
+              component = createRepeater(fixture, initItems, templateSource);
               // connectQueue causes tests with bindings to be non-deterministic, so we need to turn it off (and test it explicitly in some other way)
               component.$flags = BindingFlags.connectImmediate; 
               au.app({ host, component });
@@ -298,6 +305,125 @@ describe('ArrayRepeater', () => {
         }
       }
     }
+  });
+
+
+  it('triple nested repeater should render correctly', () => {
+    const initItems = [
+      { 
+        id: 1,
+        innerTodos: [
+          { innerId: 10, innerInnerTodos: [ { innerInnerId: 100 }, { innerInnerId: 101 }, { innerInnerId: 102 } ] },
+          { innerId: 11, innerInnerTodos: [ { innerInnerId: 110 }, { innerInnerId: 111 }, { innerInnerId: 112 } ] },
+          { innerId: 12, innerInnerTodos: [ { innerInnerId: 120 }, { innerInnerId: 121 }, { innerInnerId: 122 } ] }
+        ]
+      },
+      { id: 2,
+        innerTodos: [
+          { innerId: 20, innerInnerTodos: [ { innerInnerId: 200 }, { innerInnerId: 201 }, { innerInnerId: 202 } ] },
+          { innerId: 21, innerInnerTodos: [ { innerInnerId: 210 }, { innerInnerId: 211 }, { innerInnerId: 212 } ] },
+          { innerId: 22, innerInnerTodos: [ { innerInnerId: 220 }, { innerInnerId: 221 }, { innerInnerId: 222 } ] }
+        ]
+      },
+      { id: 3,
+        innerTodos: [
+          { innerId: 30, innerInnerTodos: [ { innerInnerId: 300 }, { innerInnerId: 301 }, { innerInnerId: 302 } ] },
+          { innerId: 31, innerInnerTodos: [ { innerInnerId: 310 }, { innerInnerId: 311 }, { innerInnerId: 312 } ] },
+          { innerId: 32, innerInnerTodos: [ { innerInnerId: 320 }, { innerInnerId: 321 }, { innerInnerId: 322 } ] }
+        ]
+      },
+    ];
+    const expressionCache = {
+      todos: new AccessScope('todos'),
+      id: new AccessMember(new AccessScope('todo'), 'id'),
+      length: new AccessMember(new AccessMember(new AccessScope('todo'), 'innerTodos'), 'length'),
+      innerTodos: new AccessMember(new AccessScope('todo'), 'innerTodos'),
+      innerId: new AccessMember(new AccessScope('innerTodo'), 'innerId'),
+      innerLength: new AccessMember(new AccessMember(new AccessScope('innerTodo'), 'innerInnerTodos'), 'length'),
+      innerInnerTodos: new AccessMember(new AccessScope('innerTodo'), 'innerInnerTodos'),
+      innerInnerId: new AccessMember(new AccessScope('innerInnerTodo'), 'innerInnerId')
+    };
+    aureliaConfig = {
+      register(container: IContainer) {
+        container.get(IExpressionParser).cache(expressionCache);
+        container.register(<any>Repeater);
+      }
+    };
+    au.register(aureliaConfig);
+    const templateSource: ITemplateSource = {
+      name: 'app',
+      dependencies: [],
+      template: `<span class="au"></span> `,
+      instructions: [
+        [
+          {
+            type: TargetedInstructionType.hydrateTemplateController,
+            res: 'repeat',
+            src: {
+              cache: "*",
+              template: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
+              instructions: [
+                [ { type: TargetedInstructionType.textBinding, src: 'id' } ],
+                [ { type: TargetedInstructionType.textBinding, src: 'length' } ],
+                [
+                  {
+                    type: TargetedInstructionType.hydrateTemplateController,
+                    res: 'repeat',
+                    src: {
+                      cache: "*",
+                      template: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
+                      instructions: [
+                        [ { type: TargetedInstructionType.textBinding, src: 'innerId' } ],
+                        [ { type: TargetedInstructionType.textBinding, src: 'innerLength' } ],
+                        [
+                          {
+                            type: TargetedInstructionType.hydrateTemplateController,
+                            res: 'repeat',
+                            src: {
+                              cache: "*",
+                              template: `<span class="au"></span> `,
+                              instructions: [
+                                [ { type: TargetedInstructionType.textBinding, src: 'innerInnerId' } ]
+                              ]
+                            },
+                            instructions: [
+                              { type: TargetedInstructionType.toViewBinding, src: 'innerInnerTodos', dest: 'items' },
+                              { type: TargetedInstructionType.setProperty, value: 'innerInnerTodo', dest: 'local' },
+                              { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
+                            ]
+                          }
+                        ]
+                      ]
+                    },
+                    instructions: [
+                      { type: TargetedInstructionType.toViewBinding, src: 'innerTodos', dest: 'items' },
+                      { type: TargetedInstructionType.setProperty, value: 'innerTodo', dest: 'local' },
+                      { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
+                    ]
+                  }
+                ]
+              ]
+            },
+            instructions: [
+              { type: TargetedInstructionType.toViewBinding, src: 'todos', dest: 'items' },
+              { type: TargetedInstructionType.setProperty, value: 'todo', dest: 'local' },
+              { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
+            ]
+          }
+        ]
+      ],
+      surrogates: []
+    }
+    component = createRepeater(<any>{ colName: 'todos' }, initItems, templateSource);
+
+    component.$flags = BindingFlags.connectImmediate; 
+    au.app({ host, component });
+    au.start();
+    sut = <any>au['components'][0].$attachable[0];
+    taskQueue.flushMicroTaskQueue();
+
+    const expectedText = initItems.map(i => `${i.id}${i.innerTodos.length}${i.innerTodos.map(ii => `${ii.innerId}${ii.innerInnerTodos.length}${ii.innerInnerTodos.map(iii => `${iii.innerInnerId}`).join('')}`).join(' ')}`).join(' ');
+    expect(host['innerText']).to.equal(expectedText);
   });
 });
 

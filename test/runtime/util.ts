@@ -40,11 +40,10 @@ export function padRight(str: any, len: number): string {
  * (currently specific to repeater)
  */
 export interface IRepeaterFixture {
-  type: Function;
   elName: string;
   colName: string;
   itemName: string;
-  propName: string;
+  propName?: string;
 }
 
 export interface IIfFixture {
@@ -54,12 +53,27 @@ export interface IIfFixture {
   propName: string;
 }
 
+export function createTextBindingTemplateSource(propertyName: string, oneTime?: boolean): ITemplateSource {
+  return {
+    template: `<div><au-marker class="au"></au-marker> </div>`,
+    instructions: [
+      [
+        {
+          type: TargetedInstructionType.textBinding,
+          src: propertyName,
+          oneTime: oneTime
+        }
+      ]
+    ]
+  };
+}
+
 /**
  * Create App configuration based on the provided fixture
  * 
  * (currently specific to repeater)
  */
-export function createRepeaterAppConfig({ elName, colName, itemName, propName }: IRepeaterFixture): ITemplateSource {
+export function createRepeaterTemplateSource({ elName, colName, itemName }: IRepeaterFixture, src: ITemplateSource): ITemplateSource {
   return {
     name: elName,
     dependencies: [],
@@ -71,17 +85,7 @@ export function createRepeaterAppConfig({ elName, colName, itemName, propName }:
         {
           type: TargetedInstructionType.hydrateTemplateController,
           res: 'repeat',
-          src: {
-            template: `<div><au-marker class="au"></au-marker> </div>`,
-            instructions: [
-              [
-                {
-                  type: TargetedInstructionType.textBinding,
-                  src: propName
-                }
-              ]
-            ]
-          },
+          src: src,
           instructions: [
             {
               type: TargetedInstructionType.toViewBinding,
@@ -101,7 +105,7 @@ export function createRepeaterAppConfig({ elName, colName, itemName, propName }:
   };
 };
 
-export function createIfAppConfig({ elName, propName, conditionName }: IIfFixture): ITemplateSource {
+export function createIfTemplateSource({ elName, conditionName }: IIfFixture, src: ITemplateSource): ITemplateSource {
   return {
     name: elName,
     dependencies: [],
@@ -113,17 +117,7 @@ export function createIfAppConfig({ elName, propName, conditionName }: IIfFixtur
         {
           type: TargetedInstructionType.hydrateTemplateController,
           res: 'if',
-          src: {
-            template: `<div><au-marker class="au"></au-marker> </div>`,
-            instructions: [
-              [
-                {
-                  type: TargetedInstructionType.textBinding,
-                  src: propName
-                }
-              ]
-            ]
-          },
+          src,
           instructions: [
             {
               type: TargetedInstructionType.toViewBinding,
@@ -177,9 +171,8 @@ export function createAureliaIfConfig({ propName, conditionName  }: IIfFixture):
  * 
  * (currently specific to repeater)
  */
-export function createRepeater(fixture: IRepeaterFixture, initialItems: any[]): ICustomElement {
-  const appConfig = createRepeaterAppConfig(fixture);
-  const Type = CustomElementResource.define(appConfig, class {});
+export function createRepeater(fixture: IRepeaterFixture, initialItems: any[], src: ITemplateSource): ICustomElement {
+  const Type = CustomElementResource.define(src, class {});
   const component = new Type();
   component[fixture.colName] = initialItems;
   return component;
@@ -190,9 +183,8 @@ export function createRepeater(fixture: IRepeaterFixture, initialItems: any[]): 
  * 
  * (currently specific to repeater)
  */
-export function createIf(fixture: IIfFixture, initialCondition: boolean, initialPropValue: any): ICustomElement {
-  const appConfig = createIfAppConfig(fixture);
-  const Type = CustomElementResource.define(appConfig, class {});
+export function createIf(fixture: IIfFixture, initialCondition: boolean, initialPropValue: any, src: ITemplateSource): ICustomElement {
+  const Type = CustomElementResource.define(src, class {});
   const component = new Type();
   component[fixture.conditionName] = initialCondition;
   component[fixture.propName] = initialPropValue;

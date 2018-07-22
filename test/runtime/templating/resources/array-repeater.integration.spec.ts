@@ -7,13 +7,14 @@ import { DOM, INode } from '../../../../src/runtime/dom';
 import { createAureliaConfig, IFixture, padRight, createComponent, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../../util';
 import { ICustomElement } from '../../../../src/runtime/templating/custom-element';
 import { BindingFlags } from '../../../../src/runtime/binding/binding';
+import { IObservedArray } from '../../../../src/runtime/binding/observers/collection-observer';
 
 describe('ArrayRepeater', () => {
   let container: IContainer;
   let taskQueue: ITaskQueue;
   let au: Aurelia;
   let host: INode;
-  let sut: Repeater<Array<any>>;
+  let sut: Repeater<IObservedArray>;
 
   let aureliaConfig: ReturnType<typeof createAureliaConfig>;
   let component: ICustomElement;

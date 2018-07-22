@@ -15,6 +15,8 @@ export const PLATFORM = {
   })(),
   emptyArray: <Array<any>>Object.freeze([]),
   emptyObject: Object.freeze({}),
+  /*@internal*/
+  $null: Object.freeze(Object.create(null)),
   noop: function() {},
 
   now(): number {

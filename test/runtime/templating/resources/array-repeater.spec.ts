@@ -15,6 +15,7 @@ import { IRenderContext } from '../../../../src/runtime/templating/render-contex
 import { IBindScope } from '../../../../src/runtime/binding/observation';
 import { IEmulatedShadowSlot } from '../../../../src/runtime/templating/shadow-dom';
 import { padRight, incrementItems, assertVisualsSynchronized } from '../../util';
+import { IObservedArray } from '../../../../src/runtime/binding/observers/collection-observer';
 
 class TestViewOwner implements IViewOwner {
   $context: IRenderContext;
@@ -89,7 +90,7 @@ describe('ArrayRepeater', () => {
   let owner: IViewOwner;
   let factory: IVisualFactory;
   let host: HTMLElement;
-  let sut: Repeater<Array<any>>;
+  let sut: Repeater<IObservedArray>;
 
   before(() => {
     enableArrayObservation();

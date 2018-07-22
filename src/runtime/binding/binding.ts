@@ -5,6 +5,7 @@ import { IServiceLocator } from '../../kernel/di';
 import { IScope, sourceContext, targetContext } from './binding-context';
 import { Reporter } from '../../kernel/reporter';
 import { PLATFORM } from '../../kernel/platform';
+import { PropertyObserver } from './observers/property-observer';
 
 const queue: Binding[] = new Array();       // the connect queue
 const queued: {[id: number]: boolean} = {}; // tracks whether a binding with a particular id is in the queue
@@ -107,6 +108,7 @@ export class Binding implements IBinding {
   private $scope: IScope;
   private $isBound = false;
   private prevValue: any;
+  private callFromImmediateSubscriber: any;//todo: uber hack for testing purposes, get rid of this asap
 
   constructor(
     public sourceExpression: IExpression,
@@ -115,6 +117,7 @@ export class Binding implements IBinding {
     public mode: BindingMode,
     private observerLocator: IObserverLocator,
     public locator: IServiceLocator) {
+      this.callFromImmediateSubscriber = this.call.bind(this, sourceContext);
   }
 
   public updateTarget(value: any): void {
@@ -151,7 +154,7 @@ export class Binding implements IBinding {
       newValue = this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator);
 
       if (newValue !== oldValue) {
-        this.updateTarget(newValue);
+        //this.updateTarget(newValue);
       }
 
       if (this.mode !== BindingMode.oneTime) {
@@ -255,7 +258,7 @@ export class Binding implements IBinding {
     this.sourceExpression.connect(flags, this.$scope, this);
   }
 
-  public addObserver(observer: IBindingTargetObserver | IBindingCollectionObserver): void {
+  public addObserver(observer: IBindingTargetObserver | IBindingCollectionObserver | PropertyObserver): void {
     // find the observer.
     let observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
     let i = observerSlots;
@@ -271,7 +274,13 @@ export class Binding implements IBinding {
         i++;
       }
       this[slotNames[i]] = observer;
-      observer.subscribe(sourceContext, this);
+      // todo: normalize everything and get rid of this conditional
+      if ('subscribe' in observer) {
+        observer.subscribe(sourceContext, this);
+      } else if ('subscribeImmediate' in observer) {
+        // todo: get rid of the closure
+        observer.subscribeImmediate(this.callFromImmediateSubscriber);
+      }
       // increment the slot count.
       if (i === observerSlots) {
         this.observerSlots = i + 1;
@@ -301,7 +310,13 @@ export class Binding implements IBinding {
         let observer = this[slotNames[i]];
         this[slotNames[i]] = null;
         if (observer) {
-          observer.unsubscribe(sourceContext, this);
+          // todo: normalize everything and get rid of this conditional
+          if ('unsubscribe' in observer) {
+            observer.unsubscribe(sourceContext, this);
+          } else if ('unsubscribeImmediate' in observer) {
+            // todo: get rid of the closure
+            observer.unsubscribeImmediate(this.callFromImmediateSubscriber);
+          }
         }
       }
     }

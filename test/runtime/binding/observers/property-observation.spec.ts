@@ -72,6 +72,7 @@ describe('SetterObserver', () => {
       for (const propertyName of propertyNameArr) {
         it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, () => {
           sut = new SetterObserver(object, <any>propertyName);
+          sut.subscribeImmediate(() => {});
           const actual = sut.getValue();
           // note: we're deliberately using explicit strict equality here (and in various other places) instead of expect(actual).to.equal(expected)
           // this is because .equal assertions can give false positives in certain edge cases, and triple-equals also speeds up the tests (which is needed with these quantities)
@@ -91,6 +92,7 @@ describe('SetterObserver', () => {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
             sut = new SetterObserver(object, <any>propertyName);
+            sut.subscribeImmediate(() => {});
             sut.setValue(value);
             expect(object[propertyName] === value).to.be.true;
           });
@@ -104,9 +106,9 @@ describe('SetterObserver', () => {
     const objectArr = createObjectArr();
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
-        it(`can subscribe to ${getName(object)}[${typeof propertyName}]`, () => {
+        it(`can handle ${getName(object)}[${typeof propertyName}]`, () => {
           sut = new SetterObserver(object, <any>propertyName);
-          (<any>sut).subscribe(() => {});
+          sut.subscribeImmediate(() => {});
         });
       }
     }
@@ -122,7 +124,7 @@ describe('SetterObserver', () => {
             it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
               sut = new SetterObserver(object, <any>propertyName);
               for (const subscriber of subscribers) {
-                (<any>sut).subscribe(subscriber);
+                sut.subscribeImmediate(subscriber);
               }
               let prevValue = object[propertyName];
               sut.setValue(value);
@@ -137,7 +139,7 @@ describe('SetterObserver', () => {
                 }
               }
               for (const subscriber of subscribers) {
-                (<any>sut).unsubscribe(subscriber);
+                sut.unsubscribeImmediate(subscriber);
                 subscriber.resetHistory();
               }
             });

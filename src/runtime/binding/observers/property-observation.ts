@@ -4,6 +4,7 @@ import { ICallable, IIndexable } from '../../../kernel/interfaces';
 import { Reporter } from '../../../kernel/reporter';
 import { IAccessor, ISubscribable } from '../observation';
 import { PLATFORM } from '../../../kernel/platform';
+import { propertyObserver, IPropertyObserver, IBatchedPropertySubscriber, IImmediatePropertySubscriber } from './property-observer';
 
 const noop = PLATFORM.noop;
 
@@ -48,73 +49,48 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
   public unsubscribe: () => void = noop;
 }
 
-export class SetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private observing: boolean = false;
-  private currentValue: any;
-  private oldValue: any;
 
-  constructor(private obj: IIndexable, private propertyName: string) {
-    super();
+@propertyObserver()
+export class SetterObserver implements IPropertyObserver<IIndexable, string> {
+  public observing: boolean;
+  public obj: IIndexable;
+  public propertyKey: string;
+  public ownPropertyDescriptor: PropertyDescriptor;
+  // oldValue is the initial value the property has when observation starts, or after the batched changes are flushed - it will not be updated with each change
+  public oldValue?: any;
+  // previousValue is literally the previous value of the property, and will be updated with each change
+  public previousValue?: any;
+  public currentValue: any;
+  public hasChanges: boolean;
+
+  public immediateSubscriber0: IImmediatePropertySubscriber;
+  public immediateSubscriber1: IImmediatePropertySubscriber;
+  public immediateSubscribers: Array<IImmediatePropertySubscriber>;
+  public immediateSubscriberCount: number;
+  public batchedSubscriber0: IBatchedPropertySubscriber;
+  public batchedSubscriber1: IBatchedPropertySubscriber;
+  public batchedSubscribers: Array<IBatchedPropertySubscriber>;
+  public batchedSubscriberCount: number;
+
+  constructor(obj: IIndexable, propertyKey: string) {
+    this.obj = obj;
+    this.propertyKey = propertyKey;
+
+    this.immediateSubscribers = new Array();
+    this.batchedSubscribers = new Array();
   }
 
-  public getValue(): any {
-    return this.obj[this.propertyName];
-  }
+  public getValue: () => any;
+  public setValue: (newValue: any) => void;
 
-  public setValue(newValue: any): void {
-    this.obj[this.propertyName] = newValue;
-  }
-
-  private getterValue(): any {
-    return this.currentValue;
-  }
-
-  private setterValue(newValue: any): void {
-    let oldValue = this.currentValue;
-
-    if (oldValue !== newValue) {
-      this.currentValue = newValue;
-      this.oldValue = oldValue;
-      this.callSubscribers(newValue, oldValue);
-    }
-  }
-
-  public call(): void {
-    let oldValue = this.oldValue;
-    let newValue = this.currentValue;
-
-    this.callSubscribers(newValue, oldValue);
-  }
-
-  public subscribe(context: string, callable: ICallable): void {
-    if (!this.observing) {
-      this.convertProperty();
-    }
-
-    this.addSubscriber(context, callable);
-  }
-
-  public unsubscribe(context: string, callable: ICallable): void {
-    this.removeSubscriber(context, callable);
-  }
-
-  public convertProperty(): void {
-    this.observing = true;
-    this.currentValue = this.obj[this.propertyName];
-    this.setValue = this.setterValue;
-    this.getValue = this.getterValue;
-
-    if (!Reflect.defineProperty(this.obj, this.propertyName, {
-      configurable: true,
-      // note: removed the enumerable check because it's a performance killer on this hot path, and it chokes on Object.create(null)
-      // do we really need it?
-      enumerable: true,
-      get: this.getValue.bind(this),
-      set: this.setValue.bind(this)
-    })) {
-      Reporter.write(1, this.propertyName, this.obj);
-    }
-  }
+  public notifyImmediate: (newValue: any, previousValue?: any) => void;
+  public notifyBatched: (newValue: any, oldValue?: any) => void;
+  public subscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
+  public subscribeImmediate: (subscriber: IImmediatePropertySubscriber) => void;
+  public unsubscribeImmediate: (subscriber: IImmediatePropertySubscriber) => void;
+  public flushChanges: () => void;
+  public dispose: () => void;
 }
 
 export class Observer<T> extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {

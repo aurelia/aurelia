@@ -17,35 +17,35 @@ export const enum CollectionKind {
   set     = 0b0111
 }
 
-export interface IImmediateSubscriber {
+export interface IImmediateCollectionSubscriber {
   (origin: string, args?: IArguments): void;
 }
 
-export interface IBatchedSubscriber {
+export interface IBatchedCollectionSubscriber {
   (indexMap: Array<number>): void;
 }
 
-export interface IImmediateSubscriberCollection {
-  immediateSubscriber0: IImmediateSubscriber;
-  immediateSubscriber1: IImmediateSubscriber;
-  immediateSubscribers: Array<IImmediateSubscriber>;
+export interface IImmediateCollectionSubscriberCollection {
+  immediateSubscriber0: IImmediateCollectionSubscriber;
+  immediateSubscriber1: IImmediateCollectionSubscriber;
+  immediateSubscribers: Array<IImmediateCollectionSubscriber>;
   immediateSubscriberCount: number;
   notifyImmediate(origin: string, args?: IArguments): void;
-  subscribeImmediate(subscriber: IImmediateSubscriber): void;
-  unsubscribeImmediate(subscriber: IImmediateSubscriber): void;
+  subscribeImmediate(subscriber: IImmediateCollectionSubscriber): void;
+  unsubscribeImmediate(subscriber: IImmediateCollectionSubscriber): void;
 }
 
-export interface IBatchedSubscriberCollection {
-  batchedSubscriber0: IBatchedSubscriber;
-  batchedSubscriber1: IBatchedSubscriber;
-  batchedSubscribers: Array<IBatchedSubscriber>;
+export interface IBatchedCollectionSubscriberCollection {
+  batchedSubscriber0: IBatchedCollectionSubscriber;
+  batchedSubscriber1: IBatchedCollectionSubscriber;
+  batchedSubscribers: Array<IBatchedCollectionSubscriber>;
   batchedSubscriberCount: number;
   notifyBatched(indexMap: Array<number>): void;
-  subscribeBatched(subscriber: IBatchedSubscriber): void;
-  unsubscribeBatched(subscriber: IBatchedSubscriber): void;
+  subscribeBatched(subscriber: IBatchedCollectionSubscriber): void;
+  unsubscribeBatched(subscriber: IBatchedCollectionSubscriber): void;
 }
 
-export interface ICollectionObserver<T extends ObservedCollection> extends IDisposable, IImmediateSubscriberCollection, IBatchedSubscriberCollection {
+export interface ICollectionObserver<T extends ObservedCollection> extends IDisposable, IImmediateCollectionSubscriberCollection, IBatchedCollectionSubscriberCollection {
   collection: T;
   indexMap: Array<number>;
   hasChanges: boolean;
@@ -87,15 +87,16 @@ function notifyImmediate(this: CollectionObserver, origin: string, args?: IArgum
       this.immediateSubscriber0(origin, args);
       this.immediateSubscriber1(origin, args);
       const immediateSubscribers = this.immediateSubscribers;
-      let i = 2;
-      while (i < count) {
+      const len = count - 2;
+      let i = 0;
+      while (i < len) {
         immediateSubscribers[i](origin, args);
         i++;
       }
   }
 }
 
-function subscribeImmediate(this: CollectionObserver, subscriber: IImmediateSubscriber): void {
+function subscribeImmediate(this: CollectionObserver, subscriber: IImmediateCollectionSubscriber): void {
   switch (this.immediateSubscriberCount) {
     case 0:
       this.immediateSubscriber0 = subscriber;
@@ -110,7 +111,7 @@ function subscribeImmediate(this: CollectionObserver, subscriber: IImmediateSubs
   this.immediateSubscriberCount++;
 }
 
-function unsubscribeImmediate(this: CollectionObserver, subscriber: IImmediateSubscriber): void {
+function unsubscribeImmediate(this: CollectionObserver, subscriber: IImmediateCollectionSubscriber): void {
   if (subscriber === this.immediateSubscriber0) {
     this.immediateSubscriber0 = this.immediateSubscriber1;
     this.immediateSubscriber1 = this.immediateSubscribers.shift();
@@ -141,15 +142,16 @@ function notifyBatched(this: CollectionObserver, indexMap: Array<number>): void 
     default:
       this.batchedSubscriber0(indexMap);
       this.batchedSubscriber1(indexMap);
-      let i = 2;
-      while (i < count) {
+      const len = count - 2;
+      let i = 0;
+      while (i < len) {
         this.batchedSubscribers[i](indexMap);
         i++;
       }
   }
 }
 
-function subscribeBatched(this: CollectionObserver, subscriber: IBatchedSubscriber): void {
+function subscribeBatched(this: CollectionObserver, subscriber: IBatchedCollectionSubscriber): void {
   switch (this.batchedSubscriberCount) {
     case 0:
       this.batchedSubscriber0 = subscriber;
@@ -164,7 +166,7 @@ function subscribeBatched(this: CollectionObserver, subscriber: IBatchedSubscrib
   this.batchedSubscriberCount++;
 }
 
-function unsubscribeBatched(this: CollectionObserver, subscriber: IBatchedSubscriber): void {
+function unsubscribeBatched(this: CollectionObserver, subscriber: IBatchedCollectionSubscriber): void {
   if (subscriber === this.batchedSubscriber0) {
     this.batchedSubscriber0 = this.batchedSubscriber1;
     this.batchedSubscriber1 = this.batchedSubscribers.shift();
@@ -181,9 +183,9 @@ function unsubscribeBatched(this: CollectionObserver, subscriber: IBatchedSubscr
 
 function flushChanges(this: CollectionObserver): void {
   if (this.hasChanges) {
+    this.hasChanges = false;
     this.notifyBatched(this.indexMap);
     this.resetIndexMap();
-    this.hasChanges = false;
   }
 }
 

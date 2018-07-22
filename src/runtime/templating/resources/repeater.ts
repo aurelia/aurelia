@@ -1,11 +1,11 @@
-import { Collection, CollectionObserver, CollectionKind } from '../../binding/observers/collection-observer';
+import { ObservedCollection, CollectionObserver, CollectionKind } from '../../binding/observers/collection-observer';
 import { ICustomAttributeSource, CustomAttributeResource } from '../custom-attribute';
 import { AttachLifecycle, DetachLifecycle } from '../lifecycle';
 import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
 import { IRenderingEngine } from '../rendering-engine';
 import { PLATFORM } from '../../../kernel/platform';
 import { IContainer, inject, Registration } from '../../../kernel/di';
-import { ArrayObserver, getArrayObserver } from '../../binding/observers/array-observer';
+import { getArrayObserver } from '../../binding/observers/array-observer';
 import { ITaskQueue } from '../../task-queue';
 import { IRenderSlot } from '../render-slot';
 import { IViewOwner } from '../view';
@@ -32,7 +32,7 @@ export function getCollectionObserver(collection: any): CollectionObserver {
 }
 
 @inject(ITaskQueue, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
-export class Repeater<T extends Collection> implements ICustomAttribute {
+export class Repeater<T extends ObservedCollection> implements ICustomAttribute {
   // note: everything declared from #region to #endregion is more-or-less copy-paste from what the
   // @templateController decorator would apply to this class, but we have more information here than the decorator
   // does, so we can take a few shortcuts for slightly better perf (and one can argue that this makes the repeater
@@ -160,7 +160,7 @@ export class Repeater<T extends Collection> implements ICustomAttribute {
   public visualsRequireLifecycle: boolean;
 
   public scope: IScope;
-  public observer: ArrayObserver;
+  public observer: CollectionObserver;
   public isQueued: boolean;
   public isBound: boolean;
   public hasPendingInstanceMutation: boolean;

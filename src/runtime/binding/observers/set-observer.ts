@@ -1,4 +1,4 @@
-import { CollectionObserver, CollectionKind, collectionObserver, ISetObserver, IImmediateSubscriber, IBatchedSubscriber, IObservedArray } from './collection-observer';
+import { CollectionObserver, CollectionKind, collectionObserver, ISetObserver, IImmediateCollectionSubscriber, IBatchedCollectionSubscriber, IObservedArray } from './collection-observer';
 
 export interface IObservedSet extends Set<any> {
   $observer: CollectionObserver;
@@ -82,13 +82,13 @@ export class SetObserver implements ISetObserver {
   public lengthPropertyName: 'size';
   public collectionKind: CollectionKind.set;
 
-  public immediateSubscriber0: IImmediateSubscriber;
-  public immediateSubscriber1: IImmediateSubscriber;
-  public immediateSubscribers: Array<IImmediateSubscriber>;
+  public immediateSubscriber0: IImmediateCollectionSubscriber;
+  public immediateSubscriber1: IImmediateCollectionSubscriber;
+  public immediateSubscribers: Array<IImmediateCollectionSubscriber>;
   public immediateSubscriberCount: number;
-  public batchedSubscriber0: IBatchedSubscriber;
-  public batchedSubscriber1: IBatchedSubscriber;
-  public batchedSubscribers: Array<IBatchedSubscriber>;
+  public batchedSubscriber0: IBatchedCollectionSubscriber;
+  public batchedSubscriber1: IBatchedCollectionSubscriber;
+  public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
   public batchedSubscriberCount: number;
 
   constructor(array: Partial<IObservedArray>) {
@@ -102,10 +102,10 @@ export class SetObserver implements ISetObserver {
   public resetIndexMap: () => void;
   public notifyImmediate: (origin: string, args?: IArguments) => void;
   public notifyBatched: (indexMap: Array<number>) => void;
-  public subscribeBatched: (subscriber: IBatchedSubscriber) => void;
-  public unsubscribeBatched: (subscriber: IBatchedSubscriber) => void;
-  public subscribeImmediate: (subscriber: IImmediateSubscriber) => void;
-  public unsubscribeImmediate: (subscriber: IImmediateSubscriber) => void;
+  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+  public subscribeImmediate: (subscriber: IImmediateCollectionSubscriber) => void;
+  public unsubscribeImmediate: (subscriber: IImmediateCollectionSubscriber) => void;
   public flushChanges: () => void;
   public dispose: () => void;
 }

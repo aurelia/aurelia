@@ -1,8 +1,8 @@
-import { SubscriberCollection } from '../subscriber-collection';
 import { ITaskQueue } from '../../task-queue';
-import { ICallable, IIndexable } from '../../../kernel/interfaces';
+import { IIndexable } from '../../../kernel/interfaces';
 import { IAccessor, ISubscribable, IPropertyObserver, IPropertySubscriber, IBatchedPropertySubscriber, PropertyObserverKind } from '../observation';
 import { propertyObserver } from './property-observer';
+import { BindingFlags } from '../binding';
 
 function getPropertyValue(this: any, propertyName: string): any {
   return this[propertyName];
@@ -10,12 +10,24 @@ function getPropertyValue(this: any, propertyName: string): any {
 function setPropertyValue(this: any, propertyName: string, value: any): void {
   this[propertyName] = value;
 }
+function setPropertyValueAsync(this: any, propertyName: string, tq: ITaskQueue, value: any): void {
+  tq.queueMicroTask(() => {
+    this[propertyName] = value;
+  });
+}
 
-export function propertyAccessor(obj: any, propertyName: string): IAccessor {
-  return {
-    getValue: getPropertyValue.bind(obj, propertyName),
-    setValue: setPropertyValue.bind(obj, propertyName)
-  };
+export function propertyAccessor(flags: BindingFlags, tq: ITaskQueue, obj: any, propertyName: string): IAccessor {
+  if (flags & BindingFlags.updateAsync) {
+    return {
+      getValue: getPropertyValue.bind(obj, propertyName),
+      setValue: setPropertyValueAsync.bind(obj, propertyName, tq)
+    };
+  } else {
+    return {
+      getValue: getPropertyValue.bind(obj, propertyName),
+      setValue: setPropertyValue.bind(obj, propertyName)
+    };
+  }
 }
 
 export type Primitive = undefined | null | number | boolean | symbol | string;
@@ -110,6 +122,7 @@ export class Observer<T>  implements Partial<IPropertyObserver<IIndexable, strin
   public batchedSubscribers: Array<IBatchedPropertySubscriber>;
 
   constructor(
+    private taskQueue: ITaskQueue,
     currentValue: T,
     private selfCallback?: (newValue: T, oldValue: T) => void | T) {
       this.currentValue = currentValue;
@@ -122,6 +135,7 @@ export class Observer<T>  implements Partial<IPropertyObserver<IIndexable, strin
     if (currentValue !== newValue) {
       this.previousValue = currentValue;
       this.notify(newValue, currentValue);
+      this.taskQueue.queueMicroTask(this);
 
       if (this.selfCallback !== undefined) {
         const coercedValue = this.selfCallback(newValue, currentValue);
@@ -132,6 +146,10 @@ export class Observer<T>  implements Partial<IPropertyObserver<IIndexable, strin
       }
       this.currentValue = newValue;
     }
+  }
+
+  public call(): void {
+    this.flushChanges();
   }
 
   public notify: (newValue: any, previousValue?: any) => void;

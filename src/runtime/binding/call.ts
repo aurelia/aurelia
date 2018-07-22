@@ -17,7 +17,7 @@ export class Call implements IBinding {
     private targetProperty: string,
     private observerLocator: IObserverLocator, 
     public locator: IServiceLocator) {
-    this.targetObserver = <any>observerLocator.getObserver(target, targetProperty);
+    this.targetObserver = <any>observerLocator.getObserver(BindingFlags.none, target, targetProperty);
   }
 
   callSource($event) {

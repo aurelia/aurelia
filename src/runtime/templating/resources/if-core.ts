@@ -2,6 +2,7 @@ import { IRenderSlot } from '../render-slot';
 import { IVisualFactory, IVisual } from '../visual';
 import { ICustomAttribute } from '../custom-attribute';
 import { BindingFlags } from '../../binding/binding';
+import { ITaskQueue } from '../../task-queue';
 
 /**
 * For internal use only. May change without warning.
@@ -16,7 +17,7 @@ export abstract class IfCore {
   // Eventually, `showing` and `condition` should be consistent.
   protected showing = false;
 
-  constructor(private factory: IVisualFactory, protected slot: IRenderSlot) { }
+  constructor(protected tq: ITaskQueue, private factory: IVisualFactory, protected slot: IRenderSlot) { }
 
   unbound() {
     const visual = this.child;
@@ -25,7 +26,7 @@ export abstract class IfCore {
       return;
     }
 
-    this.child.$unbind(BindingFlags.none);
+    this.child.$unbind(BindingFlags.updateAsync);
 
     if (!this.factory.isCaching) {
       return;
@@ -46,7 +47,7 @@ export abstract class IfCore {
       this.child = this.factory.create();
     }
 
-    this.child.$bind(BindingFlags.none, this.$scope);
+    this.child.$bind(BindingFlags.updateAsync, this.$scope);
 
     if (!this.showing) {
       this.showing = true;

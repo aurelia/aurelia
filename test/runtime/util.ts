@@ -7,6 +7,7 @@ import { IContainer } from "../../src/kernel/di";
 import { AccessMember, AccessScope } from "../../src/runtime/binding/ast";
 import { Repeater } from "../../src/runtime/templating/resources/repeater";
 import { ICustomElement } from "../../src/runtime/templating/custom-element";
+import { If } from '../../src/runtime/templating/resources/if';
 
 /**
  * stringify primitive value (null -> 'null' and undefined -> 'undefined')
@@ -38,11 +39,18 @@ export function padRight(str: any, len: number): string {
  * 
  * (currently specific to repeater)
  */
-export interface IFixture {
+export interface IRepeaterFixture {
   type: Function;
   elName: string;
   colName: string;
   itemName: string;
+  propName: string;
+}
+
+export interface IIfFixture {
+  type: Function;
+  elName: string;
+  conditionName: string;
   propName: string;
 }
 
@@ -51,12 +59,12 @@ export interface IFixture {
  * 
  * (currently specific to repeater)
  */
-export function createAppConfig({ elName, colName, itemName, propName }: IFixture): ITemplateSource {
+export function createRepeaterAppConfig({ elName, colName, itemName, propName }: IRepeaterFixture): ITemplateSource {
   return {
     name: elName,
     dependencies: [],
     template: `
-      <au-marker class="au"></au-marker>
+      <au-marker class="au"></au-marker> 
     `,
     instructions: [
       [
@@ -93,16 +101,67 @@ export function createAppConfig({ elName, colName, itemName, propName }: IFixtur
   };
 };
 
+export function createIfAppConfig({ elName, propName, conditionName }: IIfFixture): ITemplateSource {
+  return {
+    name: elName,
+    dependencies: [],
+    template: `
+      <au-marker class="au"></au-marker> 
+    `,
+    instructions: [
+      [
+        {
+          type: TargetedInstructionType.hydrateTemplateController,
+          res: 'if',
+          src: {
+            template: `<div><au-marker class="au"></au-marker> </div>`,
+            instructions: [
+              [
+                {
+                  type: TargetedInstructionType.textBinding,
+                  src: propName
+                }
+              ]
+            ]
+          },
+          instructions: [
+            {
+              type: TargetedInstructionType.toViewBinding,
+              src: conditionName,
+              dest: 'condition'
+            }
+          ]
+        }
+      ]
+    ]
+  }
+}
+
 /**
  * Create Aurelia configuration based on the provided fixture
  * 
  * (currently specific to repeater)
  */
-export function createAureliaConfig({ colName, itemName, propName }: IFixture): { register(container: IContainer): void } {
+export function createAureliaRepeaterConfig({ colName, itemName, propName }: IRepeaterFixture): { register(container: IContainer): void } {
   const globalResources: any[] = [Repeater];
   const expressionCache = {
     [colName]: new AccessScope(colName),
     [propName]: new AccessMember(new AccessScope(itemName), propName)
+  };
+
+  return {
+    register(container: IContainer) {
+      container.get(IExpressionParser).cache(expressionCache);
+      container.register(...globalResources);
+    }
+  };
+};
+
+export function createAureliaIfConfig({ propName, conditionName  }: IIfFixture): { register(container: IContainer): void } {
+  const globalResources: any[] = [If];
+  const expressionCache = {
+    [conditionName]: new AccessScope(conditionName),
+    [propName]: new AccessScope(propName)
   };
 
   return {
@@ -118,11 +177,25 @@ export function createAureliaConfig({ colName, itemName, propName }: IFixture): 
  * 
  * (currently specific to repeater)
  */
-export function createComponent(fixture: IFixture, initialItems: any[]): ICustomElement {
-  const appConfig = createAppConfig(fixture);
+export function createRepeater(fixture: IRepeaterFixture, initialItems: any[]): ICustomElement {
+  const appConfig = createRepeaterAppConfig(fixture);
   const Type = CustomElementResource.define(appConfig, class {});
   const component = new Type();
   component[fixture.colName] = initialItems;
+  return component;
+}
+
+/**
+ * Create a customElement based on the provided fixture
+ * 
+ * (currently specific to repeater)
+ */
+export function createIf(fixture: IIfFixture, initialCondition: boolean, initialPropValue: any): ICustomElement {
+  const appConfig = createIfAppConfig(fixture);
+  const Type = CustomElementResource.define(appConfig, class {});
+  const component = new Type();
+  component[fixture.conditionName] = initialCondition;
+  component[fixture.propName] = initialPropValue;
   return component;
 }
 
@@ -168,7 +241,7 @@ const newline = /\r?\n/g;
  * 
  * (currently specific to repeater)
  */
-export function assertDOMSynchronized({ propName }: IFixture, items: any[], element: HTMLElement): void {
+export function assertDOMSynchronized({ propName }: IRepeaterFixture, items: any[], element: HTMLElement): void {
   const expected = items.map(i => i[propName]).join(',');
   const actual = element.innerText.replace(newline, ',');
   if (actual !== expected) {
@@ -179,7 +252,7 @@ export function assertDOMSynchronized({ propName }: IFixture, items: any[], elem
 /**
  * Increment the specified (numeric) values (or properties) by the specified number
  */
-export function incrementItems(items: any[], by: number, fixture?: IFixture): void {
+export function incrementItems(items: any[], by: number, fixture?: IRepeaterFixture): void {
   let i = 0;
   let len = items.length;
   if (fixture) {

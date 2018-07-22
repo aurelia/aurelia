@@ -4,7 +4,7 @@ import { IContainer, DI } from '../../../../src/kernel/di';
 import { ITaskQueue } from '../../../../src/runtime/task-queue';
 import { enableArrayObservation, disableArrayObservation } from '../../../../src/runtime/binding/observers/array-observer';
 import { DOM, INode } from '../../../../src/runtime/dom';
-import { createAureliaConfig, IFixture, padRight, createComponent, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../../util';
+import { createAureliaRepeaterConfig, IRepeaterFixture, padRight, createRepeater, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../../util';
 import { ICustomElement } from '../../../../src/runtime/templating/custom-element';
 import { BindingFlags } from '../../../../src/runtime/binding/binding';
 import { IObservedArray } from '../../../../src/runtime/binding/observation';
@@ -16,7 +16,7 @@ describe('ArrayRepeater', () => {
   let host: INode;
   let sut: Repeater<IObservedArray>;
 
-  let aureliaConfig: ReturnType<typeof createAureliaConfig>;
+  let aureliaConfig: ReturnType<typeof createAureliaRepeaterConfig>;
   let component: ICustomElement;
 
   before(() => {
@@ -36,7 +36,7 @@ describe('ArrayRepeater', () => {
   });
 
   describe('splice should render correctly', () => {
-    const fixtures: IFixture[] = [
+    const fixtures: IRepeaterFixture[] = [
       { type: Repeater, elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
       { type: Repeater, elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
     ];
@@ -78,12 +78,12 @@ describe('ArrayRepeater', () => {
                   const title = title7 + ' times=' + padRight(times, 2);
 
                   it(title, () => {
-                    aureliaConfig = createAureliaConfig(fixture);
+                    aureliaConfig = createAureliaRepeaterConfig(fixture);
                     au.register(aureliaConfig);
                     const initItems = init.map(i => ({ [propName]: i }));
                     const initItemsCopy = initItems.slice();
                     const newItems = items.map(i => ({ [propName]: i }));
-                    component = createComponent(fixture, initItems);
+                    component = createRepeater(fixture, initItems);
                     // connectQueue causes tests with bindings to be non-deterministic, so we need to turn it off (and test it explicitly in some other way)
                     component.$flags = BindingFlags.connectImmediate; 
                     au.app({ host, component });
@@ -222,7 +222,7 @@ describe('ArrayRepeater', () => {
 
   
   describe('reverse should render correctly', () => {
-    const fixtures: IFixture[] = [
+    const fixtures: IRepeaterFixture[] = [
       { type: Repeater, elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
       { type: Repeater, elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
     ];
@@ -249,11 +249,11 @@ describe('ArrayRepeater', () => {
             const title = title4 + ' times=' + padRight(times, 2);
 
             it(title, () => {
-              aureliaConfig = createAureliaConfig(fixture);
+              aureliaConfig = createAureliaRepeaterConfig(fixture);
               au.register(aureliaConfig);
               const initItems = init.map(i => ({ [propName]: i }));
               const initItemsCopy = initItems.slice();
-              component = createComponent(fixture, initItems);
+              component = createRepeater(fixture, initItems);
               // connectQueue causes tests with bindings to be non-deterministic, so we need to turn it off (and test it explicitly in some other way)
               component.$flags = BindingFlags.connectImmediate; 
               au.app({ host, component });

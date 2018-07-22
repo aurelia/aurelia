@@ -55,8 +55,8 @@ describe('AccessKeyed', () => {
     expect(expression.evaluate(0, scope, null)).to.equal('hello world');
     const binding = { observeProperty: spy() };
     expression.connect(0, scope, <any>binding);
-    expect(binding.observeProperty.getCalls()[0]).to.have.been.calledWith(scope.bindingContext, 'foo');
-    expect(binding.observeProperty.getCalls()[1]).to.have.been.calledWith(scope.bindingContext.foo, 0);
+    expect(binding.observeProperty.getCalls()[0]).to.have.been.calledWith(0, scope.bindingContext, 'foo');
+    expect(binding.observeProperty.getCalls()[1]).to.have.been.calledWith(0, scope.bindingContext.foo, 0);
     expect(binding.observeProperty.callCount).to.equal(2);
   });
 
@@ -66,8 +66,8 @@ describe('AccessKeyed', () => {
     expect(expression.evaluate(0, scope, null)).to.equal('hello world');
     const binding = { observeProperty: spy() };
     expression.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.bindingContext, 'foo');
-    expect(binding.observeProperty).not.to.have.been.calledWith(scope.bindingContext.foo, 0);
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.bindingContext, 'foo');
+    expect(binding.observeProperty).not.to.have.been.calledWith(0, scope.bindingContext.foo, 0);
     expect(binding.observeProperty.callCount).to.equal(1);
   });
 });
@@ -133,7 +133,7 @@ describe('AccessScope', () => {
     const scope: any = { overrideContext: BindingContext.createOverride(undefined) };
     (<any>binding.observeProperty).resetHistory();
     foo.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext, 'foo');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'foo');
   });
 
   it('evaluates null bindingContext', () => {
@@ -151,7 +151,7 @@ describe('AccessScope', () => {
     const scope: any = { overrideContext: BindingContext.createOverride(null), bindingContext: null };
     (<any>binding.observeProperty).resetHistory();
     foo.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext, 'foo');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'foo');
   });
 
   it('evaluates defined property on bindingContext', () => {
@@ -188,7 +188,7 @@ describe('AccessScope', () => {
     const scope: any = createScopeForTest({ foo: 'bar' });
     (<any>binding.observeProperty).resetHistory();
     foo.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.bindingContext, 'foo');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.bindingContext, 'foo');
   });
 
   it('connects defined property on overrideContext', () => {
@@ -196,14 +196,14 @@ describe('AccessScope', () => {
     scope.overrideContext.foo = 'bar';
     (<any>binding.observeProperty).resetHistory();
     foo.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext, 'foo');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'foo');
   });
 
   it('connects undefined property on bindingContext', () => {
     const scope: any = createScopeForTest({ abc: 'xyz' });
     (<any>binding.observeProperty).resetHistory();
     foo.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.bindingContext, 'foo');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.bindingContext, 'foo');
   });
 
   it('evaluates defined property on first ancestor bindingContext', () => {
@@ -240,10 +240,10 @@ describe('AccessScope', () => {
     const scope: any = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
     (<any>binding.observeProperty).resetHistory();
     foo.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
     (<any>binding.observeProperty).resetHistory();
     $parentfoo.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
   });
 
   it('connects defined property on first ancestor overrideContext', () => {
@@ -251,10 +251,10 @@ describe('AccessScope', () => {
     scope.overrideContext.parentOverrideContext.foo = 'bar';
     (<any>binding.observeProperty).resetHistory();
     foo.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext.parentOverrideContext, 'foo');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext, 'foo');
     (<any>binding.observeProperty).resetHistory();
     $parentfoo.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext.parentOverrideContext, 'foo');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext, 'foo');
   });
 
   it('connects undefined property on first ancestor bindingContext', () => {
@@ -262,7 +262,7 @@ describe('AccessScope', () => {
     scope.overrideContext.parentOverrideContext.parentOverrideContext = BindingContext.createOverride({ foo: 'bar' });
     (<any>binding.observeProperty).resetHistory();
     $parentfoo.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
   });
 });
 
@@ -549,7 +549,7 @@ describe('CallScope', () => {
     foo.connect(0, scope, <any>binding);
     expect(binding.observeProperty.callCount).to.equal(0);
     hello.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext, 'arg');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'arg');
   });
 
   it('evaluates null bindingContext', () => {
@@ -571,7 +571,7 @@ describe('CallScope', () => {
     foo.connect(0, scope, <any>binding);
     expect(binding.observeProperty.callCount).to.equal(0);
     hello.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext, 'arg');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'arg');
   });
 
   it('evaluates defined property on bindingContext', () => {
@@ -595,7 +595,7 @@ describe('CallScope', () => {
     foo.connect(0, scope, <any>binding);
     expect(binding.observeProperty.callCount).to.equal(0);
     hello.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.bindingContext, 'arg');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.bindingContext, 'arg');
   });
 
   it('connects defined property on overrideContext', () => {
@@ -607,7 +607,7 @@ describe('CallScope', () => {
     foo.connect(0, scope, <any>binding);
     expect(binding.observeProperty.callCount).to.equal(0);
     hello.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext, 'arg');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'arg');
   });
 
   it('connects undefined property on bindingContext', () => {
@@ -616,7 +616,7 @@ describe('CallScope', () => {
     foo.connect(0, scope, <any>binding);
     expect(binding.observeProperty.callCount).to.equal(0);
     hello.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.bindingContext, 'arg');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.bindingContext, 'arg');
   });
 
   it('evaluates defined property on first ancestor bindingContext', () => {
@@ -640,7 +640,7 @@ describe('CallScope', () => {
     foo.connect(0, scope, <any>binding);
     expect(binding.observeProperty.callCount).to.equal(0);
     hello.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext.parentOverrideContext.bindingContext, 'arg');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext.bindingContext, 'arg');
   });
 
   it('connects defined property on first ancestor overrideContext', () => {
@@ -652,7 +652,7 @@ describe('CallScope', () => {
     foo.connect(0, scope, <any>binding);
     expect(binding.observeProperty.callCount).to.equal(0);
     hello.connect(0, scope, <any>binding);
-    expect(binding.observeProperty).to.have.been.calledWith(scope.overrideContext.parentOverrideContext, 'arg');
+    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext, 'arg');
   });
 });
 

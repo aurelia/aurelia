@@ -26,14 +26,15 @@ import { DI, inject } from '../../kernel/di';
 import { ITaskQueue } from '../task-queue';
 import { createComputedObserver } from './observers/computed-observer';
 import { IIndexable } from '../../kernel/interfaces';
+import { BindingFlags } from './binding';
 
 export interface ObjectObservationAdapter {
   getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): PropertyObserver;
 }
 
 export interface IObserverLocator {
-  getObserver(obj: any, propertyName: string): PropertyObserver;
-  getAccessor(obj: any, propertyName: string): IAccessor | PropertyObserver;
+  getObserver(flags: BindingFlags, obj: any, propertyName: string): PropertyObserver;
+  getAccessor(flags: BindingFlags, obj: any, propertyName: string): IAccessor | PropertyObserver;
   addAdapter(adapter: ObjectObservationAdapter);
   getArrayObserver(array: any[]): CollectionObserver;
   getMapObserver(map: Map<any, any>): CollectionObserver;
@@ -66,7 +67,7 @@ class ObserverLocator implements IObserverLocator {
     private svgAnalyzer: ISVGAnalyzer
   ) {}
 
-  getObserver(obj: any, propertyName: string): PropertyObserver {
+  getObserver(flags: BindingFlags, obj: any, propertyName: string): PropertyObserver {
     let observersLookup = obj.$observers;
     let observer;
 
@@ -191,7 +192,7 @@ class ObserverLocator implements IObserverLocator {
     return new SetterObserver(obj, propertyName);
   }
 
-  getAccessor(obj: any, propertyName: string): IAccessor {
+  getAccessor(flags: BindingFlags, obj: any, propertyName: string): IAccessor {
     if (DOM.isNodeInstance(obj)) {
       let normalizedTagName = DOM.normalizedTagName;
 
@@ -201,7 +202,7 @@ class ObserverLocator implements IObserverLocator {
         || propertyName === 'checked' && normalizedTagName(obj) === 'input'
         || propertyName === 'model' && normalizedTagName(obj) === 'input'
         || /^xlink:.+$/.exec(propertyName)) {
-        return <any>this.getObserver(obj, propertyName);
+        return <any>this.getObserver(flags, obj, propertyName);
       }
 
       if (/^\w+:|^data-|^aria-/.test(propertyName)
@@ -212,8 +213,7 @@ class ObserverLocator implements IObserverLocator {
         return dataAttributeAccessor(obj, propertyName);
       }
     }
-
-    return propertyAccessor(obj, propertyName);
+    return propertyAccessor(flags, this.taskQueue, obj, propertyName);
   }
 
   getArrayObserver(array: any[]): ReturnType<typeof getArrayObserver> {

@@ -75,12 +75,13 @@ for (let i = 0; i < 100; i++) {
 }
 
 export enum BindingFlags {
-  none             = 0b00000,
-  mustEvaluate     = 0b00001,
-  instanceMutation = 0b00010,
-  itemsMutation    = 0b00100,
-  connectImmediate = 0b01000,
-  createObjects    = 0b10000
+  none             = 0b000000,
+  mustEvaluate     = 0b000001,
+  instanceMutation = 0b000010,
+  itemsMutation    = 0b000100,
+  connectImmediate = 0b001000,
+  createObjects    = 0b010000,
+  updateAsync      = 0b100000
 }
 
 export enum BindingMode {
@@ -92,7 +93,7 @@ export enum BindingMode {
 
 export interface IBinding extends IBindScope {
   locator: IServiceLocator;
-  observeProperty(context: any, name: string): void;
+  observeProperty(flags: BindingFlags, context: any, name: string): void;
 }
 
 export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
@@ -115,6 +116,7 @@ export class Binding implements IBinding {
     public mode: BindingMode,
     private observerLocator: IObserverLocator,
     public locator: IServiceLocator) {
+      this.handleBatchedChange = this.handleChange;
   }
 
   public updateTarget(value: any): void {
@@ -141,6 +143,7 @@ export class Binding implements IBinding {
     this.sourceExpression.assign(BindingFlags.none, this.$scope, this.locator, value);
   }
 
+  public handleBatchedChange: (newValue: any, previousValue?: any) => void;
   public handleChange(newValue: any, previousValue?: any): void {
     previousValue = this.targetObserver.getValue();
     newValue = this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator);
@@ -209,9 +212,9 @@ export class Binding implements IBinding {
 
     if (!this.targetObserver) {
       if (mode & BindingMode.fromView) {
-        this.targetObserver = this.observerLocator.getObserver(this.target, this.targetProperty);
+        this.targetObserver = this.observerLocator.getObserver(flags, this.target, this.targetProperty);
       } else {
-        this.targetObserver = <any>this.observerLocator.getAccessor(this.target, this.targetProperty);
+        this.targetObserver = <any>this.observerLocator.getAccessor(flags, this.target, this.targetProperty);
       }
     }
 
@@ -276,7 +279,7 @@ export class Binding implements IBinding {
     this.sourceExpression.connect(flags, this.$scope, this);
   }
 
-  public addObserver(observer: PropertyObserver): void {
+  public addObserver(flags: BindingFlags, observer: PropertyObserver): void {
     // find the observer.
     let observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
     let i = observerSlots;
@@ -292,8 +295,11 @@ export class Binding implements IBinding {
         i++;
       }
       this[slotNames[i]] = observer;
-      // todo: get rid of the closure
-      observer.subscribe(this);
+      if (flags & BindingFlags.updateAsync) {
+        observer.subscribeBatched(this);
+      } else {
+        observer.subscribe(this);
+      }
 
       // increment the slot count.
       if (i === observerSlots) {
@@ -307,9 +313,9 @@ export class Binding implements IBinding {
     this[versionSlotNames[i]] = this.version;
   }
 
-  public observeProperty(obj: any, propertyName: string): void {
-    let observer = this.observerLocator.getObserver(obj, propertyName);
-    this.addObserver(<any>observer);
+  public observeProperty(flags: BindingFlags, obj: any, propertyName: string): void {
+    let observer = this.observerLocator.getObserver(flags, obj, propertyName);
+    this.addObserver(flags, <any>observer);
   }
 
   // TODO: what to do with this? seems like Binding doesn't work this way..

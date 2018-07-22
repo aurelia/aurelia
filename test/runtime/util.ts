@@ -1,3 +1,4 @@
+import { spy } from 'sinon';
 import { CustomElementResource } from './../../src/runtime/templating/custom-element';
 import { TargetedInstructionType, ITemplateSource } from "../../src/runtime/templating/instructions";
 import { IVisual } from "../../src/runtime/templating/visual";
@@ -195,3 +196,15 @@ export function incrementItems(items: any[], by: number, fixture?: IFixture): vo
   }
 }
 
+export class SpySubscriber {
+  constructor() {
+    this.handleChange = spy();
+    this.handleBatchedChange = spy();
+  }
+  handleChange: ReturnType<typeof spy>;
+  handleBatchedChange: ReturnType<typeof spy>;
+  resetHistory() {
+    this.handleChange.resetHistory();
+    this.handleBatchedChange.resetHistory();
+  }
+}

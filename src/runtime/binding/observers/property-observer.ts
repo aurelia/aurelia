@@ -1,6 +1,6 @@
 import { PLATFORM } from '../../../kernel/platform';
 import { Reporter } from '../../../kernel/reporter';
-import { PropertyObserver, IImmediatePropertySubscriber, IBatchedPropertySubscriber } from '../observation';
+import { PropertyObserver, IPropertySubscriber, IBatchedPropertySubscriber } from '../observation';
 
 const $null = PLATFORM.$null;
 
@@ -13,7 +13,7 @@ function setValue(this: PropertyObserver, newValue: any): void {
   if (currentValue !== newValue) {
     this.previousValue = currentValue;
     this.currentValue = newValue;
-    this.notifyImmediate(newValue, currentValue);
+    this.notify(newValue, currentValue);
   }
 }
 
@@ -42,121 +42,65 @@ function startObserving(observer: PropertyObserver, obj: any, propertyKey: Prope
   observer.observing = true;
 }
 
-function notifyImmediate(this: PropertyObserver, newValue: any, previousValue?: any): void {
+function notify(this: PropertyObserver, newValue: any, previousValue?: any): void {
   this.hasChanges = newValue !== this.oldValue;
-  const count = this.immediateSubscriberCount;
-  switch(count) {
-    case 0:
-      return;
-    case 1:
-      this.immediateSubscriber0(newValue, previousValue);
-      return;
-    case 2:
-      this.immediateSubscriber0(newValue, previousValue);
-      this.immediateSubscriber1(newValue, previousValue);
-      return;
-    default:
-      this.immediateSubscriber0(newValue, previousValue);
-      this.immediateSubscriber1(newValue, previousValue);
-      const immediateSubscribers = this.immediateSubscribers;
-      const len = count - 2;
-      let i = 0;
-      while (i < len) {
-        immediateSubscribers[i](newValue, previousValue);
-        i++;
-      }
+  const subscribers = this.subscribers;
+  const len = subscribers.length;
+  let i = 0;
+  while (i < len) {
+    subscribers[i].handleChange(newValue, previousValue);
+    i++;
   }
 }
 
-function subscribeImmediate(this: PropertyObserver, subscriber: IImmediatePropertySubscriber): void {
-  switch (this.immediateSubscriberCount) {
-    case 0:
-      this.immediateSubscriber0 = subscriber;
-      if (!this.observing) {
-        startObserving(this, this.obj, this.propertyKey);
-      }
-      break;
-    case 1:
-      this.immediateSubscriber1 = subscriber;
-      break;
-    default:
-      this.immediateSubscribers.push(subscriber);
-      break;
+function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
+  if (!this.observing) {
+    startObserving(this, this.obj, this.propertyKey);
   }
-  this.immediateSubscriberCount++;
+  this.subscribers.push(subscriber);
 }
 
-function unsubscribeImmediate(this: PropertyObserver, subscriber: IImmediatePropertySubscriber): void {
-  if (subscriber === this.immediateSubscriber0) {
-    this.immediateSubscriber0 = this.immediateSubscriber1;
-    this.immediateSubscriber1 = this.immediateSubscribers.shift();
-  } else if (subscriber === this.immediateSubscriber1) {
-    this.immediateSubscriber1 = this.immediateSubscribers.shift();
-  } else {
-    const i = this.immediateSubscribers.indexOf(subscriber);
-    if (i > -1) {
-      this.immediateSubscribers.splice(i, 1);
+function unsubscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
+  const subscribers = this.subscribers;
+  const len = subscribers.length;
+  let i = 0;
+  while (i < len) {
+    if (subscribers[i] === subscriber) {
+      subscribers.splice(i, 1);
+      break;
     }
+    i++;
   }
-  this.immediateSubscriberCount--;
 }
-
 
 function notifyBatched(this: PropertyObserver, newValue: any, oldValue?: any): void {
-  const count = this.batchedSubscriberCount;
-  switch(count) {
-    case 0:
-      return;
-    case 1:
-      this.batchedSubscriber0(newValue, oldValue);
-      return;
-    case 2:
-      this.batchedSubscriber0(newValue, oldValue);
-      this.batchedSubscriber1(newValue, oldValue);
-      return;
-    default:
-      this.batchedSubscriber0(newValue, oldValue);
-      this.batchedSubscriber1(newValue, oldValue);
-      const len = count - 2;
-      let i = 0;
-      while (i < len) {
-        this.batchedSubscribers[i](newValue, oldValue);
-        i++;
-      }
+  const subscribers = this.batchedSubscribers;
+  const len = subscribers.length;
+  let i = 0;
+  while (i < len) {
+    subscribers[i].handleBatchedChange(newValue, oldValue);
+    i++;
   }
 }
 
 function subscribeBatched(this: PropertyObserver, subscriber: IBatchedPropertySubscriber): void {
-  switch (this.batchedSubscriberCount) {
-    case 0:
-      this.batchedSubscriber0 = subscriber;
-      if (!this.observing) {
-        startObserving(this, this.obj, this.propertyKey);
-      }
-      break;
-    case 1:
-      this.batchedSubscriber1 = subscriber;
-      break;
-    default:
-      this.batchedSubscribers.push(subscriber);
-      break;
+  if (!this.observing) {
+    startObserving(this, this.obj, this.propertyKey);
   }
-  this.batchedSubscriberCount++;
+  this.batchedSubscribers.push(subscriber);
 }
 
 function unsubscribeBatched(this: PropertyObserver, subscriber: IBatchedPropertySubscriber): void {
-  if (subscriber === this.batchedSubscriber0) {
-    this.batchedSubscriber0 = this.batchedSubscriber1;
-    this.batchedSubscriber1 = this.batchedSubscribers.shift();
-  } else if (subscriber === this.batchedSubscriber1) {
-    this.batchedSubscriber1 = this.batchedSubscribers.shift();
-  } else {
-    const i = this.batchedSubscribers.indexOf(subscriber);
-    if (i > -1) {
-      this.batchedSubscribers.splice(i, 1);
+  const subscribers = this.batchedSubscribers;
+  const len = subscribers.length;
+  let i = 0;
+  while (i < len) {
+    if (subscribers[i] === subscriber) {
+      subscribers.splice(i, 1);
+      break;
     }
+    i++;
   }
-  this.batchedSubscriberCount--;
 }
 
 function flushChanges(this: PropertyObserver): void {
@@ -182,15 +126,8 @@ function dispose(this: PropertyObserver): void {
   this.currentValue = $null;
   this.hasChanges = false;
 
-  this.immediateSubscriber0 = $null;
-  this.immediateSubscriber1 = $null;
-  this.immediateSubscribers = $null;
-  this.immediateSubscriberCount = 0;
-
-  this.batchedSubscriber0 = $null;
-  this.batchedSubscriber1 = $null;
+  this.subscribers = $null;
   this.batchedSubscribers = $null;
-  this.batchedSubscriberCount = 0;
 }
 
 export function propertyObserver(): ClassDecorator {
@@ -209,19 +146,12 @@ export function propertyObserver(): ClassDecorator {
     proto.getValue = getValue;
     proto.setValue = setValue;
 
-    proto.immediateSubscriber0 = $null;
-    proto.immediateSubscriber1 = $null;
-    proto.immediateSubscribers = $null;
-    proto.immediateSubscriberCount = 0;
-
-    proto.batchedSubscriber0 = $null;
-    proto.batchedSubscriber1 = $null;
+    proto.subscribers = $null;
     proto.batchedSubscribers = $null;
-    proto.batchedSubscriberCount = 0;
 
-    proto.notifyImmediate = notifyImmediate;
-    proto.subscribeImmediate = subscribeImmediate;
-    proto.unsubscribeImmediate = unsubscribeImmediate;
+    proto.notify = notify;
+    proto.subscribe = subscribe;
+    proto.unsubscribe = unsubscribe;
 
     proto.notifyBatched = notifyBatched;
     proto.subscribeBatched = subscribeBatched;

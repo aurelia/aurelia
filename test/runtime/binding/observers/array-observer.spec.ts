@@ -1,7 +1,7 @@
-import { spy, match, SinonSpy } from 'sinon';
+import { match } from 'sinon';
 import { ArrayObserver, enableArrayObservation, disableArrayObservation } from '../../../../src/runtime/binding/observers/array-observer';
 import { expect } from 'chai';
-import { stringify } from '../../util';
+import { stringify, SpySubscriber } from '../../util';
 
 function assertArrayEqual(actual: any[], expected: any[]): void {
   const len = actual.length;
@@ -40,81 +40,81 @@ describe(`ArrayObserver`, () => {
 
   describe('should allow subscribing for immediate notification', () => {
     it('push', () => {
-      const s = spy();
+      const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
-      sut.subscribeImmediate(s);
+      sut.subscribe(s);
       arr.push(1);
-      expect(s).to.have.been.calledWith('push', match(x => x[0] === 1));
+      expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1));
     });
 
     it('push', () => {
-      const s = spy();
+      const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
-      sut.subscribeImmediate(s);
+      sut.subscribe(s);
       arr.push(1, 2);
-      expect(s).to.have.been.calledWith('push', match(x => x[0] === 1 && x[1] === 2));
+      expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1 && x[1] === 2));
     });
   });
 
   describe('should allow unsubscribing for immediate notification', () => {
     it('push', () => {
-      const s = spy();
+      const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
-      sut.subscribeImmediate(s);
-      sut.unsubscribeImmediate(s);
+      sut.subscribe(s);
+      sut.unsubscribe(s);
       arr.push(1);
-      expect(s).not.to.have.been.called;
+      expect(s.handleChange).not.to.have.been.called;
     });
   });
 
   describe('should allow subscribing for batched notification', () => {
     it('push', () => {
-      const s = spy();
+      const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
       sut.subscribeBatched(s);
       arr.push(1);
       const indexMap = sut.indexMap.slice();
       sut.flushChanges();
-      expect(s).to.have.been.calledWith(indexMap);
+      expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
     });
 
     it('push', () => {
-      const s = spy();
+      const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
       sut.subscribeBatched(s);
       arr.push(1, 2);
       const indexMap = sut.indexMap.slice();
       sut.flushChanges();
-      expect(s).to.have.been.calledWith(indexMap);
+      expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
     });
   });
 
   describe('should allow unsubscribing for batched notification', () => {
     it('push', () => {
-      const s = spy();
+      const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
       sut.subscribeBatched(s);
       sut.unsubscribeBatched(s);
       arr.push(1);
       sut.flushChanges();
-      expect(s).not.to.have.been.called;
+      expect(s.handleBatchedChange).not.to.have.been.called;
     });
   });
 
   describe('should not notify batched subscribers if there are no changes', () => {
     it('push', () => {
-      const s = spy();
+      const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
       sut.subscribeBatched(s);
       sut.flushChanges();
-      expect(s).not.to.have.been.called;
+      expect(s.handleBatchedChange).not.to.have.been.called;
     });
   });
 

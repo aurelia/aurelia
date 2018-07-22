@@ -1,3 +1,4 @@
+import { ICollectionSubscriber, IBatchedCollectionSubscriber } from './../../binding/observation';
 import { ICustomAttributeSource, CustomAttributeResource } from '../custom-attribute';
 import { AttachLifecycle, DetachLifecycle } from '../lifecycle';
 import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
@@ -32,7 +33,7 @@ export function getCollectionObserver(collection: any): CollectionObserver {
 }
 
 @inject(ITaskQueue, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
-export class Repeater<T extends ObservedCollection> implements ICustomAttribute {
+export class Repeater<T extends ObservedCollection> implements ICustomAttribute, ICollectionSubscriber, IBatchedCollectionSubscriber {
   // note: everything declared from #region to #endregion is more-or-less copy-paste from what the
   // @templateController decorator would apply to this class, but we have more information here than the decorator
   // does, so we can take a few shortcuts for slightly better perf (and one can argue that this makes the repeater
@@ -134,12 +135,12 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute 
     if (this.isBound) {
       // only re-subscribe and queue if we're bound; otherwise bound() below will pick up hasPendingInstanceMutation
       // and act accordingly
-      this.observer.unsubscribeImmediate(this.handleImmediateItemsMutation);
-      this.observer.unsubscribeBatched(this.handleBatchedItemsOrInstanceMutation);
+      this.observer.unsubscribe(this);
+      this.observer.unsubscribeBatched(this);
       if (newValue !== null && newValue !== undefined) {
         this.observer = getCollectionObserver(newValue);
-        this.observer.subscribeImmediate(this.handleImmediateItemsMutation);
-        this.observer.subscribeBatched(this.handleBatchedItemsOrInstanceMutation);
+        this.observer.subscribe(this);
+        this.observer.subscribeBatched(this);
       }
       this.tq.queueMicroTask(this);
     }
@@ -202,8 +203,8 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute 
     this.sourceExpression = <any>(<Binding[]>this.owner.$bindable).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
     this.scope = scope;
     this.observer = getCollectionObserver(this._items);
-    this.observer.subscribeImmediate(this.handleImmediateItemsMutation);
-    this.observer.subscribeBatched(this.handleBatchedItemsOrInstanceMutation);
+    this.observer.subscribe(this);
+    this.observer.subscribeBatched(this);
     this.isBound = true;
     if (this.hasPendingInstanceMutation) {
       this.handleBatchedItemsOrInstanceMutation();
@@ -216,8 +217,8 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute 
    */
   public unbound(flags: BindingFlags): void {
     this.isBound = false;
-    this.observer.unsubscribeImmediate(this.handleImmediateItemsMutation);
-    this.observer.unsubscribeBatched(this.handleBatchedItemsOrInstanceMutation);
+    this.observer.unsubscribe(this);
+    this.observer.unsubscribeBatched(this);
     this.observer = this._items = null;
     // if this is a re-bind triggered by some ancestor repeater, then keep the visuals so we can reuse them
     // (this flag is passed down from handleInstanceMutation/handleItemsMutation down below at visual.$bind)
@@ -230,15 +231,19 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute 
    * Queue this.call() in the TaskQueue
    * - called automatically by the ArrayObserver on any array mutation
    */
-  private handleImmediateItemsMutation = (): void => {
+  public handleChange(): void {
     if (this.isQueued === false) {
       this.isQueued = true;
       this.tq.queueMicroTask(this);
     }
-  };
+  }
+
+  public handleBatchedChange(indexMap: Array<number>): void {
+    this.handleBatchedItemsOrInstanceMutation(indexMap);
+  }
 
   // if the indexMap === undefined, it is an instance mutation, otherwise it's an items mutation
-  private handleBatchedItemsOrInstanceMutation = (indexMap?: Array<number>): void => {
+  private handleBatchedItemsOrInstanceMutation(indexMap?: Array<number>): void {
     // determine if there is anything to process and whether or not we can return early
     const slot = this.slot;
     const visuals = <IVisual[]>slot.children;

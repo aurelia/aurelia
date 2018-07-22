@@ -2,6 +2,7 @@ import { spy } from 'sinon';
 import { PLATFORM } from '../../../../src/kernel/platform';
 import { PrimitiveObserver, SetterObserver } from '../../../../src/runtime/binding/observers/property-observation';
 import { expect } from 'chai';
+import { SpySubscriber } from '../../util';
 
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
@@ -62,6 +63,7 @@ describe('PrimitiveObserver', () => {
 
 class Foo {}
 
+
 describe('SetterObserver', () => {
   let sut: SetterObserver;
 
@@ -72,7 +74,7 @@ describe('SetterObserver', () => {
       for (const propertyName of propertyNameArr) {
         it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, () => {
           sut = new SetterObserver(object, <any>propertyName);
-          sut.subscribeImmediate(() => {});
+          sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
           // note: we're deliberately using explicit strict equality here (and in various other places) instead of expect(actual).to.equal(expected)
           // this is because .equal assertions can give false positives in certain edge cases, and triple-equals also speeds up the tests (which is needed with these quantities)
@@ -92,7 +94,7 @@ describe('SetterObserver', () => {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
             sut = new SetterObserver(object, <any>propertyName);
-            sut.subscribeImmediate(() => {});
+            sut.subscribe(new SpySubscriber());
             sut.setValue(value);
             expect(object[propertyName] === value).to.be.true;
           });
@@ -108,7 +110,7 @@ describe('SetterObserver', () => {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, () => {
           sut = new SetterObserver(object, <any>propertyName);
-          sut.subscribeImmediate(() => {});
+          sut.subscribe(new SpySubscriber());
         });
       }
     }
@@ -118,28 +120,32 @@ describe('SetterObserver', () => {
     for (const calls of callsArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
-          const subscribersArr = [[spy()], [spy(), spy(), spy()], [spy(), spy(), spy(), spy(), spy(), spy(), spy(), spy(), spy(), spy()]]
+          const subscribersArr = [
+            [new SpySubscriber()],
+            [new SpySubscriber(), new SpySubscriber(), new SpySubscriber()],
+            [new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber()]
+          ];
           for (const subscribers of subscribersArr) {
             const object = {};
             it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
               sut = new SetterObserver(object, <any>propertyName);
               for (const subscriber of subscribers) {
-                sut.subscribeImmediate(subscriber);
+                sut.subscribe(subscriber);
               }
               let prevValue = object[propertyName];
               sut.setValue(value);
               for (const subscriber of subscribers) {
-                expect(subscriber).to.have.been.calledOnceWithExactly(value, prevValue);
+                expect(subscriber.handleChange).to.have.been.calledOnceWithExactly(value, prevValue);
               }
               if (calls === 2) {
                 sut.setValue(prevValue);
                 for (const subscriber of subscribers) {
-                  expect(subscriber).to.have.been.calledWithExactly(prevValue, value);
-                  expect(subscriber).to.have.been.calledTwice;
+                  expect(subscriber.handleChange).to.have.been.calledWithExactly(prevValue, value);
+                  expect(subscriber.handleChange).to.have.been.calledTwice;
                 }
               }
               for (const subscriber of subscribers) {
-                sut.unsubscribeImmediate(subscriber);
+                sut.unsubscribe(subscriber);
                 subscriber.resetHistory();
               }
             });

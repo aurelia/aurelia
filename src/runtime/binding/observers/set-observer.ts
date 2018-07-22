@@ -1,5 +1,5 @@
 import { collectionObserver } from './collection-observer';
-import { IObservedSet, CollectionKind, ISetObserver, IImmediateCollectionSubscriber, IBatchedCollectionSubscriber } from '../observation';
+import { IObservedSet, CollectionKind, ICollectionSubscriber, IBatchedCollectionSubscriber, ICollectionObserver } from '../observation';
 
 const proto = Set.prototype;
 const add = proto.add;
@@ -34,7 +34,7 @@ function observeAdd(this: IObservedSet, value: any): ReturnType<typeof add> {
     return this;
   }
   o.indexMap[oldSize] = -oldSize - 2;
-  o.notifyImmediate('add', arguments);
+  o.notify('add', arguments);
   return this;
 };
 
@@ -46,7 +46,7 @@ function observeClear(this: IObservedSet): ReturnType<typeof clear>  {
   }
   clear.call(this);
   o.indexMap.length = 0;
-  o.notifyImmediate('clear');
+  o.notify('clear');
   return undefined;
 };
 
@@ -72,37 +72,31 @@ function observeDelete(this: IObservedSet, value: any): ReturnType<typeof del> {
 };
 
 @collectionObserver(CollectionKind.set)
-export class SetObserver implements ISetObserver {
+export class SetObserver implements ICollectionObserver<CollectionKind.set> {
   public collection: IObservedSet;
   public indexMap: Array<number>;
   public hasChanges: boolean;
   public lengthPropertyName: 'size';
   public collectionKind: CollectionKind.set;
 
-  public immediateSubscriber0: IImmediateCollectionSubscriber;
-  public immediateSubscriber1: IImmediateCollectionSubscriber;
-  public immediateSubscribers: Array<IImmediateCollectionSubscriber>;
-  public immediateSubscriberCount: number;
-  public batchedSubscriber0: IBatchedCollectionSubscriber;
-  public batchedSubscriber1: IBatchedCollectionSubscriber;
+  public subscribers: Array<ICollectionSubscriber>;
   public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
-  public batchedSubscriberCount: number;
 
-  constructor(set: Set<any> & { $observer?: ISetObserver }) {
+  constructor(set: Set<any> & { $observer?: ICollectionObserver<CollectionKind.set> }) {
     set.$observer = this;
     this.collection = <IObservedSet>set;
     this.resetIndexMap();
-    this.immediateSubscribers = new Array();
+    this.subscribers = new Array();
     this.batchedSubscribers = new Array();
   }
 
   public resetIndexMap: () => void;
-  public notifyImmediate: (origin: string, args?: IArguments) => void;
+  public notify: (origin: string, args?: IArguments) => void;
   public notifyBatched: (indexMap: Array<number>) => void;
   public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
   public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public subscribeImmediate: (subscriber: IImmediateCollectionSubscriber) => void;
-  public unsubscribeImmediate: (subscriber: IImmediateCollectionSubscriber) => void;
+  public subscribe: (subscriber: ICollectionSubscriber) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
   public flushChanges: () => void;
   public dispose: () => void;
 }

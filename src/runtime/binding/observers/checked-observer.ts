@@ -139,18 +139,16 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
   }
 
   unsubscribe(context: string, callable: ICallable) {
-    if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
-      this.handler.dispose();
-    }
-  }
-
-  unbind() {
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribe(checkedArrayContext, this);
       this.arrayObserver = null;
     }
     if (this.valueObserver) {
       this.valueObserver.unsubscribe(checkedValueContext, this);
+    }
+
+    if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
+      this.handler.dispose();
     }
   }
 }

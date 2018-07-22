@@ -1,4 +1,4 @@
-import { ICallable, IIndexable, IDisposable } from '../../kernel/interfaces';
+import { ICallable, IDisposable, IIndexable } from '../../kernel/interfaces';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding';
 
@@ -16,89 +16,102 @@ export interface ISubscribable {
   unsubscribe(context: string, callable: ICallable): void;
 }
 
-export interface IBindingTargetAccessor<TGetReturn = any, TSetValue = TGetReturn> {
-  getValue(obj: IIndexable, propertyName: string): TGetReturn;
-  setValue(value: TSetValue, obj: IIndexable, propertyName: string): void;
+export interface IObservable<TObj extends Object, TProp extends keyof TObj> extends Object {
+  $observers: Record<TProp, IPropertyObserver<TObj, TProp>>;
 }
 
-export interface IBindingTargetObserver<TGetReturn = any, TSetValue = TGetReturn>
-  extends IBindingTargetAccessor<TGetReturn, TSetValue>, ISubscribable {
-
-  bind?(flags: BindingFlags): void;
-  unbind?(flags: BindingFlags): void;
-}
-
-export interface IBindingCollectionObserver extends ISubscribable, ICallable {
-  getValue?(target: IIndexable, targetProperty: string): any;
-  setValue?(value: any, target: IIndexable, targetProperty: string): void;
-
-  addChangeRecord(changeRecord: any): void;
-  flushChangeRecords(): void;
-  reset(oldCollection: any): any;
-  getLengthObserver(): any;
-}
-
-export type AccessorOrObserver = IAccessor | IBindingTargetAccessor | IBindingTargetObserver | IBindingCollectionObserver;
-
-export interface IObservable<T = any> {
-  $observers: Record<string, AccessorOrObserver>;
-}
-
-
-/*
-*  Property observation
-*/
-
-export interface IImmediatePropertySubscriber {
-  (newValue: any, oldValue?: any): void;
-}
-
-export interface IBatchedPropertySubscriber {
-  (newValue: any, oldValue?: any): void;
-}
-
-export interface IImmediatePropertySubscriberCollection {
-  /*@internal*/immediateSubscriber0: IImmediatePropertySubscriber;
-  /*@internal*/immediateSubscriber1: IImmediatePropertySubscriber;
-  /*@internal*/immediateSubscribers: Array<IImmediatePropertySubscriber>;
-  /*@internal*/immediateSubscriberCount: number;
-  /*@internal*/notifyImmediate(newValue: any, previousValue?: any): void;
-  subscribeImmediate(subscriber: IImmediatePropertySubscriber): void;
-  unsubscribeImmediate(subscriber: IImmediatePropertySubscriber): void;
-}
-
-export interface IBatchedPropertySubscriberCollection {
-  /*@internal*/batchedSubscriber0: IBatchedPropertySubscriber;
-  /*@internal*/batchedSubscriber1: IBatchedPropertySubscriber;
-  /*@internal*/batchedSubscribers: Array<IBatchedPropertySubscriber>;
-  /*@internal*/batchedSubscriberCount: number;
-  /*@internal*/notifyBatched(newValue: any, oldValue?: any): void;
-  subscribeBatched(subscriber: IBatchedPropertySubscriber): void;
-  unsubscribeBatched(subscriber: IBatchedPropertySubscriber): void;
-}
-
-export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj> extends IDisposable, IImmediatePropertySubscriberCollection, IBatchedPropertySubscriberCollection {
-  /*@internal*/observing: boolean;
-  /*@internal*/obj: TObj;
-  /*@internal*/propertyKey: TProp;
-  /*@internal*/ownPropertyDescriptor: PropertyDescriptor;
-  /*@internal*/oldValue?: any;
-  /*@internal*/previousValue?: any;
-  /*@internal*/currentValue: any;
-  /*@internal*/hasChanges: boolean;
+export interface IChangeTracker {
+  hasChanges: boolean;
   flushChanges(): void;
-  getValue(): any;
-  setValue(newValue: any): void;
+}
+
+export enum MutationKind {
+  instance   = 0b01,
+  collection = 0b10
+}
+
+export interface IPropertyChangeTracker<TObj extends Object, TProp extends keyof TObj> extends IChangeTracker {
+  obj: TObj;
+  propertyKey: TProp;
+  oldValue?: any;
+  previousValue?: any;
+  currentValue: any;
+}
+
+export interface ICollectionChangeTracker<T extends Collection> extends IChangeTracker {  
+  collection: T;
+  indexMap: Array<number>;
+  resetIndexMap(): void;
+}
+
+export interface IPropertyChangeHandler { (newValue: any, previousValue?: any): void; }
+export interface IPropertyChangeNotifier extends IPropertyChangeHandler {}
+
+export interface IBatchedPropertyChangeHandler { (newValue: any, oldValue?: any): void; }
+export interface IBatchedPropertyChangeNotifier extends IBatchedPropertyChangeHandler {}
+
+export interface IPropertySubscriber { handleChange(newValue: any, previousValue?: any): void; }
+export interface IBatchedPropertySubscriber { handleBatchedChange(newValue: any, oldValue?: any): void; }
+
+export interface ICollectionChangeHandler { (origin: string, args?: IArguments): void; }
+export interface ICollectionChangeNotifier extends ICollectionChangeHandler {}
+
+export interface IBatchedCollectionChangeHandler { (indexMap: Array<number>): void; }
+export interface IBatchedCollectionChangeNotifier extends IBatchedCollectionChangeHandler {}
+
+export interface ICollectionSubscriber { handleChange(origin: string, args?: IArguments): void; }
+export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: Array<number>): void; }
+
+export type Subscriber = ICollectionSubscriber | IPropertySubscriber;
+export type BatchedSubscriber = IPropertySubscriber | IBatchedPropertySubscriber;
+
+export type MutationKindToSubscriber<T> =
+  T extends MutationKind.instance ? IPropertySubscriber :
+  T extends MutationKind.collection ? ICollectionSubscriber :
+  never;
+
+export type MutationKindToBatchedSubscriber<T> =
+  T extends MutationKind.instance ? IBatchedPropertySubscriber :
+  T extends MutationKind.collection ? IBatchedCollectionSubscriber :
+  never;
+
+export type MutationKindToNotifier<T> =
+  T extends MutationKind.instance ? IPropertyChangeNotifier :
+  T extends MutationKind.collection ? ICollectionChangeNotifier :
+  never;
+
+export type MutationKindToBatchedNotifier<T> =
+  T extends MutationKind.instance ? IBatchedPropertyChangeNotifier :
+  T extends MutationKind.collection ? IBatchedCollectionChangeNotifier :
+  never;
+
+export interface ISubscriberCollection<T extends MutationKind> {
+  subscribers: Array<MutationKindToSubscriber<T>>;
+  notify: MutationKindToNotifier<T>;
+  subscribe(subscriber: MutationKindToSubscriber<T>): void;
+  unsubscribe(subscriber: MutationKindToSubscriber<T>): void;
+}
+
+export interface IBatchedSubscriberCollection<T extends MutationKind> {
+  batchedSubscribers: Array<MutationKindToBatchedSubscriber<T>>;
+  notifyBatched: MutationKindToBatchedNotifier<T>;
+  subscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>): void;
+  unsubscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>): void;
+}
+
+export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj> extends
+  IDisposable,
+  IAccessor<any>,
+  IPropertyChangeTracker<TObj, TProp>,
+  ISubscriberCollection<MutationKind.instance>,
+  IBatchedSubscriberCollection<MutationKind.instance> {
+  /*@internal*/observing: boolean;
+  /*@internal*/ownPropertyDescriptor: PropertyDescriptor;
 }
 
 export type PropertyObserver = IPropertyObserver<any, PropertyKey>;
 
-
-
-/*
-*  Collection observation
-*/
-
+export type Collection = Array<any> | Set<any> | Map<any, any>;
 export interface IObservedCollection {
   $observer: CollectionObserver;
 }
@@ -115,55 +128,43 @@ export const enum CollectionKind {
   set     = 0b0111
 }
 
-export interface IImmediateCollectionSubscriber {
-  (origin: string, args?: IArguments): void;
+export type LengthPropertyName<T> =
+  T extends Array<any> ? 'length' :
+  T extends Set<any> ? 'size' :
+  T extends Map<any, any> ? 'size' :
+  never;
+
+export type CollectionTypeToKind<T> =
+  T extends Array<any> ? CollectionKind.array | CollectionKind.indexed :
+  T extends Set<any> ? CollectionKind.set | CollectionKind.keyed :
+  T extends Map<any, any> ? CollectionKind.map | CollectionKind.keyed :
+  never;
+
+export type CollectionKindToType<T> =
+  T extends CollectionKind.array ? Array<any> :
+  T extends CollectionKind.indexed ? Array<any> :
+  T extends CollectionKind.map ? Map<any, any> :
+  T extends CollectionKind.set ? Set<any> :
+  T extends CollectionKind.keyed ? Set<any> | Map<any, any> :
+  never;
+
+export type ObservedCollectionKindToType<T> =
+  T extends CollectionKind.array ? IObservedArray :
+  T extends CollectionKind.indexed ? IObservedArray :
+  T extends CollectionKind.map ? IObservedMap :
+  T extends CollectionKind.set ? IObservedSet :
+  T extends CollectionKind.keyed ? IObservedSet | IObservedMap :
+  never;
+
+
+export interface ICollectionObserver<T extends CollectionKind> extends
+  IDisposable,
+  ICollectionChangeTracker<CollectionKindToType<T>>,
+  ISubscriberCollection<MutationKind.collection>,
+  IBatchedSubscriberCollection<MutationKind.collection> {
+    collection: ObservedCollectionKindToType<T>;
+    lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
+    collectionKind: T;
 }
 
-export interface IBatchedCollectionSubscriber {
-  (indexMap: Array<number>): void;
-}
-
-export interface IImmediateCollectionSubscriberCollection {
-  /*@internal*/immediateSubscriber0: IImmediateCollectionSubscriber;
-  /*@internal*/immediateSubscriber1: IImmediateCollectionSubscriber;
-  /*@internal*/immediateSubscribers: Array<IImmediateCollectionSubscriber>;
-  /*@internal*/immediateSubscriberCount: number;
-  /*@internal*/notifyImmediate(origin: string, args?: IArguments): void;
-  subscribeImmediate(subscriber: IImmediateCollectionSubscriber): void;
-  unsubscribeImmediate(subscriber: IImmediateCollectionSubscriber): void;
-}
-
-export interface IBatchedCollectionSubscriberCollection {
-  /*@internal*/batchedSubscriber0: IBatchedCollectionSubscriber;
-  /*@internal*/batchedSubscriber1: IBatchedCollectionSubscriber;
-  /*@internal*/batchedSubscribers: Array<IBatchedCollectionSubscriber>;
-  /*@internal*/batchedSubscriberCount: number;
-  /*@internal*/notifyBatched(indexMap: Array<number>): void;
-  subscribeBatched(subscriber: IBatchedCollectionSubscriber): void;
-  unsubscribeBatched(subscriber: IBatchedCollectionSubscriber): void;
-}
-
-export interface ICollectionObserver<T extends ObservedCollection> extends IDisposable, IImmediateCollectionSubscriberCollection, IBatchedCollectionSubscriberCollection {
-  /*@internal*/collection: T;
-  /*@internal*/indexMap: Array<number>;
-  /*@internal*/hasChanges: boolean;
-  /*@internal*/resetIndexMap(): void;
-  flushChanges(): void;
-}
-
-export interface IArrayObserver extends ICollectionObserver<IObservedArray> {
-  lengthPropertyName: 'length';
-  collectionKind: CollectionKind.array;
-}
-
-export interface IMapObserver extends ICollectionObserver<IObservedMap> {
-  lengthPropertyName: 'size';
-  collectionKind: CollectionKind.map;
-}
-
-export interface ISetObserver extends ICollectionObserver<IObservedSet> {
-  lengthPropertyName: 'size';
-  collectionKind: CollectionKind.set;
-}
-
-export type CollectionObserver = IArrayObserver | IMapObserver | ISetObserver;
+export type CollectionObserver = ICollectionObserver<CollectionKind>;

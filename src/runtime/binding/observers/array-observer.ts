@@ -1,5 +1,5 @@
 import { collectionObserver } from './collection-observer';
-import { IObservedArray, CollectionKind, IArrayObserver, IImmediateCollectionSubscriber, IBatchedCollectionSubscriber } from '../observation';
+import { IObservedArray, CollectionKind, ICollectionSubscriber, IBatchedCollectionSubscriber, ICollectionObserver } from '../observation';
 
 const proto = Array.prototype;
 const nativePush = proto.push;
@@ -47,7 +47,7 @@ function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
     this[i] = arguments[i - len]; o.indexMap[i] = - 2;
     i++;
   }
-  o.notifyImmediate('push', arguments);
+  o.notify('push', arguments);
   return this.length;
 };
 
@@ -65,7 +65,7 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift> 
   }
   nativeUnshift.apply(o.indexMap, inserts);
   const len = nativeUnshift.apply(this, arguments);
-  o.notifyImmediate('unshift', arguments);
+  o.notify('unshift', arguments);
   return len;
 };
 
@@ -77,7 +77,7 @@ function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
   }
   nativePop.call(o.indexMap);
   const element = nativePop.call(this);
-  o.notifyImmediate('pop');
+  o.notify('pop');
   return element;
 };
 
@@ -89,7 +89,7 @@ function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
   }
   nativeShift.call(o.indexMap);
   const element = nativeShift.call(this);
-  o.notifyImmediate('shift');
+  o.notify('shift');
   return element;
 };
 
@@ -112,7 +112,7 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
     nativeSplice.call(o.indexMap, start, deleteCount);
   }
   const deleted = nativeSplice.apply(this, arguments);
-  o.notifyImmediate('splice', arguments);
+  o.notify('splice', arguments);
   return deleted;
 };
 
@@ -133,7 +133,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
     this[upper] = lowerValue; o.indexMap[upper] = lowerIndex;
     lower++;
   }
-  o.notifyImmediate('reverse');
+  o.notify('reverse');
   return this;
 };
 
@@ -160,7 +160,7 @@ function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => numbe
     compareFn = sortCompare;
   }
   quickSort(this, o.indexMap, 0, i, compareFn);
-  o.notifyImmediate('sort');
+  o.notify('sort');
   return this;
 }
 
@@ -290,37 +290,31 @@ function quickSort(arr: IObservedArray, indexMap: Array<number>, from: number, t
 }
 
 @collectionObserver(CollectionKind.array)
-export class ArrayObserver implements IArrayObserver {
+export class ArrayObserver implements ICollectionObserver<CollectionKind.array> {
   public collection: IObservedArray;
   public indexMap: Array<number>;
   public hasChanges: boolean;
   public lengthPropertyName: 'length';
   public collectionKind: CollectionKind.array;
 
-  public immediateSubscriber0: IImmediateCollectionSubscriber;
-  public immediateSubscriber1: IImmediateCollectionSubscriber;
-  public immediateSubscribers: Array<IImmediateCollectionSubscriber>;
-  public immediateSubscriberCount: number;
-  public batchedSubscriber0: IBatchedCollectionSubscriber;
-  public batchedSubscriber1: IBatchedCollectionSubscriber;
+  public subscribers: Array<ICollectionSubscriber>;
   public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
-  public batchedSubscriberCount: number;
 
-  constructor(array: Array<any> & { $observer?: IArrayObserver }) {
+  constructor(array: Array<any> & { $observer?: ICollectionObserver<CollectionKind.array> }) {
     array.$observer = this;
     this.collection = <IObservedArray>array;
     this.resetIndexMap();
-    this.immediateSubscribers = new Array();
+    this.subscribers = new Array();
     this.batchedSubscribers = new Array();
   }
 
   public resetIndexMap: () => void;
-  public notifyImmediate: (origin: string, args?: IArguments) => void;
+  public notify: (origin: string, args?: IArguments) => void;
   public notifyBatched: (indexMap: Array<number>) => void;
   public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
   public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public subscribeImmediate: (subscriber: IImmediateCollectionSubscriber) => void;
-  public unsubscribeImmediate: (subscriber: IImmediateCollectionSubscriber) => void;
+  public subscribe: (subscriber: ICollectionSubscriber) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
   public flushChanges: () => void;
   public dispose: () => void;
 }

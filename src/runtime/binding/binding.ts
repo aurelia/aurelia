@@ -1,6 +1,6 @@
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
-import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IBindingCollectionObserver, PropertyObserver } from './observation';
+import { IBindScope, CollectionObserver, PropertyObserver, ISubscribable } from './observation';
 import { IServiceLocator } from '../../kernel/di';
 import { IScope, sourceContext, targetContext } from './binding-context';
 import { Reporter } from '../../kernel/reporter';
@@ -103,11 +103,10 @@ export class Binding implements IBinding {
   public __connectQueueId: number;
   private observerSlots: any;
   private version: number;
-  public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
+  public targetObserver: PropertyObserver;
   private $scope: IScope;
   private $isBound = false;
   private prevValue: any;
-  private callFromImmediateSubscriber: any;//todo: uber hack for testing purposes, get rid of this asap
 
   constructor(
     public sourceExpression: IExpression,
@@ -116,7 +115,6 @@ export class Binding implements IBinding {
     public mode: BindingMode,
     private observerLocator: IObserverLocator,
     public locator: IServiceLocator) {
-      this.callFromImmediateSubscriber = this.call.bind(this, sourceContext);
   }
 
   public updateTarget(value: any): void {
@@ -136,11 +134,26 @@ export class Binding implements IBinding {
         this.prevValue = value;
       }
     }
-    this.targetObserver.setValue(value, this.target, this.targetProperty);
+    this.targetObserver.setValue(value);
   }
 
   public updateSource(value: any): void {
     this.sourceExpression.assign(BindingFlags.none, this.$scope, this.locator, value);
+  }
+
+  public handleChange(newValue: any, previousValue?: any): void {
+    previousValue = this.targetObserver.getValue();
+    newValue = this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator);
+
+    if (newValue !== previousValue) {
+      this.updateTarget(newValue);
+    }
+
+    if (this.mode !== BindingMode.oneTime) {
+      this.version++;
+      this.sourceExpression.connect(BindingFlags.none, this.$scope, this);
+      this.unobserve(false);
+    }
   }
 
   public call(context: string, newValue?: any, oldValue?: any): void {
@@ -149,11 +162,11 @@ export class Binding implements IBinding {
     }
 
     if (context === sourceContext) {
-      oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
+      oldValue = this.targetObserver.getValue();
       newValue = this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator);
 
       if (newValue !== oldValue) {
-        //this.updateTarget(newValue);
+        this.updateTarget(newValue);
       }
 
       if (this.mode !== BindingMode.oneTime) {
@@ -199,9 +212,10 @@ export class Binding implements IBinding {
       this.targetObserver = <any>this.observerLocator[method](this.target, this.targetProperty);
     }
 
-    if ('bind' in this.targetObserver) {
-      this.targetObserver.bind(flags);
-    }
+    // TODO: re-implement this, but with a better method name than "bind" (and perhaps move to a different place)
+    // if ('bind' in this.targetObserver) {
+    //   this.targetObserver.bind(flags);
+    // }
 
     if (mode === BindingMode.oneTime) {
       this.updateTarget(this.sourceExpression.evaluate(flags, scope, this.locator));
@@ -214,9 +228,9 @@ export class Binding implements IBinding {
       } else {
         enqueueBindingConnect(this);
       }
-    }
-    if (mode & BindingMode.fromView) {
-      (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
+      if (mode & BindingMode.fromView) {
+        (this.targetObserver as any as ISubscribable).subscribe(targetContext, this);
+      }
     }
   }
 
@@ -233,13 +247,15 @@ export class Binding implements IBinding {
 
     this.$scope = null;
 
-    if ('unbind' in this.targetObserver) {
-      (this.targetObserver as IBindingTargetObserver).unbind(flags);
-    }
+    // TODO: re-implement this, but with a better method name than "unbind" (and perhaps move to a different place)
+    // if ('unbind' in this.targetObserver) {
+    //   (this.targetObserver as IBindingTargetObserver).unbind(flags);
+    // }
 
-    if ('unsubscribe' in this.targetObserver) {
-      this.targetObserver.unsubscribe(targetContext, this);
-    }
+    // TODO: re-implement this (and perhaps move to a better place)
+    // if ('unsubscribe' in this.targetObserver) {
+    //   this.targetObserver.unsubscribe(targetContext, this);
+    // }
 
     this.unobserve(true);
   }
@@ -257,7 +273,7 @@ export class Binding implements IBinding {
     this.sourceExpression.connect(flags, this.$scope, this);
   }
 
-  public addObserver(observer: IBindingTargetObserver | IBindingCollectionObserver | PropertyObserver): void {
+  public addObserver(observer: PropertyObserver): void {
     // find the observer.
     let observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
     let i = observerSlots;
@@ -273,13 +289,9 @@ export class Binding implements IBinding {
         i++;
       }
       this[slotNames[i]] = observer;
-      // todo: normalize everything and get rid of this conditional
-      if ('subscribe' in observer) {
-        observer.subscribe(sourceContext, this);
-      } else if ('subscribeImmediate' in observer) {
-        // todo: get rid of the closure
-        observer.subscribeImmediate(this.callFromImmediateSubscriber);
-      }
+      // todo: get rid of the closure
+      observer.subscribe(this);
+
       // increment the slot count.
       if (i === observerSlots) {
         this.observerSlots = i + 1;
@@ -297,10 +309,11 @@ export class Binding implements IBinding {
     this.addObserver(<any>observer);
   }
 
-  public observeArray(array: any[]): void {
-    let observer = this.observerLocator.getArrayObserver(array);
-    this.addObserver(observer);
-  }
+  // TODO: what to do with this? seems like Binding doesn't work this way..
+  // public observeArray(array: any[]): void {
+  //   let observer = this.observerLocator.getArrayObserver(array);
+  //   this.addObserver(observer);
+  // }
 
   public unobserve(all?: boolean): void {
     let i = this.observerSlots;
@@ -309,13 +322,7 @@ export class Binding implements IBinding {
         let observer = this[slotNames[i]];
         this[slotNames[i]] = null;
         if (observer) {
-          // todo: normalize everything and get rid of this conditional
-          if ('unsubscribe' in observer) {
-            observer.unsubscribe(sourceContext, this);
-          } else if ('unsubscribeImmediate' in observer) {
-            // todo: get rid of the closure
-            observer.unsubscribeImmediate(this.callFromImmediateSubscriber);
-          }
+          observer.unsubscribe(this);
         }
       }
     }

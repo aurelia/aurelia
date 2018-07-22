@@ -2,12 +2,12 @@ import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
 import { IBinding, BindingFlags } from './binding';
 import { IServiceLocator } from '../../kernel/di';
-import { IBindingTargetAccessor } from './observation';
 import { IScope } from './binding-context';
 import { INode } from '../dom';
+import { IAccessor } from './observation';
 
 export class Call implements IBinding {
-  targetObserver: IBindingTargetAccessor;
+  targetObserver: IAccessor;
   private $scope: IScope;
   private $isBound = false;
 
@@ -50,7 +50,7 @@ export class Call implements IBinding {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.targetObserver.setValue($event => this.callSource($event), this.target, this.targetProperty);
+    this.targetObserver.setValue($event => this.callSource($event));
   }
 
   $unbind(flags: BindingFlags) {
@@ -65,7 +65,7 @@ export class Call implements IBinding {
     }
 
     this.$scope = null;
-    this.targetObserver.setValue(null, this.target, this.targetProperty);
+    this.targetObserver.setValue(null);
   }
 
   observeProperty() { }

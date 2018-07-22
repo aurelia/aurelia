@@ -20,23 +20,24 @@ import {
 } from './observers/element-observation';
 import { ClassObserver } from './observers/class-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
-import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCollectionObserver, AccessorOrObserver, IAccessor } from './observation';
+import { IObservable, IAccessor, PropertyObserver, CollectionObserver } from './observation';
 import { Reporter } from '../../kernel/reporter';
 import { DI, inject } from '../../kernel/di';
 import { ITaskQueue } from '../task-queue';
 import { createComputedObserver } from './observers/computed-observer';
+import { IIndexable } from '../../kernel/interfaces';
 
 export interface ObjectObservationAdapter {
-  getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
+  getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): PropertyObserver;
 }
 
 export interface IObserverLocator {
-  getObserver(obj: any, propertyName: string): AccessorOrObserver;
-  getAccessor(obj: any, propertyName: string): IAccessor | IBindingTargetAccessor;
+  getObserver(obj: any, propertyName: string): PropertyObserver;
+  getAccessor(obj: any, propertyName: string): IAccessor | PropertyObserver;
   addAdapter(adapter: ObjectObservationAdapter);
-  getArrayObserver(array: any[]): IBindingCollectionObserver;
-  getMapObserver(map: Map<any, any>): IBindingCollectionObserver;
-  getSetObserver(set: Set<any>): IBindingCollectionObserver;
+  getArrayObserver(array: any[]): CollectionObserver;
+  getMapObserver(map: Map<any, any>): CollectionObserver;
+  getSetObserver(set: Set<any>): CollectionObserver;
 }
 
 export const IObserverLocator = DI.createInterface<IObserverLocator>()
@@ -65,7 +66,7 @@ class ObserverLocator implements IObserverLocator {
     private svgAnalyzer: ISVGAnalyzer
   ) {}
 
-  getObserver(obj: any, propertyName: string): AccessorOrObserver {
+  getObserver(obj: any, propertyName: string): PropertyObserver {
     let observersLookup = obj.$observers;
     let observer;
 
@@ -86,12 +87,12 @@ class ObserverLocator implements IObserverLocator {
     return observer;
   }
 
-  private getOrCreateObserversLookup(obj: IObservable) {
+  private getOrCreateObserversLookup(obj: IObservable<IIndexable, string>) {
     return obj.$observers || this.createObserversLookup(obj);
   }
 
-  private createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {
-    let value: Record<string, IBindingTargetObserver> = {};
+  private createObserversLookup(obj: IObservable<IIndexable, string>): Record<string, PropertyObserver> {
+    let value: Record<string, PropertyObserver> = {};
 
     if (!Reflect.defineProperty(obj, '$observers', {
       enumerable: false,
@@ -190,7 +191,7 @@ class ObserverLocator implements IObserverLocator {
     return new SetterObserver(obj, propertyName);
   }
 
-  getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
+  getAccessor(obj: any, propertyName: string): IAccessor {
     if (DOM.isNodeInstance(obj)) {
       let normalizedTagName = DOM.normalizedTagName;
 
@@ -208,22 +209,22 @@ class ObserverLocator implements IObserverLocator {
         || normalizedTagName(obj) === 'img' && propertyName === 'src'
         || normalizedTagName(obj) === 'a' && propertyName === 'href'
       ) {
-        return dataAttributeAccessor;
+        return dataAttributeAccessor(obj, propertyName);
       }
     }
 
-    return propertyAccessor;
+    return propertyAccessor(obj, propertyName);
   }
 
-  getArrayObserver(array: any[]): IBindingCollectionObserver {
-    return <any>getArrayObserver(array);
+  getArrayObserver(array: any[]): ReturnType<typeof getArrayObserver> {
+    return getArrayObserver(array);
   }
 
-  getMapObserver(map: Map<any, any>): IBindingCollectionObserver {
-    return <any>getMapObserver(map);
+  getMapObserver(map: Map<any, any>): ReturnType<typeof getMapObserver> {
+    return getMapObserver(map);
   }
 
-  getSetObserver(set: Set<any>): IBindingCollectionObserver {
-    return <any>getSetObserver(set);
+  getSetObserver(set: Set<any>): ReturnType<typeof getSetObserver> {
+    return getSetObserver(set);
   }
 }

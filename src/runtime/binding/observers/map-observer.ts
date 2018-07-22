@@ -1,5 +1,5 @@
 import { collectionObserver } from './collection-observer';
-import { IObservedMap, CollectionKind, IMapObserver, IImmediateCollectionSubscriber, IBatchedCollectionSubscriber } from '../observation';
+import { IObservedMap, CollectionKind, ICollectionSubscriber, IBatchedCollectionSubscriber, ICollectionObserver } from '../observation';
 
 const proto = Map.prototype;
 const set = proto.set;
@@ -44,7 +44,7 @@ function observeSet(this: IObservedMap, key: any, value: any): ReturnType<typeof
     return this;
   }
   o.indexMap[oldSize] = -oldSize - 2;
-  o.notifyImmediate('set', arguments);
+  o.notify('set', arguments);
   return this;
 };
 
@@ -56,7 +56,7 @@ function observeClear(this: IObservedMap): ReturnType<typeof clear>  {
   }
   clear.call(this);
   o.indexMap.length = 0;
-  o.notifyImmediate('clear');
+  o.notify('clear');
   return undefined;
 };
 
@@ -83,37 +83,31 @@ function observeDelete(this: IObservedMap, value: any): ReturnType<typeof del> {
 
 
 @collectionObserver(CollectionKind.map)
-export class MapObserver implements IMapObserver {
+export class MapObserver implements ICollectionObserver<CollectionKind.map> {
   public collection: IObservedMap;
   public indexMap: Array<number>;
   public hasChanges: boolean;
   public lengthPropertyName: 'size';
   public collectionKind: CollectionKind.map;
 
-  public immediateSubscriber0: IImmediateCollectionSubscriber;
-  public immediateSubscriber1: IImmediateCollectionSubscriber;
-  public immediateSubscribers: Array<IImmediateCollectionSubscriber>;
-  public immediateSubscriberCount: number;
-  public batchedSubscriber0: IBatchedCollectionSubscriber;
-  public batchedSubscriber1: IBatchedCollectionSubscriber;
+  public subscribers: Array<ICollectionSubscriber>;
   public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
-  public batchedSubscriberCount: number;
 
-  constructor(map: Map<any, any> & { $observer?: IMapObserver }) {
+  constructor(map: Map<any, any> & { $observer?: ICollectionObserver<CollectionKind.map> }) {
     map.$observer = this;
     this.collection = <IObservedMap>map;
     this.resetIndexMap();
-    this.immediateSubscribers = new Array();
+    this.subscribers = new Array();
     this.batchedSubscribers = new Array();
   }
 
   public resetIndexMap: () => void;
-  public notifyImmediate: (origin: string, args?: IArguments) => void;
+  public notify: (origin: string, args?: IArguments) => void;
   public notifyBatched: (indexMap: Array<number>) => void;
   public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
   public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public subscribeImmediate: (subscriber: IImmediateCollectionSubscriber) => void;
-  public unsubscribeImmediate: (subscriber: IImmediateCollectionSubscriber) => void;
+  public subscribe: (subscriber: ICollectionSubscriber) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
   public flushChanges: () => void;
   public dispose: () => void;
 }

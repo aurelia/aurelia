@@ -1,16 +1,25 @@
 import { SubscriberCollection } from '../subscriber-collection';
 import { ITaskQueue } from '../../task-queue';
 import { ICallable, IIndexable } from '../../../kernel/interfaces';
-import { IAccessor, ISubscribable, IPropertyObserver, IImmediatePropertySubscriber, IBatchedPropertySubscriber } from '../observation';
+import { IAccessor, ISubscribable, IPropertyObserver, IPropertySubscriber, IBatchedPropertySubscriber } from '../observation';
 import { PLATFORM } from '../../../kernel/platform';
 import { propertyObserver } from './property-observer';
 
 const noop = PLATFORM.noop;
 
-export const propertyAccessor = {
-  getValue: (obj: any, propertyName: string) => obj[propertyName],
-  setValue: (value: any, obj: IIndexable, propertyName: string) => { obj[propertyName] = value; }
-};
+function getPropertyValue(this: any, propertyName: string): any {
+  return this[propertyName];
+}
+function setPropertyValue(this: any, propertyName: string, value: any): void {
+  this[propertyName] = value;
+}
+
+export function propertyAccessor(obj: any, propertyName: string): IAccessor {
+  return {
+    getValue: getPropertyValue.bind(obj, propertyName),
+    setValue: setPropertyValue.bind(obj, propertyName)
+  };
+}
 
 export type Primitive = undefined | null | number | boolean | symbol | string;
 
@@ -62,32 +71,26 @@ export class SetterObserver implements IPropertyObserver<IIndexable, string> {
   public currentValue: any;
   public hasChanges: boolean;
 
-  public immediateSubscriber0: IImmediatePropertySubscriber;
-  public immediateSubscriber1: IImmediatePropertySubscriber;
-  public immediateSubscribers: Array<IImmediatePropertySubscriber>;
-  public immediateSubscriberCount: number;
-  public batchedSubscriber0: IBatchedPropertySubscriber;
-  public batchedSubscriber1: IBatchedPropertySubscriber;
+  public subscribers: Array<IPropertySubscriber>;
   public batchedSubscribers: Array<IBatchedPropertySubscriber>;
-  public batchedSubscriberCount: number;
 
   constructor(obj: IIndexable, propertyKey: string) {
     this.obj = obj;
     this.propertyKey = propertyKey;
 
-    this.immediateSubscribers = new Array();
+    this.subscribers = new Array();
     this.batchedSubscribers = new Array();
   }
 
   public getValue: () => any;
   public setValue: (newValue: any) => void;
 
-  public notifyImmediate: (newValue: any, previousValue?: any) => void;
+  public notify: (newValue: any, previousValue?: any) => void;
   public notifyBatched: (newValue: any, oldValue?: any) => void;
   public subscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
   public unsubscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
-  public subscribeImmediate: (subscriber: IImmediatePropertySubscriber) => void;
-  public unsubscribeImmediate: (subscriber: IImmediatePropertySubscriber) => void;
+  public subscribe: (subscriber: IPropertySubscriber) => void;
+  public unsubscribe: (subscriber: IPropertySubscriber) => void;
   public flushChanges: () => void;
   public dispose: () => void;
 }

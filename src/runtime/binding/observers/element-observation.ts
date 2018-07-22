@@ -27,16 +27,26 @@ export class XLinkAttributeObserver implements IAccessor {
   }
 }
 
-export const dataAttributeAccessor = {
-  getValue: (obj: INode, propertyName: string) => DOM.getAttribute(obj, propertyName),
-  setValue: (value: any, obj: INode, propertyName: string) => {
-    if (value === null || value === undefined) {
-      DOM.removeAttribute(obj, propertyName);
-    } else {
-      DOM.setAttribute(obj, propertyName, value);
-    }
+const removeAttribute = DOM.removeAttribute;
+const setAttribute = DOM.setAttribute;
+const getAttribute = DOM.getAttribute;
+function getDataAttributeValue(this: INode, propertyName: string): any {
+  return getAttribute(this, propertyName);
+}
+function setDataAttributeValue(this: INode, propertyName: string, value: any): void {
+  if (value === null || value === undefined) {
+    removeAttribute(this, propertyName);
+  } else {
+    setAttribute(this, propertyName, value);
   }
-};
+}
+
+export function dataAttributeAccessor(obj: INode, propertyName: string): IAccessor {
+  return {
+    getValue: getDataAttributeValue.bind(obj, propertyName),
+    setValue: setDataAttributeValue.bind(obj, propertyName)
+  };
+}
 
 export class DataAttributeObserver implements IAccessor {
   constructor(private node: INode, private propertyName: string) { }

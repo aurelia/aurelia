@@ -1,5 +1,5 @@
-import { CollectionKind, IImmediateCollectionSubscriber, IBatchedCollectionSubscriber, collectionObserver, IArrayObserver, IObservedArray } from './collection-observer';
-
+import { collectionObserver } from './collection-observer';
+import { IObservedArray, CollectionKind, IArrayObserver, IImmediateCollectionSubscriber, IBatchedCollectionSubscriber } from '../observation';
 
 const proto = Array.prototype;
 const nativePush = proto.push;
@@ -306,9 +306,9 @@ export class ArrayObserver implements IArrayObserver {
   public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
   public batchedSubscriberCount: number;
 
-  constructor(array: Partial<IObservedArray>) {
+  constructor(array: Array<any> & { $observer?: IArrayObserver }) {
     array.$observer = this;
-    this.collection = <any>array;
+    this.collection = <IObservedArray>array;
     this.resetIndexMap();
     this.immediateSubscribers = new Array();
     this.batchedSubscribers = new Array();

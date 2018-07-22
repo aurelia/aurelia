@@ -7,7 +7,7 @@ import { DOM, INode } from '../../../../src/runtime/dom';
 import { createAureliaConfig, IFixture, padRight, createComponent, assertVisualsSynchronized, assertDOMSynchronized, incrementItems } from '../../util';
 import { ICustomElement } from '../../../../src/runtime/templating/custom-element';
 import { BindingFlags } from '../../../../src/runtime/binding/binding';
-import { IObservedArray } from '../../../../src/runtime/binding/observers/collection-observer';
+import { IObservedArray } from '../../../../src/runtime/binding/observation';
 
 describe('ArrayRepeater', () => {
   let container: IContainer;

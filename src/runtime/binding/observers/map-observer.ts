@@ -1,4 +1,5 @@
-import { CollectionKind, collectionObserver, IImmediateCollectionSubscriber, IBatchedCollectionSubscriber, IObservedMap, IMapObserver } from './collection-observer';
+import { collectionObserver } from './collection-observer';
+import { IObservedMap, CollectionKind, IMapObserver, IImmediateCollectionSubscriber, IBatchedCollectionSubscriber } from '../observation';
 
 const proto = Map.prototype;
 const set = proto.set;
@@ -98,9 +99,9 @@ export class MapObserver implements IMapObserver {
   public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
   public batchedSubscriberCount: number;
 
-  constructor(map: Partial<IObservedMap>) {
+  constructor(map: Map<any, any> & { $observer?: IMapObserver }) {
     map.$observer = this;
-    this.collection = <any>map;
+    this.collection = <IObservedMap>map;
     this.resetIndexMap();
     this.immediateSubscribers = new Array();
     this.batchedSubscribers = new Array();

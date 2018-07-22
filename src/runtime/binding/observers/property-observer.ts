@@ -1,52 +1,8 @@
 import { PLATFORM } from '../../../kernel/platform';
-import { IDisposable } from "../../../kernel/interfaces";
 import { Reporter } from '../../../kernel/reporter';
+import { PropertyObserver, IImmediatePropertySubscriber, IBatchedPropertySubscriber } from '../observation';
 
 const $null = PLATFORM.$null;
-
-export interface IImmediatePropertySubscriber {
-  (newValue: any, oldValue?: any): void;
-}
-
-export interface IBatchedPropertySubscriber {
-  (newValue: any, oldValue?: any): void;
-}
-
-export interface IImmediatePropertySubscriberCollection {
-  immediateSubscriber0: IImmediatePropertySubscriber;
-  immediateSubscriber1: IImmediatePropertySubscriber;
-  immediateSubscribers: Array<IImmediatePropertySubscriber>;
-  immediateSubscriberCount: number;
-  notifyImmediate(newValue: any, previousValue?: any): void;
-  subscribeImmediate(subscriber: IImmediatePropertySubscriber): void;
-  unsubscribeImmediate(subscriber: IImmediatePropertySubscriber): void;
-}
-
-export interface IBatchedPropertySubscriberCollection {
-  batchedSubscriber0: IBatchedPropertySubscriber;
-  batchedSubscriber1: IBatchedPropertySubscriber;
-  batchedSubscribers: Array<IBatchedPropertySubscriber>;
-  batchedSubscriberCount: number;
-  notifyBatched(newValue: any, oldValue?: any): void;
-  subscribeBatched(subscriber: IBatchedPropertySubscriber): void;
-  unsubscribeBatched(subscriber: IBatchedPropertySubscriber): void;
-}
-
-export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj> extends IDisposable, IImmediatePropertySubscriberCollection, IBatchedPropertySubscriberCollection {
-  observing: boolean;
-  obj: TObj;
-  propertyKey: TProp;
-  ownPropertyDescriptor: PropertyDescriptor;
-  oldValue?: any;
-  previousValue?: any;
-  currentValue: any;
-  hasChanges: boolean;
-  flushChanges(): void;
-  getValue(): any;
-  setValue(newValue: any): void;
-}
-
-export type PropertyObserver = IPropertyObserver<any, PropertyKey>;
 
 function getValue(this: PropertyObserver): any {
   return this.currentValue;

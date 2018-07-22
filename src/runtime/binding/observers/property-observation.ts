@@ -1,10 +1,9 @@
 import { SubscriberCollection } from '../subscriber-collection';
 import { ITaskQueue } from '../../task-queue';
 import { ICallable, IIndexable } from '../../../kernel/interfaces';
-import { Reporter } from '../../../kernel/reporter';
-import { IAccessor, ISubscribable } from '../observation';
+import { IAccessor, ISubscribable, IPropertyObserver, IImmediatePropertySubscriber, IBatchedPropertySubscriber } from '../observation';
 import { PLATFORM } from '../../../kernel/platform';
-import { propertyObserver, IPropertyObserver, IBatchedPropertySubscriber, IImmediatePropertySubscriber } from './property-observer';
+import { propertyObserver } from './property-observer';
 
 const noop = PLATFORM.noop;
 

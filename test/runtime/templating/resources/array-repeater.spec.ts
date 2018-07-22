@@ -12,10 +12,9 @@ import { Binding, BindingFlags } from '../../../../src/runtime/binding/binding';
 import { DetachLifecycle, AttachLifecycle, IAttach } from '../../../../src/runtime/templating/lifecycle';
 import { INode, IView } from '../../../../src/runtime/dom';
 import { IRenderContext } from '../../../../src/runtime/templating/render-context';
-import { IBindScope } from '../../../../src/runtime/binding/observation';
+import { IBindScope, IObservedArray } from '../../../../src/runtime/binding/observation';
 import { IEmulatedShadowSlot } from '../../../../src/runtime/templating/shadow-dom';
 import { padRight, incrementItems, assertVisualsSynchronized } from '../../util';
-import { IObservedArray } from '../../../../src/runtime/binding/observers/collection-observer';
 
 class TestViewOwner implements IViewOwner {
   $context: IRenderContext;

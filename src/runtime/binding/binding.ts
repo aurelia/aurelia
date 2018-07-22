@@ -1,11 +1,10 @@
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
-import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IBindingCollectionObserver } from './observation';
+import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IBindingCollectionObserver, PropertyObserver } from './observation';
 import { IServiceLocator } from '../../kernel/di';
 import { IScope, sourceContext, targetContext } from './binding-context';
 import { Reporter } from '../../kernel/reporter';
 import { PLATFORM } from '../../kernel/platform';
-import { PropertyObserver } from './observers/property-observer';
 
 const queue: Binding[] = new Array();       // the connect queue
 const queued: {[id: number]: boolean} = {}; // tracks whether a binding with a particular id is in the queue

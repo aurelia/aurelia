@@ -1,8 +1,5 @@
-import { CollectionObserver, CollectionKind, collectionObserver, ISetObserver, IImmediateCollectionSubscriber, IBatchedCollectionSubscriber, IObservedArray } from './collection-observer';
-
-export interface IObservedSet extends Set<any> {
-  $observer: CollectionObserver;
-}
+import { collectionObserver } from './collection-observer';
+import { IObservedSet, CollectionKind, ISetObserver, IImmediateCollectionSubscriber, IBatchedCollectionSubscriber } from '../observation';
 
 const proto = Set.prototype;
 const add = proto.add;
@@ -91,9 +88,9 @@ export class SetObserver implements ISetObserver {
   public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
   public batchedSubscriberCount: number;
 
-  constructor(array: Partial<IObservedArray>) {
-    array.$observer = this;
-    this.collection = <any>array;
+  constructor(set: Set<any> & { $observer?: ISetObserver }) {
+    set.$observer = this;
+    this.collection = <IObservedSet>set;
     this.resetIndexMap();
     this.immediateSubscribers = new Array();
     this.batchedSubscribers = new Array();

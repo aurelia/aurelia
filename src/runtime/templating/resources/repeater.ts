@@ -1,4 +1,3 @@
-import { ObservedCollection, CollectionObserver, CollectionKind } from '../../binding/observers/collection-observer';
 import { ICustomAttributeSource, CustomAttributeResource } from '../custom-attribute';
 import { AttachLifecycle, DetachLifecycle } from '../lifecycle';
 import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
@@ -19,6 +18,7 @@ import { INode } from '../../dom';
 import { ICustomAttribute } from '../custom-attribute';
 import { getMapObserver } from '../../binding/observers/map-observer';
 import { getSetObserver } from '../../binding/observers/set-observer';
+import { CollectionObserver, ObservedCollection, CollectionKind } from '../../binding/observation';
 
 
 export function getCollectionObserver(collection: any): CollectionObserver {

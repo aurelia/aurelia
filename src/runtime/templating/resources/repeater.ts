@@ -117,19 +117,13 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute,
   // #endregion
 
   
-  private _previousItems: Array<any>;
+  private _oldItems: Array<any>; // this is purely used by instanceMutation to see if items can be reused
   private _items: T & { $observer: CollectionObserver };
   public set items(newValue: T & { $observer: CollectionObserver }) {
     const oldValue = this._items;
     if (oldValue === newValue) {
       // don't do anything if the same instance is re-assigned (the existing observer should pick up on any changes)
       return;
-    }
-    if (oldValue && oldValue.$observer) {
-      const oldObserver = oldValue.$observer;
-      this._previousItems = <any[]>(oldObserver.collectionKind & CollectionKind.indexed ? (<any[]>oldValue).slice() : Array.from(oldValue)); // todo: optimize / offload to IteratorStatement
-    } else {
-      this._previousItems = [];
     }
     this._items = newValue;
     if (this.isBound) {
@@ -188,11 +182,10 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute,
         this.observer.hasChanges = false;
       }
       this.handleBatchedItemsOrInstanceMutation();
+      this._oldItems = Array.isArray(this._items) ? this._items.slice() : Array.from(this._items);
     } else {
       this.observer.flushChanges();
     }
-    // only use the connectQueue on first load
-    //this.defaultFlags |= BindingFlags.connectImmediate;
   }
 
   /**
@@ -295,12 +288,12 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute,
       visuals.length = newLength;
     }
 
-    const previousItems = this._previousItems;
+    const oldItems = this._oldItems || [];
     let getPreviousIndex;
 
     if (indexMap === undefined) {
       flags |= BindingFlags.instanceMutation;
-      getPreviousIndex = (_, item) => previousItems.indexOf(item); // this is super inefficient with large collections, maybe we shouldn't do this (or put an upper bound / have some smarter logic)
+      getPreviousIndex = (_, item) => oldItems.indexOf(item); // this is super inefficient with large collections, maybe we shouldn't do this (or put an upper bound / have some smarter logic)
       this.hasPendingInstanceMutation = false;
     } else {
       flags |= BindingFlags.itemsMutation;
@@ -324,11 +317,11 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute,
       } else {
         // a very cheap (and fairly niche) check to see if we can skip processing alltogether
         // note: it doesn't matter if the lengths are different; an item out of bounds will simply return undefined
-        if (item !== previousItems[i]) {
+        if (item !== oldItems[i]) {
           const previousIndex = getPreviousIndex(i, item);
           if (previousIndex > -1 && previousIndex < oldLength) {
             // ensure we don't reuse the same previousIndex multiple times in case we happen to have multiple of the same items
-            previousItems[previousIndex] = undefined;
+            oldItems[previousIndex] = undefined;
             visual.$bind(flags, previousScopes[previousIndex]);
           } else {
             visual.$bind(flags, createChildScope(overrideContext, { [local]: item }));

@@ -1,8 +1,9 @@
 import { PLATFORM } from '../../../kernel/platform';
 import { Reporter } from '../../../kernel/reporter';
-import { PropertyObserver, IPropertySubscriber, IBatchedPropertySubscriber } from '../observation';
+import { PropertyObserver, IPropertySubscriber, IBatchedPropertySubscriber, PropertyObserverKind } from '../observation';
 
 const $null = PLATFORM.$null;
+const noop = PLATFORM.noop;
 
 function getValue(this: PropertyObserver): any {
   return this.currentValue;
@@ -53,10 +54,15 @@ function notify(this: PropertyObserver, newValue: any, previousValue?: any): voi
   }
 }
 
-function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
+function observeAndSubscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
   if (!this.observing) {
     startObserving(this, this.obj, this.propertyKey);
+    this.subscribe = subscribe;
   }
+  this.subscribers.push(subscriber);
+}
+
+function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
   this.subscribers.push(subscriber);
 }
 
@@ -84,9 +90,6 @@ function notifyBatched(this: PropertyObserver, newValue: any, oldValue?: any): v
 }
 
 function subscribeBatched(this: PropertyObserver, subscriber: IBatchedPropertySubscriber): void {
-  if (!this.observing) {
-    startObserving(this, this.obj, this.propertyKey);
-  }
   this.batchedSubscribers.push(subscriber);
 }
 
@@ -130,7 +133,7 @@ function dispose(this: PropertyObserver): void {
   this.batchedSubscribers = $null;
 }
 
-export function propertyObserver(): ClassDecorator {
+export function propertyObserver(kind: PropertyObserverKind): ClassDecorator {
   return function(target: Function): void {
     const proto = <PropertyObserver>target.prototype;
 
@@ -143,21 +146,56 @@ export function propertyObserver(): ClassDecorator {
     proto.currentValue = $null;
     proto.hasChanges = false;
 
-    proto.getValue = getValue;
-    proto.setValue = setValue;
 
     proto.subscribers = $null;
     proto.batchedSubscribers = $null;
 
-    proto.notify = notify;
-    proto.subscribe = subscribe;
-    proto.unsubscribe = unsubscribe;
+    // todo: this no longer feels simple and clean -> make it so again (maybe just move getter/setter away from decorator and make it a pure subscriberCollection?)
+    if (kind & PropertyObserverKind.noop) {
+      if (!(kind & PropertyObserverKind.customGet)) {
+        proto.getValue = noop;
+      }
+      if (!(kind & PropertyObserverKind.customSet)) {
+        proto.setValue = noop;
+      }
 
-    proto.notifyBatched = notifyBatched;
-    proto.subscribeBatched = subscribeBatched;
-    proto.unsubscribeBatched = unsubscribeBatched;
+      proto.notify = noop;
+      proto.subscribe = noop
+      proto.unsubscribe = noop
+  
+      proto.notifyBatched = noop
+      proto.subscribeBatched = noop;
+      proto.unsubscribeBatched = noop;
+      
+      proto.flushChanges = noop;
+    }
+    if (kind & PropertyObserverKind.set) {
+      proto.setValue = setValue;
 
-    proto.flushChanges = flushChanges;
+      proto.notify = notify;
+      proto.subscribe = observeAndSubscribe
+      proto.unsubscribe = unsubscribe
+  
+      proto.notifyBatched = notifyBatched
+      proto.subscribeBatched = subscribeBatched;
+      proto.unsubscribeBatched = unsubscribeBatched;
+
+      proto.flushChanges = flushChanges;
+    } else if (kind & PropertyObserverKind.customSet) {
+      proto.notify = notify;
+      proto.subscribe = subscribe
+      proto.unsubscribe = unsubscribe
+  
+      proto.notifyBatched = notifyBatched
+      proto.subscribeBatched = subscribeBatched;
+      proto.unsubscribeBatched = unsubscribeBatched;
+
+      proto.flushChanges = flushChanges;
+    }
+    if (kind & PropertyObserverKind.get) {
+      proto.getValue = getValue;
+    }
+
     proto.dispose = dispose;
   }
 }

@@ -99,6 +99,14 @@ export interface IBatchedSubscriberCollection<T extends MutationKind> {
   unsubscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>): void;
 }
 
+export const enum PropertyObserverKind {
+  noop      = 0b00001,
+  get       = 0b00010,
+  set       = 0b00100,
+  customGet = 0b01000,
+  customSet = 0b10000
+}
+
 export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj> extends
   IDisposable,
   IAccessor<any>,

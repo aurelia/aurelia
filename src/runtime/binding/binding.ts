@@ -208,8 +208,11 @@ export class Binding implements IBinding {
     let mode = this.mode;
 
     if (!this.targetObserver) {
-      let method: 'getObserver' | 'getAccessor' = mode & BindingMode.fromView ? 'getObserver' : 'getAccessor';
-      this.targetObserver = <any>this.observerLocator[method](this.target, this.targetProperty);
+      if (mode & BindingMode.fromView) {
+        this.targetObserver = this.observerLocator.getObserver(this.target, this.targetProperty);
+      } else {
+        this.targetObserver = <any>this.observerLocator.getAccessor(this.target, this.targetProperty);
+      }
     }
 
     // TODO: re-implement this, but with a better method name than "bind" (and perhaps move to a different place)

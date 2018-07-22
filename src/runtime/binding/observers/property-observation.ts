@@ -23,7 +23,7 @@ export type Primitive = undefined | null | number | boolean | symbol | string;
 // note: string.length is the only property of any primitive that is not a function,
 // so we can hardwire it to that and simply return undefined for anything else
 // note#2: a modified primitive constructor prototype would not work (and really, it shouldn't..)
-@propertyObserver(PropertyObserverKind.noop & PropertyObserverKind.customGet)
+@propertyObserver(PropertyObserverKind.noop | PropertyObserverKind.customGet)
 export class PrimitiveObserver implements IAccessor, ISubscribable {
   public doNotCache: boolean = true;
   private obj: Primitive;

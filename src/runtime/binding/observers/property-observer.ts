@@ -168,32 +168,33 @@ export function propertyObserver(kind: PropertyObserverKind): ClassDecorator {
       proto.unsubscribeBatched = noop;
       
       proto.flushChanges = noop;
-    }
-    if (kind & PropertyObserverKind.set) {
-      proto.setValue = setValue;
-
-      proto.notify = notify;
-      proto.subscribe = observeAndSubscribe
-      proto.unsubscribe = unsubscribe
+    } else {
+      if (kind & PropertyObserverKind.set) {
+        proto.setValue = setValue;
   
-      proto.notifyBatched = notifyBatched
-      proto.subscribeBatched = subscribeBatched;
-      proto.unsubscribeBatched = unsubscribeBatched;
-
-      proto.flushChanges = flushChanges;
-    } else if (kind & PropertyObserverKind.customSet) {
-      proto.notify = notify;
-      proto.subscribe = subscribe
-      proto.unsubscribe = unsubscribe
+        proto.notify = notify;
+        proto.subscribe = observeAndSubscribe
+        proto.unsubscribe = unsubscribe
+    
+        proto.notifyBatched = notifyBatched
+        proto.subscribeBatched = subscribeBatched;
+        proto.unsubscribeBatched = unsubscribeBatched;
   
-      proto.notifyBatched = notifyBatched
-      proto.subscribeBatched = subscribeBatched;
-      proto.unsubscribeBatched = unsubscribeBatched;
-
-      proto.flushChanges = flushChanges;
-    }
-    if (kind & PropertyObserverKind.get) {
-      proto.getValue = getValue;
+        proto.flushChanges = flushChanges;
+      } else if (kind & PropertyObserverKind.customSet) {
+        proto.notify = notify;
+        proto.subscribe = subscribe
+        proto.unsubscribe = unsubscribe
+    
+        proto.notifyBatched = notifyBatched
+        proto.subscribeBatched = subscribeBatched;
+        proto.unsubscribeBatched = unsubscribeBatched;
+  
+        proto.flushChanges = flushChanges;
+      }
+      if (kind & PropertyObserverKind.get) {
+        proto.getValue = getValue;
+      }
     }
 
     proto.dispose = dispose;

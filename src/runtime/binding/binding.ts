@@ -302,9 +302,9 @@ export class Binding implements IBinding {
       }
       this[slotNames[i]] = observer;
       if (flags & BindingFlags.useTaskQueue) {
-        observer.subscribeBatched(this);
+        observer.subscribeBatched(this, flags);
       } else {
-        observer.subscribe(this);
+        observer.subscribe(this, flags);
       }
 
       // increment the slot count.

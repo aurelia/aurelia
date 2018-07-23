@@ -135,12 +135,12 @@ describe('SetterObserver', () => {
               let prevValue = object[propertyName];
               sut.setValue(value);
               for (const subscriber of subscribers) {
-                expect(subscriber.handleChange).to.have.been.calledOnceWithExactly(value, prevValue);
+                expect(subscriber.handleChange).to.have.been.calledOnceWith(value, prevValue);
               }
               if (calls === 2) {
                 sut.setValue(prevValue);
                 for (const subscriber of subscribers) {
-                  expect(subscriber.handleChange).to.have.been.calledWithExactly(prevValue, value);
+                  expect(subscriber.handleChange).to.have.been.calledWith(prevValue, value);
                   expect(subscriber.handleChange).to.have.been.calledTwice;
                 }
               }

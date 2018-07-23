@@ -44,23 +44,23 @@ export interface ICollectionChangeTracker<T extends Collection> extends IChangeT
   resetIndexMap(): void;
 }
 
-export interface IPropertyChangeHandler { (newValue: any, previousValue?: any): void; }
+export interface IPropertyChangeHandler { (newValue: any, previousValue?: any, flags?: BindingFlags): void; }
 export interface IPropertyChangeNotifier extends IPropertyChangeHandler {}
 
-export interface IBatchedPropertyChangeHandler { (newValue: any, oldValue?: any): void; }
+export interface IBatchedPropertyChangeHandler { (newValue: any, oldValue?: any, flags?: BindingFlags): void; }
 export interface IBatchedPropertyChangeNotifier extends IBatchedPropertyChangeHandler {}
 
-export interface IPropertySubscriber { handleChange(newValue: any, previousValue?: any): void; }
-export interface IBatchedPropertySubscriber { handleBatchedChange(newValue: any, oldValue?: any): void; }
+export interface IPropertySubscriber { handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void; }
+export interface IBatchedPropertySubscriber { handleBatchedChange(newValue: any, oldValue?: any, flags?: BindingFlags): void; }
 
-export interface ICollectionChangeHandler { (origin: string, args?: IArguments): void; }
+export interface ICollectionChangeHandler { (origin: string, args?: IArguments, flags?: BindingFlags): void; }
 export interface ICollectionChangeNotifier extends ICollectionChangeHandler {}
 
-export interface IBatchedCollectionChangeHandler { (indexMap: Array<number>): void; }
+export interface IBatchedCollectionChangeHandler { (indexMap: Array<number>, flags?: BindingFlags): void; }
 export interface IBatchedCollectionChangeNotifier extends IBatchedCollectionChangeHandler {}
 
-export interface ICollectionSubscriber { handleChange(origin: string, args?: IArguments): void; }
-export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: Array<number>): void; }
+export interface ICollectionSubscriber { handleChange(origin: string, args?: IArguments, flags?: BindingFlags): void; }
+export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: Array<number>, flags?: BindingFlags): void; }
 
 export type Subscriber = ICollectionSubscriber | IPropertySubscriber;
 export type BatchedSubscriber = IPropertySubscriber | IBatchedPropertySubscriber;
@@ -87,16 +87,18 @@ export type MutationKindToBatchedNotifier<T> =
 
 export interface ISubscriberCollection<T extends MutationKind> {
   subscribers: Array<MutationKindToSubscriber<T>>;
+  subscriberFlags: Array<BindingFlags>;
   notify: MutationKindToNotifier<T>;
-  subscribe(subscriber: MutationKindToSubscriber<T>): void;
-  unsubscribe(subscriber: MutationKindToSubscriber<T>): void;
+  subscribe(subscriber: MutationKindToSubscriber<T>, flags?: BindingFlags): void;
+  unsubscribe(subscriber: MutationKindToSubscriber<T>, flags?: BindingFlags): void;
 }
 
 export interface IBatchedSubscriberCollection<T extends MutationKind> {
   batchedSubscribers: Array<MutationKindToBatchedSubscriber<T>>;
+  batchedSubscriberFlags: Array<BindingFlags>;
   notifyBatched: MutationKindToBatchedNotifier<T>;
-  subscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>): void;
-  unsubscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>): void;
+  subscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>, flags?: BindingFlags): void;
+  unsubscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>, flags?: BindingFlags): void;
 }
 
 export const enum PropertyObserverKind {

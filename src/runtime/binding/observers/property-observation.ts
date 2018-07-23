@@ -84,23 +84,29 @@ export class SetterObserver implements IPropertyObserver<IIndexable, string> {
   public subscribers: Array<IPropertySubscriber>;
   public batchedSubscribers: Array<IBatchedPropertySubscriber>;
 
+  public subscriberFlags: Array<BindingFlags>;
+  public batchedSubscriberFlags: Array<BindingFlags>;
+
   constructor(obj: IIndexable, propertyKey: string) {
     this.obj = obj;
     this.propertyKey = propertyKey;
 
     this.subscribers = new Array();
     this.batchedSubscribers = new Array();
+
+    this.subscriberFlags = new Array();
+    this.batchedSubscriberFlags = new Array();
   }
 
   public getValue: () => any;
-  public setValue: (newValue: any) => void;
+  public setValue: (newValue: any, flags?: BindingFlags) => void;
 
-  public notify: (newValue: any, previousValue?: any) => void;
-  public notifyBatched: (newValue: any, oldValue?: any) => void;
-  public subscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
-  public unsubscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
-  public subscribe: (subscriber: IPropertySubscriber) => void;
-  public unsubscribe: (subscriber: IPropertySubscriber) => void;
+  public notify: (newValue: any, previousValue?: any, flags?: BindingFlags) => void;
+  public notifyBatched: (newValue: any, oldValue?: any, flags?: BindingFlags) => void;
+  public subscribeBatched: (subscriber: IBatchedPropertySubscriber, flags?: BindingFlags) => void;
+  public unsubscribeBatched: (subscriber: IBatchedPropertySubscriber, flags?: BindingFlags) => void;
+  public subscribe: (subscriber: IPropertySubscriber, flags?: BindingFlags) => void;
+  public unsubscribe: (subscriber: IPropertySubscriber, flags?: BindingFlags) => void;
   public flushChanges: () => void;
   public dispose: () => void;
 }
@@ -121,16 +127,25 @@ export class Observer<T>  implements Partial<IPropertyObserver<IIndexable, strin
   public subscribers: Array<IPropertySubscriber>;
   public batchedSubscribers: Array<IBatchedPropertySubscriber>;
 
+  public subscriberFlags: Array<BindingFlags>;
+  public batchedSubscriberFlags: Array<BindingFlags>;
+
   constructor(
     private taskQueue: ITaskQueue,
     currentValue: T,
     private selfCallback?: (newValue: T, oldValue: T) => void | T) {
       this.currentValue = currentValue;
+
+      this.subscribers = new Array();
+      this.batchedSubscribers = new Array();
+  
+      this.subscriberFlags = new Array();
+      this.batchedSubscriberFlags = new Array();
   }
 
   public getValue: () => any;
 
-  public setValue(newValue: T): void {
+  public setValue(newValue: T, flags?: BindingFlags): void {
     const currentValue = this.currentValue;
     if (currentValue !== newValue) {
       this.previousValue = currentValue;
@@ -152,12 +167,12 @@ export class Observer<T>  implements Partial<IPropertyObserver<IIndexable, strin
     this.flushChanges();
   }
 
-  public notify: (newValue: any, previousValue?: any) => void;
-  public notifyBatched: (newValue: any, oldValue?: any) => void;
-  public subscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
-  public unsubscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
-  public subscribe: (subscriber: IPropertySubscriber) => void;
-  public unsubscribe: (subscriber: IPropertySubscriber) => void;
-  public flushChanges: () => void;
+  public notify: (newValue: any, previousValue?: any, flags?: BindingFlags) => void;
+  public notifyBatched: (newValue: any, oldValue?: any, flags?: BindingFlags) => void;
+  public subscribeBatched: (subscriber: IBatchedPropertySubscriber, flags?: BindingFlags) => void;
+  public unsubscribeBatched: (subscriber: IBatchedPropertySubscriber, flags?: BindingFlags) => void;
+  public subscribe: (subscriber: IPropertySubscriber, flags?: BindingFlags) => void;
+  public unsubscribe: (subscriber: IPropertySubscriber, flags?: BindingFlags) => void;
+  public flushChanges: (flags?: BindingFlags) => void;
   public dispose: () => void;
 }

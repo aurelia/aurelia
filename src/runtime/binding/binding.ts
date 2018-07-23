@@ -74,14 +74,18 @@ for (let i = 0; i < 100; i++) {
   versionSlotNames[i] = '_observerVersion' + i;
 }
 
-export enum BindingFlags {
-  none             = 0b000000,
-  mustEvaluate     = 0b000001,
-  instanceMutation = 0b000010,
-  itemsMutation    = 0b000100,
-  connectImmediate = 0b001000,
-  createObjects    = 0b010000,
-  useTaskQueue     = 0b100000
+export const enum BindingFlags {
+  none              = 0b000000000,
+  mustEvaluate      = 0b000000001,
+  instanceMutation  = 0b000000010,
+  itemsMutation     = 0b000000100,
+  connectImmediate  = 0b000001000,
+  createObjects     = 0b000010000,
+  useTaskQueue      = 0b000100000,
+  suppressNotifiers = 0b001000000,
+  sourceContext     = 0b010000000,
+  targetContext     = 0b100000000,
+  context           = 0b110000000
 }
 
 export enum BindingMode {
@@ -143,13 +147,15 @@ export class Binding implements IBinding {
     this.sourceExpression.assign(BindingFlags.none, this.$scope, this.locator, value);
   }
 
-  public handleBatchedChange: (newValue: any, previousValue?: any) => void;
-  public handleChange(newValue: any, previousValue?: any): void {
-    previousValue = this.targetObserver.getValue();
-    newValue = this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator);
-
-    if (newValue !== previousValue) {
-      this.updateTarget(newValue);
+  public handleBatchedChange: (newValue: any, previousValue?: any, flags?: BindingFlags) => void;
+  public handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void {
+    if (!(flags & BindingFlags.targetContext)) {
+      previousValue = this.targetObserver.getValue();
+      newValue = this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator);
+  
+      if (newValue !== previousValue) {
+        this.updateTarget(newValue);
+      }
     }
 
     if (this.mode !== BindingMode.oneTime) {
@@ -235,7 +241,7 @@ export class Binding implements IBinding {
         enqueueBindingConnect(this);
       }
       if (mode & BindingMode.fromView) {
-        (this.targetObserver as any as ISubscribable).subscribe(targetContext, this);
+        this.targetObserver.subscribe(this, flags | BindingFlags.targetContext);
       }
     }
   }

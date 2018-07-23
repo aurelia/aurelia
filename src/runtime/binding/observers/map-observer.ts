@@ -1,5 +1,6 @@
 import { collectionObserver } from './collection-observer';
 import { IObservedMap, CollectionKind, ICollectionSubscriber, IBatchedCollectionSubscriber, ICollectionObserver } from '../observation';
+import { BindingFlags } from '../binding';
 
 const proto = Map.prototype;
 const set = proto.set;
@@ -93,22 +94,27 @@ export class MapObserver implements ICollectionObserver<CollectionKind.map> {
   public subscribers: Array<ICollectionSubscriber>;
   public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
 
+  public subscriberFlags: Array<BindingFlags>;
+  public batchedSubscriberFlags: Array<BindingFlags>;
+
   constructor(map: Map<any, any> & { $observer?: ICollectionObserver<CollectionKind.map> }) {
     map.$observer = this;
     this.collection = <IObservedMap>map;
     this.resetIndexMap();
     this.subscribers = new Array();
     this.batchedSubscribers = new Array();
+    this.subscriberFlags = new Array();
+    this.batchedSubscriberFlags = new Array();
   }
 
   public resetIndexMap: () => void;
-  public notify: (origin: string, args?: IArguments) => void;
-  public notifyBatched: (indexMap: Array<number>) => void;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public subscribe: (subscriber: ICollectionSubscriber) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
-  public flushChanges: () => void;
+  public notify: (origin: string, args?: IArguments, flags?: BindingFlags) => void;
+  public notifyBatched: (indexMap: Array<number>, flags?: BindingFlags) => void;
+  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
+  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
+  public subscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
+  public flushChanges: (flags?: BindingFlags) => void;
   public dispose: () => void;
 }
 

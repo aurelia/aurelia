@@ -1,5 +1,5 @@
 import { ArrayObserver } from './../../../src/runtime/binding/observers/array-observer';
-import { SetterObserver, PrimitiveObserver } from './../../../src/runtime/binding/observers/property-observation';
+import { SetterObserver, PrimitiveObserver, propertyAccessor } from './../../../src/runtime/binding/observers/property-observation';
 import { IBatchedPropertySubscriber, IPropertyObserver } from './../../../src/runtime/binding/observation';
 import { spy } from 'sinon';
 import { AccessMember, PrimitiveLiteral, IExpression } from './../../../src/runtime/binding/ast';
@@ -141,7 +141,53 @@ describe('Binding', () => {
   });
   
   describe('connect()', () => {
+    it(`does not connect if it is not bound`, () => {
+      const sourceExpression = new MockExpression();
+      const targetObserver = new MockObserver();
+      sut = new Binding(sourceExpression, dummyTarget, dummyTargetProperty, dummyMode, observerLocator, container);
+      sut['targetObserver'] = targetObserver;
 
+      sut.connect(BindingFlags.mustEvaluate);
+
+      expect(sourceExpression.connect).not.to.have.been.called;
+      expect(sourceExpression.evaluate).not.to.have.been.called;
+      expect(targetObserver.setValue).not.to.have.been.called;
+    });
+
+    it(`connects the sourceExpression`, () => {
+      const sourceExpression = new MockExpression();
+      const targetObserver = new MockObserver();
+      sut = new Binding(sourceExpression, dummyTarget, dummyTargetProperty, dummyMode, observerLocator, container);
+      sut['targetObserver'] = targetObserver;
+      const scope: any = {};
+      sut['$scope'] = scope;
+      sut['$isBound'] = true;
+      const flags = BindingFlags.none;
+
+      sut.connect(flags);
+
+      expect(sourceExpression.connect).to.have.been.calledWith(flags, scope, sut);
+      expect(sourceExpression.evaluate).not.to.have.been.called;
+      expect(targetObserver.setValue).not.to.have.been.called;
+    });
+
+    it(`evaluates the sourceExpression and updates the target with the retrieved value if mustEvaluate is on`, () => {
+      const value: any = {};
+      const sourceExpression = new MockExpression(value);
+      const targetObserver = new MockObserver();
+      sut = new Binding(sourceExpression, dummyTarget, dummyTargetProperty, dummyMode, observerLocator, container);
+      sut['targetObserver'] = targetObserver;
+      const scope: any = {};
+      sut['$scope'] = scope;
+      sut['$isBound'] = true;
+      const flags = BindingFlags.mustEvaluate;
+
+      sut.connect(flags);
+
+      expect(sourceExpression.connect).to.have.been.calledWith(flags, scope, sut);
+      expect(sourceExpression.evaluate).to.have.been.calledWith(flags, scope, container);
+      expect(targetObserver.setValue).to.have.been.calledWith(value);
+    });
   });
   
   describe('addObserver()', () => {
@@ -277,4 +323,17 @@ class MockObserver implements IPropertyObserver<any, string> {
   unsubscribe = spy();
   subscribeBatched = spy();
   unsubscribeBatched = spy();
+}
+
+class MockExpression implements IExpression {
+  constructor(public value?: any) {
+    this.evaluate = spy(this, 'evaluate');
+  }
+  evaluate() {
+    return this.value;
+  }
+  connect = spy();
+  assign = spy();
+  bind = spy();
+  unbind = spy();
 }

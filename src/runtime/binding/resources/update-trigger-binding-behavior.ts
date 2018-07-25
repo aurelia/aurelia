@@ -1,11 +1,10 @@
-import { BindingMode } from '../binding-mode';
 import { EventSubscriber, IEventSubscriber } from '../event-manager';
 import { IObserverLocator } from '../observer-locator';
-import { Binding } from '../binding';
+import { Binding, BindingMode } from '../binding';
 import { IScope } from '../binding-context';
-import { ValueAttributeObserver } from '../element-observation';
-import { CheckedObserver } from '../checked-observer';
-import { SelectValueObserver } from '../select-value-observer';
+import { ValueAttributeObserver } from '../observers/element-observation';
+import { CheckedObserver } from '../observers/checked-observer';
+import { SelectValueObserver } from '../observers/select-value-observer';
 import { Reporter } from '../../../kernel/reporter';
 import { bindingBehavior } from '../binding-behavior';
 import { inject } from '../../../kernel/di';
@@ -28,7 +27,7 @@ export class UpdateTriggerBindingBehavior {
       throw Reporter.error(9);
     }
 
-    if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
+    if (!(binding.mode & BindingMode.fromView)) {
       throw Reporter.error(10);
     }
 

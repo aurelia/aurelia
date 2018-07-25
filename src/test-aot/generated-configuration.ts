@@ -1,7 +1,7 @@
 import { AccessScope, HtmlLiteral, PrimitiveLiteral, Conditional, CallScope, IExpression, AccessMember } from "../runtime/binding/ast";
 import { IContainer } from "../kernel/di";
 import { IExpressionParser } from "../runtime/binding/expression-parser";
-import { Repeat } from "../runtime/templating/resources/repeat/repeat";
+import { Repeater } from "../runtime/templating/resources/repeater";
 import { If } from "../runtime/templating/resources/if";
 import { Else } from "../runtime/templating/resources/else";
 
@@ -38,7 +38,7 @@ const expressionCache: Record<string, IExpression> = {
   description: new AccessMember(new AccessScope('todo'), 'description')
 };
 
-const globalResources: any[] = [Repeat, If, Else];
+const globalResources: any[] = [Repeater, If, Else];
 
 export const GeneratedConfiguration = {
   register(container: IContainer) {

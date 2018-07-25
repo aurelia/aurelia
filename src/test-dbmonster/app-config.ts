@@ -33,8 +33,8 @@ export const appConfig: ITemplateSource = {
             </tr>
           `,
           instructions: [
-            [ { type: TargetedInstructionType.textBinding, src: 'dbname' } ],
-            [ { type: TargetedInstructionType.textBinding, src: 'nbQueries' } ],
+            [ { type: TargetedInstructionType.textBinding, oneTime: true, src: 'dbname' } ],
+            [ { type: TargetedInstructionType.textBinding, oneTime: true, src: 'nbQueries' } ],
             [
               {
                 type: TargetedInstructionType.hydrateTemplateController,
@@ -53,12 +53,12 @@ export const appConfig: ITemplateSource = {
                   </td>
                   `,
                   instructions: [
-                    [ { type: TargetedInstructionType.textBinding, src: 'formatElapsed' } ],
-                    [ { type: TargetedInstructionType.textBinding, src: 'query' } ]
+                    [ { type: TargetedInstructionType.textBinding, oneTime: true, src: 'formatElapsed' } ],
+                    [ { type: TargetedInstructionType.textBinding, oneTime: true, src: 'query' } ]
                   ]
                 },
                 instructions: [
-                  { type: TargetedInstructionType.oneWayBinding, src: 'topFiveQueries', dest: 'items' },
+                  { type: TargetedInstructionType.oneTimeBinding, src: 'topFiveQueries', dest: 'items' },
                   { type: TargetedInstructionType.setProperty, value: 'q', dest: 'local' },
                   { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
                 ]
@@ -67,7 +67,7 @@ export const appConfig: ITemplateSource = {
           ]
         },
         instructions: [
-          { type: TargetedInstructionType.oneWayBinding, src: 'databases', dest: 'items' },
+          { type: TargetedInstructionType.toViewBinding, src: 'databases', dest: 'items' },
           { type: TargetedInstructionType.setProperty, value: 'db', dest: 'local' },
           { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
         ]

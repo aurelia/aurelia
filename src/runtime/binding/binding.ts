@@ -1,52 +1,178 @@
-import { BindingMode } from './binding-mode';
-import { ConnectableBinding } from './connectable-binding';
-import { enqueueBindingConnect } from './connect-queue';
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
-import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor } from './observation';
+import { IBindScope, CollectionObserver, PropertyObserver, ISubscribable } from './observation';
 import { IServiceLocator } from '../../kernel/di';
 import { IScope, sourceContext, targetContext } from './binding-context';
 import { Reporter } from '../../kernel/reporter';
-import { BindingFlags } from './binding-flags';
+import { PLATFORM } from '../../kernel/platform';
+
+const queue: Binding[] = new Array();       // the connect queue
+const queued: {[id: number]: boolean} = {}; // tracks whether a binding with a particular id is in the queue
+let nextId: number = 0;                     // next available id that can be assigned to a binding for queue tracking purposes
+const minimumImmediate: number = 100;       // number of bindings we should connect immediately before resorting to queueing
+const frameBudget: number = 15;             // milliseconds allotted to each frame for flushing queue
+
+let isFlushRequested = false;               // whether a flush of the connect queue has been requested
+let immediate = 0;                          // count of bindings that have been immediately connected
+
+function flush(animationFrameStart: number): void {
+  const length = queue.length;
+  let i = 0;
+  
+  while (i < length) {
+    const binding = queue[i];
+    queued[binding.__connectQueueId] = false;
+    binding.connect(BindingFlags.mustEvaluate);
+    i++;
+    // periodically check whether the frame budget has been hit.
+    // this ensures we don't call performance.now a lot and prevents starving the connect queue.
+    if (i % 100 === 0 && PLATFORM.now() - animationFrameStart > frameBudget) {
+      break;
+    }
+  }
+
+  queue.splice(0, i);
+
+  if (queue.length) {
+    PLATFORM.requestAnimationFrame(flush);
+  } else {
+    isFlushRequested = false;
+    immediate = 0;
+  }
+}
+
+function enqueueBindingConnect(binding: Binding): void {
+  if (immediate < minimumImmediate) {
+    immediate++;
+    binding.connect(BindingFlags.none);
+  } else {
+    // get or assign the binding's id that enables tracking whether it's been queued.
+    let id = binding.__connectQueueId;
+    if (id === undefined) {
+      id = nextId;
+      nextId++;
+      binding.__connectQueueId = id;
+    }
+    // enqueue the binding.
+    if (!queued[id]) {
+      queue.push(binding);
+      queued[id] = true;
+    }
+  }
+  if (!isFlushRequested) {
+    isFlushRequested = true;
+    PLATFORM.requestAnimationFrame(flush);
+  }
+}
+
+
+const slotNames: string[] = new Array(100);
+const versionSlotNames: string[] = new Array(100);
+
+for (let i = 0; i < 100; i++) {
+  slotNames[i] = '_observer' + i;
+  versionSlotNames[i] = '_observerVersion' + i;
+}
+
+export const enum BindingFlags {
+  none              = 0b000000000,
+  mustEvaluate      = 0b000000001,
+  instanceMutation  = 0b000000010,
+  itemsMutation     = 0b000000100,
+  connectImmediate  = 0b000001000,
+  createObjects     = 0b000010000,
+  useTaskQueue      = 0b000100000,
+  suppressNotifiers = 0b001000000,
+  sourceContext     = 0b010000000,
+  targetContext     = 0b100000000,
+  context           = 0b110000000
+}
+
+export enum BindingMode {
+  oneTime  = 0b00,
+  toView   = 0b01,
+  fromView = 0b10,
+  twoWay   = 0b11
+}
 
 export interface IBinding extends IBindScope {
   locator: IServiceLocator;
-  observeProperty(context: any, name: string): void;
+  observeProperty(flags: BindingFlags, context: any, name: string): void;
 }
 
 export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
+const primitiveTypes = { string: true, number: true, boolean: true, undefined: true };
 
-export class Binding extends ConnectableBinding implements IBinding {
-  public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
+export class Binding implements IBinding {
+  /*@internal*/
+  public __connectQueueId: number;
+  private observerSlots: any;
+  private version: number;
+  public targetObserver: PropertyObserver;
   private $scope: IScope;
   private $isBound = false;
+  private prevValue: any;
 
   constructor(
     public sourceExpression: IExpression,
     public target: IBindingTarget,
     public targetProperty: string,
     public mode: BindingMode,
-    observerLocator: IObserverLocator,
+    private observerLocator: IObserverLocator,
     public locator: IServiceLocator) {
-    super(observerLocator);
+      this.handleBatchedChange = this.handleChange;
   }
 
-  updateTarget(value: any) {
-    this.targetObserver.setValue(value, this.target, this.targetProperty);
+  public updateTarget(value: any): void {
+    if (primitiveTypes[typeof value]) {
+      // this is a "last defense" of sorts against unnecessary setters, particularly beneficial for
+      // the performance and simplicity of the repeater 
+
+      // this might not be the best place to be checking if the target value needs to be set or not
+      // and the mechanism of checking that might not be correct / robust enough (are there any cases when it absolutely
+      // must be done by the observer?) and this may promote sloppy code ("binding will take care of it anyway")
+
+      // in other words, this is a hack and we should not rest until we found the ultimate clean method of
+      // preventing redundant setters
+      if (value === this.prevValue) {
+        return;
+      } else {
+        this.prevValue = value;
+      }
+    }
+    this.targetObserver.setValue(value);
   }
 
-  updateSource(value: any) {
-    this.sourceExpression.assign(this.$scope, value, this.locator, BindingFlags.none);
+  public updateSource(value: any): void {
+    this.sourceExpression.assign(BindingFlags.none, this.$scope, this.locator, value);
   }
 
-  call(context: string, newValue?: any, oldValue?: any) {
+  public handleBatchedChange: (newValue: any, previousValue?: any, flags?: BindingFlags) => void;
+  public handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void {
+    if (!(flags & BindingFlags.targetContext)) {
+      previousValue = this.targetObserver.getValue();
+      newValue = this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator);
+  
+      if (newValue !== previousValue) {
+        this.updateTarget(newValue);
+      }
+    }
+
+    if (this.mode !== BindingMode.oneTime) {
+      this.version++;
+      this.sourceExpression.connect(BindingFlags.none, this.$scope, this);
+      this.unobserve(false);
+    }
+  }
+
+  public call(context: string, newValue?: any, oldValue?: any): void {
     if (!this.$isBound) {
       return;
     }
 
     if (context === sourceContext) {
-      oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-      newValue = this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.none);
+      oldValue = this.targetObserver.getValue();
+      newValue = this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator);
 
       if (newValue !== oldValue) {
         this.updateTarget(newValue);
@@ -54,7 +180,7 @@ export class Binding extends ConnectableBinding implements IBinding {
 
       if (this.mode !== BindingMode.oneTime) {
         this.version++;
-        this.sourceExpression.connect(this, this.$scope, BindingFlags.none);
+        this.sourceExpression.connect(BindingFlags.none, this.$scope, this);
         this.unobserve(false);
       }
 
@@ -62,7 +188,7 @@ export class Binding extends ConnectableBinding implements IBinding {
     }
 
     if (context === targetContext) {
-      if (newValue !== this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.none)) {
+      if (newValue !== this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator)) {
         this.updateSource(newValue);
       }
 
@@ -72,51 +198,55 @@ export class Binding extends ConnectableBinding implements IBinding {
     throw Reporter.error(15, context);
   }
 
-  $bind(scope: IScope) {
+  public $bind(flags: BindingFlags, scope: IScope): void {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind();
+      this.$unbind(flags);
     }
 
     this.$isBound = true;
     this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, scope, BindingFlags.none);
+      this.sourceExpression.bind(flags, scope, this);
     }
 
     let mode = this.mode;
 
     if (!this.targetObserver) {
-      let method: 'getObserver' | 'getAccessor' = mode === BindingMode.twoWay || mode === BindingMode.fromView ? 'getObserver' : 'getAccessor';
-      this.targetObserver = <any>this.observerLocator[method](this.target, this.targetProperty);
+      if (mode & BindingMode.fromView) {
+        this.targetObserver = this.observerLocator.getObserver(flags, this.target, this.targetProperty);
+      } else {
+        this.targetObserver = <any>this.observerLocator.getAccessor(flags, this.target, this.targetProperty);
+      }
     }
 
-    if ('bind' in this.targetObserver) {
-      this.targetObserver.bind();
-    }
-
-    if (this.mode !== BindingMode.fromView) {
-      let value = this.sourceExpression.evaluate(scope, this.locator, BindingFlags.none);
-      this.updateTarget(value);
-    }
+    // TODO: re-implement this, but with a better method name than "bind" (and perhaps move to a different place)
+    // if ('bind' in this.targetObserver) {
+    //   this.targetObserver.bind(flags);
+    // }
 
     if (mode === BindingMode.oneTime) {
-      return;
-    } else if (mode === BindingMode.toView) {
-      enqueueBindingConnect(this);
-    } else if (mode === BindingMode.twoWay) {
-      this.sourceExpression.connect(this, scope, BindingFlags.none);
-      (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
-    } else if (mode === BindingMode.fromView) {
-      (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
+      this.updateTarget(this.sourceExpression.evaluate(flags, scope, this.locator));
+    } else {
+      if (mode & BindingMode.toView) {
+        this.updateTarget(this.sourceExpression.evaluate(flags, scope, this.locator));
+      }
+      if (flags & BindingFlags.connectImmediate) {
+        this.sourceExpression.connect(flags, scope, this);
+      } else {
+        enqueueBindingConnect(this);
+      }
+      if (mode & BindingMode.fromView) {
+        this.targetObserver.subscribe(this, flags | BindingFlags.targetContext);
+      }
     }
   }
 
-  $unbind() {
+  public $unbind(flags: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
@@ -124,32 +254,109 @@ export class Binding extends ConnectableBinding implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.$scope, BindingFlags.none);
+      this.sourceExpression.unbind(flags, this.$scope, this);
     }
 
     this.$scope = null;
 
-    if ('unbind' in this.targetObserver) {
-      (this.targetObserver as IBindingTargetObserver).unbind();
-    }
+    // TODO: re-implement this, but with a better method name than "unbind" (and perhaps move to a different place)
+    // if ('unbind' in this.targetObserver) {
+    //   (this.targetObserver as IBindingTargetObserver).unbind(flags);
+    // }
 
-    if ('unsubscribe' in this.targetObserver) {
-      this.targetObserver.unsubscribe(targetContext, this);
-    }
+    // TODO: re-implement this (and perhaps move to a better place)
+    // if ('unsubscribe' in this.targetObserver) {
+    //   this.targetObserver.unsubscribe(targetContext, this);
+    // }
 
     this.unobserve(true);
   }
 
-  connect(evaluate?: boolean) {
+  public connect(flags: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
 
-    if (evaluate) {
-      let value = this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.none);
+    if (flags & BindingFlags.mustEvaluate) {
+      let value = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
       this.updateTarget(value);
     }
 
-    this.sourceExpression.connect(this, this.$scope, BindingFlags.none);
+    this.sourceExpression.connect(flags, this.$scope, this);
+  }
+
+  public addObserver(flags: BindingFlags, observer: PropertyObserver): void {
+    // find the observer.
+    let observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
+    let i = observerSlots;
+
+    while (i-- && this[slotNames[i]] !== observer) {
+      // Do nothing
+    }
+
+    // if we are not already observing, put the observer in an open slot and subscribe.
+    if (i === -1) {
+      i = 0;
+      while (this[slotNames[i]]) {
+        i++;
+      }
+      this[slotNames[i]] = observer;
+      if (flags & BindingFlags.useTaskQueue) {
+        observer.subscribeBatched(this, flags);
+      } else {
+        observer.subscribe(this, flags);
+      }
+
+      // increment the slot count.
+      if (i === observerSlots) {
+        this.observerSlots = i + 1;
+      }
+    }
+    // set the "version" when the observer was used.
+    if (this.version === undefined) {
+      this.version = 0;
+    }
+    this[versionSlotNames[i]] = this.version;
+  }
+
+  public observeProperty(flags: BindingFlags, obj: any, propertyName: string): void {
+    let observer = this.observerLocator.getObserver(flags, obj, propertyName);
+    this.addObserver(flags, <any>observer);
+  }
+
+  // TODO: what to do with this? seems like Binding doesn't work this way..
+  // public observeArray(array: any[]): void {
+  //   let observer = this.observerLocator.getArrayObserver(array);
+  //   this.addObserver(observer);
+  // }
+
+  public unobserve(all?: boolean): void {
+    const slots = this.observerSlots;
+    let i = 0;
+    let slotName;
+    let observer;
+    if (all) {
+      // forward array processing is easier on the cpu than backwards (unlike a loop without array processing)
+      while (i < slots) {
+        slotName = slotNames[i];
+        if (observer = this[slotName]) {
+          this[slotName] = null;
+          observer.unsubscribe(this);
+        }
+        i++;
+      }
+    } else {
+      const version = this.version;
+      while (i < slots) {
+        if (this[versionSlotNames[i]] !== version) {
+          slotName = slotNames[i];
+          if (observer = this[slotName]) {
+            this[slotName] = null;
+            observer.unsubscribe(this);
+          }
+        }
+        i++;
+      }
+    }
   }
 }

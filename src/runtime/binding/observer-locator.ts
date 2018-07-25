@@ -1,42 +1,44 @@
 import { DOM } from '../dom';
-import { getArrayObserver } from './array-observation';
-import { getMapObserver } from './map-observation';
-import { getSetObserver } from './set-observation';
+import { getArrayObserver } from './observers/array-observer';
+import { getMapObserver } from './observers/map-observer';
+import { getSetObserver } from './observers/set-observer';
 import { IEventManager } from './event-manager';
 import { IDirtyChecker } from './dirty-checker';
 import {
   SetterObserver,
   PrimitiveObserver,
   propertyAccessor
-} from './property-observation';
-import { SelectValueObserver } from './select-value-observer';
-import { CheckedObserver } from './checked-observer';
+} from './observers/property-observation';
+import { SelectValueObserver } from './observers/select-value-observer';
+import { CheckedObserver } from './observers/checked-observer';
 import {
   ValueAttributeObserver,
   XLinkAttributeObserver,
   DataAttributeObserver,
   StyleObserver,
   dataAttributeAccessor
-} from './element-observation';
-import { ClassObserver } from './class-observer';
+} from './observers/element-observation';
+import { ClassObserver } from './observers/class-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
-import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCollectionObserver, AccessorOrObserver, IAccessor } from './observation';
+import { IObservable, IAccessor, PropertyObserver, CollectionObserver } from './observation';
 import { Reporter } from '../../kernel/reporter';
 import { DI, inject } from '../../kernel/di';
 import { ITaskQueue } from '../task-queue';
-import { createComputedObserver } from './computed-observer';
+import { createComputedObserver } from './observers/computed-observer';
+import { IIndexable } from '../../kernel/interfaces';
+import { BindingFlags } from './binding';
 
 export interface ObjectObservationAdapter {
-  getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
+  getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): PropertyObserver;
 }
 
 export interface IObserverLocator {
-  getObserver(obj: any, propertyName: string): AccessorOrObserver;
-  getAccessor(obj: any, propertyName: string): IAccessor | IBindingTargetAccessor;
+  getObserver(flags: BindingFlags, obj: any, propertyName: string): PropertyObserver;
+  getAccessor(flags: BindingFlags, obj: any, propertyName: string): IAccessor | PropertyObserver;
   addAdapter(adapter: ObjectObservationAdapter);
-  getArrayObserver(array: any[]): IBindingCollectionObserver;
-  getMapObserver(map: Map<any, any>): IBindingCollectionObserver;
-  getSetObserver(set: Set<any>): IBindingCollectionObserver;
+  getArrayObserver(array: any[]): CollectionObserver;
+  getMapObserver(map: Map<any, any>): CollectionObserver;
+  getSetObserver(set: Set<any>): CollectionObserver;
 }
 
 export const IObserverLocator = DI.createInterface<IObserverLocator>()
@@ -53,7 +55,9 @@ function getPropertyDescriptor(subject: object, name: string) {
 
   return pd;
 }
-
+const xlinkCapturingMatcher = /^xlink:(.+)$/;
+const xlinkNonCapturingMatcher = /^xlink:.+$/;
+const ariaMatcher = /^\w+:|^data-|^aria-/;
 @inject(ITaskQueue, IEventManager, IDirtyChecker, ISVGAnalyzer)
 class ObserverLocator implements IObserverLocator {
   private adapters: ObjectObservationAdapter[] = [];
@@ -65,7 +69,7 @@ class ObserverLocator implements IObserverLocator {
     private svgAnalyzer: ISVGAnalyzer
   ) {}
 
-  getObserver(obj: any, propertyName: string): AccessorOrObserver {
+  getObserver(flags: BindingFlags, obj: any, propertyName: string): PropertyObserver {
     let observersLookup = obj.$observers;
     let observer;
 
@@ -86,12 +90,12 @@ class ObserverLocator implements IObserverLocator {
     return observer;
   }
 
-  private getOrCreateObserversLookup(obj: IObservable) {
+  private getOrCreateObserversLookup(obj: IObservable<IIndexable, string>) {
     return obj.$observers || this.createObserversLookup(obj);
   }
 
-  private createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {
-    let value: Record<string, IBindingTargetObserver> = {};
+  private createObserversLookup(obj: IObservable<IIndexable, string>): Record<string, PropertyObserver> {
+    let value: Record<string, PropertyObserver> = {};
 
     if (!Reflect.defineProperty(obj, '$observers', {
       enumerable: false,
@@ -121,7 +125,8 @@ class ObserverLocator implements IObserverLocator {
   }
 
   private createPropertyObserver(obj: any, propertyName: string) {
-    if (!(obj instanceof Object)) {
+    // note: this was instanceof Object, but that fails for Object.create(null) and this is a little faster
+    if (typeof obj !== 'object' || obj === null) {
       return new PrimitiveObserver(obj, propertyName);
     }
 
@@ -135,11 +140,12 @@ class ObserverLocator implements IObserverLocator {
       }
 
       const handler = this.eventManager.getElementHandler(obj, propertyName);
-      if (propertyName === 'value' && DOM.normalizedTagName(obj) === 'select') {
+      const name = obj['tagName'];
+      if (propertyName === 'value' && name === 'SELECT') {
         return new SelectValueObserver(<HTMLSelectElement>obj, handler, this.taskQueue, this);
       }
 
-      if (propertyName === 'checked' && DOM.normalizedTagName(obj) === 'input') {
+      if (propertyName === 'checked' && name === 'INPUT') {
         return new CheckedObserver(<HTMLInputElement>obj, handler, this.taskQueue, this);
       }
 
@@ -147,13 +153,13 @@ class ObserverLocator implements IObserverLocator {
         return new ValueAttributeObserver(obj, propertyName, handler);
       }
 
-      const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
+      const xlinkResult = xlinkCapturingMatcher.exec(propertyName);
       if (xlinkResult) {
         return new XLinkAttributeObserver(obj, propertyName, xlinkResult[1]);
       }
 
       if (propertyName === 'role'
-        || /^\w+:|^data-|^aria-/.test(propertyName)
+        || ariaMatcher.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
         return new DataAttributeObserver(obj, propertyName);
       }
@@ -177,63 +183,51 @@ class ObserverLocator implements IObserverLocator {
       }
     }
 
+    // todo: proxy for length
     if (obj instanceof Array) {
-      if (propertyName === 'length') {
-        return this.getArrayObserver(obj).getLengthObserver();
-      }
-
       return this.dirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Map) {
-      if (propertyName === 'size') {
-        return this.getMapObserver(obj).getLengthObserver();
-      }
-
       return this.dirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Set) {
-      if (propertyName === 'size') {
-        return this.getSetObserver(obj).getLengthObserver();
-      }
-
       return this.dirtyChecker.createProperty(obj, propertyName);
     }
 
-    return new SetterObserver(this.taskQueue, obj, propertyName);
+    return new SetterObserver(obj, propertyName);
   }
 
-  getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
+  getAccessor(flags: BindingFlags, obj: any, propertyName: string): IAccessor {
     if (DOM.isNodeInstance(obj)) {
-      let normalizedTagName = DOM.normalizedTagName;
+      const name = obj['tagName'];
 
       if (propertyName === 'class'
         || propertyName === 'style' || propertyName === 'css'
-        || propertyName === 'value' && (normalizedTagName(obj) === 'input' || normalizedTagName(obj) === 'select')
-        || propertyName === 'checked' && normalizedTagName(obj) === 'input'
-        || propertyName === 'model' && normalizedTagName(obj) === 'input'
-        || /^xlink:.+$/.exec(propertyName)) {
-        return <any>this.getObserver(obj, propertyName);
+        || propertyName === 'value' && (name === 'INPUT' || name === 'SELECT')
+        || propertyName === 'checked' && name === 'INPUT'
+        || propertyName === 'model' && name === 'INPUT'
+        || xlinkNonCapturingMatcher.test(propertyName)) {
+        return <any>this.getObserver(flags, obj, propertyName);
       }
 
-      if (/^\w+:|^data-|^aria-/.test(propertyName)
+      if (ariaMatcher.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)
-        || normalizedTagName(obj) === 'img' && propertyName === 'src'
-        || normalizedTagName(obj) === 'a' && propertyName === 'href'
+        || name === 'IMG' && propertyName === 'src'
+        || name === 'A' && propertyName === 'href'
       ) {
-        return dataAttributeAccessor;
+        return dataAttributeAccessor(obj, propertyName);
       }
     }
-
-    return propertyAccessor;
+    return propertyAccessor(flags, this.taskQueue, obj, propertyName);
   }
 
-  getArrayObserver(array: any[]): IBindingCollectionObserver {
-    return getArrayObserver(this.taskQueue, array);
+  getArrayObserver(array: any[]): ReturnType<typeof getArrayObserver> {
+    return getArrayObserver(array);
   }
 
-  getMapObserver(map: Map<any, any>): IBindingCollectionObserver {
-    return getMapObserver(this.taskQueue, map);
+  getMapObserver(map: Map<any, any>): ReturnType<typeof getMapObserver> {
+    return getMapObserver(map);
   }
 
-  getSetObserver(set: Set<any>): IBindingCollectionObserver {
-    return getSetObserver(this.taskQueue, set);
+  getSetObserver(set: Set<any>): ReturnType<typeof getSetObserver> {
+    return getSetObserver(set);
   }
 }

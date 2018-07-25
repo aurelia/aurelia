@@ -45,28 +45,45 @@ export const View = {
     }
   },
   fromNode(node: INode): IView {
-    return {
-      firstChild: node,
-      lastChild: node,
-      childNodes: [node],
-      findTargets(): INode[] {
-        return PLATFORM.emptyArray;
-      },
-      appendChild(node: INode) {
-        DOM.appendChild(node, node);
-      },
-      insertBefore(refNode: INode): void {
-        DOM.insertBefore(node, refNode);
-      },
-      appendTo(parent: INode): void {
-        DOM.appendChild(parent, node);
-      },
-      remove(): void {
-        DOM.remove(node);
-      }
-    };
+    return new NodeView(<Node>node);
   }
 };
+
+class NodeView implements IView {
+  firstChild: Node;
+  lastChild: Node;
+  childNodes: Node[];
+
+  constructor(node: Node) {
+    this.firstChild = this.lastChild = node;
+    this.childNodes = [node];
+  }
+
+  findTargets(): Node[] {
+    return PLATFORM.emptyArray;
+  }
+
+  appendChild(child: Node) {
+    this.firstChild.appendChild(child);
+  }
+
+  insertBefore(refNode: Node): void {
+    refNode.parentNode.insertBefore(this.firstChild, refNode);
+  }
+
+  appendTo(parent: Node): void {
+    parent.appendChild(this.firstChild);
+  }
+
+  remove(): void {
+    const node = this.firstChild
+    if ((<any>node).remove) {
+      (<any>node).remove();
+    } else if (node.parentNode) {
+      node.parentNode.removeChild(node);
+    }
+  }
+}
 
 export interface IContentView extends IView {
   childObserver?: IChildObserver;

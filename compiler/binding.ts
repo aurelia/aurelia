@@ -73,7 +73,7 @@ export class PropertyBinding extends AbstractBinding {
     public astRecord: AstRegistryRecord,
     public targetIndex: number,
     public targetProperty: string,
-    public mode: bindingMode = bindingMode.oneWay,
+    public mode: bindingMode = bindingMode.toView,
     public forBehavior?: boolean,
     public behaviorIndex?: number
   ) {

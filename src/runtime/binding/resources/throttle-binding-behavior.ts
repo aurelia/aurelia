@@ -1,5 +1,4 @@
-import { BindingMode } from '../binding-mode';
-import { Binding } from '../binding';
+import { Binding, BindingMode } from '../binding';
 import { Call } from '../call';
 import { Listener } from '../listener';
 import { IScope } from '../binding-context';

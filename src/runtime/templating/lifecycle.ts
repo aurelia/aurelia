@@ -1,5 +1,6 @@
 import { IViewOwner } from './view';
 import { INode } from '../dom';
+import { BindingFlags } from '../binding/binding';
 
 export class AttachLifecycle {
   private tail = null;
@@ -99,6 +100,7 @@ export interface IAttach {
 }
 
 export interface IBindSelf {
-  $bind(): void;
-  $unbind(): void;
+  $flags?: BindingFlags;
+  $bind(flags: BindingFlags): void;
+  $unbind(flags: BindingFlags): void;
 }

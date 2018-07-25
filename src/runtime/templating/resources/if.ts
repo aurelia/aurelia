@@ -5,9 +5,10 @@ import { templateController } from '../custom-attribute';
 import { inject } from '../../../kernel/di';
 import { IVisualFactory } from '../visual';
 import { bindable } from '../bindable';
+import { ITaskQueue } from '../../task-queue';
 
 @templateController('if')
-@inject(IVisualFactory, IRenderSlot)
+@inject(ITaskQueue, IVisualFactory, IRenderSlot)
 export class If extends IfCore {
   private animating = false;
   private elseBehavior: Else;
@@ -16,7 +17,9 @@ export class If extends IfCore {
   @bindable condition: boolean = false;
 
   conditionChanged(newValue) {
-    this.update(newValue);
+    this.tq.queueMicroTask(() => {
+      this.update(newValue);
+    })
   }
 
   link(elseBehavior: Else) {

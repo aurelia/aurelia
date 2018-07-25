@@ -1,9 +1,11 @@
 /.rollup-cache
+/.rollupcache
+/dist
 /coverage
 /test/**/coverage
 /node_modules
 /scripts
-/dbmonster/scripts
+/bench/*/scripts
 
 .idea
 .DS_STORE

@@ -1,5 +1,5 @@
-import { BindingMode } from '../binding/binding-mode';
 import { Omit } from '../../kernel/interfaces';
+import { BindingMode } from '../binding/binding';
 
 const capitalMatcher = /([A-Z])/g;
 
@@ -40,7 +40,7 @@ export function bindable(configOrTarget?: BindableSource | Object, key?, descrip
     }
 
     if (!config.mode) {
-      config.mode = BindingMode.oneWay;
+      config.mode = BindingMode.toView;
     }
 
     config.property = key2;

@@ -11,6 +11,7 @@ import { IContainer, Registration } from '../../kernel/di';
 import { BindingContext } from '../binding/binding-context';
 import { ShadowDOMEmulation } from './shadow-dom';
 import { PLATFORM } from '../../kernel/platform';
+import { BindingFlags } from '../binding/binding';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 
@@ -107,7 +108,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       this.$isBound = false;
       this.$scope = {
         bindingContext: this,
-        overrideContext: BindingContext.createOverride()
+        overrideContext: BindingContext.createOverride(this)
       };
       
       this.$context = template.renderContext;
@@ -127,7 +128,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       }
     };
   
-    proto.$bind = function(this: IInternalCustomElementImplementation) {
+    proto.$bind = function(this: IInternalCustomElementImplementation, flags: BindingFlags) {
       if (this.$isBound) {
         return;
       }
@@ -136,7 +137,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       const bindable = this.$bindable;
   
       for (let i = 0, ii = bindable.length; i < ii; ++i) {
-        bindable[i].$bind(scope);
+        bindable[i].$bind(flags, scope);
       }
   
       this.$isBound = true;
@@ -148,7 +149,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       }
   
       if (this.$behavior.hasBound) {
-        (this as any).bound();
+        (this as any).bound(flags);
       }
     };
   
@@ -226,17 +227,17 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       }
     };
   
-    proto.$unbind = function(this: IInternalCustomElementImplementation) {
+    proto.$unbind = function(this: IInternalCustomElementImplementation, flags: BindingFlags) {
       if (this.$isBound) {
         const bindable = this.$bindable;
         let i = bindable.length;
   
         while (i--) {
-          bindable[i].$unbind();
+          bindable[i].$unbind(flags);
         }
   
         if (this.$behavior.hasUnbound) {
-          (this as any).unbound();
+          (this as any).unbound(flags);
         }
   
         this.$isBound = false;

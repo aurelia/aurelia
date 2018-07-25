@@ -5,9 +5,10 @@ import { IRenderSlot } from '../render-slot';
 import { templateController } from '../custom-attribute';
 import { IScope } from '../../binding/binding-context';
 import { inject } from '../../../kernel/di';
+import { ITaskQueue } from '../../task-queue';
 
 @templateController('else')
-@inject(IVisualFactory, IRenderSlot)
+@inject(ITaskQueue, IVisualFactory, IRenderSlot)
 export class Else extends IfCore {
   private ifBehavior: If;
 

@@ -1,14 +1,13 @@
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
-import { IBinding } from './binding';
+import { IBinding, BindingFlags } from './binding';
 import { IServiceLocator } from '../../kernel/di';
-import { IBindingTargetAccessor } from './observation';
 import { IScope } from './binding-context';
 import { INode } from '../dom';
-import { BindingFlags } from './binding-flags';
+import { IAccessor } from './observation';
 
 export class Call implements IBinding {
-  targetObserver: IBindingTargetAccessor;
+  targetObserver: IAccessor;
   private $scope: IScope;
   private $isBound = false;
 
@@ -18,15 +17,14 @@ export class Call implements IBinding {
     private targetProperty: string,
     private observerLocator: IObserverLocator, 
     public locator: IServiceLocator) {
-    this.targetObserver = <any>observerLocator.getObserver(target, targetProperty);
+    this.targetObserver = <any>observerLocator.getObserver(BindingFlags.none, target, targetProperty);
   }
 
   callSource($event) {
     let overrideContext = <any>this.$scope.overrideContext;
     Object.assign(overrideContext, $event);
     overrideContext.$event = $event; // deprecate this?
-    let mustEvaluate = true;
-    let result = this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.mustEvaluate);
+    let result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.$scope, this.locator);
     delete overrideContext.$event;
 
     for (let prop in $event) {
@@ -36,26 +34,26 @@ export class Call implements IBinding {
     return result;
   }
 
-  $bind(scope: IScope) {
+  $bind(flags: BindingFlags, scope: IScope) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind();
+      this.$unbind(flags);
     }
 
     this.$isBound = true;
     this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, scope, BindingFlags.none);
+      this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.targetObserver.setValue($event => this.callSource($event), this.target, this.targetProperty);
+    this.targetObserver.setValue($event => this.callSource($event));
   }
 
-  $unbind() {
+  $unbind(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
@@ -63,11 +61,11 @@ export class Call implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.$scope, BindingFlags.none);
+      this.sourceExpression.unbind(flags, this.$scope, this);
     }
 
     this.$scope = null;
-    this.targetObserver.setValue(null, this.target, this.targetProperty);
+    this.targetObserver.setValue(null);
   }
 
   observeProperty() { }

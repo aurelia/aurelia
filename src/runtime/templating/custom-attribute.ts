@@ -9,8 +9,8 @@ import { IResourceType, IResourceKind, ResourceDescription } from '../resource';
 import { IContainer, Registration } from '../../kernel/di';
 import { INode } from '../dom';
 import { PLATFORM } from '../../kernel/platform';
-import { BindingMode } from '../binding/binding-mode';
 import { IBindableDescription } from './bindable';
+import { BindingFlags, BindingMode } from '../binding/binding';
 
 export interface ICustomAttributeSource {
   name: string;
@@ -110,13 +110,13 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
     };
 
-    proto.$bind = function(this: IInternalCustomAttributeImplementation, scope: IScope) {
+    proto.$bind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope) {
       if (this.$isBound) {
         if (this.$scope === scope) {
           return;
         }
 
-        this.$unbind();
+        this.$unbind(flags);
       }
 
       this.$scope = scope
@@ -129,7 +129,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
 
       if (this.$behavior.hasBound) {
-        (this as any).bound(scope);
+        (this as any).bound(flags, scope);
       }
     };
 
@@ -171,10 +171,10 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
     };
 
-    proto.$unbind = function(this: IInternalCustomAttributeImplementation) {
+    proto.$unbind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags) {
       if (this.$isBound) {
         if (this.$behavior.hasUnbound) {
-          (this as any).unbound();
+          (this as any).unbound(flags);
         }
 
         this.$isBound = false;
@@ -189,7 +189,7 @@ function createDescription(attributeSource: ICustomAttributeSource, Type: ICusto
   return {
     name: attributeSource.name,
     aliases: attributeSource.aliases || PLATFORM.emptyArray,
-    defaultBindingMode: attributeSource.defaultBindingMode || BindingMode.oneWay,
+    defaultBindingMode: attributeSource.defaultBindingMode || BindingMode.toView,
     isTemplateController: attributeSource.isTemplateController || false,
     bindables: Object.assign({}, (Type as any).bindables, attributeSource.bindables)
   };

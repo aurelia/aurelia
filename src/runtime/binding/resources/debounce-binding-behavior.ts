@@ -1,6 +1,5 @@
 import { sourceContext, targetContext, IScope } from '../binding-context';
-import { BindingMode } from '../binding-mode';
-import { Binding } from '../binding';
+import { Binding, BindingMode } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { Call } from '../call';
 import { Listener } from '../listener';
@@ -52,9 +51,7 @@ export class DebounceBindingBehavior {
       const mode = binding.mode;
       methodToDebounce = 'call';
       debouncer = debounceCall;
-      callContextToDebounce = mode === BindingMode.twoWay || mode === BindingMode.fromView 
-        ? targetContext 
-        : sourceContext;
+      callContextToDebounce = mode & BindingMode.fromView ? targetContext : sourceContext;
     } else {
       methodToDebounce = 'callSource';
       debouncer = debounceCallSource;

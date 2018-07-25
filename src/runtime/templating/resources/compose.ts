@@ -8,6 +8,7 @@ import { IRenderContext } from '../render-context';
 import { IRenderingEngine } from '../rendering-engine';
 import { Immutable } from '../../../kernel/interfaces';
 import { inject } from '../../../kernel/di';
+import { BindingFlags } from '../../binding/binding';
 
 const composeSource = {
   name: 'au-compose',
@@ -116,7 +117,7 @@ export class Compose {
     this.$bindable.push(newVisual);
 
     if (this.$isBound) {
-      newVisual.$bind(this.viewOwner.$scope);
+      newVisual.$bind(BindingFlags.none, this.viewOwner.$scope);
     }
 
     return this.slot.swap(newVisual, this.swapOrder || SwapOrder.after);

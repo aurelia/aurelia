@@ -2,7 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "sourceMap": true,
-    "target": "es5",
+    "target": "es2015",
     "module": "amd",
     "declaration": false,
     "noImplicitAny": false,
@@ -10,22 +10,11 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowJs": false,
+    "stripInternal": true,
     "moduleResolution": "node",
-    "lib": [
-      "es2017",
-      "dom"
-    ]
+    "lib": ["es2017", "dom"]
   },
-  "exclude": [
-    "node_modules",
-    "aurelia_project"
-  ],
-  "filesGlob": [
-    "./compiler/**/*.ts",
-    "./src/**/*.ts",
-    "./test/**/*.ts",
-    "./custom_typings/**/*.d.ts"
-  ],
+  "include": ["src"],
   "atom": {
     "rewriteTsconfig": false
   }

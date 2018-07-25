@@ -1,6 +1,5 @@
-import { BindingMode } from '../binding-mode';
 import { bindingBehavior } from '../binding-behavior';
-import { Binding } from '../binding';
+import { Binding, BindingMode } from '../binding';
 import { IScope } from '../binding-context';
 
 class BindingModeBehavior {
@@ -24,10 +23,17 @@ export class OneTimeBindingBehavior extends BindingModeBehavior {
   }
 }
 
-@bindingBehavior('oneWay')
-export class OneWayBindingBehavior extends BindingModeBehavior {
+@bindingBehavior('toView')
+export class ToViewBindingBehavior extends BindingModeBehavior {
   constructor() {
-    super(BindingMode.oneWay);
+    super(BindingMode.toView);
+  }
+}
+
+@bindingBehavior('fromView')
+export class FromViewBindingBehavior extends BindingModeBehavior {
+  constructor() {
+    super(BindingMode.fromView);
   }
 }
 

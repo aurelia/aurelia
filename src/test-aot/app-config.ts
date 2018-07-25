@@ -90,7 +90,7 @@ export const appConfig: ITemplateSource = {
         },
         instructions: [
           {
-            type: TargetedInstructionType.oneWayBinding,
+            type: TargetedInstructionType.toViewBinding,
             src: 'duplicateMessage',
             dest: 'condition'
           }
@@ -126,7 +126,7 @@ export const appConfig: ITemplateSource = {
         },
         instructions: [
           {
-            type: TargetedInstructionType.oneWayBinding,
+            type: TargetedInstructionType.toViewBinding,
             src: 'todos',
             dest: 'items'
           },

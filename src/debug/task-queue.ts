@@ -1,6 +1,7 @@
 import { ITaskQueue } from '../runtime/task-queue';
 import { IContainer } from '../kernel/di';
 
+const queueStackMatcher = /^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/;
 export function enableImprovedTaskQueueDebugging(container: IContainer) {
   container.registerTransformer(ITaskQueue, taskQueue => {
     const stackSeparator = '\nEnqueued in TaskQueue by:\n';
@@ -57,7 +58,7 @@ function captureStack() {
 
 function filterQueueStack(stack: string) {
   // Remove everything (error message + top stack frames) up to the topmost queueTask or queueMicroTask call
-  return stack.replace(/^[\s\S]*?\bqueue(Micro)?Task\b[^\n]*\n/, '');
+  return stack.replace(queueStackMatcher, '');
 }
 
 function filterFlushStack(stack: string) {

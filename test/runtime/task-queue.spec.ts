@@ -1,12 +1,11 @@
-import { ITaskQueue } from '../../src/runtime/task-queue';
-import { DI } from '../../src/kernel/di';
+import { TaskQueue } from '../../src/runtime/task-queue';
 import { expect } from 'chai';
 
 describe('TaskQueue', () => {
-  let sut: ITaskQueue;
+  let sut: TaskQueue;
 
   beforeEach(() => {
-    sut = DI.createContainer().get(ITaskQueue);
+    sut = new TaskQueue();
   });
 
   it('queueTask does not provide immediate execution', () => {

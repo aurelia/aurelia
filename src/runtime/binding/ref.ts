@@ -1,8 +1,7 @@
 import { IExpression } from './ast';
-import { IBinding, IBindingTarget } from './binding';
+import { IBinding, IBindingTarget, BindingFlags } from './binding';
 import { IServiceLocator } from '../../kernel/di';
 import { IScope } from './binding-context';
-import { BindingFlags } from './binding-flags';
 
 export class Ref implements IBinding {
   private $scope: IScope;
@@ -14,38 +13,38 @@ export class Ref implements IBinding {
     public locator: IServiceLocator) {
   }
 
-  $bind(scope: IScope) {
+  $bind(flags: BindingFlags, scope: IScope) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind();
+      this.$unbind(flags);
     }
 
     this.$isBound = true;
     this.$scope = scope;
 
     if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(this, scope, BindingFlags.none);
+      this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.sourceExpression.assign(this.$scope, this.target, this.locator, BindingFlags.none);
+    this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
   }
 
-  $unbind() {
+  $unbind(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
 
     this.$isBound = false;
 
-    if (this.sourceExpression.evaluate(this.$scope, this.locator, BindingFlags.none) === this.target) {
-      this.sourceExpression.assign(this.$scope, null, this.locator, BindingFlags.none);
+    if (this.sourceExpression.evaluate(flags, this.$scope, this.locator) === this.target) {
+      this.sourceExpression.assign(flags, this.$scope, this.locator, null);
     }
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(this, this.$scope, BindingFlags.none);
+      this.sourceExpression.unbind(flags, this.$scope, this);
     }
 
     this.$scope = null;

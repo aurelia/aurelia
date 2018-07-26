@@ -9,6 +9,7 @@
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "downlevelIteration": true,
     "allowJs": false,
     "moduleResolution": "node",
     "lib": [

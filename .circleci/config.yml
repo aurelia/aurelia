@@ -1,0 +1,42 @@
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: aureliavnext/circleci:0.0.2
+
+version: 2
+jobs:
+  install:
+    <<: *defaults
+    steps:
+      - run:
+          name: "Show npm and node versions"
+          command: |
+            node --version
+            npm --version
+      - checkout
+      - run: npm ci
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
+
+  unit_tests:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package-lock.json" }}
+          - v1-dependencies-
+      - run:
+          command: "npm run test"
+          when: always
+
+workflows:
+    version: 2
+    install_and_test:
+        jobs:
+            - install
+            - unit_tests:
+                requires:
+                    - install

@@ -4,6 +4,7 @@ import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { Call } from '../call';
 import { Listener } from '../listener';
+import { BindingFlags } from '../binding-flags';
 
 type DebounceableBinding = (Binding | Call | Listener) & {
   debouncedMethod: ((context: string, newValue: any, oldValue: any) => void) & { originalName: string };
@@ -41,20 +42,19 @@ function debounceCall(this: DebounceableBinding, context: string, newValue: any,
   }, state.delay);
 }
 
+const fromView = BindingMode.fromView;
+
 @bindingBehavior('debounce')
 export class DebounceBindingBehavior {
-  bind(binding: DebounceableBinding, scope: IScope, delay = 200) {
+  bind(flags: BindingFlags, scope: IScope, binding: DebounceableBinding, delay = 200) {
     let methodToDebounce;
     let callContextToDebounce;
     let debouncer;
 
     if (binding instanceof Binding) {
-      const mode = binding.mode;
       methodToDebounce = 'call';
       debouncer = debounceCall;
-      callContextToDebounce = mode === BindingMode.twoWay || mode === BindingMode.fromView 
-        ? targetContext 
-        : sourceContext;
+      callContextToDebounce = binding.mode & fromView ? targetContext : sourceContext;
     } else {
       methodToDebounce = 'callSource';
       debouncer = debounceCallSource;
@@ -79,7 +79,7 @@ export class DebounceBindingBehavior {
     };
   }
 
-  unbind(binding: DebounceableBinding, scope: IScope) {
+  unbind(flags: BindingFlags, scope: IScope, binding: DebounceableBinding) {
     // restore the state of the binding.
     const methodToRestore = binding.debouncedMethod.originalName;
     binding[methodToRestore] = binding.debouncedMethod;

@@ -4,6 +4,7 @@ import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { Reporter } from '../../../kernel/reporter';
 import { ISignaler } from '../signaler';
+import { BindingFlags } from '../binding-flags';
 
 type SignalableBinding = Binding & {
   signal: string | string[];
@@ -14,17 +15,17 @@ type SignalableBinding = Binding & {
 export class SignalBindingBehavior {
   constructor(private signaler: ISignaler) {}
 
-  bind(binding: SignalableBinding, scope: IScope) {
+  bind(flags: BindingFlags, scope: IScope, binding: SignalableBinding) {
     if (!binding.updateTarget) {
       throw Reporter.error(11);
     }
 
-    if (arguments.length === 3) {
-      let name = arguments[2];
+    if (arguments.length === 4) {
+      let name = arguments[3];
       this.signaler.addSignalListener(name, binding);
       binding.signal = name;
-    } else if (arguments.length > 3) {
-      let names = Array.prototype.slice.call(arguments, 2);
+    } else if (arguments.length > 4) {
+      let names = Array.prototype.slice.call(arguments, 3);
       let i = names.length;
 
       while (i--) {
@@ -38,7 +39,7 @@ export class SignalBindingBehavior {
     }
   }
 
-  unbind(binding: SignalableBinding, scope: IScope) {
+  unbind(flags: BindingFlags, scope: IScope, binding: SignalableBinding) {
     let name = binding.signal;
     binding.signal = null;
 

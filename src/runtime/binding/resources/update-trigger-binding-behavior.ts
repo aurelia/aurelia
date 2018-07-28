@@ -9,6 +9,7 @@ import { SelectValueObserver } from '../select-value-observer';
 import { Reporter } from '../../../kernel/reporter';
 import { bindingBehavior } from '../binding-behavior';
 import { inject } from '../../../kernel/di';
+import { BindingFlags } from '../binding-flags';
 
 type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {
   originalHandler?: IEventSubscriber
@@ -23,7 +24,7 @@ type UpdateTriggerableBinding = Binding & {
 export class UpdateTriggerBindingBehavior {
   constructor(private observerLocator: IObserverLocator) {}
 
-  bind(binding: UpdateTriggerableBinding, scope: IScope, ...events: string[]) {
+  bind(flags: BindingFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]) {
     if (events.length === 0) {
       throw Reporter.error(9);
     }
@@ -47,7 +48,7 @@ export class UpdateTriggerBindingBehavior {
     targetObserver.handler = new EventSubscriber(events);
   }
 
-  unbind(binding: UpdateTriggerableBinding, scope: IScope) {
+  unbind(flags: BindingFlags, scope: IScope, binding: UpdateTriggerableBinding) {
     // restore the state of the binding.
     binding.targetObserver.handler.dispose();
     binding.targetObserver.handler = binding.targetObserver.originalHandler;

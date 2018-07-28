@@ -2,38 +2,50 @@ import { BindingMode } from '../binding-mode';
 import { bindingBehavior } from '../binding-behavior';
 import { Binding } from '../binding';
 import { IScope } from '../binding-context';
+import { BindingFlags } from '../binding-flags';
+
+const { oneTime, toView, fromView, twoWay } = BindingMode;
+
+type WithMode = { mode: BindingMode, originalMode?: BindingMode };
 
 class BindingModeBehavior {
   constructor(private mode: BindingMode) {}
 
-  bind(binding: Binding, scope: IScope) {
-    (<any>binding).originalMode = binding.mode;
+  bind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {
+    binding.originalMode = binding.mode;
     binding.mode = this.mode;
   }
 
-  unbind(binding: Binding, scope: IScope) {
-    binding.mode = (<any>binding).originalMode;
-    (<any>binding).originalMode = null;
+  unbind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {
+    binding.mode = binding.originalMode;
+    binding.originalMode = null;
   }
 }
 
 @bindingBehavior('oneTime')
 export class OneTimeBindingBehavior extends BindingModeBehavior {
   constructor() {
-    super(BindingMode.oneTime);
+    super(oneTime);
   }
 }
 
-@bindingBehavior('oneWay')
-export class OneWayBindingBehavior extends BindingModeBehavior {
+@bindingBehavior('toView')
+export class ToViewBindingBehavior extends BindingModeBehavior {
   constructor() {
-    super(BindingMode.oneWay);
+    super(toView);
+  }
+}
+
+@bindingBehavior('fromView')
+export class FromViewBindingBehavior extends BindingModeBehavior {
+  constructor() {
+    super(fromView);
   }
 }
 
 @bindingBehavior('twoWay')
 export class TwoWayBindingBehavior extends BindingModeBehavior {
   constructor() {
-    super(BindingMode.twoWay);
+    super(twoWay);
   }
 }

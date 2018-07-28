@@ -5,7 +5,7 @@ import { Else } from "../runtime/templating/resources/else";
 import { Repeat } from "../runtime/templating/resources/repeat/repeat";
 import { Compose } from "../runtime/templating/resources/compose";
 import { AttrBindingBehavior } from "../runtime/binding/resources/attr-binding-behavior";
-import { OneTimeBindingBehavior, TwoWayBindingBehavior, OneWayBindingBehavior } from "../runtime/binding/resources/binding-mode-behaviors";
+import { OneTimeBindingBehavior, TwoWayBindingBehavior, ToViewBindingBehavior } from "../runtime/binding/resources/binding-mode-behaviors";
 import { DebounceBindingBehavior } from "../runtime/binding/resources/debounce-binding-behavior";
 import { Replaceable } from "../runtime/templating/resources/replaceable";
 import { With } from "../runtime/templating/resources/with";
@@ -28,7 +28,7 @@ const globalResources: any[] = [
   AttrBindingBehavior,
   DebounceBindingBehavior,
   OneTimeBindingBehavior,
-  OneWayBindingBehavior,
+  ToViewBindingBehavior,
   SelfBindingBehavior,
   SignalBindingBehavior,
   ThrottleBindingBehavior,

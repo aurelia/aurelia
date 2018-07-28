@@ -148,7 +148,7 @@ export function createRepeaterTemplateSource({ elName, colName, itemName }: IRep
           src: src,
           instructions: [
             {
-              type: TargetedInstructionType.oneWayBinding,
+              type: TargetedInstructionType.toViewBinding,
               src: colName,
               dest: 'items'
             },

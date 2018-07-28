@@ -14,6 +14,7 @@ export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
 export interface IKarmaConfigOptions extends karma.ConfigOptions {
   webpack: webpack.Configuration;
   coverageIstanbulReporter?: any;
+  junitReporter?: any;
   customLaunchers: any;
   webpackMiddleware: any;
 }
@@ -96,9 +97,18 @@ export default (config: IKarmaConfig): void => {
     });
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {
-      reports: ["html", "cobertura", "text"],
+      reports: ["html", "text"],
       fixWebpackSourcePaths: true
     };
+    // if we're in CircleCI, add CircleCI-compatible junit report
+    if (process.env.CI) {
+      options.reporters.push('junit');
+      options.junitReporter = {
+        outputDir: process.env.JUNIT_REPORT_PATH,
+        outputFile: process.env.JUNIT_REPORT_NAME,
+        useBrowserName: false
+      };
+    }
   }
 
   config.set(options);

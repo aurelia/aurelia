@@ -28,12 +28,17 @@ jobs:
           keys:
           - v1-dependencies-{{ checksum "package-lock.json" }}
           - v1-dependencies-
+      - run: mkdir ~/junit
       - run:
-          command: "npm run test && npm run fix-cobertura"
+          command: "npm run test"
+          environment:
+            JUNIT_REPORT_PATH: ./junit/
+            JUNIT_REPORT_NAME: test-results.xml
           when: always
+      - store_test_results:
+          path: ~/junit
       - store_artifacts:
-          path: coverage
-          prefix: coverage
+          path: ./junit
 
 workflows:
     version: 2

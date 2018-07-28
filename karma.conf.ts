@@ -50,8 +50,7 @@ export default (config: IKarmaConfig): void => {
             }
           }
         ]
-      },
-      plugins: [new webpack.ProvidePlugin({ Promise: 'bluebird' })]
+      }
     },
     mime: { 'text/x-typescript': ['ts'] },
     reporters: ['mocha'],

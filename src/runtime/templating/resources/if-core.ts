@@ -1,6 +1,7 @@
 import { IRenderSlot } from '../render-slot';
 import { IVisualFactory, IVisual } from '../visual';
 import { ICustomAttribute } from '../custom-attribute';
+import { BindingFlags } from '../../binding/binding-flags';
 
 /**
 * For internal use only. May change without warning.
@@ -24,7 +25,7 @@ export abstract class IfCore {
       return;
     }
 
-    this.child.$unbind();
+    this.child.$unbind(BindingFlags.none);
 
     if (!this.factory.isCaching) {
       return;
@@ -45,7 +46,7 @@ export abstract class IfCore {
       this.child = this.factory.create();
     }
 
-    this.child.$bind(this.$scope);
+    this.child.$bind(BindingFlags.none, this.$scope);
 
     if (!this.showing) {
       this.showing = true;
@@ -64,9 +65,9 @@ export abstract class IfCore {
     this.showing = false;
     
     if (removed instanceof Promise) {
-      return removed.then(() => visual.$unbind());
+      return removed.then(() => visual.$unbind(BindingFlags.none));
     }
 
-    visual.$unbind();
+    visual.$unbind(BindingFlags.none);
   }
 }

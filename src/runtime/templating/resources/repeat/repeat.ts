@@ -177,7 +177,7 @@ export class Repeat implements IRepeater {
       return null;
     }
 
-    return expression.evaluate(this.scope, this.container, BindingFlags.none);
+    return expression.evaluate(BindingFlags.none, this.scope, this.container);
   }
 
   handleCollectionMutated(collection, changes) {
@@ -200,7 +200,7 @@ export class Repeat implements IRepeater {
     }
 
     this.ignoreMutation = true;
-    let newItems = this.sourceExpression.evaluate(this.scope, this.container, BindingFlags.none);
+    let newItems = this.sourceExpression.evaluate(BindingFlags.none, this.scope, this.container);
 
     this.taskQueue.queueMicroTask(() => this.ignoreMutation = false);
 
@@ -259,13 +259,13 @@ export class Repeat implements IRepeater {
 
   addVisualWithScope(scope: IScope) {
     let visual = this.viewFactory.create();
-    visual.$bind(scope);
+    visual.$bind(BindingFlags.none, scope);
     this.viewSlot.add(visual);
   }
 
   insertVisualWithScope(index, scope: IScope) {
     let visual = this.viewFactory.create();
-    visual.$bind(scope);
+    visual.$bind(BindingFlags.none, scope);
     this.viewSlot.insert(index, visual);
   }
 

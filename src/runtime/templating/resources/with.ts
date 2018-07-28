@@ -3,6 +3,7 @@ import { IRenderSlot } from '../render-slot';
 import { BindingContext } from '../../binding/binding-context';
 import { inject } from '../../../kernel/di';
 import { IVisualFactory, IVisual } from '../visual';
+import { BindingFlags } from '../../binding/binding-flags';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')
@@ -23,10 +24,10 @@ export class With {
       overrideContext: BindingContext.createOverride(newValue, this.$scope.overrideContext)
     };
 
-    this.child.$bind(childScope);
+    this.child.$bind(BindingFlags.none, childScope);
   }
 
   unbound() {
-    this.child.$unbind();
+    this.child.$unbind(BindingFlags.none);
   }
 }

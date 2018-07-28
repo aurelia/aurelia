@@ -134,7 +134,7 @@ describe('Binding', () => {
     it('should not unbind if it is not already bound', () => {
       const scope: any = {};
       sut['$scope'] = scope;
-      sut.$unbind();
+      sut.$unbind(BindingFlags.none);
       expect(sut['$scope'] === scope).to.be.true;
     });
 
@@ -145,11 +145,11 @@ describe('Binding', () => {
       sut['targetObserver'] = <any>{};
       const unobserveSpy = spy(sut, 'unobserve');
       const unbindSpy = dummySourceExpression.unbind = spy();
-      sut.$unbind();
+      sut.$unbind(BindingFlags.none);
       expect(sut['$scope']).to.be.null;
       expect(sut['$isBound']).to.be.false;
       expect(unobserveSpy).to.have.been.calledWith(true);
-      expect(unbindSpy).to.have.been.calledWith(sut, scope, 0);
+      expect(unbindSpy).to.have.been.calledWith(BindingFlags.none, scope, sut);
     });
   });
   
@@ -160,7 +160,7 @@ describe('Binding', () => {
       sut = new Binding(sourceExpression, dummyTarget, dummyTargetProperty, dummyMode, observerLocator, container);
       sut['targetObserver'] = targetObserver;
 
-      sut.connect(true);
+      sut.connect(BindingFlags.mustEvaluate);
 
       expect(sourceExpression.connect).not.to.have.been.called;
       expect(sourceExpression.evaluate).not.to.have.been.called;
@@ -177,9 +177,9 @@ describe('Binding', () => {
       sut['$isBound'] = true;
       const flags = BindingFlags.none;
 
-      sut.connect();
+      sut.connect(BindingFlags.none);
 
-      expect(sourceExpression.connect).to.have.been.calledWith(sut, scope, flags);
+      expect(sourceExpression.connect).to.have.been.calledWith(flags, scope, sut);
       expect(sourceExpression.evaluate).not.to.have.been.called;
       expect(targetObserver.setValue).not.to.have.been.called;
     });
@@ -194,10 +194,10 @@ describe('Binding', () => {
       sut['$scope'] = scope;
       sut['$isBound'] = true;
 
-      sut.connect(true);
+      sut.connect(BindingFlags.mustEvaluate);
 
-      expect(sourceExpression.connect).to.have.been.calledWith(sut, scope, 0);
-      expect(sourceExpression.evaluate).to.have.been.calledWith(scope, container, 0);
+      expect(sourceExpression.connect).to.have.been.calledWith(BindingFlags.mustEvaluate, scope, sut);
+      expect(sourceExpression.evaluate).to.have.been.calledWith(BindingFlags.mustEvaluate, scope, container);
       expect(targetObserver.setValue).to.have.been.calledWith(value);
     });
   });

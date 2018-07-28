@@ -20,6 +20,7 @@
     "build": "rollup -c compiler.rollup.config.js",
     "test:compile": "node compiler/test/compile",
     "start": "npm run build && npm run test",
+    "fix-cobertura": "replace-in-file \"http://cobertura.sourceforge.net/xml/coverage-04.dtd\" \"https://raw.githubusercontent.com/cobertura/web/master/htdocs/xml/coverage-04.dtd\" coverage/cobertura-coverage.xml",
     "dbmonster": "au build && copyfiles scripts/* dbmonster && http-server -c-1 -p 8000 ./dbmonster"
   },
   "license": "MIT",
@@ -78,6 +79,7 @@
     "minimatch": "^3.0.4",
     "mocha": "^5.2.0",
     "path": "^0.12.7",
+    "replace-in-file": "^3.4.0",
     "rimraf": "^2.6.2",
     "rollup": "^0.59.4",
     "rollup-plugin-commonjs": "^9.1.4",

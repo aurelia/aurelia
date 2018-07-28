@@ -28,7 +28,7 @@ jobs:
           keys:
           - v1-dependencies-{{ checksum "package-lock.json" }}
           - v1-dependencies-
-      - run: mkdir ~/junit
+      - run: mkdir ~/repo/junit
       - run:
           command: "npm run test"
           environment:
@@ -36,7 +36,7 @@ jobs:
             JUNIT_REPORT_NAME: test-results.xml
           when: always
       - store_test_results:
-          path: ~/junit
+          path: ~/repo/junit
       - store_artifacts:
           path: ./junit
 

@@ -20,12 +20,12 @@ export class SignalBindingBehavior {
       throw Reporter.error(11);
     }
 
-    if (arguments.length === 3) {
-      let name = arguments[2];
+    if (arguments.length === 4) {
+      let name = arguments[3];
       this.signaler.addSignalListener(name, binding);
       binding.signal = name;
-    } else if (arguments.length > 3) {
-      let names = Array.prototype.slice.call(arguments, 2);
+    } else if (arguments.length > 4) {
+      let names = Array.prototype.slice.call(arguments, 3);
       let i = names.length;
 
       while (i--) {

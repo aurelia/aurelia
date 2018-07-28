@@ -11,6 +11,7 @@ import { INode } from '../dom';
 import { PLATFORM } from '../../kernel/platform';
 import { BindingMode } from '../binding/binding-mode';
 import { IBindableDescription } from './bindable';
+import { BindingFlags } from '../binding/binding-flags';
 
 export interface ICustomAttributeSource {
   name: string;
@@ -110,13 +111,13 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
     };
 
-    proto.$bind = function(this: IInternalCustomAttributeImplementation, scope: IScope) {
+    proto.$bind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope) {
       if (this.$isBound) {
         if (this.$scope === scope) {
           return;
         }
 
-        this.$unbind();
+        this.$unbind(flags);
       }
 
       this.$scope = scope
@@ -171,7 +172,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
     };
 
-    proto.$unbind = function(this: IInternalCustomAttributeImplementation) {
+    proto.$unbind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags) {
       if (this.$isBound) {
         if (this.$behavior.hasUnbound) {
           (this as any).unbound();

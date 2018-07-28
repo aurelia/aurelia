@@ -14,7 +14,7 @@ jobs:
             node --version
             npm --version
       - checkout
-      - run: npm ci
+      - run: npm ci -dd
       - save_cache:
           paths:
             - node_modules

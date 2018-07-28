@@ -393,7 +393,7 @@ describe('ArrayRepeater - render html', () => {
                               ]
                             },
                             instructions: [
-                              { type: TargetedInstructionType.oneWayBinding, src: 'innerInnerTodos', dest: 'items' },
+                              { type: TargetedInstructionType.toViewBinding, src: 'innerInnerTodos', dest: 'items' },
                               { type: TargetedInstructionType.setProperty, value: 'innerInnerTodo', dest: 'local' },
                               { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
                             ]
@@ -402,7 +402,7 @@ describe('ArrayRepeater - render html', () => {
                       ]
                     },
                     instructions: [
-                      { type: TargetedInstructionType.oneWayBinding, src: 'innerTodos', dest: 'items' },
+                      { type: TargetedInstructionType.toViewBinding, src: 'innerTodos', dest: 'items' },
                       { type: TargetedInstructionType.setProperty, value: 'innerTodo', dest: 'local' },
                       { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
                     ]
@@ -411,7 +411,7 @@ describe('ArrayRepeater - render html', () => {
               ]
             },
             instructions: [
-              { type: TargetedInstructionType.oneWayBinding, src: 'todos', dest: 'items' },
+              { type: TargetedInstructionType.toViewBinding, src: 'todos', dest: 'items' },
               { type: TargetedInstructionType.setProperty, value: 'todo', dest: 'local' },
               { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
             ]

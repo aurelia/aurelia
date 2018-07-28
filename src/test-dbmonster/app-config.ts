@@ -58,7 +58,7 @@ export const appConfig: ITemplateSource = {
                   ]
                 },
                 instructions: [
-                  { type: TargetedInstructionType.oneWayBinding, src: 'topFiveQueries', dest: 'items' },
+                  { type: TargetedInstructionType.toViewBinding, src: 'topFiveQueries', dest: 'items' },
                   { type: TargetedInstructionType.setProperty, value: 'q', dest: 'local' },
                   { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
                 ]
@@ -67,7 +67,7 @@ export const appConfig: ITemplateSource = {
           ]
         },
         instructions: [
-          { type: TargetedInstructionType.oneWayBinding, src: 'databases', dest: 'items' },
+          { type: TargetedInstructionType.toViewBinding, src: 'databases', dest: 'items' },
           { type: TargetedInstructionType.setProperty, value: 'db', dest: 'local' },
           { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
         ]

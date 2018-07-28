@@ -24,6 +24,12 @@ export interface IBinding extends IBindScope {
 
 export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 
+// BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
+const { oneTime, toView, fromView } = BindingMode;
+
+// pre-combining flags for bitwise checks is a minor perf tweak
+const toViewOrOneTime = toView | oneTime;
+
 export class Binding implements IBinding {
   /*@internal*/public __connectQueueId: number;
   private observerSlots: any;
@@ -54,28 +60,33 @@ export class Binding implements IBinding {
       return;
     }
 
+    const sourceExpression = this.sourceExpression;
+    const $scope = this.$scope;
+    const locator = this.locator;
+
     if (context === sourceContext) {
-      oldValue = this.targetObserver.getValue(this.target, this.targetProperty);
-      newValue = this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator);
+      const target = this.target;
+      const targetProperty = this.targetProperty;
+      const targetObserver = this.targetObserver;
+      const mode = this.mode;
 
+      oldValue = targetObserver.getValue(target, targetProperty);
+      newValue = sourceExpression.evaluate(BindingFlags.none, $scope, locator);
       if (newValue !== oldValue) {
-        this.updateTarget(newValue);
+        targetObserver.setValue(newValue, target, targetProperty);
       }
-
-      if (this.mode !== BindingMode.oneTime) {
+      if (!(mode & oneTime)) {
         this.version++;
-        this.sourceExpression.connect(BindingFlags.none, this.$scope, this);
+        sourceExpression.connect(BindingFlags.none, $scope, this);
         this.unobserve(false);
       }
-
       return;
     }
 
     if (context === targetContext) {
-      if (newValue !== this.sourceExpression.evaluate(BindingFlags.none, this.$scope, this.locator)) {
-        this.updateSource(newValue);
+      if (newValue !== sourceExpression.evaluate(BindingFlags.none, $scope, locator)) {
+        sourceExpression.assign(BindingFlags.none, $scope, locator, newValue)
       }
-
       return;
     }
 
@@ -87,42 +98,37 @@ export class Binding implements IBinding {
       if (this.$scope === scope) {
         return;
       }
-
       this.$unbind(flags);
     }
 
     this.$isBound = true;
     this.$scope = scope;
+    const mode = this.mode;
+    const sourceExpression = this.sourceExpression;
+    let targetObserver = this.targetObserver as IBindingTargetObserver;
 
-    if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(flags, scope, this);
+    if (sourceExpression.bind) {
+      sourceExpression.bind(flags, scope, this);
+    }
+    if (!targetObserver) {
+      if (mode & fromView) {
+        targetObserver = this.targetObserver = <any>this.observerLocator.getObserver(this.target, this.targetProperty);
+      } else {
+        targetObserver = this.targetObserver = <any>this.observerLocator.getAccessor(this.target, this.targetProperty);
+      }
+    }
+    if (targetObserver.bind) {
+      targetObserver.bind(flags);
     }
 
-    let mode = this.mode;
-
-    if (!this.targetObserver) {
-      let method: 'getObserver' | 'getAccessor' = mode === BindingMode.twoWay || mode === BindingMode.fromView ? 'getObserver' : 'getAccessor';
-      this.targetObserver = <any>this.observerLocator[method](this.target, this.targetProperty);
+    if (mode & toViewOrOneTime) {
+      targetObserver.setValue(sourceExpression.evaluate(flags, scope, this.locator), this.target, this.targetProperty);
     }
-
-    if ('bind' in this.targetObserver) {
-      this.targetObserver.bind(flags);
+    if (mode & toView) {
+      sourceExpression.connect(flags, scope, this);
     }
-
-    if (this.mode !== BindingMode.fromView) {
-      let value = this.sourceExpression.evaluate(flags, scope, this.locator);
-      this.updateTarget(value);
-    }
-
-    if (mode === BindingMode.oneTime) {
-      return;
-    } else if (mode === BindingMode.toView) {
-      this.sourceExpression.connect(flags, scope, this);
-    } else if (mode === BindingMode.twoWay) {
-      this.sourceExpression.connect(flags, scope, this);
-      (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
-    } else if (mode === BindingMode.fromView) {
-      (this.targetObserver as IBindingTargetObserver).subscribe(targetContext, this);
+    if (mode & fromView) {
+      targetObserver.subscribe(targetContext, this);
     }
   }
 
@@ -132,19 +138,20 @@ export class Binding implements IBinding {
     }
 
     this.$isBound = false;
+    const sourceExpression = this.sourceExpression;
+    const targetObserver = this.targetObserver as IBindingTargetObserver;
 
-    if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(flags, this.$scope, this);
+    if (sourceExpression.unbind) {
+      sourceExpression.unbind(flags, this.$scope, this);
     }
 
     this.$scope = null;
 
-    if ('unbind' in this.targetObserver) {
-      (this.targetObserver as IBindingTargetObserver).unbind(flags);
+    if (targetObserver.unbind) {
+      targetObserver.unbind(flags);
     }
-
-    if ('unsubscribe' in this.targetObserver) {
-      this.targetObserver.unsubscribe(targetContext, this);
+    if (targetObserver.unsubscribe) {
+      targetObserver.unsubscribe(targetContext, this);
     }
 
     this.unobserve(true);
@@ -155,12 +162,15 @@ export class Binding implements IBinding {
       return;
     }
 
+    const sourceExpression = this.sourceExpression;
+    const $scope = this.$scope;
+
     if (flags & BindingFlags.mustEvaluate) {
-      let value = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
-      this.updateTarget(value);
+      const value = sourceExpression.evaluate(flags, $scope, this.locator);
+      this.targetObserver.setValue(value, this.target, this.targetProperty);
     }
 
-    this.sourceExpression.connect(flags, this.$scope, this);
+    sourceExpression.connect(flags, $scope, this);
   }
 
   //#region ConnectableBinding

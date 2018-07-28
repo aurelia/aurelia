@@ -81,11 +81,11 @@ export class Renderer implements IRenderer {
     const next = target.nextSibling;
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), next, 'textContent', BindingMode.oneWay, this.observerLocator, this.context));
+    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
   }
 
-  [TargetedInstructionType.oneWayBinding](owner: IViewOwner,target: any, instruction: Immutable<IOneWayBindingInstruction>) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.oneWay, this.observerLocator, this.context));
+  [TargetedInstructionType.toViewBinding](owner: IViewOwner,target: any, instruction: Immutable<IOneWayBindingInstruction>) {
+    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
   }
 
   [TargetedInstructionType.fromViewBinding](owner: IViewOwner,target: any, instruction: Immutable<IFromViewBindingInstruction>) {
@@ -109,7 +109,7 @@ export class Renderer implements IRenderer {
   }
 
   [TargetedInstructionType.stylePropertyBinding](owner: IViewOwner,target: any, instruction: Immutable<IStylePropertyBindingInstruction>) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), (<any>target).style, instruction.dest, BindingMode.oneWay, this.observerLocator, this.context));
+    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), (<any>target).style, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
   }
 
   [TargetedInstructionType.setProperty](owner: IViewOwner, target: any, instruction: Immutable<ISetPropertyInstruction>) {

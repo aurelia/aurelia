@@ -7,7 +7,7 @@ import { IBindableDescription } from './bindable';
 
 export enum TargetedInstructionType {
   textBinding = 0,
-  oneWayBinding = 1,
+  toViewBinding = 1,
   fromViewBinding = 2,
   twoWayBinding = 3,
   listenerBinding = 4,
@@ -72,7 +72,7 @@ export interface ITextBindingInstruction extends ITargetedInstruction {
 }
 
 export interface IOneWayBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.oneWayBinding;
+  type: TargetedInstructionType.toViewBinding;
   src: string;
   dest: string;
 }

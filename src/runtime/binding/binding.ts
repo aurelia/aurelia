@@ -17,7 +17,7 @@ for (let i = 0; i < 100; i++) {
 
 export interface IBinding extends IBindScope {
   locator: IServiceLocator;
-  observeProperty(context: any, name: string): void;
+  observeProperty(flags: BindingFlags, context: any, name: string): void;
 }
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -193,7 +193,7 @@ export class Binding implements IBinding {
     this[versionSlotNames[i]] = this.version;
   }
 
-  observeProperty(obj: any, propertyName: string) {
+  observeProperty(flags: BindingFlags, obj: any, propertyName: string) {
     let observer = this.observerLocator.getObserver(obj, propertyName);
     this.addObserver(<any>observer);
   }

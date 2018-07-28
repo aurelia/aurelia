@@ -1,7 +1,7 @@
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: aureliavnext/circleci:0.0.2
+    - image: aureliavnext/circleci:0.0.3
 
 version: 2
 jobs:

@@ -1,7 +1,7 @@
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: aureliavnext/circleci:0.0.2
+    - image: aureliavnext/circleci:0.0.3
 
 version: 2
 jobs:
@@ -28,9 +28,17 @@ jobs:
           keys:
           - v1-dependencies-{{ checksum "package-lock.json" }}
           - v1-dependencies-
+      - run: mkdir ~/repo/junit
       - run:
           command: "npm run test"
+          environment:
+            JUNIT_REPORT_PATH: ./junit/
+            JUNIT_REPORT_NAME: test-results.xml
           when: always
+      - store_test_results:
+          path: ~/repo/junit
+      - store_artifacts:
+          path: ./junit
 
 workflows:
     version: 2

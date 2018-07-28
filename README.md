@@ -1,6 +1,9 @@
 # Aurelia vNext
 
+[![CircleCI](https://circleci.com/gh/aurelia/aurelia.svg?style=svg)](https://circleci.com/gh/aurelia/aurelia) [![codecov](https://codecov.io/gh/aurelia/aurelia/branch/master/graph/badge.svg)](https://codecov.io/gh/aurelia/aurelia)
+
 Early work on Aurelia vNext...
+
 
 ## Progress
 

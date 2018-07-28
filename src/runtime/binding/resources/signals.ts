@@ -4,6 +4,7 @@ import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
 import { Reporter } from '../../../kernel/reporter';
 import { ISignaler } from '../signaler';
+import { BindingFlags } from '../binding-flags';
 
 type SignalableBinding = Binding & {
   signal: string | string[];
@@ -14,7 +15,7 @@ type SignalableBinding = Binding & {
 export class SignalBindingBehavior {
   constructor(private signaler: ISignaler) {}
 
-  bind(binding: SignalableBinding, scope: IScope) {
+  bind(flags: BindingFlags, scope: IScope, binding: SignalableBinding) {
     if (!binding.updateTarget) {
       throw Reporter.error(11);
     }
@@ -38,7 +39,7 @@ export class SignalBindingBehavior {
     }
   }
 
-  unbind(binding: SignalableBinding, scope: IScope) {
+  unbind(flags: BindingFlags, scope: IScope, binding: SignalableBinding) {
     let name = binding.signal;
     binding.signal = null;
 

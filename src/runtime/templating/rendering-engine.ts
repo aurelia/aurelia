@@ -40,6 +40,7 @@ export interface IRenderingEngine {
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>()
   .withDefault(x => x.singleton(RenderingEngine));
 
+// This is an implementation of ITemplate that always returns a view representing "no DOM" to render.
 const noViewTemplate: ITemplate = {
   renderContext: null,
   createFor(owner: IViewOwner) {
@@ -226,6 +227,12 @@ function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefin
   };
 }
 
+// This is the main implementation of ITemplate.
+// It is used to create instances of IView based on a compiled TemplateDefinition.
+// TemplateDefinitions are hand-coded today, but will ultimately be the output of the
+// TemplateCompiler either through a JIT or AOT process.
+// Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
+// and create instances of it on demand.
 class CompiledTemplate implements ITemplate {
   private createView: () => IView;
   renderContext: IRenderContext;

@@ -31,6 +31,8 @@ jobs:
       - run:
           command: "npm run test"
           when: always
+      - store_test_results:
+          path: coverage
 
 workflows:
     version: 2

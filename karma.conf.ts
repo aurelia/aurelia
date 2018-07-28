@@ -96,8 +96,7 @@ export default (config: IKarmaConfig): void => {
     });
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {
-      reports: ["html", "json", "text"],
-      dir: path.resolve(__dirname, 'coverage'),
+      reports: ["html", "cobertura", "text"],
       fixWebpackSourcePaths: true
     };
   }

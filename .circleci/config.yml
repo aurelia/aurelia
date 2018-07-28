@@ -31,8 +31,9 @@ jobs:
       - run:
           command: "npm run test && npm run fix-cobertura"
           when: always
-      - store_test_results:
+      - store_artifacts:
           path: coverage
+          prefix: coverage
 
 workflows:
     version: 2

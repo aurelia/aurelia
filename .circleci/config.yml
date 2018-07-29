@@ -3,7 +3,7 @@
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: aureliavnext/circleci:0.0.5
+    - image: aureliavnext/circleci:0.0.6
 
 # Variables
 var_1: &cache_key aurelia-{{ .Branch }}-{{ checksum "package-lock.json" }}
@@ -34,7 +34,7 @@ jobs:
       - run: au build
       - persist_to_workspace:
           root: ~/repo
-          path: scripts
+          path: ./scripts
 
   unit_tests:
     <<: *defaults
@@ -48,6 +48,7 @@ jobs:
           environment:
             JUNIT_REPORT_PATH: ./junit/
             JUNIT_REPORT_NAME: test-results.xml
+      - run: codecov
       - store_test_results:
           path: ~/repo/junit
       - store_artifacts:

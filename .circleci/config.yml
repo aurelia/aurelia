@@ -43,10 +43,10 @@ jobs:
       - restore_cache:
           key: *cache_key
       - run: mkdir ~/repo/junit
-      - run:
-          command: "./node_modules/.bin/karma start --browsers=FirefoxHeadless --single-run=true --auto-watch=false"
-          environment:
-            TS_NODE_PROJECT: tsconfig-tsnode.json
+      #- run:
+      #    command: "./node_modules/.bin/karma start --browsers=FirefoxHeadless --single-run=true --auto-watch=false"
+      #    environment:
+      #      TS_NODE_PROJECT: tsconfig-tsnode.json
       - run:
           command: "./node_modules/.bin/karma start --browsers=ChromeHeadless --single-run=true --auto-watch=false --coverage=true"
           environment:
@@ -95,4 +95,3 @@ workflows:
                 requires:
                     - build
 
-                    

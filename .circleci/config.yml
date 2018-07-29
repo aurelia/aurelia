@@ -3,7 +3,7 @@
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: aureliavnext/circleci:0.0.7
+    - image: aureliavnext/circleci:0.0.8
 
 # Variables
 var_1: &cache_key aurelia-{{ .Branch }}-{{ checksum "package-lock.json" }}

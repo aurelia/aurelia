@@ -49,7 +49,7 @@ jobs:
           environment:
             JUNIT_REPORT_PATH: ./junit/
             JUNIT_REPORT_NAME: test-results.xml
-      - run: codecov
+      - run: codecov -f ~/repo/coverage/coverage-final.json
       - store_test_results:
           path: ~/repo/junit
       - store_artifacts:

@@ -3,7 +3,7 @@
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: aureliavnext/circleci:0.0.8
+    - image: aureliavnext/circleci:0.0.9
 
 # Variables
 var_1: &cache_key aurelia-{{ .Branch }}-{{ checksum "package-lock.json" }}
@@ -43,10 +43,10 @@ jobs:
       - restore_cache:
           key: *cache_key
       - run: mkdir ~/repo/junit
-      #- run:
-      #    command: "./node_modules/.bin/karma start --browsers=FirefoxHeadless --single-run=true --auto-watch=false"
-      #    environment:
-      #      TS_NODE_PROJECT: tsconfig-tsnode.json
+      - run:
+          command: "./node_modules/.bin/karma start --browsers=FirefoxHeadless --single-run=true --auto-watch=false"
+          environment:
+            TS_NODE_PROJECT: tsconfig-tsnode.json
       - run:
           command: "./node_modules/.bin/karma start --browsers=ChromeHeadless --single-run=true --auto-watch=false --coverage=true"
           environment:

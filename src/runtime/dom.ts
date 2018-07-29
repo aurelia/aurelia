@@ -281,6 +281,11 @@ function setAttribute(this: CommentProxy, qualifiedName: string, value: string):
   this.$proxyTarget.setAttribute(qualifiedName, value);
 }
 
+// This is the most common form of IView.
+// Every custom element or template controller whose view is based on an HTML template
+// has an instance of this under the hood. Anyone who wants to create a view from
+// a string of markup would also receive an instance of this.
+// CompiledTemplates create instances of TemplateViews.
 /*@internal*/
 export class TemplateView implements IView {
   private fragment: DocumentFragment;

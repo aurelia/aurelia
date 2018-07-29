@@ -24,6 +24,9 @@ export interface IViewOwner {
   $slots?: Record<string, IEmulatedShadowSlot>;
 }
 
+// This is an implementation of IView that represents "no DOM" to render.
+// It's used in various places to ensure that View is never null and to encode
+// the explicit idea of "no view".
 const noopView: IView = {
   firstChild: null,
   lastChild: null,
@@ -37,6 +40,9 @@ const noopView: IView = {
 
 export const View = {
   none: noopView,
+  // See below for an explanation of ContentView.
+  // This factory method creates the ContentView depending on whether or not
+  // shadow dom emulation is active on the host element.
   fromCompiledContent(host: INode, options: { contentOverride?: INode } = PLATFORM.emptyObject): IContentView | null {
     if (DOM.isUsingSlotEmulation(host)) {
       return new ContentView(options.contentOverride || host);
@@ -44,6 +50,21 @@ export const View = {
       return null;
     }
   },
+  // This creates an instance of IView based on an existing node.
+  // It's used by the rendering engine to create an instance of IVisual,
+  // based on a single component. The rendering engine's createVisualFromComponent
+  // method has one consumer: the compose element. The compose element uses this
+  // to create an IVisual based on a dynamically determined component instance.
+  // This is required because there's no way to get a "loose" component into the view
+  // hierarchy without it being part of an element's ContentView or part of an IVisual.
+  // ContentViews are appended by the custom element's attach process. IVisuals can only
+  // be added via a RenderSlot. So, this form of view effectively enables a single
+  // component to be added into a RenderSlot.
+  // It's likely that after the RenderLocation abstraction is added and RenderSlot is removed
+  // that most of this functionality will go away. The rendering engine will still need the ability
+  // to create a dynamic component, but the compose element won't need a RenderSlot and an IView in
+  // order to add that dynamic component to the DOM. Instead, it should be able to take the single
+  // node and use the RenderLocation to add that node to the DOM.
   fromNode(node: INode): IView {
     return {
       firstChild: node,
@@ -79,6 +100,14 @@ interface IContentViewChildObserver extends IChildObserver {
   notifyChildrenChanged(): void;
 }
 
+// This is the default and only implementation of IContentView.
+// This type of view represents the content that is placed between the opening and closing tags
+// of a custom element. It is only used when ShadowDOM Emulation is required. It enables
+// various interactions between the content, as a logical view, the ShadowDom Emulation, 
+// and the RenderSlot.
+// Most if not all of this will go away when we remove the shadow dom emulation and render slot.
+// However, we may need to keep the IChildObserver abstraction for enabling the $children property
+// in different scenarios, depending on what optimizations we make around when/when not to use shadow dom.
 class ContentView implements IContentView {
   firstChild: INode;
   lastChild: INode;

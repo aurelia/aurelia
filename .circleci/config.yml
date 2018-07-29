@@ -44,10 +44,15 @@ jobs:
           key: *cache_key
       - run: mkdir ~/repo/junit
       - run:
-          command: "npm run test"
+          command: "./node_modules/.bin/karma start --browsers=FirefoxHeadless --single-run=true --auto-watch=false"
+          environment:
+            TS_NODE_PROJECT: tsconfig-tsnode.json
+      - run:
+          command: "./node_modules/.bin/karma start --browsers=ChromeHeadless --single-run=true --auto-watch=false --coverage=true"
           environment:
             JUNIT_REPORT_PATH: ./junit/
             JUNIT_REPORT_NAME: test-results.xml
+            TS_NODE_PROJECT: tsconfig-tsnode.json
       - run: codecov -f ~/repo/coverage/coverage-final.json
       - store_test_results:
           path: ~/repo/junit

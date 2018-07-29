@@ -21,8 +21,15 @@ export interface IKarmaConfigOptions extends karma.ConfigOptions {
 
 export default (config: IKarmaConfig): void => {
   const rules: webpack.Rule[] = [];
-  const component = config.component || 'runtime';
-  const setupFile = `test/${component}/setup.ts`;
+  const component = config.component || 'all';
+  let setupFile, configFile;
+  if (component === 'all') {
+    setupFile = 'test/setup.ts';
+    configFile = path.resolve(__dirname, 'test', 'tsconfig.json');
+  } else {
+    setupFile = `test/${component}/setup.ts`;
+    configFile = path.resolve(__dirname, 'test', component, 'tsconfig.json');
+  }
 
   const options: IKarmaConfigOptions = {
     basePath: config.basePath || './',
@@ -46,7 +53,7 @@ export default (config: IKarmaConfig): void => {
             loader: 'ts-loader',
             exclude: /node_modules/,
             options: {
-              configFile: config.tsconfig || path.resolve(__dirname, 'test', component, 'tsconfig.json'),
+              configFile: configFile,
               transpileOnly: config.transpileOnly
             }
           }
@@ -92,7 +99,8 @@ export default (config: IKarmaConfig): void => {
       test: {
         runtime: /src[\/\\]runtime[\/\\].+\.ts$/,
         debug: /src[\/\\]debug[\/\\].+\.ts$/,
-        jit: /src[\/\\]jit[\/\\].+\.ts$/
+        jit: /src[\/\\]jit[\/\\].+\.ts$/,
+        all: /src[\/\\].+\.ts$/
       }[component]
     });
     options.reporters.push('coverage-istanbul');

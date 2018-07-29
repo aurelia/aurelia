@@ -31,9 +31,10 @@ jobs:
       - checkout
       - restore_cache:
           key: *cache_key
+      - run: mkdir ~/repo/scripts
       - run: au build
       - persist_to_workspace:
-          root: /home/circleci/repo
+          root: ~/repo
           path: scripts
 
   unit_tests:

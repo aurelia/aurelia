@@ -33,8 +33,8 @@ jobs:
           key: *cache_key
       - run: au build
       - persist_to_workspace:
-          root: ~/repo
-          path: ./scripts
+          root: /home/circleci/repo
+          path: scripts
 
   unit_tests:
     <<: *defaults

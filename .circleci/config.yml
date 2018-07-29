@@ -39,6 +39,8 @@ jobs:
           path: ~/repo/junit
       - store_artifacts:
           path: ./junit
+      - store_artifacts:
+          path: ./coverage
 
 workflows:
     version: 2

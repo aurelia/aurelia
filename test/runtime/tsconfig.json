@@ -1,20 +1,4 @@
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true,
-    "lib": ["es2017", "dom"],
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "skipLibCheck": true,
-    "target": "es2015",
-  },
-  "include": [
-    "../../src/runtime",
-    "."
-  ]
+  "extends": "../tsconfig.json",
+  "include": ["../../src/runtime", "."]
 }

@@ -58,7 +58,9 @@ workflows:
     default_workflow:
         jobs:
             - install
-            - build
+            - build:
+                requires:
+                    - install
             - unit_tests:
                 requires:
                     - install

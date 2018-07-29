@@ -38,7 +38,9 @@ jobs:
       - store_test_results:
           path: ~/repo/junit
       - store_artifacts:
-          path: ./junit
+          path:
+          - ./junit
+          - ./coverage
 
 workflows:
     version: 2

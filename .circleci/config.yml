@@ -1,7 +1,12 @@
+# Defaults for all jobs
+
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: aureliavnext/circleci:0.0.3
+    - image: aureliavnext/circleci:0.0.8
+
+# Variables
+var_1: &cache_key aurelia-{{ .Branch }}-{{ checksum "package-lock.json" }}
 
 version: 2
 jobs:
@@ -16,25 +21,39 @@ jobs:
       - checkout
       - run: npm ci -dd
       - save_cache:
+          key: *cache_key
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package-lock.json" }}
+
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - run: au build
+      - persist_to_workspace:
+          root: .
+          paths: scripts
 
   unit_tests:
     <<: *defaults
     steps:
       - checkout
       - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package-lock.json" }}
-          - v1-dependencies-
+          key: *cache_key
       - run: mkdir ~/repo/junit
+      #- run:
+      #    command: "./node_modules/.bin/karma start --browsers=FirefoxHeadless --single-run=true --auto-watch=false"
+      #    environment:
+      #      TS_NODE_PROJECT: tsconfig-tsnode.json
       - run:
-          command: "npm run test"
+          command: "./node_modules/.bin/karma start --browsers=ChromeHeadless --single-run=true --auto-watch=false --coverage=true"
           environment:
             JUNIT_REPORT_PATH: ./junit/
             JUNIT_REPORT_NAME: test-results.xml
-          when: always
+            TS_NODE_PROJECT: tsconfig-tsnode.json
+      - run: codecov -f ~/repo/coverage/coverage-final.json
       - store_test_results:
           path: ~/repo/junit
       - store_artifacts:
@@ -44,9 +63,12 @@ jobs:
 
 workflows:
     version: 2
-    install_and_test:
+    default_workflow:
         jobs:
             - install
+            - build:
+                requires:
+                    - install
             - unit_tests:
                 requires:
                     - install

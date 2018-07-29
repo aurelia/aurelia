@@ -3,13 +3,13 @@ import { IObservedArray, CollectionKind, ICollectionSubscriber, IBatchedCollecti
 import { BindingFlags } from './binding-flags';
 
 const proto = Array.prototype;
-const nativePush = proto.push;
-const nativeUnshift = proto.unshift;
-const nativePop = proto.pop;
-const nativeShift = proto.shift;
-const nativeSplice = proto.splice;
-const nativeReverse = proto.reverse;
-const nativeSort = proto.sort;
+/*@internal*/export const nativePush = proto.push;
+/*@internal*/export const nativeUnshift = proto.unshift;
+/*@internal*/export const nativePop = proto.pop;
+/*@internal*/export const nativeShift = proto.shift;
+/*@internal*/export const nativeSplice = proto.splice;
+/*@internal*/export const nativeReverse = proto.reverse;
+/*@internal*/export const nativeSort = proto.sort;
 
 export function enableArrayObservation(): void {
   proto.push = observePush;
@@ -76,8 +76,14 @@ function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
   if (o === undefined) {
     return nativePop.call(this);
   }
-  nativePop.call(o.indexMap);
+  const indexMap = o.indexMap;
   const element = nativePop.call(this);
+  // only mark indices as deleted if they actually existed in the original array
+  const index = indexMap.length - 1;
+  if (indexMap[index] > -1) {
+    nativePush.call(indexMap.deletedItems, element);
+  }
+  nativePop.call(indexMap);
   o.notify('pop');
   return element;
 };
@@ -88,8 +94,13 @@ function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
   if (o === undefined) {
     return nativeShift.call(this);
   }
-  nativeShift.call(o.indexMap);
+  const indexMap = o.indexMap;
   const element = nativeShift.call(this);
+  // only mark indices as deleted if they actually existed in the original array
+  if (indexMap[0] > -1) {
+    nativePush.call(indexMap.deletedItems, element);
+  }
+  nativeShift.call(indexMap);
   o.notify('shift');
   return element;
 };
@@ -100,6 +111,17 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
   if (o === undefined) {
     return nativeSplice.apply(this, arguments);
   }
+  const indexMap = o.indexMap;
+  if (deleteCount > 0) {
+    let i = start || 0;
+    const to = i + deleteCount;
+    while (i < to) {
+      if (indexMap[i] > -1) {
+        nativePush.call(indexMap.deletedItems, this[i]);
+      }
+      i++;
+    }
+  }
   const argCount = arguments.length;
   if (argCount > 2) {
     const itemCount = argCount - 2;
@@ -108,9 +130,9 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
     while (i < itemCount) {
       inserts[i++] = - 2;
     }
-    nativeSplice.call(o.indexMap, start, deleteCount, ...inserts);
+    nativeSplice.call(indexMap, start, deleteCount, ...inserts);
   } else if (argCount === 2) {
-    nativeSplice.call(o.indexMap, start, deleteCount);
+    nativeSplice.call(indexMap, start, deleteCount);
   }
   const deleted = nativeSplice.apply(this, arguments);
   o.notify('splice', arguments);

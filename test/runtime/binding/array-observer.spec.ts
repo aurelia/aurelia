@@ -2,6 +2,7 @@ import { match } from 'sinon';
 import { ArrayObserver, enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/array-observer';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
+import { IndexMap } from '../../../src/runtime/binding/observation';
 
 function assertArrayEqual(actual: any[], expected: any[]): void {
   const len = actual.length;
@@ -77,7 +78,8 @@ describe(`ArrayObserver`, () => {
       sut = new ArrayObserver(arr);
       sut.subscribeBatched(s);
       arr.push(1);
-      const indexMap = sut.indexMap.slice();
+      const indexMap: IndexMap = sut.indexMap.slice();
+      indexMap.deletedItems = sut.indexMap.deletedItems;
       sut.flushChanges();
       expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
     });
@@ -88,7 +90,8 @@ describe(`ArrayObserver`, () => {
       sut = new ArrayObserver(arr);
       sut.subscribeBatched(s);
       arr.push(1, 2);
-      const indexMap = sut.indexMap.slice();
+      const indexMap: IndexMap = sut.indexMap.slice();
+      indexMap.deletedItems = sut.indexMap.deletedItems;
       sut.flushChanges();
       expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
     });

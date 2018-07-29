@@ -80,20 +80,22 @@ function dispose(this: CollectionObserver): void {
 
 function resetIndexMapIndexed(this: ICollectionObserver<CollectionKind.indexed>): void {
   const len = this.collection.length;
-  const indexMap = (this.indexMap = new Array(len));
+  const indexMap: IndexMap = (this.indexMap = new Array(len));
   let i = 0;
   while (i < len) {
     indexMap[i] = i++;
   }
+  indexMap.deletedItems = new Array(0);
 }
 
 function resetIndexMapKeyed(this: ICollectionObserver<CollectionKind.keyed>): void {
   const len = this.collection.size;
-  const indexMap = (this.indexMap = new Array(len));
+  const indexMap: IndexMap = (this.indexMap = new Array(len));
   let i = 0;
   while (i < len) {
     indexMap[i] = i++;
   }
+  indexMap.deletedItems = new Array(0);
 }
 
 export function collectionObserver(kind: CollectionKind.array | CollectionKind.set | CollectionKind.map): ClassDecorator {

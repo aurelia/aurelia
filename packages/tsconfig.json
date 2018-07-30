@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "kernel" },
+    { "path": "runtime" },
+    { "path": "jit" },
+    { "path": "debug" },
+    { "path": "plugin-requirejs" },
+    { "path": "plugin-svg" }
+  ]
+}

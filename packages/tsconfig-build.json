@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "target": "es5",
+    "module": "commonjs",
+    "strict": true,
+    "experimentalDecorators": true,
+    "allowJs": false,
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "lib": [
+      "es2017",
+      "dom"
+    ]
+  }
+}

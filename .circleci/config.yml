@@ -3,7 +3,7 @@
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: aureliavnext/circleci:0.0.8
+    - image: aureliavnext/circleci:0.0.12
 
 # Variables
 var_1: &cache_key aurelia-{{ .Branch }}-{{ checksum "package-lock.json" }}
@@ -61,6 +61,25 @@ jobs:
       - store_artifacts:
           path: ./coverage
 
+  e2e_tests:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: .
+      - run:
+          name: Selenium Start
+          background: true
+          command: webdriver-manager start
+      - run:
+          name: App Start
+          background: true
+          command: http-server -c-1 -p 8000 .
+      - run:
+          command: "protractor protractor.conf.js"
+
 workflows:
     version: 2
     default_workflow:
@@ -72,3 +91,7 @@ workflows:
             - unit_tests:
                 requires:
                     - install
+            - e2e_tests:
+                requires:
+                    - build
+

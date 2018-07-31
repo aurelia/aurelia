@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "experimentalDecorators": true,
+    "lib": ["es2017", "dom"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "target": "es2015"
+  }
+}

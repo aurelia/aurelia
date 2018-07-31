@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig-test.json",
+  "compilerOptions": {
+    "baseUrl": "../",
+    "paths": {
+      "@aurelia/plugin-svg": ["src"]
+    }
+  }
+}

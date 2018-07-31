@@ -4,7 +4,6 @@
 
 Early work on Aurelia vNext...
 
-
 ## Progress
 
 ### Kernel
@@ -164,6 +163,24 @@ Early work on Aurelia vNext...
 * [x] Binding to SVG Elements
 
 ## Build and Test
+
+-----------------------------------
+
+### Note (2018-07-31): The instructions below ("Running the Default Demo" and further) are out of date at the moment and will be updated as soon as all workflows are adjusted to the new monorepo.
+
+To get everything ready:
+- `npm ci` (npm 6+ is required for this)
+- `npm run bootstrap`
+- `npm run build`
+
+To run all the tests:
+- `npm run test`
+
+To run individual tests:
+- `cd packages/runtime`
+- `npm run test`
+
+-----------------------------------
 
 ### Running the Default Demo
 

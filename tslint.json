@@ -192,7 +192,7 @@
     "underscore-consistent-invocation": true,
     "unified-signatures": true,
     "use-default-type-parameter": true,
-    "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
+    "variable-name": [true, "ban-keywords", "allow-leading-underscore", "allow-pascal-case"],
 
   /**
     * Whitespace related rules. The only recommended whitespace strategy is to pick a single format and

@@ -13,7 +13,7 @@ export const PLATFORM = {
     // Use only as a last resort:
     return new Function('return this')();
   })(),
-  emptyArray: <Array<any>>Object.freeze([]),
+  emptyArray: Object.freeze([]),
   emptyObject: Object.freeze({}),
   noop: function() {},
 
@@ -29,7 +29,7 @@ export const PLATFORM = {
     return function requestFlush() {
       // We dispatch a timeout with a specified delay of 0 for engines that
       // can reliably accommodate that request. This will usually be snapped
-      // to a 4 milisecond delay, but once we're flushing, there's no delay
+      // to a 4 millisecond delay, but once we're flushing, there's no delay
       // between events.
       const timeoutHandle = setTimeout(handleFlushTimer, 0);
       

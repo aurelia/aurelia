@@ -15,7 +15,7 @@ interface IDefaultableInterfaceSymbol<T> extends IInterfaceSymbol<T> {
 
 export interface IResolver<T = any> {
   resolve(handler: IContainer, requestor: IContainer): T;
-  getFactory?(container: IContainer): IFactory<T>;
+  getFactory?(container: IContainer): IFactory<T> | null;
 }
 
 export interface IRegistration<T = any> {
@@ -45,7 +45,7 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator {
-  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]);
+  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void;
 
   registerResolver<T>(key: IInterfaceSymbol<T>, resolver: IResolver<T>): IResolver<T>;
   registerResolver<T extends Constructable>(key: T, resolver: IResolver<InstanceType<T>>): IResolver<InstanceType<T>>;
@@ -55,9 +55,9 @@ export interface IContainer extends IServiceLocator {
   registerTransformer<T extends Constructable>(key: T, transformer: (instance: InstanceType<T>) => T): boolean;
   registerTransformer<T = any>(key: any, transformer: (instance: T) => T): boolean;
 
-  getResolver<T>(key: IInterfaceSymbol<T>, autoRegister?: boolean): IResolver<T>;
-  getResolver<T extends Constructable>(key: T, autoRegister?: boolean): IResolver<InstanceType<T>>;
-  getResolver<T = any>(key: any, autoRegister?: boolean): IResolver<T>;
+  getResolver<T>(key: IInterfaceSymbol<T>, autoRegister?: boolean): IResolver<T> | null;
+  getResolver<T extends Constructable>(key: T, autoRegister?: boolean): IResolver<InstanceType<T>> | null;
+  getResolver<T = any>(key: any, autoRegister?: boolean): IResolver<T> | null;
 
   getFactory<T extends Constructable>(type: T): IFactory<InstanceType<T>>;
 
@@ -73,14 +73,14 @@ interface IResolverBuilder<T> {
 }
 
 if (!('getOwnMetadata' in Reflect)) {
-  (<any>Reflect).getOwnMetadata = function(key, target) {
+  (Reflect as any).getOwnMetadata = function(key: string, target: any): any {
     return target[key];
   };
 
-  (<any>Reflect).metadata = function(key, value) {
-    return function(target) {
+  (Reflect as any).metadata = function(key: string, value: any): (target: any) => void {
+    return function(target: any): void {
       target[key] = value;
-    }
+    };
   };
 }
 
@@ -279,7 +279,7 @@ interface IInvoker {
 }
 
 class Factory implements IFactory {
-  private transformers: ((instance: any) => any)[] = null;
+  private transformers: ((instance: any) => any)[] | null = null;
 
   constructor(public type: Function, private invoker: IInvoker, private dependencies: any[]) { }
 
@@ -331,7 +331,7 @@ function isRegistry(obj: any): obj is IRegistry {
 }
 
 class Container implements IContainer {
-  private parent: Container = null;
+  private parent: Container | null = null;
   private resolvers = new Map<any, IResolver>();
   private factories: Map<Function, IFactory>;
   private configuration: IContainerConfiguration;
@@ -342,7 +342,7 @@ class Container implements IContainer {
     this.resolvers.set(IContainer, containerResolver);
   }
 
-  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]) {
+  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void {
     const resolvers = this.resolvers;
 
     for (let i = 0, ii = params.length; i < ii; ++i) {
@@ -433,7 +433,7 @@ class Container implements IContainer {
       : false;
   }
 
-  get(key: any) {
+  get(key: any): any {
     validateKey(key);
 
     if (key.resolve) {
@@ -460,7 +460,7 @@ class Container implements IContainer {
   getAll(key: any): ReadonlyArray<any> {
     validateKey(key);
 
-    let current: Container = this;
+    let current: Container | null = this;
 
     while (current !== null) {
       const resolver = current.resolvers.get(key);
@@ -475,6 +475,8 @@ class Container implements IContainer {
         return buildAllResponse(resolver, current, this);
       }
     }
+
+    return PLATFORM.emptyArray;
   }
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
@@ -528,17 +530,26 @@ export const Registration = {
 
   interpret(interpreterKey: any, ...rest: any[]): IRegistry {
     return {
-      register(container: IContainer) {
-        let registry: IRegistry;
+      register(container: IContainer): void {
         const resolver = container.getResolver<IRegistry>(interpreterKey);
 
-        if (resolver.getFactory) {
-          registry = resolver.getFactory(container).construct(container, rest);
-        } else {
-          registry = resolver.resolve(container, container);
-        }
+        if (resolver !== null) {
+          let registry: IRegistry | null =  null;
 
-        registry.register(container);
+          if (resolver.getFactory) {
+            let factory = resolver.getFactory(container);
+
+            if (factory !== null) {
+              registry = factory.construct(container, rest);
+            }
+          } else {
+            registry = resolver.resolve(container, container);
+          }
+
+          if (registry !== null) {
+            registry.register(container);
+          }
+        }
       }
     };
   }
@@ -609,7 +620,7 @@ const classInvokers: Record<string, IInvoker> = {
   }
 };
 
-function invokeWithDynamicDependencies(container: IContainer, fn: Function, staticDependencies, dynamicDependencies) {
+function invokeWithDynamicDependencies(container: IContainer, fn: Function, staticDependencies: any[], dynamicDependencies: any[]): any {
   let i = staticDependencies.length;
   let args = new Array(i);
   let lookup;

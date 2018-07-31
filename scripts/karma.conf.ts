@@ -1,13 +1,11 @@
 import * as karma from 'karma';
-import * as path from 'path';
 import * as webpack from 'webpack';
 
 export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
   transpileOnly?: boolean;
   noInfo?: boolean;
   coverage?: boolean;
-  tsconfig?: string;
-  component: 'runtime' | 'jit' | 'debug';
+  package?: string;
   set(config: IKarmaConfigOptions): void;
 }
 
@@ -19,31 +17,25 @@ export interface IKarmaConfigOptions extends karma.ConfigOptions {
   webpackMiddleware: any;
 }
 
-export default (config: IKarmaConfig): void => {
-  const rules: webpack.Rule[] = [];
-  const component = config.component || 'all';
-  let setupFile, configFile;
-  if (component === 'all') {
-    setupFile = 'test/setup.ts';
-    configFile = path.resolve(__dirname, 'test', 'tsconfig.json');
-  } else {
-    setupFile = `test/${component}/setup.ts`;
-    configFile = path.resolve(__dirname, 'test', component, 'tsconfig.json');
+export function configureKarma(config: IKarmaConfig): void {
+  // config.package contains the value passed in via "karma start --package=..."
+  // only need to set this when running from the root
+  if (config.package) {
+    config.basePath = `./packages/${config.package}`;
   }
-
+  
   const options: IKarmaConfigOptions = {
     basePath: config.basePath || './',
     frameworks: ['mocha', 'chai'],
-    files: [setupFile],
-    preprocessors: { [setupFile]: ['webpack', 'sourcemap'] },
+    files: ['test/setup.ts'],
+    preprocessors: { 
+      'test/setup.ts': ['webpack', 'sourcemap'] 
+    },
     webpack: {
       mode: 'development',
       resolve: {
         extensions: ['.ts', '.js'],
-        modules: [
-          path.resolve(__dirname, 'src'),
-          path.resolve(__dirname, 'node_modules')
-        ]
+        modules: ['src', 'node_modules']
       },
       devtool: 'cheap-module-eval-source-map',
       module: {
@@ -53,14 +45,16 @@ export default (config: IKarmaConfig): void => {
             loader: 'ts-loader',
             exclude: /node_modules/,
             options: {
-              configFile: configFile,
+              configFile: 'tsconfig-test.json',
               transpileOnly: config.transpileOnly
             }
           }
         ]
       }
     },
-    mime: { 'text/x-typescript': ['ts'] },
+    mime: { 
+      'text/x-typescript': ['ts'] 
+    },
     reporters: ['mocha'],
     webpackMiddleware: {
       stats: {
@@ -101,7 +95,7 @@ export default (config: IKarmaConfig): void => {
         debug: /src[\/\\]debug[\/\\].+\.ts$/,
         jit: /src[\/\\]jit[\/\\].+\.ts$/,
         all: /src[\/\\].+\.ts$/
-      }[component]
+      }[config.package]
     });
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {

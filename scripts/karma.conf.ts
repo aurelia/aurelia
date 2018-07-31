@@ -1,6 +1,7 @@
 import * as karma from 'karma';
 import * as webpack from 'webpack';
 import * as path from 'path';
+import { getAlias } from './packages';
 
 export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
   transpileOnly?: boolean;
@@ -20,11 +21,7 @@ export interface IKarmaConfigOptions extends karma.ConfigOptions {
 
 export default function(config: IKarmaConfig): void {
   const packages = path.resolve(__dirname, '..', 'packages');
-  const basePath = path.join(packages, config.package); // TODO: find something cleaner for this alias stuff (webpack + karma + ts3 + lerna much?)
-  const au_debug = path.join(packages, 'debug', 'src');
-  const au_jit = path.join(packages, 'jit', 'src');
-  const au_kernel = path.join(packages, 'kernel', 'src');
-  const au_runtime = path.join(packages, 'runtime', 'src');
+  const basePath = path.join(packages, config.package);
 
   const options: IKarmaConfigOptions = {
     basePath: basePath,
@@ -38,12 +35,7 @@ export default function(config: IKarmaConfig): void {
       resolve: {
         extensions: ['.ts', '.js'],
         modules: ['src', 'node_modules'],
-        alias: {
-          '@aurelia/au_debug': au_debug,
-          '@aurelia/jit': au_jit,
-          '@aurelia/kernel': au_kernel,
-          '@aurelia/runtime': au_runtime
-        }
+        alias: getAlias(packages)
       },
       devtool: 'cheap-module-eval-source-map',
       module: {

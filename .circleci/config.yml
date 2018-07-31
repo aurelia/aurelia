@@ -44,7 +44,6 @@ jobs:
       - checkout
       - restore_cache:
           key: *cache_key
-      - run: mkdir ~/repo/junit
       #- run:
       #    command: "./node_modules/.bin/karma start --browsers=FirefoxHeadless --single-run=true --auto-watch=false"
       #    environment:
@@ -57,9 +56,9 @@ jobs:
             TS_NODE_PROJECT: ./scripts/tsconfig.json
       - run: codecov -f ~/repo/packages/*/coverage/coverage-final.json
       - store_test_results:
-          path: ~/repo/junit
+          path: ~/repo/packages/*/junit
       - store_artifacts:
-          path: ./junit
+          path: ./packages/*/junit
       - store_artifacts:
           path: ./packages/*/coverage
 

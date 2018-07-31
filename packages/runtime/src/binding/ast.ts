@@ -57,7 +57,7 @@ export class BindingBehavior implements IExpression {
     }
     const behaviorKey = this.behaviorKey;
     const locator = binding.locator;
-    const behavior = locator.get(behaviorKey);
+    const behavior = locator.get(behaviorKey) as BindingBehavior;
     if (!behavior) {
       throw new Error(`No BindingBehavior named "${this.name}" was found!`);
     }
@@ -121,7 +121,7 @@ export class ValueConverter implements IExpression {
     }
 
     const locator = binding.locator;
-    const converter = locator.get(this.converterKey);
+    const converter = locator.get(this.converterKey) as ISignaler;
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
@@ -131,7 +131,7 @@ export class ValueConverter implements IExpression {
       return;
     }
     
-    const signaler = locator.get(ISignaler);
+    const signaler = locator.get(ISignaler) as ISignaler;
     i = signals.length;
     while (i--) {
       signaler.addSignalListener(signals[i], binding as any);
@@ -146,7 +146,7 @@ export class ValueConverter implements IExpression {
       return;
     }
     
-    const signaler = locator.get(ISignaler);
+    const signaler = locator.get(ISignaler) as ISignaler;
     let i = signals.length;
     while (i--) {
       signaler.removeSignalListener(signals[i], binding as any);

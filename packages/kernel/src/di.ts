@@ -2,11 +2,11 @@ import { PLATFORM } from './platform';
 import { Injectable, Constructable, IIndexable } from './interfaces';
 import { Reporter } from './reporter';
 
-type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+/*@internal*/export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
 export type InterfaceSymbol<T> = (target: Injectable, property: string, index: number) => any;
 
-interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
+/*@internal*/export interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
   withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T>;
   noDefault(): InterfaceSymbol<T>;
 }

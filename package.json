@@ -4,7 +4,8 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --ci --hoist",
     "build": "lerna run build",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "lint": "lerna run lint"
   },
   "dependencies": {},
   "devDependencies": {

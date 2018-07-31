@@ -1,9 +1,15 @@
 {
   "extends": [
     "tslint:latest",
-    "tslint-no-unused-expression-chai"
+    "tslint-no-unused-expression-chai",
+    "tslint-microsoft-contrib"
   ],
-  "defaultSeverity": "error",
+  "linterOptions": {
+    "exclude": [
+      "**/test/**"
+    ]
+  },
+  "defaultSeverity": "warning",
   "rules": {
   /**
     * Security Rules. The following rules should be turned on because they find security issues
@@ -37,17 +43,17 @@
     * common bug patterns in the code or enforce type safety.
     */
     "await-promise": true,
-    "forin": true,
+    "forin": false,
     "jquery-deferred-must-complete": true,
     "label-position": true,
-    "match-default-export-name": true,
+    "match-default-export-name": false,
     "mocha-avoid-only": true,
     "mocha-no-side-effect-code": true,
     "no-any": true,
     "no-arg": true,
-    "no-backbone-get-set-outside-model": true,
-    "no-bitwise": true,
-    "no-conditional-assignment": true,
+    "no-backbone-get-set-outside-model": false,
+    "no-bitwise": false,
+    "no-conditional-assignment": false,
     "no-console": [true, "debug", "info", "error", "log", "time", "timeEnd", "trace"],
     "no-constant-condition": true,
     "no-control-regex": true,
@@ -60,7 +66,7 @@
     "no-for-in-array": true,
     "no-implicit-dependencies": [true, "dev"],
     "no-import-side-effect": true,
-    "no-increment-decrement": true,
+    "no-increment-decrement": false,
     "no-invalid-regexp": true,
     "no-invalid-template-strings": true,
     "no-invalid-this": true,
@@ -68,29 +74,36 @@
     "no-misused-new": true,
     "no-non-null-assertion": true,
     "no-object-literal-type-assertion": true,
-    "no-parameter-reassignment": true,
+    "no-parameter-reassignment": false,
     "no-reference-import": true,
     "no-regex-spaces": true,
     "no-sparse-arrays": true,
     "no-string-literal": false,
     "no-string-throw": true,
-    "no-submodule-imports": true,
+    "no-submodule-imports": false,
     "no-unnecessary-bind": true,
     "no-unnecessary-callback-wrapper": true,
     "no-unnecessary-initializer": true,
     "no-unnecessary-override": true,
-    "no-unsafe-any": true,
+    "no-unsafe-any": false,
     "no-unsafe-finally": true,
     "no-unused-expression": true,
-    "no-use-before-declare": true,
+    "no-use-before-declare": false,
     "no-with-statement": true,
     "promise-function-async": true,
     "promise-must-complete": true,
     "radix": true,
     "react-this-binding-issue": true,
     "react-unused-props-and-state": true,
-    "restrict-plus-operands": true, // the plus operand should really only be used for strings and numbers
-    "strict-boolean-expressions": true,
+    "restrict-plus-operands": false, // the plus operand should really only be used for strings and numbers
+    "strict-boolean-expressions": [
+      true,
+      "allow-null-union",
+      "allow-undefined-union",
+      "allow-string",
+      "allow-number",
+      "allow-mix"
+    ],
     "switch-default": true,
     "switch-final-break": true,
     "triple-equals": [true, "allow-null-check"],
@@ -102,49 +115,49 @@
     * generally more clear to the reader.
     */
     "adjacent-overload-signatures": true,
-    "array-type": false,
+    "array-type": [true, "array"],
     "arrow-parens": false, // for simple functions the parens on arrow functions are not needed
     "ban-comma-operator": true, // possibly controversial
-    "binary-expression-operand-order": true,
+    "binary-expression-operand-order": false,
     "callable-types": true,
     "chai-prefer-contains-to-index-of": true,
-    "chai-vague-errors": true,
-    "class-name": true,
+    "chai-vague-errors": false,
+    "class-name": false,
     "comment-format": true,
     "completed-docs": [true, "classes"],
-    "export-name": true,
+    "export-name": false,
     "function-name": true,
     "import-name": true,
     "interface-name": [true, "always-prefix"],
     "jsdoc-format": true,
     "max-classes-per-file": false,  // we generally recommend making one public class per file
-    "max-file-line-count": true,
-    "max-func-body-length": [true, 100, {"ignore-parameters-to-function-regex": "^describe$"}],
-    "max-line-length": [true, 140],
+    "max-file-line-count": false,
+    "max-func-body-length": false,
+    "max-line-length": false,
     "member-access": true,
     "member-ordering": [true, { "order": "fields-first" }],
-    "missing-jsdoc": true,
+    "missing-jsdoc": false,
     "mocha-unneeded-done": true,
     "new-parens": true,
     "no-construct": true,
-    "no-default-export": true,
+    "no-default-export": false,
     "no-duplicate-imports": true,
     "no-empty-interface": false,
-    "no-for-in": true,
-    "no-function-expression": true,
+    "no-for-in": false,
+    "no-function-expression": false,
     "no-inferrable-types": false, // turn no-inferrable-types off in order to make the code consistent in its use of type decorations
     "no-multiline-string": false,
     "no-null-keyword": false, // turn no-null-keyword off and use undefined to mean not initialized and null to mean without a value
     "no-parameter-properties": true,
     "no-redundant-jsdoc": true,
-    "no-relative-imports": true,
+    "no-relative-imports": false,
     "no-require-imports": true,
     "no-return-await": true,
     "no-shadowed-variable": false,
-    "no-suspicious-comment": true,
+    "no-suspicious-comment": false,
     "no-this-assignment": true,
     "no-typeof-undefined": true,
-    "no-unnecessary-class": true,
+    "no-unnecessary-class": false,
     "no-unnecessary-field-initialization": true,
     "no-unnecessary-local-variable": true,
     "no-unnecessary-qualifier": true,
@@ -156,41 +169,50 @@
     "no-void-expression": true,
     "number-literal-format": true,
     "object-literal-sort-keys": false, // turn object-literal-sort-keys off and sort keys in a meaningful manner
-    "one-variable-per-declaration": true,
+    "one-variable-per-declaration": false,
     "only-arrow-functions": false,  // there are many valid reasons to declare a function
     "ordered-imports": true,
-    "prefer-array-literal": true,
+    "prefer-array-literal": false,
     "prefer-const": true,
     "prefer-for-of": false,
     "prefer-method-signature": true,
     "prefer-object-spread": true,
     "prefer-template": true,
     "type-literal-delimiter": true,
-    "typedef": [true, "call-signature", "arrow-call-signature", "parameter", "arrow-parameter", "property-declaration", "variable-declaration", "member-variable-declaration"],
+    "typedef": [
+      true,
+      "call-signature",
+      //"arrow-call-signature",
+      "parameter",
+      //"arrow-parameter",
+      "property-declaration",
+      //"variable-declaration",
+      "member-variable-declaration"
+    ],
     "underscore-consistent-invocation": true,
     "unified-signatures": true,
     "use-default-type-parameter": true,
-    "variable-name": true,
+    "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
 
   /**
     * Whitespace related rules. The only recommended whitespace strategy is to pick a single format and
     * be consistent.
     */
     "align": [true, "parameters", "arguments", "statements"],
-    "curly": true,
+    "curly": false,
     "encoding": true,
     "eofline": true,
     "import-spacing": true,
     "indent": [true, "spaces"],
-    "linebreak-style": true,
-    "newline-before-return": true,
+    "linebreak-style": false,
+    "newline-before-return": false,
     "no-consecutive-blank-lines": true,
     "no-empty-line-after-opening-brace": false,
     "no-irregular-whitespace": true,
-    "no-single-line-block-comment": true,
+    "no-single-line-block-comment": false,
     "no-trailing-whitespace": true,
     "no-unnecessary-semicolons": true,
-    "object-literal-key-quotes": [true, "as-needed"],
+    "object-literal-key-quotes": [true, "consistent"],
     "one-line": [true, "check-open-brace", "check-catch", "check-else", "check-whitespace"],
     "quotemark": [true, "single"],
     "semicolon": [true, "always"],
@@ -200,14 +222,22 @@
                 // Many teams like to have multiline be 'always'. There is no clear consensus on this rule but the
                 // internal MS JavaScript coding standard does discourage it.
     "typedef-whitespace": false,
-    "whitespace": [true, "check-branch", "check-decl", "check-operator", "check-module", "check-separator", "check-type"],
+    "whitespace": [
+      true,
+      "check-branch",
+      "check-decl",
+      "check-operator",
+      "check-module",
+      "check-separator",
+      "check-type"
+    ],
 
   /**
     * Controversial/Configurable rules.
     */
     "ban": false,                // only enable this if you have some code pattern that you want to ban
     "ban-types": false,
-    "cyclomatic-complexity": true,
+    "cyclomatic-complexity": false,
     "deprecation": false, // deprecated APIs are sometimes unavoidable
     "file-header": false,  // enable this rule only if you are legally required to add a file header
     "import-blacklist": false,  // enable and configure this as you desire
@@ -223,8 +253,8 @@
     "object-literal-shorthand": false,  // object-literal-shorthand offers an abbreviation not an abstraction
     "prefer-conditional-expression": false, // unnecessarily strict
     "prefer-switch": false, // more of a style preference
-    "prefer-type-cast": true,   // pick either type-cast format and use it consistently
+    "prefer-type-cast": false,   // pick either type-cast format and use it consistently
     "return-undefined": false, // this actually affect the readability of the code
-    "space-before-function-paren": false,   // turn this on if this is really your coding standard
+    "space-before-function-paren": false   // turn this on if this is really your coding standard
   }
 }

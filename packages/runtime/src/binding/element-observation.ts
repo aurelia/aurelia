@@ -1,5 +1,5 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { ICallable } from '../../kernel/interfaces';
+import { ICallable } from '@aurelia/kernel';
 import { IAccessor, ISubscribable } from './observation';
 import { IEventSubscriber } from './event-manager';
 import { INode, DOM } from '../dom';

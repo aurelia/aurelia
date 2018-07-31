@@ -1,6 +1,6 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { DI } from '../../kernel/di';
-import { ICallable } from '../../kernel/interfaces';
+import { DI } from '@aurelia/kernel';
+import { ICallable } from '@aurelia/kernel';
 import { IAccessor, ISubscribable } from './observation';
 
 export interface IDirtyChecker {

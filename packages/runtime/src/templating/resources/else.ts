@@ -4,7 +4,7 @@ import { IVisualFactory } from '../visual';
 import { IRenderSlot } from '../render-slot';
 import { templateController } from '../custom-attribute';
 import { IScope } from '../../binding/binding-context';
-import { inject } from '../../../kernel/di';
+import { inject } from '@aurelia/kernel';
 
 @templateController('else')
 @inject(IVisualFactory, IRenderSlot)

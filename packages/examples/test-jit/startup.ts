@@ -1,4 +1,4 @@
-import { Aurelia } from '../runtime/aurelia';
+import { Aurelia } from '@aurelia/runtime';
 import { App } from './app';
 import { DebugConfiguration } from '../debug/configuration';
 import { BasicConfiguration } from '../jit/configuration';

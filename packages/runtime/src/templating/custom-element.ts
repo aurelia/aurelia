@@ -1,4 +1,4 @@
-import { Constructable, Immutable, Writable } from '../../kernel/interfaces';
+import { Constructable, Immutable, Writable } from '@aurelia/kernel';
 import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition } from './instructions';
 import { IBindSelf, IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
 import { IViewOwner, IContentView, View } from './view';
@@ -7,10 +7,10 @@ import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 import { IRenderSlot } from './render-slot';
 import { IResourceType, IResourceKind } from '../resource';
-import { IContainer, Registration } from '../../kernel/di';
+import { IContainer, Registration } from '@aurelia/kernel';
 import { BindingContext } from '../binding/binding-context';
 import { ShadowDOMEmulation } from './shadow-dom';
-import { PLATFORM } from '../../kernel/platform';
+import { PLATFORM } from '@aurelia/kernel';
 import { BindingFlags } from '../binding/binding-flags';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }

@@ -1,5 +1,5 @@
 import { ICustomAttribute, ICustomAttributeType } from "./custom-attribute";
-import { ICallable } from "../../kernel/interfaces";
+import { ICallable } from '@aurelia/kernel';
 import { DOM, INode, IChildObserver } from "../dom";
 import { ITaskQueue } from "../task-queue";
 import { SubscriberCollection } from "../binding/subscriber-collection";

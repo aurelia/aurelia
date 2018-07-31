@@ -1,5 +1,5 @@
 import { TemplateDefinition } from "./instructions";
-import { DI } from "../../kernel/di";
+import { DI } from '@aurelia/kernel';
 import { IResourceDescriptions } from "../resource";
 
 export interface ITemplateCompiler {

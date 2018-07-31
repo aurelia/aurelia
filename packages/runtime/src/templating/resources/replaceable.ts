@@ -1,7 +1,7 @@
 import { templateController } from '../custom-attribute';
 import { IRenderSlot } from '../render-slot';
 import { IScope } from '../../binding/binding-context';
-import { inject } from '../../../kernel/di';
+import { inject } from '@aurelia/kernel';
 import { IVisualFactory, IVisual } from '../visual';
 import { BindingFlags } from '../../binding/binding-flags';
 

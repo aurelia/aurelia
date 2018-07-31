@@ -1,4 +1,4 @@
-import { ICallable } from '../../kernel/interfaces';
+import { ICallable } from '@aurelia/kernel';
 
 let arrayPool1: any[] = [];
 let arrayPool2: any[] = [];

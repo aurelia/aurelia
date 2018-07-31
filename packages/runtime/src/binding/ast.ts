@@ -1,5 +1,5 @@
 import { IBinding } from './binding';
-import { IServiceLocator } from '../../kernel/di';
+import { IServiceLocator } from '@aurelia/kernel';
 import { IScope, BindingContext } from './binding-context';
 import { ISignaler } from './signaler';
 import { BindingFlags } from './binding-flags';
@@ -290,7 +290,7 @@ export class AccessKeyed implements IExpression {
 }
 
 export class CallScope implements IExpression {
-  constructor(public name: string, public args: IExpression[], public ancestor: number = 0) { }
+  constructor(public name: string, public args: ReadonlyArray<IExpression>, public ancestor: number = 0) { }
 
   evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null) {
     const args = evalList(flags, scope, locator, this.args);
@@ -312,7 +312,7 @@ export class CallScope implements IExpression {
 }
 
 export class CallMember implements IExpression {
-  constructor(public object: IExpression, public name: string, public args: IExpression[]) { }
+  constructor(public object: IExpression, public name: string, public args: ReadonlyArray<IExpression>) { }
 
   evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const instance = this.object.evaluate(flags, scope, locator);
@@ -683,7 +683,7 @@ export class ForOfStatement {
 }
 
 /// Evaluate the [list] in context of the [scope].
-function evalList(flags: BindingFlags, scope: IScope, locator: IServiceLocator, list: IExpression[]) {
+function evalList(flags: BindingFlags, scope: IScope, locator: IServiceLocator, list: ReadonlyArray<IExpression>) {
   const length = list.length;
   const result = new Array(length);
 

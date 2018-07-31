@@ -1,4 +1,4 @@
-import { IContainer, IResolver, DI } from '../kernel/di';
+import { IContainer, IResolver, DI } from '@aurelia/kernel';
 import { ICustomElement } from './templating/custom-element';
 
 export interface INodeLike {
@@ -22,12 +22,12 @@ export interface IView extends INodeLike {
   /**
    * The child nodes of this view
    */
-  childNodes: INode[];
+  childNodes: ReadonlyArray<INode>;
 
   /**
    * Find all au-targets underneath this view
    */
-  findTargets(): ArrayLike<INode>;
+  findTargets(): ArrayLike<INode> | ReadonlyArray<INode>;
 
   /**
    * Append child to this view

@@ -6,9 +6,9 @@ import {
   PrimitiveLiteral, ArrayLiteral, ObjectLiteral, Template, TaggedTemplate,
   IsLeftHandSide, IsAssign, IsBinary, IsBindingBehavior, IsConditional,
   IsPrimary
-} from '../../runtime/binding/ast';
-import { IContainer } from '../../kernel/di';
-import { IExpressionParser } from '../../runtime/binding/expression-parser';
+} from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { IExpressionParser } from '@aurelia/runtime';
 
 export function register(container: IContainer) {
   container.registerTransformer(IExpressionParser, parser => {

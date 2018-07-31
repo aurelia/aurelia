@@ -21,8 +21,8 @@ import {
 import { ClassObserver } from './class-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCollectionObserver, AccessorOrObserver, IAccessor } from './observation';
-import { Reporter } from '../../kernel/reporter';
-import { DI, inject } from '../../kernel/di';
+import { Reporter } from '@aurelia/kernel';
+import { DI, inject } from '@aurelia/kernel';
 import { ITaskQueue } from '../task-queue';
 import { createComputedObserver } from './computed-observer';
 

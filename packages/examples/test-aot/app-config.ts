@@ -1,8 +1,8 @@
-import { ITemplateSource, TargetedInstructionType } from "../runtime/templating/instructions";
+import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
 
 //extracted from view imports
 import * as import1 from "./name-tag";
-import { DelegationStrategy } from "../runtime/binding/event-manager";
+import { DelegationStrategy } from '@aurelia/runtime';
 
 //this object is built up during compilation
 export const appConfig: ITemplateSource = {

@@ -1,6 +1,6 @@
 import { IScope } from '../binding-context';
 import { Listener } from '../listener';
-import { Reporter } from '../../../kernel/reporter';
+import { Reporter } from '@aurelia/kernel';
 import { bindingBehavior } from '../binding-behavior';
 import { BindingFlags } from '../binding-flags';
 

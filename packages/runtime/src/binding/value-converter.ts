@@ -1,6 +1,6 @@
 import { IResourceType, IResourceKind } from "../resource";
-import { Constructable, Writable } from "../../kernel/interfaces";
-import { IContainer, Registration } from "../../kernel/di";
+import { Constructable, Writable } from '@aurelia/kernel';
+import { IContainer, Registration } from '@aurelia/kernel';
 
 export interface IValueConverterSource {
   name: string;

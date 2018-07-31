@@ -2,7 +2,8 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "bootstrap": "lerna bootstrap --ci --hoist"
+    "bootstrap": "lerna bootstrap --ci --hoist",
+    "build": "lerna run build"
   },
   "dependencies": {},
   "devDependencies": {

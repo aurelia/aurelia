@@ -13,7 +13,7 @@ import { Call } from '../binding/call';
 import { Ref } from '../binding/ref';
 import { ShadowDOMEmulation } from './shadow-dom';
 import { IRenderContext } from './render-context';
-import { Immutable } from '../../kernel/interfaces';
+import { Immutable } from '@aurelia/kernel';
 import { ICustomElement, CustomElementResource } from './custom-element';
 
 export interface IRenderer {

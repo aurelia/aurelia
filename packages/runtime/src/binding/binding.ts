@@ -2,9 +2,9 @@ import { BindingMode } from './binding-mode';
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
 import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IBindingCollectionObserver } from './observation';
-import { IServiceLocator } from '../../kernel/di';
+import { IServiceLocator } from '@aurelia/kernel';
 import { IScope, sourceContext, targetContext } from './binding-context';
-import { Reporter } from '../../kernel/reporter';
+import { Reporter } from '@aurelia/kernel';
 import { BindingFlags } from './binding-flags';
 
 const slotNames: string[] = new Array(100);

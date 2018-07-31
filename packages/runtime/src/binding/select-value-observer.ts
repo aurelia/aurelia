@@ -1,5 +1,5 @@
 import { SubscriberCollection } from './subscriber-collection';
-import { ICallable } from '../../kernel/interfaces';
+import { ICallable } from '@aurelia/kernel';
 import { ITaskQueue } from '../task-queue';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
@@ -78,7 +78,7 @@ export class SelectValueObserver extends SubscriberCollection {
 
     let options = this.node.options;
     let i = options.length;
-    let matcher = this.node.matcher || ((a: any, b: any) => a === b);
+    let matcher = (<any>this.node).matcher || ((a: any, b: any) => a === b);
 
     while (i--) {
       let option = options.item(i) as HTMLOptionElement & { model?: any };
@@ -108,7 +108,7 @@ export class SelectValueObserver extends SubscriberCollection {
     if (this.node.multiple) {
       // multi-select
       if (Array.isArray(this.value)) {
-        let matcher = this.node.matcher || ((a: any, b: any) => a === b);
+        let matcher = (<any>this.node).matcher || ((a: any, b: any) => a === b);
         // remove items that are no longer selected.
         let i = 0;
         while (i < this.value.length) {

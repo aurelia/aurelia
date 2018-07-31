@@ -2,7 +2,7 @@ import { IfCore } from './if-core';
 import { Else } from './else';
 import { IRenderSlot, SwapOrder } from '../render-slot';
 import { templateController } from '../custom-attribute';
-import { inject } from '../../../kernel/di';
+import { inject } from '@aurelia/kernel';
 import { IVisualFactory } from '../visual';
 import { bindable } from '../bindable';
 

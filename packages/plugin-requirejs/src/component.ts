@@ -1,4 +1,4 @@
-import { CustomElementResource } from "../../runtime/templating/custom-element";
+import { CustomElementResource } from '@aurelia/runtime';
 import { escape, parseImport, createTemplateDescription, loadFromFile, processImports, kebabCase } from './processing';
 
 const buildMap = {};

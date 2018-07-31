@@ -3,7 +3,7 @@ import { AccessMember, PrimitiveLiteral, IExpression } from './../../../src/runt
 
 import { Binding, IBindingTarget } from './../../../src/runtime/binding/binding';
 import { IObserverLocator } from '../../../src/runtime/binding/observer-locator';
-import { DI, IContainer } from '../../../src/kernel/di';
+import { DI, IContainer } from '../../../src/kernel';
 import { AccessScope } from '../../../src/runtime/binding/ast';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';

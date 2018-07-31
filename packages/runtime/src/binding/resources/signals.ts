@@ -1,8 +1,8 @@
 import { IScope } from '../binding-context';
-import { inject } from '../../../kernel/di';
+import { inject } from '@aurelia/kernel';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
-import { Reporter } from '../../../kernel/reporter';
+import { Reporter } from '@aurelia/kernel';
 import { ISignaler } from '../signaler';
 import { BindingFlags } from '../binding-flags';
 

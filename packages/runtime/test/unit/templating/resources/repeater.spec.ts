@@ -1,4 +1,4 @@
-import { IContainer, DI, Registration } from '../../../../src/kernel/di';
+import { IContainer, DI, Registration } from '../../../../src/kernel';
 import { Repeater } from '../../../../src/runtime/templating/resources/repeater';
 import { enableArrayObservation, disableArrayObservation } from '../../../../src/runtime/binding/array-observer';
 import { ITaskQueue } from '../../../../src/runtime/task-queue';

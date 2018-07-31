@@ -1,4 +1,4 @@
-import { ITemplateSource, TargetedInstructionType } from "../runtime/templating/instructions";
+import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
 
 //this object is built up during compilation
 export const appConfig: ITemplateSource = {

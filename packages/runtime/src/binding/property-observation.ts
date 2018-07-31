@@ -1,7 +1,7 @@
 import { SubscriberCollection } from './subscriber-collection';
 import { ITaskQueue } from '../task-queue';
-import { ICallable, IIndexable } from '../../kernel/interfaces';
-import { Reporter } from '../../kernel/reporter';
+import { ICallable, IIndexable } from '@aurelia/kernel';
+import { Reporter } from '@aurelia/kernel';
 import { IAccessor, ISubscribable } from './observation';
 
 export const propertyAccessor = {

@@ -1,7 +1,7 @@
 import { ITemplateSource, TargetedInstructionType } from './../../../../src/runtime/templating/instructions';
 import { Aurelia } from '../../../../src/runtime/aurelia';
 import { Repeater } from '../../../../src/runtime/templating/resources/repeater';
-import { IContainer, DI } from '../../../../src/kernel/di';
+import { IContainer, DI } from '../../../../src/kernel';
 import { ITaskQueue } from '../../../../src/runtime/task-queue';
 import { enableArrayObservation, disableArrayObservation } from '../../../../src/runtime/binding/array-observer';
 import { DOM, INode } from '../../../../src/runtime/dom';

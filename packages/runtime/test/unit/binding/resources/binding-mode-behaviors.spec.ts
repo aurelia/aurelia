@@ -6,7 +6,7 @@ import { Binding } from "../../../../src/runtime/binding/binding";
 import { BindingFlags } from "../../../../src/runtime/binding/binding-flags";
 import { IExpression } from "../../../../src/runtime/binding/ast";
 import { BindingMode } from "../../../../src/runtime/binding/binding-mode";
-import { IContainer } from '../../../../src/kernel/di';
+import { IContainer } from '../../../../src/kernel';
 import { IScope } from '../../../../src/runtime/binding/binding-context';
 
 const tests = [

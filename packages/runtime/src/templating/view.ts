@@ -1,12 +1,12 @@
-import { PLATFORM } from '../../kernel/platform';
+import { PLATFORM } from '@aurelia/kernel';
 import { IEmulatedShadowSlot } from './shadow-dom';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
 import { IAttach } from './lifecycle';
-import { DI } from '../../kernel/di';
+import { DI } from '@aurelia/kernel';
 import { INode, DOM, IChildObserver, IView } from '../dom';
 import { IRenderSlot } from './render-slot';
-import { Reporter } from '../../kernel/reporter';
+import { Reporter } from '@aurelia/kernel';
 import { IVisual } from './visual';
 import { IRenderContext } from './render-context';
 
@@ -70,7 +70,7 @@ export const View = {
       firstChild: node,
       lastChild: node,
       childNodes: [node],
-      findTargets(): INode[] {
+      findTargets(): ReadonlyArray<INode> {
         return PLATFORM.emptyArray;
       },
       appendChild(node: INode) {

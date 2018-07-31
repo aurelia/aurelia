@@ -1,4 +1,4 @@
-import { customElement } from "../runtime/templating/custom-element";
+import { customElement } from '@aurelia/runtime';
 import view from 'view!./name-tag.html';
 
 @customElement(view)

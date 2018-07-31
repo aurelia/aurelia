@@ -57,7 +57,7 @@ export interface IContainer extends IServiceLocator {
   createChild(): IContainer;
 }
 
-interface IResolverBuilder<T> {
+/*@internal*/export interface IResolverBuilder<T> {
   instance(value: T & IIndexable): IResolver;
   singleton(value: Constructable<T>): IResolver;
   transient(value: Constructable<T>): IResolver;

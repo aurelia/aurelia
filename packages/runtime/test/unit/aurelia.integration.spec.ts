@@ -6,7 +6,7 @@
 // import { spy } from 'sinon';
 // import { DOM } from '../../src/runtime/dom';
 // import { ITaskQueue } from '../../src/runtime/task-queue';
-// import { IContainer, DI } from '../../src/kernel/di';
+// import { IContainer, DI } from '../../src/kernel';
 
 // describe('Aurelia', () => {
 //   let container: IContainer;

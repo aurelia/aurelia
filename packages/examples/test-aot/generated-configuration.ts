@@ -1,9 +1,9 @@
-import { AccessScope, HtmlLiteral, PrimitiveLiteral, Conditional, CallScope, IExpression, AccessMember } from "../runtime/binding/ast";
-import { IContainer } from "../kernel/di";
-import { IExpressionParser } from "../runtime/binding/expression-parser";
-import { Repeat } from "../runtime/templating/resources/repeat/repeat";
-import { If } from "../runtime/templating/resources/if";
-import { Else } from "../runtime/templating/resources/else";
+import { AccessScope, HtmlLiteral, PrimitiveLiteral, Conditional, CallScope, IExpression, AccessMember } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { IExpressionParser } from '@aurelia/runtime';
+import { Repeat } from '@aurelia/runtime';
+import { If } from '@aurelia/runtime';
+import { Else } from '@aurelia/runtime';
 
 const emptyArray: any[] = [];
 

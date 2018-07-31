@@ -1,6 +1,6 @@
 import { SubscriberCollection } from './subscriber-collection';
 import { ITaskQueue } from '../task-queue';
-import { ICallable } from '../../kernel/interfaces';
+import { ICallable } from '@aurelia/kernel';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
 import { IAccessor, ISubscribable } from './observation';

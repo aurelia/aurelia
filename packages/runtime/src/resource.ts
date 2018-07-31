@@ -1,5 +1,5 @@
-import { Constructable, Immutable } from "../kernel/interfaces";
-import { IRegistry } from "../kernel/di";
+import { Constructable, Immutable } from '@aurelia/kernel';
+import { IRegistry } from '@aurelia/kernel';
 
 export interface IResourceKind<TSource, TType extends IResourceType<TSource> = IResourceType<TSource>> {
   readonly name: string;

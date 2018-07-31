@@ -1,6 +1,6 @@
 import { ICustomElement } from './templating/custom-element';
-import { PLATFORM } from '../kernel/platform';
-import { IContainer, DI, IRegistry } from '../kernel/di';
+import { PLATFORM } from '@aurelia/kernel';
+import { IContainer, DI, IRegistry } from '@aurelia/kernel';
 import { IRenderingEngine } from './templating/rendering-engine';
 import { BindingFlags } from './binding/binding-flags';
 

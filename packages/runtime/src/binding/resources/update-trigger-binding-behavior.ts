@@ -6,9 +6,9 @@ import { IScope } from '../binding-context';
 import { ValueAttributeObserver } from '../element-observation';
 import { CheckedObserver } from '../checked-observer';
 import { SelectValueObserver } from '../select-value-observer';
-import { Reporter } from '../../../kernel/reporter';
+import { Reporter } from '@aurelia/kernel';
 import { bindingBehavior } from '../binding-behavior';
-import { inject } from '../../../kernel/di';
+import { inject } from '@aurelia/kernel';
 import { BindingFlags } from '../binding-flags';
 
 type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {

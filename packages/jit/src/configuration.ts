@@ -1,20 +1,20 @@
-import { IContainer, Registration } from "../kernel/di";
+import { IContainer, Registration } from '@aurelia/kernel';
 import * as ExpressionParser from './binding/expression-parser';
-import { If } from "../runtime/templating/resources/if";
-import { Else } from "../runtime/templating/resources/else";
-import { Repeat } from "../runtime/templating/resources/repeat/repeat";
-import { Compose } from "../runtime/templating/resources/compose";
-import { AttrBindingBehavior } from "../runtime/binding/resources/attr-binding-behavior";
-import { OneTimeBindingBehavior, TwoWayBindingBehavior, ToViewBindingBehavior } from "../runtime/binding/resources/binding-mode-behaviors";
-import { DebounceBindingBehavior } from "../runtime/binding/resources/debounce-binding-behavior";
-import { Replaceable } from "../runtime/templating/resources/replaceable";
-import { With } from "../runtime/templating/resources/with";
-import { SanitizeValueConverter } from "../runtime/binding/resources/sanitize";
-import { SelfBindingBehavior } from "../runtime/binding/resources/self-binding-behavior";
-import { SignalBindingBehavior } from "../runtime/binding/resources/signals";
-import { ThrottleBindingBehavior } from "../runtime/binding/resources/throttle-binding-behavior";
-import { UpdateTriggerBindingBehavior } from "../runtime/binding/resources/update-trigger-binding-behavior";
-import { ITemplateCompiler } from "../runtime/templating/template-compiler";
+import { If } from '@aurelia/runtime';
+import { Else } from '@aurelia/runtime';
+import { Repeat } from '@aurelia/runtime';
+import { Compose } from '@aurelia/runtime';
+import { AttrBindingBehavior } from '@aurelia/runtime';
+import { OneTimeBindingBehavior, TwoWayBindingBehavior, ToViewBindingBehavior } from '@aurelia/runtime';
+import { DebounceBindingBehavior } from '@aurelia/runtime';
+import { Replaceable } from '@aurelia/runtime';
+import { With } from '@aurelia/runtime';
+import { SanitizeValueConverter } from '@aurelia/runtime';
+import { SelfBindingBehavior } from '@aurelia/runtime';
+import { SignalBindingBehavior } from '@aurelia/runtime';
+import { ThrottleBindingBehavior } from '@aurelia/runtime';
+import { UpdateTriggerBindingBehavior } from '@aurelia/runtime';
+import { ITemplateCompiler } from '@aurelia/runtime';
 import { TemplateCompiler } from "./templating/template-compiler";
 
 const globalResources: any[] = [

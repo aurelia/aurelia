@@ -7,7 +7,8 @@
     "lint": "cross-env tslint --project tsconfig-test.json -t stylish",
     "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig-tsnode.json\" karma start ../../scripts/karma.conf.ts --package=kernel --browsers=ChromeHeadless --single-run --coverage",
     "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig-tsnode.json\" karma start ../../scripts/karma.conf.ts --package=kernel --browsers=ChromeHeadless --coverage",
-    "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig-tsnode.json\" karma start ../../scripts/karma.conf.ts --package=kernel --browsers=ChromeDebugging"
+    "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig-tsnode.json\" karma start ../../scripts/karma.conf.ts --package=kernel --browsers=ChromeDebugging",
+    "build": "tsc -b"
   },
   "dependencies": {},
   "devDependencies": {

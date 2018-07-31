@@ -1,4 +1,4 @@
-import { DI, inject } from '../../../../kernel/di';
+import { DI, inject } from '@aurelia/kernel';
 import { IRepeatStrategy } from './repeat-strategy';
 import { NullRepeatStrategy } from './repeat-strategy-null';
 import { ArrayRepeatStrategy } from './repeat-strategy-array';

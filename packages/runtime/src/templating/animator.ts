@@ -1,4 +1,4 @@
-import { DI } from '../../kernel/di';
+import { DI } from '@aurelia/kernel';
 import { INode } from '../dom';
 
 export interface IAnimator {

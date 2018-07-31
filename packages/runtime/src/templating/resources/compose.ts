@@ -6,8 +6,8 @@ import { INode, DOM } from '../../dom';
 import { VisualWithCentralComponent } from '../visual';
 import { IRenderContext } from '../render-context';
 import { IRenderingEngine } from '../rendering-engine';
-import { Immutable } from '../../../kernel/interfaces';
-import { inject } from '../../../kernel/di';
+import { Immutable } from '@aurelia/kernel';
+import { inject } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding/binding-flags';
 
 const composeSource = {

@@ -1,8 +1,8 @@
-//import { Repeater } from '../runtime/templating/resources/repeater';
-import { AccessScope, IExpression, AccessMember } from "../runtime/binding/ast";
-import { IContainer } from "../kernel/di";
-import { IExpressionParser } from "../runtime/binding/expression-parser";
-import { Repeat } from "../runtime/templating/resources/repeat/repeat";
+//import { Repeater } from '@aurelia/runtime';
+import { AccessScope, IExpression, AccessMember } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { IExpressionParser } from '@aurelia/runtime';
+import { Repeat } from '@aurelia/runtime';
 
 const expressionCache: Record<string, IExpression> = {
   databases: new AccessScope('databases'),

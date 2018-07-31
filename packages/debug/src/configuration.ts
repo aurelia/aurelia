@@ -1,6 +1,6 @@
 import { Reporter } from './reporter';
 import { enableImprovedTaskQueueDebugging} from './task-queue';
-import { IContainer } from '../kernel/di';
+import { IContainer } from '@aurelia/kernel';
 import { enableImprovedExpressionDebugging } from './binding/unparser';
 
 export const DebugConfiguration = {

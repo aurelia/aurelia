@@ -1,6 +1,6 @@
 import { IExpression } from './ast';
 import { IBinding, IBindingTarget } from './binding';
-import { IServiceLocator } from '../../kernel/di';
+import { IServiceLocator } from '@aurelia/kernel';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 

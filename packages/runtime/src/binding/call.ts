@@ -1,7 +1,7 @@
 import { IObserverLocator } from './observer-locator';
 import { IExpression } from './ast';
 import { IBinding } from './binding';
-import { IServiceLocator } from '../../kernel/di';
+import { IServiceLocator } from '@aurelia/kernel';
 import { IBindingTargetAccessor } from './observation';
 import { IScope } from './binding-context';
 import { INode } from '../dom';

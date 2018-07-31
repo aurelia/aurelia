@@ -2,7 +2,7 @@ import { spy } from 'sinon';
 import { IVisual } from '../../src/runtime/templating/visual';
 import { CustomElementResource, ICustomElement } from '../../src/runtime/templating/custom-element';
 import { ITemplateSource, TargetedInstructionType } from '../../src/runtime/templating/instructions';
-import { IContainer } from '../../src/kernel/di';
+import { IContainer } from '../../src/kernel';
 import { IExpressionParser } from '../../src/runtime/binding/expression-parser';
 import { AccessMember, AccessScope } from '../../src/runtime/binding/ast';
 import { Repeater } from '../../src/runtime/templating/resources/repeater';

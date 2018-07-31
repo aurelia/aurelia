@@ -1,4 +1,4 @@
-import { Reporter as RuntimeReporter } from '../kernel/reporter';
+import { Reporter as RuntimeReporter } from '@aurelia/kernel';
 
 const enum MessageType {
   error,

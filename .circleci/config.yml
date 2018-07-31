@@ -20,12 +20,10 @@ jobs:
             npm --version
       - checkout
       - run: npm ci -dd
-      - run: npm run bootstrap
       - save_cache:
           key: *cache_key
           paths:
             - node_modules
-            - packages/*/node_modules
 
   build:
     <<: *defaults
@@ -33,10 +31,12 @@ jobs:
       - checkout
       - restore_cache:
           key: *cache_key
+      - run: npm run bootstrap
       - run: npm run build
       - persist_to_workspace:
           root: .
           paths: packages/*/dist
+          paths: packages/*/node_modules
 
   unit_tests:
     <<: *defaults

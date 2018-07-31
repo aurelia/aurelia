@@ -1,5 +1,6 @@
 import * as karma from 'karma';
 import * as webpack from 'webpack';
+import * as path from 'path';
 
 export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
   transpileOnly?: boolean;
@@ -17,15 +18,11 @@ export interface IKarmaConfigOptions extends karma.ConfigOptions {
   webpackMiddleware: any;
 }
 
-export function configureKarma(config: IKarmaConfig): void {
-  // config.package contains the value passed in via "karma start --package=..."
-  // only need to set this when running from the root
-  if (config.package) {
-    config.basePath = `./packages/${config.package}`;
-  }
-  
+export default function(config: IKarmaConfig): void {
+  const basePath = config.package && path.resolve(__dirname, '..', 'packages', config.package) || './';
+
   const options: IKarmaConfigOptions = {
-    basePath: config.basePath || './',
+    basePath: basePath,
     frameworks: ['mocha', 'chai'],
     files: ['test/setup.ts'],
     preprocessors: { 
@@ -46,7 +43,7 @@ export function configureKarma(config: IKarmaConfig): void {
             exclude: /node_modules/,
             options: {
               configFile: 'tsconfig-test.json',
-              transpileOnly: config.transpileOnly
+              transpileOnly: true
             }
           }
         ]
@@ -90,12 +87,7 @@ export function configureKarma(config: IKarmaConfig): void {
       exclude: /(node_modules|\.spec\.ts$)/,
       loader: 'istanbul-instrumenter-loader',
       options: { esModules: true },
-      test: {
-        runtime: /src[\/\\]runtime[\/\\].+\.ts$/,
-        debug: /src[\/\\]debug[\/\\].+\.ts$/,
-        jit: /src[\/\\]jit[\/\\].+\.ts$/,
-        all: /src[\/\\].+\.ts$/
-      }[config.package]
+      test: /src[\/\\].+\.ts$/
     });
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {

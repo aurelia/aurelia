@@ -1,19 +1,14 @@
 {
   "compilerOptions": {
+    "allowJs": false,
     "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "target": "es5",
-    "module": "commonjs",
-    "strict": true,
     "experimentalDecorators": true,
-    "allowJs": false,
-    "importHelpers": true,
+    "lib": ["es2017", "dom"],
+    "module": "commonjs",
     "moduleResolution": "node",
-    "lib": [
-      "es2017",
-      "dom"
-    ]
+    "sourceMap": true,
+    "target": "es2015"
   }
 }

@@ -23,17 +23,17 @@ export interface IRuntimeBehavior {
 export class RuntimeBehavior implements IRuntimeBehavior {
   private constructor() {}
 
-  bindables: BindableDefinitions;
-  hasCreated = false;
-  hasBound = false;
-  hasAttaching = false;
-  hasAttached = false;
-  hasDetaching = false;
-  hasDetached = false;
-  hasUnbound = false;
-  hasCreateView = false;
+  public bindables: BindableDefinitions;
+  public hasCreated = false;
+  public hasBound = false;
+  public hasAttaching = false;
+  public hasAttached = false;
+  public hasDetaching = false;
+  public hasDetached = false;
+  public hasUnbound = false;
+  public hasCreateView = false;
 
-  static create(instance, bindables: BindableDefinitions, Component: ICustomElementType | ICustomAttributeType) {
+  public static create(instance, bindables: BindableDefinitions, Component: ICustomElementType | ICustomAttributeType) {
     const behavior = new RuntimeBehavior();
 
     for (let name in instance) {
@@ -61,12 +61,12 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     return behavior;
   }
 
-  applyToAttribute(taskQueue: ITaskQueue, instance: ICustomAttribute) {
+  public applyToAttribute(taskQueue: ITaskQueue, instance: ICustomAttribute) {
     this.applyTo(taskQueue, instance);
     return this;
   }
 
-  applyToElement(taskQueue: ITaskQueue, instance: ICustomElement) {
+  public applyToElement(taskQueue: ITaskQueue, instance: ICustomElement) {
     const observers = this.applyTo(taskQueue, instance);
 
     (<any>observers).$children = new ChildrenObserver(taskQueue, instance);
@@ -129,7 +129,7 @@ class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubsc
     super();
   }
 
-  getValue(): ICustomElement[] {
+  public getValue(): ICustomElement[] {
     if (this.observer === null) {
       this.observer = DOM.createChildObserver(this.component.$host, () => this.onChildrenChanged());
       this.children = findElements(this.observer.childNodes);
@@ -138,7 +138,7 @@ class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubsc
     return this.children;
   }
 
-  setValue(newValue) {}
+  public setValue(newValue) {}
 
   private onChildrenChanged() {
     this.children = findElements(this.observer.childNodes);
@@ -153,16 +153,16 @@ class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubsc
     }
   }
 
-  call() {
+  public call() {
     this.queued = false;
     this.callSubscribers(this.children);
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
   }
 }

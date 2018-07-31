@@ -149,7 +149,7 @@ class RenderSlotImplementation implements IRenderSlot {
     this.insertVisualCore = insertVisual;
   }
 
-  add(visual: IVisual) {
+  public add(visual: IVisual) {
     visual.parent = this;
     visual.onRender = this.addVisualCore;
     this.children.push(visual);
@@ -160,7 +160,7 @@ class RenderSlotImplementation implements IRenderSlot {
     }
   }
 
-  insert(index: number, visual: IVisual) {
+  public insert(index: number, visual: IVisual) {
     const children = this.children;
     const length = children.length;
 
@@ -181,7 +181,7 @@ class RenderSlotImplementation implements IRenderSlot {
     }
   }
 
-  move(sourceIndex: number, targetIndex: number) {
+  public move(sourceIndex: number, targetIndex: number) {
     if (sourceIndex === targetIndex) {
       return;
     }
@@ -199,7 +199,7 @@ class RenderSlotImplementation implements IRenderSlot {
     }
   }
 
-  swap(newVisual: IVisual, strategy: SwapOrder = SwapOrder.after, returnToCache?: boolean, skipAnimation?: boolean) {
+  public swap(newVisual: IVisual, strategy: SwapOrder = SwapOrder.after, returnToCache?: boolean, skipAnimation?: boolean) {
     const remove = () => this.removeAll(returnToCache, skipAnimation);
     const add = () => this.add(newVisual);
 
@@ -219,11 +219,11 @@ class RenderSlotImplementation implements IRenderSlot {
     }
   }
 
-  remove(visual: IVisual, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual> {
+  public remove(visual: IVisual, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual> {
     return this.removeAt(this.children.indexOf(visual), returnToCache, skipAnimation);
   }
 
-  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual> {
+  public removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual> {
     const visual = this.children[index];
     this.children.splice(index, 1);
 
@@ -249,11 +249,11 @@ class RenderSlotImplementation implements IRenderSlot {
     return detachAndReturn();
   }
 
-  removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
+  public removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
     return this.removeMany(this.children, returnToCache, skipAnimation);
   }
 
-  removeMany(visualsToRemove: IVisual[], returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
+  public removeMany(visualsToRemove: IVisual[], returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
     const children = this.children;
     const ii = visualsToRemove.length;
     const rmPromises = [];
@@ -306,7 +306,7 @@ class RenderSlotImplementation implements IRenderSlot {
     return finalizeRemoval();
   }
 
-  $attach(encapsulationSource: INode, lifecycle: AttachLifecycle): void {
+  public $attach(encapsulationSource: INode, lifecycle: AttachLifecycle): void {
     if (this.$isAttached) {
       return;
     }
@@ -323,7 +323,7 @@ class RenderSlotImplementation implements IRenderSlot {
     this.encapsulationSource = encapsulationSource;
   }
 
-  $detach(lifecycle: DetachLifecycle): void {
+  public $detach(lifecycle: DetachLifecycle): void {
     if (this.$isAttached) {
       const children = this.children;
       
@@ -336,7 +336,7 @@ class RenderSlotImplementation implements IRenderSlot {
     }
   }
 
-  projectTo(slots: Record<string, IEmulatedShadowSlot>): void {
+  public projectTo(slots: Record<string, IEmulatedShadowSlot>): void {
     this.slots = slots;
     this.addVisualCore = project_addVisual;
     this.insertVisualCore = project_insertVisual;

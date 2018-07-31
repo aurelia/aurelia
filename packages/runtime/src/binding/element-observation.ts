@@ -14,15 +14,15 @@ export class XLinkAttributeObserver implements IAccessor {
 
   constructor(private node: INode, private propertyName: string, private attributeName: string) { }
 
-  getValue() {
+  public getValue() {
     return (<Element>this.node).getAttributeNS('http://www.w3.org/1999/xlink', this.attributeName);
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any) {
     return (<Element>this.node).setAttributeNS('http://www.w3.org/1999/xlink', this.attributeName, newValue);
   }
 
-  subscribe() {
+  public subscribe() {
     throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "${this.propertyName}" property is not supported.`);
   }
 }
@@ -41,11 +41,11 @@ export const dataAttributeAccessor = {
 export class DataAttributeObserver implements IAccessor {
   constructor(private node: INode, private propertyName: string) { }
 
-  getValue() {
+  public getValue() {
     return DOM.getAttribute(this.node, this.propertyName);
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any) {
     if (newValue === null || newValue === undefined) {
       return DOM.removeAttribute(this.node, this.propertyName);
     }
@@ -53,22 +53,22 @@ export class DataAttributeObserver implements IAccessor {
     return DOM.setAttribute(this.node, this.propertyName, newValue);
   }
 
-  subscribe() {
+  public subscribe() {
     throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "${this.propertyName}" property is not supported.`);
   }
 }
 
 export class StyleObserver implements IAccessor {
-  styles: any = null;
-  version = 0;
+  public styles: any = null;
+  public version = 0;
 
   constructor(private element: HTMLElement, private propertyName: string) { }
 
-  getValue() {
+  public getValue() {
     return this.element.style.cssText;
   }
 
-  _setProperty(style: string, value: string) {
+  public _setProperty(style: string, value: string) {
     let priority = '';
 
     if (value !== null && value !== undefined && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
@@ -79,7 +79,7 @@ export class StyleObserver implements IAccessor {
     this.element.style.setProperty(style, value, priority);
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any) {
     let styles = this.styles || {};
     let style;
     let version = this.version;
@@ -125,7 +125,7 @@ export class StyleObserver implements IAccessor {
     }
   }
 
-  subscribe() {
+  public subscribe() {
     throw new Error(`Observation of a "${this.element.nodeName}" element\'s "${this.propertyName}" property is not supported.`);
   }
 }
@@ -146,11 +146,11 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
     }
   }
 
-  getValue(): any {
+  public getValue(): any {
     return (this.node as any)[this.propertyName];
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any) {
     newValue = newValue === undefined || newValue === null ? '' : newValue;
     if ((this.node as any)[this.propertyName] !== newValue) {
       (this.node as any)[this.propertyName] = newValue;
@@ -158,7 +158,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
     }
   }
 
-  notify() {
+  public notify() {
     let oldValue = this.oldValue;
     let newValue = this.getValue();
 
@@ -167,11 +167,11 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
     this.oldValue = newValue;
   }
 
-  handleEvent() {
+  public handleEvent() {
     this.notify();
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
       this.handler.subscribe(this.node, this);
@@ -180,7 +180,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
       this.handler.dispose();
     }

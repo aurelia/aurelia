@@ -13,7 +13,7 @@ export interface ISanitizer {
 
 export const ISanitizer = DI.createInterface<ISanitizer>()
   .withDefault(x => x.singleton(class {
-    sanitize(input: string): string {
+    public sanitize(input: string): string {
       return input.replace(SCRIPT_REGEX, '');
     }
   })
@@ -33,7 +33,7 @@ export class SanitizeValueConverter {
   * Process the provided markup that flows to the view.
   * @param untrustedMarkup The untrusted markup to be sanitized.
   */
-  toView(untrustedMarkup: string) {
+  public toView(untrustedMarkup: string) {
     if (untrustedMarkup === null || untrustedMarkup === undefined) {
       return null;
     }

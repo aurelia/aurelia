@@ -11,14 +11,14 @@ export interface With extends ICustomAttribute {}
 export class With { 
   private child: IVisual = null;
 
-  value: any = null;
+  public value: any = null;
 
   constructor(private factory: IVisualFactory, private slot: IRenderSlot) { 
     this.child = factory.create();
     this.slot.add(this.child);
   }
 
-  valueChanged(newValue: any) {
+  public valueChanged(newValue: any) {
     const childScope = {
       bindingContext: newValue,
       overrideContext: BindingContext.createOverride(newValue, this.$scope.overrideContext)
@@ -27,7 +27,7 @@ export class With {
     this.child.$bind(BindingFlags.none, childScope);
   }
 
-  unbound() {
+  public unbound() {
     this.child.$unbind(BindingFlags.none);
   }
 }

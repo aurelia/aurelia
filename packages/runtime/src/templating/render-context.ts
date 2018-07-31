@@ -96,15 +96,15 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
 class InstanceProvider<T> implements IResolver {
   private instance: T = null;
 
-  prepare(instance: T) {
+  public prepare(instance: T) {
     this.instance = instance;
   }
 
-  resolve(handler: IContainer, requestor: IContainer) {
+  public resolve(handler: IContainer, requestor: IContainer) {
     return this.instance;
   }
 
-  dispose() {
+  public dispose() {
     this.instance = null;
   }
 }
@@ -115,12 +115,12 @@ class ViewFactoryProvider implements IResolver {
 
   constructor(private renderingEngine: IRenderingEngine) {}
 
-  prepare(factory: IVisualFactory, parts: TemplatePartDefinitions) { 
+  public prepare(factory: IVisualFactory, parts: TemplatePartDefinitions) { 
     this.factory = factory;
     this.replacements = parts || PLATFORM.emptyObject;
   }
 
-  resolve(handler: IContainer, requestor: ExposedContext) {
+  public resolve(handler: IContainer, requestor: ExposedContext) {
     const found = this.replacements[this.factory.name];
 
     if (found) {
@@ -130,7 +130,7 @@ class ViewFactoryProvider implements IResolver {
     return this.factory;
   }
 
-  dispose() {
+  public dispose() {
     this.factory = null;
     this.replacements = null;
   }
@@ -141,16 +141,16 @@ class RenderSlotProvider implements IResolver {
   private anchorIsContainer = false;
   private slot: IRenderSlot = null;
 
-  prepare(element: INode, anchorIsContainer = false) {
+  public prepare(element: INode, anchorIsContainer = false) {
     this.node = element;
     this.anchorIsContainer = anchorIsContainer;
   }
 
-  resolve(handler: IContainer, requestor: IContainer) {
+  public resolve(handler: IContainer, requestor: IContainer) {
     return this.slot || (this.slot = RenderSlot.create(this.node, this.anchorIsContainer));
   }
 
-  tryConnectTemplateControllerToSlot(owner) {
+  public tryConnectTemplateControllerToSlot(owner) {
     const slot = this.slot;
 
     if (slot !== null) {
@@ -159,7 +159,7 @@ class RenderSlotProvider implements IResolver {
     }
   }
 
-  tryConnectElementToSlot(owner) {
+  public tryConnectElementToSlot(owner) {
     const slot = this.slot;
 
     if (slot !== null) {
@@ -167,7 +167,7 @@ class RenderSlotProvider implements IResolver {
     }
   }
 
-  dispose() {
+  public dispose() {
     this.node = null;
     this.slot = null;
   }

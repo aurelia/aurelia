@@ -65,7 +65,7 @@ class ObserverLocator implements IObserverLocator {
     private svgAnalyzer: ISVGAnalyzer
   ) {}
 
-  getObserver(obj: any, propertyName: string): AccessorOrObserver {
+  public getObserver(obj: any, propertyName: string): AccessorOrObserver {
     let observersLookup = obj.$observers;
     let observer;
 
@@ -105,7 +105,7 @@ class ObserverLocator implements IObserverLocator {
     return value;
   }
 
-  addAdapter(adapter: ObjectObservationAdapter) {
+  public addAdapter(adapter: ObjectObservationAdapter) {
     this.adapters.push(adapter);
   }
 
@@ -200,7 +200,7 @@ class ObserverLocator implements IObserverLocator {
     return new SetterObserver(this.taskQueue, obj, propertyName);
   }
 
-  getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
+  public getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
     if (DOM.isNodeInstance(obj)) {
       let normalizedTagName = DOM.normalizedTagName;
 
@@ -225,15 +225,15 @@ class ObserverLocator implements IObserverLocator {
     return propertyAccessor;
   }
 
-  getArrayObserver(array: any[]): IBindingCollectionObserver {
+  public getArrayObserver(array: any[]): IBindingCollectionObserver {
     return getArrayObserver(this.taskQueue, array);
   }
 
-  getMapObserver(map: Map<any, any>): IBindingCollectionObserver {
+  public getMapObserver(map: Map<any, any>): IBindingCollectionObserver {
     return getMapObserver(this.taskQueue, map);
   }
 
-  getSetObserver(set: Set<any>): IBindingCollectionObserver {
+  public getSetObserver(set: Set<any>): IBindingCollectionObserver {
     return getSetObserver(this.taskQueue, set);
   }
 }

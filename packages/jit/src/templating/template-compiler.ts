@@ -3,11 +3,11 @@ import { TemplateDefinition } from '@aurelia/runtime';
 import { IResourceDescriptions } from '@aurelia/runtime';
 
 export class TemplateCompiler implements ITemplateCompiler {
-  get name() {
+  public get name() {
     return 'default';
   }
-  
-  compile(definition: TemplateDefinition, resources: IResourceDescriptions): TemplateDefinition {
+
+  public compile(definition: TemplateDefinition, resources: IResourceDescriptions): TemplateDefinition {
     throw new Error('Template Compiler Not Yet Implemented');
   }
 }

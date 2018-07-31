@@ -11,7 +11,7 @@ import { inject } from '@aurelia/kernel';
 export class Else extends IfCore {
   private ifBehavior: If;
 
-  bound(scope: IScope) {
+  public bound(scope: IScope) {
     if (this.ifBehavior.condition) {
       this.hide();
     } else {
@@ -19,7 +19,7 @@ export class Else extends IfCore {
     }
   }
 
-  link(ifBehavior: If) {
+  public link(ifBehavior: If) {
     if (this.ifBehavior === ifBehavior) {
       return this;
     }

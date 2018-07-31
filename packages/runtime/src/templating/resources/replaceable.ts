@@ -15,11 +15,11 @@ export class Replaceable {
     this.slot.add(this.child);
   }
 
-  bound(scope: IScope) {
+  public bound(scope: IScope) {
     this.child.$bind(BindingFlags.none, scope);
   }
 
-  unbound() {
+  public unbound() {
     this.child.$unbind(BindingFlags.none);
   }
 }

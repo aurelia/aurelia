@@ -31,7 +31,7 @@ export class Renderer implements IRenderer {
     private renderingEngine: IRenderingEngine
   ) {}
 
-  render(owner: IViewOwner, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  public render(owner: IViewOwner, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
 
     for (let i = 0, ii = targets.length; i < ii; ++i) {
@@ -54,7 +54,7 @@ export class Renderer implements IRenderer {
     }
   }
 
-  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement) {
+  public hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement) {
     let childInstructions = instruction.instructions;
   
     component.$hydrate(this.renderingEngine, target, instruction);
@@ -77,50 +77,50 @@ export class Renderer implements IRenderer {
     owner.$attachable.push(component);
   }
 
-  [TargetedInstructionType.textBinding](owner: IViewOwner,target: any, instruction: Immutable<ITextBindingInstruction>) {
+  public [TargetedInstructionType.textBinding](owner: IViewOwner,target: any, instruction: Immutable<ITextBindingInstruction>) {
     const next = target.nextSibling;
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
     owner.$bindable.push(new Binding(this.parser.parse(instruction.src), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
   }
 
-  [TargetedInstructionType.toViewBinding](owner: IViewOwner,target: any, instruction: Immutable<IOneWayBindingInstruction>) {
+  public [TargetedInstructionType.toViewBinding](owner: IViewOwner,target: any, instruction: Immutable<IOneWayBindingInstruction>) {
     owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
   }
 
-  [TargetedInstructionType.fromViewBinding](owner: IViewOwner,target: any, instruction: Immutable<IFromViewBindingInstruction>) {
+  public [TargetedInstructionType.fromViewBinding](owner: IViewOwner,target: any, instruction: Immutable<IFromViewBindingInstruction>) {
     owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.fromView, this.observerLocator, this.context));
   }
 
-  [TargetedInstructionType.twoWayBinding](owner: IViewOwner,target: any, instruction: Immutable<ITwoWayBindingInstruction>) {
+  public [TargetedInstructionType.twoWayBinding](owner: IViewOwner,target: any, instruction: Immutable<ITwoWayBindingInstruction>) {
     owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.twoWay, this.observerLocator, this.context));
   }
 
-  [TargetedInstructionType.listenerBinding](owner: IViewOwner,target: any, instruction: Immutable<IListenerBindingInstruction>) {
+  public [TargetedInstructionType.listenerBinding](owner: IViewOwner,target: any, instruction: Immutable<IListenerBindingInstruction>) {
     owner.$bindable.push(new Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.context));
   }
 
-  [TargetedInstructionType.callBinding](owner: IViewOwner,target: any, instruction: Immutable<ICallBindingInstruction>) {
+  public [TargetedInstructionType.callBinding](owner: IViewOwner,target: any, instruction: Immutable<ICallBindingInstruction>) {
     owner.$bindable.push(new Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLocator, this.context));
   }
 
-  [TargetedInstructionType.refBinding](owner: IViewOwner,target: any, instruction: Immutable<IRefBindingInstruction>) {
+  public [TargetedInstructionType.refBinding](owner: IViewOwner,target: any, instruction: Immutable<IRefBindingInstruction>) {
     owner.$bindable.push(new Ref(this.parser.parse(instruction.src), target, this.context));
   }
 
-  [TargetedInstructionType.stylePropertyBinding](owner: IViewOwner,target: any, instruction: Immutable<IStylePropertyBindingInstruction>) {
+  public [TargetedInstructionType.stylePropertyBinding](owner: IViewOwner,target: any, instruction: Immutable<IStylePropertyBindingInstruction>) {
     owner.$bindable.push(new Binding(this.parser.parse(instruction.src), (<any>target).style, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
   }
 
-  [TargetedInstructionType.setProperty](owner: IViewOwner, target: any, instruction: Immutable<ISetPropertyInstruction>) {
+  public [TargetedInstructionType.setProperty](owner: IViewOwner, target: any, instruction: Immutable<ISetPropertyInstruction>) {
     target[instruction.dest] = instruction.value;
   }
 
-  [TargetedInstructionType.setAttribute](owner: IViewOwner, target: any, instruction: Immutable<ISetAttributeInstruction>) {
+  public [TargetedInstructionType.setAttribute](owner: IViewOwner, target: any, instruction: Immutable<ISetAttributeInstruction>) {
     DOM.setAttribute(target, instruction.dest, instruction.value);
   }
 
-  [TargetedInstructionType.hydrateSlot](owner: ICustomElement, target: any, instruction: Immutable<IHydrateSlotInstruction>) {   
+  public [TargetedInstructionType.hydrateSlot](owner: ICustomElement, target: any, instruction: Immutable<IHydrateSlotInstruction>) {   
     if (!owner.$usingSlotEmulation) {
       return;
     }
@@ -133,7 +133,7 @@ export class Renderer implements IRenderer {
     owner.$attachable.push(slot);
   }
 
-  [TargetedInstructionType.hydrateElement](owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>) {
+  public [TargetedInstructionType.hydrateElement](owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>) {
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction, null, null, target, true);
     const component = context.get<ICustomElement>(CustomElementResource.key(instruction.res));
@@ -144,7 +144,7 @@ export class Renderer implements IRenderer {
     operation.dispose();
   }
 
-  [TargetedInstructionType.hydrateAttribute](owner: IViewOwner, target: any, instruction: Immutable<IHydrateAttributeInstruction>) {
+  public [TargetedInstructionType.hydrateAttribute](owner: IViewOwner, target: any, instruction: Immutable<IHydrateAttributeInstruction>) {
     const childInstructions = instruction.instructions;
     const context = this.context;
     const operation = context.beginComponentOperation(owner, target, instruction);
@@ -163,7 +163,7 @@ export class Renderer implements IRenderer {
     operation.dispose();
   }
 
-  [TargetedInstructionType.hydrateTemplateController](owner: IViewOwner, target: any, instruction: Immutable<IHydrateTemplateController>, parts?: TemplatePartDefinitions) {
+  public [TargetedInstructionType.hydrateTemplateController](owner: IViewOwner, target: any, instruction: Immutable<IHydrateTemplateController>, parts?: TemplatePartDefinitions) {
     const childInstructions = instruction.instructions;
     const factory = this.renderingEngine.getVisualFactory(this.context, instruction.src);
     const context = this.context;

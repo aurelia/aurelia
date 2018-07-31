@@ -14,7 +14,7 @@ export const IExpressionParser = DI.createInterface<IExpressionParser>()
 class ExpressionParser implements IExpressionParser {
   private lookup: Record<string, IExpression> = Object.create(null);
 
-  parse(expression: string): IExpression {
+  public parse(expression: string): IExpression {
     let found = this.lookup[expression];
     
     if (found === undefined) {
@@ -25,7 +25,7 @@ class ExpressionParser implements IExpressionParser {
     return found;
   }
 
-  cache(expressions: Record<string, IExpression>) {
+  public cache(expressions: Record<string, IExpression>) {
     Object.assign(this.lookup, expressions);
   }
 

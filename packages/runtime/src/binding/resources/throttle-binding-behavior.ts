@@ -41,7 +41,7 @@ function throttle(this: ThrottleableBinding, newValue: any) {
 
 @bindingBehavior('throttle')
 export class ThrottleBindingBehavior {
-  bind(flags: BindingFlags, scope: IScope, binding: ThrottleableBinding, delay = 200) {
+  public bind(flags: BindingFlags, scope: IScope, binding: ThrottleableBinding, delay = 200) {
     let methodToThrottle: string;
     
     if (binding instanceof Binding) {
@@ -71,7 +71,7 @@ export class ThrottleBindingBehavior {
     };
   }
 
-  unbind(flags: BindingFlags, scope: IScope, binding: ThrottleableBinding) {
+  public unbind(flags: BindingFlags, scope: IScope, binding: ThrottleableBinding) {
     // restore the state of the binding.
     let methodToRestore = binding.throttledMethod.originalName;
     binding[methodToRestore] = binding.throttledMethod;

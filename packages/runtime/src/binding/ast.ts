@@ -39,15 +39,15 @@ export class BindingBehavior implements IExpression {
     }
   }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     return this.expression.evaluate(flags, scope, locator);
   }
 
-  assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
     return (<any>this.expression).assign(flags, scope, locator, value);
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     this.expression.connect(flags, scope, binding);
   }
 
@@ -69,7 +69,7 @@ export class BindingBehavior implements IExpression {
     behavior.bind.apply(behavior, [binding, scope].concat(evalList(flags, scope, locator, this.args)));
   }
 
-  unbind(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public unbind(flags: BindingFlags, scope: IScope, binding: IBinding) {
     const behaviorKey = this.behaviorKey;
     binding[behaviorKey].unbind(flags, scope, binding);
     binding[behaviorKey] = null;
@@ -88,7 +88,7 @@ export class ValueConverter implements IExpression {
     this.converterKey = ValueConverterResource.key(this.name);
   }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const converter = locator.get(this.converterKey);
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
@@ -100,7 +100,7 @@ export class ValueConverter implements IExpression {
     return this.expression.evaluate(flags, scope, locator);
   }
 
-  assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
     const converter = locator.get(this.converterKey);
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
@@ -112,7 +112,7 @@ export class ValueConverter implements IExpression {
     return (<any>this.expression).assign(flags, scope, locator, value);
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     const expressions = this.allArgs;
     let i = expressions.length;
     
@@ -138,7 +138,7 @@ export class ValueConverter implements IExpression {
     }
   }
 
-  unbind(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public unbind(flags: BindingFlags, scope: IScope, binding: IBinding) {
     const locator = binding.locator;
     const converter = locator.get(this.converterKey);
     const signals = (converter as any).signals;
@@ -157,13 +157,13 @@ export class ValueConverter implements IExpression {
 export class Assign implements IExpression {
   constructor(public target: IsAssignable, public value: IsAssign) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator));
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
 
-  assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
     (<any>this.value).assign(flags, scope, locator, value);
     this.target.assign(flags, scope, locator, value);
   }
@@ -172,13 +172,13 @@ export class Assign implements IExpression {
 export class Conditional implements IExpression {
   constructor(public condition: IExpression, public yes: IExpression, public no: IExpression) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     return (!!this.condition.evaluate(flags, scope, locator))
       ? this.yes.evaluate(flags, scope, locator)
       : this.no.evaluate(flags, scope, locator);
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     this.condition.connect(flags, scope, binding);
     if (this.condition.evaluate(flags, scope, null)) {
       this.yes.connect(flags, scope, binding);
@@ -191,7 +191,7 @@ export class Conditional implements IExpression {
 export class AccessThis implements IExpression {
   constructor(public ancestor: number = 0) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     let oc = scope.overrideContext;
     let i = this.ancestor;
     while (i-- && oc) {
@@ -200,24 +200,24 @@ export class AccessThis implements IExpression {
     return i < 1 && oc ? oc.bindingContext : undefined;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) { }
 }
 
 export class AccessScope implements IExpression {
   constructor(public name: string, public ancestor: number = 0) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const name = this.name;
     return BindingContext.get(scope, name, this.ancestor)[name];
   }
 
-  assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
     const name = this.name;
     const context = BindingContext.get(scope, name, this.ancestor);
     return context ? (context[name] = value) : undefined;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     const name = this.name;
     const context = BindingContext.get(scope, name, this.ancestor);
     binding.observeProperty(flags, context, name);
@@ -227,12 +227,12 @@ export class AccessScope implements IExpression {
 export class AccessMember implements IExpression {
   constructor(public object: IExpression, public name: string) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const instance = this.object.evaluate(flags, scope, locator);
     return instance === null || instance === undefined ? instance : instance[this.name];
   }
 
-  assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
     let instance = this.object.evaluate(flags, scope, locator);
 
     if (instance === null || typeof instance !== 'object') {
@@ -244,7 +244,7 @@ export class AccessMember implements IExpression {
     return value;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     this.object.connect(flags, scope, binding);
 
     const obj = this.object.evaluate(flags, scope, null);
@@ -257,7 +257,7 @@ export class AccessMember implements IExpression {
 export class AccessKeyed implements IExpression {
   constructor(public object: IExpression, public key: IExpression) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const instance = this.object.evaluate(flags, scope, locator);
     if (instance === null || instance === undefined) {
       return undefined;
@@ -268,13 +268,13 @@ export class AccessKeyed implements IExpression {
     return instance[key];
   }
 
-  assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any | null): any {
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any | null): any {
     const instance = this.object.evaluate(flags, scope, locator);
     const key = this.key.evaluate(flags, scope, locator);
     return instance[key] = value;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     this.object.connect(flags, scope, binding);
     const obj = this.object.evaluate(flags, scope, null);
     if (typeof obj === 'object' && obj !== null) {
@@ -292,7 +292,7 @@ export class AccessKeyed implements IExpression {
 export class CallScope implements IExpression {
   constructor(public name: string, public args: ReadonlyArray<IExpression>, public ancestor: number = 0) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null) {
     const args = evalList(flags, scope, locator, this.args);
     const context = BindingContext.get(scope, this.name, this.ancestor);
     const func = getFunction(flags, context, this.name);
@@ -302,7 +302,7 @@ export class CallScope implements IExpression {
     return undefined;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     const args = this.args;
     let i = args.length;
     while (i--) {
@@ -314,7 +314,7 @@ export class CallScope implements IExpression {
 export class CallMember implements IExpression {
   constructor(public object: IExpression, public name: string, public args: ReadonlyArray<IExpression>) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const instance = this.object.evaluate(flags, scope, locator);
     const args = evalList(flags, scope, locator, this.args);
     const func = getFunction(flags, instance, this.name);
@@ -324,7 +324,7 @@ export class CallMember implements IExpression {
     return undefined;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     this.object.connect(flags, scope, binding);
     const obj = this.object.evaluate(flags, scope, null);
     if (getFunction(flags & ~BindingFlags.mustEvaluate, obj, this.name)) {
@@ -340,7 +340,7 @@ export class CallMember implements IExpression {
 export class CallFunction implements IExpression {
   constructor(public func: IExpression, public args: IExpression[]) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const func = this.func.evaluate(flags, scope, locator);
     if (typeof func === 'function') {
       return func.apply(null, evalList(flags, scope, locator, this.args));
@@ -351,7 +351,7 @@ export class CallFunction implements IExpression {
     throw new Error(`${this.func} is not a function`);
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     this.func.connect(flags, scope, binding);
     const func = this.func.evaluate(flags, scope, null);
     if (typeof func === 'function') {
@@ -372,9 +372,9 @@ export class Binary implements IExpression {
     this.evaluate = this[operation];
   }
 
-  evaluate: (flags: BindingFlags, scope: IScope, locator: IServiceLocator) => any;
+  public evaluate: (flags: BindingFlags, scope: IScope, locator: IServiceLocator) => any;
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     this.left.connect(flags, scope, binding);
     let left = this.left.evaluate(flags, scope, null);
     if (this.operation === '&&' && !left || this.operation === '||' && left) {
@@ -454,13 +454,13 @@ export class Unary {
     this.evaluate = this[operation];
   }
 
-  evaluate: (flags: BindingFlags, scope: IScope, locator: IServiceLocator) => any;
+  public evaluate: (flags: BindingFlags, scope: IScope, locator: IServiceLocator) => any;
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
     this.expression.connect(flags, scope, binding);
   }
 
-  assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
     throw new Error(`Binding expression "${this}" cannot be assigned to.`);
   }
 
@@ -484,18 +484,18 @@ export class Unary {
 export class PrimitiveLiteral implements IExpression {
   constructor(public value: any) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     return this.value;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
   }
 }
 
 export class HtmlLiteral implements IExpression {
   constructor(public parts: IExpression[]) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const elements = this.parts;
     const length = elements.length;
     let result = '';
@@ -512,7 +512,7 @@ export class HtmlLiteral implements IExpression {
     return result;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     const length = this.parts.length;
     let i = 0;
     while (i < length) {
@@ -525,7 +525,7 @@ export class HtmlLiteral implements IExpression {
 export class ArrayLiteral implements IExpression {
   constructor(public elements: IExpression[]) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const elements = this.elements;
     const length = this.elements.length;
     const result = new Array(length);
@@ -539,7 +539,7 @@ export class ArrayLiteral implements IExpression {
     return result;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     const elements = this.elements;
     const length = this.elements.length;
 
@@ -554,7 +554,7 @@ export class ArrayLiteral implements IExpression {
 export class ObjectLiteral implements IExpression {
   constructor(public keys: (number | string)[], public values: IExpression[]) { }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const instance: Record<string, any> = {};
     const keys = this.keys;
     const values = this.values;
@@ -569,7 +569,7 @@ export class ObjectLiteral implements IExpression {
     return instance;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     const keys = this.keys;
     const values = this.values;
     const length = keys.length;
@@ -587,7 +587,7 @@ export class Template {
     this.expressions = expressions || [];
   }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
     const expressions = this.expressions;
     const length = expressions.length;
     const cooked = this.cooked;
@@ -602,7 +602,7 @@ export class Template {
     return result;
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
     const expressions = this.expressions;
     const length = expressions.length;
     
@@ -624,7 +624,7 @@ export class TaggedTemplate {
     this.expressions = expressions || [];
   }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
     const expressions = this.expressions;
     const length = expressions.length;
     const results = new Array(length);
@@ -641,7 +641,7 @@ export class TaggedTemplate {
     return func.apply(null, [this.cooked].concat(results));
   }
 
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
     const expressions = this.expressions;
     const length = expressions.length;
 
@@ -673,7 +673,7 @@ export class ForOfStatement {
     this.iterable = iterable;
   }
 
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any[] {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any[] {
     const result = this.iterable.evaluate(flags, scope, locator);
     if (!Array.isArray(result)) {
       throw new Error(`${result} is not an array`);

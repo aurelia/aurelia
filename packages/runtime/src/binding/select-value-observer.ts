@@ -26,11 +26,11 @@ export class SelectValueObserver extends SubscriberCollection {
     this.observerLocator = observerLocator;
   }
 
-  getValue() {
+  public getValue() {
     return this.value;
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any) {
     if (newValue !== null && newValue !== undefined && this.node.multiple && !Array.isArray(newValue)) {
       throw new Error('Only null or Array instances can be bound to a multi-select.');
     }
@@ -63,12 +63,12 @@ export class SelectValueObserver extends SubscriberCollection {
     }
   }
 
-  call(context: string, splices: any[]) {
+  public call(context: string, splices: any[]) {
     // called by task queue and array observer.
     this.synchronizeOptions();
   }
 
-  synchronizeOptions() {
+  public synchronizeOptions() {
     let value = this.value;
     let isArray: boolean;
 
@@ -91,7 +91,7 @@ export class SelectValueObserver extends SubscriberCollection {
     }
   }
 
-  synchronizeValue() {
+  public synchronizeValue() {
     let options = this.node.options;
     let count = 0;
     let value = [];
@@ -146,38 +146,38 @@ export class SelectValueObserver extends SubscriberCollection {
     }
   }
 
-  notify() {
+  public notify() {
     let oldValue = this.oldValue;
     let newValue = this.value;
 
     this.callSubscribers(newValue, oldValue);
   }
 
-  handleEvent() {
+  public handleEvent() {
     this.synchronizeValue();
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.node, this);
     }
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }
 
-  bind() {
+  public bind() {
     this.childObserver = DOM.createChildObserver(this.node, () => {
       this.synchronizeOptions();
       this.synchronizeValue();
     }, { childList: true, subtree: true, characterData: true });
   }
 
-  unbind() {
+  public unbind() {
     this.childObserver.disconnect();
     this.childObserver = null;
 

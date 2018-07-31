@@ -46,7 +46,7 @@ const fromView = BindingMode.fromView;
 
 @bindingBehavior('debounce')
 export class DebounceBindingBehavior {
-  bind(flags: BindingFlags, scope: IScope, binding: DebounceableBinding, delay = 200) {
+  public bind(flags: BindingFlags, scope: IScope, binding: DebounceableBinding, delay = 200) {
     let methodToDebounce;
     let callContextToDebounce;
     let debouncer;
@@ -79,7 +79,7 @@ export class DebounceBindingBehavior {
     };
   }
 
-  unbind(flags: BindingFlags, scope: IScope, binding: DebounceableBinding) {
+  public unbind(flags: BindingFlags, scope: IScope, binding: DebounceableBinding) {
     // restore the state of the binding.
     const methodToRestore = binding.debouncedMethod.originalName;
     binding[methodToRestore] = binding.debouncedMethod;

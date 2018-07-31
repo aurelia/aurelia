@@ -19,15 +19,15 @@ export class ModifyCollectionObserver extends SubscriberCollection implements IB
     this.lengthPropertyName = (collection instanceof Map) || (collection instanceof Set) ? 'size' : 'length';
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
   }
 
-  addChangeRecord(changeRecord: any) {
+  public addChangeRecord(changeRecord: any) {
     if (!this.hasSubscribers() && !this.lengthObserver) {
       return;
     }
@@ -58,13 +58,13 @@ export class ModifyCollectionObserver extends SubscriberCollection implements IB
     }
   }
 
-  flushChangeRecords() {
+  public flushChangeRecords() {
     if ((this.changeRecords && this.changeRecords.length) || this.oldCollection) {
       this.call();
     }
   }
 
-  reset(oldCollection: Collection) {
+  public reset(oldCollection: Collection) {
     this.oldCollection = oldCollection;
 
     if (this.hasSubscribers() && !this.queued) {
@@ -73,11 +73,11 @@ export class ModifyCollectionObserver extends SubscriberCollection implements IB
     }
   }
 
-  getLengthObserver() {
+  public getLengthObserver() {
     return this.lengthObserver || (this.lengthObserver = new CollectionLengthObserver(this.collection));
   }
 
-  call() {
+  public call() {
     let changeRecords = this.changeRecords;
     let oldCollection = this.oldCollection;
     let records;
@@ -124,23 +124,23 @@ export class CollectionLengthObserver extends SubscriberCollection implements IA
     this.currentValue = (collection as any)[this.lengthPropertyName];
   }
 
-  getValue() {
+  public getValue() {
     return (this.collection as any)[this.lengthPropertyName];
   }
 
-  setValue(newValue: number) {
+  public setValue(newValue: number) {
     (this.collection as any)[this.lengthPropertyName] = newValue;
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
   }
 
-  call(newValue: number) {
+  public call(newValue: number) {
     let oldValue = this.currentValue;
     this.callSubscribers(newValue, oldValue);
     this.currentValue = newValue;

@@ -42,11 +42,11 @@ class Unparser {
     return buffer.join('');
   }
 
-  write(text) {
+  public write(text) {
     this.buffer.push(text);
   }
 
-  writeArgs(args) {
+  public writeArgs(args) {
     this.write('(');
 
     for (let i = 0, length = args.length; i < length; ++i) {
@@ -60,7 +60,7 @@ class Unparser {
     this.write(')');
   }
 
-  visitBindingBehavior(behavior) {
+  public visitBindingBehavior(behavior) {
     let args = behavior.args;
 
     behavior.expression.accept(this);
@@ -72,7 +72,7 @@ class Unparser {
     }
   }
 
-  visitValueConverter(converter) {
+  public visitValueConverter(converter) {
     let args = converter.args;
 
     converter.expression.accept(this);
@@ -84,13 +84,13 @@ class Unparser {
     }
   }
 
-  visitAssign(assign) {
+  public visitAssign(assign) {
     assign.target.accept(this);
     this.write('=');
     assign.value.accept(this);
   }
 
-  visitConditional(conditional) {
+  public visitConditional(conditional) {
     conditional.condition.accept(this);
     this.write('?');
     conditional.yes.accept(this);
@@ -98,7 +98,7 @@ class Unparser {
     conditional.no.accept(this);
   }
 
-  visitAccessThis(access) {
+  public visitAccessThis(access) {
     if (access.ancestor === 0) {
       this.write('$this');
       return;
@@ -110,7 +110,7 @@ class Unparser {
     }
   }
 
-  visitAccessScope(access) {
+  public visitAccessScope(access) {
     let i = access.ancestor;
     while (i--) {
       this.write('$parent.');
@@ -118,19 +118,19 @@ class Unparser {
     this.write(access.name);
   }
 
-  visitAccessMember(access) {
+  public visitAccessMember(access) {
     access.object.accept(this);
     this.write(`.${access.name}`);
   }
 
-  visitAccessKeyed(access) {
+  public visitAccessKeyed(access) {
     access.object.accept(this);
     this.write('[');
     access.key.accept(this);
     this.write(']');
   }
 
-  visitCallScope(call) {
+  public visitCallScope(call) {
     let i = call.ancestor;
     while (i--) {
       this.write('$parent.');
@@ -139,34 +139,34 @@ class Unparser {
     this.writeArgs(call.args);
   }
 
-  visitCallFunction(call) {
+  public visitCallFunction(call) {
     call.func.accept(this);
     this.writeArgs(call.args);
   }
 
-  visitCallMember(call) {
+  public visitCallMember(call) {
     call.object.accept(this);
     this.write(`.${call.name}`);
     this.writeArgs(call.args);
   }
 
-  visitUnary(unary) {
+  public visitUnary(unary) {
     this.write(`(${unary.operation}`);
     unary.expression.accept(this);
     this.write(')');
   }
 
-  visitBinary(binary) {
+  public visitBinary(binary) {
     binary.left.accept(this);
     this.write(binary.operation);
     binary.right.accept(this);
   }
 
-  visitLiteralPrimitive(literal) {
+  public visitLiteralPrimitive(literal) {
     this.write(`${literal.value}`);
   }
 
-  visitLiteralArray(literal) {
+  public visitLiteralArray(literal) {
     let elements = literal.elements;
 
     this.write('[');
@@ -182,7 +182,7 @@ class Unparser {
     this.write(']');
   }
 
-  visitLiteralObject(literal) {
+  public visitLiteralObject(literal) {
     let keys = literal.keys;
     let values = literal.values;
 
@@ -200,12 +200,12 @@ class Unparser {
     this.write('}');
   }
 
-  visitLiteralString(literal) {
+  public visitLiteralString(literal) {
     let escaped = literal.value.replace(/'/g, "\'");
     this.write(`'${escaped}'`);
   }
 
-  visitTemplateLiteral(node) {
+  public visitTemplateLiteral(node) {
     let parts = node.parts;
 
     for (let i = 0, length = parts.length; i < length; ++i) {

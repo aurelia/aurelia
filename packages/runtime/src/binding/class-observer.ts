@@ -2,18 +2,18 @@ import { IAccessor } from './observation';
 import { INode, DOM } from '../dom';
 
 export class ClassObserver implements IAccessor {
-  doNotCache = true;
-  value = '';
-  version = 0;
-  nameIndex: any;
+  public doNotCache = true;
+  public value = '';
+  public version = 0;
+  public nameIndex: any;
 
   constructor(private node: INode) { }
 
-  getValue() {
+  public getValue() {
     return this.value;
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any) {
     const addClass = DOM.addClass;
     const removeClass = DOM.removeClass;
 
@@ -59,7 +59,7 @@ export class ClassObserver implements IAccessor {
     }
   }
 
-  subscribe() {
+  public subscribe() {
     throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "class" property is not supported.`);
   }
 }

@@ -8,7 +8,7 @@ import { INode } from '../dom';
 import { BindingFlags } from './binding-flags';
 
 export class Call implements IBinding {
-  targetObserver: IBindingTargetAccessor;
+  public targetObserver: IBindingTargetAccessor;
   private $scope: IScope;
   private $isBound = false;
 
@@ -21,7 +21,7 @@ export class Call implements IBinding {
     this.targetObserver = <any>observerLocator.getObserver(target, targetProperty);
   }
 
-  callSource($event) {
+  public callSource($event) {
     let overrideContext = <any>this.$scope.overrideContext;
     Object.assign(overrideContext, $event);
     overrideContext.$event = $event; // deprecate this?
@@ -35,7 +35,7 @@ export class Call implements IBinding {
     return result;
   }
 
-  $bind(flags: BindingFlags, scope: IScope) {
+  public $bind(flags: BindingFlags, scope: IScope) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -54,7 +54,7 @@ export class Call implements IBinding {
     this.targetObserver.setValue($event => this.callSource($event), this.target, this.targetProperty);
   }
 
-  $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
@@ -69,5 +69,5 @@ export class Call implements IBinding {
     this.targetObserver.setValue(null, this.target, this.targetProperty);
   }
 
-  observeProperty() { }
+  public observeProperty() { }
 }

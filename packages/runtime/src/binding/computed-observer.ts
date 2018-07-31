@@ -65,7 +65,7 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
     super();
   }
 
-  getValue() {
+  public getValue() {
     return this.instance[this.propertyName];
   }
 
@@ -73,7 +73,7 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
     this.instance[this.propertyName] = newValue;
   }
 
-  call() {
+  public call() {
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
 
@@ -81,7 +81,7 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
     this.callSubscribers(newValue, oldValue);
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     if (!this.observing) {
       this.convertProperty();
     }
@@ -89,11 +89,11 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
   }
 
-  convertProperty() {
+  public convertProperty() {
     const setter = this.descriptor.set;
     const that = this;
 
@@ -139,13 +139,13 @@ class GetterObserver extends SubscriberCollection implements IAccessor, ISubscri
     );       
   }
 
-  getValue() {
+  public getValue() {
     return this.controller.value;
   }
 
-  setValue(newValue) { }
+  public setValue(newValue) { }
 
-  call() {
+  public call() {
     const oldValue = this.controller.value;
     const newValue = this.controller.getValueAndCollectDependencies();
     
@@ -154,12 +154,12 @@ class GetterObserver extends SubscriberCollection implements IAccessor, ISubscri
     }
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     this.addSubscriber(context, callable);
     this.controller.onSubscriberAdded();
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
     this.controller.onSubscriberRemoved();
   }
@@ -170,8 +170,8 @@ class GetterController {
   private dependencies: ISubscribable[] = [];
   private subscriberCount = 0;
 
-  value;
-  isCollecting = false;
+  public value;
+  public isCollecting = false;
 
   constructor(
     private overrides: IComputedOverrides,
@@ -197,7 +197,7 @@ class GetterController {
     });
   }
 
-  addDependency(subscribable: ISubscribable) {
+  public addDependency(subscribable: ISubscribable) {
     if (this.dependencies.includes(subscribable)) {
       return;
     }
@@ -205,7 +205,7 @@ class GetterController {
     this.dependencies.push(subscribable);
   }
 
-  onSubscriberAdded() {
+  public onSubscriberAdded() {
     this.subscriberCount++;
 
     if (this.subscriberCount > 1) {
@@ -215,7 +215,7 @@ class GetterController {
     this.getValueAndCollectDependencies(true);
   }
 
-  getValueAndCollectDependencies(requireCollect = false) {
+  public getValueAndCollectDependencies(requireCollect = false) {
     this.queued = false;
 
     const dynamicDependencies = !this.overrides.static || requireCollect;
@@ -235,7 +235,7 @@ class GetterController {
     return this.value;
   }
 
-  onSubscriberRemoved() {
+  public onSubscriberRemoved() {
     this.subscriberCount--;
 
     if (this.subscriberCount === 0) {
@@ -248,7 +248,7 @@ class GetterController {
     this.dependencies.length = 0;
   }
 
-  call() {
+  public call() {
     if (!this.queued) {
       this.queued = true;
       this.taskQueue.queueMicroTask(this.owner);

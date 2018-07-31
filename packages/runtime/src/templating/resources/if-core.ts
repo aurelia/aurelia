@@ -18,7 +18,7 @@ export abstract class IfCore {
 
   constructor(private factory: IVisualFactory, protected slot: IRenderSlot) { }
 
-  unbound() {
+  public unbound() {
     const visual = this.child;
 
     if (visual === null) {
@@ -41,7 +41,7 @@ export abstract class IfCore {
     this.child = null;
   }
 
-  show() {
+  public show() {
     if (this.child === null) {
       this.child = this.factory.create();
     }
@@ -54,7 +54,7 @@ export abstract class IfCore {
     }
   }
 
-  hide() {
+  public hide() {
     if (!this.showing) {
       return;
     }

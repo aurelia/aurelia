@@ -12,14 +12,14 @@ export class If extends IfCore {
   private animating = false;
   private elseBehavior: Else;
 
-  @bindable swapOrder: SwapOrder = SwapOrder.after;
-  @bindable condition: boolean = false;
+  @bindable public swapOrder: SwapOrder = SwapOrder.after;
+  @bindable public condition: boolean = false;
 
-  conditionChanged(newValue) {
+  public conditionChanged(newValue) {
     this.update(newValue);
   }
 
-  link(elseBehavior: Else) {
+  public link(elseBehavior: Else) {
     if (this.elseBehavior === elseBehavior) {
       return this;
     }

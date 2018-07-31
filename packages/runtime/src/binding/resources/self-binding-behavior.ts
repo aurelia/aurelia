@@ -24,7 +24,7 @@ type SelfableBinding = Listener & {
 
 @bindingBehavior('self')
 export class SelfBindingBehavior {
-  bind(flags: BindingFlags, scope: IScope, binding: SelfableBinding) {
+  public bind(flags: BindingFlags, scope: IScope, binding: SelfableBinding) {
     if (!binding.callSource || !binding.targetEvent) {
       throw Reporter.error(8);
     }
@@ -33,7 +33,7 @@ export class SelfBindingBehavior {
     binding.callSource = handleSelfEvent;
   }
 
-  unbind(flags: BindingFlags, scope: IScope, binding: SelfableBinding) {
+  public unbind(flags: BindingFlags, scope: IScope, binding: SelfableBinding) {
     binding.callSource = binding.selfEventCallSource;
     binding.selfEventCallSource = null;
   }

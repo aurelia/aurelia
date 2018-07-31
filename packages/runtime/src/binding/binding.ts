@@ -47,15 +47,15 @@ export class Binding implements IBinding {
     public locator: IServiceLocator) {
   }
 
-  updateTarget(value: any) {
+  public updateTarget(value: any) {
     this.targetObserver.setValue(value, this.target, this.targetProperty);
   }
 
-  updateSource(value: any) {
+  public updateSource(value: any) {
     this.sourceExpression.assign(BindingFlags.none, this.$scope, this.locator, value);
   }
 
-  call(context: string, newValue?: any, oldValue?: any) {
+  public call(context: string, newValue?: any, oldValue?: any) {
     if (!this.$isBound) {
       return;
     }
@@ -93,7 +93,7 @@ export class Binding implements IBinding {
     throw Reporter.error(15, context);
   }
 
-  $bind(flags: BindingFlags, scope: IScope) {
+  public $bind(flags: BindingFlags, scope: IScope) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -132,7 +132,7 @@ export class Binding implements IBinding {
     }
   }
 
-  $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
@@ -157,7 +157,7 @@ export class Binding implements IBinding {
     this.unobserve(true);
   }
 
-  connect(flags: BindingFlags) {
+  public connect(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
@@ -174,7 +174,7 @@ export class Binding implements IBinding {
   }
 
   //#region ConnectableBinding
-  addObserver(observer: IBindingTargetObserver | IBindingCollectionObserver) {
+  public addObserver(observer: IBindingTargetObserver | IBindingCollectionObserver) {
     // find the observer.
     let observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
     let i = observerSlots;
@@ -203,17 +203,17 @@ export class Binding implements IBinding {
     this[versionSlotNames[i]] = this.version;
   }
 
-  observeProperty(flags: BindingFlags, obj: any, propertyName: string) {
+  public observeProperty(flags: BindingFlags, obj: any, propertyName: string) {
     let observer = this.observerLocator.getObserver(obj, propertyName);
     this.addObserver(<any>observer);
   }
 
-  observeArray(array: any[]) {
+  public observeArray(array: any[]) {
     let observer = this.observerLocator.getArrayObserver(array);
     this.addObserver(observer);
   }
 
-  unobserve(all?: boolean) {
+  public unobserve(all?: boolean) {
     const slots = this.observerSlots;
     let i = 0;
     let slotName;

@@ -72,7 +72,7 @@ class RenderingEngine implements IRenderingEngine {
     }, Object.create(null));
   }
 
-  getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate {
+  public getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate {
     if (!definition) {
       return null;
     }
@@ -111,7 +111,7 @@ class RenderingEngine implements IRenderingEngine {
     return noViewTemplate;
   }
 
-  getVisualFactory(context: IRenderContext, definition: Immutable<ITemplateSource>): IVisualFactory {
+  public getVisualFactory(context: IRenderContext, definition: Immutable<ITemplateSource>): IVisualFactory {
     if (!definition) {
       return null;
     }
@@ -144,7 +144,7 @@ class RenderingEngine implements IRenderingEngine {
     return factory;
   }
 
-  applyRuntimeBehavior(type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement, bindables: BindableDefinitions): IRuntimeBehavior {
+  public applyRuntimeBehavior(type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement, bindables: BindableDefinitions): IRuntimeBehavior {
     let found = this.behaviorLookup.get(type);
 
     if (!found) {
@@ -161,7 +161,7 @@ class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  createVisualFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): VisualWithCentralComponent {
+  public createVisualFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): VisualWithCentralComponent {
     let animator = this.animator;
     
     class ComponentVisual extends Visual {
@@ -197,7 +197,7 @@ class RenderingEngine implements IRenderingEngine {
     return new ComponentVisual();
   }
 
-  createRenderer(context: IRenderContext): IRenderer {
+  public createRenderer(context: IRenderContext): IRenderer {
     return new Renderer(
       context,
       this.observerLocator,
@@ -235,14 +235,14 @@ function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefin
 // and create instances of it on demand.
 class CompiledTemplate implements ITemplate {
   private createView: () => IView;
-  renderContext: IRenderContext;
+  public renderContext: IRenderContext;
 
   constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
     this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
     this.createView = DOM.createFactoryFromMarkup(templateDefinition.template);
   }
 
-  createFor(owner: IViewOwner, host?: INode, replacements?: TemplatePartDefinitions): IView {
+  public createFor(owner: IViewOwner, host?: INode, replacements?: TemplatePartDefinitions): IView {
     const view = this.createView();
     this.renderContext.render(owner, view.findTargets(), this.templateDefinition, host, replacements);
     return view;
@@ -252,7 +252,7 @@ class CompiledTemplate implements ITemplate {
 class RuntimeCompilationResources implements IResourceDescriptions {
   constructor(private context: ExposedContext) {}
 
-  get<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null {
+  public get<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null {
     const key = kind.key(name);
     const resolver = this.context.getResolver(key);
 
@@ -269,25 +269,25 @@ class RuntimeCompilationResources implements IResourceDescriptions {
 }
 
 abstract class Visual implements IVisual {
-  $bindable: IBindScope[] = [];
-  $attachable: IAttach[] = [];
-  $scope: IScope = null;
-  $view: IView = null;
-  $isBound = false;
-  $isAttached = false;
-  $context: IRenderContext;
-  parent: IRenderSlot;
-  onRender: RenderCallback;
-  renderState: any;
+  public $bindable: IBindScope[] = [];
+  public $attachable: IAttach[] = [];
+  public $scope: IScope = null;
+  public $view: IView = null;
+  public $isBound = false;
+  public $isAttached = false;
+  public $context: IRenderContext;
+  public parent: IRenderSlot;
+  public onRender: RenderCallback;
+  public renderState: any;
   
-  inCache = false;
+  public inCache = false;
   private animationRoot: INode = undefined;
 
   constructor(public factory: VisualFactory, private animator: IAnimator) {
     this.$view = this.createView();
   }
 
-  abstract createView(): IView;
+  public abstract createView(): IView;
 
   private getAnimationRoot(): INode {
     if (this.animationRoot !== undefined) {
@@ -311,7 +311,7 @@ abstract class Visual implements IVisual {
     return this.animationRoot = null;
   }
 
-  animate(direction: MotionDirection = MotionDirection.enter): void | Promise<boolean> {
+  public animate(direction: MotionDirection = MotionDirection.enter): void | Promise<boolean> {
     const element = this.getAnimationRoot();
 
     if (element === null) {
@@ -328,7 +328,7 @@ abstract class Visual implements IVisual {
     }
   }
 
-  $bind(flags: BindingFlags, scope: IScope) {
+  public $bind(flags: BindingFlags, scope: IScope) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -348,7 +348,7 @@ abstract class Visual implements IVisual {
     this.$isBound = true;
   }
 
-  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle) {
+  public $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle) {
     if (this.$isAttached) {
       return;
     }
@@ -366,7 +366,7 @@ abstract class Visual implements IVisual {
     lifecycle.end(this);
   }
 
-  $detach(lifecycle?: DetachLifecycle) { 
+  public $detach(lifecycle?: DetachLifecycle) { 
     if (this.$isAttached) {
       lifecycle = DetachLifecycle.start(this, lifecycle);
       lifecycle.queueViewRemoval(this);
@@ -383,7 +383,7 @@ abstract class Visual implements IVisual {
     }
   }
 
-  $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags) {
     if (this.$isBound) {
       const bindable = this.$bindable;
       let i = bindable.length;
@@ -397,7 +397,7 @@ abstract class Visual implements IVisual {
     }
   }
 
-  tryReturnToCache() {
+  public tryReturnToCache() {
     return this.factory.tryReturnToCache(this);
   }
 }
@@ -410,7 +410,7 @@ class VisualFactory implements IVisualFactory {
 
   constructor(public name: string, private type: Constructable<Visual>) {}
 
-  setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
+  public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {
       if (size === '*') {
         size = Number.MAX_VALUE;
@@ -432,7 +432,7 @@ class VisualFactory implements IVisualFactory {
     this.isCaching = this.cacheSize > 0;
   }
 
-  tryReturnToCache(visual: Visual): boolean {
+  public tryReturnToCache(visual: Visual): boolean {
     if (this.cache !== null && this.cache.length < this.cacheSize) {
       visual.inCache = true;
       this.cache.push(visual);
@@ -442,7 +442,7 @@ class VisualFactory implements IVisualFactory {
     return false;
   }
 
-  create(): Visual {
+  public create(): Visual {
     const cache = this.cache;
 
     if (cache !== null && cache.length > 0) {

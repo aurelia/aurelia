@@ -52,10 +52,10 @@ export class TaskQueue implements ITaskQueue {
   private requestFlushTaskQueue = PLATFORM.createTaskFlushRequester(() => this.flushTaskQueue());
   private stack: string;
 
-  flushing = false;
-  longStacks = false;
+  public flushing = false;
+  public longStacks = false;
 
-  queueMicroTask(task: ICallable & { stack?: string }): void {
+  public queueMicroTask(task: ICallable & { stack?: string }): void {
     // the cursor and the index being the same number, is the equivalent of an empty queue
     // note: when a queue is done flushing, both of these are set to 0 again to keep queue expansion to a minimum
     if (this.microTaskIndex === this.microTaskCursor) {
@@ -71,7 +71,7 @@ export class TaskQueue implements ITaskQueue {
     }
   }
 
-  flushMicroTaskQueue(): void {
+  public flushMicroTaskQueue(): void {
     let task;
     const longStacks = this.longStacks;
     const queue = this.microTaskQueue;
@@ -100,7 +100,7 @@ export class TaskQueue implements ITaskQueue {
     this.flushing = false;
   }
 
-  queueTask(task: ICallable & { stack?: string }): void {
+  public queueTask(task: ICallable & { stack?: string }): void {
     // works similar to queueMicroTask, with the difference being that the taskQueue will
     // only run tasks up to the cursor of when the flush was invoked
     if (this.taskIndex === this.taskCursor) {
@@ -118,7 +118,7 @@ export class TaskQueue implements ITaskQueue {
     }
   }
 
-  flushTaskQueue(): void {
+  public flushTaskQueue(): void {
     let task;
     const longStacks = this.longStacks;
     const queue = this.taskQueue;

@@ -11,12 +11,12 @@ type WithMode = { mode: BindingMode, originalMode?: BindingMode };
 class BindingModeBehavior {
   constructor(private mode: BindingMode) {}
 
-  bind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {
+  public bind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {
     binding.originalMode = binding.mode;
     binding.mode = this.mode;
   }
 
-  unbind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {
+  public unbind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {
     binding.mode = binding.originalMode;
     binding.originalMode = null;
   }

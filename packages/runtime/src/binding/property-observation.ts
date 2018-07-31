@@ -10,23 +10,23 @@ export const propertyAccessor = {
 };
 
 export class PrimitiveObserver implements IAccessor, ISubscribable {
-  doNotCache = true;
+  public doNotCache = true;
 
   constructor(private primitive: IIndexable, private propertyName: string) {
     this.primitive = primitive;
     this.propertyName = propertyName;
   }
 
-  getValue() {
+  public getValue() {
     return this.primitive[this.propertyName];
   }
 
-  setValue() {
+  public setValue() {
     throw Reporter.error(14, `${typeof this.primitive}#${this.propertyName}`);
   }
 
-  subscribe() { }
-  unsubscribe() { }
+  public subscribe() { }
+  public unsubscribe() { }
 }
 
 export class SetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
@@ -39,19 +39,19 @@ export class SetterObserver extends SubscriberCollection implements IAccessor, I
     super();
   }
 
-  getValue() {
+  public getValue() {
     return this.obj[this.propertyName];
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any) {
     this.obj[this.propertyName] = newValue;
   }
 
-  getterValue() {
+  public getterValue() {
     return this.currentValue;
   }
 
-  setterValue(newValue: any) {
+  public setterValue(newValue: any) {
     let oldValue = this.currentValue;
 
     if (oldValue !== newValue) {
@@ -65,7 +65,7 @@ export class SetterObserver extends SubscriberCollection implements IAccessor, I
     }
   }
 
-  call() {
+  public call() {
     let oldValue = this.oldValue;
     let newValue = this.currentValue;
 
@@ -74,7 +74,7 @@ export class SetterObserver extends SubscriberCollection implements IAccessor, I
     this.callSubscribers(newValue, oldValue);
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     if (!this.observing) {
       this.convertProperty();
     }
@@ -82,11 +82,11 @@ export class SetterObserver extends SubscriberCollection implements IAccessor, I
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
   }
 
-  convertProperty() {
+  public convertProperty() {
     this.observing = true;
     this.currentValue = this.obj[this.propertyName];
     this.setValue = this.setterValue;
@@ -111,11 +111,11 @@ export class Observer<T> extends SubscriberCollection implements IAccessor, ISub
     super();
   }
 
-  getValue(): T {
+  public getValue(): T {
     return this.currentValue;
   }
 
-  setValue(newValue: T) {
+  public setValue(newValue: T) {
     let oldValue = this.currentValue;
 
     if (oldValue !== newValue) {
@@ -137,18 +137,18 @@ export class Observer<T> extends SubscriberCollection implements IAccessor, ISub
     }
   }
 
-  call() {
+  public call() {
     let oldValue = this.oldValue;
     let newValue = this.currentValue;
     this.queued = false;
     this.callSubscribers(newValue, oldValue);
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
   }
 }

@@ -24,11 +24,11 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
     super();
   }
 
-  getValue() {
+  public getValue() {
     return this.value;
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any) {
     if (this.initialSync && this.value === newValue) {
       return;
     }
@@ -58,7 +58,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
     }
   }
 
-  call(context: string, splices: any[]) {
+  public call(context: string, splices: any[]) {
     // called by task queue, array observer, and model/value observer.
     this.synchronizeElement();
     // if the input's model or value property is data-bound, subscribe to it's
@@ -71,7 +71,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
     }
   }
 
-  synchronizeElement() {
+  public synchronizeElement() {
     let value = this.value;
     let element = this.node;
     let elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
@@ -84,7 +84,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
       || !isRadio && Array.isArray(value) && value.findIndex(item => !!matcher(item, elementValue)) !== -1;
   }
 
-  synchronizeValue() {
+  public synchronizeValue() {
     let value = this.value;
     let element = this.node;
     let elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
@@ -116,7 +116,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
     this.notify();
   }
 
-  notify() {
+  public notify() {
     let oldValue = this.oldValue;
     let newValue = this.value;
 
@@ -127,24 +127,24 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
     this.callSubscribers(newValue, oldValue);
   }
 
-  handleEvent() {
+  public handleEvent() {
     this.synchronizeValue();
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.node, this);
     }
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }
 
-  unbind() {
+  public unbind() {
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribe(checkedArrayContext, this);
       this.arrayObserver = null;

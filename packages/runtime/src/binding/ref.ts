@@ -14,7 +14,7 @@ export class Ref implements IBinding {
     public locator: IServiceLocator) {
   }
 
-  $bind(flags: BindingFlags, scope: IScope) {
+  public $bind(flags: BindingFlags, scope: IScope) {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -33,7 +33,7 @@ export class Ref implements IBinding {
     this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
   }
 
-  $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
@@ -51,5 +51,5 @@ export class Ref implements IBinding {
     this.$scope = null;
   }
 
-  observeProperty(context: any, name: any) { }
+  public observeProperty(context: any, name: any) { }
 }

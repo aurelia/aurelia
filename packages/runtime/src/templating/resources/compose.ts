@@ -28,9 +28,9 @@ export class Compose {
   private baseInstruction: Immutable<IHydrateElementInstruction>;
   private compositionContext: IRenderContext;
 
-  component: any;
+  public component: any;
   swapOrder: SwapOrder;
-  isComposing: boolean;
+  public isComposing: boolean;
 
   constructor(
     private viewOwner: IViewOwner, 
@@ -73,7 +73,7 @@ export class Compose {
   }
 
   /** @internal */
-  compose(toBeComposed: any) {
+  public compose(toBeComposed: any) {
     const instruction = Object.assign({}, this.baseInstruction, {
       resource: toBeComposed,
       contentOverride: this.createContentElement()
@@ -134,7 +134,7 @@ class CompositionTask {
 
   constructor(private compose: Compose) {}
 
-  start(toBeComposed) {
+  public start(toBeComposed) {
     if (this.isCancelled) {
       return;
     }
@@ -148,7 +148,7 @@ class CompositionTask {
     }
   }
 
-  cancel() {
+  public cancel() {
     this.compose.isComposing = false;
     this.isCancelled = true;
     return this.composeResult;

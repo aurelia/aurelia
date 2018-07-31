@@ -14,11 +14,11 @@ class DirtyChecker {
   private tracked = [];
   private checkDelay = 120;
 
-  createProperty(obj: any, propertyName: string) {
+  public createProperty(obj: any, propertyName: string) {
     return new DirtyCheckProperty(this, obj, propertyName);
   }
 
-  addProperty(property: DirtyCheckProperty) {
+  public addProperty(property: DirtyCheckProperty) {
     let tracked = this.tracked;
 
     tracked.push(property);
@@ -28,16 +28,16 @@ class DirtyChecker {
     }
   }
 
-  removeProperty(property: DirtyCheckProperty) {
+  public removeProperty(property: DirtyCheckProperty) {
     let tracked = this.tracked;
     tracked.splice(tracked.indexOf(property), 1);
   }
 
-  scheduleDirtyCheck() {
+  public scheduleDirtyCheck() {
     setTimeout(() => this.check(), this.checkDelay);
   }
 
-  check() {
+  public check() {
     let tracked = this.tracked;
     let i = tracked.length;
 
@@ -56,25 +56,25 @@ class DirtyChecker {
 }
 
 class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  oldValue;
+  public oldValue;
   
   constructor(private dirtyChecker: DirtyChecker, private obj: any, private propertyName: string) {
     super();
   }
 
-  isDirty(): boolean {
+  public isDirty(): boolean {
     return this.oldValue !== this.obj[this.propertyName];
   }
 
-  getValue() {
+  public getValue() {
     return this.obj[this.propertyName];
   }
 
-  setValue(newValue) {
+  public setValue(newValue) {
     this.obj[this.propertyName] = newValue;
   }
 
-  call() {
+  public call() {
     let oldValue = this.oldValue;
     let newValue = this.getValue();
 
@@ -83,7 +83,7 @@ class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISub
     this.oldValue = newValue;
   }
 
-  subscribe(context: string, callable: ICallable) {
+  public subscribe(context: string, callable: ICallable) {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
       this.dirtyChecker.addProperty(this);
@@ -92,7 +92,7 @@ class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISub
     this.addSubscriber(context, callable);
   }
 
-  unsubscribe(context: string, callable: ICallable) {
+  public unsubscribe(context: string, callable: ICallable) {
     if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
       this.dirtyChecker.removeProperty(this);
     }

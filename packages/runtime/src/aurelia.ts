@@ -17,12 +17,12 @@ export class Aurelia {
 
   constructor(private container: IContainer = DI.createContainer()) {}
 
-  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]) {
+  public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]) {
     this.container.register(...params);
     return this;
   }
 
-  app(config: ISinglePageApp) {
+  public app(config: ISinglePageApp) {
     let component: ICustomElement = config.component;
     let startTask = () => {
       if (!this.components.includes(component)) {
@@ -51,13 +51,13 @@ export class Aurelia {
     return this;
   }
 
-  start() {
+  public start() {
     this.isStarted = true;
     this.startTasks.forEach(x => x());
     return this;
   }
 
-  stop() {
+  public stop() {
     this.isStarted = false;
     this.stopTasks.forEach(x => x());
     return this;

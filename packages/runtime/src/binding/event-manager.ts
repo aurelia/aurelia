@@ -82,7 +82,7 @@ class ListenerTracker {
     private capture: boolean
   ) { }
 
-  increment() {
+  public increment() {
     this.count++;
 
     if (this.count === 1) {
@@ -90,7 +90,7 @@ class ListenerTracker {
     }
   }
 
-  decrement() {
+  public decrement() {
     this.count--;
 
     if (this.count === 0) {
@@ -112,7 +112,7 @@ class DelegateOrCaptureSubscription {
     lookup[targetEvent] = callback;
   }
 
-  dispose() {
+  public dispose() {
     this.entry.decrement();
     this.lookup[this.targetEvent] = null;
   }
@@ -130,7 +130,7 @@ class TriggerSubscription {
     DOM.addEventListener(targetEvent, callback, target);
   }
 
-  dispose() {
+  public dispose() {
     DOM.removeEventListener(this.targetEvent, this.callback, this.target);
   }
 }
@@ -165,7 +165,7 @@ export class EventSubscriber implements IEventSubscriber {
     this.handler = null;
   }
 
-  subscribe(node: INode, callbackOrListener: EventListenerOrEventListenerObject) {
+  public subscribe(node: INode, callbackOrListener: EventListenerOrEventListenerObject) {
     this.target = node;
     this.handler = callbackOrListener;
 
@@ -177,7 +177,7 @@ export class EventSubscriber implements IEventSubscriber {
     }
   }
 
-  dispose() {
+  public dispose() {
     const node = this.target;
     const callbackOrListener = this.handler;
     const events = this.events;
@@ -201,9 +201,9 @@ export const IEventManager = DI.createInterface<IEventManager>()
   .withDefault(x => x.singleton(EventManager));
 
 class EventManager implements IEventManager {
-  elementHandlerLookup: Record<string, Record<string, string[]>> = {};
-  delegatedHandlers: Record<string, ListenerTracker> = {};
-  capturedHandlers: Record<string, ListenerTracker> = {};
+  public elementHandlerLookup: Record<string, Record<string, string[]>> = {};
+  public delegatedHandlers: Record<string, ListenerTracker> = {};
+  public capturedHandlers: Record<string, ListenerTracker> = {};
 
   constructor() {
     this.registerElementConfiguration({
@@ -245,7 +245,7 @@ class EventManager implements IEventManager {
     });
   }
 
-  registerElementConfiguration(config: IElementConfiguration) {
+  public registerElementConfiguration(config: IElementConfiguration) {
     let tagName = config.tagName.toLowerCase();
     let properties = config.properties;
     let lookup: Record<string, string[]> = this.elementHandlerLookup[tagName] = {};
@@ -257,7 +257,7 @@ class EventManager implements IEventManager {
     }
   }
 
-  getElementHandler(target: INode, propertyName: string): IEventSubscriber | null {
+  public getElementHandler(target: INode, propertyName: string): IEventSubscriber | null {
     let name = DOM.normalizedTagName(target);
     let lookup = this.elementHandlerLookup;
 
@@ -278,7 +278,7 @@ class EventManager implements IEventManager {
     return null;
   }
 
-  addEventListener(
+  public addEventListener(
     target: INode,
     targetEvent: string,
     callbackOrListener: EventListenerOrEventListenerObject,

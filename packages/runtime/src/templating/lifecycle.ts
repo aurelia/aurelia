@@ -13,12 +13,12 @@ export class AttachLifecycle {
 
   private attached() {}
 
-  queueAttachedCallback(requestor: IAttach) {
+  public queueAttachedCallback(requestor: IAttach) {
     this.tail.$nextAttached = requestor;
     this.tail = requestor;
   }
 
-  end(owner: any) {
+  public end(owner: any) {
     if (owner === this.owner) {
       let current = this.head;
       let next;
@@ -32,7 +32,7 @@ export class AttachLifecycle {
     }
   }
 
-  static start(owner: any, existingLifecycle?: AttachLifecycle) {
+  public static start(owner: any, existingLifecycle?: AttachLifecycle) {
     return existingLifecycle || new AttachLifecycle(owner);
   }
 }
@@ -55,17 +55,17 @@ export class DetachLifecycle {
 
   private detached() {}
 
-  queueViewRemoval(requestor: IViewOwner) {
+  public queueViewRemoval(requestor: IViewOwner) {
     this.viewRemoveTail.$nextRemoveView = requestor;
     this.viewRemoveTail = requestor;
   }
 
-  queueDetachedCallback(requestor: IAttach) {
+  public queueDetachedCallback(requestor: IAttach) {
     this.detachedTail.$nextDetached = requestor;
     this.detachedTail = requestor;
   }
 
-  end(owner: any) {
+  public end(owner: any) {
     if (owner == this.owner) {
       let current = this.detachedHead;
       let next;
@@ -89,7 +89,7 @@ export class DetachLifecycle {
     }
   }
 
-  static start(owner: any, existingLifecycle?: DetachLifecycle) {
+  public static start(owner: any, existingLifecycle?: DetachLifecycle) {
     return existingLifecycle || new DetachLifecycle(owner);
   }
 }

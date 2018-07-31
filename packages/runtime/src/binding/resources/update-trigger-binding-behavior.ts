@@ -24,7 +24,7 @@ type UpdateTriggerableBinding = Binding & {
 export class UpdateTriggerBindingBehavior {
   constructor(private observerLocator: IObserverLocator) {}
 
-  bind(flags: BindingFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]) {
+  public bind(flags: BindingFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]) {
     if (events.length === 0) {
       throw Reporter.error(9);
     }
@@ -48,7 +48,7 @@ export class UpdateTriggerBindingBehavior {
     targetObserver.handler = new EventSubscriber(events);
   }
 
-  unbind(flags: BindingFlags, scope: IScope, binding: UpdateTriggerableBinding) {
+  public unbind(flags: BindingFlags, scope: IScope, binding: UpdateTriggerableBinding) {
     // restore the state of the binding.
     binding.targetObserver.handler.dispose();
     binding.targetObserver.handler = binding.targetObserver.originalHandler;

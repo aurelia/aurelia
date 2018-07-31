@@ -15,7 +15,7 @@ type SignalableBinding = Binding & {
 export class SignalBindingBehavior {
   constructor(private signaler: ISignaler) {}
 
-  bind(flags: BindingFlags, scope: IScope, binding: SignalableBinding) {
+  public bind(flags: BindingFlags, scope: IScope, binding: SignalableBinding) {
     if (!binding.updateTarget) {
       throw Reporter.error(11);
     }
@@ -39,7 +39,7 @@ export class SignalBindingBehavior {
     }
   }
 
-  unbind(flags: BindingFlags, scope: IScope, binding: SignalableBinding) {
+  public unbind(flags: BindingFlags, scope: IScope, binding: SignalableBinding) {
     let name = binding.signal;
     binding.signal = null;
 

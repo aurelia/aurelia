@@ -6,9 +6,9 @@ import { BindingFlags } from '../binding-flags';
 
 @bindingBehavior('attr')
 export class AttrBindingBehavior {
-  bind(flags: BindingFlags, scope: IScope, binding: Binding) {
+  public bind(flags: BindingFlags, scope: IScope, binding: Binding) {
     binding.targetObserver = new DataAttributeObserver(binding.target, binding.targetProperty);
   }
 
-  unbind(flags: BindingFlags, scope: IScope, binding: Binding) {}
+  public unbind(flags: BindingFlags, scope: IScope, binding: Binding) {}
 }

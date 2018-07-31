@@ -109,10 +109,10 @@ interface IContentViewChildObserver extends IChildObserver {
 // However, we may need to keep the IChildObserver abstraction for enabling the $children property
 // in different scenarios, depending on what optimizations we make around when/when not to use shadow dom.
 class ContentView implements IContentView {
-  firstChild: INode;
-  lastChild: INode;
-  childNodes: INode[];
-  childObserver: IContentViewChildObserver = null;
+  public firstChild: INode;
+  public lastChild: INode;
+  public childNodes: INode[];
+  public childObserver: IContentViewChildObserver = null;
 
   constructor(private contentHost: INode) {
     const childNodes = this.childNodes = Array.from(contentHost.childNodes)
@@ -120,7 +120,7 @@ class ContentView implements IContentView {
     this.lastChild = childNodes[childNodes.length - 1];
   }
 
-  attachChildObserver(onChildrenChanged: () => void): IChildObserver {
+  public attachChildObserver(onChildrenChanged: () => void): IChildObserver {
     const contentViewNodes = this.childNodes;
     let observer = this.childObserver;
 
@@ -163,7 +163,7 @@ class ContentView implements IContentView {
     return observer;
   }
 
-  insertVisualChildBefore(visual: IVisual, refNode: INode) {
+  public insertVisualChildBefore(visual: IVisual, refNode: INode) {
     const childObserver = this.childObserver;
 
     if (childObserver) {
@@ -182,7 +182,7 @@ class ContentView implements IContentView {
     }
   }
 
-  removeVisualChild(visual: IVisual) {
+  public removeVisualChild(visual: IVisual) {
     const childObserver = this.childObserver;
 
     if (childObserver) {
@@ -195,9 +195,9 @@ class ContentView implements IContentView {
     }
   }
 
-  findTargets() { return PLATFORM.emptyArray; }
-  appendChild(child: INode) {}
-  insertBefore(refNode: INode): void {}
-  appendTo(parent: INode): void {}
-  remove(): void {}
+  public findTargets() { return PLATFORM.emptyArray; }
+  public appendChild(child: INode) {}
+  public insertBefore(refNode: INode): void {}
+  public appendTo(parent: INode): void {}
+  public remove(): void {}
 }

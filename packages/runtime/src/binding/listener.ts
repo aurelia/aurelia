@@ -22,7 +22,7 @@ export class Listener implements IBinding {
     public locator: IServiceLocator
   ) { }
 
-  callSource(event: Event) {
+  public callSource(event: Event) {
     let overrideContext = this.source.overrideContext as any;
     overrideContext['$event'] = event;
 
@@ -37,11 +37,11 @@ export class Listener implements IBinding {
     return result;
   }
 
-  handleEvent(event: Event) {
+  public handleEvent(event: Event) {
     this.callSource(event);
   }
 
-  $bind(flags: BindingFlags, source: IScope) {
+  public $bind(flags: BindingFlags, source: IScope) {
     if (this.$isBound) {
       if (this.source === source) {
         return;
@@ -65,7 +65,7 @@ export class Listener implements IBinding {
     );
   }
 
-  $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags) {
     if (!this.$isBound) {
       return;
     }
@@ -81,5 +81,5 @@ export class Listener implements IBinding {
     this.handler = null;
   }
 
-  observeProperty() { }
+  public observeProperty() { }
 }

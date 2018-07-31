@@ -4,19 +4,19 @@ export const PLATFORM = {
     if (typeof self !== 'undefined') {
       return self;
     }
-  
+
     if (typeof global !== 'undefined') {
       return global;
     }
-  
+
     // Not all environments allow eval and Function
     // Use only as a last resort:
     return new Function('return this')();
   })(),
   emptyArray: Object.freeze([]),
   emptyObject: Object.freeze({}),
-  noop: function() {},
-
+  /* tslint:disable-next-line:no-empty */
+  noop() { },
   now(): number {
     return performance.now();
   },
@@ -32,12 +32,12 @@ export const PLATFORM = {
       // to a 4 millisecond delay, but once we're flushing, there's no delay
       // between events.
       const timeoutHandle = setTimeout(handleFlushTimer, 0);
-      
+
       // However, since this timer gets frequently dropped in Firefox
       // workers, we enlist an interval handle that will try to fire
       // an event 20 times per second until it succeeds.
       const intervalHandle = setInterval(handleFlushTimer, 50);
-  
+
       function handleFlushTimer() {
         // Whichever timer succeeds will cancel both timers and request the
         // flush.
@@ -48,12 +48,12 @@ export const PLATFORM = {
     };
   },
 
-  createMicroTaskFlushRequestor(onFlush:  () => void): () => void {
+  createMicroTaskFlushRequestor(onFlush: () => void): () => void {
     const observer = new MutationObserver(onFlush);
     const node = document.createTextNode('');
     const values = Object.create(null);
     let val = 'a';
-    
+
     values.a = 'b';
     values.b = 'a';
     observer.observe(node, { characterData: true });

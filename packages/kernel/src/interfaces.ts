@@ -8,9 +8,9 @@ export interface IDisposable {
 
 export type Constructable<T = {}> = {
   new(...args: any[]): T;
-}
+};
 
-export type Injectable<T = {}> = Constructable<T> & { inject?:any[] };
+export type Injectable<T = {}> = Constructable<T> & { inject?: any[] };
 
 export type IIndexable<T extends object = object> = T & { [key: string]: any };
 
@@ -31,10 +31,10 @@ type ImmutableObject<T> =
   T;
 
 export interface ImmutableArray<T> extends ReadonlyArray<ImmutableObject<T>> {}
-export type Immutable<T> = { readonly [P in keyof T]: ImmutableObject<T[P]> }
+export type Immutable<T> = { readonly [P in keyof T]: ImmutableObject<T[P]> };
 
 export type Writable<T> = {
   -readonly [K in keyof T]: T[K]
-}
+};
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;

@@ -4,13 +4,11 @@ import { Reporter } from './reporter';
 
 type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
-export interface IInterfaceSymbol<T> {
-  (target: Injectable, property: string, index: number): any;
-}
+export type InterfaceSymbol<T> = (target: Injectable, property: string, index: number) => any;
 
-interface IDefaultableInterfaceSymbol<T> extends IInterfaceSymbol<T> {
-  withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): IInterfaceSymbol<T>;
-  noDefault(): IInterfaceSymbol<T>;
+interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
+  withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T>;
+  noDefault(): InterfaceSymbol<T>;
 }
 
 export interface IResolver<T = any> {
@@ -31,13 +29,11 @@ export interface IFactory<T = any> {
 export interface IServiceLocator {
   has(key: any, searchAncestors: boolean): boolean;
 
-  get<T>(key: IInterfaceSymbol<T>): T;
-  get<T extends Constructable>(key: T): InstanceType<T>
-  get<T = any>(key: any): T;
+  get<T>(key: InterfaceSymbol<T> | any): T;
+  get<T extends Constructable>(key: T): InstanceType<T>;
 
-  getAll<T>(key: IInterfaceSymbol<T>): ReadonlyArray<T>;
+  getAll<T>(key: InterfaceSymbol<T> | any): ReadonlyArray<T>;
   getAll<T extends Constructable>(key: T): ReadonlyArray<InstanceType<T>>;
-  getAll<T = any>(key: any): ReadonlyArray<T>;
 }
 
 export interface IRegistry {
@@ -47,17 +43,14 @@ export interface IRegistry {
 export interface IContainer extends IServiceLocator {
   register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void;
 
-  registerResolver<T>(key: IInterfaceSymbol<T>, resolver: IResolver<T>): IResolver<T>;
+  registerResolver<T>(key: InterfaceSymbol<T> | any, resolver: IResolver<T>): IResolver<T>;
   registerResolver<T extends Constructable>(key: T, resolver: IResolver<InstanceType<T>>): IResolver<InstanceType<T>>;
-  registerResolver<T = any>(key: any, resolver: IResolver<T>): IResolver<T>;
 
-  registerTransformer<T>(key: IInterfaceSymbol<T>, transformer: (instance: T) => T): boolean;
+  registerTransformer<T>(key: InterfaceSymbol<T> | any, transformer: (instance: T) => T): boolean;
   registerTransformer<T extends Constructable>(key: T, transformer: (instance: InstanceType<T>) => T): boolean;
-  registerTransformer<T = any>(key: any, transformer: (instance: T) => T): boolean;
 
-  getResolver<T>(key: IInterfaceSymbol<T>, autoRegister?: boolean): IResolver<T> | null;
+  getResolver<T>(key: InterfaceSymbol<T> | any, autoRegister?: boolean): IResolver<T> | null;
   getResolver<T extends Constructable>(key: T, autoRegister?: boolean): IResolver<InstanceType<T>> | null;
-  getResolver<T = any>(key: any, autoRegister?: boolean): IResolver<T> | null;
 
   getFactory<T extends Constructable>(type: T): IFactory<InstanceType<T>>;
 
@@ -84,19 +77,19 @@ if (!('getOwnMetadata' in Reflect)) {
   };
 }
 
-export const DI = { 
+export const DI = {
   createContainer(): IContainer {
     return new Container();
   },
 
   getDesignParamTypes(target: any): any[] {
-    return (<any>Reflect).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
+    return (Reflect as any).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
 
   getDependencies(type: Function): any[] {
     let dependencies: any[];
 
-    if ((<any>type).inject === undefined) {
+    if ((type as any).inject === undefined) {
       dependencies = DI.getDesignParamTypes(type);
     } else {
       dependencies = [];
@@ -104,9 +97,9 @@ export const DI = {
 
       while (typeof ctor === 'function') {
         if (ctor.hasOwnProperty('inject')) {
-          dependencies.push(...(<any>ctor).inject);
+          dependencies.push(...(ctor as any).inject);
         }
-        
+
         ctor = Object.getPrototypeOf(ctor);
       }
     }
@@ -117,43 +110,43 @@ export const DI = {
   createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
     const Key: any = function(target: Injectable, property: string, index: number): any {
       const inject = target.inject || (target.inject = []);
-      (<any>Key).friendlyName = friendlyName || 'Interface';
+      (Key as any).friendlyName = friendlyName || 'Interface';
       inject[index] = Key;
       return target;
     };
 
-    Key.noDefault = function(): IInterfaceSymbol<T> {
+    Key.noDefault = function(): InterfaceSymbol<T> {
       return Key;
     };
-  
-    Key.withDefault = function(configure: (builder: IResolverBuilder<T>) => IResolver): IInterfaceSymbol<T> {
+
+    Key.withDefault = function(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T> {
       Key.withDefault = function() {
         throw Reporter.error(17, Key);
       };
 
       Key.register = function(container: IContainer, key?: any) {
         return configure({
-          instance(value: any) { 
+          instance(value: any) {
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.instance, value));
           },
-          singleton(value: Function) { 
+          singleton(value: Function) {
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.singleton, value));
           },
-          transient(value: Function) { 
+          transient(value: Function) {
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.transient, value));
           },
-          callback(value: ResolveCallback) { 
+          callback(value: ResolveCallback) {
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.callback, value));
           },
-          aliasTo(destinationKey: any) { 
+          aliasTo(destinationKey: any) {
             return container.registerResolver(destinationKey, new Resolver(key || Key, ResolverStrategy.alias, Key));
           },
         });
-      }
-  
+      };
+
       return Key;
     };
-  
+
     return Key;
   },
 
@@ -186,10 +179,12 @@ export const DI = {
 };
 
 export const IContainer = DI.createInterface<IContainer>().noDefault();
-export const IServiceLocator = <IInterfaceSymbol<IServiceLocator>>IContainer;
+export const IServiceLocator = IContainer as InterfaceSymbol<IServiceLocator>;
 
-function createResolver(getter: (key: any, handler: IContainer, requestor: IContainer) => any): (key: any) => ReturnType<typeof DI.inject> {
-  return function (key: any): ReturnType<typeof DI.inject> {
+function createResolver(
+  getter: (key: any, handler: IContainer, requestor: IContainer) => any
+): (key: any) => ReturnType<typeof DI.inject> {
+  return function(key: any): ReturnType<typeof DI.inject> {
     const Key = function Key(target: Injectable, property?: string, descriptor?: PropertyDescriptor | number): void {
       return DI.inject(Key)(target, property, descriptor);
     };
@@ -237,11 +232,11 @@ const enum ResolverStrategy {
 class Resolver implements IResolver, IRegistration {
   constructor(public key: any, public strategy: ResolverStrategy, public state: any) {}
 
-  register(container: IContainer, key?: any) {
+  public register(container: IContainer, key?: any) {
     return container.registerResolver(key || this.key, this);
   }
 
-  resolve(handler: IContainer, requestor: IContainer): any {
+  public resolve(handler: IContainer, requestor: IContainer): any {
     switch (this.strategy) {
       case ResolverStrategy.instance:
         return this.state;
@@ -249,10 +244,10 @@ class Resolver implements IResolver, IRegistration {
         this.strategy = ResolverStrategy.instance;
         return this.state = handler.getFactory(this.state).construct(handler);
       case ResolverStrategy.transient:
-        //always create transients from the requesting container
+        // Always create transients from the requesting container
         return handler.getFactory(this.state).construct(requestor);
       case ResolverStrategy.callback:
-        return (<ResolveCallback>this.state)(handler, requestor, this);
+        return (this.state as ResolveCallback)(handler, requestor, this);
       case ResolverStrategy.array:
         return this.state[0].get(handler, requestor);
       case ResolverStrategy.alias:
@@ -262,7 +257,7 @@ class Resolver implements IResolver, IRegistration {
     }
   }
 
-  getFactory(container: IContainer): IFactory | null {
+  public getFactory(container: IContainer): IFactory | null {
     switch (this.strategy) {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:
@@ -275,7 +270,12 @@ class Resolver implements IResolver, IRegistration {
 
 interface IInvoker {
   invoke(container: IContainer, fn: Function, dependencies: any[]): any;
-  invokeWithDynamicDependencies(container: IContainer, fn: Function, staticDependencies: any[], dynamicDependencies: any[]): any;
+  invokeWithDynamicDependencies(
+    container: IContainer,
+    fn: Function,
+    staticDependencies: any[],
+    dynamicDependencies: any[]
+  ): any;
 }
 
 class Factory implements IFactory {
@@ -283,8 +283,8 @@ class Factory implements IFactory {
 
   constructor(public type: Function, private invoker: IInvoker, private dependencies: any[]) { }
 
-  construct(container: IContainer, dynamicDependencies?: any[]): any {
-    let transformers = this.transformers;
+  public construct(container: IContainer, dynamicDependencies?: any[]): any {
+    const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
       ? this.invoker.invokeWithDynamicDependencies(container, this.type, this.dependencies, dynamicDependencies)
       : this.invoker.invoke(container, this.type, this.dependencies);
@@ -300,7 +300,7 @@ class Factory implements IFactory {
     return instance;
   }
 
-  registerTransformer(transformer: (instance: any) => any): boolean {
+  public registerTransformer(transformer: (instance: any) => any): boolean {
     if (this.transformers === null) {
       this.transformers = [];
     }
@@ -309,7 +309,7 @@ class Factory implements IFactory {
     return true;
   }
 
-  static create(type: Function): IFactory {
+  public static create(type: Function): IFactory {
     const dependencies = DI.getDependencies(type);
     const invoker = classInvokers[dependencies.length] || classInvokers.fallback;
     return new Factory(type, invoker, dependencies);
@@ -342,12 +342,12 @@ class Container implements IContainer {
     this.resolvers.set(IContainer, containerResolver);
   }
 
-  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void {
+  public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void {
     const resolvers = this.resolvers;
 
     for (let i = 0, ii = params.length; i < ii; ++i) {
       const current = params[i];
-      
+
       if (isRegistry(current)) {
         current.register(this);
       } else {
@@ -362,7 +362,7 @@ class Container implements IContainer {
     }
   }
 
-  registerResolver(key: any, resolver: IResolver): IResolver {
+  public registerResolver(key: any, resolver: IResolver): IResolver {
     validateKey(key);
 
     const resolvers = this.resolvers;
@@ -370,8 +370,8 @@ class Container implements IContainer {
 
     if (result === undefined) {
       resolvers.set(key, resolver);
-    } else if (resolver instanceof Resolver && (<Resolver>resolver).strategy === 4) {
-      (<Resolver>result).state.push(resolver);
+    } else if (resolver instanceof Resolver && (resolver as Resolver).strategy === 4) {
+      (result as Resolver).state.push(resolver);
     } else {
       resolvers.set(key, new Resolver(key, 4, [result, resolver]));
     }
@@ -379,33 +379,34 @@ class Container implements IContainer {
     return resolver;
   }
 
-  registerTransformer(key: any, transformer: (instance: any) => any): boolean {
-    let resolver = this.getResolver(key);
+  public registerTransformer(key: any, transformer: (instance: any) => any): boolean {
+    const resolver = this.getResolver(key);
 
     if (resolver === null) {
       return false;
     }
 
     if (resolver.getFactory) {
-      let handler = resolver.getFactory(this);
+      const handler = resolver.getFactory(this);
 
       if (handler === null) {
         return false;
       }
-      
+
       return handler.registerTransformer(transformer);
     }
 
     return false;
   }
 
-  getResolver(key: any, autoRegister = true): IResolver | null {
+  public getResolver(key: any, autoRegister = true): IResolver | null {
     validateKey(key);
 
     if (key.resolve) {
       return key;
     }
 
+    /* tslint:disable-next-line:no-this-assignment */
     let current: Container = this;
 
     while (current !== null) {
@@ -425,21 +426,22 @@ class Container implements IContainer {
     return null;
   }
 
-  has(key: any, searchAncestors: boolean = false): boolean {
-    return this.resolvers.has(key) 
-      ? true 
-      : searchAncestors && this.parent !== null 
-      ? this.parent.has(key, true) 
+  public has(key: any, searchAncestors: boolean = false): boolean {
+    return this.resolvers.has(key)
+      ? true
+      : searchAncestors && this.parent !== null
+      ? this.parent.has(key, true)
       : false;
   }
 
-  get(key: any): any {
+  public get(key: any): any {
     validateKey(key);
 
     if (key.resolve) {
       return key.resolve(this, this);
     }
 
+    /* tslint:disable-next-line:no-this-assignment */
     let current: Container = this;
 
     while (current !== null) {
@@ -449,7 +451,7 @@ class Container implements IContainer {
         if (current.parent === null) {
           return this.jitRegister(key, current).resolve(current, this);
         }
-  
+
         current = current.parent;
       } else {
         return resolver.resolve(current, this);
@@ -457,9 +459,10 @@ class Container implements IContainer {
     }
   }
 
-  getAll(key: any): ReadonlyArray<any> {
+  public getAll(key: any): ReadonlyArray<any> {
     validateKey(key);
 
+    /* tslint:disable-next-line:no-this-assignment */
     let current: Container | null = this;
 
     while (current !== null) {
@@ -468,8 +471,8 @@ class Container implements IContainer {
       if (resolver === undefined) {
         if (this.parent === null) {
           return PLATFORM.emptyArray;
-        } 
-        
+        }
+
         current = current.parent;
       } else {
         return buildAllResponse(resolver, current, this);
@@ -489,7 +492,7 @@ class Container implements IContainer {
     return resolver;
   }
 
-  getFactory(type: Function): IFactory {
+  public getFactory(type: Function): IFactory {
     let factory = this.factories.get(type);
 
     if (factory === undefined) {
@@ -500,7 +503,7 @@ class Container implements IContainer {
     return factory;
   }
 
-  createChild(): IContainer {
+  public createChild(): IContainer {
     const child = new Container(this.configuration);
     child.parent = this;
     return child;
@@ -537,7 +540,7 @@ export const Registration = {
           let registry: IRegistry | null =  null;
 
           if (resolver.getFactory) {
-            let factory = resolver.getFactory(container);
+            const factory = resolver.getFactory(container);
 
             if (factory !== null) {
               registry = factory.construct(container, rest);
@@ -580,47 +583,63 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
 const classInvokers: Record<string, IInvoker> = {
   [0]: {
     invoke(container: IContainer, Type: Function) {
-      return new (<any>Type)();
+      return new (Type as any)();
     },
-    invokeWithDynamicDependencies: invokeWithDynamicDependencies
+    invokeWithDynamicDependencies
   },
   [1]: {
     invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (<any>Type)(container.get(deps[0]));
+      return new (Type as any)(container.get(deps[0]));
     },
-    invokeWithDynamicDependencies: invokeWithDynamicDependencies
+    invokeWithDynamicDependencies
   },
   [2]: {
     invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (<any>Type)(container.get(deps[0]), container.get(deps[1]));
+      return new (Type as any)(container.get(deps[0]), container.get(deps[1]));
     },
-    invokeWithDynamicDependencies: invokeWithDynamicDependencies
+    invokeWithDynamicDependencies
   },
   [3]: {
     invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (<any>Type)(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
+      return new (Type as any)(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
-    invokeWithDynamicDependencies: invokeWithDynamicDependencies
+    invokeWithDynamicDependencies
   },
   [4]: {
     invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (<any>Type)(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]));
+      return new (Type as any)(
+        container.get(deps[0]),
+        container.get(deps[1]),
+        container.get(deps[2]),
+        container.get(deps[3])
+      );
     },
-    invokeWithDynamicDependencies: invokeWithDynamicDependencies
+    invokeWithDynamicDependencies
   },
   [5]: {
     invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (<any>Type)(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]), container.get(deps[4]));
+      return new (Type as any)(
+        container.get(deps[0]),
+        container.get(deps[1]),
+        container.get(deps[2]),
+        container.get(deps[3]),
+        container.get(deps[4])
+      );
     },
-    invokeWithDynamicDependencies: invokeWithDynamicDependencies
+    invokeWithDynamicDependencies
   },
   fallback: {
-    invoke: <any>invokeWithDynamicDependencies,
-    invokeWithDynamicDependencies: invokeWithDynamicDependencies
+    invoke: invokeWithDynamicDependencies as any,
+    invokeWithDynamicDependencies
   }
 };
 
-function invokeWithDynamicDependencies(container: IContainer, fn: Function, staticDependencies: any[], dynamicDependencies: any[]): any {
+function invokeWithDynamicDependencies(
+  container: IContainer,
+  fn: Function,
+  staticDependencies: any[],
+  dynamicDependencies: any[]
+): any {
   let i = staticDependencies.length;
   let args = new Array(i);
   let lookup;

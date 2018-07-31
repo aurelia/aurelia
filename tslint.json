@@ -5,6 +5,7 @@
   ],
   "defaultSeverity": "error",
   "rules": {
+    "ban-types": false,
     "no-implicit-dependencies": [true, "dev"],
     "only-arrow-functions": false,
     "quotemark": [true, "single"],
@@ -12,6 +13,7 @@
     "ordered-imports": [false],
     "whitespace": [true, "check-branch", "check-decl", "check-operator", "check-module", "check-separator", "check-type"],
     "interface-name": [true, "always-prefix"],
+    "interface-over-type-literal": false,
     "no-empty-interface": false,
     "no-shadowed-variable": false,
     "no-string-literal": false,

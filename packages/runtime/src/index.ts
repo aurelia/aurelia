@@ -9,7 +9,7 @@ export * from './binding/resources/update-trigger-binding-behavior';
 
 export * from './binding/array-change-records'; // TODO: remove
 export * from './binding/array-observation'; // TODO: remove
-export { ArrayObserver } from './binding/array-observer';
+export { ArrayObserver, enableArrayObservation, disableArrayObservation, nativePush, nativePop, nativeShift, nativeUnshift, nativeSplice, nativeReverse, nativeSort } from './binding/array-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export * from './binding/ast';
 export * from './binding/binding-behavior';
 export * from './binding/binding-context';
@@ -29,14 +29,14 @@ export * from './binding/expression-parser';
 export * from './binding/listener';
 export * from './binding/map-change-records'; // TODO: remove
 export * from './binding/map-observation'; // TODO: remove
-export { MapObserver } from './binding/map-observer';
+export { MapObserver, enableMapObservation, disableMapObservation, nativeSet, nativeDelete as nativeMapDelete, nativeClear as nativeMapClear } from './binding/map-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export * from './binding/observation';
 export * from './binding/observer-locator';
 export * from './binding/property-observation';
 export * from './binding/ref';
 export * from './binding/select-value-observer';
 export * from './binding/set-observation'; // TODO: remove
-export { SetObserver } from './binding/set-observer';
+export { SetObserver, enableSetObservation, disableSetObservation, nativeAdd, nativeDelete as nativeSetDelete, nativeClear as nativeSetClear } from './binding/set-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export * from './binding/signaler';
 export * from './binding/subscriber-collection';
 export * from './binding/svg-analyzer';

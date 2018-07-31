@@ -1,14 +1,14 @@
-import { ITemplateSource, TargetedInstructionType } from './../../../../src/runtime/templating/instructions';
-import { Aurelia } from '../../../../src/runtime/aurelia';
-import { Repeater } from '../../../../src/runtime/templating/resources/repeater';
-import { IContainer, DI } from '../../../../src/kernel';
-import { ITaskQueue } from '../../../../src/runtime/task-queue';
-import { enableArrayObservation, disableArrayObservation } from '../../../../src/runtime/binding/array-observer';
-import { DOM, INode } from '../../../../src/runtime/dom';
+import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime';
+import { Repeater } from '@aurelia/runtime';
+import { IContainer, DI } from '@aurelia/kernel';
+import { ITaskQueue } from '@aurelia/runtime';
+import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
+import { DOM, INode } from '@aurelia/runtime';
 import { createAureliaRepeaterConfig, IRepeaterFixture, padRight, createRepeater, assertDOMSynchronized, incrementItems, createRepeaterTemplateSource, createTextBindingTemplateSource } from '../../util';
-import { ICustomElement } from '../../../../src/runtime/templating/custom-element';
-import { IExpressionParser } from '../../../../src/runtime/binding/expression-parser';
-import { AccessScope, AccessMember } from '../../../../src/runtime/binding/ast';
+import { ICustomElement } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/runtime';
+import { AccessScope, AccessMember } from '@aurelia/runtime';
 import { expect } from 'chai';
 
 describe('ArrayRepeater - render html', () => {

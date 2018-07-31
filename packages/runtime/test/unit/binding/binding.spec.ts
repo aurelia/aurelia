@@ -1,15 +1,15 @@
 import { spy } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression } from './../../../src/runtime/binding/ast';
+import { AccessMember, PrimitiveLiteral, IExpression } from '@aurelia/runtime';
 
-import { Binding, IBindingTarget } from './../../../src/runtime/binding/binding';
-import { IObserverLocator } from '../../../src/runtime/binding/observer-locator';
-import { DI, IContainer } from '../../../src/kernel';
-import { AccessScope } from '../../../src/runtime/binding/ast';
+import { Binding, IBindingTarget } from '@aurelia/runtime';
+import { IObserverLocator } from '@aurelia/runtime';
+import { DI, IContainer } from '@aurelia/kernel';
+import { AccessScope } from '@aurelia/runtime';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
-import { BindingMode } from '../../../src/runtime/binding/binding-mode';
-import { BindingFlags } from '../../../src/runtime/binding/binding-flags';
-import { sourceContext } from '../../../src/runtime/binding/binding-context';
+import { BindingMode } from '@aurelia/runtime';
+import { BindingFlags } from '@aurelia/runtime';
+import { sourceContext } from '@aurelia/runtime';
 
 
 /**

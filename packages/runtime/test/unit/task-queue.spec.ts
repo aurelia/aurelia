@@ -1,4 +1,4 @@
-import { TaskQueue } from '../../src/runtime/task-queue';
+import { TaskQueue } from '@aurelia/runtime';
 import { expect } from 'chai';
 
 describe('TaskQueue', () => {

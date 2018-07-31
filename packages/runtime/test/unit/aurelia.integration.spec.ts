@@ -1,12 +1,12 @@
-// import { Aurelia, ISinglePageApp } from '../../src/runtime/aurelia';
+// import { Aurelia, ISinglePageApp } from '@aurelia/runtime';
 // import { App } from '../../src/test-aot/app';
 // import { GeneratedConfiguration } from '../../src/test-aot/generated-configuration';
 // import { DebugConfiguration } from '../../src/debug/configuration';
 // import { expect } from 'chai';
 // import { spy } from 'sinon';
-// import { DOM } from '../../src/runtime/dom';
-// import { ITaskQueue } from '../../src/runtime/task-queue';
-// import { IContainer, DI } from '../../src/kernel';
+// import { DOM } from '@aurelia/runtime';
+// import { ITaskQueue } from '@aurelia/runtime';
+// import { IContainer, DI } from '@aurelia/kernel';
 
 // describe('Aurelia', () => {
 //   let container: IContainer;

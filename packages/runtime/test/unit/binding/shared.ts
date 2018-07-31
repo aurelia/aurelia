@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { BindingContext, IScope } from '../../../src/runtime/binding/binding-context';
-import { DI, IContainer } from '../../../src/kernel';
-import { IObserverLocator } from '../../../src/runtime/binding/observer-locator';
+import { BindingContext, IScope } from '@aurelia/runtime';
+import { DI, IContainer } from '@aurelia/kernel';
+import { IObserverLocator } from '@aurelia/runtime';
 
 export const checkDelay = 20;
 

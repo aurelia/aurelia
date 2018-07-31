@@ -1,8 +1,8 @@
 import { match } from 'sinon';
-import { SetObserver, enableSetObservation, disableSetObservation, nativeDelete, nativeAdd } from '../../../src/runtime/binding/set-observer';
+import { SetObserver, enableSetObservation, disableSetObservation, nativeSetDelete, nativeAdd } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
-import { IndexMap } from '../../../src/runtime/binding/observation';
+import { IndexMap } from '@aurelia/runtime';
 
 function assetSetEqual(actual: Set<any>, expected: Set<any>): void {
   const len = actual.size;
@@ -273,7 +273,7 @@ function synchronize(oldSet: Set<any>, indexMap: IndexMap, newSet: Set<any>): vo
   }
 
   for (const entry of indexMap.deletedItems) {
-    nativeDelete.call(oldSet, entry);
+    nativeSetDelete.call(oldSet, entry);
   }
   let i = 0;
   for (const entry of newSet.keys()) {

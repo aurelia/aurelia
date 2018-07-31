@@ -1,12 +1,12 @@
-import { IExpression } from '../../../../src/runtime/binding/ast';
-import { IObserverLocator } from '../../../../src/runtime/binding/observer-locator';
-import { IContainer } from '../../../../src/kernel';
-import { Binding } from '../../../../src/runtime/binding/binding';
-import { BindingFlags } from '../../../../src/runtime/binding/binding-flags';
-import { IScope } from '../../../../src/runtime/binding/binding-context';
-import { BindingMode } from '../../../../src/runtime/binding/binding-mode';
+import { IExpression } from '@aurelia/runtime';
+import { IObserverLocator } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { Binding } from '@aurelia/runtime';
+import { BindingFlags } from '@aurelia/runtime';
+import { IScope } from '@aurelia/runtime';
+import { BindingMode } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { SelfBindingBehavior } from '../../../../src/runtime/binding/resources/self-binding-behavior';
+import { SelfBindingBehavior } from '@aurelia/runtime';
 
 describe('SelfBindingBehavior', () => {
   let sourceExpression: IExpression;

@@ -1,4 +1,4 @@
-import { PrimitiveObserver } from '../../../src/runtime/binding/property-observation';
+import { PrimitiveObserver } from '@aurelia/runtime';
 import { createObserverLocator } from './shared';
 import { expect } from 'chai';
 

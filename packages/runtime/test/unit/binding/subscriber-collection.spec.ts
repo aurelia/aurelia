@@ -1,4 +1,4 @@
-import { SubscriberCollection } from '../../../src/runtime/binding/subscriber-collection';
+import { SubscriberCollection } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 

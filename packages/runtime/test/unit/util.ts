@@ -1,11 +1,11 @@
 import { spy } from 'sinon';
-import { IVisual } from '../../src/runtime/templating/visual';
-import { CustomElementResource, ICustomElement } from '../../src/runtime/templating/custom-element';
-import { ITemplateSource, TargetedInstructionType } from '../../src/runtime/templating/instructions';
-import { IContainer } from '../../src/kernel';
-import { IExpressionParser } from '../../src/runtime/binding/expression-parser';
-import { AccessMember, AccessScope } from '../../src/runtime/binding/ast';
-import { Repeater } from '../../src/runtime/templating/resources/repeater';
+import { IVisual } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement } from '@aurelia/runtime';
+import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { IExpressionParser } from '@aurelia/runtime';
+import { AccessMember, AccessScope } from '@aurelia/runtime';
+import { Repeater } from '@aurelia/runtime';
 
 /**
  * stringify primitive value (null -> 'null' and undefined -> 'undefined')

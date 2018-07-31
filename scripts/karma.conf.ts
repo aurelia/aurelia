@@ -19,7 +19,12 @@ export interface IKarmaConfigOptions extends karma.ConfigOptions {
 }
 
 export default function(config: IKarmaConfig): void {
-  const basePath = config.package && path.resolve(__dirname, '..', 'packages', config.package) || './';
+  const packages = path.resolve(__dirname, '..', 'packages');
+  const basePath = path.join(packages, config.package); // TODO: find something cleaner for this alias stuff (webpack + karma + ts3 + lerna much?)
+  const au_debug = path.join(packages, 'debug', 'src');
+  const au_jit = path.join(packages, 'jit', 'src');
+  const au_kernel = path.join(packages, 'kernel', 'src');
+  const au_runtime = path.join(packages, 'runtime', 'src');
 
   const options: IKarmaConfigOptions = {
     basePath: basePath,
@@ -32,7 +37,13 @@ export default function(config: IKarmaConfig): void {
       mode: 'development',
       resolve: {
         extensions: ['.ts', '.js'],
-        modules: ['src', 'node_modules']
+        modules: ['src', 'node_modules'],
+        alias: {
+          '@aurelia/au_debug': au_debug,
+          '@aurelia/jit': au_jit,
+          '@aurelia/kernel': au_kernel,
+          '@aurelia/runtime': au_runtime
+        }
       },
       devtool: 'cheap-module-eval-source-map',
       module: {

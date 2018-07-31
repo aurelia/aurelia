@@ -1,7 +1,7 @@
-import { SetterObserver } from '../../../src/runtime/binding/property-observation';
+import { SetterObserver } from '@aurelia/runtime';
 import { executeSharedPropertyObserverTests } from './shared';
-import { DI } from '../../../src/kernel';
-import { ITaskQueue } from '../../../src/runtime/task-queue';
+import { DI } from '@aurelia/kernel';
+import { ITaskQueue } from '@aurelia/runtime';
 
 describe('SetterObserver', () => {
   let obj, observer;

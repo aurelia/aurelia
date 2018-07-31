@@ -1,8 +1,8 @@
 import { match } from 'sinon';
-import { ArrayObserver, enableArrayObservation, disableArrayObservation } from '../../../src/runtime/binding/array-observer';
+import { ArrayObserver, enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
-import { IndexMap } from '../../../src/runtime/binding/observation';
+import { IndexMap } from '@aurelia/runtime';
 
 function assertArrayEqual(actual: any[], expected: any[]): void {
   const len = actual.length;

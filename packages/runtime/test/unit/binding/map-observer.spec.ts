@@ -1,8 +1,8 @@
 import { match } from 'sinon';
-import { MapObserver, enableMapObservation, disableMapObservation, nativeDelete, nativeSet } from '../../../src/runtime/binding/map-observer';
+import { MapObserver, enableMapObservation, disableMapObservation, nativeMapDelete, nativeSet } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
-import { IndexMap } from '../../../src/runtime/binding/observation';
+import { IndexMap } from '@aurelia/runtime';
 
 function assetMapEqual(actual: Map<any, any>, expected: Map<any, any>): void {
   const len = actual.size;
@@ -272,7 +272,7 @@ function synchronize(oldMap: Map<any, any>, indexMap: IndexMap, newMap: Map<any,
   }
 
   for (const entry of indexMap.deletedItems) {
-    nativeDelete.call(oldMap, entry);
+    nativeMapDelete.call(oldMap, entry);
   }
   let i = 0;
   for (const entry of newMap.keys()) {

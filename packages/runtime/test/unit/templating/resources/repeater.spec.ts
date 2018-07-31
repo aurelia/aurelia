@@ -1,21 +1,21 @@
-import { IContainer, DI, Registration } from '../../../../src/kernel';
-import { Repeater } from '../../../../src/runtime/templating/resources/repeater';
-import { enableArrayObservation, disableArrayObservation } from '../../../../src/runtime/binding/array-observer';
-import { ITaskQueue } from '../../../../src/runtime/task-queue';
-import { IRenderSlot, RenderSlot } from '../../../../src/runtime/templating/render-slot';
-import { IViewOwner } from '../../../../src/runtime/templating/view';
-import { IVisualFactory, IVisual, MotionDirection, RenderCallback } from '../../../../src/runtime/templating/visual';
+import { IContainer, DI, Registration } from '@aurelia/kernel';
+import { Repeater } from '@aurelia/runtime';
+import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
+import { ITaskQueue } from '@aurelia/runtime';
+import { IRenderSlot, RenderSlot } from '@aurelia/runtime';
+import { IViewOwner } from '@aurelia/runtime';
+import { IVisualFactory, IVisual, MotionDirection, RenderCallback } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { IScope } from '../../../../src/runtime/binding/binding-context';
-import { AccessScope } from '../../../../src/runtime/binding/ast';
-import { Binding } from '../../../../src/runtime/binding/binding';
-import { DetachLifecycle, AttachLifecycle, IAttach } from '../../../../src/runtime/templating/lifecycle';
-import { INode, IView } from '../../../../src/runtime/dom';
-import { IRenderContext } from '../../../../src/runtime/templating/render-context';
-import { IBindScope, IObservedArray } from '../../../../src/runtime/binding/observation';
-import { IEmulatedShadowSlot } from '../../../../src/runtime/templating/shadow-dom';
+import { IScope } from '@aurelia/runtime';
+import { AccessScope } from '@aurelia/runtime';
+import { Binding } from '@aurelia/runtime';
+import { DetachLifecycle, AttachLifecycle, IAttach } from '@aurelia/runtime';
+import { INode, IView } from '@aurelia/runtime';
+import { IRenderContext } from '@aurelia/runtime';
+import { IBindScope, IObservedArray } from '@aurelia/runtime';
+import { IEmulatedShadowSlot } from '@aurelia/runtime';
 import { padRight, incrementItems, assertVisualsSynchronized } from '../../util';
-import { BindingFlags } from '../../../../src/runtime/binding/binding-flags';
+import { BindingFlags } from '@aurelia/runtime';
 
 class TestViewOwner implements IViewOwner {
   $context: IRenderContext;

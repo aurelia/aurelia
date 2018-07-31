@@ -1,14 +1,14 @@
-import { DataAttributeObserver } from './../../../../src/runtime/binding/element-observation';
-import { AttrBindingBehavior } from '../../../../src/runtime/binding/resources/attr-binding-behavior';
-import { IExpression } from '../../../../src/runtime/binding/ast';
-import { IObserverLocator } from '../../../../src/runtime/binding/observer-locator';
-import { IContainer } from '../../../../src/kernel';
-import { Binding } from '../../../../src/runtime/binding/binding';
-import { BindingFlags } from '../../../../src/runtime/binding/binding-flags';
-import { IScope } from '../../../../src/runtime/binding/binding-context';
-import { BindingMode } from '../../../../src/runtime/binding/binding-mode';
+import { DataAttributeObserver } from '@aurelia/runtime';
+import { AttrBindingBehavior } from '@aurelia/runtime';
+import { IExpression } from '@aurelia/runtime';
+import { IObserverLocator } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { Binding } from '@aurelia/runtime';
+import { BindingFlags } from '@aurelia/runtime';
+import { IScope } from '@aurelia/runtime';
+import { BindingMode } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { DOM } from '../../../../src/runtime/dom';
+import { DOM } from '@aurelia/runtime';
 
 describe('AttrBindingBehavior', () => {
   let sourceExpression: IExpression;

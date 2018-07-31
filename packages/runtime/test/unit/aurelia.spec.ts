@@ -1,4 +1,4 @@
-import { Aurelia } from '../../src/runtime/aurelia';
+import { Aurelia } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 

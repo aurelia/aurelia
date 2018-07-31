@@ -54,13 +54,48 @@ jobs:
             JUNIT_REPORT_PATH: ./junit/
             JUNIT_REPORT_NAME: test-results.xml
             TS_NODE_PROJECT: ./scripts/tsconfig.json
-      - run: codecov -f ~/repo/packages/*/coverage/coverage-final.json
+      - run: codecov -f ~/repo/packages/debug/coverage/coverage-final.json # Hmm, can't we loop here somehow?
+      - run: codecov -f ~/repo/packages/jit/coverage/coverage-final.json 
+      - run: codecov -f ~/repo/packages/kernel/coverage/coverage-final.json 
+      - run: codecov -f ~/repo/packages/runtime/coverage/coverage-final.json 
+      - run: codecov -f ~/repo/packages/plugin-requirejs/coverage/coverage-final.json 
+      - run: codecov -f ~/repo/packages/plugin-svg/coverage/coverage-final.json 
       - store_test_results:
-          path: ~/repo/packages/*/junit
+          path: ./repo/packages/debug/junit
+      - store_test_results:
+          path: ./repo/packages/jit/junit
+      - store_test_results:
+          path: ./repo/packages/kernel/junit
+      - store_test_results:
+          path: ./repo/packages/runtime/junit
+      - store_test_results:
+          path: ./repo/packages/plugin-requirejs/junit
+      - store_test_results:
+          path: ./repo/packages/plugin-svg/junit
       - store_artifacts:
-          path: ./packages/*/junit
+          path: ./packages/debug/junit
       - store_artifacts:
-          path: ./packages/*/coverage
+          path: ./packages/jit/junit
+      - store_artifacts:
+          path: ./packages/kernel/junit
+      - store_artifacts:
+          path: ./packages/runtime/junit
+      - store_artifacts:
+          path: ./packages/plugin-requirejs/junit
+      - store_artifacts:
+          path: ./packages/plugin-svg/junit
+      - store_artifacts:
+          path: ./packages/debug/coverage
+      - store_artifacts:
+          path: ./packages/jit/coverage
+      - store_artifacts:
+          path: ./packages/kernel/coverage
+      - store_artifacts:
+          path: ./packages/runtime/coverage
+      - store_artifacts:
+          path: ./packages/plugin-requirejs/coverage
+      - store_artifacts:
+          path: ./packages/plugin-svg/coverage
 
   #e2e_tests:
   #  <<: *defaults

@@ -38,8 +38,8 @@ interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribu
 
 
 /**
-* Decorator: Indicates that the decorated class is a custom attribute.
-*/
+ * Decorator: Indicates that the decorated class is a custom attribute.
+ */
 export function customAttribute(nameOrSource: string | ICustomAttributeSource) {
   return function<T extends Constructable>(target: T) {
     return CustomAttributeResource.define(nameOrSource, target);
@@ -47,10 +47,10 @@ export function customAttribute(nameOrSource: string | ICustomAttributeSource) {
 }
 
 /**
-* Decorator: Applied to custom attributes. Indicates that whatever element the
-* attribute is placed on should be converted into a template and that this
-* attribute controls the instantiation of the template.
-*/
+ * Decorator: Applied to custom attributes. Indicates that whatever element the
+ * attribute is placed on should be converted into a template and that this
+ * attribute controls the instantiation of the template.
+ */
 export function templateController(nameOrSource: string | Omit<ICustomAttributeSource, 'isTemplateController'>) {
   return function<T extends Constructable>(target: T) {
     let source: ICustomAttributeSource;

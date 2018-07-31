@@ -1,6 +1,7 @@
 import { BindingContext as RuntimeContext, IScope } from '@aurelia/runtime';
 
-export const BindingContext = Object.assign(RuntimeContext, {
+export const BindingContext = {
+  ...RuntimeContext,
   createScopeForTest(bindingContext: any, parentBindingContext?: any): IScope {
     if (parentBindingContext) {
       return {
@@ -14,4 +15,4 @@ export const BindingContext = Object.assign(RuntimeContext, {
       overrideContext: this.createOverride(bindingContext)
     };
   }
-});
+};

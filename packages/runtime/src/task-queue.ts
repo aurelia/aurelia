@@ -15,23 +15,23 @@ export interface ITaskQueue {
   longStacks: boolean;
 
   /**
-  * Queues a task on the micro task queue for ASAP execution.
-  * @param task The task to queue up for ASAP execution.
-  */
+   * Queues a task on the micro task queue for ASAP execution.
+   * @param task The task to queue up for ASAP execution.
+   */
   queueMicroTask(task: ICallable & { stack?: string }): void
 
   /**
-  * Immediately flushes the micro task queue.
-  */
+   * Immediately flushes the micro task queue.
+   */
   flushMicroTaskQueue(): void
 
   /**
-  * Queues a task on the macro task queue for turn-based execution.
-  * @param task The task to queue up for turn-based execution.
-  */
+   * Queues a task on the macro task queue for turn-based execution.
+   * @param task The task to queue up for turn-based execution.
+   */
   queueTask(task: ICallable & { stack?: string }): void
 
-  /**
+ /**
   * Immediately flushes the task queue.
   */
   flushTaskQueue(): void

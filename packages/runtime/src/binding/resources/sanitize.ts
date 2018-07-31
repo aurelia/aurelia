@@ -4,7 +4,7 @@ import { valueConverter } from '../value-converter';
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 
 export interface ISanitizer {
-  /**
+ /**
   * Sanitizes the provided input.
   * @param input The input to be sanitized.
   */
@@ -20,8 +20,8 @@ export const ISanitizer = DI.createInterface<ISanitizer>()
 );
 
 /**
-* Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
-*/
+ * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
+ */
 @valueConverter('sanitize')
 @inject(ISanitizer)
 export class SanitizeValueConverter {
@@ -29,7 +29,7 @@ export class SanitizeValueConverter {
     this.sanitizer = sanitizer;
   }
 
-  /**
+ /**
   * Process the provided markup that flows to the view.
   * @param untrustedMarkup The untrusted markup to be sanitized.
   */

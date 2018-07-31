@@ -55,20 +55,20 @@ export enum SwapOrder {
 export const IRenderSlot = DI.createInterface<IRenderSlot>().noDefault();
 
 /**
-* Represents a slot or location within the DOM to which views can be added and removed.
-* Manages the view lifecycle for its children.
-*/
+ * Represents a slot or location within the DOM to which views can be added and removed.
+ * Manages the view lifecycle for its children.
+ */
 export interface IRenderSlot extends IAttach {
   children: ReadonlyArray<IVisual>;
 
-  /**
+ /**
   * Adds a view to the slot.
   * @param visual The view to add.
   * @return May return a promise if the view addition triggered an animation.
   */
   add(visual: IVisual): void | Promise<boolean>;
 
-  /**
+ /**
   * Inserts a view into the slot.
   * @param index The index to insert the view at.
   * @param visual The view to insert.
@@ -76,14 +76,14 @@ export interface IRenderSlot extends IAttach {
   */
  insert(index: number, visual: IVisual): void | Promise<boolean>;
 
-  /**
+ /**
   * Moves a view across the slot.
   * @param sourceIndex The index the view is currently at.
   * @param targetIndex The index to insert the view at.
   */
   move(sourceIndex: number, targetIndex: number): void;
 
-  /**
+ /**
   * Replaces the existing view slot children with the new visual.
   * @param newVisual The visual to swap in.
   * @param skipAnimation Should the removal animation be skipped?
@@ -91,7 +91,7 @@ export interface IRenderSlot extends IAttach {
   */
   swap(newVisual: IVisual, strategy: SwapOrder, returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<any>;
 
-  /**
+ /**
   * Removes a view from the slot.
   * @param visual The view to remove.
   * @param skipAnimation Should the removal animation be skipped?
@@ -99,7 +99,7 @@ export interface IRenderSlot extends IAttach {
   */
   remove(visual: IVisual, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual>;
 
-  /**
+ /**
   * Removes a view an a specified index from the slot.
   * @param index The index to remove the view at.
   * @param skipAnimation Should the removal animation be skipped?
@@ -107,14 +107,14 @@ export interface IRenderSlot extends IAttach {
   */
   removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual>;
 
-  /**
+ /**
   * Removes all views from the slot.
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removals triggered an animation.
   */
   removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]>;
 
-  /**
+ /**
   * Removes many views from the slot.
   * @param visualsToRemove The array of views to remove.
   * @param skipAnimation Should the removal animation be skipped?

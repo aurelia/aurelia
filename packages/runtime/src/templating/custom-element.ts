@@ -33,8 +33,8 @@ interface IInternalCustomElementImplementation extends Writable<ICustomElement> 
 }
 
 /**
-* Decorator: Indicates that the decorated class is a custom element.
-*/
+ * Decorator: Indicates that the decorated class is a custom element.
+ */
 export function customElement(nameOrSource: string | ITemplateSource) {
   return function<T extends Constructable>(target: T) {
     return CustomElementResource.define(nameOrSource, target);
@@ -44,9 +44,9 @@ export function customElement(nameOrSource: string | ITemplateSource) {
 const defaultShadowOptions = { mode: 'open' };
 
 /**
-* Decorator: Indicates that the custom element should render its view in Shadow
-* DOM.
-*/
+ * Decorator: Indicates that the custom element should render its view in Shadow
+ * DOM.
+ */
 export function useShadowDOM(targetOrOptions?): any {
   let options = typeof targetOrOptions === 'function' || !targetOrOptions
     ? defaultShadowOptions
@@ -61,9 +61,9 @@ export function useShadowDOM(targetOrOptions?): any {
 }
 
 /**
-* Decorator: Indicates that the custom element should be rendered without its
-* element container.
-*/
+ * Decorator: Indicates that the custom element should be rendered without its
+ * element container.
+ */
 export function containerless(target?): any {
   let deco = function<T extends Constructable>(target: T) {
     (<any>target).containerless = true;

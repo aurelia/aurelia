@@ -4,8 +4,8 @@ import { ICustomAttribute } from '../custom-attribute';
 import { BindingFlags } from '../../binding/binding-flags';
 
 /**
-* For internal use only. May change without warning.
-*/
+ * For internal use only. May change without warning.
+ */
 
 export interface IfCore extends ICustomAttribute {}
 export abstract class IfCore {

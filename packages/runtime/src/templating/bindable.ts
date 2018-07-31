@@ -21,9 +21,9 @@ export interface IBindableDescription {
 }
 
 /**
-* Decorator: Specifies custom behavior for a bindable property.
-* @param configOrTarget The overrides.
-*/
+ * Decorator: Specifies custom behavior for a bindable property.
+ * @param configOrTarget The overrides.
+ */
 export function bindable(configOrTarget?: BindableSource | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
     target = target.constructor;

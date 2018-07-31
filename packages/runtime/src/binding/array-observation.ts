@@ -1,6 +1,6 @@
 /* eslint-disable no-extend-native */
-import { ModifyCollectionObserver } from './collection-observation';
 import { ITaskQueue } from '../task-queue';
+import { ModifyCollectionObserver } from './collection-observation';
 import { IBindingCollectionObserver } from './observation';
 
 const pop = Array.prototype.pop;

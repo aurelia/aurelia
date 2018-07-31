@@ -1,9 +1,9 @@
-import { IBinding } from './binding';
 import { IServiceLocator } from '@aurelia/kernel';
-import { IScope, BindingContext } from './binding-context';
-import { ISignaler } from './signaler';
-import { BindingFlags } from './binding-flags';
+import { IBinding } from './binding';
 import { BindingBehaviorResource } from './binding-behavior';
+import { BindingContext, IScope } from './binding-context';
+import { BindingFlags } from './binding-flags';
+import { ISignaler } from './signaler';
 import { ValueConverterResource } from './value-converter';
 
 export type IsPrimary = AccessThis | AccessScope | ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;

@@ -1,6 +1,5 @@
-import { ICallable } from '@aurelia/kernel';
-import { DI } from '@aurelia/kernel';
-import { sourceContext } from "./binding-context";
+import { DI, ICallable } from '@aurelia/kernel';
+import { sourceContext } from './binding-context';
 
 type Signal = string;
 

@@ -1,8 +1,8 @@
-import { IScope } from '../binding-context';
-import { Listener } from '../listener';
 import { Reporter } from '@aurelia/kernel';
 import { bindingBehavior } from '../binding-behavior';
+import { IScope } from '../binding-context';
 import { BindingFlags } from '../binding-flags';
+import { Listener } from '../listener';
 
 function findOriginalEventTarget(event) {
   return (event.path && event.path[0]) || (event.deepPath && event.deepPath[0]) || event.target;

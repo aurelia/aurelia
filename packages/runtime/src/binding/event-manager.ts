@@ -1,6 +1,5 @@
-import { IDisposable } from '@aurelia/kernel';
-import { DI } from '@aurelia/kernel';
-import { INode, DOM } from '../dom';
+import { DI, IDisposable } from '@aurelia/kernel';
+import { DOM, INode } from '../dom';
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
 function findOriginalEventTarget(event: any) {

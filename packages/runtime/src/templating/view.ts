@@ -1,14 +1,12 @@
-import { PLATFORM } from '@aurelia/kernel';
-import { IEmulatedShadowSlot } from './shadow-dom';
+import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { IBindScope } from '../binding/observation';
+import { DOM, IChildObserver, INode, IView } from '../dom';
 import { IAttach } from './lifecycle';
-import { DI } from '@aurelia/kernel';
-import { INode, DOM, IChildObserver, IView } from '../dom';
-import { IRenderSlot } from './render-slot';
-import { Reporter } from '@aurelia/kernel';
-import { IVisual } from './visual';
 import { IRenderContext } from './render-context';
+import { IRenderSlot } from './render-slot';
+import { IEmulatedShadowSlot } from './shadow-dom';
+import { IVisual } from './visual';
 
 export const IViewOwner = DI.createInterface<IViewOwner>();
 

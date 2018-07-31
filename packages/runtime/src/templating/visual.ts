@@ -1,9 +1,9 @@
-import { IBindScope } from "../binding/observation";
-import { IAttach } from "./lifecycle";
-import { IViewOwner } from "./view";
-import { ICustomElement } from "./custom-element";
 import { DI } from '@aurelia/kernel';
-import { IRenderSlot } from "./render-slot";
+import { IBindScope } from '../binding/observation';
+import { ICustomElement } from './custom-element';
+import { IAttach } from './lifecycle';
+import { IRenderSlot } from './render-slot';
+import { IViewOwner } from './view';
 
 export type RenderCallback = (visual: IVisual) => void;
 

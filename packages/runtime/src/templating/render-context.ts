@@ -1,14 +1,12 @@
-import { IContainer, IResolver, IServiceLocator } from '@aurelia/kernel';
-import { RenderSlot, IRenderSlot } from "./render-slot";
-import { INode, DOM } from "../dom";
-import { PLATFORM } from '@aurelia/kernel';
-import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
-import { IRenderingEngine } from "./rendering-engine";
-import { IViewOwner } from "./view";
-import { IVisualFactory } from "./visual";
-import { ICustomAttribute } from "./custom-attribute";
-import { ImmutableArray, Immutable } from '@aurelia/kernel';
-import { ICustomElement } from "./custom-element";
+import { IContainer, Immutable, ImmutableArray, IResolver, IServiceLocator, PLATFORM } from '@aurelia/kernel';
+import { DOM, INode } from '../dom';
+import { ICustomAttribute } from './custom-attribute';
+import { ICustomElement } from './custom-element';
+import { IHydrateElementInstruction, ITargetedInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from './instructions';
+import { IRenderSlot, RenderSlot } from './render-slot';
+import { IRenderingEngine } from './rendering-engine';
+import { IViewOwner } from './view';
+import { IVisualFactory } from './visual';
 
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;

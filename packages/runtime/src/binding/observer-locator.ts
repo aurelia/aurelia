@@ -1,30 +1,19 @@
+import { DI, inject, Reporter } from '@aurelia/kernel';
 import { DOM } from '../dom';
-import { getArrayObserver } from './array-observation';
-import { getMapObserver } from './map-observation';
-import { getSetObserver } from './set-observation';
-import { IEventManager } from './event-manager';
-import { IDirtyChecker } from './dirty-checker';
-import {
-  SetterObserver,
-  PrimitiveObserver,
-  propertyAccessor
-} from './property-observation';
-import { SelectValueObserver } from './select-value-observer';
-import { CheckedObserver } from './checked-observer';
-import {
-  ValueAttributeObserver,
-  XLinkAttributeObserver,
-  DataAttributeObserver,
-  StyleObserver,
-  dataAttributeAccessor
-} from './element-observation';
-import { ClassObserver } from './class-observer';
-import { ISVGAnalyzer } from './svg-analyzer';
-import { IBindingTargetObserver, IObservable, IBindingTargetAccessor, IBindingCollectionObserver, AccessorOrObserver, IAccessor } from './observation';
-import { Reporter } from '@aurelia/kernel';
-import { DI, inject } from '@aurelia/kernel';
 import { ITaskQueue } from '../task-queue';
+import { getArrayObserver } from './array-observation';
+import { CheckedObserver } from './checked-observer';
+import { ClassObserver } from './class-observer';
 import { createComputedObserver } from './computed-observer';
+import { IDirtyChecker } from './dirty-checker';
+import { dataAttributeAccessor, DataAttributeObserver, StyleObserver, ValueAttributeObserver, XLinkAttributeObserver } from './element-observation';
+import { IEventManager } from './event-manager';
+import { getMapObserver } from './map-observation';
+import { AccessorOrObserver, IAccessor, IBindingCollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, IObservable } from './observation';
+import { PrimitiveObserver, propertyAccessor, SetterObserver } from './property-observation';
+import { SelectValueObserver } from './select-value-observer';
+import { getSetObserver } from './set-observation';
+import { ISVGAnalyzer } from './svg-analyzer';
 
 export interface ObjectObservationAdapter {
   getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;

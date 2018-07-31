@@ -1,9 +1,9 @@
-import { SubscriberCollection } from './subscriber-collection';
-import { ITaskQueue } from '../task-queue';
 import { ICallable } from '@aurelia/kernel';
+import { ITaskQueue } from '../task-queue';
 import { IEventSubscriber } from './event-manager';
-import { IObserverLocator } from './observer-locator';
 import { IAccessor, ISubscribable } from './observation';
+import { IObserverLocator } from './observer-locator';
+import { SubscriberCollection } from './subscriber-collection';
 
 const checkedArrayContext = 'CheckedObserver:array';
 const checkedValueContext = 'CheckedObserver:value';

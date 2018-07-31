@@ -1,7 +1,7 @@
-import { collectionObserver } from './collection-observer';
-import { IObservedMap, CollectionKind, ICollectionSubscriber, IBatchedCollectionSubscriber, ICollectionObserver, IndexMap } from './observation';
-import { BindingFlags } from './binding-flags';
 import { nativePush, nativeSplice } from './array-observer';
+import { BindingFlags } from './binding-flags';
+import { collectionObserver } from './collection-observer';
+import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedMap } from './observation';
 
 const proto = Map.prototype;
 /*@internal*/export const nativeSet = proto.set;

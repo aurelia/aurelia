@@ -1,5 +1,5 @@
-import { CollectionObserver, ICollectionObserver, ICollectionSubscriber, IBatchedCollectionSubscriber, CollectionKind, IndexMap } from './observation';
 import { BindingFlags } from './binding-flags';
+import { CollectionKind, CollectionObserver, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap } from './observation';
 
 function notify(this: CollectionObserver, origin: string, args?: IArguments, flags?: BindingFlags): void {
   this.hasChanges = true;

@@ -1,7 +1,7 @@
-import { ShadowDOMEmulation, IEmulatedShadowSlot } from './shadow-dom';
-import { IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
 import { DI } from '@aurelia/kernel';
 import { INode } from '../dom';
+import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
+import { IEmulatedShadowSlot, ShadowDOMEmulation } from './shadow-dom';
 import { IContentView } from './view';
 import { IVisual, MotionDirection } from './visual';
 

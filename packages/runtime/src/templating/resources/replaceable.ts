@@ -1,9 +1,9 @@
+import { inject } from '@aurelia/kernel';
+import { IScope } from '../../binding/binding-context';
+import { BindingFlags } from '../../binding/binding-flags';
 import { templateController } from '../custom-attribute';
 import { IRenderSlot } from '../render-slot';
-import { IScope } from '../../binding/binding-context';
-import { inject } from '@aurelia/kernel';
-import { IVisualFactory, IVisual } from '../visual';
-import { BindingFlags } from '../../binding/binding-flags';
+import { IVisual, IVisualFactory } from '../visual';
 
 @templateController('replaceable')
 @inject(IVisualFactory, IRenderSlot)

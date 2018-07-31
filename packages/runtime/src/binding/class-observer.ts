@@ -1,5 +1,5 @@
+import { DOM, INode } from '../dom';
 import { IAccessor } from './observation';
-import { INode, DOM } from '../dom';
 
 export class ClassObserver implements IAccessor {
   public doNotCache = true;

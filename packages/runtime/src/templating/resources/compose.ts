@@ -1,14 +1,13 @@
-import { customElement, ICustomElement } from '../custom-element';
-import { IRenderSlot, SwapOrder } from '../render-slot';
-import { ITargetedInstruction, IHydrateElementInstruction, TargetedInstructionType } from '../instructions';
-import { IViewOwner } from '../view';
-import { INode, DOM } from '../../dom';
-import { VisualWithCentralComponent } from '../visual';
-import { IRenderContext } from '../render-context';
-import { IRenderingEngine } from '../rendering-engine';
-import { Immutable } from '@aurelia/kernel';
-import { inject } from '@aurelia/kernel';
+import { Immutable, inject } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding/binding-flags';
+import { DOM, INode } from '../../dom';
+import { customElement, ICustomElement } from '../custom-element';
+import { IHydrateElementInstruction, ITargetedInstruction, TargetedInstructionType } from '../instructions';
+import { IRenderContext } from '../render-context';
+import { IRenderSlot, SwapOrder } from '../render-slot';
+import { IRenderingEngine } from '../rendering-engine';
+import { IViewOwner } from '../view';
+import { VisualWithCentralComponent } from '../visual';
 
 const composeSource = {
   name: 'au-compose',

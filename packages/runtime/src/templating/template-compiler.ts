@@ -1,6 +1,6 @@
-import { TemplateDefinition } from "./instructions";
 import { DI } from '@aurelia/kernel';
-import { IResourceDescriptions } from "../resource";
+import { IResourceDescriptions } from '../resource';
+import { TemplateDefinition } from './instructions';
 
 export interface ITemplateCompiler {
   readonly name: string;

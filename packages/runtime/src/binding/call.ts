@@ -1,11 +1,11 @@
-import { IObserverLocator } from './observer-locator';
+import { IServiceLocator } from '@aurelia/kernel';
+import { INode } from '../dom';
 import { IExpression } from './ast';
 import { IBinding } from './binding';
-import { IServiceLocator } from '@aurelia/kernel';
-import { IBindingTargetAccessor } from './observation';
 import { IScope } from './binding-context';
-import { INode } from '../dom';
 import { BindingFlags } from './binding-flags';
+import { IBindingTargetAccessor } from './observation';
+import { IObserverLocator } from './observer-locator';
 
 export class Call implements IBinding {
   public targetObserver: IBindingTargetAccessor;

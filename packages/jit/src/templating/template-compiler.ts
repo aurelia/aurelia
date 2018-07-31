@@ -1,6 +1,4 @@
-import { ITemplateCompiler } from '@aurelia/runtime';
-import { TemplateDefinition } from '@aurelia/runtime';
-import { IResourceDescriptions } from '@aurelia/runtime';
+import { IResourceDescriptions, ITemplateCompiler, TemplateDefinition } from '@aurelia/runtime';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public get name() {

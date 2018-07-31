@@ -1,10 +1,9 @@
-import { IScope } from '../binding-context';
-import { inject } from '@aurelia/kernel';
+import { inject, Reporter } from '@aurelia/kernel';
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
-import { Reporter } from '@aurelia/kernel';
-import { ISignaler } from '../signaler';
+import { IScope } from '../binding-context';
 import { BindingFlags } from '../binding-flags';
+import { ISignaler } from '../signaler';
 
 type SignalableBinding = Binding & {
   signal: string | string[];

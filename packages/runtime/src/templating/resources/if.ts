@@ -1,10 +1,10 @@
-import { IfCore } from './if-core';
-import { Else } from './else';
-import { IRenderSlot, SwapOrder } from '../render-slot';
-import { templateController } from '../custom-attribute';
 import { inject } from '@aurelia/kernel';
-import { IVisualFactory } from '../visual';
 import { bindable } from '../bindable';
+import { templateController } from '../custom-attribute';
+import { IRenderSlot, SwapOrder } from '../render-slot';
+import { IVisualFactory } from '../visual';
+import { Else } from './else';
+import { IfCore } from './if-core';
 
 @templateController('if')
 @inject(IVisualFactory, IRenderSlot)

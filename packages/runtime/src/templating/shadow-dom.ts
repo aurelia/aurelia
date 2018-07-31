@@ -1,12 +1,12 @@
 import { PLATFORM } from '@aurelia/kernel';;
-import { IViewOwner, IContentView } from './view';
-import { IRenderSlot } from './render-slot';
-import { IBindScope } from '../binding/observation';
 import { IScope } from '../binding/binding-context';
-import { IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
-import { DOM, INode, IView } from '../dom';
-import { IVisual, IVisualFactory } from './visual';
 import { BindingFlags } from '../binding/binding-flags';
+import { IBindScope } from '../binding/observation';
+import { DOM, INode, IView } from '../dom';
+import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
+import { IRenderSlot } from './render-slot';
+import { IContentView, IViewOwner } from './view';
+import { IVisual, IVisualFactory } from './visual';
 
 type ProjectionSource = IRenderSlot | IEmulatedShadowSlot;
 

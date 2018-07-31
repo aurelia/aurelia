@@ -1,8 +1,7 @@
-import { ICustomElement } from './templating/custom-element';
-import { PLATFORM } from '@aurelia/kernel';
-import { IContainer, DI, IRegistry } from '@aurelia/kernel';
-import { IRenderingEngine } from './templating/rendering-engine';
+import { DI, IContainer, IRegistry, PLATFORM } from '@aurelia/kernel';
 import { BindingFlags } from './binding/binding-flags';
+import { ICustomElement } from './templating/custom-element';
+import { IRenderingEngine } from './templating/rendering-engine';
 
 export interface ISinglePageApp {
   host: any,

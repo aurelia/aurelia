@@ -1,8 +1,7 @@
-import { SubscriberCollection } from './subscriber-collection';
+import { ICallable, IIndexable, Reporter } from '@aurelia/kernel';
 import { ITaskQueue } from '../task-queue';
-import { ICallable, IIndexable } from '@aurelia/kernel';
-import { Reporter } from '@aurelia/kernel';
 import { IAccessor, ISubscribable } from './observation';
+import { SubscriberCollection } from './subscriber-collection';
 
 export const propertyAccessor = {
   getValue: (obj: any, propertyName: string) => obj[propertyName],

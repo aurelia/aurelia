@@ -1,9 +1,9 @@
-import { SubscriberCollection } from './subscriber-collection';
 import { ICallable } from '@aurelia/kernel';
+import { DOM, IChildObserver } from '../dom';
 import { ITaskQueue } from '../task-queue';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
-import { DOM, IChildObserver } from '../dom';
+import { SubscriberCollection } from './subscriber-collection';
 
 const selectArrayContext = 'SelectValueObserver:array';
 

@@ -1,6 +1,6 @@
-import { collectionObserver } from './collection-observer';
-import { IObservedArray, CollectionKind, ICollectionSubscriber, IBatchedCollectionSubscriber, ICollectionObserver, IndexMap } from './observation';
 import { BindingFlags } from './binding-flags';
+import { collectionObserver } from './collection-observer';
+import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray } from './observation';
 
 const proto = Array.prototype;
 /*@internal*/export const nativePush = proto.push;

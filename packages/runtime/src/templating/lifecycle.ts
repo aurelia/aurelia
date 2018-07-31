@@ -1,6 +1,6 @@
-import { IViewOwner } from './view';
-import { INode } from '../dom';
 import { BindingFlags } from '../binding/binding-flags';
+import { INode } from '../dom';
+import { IViewOwner } from './view';
 
 export class AttachLifecycle {
   private tail = null;

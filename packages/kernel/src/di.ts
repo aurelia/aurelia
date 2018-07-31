@@ -1,5 +1,5 @@
+import { Constructable, IIndexable, Injectable } from './interfaces';
 import { PLATFORM } from './platform';
-import { Injectable, Constructable, IIndexable } from './interfaces';
 import { Reporter } from './reporter';
 
 /*@internal*/export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;

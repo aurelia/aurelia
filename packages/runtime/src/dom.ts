@@ -1,4 +1,4 @@
-import { IContainer, IResolver, DI } from '@aurelia/kernel';
+import { DI, IContainer, IResolver } from '@aurelia/kernel';
 import { ICustomElement } from './templating/custom-element';
 
 export interface INodeLike {

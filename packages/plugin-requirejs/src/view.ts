@@ -1,4 +1,4 @@
-import { escape, createTemplateDescription, processImports, loadFromFile, parseImport, kebabCase } from "./processing";
+import { createTemplateDescription, escape, kebabCase, loadFromFile, parseImport, processImports } from './processing';
 
 const buildMap = {};
 

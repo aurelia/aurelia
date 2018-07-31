@@ -1,20 +1,20 @@
-import { IViewOwner } from './view';
-import { INode, DOM } from '../dom';
-import { IHydrateElementInstruction, TargetedInstructionType, ITextBindingInstruction, IOneWayBindingInstruction, IFromViewBindingInstruction, ITwoWayBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
-import { ICustomAttribute, CustomAttributeResource } from './custom-attribute';
-import { IObserverLocator } from '../binding/observer-locator';
+import { Immutable } from '@aurelia/kernel';
+import { Binding } from '../binding/binding';
+import { BindingMode } from '../binding/binding-mode';
+import { Call } from '../binding/call';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
-import { IRenderingEngine } from './rendering-engine';
-import { BindingMode } from '../binding/binding-mode';
-import { Binding } from '../binding/binding';
 import { Listener } from '../binding/listener';
-import { Call } from '../binding/call';
+import { IObserverLocator } from '../binding/observer-locator';
 import { Ref } from '../binding/ref';
-import { ShadowDOMEmulation } from './shadow-dom';
+import { DOM, INode } from '../dom';
+import { CustomAttributeResource, ICustomAttribute } from './custom-attribute';
+import { CustomElementResource, ICustomElement } from './custom-element';
+import { ICallBindingInstruction, IFromViewBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateSlotInstruction, IHydrateTemplateController, IListenerBindingInstruction, IOneWayBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, ITwoWayBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
 import { IRenderContext } from './render-context';
-import { Immutable } from '@aurelia/kernel';
-import { ICustomElement, CustomElementResource } from './custom-element';
+import { IRenderingEngine } from './rendering-engine';
+import { ShadowDOMEmulation } from './shadow-dom';
+import { IViewOwner } from './view';
 
 export interface IRenderer {
   render(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;

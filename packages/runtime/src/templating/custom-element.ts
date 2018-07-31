@@ -1,17 +1,15 @@
-import { Constructable, Immutable, Writable } from '@aurelia/kernel';
-import { ITemplateSource, IHydrateElementInstruction, TemplateDefinition } from './instructions';
-import { IBindSelf, IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
-import { IViewOwner, IContentView, View } from './view';
-import { INode, DOM } from '../dom';
+import { Constructable, IContainer, Immutable, PLATFORM, Registration, Writable } from '@aurelia/kernel';
+import { BindingContext } from '../binding/binding-context';
+import { BindingFlags } from '../binding/binding-flags';
+import { DOM, INode } from '../dom';
+import { IResourceKind, IResourceType } from '../resource';
+import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
+import { AttachLifecycle, DetachLifecycle, IAttach, IBindSelf } from './lifecycle';
+import { IRenderSlot } from './render-slot';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
-import { IRenderSlot } from './render-slot';
-import { IResourceType, IResourceKind } from '../resource';
-import { IContainer, Registration } from '@aurelia/kernel';
-import { BindingContext } from '../binding/binding-context';
 import { ShadowDOMEmulation } from './shadow-dom';
-import { PLATFORM } from '@aurelia/kernel';
-import { BindingFlags } from '../binding/binding-flags';
+import { IContentView, IViewOwner, View } from './view';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 

@@ -1,8 +1,8 @@
-import { BindingMode } from '../binding-mode';
-import { bindingBehavior } from '../binding-behavior';
 import { Binding } from '../binding';
+import { bindingBehavior } from '../binding-behavior';
 import { IScope } from '../binding-context';
 import { BindingFlags } from '../binding-flags';
+import { BindingMode } from '../binding-mode';
 
 const { oneTime, toView, fromView, twoWay } = BindingMode;
 

@@ -1,10 +1,10 @@
-import { BindingMode } from '../binding-mode';
 import { Binding } from '../binding';
+import { bindingBehavior } from '../binding-behavior';
+import { IScope } from '../binding-context';
+import { BindingFlags } from '../binding-flags';
+import { BindingMode } from '../binding-mode';
 import { Call } from '../call';
 import { Listener } from '../listener';
-import { IScope } from '../binding-context';
-import { bindingBehavior } from '../binding-behavior';
-import { BindingFlags } from '../binding-flags';
 
 type ThrottleableBinding = (Binding | Call | Listener) & {
   throttledMethod: ((value) => any) & { originalName: string };

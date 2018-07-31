@@ -1,7 +1,7 @@
-import { IViewOwner } from "./view";
-import { INode, IView } from "../dom";
-import { TemplatePartDefinitions } from "./instructions";
-import { IRenderContext } from "./render-context";
+import { INode, IView } from '../dom';
+import { TemplatePartDefinitions } from './instructions';
+import { IRenderContext } from './render-context';
+import { IViewOwner } from './view';
 
 // The basic template abstraction that allows consumers to create
 // instances of an IView on-demand. Templates are contextual in that they are, in the very least,

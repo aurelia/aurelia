@@ -1,11 +1,10 @@
-import { BindingMode } from './binding-mode';
-import { IObserverLocator } from './observer-locator';
+import { IServiceLocator, Reporter } from '@aurelia/kernel';
 import { IExpression } from './ast';
-import { IBindScope, IBindingTargetObserver, IBindingTargetAccessor, IBindingCollectionObserver } from './observation';
-import { IServiceLocator } from '@aurelia/kernel';
 import { IScope, sourceContext, targetContext } from './binding-context';
-import { Reporter } from '@aurelia/kernel';
 import { BindingFlags } from './binding-flags';
+import { BindingMode } from './binding-mode';
+import { IBindingCollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, IBindScope } from './observation';
+import { IObserverLocator } from './observer-locator';
 
 const slotNames: string[] = new Array(100);
 const versionSlotNames: string[] = new Array(100);

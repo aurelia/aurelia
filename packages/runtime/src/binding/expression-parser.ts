@@ -1,7 +1,5 @@
-import { IExpression, AccessScope, AccessMember, CallScope, CallMember } from './ast';
-import { Reporter } from '@aurelia/kernel';
-import { DI } from '@aurelia/kernel';
-import { PLATFORM } from '@aurelia/kernel';
+import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
+import { AccessMember, AccessScope, CallMember, CallScope, IExpression } from './ast';
 
 export interface IExpressionParser {
   cache(expressions: Record<string, IExpression>): void;

@@ -1,9 +1,9 @@
-import { calcSplices, projectArraySplices } from './array-change-records';
-import { getChangeRecords } from './map-change-records';
-import { SubscriberCollection } from './subscriber-collection';
 import { ICallable } from '@aurelia/kernel';
 import { ITaskQueue } from '../task-queue';
-import { ISubscribable, IAccessor, IBindingCollectionObserver } from './observation';
+import { calcSplices, projectArraySplices } from './array-change-records';
+import { getChangeRecords } from './map-change-records';
+import { IAccessor, IBindingCollectionObserver, ISubscribable } from './observation';
+import { SubscriberCollection } from './subscriber-collection';
 
 type Collection = any[] | Map<any, any> | Set<any>;
 

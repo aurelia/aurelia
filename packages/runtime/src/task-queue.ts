@@ -1,7 +1,4 @@
-import { ICallable } from '@aurelia/kernel';
-import { DI } from '@aurelia/kernel';
-import { Reporter } from '@aurelia/kernel';
-import { PLATFORM } from '@aurelia/kernel';
+import { DI, ICallable, PLATFORM, Reporter } from '@aurelia/kernel';
 
 export interface ITaskQueue {
   /**

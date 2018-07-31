@@ -1,8 +1,8 @@
-import { SubscriberCollection } from './subscriber-collection';
 import { ICallable } from '@aurelia/kernel';
-import { IAccessor, ISubscribable } from './observation';
+import { DOM, INode } from '../dom';
 import { IEventSubscriber } from './event-manager';
-import { INode, DOM } from '../dom';
+import { IAccessor, ISubscribable } from './observation';
+import { SubscriberCollection } from './subscriber-collection';
 
 export class XLinkAttributeObserver implements IAccessor {
   // xlink namespaced attributes require getAttributeNS/setAttributeNS

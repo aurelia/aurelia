@@ -1,11 +1,10 @@
-import { IEventManager, DelegationStrategy } from './event-manager';
+import { IDisposable, IServiceLocator } from '@aurelia/kernel';
+import { INode } from '../dom';
 import { IExpression } from './ast';
 import { IBinding } from './binding';
-import { IServiceLocator } from '@aurelia/kernel';
-import { IDisposable } from '@aurelia/kernel';
 import { IScope } from './binding-context';
-import { INode } from '../dom';
 import { BindingFlags } from './binding-flags';
+import { DelegationStrategy, IEventManager } from './event-manager';
 
 export class Listener implements IBinding {
   private source: IScope;

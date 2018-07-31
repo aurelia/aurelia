@@ -1,5 +1,5 @@
-import { BindingMode } from '../binding/binding-mode';
 import { Omit } from '@aurelia/kernel';
+import { BindingMode } from '../binding/binding-mode';
 
 const capitalMatcher = /([A-Z])/g;
 

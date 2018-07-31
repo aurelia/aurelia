@@ -1,7 +1,7 @@
-import { IRenderSlot } from '../render-slot';
-import { IVisualFactory, IVisual } from '../visual';
-import { ICustomAttribute } from '../custom-attribute';
 import { BindingFlags } from '../../binding/binding-flags';
+import { ICustomAttribute } from '../custom-attribute';
+import { IRenderSlot } from '../render-slot';
+import { IVisual, IVisualFactory } from '../visual';
 
 /**
  * For internal use only. May change without warning.

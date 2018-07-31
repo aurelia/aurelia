@@ -1,5 +1,5 @@
 import { CustomElementResource } from '@aurelia/runtime';
-import { escape, parseImport, createTemplateDescription, loadFromFile, processImports, kebabCase } from './processing';
+import { createTemplateDescription, escape, kebabCase, loadFromFile, parseImport, processImports } from './processing';
 
 const buildMap = {};
 

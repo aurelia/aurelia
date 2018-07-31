@@ -1,6 +1,5 @@
-import { IResourceType, IResourceKind } from "../resource";
-import { Constructable, Writable } from '@aurelia/kernel';
-import { IContainer, Registration } from '@aurelia/kernel';
+import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
+import { IResourceKind, IResourceType } from '../resource';
 
 export interface IBindingBehaviorSource {
   name: string;

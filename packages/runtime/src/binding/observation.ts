@@ -1,4 +1,4 @@
-import { ICallable, IIndexable, IDisposable } from '@aurelia/kernel';
+import { ICallable, IDisposable, IIndexable } from '@aurelia/kernel';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 

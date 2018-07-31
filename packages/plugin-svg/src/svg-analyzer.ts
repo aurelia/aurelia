@@ -1,6 +1,5 @@
-import { ISVGAnalyzer } from '@aurelia/runtime';
-import { DOM, INode } from '@aurelia/runtime';
 import { IContainer } from '@aurelia/kernel';
+import { DOM, INode, ISVGAnalyzer } from '@aurelia/runtime';
 
 const svgElements = {
   a: ['class','externalResourcesRequired','id','onactivate','onclick','onfocusin','onfocusout','onload','onmousedown','onmousemove','onmouseout','onmouseover','onmouseup','requiredExtensions','requiredFeatures','style','systemLanguage','target','transform','xlink:actuate','xlink:arcrole','xlink:href','xlink:role','xlink:show','xlink:title','xlink:type','xml:base','xml:lang','xml:space'],

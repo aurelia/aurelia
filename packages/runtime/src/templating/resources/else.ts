@@ -1,10 +1,10 @@
-import { IfCore } from './if-core';
-import { If } from './if';
-import { IVisualFactory } from '../visual';
-import { IRenderSlot } from '../render-slot';
-import { templateController } from '../custom-attribute';
-import { IScope } from '../../binding/binding-context';
 import { inject } from '@aurelia/kernel';
+import { IScope } from '../../binding/binding-context';
+import { templateController } from '../custom-attribute';
+import { IRenderSlot } from '../render-slot';
+import { IVisualFactory } from '../visual';
+import { If } from './if';
+import { IfCore } from './if-core';
 
 @templateController('else')
 @inject(IVisualFactory, IRenderSlot)

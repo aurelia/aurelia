@@ -1,7 +1,6 @@
-import { SubscriberCollection } from './subscriber-collection';
-import { DI } from '@aurelia/kernel';
-import { ICallable } from '@aurelia/kernel';
+import { DI, ICallable } from '@aurelia/kernel';
 import { IAccessor, ISubscribable } from './observation';
+import { SubscriberCollection } from './subscriber-collection';
 
 export interface IDirtyChecker {
   createProperty(obj: any, propertyName: string): IAccessor & ISubscribable & ICallable;

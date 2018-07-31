@@ -1,14 +1,13 @@
-import {
-  IExpression, ValueConverter, Assign, Conditional,
-  AccessThis, AccessScope, AccessMember, AccessKeyed,
-  CallScope, CallFunction, CallMember,
-  Unary, BindingBehavior, Binary,
-  PrimitiveLiteral, ArrayLiteral, ObjectLiteral, Template, TaggedTemplate,
-  IsLeftHandSide, IsAssign, IsBinary, IsBindingBehavior, IsConditional,
-  IsPrimary
-} from '@aurelia/runtime';
 import { IContainer } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/runtime';
+import {
+  AccessKeyed, AccessMember, AccessScope, AccessThis,
+  ArrayLiteral, Assign, Binary, BindingBehavior,
+  CallFunction, CallMember, CallScope,
+  Conditional, IExpression, IExpressionParser,
+  IsAssign, IsBinary, IsBindingBehavior, IsConditional, IsLeftHandSide,
+  IsPrimary, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template,
+  Unary, ValueConverter
+} from '@aurelia/runtime';
 
 export function register(container: IContainer) {
   container.registerTransformer(IExpressionParser, parser => {

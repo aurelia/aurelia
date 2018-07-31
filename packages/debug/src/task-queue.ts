@@ -1,5 +1,5 @@
-import { ITaskQueue } from '@aurelia/runtime';
 import { IContainer } from '@aurelia/kernel';
+import { ITaskQueue } from '@aurelia/runtime';
 
 export function enableImprovedTaskQueueDebugging(container: IContainer) {
   container.registerTransformer(ITaskQueue, taskQueue => {

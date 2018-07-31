@@ -1,27 +1,24 @@
-import { ICollectionSubscriber, IBatchedCollectionSubscriber } from './../../binding/observation';
-import { ICustomAttributeSource, CustomAttributeResource } from '../custom-attribute';
-import { AttachLifecycle, DetachLifecycle } from '../lifecycle';
-import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
-import { IRenderingEngine } from '../rendering-engine';
-import { PLATFORM } from '@aurelia/kernel';
-import { IContainer, inject, Registration } from '@aurelia/kernel';
+import { IContainer, Immutable, inject, PLATFORM, Registration } from '@aurelia/kernel';
 import { getArrayObserver } from '../../binding/array-observer';
-import { ITaskQueue } from '../../task-queue';
-import { IRenderSlot } from '../render-slot';
-import { IViewOwner } from '../view';
-import { IVisualFactory, IVisual } from '../visual';
-import { IScope, IOverrideContext } from '../../binding/binding-context';
-import { Binding } from '../../binding/binding';
-import { Immutable } from '@aurelia/kernel';
-import { IResourceKind, IResourceType } from '../../resource';
-import { INode } from '../../dom';
-import { ICustomAttribute } from '../custom-attribute';
-import { getMapObserver } from '../../binding/map-observer';
-import { getSetObserver } from '../../binding/set-observer';
-import { CollectionObserver, ObservedCollection, CollectionKind } from '../../binding/observation';
-import { BindingMode } from '../../binding/binding-mode';
-import { BindingFlags } from '../../binding/binding-flags';
 import { IExpression } from '../../binding/ast';
+import { Binding } from '../../binding/binding';
+import { IOverrideContext, IScope } from '../../binding/binding-context';
+import { BindingFlags } from '../../binding/binding-flags';
+import { BindingMode } from '../../binding/binding-mode';
+import { getMapObserver } from '../../binding/map-observer';
+import { CollectionKind, CollectionObserver, ObservedCollection } from '../../binding/observation';
+import { getSetObserver } from '../../binding/set-observer';
+import { INode } from '../../dom';
+import { IResourceKind, IResourceType } from '../../resource';
+import { ITaskQueue } from '../../task-queue';
+import { CustomAttributeResource, ICustomAttribute, ICustomAttributeSource } from '../custom-attribute';
+import { AttachLifecycle, DetachLifecycle } from '../lifecycle';
+import { IRenderSlot } from '../render-slot';
+import { IRenderingEngine } from '../rendering-engine';
+import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
+import { IViewOwner } from '../view';
+import { IVisual, IVisualFactory } from '../visual';
+import { IBatchedCollectionSubscriber, ICollectionSubscriber } from './../../binding/observation';
 
 
 export function getCollectionObserver(collection: any): CollectionObserver {

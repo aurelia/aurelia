@@ -1,9 +1,9 @@
-import { templateController, ICustomAttribute } from '../custom-attribute';
-import { IRenderSlot } from '../render-slot';
-import { BindingContext } from '../../binding/binding-context';
 import { inject } from '@aurelia/kernel';
-import { IVisualFactory, IVisual } from '../visual';
+import { BindingContext } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
+import { ICustomAttribute, templateController } from '../custom-attribute';
+import { IRenderSlot } from '../render-slot';
+import { IVisual, IVisualFactory } from '../visual';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')

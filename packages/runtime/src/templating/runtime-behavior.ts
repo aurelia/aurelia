@@ -1,12 +1,12 @@
-import { ICustomAttribute, ICustomAttributeType } from "./custom-attribute";
 import { ICallable } from '@aurelia/kernel';
-import { DOM, INode, IChildObserver } from "../dom";
-import { ITaskQueue } from "../task-queue";
-import { SubscriberCollection } from "../binding/subscriber-collection";
-import { IAccessor, ISubscribable } from "../binding/observation";
-import { Observer } from "../binding/property-observation";
-import { BindableDefinitions } from "./instructions";
-import { ICustomElementType, ICustomElement } from "./custom-element";
+import { IAccessor, ISubscribable } from '../binding/observation';
+import { Observer } from '../binding/property-observation';
+import { SubscriberCollection } from '../binding/subscriber-collection';
+import { DOM, IChildObserver, INode } from '../dom';
+import { ITaskQueue } from '../task-queue';
+import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
+import { ICustomElement, ICustomElementType } from './custom-element';
+import { BindableDefinitions } from './instructions';
 
 export interface IRuntimeBehavior {
   hasCreated: boolean;

@@ -1,7 +1,6 @@
-import { DI } from '@aurelia/kernel';
+import { DI, Immutable } from '@aurelia/kernel';
 import { DelegationStrategy } from '../binding/event-manager';
 import { INode } from '../dom';
-import { Immutable } from '@aurelia/kernel';
 import { ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
 

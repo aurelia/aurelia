@@ -1,17 +1,15 @@
-import { IBindScope } from '../binding/observation';
-import { IAttach, AttachLifecycle, DetachLifecycle } from './lifecycle';
+import { Constructable,  IContainer, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
-import { IRenderingEngine } from './rendering-engine';
-import { Writable, Constructable, Immutable, Omit } from '@aurelia/kernel';
-import { IRuntimeBehavior } from './runtime-behavior';
-import { IRenderSlot } from './render-slot';
-import { IResourceType, IResourceKind, ResourceDescription } from '../resource';
-import { IContainer, Registration } from '@aurelia/kernel';
-import { INode } from '../dom';
-import { PLATFORM } from '@aurelia/kernel';
-import { BindingMode } from '../binding/binding-mode';
-import { IBindableDescription } from './bindable';
 import { BindingFlags } from '../binding/binding-flags';
+import { BindingMode } from '../binding/binding-mode';
+import { IBindScope } from '../binding/observation';
+import { INode } from '../dom';
+import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
+import { IBindableDescription } from './bindable';
+import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
+import { IRenderSlot } from './render-slot';
+import { IRenderingEngine } from './rendering-engine';
+import { IRuntimeBehavior } from './runtime-behavior';
 
 export interface ICustomAttributeSource {
   name: string;

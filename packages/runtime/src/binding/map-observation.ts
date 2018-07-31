@@ -1,5 +1,5 @@
-import { ModifyCollectionObserver } from './collection-observation';
 import { ITaskQueue } from '../task-queue';
+import { ModifyCollectionObserver } from './collection-observation';
 import { IBindingCollectionObserver } from './observation';
 
 const mapProto = Map.prototype;

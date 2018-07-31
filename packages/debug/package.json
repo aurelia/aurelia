@@ -5,9 +5,9 @@
   "typings": "dist/commonjs/index.d.ts",
   "scripts": {
     "lint": "cross-env tslint --project tsconfig-test.json -e \"test/**\" -t stylish",
-    "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig-tsnode.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadless --single-run --coverage",
-    "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig-tsnode.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadless --coverage",
-    "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig-tsnode.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeDebugging",
+    "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadless --single-run --coverage",
+    "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadless --coverage",
+    "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeDebugging",
     "build": "tsc -b"
   },
   "dependencies": {

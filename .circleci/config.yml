@@ -20,10 +20,12 @@ jobs:
             npm --version
       - checkout
       - run: npm ci -dd
+      - run: npm run bootstrap
       - save_cache:
           key: *cache_key
           paths:
             - node_modules
+            - packages/*/node_modules
 
   build:
     <<: *defaults
@@ -31,10 +33,10 @@ jobs:
       - checkout
       - restore_cache:
           key: *cache_key
-      - run: au build
+      - run: npm run build
       - persist_to_workspace:
           root: .
-          paths: scripts
+          paths: packages/*/dist
 
   unit_tests:
     <<: *defaults
@@ -46,39 +48,39 @@ jobs:
       #- run:
       #    command: "./node_modules/.bin/karma start --browsers=FirefoxHeadless --single-run=true --auto-watch=false"
       #    environment:
-      #      TS_NODE_PROJECT: tsconfig-tsnode.json
+      #      TS_NODE_PROJECT: tsconfig.json
       - run:
-          command: "./node_modules/.bin/karma start --browsers=ChromeHeadless --single-run=true --auto-watch=false --coverage=true"
+          command: "npm run test"
           environment:
             JUNIT_REPORT_PATH: ./junit/
             JUNIT_REPORT_NAME: test-results.xml
-            TS_NODE_PROJECT: tsconfig-tsnode.json
-      - run: codecov -f ~/repo/coverage/coverage-final.json
+            TS_NODE_PROJECT: ./scripts/tsconfig.json
+      - run: codecov -f ~/repo/packages/*/coverage/coverage-final.json
       - store_test_results:
           path: ~/repo/junit
       - store_artifacts:
           path: ./junit
       - store_artifacts:
-          path: ./coverage
+          path: ./packages/*/coverage
 
-  e2e_tests:
-    <<: *defaults
-    steps:
-      - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: .
-      - run:
-          name: Selenium Start
-          background: true
-          command: webdriver-manager start
-      - run:
-          name: App Start
-          background: true
-          command: http-server -c-1 -p 8000 .
-      - run:
-          command: "protractor protractor.conf.js"
+  #e2e_tests:
+  #  <<: *defaults
+  #  steps:
+  #    - checkout
+  #    - restore_cache:
+  #        key: *cache_key
+  #    - attach_workspace:
+  #        at: .
+  #    - run:
+  #        name: Selenium Start
+  #        background: true
+  #        command: webdriver-manager start
+  #    - run:
+  #        name: App Start
+  #        background: true
+  #        command: http-server -c-1 -p 8000 .
+  #    - run:
+  #        command: "protractor protractor.conf.js"
 
 workflows:
     version: 2
@@ -91,7 +93,7 @@ workflows:
             - unit_tests:
                 requires:
                     - install
-            - e2e_tests:
-                requires:
-                    - build
+            #- e2e_tests:
+            #    requires:
+            #        - build
 

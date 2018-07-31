@@ -3,7 +3,8 @@
   "license": "MIT",
   "scripts": {
     "bootstrap": "lerna bootstrap --ci --hoist",
-    "build": "lerna run build"
+    "build": "lerna run build",
+    "test": "lerna run test"
   },
   "dependencies": {},
   "devDependencies": {

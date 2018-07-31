@@ -61,17 +61,17 @@ jobs:
       - run: codecov -f ~/repo/packages/plugin-requirejs/coverage/coverage-final.json 
       - run: codecov -f ~/repo/packages/plugin-svg/coverage/coverage-final.json 
       - store_test_results:
-          path: ./repo/packages/debug/junit
+          path: ./packages/debug/junit
       - store_test_results:
-          path: ./repo/packages/jit/junit
+          path: ./packages/jit/junit
       - store_test_results:
-          path: ./repo/packages/kernel/junit
+          path: ./packages/kernel/junit
       - store_test_results:
-          path: ./repo/packages/runtime/junit
+          path: ./packages/runtime/junit
       - store_test_results:
-          path: ./repo/packages/plugin-requirejs/junit
+          path: ./packages/plugin-requirejs/junit
       - store_test_results:
-          path: ./repo/packages/plugin-svg/junit
+          path: ./packages/plugin-svg/junit
       - store_artifacts:
           path: ./packages/debug/junit
       - store_artifacts:

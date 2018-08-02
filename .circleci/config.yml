@@ -3,7 +3,7 @@
 defaults: &defaults
   working_directory: ~/repo
   docker:
-    - image: aureliavnext/circleci:0.0.12
+    - image: aureliaeffect/circleci-v2:latest
 
 # Variables
 var_1: &cache_key aurelia-{{ .Branch }}-{{ checksum "package-lock.json" }}
@@ -55,11 +55,11 @@ jobs:
             JUNIT_REPORT_NAME: test-results.xml
             TS_NODE_PROJECT: ./scripts/tsconfig.json
       - run: codecov -f ~/repo/packages/debug/coverage/coverage-final.json # Hmm, can't we loop here somehow?
-      - run: codecov -f ~/repo/packages/jit/coverage/coverage-final.json 
-      - run: codecov -f ~/repo/packages/kernel/coverage/coverage-final.json 
-      - run: codecov -f ~/repo/packages/runtime/coverage/coverage-final.json 
-      - run: codecov -f ~/repo/packages/plugin-requirejs/coverage/coverage-final.json 
-      - run: codecov -f ~/repo/packages/plugin-svg/coverage/coverage-final.json 
+      - run: codecov -f ~/repo/packages/jit/coverage/coverage-final.json
+      - run: codecov -f ~/repo/packages/kernel/coverage/coverage-final.json
+      - run: codecov -f ~/repo/packages/runtime/coverage/coverage-final.json
+      - run: codecov -f ~/repo/packages/plugin-requirejs/coverage/coverage-final.json
+      - run: codecov -f ~/repo/packages/plugin-svg/coverage/coverage-final.json
       - store_test_results:
           path: ./packages/debug/junit
       - store_test_results:

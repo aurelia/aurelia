@@ -3,17 +3,18 @@ import {
   AccessKeyed, AccessMember, AccessScope, AccessThis,
   ArrayLiteral, Assign, Binary, BindingBehavior,
   CallFunction, CallMember, CallScope,
-  Conditional, IExpression, IExpressionParser,
-  IsAssign, IsBinary, IsBindingBehavior, IsConditional, IsLeftHandSide,
-  IsPrimary, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template,
-  Unary, ValueConverter
+  Conditional, ForOfStatement, IExpression,
+  IExpressionParser, IsAssign, IsBinary, IsBindingBehavior, IsConditional,
+  IsLeftHandSide, IsPrimary, ObjectLiteral, PrimitiveLiteral, TaggedTemplate,
+  Template, Unary, ValueConverter
 } from '@aurelia/runtime';
+import { BindingType } from '../templating/attribute-name-parser';
 
 export function register(container: IContainer) {
   container.registerTransformer(IExpressionParser, parser => {
     return Object.assign(parser, {
       parseCore(expression: string): IExpression {
-        return parse(new ParserState(expression), Access.Reset, Precedence.Variadic);
+        return parse(new ParserState(expression), Access.Reset, Precedence.Variadic, 0);
       }
     });
   });
@@ -52,7 +53,7 @@ export class ParserState {
 }
 
 /*@internal*/
-export function parse<T extends Precedence>(state: ParserState, access: Access, minPrecedence: T):
+export function parse<T extends Precedence>(state: ParserState, access: Access, minPrecedence: T, bindingType: BindingType):
   T extends Precedence.Primary ? IsPrimary :
   T extends Precedence.LeftHandSide ? IsLeftHandSide :
   T extends Precedence.Binary ? IsBinary :
@@ -84,7 +85,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
      */
     const op = TokenValues[state.currentToken & Token.Type];
     nextToken(state);
-    result = new Unary(<any>op, parse(state, access, Precedence.Primary));
+    result = new Unary(<any>op, parse(state, access, Precedence.Primary, bindingType));
   } else {
     /** parsePrimaryExpression
      * https://tc39.github.io/ecma262/#sec-primary-expression
@@ -144,7 +145,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       break;
     case Token.OpenParen: // parenthesized expression
       nextToken(state);
-      result = parse(state, Access.Reset, Precedence.Conditional);
+      result = parse(state, Access.Reset, Precedence.Conditional, bindingType);
       expect(state, Token.CloseParen);
       break;
     case Token.OpenBracket:
@@ -174,7 +175,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
             break;
           }
         } else {
-          elements.push(parse(state, access, Precedence.Assign));
+          elements.push(parse(state, access, Precedence.Assign, bindingType));
           if (!optional(state, Token.Comma)) {
             break;
           }
@@ -214,19 +215,19 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         if (state.currentToken & Token.StringOrNumericLiteral) {
           nextToken(state);
           expect(state, Token.Colon);
-          values.push(parse(state, Access.Reset, Precedence.Assign));
+          values.push(parse(state, Access.Reset, Precedence.Assign, bindingType));
         } else if (state.currentToken & Token.IdentifierName) {
           // IdentifierName = optional colon
           const { currentChar, currentToken, index } = <any>state;
           nextToken(state);
           if (optional(state, Token.Colon)) {
-            values.push(parse(state, Access.Reset, Precedence.Assign));
+            values.push(parse(state, Access.Reset, Precedence.Assign, bindingType));
           } else {
             // Shorthand
             state.currentChar = currentChar;
             state.currentToken = currentToken;
             state.index = index;
-            values.push(parse(state, Access.Reset, Precedence.Primary));
+            values.push(parse(state, Access.Reset, Precedence.Primary, bindingType));
           }
         } else {
           error(state);
@@ -280,12 +281,12 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
        */
       const cooked = [<string>state.tokenValue];
       expect(state, Token.TemplateContinuation);
-      const expressions = [parse(state, access, Precedence.Assign)];
+      const expressions = [parse(state, access, Precedence.Assign, bindingType)];
 
       while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
         cooked.push(<string>state.tokenValue);
         expect(state, Token.TemplateContinuation);
-        expressions.push(parse(state, access, Precedence.Assign));
+        expressions.push(parse(state, access, Precedence.Assign, bindingType));
       }
 
       cooked.push(<string>state.tokenValue);
@@ -315,6 +316,16 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       }
     }
     if (Precedence.LeftHandSide < minPrecedence) return result;
+
+    // NOTE: this is a temporary (not a proper) implementation for ForStatement
+    // need to take into account correct precedence, context, destructuring, etc
+    if (bindingType & BindingType.IsIterator) {
+      expect(state, Token.OfKeyword);
+      const declaration = result;
+      const statement = <any>parse(state, Access.Reset, 0, 0);
+      return new ForOfStatement(declaration, statement) as any;
+    }
+
 
     /** parseMemberExpression (Token.Dot, Token.OpenBracket, Token.TemplateContinuation)
      * MemberExpression :
@@ -366,7 +377,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         state.assignable = true;
         nextToken(state);
         access = Access.Keyed;
-        result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Conditional));
+        result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Conditional, bindingType));
         expect(state, Token.CloseBracket);
         break;
       case Token.OpenParen:
@@ -374,7 +385,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         nextToken(state);
         const args = new Array<IsAssign>();
         while (state.currentToken !== <any>Token.CloseParen) {
-          args.push(parse(state, Access.Reset, Precedence.Conditional));
+          args.push(parse(state, Access.Reset, Precedence.Conditional, bindingType));
           if (!optional(state, Token.Comma)) {
             break;
           }
@@ -432,13 +443,13 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         const cooked = [<string>state.tokenValue];
         const raw = [state.tokenRaw];
         expect(state, Token.TemplateContinuation);
-        const expressions = [parse(state, access, Precedence.Assign)];
+        const expressions = [parse(state, access, Precedence.Assign, bindingType)];
 
         while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
           cooked.push(<string>state.tokenValue);
           raw.push(state.tokenRaw);
           expect(state, Token.TemplateContinuation);
-          expressions.push(parse(state, access, Precedence.Assign));
+          expressions.push(parse(state, access, Precedence.Assign, bindingType));
         }
 
         cooked.push(<string>state.tokenValue);
@@ -484,7 +495,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       break;
     }
     nextToken(state);
-    result = new Binary(<string>TokenValues[opToken & Token.Type], result, parse(state, access, opToken & Token.Precedence));
+    result = new Binary(<string>TokenValues[opToken & Token.Type], result, parse(state, access, opToken & Token.Precedence, bindingType));
     state.assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) return result;
@@ -500,9 +511,9 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
    *   1,2 = false
    */
   if (optional(state, Token.Question)) {
-    const yes = parse(state, access, Precedence.Assign);
+    const yes = parse(state, access, Precedence.Assign, bindingType);
     expect(state, Token.Colon);
-    result = new Conditional(result, yes, parse(state, access, Precedence.Assign));
+    result = new Conditional(result, yes, parse(state, access, Precedence.Assign, bindingType));
     state.assignable = false;
   }
 
@@ -522,7 +533,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       error(state, `Expression ${state.input.slice(exprStart, state.startIndex)} is not assignable`);
     }
     exprStart = state.index;
-    result = new Assign(result, parse(state, access, Precedence.Assign));
+    result = new Assign(result, parse(state, access, Precedence.Assign, bindingType));
   }
   if (Precedence.Variadic < minPrecedence) return result;
 
@@ -533,7 +544,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
     nextToken(state);
     const args = new Array<IsAssign>();
     while (optional(state, Token.Colon)) {
-      args.push(parse(state, access, Precedence.Assign));
+      args.push(parse(state, access, Precedence.Assign, bindingType));
     }
     result = new ValueConverter(result, name, args);
   }
@@ -545,7 +556,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
     nextToken(state);
     const args = new Array<IsAssign>();
     while (optional(state, Token.Colon)) {
-      args.push(parse(state, access, Precedence.Assign));
+      args.push(parse(state, access, Precedence.Assign, bindingType));
     }
     result = new BindingBehavior(result, name, args);
   }
@@ -736,63 +747,65 @@ const enum Precedence {
   Unary                   = 0b111000010,
 }
 const enum Token {
-  EOF                     = 0b11000000000 << 9,
-  ExpressionTerminal      = 0b10000000000 << 9,
-  AccessScopeTerminal     = 0b01000000000 << 9,
-  ClosingToken            = 0b00100000000 << 9,
-  OpeningToken            = 0b00010000000 << 9,
-  BinaryOp                = 0b00001000000 << 9,
-  UnaryOp                 = 0b00000100000 << 9,
-  LeftHandSide            = 0b00000010000 << 9,
-  StringOrNumericLiteral  = 0b00000001100 << 9,
-  NumericLiteral          = 0b00000001000 << 9,
-  StringLiteral           = 0b00000000100 << 9,
-  IdentifierName          = 0b00000000011 << 9,
-  Keyword                 = 0b00000000010 << 9,
-  Identifier              = 0b00000000001 << 9,
-  Precedence              = 0b00000000000 << 9 | 0b111 << 6,
-  Type                    = 0b00000000000 << 9 | 0b000 << 6 | 0b111111,
-  FalseKeyword            = 0b00000000010 << 9 | 0b000 << 6 | 0b000000,
-  TrueKeyword             = 0b00000000010 << 9 | 0b000 << 6 | 0b000001,
-  NullKeyword             = 0b00000000010 << 9 | 0b000 << 6 | 0b000010,
-  UndefinedKeyword        = 0b00000000010 << 9 | 0b000 << 6 | 0b000011,
-  ThisScope               = 0b00000000011 << 9 | 0b000 << 6 | 0b000100,
-  ParentScope             = 0b00000000011 << 9 | 0b000 << 6 | 0b000101,
-  OpenParen               = 0b01010010000 << 9 | 0b000 << 6 | 0b000110,
-  OpenBrace               = 0b00010000000 << 9 | 0b000 << 6 | 0b000111,
-  Dot                     = 0b00000010000 << 9 | 0b000 << 6 | 0b001000,
-  CloseBrace              = 0b11100000000 << 9 | 0b000 << 6 | 0b001001,
-  CloseParen              = 0b11100000000 << 9 | 0b000 << 6 | 0b001010,
-  Comma                   = 0b01000000000 << 9 | 0b000 << 6 | 0b001011,
-  OpenBracket             = 0b01010010000 << 9 | 0b000 << 6 | 0b001100,
-  CloseBracket            = 0b10100000000 << 9 | 0b000 << 6 | 0b001101,
-  Colon                   = 0b01000000000 << 9 | 0b000 << 6 | 0b001110,
-  Question                = 0b00000000000 << 9 | 0b000 << 6 | 0b001111,
-  Ampersand               = 0b01000000000 << 9 | 0b000 << 6 | 0b010000,
-  Bar                     = 0b01000000000 << 9 | 0b000 << 6 | 0b010011,
-  BarBar                  = 0b00001000000 << 9 | 0b010 << 6 | 0b010100,
-  AmpersandAmpersand      = 0b00001000000 << 9 | 0b011 << 6 | 0b010101,
-  EqualsEquals            = 0b00001000000 << 9 | 0b100 << 6 | 0b010110,
-  ExclamationEquals       = 0b00001000000 << 9 | 0b100 << 6 | 0b010111,
-  EqualsEqualsEquals      = 0b00001000000 << 9 | 0b100 << 6 | 0b011000,
-  ExclamationEqualsEquals = 0b00001000000 << 9 | 0b100 << 6 | 0b011001,
-  LessThan                = 0b00001000000 << 9 | 0b101 << 6 | 0b011010,
-  GreaterThan             = 0b00001000000 << 9 | 0b101 << 6 | 0b011011,
-  LessThanEquals          = 0b00001000000 << 9 | 0b101 << 6 | 0b011100,
-  GreaterThanEquals       = 0b00001000000 << 9 | 0b101 << 6 | 0b011101,
-  InKeyword               = 0b00001000010 << 9 | 0b101 << 6 | 0b011110,
-  InstanceOfKeyword       = 0b00001000010 << 9 | 0b101 << 6 | 0b011111,
-  Plus                    = 0b00001100000 << 9 | 0b110 << 6 | 0b100000,
-  Minus                   = 0b00001100000 << 9 | 0b110 << 6 | 0b100001,
-  TypeofKeyword           = 0b00000100010 << 9 | 0b000 << 6 | 0b100010,
-  VoidKeyword             = 0b00000100010 << 9 | 0b000 << 6 | 0b100011,
-  Asterisk                = 0b00001000000 << 9 | 0b111 << 6 | 0b100100,
-  Percent                 = 0b00001000000 << 9 | 0b111 << 6 | 0b100101,
-  Slash                   = 0b00001000000 << 9 | 0b111 << 6 | 0b100110,
-  Equals                  = 0b00000000000 << 9 | 0b000 << 6 | 0b100111,
-  Exclamation             = 0b00000100000 << 9 | 0b000 << 6 | 0b101000,
-  TemplateTail            = 0b00000010000 << 9 | 0b000 << 6 | 0b101001,
-  TemplateContinuation    = 0b00000010000 << 9 | 0b000 << 6 | 0b101010,
+  EOF                     = 0b110000000000 << 9,
+  ExpressionTerminal      = 0b100000000000 << 9,
+  AccessScopeTerminal     = 0b010000000000 << 9,
+  ClosingToken            = 0b001000000000 << 9,
+  OpeningToken            = 0b000100000000 << 9,
+  BinaryOp                = 0b000010000000 << 9,
+  UnaryOp                 = 0b000001000000 << 9,
+  LeftHandSide            = 0b000000100000 << 9,
+  StringOrNumericLiteral  = 0b000000011000 << 9,
+  NumericLiteral          = 0b000000010000 << 9,
+  StringLiteral           = 0b000000001000 << 9,
+  IdentifierName          = 0b000000000110 << 9,
+  Keyword                 = 0b000000000100 << 9,
+  Identifier              = 0b000000000010 << 9,
+  Contextual              = 0b000000000001 << 9,
+  Precedence              = 0b000000000000 << 9 | 0b111 << 6,
+  Type                    = 0b000000000000 << 9 | 0b000 << 6 | 0b111111,
+  FalseKeyword            = 0b000000000100 << 9 | 0b000 << 6 | 0b000000,
+  TrueKeyword             = 0b000000000100 << 9 | 0b000 << 6 | 0b000001,
+  NullKeyword             = 0b000000000100 << 9 | 0b000 << 6 | 0b000010,
+  UndefinedKeyword        = 0b000000000100 << 9 | 0b000 << 6 | 0b000011,
+  ThisScope               = 0b000000000110 << 9 | 0b000 << 6 | 0b000100,
+  ParentScope             = 0b000000000110 << 9 | 0b000 << 6 | 0b000101,
+  OpenParen               = 0b010100100000 << 9 | 0b000 << 6 | 0b000110,
+  OpenBrace               = 0b000100000000 << 9 | 0b000 << 6 | 0b000111,
+  Dot                     = 0b000000100000 << 9 | 0b000 << 6 | 0b001000,
+  CloseBrace              = 0b111000000000 << 9 | 0b000 << 6 | 0b001001,
+  CloseParen              = 0b111000000000 << 9 | 0b000 << 6 | 0b001010,
+  Comma                   = 0b010000000000 << 9 | 0b000 << 6 | 0b001011,
+  OpenBracket             = 0b010100100000 << 9 | 0b000 << 6 | 0b001100,
+  CloseBracket            = 0b101000000000 << 9 | 0b000 << 6 | 0b001101,
+  Colon                   = 0b010000000000 << 9 | 0b000 << 6 | 0b001110,
+  Question                = 0b000000000000 << 9 | 0b000 << 6 | 0b001111,
+  Ampersand               = 0b010000000000 << 9 | 0b000 << 6 | 0b010000,
+  Bar                     = 0b010000000000 << 9 | 0b000 << 6 | 0b010011,
+  BarBar                  = 0b000010000000 << 9 | 0b010 << 6 | 0b010100,
+  AmpersandAmpersand      = 0b000010000000 << 9 | 0b011 << 6 | 0b010101,
+  EqualsEquals            = 0b000010000000 << 9 | 0b100 << 6 | 0b010110,
+  ExclamationEquals       = 0b000010000000 << 9 | 0b100 << 6 | 0b010111,
+  EqualsEqualsEquals      = 0b000010000000 << 9 | 0b100 << 6 | 0b011000,
+  ExclamationEqualsEquals = 0b000010000000 << 9 | 0b100 << 6 | 0b011001,
+  LessThan                = 0b000010000000 << 9 | 0b101 << 6 | 0b011010,
+  GreaterThan             = 0b000010000000 << 9 | 0b101 << 6 | 0b011011,
+  LessThanEquals          = 0b000010000000 << 9 | 0b101 << 6 | 0b011100,
+  GreaterThanEquals       = 0b000010000000 << 9 | 0b101 << 6 | 0b011101,
+  InKeyword               = 0b000010000100 << 9 | 0b101 << 6 | 0b011110,
+  InstanceOfKeyword       = 0b000010000100 << 9 | 0b101 << 6 | 0b011111,
+  Plus                    = 0b000011000000 << 9 | 0b110 << 6 | 0b100000,
+  Minus                   = 0b000011000000 << 9 | 0b110 << 6 | 0b100001,
+  TypeofKeyword           = 0b000001000100 << 9 | 0b000 << 6 | 0b100010,
+  VoidKeyword             = 0b000001000100 << 9 | 0b000 << 6 | 0b100011,
+  Asterisk                = 0b000010000000 << 9 | 0b111 << 6 | 0b100100,
+  Percent                 = 0b000010000000 << 9 | 0b111 << 6 | 0b100101,
+  Slash                   = 0b000010000000 << 9 | 0b111 << 6 | 0b100110,
+  Equals                  = 0b000000000000 << 9 | 0b000 << 6 | 0b100111,
+  Exclamation             = 0b000001000000 << 9 | 0b000 << 6 | 0b101000,
+  TemplateTail            = 0b000000100000 << 9 | 0b000 << 6 | 0b101001,
+  TemplateContinuation    = 0b000000100000 << 9 | 0b000 << 6 | 0b101010,
+  OfKeyword               = 0b000000000101 << 9 | 0b000 << 6 | 0b101011,
 }
 
 const enum Char {
@@ -917,7 +930,8 @@ const TokenValues = [
 
   '&', '|', '||', '&&', '==', '!=', '===', '!==', '<', '>',
   '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
-  Token.TemplateTail, Token.TemplateContinuation
+  Token.TemplateTail, Token.TemplateContinuation,
+  'of'
 ];
 
 const KeywordLookup: {

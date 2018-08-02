@@ -654,6 +654,22 @@ export class TaggedTemplate {
   }
 }
 
+export class AssignmentPattern {
+  constructor(public names: string[]) { }
+
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, obj: any): any {
+    const names = this.names;
+    const len = names.length;
+    const bindingContext = scope.bindingContext; // todo: test / figure out exactly what to assign to
+    let i = 0;
+    while (i < len) {
+      const name = names[i];
+      bindingContext[name] = obj[name];
+      i++;
+    }
+  }
+}
+
 // todo: destructuring, etc
 export class ForDeclaration {
   public name: string;
@@ -664,7 +680,6 @@ export class ForDeclaration {
 
 // https://tc39.github.io/ecma262/#sec-iteration-statements
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
-// todo: magic stuff (maybe)
 export class ForOfStatement {
   public declaration: ForDeclaration;
   public iterable: IsAssign;
@@ -673,12 +688,18 @@ export class ForOfStatement {
     this.iterable = iterable;
   }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any[] {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator, func: (arr: any[], index: number, item: any) => void): void {
     const result = this.iterable.evaluate(flags, scope, locator);
     if (!Array.isArray(result)) {
       throw new Error(`${result} is not an array`);
     }
-    return result;
+    // meh. don't know yet
+    const len = result.length;
+    let i = 0;
+    while (i < len) {
+      func(result, i, result[i]);
+      i++;
+    }
   }
 }
 

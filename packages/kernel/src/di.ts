@@ -2,11 +2,11 @@ import { Constructable, IIndexable, Injectable } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 
-/*@internal*/export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
 export type InterfaceSymbol<T> = (target: Injectable, property: string, index: number) => any;
 
-/*@internal*/export interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
+export interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
   withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T>;
   noDefault(): InterfaceSymbol<T>;
 }
@@ -57,7 +57,7 @@ export interface IContainer extends IServiceLocator {
   createChild(): IContainer;
 }
 
-/*@internal*/export interface IResolverBuilder<T> {
+export interface IResolverBuilder<T> {
   instance(value: T & IIndexable): IResolver;
   singleton(value: Constructable<T>): IResolver;
   transient(value: Constructable<T>): IResolver;
@@ -220,7 +220,8 @@ export const optional = createResolver((key: any, handler: IContainer, requestor
   }
 });
 
-const enum ResolverStrategy {
+/*@internal*/
+export const enum ResolverStrategy {
   instance = 0,
   singleton = 1,
   transient = 2,
@@ -229,7 +230,8 @@ const enum ResolverStrategy {
   alias = 5
 }
 
-class Resolver implements IResolver, IRegistration {
+/*@internal*/
+export class Resolver implements IResolver, IRegistration {
   constructor(public key: any, public strategy: ResolverStrategy, public state: any) {}
 
   public register(container: IContainer, key?: any) {
@@ -268,7 +270,8 @@ class Resolver implements IResolver, IRegistration {
   }
 }
 
-interface IInvoker {
+/*@internal*/
+export interface IInvoker {
   invoke(container: IContainer, fn: Function, dependencies: any[]): any;
   invokeWithDynamicDependencies(
     container: IContainer,
@@ -278,7 +281,8 @@ interface IInvoker {
   ): any;
 }
 
-class Factory implements IFactory {
+/*@internal*/
+export class Factory implements IFactory {
   private transformers: ((instance: any) => any)[] | null = null;
 
   constructor(public type: Function, private invoker: IInvoker, private dependencies: any[]) { }
@@ -316,7 +320,8 @@ class Factory implements IFactory {
   }
 }
 
-interface IContainerConfiguration {
+/*@internal*/
+export interface IContainerConfiguration {
   factories?: Map<Function, any>;
 }
 
@@ -330,7 +335,8 @@ function isRegistry(obj: any): obj is IRegistry {
   return typeof obj.register === 'function';
 }
 
-class Container implements IContainer {
+/*@internal*/
+export class Container implements IContainer {
   private parent: Container | null = null;
   private resolvers = new Map<any, IResolver>();
   private factories: Map<Function, IFactory>;
@@ -558,7 +564,8 @@ export const Registration = {
   }
 };
 
-function validateKey(key: any) {
+/*@internal*/
+export function validateKey(key: any) {
   if (key === null || key === undefined) {
     throw Reporter.error(5);
   }
@@ -580,7 +587,8 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
   return [resolver.resolve(handler, requestor)];
 }
 
-const classInvokers: Record<string, IInvoker> = {
+/*@internal*/
+export const classInvokers: Record<string, IInvoker> = {
   [0]: {
     invoke(container: IContainer, Type: Function) {
       return new (Type as any)();
@@ -634,7 +642,8 @@ const classInvokers: Record<string, IInvoker> = {
   }
 };
 
-function invokeWithDynamicDependencies(
+/*@internal*/
+export function invokeWithDynamicDependencies(
   container: IContainer,
   fn: Function,
   staticDependencies: any[],

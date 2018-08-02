@@ -49,7 +49,7 @@ export interface ITargetedInstruction {
   type: TargetedInstructionType;
 }
 
-type TargetedInstruction =
+export type TargetedInstruction =
   ITextBindingInstruction |
   IOneWayBindingInstruction | 
   IFromViewBindingInstruction | 

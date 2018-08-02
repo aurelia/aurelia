@@ -19,7 +19,8 @@ export function register(container: IContainer) {
   });
 }
 
-class ParserState {
+/*@internal*/
+export class ParserState {
   public index: number;
   public startIndex: number;
   public input: string;
@@ -50,7 +51,8 @@ class ParserState {
   }
 }
 
-function parse<T extends Precedence>(state: ParserState, access: Access, minPrecedence: T):
+/*@internal*/
+export function parse<T extends Precedence>(state: ParserState, access: Access, minPrecedence: T):
   T extends Precedence.Primary ? IsPrimary :
   T extends Precedence.LeftHandSide ? IsLeftHandSide :
   T extends Precedence.Binary ? IsBinary :

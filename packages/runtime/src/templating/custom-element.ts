@@ -23,7 +23,8 @@ export interface ICustomElement extends IBindSelf, IAttach, Readonly<IViewOwner>
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
-interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
+/*@internal*/
+export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $slot: IRenderSlot;
@@ -84,7 +85,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
 
   define<T extends Constructable>(nameOrSource: string | ITemplateSource, ctor: T = null): T & ICustomElementType {
     const Type: T & ICustomElementType = ctor === null ? class HTMLOnlyElement { /* HTML Only */ } as any : ctor as any;
-    const description = createDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
+    const description = createCustomElementDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: ICustomElement = Type.prototype;
   
     (Type as Writable<ICustomElementType>).kind = CustomElementResource;
@@ -246,7 +247,8 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
   }
 };
 
-function createDescription(templateSource: ITemplateSource, Type: ICustomElementType): TemplateDefinition {
+/*@internal*/
+export function createCustomElementDescription(templateSource: ITemplateSource, Type: ICustomElementType): TemplateDefinition {
   return {
     name: templateSource.name || 'unnamed',
     template: templateSource.template || null,

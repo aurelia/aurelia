@@ -4,9 +4,9 @@ import { collectionObserver } from './collection-observer';
 import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedMap } from './observation';
 
 const proto = Map.prototype;
-/*@internal*/export const nativeSet = proto.set;
-/*@internal*/export const nativeClear = proto.clear;
-/*@internal*/export const nativeDelete = proto.delete;
+export const nativeSet = proto.set; // TODO: probably want to make these internal again
+export const nativeClear = proto.clear;
+export const nativeDelete = proto.delete;
 
 export function enableMapObservation(): void {
   proto.set = observeSet;

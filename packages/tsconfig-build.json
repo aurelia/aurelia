@@ -9,6 +9,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
+    "stripInternal": true,
     "target": "es2015"
   }
 }

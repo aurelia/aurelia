@@ -5,7 +5,7 @@ import { IScope } from '../binding-context';
 import { BindingFlags } from '../binding-flags';
 import { ISignaler } from '../signaler';
 
-type SignalableBinding = Binding & {
+export type SignalableBinding = Binding & {
   signal: string | string[];
 };
 

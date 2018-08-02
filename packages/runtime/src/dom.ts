@@ -51,7 +51,8 @@ export interface IChildObserver {
   disconnect(): void;
 }
 
-function createView(fragment: DocumentFragment): IView {
+/*@internal*/
+export function createView(fragment: DocumentFragment): IView {
   return new TemplateView(<DocumentFragment>fragment.cloneNode(true));
 }
 

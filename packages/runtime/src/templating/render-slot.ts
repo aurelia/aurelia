@@ -5,17 +5,20 @@ import { IEmulatedShadowSlot, ShadowDOMEmulation } from './shadow-dom';
 import { IContentView } from './view';
 import { IVisual, MotionDirection } from './visual';
 
-function appendVisualToContainer(visual: IVisual) {
+/*@internal*/
+export function appendVisualToContainer(visual: IVisual) {
   const parent = visual.parent as RenderSlotImplementation;
   visual.$view.appendTo(parent.anchor);
 }
 
-function addVisual(visual: IVisual) {
+/*@internal*/
+export function addVisual(visual: IVisual) {
   const parent = visual.parent as RenderSlotImplementation;
   visual.$view.insertBefore(parent.anchor);
 }
 
-function project_addVisual(visual: IVisual) {
+/*@internal*/
+export function project_addVisual(visual: IVisual) {
   const parent = visual.parent as RenderSlotImplementation;
 
   ShadowDOMEmulation.distributeView(visual.$view, parent.slots, parent);
@@ -27,12 +30,14 @@ function project_addVisual(visual: IVisual) {
   };
 }
 
-function insertVisual(visual: IVisual) {
+/*@internal*/
+export function insertVisual(visual: IVisual) {
   visual.$view.insertBefore(visual.parent.children[visual.renderState].$view.firstChild);
   visual.onRender = (visual.parent as RenderSlotImplementation).addVisualCore;
 }
 
-function project_insertVisual(visual: IVisual) {
+/*@internal*/
+export function project_insertVisual(visual: IVisual) {
   const parent = visual.parent as RenderSlotImplementation;
   const index = visual.renderState;
 
@@ -131,7 +136,8 @@ export const RenderSlot = {
   }
 };
 
-class RenderSlotImplementation implements IRenderSlot {
+/*@internal*/
+export class RenderSlotImplementation implements IRenderSlot {
   private $isAttached = false;
   public addVisualCore: (visual: IVisual) => void;
   private insertVisualCore: (visual: IVisual) => void;

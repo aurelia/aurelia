@@ -23,12 +23,14 @@ export function enableImprovedExpressionDebugging() {
   ].forEach(x => adoptDebugMethods(x.type, x.name));
 }
 
-function adoptDebugMethods(type, name: string) {
+/*@internal*/
+export function adoptDebugMethods(type, name: string) {
   type.prototype.toString = function() { return Unparser.unparse(this); };
   type.prototype.accept = function(visitor) { return visitor['visit' + name](this); };
 }
 
-class Unparser {
+/*@internal*/
+export class Unparser {
   constructor(private buffer: string[]) {
     this.buffer = buffer;
   }

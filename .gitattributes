@@ -13,7 +13,7 @@
 ##   Handle line endings automatically for files detected as
 ##   text and leave all files detected as binary untouched.
 ##   This will handle all files NOT defined below.
-* text=lf
+* text eol=lf
 
 ## SOURCE CODE
 *.bat      text eol=crlf
@@ -36,7 +36,7 @@
 *.sass     text
 *.scm      text
 *.scss     text
-*.sh       text eol=lf
+*.sh       text
 *.sql      text
 *.styl     text
 *.tag      text

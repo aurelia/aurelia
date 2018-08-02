@@ -4,9 +4,9 @@ import { collectionObserver } from './collection-observer';
 import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedSet } from './observation';
 
 const proto = Set.prototype;
-/*@internal*/export const nativeAdd = proto.add;
-/*@internal*/export const nativeClear = proto.clear;
-/*@internal*/export const nativeDelete = proto.delete;
+export const nativeAdd = proto.add; // TODO: probably want to make these internal again
+export const nativeClear = proto.clear;
+export const nativeDelete = proto.delete;
 
 export function enableSetObservation(): void {
   proto.add = observeAdd;

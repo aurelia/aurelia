@@ -2,7 +2,8 @@ import { createTemplateDescription, escape, kebabCase, loadFromFile, parseImport
 
 const buildMap = {};
 
-function finishLoad(name: string, content: string, onLoad: Function) {
+/*@internal*/
+export function finishLoad(name: string, content: string, onLoad: Function) {
   buildMap[name] = content;
   onLoad(content);
 }

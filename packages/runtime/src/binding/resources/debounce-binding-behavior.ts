@@ -6,7 +6,7 @@ import { BindingMode } from '../binding-mode';
 import { Call } from '../call';
 import { Listener } from '../listener';
 
-type DebounceableBinding = (Binding | Call | Listener) & {
+export type DebounceableBinding = (Binding | Call | Listener) & {
   debouncedMethod: ((context: string, newValue: any, oldValue: any) => void) & { originalName: string };
   debounceState: {
     callContextToDebounce: string,
@@ -18,13 +18,15 @@ type DebounceableBinding = (Binding | Call | Listener) & {
 
 const unset = {};
 
-function debounceCallSource(event: Event) {
+/*@internal*/
+export function debounceCallSource(event: Event) {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);
   state.timeoutId = setTimeout(() => this.debouncedMethod(event), state.delay);
 }
 
-function debounceCall(this: DebounceableBinding, context: string, newValue: any, oldValue: any) {
+/*@internal*/
+export function debounceCall(this: DebounceableBinding, context: string, newValue: any, oldValue: any) {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);
   if (context !== state.callContextToDebounce) {

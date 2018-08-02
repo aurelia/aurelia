@@ -6,7 +6,7 @@ import { BindingMode } from '../binding-mode';
 import { Call } from '../call';
 import { Listener } from '../listener';
 
-type ThrottleableBinding = (Binding | Call | Listener) & {
+export type ThrottleableBinding = (Binding | Call | Listener) & {
   throttledMethod: ((value) => any) & { originalName: string };
   throttleState: {
     delay: number,
@@ -16,7 +16,8 @@ type ThrottleableBinding = (Binding | Call | Listener) & {
   }
 };
 
-function throttle(this: ThrottleableBinding, newValue: any) {
+/*@internal*/
+export function throttle(this: ThrottleableBinding, newValue: any) {
   let state = this.throttleState;
   let elapsed = +new Date() - state.last;
   

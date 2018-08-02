@@ -120,7 +120,8 @@ function createGetterSetter(instance, name) {
   });
 }
 
-class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
+/*@internal*/
+export class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
   private observer: IChildObserver = null;
   private children: ICustomElement[] = null;
   private queued = false;
@@ -167,7 +168,8 @@ class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubsc
   }
 }
 
-function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
+/*@internal*/
+export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
   const components: ICustomElement[] = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {

@@ -3,11 +3,13 @@ import { BindingMode } from '../binding/binding-mode';
 
 const capitalMatcher = /([A-Z])/g;
 
-function addHyphenAndLower(char) {
+/*@internal*/
+export function addHyphenAndLower(char) {
   return '-' + char.toLowerCase();
 }
 
-function hyphenate(name) {
+/*@internal*/
+export function hyphenate(name) {
   return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
 }
 

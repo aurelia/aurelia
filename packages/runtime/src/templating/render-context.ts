@@ -22,7 +22,8 @@ export interface IComponentOperation {
   dispose();
 }
 
-type ExposedContext = IRenderContext & IComponentOperation & IContainer;
+/*@internal*/
+export type ExposedContext = IRenderContext & IComponentOperation & IContainer;
 
 export function createRenderContext(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, dependencies: ImmutableArray<any>): IRenderContext {
   const context = <ExposedContext>parentRenderContext.createChild();
@@ -91,7 +92,8 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   return context;
 }
 
-class InstanceProvider<T> implements IResolver {
+/*@internal*/
+export class InstanceProvider<T> implements IResolver {
   private instance: T = null;
 
   public prepare(instance: T) {
@@ -107,7 +109,8 @@ class InstanceProvider<T> implements IResolver {
   }
 }
 
-class ViewFactoryProvider implements IResolver {
+/*@internal*/
+export class ViewFactoryProvider implements IResolver {
   private factory: IVisualFactory
   private replacements: TemplatePartDefinitions;
 
@@ -134,7 +137,8 @@ class ViewFactoryProvider implements IResolver {
   }
 }
 
-class RenderSlotProvider implements IResolver {
+/*@internal*/
+export class RenderSlotProvider implements IResolver {
   private node: INode = null;
   private anchorIsContainer = false;
   private slot: IRenderSlot = null;

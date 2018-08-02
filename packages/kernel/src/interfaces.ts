@@ -14,7 +14,7 @@ export type Injectable<T = {}> = Constructable<T> & { inject?: any[] };
 
 export type IIndexable<T extends object = object> = T & { [key: string]: any };
 
-type ImmutableObject<T> =
+export type ImmutableObject<T> =
   T extends [infer A]                                                       ? Immutable<[A]> :
   T extends [infer A, infer B]                                              ? Immutable<[A, B]> :
   T extends [infer A, infer B, infer C]                                     ? Immutable<[A, B, C]> :

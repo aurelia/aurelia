@@ -10,11 +10,11 @@ import { EventSubscriber, IEventSubscriber } from '../event-manager';
 import { IObserverLocator } from '../observer-locator';
 import { SelectValueObserver } from '../select-value-observer';
 
-type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {
+export type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {
   originalHandler?: IEventSubscriber
 };
 
-type UpdateTriggerableBinding = Binding & {
+export type UpdateTriggerableBinding = Binding & {
   targetObserver: UpdateTriggerableObserver;
 };
 

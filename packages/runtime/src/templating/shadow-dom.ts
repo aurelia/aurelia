@@ -8,9 +8,10 @@ import { IRenderSlot } from './render-slot';
 import { IContentView, IViewOwner } from './view';
 import { IVisual, IVisualFactory } from './visual';
 
-type ProjectionSource = IRenderSlot | IEmulatedShadowSlot;
+export type ProjectionSource = IRenderSlot | IEmulatedShadowSlot;
 
-type ShadowEmulationTracking = { 
+/*@internal*/
+export type ShadowEmulationTracking = { 
   $slot: ProjectionSource;
   $slotName?: string;
   $isContentProjectionSource?: boolean;
@@ -21,7 +22,8 @@ type ShadowEmulationTracking = {
   $projectionChildren: SlotNode[];
 };
 
-type SlotNode = INode & ShadowEmulationTracking;
+/*@internal*/
+export type SlotNode = INode & ShadowEmulationTracking;
 
 export interface IEmulatedShadowSlot extends IBindScope, IAttach {
   readonly name: string;
@@ -37,12 +39,14 @@ export interface IEmulatedShadowSlot extends IBindScope, IAttach {
 
 const noNodes = PLATFORM.emptyArray as SlotNode[];
 
-function shadowSlotAddFallbackVisual(visual: IVisual) {
+/*@internal*/
+export function shadowSlotAddFallbackVisual(visual: IVisual) {
   let parent: ShadowSlot = visual.parent as any;
   parent.fallbackVisual.$view.insertBefore(parent.anchor);
 }
 
-function passThroughSlotAddFallbackVisual(visual: IVisual) {
+/*@internal*/
+export function passThroughSlotAddFallbackVisual(visual: IVisual) {
   const parent: PassThroughSlot = visual.parent as any;
   const projectionSource = parent.currentProjectionSource;
   const slots = Object.create(null) as Record<string, IEmulatedShadowSlot>;
@@ -59,7 +63,8 @@ function passThroughSlotAddFallbackVisual(visual: IVisual) {
   );
 }
 
-abstract class ShadowSlotBase {
+/*@internal*/
+export abstract class ShadowSlotBase {
   public fallbackVisual: IVisual = null;
   public $isAttached = false;
   public $isBound = false;
@@ -108,7 +113,8 @@ abstract class ShadowSlotBase {
   }
 }
 
-class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
+/*@internal*/
+export class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   public destinationSlot: IEmulatedShadowSlot = null;
   public currentProjectionSource: ProjectionSource = null;
 
@@ -168,7 +174,8 @@ class PassThroughSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   }
 }
 
-class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
+/*@internal*/
+export class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   public children: SlotNode[] = [];
   public projectFromAnchors: SlotNode[] = null;
   public destinationSlots = null;
@@ -343,7 +350,8 @@ class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
   }
 }
 
-function distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource, index: number, destinationOverride: string = null) {
+/*@internal*/
+export function distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource, index: number, destinationOverride: string = null) {
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const currentNode = nodes[i];
 
@@ -384,7 +392,8 @@ function distributeNodes(view: IView, nodes: SlotNode[], slots: Record<string, I
   }
 }
 
-function undistributeAll(slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
+/*@internal*/
+export function undistributeAll(slots: Record<string, IEmulatedShadowSlot>, projectionSource: ProjectionSource) {
   for (const slotName in slots) {
     slots[slotName].removeAll(projectionSource);
   }
@@ -392,7 +401,8 @@ function undistributeAll(slots: Record<string, IEmulatedShadowSlot>, projectionS
 
 const defaultSlotName = 'auDefaultSlot';
 
-function getSlotName(node: INode): string {
+/*@internal*/
+export function getSlotName(node: INode): string {
   const name = (node as any).$slotName;
 
   if (name === undefined) {
@@ -402,7 +412,8 @@ function getSlotName(node: INode): string {
   return name;
 }
 
-function viewToNodes(view: IView) {
+/*@internal*/
+export function viewToNodes(view: IView) {
   let nodes: SlotNode[];
 
   if (view === null) {

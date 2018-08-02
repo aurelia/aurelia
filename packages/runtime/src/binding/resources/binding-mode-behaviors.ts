@@ -6,9 +6,9 @@ import { BindingMode } from '../binding-mode';
 
 const { oneTime, toView, fromView, twoWay } = BindingMode;
 
-type WithMode = { mode: BindingMode, originalMode?: BindingMode };
+export type WithMode = { mode: BindingMode, originalMode?: BindingMode };
 
-class BindingModeBehavior {
+export abstract class BindingModeBehavior {
   constructor(private mode: BindingMode) {}
 
   public bind(flags: BindingFlags, scope: IScope, binding: Binding & WithMode) {

@@ -28,7 +28,8 @@ export interface ICustomAttribute extends IBindScope, IAttach {
   $hydrate(renderingEngine: IRenderingEngine);
 }
 
-interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
+/*@internal*/
+export interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $slot: IRenderSlot;
@@ -79,7 +80,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
 
   define<T extends Constructable>(nameOrSource: string | ICustomAttributeSource, ctor: T): T & ICustomAttributeType { 
     const Type: T & ICustomAttributeType = ctor as any;
-    const description = createDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
+    const description = createCustomAttributeDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: ICustomAttribute = Type.prototype;
 
     (Type as Writable<ICustomAttributeType>).kind = CustomAttributeResource;
@@ -184,7 +185,8 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
   }
 };
 
-function createDescription(attributeSource: ICustomAttributeSource, Type: ICustomAttributeType): ResourceDescription<ICustomAttributeSource> {
+/*@internal*/
+export function createCustomAttributeDescription(attributeSource: ICustomAttributeSource, Type: ICustomAttributeType): ResourceDescription<ICustomAttributeSource> {
   return {
     name: attributeSource.name,
     aliases: attributeSource.aliases || PLATFORM.emptyArray,

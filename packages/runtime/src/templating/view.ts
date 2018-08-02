@@ -25,7 +25,8 @@ export interface IViewOwner {
 // This is an implementation of IView that represents "no DOM" to render.
 // It's used in various places to ensure that View is never null and to encode
 // the explicit idea of "no view".
-const noopView: IView = {
+/*@internal*/
+export const noopView: IView = {
   firstChild: null,
   lastChild: null,
   childNodes: PLATFORM.emptyArray,
@@ -94,7 +95,8 @@ export interface IContentView extends IView {
   attachChildObserver(onChildrenChanged: () => void): IChildObserver;
 }
 
-interface IContentViewChildObserver extends IChildObserver {
+/*@internal*/
+export interface IContentViewChildObserver extends IChildObserver {
   notifyChildrenChanged(): void;
 }
 
@@ -106,7 +108,8 @@ interface IContentViewChildObserver extends IChildObserver {
 // Most if not all of this will go away when we remove the shadow dom emulation and render slot.
 // However, we may need to keep the IChildObserver abstraction for enabling the $children property
 // in different scenarios, depending on what optimizations we make around when/when not to use shadow dom.
-class ContentView implements IContentView {
+/*@internal*/
+export class ContentView implements IContentView {
   public firstChild: INode;
   public lastChild: INode;
   public childNodes: INode[];

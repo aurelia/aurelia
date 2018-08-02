@@ -13,7 +13,7 @@ import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { BindableDefinitions, IHydrateElementInstruction, ITemplateSource, TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
-import { createRenderContext, IComponentOperation, IRenderContext } from './render-context';
+import { createRenderContext, IComponentOperation, IRenderContext, ExposedContext } from './render-context';
 import { IRenderSlot } from './render-slot';
 import { IRenderer, Renderer } from './renderer';
 import { IRuntimeBehavior, RuntimeBehavior } from './runtime-behavior';
@@ -45,10 +45,9 @@ const noViewTemplate: ITemplate = {
   }
 };
 
-type ExposedContext = IRenderContext & IComponentOperation & IContainer;
-
 @inject(IContainer, ITaskQueue, IObserverLocator, IEventManager, IExpressionParser, IAnimator, all(ITemplateCompiler))
-class RenderingEngine implements IRenderingEngine {
+/*@internal*/
+export class RenderingEngine implements IRenderingEngine {
   private templateLookup = new Map<TemplateDefinition, ITemplate>();
   private factoryLookup = new Map<Immutable<ITemplateSource>, IVisualFactory>();
   private behaviorLookup = new Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>();
@@ -205,7 +204,8 @@ class RenderingEngine implements IRenderingEngine {
   }
 }
 
-function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefinition {
+/*@internal*/
+export function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefinition {
   return {
     name: definition.name || 'Unnamed Template',
     template: definition.template,
@@ -230,7 +230,8 @@ function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefin
 // TemplateCompiler either through a JIT or AOT process.
 // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
 // and create instances of it on demand.
-class CompiledTemplate implements ITemplate {
+/*@internal*/
+export class CompiledTemplate implements ITemplate {
   private createView: () => IView;
   public renderContext: IRenderContext;
 
@@ -246,7 +247,8 @@ class CompiledTemplate implements ITemplate {
   }
 }
 
-class RuntimeCompilationResources implements IResourceDescriptions {
+/*@internal*/
+export class RuntimeCompilationResources implements IResourceDescriptions {
   constructor(private context: ExposedContext) {}
 
   public get<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null {
@@ -265,7 +267,8 @@ class RuntimeCompilationResources implements IResourceDescriptions {
   }
 }
 
-abstract class Visual implements IVisual {
+/*@internal*/
+export abstract class Visual implements IVisual {
   public $bindable: IBindScope[] = [];
   public $attachable: IAttach[] = [];
   public $scope: IScope = null;
@@ -399,7 +402,8 @@ abstract class Visual implements IVisual {
   }
 }
 
-class VisualFactory implements IVisualFactory {
+/*@internal*/
+export class VisualFactory implements IVisualFactory {
   private cacheSize = -1;
   private cache: Visual[] = null;
 

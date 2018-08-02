@@ -3,13 +3,13 @@ import { collectionObserver } from './collection-observer';
 import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray } from './observation';
 
 const proto = Array.prototype;
-/*@internal*/export const nativePush = proto.push;
-/*@internal*/export const nativeUnshift = proto.unshift;
-/*@internal*/export const nativePop = proto.pop;
-/*@internal*/export const nativeShift = proto.shift;
-/*@internal*/export const nativeSplice = proto.splice;
-/*@internal*/export const nativeReverse = proto.reverse;
-/*@internal*/export const nativeSort = proto.sort;
+export const nativePush = proto.push; // TODO: probably want to make these internal again
+export const nativeUnshift = proto.unshift;
+export const nativePop = proto.pop;
+export const nativeShift = proto.shift;
+export const nativeSplice = proto.splice;
+export const nativeReverse = proto.reverse;
+export const nativeSort = proto.sort;
 
 export function enableArrayObservation(): void {
   proto.push = observePush;

@@ -1,12 +1,12 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, PLATFORM } from '@aurelia/kernel';
 import {
   AccessKeyed, AccessMember, AccessScope, AccessThis,
-  ArrayLiteral, Assign, Binary, BindingBehavior,
-  CallFunction, CallMember, CallScope,
-  Conditional, ForOfStatement, IExpression,
-  IExpressionParser, IsAssign, IsBinary, IsBindingBehavior, IsConditional,
-  IsLeftHandSide, IsPrimary, ObjectLiteral, PrimitiveLiteral, TaggedTemplate,
-  Template, Unary, ValueConverter
+  ArrayBindingPattern, ArrayLiteral, Assign, Binary,
+  BindingBehavior, BindingIdentifier, CallFunction,
+  CallMember, CallScope, Conditional,
+  ForOfStatement, IExpression, IExpressionParser, IsAssign, IsBinary,
+  IsBindingBehavior, IsConditional, IsLeftHandSide, IsPrimary, ObjectBindingPattern,
+  ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, ExpressionKind
 } from '@aurelia/runtime';
 import { BindingType } from '../templating/attribute-name-parser';
 
@@ -14,11 +14,13 @@ export function register(container: IContainer) {
   container.registerTransformer(IExpressionParser, parser => {
     return Object.assign(parser, {
       parseCore(expression: string): IExpression {
-        return parse(new ParserState(expression), Access.Reset, Precedence.Variadic, 0);
+        return parse(new ParserState(expression), Access.Reset, Precedence.Variadic, BindingType.None);
       }
     });
   });
 }
+
+const { emptyArray } = PLATFORM;
 
 /*@internal*/
 export class ParserState {
@@ -118,7 +120,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       do {
         nextToken(state);
         access++; // ancestor
-        if (optional(state, Token.Dot)) {
+        if (consumeOpt(state, Token.Dot)) {
           if (state.currentToken === <any>Token.Dot) {
             error(state);
           }
@@ -133,9 +135,13 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       } while (state.currentToken === Token.ParentScope);
     // falls through
     case Token.Identifier: // identifier
-      result = new AccessScope(<string>state.tokenValue, access & Access.Ancestor);
+      if (bindingType & BindingType.IsIterator) {
+        result = new BindingIdentifier(<string>state.tokenValue);
+      } else {
+        result = new AccessScope(<string>state.tokenValue, access & Access.Ancestor);
+        access = Access.Scope;
+      }
       nextToken(state);
-      access = Access.Scope;
       break;
     case Token.ThisScope: // $this
       state.assignable = false;
@@ -146,7 +152,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
     case Token.OpenParen: // parenthesized expression
       nextToken(state);
       result = parse(state, Access.Reset, Precedence.Conditional, bindingType);
-      expect(state, Token.CloseParen);
+      consume(state, Token.CloseParen);
       break;
     case Token.OpenBracket:
       /** parseArrayLiteralExpression
@@ -168,22 +174,26 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       nextToken(state);
       const elements = new Array<IsAssign>();
       while (state.currentToken !== <any>Token.CloseBracket) {
-        if (optional(state, Token.Comma)) {
+        if (consumeOpt(state, Token.Comma)) {
           elements.push($undefined);
           if (state.currentToken === <any>Token.CloseBracket) {
             elements.push($undefined);
             break;
           }
         } else {
-          elements.push(parse(state, access, Precedence.Assign, bindingType));
-          if (!optional(state, Token.Comma)) {
+          elements.push(parse(state, access, Precedence.Assign, bindingType & ~BindingType.IsIterator));
+          if (!consumeOpt(state, Token.Comma)) {
             break;
           }
         }
       }
-      expect(state, Token.CloseBracket);
-      result = new ArrayLiteral(elements);
-      state.assignable = false;
+      consume(state, Token.CloseBracket);
+      if (bindingType & BindingType.IsIterator) {
+        result = new ArrayBindingPattern(elements);
+      } else {
+        result = new ArrayLiteral(elements);
+        state.assignable = false;
+      }
       break;
     case Token.OpenBrace:
       /** parseObjectLiteralExpression
@@ -214,31 +224,35 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         // Literal = mandatory colon
         if (state.currentToken & Token.StringOrNumericLiteral) {
           nextToken(state);
-          expect(state, Token.Colon);
-          values.push(parse(state, Access.Reset, Precedence.Assign, bindingType));
+          consume(state, Token.Colon);
+          values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
         } else if (state.currentToken & Token.IdentifierName) {
           // IdentifierName = optional colon
           const { currentChar, currentToken, index } = <any>state;
           nextToken(state);
-          if (optional(state, Token.Colon)) {
-            values.push(parse(state, Access.Reset, Precedence.Assign, bindingType));
+          if (consumeOpt(state, Token.Colon)) {
+            values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
           } else {
             // Shorthand
             state.currentChar = currentChar;
             state.currentToken = currentToken;
             state.index = index;
-            values.push(parse(state, Access.Reset, Precedence.Primary, bindingType));
+            values.push(parse(state, Access.Reset, Precedence.Primary, bindingType & ~BindingType.IsIterator));
           }
         } else {
           error(state);
         }
         if (state.currentToken !== <any>Token.CloseBrace) {
-          expect(state, Token.Comma);
+          consume(state, Token.Comma);
         }
       }
-      expect(state, Token.CloseBrace);
-      result = new ObjectLiteral(keys, values);
-      state.assignable = false;
+      consume(state, Token.CloseBrace);
+      if (bindingType & BindingType.IsIterator) {
+        result = new ObjectBindingPattern(keys, values);
+      } else {
+        result = new ObjectLiteral(keys, values);
+        state.assignable = false;
+      }
       break;
     case Token.TemplateTail:
       result = new Template([<string>state.tokenValue]);
@@ -280,12 +294,12 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
        * TODO: de-duplicate template parsing logic
        */
       const cooked = [<string>state.tokenValue];
-      expect(state, Token.TemplateContinuation);
+      consume(state, Token.TemplateContinuation);
       const expressions = [parse(state, access, Precedence.Assign, bindingType)];
 
       while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
         cooked.push(<string>state.tokenValue);
-        expect(state, Token.TemplateContinuation);
+        consume(state, Token.TemplateContinuation);
         expressions.push(parse(state, access, Precedence.Assign, bindingType));
       }
 
@@ -315,17 +329,17 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         error(state);
       }
     }
-    if (Precedence.LeftHandSide < minPrecedence) return result;
 
-    // NOTE: this is a temporary (not a proper) implementation for ForStatement
-    // need to take into account correct precedence, context, destructuring, etc
     if (bindingType & BindingType.IsIterator) {
-      expect(state, Token.OfKeyword);
+      if (!(result.$kind & ExpressionKind.IsForDeclaration)) {
+        error(state, 'Invalid ForDeclaration');
+      }
+      consume(state, Token.OfKeyword);
       const declaration = result;
-      const statement = <any>parse(state, Access.Reset, 0, 0);
+      const statement = <any>parse(state, Access.Reset, Precedence.Variadic, BindingType.None);
       return new ForOfStatement(declaration, statement) as any;
     }
-
+    if (Precedence.LeftHandSide < minPrecedence) return result;
 
     /** parseMemberExpression (Token.Dot, Token.OpenBracket, Token.TemplateContinuation)
      * MemberExpression :
@@ -378,7 +392,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         nextToken(state);
         access = Access.Keyed;
         result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Conditional, bindingType));
-        expect(state, Token.CloseBracket);
+        consume(state, Token.CloseBracket);
         break;
       case Token.OpenParen:
         state.assignable = false;
@@ -386,11 +400,11 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         const args = new Array<IsAssign>();
         while (state.currentToken !== <any>Token.CloseParen) {
           args.push(parse(state, Access.Reset, Precedence.Conditional, bindingType));
-          if (!optional(state, Token.Comma)) {
+          if (!consumeOpt(state, Token.Comma)) {
             break;
           }
         }
-        expect(state, Token.CloseParen);
+        consume(state, Token.CloseParen);
         if (access & Access.Scope) {
           result = new CallScope(<string>name, args, (<any>result).ancestor);
         } else if (access & Access.Member) {
@@ -442,13 +456,13 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         state.assignable = false;
         const cooked = [<string>state.tokenValue];
         const raw = [state.tokenRaw];
-        expect(state, Token.TemplateContinuation);
+        consume(state, Token.TemplateContinuation);
         const expressions = [parse(state, access, Precedence.Assign, bindingType)];
 
         while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
           cooked.push(<string>state.tokenValue);
           raw.push(state.tokenRaw);
-          expect(state, Token.TemplateContinuation);
+          consume(state, Token.TemplateContinuation);
           expressions.push(parse(state, access, Precedence.Assign, bindingType));
         }
 
@@ -460,6 +474,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       }
     }
   }
+
   if (Precedence.Binary < minPrecedence) return result;
 
   /** parseBinaryExpression
@@ -510,9 +525,9 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
    * IsValidAssignmentTarget
    *   1,2 = false
    */
-  if (optional(state, Token.Question)) {
+  if (consumeOpt(state, Token.Question)) {
     const yes = parse(state, access, Precedence.Assign, bindingType);
-    expect(state, Token.Colon);
+    consume(state, Token.Colon);
     result = new Conditional(result, yes, parse(state, access, Precedence.Assign, bindingType));
     state.assignable = false;
   }
@@ -528,7 +543,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
    * IsValidAssignmentTarget
    *   1,2 = false
    */
-  if (optional(state, Token.Equals)) {
+  if (consumeOpt(state, Token.Equals)) {
     if (!state.assignable) {
       error(state, `Expression ${state.input.slice(exprStart, state.startIndex)} is not assignable`);
     }
@@ -539,11 +554,11 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
 
   /** parseValueConverter
    */
-  while (optional(state, Token.Bar)) {
+  while (consumeOpt(state, Token.Bar)) {
     const name = <string>state.tokenValue;
     nextToken(state);
     const args = new Array<IsAssign>();
-    while (optional(state, Token.Colon)) {
+    while (consumeOpt(state, Token.Colon)) {
       args.push(parse(state, access, Precedence.Assign, bindingType));
     }
     result = new ValueConverter(result, name, args);
@@ -551,14 +566,18 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
 
   /** parseBindingBehavior
    */
-  while (optional(state, Token.Ampersand)) {
+  while (consumeOpt(state, Token.Ampersand)) {
     const name = <string>state.tokenValue;
     nextToken(state);
     const args = new Array<IsAssign>();
-    while (optional(state, Token.Colon)) {
+    while (consumeOpt(state, Token.Colon)) {
       args.push(parse(state, access, Precedence.Assign, bindingType));
     }
     result = new BindingBehavior(result, name, args);
+  }
+  if (bindingType & BindingType.Interpolation) {
+    expect(state, Token.CloseBrace);
+    return result;
   }
   if (state.currentToken !== Token.EOF) {
     error(state, `Unconsumed token ${state.tokenRaw}`);
@@ -691,7 +710,7 @@ function error(state: ParserState, message: string = `Unexpected token ${state.t
   throw new Error(`Parser Error: ${message} at column ${column} in expression [${state.input}]`);
 }
 
-function optional(state: ParserState, token: Token): boolean {
+function consumeOpt(state: ParserState, token: Token): boolean {
   if (state.currentToken === token) {
     nextToken(state);
     return true;
@@ -700,10 +719,16 @@ function optional(state: ParserState, token: Token): boolean {
   return false;
 }
 
-function expect(state: ParserState, token: Token): void {
+function consume(state: ParserState, token: Token): void {
   if (state.currentToken === token) {
     nextToken(state);
   } else {
+    error(state, `Missing expected token ${TokenValues[token & Token.Type]}`, state.index);
+  }
+}
+
+function expect(state: ParserState, token: Token): void {
+  if (state.currentToken !== token) {
     error(state, `Missing expected token ${TokenValues[token & Token.Type]}`, state.index);
   }
 }
@@ -723,7 +748,8 @@ function unescape(code: number): number {
   }
 }
 
-const enum Access {
+/*@internal*/
+export const enum Access {
   Reset                   = 0b0000000000000,
   Ancestor                = 0b0000111111111,
   This                    = 0b0001000000000,
@@ -731,7 +757,8 @@ const enum Access {
   Member                  = 0b0100000000000,
   Keyed                   = 0b1000000000000
 }
-const enum Precedence {
+/*@internal*/
+export const enum Precedence {
   Variadic                = 0b000111101,
   Assign                  = 0b000111110,
   Conditional             = 0b000111111,
@@ -808,7 +835,8 @@ const enum Token {
   OfKeyword               = 0b000000000101 << 9 | 0b000 << 6 | 0b101011,
 }
 
-const enum Char {
+/*@internal*/
+export const enum Char {
   Null           = 0x00,
   Backspace      = 0x08,
   Tab            = 0x09,
@@ -947,6 +975,7 @@ KeywordLookup.in = Token.InKeyword;
 KeywordLookup.instanceof = Token.InstanceOfKeyword;
 KeywordLookup.typeof = Token.TypeofKeyword;
 KeywordLookup.void = Token.VoidKeyword;
+KeywordLookup.of = Token.OfKeyword;
 
 /**
  * Ranges of code points in pairs of 2 (eg 0x41-0x5B, 0x61-0x7B, ...) where the second value is not inclusive (5-7 means 5 and 6)

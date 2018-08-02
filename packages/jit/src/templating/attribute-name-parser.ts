@@ -1,3 +1,4 @@
+import { Char } from '../binding/expression-parser';
 import { RuntimeContext } from '../runtime-context';
 
 export class AttributeName {
@@ -75,11 +76,38 @@ function scanBindingTarget(state: ParserState, ctx: RuntimeContext): BindingType
   return BindingType.IsPlain;
 }
 
-const enum Char {
-  Dot = 0x2E
+/*@internal*/
+export function bindingTypeToString(bindingType: BindingType): string {
+  switch(bindingType) {
+    case BindingType.None: return 'None';
+    case BindingType.Interpolation: return 'Interpolation';
+    case BindingType.IsPlain: return 'IsPlain';
+    case BindingType.IsRef: return 'IsRef';
+    case BindingType.IsIterator: return 'IsIterator';
+    case BindingType.IsCustom: return 'IsCustom';
+    case BindingType.IsFunction: return 'IsFunction';
+    case BindingType.IsEvent: return 'IsEvent';
+    case BindingType.IsProperty: return 'IsProperty';
+    case BindingType.IsCommand: return 'IsCommand';
+    case BindingType.Command: return 'Command';
+    case BindingType.UnknownCommand: return 'UnknownCommand';
+    case BindingType.OneTimeCommand: return 'OneTimeCommand';
+    case BindingType.ToViewCommand: return 'ToViewCommand';
+    case BindingType.FromViewCommand: return 'FromViewCommand';
+    case BindingType.TwoWayCommand: return 'TwoWayCommand';
+    case BindingType.BindCommand: return 'BindCommand';
+    case BindingType.TriggerCommand: return 'TriggerCommand';
+    case BindingType.CaptureCommand: return 'CaptureCommand';
+    case BindingType.DelegateCommand: return 'DelegateCommand';
+    case BindingType.CallCommand: return 'CallCommand';
+    case BindingType.OptionsCommand: return 'OptionsCommand';
+    case BindingType.ForCommand: return 'ForCommand';
+    case BindingType.CustomCommand: return 'CustomCommand';
+  }
 }
 
 export const enum BindingType {
+             None = 0,
  Interpolation    = 0b110000000 << 4,
        IsPlain    = 0b010000000 << 4,
        IsRef      = 0b001010000 << 4,

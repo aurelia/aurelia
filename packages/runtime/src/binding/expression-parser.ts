@@ -1,16 +1,25 @@
-import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
+import { DI, PLATFORM, Reporter, inject } from '@aurelia/kernel';
 import { AccessMember, AccessScope, CallMember, CallScope, IExpression } from './ast';
+
 
 export interface IExpressionParser {
   cache(expressions: Record<string, IExpression>): void;
   parse(expression: string): IExpression;
 }
 
+export interface IExpressionCache {
+  [value: string]: IExpression;
+}
+
 export const IExpressionParser = DI.createInterface<IExpressionParser>()
   .withDefault(x => x.singleton(ExpressionParser));
 
+export const IExpressionCache = DI.createInterface<IExpressionCache>()
+  .withDefault(x => x.instance(Object.create(null)));
+
+@inject(IExpressionCache)
 class ExpressionParser implements IExpressionParser {
-  private lookup: Record<string, IExpression> = Object.create(null);
+  constructor(private lookup: IExpressionCache) { }
 
   public parse(expression: string): IExpression {
     let found = this.lookup[expression];

@@ -18,37 +18,9 @@ export function addVisual(visual: IVisual) {
 }
 
 /*@internal*/
-export function project_addVisual(visual: IVisual) {
-  const parent = visual.parent as RenderSlotImplementation;
-
-  ShadowDOMEmulation.distributeView(visual.$view, parent.slots, parent);
-  parent.logicalView.insertVisualChildBefore(visual, parent.anchor);
-
-  visual.$view.remove = () => {
-    ShadowDOMEmulation.undistributeView(visual.$view, parent.slots, parent);
-    parent.logicalView.removeVisualChild(visual);
-  };
-}
-
-/*@internal*/
 export function insertVisual(visual: IVisual) {
   visual.$view.insertBefore(visual.parent.children[visual.renderState].$view.firstChild);
   visual.onRender = (visual.parent as RenderSlotImplementation).addVisualCore;
-}
-
-/*@internal*/
-export function project_insertVisual(visual: IVisual) {
-  const parent = visual.parent as RenderSlotImplementation;
-  const index = visual.renderState;
-
-  ShadowDOMEmulation.distributeView(visual.$view, parent.slots, parent, index);
-  parent.logicalView.insertVisualChildBefore(visual, parent.children[index].$view.firstChild);
-  visual.onRender = (visual.parent as RenderSlotImplementation).addVisualCore;
-
-  visual.$view.remove = () => {
-    ShadowDOMEmulation.undistributeView(visual.$view, parent.slots, parent);
-    parent.logicalView.removeVisualChild(visual);
-  };
 }
 
 export enum SwapOrder {
@@ -339,22 +311,6 @@ export class RenderSlotImplementation implements IRenderSlot {
 
       this.$isAttached = false;
       this.encapsulationSource = null;
-    }
-  }
-
-  public projectTo(slots: Record<string, IEmulatedShadowSlot>): void {
-    this.slots = slots;
-    this.addVisualCore = project_addVisual;
-    this.insertVisualCore = project_insertVisual;
-
-    if (this.$isAttached) {
-      const children = this.children;
-
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-        let child = children[i];
-        child.onRender = project_addVisual;
-        project_addVisual(child);
-      }
     }
   }
 }

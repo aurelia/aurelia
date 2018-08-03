@@ -35,20 +35,20 @@ export interface IAnimator {
 
 export const IAnimator = DI.createInterface<IAnimator>()
   .withDefault(x => x.singleton(class {
-    enter(node: INode): Promise<boolean> {
+    public enter(node: INode): Promise<boolean> {
       return Promise.resolve(false);
     }
 
-    leave(node: INode): Promise<boolean> {
+    public leave(node: INode): Promise<boolean> {
       return Promise.resolve(false);
     }
 
-    removeClass(node: INode, className: string): Promise<boolean> {
+    public removeClass(node: INode, className: string): Promise<boolean> {
       (<Element>node).classList.remove(className);
       return Promise.resolve(false);
     }
 
-    addClass(node: INode, className: string): Promise<boolean> {
+    public addClass(node: INode, className: string): Promise<boolean> {
       (<Element>node).classList.add(className);
       return Promise.resolve(false);
     }

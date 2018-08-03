@@ -13,7 +13,6 @@ import { CustomElementResource, ICustomElement } from './custom-element';
 import { ICallBindingInstruction, IFromViewBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateSlotInstruction, IHydrateTemplateController, IListenerBindingInstruction, IOneWayBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, ITwoWayBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
 import { IRenderContext } from './render-context';
 import { IRenderingEngine } from './rendering-engine';
-import { ShadowDOMEmulation } from './shadow-dom';
 import { IViewOwner } from './view';
 
 export interface IRenderer {
@@ -118,19 +117,6 @@ export class Renderer implements IRenderer {
 
   public [TargetedInstructionType.setAttribute](owner: IViewOwner, target: any, instruction: Immutable<ISetAttributeInstruction>) {
     DOM.setAttribute(target, instruction.dest, instruction.value);
-  }
-
-  public [TargetedInstructionType.hydrateSlot](owner: ICustomElement, target: any, instruction: Immutable<IHydrateSlotInstruction>) {
-    if (!owner.$usingSlotEmulation) {
-      return;
-    }
-
-    const fallbackFactory = this.renderingEngine.getVisualFactory(this.context, instruction.fallback);
-    const slot = ShadowDOMEmulation.createSlot(target, owner, instruction.name, instruction.dest, fallbackFactory);
-
-    owner.$slots[slot.name] = slot;
-    owner.$bindable.push(slot);
-    owner.$attachable.push(slot);
   }
 
   public [TargetedInstructionType.hydrateElement](owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>) {

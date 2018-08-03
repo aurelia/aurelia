@@ -10,7 +10,6 @@ export * from './render-slot';
 export * from './renderer';
 export * from './rendering-engine';
 export * from './runtime-behavior';
-export * from './shadow-dom';
 export * from './template-compiler';
 export * from './template';
 export * from './view';

@@ -8,12 +8,12 @@ import { IVisual, IVisualFactory } from '../visual';
 export interface With extends ICustomAttribute {}
 @templateController('with')
 @inject(IVisualFactory, IRenderSlot)
-export class With { 
+export class With {
   private child: IVisual = null;
 
   public value: any = null;
 
-  constructor(private factory: IVisualFactory, private slot: IRenderSlot) { 
+  constructor(private factory: IVisualFactory, private slot: IRenderSlot) {
     this.child = factory.create();
     this.slot.add(this.child);
   }

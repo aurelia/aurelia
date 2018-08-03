@@ -53,7 +53,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     ownerProvider.prepare(owner);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);
-    
+
     if (factory) {
       factoryProvider.prepare(factory, parts);
     }
@@ -116,7 +116,7 @@ export class ViewFactoryProvider implements IResolver {
 
   constructor(private renderingEngine: IRenderingEngine) {}
 
-  public prepare(factory: IVisualFactory, parts: TemplatePartDefinitions) { 
+  public prepare(factory: IVisualFactory, parts: TemplatePartDefinitions) {
     this.factory = factory;
     this.replacements = parts || PLATFORM.emptyObject;
   }

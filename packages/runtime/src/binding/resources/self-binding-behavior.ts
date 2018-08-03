@@ -12,7 +12,7 @@ export function findOriginalEventTarget(event) {
 /*@internal*/
 export function handleSelfEvent(event: Event) {
   let target = findOriginalEventTarget(event);
-  
+
   if (this.target !== target) {
     return;
   }
@@ -30,7 +30,7 @@ export class SelfBindingBehavior {
     if (!binding.callSource || !binding.targetEvent) {
       throw Reporter.error(8);
     }
-    
+
     binding.selfEventCallSource = binding.callSource;
     binding.callSource = handleSelfEvent;
   }

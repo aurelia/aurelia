@@ -56,7 +56,7 @@ class DirtyChecker {
 
 class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
   public oldValue;
-  
+
   constructor(private dirtyChecker: DirtyChecker, private obj: any, private propertyName: string) {
     super();
   }

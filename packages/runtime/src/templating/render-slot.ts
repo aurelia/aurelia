@@ -212,7 +212,7 @@ export class RenderSlotImplementation implements IRenderSlot {
     switch(strategy) {
       case SwapOrder.before:
         const beforeAddResult = add();
-        return (beforeAddResult instanceof Promise ? beforeAddResult.then(() => <any>remove()) : remove()); 
+        return (beforeAddResult instanceof Promise ? beforeAddResult.then(() => <any>remove()) : remove());
       case SwapOrder.with:
         const withAddResult = add();
         const withRemoveResult = remove();
@@ -282,9 +282,9 @@ export class RenderSlotImplementation implements IRenderSlot {
           child.$detach(lifecycle);
           return;
         }
-  
+
         const animation = child.animate(MotionDirection.enter);
-  
+
         if (animation) {
           rmPromises.push(animation.then(() => child.$detach(lifecycle)));
         } else {
@@ -332,7 +332,7 @@ export class RenderSlotImplementation implements IRenderSlot {
   public $detach(lifecycle: DetachLifecycle): void {
     if (this.$isAttached) {
       const children = this.children;
-      
+
       for (let i = 0, ii = children.length; i < ii; ++i) {
         children[i].$detach(lifecycle);
       }
@@ -349,7 +349,7 @@ export class RenderSlotImplementation implements IRenderSlot {
 
     if (this.$isAttached) {
       const children = this.children;
-      
+
       for (let i = 0, ii = children.length; i < ii; ++i) {
         let child = children[i];
         child.onRender = project_addVisual;

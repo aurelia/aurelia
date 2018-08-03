@@ -49,7 +49,7 @@ class ObserverLocator implements IObserverLocator {
 
   constructor(
     private taskQueue: ITaskQueue,
-    private eventManager: IEventManager, 
+    private eventManager: IEventManager,
     private dirtyChecker: IDirtyChecker,
     private svgAnalyzer: ISVGAnalyzer
   ) {}

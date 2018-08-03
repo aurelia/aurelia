@@ -8,7 +8,7 @@ export class NullRepeatStrategy implements IRepeatStrategy {
   }
 
   instanceMutated(repeat: IRepeater, items: any, changes: any): void { }
-  
+
   instanceChanged(repeat: IRepeater, items: any): void {
     repeat.removeAllVisuals(true);
   }

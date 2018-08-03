@@ -158,20 +158,20 @@ describe('ArrayRepeater - render html', () => {
 
           const startArr = [0, 1, 2];
           const deleteCountArr = [0, 1, 2];
-      
+
           // test with different splice starting indices (only up to one position out of array bounds to reduce test redundancy)
           for (const start of startArr.filter(s => s <= init.length + 1)) {
             const startTitle = 'start=' + padRight(start, 2);
-    
+
             // test with different splice deleteCount (only up to one higher than initial item count to reduce test redundancy)
             for (const deleteCount of deleteCountArr.filter(d => d <= init.length + 1)) {
               const deleteCountTitle = 'deleteCount=' + padRight(deleteCount, 2);
-    
+
               // test with different amounts of items added
               for (const items of itemsArr) {
                 const itemsTitle = 'itemCount=' + padRight(items.length, 2);
                 const opTitle = padRight('splice', 10);
-    
+
                 it(`${opTitle} - ${fixtureTitle} ${initTitle} ${flushModeTitle} ${timesTitle} ${startTitle} ${deleteCountTitle} ${itemsTitle}`, () => {
                   aureliaConfig = createAureliaRepeaterConfig(fixture);
                   au.register(aureliaConfig);
@@ -216,13 +216,13 @@ describe('ArrayRepeater - render html', () => {
               }
             }
           }
-  
+
           const assignArr = [[], [1], [1, 2]];
-  
+
           for (const assign of assignArr) {
             const assignTitle = 'assign=' + padRight(assign.length, 2);
             const opTitle = padRight('assign', 10);
-    
+
             it(`${opTitle} - ${fixtureTitle} ${initTitle} ${flushModeTitle} ${timesTitle} ${assignTitle}`, () => {
               aureliaConfig = createAureliaRepeaterConfig(fixture);
               au.register(aureliaConfig);
@@ -316,7 +316,7 @@ describe('ArrayRepeater - render html', () => {
 
   it('triple nested repeater should render correctly', () => {
     const initItems = [
-      { 
+      {
         id: 1,
         innerTodos: [
           { innerId: 10, innerInnerTodos: [ { innerInnerId: 100 }, { innerInnerId: 101 }, { innerInnerId: 102 } ] },

@@ -14,13 +14,13 @@ interface IArrayStorageOnRepeater {
 function indexOf(array: any[], item: any, matcher: (a: any, b: any) => boolean, startIndex: number = 0) {
   if (matcher) {
     const length = array.length;
-  
+
     for (let index = startIndex; index < length; index++) {
       if (matcher(array[index], item)) {
         return index;
       }
     }
-  
+
     return -1;
   }
 
@@ -242,7 +242,7 @@ export class ArrayRepeatStrategy<T = any> implements IRepeatStrategy<T[]> {
       for (let j = 0, jj = removed.length; j < jj; ++j) {
         // the rmPromises.length correction works due to the ordered removal precondition
         const viewOrPromise = repeat.removeVisual(splice.index + removeDelta + rmPromises.length, true);
-        
+
         if (viewOrPromise instanceof Promise) {
           rmPromises.push(viewOrPromise);
         }
@@ -268,7 +268,7 @@ export class ArrayRepeatStrategy<T = any> implements IRepeatStrategy<T[]> {
     const arrayLength = array.length;
     let spliceIndex: number;
     let spliceIndexLow: number;
-    
+
     for (let i = 0, ii = splices.length; i < ii; ++i) {
       const splice = splices[i];
       const end = splice.index + splice.addedCount;

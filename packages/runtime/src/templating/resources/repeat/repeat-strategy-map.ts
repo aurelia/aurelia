@@ -19,7 +19,7 @@ export class MapRepeatStrategy<T = any, K = any> implements IRepeatStrategy<Map<
 
   instanceChanged(repeat: IRepeater, items: Map<T, K>): void {
     const removePromise = repeat.removeAllVisuals(true, !repeat.visualsRequireLifecycle);
-    
+
     if (removePromise instanceof Promise) {
       removePromise.then(() => this.standardProcessItems(repeat, items));
       return;
@@ -66,8 +66,8 @@ export class MapRepeatStrategy<T = any, K = any> implements IRepeatStrategy<Map<
           repeat.insertVisualWithScope(map.size - 1, BindingContext.createScopeFromOverride(overrideContext));
           break;
         case 'delete':
-          if (record.oldValue === undefined) { 
-            return; 
+          if (record.oldValue === undefined) {
+            return;
           }
 
           removeIndex = this.getViewIndexByKey(repeat, key);

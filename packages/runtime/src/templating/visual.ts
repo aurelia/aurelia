@@ -12,7 +12,7 @@ export enum MotionDirection {
   leave = 'leave'
 }
 
-export interface IVisual extends IBindScope, IViewOwner, IAttach { 
+export interface IVisual extends IBindScope, IViewOwner, IAttach {
   readonly factory: IVisualFactory;
 
   parent: IRenderSlot;

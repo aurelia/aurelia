@@ -63,7 +63,7 @@ export abstract class IfCore {
     const removed = this.slot.remove(visual);
 
     this.showing = false;
-    
+
     if (removed instanceof Promise) {
       return removed.then(() => visual.$unbind(BindingFlags.none));
     }

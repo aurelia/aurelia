@@ -37,11 +37,11 @@ describe('BindingModeBehavior', () => {
           binding = new Binding(sourceExpression, target, targetProperty, initMode, observerLocator, container);
           sut.bind(flags, scope, binding);
         });
-      
+
         it(`bind()   should apply  bindingMode ${mode}`, () => {
           expect(binding.mode).to.equal(mode);
         });
-    
+
         it(`unbind() should revert bindingMode ${initMode}`, () => {
           sut.unbind(flags, scope, binding);
           expect(binding.mode).to.equal(initMode);

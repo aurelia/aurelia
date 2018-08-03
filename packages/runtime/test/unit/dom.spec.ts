@@ -34,7 +34,7 @@ describe('DOM', () => {
   const DOMBackup = Object.create(null);
   // reset document after each test to clear any spies
   const DocumentBackup = Object.create(null);
-  
+
   function restoreBackups(): void {
     Object.assign(DOM, DOMBackup);
     Object.assign(document, DocumentBackup);
@@ -568,7 +568,7 @@ describe('DOM', () => {
         done();
       }, 0);
     });
-    
+
     it('should remove the specified eventListener from the document if the node is NOT specified', done => {
       const eventListener = spy();
       document.addEventListener('click', eventListener);
@@ -679,7 +679,7 @@ describe('DOM', () => {
 
 describe('TemplateView', () => {
   let sut: TemplateView;
-    
+
   describe('appendChild', () => {
     it('should add the child to the view', () => {
       const fragment = document.createDocumentFragment();
@@ -727,7 +727,7 @@ describe('TemplateView', () => {
       }
     }
   });
-    
+
   describe('insertBefore', () => {
     for (const width of widthArr) {
       for (const depth of depthArr.filter(d => d > 0)) {
@@ -755,7 +755,7 @@ describe('TemplateView', () => {
       }
     }
   });
-    
+
   describe('appendTo', () => {
     for (const width of widthArr) {
       for (const depth of depthArr.filter(d => d > 0)) {

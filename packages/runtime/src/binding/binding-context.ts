@@ -23,7 +23,7 @@ export const BindingContext = {
   },
   get(scope: IScope, name: string, ancestor: number): any {
     let overrideContext = scope.overrideContext;
-  
+
     if (ancestor) {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
       while (ancestor && overrideContext) {
@@ -37,7 +37,7 @@ export const BindingContext = {
 
       return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
-  
+
     // traverse the context and it's ancestors, searching for a context that has the name.
     while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
       overrideContext = overrideContext.parentOverrideContext;

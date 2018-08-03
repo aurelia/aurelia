@@ -54,7 +54,7 @@ export class RenderingEngine implements IRenderingEngine {
   private compilers: Record<string, ITemplateCompiler>;
 
   constructor(
-    private container: IContainer, 
+    private container: IContainer,
     private taskQueue: ITaskQueue,
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
@@ -97,7 +97,7 @@ export class RenderingEngine implements IRenderingEngine {
         if (!compiler) {
           throw Reporter.error(20, `Requested Compiler: ${compiler.name}`);
         }
-        
+
         definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>context));
       }
 
@@ -159,7 +159,7 @@ export class RenderingEngine implements IRenderingEngine {
 
   public createVisualFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): VisualWithCentralComponent {
     let animator = this.animator;
-    
+
     class ComponentVisual extends Visual {
       public component: ICustomElement;
 
@@ -279,7 +279,7 @@ export abstract class Visual implements IVisual {
   public parent: IRenderSlot;
   public onRender: RenderCallback;
   public renderState: any;
-  
+
   public inCache = false;
   private animationRoot: INode = undefined;
 
@@ -293,21 +293,21 @@ export abstract class Visual implements IVisual {
     if (this.animationRoot !== undefined) {
       return this.animationRoot;
     }
-  
+
     let currentChild = this.$view.firstChild;
     const lastChild = this.$view.lastChild;
     const isElementNodeType = DOM.isElementNodeType;
-  
+
     while (currentChild !== lastChild && !isElementNodeType(currentChild)) {
       currentChild = currentChild.nextSibling;
     }
-  
+
     if (currentChild && isElementNodeType(currentChild)) {
-      return this.animationRoot = DOM.hasClass(currentChild, 'au-animate') 
-        ? currentChild 
+      return this.animationRoot = DOM.hasClass(currentChild, 'au-animate')
+        ? currentChild
         : null;
     }
-  
+
     return this.animationRoot = null;
   }
 
@@ -366,7 +366,7 @@ export abstract class Visual implements IVisual {
     lifecycle.end(this);
   }
 
-  public $detach(lifecycle?: DetachLifecycle) { 
+  public $detach(lifecycle?: DetachLifecycle) {
     if (this.$isAttached) {
       lifecycle = DetachLifecycle.start(this, lifecycle);
       lifecycle.queueViewRemoval(this);

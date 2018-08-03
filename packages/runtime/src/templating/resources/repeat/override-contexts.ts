@@ -28,7 +28,7 @@ export function updateOverrideContexts(visuals: ArrayLike<IVisual>, startIndex: 
 export function createFullOverrideContext(repeat: IRepeater, data: any, index: number, length: number, key?: any) {
   let bindingContext = {};
   let overrideContext = BindingContext.createOverride(bindingContext, repeat.scope.overrideContext);
-  
+
   // is key/value pair (Map)
   if (typeof key !== 'undefined') {
     bindingContext[repeat.key] = key;

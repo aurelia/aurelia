@@ -46,7 +46,7 @@ class TestVisualFactory implements IVisualFactory {
 class TestVisual implements IVisual {
   // IVisual impl
   factory: IVisualFactory;
-  
+
   parent: IRenderSlot;
   onRender: RenderCallback;
   renderState: any;
@@ -55,7 +55,7 @@ class TestVisual implements IVisual {
   tryReturnToCache(): boolean {
     return true;
   }
-  
+
   // IBindScope impl
   $bind(flags: BindingFlags, scope: IScope): void {
     this.$scope = scope;
@@ -145,7 +145,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
               const newItems = items.slice();
               sut.local = itemName;
               sut.items = initItems as any;
-  
+
               const bindingContext = {}; // normally the items would be in here
               const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
               sut.bound(BindingFlags.none, scope);
@@ -179,7 +179,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
             });
           }
         }
-        
+
         for (const op of ['pop', 'shift']) {
           const opTitle = padRight(op, 10);
           it(`${opTitle} - ${initTitle} ${flushModeTitle} ${timesTitle}`, () => {
@@ -221,20 +221,20 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
         const startArr = [0, 1, 2];
         const deleteCountArr = [0, 1, 2];
-    
+
         // test with different splice starting indices (only up to one position out of array bounds to reduce test redundancy)
         for (const start of startArr.filter(s => s <= init.length + 1)) {
           const startTitle = 'start=' + padRight(start, 2);
-  
+
           // test with different splice deleteCount (only up to one higher than initial item count to reduce test redundancy)
           for (const deleteCount of deleteCountArr.filter(d => d <= init.length + 1)) {
             const deleteCountTitle = 'deleteCount=' + padRight(deleteCount, 2);
-  
+
             // test with different amounts of items added
             for (const items of itemsArr) {
               const itemsTitle = 'itemCount=' + padRight(items.length, 2);
               const opTitle = padRight('splice', 10);
-  
+
               it(`${opTitle} - ${initTitle} ${flushModeTitle} ${timesTitle} ${startTitle} ${deleteCountTitle} ${itemsTitle}`, () => {
                 const initItems = init.slice();
                 const initItemsCopy = initItems.slice();
@@ -282,7 +282,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
         for (const assign of assignArr) {
           const assignTitle = 'assign=' + padRight(assign.length, 2);
           const opTitle = padRight('assign', 10);
-  
+
           it(`${opTitle} - ${initTitle} ${flushModeTitle} ${timesTitle} ${assignTitle}`, () => {
             const initItems = init.slice();
             let assignItems = assign.slice();

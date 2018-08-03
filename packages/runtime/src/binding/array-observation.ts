@@ -45,18 +45,18 @@ Array.prototype.push = function() {
 
 Array.prototype.reverse = function() {
   let oldArray;
-  
+
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.flushChangeRecords();
     oldArray = this.slice();
   }
-  
+
   const methodCallResult = reverse.apply(this, arguments);
-  
+
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.reset(oldArray);
   }
-  
+
   return methodCallResult;
 };
 
@@ -78,24 +78,24 @@ Array.prototype.shift = function() {
 
 Array.prototype.sort = function() {
   let oldArray;
-  
+
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.flushChangeRecords();
     oldArray = this.slice();
   }
 
   const methodCallResult = sort.apply(this, arguments);
-  
+
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.reset(oldArray);
   }
-  
+
   return methodCallResult;
 };
 
 Array.prototype.splice = function() {
   const methodCallResult = splice.apply(this, arguments);
-  
+
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.addChangeRecord({
       type: 'splice',
@@ -105,13 +105,13 @@ Array.prototype.splice = function() {
       addedCount: arguments.length > 2 ? arguments.length - 2 : 0
     });
   }
-  
+
   return methodCallResult;
 };
 
 Array.prototype.unshift = function() {
   const methodCallResult = unshift.apply(this, arguments);
-  
+
   if (this.__array_observer__ !== undefined) {
     this.__array_observer__.addChangeRecord({
       type: 'splice',
@@ -121,7 +121,7 @@ Array.prototype.unshift = function() {
       addedCount: arguments.length
     });
   }
-  
+
   return methodCallResult;
 };
 

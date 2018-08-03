@@ -199,7 +199,7 @@ export const DOM = {
   hasClass(node: INode, className: string): boolean {
     return (<Element>node).classList.contains(className);
   },
-  
+
   addClass(node: INode, className: string): void {
     (<Element>node).classList.add(className);
   },
@@ -251,7 +251,7 @@ export const DOM = {
 
     // let this throw if node does not have a parent
     (<Node>node.parentNode).replaceChild(anchor, <any>node);
-  
+
     return anchor;
   },
 

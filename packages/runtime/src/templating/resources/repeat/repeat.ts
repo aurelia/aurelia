@@ -31,7 +31,7 @@ function isOneTime(expression: IExpression) {
     if (expression.name === 'oneTime') {
       return true;
     }
-    
+
     expression = expression.expression;
   }
 
@@ -44,7 +44,7 @@ function isCallableOneTimeBinding(binding): binding is Binding {
 
 function unwrapExpression(expression: IExpression) {
   let unwrapped = false;
-  
+
   while (expression instanceof BindingBehavior) {
     expression = expression.expression;
   }
@@ -71,7 +71,7 @@ export class Repeat implements IRepeater {
   private strategy: IRepeatStrategy;
   private collectionObserver: IBindingCollectionObserver;
   private callContext: string;
-  
+
   public visualsRequireLifecycle: boolean;
   public scope: IScope;
 
@@ -108,8 +108,8 @@ export class Repeat implements IRepeater {
 
   constructor(
     private owner: IViewOwner,
-    private viewFactory: IVisualFactory, 
-    private viewSlot: IRenderSlot, 
+    private viewFactory: IVisualFactory,
+    private viewSlot: IRenderSlot,
     private container: IContainer,
     private taskQueue: ITaskQueue,
     private strategyRegistry: IRepeatStrategyRegistry
@@ -218,13 +218,13 @@ export class Repeat implements IRepeater {
   private observeInnerCollection() {
     let items = this.getInnerCollection();
     let strategy = this.strategyRegistry.getStrategyForItems(items);
-    
+
     if (!strategy) {
       return false;
     }
-    
+
     this.collectionObserver = strategy.getCollectionObserver(items);
-    
+
     if (!this.collectionObserver) {
       return false;
     }
@@ -245,16 +245,16 @@ export class Repeat implements IRepeater {
     }
   }
 
-  visualCount() { 
-    return this.viewSlot.children.length; 
+  visualCount() {
+    return this.viewSlot.children.length;
   }
-  
-  visuals() { 
-    return this.viewSlot.children; 
+
+  visuals() {
+    return this.viewSlot.children;
   }
-  
-  visualAt(index) { 
-    return this.viewSlot.children[index]; 
+
+  visualAt(index) {
+    return this.viewSlot.children[index];
   }
 
   addVisualWithScope(scope: IScope) {

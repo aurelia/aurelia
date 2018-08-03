@@ -16,10 +16,9 @@ export enum TargetedInstructionType {
   stylePropertyBinding = 6,
   setProperty = 7,
   setAttribute = 8,
-  hydrateSlot = 9,
-  hydrateElement = 10,
-  hydrateAttribute = 11,
-  hydrateTemplateController = 12
+  hydrateElement = 9,
+  hydrateAttribute = 10,
+  hydrateTemplateController = 11
 }
 
 export interface IBuildInstruction {

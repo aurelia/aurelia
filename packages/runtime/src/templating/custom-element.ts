@@ -165,7 +165,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
         this.$slot.$attach(encapsulationSource, lifecycle);
       }
 
-      this.$projector.projectView(this.$view);
+      this.$projector.project(this.$view);
 
       if (this.$behavior.hasAttached) {
         lifecycle.queueAttachedCallback(this);
@@ -250,7 +250,7 @@ export interface IElementProjector {
   readonly children: ArrayLike<INode>;
   onChildrenChanged(callback: () => void): void;
   provideEncapsulationSource(parentEncapsulationSource: INode): INode;
-  projectView(view: IView): void;
+  project(view: IView): void;
 }
 
 function determineProjector(host: INode, definition: TemplateDefinition): IElementProjector {
@@ -288,7 +288,7 @@ class ShadowDOMProjector implements IElementProjector {
     return this.shadowRoot;
   }
 
-  public projectView(view: IView): void {
+  public project(view: IView): void {
     view.appendTo(this.shadowRoot);
   }
 }
@@ -316,7 +316,7 @@ class ContainerlessProjector implements IElementProjector {
     return parentEncapsulationSource;
   }
 
-  public projectView(view: IView): void {
+  public project(view: IView): void {
     view.insertBefore(this.anchor);
   }
 }
@@ -336,7 +336,30 @@ class HostProjector implements IElementProjector {
     return parentEncapsulationSource || this.host;
   }
 
-  public projectView(view: IView): void {
+  public project(view: IView): void {
     view.appendTo(this.host);
   }
 }
+
+// TODO
+// ## DefaultSlotProjector
+// An implementation of IElementProjector that can handle a subset of default
+// slot projection scenarios without needing real Shadow DOM.
+// ### Conditions
+// We can do a one-time, static composition of the content and view,
+// to emulate shadow DOM, if the following constraints are met:
+// * There must be exactly one slot and it must be a default slot.
+// * The default slot must not have any fallback content.
+// * The default slot must not have a custom element as its immediate parent or
+//   a slot attribute (re-projection).
+// ### Projection
+// The projector copies all content nodes to the slot's location.
+// The copy process should inject a comment node before and after the slotted
+// content, so that the bounds of the content can be clearly determined,
+// even if the slotted content has template controllers or string interpolation.
+// ### Encapsulation Source
+// Uses the same strategy as HostProjector.
+// ### Children
+// The projector adds a mutation observer to the parent node of the
+// slot comment. When direct children of that node change, the projector
+// will gather up all nodes between the start and end slot comments.

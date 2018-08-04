@@ -142,19 +142,6 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
 
   public setValue(newValue) {}
 
-  private onChildrenChanged() {
-    this.children = findElements(this.customElement.$projector.children);
-
-    if ('$childrenChanged' in this.customElement) {
-      (this.customElement as any).$childrenChanged();
-    }
-
-    if (!this.queued) {
-      this.queued = true;
-      this.taskQueue.queueMicroTask(this);
-    }
-  }
-
   public call() {
     this.queued = false;
     this.callSubscribers(this.children);
@@ -166,6 +153,19 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
 
   public unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
+  }
+
+  private onChildrenChanged(): void {
+    this.children = findElements(this.customElement.$projector.children);
+
+    if ('$childrenChanged' in this.customElement) {
+      (this.customElement as any).$childrenChanged();
+    }
+
+    if (!this.queued) {
+      this.queued = true;
+      this.taskQueue.queueMicroTask(this);
+    }
   }
 }
 

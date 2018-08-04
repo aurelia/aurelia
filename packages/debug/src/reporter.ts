@@ -15,7 +15,7 @@ interface IMessageInfo {
 export const Reporter: typeof RuntimeReporter = Object.assign(RuntimeReporter, {
   write(code: number, ...params: any[]): void {
     let info = getMessageInfoForCode(code);
-    
+
     switch (info.type) {
       case MessageType.debug:
         console.debug(info.message, ...params);
@@ -133,5 +133,13 @@ const codeLookup: Record<string, IMessageInfo> = {
   20: {
     type: MessageType.error,
     message: 'No template compiler found with the specified name. JIT support or a custom compiler is required.'
+  },
+  21: {
+    type: MessageType.error,
+    message: 'You cannot combine the containerless custom element option with Shadow DOM.'
+  },
+  22: {
+    type: MessageType.error,
+    message: 'A containerless custom element cannot be the root component of an application.'
   }
 };

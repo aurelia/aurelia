@@ -103,7 +103,12 @@ export const DOM = {
     return document.createComment('anchor');
   },
 
-  /*@internal*/createTemplate(): INode {
+  attachShadow(host: INode, options: ShadowRootInit): INode {
+    return (host as Element).attachShadow(options);
+  },
+
+  /*@internal*/
+  createTemplate(): INode {
     return document.createElement('template');
   },
 

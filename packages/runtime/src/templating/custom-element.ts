@@ -1,23 +1,21 @@
-import { Constructable, IContainer, Immutable, PLATFORM, Registration, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer, Immutable, PLATFORM, Registration, Writable, Reporter } from '@aurelia/kernel';
 import { BindingContext } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
-import { DOM, INode } from '../dom';
+import { DOM, INode, IView } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
 import { AttachLifecycle, DetachLifecycle, IAttach, IBindSelf } from './lifecycle';
 import { IRenderSlot } from './render-slot';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
-import { IContentView, IViewOwner, View } from './view';
+import { IViewOwner, View } from './view';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'contentOverride'>>;
 
 export interface ICustomElement extends IBindSelf, IAttach, Readonly<IViewOwner> {
-  readonly $host: INode;
-  readonly $contentView: IContentView;
-  readonly $usingSlotEmulation: boolean;
+  readonly $projector: IElementProjector;
   readonly $isAttached: boolean;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
@@ -27,7 +25,6 @@ export interface IInternalCustomElementImplementation extends Writable<ICustomEl
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $slot: IRenderSlot;
-  $shadowRoot: INode;
 }
 
 /**
@@ -39,7 +36,9 @@ export function customElement(nameOrSource: string | ITemplateSource) {
   }
 }
 
-const defaultShadowOptions = { mode: 'open' };
+const defaultShadowOptions = {
+  mode: 'open' as 'open' | 'closed'
+};
 
 /**
  * Decorator: Indicates that the custom element should render its view in Shadow
@@ -99,8 +98,6 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       this.$bindable = [];
       this.$attachable = [];
       this.$changeCallbacks = [];
-      this.$slots = description.hasSlots ? {} : null;
-      this.$usingSlotEmulation = description.hasSlots || false;
       this.$slot = null;
       this.$isAttached = false;
       this.$isBound = false;
@@ -111,17 +108,10 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
 
       this.$context = template.renderContext;
       this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
-
-      this.$host = description.containerless ? DOM.convertToAnchor(host, true) : host;
-      this.$shadowRoot = DOM.createElementViewHost(this.$host, description.shadowOptions);
-      this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
-      this.$contentView = View.fromCompiledContent(this.$host, options);
-
+      this.$projector = determineProjector(host, description);
       this.$view = this.$behavior.hasCreateView
         ? (this as any).createView(host, options.parts, template)
         : template.createFor(this, host, options.parts);
-
-      (this.$host as any).$component = this;
 
       if (this.$behavior.hasCreated) {
         (this as any).created();
@@ -159,9 +149,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       }
 
       lifecycle = AttachLifecycle.start(this, lifecycle);
-      encapsulationSource = this.$usingSlotEmulation
-        ? encapsulationSource || this.$host
-        : this.$shadowRoot;
+      encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
 
       if (this.$behavior.hasAttaching) {
         (this as any).attaching(encapsulationSource);
@@ -177,11 +165,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
         this.$slot.$attach(encapsulationSource, lifecycle);
       }
 
-      if (description.containerless) {
-        this.$view.insertBefore(this.$host);
-      } else {
-        this.$view.appendTo(this.$shadowRoot);
-      }
+      this.$projector.projectView(this.$view);
 
       if (this.$behavior.hasAttached) {
         lifecycle.queueAttachedCallback(this);
@@ -262,120 +246,97 @@ export function createCustomElementDescription(templateSource: ITemplateSource, 
   };
 }
 
-
-
-
-export interface IContentView extends IView {
-  childObserver?: IChildObserver;
-  insertVisualChildBefore(visual: IVisual, refNode: INode);
-  removeVisualChild(visual: IVisual);
-  attachChildObserver(onChildrenChanged: () => void): IChildObserver;
+export interface IElementProjector {
+  readonly children: ArrayLike<INode>;
+  onChildrenChanged(callback: () => void): void;
+  provideEncapsulationSource(parentEncapsulationSource: INode): INode;
+  projectView(view: IView): void;
 }
 
-/*@internal*/
-export interface IContentViewChildObserver extends IChildObserver {
-  notifyChildrenChanged(): void;
+function determineProjector(host: INode, definition: TemplateDefinition): IElementProjector {
+  if (definition.shadowOptions || definition.hasSlots) {
+    if (definition.containerless) {
+      throw Reporter.error(21);
+    }
+
+    return new ShadowDOMProjector(host, definition);
+  }
+
+  if (definition.containerless) {
+    return new ContainerlessProjector(host);
+  }
+
+  return new HostProjector(host);
 }
 
-// This is the default and only implementation of IContentView.
-// This type of view represents the content that is placed between the opening and closing tags
-// of a custom element. It is only used when ShadowDOM Emulation is required. It enables
-// various interactions between the content, as a logical view, the ShadowDom Emulation,
-// and the RenderSlot.
-// Most if not all of this will go away when we remove the shadow dom emulation and render slot.
-// However, we may need to keep the IChildObserver abstraction for enabling the $children property
-// in different scenarios, depending on what optimizations we make around when/when not to use shadow dom.
-/*@internal*/
-export class ContentView implements IContentView {
-  public firstChild: INode;
-  public lastChild: INode;
-  public childNodes: INode[];
-  public childObserver: IContentViewChildObserver = null;
+class ShadowDOMProjector implements IElementProjector {
+  private shadowRoot: INode;
 
-  constructor(private contentHost: INode) {
-    const childNodes = this.childNodes = Array.from(contentHost.childNodes)
-    this.firstChild = childNodes[0];
-    this.lastChild = childNodes[childNodes.length - 1];
+  constructor(private host: INode, private definition: TemplateDefinition) {
+    this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
   }
 
-  public attachChildObserver(onChildrenChanged: () => void): IChildObserver {
-    const contentViewNodes = this.childNodes;
-    let observer = this.childObserver;
+  get children(): ArrayLike<INode> {
+    return this.host.childNodes;
+  }
 
-    if (!observer) {
-      this.childObserver = observer = {
-        get childNodes() {
-          return contentViewNodes;
-        },
-        disconnect() {
-          onChildrenChanged = null;
-        },
-        notifyChildrenChanged() {
-          if (onChildrenChanged !== null) {
-            onChildrenChanged();
-          }
-        }
-      };
+  public onChildrenChanged(callback: () => void): void {
+    // TODO: use mutation observer on host
+  }
 
-      const workQueue = Array.from(contentViewNodes);
+  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
+    return this.shadowRoot;
+  }
 
-      while(workQueue.length) {
-        const current = workQueue.shift();
+  public projectView(view: IView): void {
+    view.appendTo(this.shadowRoot);
+  }
+}
 
-        if ((current as any).$isContentProjectionSource) {
-          const contentIndex = contentViewNodes.indexOf(current);
+class ContainerlessProjector implements IElementProjector {
+  private anchor: INode;
 
-          ((current as any).$slot as IRenderSlot).children.forEach(x => {
-            const childNodes = x.$view.childNodes;
-            childNodes.forEach(x => workQueue.push(x));
-            contentViewNodes.splice(contentIndex, 0, ...childNodes);
-          });
+  constructor(private host: INode) {
+    this.anchor = DOM.convertToAnchor(host, true);
+  }
 
-          (current as any).$slot.logicalView = this;
-        }
-      }
-    } else {
-      Reporter.error(16);
+  get children(): ArrayLike<INode> {
+    return PLATFORM.emptyArray;
+  }
+
+  public onChildrenChanged(callback: () => void): void {
+    // TODO: throw error, cannot observe children
+  }
+
+  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
+    if (!parentEncapsulationSource) {
+      throw Reporter.error(22);
     }
 
-    return observer;
+    return parentEncapsulationSource;
   }
 
-  public insertVisualChildBefore(visual: IVisual, refNode: INode) {
-    const childObserver = this.childObserver;
+  public projectView(view: IView): void {
+    view.insertBefore(this.anchor);
+  }
+}
 
-    if (childObserver) {
-      const contentNodes = this.childNodes;
-      const contentIndex = contentNodes.indexOf(refNode);
-      const projectedNodes = Array.from(visual.$view.childNodes);
+class HostProjector implements IElementProjector {
+  constructor(private host: INode) {}
 
-      projectedNodes.forEach((node: any) => {
-        if (node.$isContentProjectionSource) {
-          node.$slot.logicalView = this;
-        }
-      });
-
-      contentNodes.splice(contentIndex, 0, ...projectedNodes);
-      childObserver.notifyChildrenChanged();
-    }
+  get children(): ArrayLike<INode> {
+    return PLATFORM.emptyArray;
   }
 
-  public removeVisualChild(visual: IVisual) {
-    const childObserver = this.childObserver;
-
-    if (childObserver) {
-      const contentNodes = this.childNodes;
-      const startIndex = contentNodes.indexOf(visual.$view.firstChild);
-      const endIndex = contentNodes.indexOf(visual.$view.lastChild);
-
-      contentNodes.splice(startIndex, (endIndex - startIndex) + 1);
-      childObserver.notifyChildrenChanged();
-    }
+  public onChildrenChanged(callback: () => void): void {
+    // Do nothing since this scenario will never have children.
   }
 
-  public findTargets() { return PLATFORM.emptyArray; }
-  public appendChild(child: INode) {}
-  public insertBefore(refNode: INode): void {}
-  public appendTo(parent: INode): void {}
-  public remove(): void {}
+  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
+    return parentEncapsulationSource || this.host;
+  }
+
+  public projectView(view: IView): void {
+    view.appendTo(this.host);
+  }
 }

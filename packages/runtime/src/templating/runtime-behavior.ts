@@ -69,7 +69,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   public applyToElement(taskQueue: ITaskQueue, instance: ICustomElement) {
     const observers = this.applyTo(taskQueue, instance);
 
-    (<any>observers).$children = new ChildrenObserver(taskQueue, instance);
+    (observers as any).$children = new ChildrenObserver(taskQueue, instance);
 
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
@@ -122,18 +122,19 @@ function createGetterSetter(instance, name) {
 
 /*@internal*/
 export class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private observer: IChildObserver = null;
   private children: ICustomElement[] = null;
   private queued = false;
+  private observing = false;
 
-  constructor(private taskQueue: ITaskQueue, private component: ICustomElement) {
+  constructor(private taskQueue: ITaskQueue, private customElement: ICustomElement) {
     super();
   }
 
   public getValue(): ICustomElement[] {
-    if (this.observer === null) {
-      this.observer = DOM.createChildObserver(this.component.$host, () => this.onChildrenChanged());
-      this.children = findElements(this.observer.childNodes);
+    if (!this.observing) {
+      this.observing = true;
+      this.customElement.$projector.onChildrenChanged(() => this.onChildrenChanged());
+      this.children = findElements(this.customElement.$projector.children);
     }
 
     return this.children;
@@ -142,10 +143,10 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
   public setValue(newValue) {}
 
   private onChildrenChanged() {
-    this.children = findElements(this.observer.childNodes);
+    this.children = findElements(this.customElement.$projector.children);
 
-    if ('$childrenChanged' in this.component) {
-      (<any>this.component).$childrenChanged();
+    if ('$childrenChanged' in this.customElement) {
+      (this.customElement as any).$childrenChanged();
     }
 
     if (!this.queued) {

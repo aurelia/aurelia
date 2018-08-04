@@ -1,26 +1,23 @@
-import { IContainer, PLATFORM } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import {
   AccessKeyed, AccessMember, AccessScope, AccessThis,
   ArrayBindingPattern, ArrayLiteral, Assign, Binary,
-  BindingBehavior, BindingIdentifier, CallFunction,
-  CallMember, CallScope, Conditional,
-  ForOfStatement, IExpression, IExpressionParser, IsAssign, IsBinary,
-  IsBindingBehavior, IsConditional, IsLeftHandSide, IsPrimary, ObjectBindingPattern,
-  ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, ExpressionKind
+  BindingBehavior, BindingIdentifier, BindingType,
+  CallFunction, CallMember, CallScope,
+  Conditional, ExpressionKind, ForOfStatement, IExpression, IExpressionParser,
+  IsAssign, IsBinary, IsBindingBehavior, IsConditional, IsLeftHandSide,
+  IsPrimary, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter
 } from '@aurelia/runtime';
-import { BindingType } from '../templating/attribute-name-parser';
 
 export function register(container: IContainer) {
   container.registerTransformer(IExpressionParser, parser => {
     return Object.assign(parser, {
-      parseCore(expression: string): IExpression {
-        return parse(new ParserState(expression), Access.Reset, Precedence.Variadic, BindingType.None);
+      parseCore(expression: string, bindingType: BindingType): IExpression {
+        return parse(new ParserState(expression), Access.Reset, Precedence.Variadic, bindingType);
       }
     });
   });
 }
-
-const { emptyArray } = PLATFORM;
 
 /*@internal*/
 export class ParserState {
@@ -577,6 +574,8 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
   }
   if (bindingType & BindingType.Interpolation) {
     expect(state, Token.CloseBrace);
+    // HACK (for performance)
+    (<any>result).$parserStateIndex = state.index;
     return result;
   }
   if (state.currentToken !== Token.EOF) {

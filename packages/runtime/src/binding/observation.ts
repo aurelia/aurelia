@@ -46,7 +46,7 @@ export interface IObservable<T = any> {
 
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
- * 
+ *
  * The deletedItems property contains the items (in case of an array) or keys (in case of map or set) that have been deleted.
  */
 export type IndexMap = Array<number> & {
@@ -64,7 +64,7 @@ export interface IChangeTracker {
 /**
  * Describes a type that specifically tracks changes in a collection (map, set or array)
  */
-export interface ICollectionChangeTracker<T extends Collection> extends IChangeTracker {  
+export interface ICollectionChangeTracker<T extends Collection> extends IChangeTracker {
   collection: T;
   indexMap: IndexMap;
   resetIndexMap(): void;

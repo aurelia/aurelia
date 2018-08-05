@@ -21,7 +21,7 @@ export interface ICustomAttributeSource {
 
 export type ICustomAttributeType = IResourceType<ICustomAttributeSource, ICustomAttribute>;
 
-export interface ICustomAttribute extends IBindScope, IAttach { 
+export interface ICustomAttribute extends IBindScope, IAttach {
   readonly $isBound: boolean;
   readonly $isAttached: boolean;
   readonly $scope: IScope;
@@ -78,7 +78,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
     return (type as any).kind === this;
   },
 
-  define<T extends Constructable>(nameOrSource: string | ICustomAttributeSource, ctor: T): T & ICustomAttributeType { 
+  define<T extends Constructable>(nameOrSource: string | ICustomAttributeSource, ctor: T): T & ICustomAttributeType {
     const Type: T & ICustomAttributeType = ctor as any;
     const description = createCustomAttributeDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: ICustomAttribute = Type.prototype;
@@ -145,7 +145,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       if (this.$slot !== null) {
         this.$slot.$attach(encapsulationSource, lifecycle);
       }
-    
+
       if (this.$behavior.hasAttached) {
         lifecycle.queueAttachedCallback(this);
       }
@@ -180,7 +180,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
         this.$isBound = false;
       }
     };
-    
+
     return Type;
   }
 };

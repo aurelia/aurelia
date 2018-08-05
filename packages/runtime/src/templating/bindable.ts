@@ -29,10 +29,10 @@ export interface IBindableDescription {
 export function bindable(configOrTarget?: BindableSource | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
     target = target.constructor;
-    
+
     let bindables: Record<string, IBindableDescription> = target.bindables || (target.bindables = {});
     let config: IBindableDescription = configOrTarget || {};
-    
+
     if (!config.attribute) {
       config.attribute = hyphenate(key2);
     }

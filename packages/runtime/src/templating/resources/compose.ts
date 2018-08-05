@@ -20,7 +20,7 @@ const composeProps = ['component', 'swapOrder', 'isComposing'];
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
 @inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction, IRenderingEngine)
-export class Compose { 
+export class Compose {
   private task: CompositionTask = null;
   private visual: VisualWithCentralComponent = null;
   private auContent: INode = null;
@@ -32,12 +32,12 @@ export class Compose {
   public isComposing: boolean;
 
   constructor(
-    private viewOwner: IViewOwner, 
-    private host: INode, 
-    private slot: IRenderSlot, 
+    private viewOwner: IViewOwner,
+    private host: INode,
+    private slot: IRenderSlot,
     instruction: Immutable<IHydrateElementInstruction>,
     private renderingEngine: IRenderingEngine
-  ) { 
+  ) {
     this.compositionContext = viewOwner.$context;
     this.baseInstruction = {
       type: TargetedInstructionType.hydrateElement,
@@ -66,7 +66,7 @@ export class Compose {
           return;
         }
       }
-      
+
       newTask.start(toBeComposed);
     }
   }

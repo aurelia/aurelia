@@ -472,7 +472,7 @@ describe(`ArrayObserver`, () => {
                 }
               }
             });
-            
+
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - tracks changes`, () => {
               let arr = init.slice();
               const copy = init.slice();

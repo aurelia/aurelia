@@ -103,7 +103,7 @@ export interface IContentViewChildObserver extends IChildObserver {
 // This is the default and only implementation of IContentView.
 // This type of view represents the content that is placed between the opening and closing tags
 // of a custom element. It is only used when ShadowDOM Emulation is required. It enables
-// various interactions between the content, as a logical view, the ShadowDom Emulation, 
+// various interactions between the content, as a logical view, the ShadowDom Emulation,
 // and the RenderSlot.
 // Most if not all of this will go away when we remove the shadow dom emulation and render slot.
 // However, we may need to keep the IChildObserver abstraction for enabling the $children property
@@ -144,23 +144,23 @@ export class ContentView implements IContentView {
 
       while(workQueue.length) {
         const current = workQueue.shift();
-  
+
         if ((current as any).$isContentProjectionSource) {
           const contentIndex = contentViewNodes.indexOf(current);
-  
+
           ((current as any).$slot as IRenderSlot).children.forEach(x => {
             const childNodes = x.$view.childNodes;
             childNodes.forEach(x => workQueue.push(x));
             contentViewNodes.splice(contentIndex, 0, ...childNodes);
           });
-  
+
           (current as any).$slot.logicalView = this;
         }
       }
     } else {
       Reporter.error(16);
     }
-    
+
     return observer;
   }
 
@@ -190,7 +190,7 @@ export class ContentView implements IContentView {
       const contentNodes = this.childNodes;
       const startIndex = contentNodes.indexOf(visual.$view.firstChild);
       const endIndex = contentNodes.indexOf(visual.$view.lastChild);
-    
+
       contentNodes.splice(startIndex, (endIndex - startIndex) + 1);
       childObserver.notifyChildrenChanged();
     }

@@ -14,7 +14,7 @@ class ExpressionParser implements IExpressionParser {
 
   public parse(expression: string): IExpression {
     let found = this.lookup[expression];
-    
+
     if (found === undefined) {
       found = this.parseCore(expression);
       this.lookup[expression] = found;
@@ -49,7 +49,7 @@ class ExpressionParser implements IExpressionParser {
         } else {
           current = new AccessMember(current, parts[index]);
         }
-        
+
         index++;
       }
 

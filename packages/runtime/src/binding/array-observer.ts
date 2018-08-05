@@ -227,7 +227,7 @@ function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to
     }
     arr[j + 1] = velement; indexMap[j + 1] = ielement;
   }
-}  
+}
 
 function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: any, b: any) => number): void {
   let thirdIndex = 0, i = 0;

@@ -8,7 +8,7 @@ export interface ISinglePageApp {
   component: any
 }
 
-export class Aurelia { 
+export class Aurelia {
   private components: ICustomElement[] = [];
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
@@ -46,7 +46,7 @@ export class Aurelia {
     if (this.isStarted) {
       startTask();
     }
-    
+
     return this;
   }
 

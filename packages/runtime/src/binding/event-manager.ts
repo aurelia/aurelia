@@ -76,8 +76,8 @@ class ListenerTracker {
   private count = 0;
 
   constructor(
-    private eventName: string, 
-    private listener: EventListenerOrEventListenerObject, 
+    private eventName: string,
+    private listener: EventListenerOrEventListenerObject,
     private capture: boolean
   ) { }
 
@@ -289,11 +289,11 @@ class EventManager implements IEventManager {
 
     if (strategy === DelegationStrategy.bubbling) {
       delegatedHandlers = this.delegatedHandlers;
-      
+
       handlerEntry = delegatedHandlers[targetEvent]
         || (delegatedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleDelegatedEvent, false));
-      
-      let delegatedCallbacks = (<EventTargetWithLookups>target).delegatedCallbacks 
+
+      let delegatedCallbacks = (<EventTargetWithLookups>target).delegatedCallbacks
         || ((<EventTargetWithLookups>target).delegatedCallbacks = {});
 
       return new DelegateOrCaptureSubscription(handlerEntry, delegatedCallbacks, targetEvent, callbackOrListener);
@@ -301,10 +301,10 @@ class EventManager implements IEventManager {
 
     if (strategy === DelegationStrategy.capturing) {
       capturedHandlers = this.capturedHandlers;
-      
-      handlerEntry = capturedHandlers[targetEvent] 
+
+      handlerEntry = capturedHandlers[targetEvent]
         || (capturedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleCapturedEvent, true));
-      
+
       let capturedCallbacks = (<EventTargetWithLookups>target).capturedCallbacks
         || ((<EventTargetWithLookups>target).capturedCallbacks = {});
 

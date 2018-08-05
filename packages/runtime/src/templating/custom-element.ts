@@ -87,16 +87,16 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
     const Type: T & ICustomElementType = ctor === null ? class HTMLOnlyElement { /* HTML Only */ } as any : ctor as any;
     const description = createCustomElementDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: ICustomElement = Type.prototype;
-  
+
     (Type as Writable<ICustomElementType>).kind = CustomElementResource;
     (Type as Writable<ICustomElementType>).description = description;
     Type.register = function(container: IContainer){
       container.register(Registration.transient(Type.kind.key(description.name), Type));
     };
-  
-    proto.$hydrate = function(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject) { 
+
+    proto.$hydrate = function(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject) {
       let template = renderingEngine.getElementTemplate(description, Type);
-  
+
       this.$bindable = [];
       this.$attachable = [];
       this.$changeCallbacks = [];
@@ -109,7 +109,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
         bindingContext: this,
         overrideContext: BindingContext.createOverride()
       };
-      
+
       this.$context = template.renderContext;
       this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
       this.$host = description.containerless ? DOM.convertToAnchor(host, true) : host;
@@ -119,130 +119,130 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       this.$view = this.$behavior.hasCreateView
         ? (this as any).createView(host, options.parts, template)
         : template.createFor(this, host, options.parts);
-  
+
       (this.$host as any).$component = this;
-  
+
       if (this.$behavior.hasCreated) {
         (this as any).created();
       }
     };
-  
+
     proto.$bind = function(this: IInternalCustomElementImplementation, flags: BindingFlags) {
       if (this.$isBound) {
         return;
       }
-  
+
       const scope = this.$scope;
       const bindable = this.$bindable;
-  
+
       for (let i = 0, ii = bindable.length; i < ii; ++i) {
         bindable[i].$bind(flags, scope);
       }
-  
+
       this.$isBound = true;
-  
+
       const changeCallbacks = this.$changeCallbacks;
-  
+
       for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
         changeCallbacks[i]();
       }
-  
+
       if (this.$behavior.hasBound) {
         (this as any).bound();
       }
     };
-  
+
     proto.$attach = function(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle) {
       if (this.$isAttached) {
         return;
       }
-  
+
       lifecycle = AttachLifecycle.start(this, lifecycle);
-      encapsulationSource = this.$usingSlotEmulation 
+      encapsulationSource = this.$usingSlotEmulation
         ? encapsulationSource || this.$host
         : this.$shadowRoot;
-  
+
       if (this.$behavior.hasAttaching) {
         (this as any).attaching(encapsulationSource);
       }
-  
+
       const attachable = this.$attachable;
-  
+
       for (let i = 0, ii = attachable.length; i < ii; ++i) {
         attachable[i].$attach(encapsulationSource, lifecycle);
       }
-  
+
       if (this.$slot !== null) {
         this.$slot.$attach(encapsulationSource, lifecycle);
       }
-  
+
       //Native ShadowDOM would be distributed as soon as we append the view below.
       //So, we emulate the distribution of nodes at the same time.
       if (this.$contentView !== null && this.$slots) {
         ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
       }
-  
+
       if (description.containerless) {
         this.$view.insertBefore(this.$host);
       } else {
         this.$view.appendTo(this.$shadowRoot);
       }
-    
+
       if (this.$behavior.hasAttached) {
         lifecycle.queueAttachedCallback(this);
       }
-  
+
       this.$isAttached = true;
       lifecycle.end(this);
     };
-  
+
     proto.$detach = function(this: IInternalCustomElementImplementation, lifecycle?: DetachLifecycle) {
       if (this.$isAttached) {
         lifecycle = DetachLifecycle.start(this, lifecycle);
-  
+
         if (this.$behavior.hasDetaching) {
           (this as any).detaching();
         }
-  
+
         lifecycle.queueViewRemoval(this);
-  
+
         const attachable = this.$attachable;
         let i = attachable.length;
-  
+
         while (i--) {
           attachable[i].$detach();
         }
-  
+
         if (this.$slot !== null) {
           this.$slot.$detach(lifecycle);
         }
-  
+
         if (this.$behavior.hasDetached) {
           lifecycle.queueDetachedCallback(this);
         }
-  
+
         this.$isAttached = false;
         lifecycle.end(this);
       }
     };
-  
+
     proto.$unbind = function(this: IInternalCustomElementImplementation, flags: BindingFlags) {
       if (this.$isBound) {
         const bindable = this.$bindable;
         let i = bindable.length;
-  
+
         while (i--) {
           bindable[i].$unbind(flags);
         }
-  
+
         if (this.$behavior.hasUnbound) {
           (this as any).unbound();
         }
-  
+
         this.$isBound = false;
       }
     };
-  
+
     return Type;
   }
 };

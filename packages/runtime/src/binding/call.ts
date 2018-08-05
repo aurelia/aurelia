@@ -16,7 +16,7 @@ export class Call implements IBinding {
     private sourceExpression: IExpression,
     private target: INode,
     private targetProperty: string,
-    private observerLocator: IObserverLocator, 
+    private observerLocator: IObserverLocator,
     public locator: IServiceLocator) {
     this.targetObserver = <any>observerLocator.getObserver(target, targetProperty);
   }

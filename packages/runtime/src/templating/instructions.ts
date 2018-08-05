@@ -51,9 +51,9 @@ export interface ITargetedInstruction {
 
 export type TargetedInstruction =
   ITextBindingInstruction |
-  IOneWayBindingInstruction | 
-  IFromViewBindingInstruction | 
-  ITwoWayBindingInstruction | 
+  IOneWayBindingInstruction |
+  IFromViewBindingInstruction |
+  ITwoWayBindingInstruction |
   IListenerBindingInstruction |
   ICallBindingInstruction |
   IRefBindingInstruction |

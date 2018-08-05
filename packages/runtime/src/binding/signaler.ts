@@ -15,25 +15,25 @@ export const ISignaler = DI.createInterface<ISignaler>()
 
     dispatchSignal(name: Signal): void {
       let bindings = this.signals[name];
-  
+
       if (!bindings) {
         return;
       }
-  
+
       let i = bindings.length;
-      
+
       while (i--) {
         bindings[i].call(sourceContext);
       }
     }
-  
+
     addSignalListener(name: Signal, listener: ICallable) {
       (this.signals[name] || (this.signals[name] = [])).push(listener);
     }
-  
+
     removeSignalListener(name: Signal, listener: ICallable) {
       let listeners = this.signals[name];
-  
+
       if (listeners) {
         listeners.splice(listeners.indexOf(listener), 1);
       }

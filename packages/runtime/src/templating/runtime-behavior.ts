@@ -85,22 +85,22 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     const observers = {};
     const finalBindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(finalBindables);
-  
+
     for (let i = 0, ii = observableNames.length; i < ii; ++i) {
       const name = observableNames[i];
       const observable = finalBindables[name];
       const changeHandler = observable.callback;
-  
+
       if (changeHandler in instance) {
         observers[name] = new Observer(taskQueue, instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
         instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
       } else {
         observers[name] = new Observer(taskQueue, instance[name]);
       }
-  
+
       createGetterSetter(instance, name);
     }
-  
+
     Reflect.defineProperty(instance, '$observers', {
       enumerable: false,
       value: observers
@@ -175,7 +175,7 @@ export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const current = nodes[i];
     const component = DOM.getCustomElementForNode(current);
-    
+
     if (component !== null) {
       components.push(component);
     }

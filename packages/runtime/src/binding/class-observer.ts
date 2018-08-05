@@ -49,7 +49,7 @@ export class ClassObserver implements IAccessor {
 
     // Remove classes from previous version.
     version -= 1;
-    
+
     for (name in nameIndex) {
       if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
         continue;

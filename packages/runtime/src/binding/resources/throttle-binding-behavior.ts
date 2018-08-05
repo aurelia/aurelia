@@ -20,7 +20,7 @@ export type ThrottleableBinding = (Binding | Call | Listener) & {
 export function throttle(this: ThrottleableBinding, newValue: any) {
   let state = this.throttleState;
   let elapsed = +new Date() - state.last;
-  
+
   if (elapsed >= state.delay) {
     clearTimeout(state.timeoutId);
     state.timeoutId = null;
@@ -44,7 +44,7 @@ export function throttle(this: ThrottleableBinding, newValue: any) {
 export class ThrottleBindingBehavior {
   public bind(flags: BindingFlags, scope: IScope, binding: ThrottleableBinding, delay = 200) {
     let methodToThrottle: string;
-    
+
     if (binding instanceof Binding) {
       if (binding.mode === BindingMode.twoWay) {
         methodToThrottle = 'updateSource';

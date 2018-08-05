@@ -18,7 +18,7 @@ export class SetRepeatStrategy<T = any> implements IRepeatStrategy<Set<T>> {
 
   instanceChanged(repeat: IRepeater, items: Set<T>): void {
     const removePromise = repeat.removeAllVisuals(true, !repeat.visualsRequireLifecycle);
-    
+
     if (removePromise instanceof Promise) {
       removePromise.then(() => this.standardProcessItems(repeat, items));
       return;

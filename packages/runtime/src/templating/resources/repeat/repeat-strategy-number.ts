@@ -11,7 +11,7 @@ export class NumberRepeatStrategy implements IRepeatStrategy<number> {
 
   instanceChanged(repeat: IRepeater, value: number): void {
     let removePromise = repeat.removeAllVisuals(true, !repeat.visualsRequireLifecycle);
-    
+
     if (removePromise instanceof Promise) {
       removePromise.then(() => this.standardProcessItems(repeat, value));
       return;

@@ -115,7 +115,7 @@ export class ValueConverter implements IExpression {
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding) {
     const expressions = this.allArgs;
     let i = expressions.length;
-    
+
     while (i--) {
       expressions[i].connect(flags, scope, binding);
     }
@@ -125,12 +125,12 @@ export class ValueConverter implements IExpression {
     if (!converter) {
       throw new Error(`No ValueConverter named "${this.name}" was found!`);
     }
-    
+
     const signals = (converter as any).signals;
     if (signals === undefined) {
       return;
     }
-    
+
     const signaler = locator.get(ISignaler) as ISignaler;
     i = signals.length;
     while (i--) {
@@ -145,7 +145,7 @@ export class ValueConverter implements IExpression {
     if (signals === undefined) {
       return;
     }
-    
+
     const signaler = locator.get(ISignaler) as ISignaler;
     let i = signals.length;
     while (i--) {
@@ -367,7 +367,7 @@ export class CallFunction implements IExpression {
 export class Binary implements IExpression {
   constructor(public operation: string, public left: IExpression, public right: IExpression) {
     // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
-    // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less 
+    // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less
     // work to do; we can do this because the operation can't change after it's parsed
     this.evaluate = this[operation];
   }
@@ -605,7 +605,7 @@ export class Template {
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
     const expressions = this.expressions;
     const length = expressions.length;
-    
+
     let i = 0;
     while (i < length) {
       expressions[i].connect(flags, scope, binding);
@@ -710,7 +710,7 @@ function getFunction(flags: BindingFlags, obj: any, name: string) {
   throw new Error(`${name} is not a function`);
 }
 
-// 
+//
 function isNumeric(value: string): boolean {
   const type = typeof value;
   if (type === 'number') return true;

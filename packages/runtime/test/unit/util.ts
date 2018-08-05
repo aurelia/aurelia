@@ -34,7 +34,7 @@ export function padRight(str: any, len: number): string {
 
 /**
  * Object describing a test fixture
- * 
+ *
  * (currently specific to repeater)
  */
 export interface IRepeaterFixture {
@@ -60,11 +60,11 @@ export function createTextBindingTemplateSource(propertyName: string, oneTime?: 
 
 /**
  * Verify a collection of Visuals is in sync with the backing bindingContext
- * 
+ *
  * (currently specific to repeater)
  */
 export function assertVisualsSynchronized(visuals: IVisual[], items: any[], itemName: string, propName?: string): void {
-  
+
   let isSynced = true;
   const len = visuals.length;
   if (len === items.length) {
@@ -97,7 +97,7 @@ const newline = /\r?\n/g;
 
 /**
  * Verify the DOM is in sync with the backing bindingContext
- * 
+ *
  * (currently specific to repeater)
  */
 export function assertDOMSynchronized({ propName }: IRepeaterFixture, items: any[], element: HTMLElement): void {
@@ -130,7 +130,7 @@ export function incrementItems(items: any[], by: number, fixture?: IRepeaterFixt
 
 /**
  * Create App configuration based on the provided fixture
- * 
+ *
  * (currently specific to repeater)
  */
 export function createRepeaterTemplateSource({ elName, colName, itemName }: IRepeaterFixture, src: ITemplateSource): ITemplateSource {
@@ -138,7 +138,7 @@ export function createRepeaterTemplateSource({ elName, colName, itemName }: IRep
     name: elName,
     dependencies: [],
     template: `
-      <au-marker class="au"></au-marker> 
+      <au-marker class="au"></au-marker>
     `,
     instructions: [
       [
@@ -167,7 +167,7 @@ export function createRepeaterTemplateSource({ elName, colName, itemName }: IRep
 
 /**
  * Create Aurelia configuration based on the provided fixture
- * 
+ *
  * (currently specific to repeater)
  */
 export function createAureliaRepeaterConfig({ colName, itemName, propName }: IRepeaterFixture): { register(container: IContainer): void } {
@@ -187,7 +187,7 @@ export function createAureliaRepeaterConfig({ colName, itemName, propName }: IRe
 
 /**
  * Create a customElement based on the provided fixture
- * 
+ *
  * (currently specific to repeater)
  */
 export function createRepeater(fixture: IRepeaterFixture, initialItems: any[], src: ITemplateSource): ICustomElement {

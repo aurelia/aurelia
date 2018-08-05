@@ -6,7 +6,7 @@ export class AttachLifecycle {
   private tail = null;
   private head = null;
   private $nextAttached = null;
-  
+
   private constructor(private owner) {
     this.tail = this.head = this;
   }
@@ -47,7 +47,7 @@ export class DetachLifecycle {
   private $nextDetached = null;
   private $nextRemoveView = null;
   private $view = dummyView;
-  
+
   private constructor(private owner) {
     this.detachedTail = this.detachedHead = this;
     this.viewRemoveTail = this.viewRemoveHead = this;

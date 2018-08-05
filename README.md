@@ -28,7 +28,7 @@ Early work on Aurelia vNext...
 #### Binding
 
 * [x] One Way
-* [x] Two Way 
+* [x] Two Way
 * [x] One Time
 * [x] From View
 * [x] Trigger
@@ -57,7 +57,7 @@ Early work on Aurelia vNext...
 * [x] HTML-Only Custom Elements
 * [x] Template Part Replacement
 * [x] `$children` and `$childrenChanged`
-* [ ] Basic CSS 
+* [ ] Basic CSS
 * [ ] CSS Modules
 
 #### Custom Attributes

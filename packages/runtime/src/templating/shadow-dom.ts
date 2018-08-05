@@ -11,7 +11,7 @@ import { IVisual, IVisualFactory } from './visual';
 export type ProjectionSource = IRenderSlot | IEmulatedShadowSlot;
 
 /*@internal*/
-export type ShadowEmulationTracking = { 
+export type ShadowEmulationTracking = {
   $slot: ProjectionSource;
   $slotName?: string;
   $isContentProjectionSource?: boolean;
@@ -53,12 +53,12 @@ export function passThroughSlotAddFallbackVisual(visual: IVisual) {
 
   parent.currentProjectionSource = null;
   slots[parent.destinationSlot.name] = parent.destinationSlot;
-  
+
   ShadowDOMEmulation.distributeView(
-    parent.fallbackVisual.$view, 
-    slots, 
-    projectionSource, 
-    visual.renderState, 
+    parent.fallbackVisual.$view,
+    slots,
+    projectionSource,
+    visual.renderState,
     parent.destinationSlot.name
   );
 }
@@ -214,7 +214,7 @@ export class ShadowSlot extends ShadowSlotBase implements IEmulatedShadowSlot {
       distributeNodes(view, nodes, slots, projectionSource, index);
     }
   }
-  
+
   public addNode(view: IView, node: SlotNode, projectionSource: ProjectionSource, index: number, destination: string) {
     this.removeFallbackVisual();
 
@@ -435,7 +435,7 @@ export function viewToNodes(view: IView) {
 export const ShadowDOMEmulation = {
   createSlot(target: INode, owner: IViewOwner, name?: string, destination?: string, fallbackFactory?: IVisualFactory): IEmulatedShadowSlot {
     const anchor = DOM.createAnchor() as SlotNode;
-    
+
     DOM.replaceNode(anchor, target);
 
     if (destination) {

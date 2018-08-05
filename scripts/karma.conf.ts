@@ -27,8 +27,8 @@ export default function(config: IKarmaConfig): void {
     basePath: basePath,
     frameworks: ['mocha', 'chai'],
     files: ['test/setup.ts'],
-    preprocessors: { 
-      'test/setup.ts': ['webpack', 'sourcemap'] 
+    preprocessors: {
+      'test/setup.ts': ['webpack', 'sourcemap']
     },
     webpack: {
       mode: 'development',
@@ -52,8 +52,8 @@ export default function(config: IKarmaConfig): void {
         ]
       }
     },
-    mime: { 
-      'text/x-typescript': ['ts'] 
+    mime: {
+      'text/x-typescript': ['ts']
     },
     reporters: ['mocha'],
     webpackMiddleware: {

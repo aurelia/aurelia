@@ -75,7 +75,7 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute,
   }
 
   // attribute proto.$bind
-  public $bind(flags: BindingFlags, scope: IScope): void {      
+  public $bind(flags: BindingFlags, scope: IScope): void {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -115,7 +115,7 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute,
   }
   // #endregion
 
-  
+
   private _oldItems: Array<any>; // this is purely used by instanceMutation to see if items can be reused
   private _items: T & { $observer: CollectionObserver };
   public set items(newValue: T & { $observer: CollectionObserver }) {

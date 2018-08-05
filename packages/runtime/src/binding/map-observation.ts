@@ -18,7 +18,7 @@ export function getMapObserver<T = any, K = any>(taskQueue: ITaskQueue, map: Map
       enumerable: false, configurable: false
     });
   }
-  
+
   return observer;
 }
 
@@ -42,7 +42,7 @@ class ModifyMapObserver<T = any, K = any> extends ModifyCollectionObserver {
       const type = hasValue ? 'update' : 'add';
       const oldValue = map.get(arguments[0]);
       const methodCallResult = proto.set.apply(map, arguments);
-      
+
       if (!hasValue || oldValue !== map.get(arguments[0])) {
         observer.addChangeRecord({
           type: type,

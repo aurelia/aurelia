@@ -19,7 +19,7 @@ export interface IRepeatStrategyRegistry {
   * @param strategy A repeat strategy that can iterate a specific collection type.
   */
   register(strategy: IRepeatStrategy): void;
-  
+
   getStrategyForItems(items: any): IRepeatStrategy;
 }
 

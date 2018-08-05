@@ -31,7 +31,7 @@ export function createComputedObserver(observerLocator: IObserverLocator, dirtyC
   }
 
   if (descriptor.get) {
-    const overrides: IComputedOverrides = instance.constructor.computed 
+    const overrides: IComputedOverrides = instance.constructor.computed
       ? instance.constructor.computed[propertyName] || computedOverrideDefaults
       : computedOverrideDefaults;
 
@@ -123,19 +123,19 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
 // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
 class GetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
   private controller: GetterController;
-  
+
   constructor(private overrides: IComputedOverrides, private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private taskQueue: ITaskQueue) {
     super();
 
     this.controller = new GetterController(
       overrides,
-      instance, 
-      propertyName, 
-      descriptor, 
-      this, 
-      observerLocator, 
+      instance,
+      propertyName,
+      descriptor,
+      this,
+      observerLocator,
       taskQueue
-    );       
+    );
   }
 
   public getValue() {
@@ -147,7 +147,7 @@ class GetterObserver extends SubscriberCollection implements IAccessor, ISubscri
   public call() {
     const oldValue = this.controller.value;
     const newValue = this.controller.getValueAndCollectDependencies();
-    
+
     if (oldValue !== newValue) {
       this.callSubscribers(newValue, oldValue);
     }
@@ -177,8 +177,8 @@ class GetterController {
     private instance: any,
     private propertyName: string,
     descriptor: PropertyDescriptor,
-    private owner: GetterObserver, 
-    observerLocator: IObserverLocator, 
+    private owner: GetterObserver,
+    observerLocator: IObserverLocator,
     private taskQueue: ITaskQueue
   ) {
     const proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
@@ -210,7 +210,7 @@ class GetterController {
     if (this.subscriberCount > 1) {
       return;
     }
-    
+
     this.getValueAndCollectDependencies(true);
   }
 
@@ -225,7 +225,7 @@ class GetterController {
     }
 
     this.value = this.instance[this.propertyName]; // triggers observer collection
-    
+
     if (dynamicDependencies) {
       this.isCollecting = false;
       this.dependencies.forEach(x => x.subscribe(computedContext, this));

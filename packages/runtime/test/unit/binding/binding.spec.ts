@@ -86,22 +86,22 @@ describe('Binding', () => {
 
   //     for (const target of targetArr) {
   //     const title3 = title2 + ' target=' + padRight(`${getName(target)}`, 20);
-      
+
   //       for (const targetProperty of targetPropertyArr) {
   //         const title4 = title3 + ' targetProperty=' + padRight(`${targetProperty}`, 12);
-          
+
   //         for (const sourceExpression of sourceExpressionArr) {
   //           const title5 = title4 + ' sourceExpression=' + padRight(`${sourceExpression.constructor.name}`, 16);
-            
+
   //           const scopeArr = [
   //             createScopeForTest({foo: {bar: 42}}),
   //             createScopeForTest({foo: {bar: undefined}}),
   //             createScopeForTest({foo: {bar: 'baz'}})
   //           ];
-          
+
   //           for (const scope of scopeArr) {
   //             const title = title5 + ' scope=' + padRight(`${getName(scope)}`, 2);
-              
+
   //             it(title, () => {
   //               sut = new Binding(sourceExpression, target, targetProperty, bindingMode, observerLocator, container);
   //               sut.$bind(scope);
@@ -117,19 +117,19 @@ describe('Binding', () => {
   describe('updateTarget()', () => {
 
   });
-  
+
   describe('updateSource()', () => {
 
   });
-  
+
   describe('call()', () => {
 
   });
-  
+
   describe('$bind()', () => {
 
   });
-  
+
   describe('$unbind()', () => {
     it('should not unbind if it is not already bound', () => {
       const scope: any = {};
@@ -152,7 +152,7 @@ describe('Binding', () => {
       expect(unbindSpy).to.have.been.calledWith(BindingFlags.none, scope, sut);
     });
   });
-  
+
   describe('connect()', () => {
     it(`does not connect if it is not bound`, () => {
       const sourceExpression = new MockExpression();
@@ -201,7 +201,7 @@ describe('Binding', () => {
       expect(targetObserver.setValue).to.have.been.calledWith(value);
     });
   });
-  
+
   describe('addObserver()', () => {
     const countArr = [1, 5, 100];
 
@@ -288,11 +288,11 @@ describe('Binding', () => {
       });
     }
   });
-  
+
   describe('observeProperty()', () => {
 
   });
-  
+
   describe('unobserve()', () => {
 
   });

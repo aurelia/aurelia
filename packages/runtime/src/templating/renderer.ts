@@ -46,7 +46,7 @@ export class Renderer implements IRenderer {
 
     if (host) {
       const surrogateInstructions = definition.surrogates;
-      
+
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
         const current = surrogateInstructions[i];
         (this[current.type] as any)(owner, host, current, parts);
@@ -56,23 +56,23 @@ export class Renderer implements IRenderer {
 
   public hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement) {
     let childInstructions = instruction.instructions;
-  
+
     component.$hydrate(this.renderingEngine, target, instruction);
-    
+
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
       const currentType = current.type;
       let realTarget;
-      
+
       if (currentType === TargetedInstructionType.stylePropertyBinding || currentType === TargetedInstructionType.listenerBinding) {
         realTarget = target;
       } else {
         realTarget = component;
       }
-  
+
       (this[current.type] as any)(owner, realTarget, current);
     }
-  
+
     owner.$bindable.push(component);
     owner.$attachable.push(component);
   }
@@ -120,7 +120,7 @@ export class Renderer implements IRenderer {
     DOM.setAttribute(target, instruction.dest, instruction.value);
   }
 
-  public [TargetedInstructionType.hydrateSlot](owner: ICustomElement, target: any, instruction: Immutable<IHydrateSlotInstruction>) {   
+  public [TargetedInstructionType.hydrateSlot](owner: ICustomElement, target: any, instruction: Immutable<IHydrateSlotInstruction>) {
     if (!owner.$usingSlotEmulation) {
       return;
     }
@@ -140,7 +140,7 @@ export class Renderer implements IRenderer {
 
     this.hydrateElementInstance(owner, target, instruction, component);
     operation.tryConnectElementToSlot(component);
-    
+
     operation.dispose();
   }
 

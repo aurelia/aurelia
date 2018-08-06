@@ -2,7 +2,7 @@ import { ICallable } from '@aurelia/kernel';
 import { IAccessor, ISubscribable } from '../binding/observation';
 import { Observer } from '../binding/property-observation';
 import { SubscriberCollection } from '../binding/subscriber-collection';
-import { DOM, IChildObserver, INode } from '../dom';
+import { DOM, INode } from '../dom';
 import { ITaskQueue } from '../task-queue';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';

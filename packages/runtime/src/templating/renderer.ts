@@ -10,7 +10,22 @@ import { Ref } from '../binding/ref';
 import { DOM, INode } from '../dom';
 import { CustomAttributeResource, ICustomAttribute } from './custom-attribute';
 import { CustomElementResource, ICustomElement } from './custom-element';
-import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateSlotInstruction, IHydrateTemplateController, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from './instructions';
+import {
+  ICallBindingInstruction,
+  IHydrateAttributeInstruction,
+  IHydrateElementInstruction,
+  IHydrateTemplateController,
+  IListenerBindingInstruction,
+  IPropertyBindingInstruction,
+  IRefBindingInstruction,
+  ISetAttributeInstruction,
+  ISetPropertyInstruction,
+  IStylePropertyBindingInstruction,
+  ITextBindingInstruction,
+  TargetedInstructionType,
+  TemplateDefinition,
+  TemplatePartDefinitions
+} from './instructions';
 import { IRenderContext } from './render-context';
 import { IRenderingEngine } from './rendering-engine';
 import { IViewOwner } from './view';

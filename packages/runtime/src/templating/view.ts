@@ -5,7 +5,6 @@ import { DOM, INode, IView } from '../dom';
 import { IAttach } from './lifecycle';
 import { IRenderContext } from './render-context';
 import { IRenderSlot } from './render-slot';
-import { IEmulatedShadowSlot } from './shadow-dom';
 import { IVisual } from './visual';
 
 export const IViewOwner = DI.createInterface<IViewOwner>();
@@ -18,8 +17,6 @@ export interface IViewOwner {
 
   $bindable: IBindScope[];
   $attachable: IAttach[];
-
-  $slots?: Record<string, IEmulatedShadowSlot>;
 }
 
 // This is an implementation of IView that represents "no DOM" to render.
@@ -33,8 +30,7 @@ export const noopView: IView = {
   findTargets() { return PLATFORM.emptyArray; },
   insertBefore(refNode: INode): void {},
   appendTo(parent: INode): void {},
-  remove(): void {},
-  appendChild(child: INode) {}
+  remove(): void {}
 };
 
 export const View = {
@@ -61,9 +57,6 @@ export const View = {
       childNodes: [node],
       findTargets(): ReadonlyArray<INode> {
         return PLATFORM.emptyArray;
-      },
-      appendChild(node: INode) {
-        DOM.appendChild(node, node);
       },
       insertBefore(refNode: INode): void {
         DOM.insertBefore(node, refNode);

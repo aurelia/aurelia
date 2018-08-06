@@ -15,7 +15,7 @@ export interface ICustomElementType extends IResourceType<ITemplateSource, ICust
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'contentOverride'>>;
 
 export interface ICustomElement extends IBindSelf, IAttach, Readonly<IViewOwner> {
-  readonly $projector: IElementProjector;
+  readonly $projector: IViewProjector;
   readonly $isAttached: boolean;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
@@ -246,14 +246,14 @@ export function createCustomElementDescription(templateSource: ITemplateSource, 
   };
 }
 
-export interface IElementProjector {
+export interface IViewProjector {
   readonly children: ArrayLike<INode>;
   onChildrenChanged(callback: () => void): void;
   provideEncapsulationSource(parentEncapsulationSource: INode): INode;
   project(view: IView): void;
 }
 
-function determineProjector(host: INode, definition: TemplateDefinition): IElementProjector {
+function determineProjector(host: INode, definition: TemplateDefinition): IViewProjector {
   if (definition.shadowOptions || definition.hasSlots) {
     if (definition.containerless) {
       throw Reporter.error(21);
@@ -269,7 +269,7 @@ function determineProjector(host: INode, definition: TemplateDefinition): IEleme
   return new HostProjector(host);
 }
 
-class ShadowDOMProjector implements IElementProjector {
+class ShadowDOMProjector implements IViewProjector {
   private shadowRoot: INode;
 
   constructor(private host: INode, private definition: TemplateDefinition) {
@@ -281,7 +281,9 @@ class ShadowDOMProjector implements IElementProjector {
   }
 
   public onChildrenChanged(callback: () => void): void {
-    // TODO: use mutation observer on host
+    DOM.createNodeObserver(this.host, callback, {
+      childList: true
+    });
   }
 
   public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
@@ -293,7 +295,7 @@ class ShadowDOMProjector implements IElementProjector {
   }
 }
 
-class ContainerlessProjector implements IElementProjector {
+class ContainerlessProjector implements IViewProjector {
   private anchor: INode;
 
   constructor(private host: INode) {
@@ -305,7 +307,7 @@ class ContainerlessProjector implements IElementProjector {
   }
 
   public onChildrenChanged(callback: () => void): void {
-    // TODO: throw error, cannot observe children
+    // Do nothing since this scenario will never have children.
   }
 
   public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
@@ -321,7 +323,7 @@ class ContainerlessProjector implements IElementProjector {
   }
 }
 
-class HostProjector implements IElementProjector {
+class HostProjector implements IViewProjector {
   constructor(private host: INode) {}
 
   get children(): ArrayLike<INode> {

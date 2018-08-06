@@ -17,7 +17,6 @@ import { createRenderContext, IComponentOperation, IRenderContext, ExposedContex
 import { IRenderSlot } from './render-slot';
 import { IRenderer, Renderer } from './renderer';
 import { IRuntimeBehavior, RuntimeBehavior } from './runtime-behavior';
-import { IEmulatedShadowSlot } from './shadow-dom';
 import { ITemplate } from './template';
 import { ITemplateCompiler } from './template-compiler';
 import { IViewOwner, View } from './view';
@@ -89,24 +88,6 @@ export class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  private templateFromSource(context: IRenderContext, definition: TemplateDefinition): ITemplate {
-    if (definition && definition.template) {
-      if (definition.build.required) {
-        const compiler = this.compilers[definition.build.compiler];
-
-        if (!compiler) {
-          throw Reporter.error(20, `Requested Compiler: ${compiler.name}`);
-        }
-
-        definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>context));
-      }
-
-      return new CompiledTemplate(this, context, definition);
-    }
-
-    return noViewTemplate;
-  }
-
   public getVisualFactory(context: IRenderContext, definition: Immutable<ITemplateSource>): IVisualFactory {
     if (!definition) {
       return null;
@@ -123,23 +104,6 @@ export class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  private factoryFromSource(context: IRenderContext, definition: TemplateDefinition): IVisualFactory {
-    const template = this.templateFromSource(context, definition);
-
-    const CompiledVisual = class extends Visual {
-      $slots: Record<string, IEmulatedShadowSlot> = definition.hasSlots ? {} : null;
-      $context = context;
-
-      createView() {
-        return template.createFor(this);
-      }
-    }
-
-    let factory = new VisualFactory(definition.name, CompiledVisual);
-    factory.setCacheSize(definition.cache, true);
-    return factory;
-  }
-
   public applyRuntimeBehavior(type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement, bindables: BindableDefinitions): IRuntimeBehavior {
     let found = this.behaviorLookup.get(type);
 
@@ -148,7 +112,7 @@ export class RenderingEngine implements IRenderingEngine {
       this.behaviorLookup.set(type, found);
     }
 
-    if ('$host' in instance) {
+    if ('$projector' in instance) {
       found.applyToElement(this.taskQueue, instance);
     } else {
       found.applyToAttribute(this.taskQueue, instance);
@@ -201,6 +165,40 @@ export class RenderingEngine implements IRenderingEngine {
       this.parser,
       this
     );
+  }
+
+  private factoryFromSource(context: IRenderContext, definition: TemplateDefinition): IVisualFactory {
+    const template = this.templateFromSource(context, definition);
+
+    const CompiledVisual = class extends Visual {
+      $context = context;
+
+      createView() {
+        return template.createFor(this);
+      }
+    }
+
+    let factory = new VisualFactory(definition.name, CompiledVisual);
+    factory.setCacheSize(definition.cache, true);
+    return factory;
+  }
+
+  private templateFromSource(context: IRenderContext, definition: TemplateDefinition): ITemplate {
+    if (definition && definition.template) {
+      if (definition.build.required) {
+        const compiler = this.compilers[definition.build.compiler];
+
+        if (!compiler) {
+          throw Reporter.error(20, `Requested Compiler: ${compiler.name}`);
+        }
+
+        definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>context));
+      }
+
+      return new CompiledTemplate(this, context, definition);
+    }
+
+    return noViewTemplate;
   }
 }
 

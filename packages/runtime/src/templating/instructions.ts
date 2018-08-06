@@ -59,7 +59,6 @@ export type TargetedInstruction =
   IStylePropertyBindingInstruction |
   ISetPropertyInstruction |
   ISetAttributeInstruction |
-  IHydrateSlotInstruction |
   IHydrateElementInstruction |
   IHydrateAttributeInstruction |
   IHydrateTemplateController;
@@ -122,13 +121,6 @@ export interface ISetAttributeInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.setAttribute;
   value: any;
   dest: string;
-}
-
-export interface IHydrateSlotInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.hydrateSlot;
-  name?: string;
-  dest?: string;
-  fallback?: ITemplateSource;
 }
 
 export interface IHydrateElementInstruction extends ITargetedInstruction {

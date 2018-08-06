@@ -19,19 +19,14 @@ export const INode = DI.createInterface<INode>();
  */
 export interface IView extends INodeLike {
   /**
-   * The child nodes of this view
+   * The child nodes of this view.
    */
   childNodes: ReadonlyArray<INode>;
 
   /**
-   * Find all au-targets underneath this view
+   * Find all instruction targets in this view.
    */
   findTargets(): ArrayLike<INode> | ReadonlyArray<INode>;
-
-  /**
-   * Append child to this view
-   */
-  appendChild(child: INode): void;
 
   /**
    * Insert this view as a sibling before refNode
@@ -42,11 +37,14 @@ export interface IView extends INodeLike {
    * Append this view as a child to parent
    */
   appendTo(parent: INode): void;
+
+  /**
+   * Remove this view from its parent.
+   */
   remove(): void;
 }
 
-export interface IChildObserver {
-  childNodes: ArrayLike<INode>;
+export interface INodeObserver {
   disconnect(): void;
 }
 
@@ -90,6 +88,12 @@ export const DOM = {
 
   createAnchor(): INode {
     return document.createComment('anchor');
+  },
+
+  createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit) {
+    const observer = new MutationObserver(callback);
+    observer.observe(target as Node, options);
+    return observer;
   },
 
   attachShadow(host: INode, options: ShadowRootInit): INode {
@@ -271,10 +275,6 @@ export class TemplateView implements IView {
       i++;
     }
     this.childNodes = childNodesArr;
-  }
-
-  appendChild(child: Node) {
-    this.fragment.appendChild(child);
   }
 
   findTargets(): ArrayLike<Node> {

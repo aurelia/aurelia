@@ -251,7 +251,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
 export function createCustomElementDescription(templateSource: ITemplateSource, Type: ICustomElementType): TemplateDefinition {
   return {
     name: templateSource.name || 'unnamed',
-    template: templateSource.template || null,
+    templateOrNode: templateSource.templateOrNode || null,
     cache: 0,
     build: templateSource.build || {
       required: false,

@@ -1,9 +1,10 @@
+import { HydrateAttributeInstruction, TextBindingInstruction, SetPropertyInstruction } from './../../../src/templating/template-compiler';
 import { DI } from '@aurelia/kernel';
-import { IExpressionParser, IResourceDescriptions, IExpression, BindingType, ExpressionKind, AccessScope, ObjectBindingPattern, CustomAttributeResource, BindingIdentifier, ArrayBindingPattern, PrimitiveLiteral, ArrayLiteral, BindingBehavior, ValueConverter, ForOfStatement, Interpolation, AccessMember, Binary, Template } from '@aurelia/runtime';
-import { TemplateCompiler, register, BindingCommandResource } from '@aurelia/jit';
+import { IExpressionParser, IResourceDescriptions, IExpression, BindingType, ExpressionKind, AccessScope, ObjectBindingPattern, CustomAttributeResource, BindingIdentifier, ArrayBindingPattern, PrimitiveLiteral, ArrayLiteral, BindingBehavior, ValueConverter, ForOfStatement, Interpolation, AccessMember, Binary, Template, TargetedInstruction } from '@aurelia/runtime';
+import { TemplateCompiler, register, BindingCommandResource, ToViewBindingInstruction, HydrateTemplateController, OneTimeBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, TriggerBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, CallBindingInstruction, RefBindingInstruction } from '@aurelia/jit';
 import { expect } from 'chai';
 import { RuntimeCompilationResources } from '../../../../runtime/src/templating/rendering-engine';
-import { verifyEqual } from '../../util';
+import { verifyEqual, createElement } from '../../util';
 
 
 export function createAttribute(name: string, value: string): Attr {
@@ -65,7 +66,7 @@ describe('TemplateCompiler', () => {
   ];
 
   for (const { $type, attrName } of attrNameArr) {
-    describe(attrName, () => {
+    describe(`parseAttribute() - ${attrName}`, () => {
       const declarationArr = [
         { attrValue: 'item', output: new BindingIdentifier('item') },
         { attrValue: '[key, value]', output: new ArrayBindingPattern([<any>new AccessScope('key'), <any>new AccessScope('value')]) },
@@ -87,11 +88,12 @@ describe('TemplateCompiler', () => {
           const input = `${declAttrValue} of ${sttmtAttrValue}`;
           it(`iterator - "${attrName}"="${input}"`, () => {
             const attr = createAttribute(attrName, input);
-            const expected = new ForOfStatement(<any>declOutput, <any>sttmtOutput);
+            const expr = new ForOfStatement(<any>declOutput, <any>sttmtOutput); // TODO: implement+verify
+            const expected = new HydrateTemplateController({}, attrName.split('.')[0], []);
             let err: Error;
             let actual: IExpression;
             try {
-              actual = <any>sut.parseAttribute(attr, resources);
+              actual = <any>sut.compileAttribute(attr, <any>null, resources);
             } catch (e) {
               err = e;
             }
@@ -111,10 +113,51 @@ describe('TemplateCompiler', () => {
       for (const value of expressionValues) {
         const attr = createAttribute(attrName, value);
         it(`expression - "${attrName}"="${value}"`, () => {
+          const expr = new AccessScope(value);
+          let expected: TargetedInstruction;
+          switch (attrName.split('.')[1]) {
+            case 'one-time':
+              expected = new OneTimeBindingInstruction(expr);
+              break;
+            case 'bind':
+            case 'to-view':
+              expected = new ToViewBindingInstruction(expr, attrName.split('.')[0]);
+              break;
+            case 'from-view':
+              expected = new FromViewBindingInstruction(expr, attrName.split('.')[0]);
+              break;
+            case 'two-way':
+              expected = new TwoWayBindingInstruction(expr, attrName.split('.')[0]);
+              break;
+            case 'trigger':
+              expected = new TriggerBindingInstruction(expr, attrName.split('.')[0]);
+              break;
+            case 'capture':
+              expected = new CaptureBindingInstruction(expr, attrName.split('.')[0]);
+              break;
+            case 'delegate':
+              expected = new DelegateBindingInstruction(expr, attrName.split('.')[0]);
+              break;
+            case 'call':
+              expected = new CallBindingInstruction(expr, attrName.split('.')[0]);
+              break;
+            case 'foo':
+              expected = new ToViewBindingInstruction(expr, attrName.split('.')[0]);
+              break;
+            case undefined:
+              switch(attrName) {
+                case 'ref':
+                  expected = new RefBindingInstruction(expr);
+                  break;
+                case 'foo':
+                  expected = new HydrateAttributeInstruction('foo', []);
+                  break;
+              }
+          }
           let err: Error;
           let actual: IExpression;
           try {
-            actual = <any>sut.parseAttribute(attr, resources);
+            actual = <any>sut.compileAttribute(attr, <any>null, resources);
           } catch (e) {
             err = e;
           }
@@ -124,7 +167,7 @@ describe('TemplateCompiler', () => {
             expect(err).not.to.be.undefined;
             expect(err.message).to.contain(`Parser Error: Missing expected token of`);
           } else {
-            expect(actual.$kind).to.equal(ExpressionKind.AccessScope);
+            verifyEqual(actual, expected);
           }
         });
       }
@@ -158,12 +201,12 @@ describe('TemplateCompiler', () => {
             input += partAttrValue;
             parts[i] = partOutput;
             const attr = createAttribute(attrName, input);
-            const expected = new Interpolation(parts, expressions);
+            const expected = new ToViewBindingInstruction(new Interpolation(parts, expressions), attrName);
             it(`interpolation - "${attrName}"="${input}"`, () => {
               let err: Error;
               let actual: Interpolation;
               try {
-                actual = <any>sut.parseAttribute(attr, resources);
+                actual = <any>sut.compileAttribute(attr, <any>null, resources);
               } catch (e) {
                 err = e;
               }
@@ -182,4 +225,103 @@ describe('TemplateCompiler', () => {
       }
     });
   }
+
+  describe(`compile()`, () => {
+    const tests = [
+      {
+        inputMarkup: `<input type="text" value.bind="foo">`,
+        outputMarkup: `<input type="text" value.bind="foo" class="au">`,
+        instructions: [new ToViewBindingInstruction(new AccessScope('foo'), 'value')]
+      },
+      {
+        inputMarkup: `<input type="text" value.bind="foo"><div><input type="text" value.bind="foo"></div>`,
+        outputMarkup: `<input type="text" value.bind="foo" class="au"><div><input type="text" value.bind="foo" class="au"></div>`,
+        instructions: [
+          new ToViewBindingInstruction(new AccessScope('foo'), 'value'),
+          new ToViewBindingInstruction(new AccessScope('foo'), 'value')
+        ]
+      },
+      {
+        inputMarkup: `<input type="text" value="\${foo}">`,
+        outputMarkup: `<input type="text" value="\${foo}" class="au">`,
+        instructions: [new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value')]
+      },
+      {
+        inputMarkup: `<input type="text" value="\${foo}"><div><input type="text" value="\${foo}"></div>`,
+        outputMarkup: `<input type="text" value="\${foo}" class="au"><div><input type="text" value="\${foo}" class="au"></div>`,
+        instructions: [
+          new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value'),
+          new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value')
+        ]
+      },
+      {
+        inputMarkup: `<div>\${foo}</div>`,
+        outputMarkup: `<div><au-marker class="au"></au-marker> </div>`,
+        instructions: [new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]))]
+      },
+      {
+        inputMarkup: `<div>\${foo}<div>\${foo}</div></div>`,
+        outputMarkup: `<div><au-marker class="au"></au-marker> <div><au-marker class="au"></au-marker> </div></div>`,
+        instructions: [
+          new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')])),
+          new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]))
+        ]
+      },
+      {
+        inputMarkup: `<div repeat.for="item of items"></div>`,
+        outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
+        instructions: [
+          new HydrateTemplateController({ templateOrNode: null, instructions: [] }, 'repeat', [
+            new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
+            new SetPropertyInstruction('item', 'local'),
+          ])
+        ]
+      },
+      {
+        inputMarkup: `<div repeat.for="item of items"><div></div></div>`,
+        outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
+        instructions: [
+          new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
+            new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
+            new SetPropertyInstruction('item', 'local'),
+          ])
+        ]
+      },
+      {
+        inputMarkup: `<div repeat.for="item of items"><div repeat.for="item of items"><div></div></div></div>`,
+        outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
+        instructions: [
+          new HydrateTemplateController({
+              templateOrNode: (<any>createElement(`<template><div repeat.for="item of items" class="au"></div></template>`)).content,
+              instructions: [[
+                new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
+                  new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
+                  new SetPropertyInstruction('item', 'local'),
+                ])
+              ]]
+            }, 'repeat', [
+            new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
+            new SetPropertyInstruction('item', 'local'),
+          ])
+        ]
+      }
+    ];
+
+    for (const count of [1, 2, 3]) {
+      for (let { inputMarkup, outputMarkup, instructions } of tests) {
+        inputMarkup = new Array(count + 1).join(inputMarkup);
+        it(inputMarkup, () => {
+          outputMarkup = new Array(count + 1).join(outputMarkup);
+          instructions = new Array(count).fill(instructions).reduce((acc, item) => acc.concat(item));
+          const actual = sut.compile(<any>{templateOrNode: inputMarkup, instructions:[]},<any>{get(){}});
+          const expected = {
+            templateOrNode: createElement(outputMarkup),
+            instructions: [instructions]
+          };
+          verifyEqual(actual, expected);
+        });
+      }
+    }
+
+  });
 });

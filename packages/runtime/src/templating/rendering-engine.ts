@@ -90,7 +90,7 @@ export class RenderingEngine implements IRenderingEngine {
   }
 
   private templateFromSource(context: IRenderContext, definition: TemplateDefinition): ITemplate {
-    if (definition && definition.template) {
+    if (definition && definition.templateOrNode) {
       if (definition.build.required) {
         const compiler = this.compilers[definition.build.compiler];
 
@@ -208,7 +208,7 @@ export class RenderingEngine implements IRenderingEngine {
 export function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefinition {
   return {
     name: definition.name || 'Unnamed Template',
-    template: definition.template,
+    templateOrNode: definition.templateOrNode,
     cache: definition.cache || 0,
     build: definition.build || {
       required: false,
@@ -237,7 +237,7 @@ export class CompiledTemplate implements ITemplate {
 
   constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
     this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
-    this.createView = DOM.createFactoryFromMarkup(templateDefinition.template);
+    this.createView = DOM.createFactoryFromMarkupOrNode(templateDefinition.templateOrNode);
   }
 
   public createFor(owner: IViewOwner, host?: INode, replacements?: TemplatePartDefinitions): IView {

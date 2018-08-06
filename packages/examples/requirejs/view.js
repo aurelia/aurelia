@@ -67,7 +67,7 @@ define("view", [], function() {
 
           req(depsToLoad, function() {
             var templateSource = {
-              template: description.template,
+              templateOrNode: description.template,
               build: {
                 required: true,
                 compiler: "default"
@@ -101,7 +101,7 @@ define("view", [], function() {
               .join(",") +
             "], function() { \n          var templateSource = {\n            name: '" +
             kebabCase(templateImport.basename) +
-            "',\n            template: '" +
+            "',\n            templateOrNode: '" +
             view.escape(description.template) +
             "',\n            build: {\n              required: true,\n              compiler: 'default'\n            },\n            dependencies: Array.prototype.slice.call(arguments)\n          };\n\n          return { default: templateSource };\n        });\n"
         );
@@ -120,7 +120,7 @@ define("view", [], function() {
     );
 
     return {
-      template: cleanedTemplate.trim(),
+      templateOrNode: cleanedTemplate.trim(),
       imports: imports
     };
   }

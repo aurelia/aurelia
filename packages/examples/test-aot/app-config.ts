@@ -1,4 +1,4 @@
-import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
+import { ITemplateSource, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
 
 //extracted from view imports
 import * as import1 from "./name-tag";
@@ -10,7 +10,7 @@ export const appConfig: ITemplateSource = {
   dependencies: [
     import1
   ],
-  template: `
+  templateOrNode: `
     <au-marker class="au"></au-marker> <br/>
     <au-marker class="au"></au-marker> <br/>
     <input type="text" class="au">
@@ -27,19 +27,19 @@ export const appConfig: ITemplateSource = {
     [
       {
         type: TargetedInstructionType.textBinding,
-        src: 'message'
+        srcOrExpr: 'message'
       }
     ],
     [
       {
         type: TargetedInstructionType.textBinding,
-        src: 'computedMessage'
+        srcOrExpr: 'computedMessage'
       }
     ],
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        src: 'message',
+        srcOrExpr: 'message',
         dest: 'value'
       }
     ],
@@ -50,12 +50,12 @@ export const appConfig: ITemplateSource = {
         instructions: [
           {
             type: TargetedInstructionType.twoWayBinding,
-            src: 'message',
+            srcOrExpr: 'message',
             dest: 'name'
           },
           {
             type: TargetedInstructionType.refBinding,
-            src: 'nameTag'
+            srcOrExpr: 'nameTag'
           }
         ]
       }
@@ -63,13 +63,13 @@ export const appConfig: ITemplateSource = {
     [
       {
         type: TargetedInstructionType.textBinding,
-        src: 'message'
+        srcOrExpr: 'message'
       }
     ],
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        src: 'duplicateMessage',
+        srcOrExpr: 'duplicateMessage',
         dest: 'checked'
       }
     ],
@@ -78,20 +78,20 @@ export const appConfig: ITemplateSource = {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'if',
         src: {
-          template: `<div><au-marker class="au"></au-marker> </div>`,
+          templateOrNode: `<div><au-marker class="au"></au-marker> </div>`,
           instructions: [
             [
               {
                 type: TargetedInstructionType.textBinding,
-                src: 'message'
+                srcOrExpr: 'message'
               }
             ]
           ]
         },
         instructions: [
           {
-            type: TargetedInstructionType.toViewBinding,
-            src: 'duplicateMessage',
+            type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView,
+            srcOrExpr: 'duplicateMessage',
             dest: 'condition'
           }
         ]
@@ -102,7 +102,7 @@ export const appConfig: ITemplateSource = {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'else',
         src: {
-          template: `<div>No Message Duplicated</div>`,
+          templateOrNode: `<div>No Message Duplicated</div>`,
           instructions: []
         },
         link: true,
@@ -114,20 +114,20 @@ export const appConfig: ITemplateSource = {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'repeat',
         src: {
-          template: `<div><au-marker class="au"></au-marker> </div>`,
+          templateOrNode: `<div><au-marker class="au"></au-marker> </div>`,
           instructions: [
             [
               {
                 type: TargetedInstructionType.textBinding,
-                src: 'description'
+                srcOrExpr: 'description'
               }
             ]
           ]
         },
         instructions: [
           {
-            type: TargetedInstructionType.toViewBinding,
-            src: 'todos',
+            type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView,
+            srcOrExpr: 'todos',
             dest: 'items'
           },
           {
@@ -141,7 +141,7 @@ export const appConfig: ITemplateSource = {
     [
       {
         type: TargetedInstructionType.listenerBinding,
-        src: 'click',
+        srcOrExpr: 'click',
         dest: 'addTodo',
         preventDefault: true,
         strategy: DelegationStrategy.none

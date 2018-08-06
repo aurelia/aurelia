@@ -54,7 +54,7 @@ describe('DOM', () => {
     restoreBackups();
   });
 
-  describe('createFactoryFromMarkup', () => {
+  describe('createFactoryFromMarkupOrNode', () => {
     const textArr = ['', 'text', '#text'];
     const elementsArr = [[''], ['div'], ['div', 'p']];
     const wrapperArr = ['', 'div', 'template'];
@@ -68,7 +68,7 @@ describe('DOM', () => {
           const markup = wrap(elementsMarkup, wrapper);
 
           it(`should create a factory that returns the correct markup for "${markup}"`, () => {
-            const factory = DOM.createFactoryFromMarkup(markup);
+            const factory = DOM.createFactoryFromMarkupOrNode(markup);
             const view = factory();
             const fragment = <DocumentFragment>view['fragment'];
             let parsedMarkup = '';
@@ -87,7 +87,7 @@ describe('DOM', () => {
           });
 
           it(`should create a factory that always returns a view with a different fragment instance for "${markup}"`, () => {
-            const factory = DOM.createFactoryFromMarkup(markup);
+            const factory = DOM.createFactoryFromMarkupOrNode(markup);
             const fragment1 = factory()['fragment'];
             const fragment2 = factory()['fragment'];
             const fragment3 = factory()['fragment'];
@@ -103,14 +103,14 @@ describe('DOM', () => {
     const validInputArr: any[] = ['', 'asdf', 'div', 1, true, false, {}, new Error(), null, undefined];
     for (const validInput of validInputArr) {
       it(`should not throw for valid input type "${typeof validInput}"`, () => {
-        verifyDoesNotThrow(DOM.createFactoryFromMarkup.bind(null, validInput));
+        verifyDoesNotThrow(DOM.createFactoryFromMarkupOrNode.bind(null, validInput));
       });
     }
 
     const invalidInputArr: any[] = [Symbol()];
     for (const invalidInput of invalidInputArr) {
       it(`should throw for invalid input type "${typeof invalidInput}"`, () => {
-        verifyThrows(DOM.createFactoryFromMarkup.bind(null, invalidInput));
+        verifyThrows(DOM.createFactoryFromMarkupOrNode.bind(null, invalidInput));
       });
     }
   });

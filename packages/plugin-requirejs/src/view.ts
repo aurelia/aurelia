@@ -23,7 +23,7 @@ export function load(name: string, req, onLoad, config) {
       req(depsToLoad, function() {
         const templateSource = {
           name: kebabCase(templateImport.basename),
-          template: description.template,
+          templateOrNode: description.template,
           build: {
             required: true,
             compiler: 'default'
@@ -47,7 +47,7 @@ export function write(pluginName: string, moduleName: string, write, config) {
     write(`define("${pluginName}!${moduleName}", [${depsToLoad.map(x => `"${x}"`).join(',')}], function() { 
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
-        template: '${escape(description.template)}',
+        templateOrNode: '${escape(description.template)}',
         build: {
           required: true,
           compiler: 'default'

@@ -2,9 +2,11 @@
 
 [![CircleCI](https://circleci.com/gh/aurelia/aurelia.svg?style=svg)](https://circleci.com/gh/aurelia/aurelia) [![codecov](https://codecov.io/gh/aurelia/aurelia/branch/master/graph/badge.svg)](https://codecov.io/gh/aurelia/aurelia)
 
-Early work on Aurelia vNext...
+This the Aurelia vNext monorepo, containing core and plugin packages, examples and documentation for the next major version of [Aurelia](http://www.aurelia.io/).
 
-## Progress
+> To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.aurelia.io/) and [our email list](http://eepurl.com/ces50j). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions, look around our [Discourse forums](https://discourse.aurelia.io/), chat in our [community on Gitter](https://gitter.im/aurelia/discuss), or use [stack overflow](http://stackoverflow.com/search?q=aurelia).
+
+## vNext Progress
 
 ### Kernel
 
@@ -52,8 +54,7 @@ Early work on Aurelia vNext...
 * [x] Per-instance Views
 * [x] No View
 * [x] Containerless
-* [x] Emulated ShadowDOM
-* [x] Native ShadowDOM
+* [x] ShadowDOM Integration
 * [x] HTML-Only Custom Elements
 * [x] Template Part Replacement
 * [x] `$children` and `$childrenChanged`
@@ -164,23 +165,24 @@ Early work on Aurelia vNext...
 
 ## Build and Test
 
------------------------------------
+To get everything ready, run the following commands:
 
-### Note (2018-07-31): The instructions below ("Running the Default Demo" and further) are out of date at the moment and will be updated as soon as all workflows are adjusted to the new monorepo.
-
-To get everything ready:
 - `npm ci` (npm 6+ is required for this)
 - `npm run bootstrap`
 - `npm run build`
 
-To run all the tests:
+To run all the tests, execute this command:
+
 - `npm run test`
 
-To run individual tests:
+To run individual tests, switch to the desired package folder and run the test command:
+
 - `cd packages/runtime`
 - `npm run test`
 
 -----------------------------------
+
+> **Note (2018-07-31):** The instructions below ("Running the Default Demo" and further) are out of date at the moment and will be updated as soon as all workflows are adjusted to the new monorepo.
 
 ### Running the Default Demo
 

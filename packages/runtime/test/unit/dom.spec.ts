@@ -160,7 +160,7 @@ describe('DOM', () => {
     it('should return a MutationObserver', () => {
       const cb = spy();
       const node = document.createElement('div');
-      const observer = DOM.createChildObserver(node, cb);
+      const observer = DOM.createNodeObserver(node, cb, { characterData: true });
       expect(observer instanceof MutationObserver).to.be.true;
     });
 
@@ -168,7 +168,7 @@ describe('DOM', () => {
       const cb = spy();
       const node = document.createElement('div');
       const child = document.createElement('div');
-      DOM.createChildObserver(node, cb);
+      DOM.createNodeObserver(node, cb, { childList: true });
       node.appendChild(child);
       Promise.resolve().then(() => {
         expect(cb).to.have.been.calledOnce;
@@ -177,85 +177,85 @@ describe('DOM', () => {
     });
   });
 
-  describe('platformSupportsShadowDOM', () => {
-    let attachShadow;
-    beforeEach(() => {
-      attachShadow = HTMLElement.prototype.attachShadow;
-    });
-    afterEach(() => {
-      HTMLElement.prototype.attachShadow = attachShadow;
-    });
+  // describe('platformSupportsShadowDOM', () => {
+  //   let attachShadow;
+  //   beforeEach(() => {
+  //     attachShadow = HTMLElement.prototype.attachShadow;
+  //   });
+  //   afterEach(() => {
+  //     HTMLElement.prototype.attachShadow = attachShadow;
+  //   });
 
-    it('should return true if ShadowDOM is available', () => {
-      HTMLElement.prototype.attachShadow = <any>function(){};
-      expect(DOM.platformSupportsShadowDOM()).to.be.true;
-    });
+  //   it('should return true if ShadowDOM is available', () => {
+  //     HTMLElement.prototype.attachShadow = <any>function(){};
+  //     expect(DOM.platformSupportsShadowDOM()).to.be.true;
+  //   });
 
-    it('should return false if ShadowDOM is NOT available', () => {
-      HTMLElement.prototype.attachShadow = undefined;
-      expect(DOM.platformSupportsShadowDOM()).to.be.false;
-    });
-  });
+  //   it('should return false if ShadowDOM is NOT available', () => {
+  //     HTMLElement.prototype.attachShadow = undefined;
+  //     expect(DOM.platformSupportsShadowDOM()).to.be.false;
+  //   });
+  // });
 
-  describe('createElementViewHost (with NO ShadowDOM)', () => {
-    let attachShadow;
-    beforeEach(() => {
-      attachShadow = HTMLElement.prototype.attachShadow;
-      HTMLElement.prototype.attachShadow = undefined;
-    });
+  // describe('createElementViewHost (with NO ShadowDOM)', () => {
+  //   let attachShadow;
+  //   beforeEach(() => {
+  //     attachShadow = HTMLElement.prototype.attachShadow;
+  //     HTMLElement.prototype.attachShadow = undefined;
+  //   });
 
-    afterEach(() => {
-      HTMLElement.prototype.attachShadow = attachShadow;
-    });
+  //   afterEach(() => {
+  //     HTMLElement.prototype.attachShadow = attachShadow;
+  //   });
 
-    it('should enable SlotEmulation when no options provided', () => {
-      const node = document.createElement('div');
-      const actual: any = DOM.createElementViewHost(node);
-      expect(actual.$usingSlotEmulation).to.be.true;
-    });
+  //   it('should enable SlotEmulation when no options provided', () => {
+  //     const node = document.createElement('div');
+  //     const actual: any = DOM.createElementViewHost(node);
+  //     expect(actual.$usingSlotEmulation).to.be.true;
+  //   });
 
-    it('should enable SlotEmulation when options are provided', () => {
-      const node = document.createElement('div');
-      const actual: any = DOM.createElementViewHost(node, <any>{});
-      expect(actual.$usingSlotEmulation).to.be.true;
-    });
-  });
+  //   it('should enable SlotEmulation when options are provided', () => {
+  //     const node = document.createElement('div');
+  //     const actual: any = DOM.createElementViewHost(node, <any>{});
+  //     expect(actual.$usingSlotEmulation).to.be.true;
+  //   });
+  // });
 
-  describe('createElementViewHost (with ShadowDOM)', () => {
-    let attachShadow;
-    beforeEach(() => {
-      attachShadow = HTMLElement.prototype.attachShadow;
-      HTMLElement.prototype.attachShadow = spy(node => node);
-    });
+  // describe('createElementViewHost (with ShadowDOM)', () => {
+  //   let attachShadow;
+  //   beforeEach(() => {
+  //     attachShadow = HTMLElement.prototype.attachShadow;
+  //     HTMLElement.prototype.attachShadow = spy(node => node);
+  //   });
 
-    afterEach(() => {
-      HTMLElement.prototype.attachShadow = attachShadow;
-    });
+  //   afterEach(() => {
+  //     HTMLElement.prototype.attachShadow = attachShadow;
+  //   });
 
-    it('should enable SlotEmulation when no options provided', () => {
-      const node = document.createElement('div');
-      const actual: any = DOM.createElementViewHost(node);
-      expect(actual.$usingSlotEmulation).to.be.true;
-    });
+  //   it('should enable SlotEmulation when no options provided', () => {
+  //     const node = document.createElement('div');
+  //     const actual: any = DOM.createElementViewHost(node);
+  //     expect(actual.$usingSlotEmulation).to.be.true;
+  //   });
 
-    it('should NOT attachShadow when no options provided', () => {
-      const node = document.createElement('div');
-      DOM.createElementViewHost(node);
-      expect(HTMLElement.prototype.attachShadow).not.to.have.been.called;
-    });
+  //   it('should NOT attachShadow when no options provided', () => {
+  //     const node = document.createElement('div');
+  //     DOM.createElementViewHost(node);
+  //     expect(HTMLElement.prototype.attachShadow).not.to.have.been.called;
+  //   });
 
-    it('should NOT enable SlotEmulation when options are provided', () => {
-      const node = document.createElement('div');
-      const actual: any = DOM.createElementViewHost(node, <any>{});
-      expect(actual.$usingSlotEmulation).to.be.undefined;
-    });
+  //   it('should NOT enable SlotEmulation when options are provided', () => {
+  //     const node = document.createElement('div');
+  //     const actual: any = DOM.createElementViewHost(node, <any>{});
+  //     expect(actual.$usingSlotEmulation).to.be.undefined;
+  //   });
 
-    it('should attachShadow when options are provided', () => {
-      const node = document.createElement('div');
-      DOM.createElementViewHost(node, <any>{});
-      expect(HTMLElement.prototype.attachShadow).to.have.been.calledOnce;
-    });
-  });
+  //   it('should attachShadow when options are provided', () => {
+  //     const node = document.createElement('div');
+  //     DOM.createElementViewHost(node, <any>{});
+  //     expect(HTMLElement.prototype.attachShadow).to.have.been.calledOnce;
+  //   });
+  // });
 
   describe('cloneNode', () => {
     const trueValueArr: any[] = [undefined, null, {}, '', true];
@@ -283,50 +283,50 @@ describe('DOM', () => {
     });
   });
 
-  describe('getCustomElementForNode', () => {
-    it(`should return node.$component if it is a non-null object`, () => {
-      const node: any = document.createElement('div');
-      const expected = node.$component = {};
-      const actual = DOM.getCustomElementForNode(node);
-      expect(actual === expected).to.be.true;
-    });
+  // describe('getCustomElementForNode', () => {
+  //   it(`should return node.$component if it is a non-null object`, () => {
+  //     const node: any = document.createElement('div');
+  //     const expected = node.$component = {};
+  //     const actual = DOM.getCustomElementForNode(node);
+  //     expect(actual === expected).to.be.true;
+  //   });
 
-    it(`should return null if node.$component is null`, () => {
-      const node: any = document.createElement('div');
-      node.$component = null;
-      const actual = DOM.getCustomElementForNode(node);
-      expect(actual).to.be.null;
-    });
+  //   it(`should return null if node.$component is null`, () => {
+  //     const node: any = document.createElement('div');
+  //     node.$component = null;
+  //     const actual = DOM.getCustomElementForNode(node);
+  //     expect(actual).to.be.null;
+  //   });
 
-    it(`should return null if node.$component is undefined`, () => {
-      const node: any = document.createElement('div');
-      node.$component = undefined;
-      const actual = DOM.getCustomElementForNode(node);
-      expect(actual).to.be.null;
-    });
-  });
+  //   it(`should return null if node.$component is undefined`, () => {
+  //     const node: any = document.createElement('div');
+  //     node.$component = undefined;
+  //     const actual = DOM.getCustomElementForNode(node);
+  //     expect(actual).to.be.null;
+  //   });
+  // });
 
-  describe('isUsingSlotEmulation', () => {
-    it('should return true if node.$usingSlotEmulation is true', () => {
-      const node: any = document.createElement('div');
-      node.$usingSlotEmulation = true;
-      const actual = DOM.isUsingSlotEmulation(node);
-      expect(actual).to.be.true;
-    });
+  // describe('isUsingSlotEmulation', () => {
+  //   it('should return true if node.$usingSlotEmulation is true', () => {
+  //     const node: any = document.createElement('div');
+  //     node.$usingSlotEmulation = true;
+  //     const actual = DOM.isUsingSlotEmulation(node);
+  //     expect(actual).to.be.true;
+  //   });
 
-    it('should return false if node.$usingSlotEmulation is false', () => {
-      const node: any = document.createElement('div');
-      node.$usingSlotEmulation = false;
-      const actual = DOM.isUsingSlotEmulation(node);
-      expect(actual).to.be.false;
-    });
+  //   it('should return false if node.$usingSlotEmulation is false', () => {
+  //     const node: any = document.createElement('div');
+  //     node.$usingSlotEmulation = false;
+  //     const actual = DOM.isUsingSlotEmulation(node);
+  //     expect(actual).to.be.false;
+  //   });
 
-    it('should return false if node.$usingSlotEmulation is unset', () => {
-      const node: any = document.createElement('div');
-      const actual = DOM.isUsingSlotEmulation(node);
-      expect(actual).to.be.false;
-    });
-  });
+  //   it('should return false if node.$usingSlotEmulation is unset', () => {
+  //     const node: any = document.createElement('div');
+  //     const actual = DOM.isUsingSlotEmulation(node);
+  //     expect(actual).to.be.false;
+  //   });
+  // });
 
   describe('isNodeInstance', () => {
     const nodes = [
@@ -680,15 +680,15 @@ describe('DOM', () => {
 describe('TemplateView', () => {
   let sut: TemplateView;
 
-  describe('appendChild', () => {
-    it('should add the child to the view', () => {
-      const fragment = document.createDocumentFragment();
-      sut = new TemplateView(fragment);
-      const child = document.createElement('div');
-      sut.appendChild(child);
-      expect(fragment.firstChild === child).to.be.true;
-    });
-  });
+  // describe('appendChild', () => {
+  //   it('should add the child to the view', () => {
+  //     const fragment = document.createDocumentFragment();
+  //     sut = new TemplateView(fragment);
+  //     const child = document.createElement('div');
+  //     sut.appendChild(child);
+  //     expect(fragment.firstChild === child).to.be.true;
+  //   });
+  // });
 
   const widthArr = [1, 2, 3];
   describe('constructor', () => {

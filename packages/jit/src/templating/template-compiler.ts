@@ -1,5 +1,5 @@
 import { inject, Writable } from '@aurelia/kernel';
-import { BindingType, CustomAttributeResource, DOM, IExpression, IExpressionParser, Interpolation, IResourceDescriptions, ITargetedInstruction, ITemplateCompiler, TemplateDefinition, TargetedInstructionType, TargetedInstruction, DelegationStrategy, ITextBindingInstruction, IPropertyBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateSlotInstruction, IHydrateElementInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, BindingMode, ITemplateSource, INode } from '@aurelia/runtime';
+import { BindingType, CustomAttributeResource, DOM, IExpression, IExpressionParser, Interpolation, IResourceDescriptions, ITargetedInstruction, ITemplateCompiler, TemplateDefinition, TargetedInstructionType, TargetedInstruction, DelegationStrategy, ITextBindingInstruction, IPropertyBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateElementInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, BindingMode, ITemplateSource, INode } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
 import { BindingCommandResource } from './binding-command';
 
@@ -359,17 +359,6 @@ export class SetAttributeInstruction implements ITargetedInstruction {
     this.dest = dest;
   }
 }
-export class HydrateSlotInstruction implements IHydrateSlotInstruction {
-  public type: TargetedInstructionType.hydrateSlot;
-  public name?: string;
-  public dest?: string;
-  public fallback?: ITemplateSource;
-  constructor(name?: string, dest?: string, fallback?: ITemplateSource) {
-    this.name = name;
-    this.dest = dest;
-    this.fallback = fallback;
-  }
-}
 export class HydrateElementInstruction implements IHydrateElementInstruction {
   public type: TargetedInstructionType.hydrateElement;
   public res: any;
@@ -435,7 +424,6 @@ RefBindingInstruction.prototype.type = TargetedInstructionType.refBinding;
 StylePropertyBindingInstruction.prototype.type = TargetedInstructionType.stylePropertyBinding;
 SetPropertyInstruction.prototype.type = TargetedInstructionType.setProperty;
 SetAttributeInstruction.prototype.type = TargetedInstructionType.setAttribute;
-HydrateSlotInstruction.prototype.type = TargetedInstructionType.hydrateSlot;
 HydrateElementInstruction.prototype.type = TargetedInstructionType.hydrateElement;
 HydrateAttributeInstruction.prototype.type = TargetedInstructionType.hydrateAttribute;
 HydrateTemplateController.prototype.type = TargetedInstructionType.hydrateTemplateController;

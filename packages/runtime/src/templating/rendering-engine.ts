@@ -184,7 +184,7 @@ export class RenderingEngine implements IRenderingEngine {
   }
 
   private templateFromSource(context: IRenderContext, definition: TemplateDefinition): ITemplate {
-    if (definition && definition.template) {
+    if (definition && definition.templateOrNode) {
       if (definition.build.required) {
         const compiler = this.compilers[definition.build.compiler];
 

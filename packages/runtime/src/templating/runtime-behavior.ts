@@ -175,7 +175,7 @@ export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const current = nodes[i];
-    const component = DOM.getCustomElementForNode(current);
+    const component = (<any>DOM).getCustomElementForNode(current); // TODO: don't forget to fix
 
     if (component !== null) {
       components.push(component);

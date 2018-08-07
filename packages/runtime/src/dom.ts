@@ -12,7 +12,7 @@ export interface INode extends INodeLike {
   readonly previousSibling: INode | null;
 }
 
-export const INode = DI.createInterface<INode>();
+export const INode = DI.createInterface<INode>().noDefault();
 
 /**
  * Represents a DocumentFragment
@@ -52,9 +52,6 @@ export interface INodeObserver {
 export function createView(fragment: DocumentFragment): IView {
   return new TemplateView(<DocumentFragment>fragment.cloneNode(true));
 }
-
-// don't create a new options object for each call to createChildObserver
-const childObserverOptions = { childList: true };
 
 // pre-declare certain functions whose behavior depends on a once-checked global condition for better performance
 function returnTrue(): true {
@@ -118,6 +115,13 @@ export const DOM = {
 
   cloneNode(node: INode, deep?: boolean): INode {
     return (<Node>node).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
+  },
+
+  migrateChildNodes(currentParent: INode, newParent: INode): void {
+    const append = DOM.appendChild;
+    while (currentParent.firstChild) {
+      append(newParent, currentParent.firstChild);
+    }
   },
 
   isNodeInstance(potentialNode: any): potentialNode is INode {

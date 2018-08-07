@@ -12,7 +12,7 @@ import { IViewOwner, View } from './view';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 
-export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'contentOverride'>>;
+export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'content'>>;
 
 export interface ICustomElement extends IBindSelf, IAttach, Readonly<IViewOwner> {
   readonly $projector: IViewProjector;
@@ -267,13 +267,14 @@ function determineProjector(
   definition: TemplateDefinition,
   options: IElementHydrationOptions
 ): IViewProjector {
-  if (definition.shadowOptions || definition.hasSlots) {
+  if (definition.shadowOptions
+    || definition.hasSlots
+    || (options.content && options.content.childNodes.length)) {
     if (definition.containerless) {
       throw Reporter.error(21);
     }
 
-    // TODO: Use options to handle content override for compose scenarios.
-    return new ShadowDOMProjector(customElement, host, definition);
+    return new ShadowDOMProjector(customElement, host, definition, options);
   }
 
   if (definition.containerless) {
@@ -283,14 +284,21 @@ function determineProjector(
   return new HostProjector(customElement, host);
 }
 
+const childObserverOptions = { childList: true };
+
 class ShadowDOMProjector implements IViewProjector {
   private shadowRoot: INode;
 
   constructor(
     customElement: ICustomElement,
     private host: INode,
-    definition: TemplateDefinition
+    definition: TemplateDefinition,
+    options: IElementHydrationOptions
   ) {
+    if (options && options.content) {
+      DOM.migrateChildNodes(options.content, host);
+    }
+
     this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
     (host as any).$customElement = customElement;
     (this.shadowRoot as any).$customElement = customElement;
@@ -301,9 +309,7 @@ class ShadowDOMProjector implements IViewProjector {
   }
 
   public onChildrenChanged(callback: () => void): void {
-    DOM.createNodeObserver(this.host, callback, {
-      childList: true
-    });
+    DOM.createNodeObserver(this.host, callback, childObserverOptions);
   }
 
   public provideEncapsulationSource(parentEncapsulationSource: INode): INode {

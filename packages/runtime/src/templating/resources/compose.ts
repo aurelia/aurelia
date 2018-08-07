@@ -50,21 +50,23 @@ export class Compose {
 
   /** @internal */
   public compose(toBeComposed: any) {
-    const instruction = Object.assign({}, this.baseInstruction, {
-      resource: toBeComposed,
-      contentOverride: this.createContentElement()
-    });
+    const instruction: Immutable<IHydrateElementInstruction> = {
+      ...this.baseInstruction,
+      res: toBeComposed,
+      content: this.createContentElement()
+    };
 
-    return this.swap(
-      this.renderingEngine.createVisualFromComponent(
-        this.compositionContext,
-        toBeComposed,
-        instruction
-      )
+    const visual = this.renderingEngine.createVisualFromComponent(
+      this.compositionContext,
+      toBeComposed,
+      instruction
     );
+
+    return this.swap(visual);
   }
 
-  private componentChanged(toBeComposed: any) {
+  /** @internal */
+  public componentChanged(toBeComposed: any): void {
     if (this.visual !== null && this.visual.component === toBeComposed) {
       return;
     }
@@ -88,25 +90,19 @@ export class Compose {
     }
   }
 
-  private createContentElement() {
+  private createContentElement(): INode {
     let content = this.content;
 
     if (content == null) {
       this.content = content = DOM.createElement('au-content');
-
-      const host = this.host;
-      const append = DOM.appendChild;
-
-      while (host.firstChild) {
-        append(content, host.firstChild);
-      }
+      DOM.migrateChildNodes(this.host, content);
     }
 
     return DOM.cloneNode(content);
   }
 
   private swap(newVisual: VisualWithCentralComponent) {
-    let index = this.$bindable.indexOf(this.visual);
+    const index = this.$bindable.indexOf(this.visual);
     if (index !== -1) {
       this.$bindable.splice(index, 1);
     }
@@ -121,18 +117,18 @@ export class Compose {
     return this.slot.swap(newVisual, this.swapOrder || SwapOrder.after);
   }
 
-  private clear() {
+  private clear(): void {
     this.slot.removeAll();
   }
 }
 
 class CompositionTask {
-  private isCancelled = false;
+  private isCancelled: boolean = false;
   private composeResult = null;
 
   constructor(private compose: Compose) {}
 
-  public start(toBeComposed) {
+  public start(toBeComposed: any): void {
     if (this.isCancelled) {
       return;
     }
@@ -152,7 +148,7 @@ class CompositionTask {
     return this.composeResult;
   }
 
-  private render(toBeComposed: any) {
+  private render(toBeComposed: any): void {
     if (this.isCancelled) {
       return;
     }

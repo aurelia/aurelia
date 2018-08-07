@@ -6,6 +6,11 @@ import { IObserverLocator } from './observer-locator';
 import { SubscriberCollection } from './subscriber-collection';
 
 const selectArrayContext = 'SelectValueObserver:array';
+const childObserverOptions = {
+  childList: true,
+  subtree: true,
+  characterData: true
+};
 
 export class SelectValueObserver extends SubscriberCollection {
   private value: any;
@@ -174,7 +179,7 @@ export class SelectValueObserver extends SubscriberCollection {
     this.nodeObserver = DOM.createNodeObserver(this.node, () => {
       this.synchronizeOptions();
       this.synchronizeValue();
-    }, { childList: true, subtree: true, characterData: true });
+    }, childObserverOptions);
   }
 
   public unbind() {

@@ -5,8 +5,12 @@ import { SubscriberCollection } from '../binding/subscriber-collection';
 import { DOM, INode } from '../dom';
 import { ITaskQueue } from '../task-queue';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
-import { ICustomElement, ICustomElementType } from './custom-element';
 import { BindableDefinitions } from './instructions';
+import {
+  ICustomElement,
+  ICustomElementType,
+  CustomElementResource
+} from './custom-element';
 
 export interface IRuntimeBehavior {
   hasCreated: boolean;
@@ -169,13 +173,15 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
   }
 }
 
+const elementBehaviorFor = CustomElementResource.behaviorFor;
+
 /*@internal*/
 export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
   const components: ICustomElement[] = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const current = nodes[i];
-    const component = (<any>DOM).getCustomElementForNode(current); // TODO: don't forget to fix
+    const component = elementBehaviorFor(current);
 
     if (component !== null) {
       components.push(component);

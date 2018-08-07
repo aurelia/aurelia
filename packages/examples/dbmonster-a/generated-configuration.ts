@@ -1,4 +1,4 @@
-//import { Repeater } from '@aurelia/runtime';
+//import { Repeat } from '@aurelia/runtime';
 import { AccessScope, IExpression, AccessMember } from '@aurelia/runtime';
 import { IContainer } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';

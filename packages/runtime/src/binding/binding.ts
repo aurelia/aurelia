@@ -3,7 +3,7 @@ import { IExpression } from './ast';
 import { IScope, sourceContext, targetContext } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
-import { IBindingCollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, IBindScope } from './observation';
+import { IBindingTargetAccessor, IBindingTargetObserver, IBindScope } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 const slotNames: string[] = new Array(100);
@@ -173,7 +173,7 @@ export class Binding implements IBinding {
   }
 
   //#region ConnectableBinding
-  public addObserver(observer: IBindingTargetObserver | IBindingCollectionObserver) {
+  public addObserver(observer: IBindingTargetObserver) {
     // find the observer.
     let observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
     let i = observerSlots;
@@ -208,8 +208,9 @@ export class Binding implements IBinding {
   }
 
   public observeArray(array: any[]) {
-    let observer = this.observerLocator.getArrayObserver(array);
-    this.addObserver(observer);
+    // TODO: fix this
+    // let observer = this.observerLocator.getArrayObserver(array);
+    // this.addObserver(observer);
   }
 
   public unobserve(all?: boolean) {

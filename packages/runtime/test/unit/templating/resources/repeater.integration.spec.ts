@@ -1,6 +1,6 @@
 import { ITemplateSource, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime';
-import { Repeater } from '@aurelia/runtime';
+import { Repeat } from '@aurelia/runtime';
 import { IContainer, DI } from '@aurelia/kernel';
 import { ITaskQueue } from '@aurelia/runtime';
 import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
@@ -352,7 +352,7 @@ describe('ArrayRepeater - render html', () => {
     aureliaConfig = {
       register(container: IContainer) {
         (<IExpressionParser>container.get(IExpressionParser)).cache(expressionCache);
-        container.register(<any>Repeater);
+        container.register(<any>Repeat);
       }
     };
     au.register(aureliaConfig);

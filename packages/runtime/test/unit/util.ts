@@ -5,7 +5,7 @@ import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
 import { IContainer } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { AccessMember, AccessScope } from '@aurelia/runtime';
-import { Repeater } from '@aurelia/runtime';
+import { Repeat } from '@aurelia/runtime';
 
 /**
  * stringify primitive value (null -> 'null' and undefined -> 'undefined')
@@ -172,7 +172,7 @@ export function createRepeaterTemplateSource({ elName, colName, itemName }: IRep
  * (currently specific to repeater)
  */
 export function createAureliaRepeaterConfig({ colName, itemName, propName }: IRepeaterFixture): { register(container: IContainer): void } {
-  const globalResources: any[] = [Repeater];
+  const globalResources: any[] = [Repeat];
   const expressionCache = {
     [colName]: new AccessScope(colName),
     [propName]: new AccessMember(new AccessScope(itemName), propName)

@@ -32,7 +32,7 @@ export function getCollectionObserver(collection: any): CollectionObserver {
 }
 
 @inject(ITaskQueue, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
-export class Repeater<T extends ObservedCollection> implements ICustomAttribute, ICollectionSubscriber, IBatchedCollectionSubscriber {
+export class Repeat<T extends ObservedCollection> implements ICustomAttribute, ICollectionSubscriber, IBatchedCollectionSubscriber {
   // note: everything declared from #region to #endregion is more-or-less copy-paste from what the
   // @templateController decorator would apply to this class, but we have more information here than the decorator
   // does, so we can take a few shortcuts for slightly better perf (and one can argue that this makes the repeater
@@ -52,7 +52,7 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute,
     }
   };
   public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:repeat', Repeater));
+    container.register(Registration.transient('custom-attribute:repeat', Repeat));
   }
 
   // attribute proto.$hydrate
@@ -63,13 +63,13 @@ export class Repeater<T extends ObservedCollection> implements ICustomAttribute,
   public $slot: IRenderSlot;
   public $behavior: IRuntimeBehavior = new (<any>RuntimeBehavior)();
   public $hydrate(renderingEngine: IRenderingEngine): void {
-    let b: RuntimeBehavior = renderingEngine['behaviorLookup'].get(Repeater);
+    let b: RuntimeBehavior = renderingEngine['behaviorLookup'].get(Repeat);
     if (!b) {
       b = new (<any>RuntimeBehavior)();
-      b.bindables = Repeater.description.bindables;
+      b.bindables = Repeat.description.bindables;
       b.hasCreated = b.hasAttaching = b.hasAttached = b.hasDetaching = b.hasDetached = b.hasCreateView = false;
       b.hasBound = b.hasUnbound = true;
-      renderingEngine['behaviorLookup'].set(Repeater, b);
+      renderingEngine['behaviorLookup'].set(Repeat, b);
     }
     this.$behavior = b;
   }

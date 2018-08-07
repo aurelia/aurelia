@@ -1,24 +1,21 @@
-import { Constructable, IContainer, Immutable, PLATFORM, Registration, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer, Immutable, PLATFORM, Registration, Writable, Reporter } from '@aurelia/kernel';
 import { BindingContext } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
-import { DOM, INode } from '../dom';
+import { DOM, INode, IView } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
 import { AttachLifecycle, DetachLifecycle, IAttach, IBindSelf } from './lifecycle';
 import { IRenderSlot } from './render-slot';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
-import { ShadowDOMEmulation } from './shadow-dom';
-import { IContentView, IViewOwner, View } from './view';
+import { IViewOwner, View } from './view';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 
-export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'contentOverride'>>;
+export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'content'>>;
 
 export interface ICustomElement extends IBindSelf, IAttach, Readonly<IViewOwner> {
-  readonly $host: INode;
-  readonly $contentView: IContentView;
-  readonly $usingSlotEmulation: boolean;
+  readonly $projector: IViewProjector;
   readonly $isAttached: boolean;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
@@ -28,7 +25,6 @@ export interface IInternalCustomElementImplementation extends Writable<ICustomEl
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $slot: IRenderSlot;
-  $shadowRoot: INode;
 }
 
 /**
@@ -40,7 +36,9 @@ export function customElement(nameOrSource: string | ITemplateSource) {
   }
 }
 
-const defaultShadowOptions = { mode: 'open' };
+const defaultShadowOptions = {
+  mode: 'open' as 'open' | 'closed'
+};
 
 /**
  * Decorator: Indicates that the custom element should render its view in Shadow
@@ -72,15 +70,23 @@ export function containerless(target?): any {
   return target ? deco(target) : deco;
 }
 
-export const CustomElementResource : IResourceKind<ITemplateSource, ICustomElementType> = {
+export interface ICustomElementResource extends IResourceKind<ITemplateSource, ICustomElementType> {
+  behaviorFor(node: INode): ICustomElement | null;
+}
+
+export const CustomElementResource: ICustomElementResource = {
   name: 'custom-element',
 
-  key(name: string) {
+  key(name: string): string {
     return `${this.name}:${name}`;
   },
 
   isType<T extends Constructable>(type: T): type is T & ICustomElementType {
     return (type as any).kind === this;
+  },
+
+  behaviorFor(node: INode): ICustomElement | null {
+    return (node as any).$customElement || null;
   },
 
   define<T extends Constructable>(nameOrSource: string | ITemplateSource, ctor: T = null): T & ICustomElementType {
@@ -90,18 +96,16 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
 
     (Type as Writable<ICustomElementType>).kind = CustomElementResource;
     (Type as Writable<ICustomElementType>).description = description;
-    Type.register = function(container: IContainer){
+    Type.register = function(container: IContainer): void {
       container.register(Registration.transient(Type.kind.key(description.name), Type));
     };
 
-    proto.$hydrate = function(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject) {
-      let template = renderingEngine.getElementTemplate(description, Type);
+    proto.$hydrate = function(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+      const template = renderingEngine.getElementTemplate(description, Type);
 
       this.$bindable = [];
       this.$attachable = [];
       this.$changeCallbacks = [];
-      this.$slots = description.hasSlots ? {} : null;
-      this.$usingSlotEmulation = description.hasSlots || false;
       this.$slot = null;
       this.$isAttached = false;
       this.$isBound = false;
@@ -112,22 +116,17 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
 
       this.$context = template.renderContext;
       this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
-      this.$host = description.containerless ? DOM.convertToAnchor(host, true) : host;
-      this.$shadowRoot = DOM.createElementViewHost(this.$host, description.shadowOptions);
-      this.$usingSlotEmulation = DOM.isUsingSlotEmulation(this.$host);
-      this.$contentView = View.fromCompiledContent(this.$host, options);
+      this.$projector = determineProjector(this, host, description, options);
       this.$view = this.$behavior.hasCreateView
         ? (this as any).createView(host, options.parts, template)
         : template.createFor(this, host, options.parts);
-
-      (this.$host as any).$component = this;
 
       if (this.$behavior.hasCreated) {
         (this as any).created();
       }
     };
 
-    proto.$bind = function(this: IInternalCustomElementImplementation, flags: BindingFlags) {
+    proto.$bind = function(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
       if (this.$isBound) {
         return;
       }
@@ -152,15 +151,13 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       }
     };
 
-    proto.$attach = function(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle) {
+    proto.$attach = function(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
       if (this.$isAttached) {
         return;
       }
 
       lifecycle = AttachLifecycle.start(this, lifecycle);
-      encapsulationSource = this.$usingSlotEmulation
-        ? encapsulationSource || this.$host
-        : this.$shadowRoot;
+      encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
 
       if (this.$behavior.hasAttaching) {
         (this as any).attaching(encapsulationSource);
@@ -176,17 +173,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
         this.$slot.$attach(encapsulationSource, lifecycle);
       }
 
-      //Native ShadowDOM would be distributed as soon as we append the view below.
-      //So, we emulate the distribution of nodes at the same time.
-      if (this.$contentView !== null && this.$slots) {
-        ShadowDOMEmulation.distributeContent(this.$contentView, this.$slots);
-      }
-
-      if (description.containerless) {
-        this.$view.insertBefore(this.$host);
-      } else {
-        this.$view.appendTo(this.$shadowRoot);
-      }
+      this.$projector.project(this.$view);
 
       if (this.$behavior.hasAttached) {
         lifecycle.queueAttachedCallback(this);
@@ -196,7 +183,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       lifecycle.end(this);
     };
 
-    proto.$detach = function(this: IInternalCustomElementImplementation, lifecycle?: DetachLifecycle) {
+    proto.$detach = function(this: IInternalCustomElementImplementation, lifecycle?: DetachLifecycle): void {
       if (this.$isAttached) {
         lifecycle = DetachLifecycle.start(this, lifecycle);
 
@@ -226,7 +213,7 @@ export const CustomElementResource : IResourceKind<ITemplateSource, ICustomEleme
       }
     };
 
-    proto.$unbind = function(this: IInternalCustomElementImplementation, flags: BindingFlags) {
+    proto.$unbind = function(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
       if (this.$isBound) {
         const bindable = this.$bindable;
         let i = bindable.length;
@@ -266,3 +253,144 @@ export function createCustomElementDescription(templateSource: ITemplateSource, 
     hasSlots: templateSource.hasSlots || false
   };
 }
+
+export interface IViewProjector {
+  readonly children: ArrayLike<INode>;
+  onChildrenChanged(callback: () => void): void;
+  provideEncapsulationSource(parentEncapsulationSource: INode): INode;
+  project(view: IView): void;
+}
+
+function determineProjector(
+  customElement: ICustomElement,
+  host: INode,
+  definition: TemplateDefinition,
+  options: IElementHydrationOptions
+): IViewProjector {
+  if (definition.shadowOptions
+    || definition.hasSlots
+    || (options.content && options.content.childNodes.length)) {
+    if (definition.containerless) {
+      throw Reporter.error(21);
+    }
+
+    return new ShadowDOMProjector(customElement, host, definition, options);
+  }
+
+  if (definition.containerless) {
+    return new ContainerlessProjector(customElement, host);
+  }
+
+  return new HostProjector(customElement, host);
+}
+
+const childObserverOptions = { childList: true };
+
+class ShadowDOMProjector implements IViewProjector {
+  private shadowRoot: INode;
+
+  constructor(
+    customElement: ICustomElement,
+    private host: INode,
+    definition: TemplateDefinition,
+    options: IElementHydrationOptions
+  ) {
+    if (options && options.content) {
+      DOM.migrateChildNodes(options.content, host);
+    }
+
+    this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
+    (host as any).$customElement = customElement;
+    (this.shadowRoot as any).$customElement = customElement;
+  }
+
+  get children(): ArrayLike<INode> {
+    return this.host.childNodes;
+  }
+
+  public onChildrenChanged(callback: () => void): void {
+    DOM.createNodeObserver(this.host, callback, childObserverOptions);
+  }
+
+  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
+    return this.shadowRoot;
+  }
+
+  public project(view: IView): void {
+    view.appendTo(this.shadowRoot);
+  }
+}
+
+class ContainerlessProjector implements IViewProjector {
+  private anchor: INode;
+
+  constructor(customElement: ICustomElement, host: INode) {
+    this.anchor = DOM.convertToAnchor(host, true);
+    (this.anchor as any).$customElement = customElement;
+  }
+
+  get children(): ArrayLike<INode> {
+    return PLATFORM.emptyArray;
+  }
+
+  public onChildrenChanged(callback: () => void): void {
+    // Do nothing since this scenario will never have children.
+  }
+
+  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
+    if (!parentEncapsulationSource) {
+      throw Reporter.error(22);
+    }
+
+    return parentEncapsulationSource;
+  }
+
+  public project(view: IView): void {
+    view.insertBefore(this.anchor);
+  }
+}
+
+class HostProjector implements IViewProjector {
+  constructor(customElement: ICustomElement, private host: INode) {
+    (host as any).$customElement = customElement;
+  }
+
+  get children(): ArrayLike<INode> {
+    return PLATFORM.emptyArray;
+  }
+
+  public onChildrenChanged(callback: () => void): void {
+    // Do nothing since this scenario will never have children.
+  }
+
+  public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
+    return parentEncapsulationSource || this.host;
+  }
+
+  public project(view: IView): void {
+    view.appendTo(this.host);
+  }
+}
+
+// TODO
+// ## DefaultSlotProjector
+// An implementation of IElementProjector that can handle a subset of default
+// slot projection scenarios without needing real Shadow DOM.
+// ### Conditions
+// We can do a one-time, static composition of the content and view,
+// to emulate shadow DOM, if the following constraints are met:
+// * There must be exactly one slot and it must be a default slot.
+// * The default slot must not have any fallback content.
+// * The default slot must not have a custom element as its immediate parent or
+//   a slot attribute (re-projection).
+// ### Projection
+// The projector copies all content nodes to the slot's location.
+// The copy process should inject a comment node before and after the slotted
+// content, so that the bounds of the content can be clearly determined,
+// even if the slotted content has template controllers or string interpolation.
+// ### Encapsulation Source
+// Uses the same strategy as HostProjector.
+// ### Children
+// The projector adds a mutation observer to the parent node of the
+// slot comment. When direct children of that node change, the projector
+// will gather up all nodes between the start and end slot comments.

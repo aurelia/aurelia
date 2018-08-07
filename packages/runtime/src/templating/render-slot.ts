@@ -1,8 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
-import { IEmulatedShadowSlot, ShadowDOMEmulation } from './shadow-dom';
-import { IContentView } from './view';
 import { IVisual, MotionDirection } from './visual';
 
 /*@internal*/
@@ -18,37 +16,9 @@ export function addVisual(visual: IVisual) {
 }
 
 /*@internal*/
-export function project_addVisual(visual: IVisual) {
-  const parent = visual.parent as RenderSlotImplementation;
-
-  ShadowDOMEmulation.distributeView(visual.$view, parent.slots, parent);
-  parent.logicalView.insertVisualChildBefore(visual, parent.anchor);
-
-  visual.$view.remove = () => {
-    ShadowDOMEmulation.undistributeView(visual.$view, parent.slots, parent);
-    parent.logicalView.removeVisualChild(visual);
-  };
-}
-
-/*@internal*/
 export function insertVisual(visual: IVisual) {
   visual.$view.insertBefore(visual.parent.children[visual.renderState].$view.firstChild);
   visual.onRender = (visual.parent as RenderSlotImplementation).addVisualCore;
-}
-
-/*@internal*/
-export function project_insertVisual(visual: IVisual) {
-  const parent = visual.parent as RenderSlotImplementation;
-  const index = visual.renderState;
-
-  ShadowDOMEmulation.distributeView(visual.$view, parent.slots, parent, index);
-  parent.logicalView.insertVisualChildBefore(visual, parent.children[index].$view.firstChild);
-  visual.onRender = (visual.parent as RenderSlotImplementation).addVisualCore;
-
-  visual.$view.remove = () => {
-    ShadowDOMEmulation.undistributeView(visual.$view, parent.slots, parent);
-    parent.logicalView.removeVisualChild(visual);
-  };
 }
 
 export enum SwapOrder {
@@ -126,8 +96,6 @@ export interface IRenderSlot extends IAttach {
   * @return May return a promise if the view removal triggered an animation.
   */
   removeMany(visualsToRemove: IVisual[], returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]>;
-
-  /** @internal */ projectTo(slots: Record<string, IEmulatedShadowSlot>): void;
 }
 
 export const RenderSlot = {
@@ -144,8 +112,6 @@ export class RenderSlotImplementation implements IRenderSlot {
   private encapsulationSource: INode = null;
 
   public children: IVisual[] = [];
-  /** @internal */ public slots: Record<string, IEmulatedShadowSlot> = null;
-  /** @internal */ public logicalView: IContentView = null;
 
   constructor(public anchor: INode, anchorIsContainer: boolean) {
     (anchor as any).$slot = this; // Usage: Shadow DOM Emulation
@@ -339,22 +305,6 @@ export class RenderSlotImplementation implements IRenderSlot {
 
       this.$isAttached = false;
       this.encapsulationSource = null;
-    }
-  }
-
-  public projectTo(slots: Record<string, IEmulatedShadowSlot>): void {
-    this.slots = slots;
-    this.addVisualCore = project_addVisual;
-    this.insertVisualCore = project_insertVisual;
-
-    if (this.$isAttached) {
-      const children = this.children;
-
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-        let child = children[i];
-        child.onRender = project_addVisual;
-        project_addVisual(child);
-      }
     }
   }
 }

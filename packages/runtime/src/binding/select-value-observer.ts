@@ -1,18 +1,23 @@
 import { ICallable } from '@aurelia/kernel';
-import { DOM, IChildObserver } from '../dom';
+import { DOM, INodeObserver } from '../dom';
 import { ITaskQueue } from '../task-queue';
 import { IEventSubscriber } from './event-manager';
 import { IObserverLocator } from './observer-locator';
 import { SubscriberCollection } from './subscriber-collection';
 
 const selectArrayContext = 'SelectValueObserver:array';
+const childObserverOptions = {
+  childList: true,
+  subtree: true,
+  characterData: true
+};
 
 export class SelectValueObserver extends SubscriberCollection {
   private value: any;
   private oldValue: any;
   private arrayObserver: any;
   private initialSync = false;
-  private childObserver: IChildObserver;
+  private nodeObserver: INodeObserver;
 
   constructor(
     private node: HTMLSelectElement,
@@ -171,15 +176,15 @@ export class SelectValueObserver extends SubscriberCollection {
   }
 
   public bind() {
-    this.childObserver = DOM.createChildObserver(this.node, () => {
+    this.nodeObserver = DOM.createNodeObserver(this.node, () => {
       this.synchronizeOptions();
       this.synchronizeValue();
-    }, { childList: true, subtree: true, characterData: true });
+    }, childObserverOptions);
   }
 
   public unbind() {
-    this.childObserver.disconnect();
-    this.childObserver = null;
+    this.nodeObserver.disconnect();
+    this.nodeObserver = null;
 
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribe(selectArrayContext, this);

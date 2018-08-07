@@ -16,10 +16,9 @@ export enum TargetedInstructionType {
   stylePropertyBinding = 6,
   setProperty = 7,
   setAttribute = 8,
-  hydrateSlot = 9,
-  hydrateElement = 10,
-  hydrateAttribute = 11,
-  hydrateTemplateController = 12
+  hydrateElement = 9,
+  hydrateAttribute = 10,
+  hydrateTemplateController = 11
 }
 
 export interface IBuildInstruction {
@@ -59,7 +58,6 @@ export type TargetedInstruction =
   IStylePropertyBindingInstruction |
   ISetPropertyInstruction |
   ISetAttributeInstruction |
-  IHydrateSlotInstruction |
   IHydrateElementInstruction |
   IHydrateAttributeInstruction |
   IHydrateTemplateController;
@@ -114,19 +112,12 @@ export interface ISetAttributeInstruction extends ITargetedInstruction {
   dest: string;
 }
 
-export interface IHydrateSlotInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.hydrateSlot;
-  name?: string;
-  dest?: string;
-  fallback?: ITemplateSource;
-}
-
 export interface IHydrateElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: any;
   instructions: TargetedInstruction[];
   parts?: Record<string, ITemplateSource>;
-  contentOverride?: INode; // Usage: Compose and View.fromCompiledContent
+  content?: INode; // Usage: Compose
 }
 
 export interface IHydrateAttributeInstruction extends ITargetedInstruction {

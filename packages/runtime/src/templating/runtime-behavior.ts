@@ -2,11 +2,15 @@ import { ICallable } from '@aurelia/kernel';
 import { IAccessor, ISubscribable } from '../binding/observation';
 import { Observer } from '../binding/property-observation';
 import { SubscriberCollection } from '../binding/subscriber-collection';
-import { DOM, IChildObserver, INode } from '../dom';
+import { DOM, INode } from '../dom';
 import { ITaskQueue } from '../task-queue';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
-import { ICustomElement, ICustomElementType } from './custom-element';
 import { BindableDefinitions } from './instructions';
+import {
+  ICustomElement,
+  ICustomElementType,
+  CustomElementResource
+} from './custom-element';
 
 export interface IRuntimeBehavior {
   hasCreated: boolean;
@@ -21,8 +25,6 @@ export interface IRuntimeBehavior {
 
 /** @internal */
 export class RuntimeBehavior implements IRuntimeBehavior {
-  private constructor() {}
-
   public bindables: BindableDefinitions;
   public hasCreated = false;
   public hasBound = false;
@@ -32,6 +34,8 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   public hasDetached = false;
   public hasUnbound = false;
   public hasCreateView = false;
+
+  private constructor() {}
 
   public static create(instance, bindables: BindableDefinitions, Component: ICustomElementType | ICustomAttributeType) {
     const behavior = new RuntimeBehavior();
@@ -69,7 +73,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   public applyToElement(taskQueue: ITaskQueue, instance: ICustomElement) {
     const observers = this.applyTo(taskQueue, instance);
 
-    (<any>observers).$children = new ChildrenObserver(taskQueue, instance);
+    (observers as any).$children = new ChildrenObserver(taskQueue, instance);
 
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
@@ -122,37 +126,25 @@ function createGetterSetter(instance, name) {
 
 /*@internal*/
 export class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private observer: IChildObserver = null;
   private children: ICustomElement[] = null;
   private queued = false;
+  private observing = false;
 
-  constructor(private taskQueue: ITaskQueue, private component: ICustomElement) {
+  constructor(private taskQueue: ITaskQueue, private customElement: ICustomElement) {
     super();
   }
 
   public getValue(): ICustomElement[] {
-    if (this.observer === null) {
-      this.observer = DOM.createChildObserver(this.component.$host, () => this.onChildrenChanged());
-      this.children = findElements(this.observer.childNodes);
+    if (!this.observing) {
+      this.observing = true;
+      this.customElement.$projector.onChildrenChanged(() => this.onChildrenChanged());
+      this.children = findElements(this.customElement.$projector.children);
     }
 
     return this.children;
   }
 
   public setValue(newValue) {}
-
-  private onChildrenChanged() {
-    this.children = findElements(this.observer.childNodes);
-
-    if ('$childrenChanged' in this.component) {
-      (<any>this.component).$childrenChanged();
-    }
-
-    if (!this.queued) {
-      this.queued = true;
-      this.taskQueue.queueMicroTask(this);
-    }
-  }
 
   public call() {
     this.queued = false;
@@ -166,7 +158,22 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
   public unsubscribe(context: string, callable: ICallable) {
     this.removeSubscriber(context, callable);
   }
+
+  private onChildrenChanged(): void {
+    this.children = findElements(this.customElement.$projector.children);
+
+    if ('$childrenChanged' in this.customElement) {
+      (this.customElement as any).$childrenChanged();
+    }
+
+    if (!this.queued) {
+      this.queued = true;
+      this.taskQueue.queueMicroTask(this);
+    }
+  }
 }
+
+const elementBehaviorFor = CustomElementResource.behaviorFor;
 
 /*@internal*/
 export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
@@ -174,7 +181,7 @@ export function findElements(nodes: ArrayLike<INode>): ICustomElement[] {
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const current = nodes[i];
-    const component = DOM.getCustomElementForNode(current);
+    const component = elementBehaviorFor(current);
 
     if (component !== null) {
       components.push(component);

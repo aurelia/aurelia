@@ -21,15 +21,15 @@ export interface Compose extends ICustomElement {}
 @customElement(composeSource)
 @inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction, IRenderingEngine)
 export class Compose {
+  public component: any;
+  public swapOrder: SwapOrder;
+  public isComposing: boolean;
+
   private task: CompositionTask = null;
   private visual: VisualWithCentralComponent = null;
-  private auContent: INode = null;
+  private content: INode = null;
   private baseInstruction: Immutable<IHydrateElementInstruction>;
   private compositionContext: IRenderContext;
-
-  public component: any;
-  swapOrder: SwapOrder;
-  public isComposing: boolean;
 
   constructor(
     private viewOwner: IViewOwner,
@@ -41,13 +41,32 @@ export class Compose {
     this.compositionContext = viewOwner.$context;
     this.baseInstruction = {
       type: TargetedInstructionType.hydrateElement,
-      instructions: instruction.instructions.filter((x: any) => !composeProps.includes(x.dest)),
       res: null,
-      parts: instruction.parts
+      parts: instruction.parts,
+      instructions: instruction.instructions
+        .filter((x: any) => !composeProps.includes(x.dest))
     };
   }
 
-  private componentChanged(toBeComposed: any) {
+  /** @internal */
+  public compose(toBeComposed: any) {
+    const instruction: Immutable<IHydrateElementInstruction> = {
+      ...this.baseInstruction,
+      res: toBeComposed,
+      content: this.createContentElement()
+    };
+
+    const visual = this.renderingEngine.createVisualFromComponent(
+      this.compositionContext,
+      toBeComposed,
+      instruction
+    );
+
+    return this.swap(visual);
+  }
+
+  /** @internal */
+  public componentChanged(toBeComposed: any): void {
     if (this.visual !== null && this.visual.component === toBeComposed) {
       return;
     }
@@ -71,43 +90,19 @@ export class Compose {
     }
   }
 
-  /** @internal */
-  public compose(toBeComposed: any) {
-    const instruction = Object.assign({}, this.baseInstruction, {
-      resource: toBeComposed,
-      contentOverride: this.createContentElement()
-    });
+  private createContentElement(): INode {
+    let content = this.content;
 
-    return this.swap(this.renderingEngine.createVisualFromComponent(this.compositionContext, toBeComposed, instruction));
-  }
-
-  private createContentElement() {
-    let auContent = this.auContent;
-    let append = DOM.appendChild;
-
-    if (auContent == null) {
-      this.auContent = auContent = DOM.createElement('au-content');
-
-      if (DOM.isUsingSlotEmulation(this.host)) {
-        let nodes = this.$contentView.childNodes;
-
-        for (let i = 0, ii = nodes.length; i < ii; ++i) {
-          append(auContent, nodes[i]);
-        }
-      } else {
-        let element = this.host;
-
-        while(element.firstChild) {
-          append(auContent, element.firstChild);
-        }
-      }
+    if (content == null) {
+      this.content = content = DOM.createElement('au-content');
+      DOM.migrateChildNodes(this.host, content);
     }
 
-    return DOM.cloneNode(auContent);
+    return DOM.cloneNode(content);
   }
 
   private swap(newVisual: VisualWithCentralComponent) {
-    let index = this.$bindable.indexOf(this.visual);
+    const index = this.$bindable.indexOf(this.visual);
     if (index !== -1) {
       this.$bindable.splice(index, 1);
     }
@@ -122,18 +117,18 @@ export class Compose {
     return this.slot.swap(newVisual, this.swapOrder || SwapOrder.after);
   }
 
-  private clear() {
+  private clear(): void {
     this.slot.removeAll();
   }
 }
 
 class CompositionTask {
-  private isCancelled = false;
+  private isCancelled: boolean = false;
   private composeResult = null;
 
   constructor(private compose: Compose) {}
 
-  public start(toBeComposed) {
+  public start(toBeComposed: any): void {
     if (this.isCancelled) {
       return;
     }
@@ -153,7 +148,7 @@ class CompositionTask {
     return this.composeResult;
   }
 
-  private render(toBeComposed: any) {
+  private render(toBeComposed: any): void {
     if (this.isCancelled) {
       return;
     }

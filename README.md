@@ -1,7 +1,7 @@
 # Aurelia vNext
 
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
-[![CircleCI](https://circleci.com/gh/aurelia/aurelia.svg?style=svg)](https://circleci.com/gh/aurelia/aurelia)
+[![CircleCI](https://circleci.com/gh/aurelia/aurelia.svg?style=shield)](https://circleci.com/gh/aurelia/aurelia)
 [![codecov](https://codecov.io/gh/aurelia/aurelia/branch/master/graph/badge.svg)](https://codecov.io/gh/aurelia/aurelia)
 
 This is the Aurelia vNext monorepo, containing core and plugin packages, examples, and documentation for the next major version of [Aurelia](http://www.aurelia.io/).

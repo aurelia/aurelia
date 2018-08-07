@@ -52,6 +52,12 @@ export class TemplateCompiler implements ITemplateCompiler {
         return this.compileElementNode(<Element>node, instructions, resources);
       case NodeType.Text:
         return this.compileTextNode(<Text>node, instructions);
+      case NodeType.Comment:
+        return this.compileNode(node.nextSibling, instructions, resources);
+      case NodeType.Document:
+        return this.compileNode(node.firstChild, instructions, resources);
+      case NodeType.DocumentType:
+        return this.compileNode(node.nextSibling, instructions, resources);
       case NodeType.DocumentFragment:
         return this.compileNode(node.firstChild, instructions, resources);
     }
@@ -74,7 +80,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (nodeHasInstructions) {
       node.classList.add('au');
     }
-    let currentChild = node.firstChild;
+    let currentChild = node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node.firstChild;
     while (currentChild) {
       currentChild = this.compileNode(currentChild, instructions, resources);
     }

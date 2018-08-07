@@ -1,5 +1,5 @@
 import { IContainer, DI, Registration } from '@aurelia/kernel';
-import { Repeater } from '@aurelia/runtime';
+import { Repeat } from '@aurelia/runtime';
 import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
 import { ITaskQueue } from '@aurelia/runtime';
 import { IRenderSlot, RenderSlot } from '@aurelia/runtime';
@@ -90,7 +90,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
   let owner: IViewOwner;
   let factory: IVisualFactory;
   let host: HTMLElement;
-  let sut: Repeater<IObservedArray>;
+  let sut: Repeat<IObservedArray>;
 
   before(() => {
     enableArrayObservation();
@@ -109,7 +109,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
     slot = RenderSlot.create(host, true);
     owner = container.get(IViewOwner);
     factory = container.get(IVisualFactory);
-    sut = new Repeater(taskQueue, slot, owner, factory, container);
+    sut = new Repeat(taskQueue, slot, owner, factory, container);
     const binding = new Binding(<any>sourceExpression, sut, 'items', <any>null, <any>null, <any>null);
     owner.$bindable = [binding];
   });

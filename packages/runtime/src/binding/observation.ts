@@ -28,17 +28,7 @@ export interface IBindingTargetObserver<TGetReturn = any, TSetValue = TGetReturn
   unbind?(flags: BindingFlags): void;
 }
 
-export interface IBindingCollectionObserver extends ISubscribable, ICallable {
-  getValue?(target: IIndexable, targetProperty: string): any;
-  setValue?(value: any, target: IIndexable, targetProperty: string): void;
-
-  addChangeRecord(changeRecord: any): void;
-  flushChangeRecords(): void;
-  reset(oldCollection: any): any;
-  getLengthObserver(): any;
-}
-
-export type AccessorOrObserver = IAccessor | IBindingTargetAccessor | IBindingTargetObserver | IBindingCollectionObserver;
+export type AccessorOrObserver = IAccessor | IBindingTargetAccessor | IBindingTargetObserver;
 
 export interface IObservable<T = any> {
   $observers: Record<string, AccessorOrObserver>;

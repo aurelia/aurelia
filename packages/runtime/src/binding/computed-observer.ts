@@ -264,27 +264,28 @@ function createGetterTraps(observerLocator: IObserverLocator, controller: Getter
         return value;
       }
 
-      if (instance instanceof Array) {
-        controller.addDependency(observerLocator.getArrayObserver(instance));
+      // TODO: fix this
+      // if (instance instanceof Array) {
+      //   controller.addDependency(observerLocator.getArrayObserver(instance));
 
-        if (key === 'length') {
-          controller.addDependency(observerLocator.getArrayObserver(instance).getLengthObserver());
-        }
-      } else if (instance instanceof Map) {
-        controller.addDependency(observerLocator.getMapObserver(instance));
+      //   if (key === 'length') {
+      //     controller.addDependency(observerLocator.getArrayObserver(instance).getLengthObserver());
+      //   }
+      // } else if (instance instanceof Map) {
+      //   controller.addDependency(observerLocator.getMapObserver(instance));
 
-        if (key === 'size') {
-          controller.addDependency(this.getMapObserver(instance).getLengthObserver());
-        }
-      } else if (instance instanceof Set) {
-        controller.addDependency(observerLocator.getSetObserver(instance));
+      //   if (key === 'size') {
+      //     controller.addDependency(this.getMapObserver(instance).getLengthObserver());
+      //   }
+      // } else if (instance instanceof Set) {
+      //   controller.addDependency(observerLocator.getSetObserver(instance));
 
-        if (key === 'size') {
-          return observerLocator.getSetObserver(instance).getLengthObserver();
-        }
-      } else {
+      //   if (key === 'size') {
+      //     return observerLocator.getSetObserver(instance).getLengthObserver();
+      //   }
+      // } else {
         controller.addDependency(<any>observerLocator.getObserver(instance, key));
-      }
+      //}
 
       return proxyOrValue(observerLocator, controller, value);
     }

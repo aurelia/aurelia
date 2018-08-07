@@ -1,18 +1,18 @@
 import { DI, inject, Reporter } from '@aurelia/kernel';
 import { DOM } from '../dom';
 import { ITaskQueue } from '../task-queue';
-import { getArrayObserver } from './array-observation';
+import { getArrayObserver } from './array-observer';
 import { CheckedObserver } from './checked-observer';
 import { ClassObserver } from './class-observer';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
 import { dataAttributeAccessor, DataAttributeObserver, StyleObserver, ValueAttributeObserver, XLinkAttributeObserver } from './element-observation';
 import { IEventManager } from './event-manager';
-import { getMapObserver } from './map-observation';
-import { AccessorOrObserver, IAccessor, IBindingCollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, IObservable } from './observation';
+import { getMapObserver } from './map-observer';
+import { AccessorOrObserver, IAccessor, IBindingTargetAccessor, IBindingTargetObserver, IObservable, CollectionKind, ICollectionObserver } from './observation';
 import { PrimitiveObserver, propertyAccessor, SetterObserver } from './property-observation';
 import { SelectValueObserver } from './select-value-observer';
-import { getSetObserver } from './set-observation';
+import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
 
 export interface ObjectObservationAdapter {
@@ -23,9 +23,9 @@ export interface IObserverLocator {
   getObserver(obj: any, propertyName: string): AccessorOrObserver;
   getAccessor(obj: any, propertyName: string): IAccessor | IBindingTargetAccessor;
   addAdapter(adapter: ObjectObservationAdapter);
-  getArrayObserver(array: any[]): IBindingCollectionObserver;
-  getMapObserver(map: Map<any, any>): IBindingCollectionObserver;
-  getSetObserver(set: Set<any>): IBindingCollectionObserver;
+  getArrayObserver(array: any[]): ICollectionObserver<CollectionKind.array>;
+  getMapObserver(map: Map<any, any>): ICollectionObserver<CollectionKind.map>;
+  getSetObserver(set: Set<any>): ICollectionObserver<CollectionKind.set>;
 }
 
 export const IObserverLocator = DI.createInterface<IObserverLocator>()
@@ -168,19 +168,19 @@ class ObserverLocator implements IObserverLocator {
 
     if (obj instanceof Array) {
       if (propertyName === 'length') {
-        return this.getArrayObserver(obj).getLengthObserver();
+        //return this.getArrayObserver(obj).getLengthObserver();
       }
 
       return this.dirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Map) {
       if (propertyName === 'size') {
-        return this.getMapObserver(obj).getLengthObserver();
+        //return this.getMapObserver(obj).getLengthObserver();
       }
 
       return this.dirtyChecker.createProperty(obj, propertyName);
     } else if (obj instanceof Set) {
       if (propertyName === 'size') {
-        return this.getSetObserver(obj).getLengthObserver();
+        //return this.getSetObserver(obj).getLengthObserver();
       }
 
       return this.dirtyChecker.createProperty(obj, propertyName);
@@ -214,15 +214,15 @@ class ObserverLocator implements IObserverLocator {
     return propertyAccessor;
   }
 
-  public getArrayObserver(array: any[]): IBindingCollectionObserver {
-    return getArrayObserver(this.taskQueue, array);
+  public getArrayObserver(array: any[]): ICollectionObserver<CollectionKind.array> {
+    return getArrayObserver(array);
   }
 
-  public getMapObserver(map: Map<any, any>): IBindingCollectionObserver {
-    return getMapObserver(this.taskQueue, map);
+  public getMapObserver(map: Map<any, any>): ICollectionObserver<CollectionKind.map>  {
+    return getMapObserver(map);
   }
 
-  public getSetObserver(set: Set<any>): IBindingCollectionObserver {
-    return getSetObserver(this.taskQueue, set);
+  public getSetObserver(set: Set<any>): ICollectionObserver<CollectionKind.set>  {
+    return getSetObserver(set);
   }
 }

@@ -21,8 +21,6 @@ export interface IRuntimeBehavior {
 
 /** @internal */
 export class RuntimeBehavior implements IRuntimeBehavior {
-  private constructor() {}
-
   public bindables: BindableDefinitions;
   public hasCreated = false;
   public hasBound = false;
@@ -32,6 +30,8 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   public hasDetached = false;
   public hasUnbound = false;
   public hasCreateView = false;
+
+  private constructor() {}
 
   public static create(instance, bindables: BindableDefinitions, Component: ICustomElementType | ICustomAttributeType) {
     const behavior = new RuntimeBehavior();

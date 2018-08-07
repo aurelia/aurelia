@@ -21,15 +21,15 @@ export interface Compose extends ICustomElement {}
 @customElement(composeSource)
 @inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction, IRenderingEngine)
 export class Compose {
+  public component: any;
+  public swapOrder: SwapOrder;
+  public isComposing: boolean;
+
   private task: CompositionTask = null;
   private visual: VisualWithCentralComponent = null;
-  private auContent: INode = null;
+  private content: INode = null;
   private baseInstruction: Immutable<IHydrateElementInstruction>;
   private compositionContext: IRenderContext;
-
-  public component: any;
-  swapOrder: SwapOrder;
-  public isComposing: boolean;
 
   constructor(
     private viewOwner: IViewOwner,
@@ -41,10 +41,27 @@ export class Compose {
     this.compositionContext = viewOwner.$context;
     this.baseInstruction = {
       type: TargetedInstructionType.hydrateElement,
-      instructions: instruction.instructions.filter((x: any) => !composeProps.includes(x.dest)),
       res: null,
-      parts: instruction.parts
+      parts: instruction.parts,
+      instructions: instruction.instructions
+        .filter((x: any) => !composeProps.includes(x.dest))
     };
+  }
+
+  /** @internal */
+  public compose(toBeComposed: any) {
+    const instruction = Object.assign({}, this.baseInstruction, {
+      resource: toBeComposed,
+      contentOverride: this.createContentElement()
+    });
+
+    return this.swap(
+      this.renderingEngine.createVisualFromComponent(
+        this.compositionContext,
+        toBeComposed,
+        instruction
+      )
+    );
   }
 
   private componentChanged(toBeComposed: any) {
@@ -71,39 +88,21 @@ export class Compose {
     }
   }
 
-  /** @internal */
-  public compose(toBeComposed: any) {
-    const instruction = Object.assign({}, this.baseInstruction, {
-      resource: toBeComposed,
-      contentOverride: this.createContentElement()
-    });
-
-    return this.swap(this.renderingEngine.createVisualFromComponent(this.compositionContext, toBeComposed, instruction));
-  }
-
   private createContentElement() {
-    let auContent = this.auContent;
-    let append = DOM.appendChild;
+    let content = this.content;
 
-    if (auContent == null) {
-      this.auContent = auContent = DOM.createElement('au-content');
+    if (content == null) {
+      this.content = content = DOM.createElement('au-content');
 
-      if (DOM.isUsingSlotEmulation(this.host)) {
-        let nodes = this.$contentView.childNodes;
+      const host = this.host;
+      const append = DOM.appendChild;
 
-        for (let i = 0, ii = nodes.length; i < ii; ++i) {
-          append(auContent, nodes[i]);
-        }
-      } else {
-        let element = this.host;
-
-        while(element.firstChild) {
-          append(auContent, element.firstChild);
-        }
+      while (host.firstChild) {
+        append(content, host.firstChild);
       }
     }
 
-    return DOM.cloneNode(auContent);
+    return DOM.cloneNode(content);
   }
 
   private swap(newVisual: VisualWithCentralComponent) {

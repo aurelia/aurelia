@@ -104,7 +104,7 @@
       "allow-number",
       "allow-mix"
     ],
-    "switch-default": true,
+    "switch-default": false,
     "switch-final-break": true,
     "triple-equals": [true, "allow-null-check"],
     "use-isnan": true,

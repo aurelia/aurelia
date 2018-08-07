@@ -1,24 +1,25 @@
+// tslint:disable:no-reserved-keywords
 import { DI, Immutable } from '@aurelia/kernel';
+import { IExpression } from '../binding/ast';
+import { BindingMode } from '../binding/binding-mode';
 import { DelegationStrategy } from '../binding/event-manager';
 import { INode } from '../dom';
 import { ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
 
 export enum TargetedInstructionType {
-  textBinding = 0,
-  toViewBinding = 1,
-  fromViewBinding = 2,
-  twoWayBinding = 3,
-  listenerBinding = 4,
-  callBinding = 5,
-  refBinding = 6,
-  stylePropertyBinding = 7,
-  setProperty = 8,
-  setAttribute = 9,
-  hydrateSlot = 10,
-  hydrateElement = 11,
-  hydrateAttribute = 12,
-  hydrateTemplateController = 13
+  textBinding = 1,
+  propertyBinding = 2,
+  listenerBinding = 3,
+  callBinding = 4,
+  refBinding = 5,
+  stylePropertyBinding = 6,
+  setProperty = 7,
+  setAttribute = 8,
+  hydrateSlot = 9,
+  hydrateElement = 10,
+  hydrateAttribute = 11,
+  hydrateTemplateController = 12
 }
 
 export interface IBuildInstruction {
@@ -28,9 +29,9 @@ export interface IBuildInstruction {
 
 export interface ITemplateSource {
   name?: string;
-  cache?: "*" | number;
-  template?: string;
-  instructions?: Array<TargetedInstruction[]>;
+  cache?: '*' | number;
+  templateOrNode?: string | INode;
+  instructions?: TargetedInstruction[][];
   dependencies?: any[];
   build?: IBuildInstruction;
   surrogates?: TargetedInstruction[];
@@ -51,9 +52,7 @@ export interface ITargetedInstruction {
 
 export type TargetedInstruction =
   ITextBindingInstruction |
-  IOneWayBindingInstruction |
-  IFromViewBindingInstruction |
-  ITwoWayBindingInstruction |
+  IPropertyBindingInstruction |
   IListenerBindingInstruction |
   ICallBindingInstruction |
   IRefBindingInstruction |
@@ -67,30 +66,20 @@ export type TargetedInstruction =
 
 export interface ITextBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.textBinding;
-  src: string;
+  srcOrExpr: string | IExpression;
 }
 
-export interface IOneWayBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.toViewBinding;
-  src: string;
+export interface IPropertyBindingInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.propertyBinding;
+  mode: BindingMode;
+  srcOrExpr: string | IExpression;
   dest: string;
-}
-
-export interface IFromViewBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.fromViewBinding;
-  src: string;
-  dest: string;
-}
-
-export interface ITwoWayBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.twoWayBinding;
-  src: string;
-  dest: string;
+  oneTime?: boolean;
 }
 
 export interface IListenerBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.listenerBinding;
-  src: string;
+  srcOrExpr: string | IExpression;
   dest: string;
   strategy: DelegationStrategy;
   preventDefault: boolean;
@@ -98,18 +87,18 @@ export interface IListenerBindingInstruction extends ITargetedInstruction {
 
 export interface ICallBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.callBinding,
-  src: string;
+  srcOrExpr: string | IExpression;
   dest: string;
 }
 
 export interface IRefBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.refBinding;
-  src: string;
+  srcOrExpr: string | IExpression;
 }
 
 export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.stylePropertyBinding;
-  src: string;
+  srcOrExpr: string | IExpression;
   dest: string;
 }
 

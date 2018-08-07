@@ -1,11 +1,11 @@
-import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
+import { ITemplateSource, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
 import { DelegationStrategy } from '@aurelia/runtime';
 
 //this object is built up during compilation
 export const nameTagConfig: ITemplateSource = {
   name: 'name-tag',
   hasSlots: true,
-  template: `
+  templateOrNode: `
     <header>Super Duper name tag</header>
     <div>
       <input type="text" class="au"><br/>
@@ -53,33 +53,33 @@ export const nameTagConfig: ITemplateSource = {
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        src: 'name',
+        srcOrExpr: 'name',
         dest: 'value'
       }
     ],
     [
       {
-        type: TargetedInstructionType.toViewBinding,
-        src: 'name',
+        type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView,
+        srcOrExpr: 'name',
         dest: 'textContent'
       },
       {
         type: TargetedInstructionType.stylePropertyBinding,
-        src: 'nameTagColor',
+        srcOrExpr: 'nameTagColor',
         dest: 'color'
       }
     ],
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        src: 'nameTagColor',
+        srcOrExpr: 'nameTagColor',
         dest: 'value'
       }
     ],
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        src: 'nameTagBorderColor',
+        srcOrExpr: 'nameTagBorderColor',
         dest: 'value'
       }
     ],
@@ -91,21 +91,21 @@ export const nameTagConfig: ITemplateSource = {
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        src: 'nameTagBorderWidth',
+        srcOrExpr: 'nameTagBorderWidth',
         dest: 'value'
       }
     ],
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        src: 'nameTagHeaderVisible',
+        srcOrExpr: 'nameTagHeaderVisible',
         dest: 'checked'
       }
     ],
     [
       {
         type: TargetedInstructionType.listenerBinding,
-        src: 'click',
+        srcOrExpr: 'click',
         dest: 'submit',
         preventDefault: true,
         strategy: DelegationStrategy.none
@@ -115,12 +115,12 @@ export const nameTagConfig: ITemplateSource = {
   surrogates: [
     {
       type: TargetedInstructionType.stylePropertyBinding,
-      src: 'nameTagBorder',
+      srcOrExpr: 'nameTagBorder',
       dest: 'border'
     },
     {
-      type: TargetedInstructionType.toViewBinding,
-      src: 'nameTagClasses',
+      type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView,
+      srcOrExpr: 'nameTagClasses',
       dest: 'className'
     }
   ]

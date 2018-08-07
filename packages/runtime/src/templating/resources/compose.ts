@@ -11,7 +11,7 @@ import { VisualWithCentralComponent } from '../visual';
 
 const composeSource = {
   name: 'au-compose',
-  template: null,
+  templateOrNode: null,
   instructions: null
 };
 

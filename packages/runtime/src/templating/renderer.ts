@@ -10,7 +10,7 @@ import { Ref } from '../binding/ref';
 import { DOM, INode } from '../dom';
 import { CustomAttributeResource, ICustomAttribute } from './custom-attribute';
 import { CustomElementResource, ICustomElement } from './custom-element';
-import { ICallBindingInstruction, IFromViewBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateSlotInstruction, IHydrateTemplateController, IListenerBindingInstruction, IOneWayBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, ITwoWayBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from "./instructions";
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateSlotInstruction, IHydrateTemplateController, IListenerBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetAttributeInstruction, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { IRenderContext } from './render-context';
 import { IRenderingEngine } from './rendering-engine';
 import { ShadowDOMEmulation } from './shadow-dom';
@@ -81,35 +81,33 @@ export class Renderer implements IRenderer {
     const next = target.nextSibling;
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
+    const srcOrExpr = instruction.srcOrExpr as any;
+    owner.$bindable.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
   }
 
-  public [TargetedInstructionType.toViewBinding](owner: IViewOwner,target: any, instruction: Immutable<IOneWayBindingInstruction>) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
-  }
-
-  public [TargetedInstructionType.fromViewBinding](owner: IViewOwner,target: any, instruction: Immutable<IFromViewBindingInstruction>) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.fromView, this.observerLocator, this.context));
-  }
-
-  public [TargetedInstructionType.twoWayBinding](owner: IViewOwner,target: any, instruction: Immutable<ITwoWayBindingInstruction>) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), target, instruction.dest, BindingMode.twoWay, this.observerLocator, this.context));
+  public [TargetedInstructionType.propertyBinding](owner: IViewOwner,target: any, instruction: Immutable<IPropertyBindingInstruction>) {
+    const srcOrExpr = instruction.srcOrExpr as any;
+    owner.$bindable.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.dest, instruction.mode, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.listenerBinding](owner: IViewOwner,target: any, instruction: Immutable<IListenerBindingInstruction>) {
-    owner.$bindable.push(new Listener(instruction.src, instruction.strategy, this.parser.parse(instruction.dest), target, instruction.preventDefault, this.eventManager, this.context));
+    const srcOrExpr = instruction.srcOrExpr as any;
+    owner.$bindable.push(new Listener(instruction.dest, instruction.strategy, srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.preventDefault, this.eventManager, this.context));
   }
 
   public [TargetedInstructionType.callBinding](owner: IViewOwner,target: any, instruction: Immutable<ICallBindingInstruction>) {
-    owner.$bindable.push(new Call(this.parser.parse(instruction.src), target, instruction.dest, this.observerLocator, this.context));
+    const srcOrExpr = instruction.srcOrExpr as any;
+    owner.$bindable.push(new Call(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.dest, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.refBinding](owner: IViewOwner,target: any, instruction: Immutable<IRefBindingInstruction>) {
-    owner.$bindable.push(new Ref(this.parser.parse(instruction.src), target, this.context));
+    const srcOrExpr = instruction.srcOrExpr as any;
+    owner.$bindable.push(new Ref(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, this.context));
   }
 
   public [TargetedInstructionType.stylePropertyBinding](owner: IViewOwner,target: any, instruction: Immutable<IStylePropertyBindingInstruction>) {
-    owner.$bindable.push(new Binding(this.parser.parse(instruction.src), (<any>target).style, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
+    const srcOrExpr = instruction.srcOrExpr as any;
+    owner.$bindable.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), (<any>target).style, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.setProperty](owner: IViewOwner, target: any, instruction: Immutable<ISetPropertyInstruction>) {

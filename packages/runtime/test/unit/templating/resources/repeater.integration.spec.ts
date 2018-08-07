@@ -1,4 +1,4 @@
-import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
+import { ITemplateSource, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime';
 import { Repeater } from '@aurelia/runtime';
 import { IContainer, DI } from '@aurelia/kernel';
@@ -351,7 +351,7 @@ describe('ArrayRepeater - render html', () => {
     };
     aureliaConfig = {
       register(container: IContainer) {
-        container.get(IExpressionParser).cache(expressionCache);
+        (<IExpressionParser>container.get(IExpressionParser)).cache(expressionCache);
         container.register(<any>Repeater);
       }
     };
@@ -359,7 +359,7 @@ describe('ArrayRepeater - render html', () => {
     const templateSource: ITemplateSource = {
       name: 'app',
       dependencies: [],
-      template: `<span class="au"></span> `,
+      templateOrNode: `<span class="au"></span> `,
       instructions: [
         [
           {
@@ -367,33 +367,33 @@ describe('ArrayRepeater - render html', () => {
             res: 'repeat',
             src: {
               cache: "*",
-              template: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
+              templateOrNode: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
               instructions: [
-                [ { type: TargetedInstructionType.textBinding, src: 'id' } ],
-                [ { type: TargetedInstructionType.textBinding, src: 'length' } ],
+                [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'id' } ],
+                [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'length' } ],
                 [
                   {
                     type: TargetedInstructionType.hydrateTemplateController,
                     res: 'repeat',
                     src: {
                       cache: "*",
-                      template: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
+                      templateOrNode: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
                       instructions: [
-                        [ { type: TargetedInstructionType.textBinding, src: 'innerId' } ],
-                        [ { type: TargetedInstructionType.textBinding, src: 'innerLength' } ],
+                        [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'innerId' } ],
+                        [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'innerLength' } ],
                         [
                           {
                             type: TargetedInstructionType.hydrateTemplateController,
                             res: 'repeat',
                             src: {
                               cache: "*",
-                              template: `<span class="au"></span> `,
+                              templateOrNode: `<span class="au"></span> `,
                               instructions: [
-                                [ { type: TargetedInstructionType.textBinding, src: 'innerInnerId' } ]
+                                [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'innerInnerId' } ]
                               ]
                             },
                             instructions: [
-                              { type: TargetedInstructionType.toViewBinding, src: 'innerInnerTodos', dest: 'items' },
+                              { type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, srcOrExpr: 'innerInnerTodos', dest: 'items' },
                               { type: TargetedInstructionType.setProperty, value: 'innerInnerTodo', dest: 'local' },
                               { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
                             ]
@@ -402,7 +402,7 @@ describe('ArrayRepeater - render html', () => {
                       ]
                     },
                     instructions: [
-                      { type: TargetedInstructionType.toViewBinding, src: 'innerTodos', dest: 'items' },
+                      { type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, srcOrExpr: 'innerTodos', dest: 'items' },
                       { type: TargetedInstructionType.setProperty, value: 'innerTodo', dest: 'local' },
                       { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
                     ]
@@ -411,7 +411,7 @@ describe('ArrayRepeater - render html', () => {
               ]
             },
             instructions: [
-              { type: TargetedInstructionType.toViewBinding, src: 'todos', dest: 'items' },
+              { type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, srcOrExpr: 'todos', dest: 'items' },
               { type: TargetedInstructionType.setProperty, value: 'todo', dest: 'local' },
               { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
             ]

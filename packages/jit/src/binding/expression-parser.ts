@@ -1,19 +1,19 @@
 import { IContainer } from '@aurelia/kernel';
 import {
   AccessKeyed, AccessMember, AccessScope, AccessThis,
-  ArrayLiteral, Assign, Binary, BindingBehavior,
+  ArrayBindingPattern, ArrayLiteral, Assign, Binary,
+  BindingBehavior, BindingIdentifier, BindingType,
   CallFunction, CallMember, CallScope,
-  Conditional, IExpression, IExpressionParser,
+  Conditional, ExpressionKind, ForOfStatement, IExpression, IExpressionParser,
   IsAssign, IsBinary, IsBindingBehavior, IsConditional, IsLeftHandSide,
-  IsPrimary, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template,
-  Unary, ValueConverter
+  IsPrimary, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter
 } from '@aurelia/runtime';
 
 export function register(container: IContainer) {
   container.registerTransformer(IExpressionParser, parser => {
     return Object.assign(parser, {
-      parseCore(expression: string): IExpression {
-        return parse(new ParserState(expression), Access.Reset, Precedence.Variadic);
+      parseCore(expression: string, bindingType: BindingType): IExpression {
+        return parse(new ParserState(expression), Access.Reset, Precedence.Variadic, bindingType);
       }
     });
   });
@@ -52,7 +52,7 @@ export class ParserState {
 }
 
 /*@internal*/
-export function parse<T extends Precedence>(state: ParserState, access: Access, minPrecedence: T):
+export function parse<T extends Precedence>(state: ParserState, access: Access, minPrecedence: T, bindingType: BindingType):
   T extends Precedence.Primary ? IsPrimary :
   T extends Precedence.LeftHandSide ? IsLeftHandSide :
   T extends Precedence.Binary ? IsBinary :
@@ -84,7 +84,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
      */
     const op = TokenValues[state.currentToken & Token.Type];
     nextToken(state);
-    result = new Unary(<any>op, parse(state, access, Precedence.Primary));
+    result = new Unary(<any>op, parse(state, access, Precedence.Primary, bindingType));
   } else {
     /** parsePrimaryExpression
      * https://tc39.github.io/ecma262/#sec-primary-expression
@@ -117,7 +117,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       do {
         nextToken(state);
         access++; // ancestor
-        if (optional(state, Token.Dot)) {
+        if (consumeOpt(state, Token.Dot)) {
           if (state.currentToken === <any>Token.Dot) {
             error(state);
           }
@@ -132,9 +132,13 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       } while (state.currentToken === Token.ParentScope);
     // falls through
     case Token.Identifier: // identifier
-      result = new AccessScope(<string>state.tokenValue, access & Access.Ancestor);
+      if (bindingType & BindingType.IsIterator) {
+        result = new BindingIdentifier(<string>state.tokenValue);
+      } else {
+        result = new AccessScope(<string>state.tokenValue, access & Access.Ancestor);
+        access = Access.Scope;
+      }
       nextToken(state);
-      access = Access.Scope;
       break;
     case Token.ThisScope: // $this
       state.assignable = false;
@@ -144,8 +148,8 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       break;
     case Token.OpenParen: // parenthesized expression
       nextToken(state);
-      result = parse(state, Access.Reset, Precedence.Conditional);
-      expect(state, Token.CloseParen);
+      result = parse(state, Access.Reset, Precedence.Conditional, bindingType);
+      consume(state, Token.CloseParen);
       break;
     case Token.OpenBracket:
       /** parseArrayLiteralExpression
@@ -167,22 +171,26 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       nextToken(state);
       const elements = new Array<IsAssign>();
       while (state.currentToken !== <any>Token.CloseBracket) {
-        if (optional(state, Token.Comma)) {
+        if (consumeOpt(state, Token.Comma)) {
           elements.push($undefined);
           if (state.currentToken === <any>Token.CloseBracket) {
             elements.push($undefined);
             break;
           }
         } else {
-          elements.push(parse(state, access, Precedence.Assign));
-          if (!optional(state, Token.Comma)) {
+          elements.push(parse(state, access, Precedence.Assign, bindingType & ~BindingType.IsIterator));
+          if (!consumeOpt(state, Token.Comma)) {
             break;
           }
         }
       }
-      expect(state, Token.CloseBracket);
-      result = new ArrayLiteral(elements);
-      state.assignable = false;
+      consume(state, Token.CloseBracket);
+      if (bindingType & BindingType.IsIterator) {
+        result = new ArrayBindingPattern(elements);
+      } else {
+        result = new ArrayLiteral(elements);
+        state.assignable = false;
+      }
       break;
     case Token.OpenBrace:
       /** parseObjectLiteralExpression
@@ -213,31 +221,35 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         // Literal = mandatory colon
         if (state.currentToken & Token.StringOrNumericLiteral) {
           nextToken(state);
-          expect(state, Token.Colon);
-          values.push(parse(state, Access.Reset, Precedence.Assign));
+          consume(state, Token.Colon);
+          values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
         } else if (state.currentToken & Token.IdentifierName) {
           // IdentifierName = optional colon
           const { currentChar, currentToken, index } = <any>state;
           nextToken(state);
-          if (optional(state, Token.Colon)) {
-            values.push(parse(state, Access.Reset, Precedence.Assign));
+          if (consumeOpt(state, Token.Colon)) {
+            values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
           } else {
             // Shorthand
             state.currentChar = currentChar;
             state.currentToken = currentToken;
             state.index = index;
-            values.push(parse(state, Access.Reset, Precedence.Primary));
+            values.push(parse(state, Access.Reset, Precedence.Primary, bindingType & ~BindingType.IsIterator));
           }
         } else {
           error(state);
         }
         if (state.currentToken !== <any>Token.CloseBrace) {
-          expect(state, Token.Comma);
+          consume(state, Token.Comma);
         }
       }
-      expect(state, Token.CloseBrace);
-      result = new ObjectLiteral(keys, values);
-      state.assignable = false;
+      consume(state, Token.CloseBrace);
+      if (bindingType & BindingType.IsIterator) {
+        result = new ObjectBindingPattern(keys, values);
+      } else {
+        result = new ObjectLiteral(keys, values);
+        state.assignable = false;
+      }
       break;
     case Token.TemplateTail:
       result = new Template([<string>state.tokenValue]);
@@ -279,13 +291,13 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
        * TODO: de-duplicate template parsing logic
        */
       const cooked = [<string>state.tokenValue];
-      expect(state, Token.TemplateContinuation);
-      const expressions = [parse(state, access, Precedence.Assign)];
+      consume(state, Token.TemplateContinuation);
+      const expressions = [parse(state, access, Precedence.Assign, bindingType)];
 
       while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
         cooked.push(<string>state.tokenValue);
-        expect(state, Token.TemplateContinuation);
-        expressions.push(parse(state, access, Precedence.Assign));
+        consume(state, Token.TemplateContinuation);
+        expressions.push(parse(state, access, Precedence.Assign, bindingType));
       }
 
       cooked.push(<string>state.tokenValue);
@@ -313,6 +325,16 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       } else {
         error(state);
       }
+    }
+
+    if (bindingType & BindingType.IsIterator) {
+      if (!(result.$kind & ExpressionKind.IsForDeclaration)) {
+        error(state, 'Invalid ForDeclaration');
+      }
+      consume(state, Token.OfKeyword);
+      const declaration = result;
+      const statement = <any>parse(state, Access.Reset, Precedence.Variadic, BindingType.None);
+      return new ForOfStatement(declaration, statement) as any;
     }
     if (Precedence.LeftHandSide < minPrecedence) return result;
 
@@ -366,20 +388,20 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         state.assignable = true;
         nextToken(state);
         access = Access.Keyed;
-        result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Conditional));
-        expect(state, Token.CloseBracket);
+        result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Conditional, bindingType));
+        consume(state, Token.CloseBracket);
         break;
       case Token.OpenParen:
         state.assignable = false;
         nextToken(state);
         const args = new Array<IsAssign>();
         while (state.currentToken !== <any>Token.CloseParen) {
-          args.push(parse(state, Access.Reset, Precedence.Conditional));
-          if (!optional(state, Token.Comma)) {
+          args.push(parse(state, Access.Reset, Precedence.Conditional, bindingType));
+          if (!consumeOpt(state, Token.Comma)) {
             break;
           }
         }
-        expect(state, Token.CloseParen);
+        consume(state, Token.CloseParen);
         if (access & Access.Scope) {
           result = new CallScope(<string>name, args, (<any>result).ancestor);
         } else if (access & Access.Member) {
@@ -431,14 +453,14 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         state.assignable = false;
         const cooked = [<string>state.tokenValue];
         const raw = [state.tokenRaw];
-        expect(state, Token.TemplateContinuation);
-        const expressions = [parse(state, access, Precedence.Assign)];
+        consume(state, Token.TemplateContinuation);
+        const expressions = [parse(state, access, Precedence.Assign, bindingType)];
 
         while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
           cooked.push(<string>state.tokenValue);
           raw.push(state.tokenRaw);
-          expect(state, Token.TemplateContinuation);
-          expressions.push(parse(state, access, Precedence.Assign));
+          consume(state, Token.TemplateContinuation);
+          expressions.push(parse(state, access, Precedence.Assign, bindingType));
         }
 
         cooked.push(<string>state.tokenValue);
@@ -449,6 +471,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       }
     }
   }
+
   if (Precedence.Binary < minPrecedence) return result;
 
   /** parseBinaryExpression
@@ -484,7 +507,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       break;
     }
     nextToken(state);
-    result = new Binary(<string>TokenValues[opToken & Token.Type], result, parse(state, access, opToken & Token.Precedence));
+    result = new Binary(<string>TokenValues[opToken & Token.Type], result, parse(state, access, opToken & Token.Precedence, bindingType));
     state.assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) return result;
@@ -499,10 +522,10 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
    * IsValidAssignmentTarget
    *   1,2 = false
    */
-  if (optional(state, Token.Question)) {
-    const yes = parse(state, access, Precedence.Assign);
-    expect(state, Token.Colon);
-    result = new Conditional(result, yes, parse(state, access, Precedence.Assign));
+  if (consumeOpt(state, Token.Question)) {
+    const yes = parse(state, access, Precedence.Assign, bindingType);
+    consume(state, Token.Colon);
+    result = new Conditional(result, yes, parse(state, access, Precedence.Assign, bindingType));
     state.assignable = false;
   }
 
@@ -517,37 +540,43 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
    * IsValidAssignmentTarget
    *   1,2 = false
    */
-  if (optional(state, Token.Equals)) {
+  if (consumeOpt(state, Token.Equals)) {
     if (!state.assignable) {
       error(state, `Expression ${state.input.slice(exprStart, state.startIndex)} is not assignable`);
     }
     exprStart = state.index;
-    result = new Assign(result, parse(state, access, Precedence.Assign));
+    result = new Assign(result, parse(state, access, Precedence.Assign, bindingType));
   }
   if (Precedence.Variadic < minPrecedence) return result;
 
   /** parseValueConverter
    */
-  while (optional(state, Token.Bar)) {
+  while (consumeOpt(state, Token.Bar)) {
     const name = <string>state.tokenValue;
     nextToken(state);
     const args = new Array<IsAssign>();
-    while (optional(state, Token.Colon)) {
-      args.push(parse(state, access, Precedence.Assign));
+    while (consumeOpt(state, Token.Colon)) {
+      args.push(parse(state, access, Precedence.Assign, bindingType));
     }
     result = new ValueConverter(result, name, args);
   }
 
   /** parseBindingBehavior
    */
-  while (optional(state, Token.Ampersand)) {
+  while (consumeOpt(state, Token.Ampersand)) {
     const name = <string>state.tokenValue;
     nextToken(state);
     const args = new Array<IsAssign>();
-    while (optional(state, Token.Colon)) {
-      args.push(parse(state, access, Precedence.Assign));
+    while (consumeOpt(state, Token.Colon)) {
+      args.push(parse(state, access, Precedence.Assign, bindingType));
     }
     result = new BindingBehavior(result, name, args);
+  }
+  if (bindingType & BindingType.Interpolation) {
+    expect(state, Token.CloseBrace);
+    // HACK (for performance)
+    (<any>result).$parserStateIndex = state.index;
+    return result;
   }
   if (state.currentToken !== Token.EOF) {
     error(state, `Unconsumed token ${state.tokenRaw}`);
@@ -680,7 +709,7 @@ function error(state: ParserState, message: string = `Unexpected token ${state.t
   throw new Error(`Parser Error: ${message} at column ${column} in expression [${state.input}]`);
 }
 
-function optional(state: ParserState, token: Token): boolean {
+function consumeOpt(state: ParserState, token: Token): boolean {
   if (state.currentToken === token) {
     nextToken(state);
     return true;
@@ -689,10 +718,16 @@ function optional(state: ParserState, token: Token): boolean {
   return false;
 }
 
-function expect(state: ParserState, token: Token): void {
+function consume(state: ParserState, token: Token): void {
   if (state.currentToken === token) {
     nextToken(state);
   } else {
+    error(state, `Missing expected token ${TokenValues[token & Token.Type]}`, state.index);
+  }
+}
+
+function expect(state: ParserState, token: Token): void {
+  if (state.currentToken !== token) {
     error(state, `Missing expected token ${TokenValues[token & Token.Type]}`, state.index);
   }
 }
@@ -712,7 +747,8 @@ function unescape(code: number): number {
   }
 }
 
-const enum Access {
+/*@internal*/
+export const enum Access {
   Reset                   = 0b0000000000000,
   Ancestor                = 0b0000111111111,
   This                    = 0b0001000000000,
@@ -720,7 +756,8 @@ const enum Access {
   Member                  = 0b0100000000000,
   Keyed                   = 0b1000000000000
 }
-const enum Precedence {
+/*@internal*/
+export const enum Precedence {
   Variadic                = 0b000111101,
   Assign                  = 0b000111110,
   Conditional             = 0b000111111,
@@ -736,66 +773,69 @@ const enum Precedence {
   Unary                   = 0b111000010,
 }
 const enum Token {
-  EOF                     = 0b11000000000 << 9,
-  ExpressionTerminal      = 0b10000000000 << 9,
-  AccessScopeTerminal     = 0b01000000000 << 9,
-  ClosingToken            = 0b00100000000 << 9,
-  OpeningToken            = 0b00010000000 << 9,
-  BinaryOp                = 0b00001000000 << 9,
-  UnaryOp                 = 0b00000100000 << 9,
-  LeftHandSide            = 0b00000010000 << 9,
-  StringOrNumericLiteral  = 0b00000001100 << 9,
-  NumericLiteral          = 0b00000001000 << 9,
-  StringLiteral           = 0b00000000100 << 9,
-  IdentifierName          = 0b00000000011 << 9,
-  Keyword                 = 0b00000000010 << 9,
-  Identifier              = 0b00000000001 << 9,
-  Precedence              = 0b00000000000 << 9 | 0b111 << 6,
-  Type                    = 0b00000000000 << 9 | 0b000 << 6 | 0b111111,
-  FalseKeyword            = 0b00000000010 << 9 | 0b000 << 6 | 0b000000,
-  TrueKeyword             = 0b00000000010 << 9 | 0b000 << 6 | 0b000001,
-  NullKeyword             = 0b00000000010 << 9 | 0b000 << 6 | 0b000010,
-  UndefinedKeyword        = 0b00000000010 << 9 | 0b000 << 6 | 0b000011,
-  ThisScope               = 0b00000000011 << 9 | 0b000 << 6 | 0b000100,
-  ParentScope             = 0b00000000011 << 9 | 0b000 << 6 | 0b000101,
-  OpenParen               = 0b01010010000 << 9 | 0b000 << 6 | 0b000110,
-  OpenBrace               = 0b00010000000 << 9 | 0b000 << 6 | 0b000111,
-  Dot                     = 0b00000010000 << 9 | 0b000 << 6 | 0b001000,
-  CloseBrace              = 0b11100000000 << 9 | 0b000 << 6 | 0b001001,
-  CloseParen              = 0b11100000000 << 9 | 0b000 << 6 | 0b001010,
-  Comma                   = 0b01000000000 << 9 | 0b000 << 6 | 0b001011,
-  OpenBracket             = 0b01010010000 << 9 | 0b000 << 6 | 0b001100,
-  CloseBracket            = 0b10100000000 << 9 | 0b000 << 6 | 0b001101,
-  Colon                   = 0b01000000000 << 9 | 0b000 << 6 | 0b001110,
-  Question                = 0b00000000000 << 9 | 0b000 << 6 | 0b001111,
-  Ampersand               = 0b01000000000 << 9 | 0b000 << 6 | 0b010000,
-  Bar                     = 0b01000000000 << 9 | 0b000 << 6 | 0b010011,
-  BarBar                  = 0b00001000000 << 9 | 0b010 << 6 | 0b010100,
-  AmpersandAmpersand      = 0b00001000000 << 9 | 0b011 << 6 | 0b010101,
-  EqualsEquals            = 0b00001000000 << 9 | 0b100 << 6 | 0b010110,
-  ExclamationEquals       = 0b00001000000 << 9 | 0b100 << 6 | 0b010111,
-  EqualsEqualsEquals      = 0b00001000000 << 9 | 0b100 << 6 | 0b011000,
-  ExclamationEqualsEquals = 0b00001000000 << 9 | 0b100 << 6 | 0b011001,
-  LessThan                = 0b00001000000 << 9 | 0b101 << 6 | 0b011010,
-  GreaterThan             = 0b00001000000 << 9 | 0b101 << 6 | 0b011011,
-  LessThanEquals          = 0b00001000000 << 9 | 0b101 << 6 | 0b011100,
-  GreaterThanEquals       = 0b00001000000 << 9 | 0b101 << 6 | 0b011101,
-  InKeyword               = 0b00001000010 << 9 | 0b101 << 6 | 0b011110,
-  InstanceOfKeyword       = 0b00001000010 << 9 | 0b101 << 6 | 0b011111,
-  Plus                    = 0b00001100000 << 9 | 0b110 << 6 | 0b100000,
-  Minus                   = 0b00001100000 << 9 | 0b110 << 6 | 0b100001,
-  TypeofKeyword           = 0b00000100010 << 9 | 0b000 << 6 | 0b100010,
-  VoidKeyword             = 0b00000100010 << 9 | 0b000 << 6 | 0b100011,
-  Asterisk                = 0b00001000000 << 9 | 0b111 << 6 | 0b100100,
-  Percent                 = 0b00001000000 << 9 | 0b111 << 6 | 0b100101,
-  Slash                   = 0b00001000000 << 9 | 0b111 << 6 | 0b100110,
-  Equals                  = 0b00000000000 << 9 | 0b000 << 6 | 0b100111,
-  Exclamation             = 0b00000100000 << 9 | 0b000 << 6 | 0b101000,
-  TemplateTail            = 0b00000010000 << 9 | 0b000 << 6 | 0b101001,
-  TemplateContinuation    = 0b00000010000 << 9 | 0b000 << 6 | 0b101010,
+  EOF                     = 0b110000000000 << 9,
+  ExpressionTerminal      = 0b100000000000 << 9,
+  AccessScopeTerminal     = 0b010000000000 << 9,
+  ClosingToken            = 0b001000000000 << 9,
+  OpeningToken            = 0b000100000000 << 9,
+  BinaryOp                = 0b000010000000 << 9,
+  UnaryOp                 = 0b000001000000 << 9,
+  LeftHandSide            = 0b000000100000 << 9,
+  StringOrNumericLiteral  = 0b000000011000 << 9,
+  NumericLiteral          = 0b000000010000 << 9,
+  StringLiteral           = 0b000000001000 << 9,
+  IdentifierName          = 0b000000000110 << 9,
+  Keyword                 = 0b000000000100 << 9,
+  Identifier              = 0b000000000010 << 9,
+  Contextual              = 0b000000000001 << 9,
+  Precedence              = 0b000000000000 << 9 | 0b111 << 6,
+  Type                    = 0b000000000000 << 9 | 0b000 << 6 | 0b111111,
+  FalseKeyword            = 0b000000000100 << 9 | 0b000 << 6 | 0b000000,
+  TrueKeyword             = 0b000000000100 << 9 | 0b000 << 6 | 0b000001,
+  NullKeyword             = 0b000000000100 << 9 | 0b000 << 6 | 0b000010,
+  UndefinedKeyword        = 0b000000000100 << 9 | 0b000 << 6 | 0b000011,
+  ThisScope               = 0b000000000110 << 9 | 0b000 << 6 | 0b000100,
+  ParentScope             = 0b000000000110 << 9 | 0b000 << 6 | 0b000101,
+  OpenParen               = 0b010100100000 << 9 | 0b000 << 6 | 0b000110,
+  OpenBrace               = 0b000100000000 << 9 | 0b000 << 6 | 0b000111,
+  Dot                     = 0b000000100000 << 9 | 0b000 << 6 | 0b001000,
+  CloseBrace              = 0b111000000000 << 9 | 0b000 << 6 | 0b001001,
+  CloseParen              = 0b111000000000 << 9 | 0b000 << 6 | 0b001010,
+  Comma                   = 0b010000000000 << 9 | 0b000 << 6 | 0b001011,
+  OpenBracket             = 0b010100100000 << 9 | 0b000 << 6 | 0b001100,
+  CloseBracket            = 0b101000000000 << 9 | 0b000 << 6 | 0b001101,
+  Colon                   = 0b010000000000 << 9 | 0b000 << 6 | 0b001110,
+  Question                = 0b000000000000 << 9 | 0b000 << 6 | 0b001111,
+  Ampersand               = 0b010000000000 << 9 | 0b000 << 6 | 0b010000,
+  Bar                     = 0b010000000000 << 9 | 0b000 << 6 | 0b010011,
+  BarBar                  = 0b000010000000 << 9 | 0b010 << 6 | 0b010100,
+  AmpersandAmpersand      = 0b000010000000 << 9 | 0b011 << 6 | 0b010101,
+  EqualsEquals            = 0b000010000000 << 9 | 0b100 << 6 | 0b010110,
+  ExclamationEquals       = 0b000010000000 << 9 | 0b100 << 6 | 0b010111,
+  EqualsEqualsEquals      = 0b000010000000 << 9 | 0b100 << 6 | 0b011000,
+  ExclamationEqualsEquals = 0b000010000000 << 9 | 0b100 << 6 | 0b011001,
+  LessThan                = 0b000010000000 << 9 | 0b101 << 6 | 0b011010,
+  GreaterThan             = 0b000010000000 << 9 | 0b101 << 6 | 0b011011,
+  LessThanEquals          = 0b000010000000 << 9 | 0b101 << 6 | 0b011100,
+  GreaterThanEquals       = 0b000010000000 << 9 | 0b101 << 6 | 0b011101,
+  InKeyword               = 0b000010000100 << 9 | 0b101 << 6 | 0b011110,
+  InstanceOfKeyword       = 0b000010000100 << 9 | 0b101 << 6 | 0b011111,
+  Plus                    = 0b000011000000 << 9 | 0b110 << 6 | 0b100000,
+  Minus                   = 0b000011000000 << 9 | 0b110 << 6 | 0b100001,
+  TypeofKeyword           = 0b000001000100 << 9 | 0b000 << 6 | 0b100010,
+  VoidKeyword             = 0b000001000100 << 9 | 0b000 << 6 | 0b100011,
+  Asterisk                = 0b000010000000 << 9 | 0b111 << 6 | 0b100100,
+  Percent                 = 0b000010000000 << 9 | 0b111 << 6 | 0b100101,
+  Slash                   = 0b000010000000 << 9 | 0b111 << 6 | 0b100110,
+  Equals                  = 0b000000000000 << 9 | 0b000 << 6 | 0b100111,
+  Exclamation             = 0b000001000000 << 9 | 0b000 << 6 | 0b101000,
+  TemplateTail            = 0b000000100000 << 9 | 0b000 << 6 | 0b101001,
+  TemplateContinuation    = 0b000000100000 << 9 | 0b000 << 6 | 0b101010,
+  OfKeyword               = 0b000000000101 << 9 | 0b000 << 6 | 0b101011,
 }
 
-const enum Char {
+/*@internal*/
+export const enum Char {
   Null           = 0x00,
   Backspace      = 0x08,
   Tab            = 0x09,
@@ -917,7 +957,8 @@ const TokenValues = [
 
   '&', '|', '||', '&&', '==', '!=', '===', '!==', '<', '>',
   '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
-  Token.TemplateTail, Token.TemplateContinuation
+  Token.TemplateTail, Token.TemplateContinuation,
+  'of'
 ];
 
 const KeywordLookup: {
@@ -933,6 +974,7 @@ KeywordLookup.in = Token.InKeyword;
 KeywordLookup.instanceof = Token.InstanceOfKeyword;
 KeywordLookup.typeof = Token.TypeofKeyword;
 KeywordLookup.void = Token.VoidKeyword;
+KeywordLookup.of = Token.OfKeyword;
 
 /**
  * Ranges of code points in pairs of 2 (eg 0x41-0x5B, 0x61-0x7B, ...) where the second value is not inclusive (5-7 means 5 and 6)

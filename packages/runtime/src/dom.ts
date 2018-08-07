@@ -87,9 +87,20 @@ function removePolyfilled(node: Element): void {
 }
 
 export const DOM = {
-  createFactoryFromMarkup(markup: string): () => IView {
-    const template = <HTMLTemplateElement>DOM.createTemplate();
-    template.innerHTML = markup;
+  createFactoryFromMarkupOrNode(markupOrNode: string | INode): () => IView {
+    let template: HTMLTemplateElement;
+    if (markupOrNode instanceof Node) {
+      if ((<HTMLTemplateElement>markupOrNode).content) {
+        template = markupOrNode as any;
+      } else {
+        template = DOM.createTemplate() as any;
+        template.appendChild(<Node>markupOrNode);
+      }
+    } else {
+      template = DOM.createTemplate() as any;
+      template.innerHTML = <string>markupOrNode;
+    }
+
     // bind performs a bit better and gives a cleaner closure than an arrow function
     return createView.bind(null, template.content);
   },

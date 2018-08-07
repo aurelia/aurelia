@@ -1,5 +1,5 @@
 import { spy } from 'sinon';
-import { IVisual } from '@aurelia/runtime';
+import { IVisual, BindingMode } from '@aurelia/runtime';
 import { CustomElementResource, ICustomElement } from '@aurelia/runtime';
 import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
 import { IContainer } from '@aurelia/kernel';
@@ -46,12 +46,12 @@ export interface IRepeaterFixture {
 
 export function createTextBindingTemplateSource(propertyName: string, oneTime?: boolean): ITemplateSource {
   return {
-    template: `<div><au-marker class="au"></au-marker> </div>`,
+    templateOrNode: `<div><au-marker class="au"></au-marker> </div>`,
     instructions: [
       [
         {
           type: TargetedInstructionType.textBinding,
-          src: propertyName
+          srcOrExpr: propertyName
         }
       ]
     ]
@@ -137,7 +137,7 @@ export function createRepeaterTemplateSource({ elName, colName, itemName }: IRep
   return {
     name: elName,
     dependencies: [],
-    template: `
+    templateOrNode: `
       <au-marker class="au"></au-marker>
     `,
     instructions: [
@@ -148,8 +148,9 @@ export function createRepeaterTemplateSource({ elName, colName, itemName }: IRep
           src: src,
           instructions: [
             {
-              type: TargetedInstructionType.toViewBinding,
-              src: colName,
+              type: TargetedInstructionType.propertyBinding,
+              mode: BindingMode.toView,
+              srcOrExpr: colName,
               dest: 'items'
             },
             {
@@ -179,7 +180,7 @@ export function createAureliaRepeaterConfig({ colName, itemName, propName }: IRe
 
   return {
     register(container: IContainer) {
-      container.get(IExpressionParser).cache(expressionCache);
+      (<IExpressionParser>container.get(IExpressionParser)).cache(expressionCache);
       container.register(...globalResources);
     }
   };

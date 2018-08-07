@@ -1,5 +1,4 @@
 import { DI, IContainer, IResolver } from '@aurelia/kernel';
-import { ICustomElement } from './templating/custom-element';
 
 export interface INodeLike {
   readonly firstChild: INode | null;
@@ -20,19 +19,14 @@ export const INode = DI.createInterface<INode>();
  */
 export interface IView extends INodeLike {
   /**
-   * The child nodes of this view
+   * The child nodes of this view.
    */
   childNodes: ReadonlyArray<INode>;
 
   /**
-   * Find all au-targets underneath this view
+   * Find all instruction targets in this view.
    */
   findTargets(): ArrayLike<INode> | ReadonlyArray<INode>;
-
-  /**
-   * Append child to this view
-   */
-  appendChild(child: INode): void;
 
   /**
    * Insert this view as a sibling before refNode
@@ -43,11 +37,14 @@ export interface IView extends INodeLike {
    * Append this view as a child to parent
    */
   appendTo(parent: INode): void;
+
+  /**
+   * Remove this view from its parent.
+   */
   remove(): void;
 }
 
-export interface IChildObserver {
-  childNodes: ArrayLike<INode>;
+export interface INodeObserver {
   disconnect(): void;
 }
 
@@ -63,24 +60,15 @@ const childObserverOptions = { childList: true };
 function returnTrue(): true {
   return true;
 }
+
 function returnFalse(): false {
   return false;
 }
-function createElementViewHostWithShadowDOM(node: Element, options?: ShadowRootInit): INode {
-  if (options) {
-    return node.attachShadow(options);
-  }
 
-  (<any>node).$usingSlotEmulation = true;
-  return node;
-}
-function createElementViewHostWithNoShadowDOM(node: Element): INode {
-  (<any>node).$usingSlotEmulation = true;
-  return node;
-}
 function removeNormal(node: Element): void {
   node.remove();
 }
+
 function removePolyfilled(node: Element): void {
   // not sure if we still actually need this, this used to be an IE9/10 thing
   node.parentNode.removeChild(node);
@@ -97,51 +85,28 @@ export const DOM = {
   createElement(name: string): INode {
     return document.createElement(name);
   },
+
   createAnchor(): INode {
     return document.createComment('anchor');
   },
-  /*@internal*/createTemplate(): INode {
+
+  createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit) {
+    const observer = new MutationObserver(callback);
+    observer.observe(target as Node, options);
+    return observer;
+  },
+
+  attachShadow(host: INode, options: ShadowRootInit): INode {
+    return (host as Element).attachShadow(options);
+  },
+
+  /*@internal*/
+  createTemplate(): INode {
     return document.createElement('template');
-  },
-
-  createChildObserver(parent: INode, onChildrenChanged: MutationCallback, options?: MutationObserverInit): IChildObserver {
-    if ((<any>parent).$usingSlotEmulation) {
-      return (<any>parent).$component.$contentView.attachChildObserver(onChildrenChanged);
-    } else {
-      const observer = new MutationObserver(onChildrenChanged);
-      (<any>observer).childNodes = parent.childNodes;
-      observer.observe(<Node>parent, options || childObserverOptions);
-      return <any>observer;
-    }
-  },
-
-  platformSupportsShadowDOM(): boolean {
-    if (HTMLElement.prototype.attachShadow === undefined) {
-      return (DOM.platformSupportsShadowDOM = returnFalse)();
-    } else {
-      return (DOM.platformSupportsShadowDOM = returnTrue)();
-    }
-  },
-
-  createElementViewHost(node: INode, options?: ShadowRootInit): INode {
-    // only check shadowDOM availability once and then set a short-circuited function directly to save a few cycles
-    if (DOM.platformSupportsShadowDOM()) {
-      return (DOM.createElementViewHost = createElementViewHostWithShadowDOM)(<Element>node, options);
-    } else {
-      return (DOM.createElementViewHost = createElementViewHostWithNoShadowDOM)(<Element>node);
-    }
   },
 
   cloneNode(node: INode, deep?: boolean): INode {
     return (<Node>node).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
-  },
-
-  getCustomElementForNode(node: INode): ICustomElement | null {
-    return (<any>node).$component || null; //Set during component $hydrate
-  },
-
-  isUsingSlotEmulation(node: INode): boolean {
-    return (<any>node).$usingSlotEmulation === true;
   },
 
   isNodeInstance(potentialNode: any): potentialNode is INode {
@@ -220,7 +185,7 @@ export const DOM = {
     if ((<any>node).auInterpolationTarget === true) {
       return false;
     }
-    const text = (<any>node).textContent;
+    const text = (node as Node).textContent;
     const len = text.length;
     let i = 0;
     // for perf benchmark of this compared to the regex method: http://jsben.ch/p70q2 (also a general case against using regex)
@@ -310,10 +275,6 @@ export class TemplateView implements IView {
       i++;
     }
     this.childNodes = childNodesArr;
-  }
-
-  appendChild(child: Node) {
-    this.fragment.appendChild(child);
   }
 
   findTargets(): ArrayLike<Node> {

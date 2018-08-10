@@ -1,8 +1,9 @@
-import { IContainer, Immutable, ImmutableArray, IResolver, IServiceLocator, PLATFORM } from '@aurelia/kernel';
+import { IContainer, Immutable, ImmutableArray, IResolver, IServiceLocator, PLATFORM, IDisposable } from '@aurelia/kernel';
 import { DOM, INode } from '../dom';
 import { ICustomAttribute } from './custom-attribute';
 import { ICustomElement } from './custom-element';
 import { IHydrateElementInstruction, ITargetedInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from './instructions';
+import { IRenderLocation } from './render-location';
 import { IRenderSlot, RenderSlot } from './render-slot';
 import { IRenderingEngine } from './rendering-engine';
 import { IViewOwner } from './view';
@@ -14,12 +15,11 @@ export interface IRenderContext extends IServiceLocator {
   hydrateElement(owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>): void;
   hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
   beginComponentOperation(owner: IViewOwner, target: any, instruction: Immutable<ITargetedInstruction>, factory?: IVisualFactory, parts?: TemplatePartDefinitions, anchor?: INode, anchorIsContainer?: boolean): IComponentOperation;
-};
+}
 
-export interface IComponentOperation {
+export interface IComponentOperation extends IDisposable {
   tryConnectTemplateControllerToSlot(owner: ICustomAttribute): void;
   tryConnectElementToSlot(owner: ICustomElement): void;
-  dispose();
 }
 
 /*@internal*/
@@ -32,6 +32,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
   const factoryProvider = new ViewFactoryProvider(renderingEngine);
   const slotProvider = new RenderSlotProvider();
+  const renderLocationProvider = new InstanceProvider<IRenderLocation>();
   const renderer = renderingEngine.createRenderer(context);
 
   DOM.registerElementResolver(context, elementProvider);
@@ -40,6 +41,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   context.registerResolver(IRenderSlot, slotProvider);
   context.registerResolver(IViewOwner, ownerProvider);
   context.registerResolver(ITargetedInstruction, instructionProvider);
+  context.registerResolver(IRenderLocation, renderLocationProvider);
 
   if (dependencies) {
     context.register(...dependencies);
@@ -59,6 +61,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     }
 
     if (anchor) {
+      renderLocationProvider.prepare(anchor);
       slotProvider.prepare(anchor, anchorIsContainer);
     }
 
@@ -87,6 +90,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     ownerProvider.dispose();
     instructionProvider.dispose();
     elementProvider.dispose();
+    renderLocationProvider.dispose();
   };
 
   return context;

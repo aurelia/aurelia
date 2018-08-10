@@ -142,20 +142,6 @@ describe('DOM', () => {
     }
   });
 
-  describe('createAnchor', () => {
-    it('should call document.createComment(\'anchor\')', () => {
-      const spyCreateComment = document.createComment = spy();
-      DOM.createAnchor();
-      expect(spyCreateComment).to.have.been.calledWith('anchor');
-    });
-
-    it('should create an anchor comment', () => {
-      const el = DOM.createAnchor();
-      expect(el['textContent']).to.equal('anchor');
-      expect(el['nodeName']).to.equal('#comment');
-    });
-  });
-
   describe('createChildObserver (no slot emulation)', () => {
     it('should return a MutationObserver', () => {
       const cb = spy();
@@ -605,62 +591,57 @@ describe('DOM', () => {
     }
   });
 
-  describe('convertToAnchor', () => {
-    it('should replace the provided node with an anchor node', () => {
+  describe('convertToRenderLocation', () => {
+    function createTestNodes() {
       const node = document.createElement('div');
       const childNode = document.createElement('div');
       node.appendChild(childNode);
-      const anchor = DOM.convertToAnchor(childNode);
-      expect(anchor instanceof Comment).to.be.true;
-      expect(childNode === anchor).to.be.false;
+      return {node, childNode};
+    }
+
+    it('should replace the provided node with a comment node', () => {
+      const {node, childNode} = createTestNodes();
+      const location = DOM.convertToRenderLocation(childNode);
+      expect(location instanceof Comment).to.be.true;
+      expect(childNode === location).to.be.false;
       expect(node.childNodes.length).to.equal(1);
-      expect(node.firstChild === anchor).to.be.true;
+      expect(node.firstChild === location).to.be.true;
     });
 
-    it('should proxy the provided node via the anchor if proxy=true', () => {
-      const node = document.createElement('div');
-      const childNode = document.createElement('div');
-      node.appendChild(childNode);
-      const anchor: any = DOM.convertToAnchor(childNode, true);
-      expect(anchor.$proxyTarget === childNode).to.be.true;
+    it('should proxy the provided node via the comment if proxy=true', () => {
+      const {childNode} = createTestNodes();
+      const location: any = DOM.convertToRenderLocation(childNode, true);
+      expect(location.$proxyTarget === childNode).to.be.true;
     });
 
     it(`should pass "hasAttribute" through to the node if proxy=true`, () => {
-      const node = document.createElement('div');
-      const childNode = document.createElement('div');
+      const {childNode} = createTestNodes();
       childNode.setAttribute('foo', 'bar');
-      node.appendChild(childNode);
-      const anchor: any = DOM.convertToAnchor(childNode, true);
-      const actual = anchor.hasAttribute('foo');
+      const location: any = DOM.convertToRenderLocation(childNode, true);
+      const actual = location.hasAttribute('foo');
       expect(actual).to.be.true;
     });
 
     it(`should pass "getAttribute" through to the node if proxy=true`, () => {
-      const node = document.createElement('div');
-      const childNode = document.createElement('div');
+      const {childNode} = createTestNodes();
       childNode.setAttribute('foo', 'bar');
-      node.appendChild(childNode);
-      const anchor: any = DOM.convertToAnchor(childNode, true);
-      const actual = anchor.getAttribute('foo');
+      const location: any = DOM.convertToRenderLocation(childNode, true);
+      const actual = location.getAttribute('foo');
       expect(actual).to.equal('bar');
     });
 
     it(`should pass "setAttribute" through to the node if proxy=true`, () => {
-      const node = document.createElement('div');
-      const childNode = document.createElement('div');
-      node.appendChild(childNode);
-      const anchor: any = DOM.convertToAnchor(childNode, true);
-      anchor.setAttribute('foo', 'bar');
+      const {childNode} = createTestNodes();
+      const location: any = DOM.convertToRenderLocation(childNode, true);
+      location.setAttribute('foo', 'bar');
       const actual = childNode.getAttribute('foo');
       expect(actual).to.equal('bar');
     });
 
-    it('should NOT proxy the provided node via the anchor if proxy is not true', () => {
-      const node = document.createElement('div');
-      const childNode = document.createElement('div');
-      node.appendChild(childNode);
-      const anchor: any = DOM.convertToAnchor(childNode);
-      expect(anchor.$proxyTarget).to.be.undefined;
+    it('should NOT proxy the provided node via the comment if proxy is not true', () => {
+      const {childNode} = createTestNodes();
+      const location: any = DOM.convertToRenderLocation(childNode);
+      expect(location.$proxyTarget).to.be.undefined;
     });
   });
 

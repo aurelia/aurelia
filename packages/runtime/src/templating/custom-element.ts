@@ -1,7 +1,7 @@
 import { Constructable, IContainer, Immutable, PLATFORM, Registration, Writable, Reporter } from '@aurelia/kernel';
 import { BindingContext } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
-import { DOM, INode, IView } from '../dom';
+import { DOM, INode, IView, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
 import { AttachLifecycle, DetachLifecycle, IAttach, IBindSelf } from './lifecycle';
@@ -322,11 +322,11 @@ class ShadowDOMProjector implements IViewProjector {
 }
 
 class ContainerlessProjector implements IViewProjector {
-  private anchor: INode;
+  private location: IRenderLocation;
 
   constructor(customElement: ICustomElement, host: INode) {
-    this.anchor = DOM.convertToAnchor(host, true);
-    (this.anchor as any).$customElement = customElement;
+    this.location = DOM.convertToRenderLocation(host, true);
+    (this.location as any).$customElement = customElement;
   }
 
   get children(): ArrayLike<INode> {
@@ -346,7 +346,7 @@ class ContainerlessProjector implements IViewProjector {
   }
 
   public project(view: IView): void {
-    view.insertBefore(this.anchor);
+    view.insertBefore(this.location);
   }
 }
 

@@ -1,18 +1,18 @@
 import { DI } from '@aurelia/kernel';
-import { INode } from '../dom';
+import { INode, IRenderLocation } from '../dom';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
 import { IVisual, MotionDirection } from './visual';
 
 /*@internal*/
 export function appendVisualToContainer(visual: IVisual) {
   const parent = visual.parent as RenderSlotImplementation;
-  visual.$view.appendTo(parent.anchor);
+  visual.$view.appendTo(parent.location);
 }
 
 /*@internal*/
 export function addVisual(visual: IVisual) {
   const parent = visual.parent as RenderSlotImplementation;
-  visual.$view.insertBefore(parent.anchor);
+  visual.$view.insertBefore(parent.location);
 }
 
 /*@internal*/
@@ -99,8 +99,8 @@ export interface IRenderSlot extends IAttach {
 }
 
 export const RenderSlot = {
-  create(anchor: INode, anchorIsContainer: boolean): IRenderSlot {
-    return new RenderSlotImplementation(anchor, anchorIsContainer);
+  create(location: IRenderLocation, locationIsContainer: boolean): IRenderSlot {
+    return new RenderSlotImplementation(location, locationIsContainer);
   }
 };
 
@@ -113,11 +113,8 @@ export class RenderSlotImplementation implements IRenderSlot {
 
   public children: IVisual[] = [];
 
-  constructor(public anchor: INode, anchorIsContainer: boolean) {
-    (anchor as any).$slot = this; // Usage: Shadow DOM Emulation
-    (anchor as any).$isContentProjectionSource = false; // Usage: Shadow DOM Emulation
-
-    this.addVisualCore = anchorIsContainer ? appendVisualToContainer : addVisual;
+  constructor(public location: IRenderLocation, locationIsContainer: boolean) {
+    this.addVisualCore = locationIsContainer ? appendVisualToContainer : addVisual;
     this.insertVisualCore = insertVisual;
   }
 

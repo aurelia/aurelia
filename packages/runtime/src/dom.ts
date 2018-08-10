@@ -233,7 +233,7 @@ export const DOM = {
     }
 
     // let this throw if node does not have a parent
-    (<Node>node.parentNode).replaceChild(location, node);
+    (<Node>node.parentNode).replaceChild(location, <any>node);
 
     return location;
   },

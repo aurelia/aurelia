@@ -41,7 +41,7 @@ describe('The replaceable template controller', () => {
     const {replaceable, location} = hydrateReplaceable();
 
     expect(location.previousSibling)
-      .to.be.eq(replaceable['$child'].$view.lastChild);
+      .to.be.equal(replaceable['$child'].$view.lastChild);
   });
 
   it('enforces the bind lifecycle of its child instance', () => {

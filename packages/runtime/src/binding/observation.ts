@@ -137,7 +137,7 @@ export type Subscriber = ICollectionSubscriber | IPropertySubscriber;
 /**
  * Either a batched property or batched collection subscriber
  */
-export type BatchedSubscriber = IPropertySubscriber | IBatchedPropertySubscriber;
+export type BatchedSubscriber = IBatchedCollectionSubscriber | IBatchedPropertySubscriber;
 
 /**
  * Helper type that translates from mutationKind enum to the correct subscriber interface

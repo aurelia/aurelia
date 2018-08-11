@@ -1,16 +1,17 @@
 import { ICallable } from '@aurelia/kernel';
-import { IAccessor, ISubscribable } from '../binding/observation';
+import { IChangeSet } from '../binding/change-set';
+import { IAccessor, ISubscribable, MutationKind, IPropertySubscriber } from '../binding/observation';
 import { Observer } from '../binding/property-observation';
 import { SubscriberCollection } from '../binding/subscriber-collection';
-import { DOM, INode } from '../dom';
-import { ITaskQueue } from '../task-queue';
+import { INode } from '../dom';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
-import { BindableDefinitions } from './instructions';
 import {
+  CustomElementResource,
   ICustomElement,
-  ICustomElementType,
-  CustomElementResource
+  ICustomElementType
 } from './custom-element';
+import { BindableDefinitions } from './instructions';
+import { BindingFlags } from '../binding/binding-flags';
 
 export interface IRuntimeBehavior {
   hasCreated: boolean;
@@ -65,15 +66,15 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     return behavior;
   }
 
-  public applyToAttribute(taskQueue: ITaskQueue, instance: ICustomAttribute) {
-    this.applyTo(taskQueue, instance);
+  public applyToAttribute(changeSet: IChangeSet, instance: ICustomAttribute) {
+    this.applyTo(changeSet, instance);
     return this;
   }
 
-  public applyToElement(taskQueue: ITaskQueue, instance: ICustomElement) {
-    const observers = this.applyTo(taskQueue, instance);
+  public applyToElement(changeSet: IChangeSet, instance: ICustomElement) {
+    const observers = this.applyTo(changeSet, instance);
 
-    (observers as any).$children = new ChildrenObserver(taskQueue, instance);
+    (observers as any).$children = new ChildrenObserver(changeSet, instance);
 
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
@@ -85,7 +86,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     return this;
   }
 
-  private applyTo(taskQueue: ITaskQueue, instance: any) {
+  private applyTo(changeSet: IChangeSet, instance: any) {
     const observers = {};
     const finalBindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(finalBindables);
@@ -96,10 +97,10 @@ export class RuntimeBehavior implements IRuntimeBehavior {
       const changeHandler = observable.callback;
 
       if (changeHandler in instance) {
-        observers[name] = new Observer(taskQueue, instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
+        observers[name] = new Observer(changeSet, instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
         instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
       } else {
-        observers[name] = new Observer(taskQueue, instance[name]);
+        observers[name] = new Observer(changeSet, instance[name]);
       }
 
       createGetterSetter(instance, name);
@@ -125,12 +126,12 @@ function createGetterSetter(instance, name) {
 }
 
 /*@internal*/
-export class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
+export class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance> {
   private children: ICustomElement[] = null;
-  private queued = false;
   private observing = false;
+  public hasChanges = false;
 
-  constructor(private taskQueue: ITaskQueue, private customElement: ICustomElement) {
+  constructor(private changeSet: IChangeSet, private customElement: ICustomElement) {
     super();
   }
 
@@ -146,17 +147,17 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
 
   public setValue(newValue) {}
 
-  public call() {
-    this.queued = false;
+  public flushChanges() {
     this.callSubscribers(this.children);
+    this.hasChanges = false;
   }
 
-  public subscribe(context: string, callable: ICallable) {
-    this.addSubscriber(context, callable);
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    this.addSubscriber(subscriber, flags);
   }
 
-  public unsubscribe(context: string, callable: ICallable) {
-    this.removeSubscriber(context, callable);
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    this.removeSubscriber(subscriber, flags);
   }
 
   private onChildrenChanged(): void {
@@ -166,10 +167,8 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
       (this.customElement as any).$childrenChanged();
     }
 
-    if (!this.queued) {
-      this.queued = true;
-      this.taskQueue.queueMicroTask(this);
-    }
+    this.changeSet.add(this);
+    this.hasChanges = true;
   }
 }
 

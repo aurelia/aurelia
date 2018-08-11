@@ -1,8 +1,7 @@
 import { ITemplateSource, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime';
-import { Repeat } from '@aurelia/runtime';
+import { Repeat, IChangeSet } from '@aurelia/runtime';
 import { IContainer, DI } from '@aurelia/kernel';
-import { ITaskQueue } from '@aurelia/runtime';
 import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
 import { DOM, INode } from '@aurelia/runtime';
 import { createAureliaRepeaterConfig, IRepeaterFixture, padRight, createRepeater, assertDOMSynchronized, incrementItems, createRepeaterTemplateSource, createTextBindingTemplateSource } from '../../util';
@@ -13,7 +12,7 @@ import { expect } from 'chai';
 
 describe('ArrayRepeater - render html', () => {
   let container: IContainer;
-  let taskQueue: ITaskQueue;
+  let changeSet: IChangeSet;
   let au: Aurelia;
   let host: INode;
 
@@ -30,7 +29,7 @@ describe('ArrayRepeater - render html', () => {
 
   beforeEach(() => {
     container = DI.createContainer();
-    taskQueue = container.get(ITaskQueue);
+    changeSet = container.get(IChangeSet);
     au = new Aurelia(container);
     host = DOM.createElement('app');
     DOM.appendChild(document.body, host);
@@ -78,7 +77,7 @@ describe('ArrayRepeater - render html', () => {
                 component = createRepeater(fixture, initItems, templateSource);
                 au.app({ host, component });
                 au.start();
-                taskQueue.flushMicroTaskQueue();
+                changeSet.flushChanges();
                 assertDOMSynchronized(fixture, component[colName], <any>host);
 
                 let i = 0;
@@ -95,7 +94,7 @@ describe('ArrayRepeater - render html', () => {
                     case 'once':
                       // flushed once; verify everything is identical to the initial state except for the last iteration
                       if (i === times) {
-                        taskQueue.flushMicroTaskQueue();
+                        changeSet.flushChanges();
                         assertDOMSynchronized(fixture, component[colName], <any>host);
                       } else {
                         assertDOMSynchronized(fixture, initItemsCopy, <any>host);
@@ -103,7 +102,7 @@ describe('ArrayRepeater - render html', () => {
                       break;
                     case 'every':
                       // flushed every; verify changes propagate to the DOM after each mutation
-                      taskQueue.flushMicroTaskQueue();
+                      changeSet.flushChanges();
                       assertDOMSynchronized(fixture, component[colName], <any>host);
                       break;
                   }
@@ -124,7 +123,7 @@ describe('ArrayRepeater - render html', () => {
               component = createRepeater(fixture, initItems, templateSource);
               au.app({ host, component });
               au.start();
-              taskQueue.flushMicroTaskQueue();
+              changeSet.flushChanges();
               assertDOMSynchronized(fixture, component[colName], <any>host);
 
               let i = 0;
@@ -139,7 +138,7 @@ describe('ArrayRepeater - render html', () => {
                   case 'once':
                     // flushed once; verify everything is identical to the initial state except for the last iteration
                     if (i === times) {
-                      taskQueue.flushMicroTaskQueue();
+                      changeSet.flushChanges();
                       assertDOMSynchronized(fixture, component[colName], <any>host);
                     } else {
                       assertDOMSynchronized(fixture, initItemsCopy, <any>host);
@@ -147,7 +146,7 @@ describe('ArrayRepeater - render html', () => {
                     break;
                   case 'every':
                     // flushed every; verify changes propagate to the DOM after each mutation
-                    taskQueue.flushMicroTaskQueue();
+                    changeSet.flushChanges();
                     assertDOMSynchronized(fixture, component[colName], <any>host);
                     break;
                 }
@@ -182,7 +181,7 @@ describe('ArrayRepeater - render html', () => {
                   component = createRepeater(fixture, initItems, templateSource);
                   au.app({ host, component });
                   au.start();
-                  taskQueue.flushMicroTaskQueue();
+                  changeSet.flushChanges();
                   assertDOMSynchronized(fixture, component[colName], <any>host);
                   let i = 0;
                   while (i < times) {
@@ -198,7 +197,7 @@ describe('ArrayRepeater - render html', () => {
                       case 'once':
                         // flushed once; verify everything is identical to the initial state except for the last iteration
                         if (i === times) {
-                          taskQueue.flushMicroTaskQueue();
+                          changeSet.flushChanges();
                           assertDOMSynchronized(fixture, component[colName], <any>host);
                         } else {
                           assertDOMSynchronized(fixture, initItemsCopy, <any>host);
@@ -206,7 +205,7 @@ describe('ArrayRepeater - render html', () => {
                         break;
                       case 'every':
                         // flushed every; verify changes propagate to the DOM after each mutation
-                        taskQueue.flushMicroTaskQueue();
+                        changeSet.flushChanges();
                         assertDOMSynchronized(fixture, component[colName], <any>host);
                         break;
                     }
@@ -233,7 +232,7 @@ describe('ArrayRepeater - render html', () => {
               component = createRepeater(fixture, initItems, templateSource);
               au.app({ host, component });
               au.start();
-              taskQueue.flushMicroTaskQueue();
+              changeSet.flushChanges();
               assertDOMSynchronized(fixture, component[colName], <any>host);
               let i = 0;
               while (i < times) {
@@ -250,7 +249,7 @@ describe('ArrayRepeater - render html', () => {
                   case 'once':
                     // flushed once; verify everything is identical to the initial state except for the last iteration
                     if (i === times) {
-                      taskQueue.flushMicroTaskQueue();
+                      changeSet.flushChanges();
                       assertDOMSynchronized(fixture, component[colName], <any>host);
                     } else {
                       assertDOMSynchronized(fixture, initItemsCopy, <any>host);
@@ -258,7 +257,7 @@ describe('ArrayRepeater - render html', () => {
                     break;
                   case 'every':
                     // flushed every; verify changes propagate to the DOM after each mutation
-                    taskQueue.flushMicroTaskQueue();
+                    changeSet.flushChanges();
                     assertDOMSynchronized(fixture, component[colName], <any>host);
                     break;
                 }
@@ -278,7 +277,7 @@ describe('ArrayRepeater - render html', () => {
               component = createRepeater(fixture, initItems, templateSource);
               au.app({ host, component });
               au.start();
-              taskQueue.flushMicroTaskQueue();
+              changeSet.flushChanges();
               assertDOMSynchronized(fixture, component[colName], <any>host);
 
               let i = 0;
@@ -293,7 +292,7 @@ describe('ArrayRepeater - render html', () => {
                   case 'once':
                     // flushed once; verify everything is identical to the initial state except for the last iteration
                     if (i === times) {
-                      taskQueue.flushMicroTaskQueue();
+                      changeSet.flushChanges();
                       assertDOMSynchronized(fixture, component[colName], <any>host);
                     } else {
                       assertDOMSynchronized(fixture, initItemsCopy, <any>host);
@@ -301,7 +300,7 @@ describe('ArrayRepeater - render html', () => {
                     break;
                   case 'every':
                     // flushed every; verify changes propagate to the DOM after each mutation
-                    taskQueue.flushMicroTaskQueue();
+                    changeSet.flushChanges();
                     assertDOMSynchronized(fixture, component[colName], <any>host);
                     break;
                 }
@@ -424,7 +423,7 @@ describe('ArrayRepeater - render html', () => {
 
     au.app({ host, component });
     au.start();
-    taskQueue.flushMicroTaskQueue();
+    changeSet.flushChanges();
 
     const expectedText = initItems.map(i => `${i.id}${i.innerTodos.length}${i.innerTodos.map(ii => `${ii.innerId}${ii.innerInnerTodos.length}${ii.innerInnerTodos.map(iii => `${iii.innerInnerId}`).join('')}`).join(' ')}`).join(' ');
     expect(host['innerText']).to.equal(expectedText);

@@ -1,9 +1,11 @@
 import { ICallable } from '@aurelia/kernel';
 import { DOM, INodeObserver } from '../dom';
-import { ITaskQueue } from '../task-queue';
 import { IEventSubscriber } from './event-manager';
+import { IChangeTracker, IPropertySubscriber } from './observation';
+import { IChangeSet } from './change-set';
 import { IObserverLocator } from './observer-locator';
 import { SubscriberCollection } from './subscriber-collection';
+import { BindingFlags } from './binding-flags';
 
 const selectArrayContext = 'SelectValueObserver:array';
 const childObserverOptions = {
@@ -12,7 +14,7 @@ const childObserverOptions = {
   characterData: true
 };
 
-export class SelectValueObserver extends SubscriberCollection {
+export class SelectValueObserver extends SubscriberCollection implements IChangeTracker {
   private value: any;
   private oldValue: any;
   private arrayObserver: any;
@@ -22,7 +24,7 @@ export class SelectValueObserver extends SubscriberCollection {
   constructor(
     private node: HTMLSelectElement,
     public handler: IEventSubscriber,
-    private taskQueue: ITaskQueue,
+    private changeSet: IChangeSet,
     private observerLocator: IObserverLocator
   ) {
     super();
@@ -64,11 +66,11 @@ export class SelectValueObserver extends SubscriberCollection {
     // queue up an initial sync after the bindings have been evaluated.
     if (!this.initialSync) {
       this.initialSync = true;
-      this.taskQueue.queueMicroTask(this);
+      this.changeSet.add(this);
     }
   }
 
-  public call(context: string, splices: any[]) {
+  public flushChanges(): void {
     // called by task queue and array observer.
     this.synchronizeOptions();
   }
@@ -162,15 +164,16 @@ export class SelectValueObserver extends SubscriberCollection {
     this.synchronizeValue();
   }
 
-  public subscribe(context: string, callable: ICallable) {
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
     if (!this.hasSubscribers()) {
+      this.oldValue = this.getValue();
       this.handler.subscribe(this.node, this);
     }
-    this.addSubscriber(context, callable);
+    this.addSubscriber(subscriber, flags);
   }
 
-  public unsubscribe(context: string, callable: ICallable) {
-    if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }

@@ -1,9 +1,10 @@
 import { ICallable, Reporter } from '@aurelia/kernel';
-import { ITaskQueue } from '../task-queue';
+import { IChangeSet } from './change-set';
 import { IDirtyChecker } from './dirty-checker';
-import { IAccessor, ISubscribable } from './observation';
+import { IAccessor, IChangeTracker, ISubscribable, MutationKind, IPropertySubscriber } from './observation';
 import { IObserverLocator } from './observer-locator';
 import { SubscriberCollection } from './subscriber-collection';
+import { BindingFlags } from './binding-flags';
 
 export interface IComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -25,7 +26,7 @@ const computedContext = 'computed-observer';
 const computedOverrideDefaults: IComputedOverrides = { static: false, volatile: false };
 
 /* @internal */
-export function createComputedObserver(observerLocator: IObserverLocator, dirtyChecker: IDirtyChecker, taskQueue: ITaskQueue, instance: any, propertyName: string, descriptor: PropertyDescriptor) {
+export function createComputedObserver(observerLocator: IObserverLocator, dirtyChecker: IDirtyChecker, changeSet: IChangeSet, instance: any, propertyName: string, descriptor: PropertyDescriptor) {
   if (descriptor.configurable === false) {
     return dirtyChecker.createProperty(instance, propertyName);
   }
@@ -39,28 +40,27 @@ export function createComputedObserver(observerLocator: IObserverLocator, dirtyC
       if (overrides.volatile) {
         return noProxy
           ? dirtyChecker.createProperty(instance, propertyName)
-          : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue);
+          : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, changeSet);
       }
 
-      return new CustomSetterObserver(instance, propertyName, descriptor, taskQueue);
+      return new CustomSetterObserver(instance, propertyName, descriptor, changeSet);
     }
 
     return noProxy
       ? dirtyChecker.createProperty(instance, propertyName)
-      : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, taskQueue);
+      : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, changeSet);
   }
 
   throw Reporter.error(18, propertyName);
 }
 
 // Used when the getter is dependent solely on changes that happen within the setter.
-export class CustomSetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
-  private queued = false;
+export class CustomSetterObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker {
   private observing = false;
   private currentValue: any;
   private oldValue: any;
 
-  constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private taskQueue: ITaskQueue) {
+  constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private changeSet: IChangeSet) {
     super();
   }
 
@@ -72,24 +72,22 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
     this.instance[this.propertyName] = newValue;
   }
 
-  public call() {
+  public flushChanges() {
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
 
-    this.queued = false;
     this.callSubscribers(newValue, oldValue);
   }
 
-  public subscribe(context: string, callable: ICallable) {
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
     if (!this.observing) {
       this.convertProperty();
     }
-
-    this.addSubscriber(context, callable);
+    this.addSubscriber(subscriber, flags);
   }
 
-  public unsubscribe(context: string, callable: ICallable) {
-    this.removeSubscriber(context, callable);
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    this.removeSubscriber(subscriber, flags);
   }
 
   public convertProperty() {
@@ -106,11 +104,8 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
         const oldValue = this.currentValue;
 
         if (oldValue !== newValue) {
-          if (!that.queued) {
-            that.oldValue = oldValue;
-            that.queued = true;
-            that.taskQueue.queueMicroTask(that);
-          }
+          that.oldValue = oldValue;
+          that.changeSet.add(that);
 
           that.currentValue = newValue;
         }
@@ -121,10 +116,11 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
 
 // Used when there is no setter, and the getter is dependent on other properties of the object;
 // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
-class GetterObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
+/*@internal*/
+export class GetterObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker {
   private controller: GetterController;
 
-  constructor(private overrides: IComputedOverrides, private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private taskQueue: ITaskQueue) {
+  constructor(private overrides: IComputedOverrides, private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private changeSet: IChangeSet) {
     super();
 
     this.controller = new GetterController(
@@ -134,7 +130,7 @@ class GetterObserver extends SubscriberCollection implements IAccessor, ISubscri
       descriptor,
       this,
       observerLocator,
-      taskQueue
+      changeSet
     );
   }
 
@@ -144,7 +140,7 @@ class GetterObserver extends SubscriberCollection implements IAccessor, ISubscri
 
   public setValue(newValue) { }
 
-  public call() {
+  public flushChanges() {
     const oldValue = this.controller.value;
     const newValue = this.controller.getValueAndCollectDependencies();
 
@@ -153,20 +149,20 @@ class GetterObserver extends SubscriberCollection implements IAccessor, ISubscri
     }
   }
 
-  public subscribe(context: string, callable: ICallable) {
-    this.addSubscriber(context, callable);
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    this.addSubscriber(subscriber, flags);
     this.controller.onSubscriberAdded();
   }
 
-  public unsubscribe(context: string, callable: ICallable) {
-    this.removeSubscriber(context, callable);
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    this.removeSubscriber(subscriber, flags);
     this.controller.onSubscriberRemoved();
   }
 }
 
-class GetterController {
-  private queued = false;
-  private dependencies: ISubscribable[] = [];
+/*@internal*/
+export class GetterController {
+  private dependencies: ISubscribable<MutationKind.instance>[] = [];
   private subscriberCount = 0;
 
   public value;
@@ -179,7 +175,7 @@ class GetterController {
     descriptor: PropertyDescriptor,
     private owner: GetterObserver,
     observerLocator: IObserverLocator,
-    private taskQueue: ITaskQueue
+    private changeSet: IChangeSet
   ) {
     const proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
     const getter = descriptor.get;
@@ -196,7 +192,7 @@ class GetterController {
     });
   }
 
-  public addDependency(subscribable: ISubscribable) {
+  public addDependency(subscribable: ISubscribable<MutationKind.instance>) {
     if (this.dependencies.includes(subscribable)) {
       return;
     }
@@ -215,8 +211,6 @@ class GetterController {
   }
 
   public getValueAndCollectDependencies(requireCollect = false) {
-    this.queued = false;
-
     const dynamicDependencies = !this.overrides.static || requireCollect;
 
     if (dynamicDependencies) {
@@ -228,7 +222,7 @@ class GetterController {
 
     if (dynamicDependencies) {
       this.isCollecting = false;
-      this.dependencies.forEach(x => x.subscribe(computedContext, this));
+      this.dependencies.forEach(x => x.subscribe(this, BindingFlags.computedContext));
     }
 
     return this.value;
@@ -243,15 +237,12 @@ class GetterController {
   }
 
   private unsubscribeAllDependencies() {
-    this.dependencies.forEach(x => x.unsubscribe(computedContext, this));
+    this.dependencies.forEach(x => x.unsubscribe(this, BindingFlags.computedContext));
     this.dependencies.length = 0;
   }
 
-  public call() {
-    if (!this.queued) {
-      this.queued = true;
-      this.taskQueue.queueMicroTask(this.owner);
-    }
+  public handleChange() {
+    this.changeSet.add(this.owner);
   }
 }
 

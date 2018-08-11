@@ -1,6 +1,7 @@
 import { BindingFlags } from './binding-flags';
 import { collectionObserver } from './collection-observer';
 import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray } from './observation';
+import { IChangeSet } from './change-set';
 
 const proto = Array.prototype;
 export const nativePush = proto.push; // TODO: probably want to make these internal again
@@ -314,6 +315,18 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
 
 @collectionObserver(CollectionKind.array)
 export class ArrayObserver implements ICollectionObserver<CollectionKind.array> {
+  public resetIndexMap: () => void;
+  public notify: (origin: string, args?: IArguments, flags?: BindingFlags) => void;
+  public notifyBatched: (indexMap: IndexMap, flags?: BindingFlags) => void;
+  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
+  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
+  public subscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
+  public flushChanges: (flags?: BindingFlags) => void;
+  public dispose: () => void;
+
+  /*@internal*/
+  public changeSet: IChangeSet;
   public collection: IObservedArray;
   public indexMap: IndexMap;
   public hasChanges: boolean;
@@ -326,7 +339,8 @@ export class ArrayObserver implements ICollectionObserver<CollectionKind.array> 
   public subscriberFlags: Array<BindingFlags>;
   public batchedSubscriberFlags: Array<BindingFlags>;
 
-  constructor(array: Array<any> & { $observer?: ICollectionObserver<CollectionKind.array> }) {
+  constructor(changeSet: IChangeSet, array: Array<any> & { $observer?: ICollectionObserver<CollectionKind.array> }) {
+    this.changeSet = changeSet;
     array.$observer = this;
     this.collection = <IObservedArray>array;
     this.resetIndexMap();
@@ -335,18 +349,8 @@ export class ArrayObserver implements ICollectionObserver<CollectionKind.array> 
     this.subscriberFlags = new Array();
     this.batchedSubscriberFlags = new Array();
   }
-
-  public resetIndexMap: () => void;
-  public notify: (origin: string, args?: IArguments, flags?: BindingFlags) => void;
-  public notifyBatched: (indexMap: IndexMap, flags?: BindingFlags) => void;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
-  public subscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
-  public flushChanges: (flags?: BindingFlags) => void;
-  public dispose: () => void;
 }
 
-export function getArrayObserver(array: any): ArrayObserver {
-  return array.$observer || new ArrayObserver(array);
+export function getArrayObserver(changeSet: IChangeSet, array: any): ArrayObserver {
+  return array.$observer || new ArrayObserver(changeSet, array);
 }

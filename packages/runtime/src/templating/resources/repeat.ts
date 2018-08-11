@@ -5,12 +5,12 @@ import { Binding } from '../../binding/binding';
 import { IOverrideContext, IScope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
 import { BindingMode } from '../../binding/binding-mode';
+import { IChangeSet } from '../../binding/change-set';
 import { getMapObserver } from '../../binding/map-observer';
 import { CollectionKind, CollectionObserver, ObservedCollection } from '../../binding/observation';
 import { getSetObserver } from '../../binding/set-observer';
 import { INode } from '../../dom';
 import { IResourceKind, IResourceType } from '../../resource';
-import { ITaskQueue } from '../../task-queue';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeSource } from '../custom-attribute';
 import { AttachLifecycle, DetachLifecycle } from '../lifecycle';
 import { IRenderSlot } from '../render-slot';
@@ -18,21 +18,21 @@ import { IRenderingEngine } from '../rendering-engine';
 import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
 import { IViewOwner } from '../view';
 import { IVisual, IVisualFactory } from '../visual';
-import { IBatchedCollectionSubscriber, ICollectionSubscriber } from './../../binding/observation';
+import { IBatchedCollectionSubscriber } from './../../binding/observation';
 
 
-export function getCollectionObserver(collection: any): CollectionObserver {
+export function getCollectionObserver(changeSet: IChangeSet, collection: any): CollectionObserver {
   if (Array.isArray(collection)) {
-    return <any>getArrayObserver(collection);
+    return <any>getArrayObserver(changeSet, collection);
   } else if (collection instanceof Map) {
-    return <any>getMapObserver(collection);
+    return <any>getMapObserver(changeSet, collection);
   } else if (collection instanceof Set) {
-    return <any>getSetObserver(collection);
+    return <any>getSetObserver(changeSet, collection);
   }
 }
 
-@inject(ITaskQueue, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
-export class Repeat<T extends ObservedCollection> implements ICustomAttribute, ICollectionSubscriber, IBatchedCollectionSubscriber {
+@inject(IChangeSet, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
+export class Repeat<T extends ObservedCollection> implements ICustomAttribute, IBatchedCollectionSubscriber {
   // note: everything declared from #region to #endregion is more-or-less copy-paste from what the
   // @templateController decorator would apply to this class, but we have more information here than the decorator
   // does, so we can take a few shortcuts for slightly better perf (and one can argue that this makes the repeater
@@ -82,7 +82,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       }
       this.$unbind(flags);
     }
-    this.$scope = scope
+    this.$scope = scope;
     this.$isBound = true;
     this.bound(flags, scope);
   }
@@ -128,16 +128,16 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     if (this.isBound) {
       // only re-subscribe and queue if we're bound; otherwise bound() below will pick up hasPendingInstanceMutation
       // and act accordingly
-      this.observer.unsubscribe(this);
       this.observer.unsubscribeBatched(this);
       if (newValue !== null && newValue !== undefined) {
-        this.observer = getCollectionObserver(newValue);
-        this.observer.subscribe(this);
+        this.observer = getCollectionObserver(this.changeSet, newValue);
         this.observer.subscribeBatched(this);
       }
-      this.tq.queueMicroTask(this);
+      this.hasPendingInstanceMutation = true;
+      this.changeSet.add(this);
+    } else {
+      this.hasPendingInstanceMutation = true;
     }
-    this.hasPendingInstanceMutation = true;
   }
   public get items(): T & { $observer: CollectionObserver } {
     return this._items;
@@ -154,7 +154,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   public hasPendingInstanceMutation: boolean;
   public sourceExpression: IExpression;
 
-  constructor(public tq: ITaskQueue, public slot: IRenderSlot, public owner: IViewOwner, public factory: IVisualFactory, public container: IContainer) {
+  constructor(public changeSet: IChangeSet, public slot: IRenderSlot, public owner: IViewOwner, public factory: IVisualFactory, public container: IContainer) {
     this.scope = null;
     this.observer = null;
     this.isQueued = false;
@@ -162,25 +162,9 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     this.hasPendingInstanceMutation = false;
   }
 
-  /**
-   * Process any pending array or instance mutations
-   * - called by the TaskQueue
-   */
-  public call(): void {
-    this.isQueued = false;
-    if (this.hasPendingInstanceMutation) {
-      // if a new array instance is assigned, disregard the observer state and start from scratch
-      if (this.observer.hasChanges) {
-        this.observer.resetIndexMap();
-        this.observer.hasChanges = false;
-      }
-      this.handleBatchedItemsOrInstanceMutation();
-      this._oldItems = Array.isArray(this._items) ? this._items.slice() : Array.from(this._items);
-    } else {
-      this.observer.flushChanges();
-    }
+  public flushChanges(): void {
+    this.handleBatchedChange();
   }
-
   /**
    * Initialize array observation and process any pending instance mutation (if this is a re-bind)
    * - called by $bind
@@ -188,8 +172,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   public bound(flags: BindingFlags, scope: IScope): void {
     this.sourceExpression = <any>(<Binding[]>this.owner.$bindable).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
     this.scope = scope;
-    this.observer = getCollectionObserver(this._items);
-    this.observer.subscribe(this);
+    this.observer = getCollectionObserver(this.changeSet, this._items);
     this.observer.subscribeBatched(this);
     this.isBound = true;
     if (this.hasPendingInstanceMutation) {
@@ -203,7 +186,6 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
    */
   public unbound(flags: BindingFlags): void {
     this.isBound = false;
-    this.observer.unsubscribe(this);
     this.observer.unsubscribeBatched(this);
     this.observer = this._items = null;
     // if this is a re-bind triggered by some ancestor repeater, then keep the visuals so we can reuse them
@@ -213,19 +195,18 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     }
   }
 
-  /**
-   * Queue this.call() in the TaskQueue
-   * - called automatically by the ArrayObserver on any array mutation
-   */
-  public handleChange(): void {
-    if (this.isQueued === false) {
-      this.isQueued = true;
-      this.tq.queueMicroTask(this);
+  public handleBatchedChange(indexMap?: Array<number>): void {
+    if (this.hasPendingInstanceMutation) {
+      // if a new array instance is assigned, disregard the observer state and start from scratch
+      if (this.observer.hasChanges) {
+        this.observer.resetIndexMap();
+        this.observer.hasChanges = false;
+      }
+      this.handleBatchedItemsOrInstanceMutation();
+      this._oldItems = Array.isArray(this._items) ? this._items.slice() : Array.from(this._items);
+    } else {
+      this.handleBatchedItemsOrInstanceMutation(indexMap);
     }
-  }
-
-  public handleBatchedChange(indexMap: Array<number>): void {
-    this.handleBatchedItemsOrInstanceMutation(indexMap);
   }
 
   // if the indexMap === undefined, it is an instance mutation, otherwise it's an items mutation

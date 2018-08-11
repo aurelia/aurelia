@@ -10,6 +10,7 @@ function notify(this: CollectionObserver, origin: string, args?: IArguments, fla
     subscribers[i].handleChange(origin, args, flags);
     i++;
   }
+  this.changeSet.add(this);
 }
 
 function subscribe(this: CollectionObserver, subscriber: ICollectionSubscriber, flags?: BindingFlags): void {

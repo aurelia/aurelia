@@ -3,6 +3,7 @@ import { SetObserver, enableSetObservation, disableSetObservation, nativeSetDele
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
 import { IndexMap } from '@aurelia/runtime';
+import { ChangeSet } from '../../../src/binding/change-set';
 
 function assetSetEqual(actual: Set<any>, expected: Set<any>): void {
   const len = actual.size;
@@ -45,7 +46,7 @@ describe(`SetObserver`, () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
-      sut = new SetObserver(set);
+      sut = new SetObserver(new ChangeSet(), set);
       sut.subscribe(s);
       set.add(1);
       expect(s.handleChange).to.have.been.calledWith('add', match(x => x[0] === 1));
@@ -56,7 +57,7 @@ describe(`SetObserver`, () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
-      sut = new SetObserver(set);
+      sut = new SetObserver(new ChangeSet(), set);
       sut.subscribe(s);
       sut.unsubscribe(s);
       set.add(1);
@@ -68,7 +69,7 @@ describe(`SetObserver`, () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
-      sut = new SetObserver(set);
+      sut = new SetObserver(new ChangeSet(), set);
       sut.subscribeBatched(s);
       set.add(1);
       const indexMap: IndexMap = sut.indexMap.slice();
@@ -82,7 +83,7 @@ describe(`SetObserver`, () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
-      sut = new SetObserver(set);
+      sut = new SetObserver(new ChangeSet(), set);
       sut.subscribeBatched(s);
       sut.unsubscribeBatched(s);
       set.add(1);
@@ -95,7 +96,7 @@ describe(`SetObserver`, () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
-      sut = new SetObserver(set);
+      sut = new SetObserver(new ChangeSet(), set);
       sut.subscribeBatched(s);
       sut.flushChanges();
       expect(s.handleBatchedChange).not.to.have.been.called;
@@ -113,7 +114,7 @@ describe(`SetObserver`, () => {
             const set = new Set(Array.from(init));
             const expectedSet = new Set(Array.from(init));
             const newItems = items && items.slice();
-            sut = new SetObserver(set);
+            sut = new SetObserver(new ChangeSet(), set);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -141,7 +142,7 @@ describe(`SetObserver`, () => {
             const set = new Set(Array.from(init));
             const copy = new Set(Array.from(init));
             const newItems = items && items.slice();
-            sut = new SetObserver(set);
+            sut = new SetObserver(new ChangeSet(), set);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -174,7 +175,7 @@ describe(`SetObserver`, () => {
             const set = new Set(Array.from(init));
             const expectedSet = new Set(Array.from(init));
             const newItems = items && items.slice();
-            sut = new SetObserver(set);
+            sut = new SetObserver(new ChangeSet(), set);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -202,7 +203,7 @@ describe(`SetObserver`, () => {
             const set = new Set(Array.from(init));
             const copy = new Set(Array.from(init));
             const newItems = items && items.slice();
-            sut = new SetObserver(set);
+            sut = new SetObserver(new ChangeSet(), set);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -232,7 +233,7 @@ describe(`SetObserver`, () => {
         it(`size=${padRight(init.size, 2)} repeat=${repeat} - behaves as native`, () => {
           const set = new Set(Array.from(init));
           const expectedSet = new Set(Array.from(init));
-          sut = new SetObserver(set);
+          sut = new SetObserver(new ChangeSet(), set);
           let i = 0;
           while (i < repeat) {
             const expectedResult = expectedSet.clear();
@@ -246,7 +247,7 @@ describe(`SetObserver`, () => {
         it(`size=${padRight(init.size, 2)} repeat=${repeat} - tracks changes`, () => {
           const set = new Set(Array.from(init));
           const copy = new Set(Array.from(init));
-          sut = new SetObserver(set);
+          sut = new SetObserver(new ChangeSet(), set);
           let i = 0;
           while (i < repeat) {
             set.clear();

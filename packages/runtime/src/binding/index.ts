@@ -8,6 +8,7 @@ export * from './binding-flags';
 export * from './binding-mode';
 export * from './binding';
 export * from './call';
+export * from './change-set';
 export * from './checked-observer';
 export * from './class-observer';
 export * from './collection-observer';

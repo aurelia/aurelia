@@ -38,3 +38,5 @@ export type Writable<T> = {
 };
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
+export type Primitive = undefined | null | number | boolean | symbol | string;

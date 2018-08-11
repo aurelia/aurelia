@@ -1,4 +1,11 @@
-import { Constructable,  IContainer, Omit, PLATFORM, Registration, Writable } from '@aurelia/kernel';
+import {
+  Constructable,
+  IContainer,
+  Omit,
+  PLATFORM,
+  Registration,
+  Writable
+} from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { BindingMode } from '../binding/binding-mode';
@@ -7,7 +14,6 @@ import { INode } from '../dom';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
-import { IRenderSlot } from './render-slot';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
@@ -25,14 +31,14 @@ export interface ICustomAttribute extends IBindScope, IAttach {
   readonly $isBound: boolean;
   readonly $isAttached: boolean;
   readonly $scope: IScope;
-  $hydrate(renderingEngine: IRenderingEngine);
+  $hydrate(renderingEngine: IRenderingEngine): void;
 }
 
 /*@internal*/
 export interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
-  $slot: IRenderSlot;
+  $child: IAttach;
 }
 
 
@@ -60,7 +66,7 @@ export function templateController(nameOrSource: string | Omit<ICustomAttributeS
         isTemplateController: true
       };
     } else {
-      source = Object.assign({ isTemplateController: true }, nameOrSource);
+      source = { isTemplateController: true, ...nameOrSource };
     }
 
     return CustomAttributeResource.define(source, target);
@@ -70,7 +76,7 @@ export function templateController(nameOrSource: string | Omit<ICustomAttributeS
 export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICustomAttributeType> = {
   name: 'custom-attribute',
 
-  key(name: string) {
+  key(name: string): string {
     return `${this.name}:${name}`;
   },
 
@@ -80,8 +86,11 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
 
   define<T extends Constructable>(nameOrSource: string | ICustomAttributeSource, ctor: T): T & ICustomAttributeType {
     const Type: T & ICustomAttributeType = ctor as any;
-    const description = createCustomAttributeDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: ICustomAttribute = Type.prototype;
+    const description = createCustomAttributeDescription(
+      typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource,
+      Type
+    );
 
     (Type as Writable<ICustomAttributeType>).kind = CustomAttributeResource;
     (Type as Writable<ICustomAttributeType>).description = description;
@@ -97,12 +106,12 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
     };
 
-    proto.$hydrate = function(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine) {
+    proto.$hydrate = function(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine): void {
       this.$changeCallbacks = [];
       this.$isAttached = false;
       this.$isBound = false;
       this.$scope = null;
-      this.$slot = null;
+      this.$child = this.$child || null;
       this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
 
       if (this.$behavior.hasCreated) {
@@ -110,7 +119,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
     };
 
-    proto.$bind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope) {
+    proto.$bind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope): void {
       if (this.$isBound) {
         if (this.$scope === scope) {
           return;
@@ -133,7 +142,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
     };
 
-    proto.$attach = function(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle){
+    proto.$attach = function(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle): void {
       if (this.$isAttached) {
         return;
       }
@@ -142,8 +151,8 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
         (this as any).attaching(encapsulationSource);
       }
 
-      if (this.$slot !== null) {
-        this.$slot.$attach(encapsulationSource, lifecycle);
+      if (this.$child !== null) {
+        this.$child.$attach(encapsulationSource, lifecycle);
       }
 
       if (this.$behavior.hasAttached) {
@@ -153,14 +162,14 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       this.$isAttached = true;
     };
 
-    proto.$detach = function(this: IInternalCustomAttributeImplementation, lifecycle: DetachLifecycle) {
+    proto.$detach = function(this: IInternalCustomAttributeImplementation, lifecycle: DetachLifecycle): void {
       if (this.$isAttached) {
         if (this.$behavior.hasDetaching) {
           (this as any).detaching();
         }
 
-        if (this.$slot !== null) {
-          this.$slot.$detach(lifecycle);
+        if (this.$child !== null) {
+          this.$child.$detach(lifecycle);
         }
 
         if (this.$behavior.hasDetached) {
@@ -171,7 +180,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
     };
 
-    proto.$unbind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags) {
+    proto.$unbind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
       if (this.$isBound) {
         if (this.$behavior.hasUnbound) {
           (this as any).unbound();

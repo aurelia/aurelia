@@ -1,5 +1,5 @@
-import { IContainer, Immutable, ImmutableArray, IResolver, IServiceLocator, PLATFORM } from '@aurelia/kernel';
-import { DOM, INode } from '../dom';
+import { IContainer, Immutable, ImmutableArray, IResolver, IServiceLocator, PLATFORM, IDisposable } from '@aurelia/kernel';
+import { DOM, INode, IRenderLocation } from '../dom';
 import { ICustomAttribute } from './custom-attribute';
 import { ICustomElement } from './custom-element';
 import { IHydrateElementInstruction, ITargetedInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from './instructions';
@@ -13,13 +13,12 @@ export interface IRenderContext extends IServiceLocator {
   render(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions);
   hydrateElement(owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>): void;
   hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
-  beginComponentOperation(owner: IViewOwner, target: any, instruction: Immutable<ITargetedInstruction>, factory?: IVisualFactory, parts?: TemplatePartDefinitions, anchor?: INode, anchorIsContainer?: boolean): IComponentOperation;
-};
+  beginComponentOperation(owner: IViewOwner, target: any, instruction: Immutable<ITargetedInstruction>, factory?: IVisualFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IComponentOperation;
+}
 
-export interface IComponentOperation {
+export interface IComponentOperation extends IDisposable {
   tryConnectTemplateControllerToSlot(owner: ICustomAttribute): void;
   tryConnectElementToSlot(owner: ICustomElement): void;
-  dispose();
 }
 
 /*@internal*/
@@ -32,6 +31,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
   const factoryProvider = new ViewFactoryProvider(renderingEngine);
   const slotProvider = new RenderSlotProvider();
+  const renderLocationProvider = new InstanceProvider<IRenderLocation>();
   const renderer = renderingEngine.createRenderer(context);
 
   DOM.registerElementResolver(context, elementProvider);
@@ -40,6 +40,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   context.registerResolver(IRenderSlot, slotProvider);
   context.registerResolver(IViewOwner, ownerProvider);
   context.registerResolver(ITargetedInstruction, instructionProvider);
+  context.registerResolver(IRenderLocation, renderLocationProvider);
 
   if (dependencies) {
     context.register(...dependencies);
@@ -49,7 +50,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     renderer.render(owner, targets, templateDefinition, host, parts)
   };
 
-  context.beginComponentOperation = function(owner: IViewOwner, target: any, instruction: ITargetedInstruction, factory?: IVisualFactory, parts?: TemplatePartDefinitions, anchor?: INode, anchorIsContainer?: boolean) {
+  context.beginComponentOperation = function(owner: IViewOwner, target: any, instruction: ITargetedInstruction, factory?: IVisualFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean) {
     ownerProvider.prepare(owner);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);
@@ -58,8 +59,9 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
       factoryProvider.prepare(factory, parts);
     }
 
-    if (anchor) {
-      slotProvider.prepare(anchor, anchorIsContainer);
+    if (location) {
+      renderLocationProvider.prepare(location);
+      slotProvider.prepare(location, locationIsContainer);
     }
 
     return context;
@@ -87,6 +89,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     ownerProvider.dispose();
     instructionProvider.dispose();
     elementProvider.dispose();
+    renderLocationProvider.dispose();
   };
 
   return context;
@@ -140,16 +143,16 @@ export class ViewFactoryProvider implements IResolver {
 /*@internal*/
 export class RenderSlotProvider implements IResolver {
   private node: INode = null;
-  private anchorIsContainer = false;
+  private locationIsContainer = false;
   private slot: IRenderSlot = null;
 
-  public prepare(element: INode, anchorIsContainer = false) {
+  public prepare(element: INode, locationIsContainer = false) {
     this.node = element;
-    this.anchorIsContainer = anchorIsContainer;
+    this.locationIsContainer = locationIsContainer;
   }
 
   public resolve(handler: IContainer, requestor: IContainer) {
-    return this.slot || (this.slot = RenderSlot.create(this.node, this.anchorIsContainer));
+    return this.slot || (this.slot = RenderSlot.create(this.node, this.locationIsContainer));
   }
 
   public tryConnectTemplateControllerToSlot(owner) {

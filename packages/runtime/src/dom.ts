@@ -14,6 +14,11 @@ export interface INode extends INodeLike {
 
 export const INode = DI.createInterface<INode>().noDefault();
 
+export interface IRenderLocation extends INode { }
+
+
+export const IRenderLocation = DI.createInterface<IRenderLocation>().noDefault();
+
 /**
  * Represents a DocumentFragment
  */
@@ -92,10 +97,6 @@ export const DOM = {
 
   createElement(name: string): INode {
     return document.createElement(name);
-  },
-
-  createAnchor(): INode {
-    return document.createComment('anchor');
   },
 
   createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit) {
@@ -219,20 +220,22 @@ export const DOM = {
     (<any>node).auInterpolationTarget = true;
   },
 
-  convertToAnchor(node: INode, proxy?: boolean): INode {
-    const anchor = <CommentProxy>DOM.createAnchor();
+  convertToRenderLocation(node: INode, proxy?: boolean): IRenderLocation {
+    const location = <CommentProxy>document.createComment('au-loc');
+
     if (proxy) {
-      anchor.$proxyTarget = <Element>node;
-      // binding explicitly to the anchor instead of implicitly to ensure the correct 'this' assignment
-      anchor.hasAttribute = hasAttribute.bind(anchor);
-      anchor.getAttribute = getAttribute.bind(anchor);
-      anchor.setAttribute = setAttribute.bind(anchor);
+      location.$proxyTarget = <Element>node;
+      // binding explicitly to the comment instead of implicitly
+      // to ensure the correct 'this' assignment
+      location.hasAttribute = hasAttribute.bind(location);
+      location.getAttribute = getAttribute.bind(location);
+      location.setAttribute = setAttribute.bind(location);
     }
 
     // let this throw if node does not have a parent
-    (<Node>node.parentNode).replaceChild(anchor, <any>node);
+    (<Node>node.parentNode).replaceChild(location, <any>node);
 
-    return anchor;
+    return location;
   },
 
   registerElementResolver(container: IContainer, resolver: IResolver): void {

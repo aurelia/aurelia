@@ -60,7 +60,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   public $isAttached: boolean = false;
   public $isBound: boolean = false;
   public $scope: IScope = null;
-  public $slot: IRenderSlot;
+  public $child: IRenderSlot;
   public $behavior: IRuntimeBehavior = new (<any>RuntimeBehavior)();
   public $hydrate(renderingEngine: IRenderingEngine): void {
     let b: RuntimeBehavior = renderingEngine['behaviorLookup'].get(Repeat);
@@ -92,16 +92,16 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     if (this.$isAttached) {
       return;
     }
-    if (this.$slot !== null) {
-      this.$slot.$attach(encapsulationSource, lifecycle);
+    if (this.$child !== null) {
+      this.$child.$attach(encapsulationSource, lifecycle);
     }
     this.$isAttached = true;
   }
   // attribute proto.$detach
   public $detach(lifecycle: DetachLifecycle): void {
     if (this.$isAttached) {
-      if (this.$slot !== null) {
-        this.$slot.$detach(lifecycle);
+      if (this.$child !== null) {
+        this.$child.$detach(lifecycle);
       }
       this.$isAttached = false;
     }

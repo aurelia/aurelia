@@ -1,14 +1,21 @@
-import { Constructable, IContainer, Immutable, PLATFORM, Registration, Writable, Reporter } from '@aurelia/kernel';
+import {
+  Constructable,
+  IContainer,
+  Immutable,
+  PLATFORM,
+  Registration,
+  Reporter,
+  Writable
+} from '@aurelia/kernel';
 import { BindingContext } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
-import { DOM, INode, IView, IRenderLocation } from '../dom';
+import { DOM, INode, IRenderLocation, IView } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
 import { AttachLifecycle, DetachLifecycle, IAttach, IBindSelf } from './lifecycle';
-import { IRenderSlot } from './render-slot';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
-import { IViewOwner, View } from './view';
+import { IViewOwner } from './view';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 
@@ -24,7 +31,7 @@ export interface ICustomElement extends IBindSelf, IAttach, Readonly<IViewOwner>
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
   $changeCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
-  $slot: IRenderSlot;
+  $child: IAttach;
 }
 
 /**
@@ -106,7 +113,7 @@ export const CustomElementResource: ICustomElementResource = {
       this.$bindable = [];
       this.$attachable = [];
       this.$changeCallbacks = [];
-      this.$slot = null;
+      this.$child = null;
       this.$isAttached = false;
       this.$isBound = false;
       this.$scope = {
@@ -169,8 +176,8 @@ export const CustomElementResource: ICustomElementResource = {
         attachable[i].$attach(encapsulationSource, lifecycle);
       }
 
-      if (this.$slot !== null) {
-        this.$slot.$attach(encapsulationSource, lifecycle);
+      if (this.$child !== null) {
+        this.$child.$attach(encapsulationSource, lifecycle);
       }
 
       this.$projector.project(this.$view);
@@ -200,8 +207,8 @@ export const CustomElementResource: ICustomElementResource = {
           attachable[i].$detach();
         }
 
-        if (this.$slot !== null) {
-          this.$slot.$detach(lifecycle);
+        if (this.$child !== null) {
+          this.$child.$detach(lifecycle);
         }
 
         if (this.$behavior.hasDetached) {

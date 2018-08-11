@@ -3,79 +3,15 @@ import { Repeat, IChangeSet } from '@aurelia/runtime';
 import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
 import { IRenderSlot, RenderSlot } from '@aurelia/runtime';
 import { IViewOwner } from '@aurelia/runtime';
-import { IVisualFactory, IVisual, MotionDirection, RenderCallback } from '@aurelia/runtime';
+import { IVisualFactory } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { IScope } from '@aurelia/runtime';
 import { AccessScope } from '@aurelia/runtime';
 import { Binding } from '@aurelia/runtime';
-import { DetachLifecycle, AttachLifecycle, IAttach } from '@aurelia/runtime';
-import { INode, IView } from '@aurelia/runtime';
-import { IRenderContext } from '@aurelia/runtime';
-import { IBindScope, IObservedArray } from '@aurelia/runtime';
+import { IObservedArray } from '@aurelia/runtime';
 import { padRight, incrementItems, assertVisualsSynchronized } from '../../util';
 import { BindingFlags } from '@aurelia/runtime';
-
-class TestViewOwner implements IViewOwner {
-  $context: IRenderContext;
-  $view: IView;
-  $scope: IScope;
-  $isBound: boolean;
-
-  $bindable: IBindScope[];
-  $attachable: IAttach[];
-
-  constructor() {
-    this.$bindable = [];
-    this.$attachable = [];
-  }
-}
-
-class TestVisualFactory implements IVisualFactory {
-  name: string;
-  isCaching: boolean;
-  setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {}
-  create(): IVisual {
-    return new TestVisual();
-  }
-}
-
-class TestVisual implements IVisual {
-  // IVisual impl
-  factory: IVisualFactory;
-
-  parent: IRenderSlot;
-  onRender: RenderCallback;
-  renderState: any;
-
-  animate(direction: MotionDirection): void | Promise<boolean> {}
-  tryReturnToCache(): boolean {
-    return true;
-  }
-
-  // IBindScope impl
-  $bind(flags: BindingFlags, scope: IScope): void {
-    this.$scope = scope;
-  }
-  $unbind(): void {}
-
-  // IAttach impl
-  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {}
-  $detach(lifecycle?: DetachLifecycle): void {}
-
-  // IViewOwner impl
-  $context: IRenderContext;
-  $view: IView;
-  $scope: IScope;
-  $isBound: boolean;
-
-  $bindable: IBindScope[];
-  $attachable: IAttach[];
-
-  constructor() {
-    this.$bindable = [];
-    this.$attachable = [];
-  }
-}
+import { ViewOwnerFake } from '../fakes/view-owner-fake';
+import { VisualFactoryFake } from '../fakes/visual-factory-fake';
 
 describe('ArrayRepeater - synchronize visuals', () => {
   let container: IContainer;
@@ -96,8 +32,8 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
   beforeEach(() => {
     container = DI.createContainer();
-    container.register(Registration.singleton(IViewOwner, TestViewOwner));
-    container.register(Registration.singleton(IVisualFactory, TestVisualFactory));
+    container.register(Registration.singleton(IViewOwner, ViewOwnerFake));
+    container.register(Registration.singleton(IVisualFactory, VisualFactoryFake));
     changeSet = container.get(IChangeSet);
     host = document.createElement('div');
     slot = RenderSlot.create(host, true);

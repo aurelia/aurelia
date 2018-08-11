@@ -1,6 +1,6 @@
 import { Binding } from '../binding';
 import { bindingBehavior } from '../binding-behavior';
-import { IScope, sourceContext, targetContext } from '../binding-context';
+import { IScope } from '../binding-context';
 import { BindingFlags } from '../binding-flags';
 import { BindingMode } from '../binding-mode';
 import { Call } from '../call';
@@ -54,13 +54,13 @@ export class DebounceBindingBehavior {
     let debouncer;
 
     if (binding instanceof Binding) {
-      methodToDebounce = 'call';
+      methodToDebounce = 'handleChange';
       debouncer = debounceCall;
-      callContextToDebounce = binding.mode & fromView ? targetContext : sourceContext;
+      callContextToDebounce = binding.mode & fromView ? BindingFlags.targetContext : BindingFlags.sourceContext;
     } else {
       methodToDebounce = 'callSource';
       debouncer = debounceCallSource;
-      callContextToDebounce = sourceContext;
+      callContextToDebounce = BindingFlags.sourceContext;
     }
 
     // stash the original method and it's name.

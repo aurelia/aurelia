@@ -1,14 +1,15 @@
 import { ICallable } from '@aurelia/kernel';
-import { ITaskQueue } from '../task-queue';
+import { IChangeSet } from './change-set';
 import { IEventSubscriber } from './event-manager';
-import { IAccessor, ISubscribable } from './observation';
+import { IAccessor, IChangeTracker, ISubscribable, MutationKind, IPropertySubscriber } from './observation';
 import { IObserverLocator } from './observer-locator';
 import { SubscriberCollection } from './subscriber-collection';
+import { BindingFlags } from './binding-flags';
 
 const checkedArrayContext = 'CheckedObserver:array';
 const checkedValueContext = 'CheckedObserver:value';
 
-export class CheckedObserver extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
+export class CheckedObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker {
   private value: any;
   private initialSync: boolean;
   private arrayObserver: any;
@@ -18,7 +19,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
   constructor(
     private node: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
     public handler: IEventSubscriber,
-    private taskQueue: ITaskQueue,
+    private changeSet: IChangeSet,
     private observerLocator: IObserverLocator
   ) {
     super();
@@ -54,11 +55,11 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
     // queue up an initial sync after the bindings have been evaluated.
     if (!this.initialSync) {
       this.initialSync = true;
-      this.taskQueue.queueMicroTask(this);
+      this.changeSet.add(this);
     }
   }
 
-  public call(context: string, splices: any[]) {
+  public flushChanges(): void {
     // called by task queue, array observer, and model/value observer.
     this.synchronizeElement();
     // if the input's model or value property is data-bound, subscribe to it's
@@ -131,15 +132,15 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
     this.synchronizeValue();
   }
 
-  public subscribe(context: string, callable: ICallable) {
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.node, this);
     }
-    this.addSubscriber(context, callable);
+    this.addSubscriber(subscriber, flags);
   }
 
-  public unsubscribe(context: string, callable: ICallable) {
-    if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }

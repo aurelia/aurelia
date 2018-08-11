@@ -1,19 +1,19 @@
 import { all, Constructable, DI, IContainer, Immutable, inject, PLATFORM, Reporter } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
+import { IChangeSet } from '../binding/change-set';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
 import { IBindScope } from '../binding/observation';
 import { IObserverLocator } from '../binding/observer-locator';
 import { DOM, INode, IView } from '../dom';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
-import { ITaskQueue } from '../task-queue';
 import { IAnimator } from './animator';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { BindableDefinitions, IHydrateElementInstruction, ITemplateSource, TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
-import { createRenderContext, IComponentOperation, IRenderContext, ExposedContext } from './render-context';
+import { createRenderContext, ExposedContext, IRenderContext } from './render-context';
 import { IRenderSlot } from './render-slot';
 import { IRenderer, Renderer } from './renderer';
 import { IRuntimeBehavior, RuntimeBehavior } from './runtime-behavior';
@@ -44,7 +44,7 @@ const noViewTemplate: ITemplate = {
   }
 };
 
-@inject(IContainer, ITaskQueue, IObserverLocator, IEventManager, IExpressionParser, IAnimator, all(ITemplateCompiler))
+@inject(IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, IAnimator, all(ITemplateCompiler))
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
   private templateLookup = new Map<TemplateDefinition, ITemplate>();
@@ -54,7 +54,7 @@ export class RenderingEngine implements IRenderingEngine {
 
   constructor(
     private container: IContainer,
-    private taskQueue: ITaskQueue,
+    private changeSet: IChangeSet,
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
     private parser: IExpressionParser,
@@ -113,9 +113,9 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     if ('$projector' in instance) {
-      found.applyToElement(this.taskQueue, instance);
+      found.applyToElement(this.changeSet, instance);
     } else {
-      found.applyToAttribute(this.taskQueue, instance);
+      found.applyToAttribute(this.changeSet, instance);
     }
 
     return found;

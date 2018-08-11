@@ -1,17 +1,18 @@
 import { DI, ICallable } from '@aurelia/kernel';
-import { sourceContext } from './binding-context';
+import { BindingFlags } from './binding-flags';
+import { IPropertySubscriber } from './observation';
 
 type Signal = string;
 
 export interface ISignaler {
   dispatchSignal(name: Signal): void;
-  addSignalListener(name: Signal, listener: ICallable): void;
-  removeSignalListener(name: Signal, listener: ICallable): void;
+  addSignalListener(name: Signal, listener: IPropertySubscriber): void;
+  removeSignalListener(name: Signal, listener: IPropertySubscriber): void;
 }
 
 export const ISignaler = DI.createInterface<ISignaler>()
   .withDefault(x => x.singleton(class {
-    private signals: Record<string, ICallable[]>;
+    private signals: Record<string, IPropertySubscriber[]>;
 
     dispatchSignal(name: Signal): void {
       let bindings = this.signals[name];
@@ -23,15 +24,15 @@ export const ISignaler = DI.createInterface<ISignaler>()
       let i = bindings.length;
 
       while (i--) {
-        bindings[i].call(sourceContext);
+        bindings[i].handleChange(undefined, undefined, BindingFlags.sourceContext);
       }
     }
 
-    addSignalListener(name: Signal, listener: ICallable) {
+    addSignalListener(name: Signal, listener: IPropertySubscriber) {
       (this.signals[name] || (this.signals[name] = [])).push(listener);
     }
 
-    removeSignalListener(name: Signal, listener: ICallable) {
+    removeSignalListener(name: Signal, listener: IPropertySubscriber) {
       let listeners = this.signals[name];
 
       if (listeners) {

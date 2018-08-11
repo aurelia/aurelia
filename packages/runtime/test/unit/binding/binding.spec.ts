@@ -1,5 +1,5 @@
 import { spy } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression } from '@aurelia/runtime';
+import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind } from '@aurelia/runtime';
 
 import { Binding, IBindingTarget } from '@aurelia/runtime';
 import { IObserverLocator } from '@aurelia/runtime';
@@ -9,7 +9,6 @@ import { createScopeForTest } from './shared';
 import { expect } from 'chai';
 import { BindingMode } from '@aurelia/runtime';
 import { BindingFlags } from '@aurelia/runtime';
-import { sourceContext } from '@aurelia/runtime';
 
 
 /**
@@ -157,7 +156,7 @@ describe('Binding', () => {
     it(`does not connect if it is not bound`, () => {
       const sourceExpression = new MockExpression();
       const targetObserver = new MockObserver();
-      sut = new Binding(sourceExpression, dummyTarget, dummyTargetProperty, dummyMode, observerLocator, container);
+      sut = new Binding(<any>sourceExpression, dummyTarget, dummyTargetProperty, dummyMode, observerLocator, container);
       sut['targetObserver'] = targetObserver;
 
       sut.connect(BindingFlags.mustEvaluate);
@@ -170,7 +169,7 @@ describe('Binding', () => {
     it(`connects the sourceExpression`, () => {
       const sourceExpression = new MockExpression();
       const targetObserver = new MockObserver();
-      sut = new Binding(sourceExpression, dummyTarget, dummyTargetProperty, dummyMode, observerLocator, container);
+      sut = new Binding(<any>sourceExpression, dummyTarget, dummyTargetProperty, dummyMode, observerLocator, container);
       sut['targetObserver'] = targetObserver;
       const scope: any = {};
       sut['$scope'] = scope;
@@ -188,7 +187,7 @@ describe('Binding', () => {
       const value: any = {};
       const sourceExpression = new MockExpression(value);
       const targetObserver = new MockObserver();
-      sut = new Binding(sourceExpression, dummyTarget, dummyTargetProperty, dummyMode, observerLocator, container);
+      sut = new Binding(<any>sourceExpression, dummyTarget, dummyTargetProperty, dummyMode, observerLocator, container);
       sut['targetObserver'] = targetObserver;
       const scope: any = {};
       sut['$scope'] = scope;
@@ -223,7 +222,7 @@ describe('Binding', () => {
         while (i < count) {
           const observer = new MockObserver();
           sut.addObserver(observer);
-          expect(observer.subscribe).to.have.been.calledWith(sourceContext, sut);
+          expect(observer.subscribe).to.have.been.calledWith(sut, BindingFlags.sourceContext);
           i++;
         }
       });
@@ -306,6 +305,7 @@ class MockObserver {
 }
 
 class MockExpression implements IExpression {
+  public $kind = ExpressionKind.AccessScope;
   constructor(public value?: any) {
     this.evaluate = spy(this, 'evaluate');
   }

@@ -6,64 +6,64 @@ class Test extends SubscriberCollection {}
 
 describe('subscriberCollection', () => {
   it('calls subscribers', () => {
-    const observer: any = new Test();
-    const observer2: any = new Test();
+    const observer = new Test();
+    const observer2 = new Test();
 
-    const callable1 = { call: spy() };
-    observer.addSubscriber('1', callable1);
-    const callable2 = { call: spy() };
-    observer.addSubscriber('2', callable2);
-    const callable3 = { call: spy() };
-    observer.addSubscriber('3', callable3);
+    const callable1 = { handleChange: spy() };
+    observer['addSubscriber'](callable1, 1);
+    const callable2 = { handleChange: spy() };
+    observer['addSubscriber'](callable2, 2);
+    const callable3 = { handleChange: spy() };
+    observer['addSubscriber'](callable3, 3);
     const callable4 = {
-      call: spy(() => observer2.callSubscribers('new value2', 'old value2'))
+      handleChange: spy(() => observer2['callSubscribers']('new value2', 'old value2'))
     };
-    observer.addSubscriber('4', callable4);
-    const callable5 = { call: spy() };
-    observer.addSubscriber('5', callable5);
+    observer['addSubscriber'](callable4, 4);
+    const callable5 = { handleChange: spy() };
+    observer['addSubscriber'](callable5, 5);
 
-    const callable6 = { call: spy() };
-    observer2.addSubscriber('6', callable6);
-    const callable7 = { call: spy() };
-    observer2.addSubscriber('7', callable7);
-    const callable8 = { call: spy() };
-    observer2.addSubscriber('8', callable8);
-    const callable9 = { call: spy() };
-    observer2.addSubscriber('9', callable9);
-    const callable10 = { call: spy() };
-    observer2.addSubscriber('10', callable10);
+    const callable6 = { handleChange: spy() };
+    observer2['addSubscriber'](callable6, 6);
+    const callable7 = { handleChange: spy() };
+    observer2['addSubscriber'](callable7, 7);
+    const callable8 = { handleChange: spy() };
+    observer2['addSubscriber'](callable8, 8);
+    const callable9 = { handleChange: spy() };
+    observer2['addSubscriber'](callable9, 9);
+    const callable10 = { handleChange: spy() };
+    observer2['addSubscriber'](callable10, 10);
 
-    observer.callSubscribers('new value', 'old value');
+    observer['callSubscribers']('new value', 'old value');
 
-    expect(callable1.call).to.have.been.calledWith('1', 'new value', 'old value');
-    expect(callable2.call).to.have.been.calledWith('2', 'new value', 'old value');
-    expect(callable3.call).to.have.been.calledWith('3', 'new value', 'old value');
-    expect(callable4.call).to.have.been.calledWith('4', 'new value', 'old value');
-    expect(callable5.call).to.have.been.calledWith('5', 'new value', 'old value');
-    expect(callable6.call).to.have.been.calledWith('6', 'new value2', 'old value2');
-    expect(callable7.call).to.have.been.calledWith('7', 'new value2', 'old value2');
-    expect(callable8.call).to.have.been.calledWith('8', 'new value2', 'old value2');
-    expect(callable9.call).to.have.been.calledWith('9', 'new value2', 'old value2');
-    expect(callable10.call).to.have.been.calledWith('10', 'new value2', 'old value2');
+    expect(callable1.handleChange).to.have.been.calledWith('new value', 'old value', 1);
+    expect(callable2.handleChange).to.have.been.calledWith('new value', 'old value', 2);
+    expect(callable3.handleChange).to.have.been.calledWith('new value', 'old value', 3);
+    expect(callable4.handleChange).to.have.been.calledWith('new value', 'old value', 4);
+    expect(callable5.handleChange).to.have.been.calledWith('new value', 'old value', 5);
+    expect(callable6.handleChange).to.have.been.calledWith('new value2', 'old value2', 6);
+    expect(callable7.handleChange).to.have.been.calledWith('new value2', 'old value2', 7);
+    expect(callable8.handleChange).to.have.been.calledWith('new value2', 'old value2', 8);
+    expect(callable9.handleChange).to.have.been.calledWith('new value2', 'old value2', 9);
+    expect(callable10.handleChange).to.have.been.calledWith('new value2', 'old value2', 10);
   });
 
   it('removes subscribers', () => {
-    const observer: any = new Test();
+    const observer = new Test();
 
     const subscribers = [];
     for (let i = 0, ii = 100; ii > i; ++i) {
-      observer.addSubscriber((i % 5).toString(), (subscribers[i] = { i }));
+      observer['addSubscriber'](<any>(subscribers[i] = { i }), (i % 5));
     }
 
     let removalCount = 0;
     for (let i = 4, ii = subscribers.length; ii > i; i += 5) {
-      const result = observer.removeSubscriber((i % 5).toString(), subscribers[i]);
+      const result = observer['removeSubscriber'](subscribers[i], (i % 5));
       if (result) {
         removalCount++;
       }
     }
-    expect(observer._callablesRest.length).to.equal(subscribers.length - 3 - removalCount);
+    expect(observer['_subscribersRest'].length).to.equal(subscribers.length - 3 - removalCount);
 
-    expect(observer.removeSubscriber('5', {})).to.be.false;
+    expect(observer['removeSubscriber'](<any>{}, 5)).to.be.false;
   });
 });

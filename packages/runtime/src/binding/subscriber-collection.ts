@@ -1,91 +1,93 @@
 import { ICallable } from '@aurelia/kernel';
+import { BindingFlags } from './binding-flags';
+import { IPropertySubscriber } from './observation';
 
-let arrayPool1: any[] = [];
-let arrayPool2: any[] = [];
-let poolUtilization: any[] = [];
+const arrayPool1: BindingFlags[][] = [];
+const arrayPool2: IPropertySubscriber[][] = [];
+const poolUtilization: boolean[] = [];
 
 export abstract class SubscriberCollection {
-  private _context0: any = null;
-  private _callable0: ICallable = null;
-  private _context1: any = null;
-  private _callable1: ICallable = null;
-  private _context2: any = null;
-  private _callable2: ICallable = null;
-  private _contextsRest: any[] = null;
-  private _callablesRest: ICallable[] = null;
+  private _flags0: BindingFlags = null;
+  private _subscriber0: IPropertySubscriber = null;
+  private _flags1: BindingFlags = null;
+  private _subscriber1: IPropertySubscriber = null;
+  private _flags2: BindingFlags = null;
+  private _subscriber2: IPropertySubscriber = null;
+  private _flagsRest: BindingFlags[] = null;
+  private _subscribersRest: IPropertySubscriber[] = null;
 
-  protected addSubscriber(context: string, callable: ICallable) {
-    if (this.hasSubscriber(context, callable)) {
+  protected addSubscriber(subscriber: IPropertySubscriber, flags?: BindingFlags): boolean {
+    if (this.hasSubscriber(subscriber, flags)) {
       return false;
     }
-    if (!this._context0) {
-      this._context0 = context;
-      this._callable0 = callable;
+    if (!this._subscriber0) {
+      this._flags0 = flags;
+      this._subscriber0 = subscriber;
       return true;
     }
-    if (!this._context1) {
-      this._context1 = context;
-      this._callable1 = callable;
+    if (!this._subscriber1) {
+      this._flags1 = flags;
+      this._subscriber1 = subscriber;
       return true;
     }
-    if (!this._context2) {
-      this._context2 = context;
-      this._callable2 = callable;
+    if (!this._subscriber2) {
+      this._flags2 = flags;
+      this._subscriber2 = subscriber;
       return true;
     }
-    if (!this._contextsRest) {
-      this._contextsRest = [context];
-      this._callablesRest = [callable];
+    if (!this._subscribersRest) {
+      this._flagsRest = [flags];
+      this._subscribersRest = [subscriber];
       return true;
     }
-    this._contextsRest.push(context);
-    this._callablesRest.push(callable);
+    this._flagsRest.push(flags);
+    this._subscribersRest.push(subscriber);
     return true;
   }
 
-  protected removeSubscriber(context: string, callable: ICallable) {
-    if (this._context0 === context && this._callable0 === callable) {
-      this._context0 = null;
-      this._callable0 = null;
+  protected removeSubscriber(subscriber: IPropertySubscriber, flags?: BindingFlags): boolean {
+    if (this._flags0 === flags && this._subscriber0 === subscriber) {
+      this._flags0 = null;
+      this._subscriber0 = null;
       return true;
     }
-    if (this._context1 === context && this._callable1 === callable) {
-      this._context1 = null;
-      this._callable1 = null;
+    if (this._flags1 === flags && this._subscriber1 === subscriber) {
+      this._flags1 = null;
+      this._subscriber1 = null;
       return true;
     }
-    if (this._context2 === context && this._callable2 === callable) {
-      this._context2 = null;
-      this._callable2 = null;
+    if (this._flags2 === flags && this._subscriber2 === subscriber) {
+      this._flags2 = null;
+      this._subscriber2 = null;
       return true;
     }
-    const callables = this._callablesRest;
-    if (callables === null || callables.length === 0) {
+    const subscribers = this._subscribersRest;
+    if (subscribers === null || subscribers.length === 0) {
       return false;
     }
-    const contexts = this._contextsRest;
+    const flagsRest = this._flagsRest;
     let i = 0;
-    while (!(callables[i] === callable && contexts[i] === context) && callables.length > i) {
+    while (!(subscribers[i] === subscriber && flagsRest[i] === flags) && subscribers.length > i) {
       i++;
     }
-    if (i >= callables.length) {
+    if (i >= subscribers.length) {
       return false;
     }
-    contexts.splice(i, 1);
-    callables.splice(i, 1);
+    flagsRest.splice(i, 1);
+    subscribers.splice(i, 1);
     return true;
   }
 
-  protected callSubscribers(newValue: any, oldValue?: any) {
-    let context0 = this._context0;
-    let callable0 = this._callable0;
-    let context1 = this._context1;
-    let callable1 = this._callable1;
-    let context2 = this._context2;
-    let callable2 = this._callable2;
-    let length = this._contextsRest ? this._contextsRest.length : 0;
-    let contextsRest: any[];
-    let callablesRest: ICallable[];
+  protected callSubscribers(newValue: any, previousValue?: any, flags?: BindingFlags): void {
+    const flags0 = this._flags0;
+    const subscriber0 = this._subscriber0;
+    const flags1 = this._flags1;
+    const subscriber1 = this._subscriber1;
+    const flags2 = this._flags2;
+    const subscriber2 = this._subscriber2;
+    const length = this._flagsRest ? this._flagsRest.length : 0;
+    let flagsRest: BindingFlags[];
+    let subscribersRest: IPropertySubscriber[];
     let poolIndex;
     let i;
     if (length) {
@@ -96,84 +98,70 @@ export abstract class SubscriberCollection {
       }
       if (poolIndex < 0) {
         poolIndex = poolUtilization.length;
-        contextsRest = [];
-        callablesRest = [];
+        flagsRest = [];
+        subscribersRest = [];
         poolUtilization.push(true);
-        arrayPool1.push(contextsRest);
-        arrayPool2.push(callablesRest);
+        arrayPool1.push(flagsRest);
+        arrayPool2.push(subscribersRest);
       } else {
         poolUtilization[poolIndex] = true;
-        contextsRest = arrayPool1[poolIndex];
-        callablesRest = arrayPool2[poolIndex];
+        flagsRest = arrayPool1[poolIndex];
+        subscribersRest = arrayPool2[poolIndex];
       }
       // copy the contents of the "rest" arrays.
       i = length;
       while (i--) {
-        contextsRest[i] = this._contextsRest[i];
-        callablesRest[i] = this._callablesRest[i];
+        flagsRest[i] = this._flagsRest[i];
+        subscribersRest[i] = this._subscribersRest[i];
       }
     }
 
-    if (context0) {
-      if (callable0) {
-        callable0.call(context0, newValue, oldValue);
-      } else {
-        context0(newValue, oldValue);
-      }
+    if (subscriber0) {
+      subscriber0.handleChange(newValue, previousValue, flags | flags0);
     }
-    if (context1) {
-      if (callable1) {
-        callable1.call(context1, newValue, oldValue);
-      } else {
-        context1(newValue, oldValue);
-      }
+    if (subscriber1) {
+      subscriber1.handleChange(newValue, previousValue, flags | flags1);
     }
-    if (context2) {
-      if (callable2) {
-        callable2.call(context2, newValue, oldValue);
-      } else {
-        context2(newValue, oldValue);
-      }
+    if (subscriber2) {
+      subscriber2.handleChange(newValue, previousValue, flags | flags2);
     }
     if (length) {
       for (i = 0; i < length; i++) {
-        let callable = callablesRest[i];
-        let context = contextsRest[i];
-        if (callable) {
-          callable.call(context, newValue, oldValue);
-        } else {
-          context(newValue, oldValue);
+        const subscriber = subscribersRest[i];
+        const flagsI = flagsRest[i];
+        if (subscriber) {
+          subscriber.handleChange(newValue, previousValue, flags | flagsI);
         }
-        contextsRest[i] = null;
-        callablesRest[i] = null;
+        flagsRest[i] = null;
+        subscribersRest[i] = null;
       }
       poolUtilization[poolIndex] = false;
     }
   }
 
-  protected hasSubscribers() {
+  protected hasSubscribers(): boolean {
     return !!(
-      this._context0
-      || this._context1
-      || this._context2
-      || this._contextsRest && this._contextsRest.length);
+      this._flags0
+      || this._flags1
+      || this._flags2
+      || this._flagsRest && this._flagsRest.length);
   }
 
-  protected hasSubscriber(context: string, callable: ICallable) {
-    let has = this._context0 === context && this._callable0 === callable
-      || this._context1 === context && this._callable1 === callable
-      || this._context2 === context && this._callable2 === callable;
+  protected hasSubscriber(subscriber: IPropertySubscriber, flags?: BindingFlags): boolean {
+    const has = this._flags0 === flags && this._subscriber0 === subscriber
+      || this._flags1 === flags && this._subscriber1 === subscriber
+      || this._flags2 === flags && this._subscriber2 === subscriber;
     if (has) {
       return true;
     }
     let index;
-    let contexts = this._contextsRest;
-    if (!contexts || (index = contexts.length) === 0) { // eslint-disable-line no-cond-assign
+    const flagsRest = this._flagsRest;
+    if (!flagsRest || (index = flagsRest.length) === 0) { // eslint-disable-line no-cond-assign
       return false;
     }
-    let callables = this._callablesRest;
+    const subscribers = this._subscribersRest;
     while (index--) {
-      if (contexts[index] === context && callables[index] === callable) {
+      if (flagsRest[index] === flags && subscribers[index] === subscriber) {
         return true;
       }
     }

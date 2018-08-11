@@ -1,7 +1,6 @@
 import { IContainer, DI, Registration } from '@aurelia/kernel';
-import { Repeat } from '@aurelia/runtime';
+import { Repeat, IChangeSet } from '@aurelia/runtime';
 import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
-import { ITaskQueue } from '@aurelia/runtime';
 import { IRenderSlot, RenderSlot } from '@aurelia/runtime';
 import { IViewOwner } from '@aurelia/runtime';
 import { IVisualFactory, IVisual, MotionDirection, RenderCallback } from '@aurelia/runtime';
@@ -13,7 +12,6 @@ import { DetachLifecycle, AttachLifecycle, IAttach } from '@aurelia/runtime';
 import { INode, IView } from '@aurelia/runtime';
 import { IRenderContext } from '@aurelia/runtime';
 import { IBindScope, IObservedArray } from '@aurelia/runtime';
-import { IEmulatedShadowSlot } from '@aurelia/runtime';
 import { padRight, incrementItems, assertVisualsSynchronized } from '../../util';
 import { BindingFlags } from '@aurelia/runtime';
 
@@ -25,8 +23,6 @@ class TestViewOwner implements IViewOwner {
 
   $bindable: IBindScope[];
   $attachable: IAttach[];
-
-  $slots?: Record<string, IEmulatedShadowSlot>;
 
   constructor() {
     this.$bindable = [];
@@ -75,8 +71,6 @@ class TestVisual implements IVisual {
   $bindable: IBindScope[];
   $attachable: IAttach[];
 
-  $slots?: Record<string, IEmulatedShadowSlot>;
-
   constructor() {
     this.$bindable = [];
     this.$attachable = [];
@@ -85,7 +79,7 @@ class TestVisual implements IVisual {
 
 describe('ArrayRepeater - synchronize visuals', () => {
   let container: IContainer;
-  let taskQueue: ITaskQueue;
+  let changeSet: IChangeSet;
   let slot: IRenderSlot;
   let owner: IViewOwner;
   let factory: IVisualFactory;
@@ -104,12 +98,12 @@ describe('ArrayRepeater - synchronize visuals', () => {
     container = DI.createContainer();
     container.register(Registration.singleton(IViewOwner, TestViewOwner));
     container.register(Registration.singleton(IVisualFactory, TestVisualFactory));
-    taskQueue = container.get(ITaskQueue);
+    changeSet = container.get(IChangeSet);
     host = document.createElement('div');
     slot = RenderSlot.create(host, true);
     owner = container.get(IViewOwner);
     factory = container.get(IVisualFactory);
-    sut = new Repeat(taskQueue, slot, owner, factory, container);
+    sut = new Repeat(changeSet, slot, owner, factory, container);
     const binding = new Binding(<any>sourceExpression, sut, 'items', <any>null, <any>null, <any>null);
     owner.$bindable = [binding];
   });
@@ -163,7 +157,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
                   case 'once':
                     // flushed once; verify everything is identical to the initial state except for the last iteration
                     if (i === times) {
-                      taskQueue.flushMicroTaskQueue();
+                      changeSet.flushChanges();
                       assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                     } else {
                       assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
@@ -171,7 +165,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
                     break;
                   case 'every':
                     // flushed every; verify changes propagate to the DOM after each mutation
-                    taskQueue.flushMicroTaskQueue();
+                    changeSet.flushChanges();
                     assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                     break;
                 }
@@ -203,7 +197,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
                 case 'once':
                   // flushed once; verify everything is identical to the initial state except for the last iteration
                   if (i === times) {
-                    taskQueue.flushMicroTaskQueue();
+                    changeSet.flushChanges();
                     assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                   } else {
                     assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
@@ -211,7 +205,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
                   break;
                 case 'every':
                   // flushed every; verify changes propagate to the DOM after each mutation
-                  taskQueue.flushMicroTaskQueue();
+                  changeSet.flushChanges();
                   assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                   break;
               }
@@ -259,7 +253,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
                     case 'once':
                       // flushed once; verify everything is identical to the initial state except for the last iteration
                       if (i === times) {
-                        taskQueue.flushMicroTaskQueue();
+                        changeSet.flushChanges();
                         assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                       } else {
                         assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
@@ -267,7 +261,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
                       break;
                     case 'every':
                       // flushed every; verify changes propagate to the DOM after each mutation
-                      taskQueue.flushMicroTaskQueue();
+                      changeSet.flushChanges();
                       assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                       break;
                   }
@@ -304,14 +298,14 @@ describe('ArrayRepeater - synchronize visuals', () => {
                   break;
                 case 'once':
                   if (i === times) {
-                    taskQueue.flushMicroTaskQueue();
+                    changeSet.flushChanges();
                     assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                   } else {
                     assertVisualsSynchronized(<any>sut.slot.children, init, itemName);
                   }
                   break;
                 case 'every':
-                  taskQueue.flushMicroTaskQueue();
+                  changeSet.flushChanges();
                   assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                   break;
               }
@@ -342,7 +336,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
                 case 'once':
                   // flushed once; verify everything is identical to the initial state except for the last iteration
                   if (i === times) {
-                    taskQueue.flushMicroTaskQueue();
+                    changeSet.flushChanges();
                     assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                   } else {
                     assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
@@ -350,7 +344,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
                   break;
                 case 'every':
                   // flushed every; verify changes propagate to the DOM after each mutation
-                  taskQueue.flushMicroTaskQueue();
+                  changeSet.flushChanges();
                   assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
                   break;
               }
@@ -388,7 +382,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
       expect(sut.slot.children.length).to.equal(0);
       const items: any = [];
       sut.items = items;
-      taskQueue.flushMicroTaskQueue();
+      changeSet.flushChanges();
       expect(sut.items.length).to.equal(0);
       expect(sut.slot.children.length).to.equal(0);
     });
@@ -403,7 +397,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
       const items: any = [];
       sut.items = items;
       sut.items.push(1);
-      taskQueue.flushMicroTaskQueue();
+      changeSet.flushChanges();
       expect(sut.items.length).to.equal(1);
       expect(sut.slot.children.length).to.equal(1);
     });

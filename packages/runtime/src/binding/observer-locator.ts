@@ -1,6 +1,5 @@
 import { DI, inject, Reporter } from '@aurelia/kernel';
 import { DOM } from '../dom';
-import { ITaskQueue } from '../task-queue';
 import { getArrayObserver } from './array-observer';
 import { CheckedObserver } from './checked-observer';
 import { ClassObserver } from './class-observer';
@@ -14,6 +13,7 @@ import { PrimitiveObserver, propertyAccessor, SetterObserver } from './property-
 import { SelectValueObserver } from './select-value-observer';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
+import { IChangeSet } from './change-set';
 
 export interface ObjectObservationAdapter {
   getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
@@ -43,12 +43,13 @@ function getPropertyDescriptor(subject: object, name: string) {
   return pd;
 }
 
-@inject(ITaskQueue, IEventManager, IDirtyChecker, ISVGAnalyzer)
-class ObserverLocator implements IObserverLocator {
+@inject(IChangeSet, IEventManager, IDirtyChecker, ISVGAnalyzer)
+/*@internal*/
+export class ObserverLocator implements IObserverLocator {
   private adapters: ObjectObservationAdapter[] = [];
 
   constructor(
-    private taskQueue: ITaskQueue,
+    private changeSet: IChangeSet,
     private eventManager: IEventManager,
     private dirtyChecker: IDirtyChecker,
     private svgAnalyzer: ISVGAnalyzer
@@ -125,11 +126,11 @@ class ObserverLocator implements IObserverLocator {
 
       const handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && DOM.normalizedTagName(obj) === 'select') {
-        return new SelectValueObserver(<HTMLSelectElement>obj, handler, this.taskQueue, this);
+        return new SelectValueObserver(<HTMLSelectElement>obj, handler, this.changeSet, this);
       }
 
       if (propertyName === 'checked' && DOM.normalizedTagName(obj) === 'input') {
-        return new CheckedObserver(<HTMLInputElement>obj, handler, this.taskQueue, this);
+        return new CheckedObserver(<HTMLInputElement>obj, handler, this.changeSet, this);
       }
 
       if (handler) {
@@ -162,7 +163,7 @@ class ObserverLocator implements IObserverLocator {
           return adapterObserver;
         }
 
-        return createComputedObserver(this, this.dirtyChecker, this.taskQueue, obj, propertyName, descriptor);
+        return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor);
       }
     }
 
@@ -186,7 +187,7 @@ class ObserverLocator implements IObserverLocator {
       return this.dirtyChecker.createProperty(obj, propertyName);
     }
 
-    return new SetterObserver(this.taskQueue, obj, propertyName);
+    return new SetterObserver(this.changeSet, obj, propertyName);
   }
 
   public getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
@@ -215,14 +216,14 @@ class ObserverLocator implements IObserverLocator {
   }
 
   public getArrayObserver(array: any[]): ICollectionObserver<CollectionKind.array> {
-    return getArrayObserver(array);
+    return getArrayObserver(this.changeSet, array);
   }
 
   public getMapObserver(map: Map<any, any>): ICollectionObserver<CollectionKind.map>  {
-    return getMapObserver(map);
+    return getMapObserver(this.changeSet, map);
   }
 
   public getSetObserver(set: Set<any>): ICollectionObserver<CollectionKind.set>  {
-    return getSetObserver(set);
+    return getSetObserver(this.changeSet, set);
   }
 }

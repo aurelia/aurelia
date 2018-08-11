@@ -1,6 +1,7 @@
-import { ICallable, IDisposable, IIndexable } from '@aurelia/kernel';
+import { ICallable, IIndexable, IDisposable } from '@aurelia/kernel';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
+import { IChangeSet } from './change-set';
 
 export interface IBindScope {
   $bind(flags: BindingFlags, scope: IScope): void;
@@ -11,18 +12,13 @@ export interface IAccessor<T = any> {
   setValue(newValue: T): void;
 }
 
-export interface ISubscribable {
-  subscribe(context: string, callable: ICallable): void;
-  unsubscribe(context: string, callable: ICallable): void;
-}
-
 export interface IBindingTargetAccessor<TGetReturn = any, TSetValue = TGetReturn> {
   getValue(obj: IIndexable, propertyName: string): TGetReturn;
   setValue(value: TSetValue, obj: IIndexable, propertyName: string): void;
 }
 
 export interface IBindingTargetObserver<TGetReturn = any, TSetValue = TGetReturn>
-  extends IBindingTargetAccessor<TGetReturn, TSetValue>, ISubscribable {
+  extends IBindingTargetAccessor<TGetReturn, TSetValue>, ISubscribable<MutationKind.instance> {
 
   bind?(flags: BindingFlags): void;
   unbind?(flags: BindingFlags): void;
@@ -44,11 +40,30 @@ export type IndexMap = Array<number> & {
 };
 
 /**
- * Describes a type that tracks something, knows whether it has changes or not, and can flush those changes in some way
+ * Describes a type that tracks changes and can flush those changes in some way
  */
 export interface IChangeTracker {
-  hasChanges: boolean;
+  hasChanges?: boolean;
   flushChanges(): void;
+}
+
+/**
+ * Mostly just a marker enum to help with typings (specifically to reduce duplication)
+ */
+export enum MutationKind {
+  instance   = 0b01,
+  collection = 0b10
+}
+
+/**
+ * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
+ */
+export interface IPropertyChangeTracker<TObj extends Object, TProp extends keyof TObj> extends IChangeTracker {
+  obj: TObj;
+  propertyKey: TProp;
+  oldValue?: any;
+  previousValue?: any;
+  currentValue: any;
 }
 
 /**
@@ -59,6 +74,34 @@ export interface ICollectionChangeTracker<T extends Collection> extends IChangeT
   indexMap: IndexMap;
   resetIndexMap(): void;
 }
+
+
+/**
+ * Represents a (subscriber) function that can be called by a PropertyChangeNotifier
+ */
+export interface IPropertyChangeHandler { (newValue: any, previousValue?: any, flags?: BindingFlags): void; }
+/**
+ * Represents a (observer) function that can notify subscribers of mutations on a property
+ */
+export interface IPropertyChangeNotifier extends IPropertyChangeHandler {}
+
+/**
+ * Represents a (subscriber) function that can be called by a BatchedPropertyChangeNotifier
+ */
+export interface IBatchedPropertyChangeHandler { (newValue: any, oldValue?: any, flags?: BindingFlags): void; }
+/**
+ * Represents a (observer) function that can notify subscribers of batched mutations on a property
+ */
+export interface IBatchedPropertyChangeNotifier extends IBatchedPropertyChangeHandler {}
+
+/**
+ * Describes a (subscriber) type that has a function conforming to the IPropertyChangeHandler interface
+ */
+export interface IPropertySubscriber { handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void; }
+/**
+ * Describes a (subscriber) type that has a function conforming to the IBatchedPropertyChangeNotifier interface
+ */
+export interface IBatchedPropertySubscriber { handleBatchedChange(newValue: any, oldValue?: any, flags?: BindingFlags): void; }
 
 /**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
@@ -88,26 +131,92 @@ export interface ICollectionSubscriber { handleChange(origin: string, args?: IAr
 export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: Array<number>, flags?: BindingFlags): void; }
 
 /**
- * A collection of collection subscribers
+ * Either a property or collection subscriber
  */
-export interface ICollectionSubscriberCollection {
-  subscribers: Array<ICollectionSubscriber>;
-  subscriberFlags: Array<BindingFlags>;
-  notify: ICollectionChangeNotifier;
-  subscribe(subscriber: ICollectionSubscriber, flags?: BindingFlags): void;
-  unsubscribe(subscriber: ICollectionSubscriber, flags?: BindingFlags): void;
+export type Subscriber = ICollectionSubscriber | IPropertySubscriber;
+/**
+ * Either a batched property or batched collection subscriber
+ */
+export type BatchedSubscriber = IBatchedCollectionSubscriber | IBatchedPropertySubscriber;
+
+/**
+ * Helper type that translates from mutationKind enum to the correct subscriber interface
+ */
+export type MutationKindToSubscriber<T> =
+  T extends MutationKind.instance ? IPropertySubscriber :
+  T extends MutationKind.collection ? ICollectionSubscriber :
+  never;
+
+/**
+ * Helper type that translates from mutationKind enum to the correct batched subscriber interface
+ */
+export type MutationKindToBatchedSubscriber<T> =
+  T extends MutationKind.instance ? IBatchedPropertySubscriber :
+  T extends MutationKind.collection ? IBatchedCollectionSubscriber :
+  never;
+
+/**
+ * Helper type that translates from mutationKind enum to the correct notifier interface
+ */
+export type MutationKindToNotifier<T> =
+  T extends MutationKind.instance ? IPropertyChangeNotifier :
+  T extends MutationKind.collection ? ICollectionChangeNotifier :
+  never;
+
+/**
+ * Helper type that translates from mutationKind enum to the correct batched notifier interface
+ */
+export type MutationKindToBatchedNotifier<T> =
+  T extends MutationKind.instance ? IBatchedPropertyChangeNotifier :
+  T extends MutationKind.collection ? IBatchedCollectionChangeNotifier :
+  never;
+
+export interface ISubscribable<T extends MutationKind> {
+  subscribe(subscriber: MutationKindToSubscriber<T>, flags?: BindingFlags): void;
+  unsubscribe(subscriber: MutationKindToSubscriber<T>, flags?: BindingFlags): void;
 }
 
 /**
- * A collection of batched collection subscribers
+ * A collection of property or collection subscribers
  */
-export interface IBatchedCollectionSubscriberCollection {
-  batchedSubscribers: Array<IBatchedCollectionSubscriber>;
-  batchedSubscriberFlags: Array<BindingFlags>;
-  notifyBatched: IBatchedCollectionChangeNotifier;
-  subscribeBatched(subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags): void;
-  unsubscribeBatched(subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags): void;
+export interface ISubscriberCollection<T extends MutationKind> extends ISubscribable<T> {
+  subscribers: Array<MutationKindToSubscriber<T>>;
+  subscriberFlags: Array<BindingFlags>;
+  notify: MutationKindToNotifier<T>;
 }
+
+export interface IBatchedSubscribable<T extends MutationKind> {
+  subscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>, flags?: BindingFlags): void;
+  unsubscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>, flags?: BindingFlags): void;
+}
+
+/**
+ * A collection of batched property or batched collection subscribers
+ */
+export interface IBatchedSubscriberCollection<T extends MutationKind> extends IBatchedSubscribable<T> {
+  batchedSubscribers: Array<MutationKindToBatchedSubscriber<T>>;
+  batchedSubscriberFlags: Array<BindingFlags>;
+  notifyBatched: MutationKindToBatchedNotifier<T>;
+}
+
+/**
+ * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
+ */
+export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj> extends
+  IDisposable,
+  IAccessor<any>,
+  IPropertyChangeTracker<TObj, TProp>,
+  ISubscriberCollection<MutationKind.instance>,
+  IBatchedSubscriberCollection<MutationKind.instance> {
+  /*@internal*/changeSet: IChangeSet;
+  /*@internal*/observing: boolean;
+  /*@internal*/ownPropertyDescriptor: PropertyDescriptor;
+}
+
+/**
+ * An any-typed property observer
+ */
+export type PropertyObserver = IPropertyObserver<any, PropertyKey>;
 
 /**
  * A collection (array, set or map)
@@ -176,8 +285,9 @@ type ObservedCollectionKindToType<T> =
 export interface ICollectionObserver<T extends CollectionKind> extends
   IDisposable,
   ICollectionChangeTracker<CollectionKindToType<T>>,
-  ICollectionSubscriberCollection,
-  IBatchedCollectionSubscriberCollection {
+  ISubscriberCollection<MutationKind.collection>,
+  IBatchedSubscriberCollection<MutationKind.collection> {
+    /*@internal*/changeSet: IChangeSet;
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;

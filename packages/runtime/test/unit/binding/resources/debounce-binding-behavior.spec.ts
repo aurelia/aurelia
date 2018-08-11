@@ -1,4 +1,3 @@
-import { sourceContext } from '@aurelia/runtime';
 import { IExpression } from '@aurelia/runtime';
 import { IObserverLocator } from '@aurelia/runtime';
 import { IContainer } from '@aurelia/kernel';
@@ -25,16 +24,16 @@ describe('DebounceBindingBehavior', () => {
   beforeEach(() => {
     sut = new DebounceBindingBehavior();
     binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
-    originalFn = binding.call;
+    originalFn = binding.handleChange;
     sut.bind(flags, scope, <any>binding);
   });
 
   // TODO: test properly (whether debouncing works etc)
   it('bind()   should apply the correct behavior', () => {
     expect(binding['debouncedMethod'] === originalFn).to.be.true;
-    expect(binding['debouncedMethod'].originalName).to.equal('call');
-    expect(binding.call === originalFn).to.be.false;
-    expect(typeof binding.call).to.equal('function');
+    expect(binding['debouncedMethod'].originalName).to.equal('handleChange');
+    expect(binding.handleChange === originalFn).to.be.false;
+    expect(typeof binding.handleChange).to.equal('function');
     expect(binding['debounceState']).not.to.be.null
     expect(typeof binding['debounceState']).to.equal('object');
   });
@@ -42,8 +41,8 @@ describe('DebounceBindingBehavior', () => {
   it('unbind() should revert the original behavior', () => {
     sut.unbind(flags, scope, <any>binding);
     expect(binding['debouncedMethod']).to.be.null;
-    expect(binding.call === originalFn).to.be.true;
-    expect(typeof binding.call).to.equal('function');
+    expect(binding.handleChange === originalFn).to.be.true;
+    expect(typeof binding.handleChange).to.equal('function');
     expect(binding['debounceState']).to.be.null
   });
 });

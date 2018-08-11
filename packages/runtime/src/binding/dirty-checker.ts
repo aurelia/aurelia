@@ -1,15 +1,17 @@
 import { DI, ICallable } from '@aurelia/kernel';
-import { IAccessor, ISubscribable } from './observation';
+import { BindingFlags } from './binding-flags';
+import { IAccessor, IChangeTracker, IPropertySubscriber, ISubscribable, MutationKind } from './observation';
 import { SubscriberCollection } from './subscriber-collection';
 
 export interface IDirtyChecker {
-  createProperty(obj: any, propertyName: string): IAccessor & ISubscribable & ICallable;
+  createProperty(obj: any, propertyName: string): IAccessor & ISubscribable<MutationKind.instance> & IChangeTracker;
 }
 
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>()
   .withDefault(x => x.singleton(DirtyChecker));
 
-class DirtyChecker {
+/*@internal*/
+export class DirtyChecker {
   private tracked = [];
   private checkDelay = 120;
 
@@ -54,7 +56,8 @@ class DirtyChecker {
   }
 }
 
-class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISubscribable, ICallable {
+/*@internal*/
+export class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker {
   public oldValue;
 
   constructor(private dirtyChecker: DirtyChecker, private obj: any, private propertyName: string) {
@@ -73,7 +76,7 @@ class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISub
     this.obj[this.propertyName] = newValue;
   }
 
-  public call() {
+  public flushChanges() {
     let oldValue = this.oldValue;
     let newValue = this.getValue();
 
@@ -82,17 +85,16 @@ class DirtyCheckProperty extends SubscriberCollection implements IAccessor, ISub
     this.oldValue = newValue;
   }
 
-  public subscribe(context: string, callable: ICallable) {
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
       this.dirtyChecker.addProperty(this);
     }
-
-    this.addSubscriber(context, callable);
+    this.addSubscriber(subscriber, flags);
   }
 
-  public unsubscribe(context: string, callable: ICallable) {
-    if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
       this.dirtyChecker.removeProperty(this);
     }
   }

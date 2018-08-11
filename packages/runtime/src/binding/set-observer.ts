@@ -1,5 +1,6 @@
 import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
+import { IChangeSet } from './change-set';
 import { collectionObserver } from './collection-observer';
 import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedSet } from './observation';
 
@@ -91,6 +92,18 @@ function observeDelete(this: IObservedSet, value: any): ReturnType<typeof native
 
 @collectionObserver(CollectionKind.set)
 export class SetObserver implements ICollectionObserver<CollectionKind.set> {
+  public resetIndexMap: () => void;
+  public notify: (origin: string, args?: IArguments, flags?: BindingFlags) => void;
+  public notifyBatched: (indexMap: IndexMap, flags?: BindingFlags) => void;
+  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
+  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
+  public subscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
+  public flushChanges: (flags?: BindingFlags) => void;
+  public dispose: () => void;
+
+  /*@internal*/
+  public changeSet: IChangeSet;
   public collection: IObservedSet;
   public indexMap: IndexMap;
   public hasChanges: boolean;
@@ -103,7 +116,8 @@ export class SetObserver implements ICollectionObserver<CollectionKind.set> {
   public subscriberFlags: Array<BindingFlags>;
   public batchedSubscriberFlags: Array<BindingFlags>;
 
-  constructor(set: Set<any> & { $observer?: ICollectionObserver<CollectionKind.set> }) {
+  constructor(changeSet: IChangeSet, set: Set<any> & { $observer?: ICollectionObserver<CollectionKind.set> }) {
+    this.changeSet = changeSet;
     set.$observer = this;
     this.collection = <IObservedSet>set;
     this.resetIndexMap();
@@ -112,18 +126,8 @@ export class SetObserver implements ICollectionObserver<CollectionKind.set> {
     this.subscriberFlags = new Array();
     this.batchedSubscriberFlags = new Array();
   }
-
-  public resetIndexMap: () => void;
-  public notify: (origin: string, args?: IArguments, flags?: BindingFlags) => void;
-  public notifyBatched: (indexMap: IndexMap, flags?: BindingFlags) => void;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
-  public subscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
-  public flushChanges: (flags?: BindingFlags) => void;
-  public dispose: () => void;
 }
 
-export function getSetObserver(set: any): SetObserver {
-  return set.$observer || new SetObserver(set);
+export function getSetObserver(changeSet: IChangeSet, set: any): SetObserver {
+  return set.$observer || new SetObserver(changeSet, set);
 }

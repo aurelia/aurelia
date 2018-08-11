@@ -1,8 +1,9 @@
 import { ICallable } from '@aurelia/kernel';
 import { DOM, INode } from '../dom';
 import { IEventSubscriber } from './event-manager';
-import { IAccessor, ISubscribable } from './observation';
+import { IAccessor, ISubscribable, MutationKind, IPropertySubscriber } from './observation';
 import { SubscriberCollection } from './subscriber-collection';
+import { BindingFlags } from './binding-flags';
 
 export class XLinkAttributeObserver implements IAccessor {
   // xlink namespaced attributes require getAttributeNS/setAttributeNS
@@ -130,7 +131,7 @@ export class StyleObserver implements IAccessor {
   }
 }
 
-export class ValueAttributeObserver extends SubscriberCollection implements IAccessor, ISubscribable {
+export class ValueAttributeObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance> {
   private oldValue: any;
 
   constructor(
@@ -171,17 +172,16 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
     this.notify();
   }
 
-  public subscribe(context: string, callable: ICallable) {
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
       this.handler.subscribe(this.node, this);
     }
-
-    this.addSubscriber(context, callable);
+    this.addSubscriber(subscriber, flags);
   }
 
-  public unsubscribe(context: string, callable: ICallable) {
-    if (this.removeSubscriber(context, callable) && !this.hasSubscribers()) {
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }

@@ -2,6 +2,7 @@ import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
 import { collectionObserver } from './collection-observer';
 import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedMap } from './observation';
+import { IChangeSet } from './change-set';
 
 const proto = Map.prototype;
 export const nativeSet = proto.set; // TODO: probably want to make these internal again
@@ -99,9 +100,20 @@ function observeDelete(this: IObservedMap, value: any): ReturnType<typeof native
   return false;
 };
 
-
 @collectionObserver(CollectionKind.map)
 export class MapObserver implements ICollectionObserver<CollectionKind.map> {
+  public resetIndexMap: () => void;
+  public notify: (origin: string, args?: IArguments, flags?: BindingFlags) => void;
+  public notifyBatched: (indexMap: IndexMap, flags?: BindingFlags) => void;
+  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
+  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
+  public subscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
+  public flushChanges: (flags?: BindingFlags) => void;
+  public dispose: () => void;
+
+  /*@internal*/
+  public changeSet: IChangeSet;
   public collection: IObservedMap;
   public indexMap: IndexMap;
   public hasChanges: boolean;
@@ -114,7 +126,8 @@ export class MapObserver implements ICollectionObserver<CollectionKind.map> {
   public subscriberFlags: Array<BindingFlags>;
   public batchedSubscriberFlags: Array<BindingFlags>;
 
-  constructor(map: Map<any, any> & { $observer?: ICollectionObserver<CollectionKind.map> }) {
+  constructor(changeSet: IChangeSet, map: Map<any, any> & { $observer?: ICollectionObserver<CollectionKind.map> }) {
+    this.changeSet = changeSet;
     map.$observer = this;
     this.collection = <IObservedMap>map;
     this.resetIndexMap();
@@ -123,18 +136,8 @@ export class MapObserver implements ICollectionObserver<CollectionKind.map> {
     this.subscriberFlags = new Array();
     this.batchedSubscriberFlags = new Array();
   }
-
-  public resetIndexMap: () => void;
-  public notify: (origin: string, args?: IArguments, flags?: BindingFlags) => void;
-  public notifyBatched: (indexMap: IndexMap, flags?: BindingFlags) => void;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
-  public subscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
-  public flushChanges: (flags?: BindingFlags) => void;
-  public dispose: () => void;
 }
 
-export function getMapObserver(map: any): MapObserver {
-  return map.$observer || new MapObserver(map);
+export function getMapObserver(changeSet: IChangeSet, map: any): MapObserver {
+  return map.$observer || new MapObserver(changeSet, map);
 }

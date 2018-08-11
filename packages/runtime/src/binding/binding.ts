@@ -1,9 +1,9 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
 import { IExpression } from './ast';
-import { IScope, sourceContext, targetContext } from './binding-context';
+import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
-import { IBindingTargetAccessor, IBindingTargetObserver, IBindScope } from './observation';
+import { IBindingTargetAccessor, IBindingTargetObserver, IBindScope, IPropertySubscriber, ISubscribable, MutationKind, IBatchedPropertySubscriber } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 const slotNames: string[] = new Array(100);
@@ -29,11 +29,12 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
-export class Binding implements IBinding {
+export class Binding implements IBinding, IPropertySubscriber, IBatchedPropertySubscriber {
+  public handleBatchedChange: (newValue: any, oldValue?: any, flags?: BindingFlags) => void;
+  public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
   /*@internal*/public __connectQueueId: number;
   private observerSlots: any;
   private version: number;
-  public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
   private $scope: IScope;
   private $isBound = false;
 
@@ -54,7 +55,7 @@ export class Binding implements IBinding {
     this.sourceExpression.assign(BindingFlags.none, this.$scope, this.locator, value);
   }
 
-  public call(context: string, newValue?: any, oldValue?: any) {
+  public handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
@@ -63,28 +64,28 @@ export class Binding implements IBinding {
     const $scope = this.$scope;
     const locator = this.locator;
 
-    if (context === sourceContext) {
+    if (flags & BindingFlags.sourceContext) {
       const target = this.target;
       const targetProperty = this.targetProperty;
       const targetObserver = this.targetObserver;
       const mode = this.mode;
 
-      oldValue = targetObserver.getValue(target, targetProperty);
-      newValue = sourceExpression.evaluate(BindingFlags.none, $scope, locator);
-      if (newValue !== oldValue) {
+      previousValue = targetObserver.getValue(target, targetProperty);
+      newValue = sourceExpression.evaluate(flags, $scope, locator);
+      if (newValue !== previousValue) {
         targetObserver.setValue(newValue, target, targetProperty);
       }
       if (!(mode & oneTime)) {
         this.version++;
-        sourceExpression.connect(BindingFlags.none, $scope, this);
+        sourceExpression.connect(flags, $scope, this);
         this.unobserve(false);
       }
       return;
     }
 
-    if (context === targetContext) {
-      if (newValue !== sourceExpression.evaluate(BindingFlags.none, $scope, locator)) {
-        sourceExpression.assign(BindingFlags.none, $scope, locator, newValue)
+    if (flags & BindingFlags.targetContext) {
+      if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
+        sourceExpression.assign(flags, $scope, locator, newValue)
       }
       return;
     }
@@ -104,20 +105,20 @@ export class Binding implements IBinding {
     this.$scope = scope;
     const mode = this.mode;
     const sourceExpression = this.sourceExpression;
-    let targetObserver = this.targetObserver as IBindingTargetObserver;
+    let targetObserver = this.targetObserver;
 
     if (sourceExpression.bind) {
       sourceExpression.bind(flags, scope, this);
     }
     if (!targetObserver) {
       if (mode & fromView) {
-        targetObserver = this.targetObserver = <any>this.observerLocator.getObserver(this.target, this.targetProperty);
+        targetObserver = this.targetObserver = this.observerLocator.getObserver(this.target, this.targetProperty);
       } else {
-        targetObserver = this.targetObserver = <any>this.observerLocator.getAccessor(this.target, this.targetProperty);
+        targetObserver = this.targetObserver = this.observerLocator.getAccessor(this.target, this.targetProperty);
       }
     }
-    if (targetObserver.bind) {
-      targetObserver.bind(flags);
+    if ((<any>targetObserver).bind) {
+      (<any>targetObserver).bind(flags);
     }
 
     if (mode & toViewOrOneTime) {
@@ -127,7 +128,7 @@ export class Binding implements IBinding {
       sourceExpression.connect(flags, scope, this);
     }
     if (mode & fromView) {
-      targetObserver.subscribe(targetContext, this);
+      (<ISubscribable<MutationKind.instance>>targetObserver).subscribe(this, BindingFlags.targetContext);
     }
   }
 
@@ -150,7 +151,7 @@ export class Binding implements IBinding {
       targetObserver.unbind(flags);
     }
     if (targetObserver.unsubscribe) {
-      targetObserver.unsubscribe(targetContext, this);
+      targetObserver.unsubscribe(this, BindingFlags.targetContext);
     }
 
     this.unobserve(true);
@@ -189,7 +190,7 @@ export class Binding implements IBinding {
         i++;
       }
       this[slotNames[i]] = observer;
-      observer.subscribe(sourceContext, this);
+      observer.subscribe(this, BindingFlags.sourceContext);
       // increment the slot count.
       if (i === observerSlots) {
         this.observerSlots = i + 1;
@@ -244,3 +245,5 @@ export class Binding implements IBinding {
   }
   //#endregion
 }
+
+Binding.prototype.handleBatchedChange = Binding.prototype.handleChange;

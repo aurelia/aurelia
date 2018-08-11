@@ -1,25 +1,25 @@
 import { inject } from '@aurelia/kernel';
 import { IScope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
+import { IRenderLocation } from '../../dom';
 import { templateController } from '../custom-attribute';
-import { IRenderSlot } from '../render-slot';
 import { IVisual, IVisualFactory } from '../visual';
 
 @templateController('replaceable')
-@inject(IVisualFactory, IRenderSlot)
+@inject(IVisualFactory, IRenderLocation)
 export class Replaceable {
-  private child: IVisual;
+  private $child: IVisual;
 
-  constructor(private factory: IVisualFactory, private slot: IRenderSlot) {
-    this.child = this.factory.create();
-    this.slot.add(this.child);
+  constructor(private factory: IVisualFactory, location: IRenderLocation) {
+    this.$child = this.factory.create();
+    this.$child.$view.insertBefore(location);
   }
 
-  public bound(scope: IScope) {
-    this.child.$bind(BindingFlags.none, scope);
+  public bound(scope: IScope): void {
+    this.$child.$bind(BindingFlags.none, scope);
   }
 
-  public unbound() {
-    this.child.$unbind(BindingFlags.none);
+  public unbound(): void {
+    this.$child.$unbind(BindingFlags.none);
   }
 }

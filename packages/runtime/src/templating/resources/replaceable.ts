@@ -2,9 +2,10 @@ import { inject } from '@aurelia/kernel';
 import { IScope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
 import { IRenderLocation } from '../../dom';
-import { templateController } from '../custom-attribute';
+import { ICustomAttribute, templateController } from '../custom-attribute';
 import { IVisual, IVisualFactory } from '../visual';
 
+export interface Replaceable extends ICustomAttribute {}
 @templateController('replaceable')
 @inject(IVisualFactory, IRenderLocation)
 export class Replaceable {

@@ -111,7 +111,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       this.$isAttached = false;
       this.$isBound = false;
       this.$scope = null;
-      this.$child = null;
+      this.$child = this.$child || null;
       this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
 
       if (this.$behavior.hasCreated) {

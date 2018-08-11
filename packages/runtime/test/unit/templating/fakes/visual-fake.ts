@@ -12,7 +12,8 @@ import {
   IRenderContext,
   IView,
   IBindScope,
-  IAttach
+  IAttach,
+  DOM
 } from "@aurelia/runtime";
 
 export class VisualFake implements IVisual {
@@ -51,5 +52,6 @@ export class VisualFake implements IVisual {
   constructor() {
     this.$bindable = [];
     this.$attachable = [];
+    this.$view = DOM.createFactoryFromMarkupOrNode('<div></div>')();
   }
 }

@@ -4,8 +4,6 @@ import { IBindScope } from '../binding/observation';
 import { DOM, INode, IView } from '../dom';
 import { IAttach } from './lifecycle';
 import { IRenderContext } from './render-context';
-import { IRenderSlot } from './render-slot';
-import { IVisual } from './visual';
 
 export const IViewOwner = DI.createInterface<IViewOwner>();
 

@@ -1,11 +1,11 @@
+import { IIndexable } from '@aurelia/kernel';
 import { DOM, INode, INodeObserver } from '../dom';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { IEventSubscriber } from './event-manager';
-import { IAccessor, IPropertySubscriber, ISubscribable, MutationKind, IChangeTracker } from './observation';
-import { SubscriberCollection } from './subscriber-collection';
+import { CollectionKind, IAccessor, IBatchedCollectionSubscriber, IChangeTracker, IPropertySubscriber, ISubscribable, MutationKind, ICollectionObserver } from './observation';
 import { IObserverLocator } from './observer-locator';
-import { IIndexable } from '@aurelia/kernel';
+import { SubscriberCollection } from './subscriber-collection';
 
 type ElementObserver = XLinkAttributeObserver | DataAttributeObserver | StyleObserver | ValueAttributeObserver;
 
@@ -450,78 +450,73 @@ ClassObserver.prototype.changeSet = null;
 ClassObserver.prototype.node = null;
 ClassObserver.prototype.nameIndex = null;
 
-const checkedArrayContext = 'CheckedObserver:array';
-const checkedValueContext = 'CheckedObserver:value';
+export class CheckedObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker, IBatchedCollectionSubscriber, IPropertySubscriber {
+  public hasChanges: boolean;
+  public currentValue: any;
+  public previousValue: any;
+  public oldValue: any;
+  public defaultValue: any;
 
-export class CheckedObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker {
-  private value: any;
+  public setValue: (newValue: any) => Promise<void>;
+  public flushChanges: () => void;
+
   private initialSync: boolean;
-  private arrayObserver: any;
-  private oldValue: any;
-  private valueObserver: any;
+  private arrayObserver: ICollectionObserver<CollectionKind.array>;
+  private valueObserver: ValueAttributeObserver;
 
   constructor(
-    private node: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
+    public changeSet: IChangeSet,
+    public node: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
     public handler: IEventSubscriber,
-    private changeSet: IChangeSet,
-    private observerLocator: IObserverLocator
+    public observerLocator: IObserverLocator
   ) {
     super();
   }
 
-  public getValue() {
-    return this.value;
+  public getValue(): any {
+    return this.currentValue;
   }
 
-  public setValue(newValue: any) {
-    if (this.initialSync && this.value === newValue) {
+  public setValueCore(newValue: any): void {
+    if (this.initialSync) {
       return;
     }
-
-    // unsubscribe from old array.
-    if (this.arrayObserver) {
-      this.arrayObserver.unsubscribe(checkedArrayContext, this);
-      this.arrayObserver = null;
-    }
-
-    // subscribe to new array.
-    if (this.node.type === 'checkbox' && Array.isArray(newValue)) {
-      this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
-      this.arrayObserver.subscribe(checkedArrayContext, this);
-    }
-
-    // assign and sync element.
-    this.oldValue = this.value;
-    this.value = newValue;
-    this.synchronizeElement();
-    this.notify();
-
-    // queue up an initial sync after the bindings have been evaluated.
-    if (!this.initialSync) {
-      this.initialSync = true;
-      this.changeSet.add(this);
-    }
-  }
-
-  public flushChanges(): void {
-    // called by task queue, array observer, and model/value observer.
-    this.synchronizeElement();
-    // if the input's model or value property is data-bound, subscribe to it's
-    // changes to enable synchronizing the element's checked status when a change occurs.
     if (!this.valueObserver) {
       this.valueObserver = this.node['$observers'].model || this.node['$observers'].value;
       if (this.valueObserver) {
-        this.valueObserver.subscribe(checkedValueContext, this);
+        this.valueObserver.subscribe(this, BindingFlags.checkedValueContext);
       }
     }
+    if (this.arrayObserver) {
+      this.arrayObserver.unsubscribeBatched(this, BindingFlags.checkedArrayContext);
+      this.arrayObserver = null;
+    }
+    if (this.node.type === 'checkbox' && Array.isArray(newValue)) {
+      this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
+      this.arrayObserver.subscribeBatched(this, BindingFlags.checkedArrayContext);
+    }
+    this.synchronizeElement();
+    this.notify();
   }
 
-  public synchronizeElement() {
-    let value = this.value;
-    let element = this.node;
-    let elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
-    let isRadio = element.type === 'radio';
-    let matcher = element['matcher'] || ((a: any, b: any) => a === b);
+  // handleBatchedCollectionChange (todo: rename to make this explicit?)
+  public handleBatchedChange(indexMap: number[], flags?: BindingFlags): void {
+    // todo: utilize indexMap
+    this.synchronizeElement();
+    this.notify();
+  }
+
+  // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
+  public handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void {
+    this.setValue(newValue);
+  }
+
+  public synchronizeElement(): void {
+    const value = this.currentValue;
+    const element = this.node;
+    const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
+    const isRadio = element.type === 'radio';
+    const matcher = element['matcher'] || ((a: any, b: any) => a === b);
 
     element.checked =
       isRadio && !!matcher(value, elementValue)
@@ -529,12 +524,26 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
       || !isRadio && Array.isArray(value) && value.findIndex(item => !!matcher(item, elementValue)) !== -1;
   }
 
-  public synchronizeValue() {
-    let value = this.value;
-    let element = this.node;
-    let elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
+  public notify(): void {
+    const oldValue = this.oldValue;
+    const newValue = this.currentValue;
+    if (newValue === oldValue) {
+      return;
+    }
+    this.callSubscribers(newValue, oldValue);
+  }
+
+  public handleEvent(): void {
+    this.synchronizeValue();
+    this.notify();
+  }
+
+  public synchronizeValue(): void {
+    let value = this.currentValue;
+    const element = this.node;
+    const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     let index;
-    let matcher = element['matcher'] || ((a: any, b: any) => a === b);
+    const matcher = element['matcher'] || ((a: any, b: any) => a === b);
 
     if (element.type === 'checkbox') {
       if (Array.isArray(value)) {
@@ -544,61 +553,55 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
         } else if (!element.checked && index !== -1) {
           value.splice(index, 1);
         }
-        // don't invoke callbacks.
         return;
       }
-
       value = element.checked;
     } else if (element.checked) {
       value = elementValue;
     } else {
-      // don't invoke callbacks.
       return;
     }
-
-    this.oldValue = this.value;
-    this.value = value;
-    this.notify();
+    this.oldValue = this.currentValue;
+    this.currentValue = value;
   }
 
-  public notify() {
-    let oldValue = this.oldValue;
-    let newValue = this.value;
-
-    if (newValue === oldValue) {
-      return;
-    }
-
-    this.callSubscribers(newValue, oldValue);
-  }
-
-  public handleEvent() {
-    this.synchronizeValue();
-  }
-
-  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.node, this);
     }
     this.addSubscriber(subscriber, flags);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
     if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }
 
-  public unbind() {
+  public unbind(): void {
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribe(checkedArrayContext, this);
+      this.arrayObserver.unsubscribeBatched(this, BindingFlags.checkedArrayContext);
       this.arrayObserver = null;
     }
     if (this.valueObserver) {
-      this.valueObserver.unsubscribe(checkedValueContext, this);
+      this.valueObserver.unsubscribe(this, BindingFlags.checkedValueContext);
     }
   }
 }
+
+CheckedObserver.prototype.hasChanges = false;
+CheckedObserver.prototype.currentValue = '';
+CheckedObserver.prototype.previousValue = '';
+CheckedObserver.prototype.oldValue = '';
+CheckedObserver.prototype.defaultValue = '';
+
+CheckedObserver.prototype.setValue = setValue;
+CheckedObserver.prototype.flushChanges = flushChanges;
+
+CheckedObserver.prototype.changeSet = null;
+CheckedObserver.prototype.node = null;
+CheckedObserver.prototype.handler = null;
+CheckedObserver.prototype.observerLocator = null;
 
 const selectArrayContext = 'SelectValueObserver:array';
 const childObserverOptions = {

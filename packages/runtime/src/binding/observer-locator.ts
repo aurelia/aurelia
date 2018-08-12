@@ -164,7 +164,7 @@ export class ObserverLocator implements IObserverLocator {
       }
 
       if (propertyName === 'checked' && DOM.normalizedTagName(obj) === 'input') {
-        return new CheckedObserver(<HTMLInputElement>obj, handler, this.changeSet, this);
+        return new CheckedObserver(this.changeSet, <HTMLInputElement>obj, handler, this);
       }
 
       if (handler) {

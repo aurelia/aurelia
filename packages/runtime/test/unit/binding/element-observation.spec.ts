@@ -1,8 +1,9 @@
-import { XLinkAttributeObserver, DataAttributeObserver, StyleObserver, ValueAttributeObserver, EventSubscriber, ChangeSet, ClassObserver } from "@aurelia/runtime";
+import { XLinkAttributeObserver, DataAttributeObserver, StyleObserver, ValueAttributeObserver, EventSubscriber, ChangeSet, ClassObserver, CheckedObserver, IObserverLocator, IChangeSet } from "@aurelia/runtime";
 import { createElement, globalAttributeNames } from "../util";
 import { expect } from "chai";
 import { CSS_PROPERTIES } from "../css-properties";
 import { spy } from "sinon";
+import { IContainer, DI } from "@aurelia/kernel";
 
 
 function createSvgUseElement(name: string, value: string) {
@@ -271,4 +272,70 @@ describe('ClassObserver', () => {
       };
     }
   }
+});
+
+// TODO: need many more tests here, this is just preliminary
+describe('CheckedObserver', () => {
+  function createFixture(initialValue: boolean | any[] = false, value = '') {
+    const container = DI.createContainer();
+    const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+    const changeSet = <IChangeSet>container.get(IChangeSet);
+    const markup = `<input type="checkbox">`;
+    const el = <HTMLInputElement>createElement(markup);
+    el.value = value;
+    const sut = <CheckedObserver>observerLocator.getObserver(el, 'checked');
+    sut.setValue(initialValue);
+    changeSet.flushChanges();
+
+    return { changeSet, el, sut };
+  }
+
+  describe('setValue()', () => {
+    for (const initChecked of [true, false]) {
+      for (const setChecked of [true, false]) {
+        it(`sets 'checked' from ${initChecked} to ${setChecked}`, () => {
+          const { changeSet, el, sut } = createFixture(initChecked);
+
+          sut.setValue(setChecked);
+          expect(el.checked).to.equal(initChecked);
+
+          changeSet.flushChanges();
+          expect(el.checked).to.equal(setChecked);
+        });
+
+        it(`only calls synchronizeElement() when the value changed (${initChecked} -> ${setChecked})`, () => {
+          const { changeSet, el, sut } = createFixture(initChecked);
+          const synchronizeElementSpy = spy(sut, 'synchronizeElement');
+
+          sut.setValue(setChecked);
+          expect(synchronizeElementSpy).not.to.have.been.called;
+
+          changeSet.flushChanges();
+          if (initChecked === setChecked) {
+            expect(synchronizeElementSpy).not.to.have.been.called;
+          } else {
+            expect(synchronizeElementSpy).to.have.been.called;
+          }
+        });
+      }
+    }
+
+    for (const value of ['', 'foo']) {
+      for (const init of [[], [''], ['', 'foo']]) {
+        for (const next of [[], [''], ['', 'foo']]) {
+          it(`sets 'checked' state correctly on array assignment - value="${value}", init=["${init.join('","')}"], next=["${next.join('","')}"]`, () => {
+            const { changeSet, el, sut } = createFixture(init, value);
+            const initChecked = init.includes(value);
+            const nextChecked = next.includes(value);
+
+            sut.setValue(next);
+            expect(el.checked).to.equal(initChecked);
+
+            changeSet.flushChanges();
+            expect(el.checked).to.equal(nextChecked);
+          });
+        }
+      }
+    }
+  });
 });

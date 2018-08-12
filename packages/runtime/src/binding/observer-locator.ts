@@ -160,7 +160,7 @@ export class ObserverLocator implements IObserverLocator {
 
       const handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && DOM.normalizedTagName(obj) === 'select') {
-        return new SelectValueObserver(<HTMLSelectElement>obj, handler, this.changeSet, this);
+        return new SelectValueObserver(this.changeSet, <HTMLSelectElement>obj, handler, this);
       }
 
       if (propertyName === 'checked' && DOM.normalizedTagName(obj) === 'input') {

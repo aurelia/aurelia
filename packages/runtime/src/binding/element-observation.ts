@@ -603,89 +603,79 @@ CheckedObserver.prototype.node = null;
 CheckedObserver.prototype.handler = null;
 CheckedObserver.prototype.observerLocator = null;
 
-const selectArrayContext = 'SelectValueObserver:array';
 const childObserverOptions = {
   childList: true,
   subtree: true,
   characterData: true
 };
 
-export class SelectValueObserver extends SubscriberCollection implements IChangeTracker {
-  private value: any;
-  private oldValue: any;
-  private arrayObserver: any;
-  private initialSync = false;
+export class SelectValueObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker, IBatchedCollectionSubscriber, IPropertySubscriber {
+  public hasChanges: boolean;
+  public currentValue: any;
+  public previousValue: any;
+  public oldValue: any;
+  public defaultValue: any;
+
+  public setValue: (newValue: any) => Promise<void>;
+  public flushChanges: () => void;
+
+  private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private nodeObserver: INodeObserver;
 
   constructor(
-    private node: HTMLSelectElement,
+    public changeSet: IChangeSet,
+    public node: HTMLSelectElement,
     public handler: IEventSubscriber,
-    private changeSet: IChangeSet,
-    private observerLocator: IObserverLocator
+    public observerLocator: IObserverLocator
   ) {
     super();
-    this.node = node;
-    this.handler = handler;
-    this.observerLocator = observerLocator;
   }
 
-  public getValue() {
-    return this.value;
+  public getValue(): any {
+    return this.currentValue;
   }
 
-  public setValue(newValue: any) {
+  public setValueCore(newValue: any): void {
     if (newValue !== null && newValue !== undefined && this.node.multiple && !Array.isArray(newValue)) {
       throw new Error('Only null or Array instances can be bound to a multi-select.');
     }
-
-    if (this.value === newValue) {
-      return;
-    }
-
-    // unsubscribe from old array.
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribe(selectArrayContext, this);
+      this.arrayObserver.unsubscribeBatched(this, BindingFlags.selectArrayContext);
       this.arrayObserver = null;
     }
-
-    // subscribe to new array.
     if (Array.isArray(newValue)) {
       this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
-      this.arrayObserver.subscribe(selectArrayContext, this);
+      this.arrayObserver.subscribeBatched(this, BindingFlags.selectArrayContext);
     }
-
-    // assign and sync element.
-    this.oldValue = this.value;
-    this.value = newValue;
     this.synchronizeOptions();
     this.notify();
-    // queue up an initial sync after the bindings have been evaluated.
-    if (!this.initialSync) {
-      this.initialSync = true;
-      this.changeSet.add(this);
-    }
   }
 
-  public flushChanges(): void {
-    // called by task queue and array observer.
+  // handleBatchedCollectionChange (todo: rename to make this explicit?)
+  public handleBatchedChange(indexMap: number[], flags?: BindingFlags): void {
+    // todo: utilize indexMap
     this.synchronizeOptions();
+    this.notify();
   }
 
-  public synchronizeOptions() {
-    let value = this.value;
-    let isArray: boolean;
+  // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
+  public handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void {
+    this.setValue(newValue);
+  }
 
+  public synchronizeOptions(): void {
+    const value = this.currentValue;
+    let isArray: boolean;
     if (Array.isArray(value)) {
       isArray = true;
     }
-
-    let options = this.node.options;
+    const options = this.node.options;
     let i = options.length;
-    let matcher = (<any>this.node).matcher || ((a: any, b: any) => a === b);
+    const matcher = (<any>this.node).matcher || ((a: any, b: any) => a === b);
 
     while (i--) {
-      let option = options.item(i) as HTMLOptionElement & { model?: any };
-      let optionValue = option.hasOwnProperty('model') ? option.model : option.value;
+      const option = options.item(i) as HTMLOptionElement & { model?: any };
+      const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
       if (isArray) {
         option.selected = value.findIndex((item: any) => !!matcher(optionValue, item)) !== -1; // eslint-disable-line no-loop-func
         continue;
@@ -694,13 +684,27 @@ export class SelectValueObserver extends SubscriberCollection implements IChange
     }
   }
 
-  public synchronizeValue() {
-    let options = this.node.options;
+  public notify(): void {
+    const oldValue = this.oldValue;
+    const newValue = this.currentValue;
+    if (newValue === oldValue) {
+      return;
+    }
+    this.callSubscribers(newValue, oldValue);
+  }
+
+  public handleEvent(): void {
+    this.synchronizeValue();
+    this.notify();
+  }
+
+  public synchronizeValue(): void {
+    const options = this.node.options;
     let count = 0;
     let value = [];
 
     for (let i = 0, ii = options.length; i < ii; i++) {
-      let option = options.item(i) as HTMLOptionElement & { model?: any };
+      const option = options.item(i) as HTMLOptionElement & { model?: any };
       if (!option.selected) {
         continue;
       }
@@ -710,14 +714,14 @@ export class SelectValueObserver extends SubscriberCollection implements IChange
 
     if (this.node.multiple) {
       // multi-select
-      if (Array.isArray(this.value)) {
-        let matcher = (<any>this.node).matcher || ((a: any, b: any) => a === b);
+      if (Array.isArray(this.currentValue)) {
+        const matcher = (<any>this.node).matcher || ((a: any, b: any) => a === b);
         // remove items that are no longer selected.
         let i = 0;
-        while (i < this.value.length) {
-          let a = this.value[i];
+        while (i < this.currentValue.length) {
+          const a = this.currentValue[i];
           if (value.findIndex(b => matcher(a, b)) === -1) { // eslint-disable-line no-loop-func
-            this.value.splice(i, 1);
+            this.currentValue.splice(i, 1);
           } else {
             i++;
           }
@@ -725,9 +729,9 @@ export class SelectValueObserver extends SubscriberCollection implements IChange
         // add items that have been selected.
         i = 0;
         while (i < value.length) {
-          let a = value[i];
-          if (this.value.findIndex(b => matcher(a, b)) === -1) { // eslint-disable-line no-loop-func
-            this.value.push(a);
+          const a = value[i];
+          if (this.currentValue.findIndex(b => matcher(a, b)) === -1) { // eslint-disable-line no-loop-func
+            this.currentValue.push(a);
           }
           i++;
         }
@@ -741,26 +745,11 @@ export class SelectValueObserver extends SubscriberCollection implements IChange
         value = value[0];
       }
     }
-
-    if (value !== this.value) {
-      this.oldValue = this.value;
-      this.value = value;
-      this.notify();
-    }
+    this.oldValue = this.currentValue;
+    this.currentValue = value;
   }
 
-  public notify() {
-    let oldValue = this.oldValue;
-    let newValue = this.value;
-
-    this.callSubscribers(newValue, oldValue);
-  }
-
-  public handleEvent() {
-    this.synchronizeValue();
-  }
-
-  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
       this.handler.subscribe(this.node, this);
@@ -768,26 +757,40 @@ export class SelectValueObserver extends SubscriberCollection implements IChange
     this.addSubscriber(subscriber, flags);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
     if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }
 
-  public bind() {
+  public bind(): void {
     this.nodeObserver = DOM.createNodeObserver(this.node, () => {
       this.synchronizeOptions();
       this.synchronizeValue();
     }, childObserverOptions);
   }
 
-  public unbind() {
+  public unbind(): void {
     this.nodeObserver.disconnect();
     this.nodeObserver = null;
 
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribe(selectArrayContext, this);
+      this.arrayObserver.unsubscribeBatched(this, BindingFlags.selectArrayContext);
       this.arrayObserver = null;
     }
   }
 }
+
+SelectValueObserver.prototype.hasChanges = false;
+SelectValueObserver.prototype.currentValue = '';
+SelectValueObserver.prototype.previousValue = '';
+SelectValueObserver.prototype.oldValue = '';
+SelectValueObserver.prototype.defaultValue = '';
+
+SelectValueObserver.prototype.setValue = setValue;
+SelectValueObserver.prototype.flushChanges = flushChanges;
+
+SelectValueObserver.prototype.changeSet = null;
+SelectValueObserver.prototype.node = null;
+SelectValueObserver.prototype.handler = null;
+SelectValueObserver.prototype.observerLocator = null;

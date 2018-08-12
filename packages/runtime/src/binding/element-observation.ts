@@ -5,6 +5,7 @@ import { IEventSubscriber } from './event-manager';
 import { IAccessor, IPropertySubscriber, ISubscribable, MutationKind, IChangeTracker } from './observation';
 import { SubscriberCollection } from './subscriber-collection';
 import { IObserverLocator } from './observer-locator';
+import { IIndexable } from '@aurelia/kernel';
 
 type ElementObserver = XLinkAttributeObserver | DataAttributeObserver | StyleObserver | ValueAttributeObserver;
 
@@ -363,45 +364,49 @@ ValueAttributeObserver.prototype.node = null;
 ValueAttributeObserver.prototype.propertyName = '';
 ValueAttributeObserver.prototype.handler = null;
 
-
 export class ClassObserver implements IAccessor {
-  public doNotCache = true;
-  public value = '';
-  public version = 0;
-  public nameIndex: any;
+  public hasChanges: boolean;
+  public currentValue: string;
+  public previousValue: string;
+  public oldValue: string;
+  public defaultValue: string;
 
-  constructor(private node: INode) { }
+  public setValue: (newValue: any) => Promise<void>;
+  public flushChanges: () => void;
 
-  public getValue() {
-    return this.value;
+  public doNotCache: true;
+  public version: number;
+  public nameIndex: IIndexable;
+
+  constructor(public changeSet: IChangeSet, public node: INode) { }
+
+  public getValue(): string {
+    return this.currentValue;
   }
 
-  public setValue(newValue: any) {
+  public setValueCore(newValue: string): void {
     const addClass = DOM.addClass;
     const removeClass = DOM.removeClass;
-
-    let nameIndex = this.nameIndex || {};
+    const nameIndex = this.nameIndex || {};
     let version = this.version;
     let names;
     let name;
 
     // Add the classes, tracking the version at which they were added.
-    if (newValue !== null && newValue !== undefined && newValue.length) {
+    if (newValue.length) {
+      const node = this.node;
       names = newValue.split(/\s+/);
       for (let i = 0, length = names.length; i < length; i++) {
         name = names[i];
-
-        if (name === '') {
+        if (!name.length) {
           continue;
         }
-
         nameIndex[name] = version;
-        addClass(this.node, name);
+        addClass(node, name);
       }
     }
 
     // Update state variables.
-    this.value = newValue;
     this.nameIndex = nameIndex;
     this.version += 1;
 
@@ -412,21 +417,38 @@ export class ClassObserver implements IAccessor {
 
     // Remove classes from previous version.
     version -= 1;
-
     for (name in nameIndex) {
       if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
         continue;
       }
 
+      // TODO: this has the side-effect that classes already present which are added again,
+      // will be removed if they're not present in the next update.
+      // Better would be do have some configurability for this behavior, allowing the user to
+      // decide whether initial classes always need to be kept, always removed, or something in between
       removeClass(this.node, name);
     }
   }
 
-  public subscribe() {
+  public subscribe(): void {
     throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "class" property is not supported.`);
   }
 }
 
+ClassObserver.prototype.hasChanges = false;
+ClassObserver.prototype.currentValue = '';
+ClassObserver.prototype.previousValue = '';
+ClassObserver.prototype.oldValue = '';
+ClassObserver.prototype.defaultValue = '';
+
+ClassObserver.prototype.setValue = setValue;
+ClassObserver.prototype.flushChanges = flushChanges;
+
+ClassObserver.prototype.doNotCache = true;
+ClassObserver.prototype.version = 0;
+ClassObserver.prototype.changeSet = null;
+ClassObserver.prototype.node = null;
+ClassObserver.prototype.nameIndex = null;
 
 const checkedArrayContext = 'CheckedObserver:array';
 const checkedValueContext = 'CheckedObserver:value';
@@ -577,8 +599,6 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
     }
   }
 }
-
-
 
 const selectArrayContext = 'SelectValueObserver:array';
 const childObserverOptions = {

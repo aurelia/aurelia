@@ -1,4 +1,4 @@
-import { XLinkAttributeObserver, DataAttributeObserver, StyleObserver, ValueAttributeObserver, EventSubscriber, ChangeSet } from "@aurelia/runtime";
+import { XLinkAttributeObserver, DataAttributeObserver, StyleObserver, ValueAttributeObserver, EventSubscriber, ChangeSet, ClassObserver } from "@aurelia/runtime";
 import { createElement, globalAttributeNames } from "../util";
 import { expect } from "chai";
 import { CSS_PROPERTIES } from "../css-properties";
@@ -210,5 +210,65 @@ describe('ValueAttributeObserver', () => {
       changeSet.flushChanges();
       expect(sut['callSubscribers']).not.to.have.been.called;
     });
+  }
+});
+
+
+describe('ClassObserver', () => {
+  let sut: ClassObserver;
+  let el: Element;
+  let changeSet: ChangeSet;
+  let initialClassList: string;
+
+  const markupArr = [
+    '<div></div>',
+    '<div class=""></div>',
+    '<div class="foo"></div>',
+    '<div class="foo bar baz"></div>'
+  ];
+  const classListArr = ['', 'foo', 'foo bar', 'bar baz', 'qux', 'bar qux', 'qux quux'];
+  const secondClassListArr = ['', 'fooo'];
+  for (const markup of markupArr) {
+    for (const classList of classListArr) {
+      beforeEach(() => {
+        el = createElement(markup);
+        initialClassList = el.classList.toString();
+        changeSet = new ChangeSet();
+        sut = new ClassObserver(changeSet, el);
+      });
+
+      it(`setValue("${classList}") updates ${markup}`, () => {
+        sut.setValue(classList);
+        expect(el.classList.toString()).to.equal(initialClassList);
+        changeSet.flushChanges();
+        const updatedClassList = el.classList.toString();
+        for (const cls of initialClassList.split(' ')) {
+          expect(updatedClassList).to.contain(cls);
+        }
+        for (const cls of classList.split(' ')) {
+          expect(updatedClassList).to.contain(cls);
+        }
+      });
+
+      for (const secondClassList of secondClassListArr) {
+        it(`setValue("${secondClassList}") updates already-updated ${markup}`, () => {
+          sut.setValue(classList);
+          changeSet.flushChanges();
+          const updatedClassList = el.classList.toString();
+          sut.setValue(secondClassList);
+          expect(el.classList.toString()).to.equal(updatedClassList);
+          changeSet.flushChanges();
+          const secondUpdatedClassList = el.classList.toString();
+          for (const cls of initialClassList.split(' ')) {
+            if (!classList.includes(cls)) {
+              expect(secondUpdatedClassList).to.contain(cls);
+            }
+          }
+          for (const cls of secondClassList.split(' ')) {
+            expect(secondUpdatedClassList).to.contain(cls);
+          }
+        });
+      };
+    }
   }
 });

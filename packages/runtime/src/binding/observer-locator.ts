@@ -151,7 +151,7 @@ export class ObserverLocator implements IObserverLocator {
 
     if (DOM.isNodeInstance(obj)) {
       if (propertyName === 'class') {
-        return new ClassObserver(obj);
+        return new ClassObserver(this.changeSet, obj);
       }
 
       if (propertyName === 'style' || propertyName === 'css') {

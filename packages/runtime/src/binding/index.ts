@@ -9,8 +9,6 @@ export * from './binding-mode';
 export * from './binding';
 export * from './call';
 export * from './change-set';
-export * from './checked-observer';
-export * from './class-observer';
 export * from './collection-observer';
 export * from './computed-observer';
 export * from './dirty-checker';
@@ -23,7 +21,6 @@ export * from './observation';
 export * from './observer-locator';
 export * from './property-observation';
 export * from './ref';
-export * from './select-value-observer';
 export { SetObserver, enableSetObservation, disableSetObservation, nativeAdd, nativeDelete as nativeSetDelete, nativeClear as nativeSetClear } from './set-observer'; // TODO: do this differently, not let this be ugly, etc, etc
 export * from './signaler';
 export * from './subscriber-collection';

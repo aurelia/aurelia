@@ -1,9 +1,10 @@
-import { DOM, INode } from '../dom';
+import { DOM, INode, INodeObserver } from '../dom';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { IEventSubscriber } from './event-manager';
-import { IAccessor, IPropertySubscriber, ISubscribable, MutationKind } from './observation';
+import { IAccessor, IPropertySubscriber, ISubscribable, MutationKind, IChangeTracker } from './observation';
 import { SubscriberCollection } from './subscriber-collection';
+import { IObserverLocator } from './observer-locator';
 
 type ElementObserver = XLinkAttributeObserver | DataAttributeObserver | StyleObserver | ValueAttributeObserver;
 
@@ -361,3 +362,409 @@ ValueAttributeObserver.prototype.changeSet = null;
 ValueAttributeObserver.prototype.node = null;
 ValueAttributeObserver.prototype.propertyName = '';
 ValueAttributeObserver.prototype.handler = null;
+
+
+export class ClassObserver implements IAccessor {
+  public doNotCache = true;
+  public value = '';
+  public version = 0;
+  public nameIndex: any;
+
+  constructor(private node: INode) { }
+
+  public getValue() {
+    return this.value;
+  }
+
+  public setValue(newValue: any) {
+    const addClass = DOM.addClass;
+    const removeClass = DOM.removeClass;
+
+    let nameIndex = this.nameIndex || {};
+    let version = this.version;
+    let names;
+    let name;
+
+    // Add the classes, tracking the version at which they were added.
+    if (newValue !== null && newValue !== undefined && newValue.length) {
+      names = newValue.split(/\s+/);
+      for (let i = 0, length = names.length; i < length; i++) {
+        name = names[i];
+
+        if (name === '') {
+          continue;
+        }
+
+        nameIndex[name] = version;
+        addClass(this.node, name);
+      }
+    }
+
+    // Update state variables.
+    this.value = newValue;
+    this.nameIndex = nameIndex;
+    this.version += 1;
+
+    // First call to setValue?  We're done.
+    if (version === 0) {
+      return;
+    }
+
+    // Remove classes from previous version.
+    version -= 1;
+
+    for (name in nameIndex) {
+      if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
+        continue;
+      }
+
+      removeClass(this.node, name);
+    }
+  }
+
+  public subscribe() {
+    throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "class" property is not supported.`);
+  }
+}
+
+
+const checkedArrayContext = 'CheckedObserver:array';
+const checkedValueContext = 'CheckedObserver:value';
+
+export class CheckedObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker {
+  private value: any;
+  private initialSync: boolean;
+  private arrayObserver: any;
+  private oldValue: any;
+  private valueObserver: any;
+
+  constructor(
+    private node: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
+    public handler: IEventSubscriber,
+    private changeSet: IChangeSet,
+    private observerLocator: IObserverLocator
+  ) {
+    super();
+  }
+
+  public getValue() {
+    return this.value;
+  }
+
+  public setValue(newValue: any) {
+    if (this.initialSync && this.value === newValue) {
+      return;
+    }
+
+    // unsubscribe from old array.
+    if (this.arrayObserver) {
+      this.arrayObserver.unsubscribe(checkedArrayContext, this);
+      this.arrayObserver = null;
+    }
+
+    // subscribe to new array.
+    if (this.node.type === 'checkbox' && Array.isArray(newValue)) {
+      this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
+      this.arrayObserver.subscribe(checkedArrayContext, this);
+    }
+
+    // assign and sync element.
+    this.oldValue = this.value;
+    this.value = newValue;
+    this.synchronizeElement();
+    this.notify();
+
+    // queue up an initial sync after the bindings have been evaluated.
+    if (!this.initialSync) {
+      this.initialSync = true;
+      this.changeSet.add(this);
+    }
+  }
+
+  public flushChanges(): void {
+    // called by task queue, array observer, and model/value observer.
+    this.synchronizeElement();
+    // if the input's model or value property is data-bound, subscribe to it's
+    // changes to enable synchronizing the element's checked status when a change occurs.
+    if (!this.valueObserver) {
+      this.valueObserver = this.node['$observers'].model || this.node['$observers'].value;
+      if (this.valueObserver) {
+        this.valueObserver.subscribe(checkedValueContext, this);
+      }
+    }
+  }
+
+  public synchronizeElement() {
+    let value = this.value;
+    let element = this.node;
+    let elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
+    let isRadio = element.type === 'radio';
+    let matcher = element['matcher'] || ((a: any, b: any) => a === b);
+
+    element.checked =
+      isRadio && !!matcher(value, elementValue)
+      || !isRadio && value === true
+      || !isRadio && Array.isArray(value) && value.findIndex(item => !!matcher(item, elementValue)) !== -1;
+  }
+
+  public synchronizeValue() {
+    let value = this.value;
+    let element = this.node;
+    let elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
+    let index;
+    let matcher = element['matcher'] || ((a: any, b: any) => a === b);
+
+    if (element.type === 'checkbox') {
+      if (Array.isArray(value)) {
+        index = value.findIndex(item => !!matcher(item, elementValue));
+        if (element.checked && index === -1) {
+          value.push(elementValue);
+        } else if (!element.checked && index !== -1) {
+          value.splice(index, 1);
+        }
+        // don't invoke callbacks.
+        return;
+      }
+
+      value = element.checked;
+    } else if (element.checked) {
+      value = elementValue;
+    } else {
+      // don't invoke callbacks.
+      return;
+    }
+
+    this.oldValue = this.value;
+    this.value = value;
+    this.notify();
+  }
+
+  public notify() {
+    let oldValue = this.oldValue;
+    let newValue = this.value;
+
+    if (newValue === oldValue) {
+      return;
+    }
+
+    this.callSubscribers(newValue, oldValue);
+  }
+
+  public handleEvent() {
+    this.synchronizeValue();
+  }
+
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    if (!this.hasSubscribers()) {
+      this.handler.subscribe(this.node, this);
+    }
+    this.addSubscriber(subscriber, flags);
+  }
+
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
+      this.handler.dispose();
+    }
+  }
+
+  public unbind() {
+    if (this.arrayObserver) {
+      this.arrayObserver.unsubscribe(checkedArrayContext, this);
+      this.arrayObserver = null;
+    }
+    if (this.valueObserver) {
+      this.valueObserver.unsubscribe(checkedValueContext, this);
+    }
+  }
+}
+
+
+
+const selectArrayContext = 'SelectValueObserver:array';
+const childObserverOptions = {
+  childList: true,
+  subtree: true,
+  characterData: true
+};
+
+export class SelectValueObserver extends SubscriberCollection implements IChangeTracker {
+  private value: any;
+  private oldValue: any;
+  private arrayObserver: any;
+  private initialSync = false;
+  private nodeObserver: INodeObserver;
+
+  constructor(
+    private node: HTMLSelectElement,
+    public handler: IEventSubscriber,
+    private changeSet: IChangeSet,
+    private observerLocator: IObserverLocator
+  ) {
+    super();
+    this.node = node;
+    this.handler = handler;
+    this.observerLocator = observerLocator;
+  }
+
+  public getValue() {
+    return this.value;
+  }
+
+  public setValue(newValue: any) {
+    if (newValue !== null && newValue !== undefined && this.node.multiple && !Array.isArray(newValue)) {
+      throw new Error('Only null or Array instances can be bound to a multi-select.');
+    }
+
+    if (this.value === newValue) {
+      return;
+    }
+
+    // unsubscribe from old array.
+    if (this.arrayObserver) {
+      this.arrayObserver.unsubscribe(selectArrayContext, this);
+      this.arrayObserver = null;
+    }
+
+    // subscribe to new array.
+    if (Array.isArray(newValue)) {
+      this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
+      this.arrayObserver.subscribe(selectArrayContext, this);
+    }
+
+    // assign and sync element.
+    this.oldValue = this.value;
+    this.value = newValue;
+    this.synchronizeOptions();
+    this.notify();
+    // queue up an initial sync after the bindings have been evaluated.
+    if (!this.initialSync) {
+      this.initialSync = true;
+      this.changeSet.add(this);
+    }
+  }
+
+  public flushChanges(): void {
+    // called by task queue and array observer.
+    this.synchronizeOptions();
+  }
+
+  public synchronizeOptions() {
+    let value = this.value;
+    let isArray: boolean;
+
+    if (Array.isArray(value)) {
+      isArray = true;
+    }
+
+    let options = this.node.options;
+    let i = options.length;
+    let matcher = (<any>this.node).matcher || ((a: any, b: any) => a === b);
+
+    while (i--) {
+      let option = options.item(i) as HTMLOptionElement & { model?: any };
+      let optionValue = option.hasOwnProperty('model') ? option.model : option.value;
+      if (isArray) {
+        option.selected = value.findIndex((item: any) => !!matcher(optionValue, item)) !== -1; // eslint-disable-line no-loop-func
+        continue;
+      }
+      option.selected = !!matcher(optionValue, value);
+    }
+  }
+
+  public synchronizeValue() {
+    let options = this.node.options;
+    let count = 0;
+    let value = [];
+
+    for (let i = 0, ii = options.length; i < ii; i++) {
+      let option = options.item(i) as HTMLOptionElement & { model?: any };
+      if (!option.selected) {
+        continue;
+      }
+      value.push(option.hasOwnProperty('model') ? option.model : option.value);
+      count++;
+    }
+
+    if (this.node.multiple) {
+      // multi-select
+      if (Array.isArray(this.value)) {
+        let matcher = (<any>this.node).matcher || ((a: any, b: any) => a === b);
+        // remove items that are no longer selected.
+        let i = 0;
+        while (i < this.value.length) {
+          let a = this.value[i];
+          if (value.findIndex(b => matcher(a, b)) === -1) { // eslint-disable-line no-loop-func
+            this.value.splice(i, 1);
+          } else {
+            i++;
+          }
+        }
+        // add items that have been selected.
+        i = 0;
+        while (i < value.length) {
+          let a = value[i];
+          if (this.value.findIndex(b => matcher(a, b)) === -1) { // eslint-disable-line no-loop-func
+            this.value.push(a);
+          }
+          i++;
+        }
+        return; // don't notify.
+      }
+    } else {
+      // single-select
+      if (count === 0) {
+        value = null;
+      } else {
+        value = value[0];
+      }
+    }
+
+    if (value !== this.value) {
+      this.oldValue = this.value;
+      this.value = value;
+      this.notify();
+    }
+  }
+
+  public notify() {
+    let oldValue = this.oldValue;
+    let newValue = this.value;
+
+    this.callSubscribers(newValue, oldValue);
+  }
+
+  public handleEvent() {
+    this.synchronizeValue();
+  }
+
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    if (!this.hasSubscribers()) {
+      this.oldValue = this.getValue();
+      this.handler.subscribe(this.node, this);
+    }
+    this.addSubscriber(subscriber, flags);
+  }
+
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+    if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
+      this.handler.dispose();
+    }
+  }
+
+  public bind() {
+    this.nodeObserver = DOM.createNodeObserver(this.node, () => {
+      this.synchronizeOptions();
+      this.synchronizeValue();
+    }, childObserverOptions);
+  }
+
+  public unbind() {
+    this.nodeObserver.disconnect();
+    this.nodeObserver = null;
+
+    if (this.arrayObserver) {
+      this.arrayObserver.unsubscribe(selectArrayContext, this);
+      this.arrayObserver = null;
+    }
+  }
+}

@@ -2,16 +2,13 @@ import { DI, inject, Reporter } from '@aurelia/kernel';
 import { DOM } from '../dom';
 import { getArrayObserver } from './array-observer';
 import { IChangeSet } from './change-set';
-import { CheckedObserver } from './checked-observer';
-import { ClassObserver } from './class-observer';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
-import { DataAttributeObserver, StyleObserver, ValueAttributeObserver, XLinkAttributeObserver } from './element-observation';
+import { CheckedObserver, ClassObserver, DataAttributeObserver, SelectValueObserver, StyleObserver, ValueAttributeObserver, XLinkAttributeObserver } from './element-observation';
 import { IEventManager } from './event-manager';
 import { getMapObserver } from './map-observer';
 import { AccessorOrObserver, CollectionKind, IAccessor, IBindingTargetObserver, ICollectionObserver, IObservable } from './observation';
 import { PrimitiveObserver, PropertyAccessor, SetterObserver } from './property-observation';
-import { SelectValueObserver } from './select-value-observer';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
 

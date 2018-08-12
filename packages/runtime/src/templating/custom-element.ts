@@ -9,19 +9,19 @@ import {
 } from '@aurelia/kernel';
 import { BindingContext } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
-import { DOM, INode, IRenderLocation, IView } from '../dom';
+import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
 import { AttachLifecycle, DetachLifecycle, IAttach, IBindSelf } from './lifecycle';
+import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
-import { IViewOwner } from './view';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'content'>>;
 
-export interface ICustomElement extends IBindSelf, IAttach, Readonly<IViewOwner> {
+export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable> {
   readonly $projector: IViewProjector;
   readonly $isAttached: boolean;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
@@ -110,8 +110,8 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$hydrate = function(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
       const template = renderingEngine.getElementTemplate(description, Type);
 
-      this.$bindable = [];
-      this.$attachable = [];
+      this.$bindables = [];
+      this.$attachables = [];
       this.$changeCallbacks = [];
       this.$child = null;
       this.$isAttached = false;
@@ -124,8 +124,8 @@ export const CustomElementResource: ICustomElementResource = {
       this.$context = template.renderContext;
       this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
       this.$projector = determineProjector(this, host, description, options);
-      this.$view = this.$behavior.hasCreateView
-        ? (this as any).createView(host, options.parts, template)
+      this.$nodes = this.$behavior.hasRender
+        ? (this as any).render(host, options.parts, template)
         : template.createFor(this, host, options.parts);
 
       if (this.$behavior.hasCreated) {
@@ -139,10 +139,10 @@ export const CustomElementResource: ICustomElementResource = {
       }
 
       const scope = this.$scope;
-      const bindable = this.$bindable;
+      const bindables = this.$bindables;
 
-      for (let i = 0, ii = bindable.length; i < ii; ++i) {
-        bindable[i].$bind(flags, scope);
+      for (let i = 0, ii = bindables.length; i < ii; ++i) {
+        bindables[i].$bind(flags, scope);
       }
 
       this.$isBound = true;
@@ -170,17 +170,17 @@ export const CustomElementResource: ICustomElementResource = {
         (this as any).attaching(encapsulationSource);
       }
 
-      const attachable = this.$attachable;
+      const attachables = this.$attachables;
 
-      for (let i = 0, ii = attachable.length; i < ii; ++i) {
-        attachable[i].$attach(encapsulationSource, lifecycle);
+      for (let i = 0, ii = attachables.length; i < ii; ++i) {
+        attachables[i].$attach(encapsulationSource, lifecycle);
       }
 
       if (this.$child !== null) {
         this.$child.$attach(encapsulationSource, lifecycle);
       }
 
-      this.$projector.project(this.$view);
+      this.$projector.project(this.$nodes);
 
       if (this.$behavior.hasAttached) {
         lifecycle.queueAttachedCallback(this);
@@ -200,11 +200,11 @@ export const CustomElementResource: ICustomElementResource = {
 
         lifecycle.queueViewRemoval(this);
 
-        const attachable = this.$attachable;
-        let i = attachable.length;
+        const attachables = this.$attachables;
+        let i = attachables.length;
 
         while (i--) {
-          attachable[i].$detach();
+          attachables[i].$detach();
         }
 
         if (this.$child !== null) {
@@ -222,11 +222,11 @@ export const CustomElementResource: ICustomElementResource = {
 
     proto.$unbind = function(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
       if (this.$isBound) {
-        const bindable = this.$bindable;
-        let i = bindable.length;
+        const bindables = this.$bindables;
+        let i = bindables.length;
 
         while (i--) {
-          bindable[i].$unbind(flags);
+          bindables[i].$unbind(flags);
         }
 
         if (this.$behavior.hasUnbound) {
@@ -265,7 +265,7 @@ export interface IViewProjector {
   readonly children: ArrayLike<INode>;
   onChildrenChanged(callback: () => void): void;
   provideEncapsulationSource(parentEncapsulationSource: INode): INode;
-  project(view: IView): void;
+  project(nodes: INodeSequence): void;
 }
 
 function determineProjector(
@@ -323,8 +323,8 @@ class ShadowDOMProjector implements IViewProjector {
     return this.shadowRoot;
   }
 
-  public project(view: IView): void {
-    view.appendTo(this.shadowRoot);
+  public project(nodes: INodeSequence): void {
+    nodes.appendTo(this.shadowRoot);
   }
 }
 
@@ -352,8 +352,8 @@ class ContainerlessProjector implements IViewProjector {
     return parentEncapsulationSource;
   }
 
-  public project(view: IView): void {
-    view.insertBefore(this.location);
+  public project(nodes: INodeSequence): void {
+    nodes.insertBefore(this.location);
   }
 }
 
@@ -374,8 +374,8 @@ class HostProjector implements IViewProjector {
     return parentEncapsulationSource || this.host;
   }
 
-  public project(view: IView): void {
-    view.appendTo(this.host);
+  public project(nodes: INodeSequence): void {
+    nodes.appendTo(this.host);
   }
 }
 

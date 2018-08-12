@@ -6,7 +6,7 @@ import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
 import { IBindScope } from '../binding/observation';
 import { IObserverLocator } from '../binding/observer-locator';
-import { DOM, INode, IView } from '../dom';
+import { DOM, INode, INodeSequence, NodeSequence } from '../dom';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IAnimator } from './animator';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
@@ -14,33 +14,33 @@ import { ICustomElement, ICustomElementType } from './custom-element';
 import { BindableDefinitions, IHydrateElementInstruction, ITemplateSource, TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
 import { createRenderContext, ExposedContext, IRenderContext } from './render-context';
-import { IRenderSlot } from './render-slot';
+import { IRenderable } from './renderable';
 import { IRenderer, Renderer } from './renderer';
 import { IRuntimeBehavior, RuntimeBehavior } from './runtime-behavior';
 import { ITemplate } from './template';
 import { ITemplateCompiler } from './template-compiler';
-import { IViewOwner, View } from './view';
-import { IVisual, IVisualFactory, MotionDirection, RenderCallback, VisualWithCentralComponent } from './visual';
+import { IView, IViewFactory, MotionDirection, RenderCallback, ViewWithCentralComponent } from './view';
+import { IViewSlot } from './view-slot';
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate;
-  getVisualFactory(context: IRenderContext, source: Immutable<ITemplateSource>): IVisualFactory;
+  getViewFactory(context: IRenderContext, source: Immutable<ITemplateSource>): IViewFactory;
 
   applyRuntimeBehavior(type: ICustomAttributeType, instance: ICustomAttribute, bindables: BindableDefinitions): IRuntimeBehavior;
   applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement, bindables: BindableDefinitions): IRuntimeBehavior
 
-  createVisualFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): VisualWithCentralComponent;
+  createViewFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): ViewWithCentralComponent;
   createRenderer(context: IRenderContext): IRenderer;
 }
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>()
   .withDefault(x => x.singleton(RenderingEngine));
 
-// This is an implementation of ITemplate that always returns a view representing "no DOM" to render.
+// This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
 const noViewTemplate: ITemplate = {
   renderContext: null,
-  createFor(owner: IViewOwner) {
-    return View.none;
+  createFor(renderable: IRenderable) {
+    return NodeSequence.empty;
   }
 };
 
@@ -48,7 +48,7 @@ const noViewTemplate: ITemplate = {
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
   private templateLookup = new Map<TemplateDefinition, ITemplate>();
-  private factoryLookup = new Map<Immutable<ITemplateSource>, IVisualFactory>();
+  private factoryLookup = new Map<Immutable<ITemplateSource>, IViewFactory>();
   private behaviorLookup = new Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>();
   private compilers: Record<string, ITemplateCompiler>;
 
@@ -88,7 +88,7 @@ export class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  public getVisualFactory(context: IRenderContext, definition: Immutable<ITemplateSource>): IVisualFactory {
+  public getViewFactory(context: IRenderContext, definition: Immutable<ITemplateSource>): IViewFactory {
     if (!definition) {
       return null;
     }
@@ -121,10 +121,10 @@ export class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  public createVisualFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): VisualWithCentralComponent {
-    let animator = this.animator;
+  public createViewFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): ViewWithCentralComponent {
+    const animator = this.animator;
 
-    class ComponentVisual extends Visual {
+    class ComponentView extends View {
       public component: ICustomElement;
 
       constructor() {
@@ -132,13 +132,13 @@ export class RenderingEngine implements IRenderingEngine {
         this.$context = context;
       }
 
-      createView() {
+      public render(): INodeSequence {
         let target: INode;
 
         if (typeof componentOrType === 'function') {
           target = DOM.createElement(componentOrType.source.name);
           context.hydrateElement(this, target, instruction);
-          this.component = <ICustomElement>this.$attachable[this.$attachable.length - 1];
+          this.component = <ICustomElement>this.$attachables[this.$attachables.length - 1];
         } else {
           const componentType = <ICustomElementType>componentOrType.constructor;
           target = componentOrType.element || DOM.createElement(componentType.description.name);
@@ -146,15 +146,15 @@ export class RenderingEngine implements IRenderingEngine {
           this.component = componentOrType;
         }
 
-        return View.fromNode(target);
+        return NodeSequence.fromNode(target);
       }
 
-      tryReturnToCache() {
+      public tryReturnToCache(): false {
         return false;
       }
     }
 
-    return new ComponentVisual();
+    return new ComponentView();
   }
 
   public createRenderer(context: IRenderContext): IRenderer {
@@ -167,18 +167,18 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
-  private factoryFromSource(context: IRenderContext, definition: TemplateDefinition): IVisualFactory {
+  private factoryFromSource(context: IRenderContext, definition: TemplateDefinition): IViewFactory {
     const template = this.templateFromSource(context, definition);
 
-    const CompiledVisual = class extends Visual {
+    const CompiledView = class extends View {
       $context = context;
 
-      createView() {
+      public render(): INodeSequence {
         return template.createFor(this);
       }
     }
 
-    let factory = new VisualFactory(definition.name, CompiledVisual);
+    const factory = new ViewFactory(definition.name, CompiledView);
     factory.setCacheSize(definition.cache, true);
     return factory;
   }
@@ -230,18 +230,18 @@ export function createDefinition(definition: Immutable<ITemplateSource>): Templa
 // and create instances of it on demand.
 /*@internal*/
 export class CompiledTemplate implements ITemplate {
-  private createView: () => IView;
+  private createNodeSequence: () => INodeSequence;
   public renderContext: IRenderContext;
 
   constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
     this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
-    this.createView = DOM.createFactoryFromMarkupOrNode(templateDefinition.templateOrNode);
+    this.createNodeSequence = DOM.createFactoryFromMarkupOrNode(templateDefinition.templateOrNode);
   }
 
-  public createFor(owner: IViewOwner, host?: INode, replacements?: TemplatePartDefinitions): IView {
-    const view = this.createView();
-    this.renderContext.render(owner, view.findTargets(), this.templateDefinition, host, replacements);
-    return view;
+  public createFor(renderable: IRenderable, host?: INode, replacements?: TemplatePartDefinitions): INodeSequence {
+    const nodes = this.createNodeSequence();
+    this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, replacements);
+    return nodes;
   }
 }
 
@@ -266,48 +266,26 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
 }
 
 /*@internal*/
-export abstract class Visual implements IVisual {
-  public $bindable: IBindScope[] = [];
-  public $attachable: IAttach[] = [];
+export abstract class View implements IView {
+  public $bindables: IBindScope[] = [];
+  public $attachables: IAttach[] = [];
   public $scope: IScope = null;
-  public $view: IView = null;
-  public $isBound = false;
-  public $isAttached = false;
+  public $nodes: INodeSequence = null;
+  public $isBound: boolean = false;
+  public $isAttached: boolean = false;
   public $context: IRenderContext;
-  public parent: IRenderSlot;
+  public parent: IViewSlot;
   public onRender: RenderCallback;
   public renderState: any;
+  public inCache: boolean = false;
 
-  public inCache = false;
-  private animationRoot: INode = undefined;
+  private animationRoot: INode;
 
-  constructor(public factory: VisualFactory, private animator: IAnimator) {
-    this.$view = this.createView();
+  constructor(public factory: ViewFactory, private animator: IAnimator) {
+    this.$nodes = this.render();
   }
 
-  public abstract createView(): IView;
-
-  private getAnimationRoot(): INode {
-    if (this.animationRoot !== undefined) {
-      return this.animationRoot;
-    }
-
-    let currentChild = this.$view.firstChild;
-    const lastChild = this.$view.lastChild;
-    const isElementNodeType = DOM.isElementNodeType;
-
-    while (currentChild !== lastChild && !isElementNodeType(currentChild)) {
-      currentChild = currentChild.nextSibling;
-    }
-
-    if (currentChild && isElementNodeType(currentChild)) {
-      return this.animationRoot = DOM.hasClass(currentChild, 'au-animate')
-        ? currentChild
-        : null;
-    }
-
-    return this.animationRoot = null;
-  }
+  public abstract render(): INodeSequence;
 
   public animate(direction: MotionDirection = MotionDirection.enter): void | Promise<boolean> {
     const element = this.getAnimationRoot();
@@ -326,7 +304,7 @@ export abstract class Visual implements IVisual {
     }
   }
 
-  public $bind(flags: BindingFlags, scope: IScope) {
+  public $bind(flags: BindingFlags, scope: IScope): void {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -337,26 +315,26 @@ export abstract class Visual implements IVisual {
 
     this.$scope = scope;
 
-    const bindable = this.$bindable;
+    const bindables = this.$bindables;
 
-    for (let i = 0, ii = bindable.length; i < ii; ++i) {
-      bindable[i].$bind(flags, scope);
+    for (let i = 0, ii = bindables.length; i < ii; ++i) {
+      bindables[i].$bind(flags, scope);
     }
 
     this.$isBound = true;
   }
 
-  public $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle) {
+  public $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
     if (this.$isAttached) {
       return;
     }
 
     lifecycle = AttachLifecycle.start(this, lifecycle);
 
-    let attachable = this.$attachable;
+    const attachables = this.$attachables;
 
-    for (let i = 0, ii = attachable.length; i < ii; ++i) {
-      attachable[i].$attach(encapsulationSource, lifecycle);
+    for (let i = 0, ii = attachables.length; i < ii; ++i) {
+      attachables[i].$attach(encapsulationSource, lifecycle);
     }
 
     this.onRender(this);
@@ -364,16 +342,16 @@ export abstract class Visual implements IVisual {
     lifecycle.end(this);
   }
 
-  public $detach(lifecycle?: DetachLifecycle) {
+  public $detach(lifecycle?: DetachLifecycle): void {
     if (this.$isAttached) {
       lifecycle = DetachLifecycle.start(this, lifecycle);
       lifecycle.queueViewRemoval(this);
 
-      const attachable = this.$attachable;
-      let i = attachable.length;
+      const attachables = this.$attachables;
+      let i = attachables.length;
 
       while (i--) {
-        attachable[i].$detach(lifecycle);
+        attachables[i].$detach(lifecycle);
       }
 
       this.$isAttached = false;
@@ -381,13 +359,13 @@ export abstract class Visual implements IVisual {
     }
   }
 
-  public $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags): void {
     if (this.$isBound) {
-      const bindable = this.$bindable;
-      let i = bindable.length;
+      const bindables = this.$bindables;
+      let i = bindables.length;
 
       while (i--) {
-        bindable[i].$unbind(flags);
+        bindables[i].$unbind(flags);
       }
 
       this.$isBound = false;
@@ -395,19 +373,41 @@ export abstract class Visual implements IVisual {
     }
   }
 
-  public tryReturnToCache() {
+  public tryReturnToCache(): boolean {
     return this.factory.tryReturnToCache(this);
+  }
+
+  private getAnimationRoot(): INode {
+    if (this.animationRoot !== undefined) {
+      return this.animationRoot;
+    }
+
+    let currentChild = this.$nodes.firstChild;
+    const lastChild = this.$nodes.lastChild;
+    const isElementNodeType = DOM.isElementNodeType;
+
+    while (currentChild !== lastChild && !isElementNodeType(currentChild)) {
+      currentChild = currentChild.nextSibling;
+    }
+
+    if (currentChild && isElementNodeType(currentChild)) {
+      return this.animationRoot = DOM.hasClass(currentChild, 'au-animate')
+        ? currentChild
+        : null;
+    }
+
+    return this.animationRoot = null;
   }
 }
 
 /*@internal*/
-export class VisualFactory implements IVisualFactory {
-  private cacheSize = -1;
-  private cache: Visual[] = null;
+export class ViewFactory implements IViewFactory {
+  public isCaching: boolean = false;
 
-  public isCaching = false;
+  private cacheSize: number = -1;
+  private cache: View[] = null;
 
-  constructor(public name: string, private type: Constructable<Visual>) {}
+  constructor(public name: string, private type: Constructable<View>) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {
@@ -431,23 +431,23 @@ export class VisualFactory implements IVisualFactory {
     this.isCaching = this.cacheSize > 0;
   }
 
-  public tryReturnToCache(visual: Visual): boolean {
+  public tryReturnToCache(view: View): boolean {
     if (this.cache !== null && this.cache.length < this.cacheSize) {
-      visual.inCache = true;
-      this.cache.push(visual);
+      view.inCache = true;
+      this.cache.push(view);
       return true;
     }
 
     return false;
   }
 
-  public create(): Visual {
+  public create(): View {
     const cache = this.cache;
 
     if (cache !== null && cache.length > 0) {
-      let visual = cache.pop();
-      visual.inCache = false;
-      return visual;
+      const view = cache.pop();
+      view.inCache = false;
+      return view;
     }
 
     return new this.type(this);

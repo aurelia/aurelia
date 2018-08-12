@@ -1,6 +1,6 @@
 import { BindingFlags } from '../binding/binding-flags';
 import { INode } from '../dom';
-import { IViewOwner } from './view';
+import { IRenderable } from './renderable';
 
 export class AttachLifecycle {
   private tail = null;
@@ -11,7 +11,9 @@ export class AttachLifecycle {
     this.tail = this.head = this;
   }
 
-  private attached() {}
+  public static start(owner: any, existingLifecycle?: AttachLifecycle): AttachLifecycle {
+    return existingLifecycle || new AttachLifecycle(owner);
+  }
 
   public queueAttachedCallback(requestor: IAttach) {
     this.tail.$nextAttached = requestor;
@@ -32,9 +34,7 @@ export class AttachLifecycle {
     }
   }
 
-  public static start(owner: any, existingLifecycle?: AttachLifecycle) {
-    return existingLifecycle || new AttachLifecycle(owner);
-  }
+  private attached() {}
 }
 
 const dummyView = { remove() {} };
@@ -53,9 +53,11 @@ export class DetachLifecycle {
     this.viewRemoveTail = this.viewRemoveHead = this;
   }
 
-  private detached() {}
+  public static start(owner: any, existingLifecycle?: DetachLifecycle) {
+    return existingLifecycle || new DetachLifecycle(owner);
+  }
 
-  public queueViewRemoval(requestor: IViewOwner) {
+  public queueViewRemoval(requestor: IRenderable) {
     this.viewRemoveTail.$nextRemoveView = requestor;
     this.viewRemoveTail = requestor;
   }
@@ -89,9 +91,7 @@ export class DetachLifecycle {
     }
   }
 
-  public static start(owner: any, existingLifecycle?: DetachLifecycle) {
-    return existingLifecycle || new DetachLifecycle(owner);
-  }
+  private detached() {}
 }
 
 export interface IAttach {

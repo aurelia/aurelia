@@ -1,4 +1,4 @@
-import { Immutable } from '@aurelia/kernel';
+import { Immutable } from '../../../kernel/dist/commonjs';
 import { Binding } from '../binding/binding';
 import { BindingMode } from '../binding/binding-mode';
 import { Call } from '../binding/call';
@@ -27,12 +27,12 @@ import {
   TemplatePartDefinitions
 } from './instructions';
 import { IRenderContext } from './render-context';
+import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
-import { IViewOwner } from './view';
 
 export interface IRenderer {
-  render(owner: IViewOwner, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-  hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
+  render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
+  hydrateElementInstance(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
 }
 
 /* @internal */
@@ -45,7 +45,7 @@ export class Renderer implements IRenderer {
     private renderingEngine: IRenderingEngine
   ) {}
 
-  public render(owner: IViewOwner, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  public render(renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
 
     for (let i = 0, ii = targets.length; i < ii; ++i) {
@@ -54,7 +54,7 @@ export class Renderer implements IRenderer {
 
       for (let j = 0, jj = instructions.length; j < jj; ++j) {
         const current = instructions[j];
-        (this[current.type] as any)(owner, target, current, parts);
+        (this[current.type] as any)(renderable, target, current, parts);
       }
     }
 
@@ -63,12 +63,12 @@ export class Renderer implements IRenderer {
 
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
         const current = surrogateInstructions[i];
-        (this[current.type] as any)(owner, host, current, parts);
+        (this[current.type] as any)(renderable, host, current, parts);
       }
     }
   }
 
-  public hydrateElementInstance(owner: IViewOwner, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement) {
+  public hydrateElementInstance(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement) {
     let childInstructions = instruction.instructions;
 
     component.$hydrate(this.renderingEngine, target, instruction);
@@ -84,105 +84,105 @@ export class Renderer implements IRenderer {
         realTarget = component;
       }
 
-      (this[current.type] as any)(owner, realTarget, current);
+      (this[current.type] as any)(renderable, realTarget, current);
     }
 
-    owner.$bindable.push(component);
-    owner.$attachable.push(component);
+    renderable.$bindables.push(component);
+    renderable.$attachables.push(component);
   }
 
-  public [TargetedInstructionType.textBinding](owner: IViewOwner,target: any, instruction: Immutable<ITextBindingInstruction>) {
+  public [TargetedInstructionType.textBinding](renderable: IRenderable, target: any, instruction: Immutable<ITextBindingInstruction>) {
     const next = target.nextSibling;
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
     const srcOrExpr = instruction.srcOrExpr as any;
-    owner.$bindable.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
+    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
   }
 
-  public [TargetedInstructionType.propertyBinding](owner: IViewOwner,target: any, instruction: Immutable<IPropertyBindingInstruction>) {
+  public [TargetedInstructionType.propertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IPropertyBindingInstruction>) {
     const srcOrExpr = instruction.srcOrExpr as any;
-    owner.$bindable.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.dest, instruction.mode, this.observerLocator, this.context));
+    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.dest, instruction.mode, this.observerLocator, this.context));
   }
 
-  public [TargetedInstructionType.listenerBinding](owner: IViewOwner,target: any, instruction: Immutable<IListenerBindingInstruction>) {
+  public [TargetedInstructionType.listenerBinding](renderable: IRenderable, target: any, instruction: Immutable<IListenerBindingInstruction>) {
     const srcOrExpr = instruction.srcOrExpr as any;
-    owner.$bindable.push(new Listener(instruction.dest, instruction.strategy, srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.preventDefault, this.eventManager, this.context));
+    renderable.$bindables.push(new Listener(instruction.dest, instruction.strategy, srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.preventDefault, this.eventManager, this.context));
   }
 
-  public [TargetedInstructionType.callBinding](owner: IViewOwner,target: any, instruction: Immutable<ICallBindingInstruction>) {
+  public [TargetedInstructionType.callBinding](renderable: IRenderable, target: any, instruction: Immutable<ICallBindingInstruction>) {
     const srcOrExpr = instruction.srcOrExpr as any;
-    owner.$bindable.push(new Call(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.dest, this.observerLocator, this.context));
+    renderable.$bindables.push(new Call(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.dest, this.observerLocator, this.context));
   }
 
-  public [TargetedInstructionType.refBinding](owner: IViewOwner,target: any, instruction: Immutable<IRefBindingInstruction>) {
+  public [TargetedInstructionType.refBinding](renderable: IRenderable, target: any, instruction: Immutable<IRefBindingInstruction>) {
     const srcOrExpr = instruction.srcOrExpr as any;
-    owner.$bindable.push(new Ref(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, this.context));
+    renderable.$bindables.push(new Ref(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, this.context));
   }
 
-  public [TargetedInstructionType.stylePropertyBinding](owner: IViewOwner,target: any, instruction: Immutable<IStylePropertyBindingInstruction>) {
+  public [TargetedInstructionType.stylePropertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IStylePropertyBindingInstruction>) {
     const srcOrExpr = instruction.srcOrExpr as any;
-    owner.$bindable.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), (<any>target).style, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
+    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), (<any>target).style, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
   }
 
-  public [TargetedInstructionType.setProperty](owner: IViewOwner, target: any, instruction: Immutable<ISetPropertyInstruction>) {
+  public [TargetedInstructionType.setProperty](renderable: IRenderable, target: any, instruction: Immutable<ISetPropertyInstruction>) {
     target[instruction.dest] = instruction.value;
   }
 
-  public [TargetedInstructionType.setAttribute](owner: IViewOwner, target: any, instruction: Immutable<ISetAttributeInstruction>) {
+  public [TargetedInstructionType.setAttribute](renderable: IRenderable, target: any, instruction: Immutable<ISetAttributeInstruction>) {
     DOM.setAttribute(target, instruction.dest, instruction.value);
   }
 
-  public [TargetedInstructionType.hydrateElement](owner: IViewOwner, target: any, instruction: Immutable<IHydrateElementInstruction>) {
+  public [TargetedInstructionType.hydrateElement](renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>) {
     const context = this.context;
-    const operation = context.beginComponentOperation(owner, target, instruction, null, null, target, true);
+    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
     const component = context.get<ICustomElement>(CustomElementResource.key(instruction.res));
 
-    this.hydrateElementInstance(owner, target, instruction, component);
+    this.hydrateElementInstance(renderable, target, instruction, component);
     operation.tryConnectElementToSlot(component);
 
     operation.dispose();
   }
 
-  public [TargetedInstructionType.hydrateAttribute](owner: IViewOwner, target: any, instruction: Immutable<IHydrateAttributeInstruction>) {
+  public [TargetedInstructionType.hydrateAttribute](renderable: IRenderable, target: any, instruction: Immutable<IHydrateAttributeInstruction>) {
     const childInstructions = instruction.instructions;
     const context = this.context;
-    const operation = context.beginComponentOperation(owner, target, instruction);
+    const operation = context.beginComponentOperation(renderable, target, instruction);
 
     const component = context.get<ICustomAttribute>(CustomAttributeResource.key(instruction.res));
     component.$hydrate(this.renderingEngine);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
-      (this[current.type] as any)(owner, component, current);
+      (this[current.type] as any)(renderable, component, current);
     }
 
-    owner.$bindable.push(component);
-    owner.$attachable.push(component);
+    renderable.$bindables.push(component);
+    renderable.$attachables.push(component);
 
     operation.dispose();
   }
 
-  public [TargetedInstructionType.hydrateTemplateController](owner: IViewOwner, target: any, instruction: Immutable<IHydrateTemplateController>, parts?: TemplatePartDefinitions) {
+  public [TargetedInstructionType.hydrateTemplateController](renderable: IRenderable, target: any, instruction: Immutable<IHydrateTemplateController>, parts?: TemplatePartDefinitions) {
     const childInstructions = instruction.instructions;
-    const factory = this.renderingEngine.getVisualFactory(this.context, instruction.src);
+    const factory = this.renderingEngine.getViewFactory(this.context, instruction.src);
     const context = this.context;
-    const operation = context.beginComponentOperation(owner, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
+    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
 
     const component = context.get<ICustomAttribute>(CustomAttributeResource.key(instruction.res));
     component.$hydrate(this.renderingEngine);
     operation.tryConnectTemplateControllerToSlot(component);
 
     if (instruction.link) {
-      (component as any).link(owner.$attachable[owner.$attachable.length - 1]);
+      (component as any).link(renderable.$attachables[renderable.$attachables.length - 1]);
     }
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
-      (this[current.type] as any)(owner, component, current);
+      (this[current.type] as any)(renderable, component, current);
     }
 
-    owner.$bindable.push(component);
-    owner.$attachable.push(component);
+    renderable.$bindables.push(component);
+    renderable.$attachables.push(component);
 
     operation.dispose();
   }

@@ -1,27 +1,26 @@
 import { BindingFlags } from '../../binding/binding-flags';
 import { ICustomAttribute } from '../custom-attribute';
-import { IRenderSlot } from '../render-slot';
-import { IVisual, IVisualFactory } from '../visual';
+import { IView, IViewFactory } from '../view';
+import { IViewSlot } from '../view-slot';
 
 /**
  * For internal use only. May change without warning.
  */
-
 export interface IfCore extends ICustomAttribute {}
 export abstract class IfCore {
-  private child: IVisual = null;
-
   // If the child view is animated, `condition` might not reflect the internal
   // state anymore, so we use `showing` for that.
   // Eventually, `showing` and `condition` should be consistent.
-  protected showing = false;
+  protected showing: boolean = false;
 
-  constructor(private factory: IVisualFactory, protected slot: IRenderSlot) { }
+  private child: IView = null;
 
-  public unbound() {
-    const visual = this.child;
+  constructor(private factory: IViewFactory, protected slot: IViewSlot) { }
 
-    if (visual === null) {
+  public unbound(): void {
+    const view = this.child;
+
+    if (view === null) {
       return;
     }
 
@@ -33,9 +32,9 @@ export abstract class IfCore {
 
     if (this.showing) {
       this.showing = false;
-      this.slot.remove(visual, /*returnToCache:*/true, /*skipAnimation:*/true);
+      this.slot.remove(view, /*returnToCache:*/true, /*skipAnimation:*/true);
     } else {
-      visual.tryReturnToCache();
+      view.tryReturnToCache();
     }
 
     this.child = null;
@@ -59,15 +58,15 @@ export abstract class IfCore {
       return;
     }
 
-    const visual = this.child;
-    const removed = this.slot.remove(visual);
+    const view = this.child;
+    const removed = this.slot.remove(view);
 
     this.showing = false;
 
     if (removed instanceof Promise) {
-      return removed.then(() => visual.$unbind(BindingFlags.none));
+      return removed.then(() => view.$unbind(BindingFlags.none));
     }
 
-    visual.$unbind(BindingFlags.none);
+    view.$unbind(BindingFlags.none);
   }
 }

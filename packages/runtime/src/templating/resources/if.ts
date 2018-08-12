@@ -1,25 +1,25 @@
 import { inject } from '@aurelia/kernel';
 import { bindable } from '../bindable';
 import { templateController } from '../custom-attribute';
-import { IRenderSlot, SwapOrder } from '../render-slot';
-import { IVisualFactory } from '../visual';
+import { IViewFactory } from '../view';
+import { IViewSlot, SwapOrder } from '../view-slot';
 import { Else } from './else';
 import { IfCore } from './if-core';
 
 @templateController('if')
-@inject(IVisualFactory, IRenderSlot)
+@inject(IViewFactory, IViewSlot)
 export class If extends IfCore {
-  private animating = false;
-  private elseBehavior: Else;
-
   @bindable public swapOrder: SwapOrder = SwapOrder.after;
   @bindable public condition: boolean = false;
 
-  public conditionChanged(newValue) {
+  private animating: boolean = false;
+  private elseBehavior: Else;
+
+  public conditionChanged(newValue: boolean): void {
     this.update(newValue);
   }
 
-  public link(elseBehavior: Else) {
+  public link(elseBehavior: Else): this {
     if (this.elseBehavior === elseBehavior) {
       return this;
     }
@@ -30,7 +30,7 @@ export class If extends IfCore {
     return this;
   }
 
-  private update(show) {
+  private update(show: boolean): void {
     if (this.animating) {
       return;
     }

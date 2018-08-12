@@ -1,4 +1,4 @@
-import { DI, IContainer, IResolver } from '@aurelia/kernel';
+import { DI, IContainer, IResolver, PLATFORM } from '@aurelia/kernel';
 
 export interface INodeLike {
   readonly firstChild: INode | null;
@@ -22,29 +22,29 @@ export const IRenderLocation = DI.createInterface<IRenderLocation>().noDefault()
 /**
  * Represents a DocumentFragment
  */
-export interface IView extends INodeLike {
+export interface INodeSequence extends INodeLike {
   /**
-   * The child nodes of this view.
+   * The nodes of this sequence.
    */
   childNodes: ReadonlyArray<INode>;
 
   /**
-   * Find all instruction targets in this view.
+   * Find all instruction targets in this sequence.
    */
   findTargets(): ArrayLike<INode> | ReadonlyArray<INode>;
 
   /**
-   * Insert this view as a sibling before refNode
+   * Insert this sequence as a sibling before refNode
    */
   insertBefore(refNode: INode): void;
 
   /**
-   * Append this view as a child to parent
+   * Append this sequence as a child to parent
    */
   appendTo(parent: INode): void;
 
   /**
-   * Remove this view from its parent.
+   * Remove this sequence from its parent.
    */
   remove(): void;
 }
@@ -54,8 +54,8 @@ export interface INodeObserver {
 }
 
 /*@internal*/
-export function createView(fragment: DocumentFragment): IView {
-  return new TemplateView(<DocumentFragment>fragment.cloneNode(true));
+export function createNodeSequenceFromFragment(fragment: DocumentFragment): INodeSequence {
+  return new FragmentNodeSequence(<DocumentFragment>fragment.cloneNode(true));
 }
 
 // pre-declare certain functions whose behavior depends on a once-checked global condition for better performance
@@ -77,7 +77,7 @@ function removePolyfilled(node: Element): void {
 }
 
 export const DOM = {
-  createFactoryFromMarkupOrNode(markupOrNode: string | INode): () => IView {
+  createFactoryFromMarkupOrNode(markupOrNode: string | INode): () => INodeSequence {
     let template: HTMLTemplateElement;
     if (markupOrNode instanceof Node) {
       if ((<HTMLTemplateElement>markupOrNode).content) {
@@ -92,7 +92,7 @@ export const DOM = {
     }
 
     // bind performs a bit better and gives a cleaner closure than an arrow function
-    return createView.bind(null, template.content);
+    return createNodeSequenceFromFragment.bind(null, template.content);
   },
 
   createElement(name: string): INode {
@@ -246,6 +246,51 @@ export const DOM = {
   }
 }
 
+// This is an implementation of INodeSequence that represents "no DOM" to render.
+// It's used in various places to avoid null and to encode
+// the explicit idea of "no view".
+const emptySequence: INodeSequence = {
+  firstChild: null,
+  lastChild: null,
+  childNodes: PLATFORM.emptyArray,
+  findTargets() { return PLATFORM.emptyArray; },
+  insertBefore(refNode: INode): void {},
+  appendTo(parent: INode): void {},
+  remove(): void {}
+};
+
+export const NodeSequence = {
+  empty: emptySequence,
+  // This creates an instance of INodeSequence based on an existing INode.
+  // It's used by the rendering engine to create an instance of IView,
+  // based on a single component. The rendering engine's createViewFromComponent
+  // method has one consumer: the compose element. The compose element uses this
+  // to create an IView based on a dynamically determined component instance.
+  // This is required because there's no way to get a "loose" component into the view
+  // hierarchy without it being part of an IView.
+  // IViews can only be added via an IViewSlot or IRenderLocation.
+  // So, this form of node sequence effectively enables a single component to be added into an IViewSlot.
+  fromNode(node: INode): INodeSequence {
+    return {
+      firstChild: node,
+      lastChild: node,
+      childNodes: [node],
+      findTargets(): ReadonlyArray<INode> {
+        return PLATFORM.emptyArray;
+      },
+      insertBefore(refNode: INode): void {
+        DOM.insertBefore(node, refNode);
+      },
+      appendTo(parent: INode): void {
+        DOM.appendChild(parent, node);
+      },
+      remove(): void {
+        DOM.remove(node);
+      }
+    };
+  }
+};
+
 interface CommentProxy extends Comment {
   $proxyTarget: Element;
   hasAttribute: typeof Element.prototype.hasAttribute;
@@ -265,13 +310,13 @@ function setAttribute(this: CommentProxy, qualifiedName: string, value: string):
   this.$proxyTarget.setAttribute(qualifiedName, value);
 }
 
-// This is the most common form of IView.
-// Every custom element or template controller whose view is based on an HTML template
-// has an instance of this under the hood. Anyone who wants to create a view from
+// This is the most common form of INodeSequence.
+// Every custom element or template controller whose node sequence is based on an HTML template
+// has an instance of this under the hood. Anyone who wants to create a node sequence from
 // a string of markup would also receive an instance of this.
-// CompiledTemplates create instances of TemplateViews.
+// CompiledTemplates create instances of FragmentNodeSequence.
 /*@internal*/
-export class TemplateView implements IView {
+export class FragmentNodeSequence implements INodeSequence {
   private fragment: DocumentFragment;
 
   firstChild: Node;

@@ -1,24 +1,24 @@
 import { DI } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../dom';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
-import { IVisual, MotionDirection } from './visual';
+import { IView, MotionDirection } from './view';
 
 /*@internal*/
-export function appendVisualToContainer(visual: IVisual) {
-  const parent = visual.parent as RenderSlotImplementation;
-  visual.$view.appendTo(parent.location);
+export function appendViewToContainer(view: IView) {
+  const parent = view.parent as ViewSlotImplementation;
+  view.$nodes.appendTo(parent.location);
 }
 
 /*@internal*/
-export function addVisual(visual: IVisual) {
-  const parent = visual.parent as RenderSlotImplementation;
-  visual.$view.insertBefore(parent.location);
+export function addView(view: IView) {
+  const parent = view.parent as ViewSlotImplementation;
+  view.$nodes.insertBefore(parent.location);
 }
 
 /*@internal*/
-export function insertVisual(visual: IVisual) {
-  visual.$view.insertBefore(visual.parent.children[visual.renderState].$view.firstChild);
-  visual.onRender = (visual.parent as RenderSlotImplementation).addVisualCore;
+export function insertView(view: IView) {
+  view.$nodes.insertBefore(view.parent.children[view.renderState].$nodes.firstChild);
+  view.onRender = (view.parent as ViewSlotImplementation).addViewCore;
 }
 
 export enum SwapOrder {
@@ -27,29 +27,29 @@ export enum SwapOrder {
   after = 'after'
 }
 
-export const IRenderSlot = DI.createInterface<IRenderSlot>().noDefault();
+export const IViewSlot = DI.createInterface<IViewSlot>().noDefault();
 
 /**
  * Represents a slot or location within the DOM to which views can be added and removed.
  * Manages the view lifecycle for its children.
  */
-export interface IRenderSlot extends IAttach {
-  children: ReadonlyArray<IVisual>;
+export interface IViewSlot extends IAttach {
+  children: ReadonlyArray<IView>;
 
  /**
   * Adds a view to the slot.
-  * @param visual The view to add.
+  * @param view The view to add.
   * @return May return a promise if the view addition triggered an animation.
   */
-  add(visual: IVisual): void | Promise<boolean>;
+  add(view: IView): void | Promise<boolean>;
 
  /**
   * Inserts a view into the slot.
   * @param index The index to insert the view at.
-  * @param visual The view to insert.
+  * @param view The view to insert.
   * @return May return a promise if the view insertion triggered an animation.
   */
- insert(index: number, visual: IVisual): void | Promise<boolean>;
+ insert(index: number, view: IView): void | Promise<boolean>;
 
  /**
   * Moves a view across the slot.
@@ -59,20 +59,20 @@ export interface IRenderSlot extends IAttach {
   move(sourceIndex: number, targetIndex: number): void;
 
  /**
-  * Replaces the existing view slot children with the new visual.
-  * @param newVisual The visual to swap in.
+  * Replaces the existing view slot children with the new view.
+  * @param newView The view to swap in.
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if an animation was triggered.
   */
-  swap(newVisual: IVisual, strategy: SwapOrder, returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<any>;
+  swap(newView: IView, strategy: SwapOrder, returnToCache?: boolean, skipAnimation?: boolean): void | IView[] | Promise<any>;
 
  /**
   * Removes a view from the slot.
-  * @param visual The view to remove.
+  * @param view The view to remove.
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  remove(visual: IVisual, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual>;
+  remove(view: IView, returnToCache?: boolean, skipAnimation?: boolean): IView | Promise<IView>;
 
  /**
   * Removes a view an a specified index from the slot.
@@ -80,73 +80,73 @@ export interface IRenderSlot extends IAttach {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual>;
+  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IView | Promise<IView>;
 
  /**
   * Removes all views from the slot.
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removals triggered an animation.
   */
-  removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]>;
+  removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | IView[] | Promise<IView[]>;
 
  /**
   * Removes many views from the slot.
-  * @param visualsToRemove The array of views to remove.
+  * @param viewsToRemove The array of views to remove.
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  removeMany(visualsToRemove: IVisual[], returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]>;
+  removeMany(viewsToRemove: IView[], returnToCache?: boolean, skipAnimation?: boolean): void | IView[] | Promise<IView[]>;
 }
 
-export const RenderSlot = {
-  create(location: IRenderLocation, locationIsContainer: boolean): IRenderSlot {
-    return new RenderSlotImplementation(location, locationIsContainer);
+export const ViewSlot = {
+  create(location: IRenderLocation, locationIsContainer: boolean = false): IViewSlot {
+    return new ViewSlotImplementation(location, locationIsContainer);
   }
 };
 
 /*@internal*/
-export class RenderSlotImplementation implements IRenderSlot {
-  private $isAttached = false;
-  public addVisualCore: (visual: IVisual) => void;
-  private insertVisualCore: (visual: IVisual) => void;
+export class ViewSlotImplementation implements IViewSlot {
+  public children: IView[] = [];
+  public addViewCore: (view: IView) => void;
+
+  private $isAttached: boolean = false;
+  private insertViewCore: (view: IView) => void;
   private encapsulationSource: INode = null;
 
-  public children: IVisual[] = [];
-
   constructor(public location: IRenderLocation, locationIsContainer: boolean) {
-    this.addVisualCore = locationIsContainer ? appendVisualToContainer : addVisual;
-    this.insertVisualCore = insertVisual;
+    this.addViewCore = locationIsContainer ? appendViewToContainer : addView;
+    this.insertViewCore = insertView;
   }
 
-  public add(visual: IVisual) {
-    visual.parent = this;
-    visual.onRender = this.addVisualCore;
-    this.children.push(visual);
+  public add(view: IView) {
+    view.parent = this;
+    view.onRender = this.addViewCore;
+    this.children.push(view);
 
     if (this.$isAttached) {
-      visual.$attach(this.encapsulationSource);
-      return visual.animate(MotionDirection.enter);
+      view.$attach(this.encapsulationSource);
+      return view.animate(MotionDirection.enter);
     }
   }
 
-  public insert(index: number, visual: IVisual) {
+  public insert(index: number, view: IView) {
     const children = this.children;
     const length = children.length;
 
     if ((index === 0 && length === 0) || index >= length) {
-      return this.add(visual);
+      return this.add(view);
     }
 
-    visual.parent = this;
-    children.splice(index, 0, visual);
+    view.parent = this;
+    children.splice(index, 0, view);
 
     if (this.$isAttached) {
-      visual.onRender = this.insertVisualCore;
-      visual.renderState = index + 1; // We've already added this to the children, so we need to bump the index to get the right dom node.
-      visual.$attach(this.encapsulationSource);
-      return visual.animate(MotionDirection.enter);
+      view.onRender = this.insertViewCore;
+      view.renderState = index + 1; // We've already added this to the children, so we need to bump the index to get the right dom node.
+      view.$attach(this.encapsulationSource);
+      return view.animate(MotionDirection.enter);
     } else {
-      visual.onRender = this.addVisualCore;
+      view.onRender = this.addViewCore;
     }
   }
 
@@ -156,21 +156,21 @@ export class RenderSlotImplementation implements IRenderSlot {
     }
 
     const children = this.children;
-    const visual = children[sourceIndex];
+    const view = children[sourceIndex];
 
     children.splice(sourceIndex, 1);
-    children.splice(targetIndex, 0, visual);
+    children.splice(targetIndex, 0, view);
 
     if (this.$isAttached) {
-      visual.$view.remove();
-      visual.renderState = targetIndex;
-      this.insertVisualCore(visual);
+      view.$nodes.remove();
+      view.renderState = targetIndex;
+      this.insertViewCore(view);
     }
   }
 
-  public swap(newVisual: IVisual, strategy: SwapOrder = SwapOrder.after, returnToCache?: boolean, skipAnimation?: boolean) {
+  public swap(newView: IView, strategy: SwapOrder = SwapOrder.after, returnToCache?: boolean, skipAnimation?: boolean) {
     const remove = () => this.removeAll(returnToCache, skipAnimation);
-    const add = () => this.add(newVisual);
+    const add = () => this.add(newView);
 
     switch(strategy) {
       case SwapOrder.before:
@@ -188,51 +188,51 @@ export class RenderSlotImplementation implements IRenderSlot {
     }
   }
 
-  public remove(visual: IVisual, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual> {
-    return this.removeAt(this.children.indexOf(visual), returnToCache, skipAnimation);
+  public remove(view: IView, returnToCache?: boolean, skipAnimation?: boolean): IView | Promise<IView> {
+    return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
   }
 
-  public removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IVisual | Promise<IVisual> {
-    const visual = this.children[index];
+  public removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): IView | Promise<IView> {
+    const view = this.children[index];
     this.children.splice(index, 1);
 
     const detachAndReturn = () => {
       if (this.$isAttached) {
-        visual.$detach();
+        view.$detach();
       }
 
       if (returnToCache) {
-        visual.tryReturnToCache();
+        view.tryReturnToCache();
       }
 
-      return visual;
+      return view;
     };
 
     if (!skipAnimation && this.$isAttached) {
-      const animation = visual.animate(MotionDirection.enter);
+      const animation = view.animate(MotionDirection.enter);
       if (animation) {
-        return animation.then(() => detachAndReturn());
+        return animation.then(detachAndReturn);
       }
     }
 
     return detachAndReturn();
   }
 
-  public removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
+  public removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | IView[] | Promise<IView[]> {
     return this.removeMany(this.children, returnToCache, skipAnimation);
   }
 
-  public removeMany(visualsToRemove: IVisual[], returnToCache?: boolean, skipAnimation?: boolean): void | IVisual[] | Promise<IVisual[]> {
+  public removeMany(viewsToRemove: IView[], returnToCache?: boolean, skipAnimation?: boolean): void | IView[] | Promise<IView[]> {
     const children = this.children;
-    const ii = visualsToRemove.length;
+    const ii = viewsToRemove.length;
     const rmPromises = [];
     const lifecycle = DetachLifecycle.start(this);
 
-    if (visualsToRemove === children) {
+    if (viewsToRemove === children) {
       this.children = [];
     } else {
       for (let i = 0; i < ii; ++i) {
-        const index = children.indexOf(visualsToRemove[i]);
+        const index = children.indexOf(viewsToRemove[i]);
         if (index >= 0) {
           children.splice(index, 1);
         }
@@ -240,7 +240,7 @@ export class RenderSlotImplementation implements IRenderSlot {
     }
 
     if (this.$isAttached) {
-      visualsToRemove.forEach(child => {
+      viewsToRemove.forEach(child => {
         if (skipAnimation) {
           child.$detach(lifecycle);
           return;
@@ -261,15 +261,15 @@ export class RenderSlotImplementation implements IRenderSlot {
 
       if (returnToCache) {
         for (let i = 0; i < ii; ++i) {
-          visualsToRemove[i].tryReturnToCache();
+          viewsToRemove[i].tryReturnToCache();
         }
       }
 
-      return visualsToRemove;
+      return viewsToRemove;
     };
 
     if (rmPromises.length > 0) {
-      return Promise.all(rmPromises).then(() => finalizeRemoval());
+      return Promise.all(rmPromises).then(finalizeRemoval);
     }
 
     return finalizeRemoval();

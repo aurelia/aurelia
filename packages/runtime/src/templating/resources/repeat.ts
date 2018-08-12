@@ -115,7 +115,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   // #endregion
 
 
-  private _oldItems: Array<any>; // this is purely used by instanceMutation to see if items can be reused
+  private _oldItems: any[]; // this is purely used by instanceMutation to see if items can be reused
   private _items: T & { $observer: CollectionObserver };
   public set items(newValue: T & { $observer: CollectionObserver }) {
     const oldValue = this._items;
@@ -124,18 +124,9 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       return;
     }
     this._items = newValue;
+    this.hasPendingInstanceMutation = true;
     if (this.isBound) {
-      // only re-subscribe and queue if we're bound; otherwise bound() below will pick up hasPendingInstanceMutation
-      // and act accordingly
-      this.observer.unsubscribeBatched(this);
-      if (newValue !== null && newValue !== undefined) {
-        this.observer = getCollectionObserver(this.changeSet, newValue);
-        this.observer.subscribeBatched(this);
-      }
-      this.hasPendingInstanceMutation = true;
       this.changeSet.add(this);
-    } else {
-      this.hasPendingInstanceMutation = true;
     }
   }
   public get items(): T & { $observer: CollectionObserver } {
@@ -171,11 +162,9 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   public bound(flags: BindingFlags, scope: IScope): void {
     this.sourceExpression = <any>(<Binding[]>this.renderable.$bindables).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
     this.scope = scope;
-    this.observer = getCollectionObserver(this.changeSet, this._items);
-    this.observer.subscribeBatched(this);
     this.isBound = true;
     if (this.hasPendingInstanceMutation) {
-      this.handleBatchedItemsOrInstanceMutation();
+      this.changeSet.add(this);
     }
   }
 
@@ -194,22 +183,23 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     }
   }
 
-  public handleBatchedChange(indexMap?: Array<number>): void {
+  public handleBatchedChange(indexMap?: number[]): void {
     if (this.hasPendingInstanceMutation) {
-      // if a new array instance is assigned, disregard the observer state and start from scratch
-      if (this.observer.hasChanges) {
-        this.observer.resetIndexMap();
-        this.observer.hasChanges = false;
+      if (this.observer !== null) {
+        this.observer.unsubscribeBatched(this);
       }
+      const items = this._items;
+      this.observer = getCollectionObserver(this.changeSet, items);
+      this.observer.subscribeBatched(this);
       this.handleBatchedItemsOrInstanceMutation();
-      this._oldItems = Array.isArray(this._items) ? this._items.slice() : Array.from(this._items);
+      this._oldItems = Array.isArray(items) ? items.slice() : Array.from(items);
     } else {
       this.handleBatchedItemsOrInstanceMutation(indexMap);
     }
   }
 
   // if the indexMap === undefined, it is an instance mutation, otherwise it's an items mutation
-  private handleBatchedItemsOrInstanceMutation(indexMap?: Array<number>): void {
+  private handleBatchedItemsOrInstanceMutation(indexMap?: number[]): void {
     // determine if there is anything to process and whether or not we can return early
     const slot = this.slot;
     const views = <IView[]>slot.children;
@@ -305,6 +295,8 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     }
   }
 }
+
+Repeat.prototype.observer = null;
 
 function createChildScope(parentOverrideContext: IOverrideContext, bindingContext: { [key: string]: any }): IScope {
   return {

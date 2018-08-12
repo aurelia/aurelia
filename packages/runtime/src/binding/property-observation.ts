@@ -6,10 +6,43 @@ import { propertyObserver } from './property-observer';
 
 const noop = PLATFORM.noop;
 
-export const propertyAccessor = {
-  getValue: (obj: any, propertyName: string) => obj[propertyName],
-  setValue: (value: any, obj: IIndexable, propertyName: string) => { obj[propertyName] = value; }
-};
+export class PropertyAccessor implements IAccessor {
+  public hasChanges: boolean;
+  public currentValue: string;
+  public previousValue: string;
+  public oldValue: string;
+  public defaultValue: string;
+
+  constructor(
+    public changeSet: IChangeSet,
+    public obj: IIndexable,
+    public propertyKey: string) {
+    this.oldValue = this.previousValue = this.currentValue = obj[propertyKey];
+  }
+
+  public getValue(): any {
+    return this.obj[this.propertyKey];
+  }
+
+  public setValue(newValue: string): Promise<void> {
+    const currentValue = this.currentValue;
+    newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
+    if (currentValue !== newValue) {
+      this.hasChanges = true;
+      this.previousValue = currentValue;
+      this.currentValue = newValue;
+      return this.changeSet.add(this);
+    }
+    return Promise.resolve();
+  }
+
+  public flushChanges(): void {
+    if (this.hasChanges) {
+      this.hasChanges = false;
+      this.oldValue = this.previousValue = this.obj[this.propertyKey] = this.currentValue;
+    }
+  }
+}
 
 // note: string.length is the only property of any primitive that is not a function,
 // so we can hardwire it to that and simply return undefined for anything else

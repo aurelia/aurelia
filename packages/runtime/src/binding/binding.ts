@@ -3,7 +3,7 @@ import { IExpression } from './ast';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
-import { IBindingTargetAccessor, IBindingTargetObserver, IBindScope, IPropertySubscriber, ISubscribable, MutationKind, IBatchedPropertySubscriber } from './observation';
+import { IBindingTargetObserver, IBindScope, IPropertySubscriber, ISubscribable, MutationKind, IBatchedPropertySubscriber, AccessorOrObserver } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 const slotNames: string[] = new Array(100);
@@ -29,9 +29,8 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
-export class Binding implements IBinding, IPropertySubscriber, IBatchedPropertySubscriber {
-  public handleBatchedChange: (newValue: any, oldValue?: any, flags?: BindingFlags) => void;
-  public targetObserver: IBindingTargetObserver | IBindingTargetAccessor;
+export class Binding implements IBinding, IPropertySubscriber {
+  public targetObserver: AccessorOrObserver;
   /*@internal*/public __connectQueueId: number;
   private observerSlots: any;
   private version: number;
@@ -47,11 +46,11 @@ export class Binding implements IBinding, IPropertySubscriber, IBatchedPropertyS
     public locator: IServiceLocator) {
   }
 
-  public updateTarget(value: any) {
-    this.targetObserver.setValue(value, this.target, this.targetProperty);
+  public updateTarget(value: any): void {
+    this.targetObserver.setValue(value);
   }
 
-  public updateSource(value: any) {
+  public updateSource(value: any): void {
     this.sourceExpression.assign(BindingFlags.none, this.$scope, this.locator, value);
   }
 
@@ -65,15 +64,13 @@ export class Binding implements IBinding, IPropertySubscriber, IBatchedPropertyS
     const locator = this.locator;
 
     if (flags & BindingFlags.sourceContext) {
-      const target = this.target;
-      const targetProperty = this.targetProperty;
       const targetObserver = this.targetObserver;
       const mode = this.mode;
 
-      previousValue = targetObserver.getValue(target, targetProperty);
+      previousValue = targetObserver.getValue();
       newValue = sourceExpression.evaluate(flags, $scope, locator);
       if (newValue !== previousValue) {
-        targetObserver.setValue(newValue, target, targetProperty);
+        targetObserver.setValue(newValue);
       }
       if (!(mode & oneTime)) {
         this.version++;
@@ -122,7 +119,7 @@ export class Binding implements IBinding, IPropertySubscriber, IBatchedPropertyS
     }
 
     if (mode & toViewOrOneTime) {
-      targetObserver.setValue(sourceExpression.evaluate(flags, scope, this.locator), this.target, this.targetProperty);
+      targetObserver.setValue(sourceExpression.evaluate(flags, scope, this.locator));
     }
     if (mode & toView) {
       sourceExpression.connect(flags, scope, this);
@@ -167,7 +164,7 @@ export class Binding implements IBinding, IPropertySubscriber, IBatchedPropertyS
 
     if (flags & BindingFlags.mustEvaluate) {
       const value = sourceExpression.evaluate(flags, $scope, this.locator);
-      this.targetObserver.setValue(value, this.target, this.targetProperty);
+      this.targetObserver.setValue(value);
     }
 
     sourceExpression.connect(flags, $scope, this);
@@ -245,5 +242,3 @@ export class Binding implements IBinding, IPropertySubscriber, IBatchedPropertyS
   }
   //#endregion
 }
-
-Binding.prototype.handleBatchedChange = Binding.prototype.handleChange;

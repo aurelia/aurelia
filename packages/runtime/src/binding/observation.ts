@@ -1,4 +1,4 @@
-import { ICallable, IIndexable, IDisposable } from '@aurelia/kernel';
+import { IDisposable } from '@aurelia/kernel';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
@@ -12,19 +12,14 @@ export interface IAccessor<T = any> {
   setValue(newValue: T): void;
 }
 
-export interface IBindingTargetAccessor<TGetReturn = any, TSetValue = TGetReturn> {
-  getValue(obj: IIndexable, propertyName: string): TGetReturn;
-  setValue(value: TSetValue, obj: IIndexable, propertyName: string): void;
-}
-
-export interface IBindingTargetObserver<TGetReturn = any, TSetValue = TGetReturn>
-  extends IBindingTargetAccessor<TGetReturn, TSetValue>, ISubscribable<MutationKind.instance> {
+export interface IBindingTargetObserver<T = any>
+  extends IAccessor<T>, ISubscribable<MutationKind.instance> {
 
   bind?(flags: BindingFlags): void;
   unbind?(flags: BindingFlags): void;
 }
 
-export type AccessorOrObserver = IAccessor | IBindingTargetAccessor | IBindingTargetObserver;
+export type AccessorOrObserver = IAccessor | IBindingTargetObserver;
 
 export interface IObservable<T = any> {
   $observers: Record<string, AccessorOrObserver>;

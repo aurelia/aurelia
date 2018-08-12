@@ -79,6 +79,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
               const bindingContext = {}; // normally the items would be in here
               const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
               sut.bound(BindingFlags.none, scope);
+              changeSet.flushChanges();
               let i = 0;
               while (i < times) {
                 // change the properties of the newly added items with each iteration to verify bindingTarget is updated correctly
@@ -121,6 +122,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
             const bindingContext = {}; // normally the items would be in here
             const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
             sut.bound(BindingFlags.none, scope);
+            changeSet.flushChanges();
             let i = 0;
             while (i < times) {
               i++;
@@ -175,6 +177,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
                 const bindingContext = {}; // normally the items would be in here
                 const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
                 sut.bound(BindingFlags.none, scope);
+                changeSet.flushChanges();
                 let i = 0;
                 while (i < times) {
                   // change the properties of the newly added items with each iteration to verify bindingTarget is updated correctly
@@ -222,6 +225,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
             const bindingContext = {}; // normally the items would be in here
             const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
             sut.bound(BindingFlags.none, scope);
+            changeSet.flushChanges();
             let i = 0;
             while (i < times) {
               assignItems = assignItems.slice();
@@ -260,6 +264,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
             const bindingContext = {}; // normally the items would be in here
             const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
             sut.bound(BindingFlags.none, scope);
+            changeSet.flushChanges();
             let i = 0;
             while (i < times) {
               i++;

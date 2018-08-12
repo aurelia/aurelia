@@ -2,7 +2,7 @@ import { DataAttributeObserver } from '@aurelia/runtime';
 import { AttrBindingBehavior } from '@aurelia/runtime';
 import { IExpression } from '@aurelia/runtime';
 import { IObserverLocator } from '@aurelia/runtime';
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, DI } from '@aurelia/kernel';
 import { Binding } from '@aurelia/runtime';
 import { BindingFlags } from '@aurelia/runtime';
 import { IScope } from '@aurelia/runtime';
@@ -26,6 +26,7 @@ describe('AttrBindingBehavior', () => {
     target = DOM.createElement('div');
     targetProperty = 'foo';
     sut = new AttrBindingBehavior();
+    container = DI.createContainer();
     binding = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
     sut.bind(flags, scope, binding);
   });

@@ -10,13 +10,13 @@ const slotNames: string[] = new Array(100);
 const versionSlotNames: string[] = new Array(100);
 
 for (let i = 0; i < 100; i++) {
-  slotNames[i] = '_observer' + i;
-  versionSlotNames[i] = '_observerVersion' + i;
+  slotNames[i] = `_observer${i}`;
+  versionSlotNames[i] = `_observerVersion${i}`;
 }
 
 export interface IBinding extends IBindScope {
   locator: IServiceLocator;
-  observeProperty(flags: BindingFlags, context: any, name: string): void;
+  observeProperty(flags: BindingFlags, obj: any, name: string): void;
 }
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -29,13 +29,14 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
+// tslint:disable:no-any
 export class Binding implements IBinding, IPropertySubscriber {
   public targetObserver: AccessorOrObserver;
   /*@internal*/public __connectQueueId: number;
-  private observerSlots: any;
+  private observerSlots: number;
   private version: number;
   private $scope: IScope;
-  private $isBound = false;
+  private $isBound: boolean = false;
 
   constructor(
     public sourceExpression: IExpression,
@@ -90,7 +91,7 @@ export class Binding implements IBinding, IPropertySubscriber {
     throw Reporter.error(15, context);
   }
 
-  public $bind(flags: BindingFlags, scope: IScope) {
+  public $bind(flags: BindingFlags, scope: IScope): void {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -100,22 +101,23 @@ export class Binding implements IBinding, IPropertySubscriber {
 
     this.$isBound = true;
     this.$scope = scope;
+
     const mode = this.mode;
     const sourceExpression = this.sourceExpression;
-    let targetObserver = this.targetObserver;
-
     if (sourceExpression.bind) {
       sourceExpression.bind(flags, scope, this);
     }
+
+    let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       if (mode & fromView) {
-        targetObserver = this.targetObserver = this.observerLocator.getObserver(this.target, this.targetProperty);
+        targetObserver = this.targetObserver = this.observerLocator.getObserver(this.target, this.targetProperty) as IBindingTargetObserver;
       } else {
-        targetObserver = this.targetObserver = this.observerLocator.getAccessor(this.target, this.targetProperty);
+        targetObserver = this.targetObserver = this.observerLocator.getAccessor(this.target, this.targetProperty) as IBindingTargetObserver;
       }
     }
-    if ((<any>targetObserver).bind) {
-      (<any>targetObserver).bind(flags);
+    if (targetObserver.bind) {
+      targetObserver.bind(flags);
     }
 
     if (mode & toViewOrOneTime) {
@@ -125,36 +127,33 @@ export class Binding implements IBinding, IPropertySubscriber {
       sourceExpression.connect(flags, scope, this);
     }
     if (mode & fromView) {
-      (<ISubscribable<MutationKind.instance>>targetObserver).subscribe(this, BindingFlags.targetContext);
+      targetObserver.subscribe(this, BindingFlags.targetContext);
     }
   }
 
-  public $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
-
     this.$isBound = false;
-    const sourceExpression = this.sourceExpression;
-    const targetObserver = this.targetObserver as IBindingTargetObserver;
 
+    const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
       sourceExpression.unbind(flags, this.$scope, this);
     }
-
     this.$scope = null;
 
+    const targetObserver = this.targetObserver as IBindingTargetObserver;
     if (targetObserver.unbind) {
       targetObserver.unbind(flags);
     }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this, BindingFlags.targetContext);
     }
-
     this.unobserve(true);
   }
 
-  public connect(flags: BindingFlags) {
+  public connect(flags: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
@@ -171,9 +170,9 @@ export class Binding implements IBinding, IPropertySubscriber {
   }
 
   //#region ConnectableBinding
-  public addObserver(observer: IBindingTargetObserver) {
+  public addObserver(observer: IBindingTargetObserver): void {
     // find the observer.
-    let observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
+    const observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
     let i = observerSlots;
 
     while (i-- && this[slotNames[i]] !== observer) {
@@ -200,18 +199,19 @@ export class Binding implements IBinding, IPropertySubscriber {
     this[versionSlotNames[i]] = this.version;
   }
 
-  public observeProperty(flags: BindingFlags, obj: any, propertyName: string) {
-    let observer = this.observerLocator.getObserver(obj, propertyName);
-    this.addObserver(<any>observer);
+  public observeProperty(flags: BindingFlags, obj: any, propertyName: string): void {
+    const observer = this.observerLocator.getObserver(obj, propertyName) as IBindingTargetObserver;
+    /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
+     *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
+     *  1. Fail earlier: only let the locator resolve observers from .getObserver, and throw if no branches are left (e.g. it would otherwise return an accessor)
+     *  2. Fail silently (without throwing): give all accessors a no-op subscribe method
+     *
+     * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
+     */
+    this.addObserver(observer);
   }
 
-  public observeArray(array: any[]) {
-    // TODO: fix this
-    // let observer = this.observerLocator.getArrayObserver(array);
-    // this.addObserver(observer);
-  }
-
-  public unobserve(all?: boolean) {
+  public unobserve(all?: boolean): void {
     const slots = this.observerSlots;
     let i = 0;
     let slotName;
@@ -242,3 +242,4 @@ export class Binding implements IBinding, IPropertySubscriber {
   }
   //#endregion
 }
+// tslint:enable:no-any

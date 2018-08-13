@@ -14,7 +14,6 @@ function setValue(this: BindingTargetAccessor, newValue: any): Promise<void> {
   const currentValue = this.currentValue;
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
-    this.hasChanges = true;
     this.currentValue = newValue;
     return this.changeSet.add(this);
   }
@@ -23,9 +22,11 @@ function setValue(this: BindingTargetAccessor, newValue: any): Promise<void> {
 // tslint:enable:no-any
 
 function flushChanges(this: BindingTargetAccessor): void {
-  if (this.hasChanges) {
-    this.hasChanges = false;
-    this.setValueCore(this.currentValue);
+  const currentValue = this.currentValue;
+  // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
+  // in which case the target doesn't need to be updated
+  if (this.oldValue !== currentValue) {
+    this.setValueCore(currentValue);
     this.oldValue = this.currentValue;
   }
 }
@@ -40,7 +41,6 @@ function dispose(this: BindingTargetAccessor): void {
 const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
 
 export class XLinkAttributeAccessor implements IBindingTargetAccessor<Element, string, string> {
-  public hasChanges: boolean;
   public currentValue: string;
   public oldValue: string;
   public defaultValue: string;
@@ -74,7 +74,6 @@ export class XLinkAttributeAccessor implements IBindingTargetAccessor<Element, s
   }
 }
 
-XLinkAttributeAccessor.prototype.hasChanges = false;
 XLinkAttributeAccessor.prototype.currentValue = '';
 XLinkAttributeAccessor.prototype.oldValue = '';
 XLinkAttributeAccessor.prototype.defaultValue = null;
@@ -89,7 +88,6 @@ XLinkAttributeAccessor.prototype.propertyKey = '';
 XLinkAttributeAccessor.prototype.attributeName = '';
 
 export class DataAttributeAccessor implements IBindingTargetAccessor<INode, string, string> {
-  public hasChanges: boolean;
   public currentValue: string;
   public oldValue: string;
   public defaultValue: string;
@@ -119,7 +117,6 @@ export class DataAttributeAccessor implements IBindingTargetAccessor<INode, stri
   }
 }
 
-DataAttributeAccessor.prototype.hasChanges = false;
 DataAttributeAccessor.prototype.currentValue = '';
 DataAttributeAccessor.prototype.oldValue = '';
 DataAttributeAccessor.prototype.defaultValue = null;
@@ -133,7 +130,6 @@ DataAttributeAccessor.prototype.obj = null;
 DataAttributeAccessor.prototype.propertyKey = '';
 
 export class StyleAttributeAccessor implements IBindingTargetAccessor<HTMLElement, 'style', string | IIndexable> {
-  public hasChanges: boolean;
   public currentValue: string | IIndexable;
   public oldValue: string | IIndexable;
   public defaultValue: string | IIndexable;
@@ -215,7 +211,6 @@ export class StyleAttributeAccessor implements IBindingTargetAccessor<HTMLElemen
   }
 }
 
-StyleAttributeAccessor.prototype.hasChanges = false;
 StyleAttributeAccessor.prototype.currentValue = '';
 StyleAttributeAccessor.prototype.oldValue = '';
 StyleAttributeAccessor.prototype.defaultValue = null;
@@ -231,7 +226,6 @@ StyleAttributeAccessor.prototype.obj = null;
 StyleAttributeAccessor.prototype.propertyKey = 'style';
 
 export class ClassAttributeAccessor implements IBindingTargetAccessor<INode, string, string> {
-  public hasChanges: boolean;
   public currentValue: string;
   public oldValue: string;
   public defaultValue: string;
@@ -297,7 +291,6 @@ export class ClassAttributeAccessor implements IBindingTargetAccessor<INode, str
   }
 }
 
-ClassAttributeAccessor.prototype.hasChanges = false;
 ClassAttributeAccessor.prototype.currentValue = '';
 ClassAttributeAccessor.prototype.oldValue = '';
 ClassAttributeAccessor.prototype.defaultValue = '';
@@ -314,7 +307,6 @@ ClassAttributeAccessor.prototype.nameIndex = null;
 
 // tslint:disable:no-any
 export class PropertyAccessor implements IBindingTargetAccessor<IIndexable, string, any> {
-  public hasChanges: boolean;
   public currentValue: string;
   public oldValue: string;
   public defaultValue: string;
@@ -340,7 +332,6 @@ export class PropertyAccessor implements IBindingTargetAccessor<IIndexable, stri
 }
 // tslint:enable:no-any
 
-PropertyAccessor.prototype.hasChanges = false;
 PropertyAccessor.prototype.currentValue = undefined;
 PropertyAccessor.prototype.oldValue = undefined;
 PropertyAccessor.prototype.defaultValue = undefined;

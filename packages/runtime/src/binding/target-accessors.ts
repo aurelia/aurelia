@@ -15,7 +15,6 @@ function setValue(this: BindingTargetAccessor, newValue: any): Promise<void> {
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
     this.hasChanges = true;
-    this.previousValue = currentValue;
     this.currentValue = newValue;
     return this.changeSet.add(this);
   }
@@ -27,14 +26,13 @@ function flushChanges(this: BindingTargetAccessor): void {
   if (this.hasChanges) {
     this.hasChanges = false;
     this.setValueCore(this.currentValue);
-    this.oldValue = this.previousValue = this.currentValue;
+    this.oldValue = this.currentValue;
   }
 }
 
 function dispose(this: BindingTargetAccessor): void {
   this.obj = null;
   this.currentValue = null;
-  this.previousValue = null;
   this.oldValue = null;
 }
 
@@ -44,7 +42,6 @@ const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
 export class XLinkAttributeAccessor implements IBindingTargetAccessor<Element, string, string> {
   public hasChanges: boolean;
   public currentValue: string;
-  public previousValue: string;
   public oldValue: string;
   public defaultValue: string;
 
@@ -65,7 +62,7 @@ export class XLinkAttributeAccessor implements IBindingTargetAccessor<Element, s
     public propertyKey: string,
     public attributeName: string) {
 
-    this.oldValue = this.previousValue = this.currentValue = this.getValue();
+    this.oldValue = this.currentValue = this.getValue();
   }
 
   public getValue(): string {
@@ -79,7 +76,6 @@ export class XLinkAttributeAccessor implements IBindingTargetAccessor<Element, s
 
 XLinkAttributeAccessor.prototype.hasChanges = false;
 XLinkAttributeAccessor.prototype.currentValue = '';
-XLinkAttributeAccessor.prototype.previousValue = '';
 XLinkAttributeAccessor.prototype.oldValue = '';
 XLinkAttributeAccessor.prototype.defaultValue = null;
 
@@ -95,7 +91,6 @@ XLinkAttributeAccessor.prototype.attributeName = '';
 export class DataAttributeAccessor implements IBindingTargetAccessor<INode, string, string> {
   public hasChanges: boolean;
   public currentValue: string;
-  public previousValue: string;
   public oldValue: string;
   public defaultValue: string;
 
@@ -108,7 +103,7 @@ export class DataAttributeAccessor implements IBindingTargetAccessor<INode, stri
     public obj: INode,
     public propertyKey: string) {
 
-    this.oldValue = this.previousValue = this.currentValue = this.getValue();
+    this.oldValue = this.currentValue = this.getValue();
   }
 
   public getValue(): string {
@@ -126,7 +121,6 @@ export class DataAttributeAccessor implements IBindingTargetAccessor<INode, stri
 
 DataAttributeAccessor.prototype.hasChanges = false;
 DataAttributeAccessor.prototype.currentValue = '';
-DataAttributeAccessor.prototype.previousValue = '';
 DataAttributeAccessor.prototype.oldValue = '';
 DataAttributeAccessor.prototype.defaultValue = null;
 
@@ -141,7 +135,6 @@ DataAttributeAccessor.prototype.propertyKey = '';
 export class StyleAttributeAccessor implements IBindingTargetAccessor<HTMLElement, 'style', string | IIndexable> {
   public hasChanges: boolean;
   public currentValue: string | IIndexable;
-  public previousValue: string | IIndexable;
   public oldValue: string | IIndexable;
   public defaultValue: string | IIndexable;
 
@@ -158,7 +151,7 @@ export class StyleAttributeAccessor implements IBindingTargetAccessor<HTMLElemen
     public changeSet: IChangeSet,
     public obj: HTMLElement) {
 
-    this.oldValue = this.previousValue = this.currentValue = obj.style.cssText;
+    this.oldValue = this.currentValue = obj.style.cssText;
   }
 
   public getValue(): string {
@@ -224,7 +217,6 @@ export class StyleAttributeAccessor implements IBindingTargetAccessor<HTMLElemen
 
 StyleAttributeAccessor.prototype.hasChanges = false;
 StyleAttributeAccessor.prototype.currentValue = '';
-StyleAttributeAccessor.prototype.previousValue = '';
 StyleAttributeAccessor.prototype.oldValue = '';
 StyleAttributeAccessor.prototype.defaultValue = null;
 
@@ -241,7 +233,6 @@ StyleAttributeAccessor.prototype.propertyKey = 'style';
 export class ClassAttributeAccessor implements IBindingTargetAccessor<INode, string, string> {
   public hasChanges: boolean;
   public currentValue: string;
-  public previousValue: string;
   public oldValue: string;
   public defaultValue: string;
 
@@ -308,7 +299,6 @@ export class ClassAttributeAccessor implements IBindingTargetAccessor<INode, str
 
 ClassAttributeAccessor.prototype.hasChanges = false;
 ClassAttributeAccessor.prototype.currentValue = '';
-ClassAttributeAccessor.prototype.previousValue = '';
 ClassAttributeAccessor.prototype.oldValue = '';
 ClassAttributeAccessor.prototype.defaultValue = '';
 
@@ -326,7 +316,6 @@ ClassAttributeAccessor.prototype.nameIndex = null;
 export class PropertyAccessor implements IBindingTargetAccessor<IIndexable, string, any> {
   public hasChanges: boolean;
   public currentValue: string;
-  public previousValue: string;
   public oldValue: string;
   public defaultValue: string;
 
@@ -338,7 +327,7 @@ export class PropertyAccessor implements IBindingTargetAccessor<IIndexable, stri
     public changeSet: IChangeSet,
     public obj: IIndexable,
     public propertyKey: string) {
-    this.oldValue = this.previousValue = this.currentValue = obj[propertyKey];
+    this.oldValue = this.currentValue = obj[propertyKey];
   }
 
   public getValue(): any {
@@ -353,7 +342,6 @@ export class PropertyAccessor implements IBindingTargetAccessor<IIndexable, stri
 
 PropertyAccessor.prototype.hasChanges = false;
 PropertyAccessor.prototype.currentValue = undefined;
-PropertyAccessor.prototype.previousValue = undefined;
 PropertyAccessor.prototype.oldValue = undefined;
 PropertyAccessor.prototype.defaultValue = undefined;
 

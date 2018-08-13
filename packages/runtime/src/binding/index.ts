@@ -25,4 +25,5 @@ export { SetObserver, enableSetObservation, disableSetObservation, nativeAdd, na
 export * from './signaler';
 export * from './subscriber-collection';
 export * from './svg-analyzer';
+export * from './target-accessors';
 export * from './value-converter';

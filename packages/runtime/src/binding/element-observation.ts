@@ -1,13 +1,12 @@
-import { IIndexable } from '@aurelia/kernel';
 import { DOM, INode, INodeObserver } from '../dom';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { IEventSubscriber } from './event-manager';
-import { CollectionKind, IAccessor, IBatchedCollectionSubscriber, IChangeTracker, IPropertySubscriber, ISubscribable, MutationKind, ICollectionObserver } from './observation';
+import { CollectionKind, IAccessor, IBatchedCollectionSubscriber, IChangeTracker, IPropertySubscriber, ISubscribable, MutationKind, ICollectionObserver, IBindingTargetObserver } from './observation';
 import { IObserverLocator } from './observer-locator';
 import { SubscriberCollection } from './subscriber-collection';
 
-type ElementObserver = XLinkAttributeObserver | DataAttributeObserver | StyleObserver | ValueAttributeObserver;
+type ElementObserver = ValueAttributeObserver | CheckedObserver | SelectValueObserver;
 
 function setValue(this: ElementObserver, newValue: string): Promise<void> {
   const currentValue = this.currentValue;
@@ -29,210 +28,12 @@ function flushChanges(this: ElementObserver): void {
   }
 }
 
-// tslint:disable-next-line:no-http-string
-const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
-
-export class XLinkAttributeObserver implements IAccessor {
-  public hasChanges: boolean;
-  public currentValue: string;
-  public previousValue: string;
-  public oldValue: string;
-  public defaultValue: string;
-
-  public setValue: (newValue: any) => Promise<void>;
-  public flushChanges: () => void;
-
-  // xlink namespaced attributes require getAttributeNS/setAttributeNS
-  // (even though the NS version doesn't work for other namespaces
-  // in html5 documents)
-
-  // Using very HTML-specific code here since this isn't likely to get
-  // called unless operating against a real HTML element.
-
-  constructor(
-    public changeSet: IChangeSet,
-    public node: INode,
-    public propertyName: string,
-    public attributeName: string) {
-
-    this.oldValue = this.previousValue = this.currentValue = this.getValue();
-  }
-
-  public getValue(): string {
-    return (<Element>this.node).getAttributeNS(xlinkAttributeNS, this.attributeName);
-  }
-
-  public setValueCore(newValue: any): void {
-    (<Element>this.node).setAttributeNS(xlinkAttributeNS, this.attributeName, newValue);
-  }
-
-  public subscribe(): void {
-    throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "${this.propertyName}" property is not supported.`);
-  }
+function dispose(this: ElementObserver): void {
+  this.obj = null;
+  this.currentValue = null;
+  this.previousValue = null;
+  this.oldValue = null;
 }
-
-XLinkAttributeObserver.prototype.hasChanges = false;
-XLinkAttributeObserver.prototype.currentValue = '';
-XLinkAttributeObserver.prototype.previousValue = '';
-XLinkAttributeObserver.prototype.oldValue = '';
-XLinkAttributeObserver.prototype.defaultValue = null;
-
-XLinkAttributeObserver.prototype.setValue = setValue;
-XLinkAttributeObserver.prototype.flushChanges = flushChanges;
-
-XLinkAttributeObserver.prototype.changeSet = null;
-XLinkAttributeObserver.prototype.node = null;
-XLinkAttributeObserver.prototype.propertyName = '';
-XLinkAttributeObserver.prototype.attributeName = '';
-
-export class DataAttributeObserver implements IAccessor {
-  public hasChanges: boolean;
-  public currentValue: string;
-  public previousValue: string;
-  public oldValue: string;
-  public defaultValue: string;
-
-  public setValue: (newValue: any) => Promise<void>;
-  public flushChanges: () => void;
-
-  constructor(
-    public changeSet: IChangeSet,
-    public node: INode,
-    public propertyName: string) {
-
-    this.oldValue = this.previousValue = this.currentValue = this.getValue();
-  }
-
-  public getValue(): string {
-    return DOM.getAttribute(this.node, this.propertyName);
-  }
-
-  public setValueCore(newValue: any): void {
-    if (newValue === null) {
-      DOM.removeAttribute(this.node, this.propertyName);
-    } else {
-      DOM.setAttribute(this.node, this.propertyName, newValue);
-    }
-  }
-
-  public subscribe(): void {
-    throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "${this.propertyName}" property is not supported.`);
-  }
-}
-
-DataAttributeObserver.prototype.hasChanges = false;
-DataAttributeObserver.prototype.currentValue = '';
-DataAttributeObserver.prototype.previousValue = '';
-DataAttributeObserver.prototype.oldValue = '';
-DataAttributeObserver.prototype.defaultValue = null;
-
-DataAttributeObserver.prototype.setValue = setValue;
-DataAttributeObserver.prototype.flushChanges = flushChanges;
-
-DataAttributeObserver.prototype.changeSet = null;
-DataAttributeObserver.prototype.node = null;
-DataAttributeObserver.prototype.propertyName = '';
-
-export class StyleObserver implements IAccessor {
-  public hasChanges: boolean;
-  public currentValue: any;
-  public previousValue: any;
-  public oldValue: any;
-  public defaultValue: any;
-
-  public setValue: (newValue: any) => Promise<void>;
-  public flushChanges: () => void;
-
-  public styles: any;
-  public version: number;
-
-  constructor(
-    public changeSet: IChangeSet,
-    public element: HTMLElement,
-    public propertyName: string) {
-
-    this.oldValue = this.previousValue = this.currentValue = element.style.cssText;
-  }
-
-  public getValue(): string {
-    return this.element.style.cssText;
-  }
-
-  // tslint:disable-next-line:function-name
-  public _setProperty(style: string, value: string): void {
-    let priority = '';
-
-    if (value !== null && value !== undefined && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
-      priority = 'important';
-      value = value.replace('!important', '');
-    }
-
-    this.element.style.setProperty(style, value, priority);
-  }
-
-  public setValueCore(newValue: any): void {
-    const styles = this.styles || {};
-    let style;
-    let version = this.version;
-
-    if (newValue !== null) {
-      if (newValue instanceof Object) {
-        let value;
-        for (style in newValue) {
-          if (newValue.hasOwnProperty(style)) {
-            value = newValue[style];
-            style = style.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`);
-            styles[style] = version;
-            this._setProperty(style, value);
-          }
-        }
-      } else if (newValue.length) {
-        const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:^"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
-        let pair;
-        while ((pair = rx.exec(newValue)) !== null) {
-          style = pair[1];
-          if (!style) { continue; }
-
-          styles[style] = version;
-          this._setProperty(style, pair[2]);
-        }
-      }
-    }
-
-    this.styles = styles;
-    this.version += 1;
-    if (version === 0) {
-      return;
-    }
-
-    version -= 1;
-    for (style in styles) {
-      if (!styles.hasOwnProperty(style) || styles[style] !== version) {
-        continue;
-      }
-      this.element.style.removeProperty(style);
-    }
-  }
-
-  public subscribe(): void {
-    throw new Error(`Observation of a "${this.element.nodeName}" element\'s "${this.propertyName}" property is not supported.`);
-  }
-}
-
-StyleObserver.prototype.hasChanges = false;
-StyleObserver.prototype.currentValue = '';
-StyleObserver.prototype.previousValue = '';
-StyleObserver.prototype.oldValue = '';
-StyleObserver.prototype.defaultValue = null;
-
-StyleObserver.prototype.setValue = setValue;
-StyleObserver.prototype.flushChanges = flushChanges;
-
-StyleObserver.prototype.styles = null;
-StyleObserver.prototype.version = 0;
-StyleObserver.prototype.changeSet = null;
-StyleObserver.prototype.element = null;
-StyleObserver.prototype.propertyName = '';
 
 const inputValueDefaults = {
   ['button']: '',
@@ -259,7 +60,7 @@ const inputValueDefaults = {
   ['week']: ''
 };
 
-export class ValueAttributeObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance> {
+export class ValueAttributeObserver extends SubscriberCollection implements IBindingTargetObserver<INode, string, any> {
   public hasChanges: boolean;
   public currentValue: string;
   public previousValue: string;
@@ -268,11 +69,12 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
 
   public setValue: (newValue: any) => Promise<void>;
   public flushChanges: () => void;
+  public dispose: () => void;
 
   constructor(
     public changeSet: IChangeSet,
-    public node: INode,
-    public propertyName: string,
+    public obj: INode,
+    public propertyKey: string,
     public handler: IEventSubscriber
   ) {
     super();
@@ -281,8 +83,8 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
 
     // input.value (for type='file') however, can only be assigned an empty string
-    if (propertyName === 'value') {
-      const nodeType = node['type'];
+    if (propertyKey === 'value') {
+      const nodeType = obj['type'];
       this.defaultValue = inputValueDefaults[nodeType || 'text'];
       if (nodeType === 'file') {
         this.flushChanges = this.flushFileChanges;
@@ -290,15 +92,15 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
     } else {
       this.defaultValue = '';
     }
-    this.oldValue = this.previousValue = this.currentValue = node[propertyName];
+    this.oldValue = this.previousValue = this.currentValue = obj[propertyKey];
   }
 
-  public getValue(): string {
-    return this.node[this.propertyName];
+  public getValue(): any {
+    return this.obj[this.propertyKey];
   }
 
   public setValueCore(newValue: any): void {
-    this.node[this.propertyName] = newValue;
+    this.obj[this.propertyKey] = newValue;
     this.notify(BindingFlags.sourceContext);
   }
 
@@ -316,7 +118,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
   public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
-      this.handler.subscribe(this.node, this);
+      this.handler.subscribe(this.obj, this);
     }
     this.addSubscriber(subscriber, flags);
   }
@@ -331,7 +133,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IAcc
     if (this.hasChanges) {
       this.hasChanges = false;
       if (this.currentValue === '') {
-        this.node[this.propertyName] = this.currentValue;
+        this.obj[this.propertyKey] = this.currentValue;
         this.notify(BindingFlags.sourceContext);
         this.oldValue = this.previousValue = this.currentValue;
       }
@@ -347,99 +149,14 @@ ValueAttributeObserver.prototype.defaultValue = '';
 
 ValueAttributeObserver.prototype.setValue = setValue;
 ValueAttributeObserver.prototype.flushChanges = flushChanges;
+ValueAttributeObserver.prototype.dispose = dispose;
 
 ValueAttributeObserver.prototype.changeSet = null;
-ValueAttributeObserver.prototype.node = null;
-ValueAttributeObserver.prototype.propertyName = '';
+ValueAttributeObserver.prototype.obj = null;
+ValueAttributeObserver.prototype.propertyKey = '';
 ValueAttributeObserver.prototype.handler = null;
 
-export class ClassObserver implements IAccessor {
-  public hasChanges: boolean;
-  public currentValue: string;
-  public previousValue: string;
-  public oldValue: string;
-  public defaultValue: string;
-
-  public setValue: (newValue: any) => Promise<void>;
-  public flushChanges: () => void;
-
-  public doNotCache: true;
-  public version: number;
-  public nameIndex: IIndexable;
-
-  constructor(public changeSet: IChangeSet, public node: INode) { }
-
-  public getValue(): string {
-    return this.currentValue;
-  }
-
-  public setValueCore(newValue: string): void {
-    const addClass = DOM.addClass;
-    const removeClass = DOM.removeClass;
-    const nameIndex = this.nameIndex || {};
-    let version = this.version;
-    let names;
-    let name;
-
-    // Add the classes, tracking the version at which they were added.
-    if (newValue.length) {
-      const node = this.node;
-      names = newValue.split(/\s+/);
-      for (let i = 0, length = names.length; i < length; i++) {
-        name = names[i];
-        if (!name.length) {
-          continue;
-        }
-        nameIndex[name] = version;
-        addClass(node, name);
-      }
-    }
-
-    // Update state variables.
-    this.nameIndex = nameIndex;
-    this.version += 1;
-
-    // First call to setValue?  We're done.
-    if (version === 0) {
-      return;
-    }
-
-    // Remove classes from previous version.
-    version -= 1;
-    for (name in nameIndex) {
-      if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
-        continue;
-      }
-
-      // TODO: this has the side-effect that classes already present which are added again,
-      // will be removed if they're not present in the next update.
-      // Better would be do have some configurability for this behavior, allowing the user to
-      // decide whether initial classes always need to be kept, always removed, or something in between
-      removeClass(this.node, name);
-    }
-  }
-
-  public subscribe(): void {
-    throw new Error(`Observation of a "${DOM.normalizedTagName(this.node)}" element\'s "class" property is not supported.`);
-  }
-}
-
-ClassObserver.prototype.hasChanges = false;
-ClassObserver.prototype.currentValue = '';
-ClassObserver.prototype.previousValue = '';
-ClassObserver.prototype.oldValue = '';
-ClassObserver.prototype.defaultValue = '';
-
-ClassObserver.prototype.setValue = setValue;
-ClassObserver.prototype.flushChanges = flushChanges;
-
-ClassObserver.prototype.doNotCache = true;
-ClassObserver.prototype.version = 0;
-ClassObserver.prototype.changeSet = null;
-ClassObserver.prototype.node = null;
-ClassObserver.prototype.nameIndex = null;
-
-export class CheckedObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker, IBatchedCollectionSubscriber, IPropertySubscriber {
+export class CheckedObserver extends SubscriberCollection implements IBindingTargetObserver<HTMLInputElement, string, any>, IBatchedCollectionSubscriber, IPropertySubscriber {
   public hasChanges: boolean;
   public currentValue: any;
   public previousValue: any;
@@ -448,6 +165,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
 
   public setValue: (newValue: any) => Promise<void>;
   public flushChanges: () => void;
+  public dispose: () => void;
 
   private initialSync: boolean;
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
@@ -455,7 +173,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
 
   constructor(
     public changeSet: IChangeSet,
-    public node: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
+    public obj: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
   ) {
@@ -471,7 +189,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
       return;
     }
     if (!this.valueObserver) {
-      this.valueObserver = this.node['$observers'].model || this.node['$observers'].value;
+      this.valueObserver = this.obj['$observers'].model || this.obj['$observers'].value;
       if (this.valueObserver) {
         this.valueObserver.subscribe(this, BindingFlags.checkedValueContext);
       }
@@ -480,7 +198,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
       this.arrayObserver.unsubscribeBatched(this, BindingFlags.checkedArrayContext);
       this.arrayObserver = null;
     }
-    if (this.node.type === 'checkbox' && Array.isArray(newValue)) {
+    if (this.obj.type === 'checkbox' && Array.isArray(newValue)) {
       this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
       this.arrayObserver.subscribeBatched(this, BindingFlags.checkedArrayContext);
     }
@@ -502,7 +220,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
 
   public synchronizeElement(): void {
     const value = this.currentValue;
-    const element = this.node;
+    const element = this.obj;
     const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     const isRadio = element.type === 'radio';
     const matcher = element['matcher'] || ((a: any, b: any) => a === b);
@@ -529,7 +247,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
 
   public synchronizeValue(): void {
     let value = this.currentValue;
-    const element = this.node;
+    const element = this.obj;
     const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     let index;
     const matcher = element['matcher'] || ((a: any, b: any) => a === b);
@@ -556,7 +274,7 @@ export class CheckedObserver extends SubscriberCollection implements IAccessor, 
 
   public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
     if (!this.hasSubscribers()) {
-      this.handler.subscribe(this.node, this);
+      this.handler.subscribe(this.obj, this);
     }
     this.addSubscriber(subscriber, flags);
   }
@@ -586,9 +304,10 @@ CheckedObserver.prototype.defaultValue = '';
 
 CheckedObserver.prototype.setValue = setValue;
 CheckedObserver.prototype.flushChanges = flushChanges;
+CheckedObserver.prototype.dispose = dispose;
 
 CheckedObserver.prototype.changeSet = null;
-CheckedObserver.prototype.node = null;
+CheckedObserver.prototype.obj = null;
 CheckedObserver.prototype.handler = null;
 CheckedObserver.prototype.observerLocator = null;
 
@@ -598,7 +317,7 @@ const childObserverOptions = {
   characterData: true
 };
 
-export class SelectValueObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker, IBatchedCollectionSubscriber, IPropertySubscriber {
+export class SelectValueObserver extends SubscriberCollection implements IBindingTargetObserver<HTMLSelectElement, string, any>, IBatchedCollectionSubscriber, IPropertySubscriber {
   public hasChanges: boolean;
   public currentValue: any;
   public previousValue: any;
@@ -607,13 +326,14 @@ export class SelectValueObserver extends SubscriberCollection implements IAccess
 
   public setValue: (newValue: any) => Promise<void>;
   public flushChanges: () => void;
+  public dispose: () => void;
 
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private nodeObserver: INodeObserver;
 
   constructor(
     public changeSet: IChangeSet,
-    public node: HTMLSelectElement,
+    public obj: HTMLSelectElement,
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
   ) {
@@ -625,7 +345,7 @@ export class SelectValueObserver extends SubscriberCollection implements IAccess
   }
 
   public setValueCore(newValue: any): void {
-    if (newValue !== null && newValue !== undefined && this.node.multiple && !Array.isArray(newValue)) {
+    if (newValue !== null && newValue !== undefined && this.obj.multiple && !Array.isArray(newValue)) {
       throw new Error('Only null or Array instances can be bound to a multi-select.');
     }
     if (this.arrayObserver) {
@@ -658,9 +378,9 @@ export class SelectValueObserver extends SubscriberCollection implements IAccess
     if (Array.isArray(value)) {
       isArray = true;
     }
-    const options = this.node.options;
+    const options = this.obj.options;
     let i = options.length;
-    const matcher = (<any>this.node).matcher || ((a: any, b: any) => a === b);
+    const matcher = (<any>this.obj).matcher || ((a: any, b: any) => a === b);
 
     while (i--) {
       const option = options.item(i) as HTMLOptionElement & { model?: any };
@@ -688,7 +408,7 @@ export class SelectValueObserver extends SubscriberCollection implements IAccess
   }
 
   public synchronizeValue(): void {
-    const options = this.node.options;
+    const options = this.obj.options;
     let count = 0;
     let value = [];
 
@@ -701,10 +421,10 @@ export class SelectValueObserver extends SubscriberCollection implements IAccess
       count++;
     }
 
-    if (this.node.multiple) {
+    if (this.obj.multiple) {
       // multi-select
       if (Array.isArray(this.currentValue)) {
-        const matcher = (<any>this.node).matcher || ((a: any, b: any) => a === b);
+        const matcher = (<any>this.obj).matcher || ((a: any, b: any) => a === b);
         // remove items that are no longer selected.
         let i = 0;
         while (i < this.currentValue.length) {
@@ -741,7 +461,7 @@ export class SelectValueObserver extends SubscriberCollection implements IAccess
   public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
-      this.handler.subscribe(this.node, this);
+      this.handler.subscribe(this.obj, this);
     }
     this.addSubscriber(subscriber, flags);
   }
@@ -753,7 +473,7 @@ export class SelectValueObserver extends SubscriberCollection implements IAccess
   }
 
   public bind(): void {
-    this.nodeObserver = DOM.createNodeObserver(this.node, () => {
+    this.nodeObserver = DOM.createNodeObserver(this.obj, () => {
       this.synchronizeOptions();
       this.synchronizeValue();
     }, childObserverOptions);
@@ -778,8 +498,9 @@ SelectValueObserver.prototype.defaultValue = '';
 
 SelectValueObserver.prototype.setValue = setValue;
 SelectValueObserver.prototype.flushChanges = flushChanges;
+SelectValueObserver.prototype.dispose = dispose;
 
 SelectValueObserver.prototype.changeSet = null;
-SelectValueObserver.prototype.node = null;
+SelectValueObserver.prototype.obj = null;
 SelectValueObserver.prototype.handler = null;
 SelectValueObserver.prototype.observerLocator = null;

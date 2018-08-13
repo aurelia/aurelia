@@ -1,4 +1,4 @@
-import { XLinkAttributeObserver, DataAttributeObserver, StyleObserver, ValueAttributeObserver, EventSubscriber, ChangeSet, ClassObserver, CheckedObserver, IObserverLocator, IChangeSet, SelectValueObserver } from "@aurelia/runtime";
+import { XLinkAttributeAccessor, DataAttributeAccessor, StyleAttributeAccessor, ValueAttributeObserver, EventSubscriber, ChangeSet, ClassAttributeAccessor, CheckedObserver, IObserverLocator, IChangeSet, SelectValueObserver } from "@aurelia/runtime";
 import { createElement, globalAttributeNames } from "../util";
 import { expect } from "chai";
 import { CSS_PROPERTIES } from "../css-properties";
@@ -21,7 +21,7 @@ function createSvgUseElement(name: string, value: string) {
 }
 
 describe('XLinkAttributeObserver', () => {
-  let sut: XLinkAttributeObserver;
+  let sut: XLinkAttributeAccessor;
   let el: Element;
   let changeSet: ChangeSet;
 
@@ -39,7 +39,7 @@ describe('XLinkAttributeObserver', () => {
       it(`returns ${value} for xlink:${name}`, () => {
         el = createSvgUseElement(name, value);
         changeSet = new ChangeSet();
-        sut = new XLinkAttributeObserver(changeSet, el, `xlink:${name}`, name);
+        sut = new XLinkAttributeAccessor(changeSet, el, `xlink:${name}`, name);
         const actual = sut.getValue();
         expect(actual).to.equal(value);
       });
@@ -51,7 +51,7 @@ describe('XLinkAttributeObserver', () => {
       it(`sets xlink:${name} to foo`, () => {
         el = createSvgUseElement(name, value);
         changeSet = new ChangeSet();
-        sut = new XLinkAttributeObserver(changeSet, el, `xlink:${name}`, name);
+        sut = new XLinkAttributeAccessor(changeSet, el, `xlink:${name}`, name);
         sut.setValue('foo');
         expect(sut.getValue()).not.to.equal('foo');
         changeSet.flushChanges();
@@ -63,7 +63,7 @@ describe('XLinkAttributeObserver', () => {
 });
 
 describe('DataAttributeObserver', () => {
-  let sut: DataAttributeObserver;
+  let sut: DataAttributeAccessor;
   let el: Element;
   let changeSet: ChangeSet;
 
@@ -74,7 +74,7 @@ describe('DataAttributeObserver', () => {
         it(`returns "${value}" for attribute "${name}"`, () => {
           el = createElement(`<div ${name}="${value}"></div>`);
           changeSet = new ChangeSet();
-          sut = new DataAttributeObserver(changeSet, el, name);
+          sut = new DataAttributeAccessor(changeSet, el, name);
           const actual = sut.getValue();
           expect(actual).to.equal(value);
         });
@@ -89,7 +89,7 @@ describe('DataAttributeObserver', () => {
           el = createElement(`<div></div>`);
           changeSet = new ChangeSet();
           const expected = value !== null && value !== undefined ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeObserver(changeSet, el, name);
+          sut = new DataAttributeAccessor(changeSet, el, name);
           sut.setValue(value);
           if (value !== null && value !== undefined) {
             expect(el.outerHTML).not.to.equal(expected);
@@ -105,41 +105,37 @@ describe('DataAttributeObserver', () => {
 describe('StyleObserver', () => {
   const propNames = Object.getOwnPropertyNames(CSS_PROPERTIES);
 
-  let sut: StyleObserver;
+  let sut: StyleAttributeAccessor;
   let el: HTMLElement;
   let changeSet: ChangeSet;
 
-  for (const attrName of ['css', 'style']) {
-    describe(`"${attrName}" attribute`, () => {
-      // TODO: this is just quick-n-dirty; remove redundant tests and add missing tests
-      for (const propName of propNames) {
-        const values = CSS_PROPERTIES[propName]['values'];
-        const value = values[0];
-        const rule = `${propName}:${value}`;
-        it(`setValue - ${attrName}="${rule}"`, () => {
-          el = <HTMLElement>createElement('<div></div>');
-          changeSet = new ChangeSet();
-          sut = new StyleObserver(changeSet, el, attrName);
-          sut._setProperty = spy();
-
-          sut.setValue(rule);
-          expect(sut._setProperty).not.to.have.been.calledOnce;
-          changeSet.flushChanges();
-          expect(sut._setProperty).to.have.been.calledOnce;
-          expect(sut._setProperty).to.have.been.calledWith(propName, value);
-        });
-      }
-    });
-
-    it(`getValue - ${attrName}="display: block;"`, () => {
-      el = <HTMLElement>createElement(`<div style="display: block;"></div>`);
+  // TODO: this is just quick-n-dirty; remove redundant tests and add missing tests
+  for (const propName of propNames) {
+    const values = CSS_PROPERTIES[propName]['values'];
+    const value = values[0];
+    const rule = `${propName}:${value}`;
+    it(`setValue - style="${rule}"`, () => {
+      el = <HTMLElement>createElement('<div></div>');
       changeSet = new ChangeSet();
-      sut = new StyleObserver(changeSet, el, attrName);
+      sut = new StyleAttributeAccessor(changeSet, el);
+      sut._setProperty = spy();
 
-      const actual = sut.getValue();
-      expect(actual).to.equal('display: block;');
+      sut.setValue(rule);
+      expect(sut._setProperty).not.to.have.been.calledOnce;
+      changeSet.flushChanges();
+      expect(sut._setProperty).to.have.been.calledOnce;
+      expect(sut._setProperty).to.have.been.calledWith(propName, value);
     });
   }
+
+  it(`getValue - style="display: block;"`, () => {
+    el = <HTMLElement>createElement(`<div style="display: block;"></div>`);
+    changeSet = new ChangeSet();
+    sut = new StyleAttributeAccessor(changeSet, el);
+
+    const actual = sut.getValue();
+    expect(actual).to.equal('display: block;');
+  });
 });
 
 describe('ValueAttributeObserver', () => {
@@ -216,7 +212,7 @@ describe('ValueAttributeObserver', () => {
 
 
 describe('ClassObserver', () => {
-  let sut: ClassObserver;
+  let sut: ClassAttributeAccessor;
   let el: Element;
   let changeSet: ChangeSet;
   let initialClassList: string;
@@ -235,7 +231,7 @@ describe('ClassObserver', () => {
         el = createElement(markup);
         initialClassList = el.classList.toString();
         changeSet = new ChangeSet();
-        sut = new ClassObserver(changeSet, el);
+        sut = new ClassAttributeAccessor(changeSet, el);
       });
 
       it(`setValue("${classList}") updates ${markup}`, () => {

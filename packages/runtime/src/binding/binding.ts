@@ -3,7 +3,7 @@ import { IExpression } from './ast';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
-import { IBindingTargetObserver, IBindScope, IPropertySubscriber, ISubscribable, MutationKind, IBatchedPropertySubscriber, AccessorOrObserver } from './observation';
+import { AccessorOrObserver, IBindingTargetObserver, IBindScope, IPropertySubscriber, ISubscribable, MutationKind } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 const slotNames: string[] = new Array(100);

@@ -4,13 +4,14 @@ import { getArrayObserver } from './array-observer';
 import { IChangeSet } from './change-set';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
-import { CheckedObserver, ClassObserver, DataAttributeObserver, SelectValueObserver, StyleObserver, ValueAttributeObserver, XLinkAttributeObserver } from './element-observation';
+import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from './element-observation';
 import { IEventManager } from './event-manager';
 import { getMapObserver } from './map-observer';
-import { AccessorOrObserver, CollectionKind, IAccessor, IBindingTargetObserver, ICollectionObserver, IObservable } from './observation';
-import { PrimitiveObserver, PropertyAccessor, SetterObserver } from './property-observation';
+import { AccessorOrObserver, CollectionKind, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable } from './observation';
+import { PrimitiveObserver, SetterObserver } from './property-observation';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
+import { ClassAttributeAccessor, DataAttributeAccessor, PropertyAccessor, StyleAttributeAccessor, XLinkAttributeAccessor } from './target-accessors';
 
 export interface ObjectObservationAdapter {
   getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
@@ -18,7 +19,7 @@ export interface ObjectObservationAdapter {
 
 export interface IObserverLocator {
   getObserver(obj: any, propertyName: string): AccessorOrObserver;
-  getAccessor(obj: any, propertyName: string): IAccessor;
+  getAccessor(obj: any, propertyName: string): IBindingTargetAccessor;
   addAdapter(adapter: ObjectObservationAdapter): void;
   getArrayObserver(array: any[]): ICollectionObserver<CollectionKind.array>;
   getMapObserver(map: Map<any, any>): ICollectionObserver<CollectionKind.map>;
@@ -78,7 +79,7 @@ export class ObserverLocator implements IObserverLocator {
     this.adapters.push(adapter);
   }
 
-  public getAccessor(obj: any, propertyName: string): IBindingTargetObserver | IAccessor {
+  public getAccessor(obj: any, propertyName: string): IBindingTargetAccessor {
     if (DOM.isNodeInstance(obj)) {
       const normalizedTagName = DOM.normalizedTagName;
 
@@ -96,7 +97,7 @@ export class ObserverLocator implements IObserverLocator {
         || normalizedTagName(obj) === 'img' && propertyName === 'src'
         || normalizedTagName(obj) === 'a' && propertyName === 'href'
       ) {
-        return new DataAttributeObserver(this.changeSet, obj, propertyName);
+        return new DataAttributeAccessor(this.changeSet, obj, propertyName);
       }
     }
 
@@ -144,18 +145,18 @@ export class ObserverLocator implements IObserverLocator {
     return null;
   }
 
-  private createPropertyObserver(obj: any, propertyName: string): AccessorOrObserver | IBindingTargetObserver {
+  private createPropertyObserver(obj: any, propertyName: string): AccessorOrObserver {
     if (!(obj instanceof Object)) {
-      return new PrimitiveObserver(obj, propertyName);
+      return new PrimitiveObserver(obj, propertyName) as any;
     }
 
     if (DOM.isNodeInstance(obj)) {
       if (propertyName === 'class') {
-        return new ClassObserver(this.changeSet, obj);
+        return new ClassAttributeAccessor(this.changeSet, obj);
       }
 
       if (propertyName === 'style' || propertyName === 'css') {
-        return new StyleObserver(this.changeSet, <HTMLElement>obj, propertyName);
+        return new StyleAttributeAccessor(this.changeSet, <HTMLElement>obj);
       }
 
       const handler = this.eventManager.getElementHandler(obj, propertyName);
@@ -173,13 +174,13 @@ export class ObserverLocator implements IObserverLocator {
 
       const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
       if (xlinkResult) {
-        return new XLinkAttributeObserver(this.changeSet, obj, propertyName, xlinkResult[1]);
+        return new XLinkAttributeAccessor(this.changeSet, <Element>obj, propertyName, xlinkResult[1]);
       }
 
       if (propertyName === 'role'
         || /^\w+:|^data-|^aria-/.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
-        return new DataAttributeObserver(this.changeSet, obj, propertyName);
+        return new DataAttributeAccessor(this.changeSet, obj, propertyName);
       }
     }
 
@@ -197,28 +198,30 @@ export class ObserverLocator implements IObserverLocator {
           return adapterObserver;
         }
 
-        return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor);
+        return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor) as any;
       }
     }
 
     if (obj instanceof Array) {
       if (propertyName === 'length') {
+        // TODO: implement length observation via proxy
         //return this.getArrayObserver(obj).getLengthObserver();
       }
 
-      return this.dirtyChecker.createProperty(obj, propertyName);
+      // TODO: get rid of dirty checker and use proxy instead
+      return this.dirtyChecker.createProperty(obj, propertyName) as any;
     } else if (obj instanceof Map) {
       if (propertyName === 'size') {
         //return this.getMapObserver(obj).getLengthObserver();
       }
 
-      return this.dirtyChecker.createProperty(obj, propertyName);
+      return this.dirtyChecker.createProperty(obj, propertyName) as any;
     } else if (obj instanceof Set) {
       if (propertyName === 'size') {
         //return this.getSetObserver(obj).getLengthObserver();
       }
 
-      return this.dirtyChecker.createProperty(obj, propertyName);
+      return this.dirtyChecker.createProperty(obj, propertyName) as any;
     }
 
     return new SetterObserver(this.changeSet, obj, propertyName);

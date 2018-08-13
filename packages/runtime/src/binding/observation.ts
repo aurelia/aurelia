@@ -7,19 +7,41 @@ export interface IBindScope {
   $bind(flags: BindingFlags, scope: IScope): void;
   $unbind(flags: BindingFlags): void;
 }
-export interface IAccessor<T = any> {
-  getValue(): T;
-  setValue(newValue: T): void;
+
+/**
+ * Basic interface to normalize getting/setting a value of any property on any object
+ */
+export interface IAccessor<TValue = any> {
+  getValue(): TValue;
+  setValue(newValue: TValue): void;
 }
 
-export interface IBindingTargetObserver<T = any>
-  extends IAccessor<T>, ISubscribable<MutationKind.instance> {
+/**
+ * Describes a target observer for to-view bindings (in other words, an observer without the observation).
+ */
+export interface IBindingTargetAccessor<
+  TObj = any,
+  TProp = keyof TObj,
+  TValue = any>
+  extends IDisposable,
+          IAccessor<TValue>,
+          IPropertyChangeTracker<TObj, TProp> { }
+
+/**
+ * Describes a target observer for from-view or two-way bindings.
+ */
+export interface IBindingTargetObserver<
+  TObj = any,
+  TProp = keyof TObj,
+  TValue = any>
+  extends IBindingTargetAccessor<TObj, TProp, TValue>,
+          ISubscribable<MutationKind.instance> {
 
   bind?(flags: BindingFlags): void;
   unbind?(flags: BindingFlags): void;
 }
 
-export type AccessorOrObserver = IAccessor | IBindingTargetObserver;
+export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
 
 export interface IObservable<T = any> {
   $observers: Record<string, AccessorOrObserver>;
@@ -53,12 +75,12 @@ export enum MutationKind {
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Object, TProp extends keyof TObj> extends IChangeTracker {
+export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = any> extends IChangeTracker {
   obj: TObj;
-  propertyKey: TProp;
-  oldValue?: any;
-  previousValue?: any;
-  currentValue: any;
+  propertyKey?: TProp;
+  oldValue?: TValue;
+  previousValue?: TValue;
+  currentValue: TValue;
 }
 
 /**

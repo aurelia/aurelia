@@ -85,17 +85,6 @@ XLinkAttributeObserver.prototype.node = null;
 XLinkAttributeObserver.prototype.propertyName = '';
 XLinkAttributeObserver.prototype.attributeName = '';
 
-export const dataAttributeAccessor = {
-  getValue: (obj: INode, propertyName: string) => DOM.getAttribute(obj, propertyName),
-  setValue: (value: any, obj: INode, propertyName: string) => {
-    if (value === null || value === undefined) {
-      DOM.removeAttribute(obj, propertyName);
-    } else {
-      DOM.setAttribute(obj, propertyName, value);
-    }
-  }
-};
-
 export class DataAttributeObserver implements IAccessor {
   public hasChanges: boolean;
   public currentValue: string;

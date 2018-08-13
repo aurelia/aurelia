@@ -32,4 +32,4 @@ export interface IViewFactory {
   create(): IView;
 }
 
-export const IViewFactory = DI.createInterface<IViewFactory>();
+export const IViewFactory = DI.createInterface<IViewFactory>().noDefault();

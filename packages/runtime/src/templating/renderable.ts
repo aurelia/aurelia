@@ -5,7 +5,7 @@ import { INodeSequence } from '../dom';
 import { IAttach } from './lifecycle';
 import { IRenderContext } from './render-context';
 
-export const IRenderable = DI.createInterface<IRenderable>();
+export const IRenderable = DI.createInterface<IRenderable>().noDefault();
 
 export interface IRenderable {
   $context: IRenderContext;

@@ -37,7 +37,7 @@ export class AttachLifecycle {
   private attached() {}
 }
 
-const dummyView = { remove() {} };
+const dummyNodeSequence = { remove() {} };
 
 export class DetachLifecycle {
   private detachedHead = null; //LOL
@@ -46,7 +46,7 @@ export class DetachLifecycle {
   private viewRemoveTail = null;
   private $nextDetached = null;
   private $nextRemoveView = null;
-  private $view = dummyView;
+  private $nodes = dummyNodeSequence;
 
   private constructor(private owner) {
     this.detachedTail = this.detachedHead = this;
@@ -83,7 +83,7 @@ export class DetachLifecycle {
       let next2;
 
       while (current2) {
-        current2.$view.remove();
+        current2.$nodes.remove();
         next2 = current2.$nextRemoveView;
         current2.$nextRemoveView = null;
         current2 = next2;

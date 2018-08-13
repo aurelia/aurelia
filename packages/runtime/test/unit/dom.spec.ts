@@ -1,6 +1,6 @@
 import { spy } from 'sinon';
 import { expect } from 'chai';
-import { DOM, INode, TemplateView } from '@aurelia/runtime';
+import { DOM, INode, FragmentNodeSequence } from '@aurelia/runtime';
 
 function wrap(inner: string, tag: string): string {
   if (tag.length === 0) {
@@ -658,8 +658,8 @@ describe('DOM', () => {
   });
 });
 
-describe('TemplateView', () => {
-  let sut: TemplateView;
+describe('FragmentNodeSequence', () => {
+  let sut: FragmentNodeSequence;
 
   // describe('appendChild', () => {
   //   it('should add the child to the view', () => {
@@ -677,7 +677,7 @@ describe('TemplateView', () => {
       it(`should correctly assign children (depth=1,width=${width})`, () => {
         const node = document.createElement('div');
         const fragment = createFragment(node, 0, 1, width);
-        sut = new TemplateView(fragment);
+        sut = new FragmentNodeSequence(fragment);
         expect(sut.childNodes.length).to.equal(width);
         expect(sut.childNodes[0] === sut.firstChild).to.be.true;
         expect(sut.childNodes[width - 1] === sut.lastChild).to.be.true;
@@ -692,7 +692,7 @@ describe('TemplateView', () => {
         it(`should return empty array when there are no targets (depth=${depth},width=${width})`, () => {
           const node = document.createElement('div');
           const fragment = createFragment(node, 0, depth, width);
-          sut = new TemplateView(fragment);
+          sut = new FragmentNodeSequence(fragment);
           const actual = sut.findTargets();
           expect(actual.length).to.equal(0);
         });
@@ -701,7 +701,7 @@ describe('TemplateView', () => {
           const node = document.createElement('div');
           node.classList.add('au');
           const fragment = createFragment(node, 0, depth, width);
-          sut = new TemplateView(fragment);
+          sut = new FragmentNodeSequence(fragment);
           const actual = sut.findTargets();
           expect(actual.length).to.equal(fragment.querySelectorAll('div').length);
         });
@@ -715,7 +715,7 @@ describe('TemplateView', () => {
         it(`should insert the view before the refNode under the parent of the refNode (depth=${depth},width=${width})`, () => {
           const node = document.createElement('div');
           const fragment = createFragment(node, 0, depth, width);
-          sut = new TemplateView(fragment);
+          sut = new FragmentNodeSequence(fragment);
           const parent = document.createElement('div');
           const ref1 = document.createElement('div');
           const ref2 = document.createElement('div');
@@ -743,7 +743,7 @@ describe('TemplateView', () => {
         it(`should append the view to the parent (depth=${depth},width=${width})`, () => {
           const node = document.createElement('div');
           const fragment = createFragment(node, 0, depth, width);
-          sut = new TemplateView(fragment);
+          sut = new FragmentNodeSequence(fragment);
           const parent = document.createElement('div');
           sut.appendTo(parent);
           expect(parent.childNodes.length).to.equal(width);
@@ -764,7 +764,7 @@ describe('TemplateView', () => {
         it(`should put the view back into the fragment (depth=${depth},width=${width})`, () => {
           const node = document.createElement('div');
           const fragment = createFragment(node, 0, depth, width);
-          sut = new TemplateView(fragment);
+          sut = new FragmentNodeSequence(fragment);
           const parent = document.createElement('div');
           expect(parent.childNodes.length).to.equal(0);
           expect(fragment.childNodes.length).to.equal(width);

@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { Replaceable, IRenderingEngine, IVisualFactory, IRenderLocation, DOM, CustomAttributeResource } from "@aurelia/runtime";
+import { Replaceable, IRenderingEngine, IViewFactory, IRenderLocation, DOM, CustomAttributeResource } from "@aurelia/runtime";
 import { DI, Registration } from '@aurelia/kernel';
-import { VisualFactoryFake } from "../fakes/visual-factory-fake";
-import { VisualFake } from '../fakes/visual-fake';
+import { ViewFactoryFake } from "../fakes/view-factory-fake";
+import { ViewFake } from '../fakes/view-fake';
 
 describe('The replaceable template controller', () => {
   function createRenderLocation() {
@@ -17,7 +17,7 @@ describe('The replaceable template controller', () => {
     const location = createRenderLocation();
 
     container.register(
-      Registration.singleton(IVisualFactory, VisualFactoryFake),
+      Registration.singleton(IViewFactory, ViewFactoryFake),
       Registration.instance(IRenderLocation, location),
       Replaceable
     );
@@ -34,14 +34,14 @@ describe('The replaceable template controller', () => {
   it('creates a child instance from its template', () => {
     const { replaceable } = hydrateReplaceable();
 
-    expect(replaceable['$child']).to.be.instanceof(VisualFake);
+    expect(replaceable['$child']).to.be.instanceof(ViewFake);
   });
 
   it('adds a child instance at the render location', () => {
     const {replaceable, location} = hydrateReplaceable();
 
     expect(location.previousSibling)
-      .to.be.equal(replaceable['$child'].$view.lastChild);
+      .to.be.equal(replaceable['$child'].$nodes.lastChild);
   });
 
   it('enforces the bind lifecycle of its child instance', () => {

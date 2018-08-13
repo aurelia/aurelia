@@ -1,24 +1,24 @@
 import { IContainer, DI, Registration } from '@aurelia/kernel';
 import { Repeat, IChangeSet } from '@aurelia/runtime';
 import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
-import { IRenderSlot, RenderSlot } from '@aurelia/runtime';
-import { IViewOwner } from '@aurelia/runtime';
-import { IVisualFactory } from '@aurelia/runtime';
+import { IViewSlot, ViewSlot } from '@aurelia/runtime';
+import { IRenderable } from '@aurelia/runtime';
+import { IViewFactory } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { AccessScope } from '@aurelia/runtime';
 import { Binding } from '@aurelia/runtime';
 import { IObservedArray } from '@aurelia/runtime';
 import { padRight, incrementItems, assertVisualsSynchronized } from '../../util';
 import { BindingFlags } from '@aurelia/runtime';
-import { ViewOwnerFake } from '../fakes/view-owner-fake';
-import { VisualFactoryFake } from '../fakes/visual-factory-fake';
+import { RenderableFake } from '../fakes/renderable-fake';
+import { ViewFactoryFake } from '../fakes/view-factory-fake';
 
 describe('ArrayRepeater - synchronize visuals', () => {
   let container: IContainer;
   let changeSet: IChangeSet;
-  let slot: IRenderSlot;
-  let owner: IViewOwner;
-  let factory: IVisualFactory;
+  let slot: IViewSlot;
+  let renderable: IRenderable;
+  let factory: IViewFactory;
   let host: HTMLElement;
   let sut: Repeat<IObservedArray>;
 
@@ -32,16 +32,16 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
   beforeEach(() => {
     container = DI.createContainer();
-    container.register(Registration.singleton(IViewOwner, ViewOwnerFake));
-    container.register(Registration.singleton(IVisualFactory, VisualFactoryFake));
+    container.register(Registration.singleton(IRenderable, RenderableFake));
+    container.register(Registration.singleton(IViewFactory, ViewFactoryFake));
     changeSet = container.get(IChangeSet);
     host = document.createElement('div');
-    slot = RenderSlot.create(host, true);
-    owner = container.get(IViewOwner);
-    factory = container.get(IVisualFactory);
-    sut = new Repeat(changeSet, slot, owner, factory, container);
+    slot = ViewSlot.create(host, true);
+    renderable = container.get(IRenderable);
+    factory = container.get(IViewFactory);
+    sut = new Repeat(changeSet, slot, renderable, factory, container);
     const binding = new Binding(<any>sourceExpression, sut, 'items', <any>null, <any>null, <any>null);
-    owner.$bindable = [binding];
+    renderable.$bindables = [binding];
   });
 
   const initArr = [[], [3, 2, 1], [19, 18, 17, 16, 15, 14, 13, 12, 11, 10]];
@@ -310,7 +310,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
     it('should ignore pending changes from previous instance when assigning a new instance', () => {
       (<any>sut)._items = [];
-      owner.$bindable = [new Binding(<any>new AccessScope(''), sut, 'items', <any>null, <any>null, <any>null)];
+      renderable.$bindables = [new Binding(<any>new AccessScope(''), sut, 'items', <any>null, <any>null, <any>null)];
       sut.bound(BindingFlags.none, <any>{ });
 
       sut.items.push(1);
@@ -325,7 +325,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
     it('should include pending changes from new instance when assigning a new instance', () => {
       (<any>sut)._items = [];
-      owner.$bindable = [new Binding(<any>new AccessScope(''), sut, 'items', <any>null, <any>null, <any>null)];
+      renderable.$bindables = [new Binding(<any>new AccessScope(''), sut, 'items', <any>null, <any>null, <any>null)];
       sut.bound(BindingFlags.none, <any>{ });
 
       expect(sut.items.length).to.equal(0);

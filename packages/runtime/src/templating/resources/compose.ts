@@ -4,10 +4,10 @@ import { DOM, INode } from '../../dom';
 import { customElement, ICustomElement } from '../custom-element';
 import { IHydrateElementInstruction, ITargetedInstruction, TargetedInstructionType } from '../instructions';
 import { IRenderContext } from '../render-context';
-import { IRenderSlot, SwapOrder } from '../render-slot';
+import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
-import { IViewOwner } from '../view';
-import { VisualWithCentralComponent } from '../visual';
+import { ViewWithCentralComponent } from '../view';
+import { IViewSlot, SwapOrder } from '../view-slot';
 
 const composeSource = {
   name: 'au-compose',
@@ -19,26 +19,26 @@ const composeProps = ['component', 'swapOrder', 'isComposing'];
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
-@inject(IViewOwner, INode, IRenderSlot, ITargetedInstruction, IRenderingEngine)
+@inject(IRenderable, INode, IViewSlot, ITargetedInstruction, IRenderingEngine)
 export class Compose {
   public component: any;
   public swapOrder: SwapOrder;
   public isComposing: boolean;
 
   private task: CompositionTask = null;
-  private visual: VisualWithCentralComponent = null;
+  private view: ViewWithCentralComponent = null;
   private content: INode = null;
   private baseInstruction: Immutable<IHydrateElementInstruction>;
   private compositionContext: IRenderContext;
 
   constructor(
-    private viewOwner: IViewOwner,
+    private renderable: IRenderable,
     private host: INode,
-    private slot: IRenderSlot,
+    private slot: IViewSlot,
     instruction: Immutable<IHydrateElementInstruction>,
     private renderingEngine: IRenderingEngine
   ) {
-    this.compositionContext = viewOwner.$context;
+    this.compositionContext = renderable.$context;
     this.baseInstruction = {
       type: TargetedInstructionType.hydrateElement,
       res: null,
@@ -56,18 +56,18 @@ export class Compose {
       content: this.createContentElement()
     };
 
-    const visual = this.renderingEngine.createVisualFromComponent(
+    const view = this.renderingEngine.createViewFromComponent(
       this.compositionContext,
       toBeComposed,
       instruction
     );
 
-    return this.swap(visual);
+    return this.swap(view);
   }
 
   /** @internal */
   public componentChanged(toBeComposed: any): void {
-    if (this.visual !== null && this.visual.component === toBeComposed) {
+    if (this.view !== null && this.view.component === toBeComposed) {
       return;
     }
 
@@ -101,20 +101,20 @@ export class Compose {
     return DOM.cloneNode(content);
   }
 
-  private swap(newVisual: VisualWithCentralComponent) {
-    const index = this.$bindable.indexOf(this.visual);
+  private swap(newView: ViewWithCentralComponent) {
+    const index = this.$bindables.indexOf(this.view);
     if (index !== -1) {
-      this.$bindable.splice(index, 1);
+      this.$bindables.splice(index, 1);
     }
 
-    this.visual = newVisual;
-    this.$bindable.push(newVisual);
+    this.view = newView;
+    this.$bindables.push(newView);
 
     if (this.$isBound) {
-      newVisual.$bind(BindingFlags.none, this.viewOwner.$scope);
+      newView.$bind(BindingFlags.none, this.renderable.$scope);
     }
 
-    return this.slot.swap(newVisual, this.swapOrder || SwapOrder.after);
+    return this.slot.swap(newView, this.swapOrder || SwapOrder.after);
   }
 
   private clear(): void {

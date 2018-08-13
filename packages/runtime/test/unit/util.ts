@@ -1,5 +1,5 @@
 import { spy } from 'sinon';
-import { IVisual, BindingMode } from '@aurelia/runtime';
+import { IView, BindingMode } from '@aurelia/runtime';
 import { CustomElementResource, ICustomElement } from '@aurelia/runtime';
 import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
 import { IContainer } from '@aurelia/kernel';
@@ -63,14 +63,14 @@ export function createTextBindingTemplateSource(propertyName: string, oneTime?: 
  *
  * (currently specific to repeater)
  */
-export function assertVisualsSynchronized(visuals: IVisual[], items: any[], itemName: string, propName?: string): void {
+export function assertVisualsSynchronized(views: IView[], items: any[], itemName: string, propName?: string): void {
 
   let isSynced = true;
-  const len = visuals.length;
+  const len = views.length;
   if (len === items.length) {
     let i = 0;
     while (i < len) {
-      const visual = visuals[i];
+      const visual = views[i];
       if (visual.$scope.bindingContext[itemName] !== items[i]) {
         isSynced = false;
         break;
@@ -81,13 +81,13 @@ export function assertVisualsSynchronized(visuals: IVisual[], items: any[], item
     isSynced = false;
   }
   if (!isSynced) {
-    const mapVisuals: (v: IVisual) => string = propName ?
+    const mapVisuals: (v: IView) => string = propName ?
       v => stringify(v.$scope.bindingContext[itemName][propName]) :
       v => stringify(v.$scope.bindingContext[itemName]);
     const mapItems: (i: any) => string = propName ?
       i => stringify(i[propName]) :
       i => stringify(i);
-    const $actual = visuals.map(mapVisuals).join(',');
+    const $actual = views.map(mapVisuals).join(',');
     const $expected = items.map(mapItems).join(',');
     throw new Error(`assertVisualsSynchronized - expected visuals[${$actual}] to equal items[${$expected}]`);
   }

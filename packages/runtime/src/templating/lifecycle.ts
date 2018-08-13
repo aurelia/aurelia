@@ -1,6 +1,6 @@
 import { BindingFlags } from '../binding/binding-flags';
 import { INode } from '../dom';
-import { IViewOwner } from './view';
+import { IRenderable } from './renderable';
 
 export class AttachLifecycle {
   private tail = null;
@@ -11,7 +11,9 @@ export class AttachLifecycle {
     this.tail = this.head = this;
   }
 
-  private attached() {}
+  public static start(owner: any, existingLifecycle?: AttachLifecycle): AttachLifecycle {
+    return existingLifecycle || new AttachLifecycle(owner);
+  }
 
   public queueAttachedCallback(requestor: IAttach) {
     this.tail.$nextAttached = requestor;
@@ -32,12 +34,10 @@ export class AttachLifecycle {
     }
   }
 
-  public static start(owner: any, existingLifecycle?: AttachLifecycle) {
-    return existingLifecycle || new AttachLifecycle(owner);
-  }
+  private attached() {}
 }
 
-const dummyView = { remove() {} };
+const dummyNodeSequence = { remove() {} };
 
 export class DetachLifecycle {
   private detachedHead = null; //LOL
@@ -46,16 +46,18 @@ export class DetachLifecycle {
   private viewRemoveTail = null;
   private $nextDetached = null;
   private $nextRemoveView = null;
-  private $view = dummyView;
+  private $nodes = dummyNodeSequence;
 
   private constructor(private owner) {
     this.detachedTail = this.detachedHead = this;
     this.viewRemoveTail = this.viewRemoveHead = this;
   }
 
-  private detached() {}
+  public static start(owner: any, existingLifecycle?: DetachLifecycle) {
+    return existingLifecycle || new DetachLifecycle(owner);
+  }
 
-  public queueViewRemoval(requestor: IViewOwner) {
+  public queueViewRemoval(requestor: IRenderable) {
     this.viewRemoveTail.$nextRemoveView = requestor;
     this.viewRemoveTail = requestor;
   }
@@ -81,7 +83,7 @@ export class DetachLifecycle {
       let next2;
 
       while (current2) {
-        current2.$view.remove();
+        current2.$nodes.remove();
         next2 = current2.$nextRemoveView;
         current2.$nextRemoveView = null;
         current2 = next2;
@@ -89,9 +91,7 @@ export class DetachLifecycle {
     }
   }
 
-  public static start(owner: any, existingLifecycle?: DetachLifecycle) {
-    return existingLifecycle || new DetachLifecycle(owner);
-  }
+  private detached() {}
 }
 
 export interface IAttach {

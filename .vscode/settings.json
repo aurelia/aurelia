@@ -22,5 +22,10 @@
     "**/coverage": true,
     "**/node_modules": true,
     "**/scripts": true
-  }
+  },
+  "cSpell.words": [
+    "Renderable",
+    "attachables",
+    "bindables"
+  ]
 }

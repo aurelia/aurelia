@@ -1,6 +1,6 @@
-import { ICallable } from '@aurelia/kernel';
+import { BindingFlags } from '../binding/binding-flags';
 import { IChangeSet } from '../binding/change-set';
-import { IAccessor, ISubscribable, MutationKind, IPropertySubscriber } from '../binding/observation';
+import { IAccessor, IPropertySubscriber, ISubscribable, MutationKind } from '../binding/observation';
 import { Observer } from '../binding/property-observation';
 import { SubscriberCollection } from '../binding/subscriber-collection';
 import { INode } from '../dom';
@@ -11,7 +11,6 @@ import {
   ICustomElementType
 } from './custom-element';
 import { BindableDefinitions } from './instructions';
-import { BindingFlags } from '../binding/binding-flags';
 
 export interface IRuntimeBehavior {
   hasCreated: boolean;
@@ -21,27 +20,27 @@ export interface IRuntimeBehavior {
   hasDetaching: boolean;
   hasDetached: boolean;
   hasUnbound: boolean;
-  hasCreateView: boolean;
+  hasRender: boolean;
 }
 
 /** @internal */
 export class RuntimeBehavior implements IRuntimeBehavior {
   public bindables: BindableDefinitions;
-  public hasCreated = false;
-  public hasBound = false;
-  public hasAttaching = false;
-  public hasAttached = false;
-  public hasDetaching = false;
-  public hasDetached = false;
-  public hasUnbound = false;
-  public hasCreateView = false;
+  public hasCreated: boolean = false;
+  public hasBound: boolean = false;
+  public hasAttaching: boolean = false;
+  public hasAttached: boolean = false;
+  public hasDetaching: boolean = false;
+  public hasDetached: boolean = false;
+  public hasUnbound: boolean = false;
+  public hasRender: boolean = false;
 
   private constructor() {}
 
-  public static create(instance, bindables: BindableDefinitions, Component: ICustomElementType | ICustomAttributeType) {
+  public static create(instance: any, bindables: BindableDefinitions, Component: ICustomElementType | ICustomAttributeType): RuntimeBehavior {
     const behavior = new RuntimeBehavior();
 
-    for (let name in instance) {
+    for (const name in instance) {
       if (name in bindables) {
         continue;
       }
@@ -61,17 +60,17 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     behavior.hasDetaching = 'detaching' in instance;
     behavior.hasDetached = 'detached' in instance;
     behavior.hasUnbound = 'unbound' in instance;
-    behavior.hasCreateView = 'createView' in instance;
+    behavior.hasRender = 'render' in instance;
 
     return behavior;
   }
 
-  public applyToAttribute(changeSet: IChangeSet, instance: ICustomAttribute) {
+  public applyToAttribute(changeSet: IChangeSet, instance: ICustomAttribute): this {
     this.applyTo(changeSet, instance);
     return this;
   }
 
-  public applyToElement(changeSet: IChangeSet, instance: ICustomElement) {
+  public applyToElement(changeSet: IChangeSet, instance: ICustomElement): this {
     const observers = this.applyTo(changeSet, instance);
 
     (observers as any).$children = new ChildrenObserver(changeSet, instance);
@@ -117,7 +116,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   }
 }
 
-function createGetterSetter(instance, name) {
+function createGetterSetter(instance: any, name: string): void {
   Reflect.defineProperty(instance, name, {
     enumerable: true,
     get: function() { return this.$observers[name].getValue(); },
@@ -127,9 +126,10 @@ function createGetterSetter(instance, name) {
 
 /*@internal*/
 export class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance> {
+  public hasChanges: boolean = false;
+
   private children: ICustomElement[] = null;
-  private observing = false;
-  public hasChanges = false;
+  private observing: boolean = false;
 
   constructor(private changeSet: IChangeSet, private customElement: ICustomElement) {
     super();
@@ -145,18 +145,18 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
     return this.children;
   }
 
-  public setValue(newValue) {}
+  public setValue(newValue: any): void {}
 
-  public flushChanges() {
+  public flushChanges(): void {
     this.callSubscribers(this.children);
     this.hasChanges = false;
   }
 
-  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
     this.addSubscriber(subscriber, flags);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
     this.removeSubscriber(subscriber, flags);
   }
 

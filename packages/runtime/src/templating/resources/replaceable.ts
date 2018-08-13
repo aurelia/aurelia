@@ -3,17 +3,17 @@ import { IScope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
 import { IRenderLocation } from '../../dom';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IVisual, IVisualFactory } from '../visual';
+import { IView, IViewFactory } from '../view';
 
 export interface Replaceable extends ICustomAttribute {}
 @templateController('replaceable')
-@inject(IVisualFactory, IRenderLocation)
+@inject(IViewFactory, IRenderLocation)
 export class Replaceable {
-  private $child: IVisual;
+  private $child: IView;
 
-  constructor(private factory: IVisualFactory, location: IRenderLocation) {
+  constructor(private factory: IViewFactory, location: IRenderLocation) {
     this.$child = this.factory.create();
-    this.$child.$view.insertBefore(location);
+    this.$child.$nodes.insertBefore(location);
   }
 
   public bound(scope: IScope): void {

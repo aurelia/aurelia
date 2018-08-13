@@ -1,7 +1,6 @@
 import {
-  IVisual,
-  IVisualFactory,
-  IRenderSlot,
+  IView,
+  IViewFactory,
   RenderCallback,
   MotionDirection,
   BindingFlags,
@@ -10,17 +9,18 @@ import {
   AttachLifecycle,
   DetachLifecycle,
   IRenderContext,
-  IView,
   IBindScope,
   IAttach,
-  DOM
+  DOM,
+  IViewSlot,
+  INodeSequence
 } from "@aurelia/runtime";
 
-export class VisualFake implements IVisual {
-  // IVisual impl
-  factory: IVisualFactory;
+export class ViewFake implements IView {
+  // IView impl
+  factory: IViewFactory;
 
-  parent: IRenderSlot;
+  parent: IViewSlot;
   onRender: RenderCallback;
   renderState: any;
 
@@ -42,16 +42,16 @@ export class VisualFake implements IVisual {
 
   // IViewOwner impl
   $context: IRenderContext;
-  $view: IView;
+  $nodes: INodeSequence;
   $scope: IScope;
   $isBound: boolean;
 
-  $bindable: IBindScope[];
-  $attachable: IAttach[];
+  $bindables: IBindScope[];
+  $attachables: IAttach[];
 
   constructor() {
-    this.$bindable = [];
-    this.$attachable = [];
-    this.$view = DOM.createFactoryFromMarkupOrNode('<div></div>')();
+    this.$bindables = [];
+    this.$attachables = [];
+    this.$nodes = DOM.createFactoryFromMarkupOrNode('<div></div>')();
   }
 }

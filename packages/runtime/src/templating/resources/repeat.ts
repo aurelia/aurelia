@@ -13,13 +13,12 @@ import { INode } from '../../dom';
 import { IResourceKind, IResourceType } from '../../resource';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeSource } from '../custom-attribute';
 import { AttachLifecycle, DetachLifecycle } from '../lifecycle';
-import { IRenderSlot } from '../render-slot';
+import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
 import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
-import { IViewOwner } from '../view';
-import { IVisual, IVisualFactory } from '../visual';
+import { IView, IViewFactory } from '../view';
+import { IViewSlot } from '../view-slot';
 import { IBatchedCollectionSubscriber } from './../../binding/observation';
-
 
 export function getCollectionObserver(changeSet: IChangeSet, collection: any): CollectionObserver {
   if (Array.isArray(collection)) {
@@ -31,7 +30,7 @@ export function getCollectionObserver(changeSet: IChangeSet, collection: any): C
   }
 }
 
-@inject(IChangeSet, IRenderSlot, IViewOwner, IVisualFactory, IContainer)
+@inject(IChangeSet, IViewSlot, IRenderable, IViewFactory, IContainer)
 export class Repeat<T extends ObservedCollection> implements ICustomAttribute, IBatchedCollectionSubscriber {
   // note: everything declared from #region to #endregion is more-or-less copy-paste from what the
   // @templateController decorator would apply to this class, but we have more information here than the decorator
@@ -60,14 +59,14 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   public $isAttached: boolean = false;
   public $isBound: boolean = false;
   public $scope: IScope = null;
-  public $child: IRenderSlot;
+  public $child: IViewSlot;
   public $behavior: IRuntimeBehavior = new (<any>RuntimeBehavior)();
   public $hydrate(renderingEngine: IRenderingEngine): void {
     let b: RuntimeBehavior = renderingEngine['behaviorLookup'].get(Repeat);
     if (!b) {
       b = new (<any>RuntimeBehavior)();
       b.bindables = Repeat.description.bindables;
-      b.hasCreated = b.hasAttaching = b.hasAttached = b.hasDetaching = b.hasDetached = b.hasCreateView = false;
+      b.hasCreated = b.hasAttaching = b.hasAttached = b.hasDetaching = b.hasDetached = b.hasRender = false;
       b.hasBound = b.hasUnbound = true;
       renderingEngine['behaviorLookup'].set(Repeat, b);
     }
@@ -145,7 +144,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
 
   public local: string;
 
-  public visualsRequireLifecycle: boolean;
+  public viewsRequireLifecycle: boolean;
 
   public scope: IScope;
   public observer: CollectionObserver;
@@ -154,7 +153,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   public hasPendingInstanceMutation: boolean;
   public sourceExpression: IExpression;
 
-  constructor(public changeSet: IChangeSet, public slot: IRenderSlot, public owner: IViewOwner, public factory: IVisualFactory, public container: IContainer) {
+  constructor(public changeSet: IChangeSet, public slot: IViewSlot, public renderable: IRenderable, public factory: IViewFactory, public container: IContainer) {
     this.scope = null;
     this.observer = null;
     this.isQueued = false;
@@ -170,7 +169,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
    * - called by $bind
    */
   public bound(flags: BindingFlags, scope: IScope): void {
-    this.sourceExpression = <any>(<Binding[]>this.owner.$bindable).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
+    this.sourceExpression = <any>(<Binding[]>this.renderable.$bindables).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
     this.scope = scope;
     this.observer = getCollectionObserver(this.changeSet, this._items);
     this.observer.subscribeBatched(this);
@@ -188,8 +187,8 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     this.isBound = false;
     this.observer.unsubscribeBatched(this);
     this.observer = this._items = null;
-    // if this is a re-bind triggered by some ancestor repeater, then keep the visuals so we can reuse them
-    // (this flag is passed down from handleInstanceMutation/handleItemsMutation down below at visual.$bind)
+    // if this is a re-bind triggered by some ancestor repeater, then keep the views so we can reuse them
+    // (this flag is passed down from handleInstanceMutation/handleItemsMutation down below at view.$bind)
     if (!(flags & (BindingFlags.instanceMutation | BindingFlags.itemsMutation))) {
       this.slot.removeAll(true, true);
     }
@@ -213,10 +212,10 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   private handleBatchedItemsOrInstanceMutation(indexMap?: Array<number>): void {
     // determine if there is anything to process and whether or not we can return early
     const slot = this.slot;
-    const visuals = <IVisual[]>slot.children;
+    const views = <IView[]>slot.children;
     const _items = this._items;
     const observer = this.observer;
-    const oldLength = visuals.length;
+    const oldLength = views.length;
     const newLength = _items[observer.lengthPropertyName];
     if (newLength === 0) {
       if (oldLength === 0) {
@@ -232,11 +231,11 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     const isAttached = slot['$isAttached'];
     const items = <any[]>(observer.collectionKind & CollectionKind.indexed ? _items : Array.from(_items)); // todo: test and improve this (offload it to IteratorStatement?)
 
-    // store the scopes of the current indices so we can reuse them for other visuals
+    // store the scopes of the current indices so we can reuse them for other views
     const previousScopes = new Array<IScope>(oldLength);
     let i = 0;
     while (i < oldLength) {
-      previousScopes[i] = visuals[i].$scope;
+      previousScopes[i] = views[i].$scope;
       i++;
     }
 
@@ -246,20 +245,20 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     const local = this.local;
 
     if (oldLength < newLength) {
-      // expand the array (we add the visuals later)
-      visuals.length = newLength;
+      // expand the array (we add the views later)
+      views.length = newLength;
     } else if (newLength < oldLength) {
-      // remove any surplus visuals
+      // remove any surplus views
       i = newLength;
       while (i < oldLength) {
-        const visual = visuals[i];
+        const view = views[i];
         if (isAttached) {
-          visual.$detach();
+          view.$detach();
         }
-        visual.tryReturnToCache();
+        view.tryReturnToCache();
         i++;
       }
-      visuals.length = newLength;
+      views.length = newLength;
     }
 
     const oldItems = this._oldItems || [];
@@ -277,16 +276,16 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     const factory = this.factory;
     i = 0;
     while (i < newLength) {
-      let visual = visuals[i];
+      let view = views[i];
       const item = items[i];
-      if (visual === undefined) {
-        // add visual if it doesn't exist yet
-        visual = visuals[i] = factory.create();
-        visual.$bind(flags, createChildScope(overrideContext, { [local]: item }));
-        visual.parent = slot;
-        visual.onRender = slot['addVisualCore'];
+      if (view === undefined) {
+        // add view if it doesn't exist yet
+        view = views[i] = factory.create();
+        view.$bind(flags, createChildScope(overrideContext, { [local]: item }));
+        view.parent = slot;
+        view.onRender = slot['addViewCore'];
         if (isAttached) {
-          visual.$attach(slot['encapsulationSource']);
+          view.$attach(slot['encapsulationSource']);
         }
       } else {
         // a very cheap (and fairly niche) check to see if we can skip processing alltogether
@@ -296,9 +295,9 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
           if (previousIndex > -1 && previousIndex < oldLength) {
             // ensure we don't reuse the same previousIndex multiple times in case we happen to have multiple of the same items
             oldItems[previousIndex] = undefined;
-            visual.$bind(flags, previousScopes[previousIndex]);
+            view.$bind(flags, previousScopes[previousIndex]);
           } else {
-            visual.$bind(flags, createChildScope(overrideContext, { [local]: item }));
+            view.$bind(flags, createChildScope(overrideContext, { [local]: item }));
           }
         }
       }

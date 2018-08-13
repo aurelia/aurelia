@@ -33,7 +33,7 @@
     "karma-mocha-reporter": "^2.2.5",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^3.0.0",
-    "lerna": "3.0.0-rc.0",
+    "lerna": "^3.0.3",
     "mocha": "^5.2.0",
     "path": "^0.12.7",
     "sinon": "^6.1.4",

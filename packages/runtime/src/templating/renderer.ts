@@ -1,4 +1,4 @@
-import { Immutable } from '../../../kernel/dist/commonjs';
+import { Immutable } from '@aurelia/kernel';
 import { Binding } from '../binding/binding';
 import { BindingMode } from '../binding/binding-mode';
 import { Call } from '../binding/call';

@@ -1,4 +1,4 @@
-import { ITemplateSource, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
+import { ITemplateSource, TargetedInstructionType, BindingMode, ForOfStatement, BindingIdentifier } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime';
 import { Repeat, IChangeSet } from '@aurelia/runtime';
 import { IContainer, DI } from '@aurelia/kernel';
@@ -339,13 +339,13 @@ describe('ArrayRepeater - render html', () => {
       },
     ];
     const expressionCache = {
-      todos: new AccessScope('todos'),
+      todos: new ForOfStatement(new BindingIdentifier('todo'), new AccessScope('todos')),
       id: new AccessMember(new AccessScope('todo'), 'id'),
       length: new AccessMember(new AccessMember(new AccessScope('todo'), 'innerTodos'), 'length'),
-      innerTodos: new AccessMember(new AccessScope('todo'), 'innerTodos'),
+      innerTodos: new ForOfStatement(new BindingIdentifier('innerTodo'), new AccessMember(new AccessScope('todo'), 'innerTodos')),
       innerId: new AccessMember(new AccessScope('innerTodo'), 'innerId'),
       innerLength: new AccessMember(new AccessMember(new AccessScope('innerTodo'), 'innerInnerTodos'), 'length'),
-      innerInnerTodos: new AccessMember(new AccessScope('innerTodo'), 'innerInnerTodos'),
+      innerInnerTodos: new ForOfStatement(new BindingIdentifier('innerInnerTodo'), new AccessMember(new AccessScope('innerTodo'), 'innerInnerTodos')),
       innerInnerId: new AccessMember(new AccessScope('innerInnerTodo'), 'innerInnerId')
     };
     aureliaConfig = {

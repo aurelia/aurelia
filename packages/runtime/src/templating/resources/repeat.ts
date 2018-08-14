@@ -7,7 +7,7 @@ import { BindingFlags } from '../../binding/binding-flags';
 import { BindingMode } from '../../binding/binding-mode';
 import { IChangeSet } from '../../binding/change-set';
 import { getMapObserver } from '../../binding/map-observer';
-import { CollectionKind, CollectionObserver, ObservedCollection } from '../../binding/observation';
+import { CollectionObserver, ObservedCollection } from '../../binding/observation';
 import { getSetObserver } from '../../binding/set-observer';
 import { INode, IRenderLocation } from '../../dom';
 import { IResourceKind, IResourceType } from '../../resource';
@@ -63,7 +63,6 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     this.$behavior = b;
   }
 
-  private _oldItems: any[]; // this is purely used by instanceMutation to see if items can be reused
   private _items: T & { $observer: CollectionObserver };
   public set items(newValue: T & { $observer: CollectionObserver }) {
     const oldValue = this._items;
@@ -87,6 +86,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   public viewsRequireLifecycle: boolean;
   public observer: CollectionObserver;
   public hasPendingInstanceMutation: boolean;
+  // TODO: this is not quite yet where it needs to be, have to handle observation correctly in non-collection scenarios
   public sourceExpression: ForOfStatement;
 
   constructor(public changeSet: IChangeSet, public location: IRenderLocation, public renderable: IRenderable, public factory: IViewFactory, public container: IContainer) {
@@ -106,6 +106,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     this.$scope = scope;
     this.$isBound = true;
     this.sourceExpression = <any>(<Binding[]>this.renderable.$bindables).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
+    this.local = this.sourceExpression.declaration.evaluate(flags, scope, null);
     if (this.hasPendingInstanceMutation) {
       this.changeSet.add(this);
     }
@@ -144,7 +145,6 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       this.observer = getCollectionObserver(this.changeSet, items);
       this.observer.subscribeBatched(this);
       this.handleBatchedItemsOrInstanceMutation();
-      this._oldItems = Array.isArray(items) ? items.slice() : Array.from(items);
     } else {
       this.handleBatchedItemsOrInstanceMutation(indexMap);
     }
@@ -155,10 +155,10 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     // determine if there is anything to process and whether or not we can return early
     const location = this.location;
     const views = this.views;
-    const _items = this._items;
-    const observer = this.observer;
+    const items = this._items;
     const oldLength = views.length;
-    const newLength = _items[observer.lengthPropertyName];
+    const sourceExpression = this.sourceExpression;
+    const newLength = sourceExpression.count(items);
     if (newLength === 0) {
       if (oldLength === 0) {
         // if we had 0 items and still have 0 items, we don't need to do anything
@@ -170,9 +170,6 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       }
     }
 
-    const isAttached = this.$isAttached;
-    const items = <any[]>(observer.collectionKind & CollectionKind.indexed ? _items : Array.from(_items)); // todo: test and improve this (offload it to IteratorStatement?)
-
     // store the scopes of the current indices so we can reuse them for other views
     const previousScopes = new Array<IScope>(oldLength);
     let i = 0;
@@ -182,6 +179,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     }
 
     let flags = BindingFlags.none;
+    const isAttached = this.$isAttached;
     const scope = this.$scope;
     const overrideContext = scope.overrideContext;
     const local = this.local;
@@ -204,25 +202,19 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       views.length = newLength;
     }
 
-    const oldItems = this._oldItems || [];
-    let getPreviousIndex;
-
     if (indexMap === undefined) {
       flags |= BindingFlags.instanceMutation;
-      getPreviousIndex = (_, item) => oldItems.indexOf(item); // this is super inefficient with large collections, maybe we shouldn't do this (or put an upper bound / have some smarter logic)
       this.hasPendingInstanceMutation = false;
     } else {
       flags |= BindingFlags.itemsMutation;
-      getPreviousIndex = (curIdx) => indexMap[curIdx];
     }
 
     const factory = this.factory;
     const encapsulationSource = this.encapsulationSource;
     const lifecycle = AttachLifecycle.start(this);
     i = 0;
-    while (i < newLength) {
+    sourceExpression.iterate(items, (arr, i, item) => {
       let view = views[i];
-      const item = items[i];
       if (view === undefined) {
         // add view if it doesn't exist yet
         view = views[i] = factory.create();
@@ -234,21 +226,10 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
           view.$attach(encapsulationSource, lifecycle);
         }
       } else {
-        // a very cheap (and fairly niche) check to see if we can skip processing alltogether
-        // note: it doesn't matter if the lengths are different; an item out of bounds will simply return undefined
-        if (item !== oldItems[i]) {
-          const previousIndex = getPreviousIndex(i, item);
-          if (previousIndex > -1 && previousIndex < oldLength) {
-            // ensure we don't reuse the same previousIndex multiple times in case we happen to have multiple of the same items
-            oldItems[previousIndex] = undefined;
-            view.$bind(flags, previousScopes[previousIndex]);
-          } else {
-            view.$bind(flags, createChildScope(overrideContext, { [local]: item }));
-          }
-        }
+        // TODO: optimize this again (but in a more efficient way and one that works in multiple scenarios)
+        view.$bind(flags, createChildScope(overrideContext, { [local]: item }));
       }
-      i++;
-    }
+    });
     lifecycle.end(this);
   }
 

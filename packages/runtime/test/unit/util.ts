@@ -1,5 +1,5 @@
 import { spy } from 'sinon';
-import { IView, BindingMode, DOM } from '@aurelia/runtime';
+import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier } from '@aurelia/runtime';
 import { CustomElementResource, ICustomElement } from '@aurelia/runtime';
 import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
 import { IContainer } from '@aurelia/kernel';
@@ -174,7 +174,7 @@ export function createRepeaterTemplateSource({ elName, colName, itemName }: IRep
 export function createAureliaRepeaterConfig({ colName, itemName, propName }: IRepeaterFixture): { register(container: IContainer): void } {
   const globalResources: any[] = [Repeat];
   const expressionCache = {
-    [colName]: new AccessScope(colName),
+    [colName]: new ForOfStatement(new BindingIdentifier(itemName), new AccessScope(colName)),
     [propName]: new AccessMember(new AccessScope(itemName), propName)
   };
 

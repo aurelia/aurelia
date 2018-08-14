@@ -1,5 +1,5 @@
 import { IContainer, DI, Registration } from '@aurelia/kernel';
-import { Repeat, IChangeSet, DOM, IRenderLocation } from '@aurelia/runtime';
+import { Repeat, IChangeSet, DOM, IRenderLocation, ForOfStatement, BindingIdentifier } from '@aurelia/runtime';
 import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
 import { IViewSlot, ViewSlot } from '@aurelia/runtime';
 import { IRenderable } from '@aurelia/runtime';
@@ -25,7 +25,6 @@ describe('ArrayRepeater - synchronize visuals', () => {
   let changeSet: IChangeSet;
   let renderable: IRenderable;
   let factory: IViewFactory;
-  let host: HTMLElement;
   let location: IRenderLocation;
   let sut: Repeat<IObservedArray>;
 
@@ -42,12 +41,12 @@ describe('ArrayRepeater - synchronize visuals', () => {
     container.register(Registration.singleton(IRenderable, RenderableFake));
     container.register(Registration.singleton(IViewFactory, ViewFactoryFake));
     changeSet = container.get(IChangeSet);
-    host = document.createElement('div');
     location = createRenderLocation();
     renderable = container.get(IRenderable);
     factory = container.get(IViewFactory);
     sut = new Repeat(changeSet, location, renderable, factory, container);
-    const binding = new Binding(<any>sourceExpression, sut, 'items', <any>null, <any>null, <any>null);
+    const sourceExpression = new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'));
+    const binding = new Binding(sourceExpression, sut, 'items', <any>null, <any>null, <any>null);
     renderable.$bindables = [binding];
   });
 
@@ -55,7 +54,6 @@ describe('ArrayRepeater - synchronize visuals', () => {
   const flushModeArr = ['never', 'once', 'every'];
   const timesArr = [1, 2];
   const itemsArr = [[], [4, 5, 6], [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]];
-  const sourceExpression = new AccessScope('');
   const itemName = 'item';
 
   // test with differently sized initial collections
@@ -80,7 +78,6 @@ describe('ArrayRepeater - synchronize visuals', () => {
               const initItems = init.slice();
               const initItemsCopy = initItems.slice();
               const newItems = items.slice();
-              sut.local = itemName;
               sut.items = initItems as any;
 
               const bindingContext = {}; // normally the items would be in here
@@ -123,7 +120,6 @@ describe('ArrayRepeater - synchronize visuals', () => {
           it(`${opTitle} - ${initTitle} ${flushModeTitle} ${timesTitle}`, () => {
             const initItems = init.slice();
             const initItemsCopy = initItems.slice();
-            sut.local = itemName;
             sut.items = initItems as any;
 
             const bindingContext = {}; // normally the items would be in here
@@ -178,7 +174,6 @@ describe('ArrayRepeater - synchronize visuals', () => {
                 const initItems = init.slice();
                 const initItemsCopy = initItems.slice();
                 const newItems = items.slice();
-                sut.local = itemName;
                 sut.items = initItems as any;
 
                 const bindingContext = {}; // normally the items would be in here
@@ -226,7 +221,6 @@ describe('ArrayRepeater - synchronize visuals', () => {
           it(`${opTitle} - ${initTitle} ${flushModeTitle} ${timesTitle} ${assignTitle}`, () => {
             const initItems = init.slice();
             let assignItems = assign.slice();
-            sut.local = itemName;
             sut.items = initItems as any;
 
             const bindingContext = {}; // normally the items would be in here
@@ -322,7 +316,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
     it('should ignore pending changes from previous instance when assigning a new instance', () => {
       (<any>sut)._items = [];
-      renderable.$bindables = [new Binding(<any>new AccessScope(''), sut, 'items', <any>null, <any>null, <any>null)];
+      renderable.$bindables = [new Binding(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), sut, 'items', <any>null, <any>null, <any>null)];
       sut.$bind(BindingFlags.none, <any>{ });
 
       sut.items.push(1);
@@ -337,7 +331,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
     it('should include pending changes from new instance when assigning a new instance', () => {
       (<any>sut)._items = [];
-      renderable.$bindables = [new Binding(<any>new AccessScope(''), sut, 'items', <any>null, <any>null, <any>null)];
+      renderable.$bindables = [new Binding(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), sut, 'items', <any>null, <any>null, <any>null)];
       sut.$bind(BindingFlags.none, <any>{ });
 
       expect(sut.items.length).to.equal(0);

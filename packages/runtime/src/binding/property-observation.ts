@@ -6,11 +6,6 @@ import { propertyObserver } from './property-observer';
 
 const noop = PLATFORM.noop;
 
-export const propertyAccessor = {
-  getValue: (obj: any, propertyName: string) => obj[propertyName],
-  setValue: (value: any, obj: IIndexable, propertyName: string) => { obj[propertyName] = value; }
-};
-
 // note: string.length is the only property of any primitive that is not a function,
 // so we can hardwire it to that and simply return undefined for anything else
 // note#2: a modified primitive constructor prototype would not work (and really, it shouldn't..)

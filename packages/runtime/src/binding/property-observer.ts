@@ -14,7 +14,6 @@ const observedPropertyDescriptor: PropertyDescriptor = {
   configurable: true
 };
 
-
 function startObserving(observer: PropertyObserver, obj: any, propertyKey: PropertyKey): void {
   observer.currentValue = obj[propertyKey];
   const ownPropertyDescriptor = observer.ownPropertyDescriptor = getOwnPropertyDescriptor(obj, propertyKey);

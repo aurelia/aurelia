@@ -4,11 +4,9 @@ import { bindingBehavior } from '../binding-behavior';
 import { IScope } from '../binding-context';
 import { BindingFlags } from '../binding-flags';
 import { BindingMode } from '../binding-mode';
-import { CheckedObserver } from '../checked-observer';
-import { ValueAttributeObserver } from '../element-observation';
+import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from '../element-observation';
 import { EventSubscriber, IEventSubscriber } from '../event-manager';
 import { IObserverLocator } from '../observer-locator';
-import { SelectValueObserver } from '../select-value-observer';
 
 export type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {
   originalHandler?: IEventSubscriber

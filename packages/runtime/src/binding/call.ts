@@ -4,21 +4,21 @@ import { IExpression } from './ast';
 import { IBinding } from './binding';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
-import { IBindingTargetAccessor } from './observation';
+import { IAccessor } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 export class Call implements IBinding {
-  public targetObserver: IBindingTargetAccessor;
+  public targetObserver: IAccessor;
   private $scope: IScope;
   private $isBound = false;
 
   constructor(
     private sourceExpression: IExpression,
-    private target: INode,
-    private targetProperty: string,
-    private observerLocator: IObserverLocator,
+    target: INode,
+    targetProperty: string,
+    observerLocator: IObserverLocator,
     public locator: IServiceLocator) {
-    this.targetObserver = <any>observerLocator.getObserver(target, targetProperty);
+    this.targetObserver = observerLocator.getObserver(target, targetProperty);
   }
 
   public callSource($event) {
@@ -51,7 +51,7 @@ export class Call implements IBinding {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.targetObserver.setValue($event => this.callSource($event), this.target, this.targetProperty);
+    this.targetObserver.setValue($event => this.callSource($event));
   }
 
   public $unbind(flags: BindingFlags) {
@@ -66,7 +66,7 @@ export class Call implements IBinding {
     }
 
     this.$scope = null;
-    this.targetObserver.setValue(null, this.target, this.targetProperty);
+    this.targetObserver.setValue(null);
   }
 
   public observeProperty() { }

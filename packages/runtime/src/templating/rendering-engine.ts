@@ -314,7 +314,6 @@ export abstract class View implements IView {
     }
 
     this.$scope = scope;
-
     const bindables = this.$bindables;
 
     for (let i = 0, ii = bindables.length; i < ii; ++i) {

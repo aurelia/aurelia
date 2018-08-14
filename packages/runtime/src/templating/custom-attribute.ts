@@ -128,9 +128,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
         this.$unbind(flags);
       }
 
-      this.$scope = scope
-      this.$isBound = true;
-
+      this.$scope = scope;
       const changeCallbacks = this.$changeCallbacks;
 
       for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
@@ -140,6 +138,8 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       if (this.$behavior.hasBound) {
         (this as any).bound(scope);
       }
+
+      this.$isBound = true;
     };
 
     proto.$attach = function(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle): void {

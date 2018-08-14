@@ -145,8 +145,6 @@ export const CustomElementResource: ICustomElementResource = {
         bindables[i].$bind(flags, scope);
       }
 
-      this.$isBound = true;
-
       const changeCallbacks = this.$changeCallbacks;
 
       for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
@@ -156,6 +154,8 @@ export const CustomElementResource: ICustomElementResource = {
       if (this.$behavior.hasBound) {
         (this as any).bound();
       }
+
+      this.$isBound = true;
     };
 
     proto.$attach = function(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle): void {

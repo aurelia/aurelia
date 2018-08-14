@@ -1,33 +1,41 @@
 import { inject } from '@aurelia/kernel';
-import { BindingContext } from '../../binding/binding-context';
+import { BindingContext, IScope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
+import { IRenderLocation } from '../../dom';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 import { IView, IViewFactory } from '../view';
-import { IViewSlot } from '../view-slot';
 
 export interface With extends ICustomAttribute {}
 @templateController('with')
-@inject(IViewFactory, IViewSlot)
+@inject(IViewFactory, IRenderLocation)
 export class With {
   public value: any = null;
 
-  private child: IView = null;
+  private $child: IView = null;
 
-  constructor(private factory: IViewFactory, private slot: IViewSlot) {
-    this.child = factory.create();
-    this.slot.add(this.child);
+  constructor(private factory: IViewFactory, location: IRenderLocation) {
+    this.$child = this.factory.create();
+    this.$child.$nodes.insertBefore(location);
   }
 
-  public valueChanged(newValue: any): void {
-    const childScope = {
-      bindingContext: newValue,
-      overrideContext: BindingContext.createOverride(newValue, this.$scope.overrideContext)
-    };
+  public valueChanged(): void {
+    if (this.$isBound) {
+      this.bindChild();
+    }
+  }
 
-    this.child.$bind(BindingFlags.none, childScope);
+  public bound(): void {
+    this.bindChild();
   }
 
   public unbound(): void {
-    this.child.$unbind(BindingFlags.none);
+    this.$child.$unbind(BindingFlags.none);
+  }
+
+  private bindChild(): void {
+    this.$child.$bind(
+      BindingFlags.none,
+      BindingContext.createScopeFromParent(this.$scope, this.value)
+    );
   }
 }

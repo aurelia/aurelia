@@ -1,5 +1,5 @@
 import { IContainer, DI, Registration } from '@aurelia/kernel';
-import { Repeat, IChangeSet } from '@aurelia/runtime';
+import { Repeat, IChangeSet, DOM, IRenderLocation } from '@aurelia/runtime';
 import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
 import { IViewSlot, ViewSlot } from '@aurelia/runtime';
 import { IRenderable } from '@aurelia/runtime';
@@ -13,13 +13,20 @@ import { BindingFlags } from '@aurelia/runtime';
 import { RenderableFake } from '../fakes/renderable-fake';
 import { ViewFactoryFake } from '../fakes/view-factory-fake';
 
+function createRenderLocation() {
+  const parent = document.createElement('div');
+  const child = document.createElement('div');
+  parent.appendChild(child);
+  return DOM.convertToRenderLocation(child);
+}
+
 describe('ArrayRepeater - synchronize visuals', () => {
   let container: IContainer;
   let changeSet: IChangeSet;
-  let slot: IViewSlot;
   let renderable: IRenderable;
   let factory: IViewFactory;
   let host: HTMLElement;
+  let location: IRenderLocation;
   let sut: Repeat<IObservedArray>;
 
   before(() => {
@@ -36,10 +43,10 @@ describe('ArrayRepeater - synchronize visuals', () => {
     container.register(Registration.singleton(IViewFactory, ViewFactoryFake));
     changeSet = container.get(IChangeSet);
     host = document.createElement('div');
-    slot = ViewSlot.create(host, true);
+    location = createRenderLocation();
     renderable = container.get(IRenderable);
     factory = container.get(IViewFactory);
-    sut = new Repeat(changeSet, slot, renderable, factory, container);
+    sut = new Repeat(changeSet, location, renderable, factory, container);
     const binding = new Binding(<any>sourceExpression, sut, 'items', <any>null, <any>null, <any>null);
     renderable.$bindables = [binding];
   });
@@ -78,7 +85,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
               const bindingContext = {}; // normally the items would be in here
               const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-              sut.bound(BindingFlags.none, scope);
+              sut.$bind(BindingFlags.none, scope);
               changeSet.flushChanges();
               let i = 0;
               while (i < times) {
@@ -89,21 +96,21 @@ describe('ArrayRepeater - synchronize visuals', () => {
                 switch (flushMode) {
                   case 'never':
                     // never flushed; verify everything is identical to the initial state after each mutation
-                    assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
+                    assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
                     break;
                   case 'once':
                     // flushed once; verify everything is identical to the initial state except for the last iteration
                     if (i === times) {
                       changeSet.flushChanges();
-                      assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
+                      assertVisualsSynchronized(sut.views, sut.items, itemName);
                     } else {
-                      assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
+                      assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
                     }
                     break;
                   case 'every':
                     // flushed every; verify changes propagate to the DOM after each mutation
                     changeSet.flushChanges();
-                    assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
+                    assertVisualsSynchronized(sut.views, sut.items, itemName);
                     break;
                 }
               }
@@ -121,7 +128,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
             const bindingContext = {}; // normally the items would be in here
             const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-            sut.bound(BindingFlags.none, scope);
+            sut.$bind(BindingFlags.none, scope);
             changeSet.flushChanges();
             let i = 0;
             while (i < times) {
@@ -130,21 +137,21 @@ describe('ArrayRepeater - synchronize visuals', () => {
               switch (flushMode) {
                 case 'never':
                   // never flushed; verify everything is identical to the initial state after each mutation
-                  assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
+                  assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
                   break;
                 case 'once':
                   // flushed once; verify everything is identical to the initial state except for the last iteration
                   if (i === times) {
                     changeSet.flushChanges();
-                    assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
+                    assertVisualsSynchronized(sut.views, sut.items, itemName);
                   } else {
-                    assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
+                    assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
                   }
                   break;
                 case 'every':
                   // flushed every; verify changes propagate to the DOM after each mutation
                   changeSet.flushChanges();
-                  assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
+                  assertVisualsSynchronized(sut.views, sut.items, itemName);
                   break;
               }
             }
@@ -176,7 +183,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
                 const bindingContext = {}; // normally the items would be in here
                 const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-                sut.bound(BindingFlags.none, scope);
+                sut.$bind(BindingFlags.none, scope);
                 changeSet.flushChanges();
                 let i = 0;
                 while (i < times) {
@@ -187,21 +194,21 @@ describe('ArrayRepeater - synchronize visuals', () => {
                   switch (flushMode) {
                     case 'never':
                       // never flushed; verify everything is identical to the initial state after each mutation
-                      assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
+                      assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
                       break;
                     case 'once':
                       // flushed once; verify everything is identical to the initial state except for the last iteration
                       if (i === times) {
                         changeSet.flushChanges();
-                        assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
+                        assertVisualsSynchronized(sut.views, sut.items, itemName);
                       } else {
-                        assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
+                        assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
                       }
                       break;
                     case 'every':
                       // flushed every; verify changes propagate to the DOM after each mutation
                       changeSet.flushChanges();
-                      assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
+                      assertVisualsSynchronized(sut.views, sut.items, itemName);
                       break;
                   }
                 }
@@ -224,7 +231,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
             const bindingContext = {}; // normally the items would be in here
             const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-            sut.bound(BindingFlags.none, scope);
+            sut.$bind(BindingFlags.none, scope);
             changeSet.flushChanges();
             let i = 0;
             while (i < times) {
@@ -234,19 +241,19 @@ describe('ArrayRepeater - synchronize visuals', () => {
               sut.items = <any>assignItems;
               switch (flushMode) {
                 case 'never':
-                  assertVisualsSynchronized(<any>sut.slot.children, init, itemName);
+                  assertVisualsSynchronized(sut.views, init, itemName);
                   break;
                 case 'once':
                   if (i === times) {
                     changeSet.flushChanges();
-                    assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
+                    assertVisualsSynchronized(sut.views, sut.items, itemName);
                   } else {
-                    assertVisualsSynchronized(<any>sut.slot.children, init, itemName);
+                    assertVisualsSynchronized(sut.views, init, itemName);
                   }
                   break;
                 case 'every':
                   changeSet.flushChanges();
-                  assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
+                  assertVisualsSynchronized(sut.views, sut.items, itemName);
                   break;
               }
             }
@@ -263,7 +270,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
             const bindingContext = {}; // normally the items would be in here
             const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-            sut.bound(BindingFlags.none, scope);
+            sut.$bind(BindingFlags.none, scope);
             changeSet.flushChanges();
             let i = 0;
             while (i < times) {
@@ -272,21 +279,21 @@ describe('ArrayRepeater - synchronize visuals', () => {
               switch (flushMode) {
                 case 'never':
                   // never flushed; verify everything is identical to the initial state after each mutation
-                  assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
+                  assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
                   break;
                 case 'once':
                   // flushed once; verify everything is identical to the initial state except for the last iteration
                   if (i === times) {
                     changeSet.flushChanges();
-                    assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
+                    assertVisualsSynchronized(sut.views, sut.items, itemName);
                   } else {
-                    assertVisualsSynchronized(<any>sut.slot.children, initItemsCopy, itemName);
+                    assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
                   }
                   break;
                 case 'every':
                   // flushed every; verify changes propagate to the DOM after each mutation
                   changeSet.flushChanges();
-                  assertVisualsSynchronized(<any>sut.slot.children, sut.items, itemName);
+                  assertVisualsSynchronized(sut.views, sut.items, itemName);
                   break;
               }
             }
@@ -316,31 +323,31 @@ describe('ArrayRepeater - synchronize visuals', () => {
     it('should ignore pending changes from previous instance when assigning a new instance', () => {
       (<any>sut)._items = [];
       renderable.$bindables = [new Binding(<any>new AccessScope(''), sut, 'items', <any>null, <any>null, <any>null)];
-      sut.bound(BindingFlags.none, <any>{ });
+      sut.$bind(BindingFlags.none, <any>{ });
 
       sut.items.push(1);
       expect(sut.items.length).to.equal(1);
-      expect(sut.slot.children.length).to.equal(0);
+      expect(sut.views.length).to.equal(0);
       const items: any = [];
       sut.items = items;
       changeSet.flushChanges();
       expect(sut.items.length).to.equal(0);
-      expect(sut.slot.children.length).to.equal(0);
+      expect(sut.views.length).to.equal(0);
     });
 
     it('should include pending changes from new instance when assigning a new instance', () => {
       (<any>sut)._items = [];
       renderable.$bindables = [new Binding(<any>new AccessScope(''), sut, 'items', <any>null, <any>null, <any>null)];
-      sut.bound(BindingFlags.none, <any>{ });
+      sut.$bind(BindingFlags.none, <any>{ });
 
       expect(sut.items.length).to.equal(0);
-      expect(sut.slot.children.length).to.equal(0);
+      expect(sut.views.length).to.equal(0);
       const items: any = [];
       sut.items = items;
       sut.items.push(1);
       changeSet.flushChanges();
       expect(sut.items.length).to.equal(1);
-      expect(sut.slot.children.length).to.equal(1);
+      expect(sut.views.length).to.equal(1);
     });
   });
 });

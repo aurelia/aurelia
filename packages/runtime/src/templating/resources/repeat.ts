@@ -1,6 +1,6 @@
 import { IContainer, Immutable, inject, PLATFORM, Registration } from '@aurelia/kernel';
 import { getArrayObserver } from '../../binding/array-observer';
-import { IExpression } from '../../binding/ast';
+import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
 import { IOverrideContext, IScope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
@@ -9,7 +9,7 @@ import { IChangeSet } from '../../binding/change-set';
 import { getMapObserver } from '../../binding/map-observer';
 import { CollectionKind, CollectionObserver, ObservedCollection } from '../../binding/observation';
 import { getSetObserver } from '../../binding/set-observer';
-import { INode } from '../../dom';
+import { INode, IRenderLocation } from '../../dom';
 import { IResourceKind, IResourceType } from '../../resource';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeSource } from '../custom-attribute';
 import { AttachLifecycle, DetachLifecycle } from '../lifecycle';
@@ -17,7 +17,6 @@ import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
 import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
 import { IView, IViewFactory } from '../view';
-import { IViewSlot } from '../view-slot';
 import { IBatchedCollectionSubscriber } from './../../binding/observation';
 
 export function getCollectionObserver(changeSet: IChangeSet, collection: any): CollectionObserver {
@@ -30,15 +29,8 @@ export function getCollectionObserver(changeSet: IChangeSet, collection: any): C
   }
 }
 
-@inject(IChangeSet, IViewSlot, IRenderable, IViewFactory, IContainer)
+@inject(IChangeSet, IRenderLocation, IRenderable, IViewFactory, IContainer)
 export class Repeat<T extends ObservedCollection> implements ICustomAttribute, IBatchedCollectionSubscriber {
-  // note: everything declared from #region to #endregion is more-or-less copy-paste from what the
-  // @templateController decorator would apply to this class, but we have more information here than the decorator
-  // does, so we can take a few shortcuts for slightly better perf (and one can argue that this makes the repeater
-  // as a whole easier to understand)
-
-  // #region custom-attribute definition
-  // attribute
   public static kind: IResourceKind<ICustomAttributeSource, IResourceType<ICustomAttributeSource, ICustomAttribute>> = CustomAttributeResource;
   public static description: Immutable<Required<ICustomAttributeSource>> = {
     name: 'repeat',
@@ -53,13 +45,11 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   public static register(container: IContainer): void {
     container.register(Registration.transient('custom-attribute:repeat', Repeat));
   }
-
-  // attribute proto.$hydrate
+  // tslint:disable:member-ordering
   public $changeCallbacks: (() => void)[] = [];
   public $isAttached: boolean = false;
   public $isBound: boolean = false;
   public $scope: IScope = null;
-  public $child: IViewSlot;
   public $behavior: IRuntimeBehavior = new (<any>RuntimeBehavior)();
   public $hydrate(renderingEngine: IRenderingEngine): void {
     let b: RuntimeBehavior = renderingEngine['behaviorLookup'].get(Repeat);
@@ -73,48 +63,6 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     this.$behavior = b;
   }
 
-  // attribute proto.$bind
-  public $bind(flags: BindingFlags, scope: IScope): void {
-    if (this.$isBound) {
-      if (this.$scope === scope) {
-        return;
-      }
-      this.$unbind(flags);
-    }
-    this.$scope = scope;
-    this.$isBound = true;
-    this.bound(flags, scope);
-  }
-
-  // attribute proto.$attach
-  public $attach(encapsulationSource: INode, lifecycle: AttachLifecycle): void {
-    if (this.$isAttached) {
-      return;
-    }
-    if (this.$child !== null) {
-      this.$child.$attach(encapsulationSource, lifecycle);
-    }
-    this.$isAttached = true;
-  }
-  // attribute proto.$detach
-  public $detach(lifecycle: DetachLifecycle): void {
-    if (this.$isAttached) {
-      if (this.$child !== null) {
-        this.$child.$detach(lifecycle);
-      }
-      this.$isAttached = false;
-    }
-  }
-  // attribute proto.$unbind
-  public $unbind(flags: BindingFlags): void {
-    if (this.$isBound) {
-      this.unbound(flags);
-      this.$isBound = false;
-    }
-  }
-  // #endregion
-
-
   private _oldItems: any[]; // this is purely used by instanceMutation to see if items can be reused
   private _items: T & { $observer: CollectionObserver };
   public set items(newValue: T & { $observer: CollectionObserver }) {
@@ -125,7 +73,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     }
     this._items = newValue;
     this.hasPendingInstanceMutation = true;
-    if (this.isBound) {
+    if (this.$isBound) {
       this.changeSet.add(this);
     }
   }
@@ -133,54 +81,58 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     return this._items;
   }
 
+  public encapsulationSource: INode;
+  public views: IView[] = [];
   public local: string;
-
   public viewsRequireLifecycle: boolean;
-
-  public scope: IScope;
   public observer: CollectionObserver;
-  public isQueued: boolean;
-  public isBound: boolean;
   public hasPendingInstanceMutation: boolean;
-  public sourceExpression: IExpression;
+  public sourceExpression: ForOfStatement;
 
-  constructor(public changeSet: IChangeSet, public slot: IViewSlot, public renderable: IRenderable, public factory: IViewFactory, public container: IContainer) {
-    this.scope = null;
+  constructor(public changeSet: IChangeSet, public location: IRenderLocation, public renderable: IRenderable, public factory: IViewFactory, public container: IContainer) {
+    this.encapsulationSource = null;
     this.observer = null;
-    this.isQueued = false;
-    this.isBound = false;
     this.hasPendingInstanceMutation = false;
   }
+  // tslint:enable:member-ordering
 
-  public flushChanges(): void {
-    this.handleBatchedChange();
-  }
-  /**
-   * Initialize array observation and process any pending instance mutation (if this is a re-bind)
-   * - called by $bind
-   */
-  public bound(flags: BindingFlags, scope: IScope): void {
+  public $bind(flags: BindingFlags, scope: IScope): void {
+    if (this.$isBound) {
+      if (this.$scope === scope) {
+        return;
+      }
+      this.$unbind(flags);
+    }
+    this.$scope = scope;
+    this.$isBound = true;
     this.sourceExpression = <any>(<Binding[]>this.renderable.$bindables).find(b => b.target === this && b.targetProperty === 'items').sourceExpression;
-    this.scope = scope;
-    this.isBound = true;
     if (this.hasPendingInstanceMutation) {
       this.changeSet.add(this);
     }
   }
-
-  /**
-   * Cleanup subscriptions and remove rendered items from the DOM
-   * - called by $unbind
-   */
-  public unbound(flags: BindingFlags): void {
-    this.isBound = false;
-    this.observer.unsubscribeBatched(this);
-    this.observer = this._items = null;
-    // if this is a re-bind triggered by some ancestor repeater, then keep the views so we can reuse them
-    // (this flag is passed down from handleInstanceMutation/handleItemsMutation down below at view.$bind)
-    if (!(flags & (BindingFlags.instanceMutation | BindingFlags.itemsMutation))) {
-      this.slot.removeAll(true, true);
+  public $attach(encapsulationSource: INode, lifecycle: AttachLifecycle): void {
+    this.encapsulationSource = encapsulationSource;
+    this.$isAttached = true;
+  }
+  public $detach(lifecycle: DetachLifecycle): void {
+    this.$isAttached = false;
+    this.encapsulationSource = null;
+  }
+  public $unbind(flags: BindingFlags): void {
+    if (this.$isBound) {
+      this.$isBound = false;
+      this.observer.unsubscribeBatched(this);
+      this.observer = this._items = null;
+      // if this is a re-bind triggered by some ancestor repeater, then keep the views so we can reuse them
+      // (this flag is passed down from handleInstanceMutation/handleItemsMutation down below at view.$bind)
+      if (!(flags & (BindingFlags.instanceMutation | BindingFlags.itemsMutation))) {
+        this.removeAllViews();
+      }
     }
+  }
+
+  public flushChanges(): void {
+    this.handleBatchedChange();
   }
 
   public handleBatchedChange(indexMap?: number[]): void {
@@ -201,8 +153,8 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   // if the indexMap === undefined, it is an instance mutation, otherwise it's an items mutation
   private handleBatchedItemsOrInstanceMutation(indexMap?: number[]): void {
     // determine if there is anything to process and whether or not we can return early
-    const slot = this.slot;
-    const views = <IView[]>slot.children;
+    const location = this.location;
+    const views = this.views;
     const _items = this._items;
     const observer = this.observer;
     const oldLength = views.length;
@@ -213,12 +165,12 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
         return;
       } else {
         // if we had >0 items and now have 0 items, just remove all and return
-        this.slot.removeAll(true, true);
+        this.removeAllViews();
         return;
       }
     }
 
-    const isAttached = slot['$isAttached'];
+    const isAttached = this.$isAttached;
     const items = <any[]>(observer.collectionKind & CollectionKind.indexed ? _items : Array.from(_items)); // todo: test and improve this (offload it to IteratorStatement?)
 
     // store the scopes of the current indices so we can reuse them for other views
@@ -230,7 +182,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     }
 
     let flags = BindingFlags.none;
-    const scope = this.scope;
+    const scope = this.$scope;
     const overrideContext = scope.overrideContext;
     const local = this.local;
 
@@ -240,14 +192,15 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     } else if (newLength < oldLength) {
       // remove any surplus views
       i = newLength;
+      const lifecycle = DetachLifecycle.start(this);
       while (i < oldLength) {
-        const view = views[i];
+        const view = views[i++];
         if (isAttached) {
-          view.$detach();
+          view.$detach(lifecycle);
         }
         view.tryReturnToCache();
-        i++;
       }
+      lifecycle.end(this);
       views.length = newLength;
     }
 
@@ -264,6 +217,8 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     }
 
     const factory = this.factory;
+    const encapsulationSource = this.encapsulationSource;
+    const lifecycle = AttachLifecycle.start(this);
     i = 0;
     while (i < newLength) {
       let view = views[i];
@@ -272,10 +227,11 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
         // add view if it doesn't exist yet
         view = views[i] = factory.create();
         view.$bind(flags, createChildScope(overrideContext, { [local]: item }));
-        view.parent = slot;
-        view.onRender = slot['addViewCore'];
+        view.onRender = () => {
+          view.$nodes.insertBefore(location);
+        };
         if (isAttached) {
-          view.$attach(slot['encapsulationSource']);
+          view.$attach(encapsulationSource, lifecycle);
         }
       } else {
         // a very cheap (and fairly niche) check to see if we can skip processing alltogether
@@ -293,6 +249,24 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       }
       i++;
     }
+    lifecycle.end(this);
+  }
+
+  private removeAllViews(): void {
+    const views = this.views;
+    this.views = [];
+    const len = views.length;
+    let i = 0;
+    const isAttached = this.$isAttached;
+    const lifecycle = DetachLifecycle.start(this);
+    while (i < len) {
+      const view = views[i++];
+      if (isAttached) {
+        view.$detach(lifecycle);
+      }
+      view.tryReturnToCache();
+    }
+    lifecycle.end(this);
   }
 }
 

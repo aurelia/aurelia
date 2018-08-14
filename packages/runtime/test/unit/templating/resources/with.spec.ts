@@ -1,25 +1,25 @@
 import { expect } from 'chai';
-import { Replaceable, BindingFlags } from "@aurelia/runtime";
+import { With, BindingFlags } from "@aurelia/runtime";
 import { ViewFake } from '../fakes/view-fake';
 import { hydrateCustomAttribute } from '../attribute-assistance';
 import { createScope } from '../scope-assistance';
 
-describe('The replaceable template controller', () => {
+describe('The with template controller', () => {
   it('creates a child instance from its template', () => {
-    const { attribute } = hydrateCustomAttribute(Replaceable);
+    const { attribute } = hydrateCustomAttribute(With);
 
     expect(attribute['$child']).to.be.instanceof(ViewFake);
   });
 
   it('adds a child instance at the render location', () => {
-    const { attribute, location } = hydrateCustomAttribute(Replaceable);
+    const { attribute, location } = hydrateCustomAttribute(With);
 
     expect(location.previousSibling)
       .to.be.equal(attribute['$child'].$nodes.lastChild);
   });
 
   it('enforces the bind lifecycle of its child instance', () => {
-    const { attribute } = hydrateCustomAttribute(Replaceable);
+    const { attribute } = hydrateCustomAttribute(With);
     const child = attribute['$child'];
 
     let bindCalled = false;
@@ -31,7 +31,7 @@ describe('The replaceable template controller', () => {
   });
 
   it('enforces the attach lifecycle of its child instance', () => {
-    const { attribute } = hydrateCustomAttribute(Replaceable);
+    const { attribute } = hydrateCustomAttribute(With);
     const child = attribute['$child'];
 
     let attachCalled = false;
@@ -43,7 +43,7 @@ describe('The replaceable template controller', () => {
   });
 
   it('enforces the detach lifecycle of its child instance', () => {
-    const { attribute } = hydrateCustomAttribute(Replaceable);
+    const { attribute } = hydrateCustomAttribute(With);
     const child = attribute['$child'];
 
     let detachCalled = false;
@@ -56,7 +56,7 @@ describe('The replaceable template controller', () => {
   });
 
   it('enforces the unbind lifecycle of its child instance', () => {
-    const { attribute } = hydrateCustomAttribute(Replaceable);
+    const { attribute } = hydrateCustomAttribute(With);
     const child = attribute['$child'];
 
     let unbindCalled = false;

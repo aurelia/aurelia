@@ -1,4 +1,6 @@
 import { Replaceable } from "@aurelia/runtime";
 import { ensureSingleChildTemplateControllerBehaviors } from './template-controller-tests';
 
-ensureSingleChildTemplateControllerBehaviors(Replaceable);
+describe('The "replaceable" template controller', () => {
+  ensureSingleChildTemplateControllerBehaviors(Replaceable);
+});

@@ -5,4 +5,6 @@ import { hydrateCustomAttribute } from '../attribute-assistance';
 import { createScope } from '../scope-assistance';
 import { ensureSingleChildTemplateControllerBehaviors } from './template-controller-tests';
 
-ensureSingleChildTemplateControllerBehaviors(With);
+describe('The "with" template controller', () => {
+  ensureSingleChildTemplateControllerBehaviors(With);
+});

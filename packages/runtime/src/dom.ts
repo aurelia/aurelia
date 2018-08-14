@@ -84,7 +84,7 @@ export const DOM = {
         template = markupOrNode as any;
       } else {
         template = DOM.createTemplate() as any;
-        template.appendChild(<Node>markupOrNode);
+        template.content.appendChild(<Node>markupOrNode);
       }
     } else {
       template = DOM.createTemplate() as any;

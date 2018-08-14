@@ -26,4 +26,5 @@ export * from './signaler';
 export * from './subscriber-collection';
 export * from './svg-analyzer';
 export * from './target-accessors';
+export * from './target-observer';
 export * from './value-converter';

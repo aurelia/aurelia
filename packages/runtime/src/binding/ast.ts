@@ -755,7 +755,9 @@ export class BindingIdentifier implements IExpression {
     this.name = name;
   }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any { }
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+    return this.name;
+  }
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
 }
 

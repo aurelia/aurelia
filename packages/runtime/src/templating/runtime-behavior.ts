@@ -1,4 +1,4 @@
-import { Toggle } from '@aurelia/kernel';
+import { PLATFORM, Toggle } from '@aurelia/kernel';
 import { BindingFlags } from '../binding/binding-flags';
 import { IChangeSet } from '../binding/change-set';
 import { IAccessor, IPropertySubscriber, ISubscribable, MutationKind } from '../binding/observation';
@@ -111,6 +111,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
             : void 0
           );
       } else {
+        bindableCallbacks[i] = PLATFORM.noop;
         observers[name] = new Observer(changeSet, instance[name]);
       }
 

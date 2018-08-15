@@ -24,6 +24,7 @@
     "**/scripts": true
   },
   "cSpell.words": [
+    "Constructable",
     "Renderable",
     "attachables",
     "bindables"

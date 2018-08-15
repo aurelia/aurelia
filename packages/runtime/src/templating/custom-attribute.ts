@@ -28,15 +28,14 @@ export interface ICustomAttributeSource {
 export type ICustomAttributeType = IResourceType<ICustomAttributeSource, ICustomAttribute>;
 
 export interface ICustomAttribute extends IBindScope, IAttach {
-  readonly $isBound: boolean;
-  readonly $isAttached: boolean;
   readonly $scope: IScope;
   $hydrate(renderingEngine: IRenderingEngine): void;
 }
 
 /*@internal*/
 export interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
-  $changeCallbacks: (() => void)[];
+  $bindableCallbacks: (() => void)[];
+  $bindableCallbacksEnabled: boolean;
   $behavior: IRuntimeBehavior;
   $child: IAttach;
 }
@@ -107,12 +106,12 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
     };
 
     proto.$hydrate = function(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine): void {
-      this.$changeCallbacks = [];
       this.$isAttached = false;
       this.$isBound = false;
       this.$scope = null;
       this.$child = this.$child || null;
-      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
+
+      renderingEngine.applyRuntimeBehavior(Type, this);
 
       if (this.$behavior.hasCreated) {
         (this as any).created();
@@ -128,18 +127,20 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
         this.$unbind(flags);
       }
 
-      this.$scope = scope
-      this.$isBound = true;
+      this.$scope = scope;
+      this.$bindableCallbacksEnabled = true;
 
-      const changeCallbacks = this.$changeCallbacks;
+      const bindableCallbacks = this.$bindableCallbacks;
 
-      for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-        changeCallbacks[i]();
+      for (let i = 0, ii = bindableCallbacks.length; i < ii; ++i) {
+        bindableCallbacks[i]();
       }
 
       if (this.$behavior.hasBound) {
         (this as any).bound(scope);
       }
+
+      this.$isBound = true;
     };
 
     proto.$attach = function(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle): void {
@@ -186,6 +187,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
           (this as any).unbound();
         }
 
+        this.$bindableCallbacksEnabled = false;
         this.$isBound = false;
       }
     };

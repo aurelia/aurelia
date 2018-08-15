@@ -31,12 +31,13 @@ const toViewOrOneTime = toView | oneTime;
 
 // tslint:disable:no-any
 export class Binding implements IBinding, IPropertySubscriber {
+  public $isBound: boolean = false;
+
   public targetObserver: AccessorOrObserver;
   /*@internal*/public __connectQueueId: number;
   private observerSlots: number;
   private version: number;
   private $scope: IScope;
-  private $isBound: boolean = false;
 
   constructor(
     public sourceExpression: IExpression,

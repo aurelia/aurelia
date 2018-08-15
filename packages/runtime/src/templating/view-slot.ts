@@ -108,8 +108,8 @@ export const ViewSlot = {
 export class ViewSlotImplementation implements IViewSlot {
   public children: IView[] = [];
   public addViewCore: (view: IView) => void;
+  public $isAttached: boolean = false;
 
-  private $isAttached: boolean = false;
   private insertViewCore: (view: IView) => void;
   private encapsulationSource: INode = null;
 

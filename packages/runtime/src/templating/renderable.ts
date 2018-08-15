@@ -8,10 +8,10 @@ import { IRenderContext } from './render-context';
 export const IRenderable = DI.createInterface<IRenderable>().noDefault();
 
 export interface IRenderable {
-  $context: IRenderContext;
-  $nodes: INodeSequence;
-  $scope: IScope;
-  $isBound: boolean;
-  $bindables: IBindScope[];
-  $attachables: IAttach[];
+  readonly $context: IRenderContext;
+  readonly $nodes: INodeSequence;
+  readonly $scope: IScope;
+  readonly $isBound: boolean;
+  readonly $bindables: IBindScope[];
+  readonly $attachables: IAttach[];
 }

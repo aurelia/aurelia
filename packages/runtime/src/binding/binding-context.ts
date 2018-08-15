@@ -12,12 +12,24 @@ export const BindingContext = {
   createScopeFromOverride(overrideContext: IOverrideContext): IScope {
     return { bindingContext: overrideContext.bindingContext, overrideContext };
   },
+
+  createScopeFromParent(parentScope: IScope, bindingContext: any): IScope {
+    return {
+      bindingContext: bindingContext,
+      overrideContext: BindingContext.createOverride(
+        bindingContext,
+        parentScope.overrideContext
+      )
+    };
+  },
+
   createOverride(bindingContext?: any, parentOverrideContext?: IOverrideContext): IOverrideContext {
     return {
       bindingContext: bindingContext,
       parentOverrideContext: parentOverrideContext || null
     };
   },
+
   get(scope: IScope, name: string, ancestor: number): any {
     let overrideContext = scope.overrideContext;
 

@@ -23,13 +23,13 @@ export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction
 
 export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable> {
   readonly $projector: IViewProjector;
-  readonly $isAttached: boolean;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
-  $changeCallbacks: (() => void)[];
+  $bindableCallbacks: (() => void)[];
+  $bindableCallbacksEnabled: boolean;
   $behavior: IRuntimeBehavior;
   $child: IAttach;
 }
@@ -110,9 +110,9 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$hydrate = function(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
       const template = renderingEngine.getElementTemplate(description, Type);
 
+      this.$context = template.renderContext;
       this.$bindables = [];
       this.$attachables = [];
-      this.$changeCallbacks = [];
       this.$child = null;
       this.$isAttached = false;
       this.$isBound = false;
@@ -121,8 +121,8 @@ export const CustomElementResource: ICustomElementResource = {
         overrideContext: BindingContext.createOverride()
       };
 
-      this.$context = template.renderContext;
-      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
+      renderingEngine.applyRuntimeBehavior(Type, this);
+
       this.$projector = determineProjector(this, host, description, options);
       this.$nodes = this.$behavior.hasRender
         ? (this as any).render(host, options.parts, template)
@@ -141,21 +141,23 @@ export const CustomElementResource: ICustomElementResource = {
       const scope = this.$scope;
       const bindables = this.$bindables;
 
+      this.$bindableCallbacksEnabled = true;
+
       for (let i = 0, ii = bindables.length; i < ii; ++i) {
         bindables[i].$bind(flags, scope);
       }
 
-      this.$isBound = true;
+      const bindableCallbacks = this.$bindableCallbacks;
 
-      const changeCallbacks = this.$changeCallbacks;
-
-      for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-        changeCallbacks[i]();
+      for (let i = 0, ii = bindableCallbacks.length; i < ii; ++i) {
+        bindableCallbacks[i]();
       }
 
       if (this.$behavior.hasBound) {
         (this as any).bound();
       }
+
+      this.$isBound = true;
     };
 
     proto.$attach = function(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
@@ -233,6 +235,7 @@ export const CustomElementResource: ICustomElementResource = {
           (this as any).unbound();
         }
 
+        this.$bindableCallbacksEnabled = false;
         this.$isBound = false;
       }
     };

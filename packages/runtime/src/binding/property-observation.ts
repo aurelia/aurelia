@@ -151,19 +151,21 @@ export class Observer<T>  implements IPropertyObserver<IIndexable, string> {
   }
 
   public setValue(newValue: T, flags?: BindingFlags): void {
-    const currentValue = this.currentValue;
-    if (currentValue !== newValue) {
-      this.previousValue = currentValue;
-      this.notify(newValue, currentValue);
+    const previousValue = this.currentValue;
+
+    if (previousValue !== newValue) {
+      this.previousValue = previousValue;
+      this.currentValue = newValue;
 
       if (this.selfCallback !== undefined) {
-        const coercedValue = this.selfCallback(newValue, currentValue);
+        const coercedValue = this.selfCallback(newValue, previousValue);
 
         if (coercedValue !== undefined) {
-          newValue = <T>coercedValue;
+          this.currentValue = newValue = <T>coercedValue;
         }
       }
-      this.currentValue = newValue;
+
+      this.notify(newValue, previousValue);
     }
   }
 }

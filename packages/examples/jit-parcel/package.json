@@ -10,8 +10,7 @@
     "@aurelia/jit": "../../jit",
     "@aurelia/kernel": "../../kernel",
     "@aurelia/plugin-requirejs": "../../plugin-requirejs",
-    "@aurelia/runtime": "../../runtime",
-    "requirejs": "^2.3.5"
+    "@aurelia/runtime": "../../runtime"
   },
   "devDependencies": {
     "@types/node": "^8.10.22",

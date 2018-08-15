@@ -2,15 +2,14 @@
   "name": "jit-parcel",
   "version": "0.1.0",
   "scripts": {
-    "build": "rimraf dist && tsc -b",
-    "serve": "npm run build && parcel index.html --no-cache"
+    "build": "parcel build index.html --no-cache --no-minify --experimental-scope-hoisting --no-source-maps",
+    "serve": "parcel index.html --no-cache --no-source-maps"
   },
   "dependencies": {
-    "@aurelia/debug": "../../debug",
-    "@aurelia/jit": "../../jit",
-    "@aurelia/kernel": "../../kernel",
-    "@aurelia/plugin-requirejs": "../../plugin-requirejs",
-    "@aurelia/runtime": "../../runtime"
+    "@aurelia/debug": "^0.1.0",
+    "@aurelia/jit": "^0.1.0",
+    "@aurelia/kernel": "^0.1.0",
+    "@aurelia/runtime": "^0.1.0"
   },
   "devDependencies": {
     "@types/node": "^8.10.22",

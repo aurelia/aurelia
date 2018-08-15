@@ -10,7 +10,7 @@
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=runtime --browsers=ChromeDebugging",
     "build": "tsc -b"
   },
-  "dependencies": {
+  "peerDependencies": {
     "@aurelia/kernel": "^0.1.0"
   },
   "devDependencies": {

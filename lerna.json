@@ -6,7 +6,8 @@
     "packages/kernel",
     "packages/plugin-requirejs",
     "packages/plugin-svg",
-    "packages/runtime"
+    "packages/runtime",
+    "packages/examples/jit-parcel"
   ],
   "version": "0.1.0"
 }

@@ -5,8 +5,7 @@ import {
   PLATFORM,
   Registration,
   Reporter,
-  Writable,
-  Toggle
+  Writable
 } from '@aurelia/kernel';
 import { BindingContext } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
@@ -30,7 +29,7 @@ export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
   $bindableCallbacks: (() => void)[];
-  $bindableCallbackExecution: Toggle;
+  $bindableCallbacksEnabled: boolean;
   $behavior: IRuntimeBehavior;
   $child: IAttach;
 }
@@ -142,7 +141,7 @@ export const CustomElementResource: ICustomElementResource = {
       const scope = this.$scope;
       const bindables = this.$bindables;
 
-      this.$bindableCallbackExecution.enable();
+      this.$bindableCallbacksEnabled = true;
 
       for (let i = 0, ii = bindables.length; i < ii; ++i) {
         bindables[i].$bind(flags, scope);
@@ -236,7 +235,7 @@ export const CustomElementResource: ICustomElementResource = {
           (this as any).unbound();
         }
 
-        this.$bindableCallbackExecution.disable();
+        this.$bindableCallbacksEnabled = false;
         this.$isBound = false;
       }
     };

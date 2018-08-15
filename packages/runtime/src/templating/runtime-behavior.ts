@@ -1,4 +1,4 @@
-import { PLATFORM, Toggle } from '@aurelia/kernel';
+import { PLATFORM } from '@aurelia/kernel';
 import { BindingFlags } from '../binding/binding-flags';
 import { IChangeSet } from '../binding/change-set';
 import { IAccessor, IPropertySubscriber, ISubscribable, MutationKind } from '../binding/observation';
@@ -95,7 +95,6 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     const observableNames = Object.getOwnPropertyNames(finalBindables);
     const bindableCallbackCount = observableNames.length;
     const bindableCallbacks =  new Array(bindableCallbackCount);
-    const changeCallbackExecution = new Toggle();
 
     for (let i = 0, ii = bindableCallbackCount; i < ii; ++i) {
       const name = observableNames[i];
@@ -106,7 +105,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
         bindableCallbacks[i] = () => instance[changeHandler](instance[name]);
         observers[name] = new Observer(
           changeSet,
-          instance[name], (n, o) => changeCallbackExecution.isEnabled
+          instance[name], (n, o) => instance.$bindableCallbacksEnabled
             ? instance[changeHandler](n, o)
             : void 0
           );
@@ -125,7 +124,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
 
     instance.$behavior = this;
     instance.$bindableCallbacks = bindableCallbacks;
-    instance.$bindableCallbackExecution = changeCallbackExecution;
+    instance.$bindableCallbacksEnabled = false;
 
     return observers;
   }

@@ -4,8 +4,7 @@ import {
   Omit,
   PLATFORM,
   Registration,
-  Writable,
-  Toggle
+  Writable
 } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
@@ -36,7 +35,7 @@ export interface ICustomAttribute extends IBindScope, IAttach {
 /*@internal*/
 export interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
   $bindableCallbacks: (() => void)[];
-  $bindableCallbackExecution: Toggle;
+  $bindableCallbacksEnabled: boolean;
   $behavior: IRuntimeBehavior;
   $child: IAttach;
 }
@@ -129,7 +128,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
 
       this.$scope = scope;
-      this.$bindableCallbackExecution.enable();
+      this.$bindableCallbacksEnabled = true;
 
       const bindableCallbacks = this.$bindableCallbacks;
 
@@ -188,7 +187,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
           (this as any).unbound();
         }
 
-        this.$bindableCallbackExecution.disable();
+        this.$bindableCallbacksEnabled = false;
         this.$isBound = false;
       }
     };

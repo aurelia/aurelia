@@ -1,3 +1,4 @@
+import { Toggle } from '@aurelia/kernel';
 import { BindingFlags } from '../binding/binding-flags';
 import { IChangeSet } from '../binding/change-set';
 import { IAccessor, IPropertySubscriber, ISubscribable, MutationKind } from '../binding/observation';
@@ -13,19 +14,20 @@ import {
 import { BindableDefinitions } from './instructions';
 
 export interface IRuntimeBehavior {
-  hasCreated: boolean;
-  hasBound: boolean;
-  hasAttaching: boolean;
-  hasAttached: boolean;
-  hasDetaching: boolean;
-  hasDetached: boolean;
-  hasUnbound: boolean;
-  hasRender: boolean;
+  readonly hasCreated: boolean;
+  readonly hasBound: boolean;
+  readonly hasAttaching: boolean;
+  readonly hasAttached: boolean;
+  readonly hasDetaching: boolean;
+  readonly hasDetached: boolean;
+  readonly hasUnbound: boolean;
+  readonly hasRender: boolean;
 }
 
 /** @internal */
 export class RuntimeBehavior implements IRuntimeBehavior {
   public bindables: BindableDefinitions;
+
   public hasCreated: boolean = false;
   public hasBound: boolean = false;
   public hasAttaching: boolean = false;
@@ -37,8 +39,9 @@ export class RuntimeBehavior implements IRuntimeBehavior {
 
   private constructor() {}
 
-  public static create(instance: any, bindables: BindableDefinitions, Component: ICustomElementType | ICustomAttributeType): RuntimeBehavior {
+  public static create(Component: ICustomElementType | ICustomAttributeType, instance: ICustomAttribute | ICustomElement): RuntimeBehavior {
     const behavior = new RuntimeBehavior();
+    const bindables = Component.description.bindables;
 
     for (const name in instance) {
       if (name in bindables) {
@@ -65,13 +68,16 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     return behavior;
   }
 
-  public applyToAttribute(changeSet: IChangeSet, instance: ICustomAttribute): this {
-    this.applyTo(changeSet, instance);
-    return this;
+  public applyTo(instance: ICustomAttribute | ICustomElement, changeSet: IChangeSet): void {
+    if ('$projector' in instance) {
+      this.applyToElement(changeSet, instance);
+    } else {
+      this.applyToCore(changeSet, instance);
+    }
   }
 
-  public applyToElement(changeSet: IChangeSet, instance: ICustomElement): this {
-    const observers = this.applyTo(changeSet, instance);
+  private applyToElement(changeSet: IChangeSet, instance: ICustomElement): void {
+    const observers = this.applyToCore(changeSet, instance);
 
     (observers as any).$children = new ChildrenObserver(changeSet, instance);
 
@@ -81,23 +87,24 @@ export class RuntimeBehavior implements IRuntimeBehavior {
         return this.$observers.$children.getValue();
       }
     });
-
-    return this;
   }
 
-  private applyTo(changeSet: IChangeSet, instance: any) {
+  private applyToCore(changeSet: IChangeSet, instance: any) {
     const observers = {};
     const finalBindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(finalBindables);
+    const bindableCallbackCount = observableNames.length;
+    const bindableCallbacks =  new Array(bindableCallbackCount);
+    const changeCallbackExecution = new Toggle();
 
-    for (let i = 0, ii = observableNames.length; i < ii; ++i) {
+    for (let i = 0, ii = bindableCallbackCount; i < ii; ++i) {
       const name = observableNames[i];
       const observable = finalBindables[name];
       const changeHandler = observable.callback;
 
       if (changeHandler in instance) {
-        observers[name] = new Observer(changeSet, instance[name], v => instance.$isBound ? instance[changeHandler](v) : void 0);
-        instance.$changeCallbacks.push(() => instance[changeHandler](instance[name]));
+        observers[name] = new Observer(changeSet, instance[name], v => changeCallbackExecution.isEnabled ? instance[changeHandler](v) : void 0);
+        bindableCallbacks[i] = () => instance[changeHandler](instance[name]);
       } else {
         observers[name] = new Observer(changeSet, instance[name]);
       }
@@ -111,6 +118,8 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     });
 
     instance.$behavior = this;
+    instance.$bindableCallbacks = bindableCallbacks;
+    instance.$bindableCallbackExecution = changeCallbackExecution;
 
     return observers;
   }

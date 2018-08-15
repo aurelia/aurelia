@@ -5,8 +5,8 @@ import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 
 export class Ref implements IBinding {
+  public $isBound: boolean = false;
   private $scope: IScope;
-  private $isBound = false;
 
   constructor(
     private sourceExpression: IExpression,

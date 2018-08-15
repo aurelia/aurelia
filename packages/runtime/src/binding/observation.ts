@@ -4,6 +4,7 @@ import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 
 export interface IBindScope {
+  readonly $isBound: boolean;
   $bind(flags: BindingFlags, scope: IScope): void;
   $unbind(flags: BindingFlags): void;
 }

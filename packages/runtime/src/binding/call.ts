@@ -8,9 +8,9 @@ import { IAccessor } from './observation';
 import { IObserverLocator } from './observer-locator';
 
 export class Call implements IBinding {
+  public $isBound: boolean = false;
   public targetObserver: IAccessor;
   private $scope: IScope;
-  private $isBound = false;
 
   constructor(
     private sourceExpression: IExpression,

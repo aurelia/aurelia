@@ -95,11 +95,13 @@ export class DetachLifecycle {
 }
 
 export interface IAttach {
+  readonly $isAttached: boolean;
   $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void;
   $detach(lifecycle?: DetachLifecycle): void;
 }
 
 export interface IBindSelf {
+  readonly $isBound: boolean;
   $bind(flags: BindingFlags): void;
   $unbind(flags: BindingFlags): void;
 }

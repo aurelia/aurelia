@@ -23,6 +23,7 @@ export class ViewFake implements IView {
   parent: IViewSlot;
   onRender: RenderCallback;
   renderState: any;
+  $isAttached: boolean;
 
   animate(direction: MotionDirection): void | Promise<boolean> {}
   tryReturnToCache(): boolean {
@@ -32,13 +33,21 @@ export class ViewFake implements IView {
   // IBindScope impl
   $bind(flags: BindingFlags, scope: IScope): void {
     this.$scope = scope;
+    this.$isBound = true;
   }
 
-  $unbind(): void {}
+  $unbind(): void {
+    this.$isBound = false;
+  }
 
   // IAttach impl
-  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {}
-  $detach(lifecycle?: DetachLifecycle): void {}
+  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
+    this.$isAttached = true;
+  }
+
+  $detach(lifecycle?: DetachLifecycle): void {
+    this.$isAttached = false;
+  }
 
   // IViewOwner impl
   $context: IRenderContext;

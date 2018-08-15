@@ -1,9 +1,9 @@
 import { expect } from 'chai';
+import { Constructable } from '@aurelia/kernel';
 import { BindingFlags } from "@aurelia/runtime";
 import { ViewFake } from '../fakes/view-fake';
 import { hydrateCustomAttribute } from '../attribute-assistance';
 import { createScope } from '../scope-assistance';
-import { Constructable } from '../../../../node_modules/@aurelia/kernel';
 
 export function ensureSingleChildTemplateControllerBehaviors(Type: Constructable) {
   it('creates a child instance from its template', () => {

@@ -26,8 +26,8 @@ export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate;
   getViewFactory(context: IRenderContext, source: Immutable<ITemplateSource>): IViewFactory;
 
-  applyRuntimeBehavior(type: ICustomAttributeType, instance: ICustomAttribute, bindables: BindableDefinitions): IRuntimeBehavior;
-  applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement, bindables: BindableDefinitions): IRuntimeBehavior
+  applyRuntimeBehavior(type: ICustomAttributeType, instance: ICustomAttribute): void;
+  applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement): void
 
   createViewFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): ViewWithCentralComponent;
   createRenderer(context: IRenderContext): IRenderer;
@@ -96,7 +96,7 @@ export class RenderingEngine implements IRenderingEngine {
     let found = this.factoryLookup.get(definition);
 
     if (!found) {
-      let validSource = createDefinition(definition);
+      const validSource = createDefinition(definition);
       found = this.factoryFromSource(context, validSource);
       this.factoryLookup.set(definition, found);
     }
@@ -104,21 +104,15 @@ export class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  public applyRuntimeBehavior(type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement, bindables: BindableDefinitions): IRuntimeBehavior {
+  public applyRuntimeBehavior(type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement): void {
     let found = this.behaviorLookup.get(type);
 
     if (!found) {
-      found = RuntimeBehavior.create(instance, bindables, type);
+      found = RuntimeBehavior.create(type, instance);
       this.behaviorLookup.set(type, found);
     }
 
-    if ('$projector' in instance) {
-      found.applyToElement(this.changeSet, instance);
-    } else {
-      found.applyToAttribute(this.changeSet, instance);
-    }
-
-    return found;
+    found.applyTo(instance, this.changeSet);
   }
 
   public createViewFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): ViewWithCentralComponent {

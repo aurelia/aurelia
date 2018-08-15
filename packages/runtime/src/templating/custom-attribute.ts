@@ -4,7 +4,8 @@ import {
   Omit,
   PLATFORM,
   Registration,
-  Writable
+  Writable,
+  Toggle
 } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
@@ -28,15 +29,14 @@ export interface ICustomAttributeSource {
 export type ICustomAttributeType = IResourceType<ICustomAttributeSource, ICustomAttribute>;
 
 export interface ICustomAttribute extends IBindScope, IAttach {
-  readonly $isBound: boolean;
-  readonly $isAttached: boolean;
   readonly $scope: IScope;
   $hydrate(renderingEngine: IRenderingEngine): void;
 }
 
 /*@internal*/
 export interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
-  $changeCallbacks: (() => void)[];
+  $bindableCallbacks: (() => void)[];
+  $bindableCallbackExecution: Toggle;
   $behavior: IRuntimeBehavior;
   $child: IAttach;
 }
@@ -107,12 +107,12 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
     };
 
     proto.$hydrate = function(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine): void {
-      this.$changeCallbacks = [];
       this.$isAttached = false;
       this.$isBound = false;
       this.$scope = null;
       this.$child = this.$child || null;
-      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
+
+      renderingEngine.applyRuntimeBehavior(Type, this);
 
       if (this.$behavior.hasCreated) {
         (this as any).created();
@@ -129,10 +129,12 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
 
       this.$scope = scope;
-      const changeCallbacks = this.$changeCallbacks;
+      this.$bindableCallbackExecution.enable();
 
-      for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-        changeCallbacks[i]();
+      const bindableCallbacks = this.$bindableCallbacks;
+
+      for (let i = 0, ii = bindableCallbacks.length; i < ii; ++i) {
+        bindableCallbacks[i]();
       }
 
       if (this.$behavior.hasBound) {
@@ -186,6 +188,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
           (this as any).unbound();
         }
 
+        this.$bindableCallbackExecution.disable();
         this.$isBound = false;
       }
     };

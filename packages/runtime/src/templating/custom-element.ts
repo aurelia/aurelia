@@ -5,7 +5,8 @@ import {
   PLATFORM,
   Registration,
   Reporter,
-  Writable
+  Writable,
+  Toggle
 } from '@aurelia/kernel';
 import { BindingContext } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
@@ -23,13 +24,13 @@ export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction
 
 export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable> {
   readonly $projector: IViewProjector;
-  readonly $isAttached: boolean;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
-  $changeCallbacks: (() => void)[];
+  $bindableCallbacks: (() => void)[];
+  $bindableCallbackExecution: Toggle;
   $behavior: IRuntimeBehavior;
   $child: IAttach;
 }
@@ -110,9 +111,9 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$hydrate = function(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
       const template = renderingEngine.getElementTemplate(description, Type);
 
+      this.$context = template.renderContext;
       this.$bindables = [];
       this.$attachables = [];
-      this.$changeCallbacks = [];
       this.$child = null;
       this.$isAttached = false;
       this.$isBound = false;
@@ -121,8 +122,8 @@ export const CustomElementResource: ICustomElementResource = {
         overrideContext: BindingContext.createOverride()
       };
 
-      this.$context = template.renderContext;
-      this.$behavior = renderingEngine.applyRuntimeBehavior(Type, this, description.bindables);
+      renderingEngine.applyRuntimeBehavior(Type, this);
+
       this.$projector = determineProjector(this, host, description, options);
       this.$nodes = this.$behavior.hasRender
         ? (this as any).render(host, options.parts, template)
@@ -141,14 +142,16 @@ export const CustomElementResource: ICustomElementResource = {
       const scope = this.$scope;
       const bindables = this.$bindables;
 
+      this.$bindableCallbackExecution.enable();
+
       for (let i = 0, ii = bindables.length; i < ii; ++i) {
         bindables[i].$bind(flags, scope);
       }
 
-      const changeCallbacks = this.$changeCallbacks;
+      const bindableCallbacks = this.$bindableCallbacks;
 
-      for (let i = 0, ii = changeCallbacks.length; i < ii; ++i) {
-        changeCallbacks[i]();
+      for (let i = 0, ii = bindableCallbacks.length; i < ii; ++i) {
+        bindableCallbacks[i]();
       }
 
       if (this.$behavior.hasBound) {
@@ -233,6 +236,7 @@ export const CustomElementResource: ICustomElementResource = {
           (this as any).unbound();
         }
 
+        this.$bindableCallbackExecution.disable();
         this.$isBound = false;
       }
     };

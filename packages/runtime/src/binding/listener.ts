@@ -7,8 +7,8 @@ import { BindingFlags } from './binding-flags';
 import { DelegationStrategy, IEventManager } from './event-manager';
 
 export class Listener implements IBinding {
+  public $isBound: boolean = false;
   private source: IScope;
-  private $isBound = false;
   private handler: IDisposable;
 
   constructor(

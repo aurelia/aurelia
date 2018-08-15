@@ -103,8 +103,13 @@ export class RuntimeBehavior implements IRuntimeBehavior {
       const changeHandler = observable.callback;
 
       if (changeHandler in instance) {
-        observers[name] = new Observer(changeSet, instance[name], v => changeCallbackExecution.isEnabled ? instance[changeHandler](v) : void 0);
         bindableCallbacks[i] = () => instance[changeHandler](instance[name]);
+        observers[name] = new Observer(
+          changeSet,
+          instance[name], (n, o) => changeCallbackExecution.isEnabled
+            ? instance[changeHandler](n, o)
+            : void 0
+          );
       } else {
         observers[name] = new Observer(changeSet, instance[name]);
       }

@@ -34,7 +34,6 @@ export interface ICustomAttribute extends IBindScope, IAttach {
 
 /*@internal*/
 export interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
-  $bindableCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $child: IAttach;
 }
@@ -127,12 +126,6 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
 
       this.$scope = scope;
-
-      const bindableCallbacks = this.$bindableCallbacks;
-
-      for (let i = 0, ii = bindableCallbacks.length; i < ii; ++i) {
-        bindableCallbacks[i]();
-      }
 
       if (this.$behavior.hasBound) {
         (this as any).bound(flags | BindingFlags.bindOrigin, scope);

@@ -17,7 +17,7 @@ export class If extends IfCore {
   private elseBehavior: Else;
 
   public conditionChanged(newValue: boolean): void { // can/should we get the flags in here from @templateController's $bind?
-    this.update(newValue, BindingFlags.isChange);
+    this.update(newValue, BindingFlags.isBindableCallback);
   }
 
   public link(elseBehavior: Else): this {
@@ -41,7 +41,7 @@ export class If extends IfCore {
     if (this.elseBehavior) {
       promise = show ? this.swap(this.elseBehavior, this, flags) : this.swap(this, this.elseBehavior, flags);
     } else {
-      promise = show ? this.show(BindingFlags.isChange) : this.hide(BindingFlags.isChange);
+      promise = show ? this.show(flags) : this.hide(flags);
     }
 
     if (promise) {

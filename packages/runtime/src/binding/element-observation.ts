@@ -179,7 +179,7 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
 
   // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
   public handleChange(newValue: Primitive | IIndexable, previousValue?: Primitive | IIndexable, flags?: BindingFlags): void {
-    this.setValue(newValue, flags | BindingFlags.isChange);
+    this.setValue(newValue, flags | BindingFlags.isBindableCallback);
   }
 
   public synchronizeElement(): void {
@@ -206,7 +206,7 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
 
   public handleEvent(): void {
     this.synchronizeValue();
-    this.notify(BindingFlags.isChange);
+    this.notify(BindingFlags.isBindableCallback);
   }
 
   public synchronizeValue(): void {
@@ -353,7 +353,7 @@ export class SelectValueObserver
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
     this.synchronizeValue();
     // TODO: need to clean up / improve the way collection changes are handled here (we currently just create and assign a new array to the source each change)
-    this.notify(BindingFlags.isChange);
+    this.notify(BindingFlags.isBindableCallback);
   }
 
   public synchronizeOptions(): void {

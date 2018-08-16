@@ -35,7 +35,6 @@ export interface ICustomAttribute extends IBindScope, IAttach {
 /*@internal*/
 export interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
   $bindableCallbacks: (() => void)[];
-  $bindableCallbacksEnabled: boolean;
   $behavior: IRuntimeBehavior;
   $child: IAttach;
 }
@@ -124,11 +123,10 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
           return;
         }
 
-        this.$unbind(flags);
+        this.$unbind(flags | BindingFlags.bindOrigin);
       }
 
       this.$scope = scope;
-      this.$bindableCallbacksEnabled = true;
 
       const bindableCallbacks = this.$bindableCallbacks;
 
@@ -137,7 +135,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
       }
 
       if (this.$behavior.hasBound) {
-        (this as any).bound(scope);
+        (this as any).bound(flags | BindingFlags.bindOrigin, scope);
       }
 
       this.$isBound = true;
@@ -184,10 +182,9 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
     proto.$unbind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
       if (this.$isBound) {
         if (this.$behavior.hasUnbound) {
-          (this as any).unbound();
+          (this as any).unbound(flags | BindingFlags.unbindOrigin);
         }
 
-        this.$bindableCallbacksEnabled = false;
         this.$isBound = false;
       }
     };

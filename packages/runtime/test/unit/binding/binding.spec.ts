@@ -217,12 +217,12 @@ describe('Binding', () => {
         }
       });
 
-      it(`calls subscribe() on ${count} observers with sourceContext`, () => {
+      it(`calls subscribe() on ${count} observers with sourceOrigin`, () => {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
           sut.addObserver(observer);
-          expect(observer.subscribe).to.have.been.calledWith(sut, BindingFlags.sourceContext);
+          expect(observer.subscribe).to.have.been.calledWith(sut, BindingFlags.sourceOrigin);
           i++;
         }
       });

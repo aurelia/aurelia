@@ -51,7 +51,7 @@ export class Call implements IBinding {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.targetObserver.setValue($event => this.callSource($event));
+    this.targetObserver.setValue($event => this.callSource($event), flags);
   }
 
   public $unbind(flags: BindingFlags) {
@@ -66,7 +66,7 @@ export class Call implements IBinding {
     }
 
     this.$scope = null;
-    this.targetObserver.setValue(null);
+    this.targetObserver.setValue(null, flags);
   }
 
   public observeProperty() { }

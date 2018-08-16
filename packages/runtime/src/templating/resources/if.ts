@@ -5,6 +5,7 @@ import { IViewFactory } from '../view';
 import { IViewSlot, SwapOrder } from '../view-slot';
 import { Else } from './else';
 import { IfCore } from './if-core';
+import { BindingFlags } from '../../binding';
 
 @templateController('if')
 @inject(IViewFactory, IViewSlot)
@@ -15,8 +16,8 @@ export class If extends IfCore {
   private animating: boolean = false;
   private elseBehavior: Else;
 
-  public conditionChanged(newValue: boolean): void {
-    this.update(newValue);
+  public conditionChanged(newValue: boolean): void { // can/should we get the flags in here from @templateController's $bind?
+    this.update(newValue, BindingFlags.callbackOrigin);
   }
 
   public link(elseBehavior: Else): this {
@@ -30,7 +31,7 @@ export class If extends IfCore {
     return this;
   }
 
-  private update(show: boolean): void {
+  private update(show: boolean, flags: BindingFlags): void {
     if (this.animating) {
       return;
     }
@@ -38,9 +39,9 @@ export class If extends IfCore {
     let promise;
 
     if (this.elseBehavior) {
-      promise = show ? this.swap(this.elseBehavior, this) : this.swap(this, this.elseBehavior);
+      promise = show ? this.swap(this.elseBehavior, this, flags) : this.swap(this, this.elseBehavior, flags);
     } else {
-      promise = show ? this.show() : this.hide();
+      promise = show ? this.show(flags) : this.hide(flags);
     }
 
     if (promise) {
@@ -50,21 +51,21 @@ export class If extends IfCore {
         this.animating = false;
 
         if (this.condition !== this.showing) {
-          this.update(this.condition);
+          this.update(this.condition, flags);
         }
       });
     }
   }
 
-  private swap(remove: IfCore, add: IfCore) {
+  private swap(remove: IfCore, add: IfCore, flags: BindingFlags) {
     switch (this.swapOrder) {
       case SwapOrder.before:
-        return Promise.resolve(<any>add.show()).then(() => remove.hide());
+        return Promise.resolve(<any>add.show(flags)).then(() => remove.hide(flags));
       case SwapOrder.with:
-        return Promise.all([<any>remove.hide(), add.show()]);
+        return Promise.all([<any>remove.hide(flags), add.show(flags)]);
       default:  // "after", default and unknown values
-        let promise = remove.hide();
-        return promise ? promise.then(() => <any>add.show()) : add.show();
+        let promise = remove.hide(flags);
+        return promise ? promise.then(() => <any>add.show(flags)) : add.show(flags);
     }
   }
 }

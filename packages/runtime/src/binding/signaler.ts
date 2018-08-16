@@ -24,7 +24,7 @@ export const ISignaler = DI.createInterface<ISignaler>()
       let i = bindings.length;
 
       while (i--) {
-        bindings[i].handleChange(undefined, undefined, BindingFlags.sourceContext);
+        bindings[i].handleChange(undefined, undefined, BindingFlags.sourceOrigin);
       }
     }
 

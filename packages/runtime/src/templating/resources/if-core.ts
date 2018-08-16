@@ -17,14 +17,14 @@ export abstract class IfCore {
 
   constructor(private factory: IViewFactory, protected slot: IViewSlot) { }
 
-  public unbound(): void {
+  public unbound(flags: BindingFlags): void {
     const view = this.child;
 
     if (view === null) {
       return;
     }
 
-    this.child.$unbind(BindingFlags.none);
+    this.child.$unbind(flags);
 
     if (!this.factory.isCaching) {
       return;
@@ -40,12 +40,12 @@ export abstract class IfCore {
     this.child = null;
   }
 
-  public show() {
+  public show(flags: BindingFlags) {
     if (this.child === null) {
       this.child = this.factory.create();
     }
 
-    this.child.$bind(BindingFlags.none, this.$scope);
+    this.child.$bind(flags, this.$scope);
 
     if (!this.showing) {
       this.showing = true;
@@ -53,7 +53,7 @@ export abstract class IfCore {
     }
   }
 
-  public hide() {
+  public hide(flags: BindingFlags) {
     if (!this.showing) {
       return;
     }
@@ -64,9 +64,9 @@ export abstract class IfCore {
     this.showing = false;
 
     if (removed instanceof Promise) {
-      return removed.then(() => view.$unbind(BindingFlags.none));
+      return removed.then(() => view.$unbind(flags));
     }
 
-    view.$unbind(BindingFlags.none);
+    view.$unbind(flags);
   }
 }

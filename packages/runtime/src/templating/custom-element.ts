@@ -29,7 +29,6 @@ export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
   $bindableCallbacks: (() => void)[];
-  $bindableCallbacksEnabled: boolean;
   $behavior: IRuntimeBehavior;
   $child: IAttach;
 }
@@ -141,10 +140,8 @@ export const CustomElementResource: ICustomElementResource = {
       const scope = this.$scope;
       const bindables = this.$bindables;
 
-      this.$bindableCallbacksEnabled = true;
-
       for (let i = 0, ii = bindables.length; i < ii; ++i) {
-        bindables[i].$bind(flags, scope);
+        bindables[i].$bind(flags | BindingFlags.isBinding, scope);
       }
 
       const bindableCallbacks = this.$bindableCallbacks;
@@ -154,7 +151,7 @@ export const CustomElementResource: ICustomElementResource = {
       }
 
       if (this.$behavior.hasBound) {
-        (this as any).bound();
+        (this as any).bound(flags | BindingFlags.isBinding);
       }
 
       this.$isBound = true;
@@ -228,14 +225,13 @@ export const CustomElementResource: ICustomElementResource = {
         let i = bindables.length;
 
         while (i--) {
-          bindables[i].$unbind(flags);
+          bindables[i].$unbind(flags | BindingFlags.isUnbinding);
         }
 
         if (this.$behavior.hasUnbound) {
-          (this as any).unbound();
+          (this as any).unbound(flags | BindingFlags.isUnbinding);
         }
 
-        this.$bindableCallbacksEnabled = false;
         this.$isBound = false;
       }
     };

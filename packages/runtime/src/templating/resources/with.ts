@@ -20,22 +20,19 @@ export class With {
 
   public valueChanged(): void {
     if (this.$isBound) {
-      this.bindChild();
+      this.bindChild(BindingFlags.isChange);
     }
   }
 
-  public bound(): void {
-    this.bindChild();
+  public bound(flags: BindingFlags): void {
+    this.bindChild(flags);
   }
 
-  public unbound(): void {
-    this.$child.$unbind(BindingFlags.none);
+  public unbound(flags: BindingFlags): void {
+    this.$child.$unbind(flags);
   }
 
-  private bindChild(): void {
-    this.$child.$bind(
-      BindingFlags.none,
-      BindingContext.createScopeFromParent(this.$scope, this.value)
-    );
+  private bindChild(flags: BindingFlags): void {
+    this.$child.$bind(flags, BindingContext.createScopeFromParent(this.$scope, this.value));
   }
 }

@@ -103,12 +103,7 @@ export class RuntimeBehavior implements IRuntimeBehavior {
 
       if (changeHandler in instance) {
         bindableCallbacks[i] = () => instance[changeHandler](instance[name]);
-        observers[name] = new Observer(
-          changeSet,
-          instance[name], (n, o) => instance.$bindableCallbacksEnabled
-            ? instance[changeHandler](n, o)
-            : void 0
-          );
+        observers[name] = new Observer(changeSet, instance[name], (n, o) => instance[changeHandler](n, o));
       } else {
         bindableCallbacks[i] = PLATFORM.noop;
         observers[name] = new Observer(changeSet, instance[name]);
@@ -124,7 +119,6 @@ export class RuntimeBehavior implements IRuntimeBehavior {
 
     instance.$behavior = this;
     instance.$bindableCallbacks = bindableCallbacks;
-    instance.$bindableCallbacksEnabled = false;
 
     return observers;
   }

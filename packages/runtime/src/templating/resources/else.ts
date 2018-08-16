@@ -1,5 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { IScope } from '../../binding/binding-context';
+import { BindingFlags } from '../../binding/binding-flags';
 import { templateController } from '../custom-attribute';
 import { IViewFactory } from '../view';
 import { IViewSlot } from '../view-slot';
@@ -11,11 +12,11 @@ import { IfCore } from './if-core';
 export class Else extends IfCore {
   private ifBehavior: If;
 
-  public bound(scope: IScope): void {
+  public bound(flags: BindingFlags, scope: IScope): void {
     if (this.ifBehavior.condition) {
-      this.hide();
+      this.hide(flags);
     } else {
-      this.show();
+      this.show(flags);
     }
   }
 

@@ -49,11 +49,11 @@ export class Binding implements IBinding, IPropertySubscriber {
   }
 
   public updateTarget(value: any): void {
-    this.targetObserver.setValue(value);
+    this.targetObserver.setValue(value, BindingFlags.sourceContext);
   }
 
   public updateSource(value: any): void {
-    this.sourceExpression.assign(BindingFlags.none, this.$scope, this.locator, value);
+    this.sourceExpression.assign(BindingFlags.targetContext, this.$scope, this.locator, value);
   }
 
   public handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void {
@@ -72,7 +72,7 @@ export class Binding implements IBinding, IPropertySubscriber {
       previousValue = targetObserver.getValue();
       newValue = sourceExpression.evaluate(flags, $scope, locator);
       if (newValue !== previousValue) {
-        targetObserver.setValue(newValue);
+        targetObserver.setValue(newValue, flags);
       }
       if (!(mode & oneTime)) {
         this.version++;
@@ -122,7 +122,7 @@ export class Binding implements IBinding, IPropertySubscriber {
     }
 
     if (mode & toViewOrOneTime) {
-      targetObserver.setValue(sourceExpression.evaluate(flags, scope, this.locator));
+      targetObserver.setValue(sourceExpression.evaluate(flags, scope, this.locator), flags);
     }
     if (mode & toView) {
       sourceExpression.connect(flags, scope, this);
@@ -164,7 +164,7 @@ export class Binding implements IBinding, IPropertySubscriber {
 
     if (flags & BindingFlags.mustEvaluate) {
       const value = sourceExpression.evaluate(flags, $scope, this.locator);
-      this.targetObserver.setValue(value);
+      this.targetObserver.setValue(value, flags);
     }
 
     sourceExpression.connect(flags, $scope, this);

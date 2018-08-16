@@ -32,7 +32,7 @@ export class Aurelia {
         );
       }
 
-      component.$bind(BindingFlags.none);
+      component.$bind(BindingFlags.isStarting | BindingFlags.isBinding);
       component.$attach(config.host);
     };
 
@@ -40,7 +40,7 @@ export class Aurelia {
 
     this.stopTasks.push(() => {
       component.$detach();
-      component.$unbind(BindingFlags.none);
+      component.$unbind(BindingFlags.isStopping | BindingFlags.isUnbinding);
     });
 
     if (this.isStarted) {

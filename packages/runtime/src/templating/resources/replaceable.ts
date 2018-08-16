@@ -16,11 +16,11 @@ export class Replaceable {
     this.$child.$nodes.insertBefore(location);
   }
 
-  public bound(scope: IScope): void {
-    this.$child.$bind(BindingFlags.none, scope);
+  public bound(flags: BindingFlags, scope: IScope): void {
+    this.$child.$bind(flags, scope);
   }
 
-  public unbound(): void {
-    this.$child.$unbind(BindingFlags.none);
+  public unbound(flags: BindingFlags,): void {
+    this.$child.$unbind(flags);
   }
 }

@@ -14,7 +14,7 @@ export interface IBindScope {
  */
 export interface IAccessor<TValue = any> {
   getValue(): TValue;
-  setValue(newValue: TValue): void;
+  setValue(newValue: TValue, flags?: BindingFlags): void;
 }
 
 /**

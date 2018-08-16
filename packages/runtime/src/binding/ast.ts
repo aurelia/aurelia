@@ -571,12 +571,25 @@ export class HtmlLiteral implements IExpression {
 
 export class ArrayLiteral implements IExpression {
   public $kind: ExpressionKind;
-  constructor(public elements: IExpression[]) { }
+  private $symbol: symbol;
+  constructor(public elements: IExpression[]) {
+    this.$symbol = Symbol('ArrayLiteral');
+  }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const elements = this.elements;
     const length = this.elements.length;
-    const result = new Array(length);
+    const $symbol = this.$symbol;
+    let result: any[];
+    if (scope !== undefined) {
+      if ((<Object>scope).hasOwnProperty($symbol)) {
+        result = scope[$symbol];
+      } else {
+        result = scope[$symbol] = new Array(length);
+      }
+    } else {
+      result = new Array(length);
+    }
 
     let i = 0;
     while (i < length) {
@@ -601,13 +614,26 @@ export class ArrayLiteral implements IExpression {
 
 export class ObjectLiteral implements IExpression {
   public $kind: ExpressionKind;
-  constructor(public keys: (number | string)[], public values: IExpression[]) { }
+  private $symbol: symbol;
+  constructor(public keys: (number | string)[], public values: IExpression[]) {
+    this.$symbol = Symbol('ObjectLiteral');
+  }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
-    const instance: Record<string, any> = {};
     const keys = this.keys;
     const values = this.values;
     const length = keys.length;
+    const $symbol = this.$symbol;
+    let instance: Record<string, any>;
+    if (scope !== undefined) {
+      if ((<Object>scope).hasOwnProperty($symbol)) {
+        instance = scope[$symbol];
+      } else {
+        instance = scope[$symbol] = {};
+      }
+    } else {
+      instance = {};
+    }
 
     let i = 0;
     while (i < length) {

@@ -28,7 +28,6 @@ export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable
 
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
-  $bindableCallbacks: (() => void)[];
   $behavior: IRuntimeBehavior;
   $child: IAttach;
 }
@@ -142,12 +141,6 @@ export const CustomElementResource: ICustomElementResource = {
 
       for (let i = 0, ii = bindables.length; i < ii; ++i) {
         bindables[i].$bind(flags | BindingFlags.bindOrigin, scope);
-      }
-
-      const bindableCallbacks = this.$bindableCallbacks;
-
-      for (let i = 0, ii = bindableCallbacks.length; i < ii; ++i) {
-        bindableCallbacks[i]();
       }
 
       if (this.$behavior.hasBound) {

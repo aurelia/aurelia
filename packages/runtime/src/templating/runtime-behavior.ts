@@ -1,4 +1,3 @@
-import { PLATFORM } from '@aurelia/kernel';
 import { BindingFlags } from '../binding/binding-flags';
 import { IChangeSet } from '../binding/change-set';
 import { IAccessor, IPropertySubscriber, ISubscribable, MutationKind } from '../binding/observation';
@@ -93,21 +92,17 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     const observers = {};
     const finalBindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(finalBindables);
-    const bindableCallbackCount = observableNames.length;
-    const bindableCallbacks =  new Array(bindableCallbackCount);
 
-    for (let i = 0, ii = bindableCallbackCount; i < ii; ++i) {
+    for (let i = 0, ii = observableNames.length; i < ii; ++i) {
       const name = observableNames[i];
       const observable = finalBindables[name];
       const changeHandler = observable.callback;
 
-      if (changeHandler in instance) {
-        bindableCallbacks[i] = () => instance[changeHandler](instance[name]);
-        observers[name] = new Observer(changeSet, instance[name], (n, o) => instance[changeHandler](n, o));
-      } else {
-        bindableCallbacks[i] = PLATFORM.noop;
-        observers[name] = new Observer(changeSet, instance[name]);
-      }
+      observers[name] = new Observer(
+        changeSet,
+        instance[name],
+        changeHandler in instance ? (n, o) => instance[changeHandler](n, o) : undefined
+      );
 
       createGetterSetter(instance, name);
     }
@@ -118,7 +113,6 @@ export class RuntimeBehavior implements IRuntimeBehavior {
     });
 
     instance.$behavior = this;
-    instance.$bindableCallbacks = bindableCallbacks;
 
     return observers;
   }

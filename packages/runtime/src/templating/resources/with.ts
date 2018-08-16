@@ -19,9 +19,7 @@ export class With {
   }
 
   public valueChanged(): void {
-    if (this.$isBound) {
-      this.bindChild(BindingFlags.callbackOrigin);
-    }
+    this.bindChild(BindingFlags.callbackOrigin);
   }
 
   public bound(flags: BindingFlags): void {

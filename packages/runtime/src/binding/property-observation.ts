@@ -137,7 +137,8 @@ export class Observer<T>  implements IPropertyObserver<IIndexable, string> {
   constructor(
     changeSet: IChangeSet,
     currentValue: T,
-    private selfCallback?: (newValue: T, oldValue: T) => void | T) {
+    private selfCallback?: (newValue: T, oldValue: T) => void | T
+  ) {
       this.changeSet = changeSet;
       this.currentValue = currentValue;
 
@@ -159,15 +160,15 @@ export class Observer<T>  implements IPropertyObserver<IIndexable, string> {
       this.previousValue = previousValue;
       this.currentValue = newValue;
 
-      if (this.selfCallback !== undefined) {
-        const coercedValue = this.selfCallback(newValue, previousValue);
-
-        if (coercedValue !== undefined) {
-          this.currentValue = newValue = <T>coercedValue;
-        }
-      }
-
       if (!(flags & BindingFlags.bindOrigin)) {
+        if (this.selfCallback !== undefined) {
+          const coercedValue = this.selfCallback(newValue, previousValue);
+
+          if (coercedValue !== undefined) {
+            this.currentValue = newValue = <T>coercedValue;
+          }
+        }
+
         this.notify(newValue, previousValue);
       }
     }

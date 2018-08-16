@@ -84,7 +84,7 @@ export interface ICustomElementResource extends IResourceKind<ITemplateSource, I
 export const CustomElementResource: ICustomElementResource = {
   name: 'custom-element',
 
-  key(name: string): string {
+  keyFrom(name: string): string {
     return `${this.name}:${name}`;
   },
 
@@ -104,7 +104,7 @@ export const CustomElementResource: ICustomElementResource = {
     (Type as Writable<ICustomElementType>).kind = CustomElementResource;
     (Type as Writable<ICustomElementType>).description = description;
     Type.register = function(container: IContainer): void {
-      container.register(Registration.transient(Type.kind.key(description.name), Type));
+      container.register(Registration.transient(Type.kind.keyFrom(description.name), Type));
     };
 
     proto.$hydrate = function(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {

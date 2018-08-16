@@ -75,7 +75,7 @@ export function templateController(nameOrSource: string | Omit<ICustomAttributeS
 export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICustomAttributeType> = {
   name: 'custom-attribute',
 
-  key(name: string): string {
+  keyFrom(name: string): string {
     return `${this.name}:${name}`;
   },
 
@@ -94,7 +94,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
     (Type as Writable<ICustomAttributeType>).kind = CustomAttributeResource;
     (Type as Writable<ICustomAttributeType>).description = description;
     Type.register = function register(container: IContainer){
-      const resourceKey = Type.kind.key(description.name);
+      const resourceKey = Type.kind.keyFrom(description.name);
 
       container.register(Registration.transient(resourceKey, Type));
 

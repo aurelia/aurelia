@@ -17,7 +17,7 @@ export function bindingCommand(nameOrSource: string | IBindingCommandSource) {
 export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindingCommandType> = {
   name: 'binding-command',
 
-  key(name: string): string {
+  keyFrom(name: string): string {
     return `${this.name}:${name}`;
   },
 
@@ -32,7 +32,7 @@ export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindi
     (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;
     (Type as Writable<IBindingCommandType>).description = description;
     Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(Type.kind.key(description.name), Type));
+      container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
     };
 
     return Type;

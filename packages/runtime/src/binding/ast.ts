@@ -1,9 +1,9 @@
-import { Collection } from './observation';
 import { IServiceLocator } from '@aurelia/kernel';
 import { IBinding } from './binding';
 import { BindingBehaviorResource } from './binding-behavior';
 import { BindingContext, IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
+import { Collection } from './observation';
 import { ISignaler } from './signaler';
 import { ValueConverterResource } from './value-converter';
 
@@ -68,7 +68,7 @@ export class BindingBehavior implements IExpression {
   private expressionHasBind: boolean;
   private expressionHasUnbind: boolean;
   constructor(public expression: IsBindingBehavior, public name: string, public args: IsAssign[]) {
-    this.behaviorKey = BindingBehaviorResource.key(this.name);
+    this.behaviorKey = BindingBehaviorResource.keyFrom(this.name);
     if ((<any>expression).expression) {
       this.expressionHasBind = !!(<any>expression).bind;
       this.expressionHasUnbind = !!(<any>expression).unbind;
@@ -125,7 +125,7 @@ export class ValueConverter implements IExpression {
   public allArgs: IsValueConverter[];
   constructor(public expression: IsValueConverter, public name: string, public args: IsAssign[]) {
     this.allArgs = [expression].concat(args);
-    this.converterKey = ValueConverterResource.key(this.name);
+    this.converterKey = ValueConverterResource.keyFrom(this.name);
   }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {

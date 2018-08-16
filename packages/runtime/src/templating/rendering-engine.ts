@@ -44,6 +44,8 @@ const noViewTemplate: ITemplate = {
   }
 };
 
+const defaultCompilerName = 'default';
+
 @inject(IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, IAnimator, all(ITemplateCompiler))
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
@@ -61,10 +63,13 @@ export class RenderingEngine implements IRenderingEngine {
     private animator: IAnimator,
     templateCompilers: ITemplateCompiler[]
   ) {
-    this.compilers = templateCompilers.reduce((acc, item) => {
-      acc[item.name] = item;
-      return acc;
-    }, Object.create(null));
+    this.compilers = templateCompilers.reduce(
+      (acc, item) => {
+        acc[item.name] = item;
+        return acc;
+      },
+      Object.create(null)
+    );
   }
 
   public getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate {
@@ -180,10 +185,11 @@ export class RenderingEngine implements IRenderingEngine {
   private templateFromSource(context: IRenderContext, definition: TemplateDefinition): ITemplate {
     if (definition && definition.templateOrNode) {
       if (definition.build.required) {
-        const compiler = this.compilers[definition.build.compiler];
+        const compilerName = definition.build.compiler || defaultCompilerName;
+        const compiler = this.compilers[compilerName];
 
         if (!compiler) {
-          throw Reporter.error(20, `Requested Compiler: ${compiler.name}`);
+          throw Reporter.error(20, compilerName);
         }
 
         definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>context));
@@ -203,8 +209,7 @@ export function createDefinition(definition: Immutable<ITemplateSource>): Templa
     templateOrNode: definition.templateOrNode,
     cache: definition.cache || 0,
     build: definition.build || {
-      required: false,
-      compiler: 'default'
+      required: false
     },
     bindables: definition.bindables || PLATFORM.emptyObject,
     instructions: definition.instructions ? Array.from(definition.instructions) : PLATFORM.emptyArray,
@@ -224,8 +229,8 @@ export function createDefinition(definition: Immutable<ITemplateSource>): Templa
 // and create instances of it on demand.
 /*@internal*/
 export class CompiledTemplate implements ITemplate {
-  private createNodeSequence: () => INodeSequence;
   public renderContext: IRenderContext;
+  private createNodeSequence: () => INodeSequence;
 
   constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
     this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
@@ -243,12 +248,12 @@ export class CompiledTemplate implements ITemplate {
 export class RuntimeCompilationResources implements IResourceDescriptions {
   constructor(private context: ExposedContext) {}
 
-  public get<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null {
-    const key = kind.key(name);
+  public find<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null {
+    const key = kind.keyFrom(name);
     const resolver = this.context.getResolver(key);
 
     if (resolver !== null && resolver.getFactory) {
-      let factory = resolver.getFactory(this.context);
+      const factory = resolver.getFactory(this.context);
 
       if (factory !== null) {
         return (factory.type as IResourceType<TSource>).description;

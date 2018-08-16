@@ -23,7 +23,7 @@ export enum TargetedInstructionType {
 
 export interface IBuildInstruction {
   required: boolean;
-  compiler: string;
+  compiler?: string;
 }
 
 export interface ITemplateSource {

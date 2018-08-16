@@ -1,6 +1,19 @@
 export enum BindingFlags {
   none                = 0b0000000000000,
+  /**
+   * This was used for connect-queue but currently does nothing more than determine whether to throw an error or not for undefined functions.
+   *
+   * We can probably deprecate this.
+   */
   mustEvaluate        = 0b0000000000001,
+  /**
+   * (not yet used)
+   * Indicates that the change (whether it's to-view or from-view) needs to be batched via ChangeSet
+   *
+   * May want to change this to the inverse, as we'll want to have this to be the default for changes flowing from source to target.
+   *
+   * We do, however, also want to provide an opt-out to that for various edge cases.
+   */
   batchChanges        = 0b0000000000010,
   /**
    * The invocation originates from Aurelia's component.$bind (it is a "first" bind)

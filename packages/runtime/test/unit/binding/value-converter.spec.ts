@@ -16,7 +16,7 @@ describe(`@valueConverter('foo')`, () => {
     expect(FooValueConverter['kind']).to.equal(ValueConverterResource);
     expect(FooValueConverter['description'].name).to.equal('foo');
     FooValueConverter['register'](container);
-    const instance = container.get(ValueConverterResource.key('foo'));
+    const instance = container.get(ValueConverterResource.keyFrom('foo'));
     expect(instance).to.be.instanceof(FooValueConverter);
   });
 

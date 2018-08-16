@@ -16,7 +16,7 @@ describe(`@bindingBehavior('foo')`, () => {
     expect(FooBindingBehavior['kind']).to.equal(BindingBehaviorResource);
     expect(FooBindingBehavior['description'].name).to.equal('foo');
     FooBindingBehavior['register'](container);
-    const instance = container.get(BindingBehaviorResource.key('foo'));
+    const instance = container.get(BindingBehaviorResource.keyFrom('foo'));
     expect(instance).to.be.instanceof(FooBindingBehavior);
   });
 

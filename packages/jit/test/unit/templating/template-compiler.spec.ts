@@ -23,8 +23,8 @@ describe('TemplateCompiler', () => {
     register(container);
     expressionParser = container.get(IExpressionParser);
     sut = new TemplateCompiler(expressionParser);
-    container.registerResolver(CustomAttributeResource.key('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
-    container.registerResolver(BindingCommandResource.key('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
+    container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
+    container.registerResolver(BindingCommandResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
   });
 
@@ -313,7 +313,7 @@ describe('TemplateCompiler', () => {
         it(inputMarkup, () => {
           outputMarkup = new Array(count + 1).join(outputMarkup);
           instructions = new Array(count).fill(instructions).reduce((acc, item) => acc.concat(item));
-          const actual = sut.compile(<any>{templateOrNode: inputMarkup, instructions:[]},<any>{get(){}});
+          const actual = sut.compile(<any>{templateOrNode: inputMarkup, instructions:[]},<any>{find(){}});
           const expected = {
             templateOrNode: createElement(outputMarkup),
             instructions: [instructions]

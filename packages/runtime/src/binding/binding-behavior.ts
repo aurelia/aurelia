@@ -16,7 +16,7 @@ export function bindingBehavior(nameOrSource: string | IBindingBehaviorSource) {
 export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBindingBehaviorType> = {
   name: 'binding-behavior',
 
-  key(name: string) {
+  keyFrom(name: string) {
     return `${this.name}:${name}`;
   },
 
@@ -31,7 +31,7 @@ export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBin
     (Type as Writable<IBindingBehaviorType>).kind = BindingBehaviorResource;
     (Type as Writable<IBindingBehaviorType>).description = description;
     Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(Type.kind.key(description.name), Type));
+      container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
     };
 
     return Type;

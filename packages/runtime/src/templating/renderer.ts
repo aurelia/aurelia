@@ -135,7 +135,7 @@ export class Renderer implements IRenderer {
   public [TargetedInstructionType.hydrateElement](renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>) {
     const context = this.context;
     const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
-    const component = context.get<ICustomElement>(CustomElementResource.key(instruction.res));
+    const component = context.get<ICustomElement>(CustomElementResource.keyFrom(instruction.res));
 
     this.hydrateElementInstance(renderable, target, instruction, component);
     operation.tryConnectElementToSlot(component);
@@ -148,7 +148,7 @@ export class Renderer implements IRenderer {
     const context = this.context;
     const operation = context.beginComponentOperation(renderable, target, instruction);
 
-    const component = context.get<ICustomAttribute>(CustomAttributeResource.key(instruction.res));
+    const component = context.get<ICustomAttribute>(CustomAttributeResource.keyFrom(instruction.res));
     component.$hydrate(this.renderingEngine);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -168,7 +168,7 @@ export class Renderer implements IRenderer {
     const context = this.context;
     const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
 
-    const component = context.get<ICustomAttribute>(CustomAttributeResource.key(instruction.res));
+    const component = context.get<ICustomAttribute>(CustomAttributeResource.keyFrom(instruction.res));
     component.$hydrate(this.renderingEngine);
     operation.tryConnectTemplateControllerToSlot(component);
 

@@ -55,7 +55,7 @@ export function hydrateCustomAttribute<T>(
   }
 
   const attribute = container.get<T & ICustomAttribute>(
-    CustomAttributeResource.key(AttributeType.description.name)
+    CustomAttributeResource.keyFrom(AttributeType.description.name)
   );
 
   attribute.$hydrate(container.get(IRenderingEngine));

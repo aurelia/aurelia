@@ -151,7 +151,7 @@ export class TemplateCompiler implements ITemplateCompiler {
               ]);
           }
         }
-        const command = resources.get(BindingCommandResource, commandName);
+        const command = resources.find(BindingCommandResource, commandName);
         if (command !== undefined) {
           const expression = this.expressionParser.parse(value, BindingType.CustomCommand);
           // TODO: implement behavior (this is just a temporary placeholder)
@@ -169,7 +169,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           return new RefBindingInstruction(expression);
       }
     }
-    const attribute = resources.get(CustomAttributeResource, name);
+    const attribute = resources.find(CustomAttributeResource, name);
     if (attribute !== undefined) {
       // CustomAttribute
       // TODO: properly parse semicolon-separated bindings

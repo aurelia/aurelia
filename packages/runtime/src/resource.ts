@@ -2,7 +2,7 @@ import { Constructable, Immutable, IRegistry } from '@aurelia/kernel';
 
 export interface IResourceKind<TSource, TType extends IResourceType<TSource> = IResourceType<TSource>> {
   readonly name: string;
-  key(name: string): string;
+  keyFrom(name: string): string;
   isType<T extends Constructable>(type: T): type is T & TType;
   define<T extends Constructable>(nameOrSource: string | TSource, ctor: T): T & TType;
 }
@@ -15,5 +15,5 @@ export interface IResourceType<TSource = {}, T = {}> extends Constructable<T>, I
 }
 
 export interface IResourceDescriptions {
-  get<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null;
+  find<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null;
 }

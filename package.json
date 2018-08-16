@@ -2,6 +2,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "setup": "npm ci && npm run bootstrap && npm run build",
     "bootstrap": "lerna bootstrap --ci --hoist",
     "build": "lerna run build",
     "test": "lerna run test",

@@ -2,7 +2,14 @@
   "extends": "../../tsconfig-build.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "dist"
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@aurelia/debug": ["@aurelia/debug/src"],
+      "@aurelia/jit": ["@aurelia/jit/src"],
+      "@aurelia/runtime": ["@aurelia/runtime/src"],
+      "@aurelia/kernel": ["@aurelia/kernel/src"]
+    }
   },
   "include": ["."]
 }

@@ -222,7 +222,7 @@ export class GetterController {
 
     if (dynamicDependencies) {
       this.isCollecting = false;
-      this.dependencies.forEach(x => x.subscribe(this, BindingFlags.computedContext));
+      this.dependencies.forEach(x => x.subscribe(this, BindingFlags.computedOrigin));
     }
 
     return this.value;
@@ -237,7 +237,7 @@ export class GetterController {
   }
 
   private unsubscribeAllDependencies() {
-    this.dependencies.forEach(x => x.unsubscribe(this, BindingFlags.computedContext));
+    this.dependencies.forEach(x => x.unsubscribe(this, BindingFlags.computedOrigin));
     this.dependencies.length = 0;
   }
 

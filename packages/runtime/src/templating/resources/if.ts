@@ -17,7 +17,7 @@ export class If extends IfCore {
   private elseBehavior: Else;
 
   public conditionChanged(newValue: boolean): void { // can/should we get the flags in here from @templateController's $bind?
-    this.update(newValue, BindingFlags.isBindableCallback);
+    this.update(newValue, BindingFlags.callbackOrigin);
   }
 
   public link(elseBehavior: Else): this {

@@ -49,11 +49,11 @@ export class Binding implements IBinding, IPropertySubscriber {
   }
 
   public updateTarget(value: any): void {
-    this.targetObserver.setValue(value, BindingFlags.sourceContext);
+    this.targetObserver.setValue(value, BindingFlags.sourceOrigin);
   }
 
   public updateSource(value: any): void {
-    this.sourceExpression.assign(BindingFlags.targetContext, this.$scope, this.locator, value);
+    this.sourceExpression.assign(BindingFlags.targetOrigin, this.$scope, this.locator, value);
   }
 
   public handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void {
@@ -65,7 +65,7 @@ export class Binding implements IBinding, IPropertySubscriber {
     const $scope = this.$scope;
     const locator = this.locator;
 
-    if (flags & BindingFlags.sourceContext) {
+    if (flags & BindingFlags.sourceOrigin) {
       const targetObserver = this.targetObserver;
       const mode = this.mode;
 
@@ -82,7 +82,7 @@ export class Binding implements IBinding, IPropertySubscriber {
       return;
     }
 
-    if (flags & BindingFlags.targetContext) {
+    if (flags & BindingFlags.targetOrigin) {
       if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
         sourceExpression.assign(flags, $scope, locator, newValue)
       }
@@ -128,7 +128,7 @@ export class Binding implements IBinding, IPropertySubscriber {
       sourceExpression.connect(flags, scope, this);
     }
     if (mode & fromView) {
-      targetObserver.subscribe(this, BindingFlags.targetContext);
+      targetObserver.subscribe(this, BindingFlags.targetOrigin);
     }
   }
 
@@ -149,7 +149,7 @@ export class Binding implements IBinding, IPropertySubscriber {
       targetObserver.unbind(flags);
     }
     if (targetObserver.unsubscribe) {
-      targetObserver.unsubscribe(this, BindingFlags.targetContext);
+      targetObserver.unsubscribe(this, BindingFlags.targetOrigin);
     }
     this.unobserve(true);
   }
@@ -187,7 +187,7 @@ export class Binding implements IBinding, IPropertySubscriber {
         i++;
       }
       this[slotNames[i]] = observer;
-      observer.subscribe(this, BindingFlags.sourceContext);
+      observer.subscribe(this, BindingFlags.sourceOrigin);
       // increment the slot count.
       if (i === observerSlots) {
         this.observerSlots = i + 1;

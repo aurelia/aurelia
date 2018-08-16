@@ -20,7 +20,7 @@ export class With {
 
   public valueChanged(): void {
     if (this.$isBound) {
-      this.bindChild(BindingFlags.isBindableCallback);
+      this.bindChild(BindingFlags.callbackOrigin);
     }
   }
 

@@ -74,8 +74,8 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
 
   public setValueCore(newValue: Primitive | IIndexable, flags: BindingFlags): void {
     this.obj[this.propertyKey] = newValue;
-    if (!(flags & BindingFlags.isBinding)) {
-      this.notify(flags | BindingFlags.sourceContext);
+    if (!(flags & BindingFlags.bindOrigin)) {
+      this.notify(flags | BindingFlags.sourceOrigin);
     }
   }
 
@@ -86,7 +86,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
   public handleEvent(): void {
     this.oldValue = this.currentValue;
     this.currentValue = this.getValue();
-    this.notify(BindingFlags.targetContext);
+    this.notify(BindingFlags.targetOrigin);
     this.oldValue = this.currentValue;
   }
 
@@ -153,19 +153,19 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
     if (!this.valueObserver) {
       this.valueObserver = this.obj['$observers'].model || this.obj['$observers'].value;
       if (this.valueObserver) {
-        this.valueObserver.subscribe(this, BindingFlags.checkedValueContext);
+        this.valueObserver.subscribe(this, BindingFlags.checkedValueOrigin);
       }
     }
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this, BindingFlags.checkedArrayContext);
+      this.arrayObserver.unsubscribeBatched(this, BindingFlags.checkedArrayOrigin);
       this.arrayObserver = null;
     }
     if (this.obj.type === 'checkbox' && Array.isArray(newValue)) {
       this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
-      this.arrayObserver.subscribeBatched(this, BindingFlags.checkedArrayContext);
+      this.arrayObserver.subscribeBatched(this, BindingFlags.checkedArrayOrigin);
     }
     this.synchronizeElement();
-    if (!(flags & BindingFlags.isBinding)) {
+    if (!(flags & BindingFlags.bindOrigin)) {
       this.notify(flags);
     }
   }
@@ -179,7 +179,7 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
 
   // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
   public handleChange(newValue: Primitive | IIndexable, previousValue?: Primitive | IIndexable, flags?: BindingFlags): void {
-    this.setValue(newValue, flags | BindingFlags.isBindableCallback);
+    this.setValue(newValue, flags | BindingFlags.callbackOrigin);
   }
 
   public synchronizeElement(): void {
@@ -206,7 +206,7 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
 
   public handleEvent(): void {
     this.synchronizeValue();
-    this.notify(BindingFlags.isBindableCallback);
+    this.notify(BindingFlags.callbackOrigin);
   }
 
   public synchronizeValue(): void {
@@ -251,11 +251,11 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
 
   public unbind(): void {
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this, BindingFlags.checkedArrayContext);
+      this.arrayObserver.unsubscribeBatched(this, BindingFlags.checkedArrayOrigin);
       this.arrayObserver = null;
     }
     if (this.valueObserver) {
-      this.valueObserver.unsubscribe(this, BindingFlags.checkedValueContext);
+      this.valueObserver.unsubscribe(this, BindingFlags.checkedValueOrigin);
     }
   }
 }
@@ -315,15 +315,15 @@ export class SelectValueObserver
       throw new Error('Only null or Array instances can be bound to a multi-select.');
     }
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this, BindingFlags.selectArrayContext);
+      this.arrayObserver.unsubscribeBatched(this, BindingFlags.selectArrayOrigin);
       this.arrayObserver = null;
     }
     if (isArray) {
       this.arrayObserver = this.observerLocator.getArrayObserver(<(Primitive | IIndexable)[]>newValue);
-      this.arrayObserver.subscribeBatched(this, BindingFlags.selectArrayContext);
+      this.arrayObserver.subscribeBatched(this, BindingFlags.selectArrayOrigin);
     }
     this.synchronizeOptions();
-    if (!(flags & BindingFlags.isBinding)) {
+    if (!(flags & BindingFlags.bindOrigin)) {
       this.notify(flags);
     }
   }
@@ -353,7 +353,7 @@ export class SelectValueObserver
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
     this.synchronizeValue();
     // TODO: need to clean up / improve the way collection changes are handled here (we currently just create and assign a new array to the source each change)
-    this.notify(BindingFlags.isBindableCallback);
+    this.notify(BindingFlags.callbackOrigin);
   }
 
   public synchronizeOptions(): void {
@@ -434,7 +434,7 @@ export class SelectValueObserver
     this.nodeObserver = null;
 
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this, BindingFlags.selectArrayContext);
+      this.arrayObserver.unsubscribeBatched(this, BindingFlags.selectArrayOrigin);
       this.arrayObserver = null;
     }
   }

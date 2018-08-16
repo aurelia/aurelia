@@ -97,7 +97,7 @@ export class SetterObserver implements IPropertyObserver<IIndexable, string> {
     if (currentValue !== newValue) {
       this.previousValue = currentValue;
       this.currentValue = newValue;
-      if (!(flags & BindingFlags.isBinding)) {
+      if (!(flags & BindingFlags.bindOrigin)) {
         this.notify(newValue, currentValue, flags);
       }
     }
@@ -167,7 +167,7 @@ export class Observer<T>  implements IPropertyObserver<IIndexable, string> {
         }
       }
 
-      if (!(flags & BindingFlags.isBinding)) {
+      if (!(flags & BindingFlags.bindOrigin)) {
         this.notify(newValue, previousValue);
       }
     }

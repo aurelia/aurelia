@@ -72,7 +72,8 @@ function handleDelegatedEvent(event: Event & { propagationStopped?: boolean; sta
   }
 }
 
-class ListenerTracker {
+/*@internal*/
+export class ListenerTracker {
   private count = 0;
 
   constructor(
@@ -101,7 +102,8 @@ class ListenerTracker {
 /**
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
-class DelegateOrCaptureSubscription {
+/*@internal*/
+export class DelegateOrCaptureSubscription {
   constructor(
     public entry: ListenerTracker,
     public lookup: Record<string, EventListenerOrEventListenerObject>,
@@ -120,7 +122,8 @@ class DelegateOrCaptureSubscription {
 /**
  * Enable dispose() pattern for addEventListener for `trigger`
  */
-class TriggerSubscription {
+/*@internal*/
+export class TriggerSubscription {
   constructor(
     public target: INode,
     public targetEvent: string,
@@ -199,7 +202,8 @@ export interface IEventManager {
 export const IEventManager = DI.createInterface<IEventManager>()
   .withDefault(x => x.singleton(EventManager));
 
-class EventManager implements IEventManager {
+/*@internal*/
+export class EventManager implements IEventManager {
   public elementHandlerLookup: Record<string, Record<string, string[]>> = {};
   public delegatedHandlers: Record<string, ListenerTracker> = {};
   public capturedHandlers: Record<string, ListenerTracker> = {};

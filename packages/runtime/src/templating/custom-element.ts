@@ -296,7 +296,8 @@ function determineProjector(
 
 const childObserverOptions = { childList: true };
 
-class ShadowDOMProjector implements IViewProjector {
+/*@internal*/
+export class ShadowDOMProjector implements IViewProjector {
   private shadowRoot: INode;
 
   constructor(
@@ -331,7 +332,8 @@ class ShadowDOMProjector implements IViewProjector {
   }
 }
 
-class ContainerlessProjector implements IViewProjector {
+/*@internal*/
+export class ContainerlessProjector implements IViewProjector {
   private location: IRenderLocation;
 
   constructor(customElement: ICustomElement, host: INode) {
@@ -360,7 +362,8 @@ class ContainerlessProjector implements IViewProjector {
   }
 }
 
-class HostProjector implements IViewProjector {
+/*@internal*/
+export class HostProjector implements IViewProjector {
   constructor(customElement: ICustomElement, private host: INode) {
     (host as any).$customElement = customElement;
   }

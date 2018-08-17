@@ -6,10 +6,10 @@
     "serve": "parcel index.html --no-cache --no-source-maps"
   },
   "dependencies": {
-    "@aurelia/debug": "^0.1.0",
-    "@aurelia/jit": "^0.1.0",
-    "@aurelia/kernel": "^0.1.0",
-    "@aurelia/runtime": "^0.1.0"
+    "@aurelia/debug": "file:../../debug/aurelia-debug-0.1.0.tgz",
+    "@aurelia/jit": "file:../../jit/aurelia-jit-0.1.0.tgz",
+    "@aurelia/kernel": "file:../../kernel/aurelia-kernel-0.1.0.tgz",
+    "@aurelia/runtime": "file:../../runtime/aurelia-runtime-0.1.0.tgz"
   },
   "devDependencies": {
     "@types/node": "^8.10.22",

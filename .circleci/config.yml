@@ -54,7 +54,6 @@ jobs:
             JUNIT_REPORT_PATH: ./junit/
             JUNIT_REPORT_NAME: test-results.xml
             TS_NODE_PROJECT: ./scripts/tsconfig.json
-            CC_TEST_REPORTER_ID: asdf
       - run:
           name: Process coverage results for Code Climate
           command: |
@@ -66,7 +65,9 @@ jobs:
             #~/cc-test-reporter format-coverage ~/repo/packages/plugin-requirejs/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-plugin-requirejs.json
             #~/cc-test-reporter format-coverage ~/repo/packages/plugin-svg/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-plugin-svg.json
             ~/cc-test-reporter sum-coverage ~/repo/code-climate/coverage-*.json -p 3 -o ~/repo/coverage-combined.json
-            # ~/cc-test-reporter upload-coverage -i ~/repo/coverage-combined.json
+            ~/cc-test-reporter upload-coverage -i ~/repo/coverage-combined.json
+          environment:
+            CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
       - run:
           name: Process coverage for Codecov
           command: |

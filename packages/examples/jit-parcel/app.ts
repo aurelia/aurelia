@@ -15,7 +15,6 @@ class Todo {
     <div if.bind="duplicateMessage">
       \${message}
     </div>
-    <div else>No Message Duplicated</div>
     <div repeat.for="todo of todos">
       \${description}
     </div>
@@ -26,6 +25,8 @@ class Todo {
     required: true,
     compiler: 'default'
   },
+  instructions: [],
+  surrogates: [],
   dependencies: []
 })
 export class App {

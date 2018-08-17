@@ -4,7 +4,7 @@
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![CircleCI](https://circleci.com/gh/aurelia/aurelia.svg?style=shield)](https://circleci.com/gh/aurelia/aurelia)
-[![codecov](https://codecov.io/gh/aurelia/aurelia/branch/master/graph/badge.svg)](https://codecov.io/gh/aurelia/aurelia)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/5ac0e13689735698073a/test_coverage)](https://codeclimate.com/github/aurelia/aurelia/test_coverage)
 
 This is the Aurelia vNext monorepo, containing core and plugin packages, examples, and documentation for the next major version of [Aurelia](http://www.aurelia.io/).
 

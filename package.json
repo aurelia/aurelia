@@ -2,13 +2,12 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "bootstrap": "lerna bootstrap --ci --hoist --ignore jit-parcel",
-    "bootstrap:examples": "lerna bootstrap --ci --hoist --scope jit-parcel --nohoist @aurelia/*",
-    "build": "lerna run build --ignore jit-parcel",
-    "test": "lerna run test --ignore jit-parcel",
-    "lint": "lerna run lint --ignore jit-parcel",
-    "publish:local": "lerna run publish:local --ignore jit-parcel",
-    "init:examples": "npm ci && npm run bootstrap && npm run build && npm run publish:local && npm run bootstrap:examples"
+    "bootstrap": "lerna bootstrap --ci --hoist",
+    "build": "lerna run build",
+    "test": "lerna run test",
+    "lint": "lerna run lint",
+    "publish:local": "lerna run publish:local",
+    "init": "npm ci && npm run bootstrap && npm run build && npm run publish:local"
   },
   "dependencies": {},
   "devDependencies": {

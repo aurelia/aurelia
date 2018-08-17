@@ -274,17 +274,11 @@ export class AccessMember implements IExpression {
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const instance = this.object.evaluate(flags, scope, locator);
-    return instance === null || instance === undefined ? instance : instance[this.name];
+    return instance === null || instance === undefined ? undefined : instance[this.name];
   }
 
   public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any) {
-    let instance = this.object.evaluate(flags, scope, locator);
-
-    if (instance === null || typeof instance !== 'object') {
-      instance = {};
-      this.object.assign(flags, scope, locator, instance);
-    }
-
+    const instance = this.object.evaluate(flags, scope, locator);
     instance[this.name] = value;
     return value;
   }
@@ -293,7 +287,7 @@ export class AccessMember implements IExpression {
     this.object.connect(flags, scope, binding);
 
     const obj = this.object.evaluate(flags, scope, null);
-    if (obj) {
+    if (typeof obj === 'object') {
       binding.observeProperty(flags, obj, this.name);
     }
   }
@@ -577,12 +571,25 @@ export class HtmlLiteral implements IExpression {
 
 export class ArrayLiteral implements IExpression {
   public $kind: ExpressionKind;
-  constructor(public elements: IExpression[]) { }
+  private $symbol: symbol;
+  constructor(public elements: IExpression[]) {
+    this.$symbol = Symbol('ArrayLiteral');
+  }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
     const elements = this.elements;
     const length = this.elements.length;
-    const result = new Array(length);
+    const $symbol = this.$symbol;
+    let result: any[];
+    if (scope !== undefined) {
+      if ((<Object>scope).hasOwnProperty($symbol)) {
+        result = scope[$symbol];
+      } else {
+        result = scope[$symbol] = new Array(length);
+      }
+    } else {
+      result = new Array(length);
+    }
 
     let i = 0;
     while (i < length) {
@@ -607,13 +614,26 @@ export class ArrayLiteral implements IExpression {
 
 export class ObjectLiteral implements IExpression {
   public $kind: ExpressionKind;
-  constructor(public keys: (number | string)[], public values: IExpression[]) { }
+  private $symbol: symbol;
+  constructor(public keys: (number | string)[], public values: IExpression[]) {
+    this.$symbol = Symbol('ObjectLiteral');
+  }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator) {
-    const instance: Record<string, any> = {};
     const keys = this.keys;
     const values = this.values;
     const length = keys.length;
+    const $symbol = this.$symbol;
+    let instance: Record<string, any>;
+    if (scope !== undefined) {
+      if ((<Object>scope).hasOwnProperty($symbol)) {
+        instance = scope[$symbol];
+      } else {
+        instance = scope[$symbol] = {};
+      }
+    } else {
+      instance = {};
+    }
 
     let i = 0;
     while (i < length) {

@@ -2,6 +2,9 @@ import { DOM } from '@aurelia/runtime';
 import { expect } from 'chai';
 
 export function verifyEqual(actual: any, expected: any): any {
+  if (typeof expected === 'symbol') {
+    return;
+  }
   if (typeof expected !== 'object' || expected === null || expected === undefined) {
     expect(actual).to.equal(expected);
     return;

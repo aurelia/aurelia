@@ -7,7 +7,8 @@
     "build": "lerna run build --ignore jit-parcel",
     "test": "lerna run test --ignore jit-parcel",
     "lint": "lerna run lint --ignore jit-parcel",
-    "publish:local": "lerna run publish:local --ignore jit-parcel"
+    "publish:local": "lerna run publish:local --ignore jit-parcel",
+    "init:examples": "npm ci && npm run bootstrap && npm run build && npm run publish:local && npm run bootstrap:examples"
   },
   "dependencies": {},
   "devDependencies": {

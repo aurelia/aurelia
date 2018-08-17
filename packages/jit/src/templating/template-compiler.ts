@@ -30,11 +30,17 @@ export class TemplateCompiler implements ITemplateCompiler {
   constructor(private expressionParser: IExpressionParser) { }
 
   public compile(definition: Required<ITemplateSource>, resources: IResourceDescriptions): TemplateDefinition {
-    let node = definition.templateOrNode;
-    if (!(<any>node).nodeType) {
-      domParser.innerHTML = <string>node;
+    let node = <Node>definition.templateOrNode;
+    if (!node.nodeType) {
+      domParser.innerHTML = <any>node;
       node = domParser.firstChild;
-      definition.templateOrNode = <Node>node;
+      const fragment = document.createDocumentFragment();
+      let next = node.nextSibling;
+      do {
+        fragment.appendChild(node);
+        node = next;
+      } while (node && (next = node.nextSibling));
+      definition.templateOrNode = fragment;
     }
     const instructions = definition.instructions;
     while (node) {

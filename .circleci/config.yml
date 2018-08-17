@@ -59,13 +59,13 @@ jobs:
           name: Process coverage results for Code Climate
           command: |
             mkdir ~/repo/code-climate
-            ~/cc-test-reporter format-coverage ~/repo/packages/debug/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-debug.json
+            #~/cc-test-reporter format-coverage ~/repo/packages/debug/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-debug.json
             ~/cc-test-reporter format-coverage ~/repo/packages/jit/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-jit.json
             ~/cc-test-reporter format-coverage ~/repo/packages/kernel/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-kernel.json
             ~/cc-test-reporter format-coverage ~/repo/packages/runtime/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-runtime.json
-            ~/cc-test-reporter format-coverage ~/repo/packages/plugin-requirejs/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-plugin-requirejs.json
-            ~/cc-test-reporter format-coverage ~/repo/packages/plugin-svg/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-plugin-svg.json
-            ~/cc-test-reporter sum-coverage ~/repo/code-climate/coverage-*.json -p 6 -o ~/repo/coverage-combined.json
+            #~/cc-test-reporter format-coverage ~/repo/packages/plugin-requirejs/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-plugin-requirejs.json
+            #~/cc-test-reporter format-coverage ~/repo/packages/plugin-svg/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-plugin-svg.json
+            ~/cc-test-reporter sum-coverage ~/repo/code-climate/coverage-*.json -p 3 -o ~/repo/coverage-combined.json
             # ~/cc-test-reporter upload-coverage -i ~/repo/coverage-combined.json
       - run:
           name: Process coverage for Codecov

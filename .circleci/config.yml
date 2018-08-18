@@ -142,10 +142,14 @@ jobs:
       - run:
           name: Serve jit-parcel in the background
           background: true
-          command: npm run serve
+          command: |
+            cd ./packages/examples/jit-parcel
+            npm run serve
       - run:
           name: Run the e2e tests
-          command: npm run e2e
+          command: |
+            cd ./packages/examples/jit-parcel
+            npm run e2e
 
 workflows:
     version: 2

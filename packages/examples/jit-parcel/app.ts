@@ -32,10 +32,10 @@ type ObservedTodos = Todo[] & { $observer: ArrayObserver };
       <button id="clearTodos" class="ui button" click.trigger="clearTodos()">Clear Todos</button>
       <button id="toggleTodos" class="ui button" click.trigger="toggleTodos()">Toggle Todos</button>
     </div>
-    <div>\${description}</div>
-    <div class="ui divided list">
+    <div id="descriptionText">\${description}</div>
+    <div class="ui divided list todos">
       <div repeat.for="todo of todos">
-        <div class="item">
+        <div class="item todo">
           <div id.bind="\`todo-\${todo.id}\`" class="content">
             #\${todo.id} - \${todo.app.description} - \${todo.description}
             <input id.bind="\`todo-\${todo.id}-done\`" type="checkbox" checked.two-way="todo.done">

@@ -32,7 +32,6 @@ export class TemplateCompiler implements ITemplateCompiler {
   constructor(private expressionParser: IExpressionParser) { }
 
   public compile(definition: Required<ITemplateSource>, resources: IResourceDescriptions): TemplateDefinition {
-    console.log(`compile`, definition);
     let node = <Node>definition.templateOrNode;
     if (!node.nodeType) {
       domParser.innerHTML = <any>node;
@@ -46,7 +45,6 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   /*@internal*/
   public compileNode(node: Node, instructions: TargetedInstruction[][], resources: IResourceDescriptions): Node {
-    console.log(`compileNode`, node, instructions);
     switch (node.nodeType) {
       case NodeType.Element:
         this.compileElementNode(<Element>node, instructions, resources);

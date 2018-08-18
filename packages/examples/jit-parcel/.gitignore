@@ -1,2 +1,3 @@
 dist
 .cache
+package-lock.json

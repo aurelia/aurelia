@@ -13,12 +13,7 @@
   },
   "devDependencies": {
     "@types/node": "^8.10.22",
-    "cross-env": "^5.2.0",
     "parcel-bundler": "^1.9.7",
-    "path": "^0.12.7",
-    "rimraf": "^2.6.2",
-    "ts-node": "^7.0.0",
-    "tsconfig-paths": "^3.5.0",
     "typescript": "^3.0.1"
   }
 }

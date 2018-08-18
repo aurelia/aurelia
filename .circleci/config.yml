@@ -39,10 +39,16 @@ jobs:
           command: |
             npm run bootstrap
             npm run build
+      - run:
+          name: "Create tarballs from the build outputs"
+          command: |
+            npm run publish:local
       - persist_to_workspace:
-          root: .
-          paths: packages/*/dist
-          paths: packages/*/node_modules
+          root: ~/repo
+          paths:
+            - packages/*/dist
+            - packages/*/node_modules
+            - packages/*/*.tgz
 
   unit_tests:
     <<: *defaults
@@ -129,11 +135,7 @@ jobs:
       - restore_cache:
           key: *cache_key
       - attach_workspace:
-          at: .
-      - run:
-          name: "Create tarballs from the build outputs"
-          command: |
-            npm run publish:local
+          at: ~/repo
       - run:
           name: Install jit-parcel
           command: |

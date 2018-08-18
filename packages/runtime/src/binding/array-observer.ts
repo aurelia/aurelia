@@ -12,26 +12,6 @@ export const nativeSplice = proto.splice;
 export const nativeReverse = proto.reverse;
 export const nativeSort = proto.sort;
 
-export function enableArrayObservation(): void {
-  proto.push = observePush;
-  proto.unshift = observeUnshift;
-  proto.pop = observePop;
-  proto.shift = observeShift;
-  proto.splice = observeSplice;
-  proto.reverse = observeReverse;
-  proto.sort = observeSort;
-}
-
-export function disableArrayObservation(): void {
-  proto.push = nativePush;
-  proto.unshift = nativeUnshift;
-  proto.pop = nativePop;
-  proto.shift = nativeShift;
-  proto.splice = nativeSplice;
-  proto.reverse = nativeReverse;
-  proto.sort = nativeSort;
-}
-
 // https://tc39.github.io/ecma262/#sec-array.prototype.push
 function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
   const o = this.$observer;
@@ -51,7 +31,7 @@ function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
   }
   o.notify('push', arguments);
   return this.length;
-};
+}
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
 function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift>  {
@@ -69,7 +49,7 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift> 
   const len = nativeUnshift.apply(this, arguments);
   o.notify('unshift', arguments);
   return len;
-};
+}
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.pop
 function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
@@ -87,7 +67,7 @@ function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
   nativePop.call(indexMap);
   o.notify('pop');
   return element;
-};
+}
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.shift
 function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
@@ -104,7 +84,7 @@ function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
   nativeShift.call(indexMap);
   o.notify('shift');
   return element;
-};
+}
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.splice
 function observeSplice(this: IObservedArray, start: number, deleteCount?: number): ReturnType<typeof nativeSplice> {
@@ -138,7 +118,7 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
   const deleted = nativeSplice.apply(this, arguments);
   o.notify('splice', arguments);
   return deleted;
-};
+}
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
 function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> {
@@ -159,7 +139,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
   }
   o.notify('reverse');
   return this;
-};
+}
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.sort
 // https://github.com/v8/v8/blob/master/src/js/array.js
@@ -311,6 +291,32 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
       from = highStart;
     }
   }
+}
+
+for (const observe of [observePush, observeUnshift, observePop, observeShift, observeSplice, observeReverse, observeSort]) {
+  Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+}
+
+export function enableArrayObservation(): void {
+  if (proto.push['observing'] !== true) proto.push = observePush;
+  if (proto.unshift['observing'] !== true) proto.unshift = observeUnshift;
+  if (proto.pop['observing'] !== true) proto.pop = observePop;
+  if (proto.shift['observing'] !== true) proto.shift = observeShift;
+  if (proto.splice['observing'] !== true) proto.splice = observeSplice;
+  if (proto.reverse['observing'] !== true) proto.reverse = observeReverse;
+  if (proto.sort['observing'] !== true) proto.sort = observeSort;
+}
+
+enableArrayObservation();
+
+export function disableArrayObservation(): void {
+  if (proto.push['observing'] === true) proto.push = nativePush;
+  if (proto.unshift['observing'] === true) proto.unshift = nativeUnshift;
+  if (proto.pop['observing'] === true) proto.pop = nativePop;
+  if (proto.shift['observing'] === true) proto.shift = nativeShift;
+  if (proto.splice['observing'] === true) proto.splice = nativeSplice;
+  if (proto.reverse['observing'] === true) proto.reverse = nativeReverse;
+  if (proto.sort['observing'] === true) proto.sort = nativeSort;
 }
 
 @collectionObserver(CollectionKind.array)

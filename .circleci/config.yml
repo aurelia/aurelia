@@ -19,7 +19,10 @@ jobs:
             node --version
             npm --version
       - checkout
-      - run: npm ci -dd
+      - run:
+          name: "Install npm packages"
+          command: |
+            npm ci -dd
       - save_cache:
           key: *cache_key
           paths:
@@ -31,12 +34,21 @@ jobs:
       - checkout
       - restore_cache:
           key: *cache_key
-      - run: npm run bootstrap
-      - run: npm run build
+      - run:
+          name: "Bootstrap and build the packages"
+          command: |
+            npm run bootstrap
+            npm run build
+      - run:
+          name: "Create tarballs from the build outputs"
+          command: |
+            npm run publish:local
       - persist_to_workspace:
-          root: .
-          paths: packages/*/dist
-          paths: packages/*/node_modules
+          root: ~/repo
+          paths:
+            - packages/*/dist
+            - packages/*/node_modules
+            - packages/*/*.tgz
 
   unit_tests:
     <<: *defaults
@@ -49,7 +61,9 @@ jobs:
       #    environment:
       #      TS_NODE_PROJECT: tsconfig.json
       - run:
-          command: "npm run test"
+          name: "Run unit tests"
+          command: |
+            npm run test
           environment:
             JUNIT_REPORT_PATH: ./junit/
             JUNIT_REPORT_NAME: test-results.xml
@@ -114,24 +128,30 @@ jobs:
       - store_artifacts:
           path: ./packages/plugin-svg/coverage
 
-  #e2e_tests:
-  #  <<: *defaults
-  #  steps:
-  #    - checkout
-  #    - restore_cache:
-  #        key: *cache_key
-  #    - attach_workspace:
-  #        at: .
-  #    - run:
-  #        name: Selenium Start
-  #        background: true
-  #        command: webdriver-manager start
-  #    - run:
-  #        name: App Start
-  #        background: true
-  #        command: http-server -c-1 -p 8000 .
-  #    - run:
-  #        command: "protractor protractor.conf.js"
+  e2e_tests:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Install jit-parcel
+          command: |
+            cd ./packages/examples/jit-parcel
+            npm install
+      - run:
+          name: Serve jit-parcel in the background
+          background: true
+          command: |
+            cd ./packages/examples/jit-parcel
+            npm run serve
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./packages/examples/jit-parcel
+            npm run e2e
 
 workflows:
     version: 2
@@ -144,7 +164,7 @@ workflows:
             - unit_tests:
                 requires:
                     - install
-            #- e2e_tests:
-            #    requires:
-            #        - build
+            - e2e_tests:
+                requires:
+                    - build
 

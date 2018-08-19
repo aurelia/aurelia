@@ -51,8 +51,8 @@ export class Aurelia {
   }
 
   public start() {
-    this.isStarted = true;
     this.startTasks.forEach(x => x());
+    this.isStarted = true;
     return this;
   }
 

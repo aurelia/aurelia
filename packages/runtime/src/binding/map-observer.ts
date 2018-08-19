@@ -9,18 +9,6 @@ export const nativeSet = proto.set; // TODO: probably want to make these interna
 export const nativeClear = proto.clear;
 export const nativeDelete = proto.delete;
 
-export function enableMapObservation(): void {
-  proto.set = observeSet;
-  proto.clear = observeClear;
-  proto.delete = observeDelete;
-}
-
-export function disableMapObservation(): void {
-  proto.set = nativeSet;
-  proto.clear = nativeClear;
-  proto.delete = nativeDelete;
-}
-
 // note: we can't really do much with Map due to the internal data structure not being accessible so we're just using the native calls
 // fortunately, map/delete/clear are easy to reconstruct for the indexMap
 
@@ -49,7 +37,7 @@ function observeSet(this: IObservedMap, key: any, value: any): ReturnType<typeof
   o.indexMap[oldSize] = -2;
   o.notify('set', arguments);
   return this;
-};
+}
 
 // https://tc39.github.io/ecma262/#sec-map.prototype.clear
 function observeClear(this: IObservedMap): ReturnType<typeof nativeClear>  {
@@ -72,7 +60,7 @@ function observeClear(this: IObservedMap): ReturnType<typeof nativeClear>  {
     o.notify('clear');
   }
   return undefined;
-};
+}
 
 // https://tc39.github.io/ecma262/#sec-map.prototype.delete
 function observeDelete(this: IObservedMap, value: any): ReturnType<typeof nativeDelete> {
@@ -98,7 +86,25 @@ function observeDelete(this: IObservedMap, value: any): ReturnType<typeof native
   }
   o.notify('delete', arguments);
   return false;
-};
+}
+
+for (const observe of [observeSet, observeClear, observeDelete]) {
+  Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+}
+
+export function enableMapObservation(): void {
+  if (proto.set['observing'] !== true) proto.set = observeSet;
+  if (proto.clear['observing'] !== true) proto.clear = observeClear;
+  if (proto.delete['observing'] !== true) proto.delete = observeDelete;
+}
+
+enableMapObservation();
+
+export function disableMapObservation(): void {
+  if (proto.set['observing'] === true) proto.set = nativeSet;
+  if (proto.clear['observing'] === true) proto.clear = nativeClear;
+  if (proto.delete['observing'] === true) proto.delete = nativeDelete;
+}
 
 @collectionObserver(CollectionKind.map)
 export class MapObserver implements ICollectionObserver<CollectionKind.map> {

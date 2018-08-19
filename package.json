@@ -5,7 +5,9 @@
     "bootstrap": "lerna bootstrap --ci --hoist",
     "build": "lerna run build",
     "test": "lerna run test",
-    "lint": "lerna run lint"
+    "lint": "lerna run lint",
+    "publish:local": "lerna run publish:local",
+    "init": "npm ci && npm run bootstrap && npm run build && npm run publish:local"
   },
   "dependencies": {},
   "devDependencies": {
@@ -35,6 +37,7 @@
     "karma-webpack": "^3.0.0",
     "lerna": "^3.0.3",
     "mocha": "^5.2.0",
+    "parcel-bundler": "^1.9.7",
     "path": "^0.12.7",
     "sinon": "^6.1.4",
     "sinon-chai": "^3.2.0",

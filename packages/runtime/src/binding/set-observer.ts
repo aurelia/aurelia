@@ -9,18 +9,6 @@ export const nativeAdd = proto.add; // TODO: probably want to make these interna
 export const nativeClear = proto.clear;
 export const nativeDelete = proto.delete;
 
-export function enableSetObservation(): void {
-  proto.add = observeAdd;
-  proto.clear = observeClear;
-  proto.delete = observeDelete;
-}
-
-export function disableSetObservation(): void {
-  proto.add = nativeAdd;
-  proto.clear = nativeClear;
-  proto.delete = nativeDelete;
-}
-
 // note: we can't really do much with Set due to the internal data structure not being accessible so we're just using the native calls
 // fortunately, add/delete/clear are easy to reconstruct for the indexMap
 
@@ -39,7 +27,7 @@ function observeAdd(this: IObservedSet, value: any): ReturnType<typeof nativeAdd
   o.indexMap[oldSize] = -2;
   o.notify('add', arguments);
   return this;
-};
+}
 
 // https://tc39.github.io/ecma262/#sec-set.prototype.clear
 function observeClear(this: IObservedSet): ReturnType<typeof nativeClear>  {
@@ -62,7 +50,7 @@ function observeClear(this: IObservedSet): ReturnType<typeof nativeClear>  {
     o.notify('clear');
   }
   return undefined;
-};
+}
 
 // https://tc39.github.io/ecma262/#sec-set.prototype.delete
 function observeDelete(this: IObservedSet, value: any): ReturnType<typeof nativeDelete> {
@@ -88,7 +76,25 @@ function observeDelete(this: IObservedSet, value: any): ReturnType<typeof native
   }
   o.notify('delete', arguments);
   return false;
-};
+}
+
+for (const observe of [observeAdd, observeClear, observeDelete]) {
+  Object.defineProperty(observe, 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+}
+
+export function enableSetObservation(): void {
+  if (proto.add['observing'] !== true) proto.add = observeAdd;
+  if (proto.clear['observing'] !== true) proto.clear = observeClear;
+  if (proto.delete['observing'] !== true) proto.delete = observeDelete;
+}
+
+enableSetObservation();
+
+export function disableSetObservation(): void {
+  if (proto.add['observing'] === true) proto.add = nativeAdd;
+  if (proto.clear['observing'] === true) proto.clear = nativeClear;
+  if (proto.delete['observing'] === true) proto.delete = nativeDelete;
+}
 
 @collectionObserver(CollectionKind.set)
 export class SetObserver implements ICollectionObserver<CollectionKind.set> {

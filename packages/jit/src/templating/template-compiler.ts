@@ -1,10 +1,12 @@
-import { inject, Writable } from '@aurelia/kernel';
+import { inject } from '@aurelia/kernel';
 import { BindingType, CustomAttributeResource, DOM, IExpression, IExpressionParser, Interpolation, IResourceDescriptions, ITargetedInstruction, ITemplateCompiler, TemplateDefinition, TargetedInstructionType, TargetedInstruction, DelegationStrategy, ITextBindingInstruction, IPropertyBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateElementInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, BindingMode, ITemplateSource, INode } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
 import { BindingCommandResource } from './binding-command';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
-const createMarker = document.createElement.bind(document, 'au-marker');
+const marker = document.createElement('au-marker');
+marker.classList.add('au');
+const createMarker = marker.cloneNode.bind(marker, false);
 
 const enum NodeType {
   Element = 1,
@@ -30,82 +32,74 @@ export class TemplateCompiler implements ITemplateCompiler {
   constructor(private expressionParser: IExpressionParser) { }
 
   public compile(definition: Required<ITemplateSource>, resources: IResourceDescriptions): TemplateDefinition {
-    let node = definition.templateOrNode;
-    if (!(<any>node).nodeType) {
-      domParser.innerHTML = <string>node;
-      node = domParser.firstChild;
-      definition.templateOrNode = <Node>node;
+    let node = <Node>definition.templateOrNode;
+    if (!node.nodeType) {
+      domParser.innerHTML = <any>node;
+      node = domParser.firstElementChild;
+      definition.templateOrNode = node;
     }
-    const instructions = definition.instructions;
-    while (node) {
-      const childInstructions = new Array<TargetedInstruction>();
-      instructions.push(childInstructions);
-      node = this.compileNode(<Node>node, childInstructions, resources)
-    }
+    node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
+    while (node = this.compileNode(<Node>node, definition.instructions, resources)) { /* Do nothing */ }
     return definition;
   }
 
   /*@internal*/
-  public compileNode(node: Node, instructions: TargetedInstruction[], resources: IResourceDescriptions): Node {
+  public compileNode(node: Node, instructions: TargetedInstruction[][], resources: IResourceDescriptions): Node {
     switch (node.nodeType) {
       case NodeType.Element:
-        return this.compileElementNode(<Element>node, instructions, resources);
+        this.compileElementNode(<Element>node, instructions, resources);
+        return node.nextSibling;
       case NodeType.Text:
-        return this.compileTextNode(<Text>node, instructions);
+        if (!this.compileTextNode(<Text>node, instructions)) {
+          while ((node = node.nextSibling) && node.nodeType === NodeType.Text) { /* Do nothing */ }
+          return node;
+        }
+        return node.nextSibling;
       case NodeType.Comment:
-        return this.compileNode(node.nextSibling, instructions, resources);
+        return node.nextSibling;
       case NodeType.Document:
-        return this.compileNode(node.firstChild, instructions, resources);
+        return node.firstChild;
       case NodeType.DocumentType:
-        return this.compileNode(node.nextSibling, instructions, resources);
+        return node.nextSibling;
       case NodeType.DocumentFragment:
-        return this.compileNode(node.firstChild, instructions, resources);
+        return node.firstChild;
     }
   }
 
   /*@internal*/
-  public compileElementNode(node: Element, instructions: TargetedInstruction[], resources: IResourceDescriptions): Node {
+  public compileElementNode(node: Element, instructions: TargetedInstruction[][], resources: IResourceDescriptions): void {
     const attributes = node.attributes;
-    const len = attributes.length;
-    let nodeHasInstructions = false;
-    let i = 0;
-    while (i < len) {
-      const attribute = attributes.item(i++);
-      const instruction = this.compileAttribute(attribute, node, resources);
+    const attributeInstructions = new Array<TargetedInstruction>();
+    for (let i = 0, ii = attributes.length; i < ii; ++i) {
+      const instruction = this.compileAttribute(attributes.item(i), node, resources);
       if (instruction !== null) {
-        instructions.push(instruction);
-        nodeHasInstructions = true;
+        attributeInstructions.push(instruction);
       }
     }
-    if (nodeHasInstructions) {
+    if (attributeInstructions.length) {
       node.classList.add('au');
+      instructions.push(attributeInstructions);
     }
-    let currentChild = node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node.firstChild;
+    node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
+    let currentChild = node.firstChild;
     while (currentChild) {
       currentChild = this.compileNode(currentChild, instructions, resources);
     }
-    return node.nextSibling;
   }
 
   /*@internal*/
-  public compileTextNode(node: Text, instructions: TargetedInstruction[]): Node  {
+  public compileTextNode(node: Text, instructions: TargetedInstruction[][]): boolean {
     const expression = this.parseInterpolation(node.wholeText);
-    if (expression !== null) {
-      const instruction = new TextBindingInstruction(expression);
-      instructions.push(instruction);
-      const marker = createMarker();
-      marker.classList.add('au');
-      node.parentNode.insertBefore(marker, node);
-      node.textContent = ' ';
-      while (node.nextSibling && node.nextSibling.nodeType === NodeType.Text) {
-        node.parentNode.removeChild(node.nextSibling);
-      }
-    } else {
-      while (node.nextSibling && node.nextSibling.nodeType === NodeType.Text) {
-        node = <Text>node.nextSibling;
-      }
+    if (expression === null) {
+      return false;
     }
-    return node.nextSibling;
+    node.parentNode.insertBefore(createMarker(), node);
+    node.textContent = ' ';
+    while (node.nextSibling && node.nextSibling.nodeType === NodeType.Text) {
+      node.parentNode.removeChild(node.nextSibling);
+    }
+    instructions.push([new TextBindingInstruction(expression)]);
+    return true;
   }
 
   /*@internal*/

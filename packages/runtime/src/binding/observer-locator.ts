@@ -85,17 +85,17 @@ export class ObserverLocator implements IObserverLocator {
 
       if (propertyName === 'class'
         || propertyName === 'style' || propertyName === 'css'
-        || propertyName === 'value' && (normalizedTagName(obj) === 'input' || normalizedTagName(obj) === 'select')
-        || propertyName === 'checked' && normalizedTagName(obj) === 'input'
-        || propertyName === 'model' && normalizedTagName(obj) === 'input'
+        || propertyName === 'value' && (normalizedTagName(obj) === 'INPUT' || normalizedTagName(obj) === 'SELECT')
+        || propertyName === 'checked' && normalizedTagName(obj) === 'INPUT'
+        || propertyName === 'model' && normalizedTagName(obj) === 'INPUT'
         || /^xlink:.+$/.exec(propertyName)) {
         return <any>this.getObserver(obj, propertyName);
       }
 
       if (/^\w+:|^data-|^aria-/.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)
-        || normalizedTagName(obj) === 'img' && propertyName === 'src'
-        || normalizedTagName(obj) === 'a' && propertyName === 'href'
+        || normalizedTagName(obj) === 'IMG' && propertyName === 'src'
+        || normalizedTagName(obj) === 'A' && propertyName === 'href'
       ) {
         return new DataAttributeAccessor(this.changeSet, obj, propertyName);
       }
@@ -159,12 +159,13 @@ export class ObserverLocator implements IObserverLocator {
         return new StyleAttributeAccessor(this.changeSet, <HTMLElement>obj);
       }
 
+      const tagName = DOM.normalizedTagName(obj);
       const handler = this.eventManager.getElementHandler(obj, propertyName);
-      if (propertyName === 'value' && DOM.normalizedTagName(obj) === 'select') {
+      if (propertyName === 'value' && tagName === 'SELECT') {
         return new SelectValueObserver(this.changeSet, <HTMLSelectElement>obj, handler, this);
       }
 
-      if (propertyName === 'checked' && DOM.normalizedTagName(obj) === 'input') {
+      if (propertyName === 'checked' && tagName === 'INPUT') {
         return new CheckedObserver(this.changeSet, <HTMLInputElement>obj, handler, this);
       }
 

@@ -138,8 +138,7 @@ export const DOM = {
   },
 
   normalizedTagName(node: INode): string {
-    const name = (<Element>node).tagName;
-    return name ? name.toLowerCase() : null;
+    return (<Element>node).tagName || null;
   },
 
   remove(node: INodeLike): void {

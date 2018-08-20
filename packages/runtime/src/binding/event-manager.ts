@@ -210,7 +210,7 @@ export class EventManager implements IEventManager {
 
   constructor() {
     this.registerElementConfiguration({
-      tagName: 'input',
+      tagName: 'INPUT',
       properties: {
         value: ['change', 'input'],
         checked: ['change', 'input'],
@@ -219,14 +219,14 @@ export class EventManager implements IEventManager {
     });
 
     this.registerElementConfiguration({
-      tagName: 'textarea',
+      tagName: 'TEXTAREA',
       properties: {
         value: ['change', 'input']
       }
     });
 
     this.registerElementConfiguration({
-      tagName: 'select',
+      tagName: 'SELECT',
       properties: {
         value: ['change']
       }
@@ -261,12 +261,12 @@ export class EventManager implements IEventManager {
   }
 
   public getElementHandler(target: INode, propertyName: string): IEventSubscriber | null {
-    let name = DOM.normalizedTagName(target);
-    let lookup = this.elementHandlerLookup;
+    const tagName = DOM.normalizedTagName(target);
+    const lookup = this.elementHandlerLookup;
 
-    if (name) {
-      if (lookup[name] && lookup[name][propertyName]) {
-        return new EventSubscriber(lookup[name][propertyName]);
+    if (tagName) {
+      if (lookup[tagName] && lookup[tagName][propertyName]) {
+        return new EventSubscriber(lookup[tagName][propertyName]);
       }
 
       if (propertyName === 'textContent' || propertyName === 'innerHTML') {

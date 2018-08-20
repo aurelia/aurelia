@@ -249,11 +249,10 @@ export class EventManager implements IEventManager {
   }
 
   public registerElementConfiguration(config: IElementConfiguration) {
-    let tagName = config.tagName.toLowerCase();
-    let properties = config.properties;
-    let lookup: Record<string, string[]> = this.elementHandlerLookup[tagName] = {};
+    const properties = config.properties;
+    const lookup: Record<string, string[]> = this.elementHandlerLookup[config.tagName] = {};
 
-    for (let propertyName in properties) {
+    for (const propertyName in properties) {
       if (properties.hasOwnProperty(propertyName)) {
         lookup[propertyName] = properties[propertyName];
       }

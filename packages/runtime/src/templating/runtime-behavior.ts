@@ -136,16 +136,16 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
   public setValue(newValue: any): void {}
 
   public flushChanges(): void {
-    this.callSubscribers(this.children);
+    this.callSubscribers(this.children, undefined, BindingFlags.sourceOrigin);
     this.hasChanges = false;
   }
 
-  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
-    this.addSubscriber(subscriber, flags);
+  public subscribe(subscriber: IPropertySubscriber): void {
+    this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
-    this.removeSubscriber(subscriber, flags);
+  public unsubscribe(subscriber: IPropertySubscriber): void {
+    this.removeSubscriber(subscriber);
   }
 
   private onChildrenChanged(): void {

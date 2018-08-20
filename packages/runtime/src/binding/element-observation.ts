@@ -3,7 +3,7 @@ import { DOM, INode, INodeObserver } from '../dom';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { IEventSubscriber } from './event-manager';
-import { CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver, IPropertySubscriber } from './observation';
+import { CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver, IPropertySubscriber, IndexMap } from './observation';
 import { IObserverLocator } from './observer-locator';
 import { SubscriberCollection } from './subscriber-collection';
 import { targetObserver } from './target-observer';
@@ -79,7 +79,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
     }
   }
 
-  public notify(flags?: BindingFlags): void {
+  public notify(flags: BindingFlags): void {
     this.callSubscribers(this.currentValue, this.oldValue, flags);
   }
 
@@ -90,16 +90,16 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
     this.oldValue = this.currentValue;
   }
 
-  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
+  public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
       this.handler.subscribe(this.obj, this);
     }
-    this.addSubscriber(subscriber, flags);
+    this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
-    if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
+  public unsubscribe(subscriber: IPropertySubscriber): void {
+    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }
@@ -153,16 +153,16 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
     if (!this.valueObserver) {
       this.valueObserver = this.obj['$observers'].model || this.obj['$observers'].value;
       if (this.valueObserver) {
-        this.valueObserver.subscribe(this, BindingFlags.checkedValueOrigin);
+        this.valueObserver.subscribe(this);
       }
     }
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this, BindingFlags.checkedArrayOrigin);
+      this.arrayObserver.unsubscribeBatched(this);
       this.arrayObserver = null;
     }
     if (this.obj.type === 'checkbox' && Array.isArray(newValue)) {
       this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
-      this.arrayObserver.subscribeBatched(this, BindingFlags.checkedArrayOrigin);
+      this.arrayObserver.subscribeBatched(this);
     }
     this.synchronizeElement();
     if (!(flags & BindingFlags.bindOrigin)) {
@@ -171,18 +171,18 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
   }
 
   // handleBatchedCollectionChange (todo: rename to make this explicit?)
-  public handleBatchedChange(indexMap: number[], flags?: BindingFlags): void {
+  public handleBatchedChange(indexMap: IndexMap): void {
     // todo: utilize indexMap
-    this.synchronizeElement();
-    this.notify(flags);
+    this.synchronizeElement(indexMap);
+    this.notify(BindingFlags.sourceOrigin);
   }
 
   // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
-  public handleChange(newValue: Primitive | IIndexable, previousValue?: Primitive | IIndexable, flags?: BindingFlags): void {
+  public handleChange(newValue: Primitive | IIndexable, previousValue: Primitive | IIndexable, flags: BindingFlags): void {
     this.setValue(newValue, flags | BindingFlags.callbackOrigin);
   }
 
-  public synchronizeElement(): void {
+  public synchronizeElement(indexMap?: IndexMap): void {
     const value = this.currentValue;
     const element = this.obj;
     const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
@@ -236,26 +236,26 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
     this.currentValue = value;
   }
 
-  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
+  public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.obj, this);
     }
-    this.addSubscriber(subscriber, flags);
+    this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
-    if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
+  public unsubscribe(subscriber: IPropertySubscriber): void {
+    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }
 
   public unbind(): void {
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this, BindingFlags.checkedArrayOrigin);
+      this.arrayObserver.unsubscribeBatched(this);
       this.arrayObserver = null;
     }
     if (this.valueObserver) {
-      this.valueObserver.unsubscribe(this, BindingFlags.checkedValueOrigin);
+      this.valueObserver.unsubscribe(this);
     }
   }
 }
@@ -315,12 +315,12 @@ export class SelectValueObserver
       throw new Error('Only null or Array instances can be bound to a multi-select.');
     }
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this, BindingFlags.selectArrayOrigin);
+      this.arrayObserver.unsubscribeBatched(this);
       this.arrayObserver = null;
     }
     if (isArray) {
       this.arrayObserver = this.observerLocator.getArrayObserver(<(Primitive | IIndexable)[]>newValue);
-      this.arrayObserver.subscribeBatched(this, BindingFlags.selectArrayOrigin);
+      this.arrayObserver.subscribeBatched(this);
     }
     this.synchronizeOptions();
     if (!(flags & BindingFlags.bindOrigin)) {
@@ -329,14 +329,14 @@ export class SelectValueObserver
   }
 
   // called when the array mutated (items sorted/added/removed, etc)
-  public handleBatchedChange(indexMap: number[], flags?: BindingFlags): void {
+  public handleBatchedChange(indexMap: number[]): void {
     // we don't need to go through the normal setValue logic and can directly call synchronizeOptions here,
     // because the change already waited one tick (batched) and there's no point in calling notify when the instance didn't change
-    this.synchronizeOptions();
+    this.synchronizeOptions(indexMap);
   }
 
   // called when a different value was assigned
-  public handleChange(newValue: Primitive | UntypedArray, previousValue?: Primitive | UntypedArray, flags?: BindingFlags): void {
+  public handleChange(newValue: Primitive | UntypedArray, previousValue: Primitive | UntypedArray, flags: BindingFlags): void {
     this.setValue(newValue, flags);
   }
 
@@ -356,7 +356,7 @@ export class SelectValueObserver
     this.notify(BindingFlags.callbackOrigin);
   }
 
-  public synchronizeOptions(): void {
+  public synchronizeOptions(indexMap?: IndexMap): void {
     const currentValue = this.currentValue;
     const isArray = Array.isArray(currentValue);
     const obj = this.obj;
@@ -409,15 +409,15 @@ export class SelectValueObserver
     }
   }
 
-  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
+  public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.obj, this);
     }
-    this.addSubscriber(subscriber, flags);
+    this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags): void {
-    if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
+  public unsubscribe(subscriber: IPropertySubscriber): void {
+    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }
@@ -434,7 +434,7 @@ export class SelectValueObserver
     this.nodeObserver = null;
 
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this, BindingFlags.selectArrayOrigin);
+      this.arrayObserver.unsubscribeBatched(this);
       this.arrayObserver = null;
     }
   }

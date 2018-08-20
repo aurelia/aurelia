@@ -51,12 +51,12 @@ PrimitiveObserver.prototype.unsubscribeBatched = noop;
 export class SetterObserver implements IPropertyObserver<IIndexable, string> {
   /*@internal*/
   public changeSet: IChangeSet;
-  public notify: (newValue: any, previousValue?: any, flags?: BindingFlags) => void;
-  public notifyBatched: (newValue: any, oldValue?: any, flags?: BindingFlags) => void;
-  public subscribeBatched: (subscriber: IBatchedPropertySubscriber, flags?: BindingFlags) => void;
-  public unsubscribeBatched: (subscriber: IBatchedPropertySubscriber, flags?: BindingFlags) => void;
-  public subscribe: (subscriber: IPropertySubscriber, flags?: BindingFlags) => void;
-  public unsubscribe: (subscriber: IPropertySubscriber, flags?: BindingFlags) => void;
+  public notify: (newValue: any, previousValue: any, flags: BindingFlags) => void;
+  public notifyBatched: (newValue: any, oldValue: any) => void;
+  public subscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
+  public subscribe: (subscriber: IPropertySubscriber) => void;
+  public unsubscribe: (subscriber: IPropertySubscriber) => void;
   public flushChanges: () => void;
   public dispose: () => void;
 
@@ -74,9 +74,6 @@ export class SetterObserver implements IPropertyObserver<IIndexable, string> {
   public subscribers: Array<IPropertySubscriber>;
   public batchedSubscribers: Array<IBatchedPropertySubscriber>;
 
-  public subscriberFlags: Array<BindingFlags>;
-  public batchedSubscriberFlags: Array<BindingFlags>;
-
   constructor(changeSet: IChangeSet, obj: IIndexable, propertyKey: string) {
     this.changeSet = changeSet;
     this.obj = obj;
@@ -84,15 +81,12 @@ export class SetterObserver implements IPropertyObserver<IIndexable, string> {
 
     this.subscribers = new Array();
     this.batchedSubscribers = new Array();
-
-    this.subscriberFlags = new Array();
-    this.batchedSubscriberFlags = new Array();
   }
 
   public getValue(): any {
     return this.currentValue;
   }
-  public setValue(newValue: any, flags?: BindingFlags): void {
+  public setValue(newValue: any, flags: BindingFlags): void {
     const currentValue = this.currentValue;
     if (currentValue !== newValue) {
       this.previousValue = currentValue;
@@ -108,13 +102,13 @@ export class SetterObserver implements IPropertyObserver<IIndexable, string> {
 export class Observer implements IPropertyObserver<IIndexable, string> {
   /*@internal*/
   public changeSet: IChangeSet;
-  public notify: (newValue: any, previousValue?: any, flags?: BindingFlags) => void;
-  public notifyBatched: (newValue: any, oldValue?: any, flags?: BindingFlags) => void;
-  public subscribeBatched: (subscriber: IBatchedPropertySubscriber, flags?: BindingFlags) => void;
-  public unsubscribeBatched: (subscriber: IBatchedPropertySubscriber, flags?: BindingFlags) => void;
-  public subscribe: (subscriber: IPropertySubscriber, flags?: BindingFlags) => void;
-  public unsubscribe: (subscriber: IPropertySubscriber, flags?: BindingFlags) => void;
-  public flushChanges: (flags?: BindingFlags) => void;
+  public notify: (newValue: any, previousValue: any, flags: BindingFlags) => void;
+  public notifyBatched: (newValue: any, oldValue?: any) => void;
+  public subscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedPropertySubscriber) => void;
+  public subscribe: (subscriber: IPropertySubscriber) => void;
+  public unsubscribe: (subscriber: IPropertySubscriber) => void;
+  public flushChanges: () => void;
   public dispose: () => void;
 
   public observing: boolean;
@@ -150,16 +144,13 @@ export class Observer implements IPropertyObserver<IIndexable, string> {
 
       this.subscribers = new Array();
       this.batchedSubscribers = new Array();
-
-      this.subscriberFlags = new Array();
-      this.batchedSubscriberFlags = new Array();
   }
 
   public getValue(): any {
     return this.currentValue;
   }
 
-  public setValue(newValue: any, flags?: BindingFlags): void {
+  public setValue(newValue: T, flags: BindingFlags): void {
     const previousValue = this.currentValue;
 
     if (previousValue !== newValue) {
@@ -173,7 +164,7 @@ export class Observer implements IPropertyObserver<IIndexable, string> {
           this.currentValue = newValue = coercedValue;
         }
 
-        this.notify(newValue, previousValue);
+        this.notify(newValue, previousValue, flags);
       }
     }
   }

@@ -16,7 +16,7 @@ for (let i = 0; i < 100; i++) {
 
 export interface IBinding extends IBindScope {
   locator: IServiceLocator;
-  observeProperty(flags: BindingFlags, obj: any, name: string): void;
+  observeProperty(obj: any, name: string): void;
 }
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -56,7 +56,7 @@ export class Binding implements IBinding, IPropertySubscriber {
     this.sourceExpression.assign(BindingFlags.targetOrigin, this.$scope, this.locator, value);
   }
 
-  public handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void {
+  public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
@@ -128,7 +128,7 @@ export class Binding implements IBinding, IPropertySubscriber {
       sourceExpression.connect(flags, scope, this);
     }
     if (mode & fromView) {
-      targetObserver.subscribe(this, BindingFlags.targetOrigin);
+      targetObserver.subscribe(this);
     }
   }
 
@@ -149,7 +149,7 @@ export class Binding implements IBinding, IPropertySubscriber {
       targetObserver.unbind(flags);
     }
     if (targetObserver.unsubscribe) {
-      targetObserver.unsubscribe(this, BindingFlags.targetOrigin);
+      targetObserver.unsubscribe(this);
     }
     this.unobserve(true);
   }
@@ -187,7 +187,7 @@ export class Binding implements IBinding, IPropertySubscriber {
         i++;
       }
       this[slotNames[i]] = observer;
-      observer.subscribe(this, BindingFlags.sourceOrigin);
+      observer.subscribe(this);
       // increment the slot count.
       if (i === observerSlots) {
         this.observerSlots = i + 1;
@@ -200,7 +200,7 @@ export class Binding implements IBinding, IPropertySubscriber {
     this[versionSlotNames[i]] = this.version;
   }
 
-  public observeProperty(flags: BindingFlags, obj: any, propertyName: string): void {
+  public observeProperty(obj: any, propertyName: string): void {
     const observer = this.observerLocator.getObserver(obj, propertyName) as IBindingTargetObserver;
     /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
      *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:

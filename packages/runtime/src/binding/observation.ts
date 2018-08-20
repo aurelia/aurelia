@@ -14,7 +14,7 @@ export interface IBindScope {
  */
 export interface IAccessor<TValue = any> {
   getValue(): TValue;
-  setValue(newValue: TValue, flags?: BindingFlags): void;
+  setValue(newValue: TValue, flags: BindingFlags): void;
 }
 
 /**
@@ -97,7 +97,7 @@ export interface ICollectionChangeTracker<T extends Collection> extends IChangeT
 /**
  * Represents a (subscriber) function that can be called by a PropertyChangeNotifier
  */
-export interface IPropertyChangeHandler { (newValue: any, previousValue?: any, flags?: BindingFlags): void; }
+export interface IPropertyChangeHandler { (newValue: any, previousValue: any, flags: BindingFlags): void; }
 /**
  * Represents a (observer) function that can notify subscribers of mutations on a property
  */
@@ -106,7 +106,7 @@ export interface IPropertyChangeNotifier extends IPropertyChangeHandler {}
 /**
  * Represents a (subscriber) function that can be called by a BatchedPropertyChangeNotifier
  */
-export interface IBatchedPropertyChangeHandler { (newValue: any, oldValue?: any, flags?: BindingFlags): void; }
+export interface IBatchedPropertyChangeHandler { (newValue: any, oldValue: any): void; }
 /**
  * Represents a (observer) function that can notify subscribers of batched mutations on a property
  */
@@ -115,16 +115,16 @@ export interface IBatchedPropertyChangeNotifier extends IBatchedPropertyChangeHa
 /**
  * Describes a (subscriber) type that has a function conforming to the IPropertyChangeHandler interface
  */
-export interface IPropertySubscriber { handleChange(newValue: any, previousValue?: any, flags?: BindingFlags): void; }
+export interface IPropertySubscriber { handleChange(newValue: any, previousValue: any, flags: BindingFlags): void; }
 /**
  * Describes a (subscriber) type that has a function conforming to the IBatchedPropertyChangeNotifier interface
  */
-export interface IBatchedPropertySubscriber { handleBatchedChange(newValue: any, oldValue?: any, flags?: BindingFlags): void; }
+export interface IBatchedPropertySubscriber { handleBatchedChange(newValue: any, oldValue: any): void; }
 
 /**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
  */
-export interface ICollectionChangeHandler { (origin: string, args?: IArguments, flags?: BindingFlags): void; }
+export interface ICollectionChangeHandler { (origin: string, args: IArguments | null, flags: BindingFlags): void; }
 /**
  * Represents a (observer) function that can notify subscribers of mutations in a collection
  */
@@ -133,7 +133,7 @@ export interface ICollectionChangeNotifier extends ICollectionChangeHandler {}
 /**
  * Represents a (subscriber) function that can be called by a BatchedCollectionChangeNotifier
  */
-export interface IBatchedCollectionChangeHandler { (indexMap: Array<number>, flags?: BindingFlags): void; }
+export interface IBatchedCollectionChangeHandler { (indexMap: Array<number>): void; }
 /**
  * Represents a (observer) function that can notify subscribers of batched mutations in a collection
  */
@@ -142,11 +142,11 @@ export interface IBatchedCollectionChangeNotifier extends IBatchedCollectionChan
 /**
  * Describes a (subscriber) type that has a function conforming to the ICollectionChangeHandler interface
  */
-export interface ICollectionSubscriber { handleChange(origin: string, args?: IArguments, flags?: BindingFlags): void; }
+export interface ICollectionSubscriber { handleChange(origin: string, args: IArguments | null, flags: BindingFlags): void; }
 /**
  * Describes a (subscriber) type that has a function conforming to the IBatchedCollectionChangeNotifier interface
  */
-export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: Array<number>, flags?: BindingFlags): void; }
+export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: Array<number>): void; }
 
 /**
  * Either a property or collection subscriber
@@ -190,8 +190,8 @@ export type MutationKindToBatchedNotifier<T> =
   never;
 
 export interface ISubscribable<T extends MutationKind> {
-  subscribe(subscriber: MutationKindToSubscriber<T>, flags?: BindingFlags): void;
-  unsubscribe(subscriber: MutationKindToSubscriber<T>, flags?: BindingFlags): void;
+  subscribe(subscriber: MutationKindToSubscriber<T>): void;
+  unsubscribe(subscriber: MutationKindToSubscriber<T>): void;
 }
 
 /**
@@ -199,13 +199,12 @@ export interface ISubscribable<T extends MutationKind> {
  */
 export interface ISubscriberCollection<T extends MutationKind> extends ISubscribable<T> {
   subscribers: Array<MutationKindToSubscriber<T>>;
-  subscriberFlags: Array<BindingFlags>;
   notify: MutationKindToNotifier<T>;
 }
 
 export interface IBatchedSubscribable<T extends MutationKind> {
-  subscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>, flags?: BindingFlags): void;
-  unsubscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>, flags?: BindingFlags): void;
+  subscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>): void;
+  unsubscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>): void;
 }
 
 /**
@@ -213,7 +212,6 @@ export interface IBatchedSubscribable<T extends MutationKind> {
  */
 export interface IBatchedSubscriberCollection<T extends MutationKind> extends IBatchedSubscribable<T> {
   batchedSubscribers: Array<MutationKindToBatchedSubscriber<T>>;
-  batchedSubscriberFlags: Array<BindingFlags>;
   notifyBatched: MutationKindToBatchedNotifier<T>;
 }
 

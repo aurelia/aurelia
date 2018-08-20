@@ -29,7 +29,7 @@ function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
     this[i] = arguments[i - len]; o.indexMap[i] = - 2;
     i++;
   }
-  o.notify('push', arguments);
+  o.notify('push', arguments, BindingFlags.sourceOrigin);
   return this.length;
 }
 
@@ -47,7 +47,7 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift> 
   }
   nativeUnshift.apply(o.indexMap, inserts);
   const len = nativeUnshift.apply(this, arguments);
-  o.notify('unshift', arguments);
+  o.notify('unshift', arguments, BindingFlags.sourceOrigin);
   return len;
 }
 
@@ -65,7 +65,7 @@ function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativePop.call(indexMap);
-  o.notify('pop');
+  o.notify('pop', arguments, BindingFlags.sourceOrigin);
   return element;
 }
 
@@ -82,7 +82,7 @@ function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativeShift.call(indexMap);
-  o.notify('shift');
+  o.notify('shift', arguments, BindingFlags.sourceOrigin);
   return element;
 }
 
@@ -116,7 +116,7 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
     nativeSplice.call(indexMap, start, deleteCount);
   }
   const deleted = nativeSplice.apply(this, arguments);
-  o.notify('splice', arguments);
+  o.notify('splice', arguments, BindingFlags.sourceOrigin);
   return deleted;
 }
 
@@ -137,7 +137,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
     this[upper] = lowerValue; o.indexMap[upper] = lowerIndex;
     lower++;
   }
-  o.notify('reverse');
+  o.notify('reverse', arguments, BindingFlags.sourceOrigin);
   return this;
 }
 
@@ -164,7 +164,7 @@ function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => numbe
     compareFn = sortCompare;
   }
   quickSort(this, o.indexMap, 0, i, compareFn);
-  o.notify('sort');
+  o.notify('sort', arguments, BindingFlags.sourceOrigin);
   return this;
 }
 
@@ -322,13 +322,13 @@ export function disableArrayObservation(): void {
 @collectionObserver(CollectionKind.array)
 export class ArrayObserver implements ICollectionObserver<CollectionKind.array> {
   public resetIndexMap: () => void;
-  public notify: (origin: string, args?: IArguments, flags?: BindingFlags) => void;
-  public notifyBatched: (indexMap: IndexMap, flags?: BindingFlags) => void;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
-  public subscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
-  public flushChanges: (flags?: BindingFlags) => void;
+  public notify: (origin: string, args: IArguments, flags: BindingFlags) => void;
+  public notifyBatched: (indexMap: IndexMap) => void;
+  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+  public subscribe: (subscriber: ICollectionSubscriber) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
+  public flushChanges: () => void;
   public dispose: () => void;
 
   /*@internal*/
@@ -342,9 +342,6 @@ export class ArrayObserver implements ICollectionObserver<CollectionKind.array> 
   public subscribers: Array<ICollectionSubscriber>;
   public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
 
-  public subscriberFlags: Array<BindingFlags>;
-  public batchedSubscriberFlags: Array<BindingFlags>;
-
   constructor(changeSet: IChangeSet, array: Array<any> & { $observer?: ICollectionObserver<CollectionKind.array> }) {
     this.changeSet = changeSet;
     array.$observer = this;
@@ -352,8 +349,6 @@ export class ArrayObserver implements ICollectionObserver<CollectionKind.array> 
     this.resetIndexMap();
     this.subscribers = new Array();
     this.batchedSubscribers = new Array();
-    this.subscriberFlags = new Array();
-    this.batchedSubscriberFlags = new Array();
   }
 }
 

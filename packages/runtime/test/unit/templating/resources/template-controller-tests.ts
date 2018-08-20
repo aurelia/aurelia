@@ -26,7 +26,7 @@ export function ensureSingleChildTemplateControllerBehaviors(Type: Constructable
     let bindCalled = false;
     child.$bind = function() { bindCalled = true; };
 
-    attribute.$bind(BindingFlags.none, createScope());
+    attribute.$bind(BindingFlags.bindOrigin, createScope());
 
     expect(bindCalled).to.be.true;
   });
@@ -63,8 +63,8 @@ export function ensureSingleChildTemplateControllerBehaviors(Type: Constructable
     let unbindCalled = false;
     child.$unbind = function() { unbindCalled = true; };
 
-    attribute.$bind(BindingFlags.none, createScope());
-    attribute.$unbind(BindingFlags.none);
+    attribute.$bind(BindingFlags.bindOrigin, createScope());
+    attribute.$unbind(BindingFlags.unbindOrigin);
 
     expect(unbindCalled).to.be.true;
   });

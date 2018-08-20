@@ -133,7 +133,7 @@ describe('Binding', () => {
     it('should not unbind if it is not already bound', () => {
       const scope: any = {};
       sut['$scope'] = scope;
-      sut.$unbind(BindingFlags.none);
+      sut.$unbind(BindingFlags.unbindOrigin);
       expect(sut['$scope'] === scope).to.be.true;
     });
 
@@ -144,11 +144,11 @@ describe('Binding', () => {
       sut['targetObserver'] = <any>{};
       const unobserveSpy = spy(sut, 'unobserve');
       const unbindSpy = dummySourceExpression.unbind = spy();
-      sut.$unbind(BindingFlags.none);
+      sut.$unbind(BindingFlags.unbindOrigin);
       expect(sut['$scope']).to.be.null;
       expect(sut['$isBound']).to.be.false;
       expect(unobserveSpy).to.have.been.calledWith(true);
-      expect(unbindSpy).to.have.been.calledWith(BindingFlags.none, scope, sut);
+      expect(unbindSpy).to.have.been.calledWith(BindingFlags.unbindOrigin, scope, sut);
     });
   });
 
@@ -176,7 +176,7 @@ describe('Binding', () => {
       sut['$isBound'] = true;
       const flags = BindingFlags.none;
 
-      sut.connect(BindingFlags.none);
+      sut.connect(flags);
 
       expect(sourceExpression.connect).to.have.been.calledWith(flags, scope, sut);
       expect(sourceExpression.evaluate).not.to.have.been.called;
@@ -207,7 +207,6 @@ describe('Binding', () => {
     for (const count of countArr) {
       it(`adds ${count} observers`, () => {
         let i = 0;
-        const flags = BindingFlags.none;
         while (i < count) {
           const observer = new MockObserver();
           sut.addObserver(observer);
@@ -217,19 +216,18 @@ describe('Binding', () => {
         }
       });
 
-      it(`calls subscribe() on ${count} observers with sourceOrigin`, () => {
+      it(`calls subscribe() on ${count} observers`, () => {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
           sut.addObserver(observer);
-          expect(observer.subscribe).to.have.been.calledWith(sut, BindingFlags.sourceOrigin);
+          expect(observer.subscribe).to.have.been.calledWith(sut);
           i++;
         }
       });
 
       it(`does nothing when ${count} observers already exist`, () => {
         let i = 0;
-        const flags = BindingFlags.none;
         while (i < count) {
           const observer = new MockObserver();
           sut.addObserver(observer);
@@ -247,7 +245,6 @@ describe('Binding', () => {
 
       it(`updates the version for ${count} observers`, () => {
         let i = 0;
-        const flags = BindingFlags.none;
         while (i < count) {
           const observer = new MockObserver();
           sut.addObserver(observer);
@@ -264,7 +261,6 @@ describe('Binding', () => {
       });
 
       it(`only updates the version for for added observers`, () => {
-        const flags = BindingFlags.none;
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();

@@ -137,10 +137,6 @@ export const DOM = {
     return (<Node>node).nodeType === 3;
   },
 
-  normalizedTagName(node: INode): string {
-    return (<Element>node).tagName || null;
-  },
-
   remove(node: INodeLike): void {
     // only check the prototype once and then permanently set a polyfilled or non-polyfilled call to save a few cycles
     if (Element.prototype.remove === undefined) {

@@ -260,7 +260,7 @@ export class EventManager implements IEventManager {
   }
 
   public getElementHandler(target: INode, propertyName: string): IEventSubscriber | null {
-    const tagName = DOM.normalizedTagName(target);
+    const tagName = target['tagName'];
     const lookup = this.elementHandlerLookup;
 
     if (tagName) {

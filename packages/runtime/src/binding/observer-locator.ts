@@ -81,21 +81,20 @@ export class ObserverLocator implements IObserverLocator {
 
   public getAccessor(obj: any, propertyName: string): IBindingTargetAccessor {
     if (DOM.isNodeInstance(obj)) {
-      const normalizedTagName = DOM.normalizedTagName;
+      const tagName = obj['tagName'];
 
-      if (propertyName === 'class'
-        || propertyName === 'style' || propertyName === 'css'
-        || propertyName === 'value' && (normalizedTagName(obj) === 'INPUT' || normalizedTagName(obj) === 'SELECT')
-        || propertyName === 'checked' && normalizedTagName(obj) === 'INPUT'
-        || propertyName === 'model' && normalizedTagName(obj) === 'INPUT'
+      if (propertyName === 'class' || propertyName === 'style' || propertyName === 'css'
+        || propertyName === 'value' && (tagName === 'INPUT' || tagName === 'SELECT')
+        || propertyName === 'checked' && tagName === 'INPUT'
+        || propertyName === 'model' && tagName === 'INPUT'
         || /^xlink:.+$/.exec(propertyName)) {
         return <any>this.getObserver(obj, propertyName);
       }
 
       if (/^\w+:|^data-|^aria-/.test(propertyName)
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)
-        || normalizedTagName(obj) === 'IMG' && propertyName === 'src'
-        || normalizedTagName(obj) === 'A' && propertyName === 'href'
+        || tagName === 'IMG' && propertyName === 'src'
+        || tagName === 'A' && propertyName === 'href'
       ) {
         return new DataAttributeAccessor(this.changeSet, obj, propertyName);
       }
@@ -159,7 +158,7 @@ export class ObserverLocator implements IObserverLocator {
         return new StyleAttributeAccessor(this.changeSet, <HTMLElement>obj);
       }
 
-      const tagName = DOM.normalizedTagName(obj);
+      const tagName = obj['tagName'];
       const handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && tagName === 'SELECT') {
         return new SelectValueObserver(this.changeSet, <HTMLSelectElement>obj, handler, this);

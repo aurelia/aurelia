@@ -1,4 +1,4 @@
-import { ValueAttributeObserver, EventSubscriber, ChangeSet, CheckedObserver, IObserverLocator, IChangeSet, SelectValueObserver } from "@aurelia/runtime";
+import { ValueAttributeObserver, EventSubscriber, ChangeSet, CheckedObserver, IObserverLocator, IChangeSet, SelectValueObserver, BindingFlags } from "@aurelia/runtime";
 import { createElement } from "../util";
 import { expect } from "chai";
 import { spy } from "sinon";
@@ -42,7 +42,7 @@ describe('ValueAttributeObserver', () => {
       sut = new ValueAttributeObserver(changeSet, el, 'value', new EventSubscriber(['change', 'input']));
       sut['callSubscribers'] = spy();
 
-      sut.setValue('foo');
+      sut.setValue('foo', BindingFlags.sourceOrigin);
       expect(sut['callSubscribers']).not.to.have.been.called;
       changeSet.flushChanges();
       if (inputType !== 'file') {
@@ -58,7 +58,7 @@ describe('ValueAttributeObserver', () => {
       sut = new ValueAttributeObserver(changeSet, el, 'value', new EventSubscriber(['change', 'input']));
       sut['callSubscribers'] = spy();
 
-      sut.setValue(null);
+      sut.setValue(null, BindingFlags.sourceOrigin);
       changeSet.flushChanges();
       expect(sut['callSubscribers']).not.to.have.been.called;
     });
@@ -69,7 +69,7 @@ describe('ValueAttributeObserver', () => {
       sut = new ValueAttributeObserver(changeSet, el, 'value', new EventSubscriber(['change', 'input']));
       sut['callSubscribers'] = spy();
 
-      sut.setValue(undefined);
+      sut.setValue(undefined, BindingFlags.sourceOrigin);
       changeSet.flushChanges();
       expect(sut['callSubscribers']).not.to.have.been.called;
     });
@@ -86,7 +86,7 @@ describe('CheckedObserver', () => {
     const el = <HTMLInputElement>createElement(markup);
     el.value = value;
     const sut = <CheckedObserver>observerLocator.getObserver(el, 'checked');
-    sut.setValue(initialValue);
+    sut.setValue(initialValue, BindingFlags.sourceOrigin);
     changeSet.flushChanges();
 
     return { changeSet, el, sut };
@@ -98,7 +98,7 @@ describe('CheckedObserver', () => {
         it(`sets 'checked' from ${initChecked} to ${setChecked}`, () => {
           const { changeSet, el, sut } = createFixture(initChecked);
 
-          sut.setValue(setChecked);
+          sut.setValue(setChecked, BindingFlags.sourceOrigin);
           expect(el.checked).to.equal(initChecked);
 
           changeSet.flushChanges();
@@ -109,7 +109,7 @@ describe('CheckedObserver', () => {
           const { changeSet, el, sut } = createFixture(initChecked);
           const synchronizeElementSpy = spy(sut, 'synchronizeElement');
 
-          sut.setValue(setChecked);
+          sut.setValue(setChecked, BindingFlags.sourceOrigin);
           expect(synchronizeElementSpy).not.to.have.been.called;
 
           changeSet.flushChanges();
@@ -130,7 +130,7 @@ describe('CheckedObserver', () => {
             const initChecked = init.includes(value);
             const nextChecked = next.includes(value);
 
-            sut.setValue(next);
+            sut.setValue(next, BindingFlags.sourceOrigin);
             expect(el.checked).to.equal(initChecked);
 
             changeSet.flushChanges();
@@ -152,7 +152,7 @@ describe('SelectValueObserver', () => {
     const markup = `<select>\n${optionElements}\n</select>`;
     const el = <HTMLSelectElement>createElement(markup);
     const sut = <SelectValueObserver>observerLocator.getObserver(el, 'value');
-    sut.setValue(initialValue);
+    sut.setValue(initialValue, BindingFlags.sourceOrigin);
     changeSet.flushChanges();
 
     return { changeSet, el, sut };

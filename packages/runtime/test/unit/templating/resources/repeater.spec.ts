@@ -1,4 +1,4 @@
-import { IContainer, DI, Registration } from '@aurelia/kernel';
+import { IContainer, DI, Registration, Writable } from '@aurelia/kernel';
 import { Repeat, IChangeSet, DOM, IRenderLocation, ForOfStatement, BindingIdentifier } from '@aurelia/runtime';
 import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
 import { IViewSlot, ViewSlot } from '@aurelia/runtime';
@@ -23,7 +23,7 @@ function createRenderLocation() {
 describe('ArrayRepeater - synchronize visuals', () => {
   let container: IContainer;
   let changeSet: IChangeSet;
-  let renderable: IRenderable;
+  let renderable: Writable<IRenderable>;
   let factory: IViewFactory;
   let location: IRenderLocation;
   let sut: Repeat<IObservedArray>;

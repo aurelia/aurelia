@@ -1,5 +1,5 @@
 import { spy } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind } from '@aurelia/runtime';
+import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver } from '@aurelia/runtime';
 
 import { Binding, IBindingTarget } from '@aurelia/runtime';
 import { IObserverLocator } from '@aurelia/runtime';
@@ -293,7 +293,17 @@ describe('Binding', () => {
   });
 });
 
-class MockObserver {
+class MockObserver implements IBindingTargetObserver {
+  bind = spy();
+  unbind = spy();
+  dispose = spy();
+  obj: any;
+  propertyKey?: string | number | symbol;
+  oldValue?: any;
+  previousValue?: any;
+  currentValue: any;
+  hasChanges?: boolean;
+  flushChanges = spy();
   getValue = spy();
   setValue = spy();
   subscribe = spy();

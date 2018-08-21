@@ -33,7 +33,7 @@ const toViewOrOneTime = toView | oneTime;
 export class Binding implements IBinding, IPropertySubscriber {
   public $isBound: boolean = false;
 
-  public targetObserver: IBindingTargetObserver;
+  public targetObserver: AccessorOrObserver;
   /*@internal*/public __connectQueueId: number;
   private observerSlots: number;
   private version: number;
@@ -109,7 +109,7 @@ export class Binding implements IBinding, IPropertySubscriber {
       sourceExpression.bind(flags, scope, this);
     }
 
-    let targetObserver = this.targetObserver;
+    let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       if (mode & fromView) {
         targetObserver = this.targetObserver = this.observerLocator.getObserver(this.target, this.targetProperty) as IBindingTargetObserver;
@@ -144,7 +144,7 @@ export class Binding implements IBinding, IPropertySubscriber {
     }
     this.$scope = null;
 
-    const targetObserver = this.targetObserver;
+    const targetObserver = this.targetObserver as IBindingTargetObserver;
     if (targetObserver.unbind) {
       targetObserver.unbind(flags);
     }

@@ -105,7 +105,7 @@ export class SetterObserver implements IPropertyObserver<IIndexable, string> {
 }
 
 @propertyObserver()
-export class Observer<T>  implements IPropertyObserver<IIndexable, string> {
+export class Observer implements IPropertyObserver<IIndexable, string> {
   /*@internal*/
   public changeSet: IChangeSet;
   public notify: (newValue: any, previousValue?: any, flags?: BindingFlags) => void;
@@ -134,13 +134,19 @@ export class Observer<T>  implements IPropertyObserver<IIndexable, string> {
   public subscriberFlags: Array<BindingFlags>;
   public batchedSubscriberFlags: Array<BindingFlags>;
 
+  private callback: (oldValue: any, newValue: any) => any;
+
   constructor(
     changeSet: IChangeSet,
-    currentValue: T,
-    private selfCallback?: (newValue: T, oldValue: T) => void | T
+    instance: object,
+    propertyName: string,
+    callbackName: string
   ) {
       this.changeSet = changeSet;
-      this.currentValue = currentValue;
+      this.currentValue = instance[propertyName];
+      this.callback = callbackName in instance
+        ? instance[callbackName].bind(instance)
+        : noop;
 
       this.subscribers = new Array();
       this.batchedSubscribers = new Array();
@@ -153,7 +159,7 @@ export class Observer<T>  implements IPropertyObserver<IIndexable, string> {
     return this.currentValue;
   }
 
-  public setValue(newValue: T, flags?: BindingFlags): void {
+  public setValue(newValue: any, flags?: BindingFlags): void {
     const previousValue = this.currentValue;
 
     if (previousValue !== newValue) {
@@ -161,12 +167,10 @@ export class Observer<T>  implements IPropertyObserver<IIndexable, string> {
       this.currentValue = newValue;
 
       if (!(flags & BindingFlags.bindOrigin)) {
-        if (this.selfCallback !== undefined) {
-          const coercedValue = this.selfCallback(newValue, previousValue);
+        const coercedValue = this.callback(newValue, previousValue);
 
-          if (coercedValue !== undefined) {
-            this.currentValue = newValue = <T>coercedValue;
-          }
+        if (coercedValue !== undefined) {
+          this.currentValue = newValue = coercedValue;
         }
 
         this.notify(newValue, previousValue);

@@ -2,6 +2,7 @@ import { inject } from '@aurelia/kernel';
 import { BindingContext, IScope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
 import { IRenderLocation } from '../../dom';
+import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 import { IView, IViewFactory } from '../view';
 
@@ -9,7 +10,7 @@ export interface With extends ICustomAttribute {}
 @templateController('with')
 @inject(IViewFactory, IRenderLocation)
 export class With {
-  public value: any = null;
+  @bindable public value: any = null;
 
   private $child: IView = null;
 

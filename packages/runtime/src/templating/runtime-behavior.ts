@@ -40,21 +40,8 @@ export class RuntimeBehavior implements IRuntimeBehavior {
 
   public static create(Component: ICustomElementType | ICustomAttributeType, instance: ICustomAttribute | ICustomElement): RuntimeBehavior {
     const behavior = new RuntimeBehavior();
-    const bindables = Component.description.bindables;
 
-    for (const name in instance) {
-      if (name in bindables) {
-        continue;
-      }
-
-      const callback = `${name}Changed`;
-
-      if (callback in instance) {
-        bindables[name] = { callback, property: name };
-      }
-    }
-
-    behavior.bindables = bindables;
+    behavior.bindables = Component.description.bindables;
     behavior.hasCreated = 'created' in instance;
     behavior.hasBound = 'bound' in instance;
     behavior.hasAttaching = 'attaching' in instance;
@@ -90,18 +77,17 @@ export class RuntimeBehavior implements IRuntimeBehavior {
 
   private applyToCore(changeSet: IChangeSet, instance: any) {
     const observers = {};
-    const finalBindables = this.bindables;
-    const observableNames = Object.getOwnPropertyNames(finalBindables);
+    const bindables = this.bindables;
+    const observableNames = Object.getOwnPropertyNames(bindables);
 
     for (let i = 0, ii = observableNames.length; i < ii; ++i) {
       const name = observableNames[i];
-      const observable = finalBindables[name];
-      const changeHandler = observable.callback;
 
       observers[name] = new Observer(
         changeSet,
-        instance[name],
-        changeHandler in instance ? (n, o) => instance[changeHandler](n, o) : undefined
+        instance,
+        name,
+        bindables[name].callback
       );
 
       createGetterSetter(instance, name);

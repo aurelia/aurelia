@@ -74,12 +74,13 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
 
   public setValueCore(newValue: Primitive | IIndexable, flags: BindingFlags): void {
     this.obj[this.propertyKey] = newValue;
-    if (!(flags & BindingFlags.bindOrigin)) {
-      this.notify(flags | BindingFlags.sourceOrigin);
-    }
+    this.notify(flags);
   }
 
   public notify(flags: BindingFlags): void {
+    if (flags & BindingFlags.bindOrigin) {
+      return;
+    }
     this.callSubscribers(this.currentValue, this.oldValue, flags);
   }
 
@@ -165,9 +166,7 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
       this.arrayObserver.subscribeBatched(this);
     }
     this.synchronizeElement();
-    if (!(flags & BindingFlags.bindOrigin)) {
-      this.notify(flags);
-    }
+    this.notify(flags);
   }
 
   // handleBatchedCollectionChange (todo: rename to make this explicit?)
@@ -196,6 +195,9 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
   }
 
   public notify(flags: BindingFlags): void {
+    if (flags & BindingFlags.bindOrigin) {
+      return;
+    }
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
     if (newValue === oldValue) {
@@ -206,7 +208,7 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
 
   public handleEvent(): void {
     this.synchronizeValue();
-    this.notify(BindingFlags.callbackOrigin);
+    this.notify(BindingFlags.callbackOrigin | BindingFlags.targetOrigin);
   }
 
   public synchronizeValue(): void {
@@ -323,9 +325,7 @@ export class SelectValueObserver
       this.arrayObserver.subscribeBatched(this);
     }
     this.synchronizeOptions();
-    if (!(flags & BindingFlags.bindOrigin)) {
-      this.notify(flags);
-    }
+    this.notify(flags);
   }
 
   // called when the array mutated (items sorted/added/removed, etc)
@@ -341,6 +341,9 @@ export class SelectValueObserver
   }
 
   public notify(flags: BindingFlags): void {
+    if (flags & BindingFlags.bindOrigin) {
+      return;
+    }
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
     if (newValue === oldValue) {
@@ -353,7 +356,7 @@ export class SelectValueObserver
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
     this.synchronizeValue();
     // TODO: need to clean up / improve the way collection changes are handled here (we currently just create and assign a new array to the source each change)
-    this.notify(BindingFlags.callbackOrigin);
+    this.notify(BindingFlags.callbackOrigin | BindingFlags.targetOrigin);
   }
 
   public synchronizeOptions(indexMap?: IndexMap): void {

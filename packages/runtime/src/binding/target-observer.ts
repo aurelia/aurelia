@@ -5,8 +5,9 @@ import { IBindingTargetAccessor } from './observation';
 
 type BindingTargetAccessor = IBindingTargetAccessor & {
   changeSet: IChangeSet;
+  currentFlags: BindingFlags;
   defaultValue: Primitive | IIndexable;
-  setValueCore(value: Primitive | IIndexable): void;
+  setValueCore(value: Primitive | IIndexable, flags: BindingFlags): void;
 };
 
 function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable, flags: BindingFlags): Promise<void> {
@@ -14,6 +15,7 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
     this.currentValue = newValue;
+    this.currentFlags = flags;
     return this.changeSet.add(this);
   }
   return Promise.resolve();
@@ -24,7 +26,7 @@ function flushChanges(this: BindingTargetAccessor): void {
   // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
   // in which case the target doesn't need to be updated
   if (this.oldValue !== currentValue) {
-    this.setValueCore(currentValue);
+    this.setValueCore(currentValue, this.currentFlags);
     this.oldValue = this.currentValue;
   }
 }

@@ -139,13 +139,13 @@ export class Observer implements IPropertyObserver<IIndexable, string> {
   constructor(
     changeSet: IChangeSet,
     instance: object,
-    property: string,
-    callback: string
+    propertyName: string,
+    callbackName: string
   ) {
       this.changeSet = changeSet;
-      this.currentValue = instance[property];
-      this.callback = callback in instance
-        ? instance[callback].bind(instance)
+      this.currentValue = instance[propertyName];
+      this.callback = callbackName in instance
+        ? instance[callbackName].bind(instance)
         : noop;
 
       this.subscribers = new Array();

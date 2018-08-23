@@ -80,7 +80,7 @@ export class DirtyCheckProperty extends SubscriberCollection implements IAccesso
     let oldValue = this.oldValue;
     let newValue = this.getValue();
 
-    this.callSubscribers(newValue, oldValue, BindingFlags.sourceOrigin);
+    this.callSubscribers(newValue, oldValue, BindingFlags.sourceOrigin | BindingFlags.fromFlushChanges);
 
     this.oldValue = newValue;
   }

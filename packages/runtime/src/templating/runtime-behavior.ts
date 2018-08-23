@@ -136,7 +136,7 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
   public setValue(newValue: any): void {}
 
   public flushChanges(): void {
-    this.callSubscribers(this.children, undefined, BindingFlags.sourceOrigin);
+    this.callSubscribers(this.children, undefined, BindingFlags.sourceOrigin | BindingFlags.fromFlushChanges);
     this.hasChanges = false;
   }
 

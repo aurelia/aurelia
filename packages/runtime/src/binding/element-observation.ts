@@ -130,7 +130,6 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
   public flushChanges: () => void;
   public dispose: () => void;
 
-  private initialSync: boolean;
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private valueObserver: ValueAttributeObserver;
 
@@ -148,11 +147,8 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
   }
 
   public setValueCore(newValue: Primitive | IIndexable, flags: BindingFlags): void {
-    if (this.initialSync) {
-      return;
-    }
     if (!this.valueObserver) {
-      this.valueObserver = this.obj['$observers'].model || this.obj['$observers'].value;
+      this.valueObserver = this.obj['$observers'] && (this.obj['$observers'].model || this.obj['$observers'].value);
       if (this.valueObserver) {
         this.valueObserver.subscribe(this);
       }
@@ -170,28 +166,33 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
   }
 
   // handleBatchedCollectionChange (todo: rename to make this explicit?)
-  public handleBatchedChange(indexMap: IndexMap): void {
-    // todo: utilize indexMap
-    this.synchronizeElement(indexMap);
+  public handleBatchedChange(): void {
+    this.synchronizeElement();
     this.notify(BindingFlags.sourceOrigin);
   }
 
   // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
   public handleChange(newValue: Primitive | IIndexable, previousValue: Primitive | IIndexable, flags: BindingFlags): void {
-    this.setValue(newValue, flags | BindingFlags.callbackOrigin);
+    this.synchronizeElement();
+    this.notify(flags | BindingFlags.sourceOrigin);
   }
 
-  public synchronizeElement(indexMap?: IndexMap): void {
+  public synchronizeElement(): void {
     const value = this.currentValue;
     const element = this.obj;
     const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     const isRadio = element.type === 'radio';
     const matcher = element['matcher'] || ((a: Primitive | IIndexable, b: Primitive | IIndexable) => a === b);
 
-    element.checked =
-      isRadio && !!matcher(value, elementValue)
-      || !isRadio && value === true
-      || !isRadio && Array.isArray(value) && value.findIndex(item => !!matcher(item, elementValue)) !== -1;
+    if (isRadio) {
+      element.checked = !!matcher(value, elementValue);
+    } else if (value === true) {
+      element.checked = true;
+    } else if (Array.isArray(value)){
+      element.checked = value.findIndex(item => !!matcher(item, elementValue)) !== -1;
+    } else {
+      element.checked = false;
+    }
   }
 
   public notify(flags: BindingFlags): void {
@@ -203,15 +204,10 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
     if (newValue === oldValue) {
       return;
     }
-    this.callSubscribers(newValue, oldValue, flags);
+    this.callSubscribers(this.currentValue, this.oldValue, flags);
   }
 
   public handleEvent(): void {
-    this.synchronizeValue();
-    this.notify(BindingFlags.callbackOrigin | BindingFlags.targetOrigin);
-  }
-
-  public synchronizeValue(): void {
     let value = this.currentValue;
     const element = this.obj;
     const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
@@ -236,6 +232,7 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
     }
     this.oldValue = this.currentValue;
     this.currentValue = value;
+    this.notify(BindingFlags.callbackOrigin | BindingFlags.targetOrigin);
   }
 
   public subscribe(subscriber: IPropertySubscriber): void {

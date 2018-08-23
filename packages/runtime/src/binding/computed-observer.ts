@@ -75,7 +75,7 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
 
-    this.callSubscribers(newValue, oldValue, BindingFlags.sourceOrigin);
+    this.callSubscribers(newValue, oldValue, BindingFlags.sourceOrigin | BindingFlags.fromFlushChanges);
   }
 
   public subscribe(subscriber: IPropertySubscriber) {

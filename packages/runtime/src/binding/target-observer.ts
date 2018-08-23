@@ -15,8 +15,12 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
     this.currentValue = newValue;
-    this.currentFlags = flags;
-    return this.changeSet.add(this);
+    if (flags & BindingFlags.fromFlushChanges) {
+      this.setValueCore(newValue, flags);
+    } else {
+      this.currentFlags = flags;
+      return this.changeSet.add(this);
+    }
   }
   return Promise.resolve();
 }

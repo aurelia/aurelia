@@ -150,7 +150,7 @@ export class Observer implements IPropertyObserver<IIndexable, string> {
     return this.currentValue;
   }
 
-  public setValue(newValue: T, flags: BindingFlags): void {
+  public setValue<T>(newValue: T, flags: BindingFlags): void {
     const previousValue = this.currentValue;
 
     if (previousValue !== newValue) {

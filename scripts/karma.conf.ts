@@ -94,7 +94,7 @@ export default function(config: IKarmaConfig): void {
     });
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {
-      reports: ["html", "text", "json", "lcov"],
+      reports: ["html", "text-summary", "json", "lcov"],
       fixWebpackSourcePaths: true
     };
     // if we're in CircleCI, add CircleCI-compatible junit report

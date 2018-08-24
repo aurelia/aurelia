@@ -76,10 +76,6 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
 
   public setValueCore(newValue: Primitive | IIndexable, flags: BindingFlags): void {
     this.obj[this.propertyKey] = newValue;
-    this.notify(flags);
-  }
-
-  public notify(flags: BindingFlags): void {
     if (flags & BindingFlags.fromBind) {
       return;
     }
@@ -87,10 +83,12 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
   }
 
   public handleEvent(): void {
-    this.oldValue = this.currentValue;
-    this.currentValue = this.getValue();
-    this.notify(handleEventFlags);
-    this.oldValue = this.currentValue;
+    const oldValue = this.oldValue = this.currentValue;
+    const newValue = this.currentValue = this.getValue();
+    if (oldValue !== newValue) {
+      this.callSubscribers(newValue, oldValue, handleEventFlags);
+      this.oldValue = newValue;
+    }
   }
 
   public subscribe(subscriber: IPropertySubscriber): void {

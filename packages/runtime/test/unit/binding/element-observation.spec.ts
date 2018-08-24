@@ -5,76 +5,154 @@ import { spy, SinonSpy } from "sinon";
 import { DI } from "@aurelia/kernel";
 
 describe('ValueAttributeObserver', () => {
-  let sut: ValueAttributeObserver;
-  let el: Element;
-  let changeSet: ChangeSet;
+  // TODO: these input types don't behave consistently due to their various constraints.
+  // These need to be discussed and probably need specific logic for them to work predictably
+  const inputTypeArr = ['color', 'date', 'datetime-local', 'file', 'month', 'number', 'range', 'time', 'week'];
 
-  const inputTypeArr = [
-    'button',
-    'checkbox',
-    'color',
-    'date',
-    'datetime-local',
-    'email',
-    'file',
-    'hidden',
-    'image',
-    'month',
-    'number',
-    'password',
-    'radio',
-    'range',
-    'reset',
-    'search',
-    'submit',
-    'tel',
-    'text',
-    'time',
-    'url',
-    'week'
-  ];
+  for (const { inputType, nullValues, validValues } of [
+      { inputType: 'button',   nullValues: [null, undefined], validValues: ['', 'foo'] },
+      { inputType: 'email',    nullValues: [null, undefined], validValues: ['', 'foo'] },
+      { inputType: 'hidden',   nullValues: [null, undefined], validValues: ['', 'foo'] },
+      { inputType: 'image',    nullValues: [null, undefined], validValues: ['', 'foo'] },
+      { inputType: 'password', nullValues: [null, undefined], validValues: ['', 'foo'] },
+      { inputType: 'reset',    nullValues: [null, undefined], validValues: ['', 'foo'] },
+      { inputType: 'search',   nullValues: [null, undefined], validValues: ['', 'foo'] },
+      { inputType: 'submit',   nullValues: [null, undefined], validValues: ['', 'foo'] },
+      { inputType: 'tel',      nullValues: [null, undefined], validValues: ['', 'foo'] },
+      { inputType: 'text',     nullValues: [null, undefined], validValues: ['', 'foo'] },
+      { inputType: 'url',      nullValues: [null, undefined], validValues: ['', 'foo'] }
+    ]) {
+    describe(`setValue() - type="${inputType}"`, () => {
+      function setup(hasSubscriber: boolean) {
+        const container = DI.createContainer();
+        const changeSet = <IChangeSet>container.get(IChangeSet);
+        const observerLocator = <IObserverLocator>container.get(IObserverLocator);
 
-  for (const inputType of inputTypeArr) {
-    const markup = `<input type="${inputType}">`;
-    it(`setValue('foo') calls subscribers - ${markup}`, () => {
-      el = createElement(markup);
-      changeSet = new ChangeSet();
-      sut = new ValueAttributeObserver(changeSet, el, 'value', new EventSubscriber(['change', 'input']));
-      sut['callSubscribers'] = spy();
+        const el = <HTMLInputElement>createElement(`<input type="${inputType}"/>`);
+        document.body.appendChild(el);
 
-      sut.setValue('foo', BindingFlags.none);
-      expect(sut['callSubscribers']).not.to.have.been.called;
-      changeSet.flushChanges();
-      if (inputType !== 'file') {
-        expect(sut['callSubscribers']).to.have.been.called;
-      } else {
-        expect(sut['callSubscribers']).not.to.have.been.called;
+        const sut = <ValueAttributeObserver>observerLocator.getObserver(el, 'value');
+
+        let subscriber: IPropertySubscriber = { handleChange: spy() };
+        if (hasSubscriber) {
+          sut.subscribe(subscriber);
+        }
+
+        return { container, changeSet, observerLocator, el, sut, subscriber };
+      }
+
+      function tearDown({ sut, changeSet, el }: Partial<ReturnType<typeof setup>>) {
+        document.body.removeChild(el);
+        sut.dispose();
+      }
+
+      for (const hasSubscriber of [true, false]) {
+        for (const valueBefore of [...nullValues, ...validValues]) {
+          for (const valueAfter of [...nullValues, ...validValues]) {
+
+            it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, () => {
+
+              const { sut, changeSet, el, subscriber } = setup(hasSubscriber);
+
+              const expectedValueBefore = nullValues.includes(valueBefore) ? sut.defaultValue : valueBefore;
+              const expectedValueAfter = nullValues.includes(valueAfter) ? sut.defaultValue : valueAfter;
+
+              const changeCountBefore = expectedValueBefore !== sut.defaultValue ? 1 : 0;
+              const changeCountAfter = expectedValueBefore !== expectedValueAfter ? 1 : 0;
+              let callCount = 0;
+
+              sut.setValue(valueBefore, BindingFlags.none);
+              expect(changeSet.size).to.equal(changeCountBefore, 'changeSet.size 1');
+              changeSet.flushChanges();
+              expect(el.value).to.equal(expectedValueBefore, 'el.value 1');
+              expect(sut.getValue()).to.equal(expectedValueBefore, 'sut.getValue() 1');
+              if (hasSubscriber && changeCountBefore) {
+                callCount++;
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance);
+              }
+
+              sut.setValue(valueAfter, BindingFlags.none);
+              expect(changeSet.size).to.equal(changeCountAfter, 'changeSet.size 2');
+              changeSet.flushChanges();
+              expect(el.value).to.equal(expectedValueAfter, 'el.value 2');
+              expect(sut.getValue()).to.equal(expectedValueAfter, 'sut.getValue() 2');
+              if (hasSubscriber && changeCountAfter) {
+                callCount++;
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance);
+              }
+              if (hasSubscriber) {
+                expect((<SinonSpy>subscriber.handleChange).getCalls().length).to.equal(callCount);
+              }
+
+              tearDown({ sut, changeSet, el });
+            });
+          }
+        }
       }
     });
 
-    it(`setValue(null) does not call subscribers - ${markup}`, () => {
-      el = createElement(markup);
-      changeSet = new ChangeSet();
-      sut = new ValueAttributeObserver(changeSet, el, 'value', new EventSubscriber(['change', 'input']));
-      sut['callSubscribers'] = spy();
+    describe(`handleEvent() - type="${inputType}"`, () => {
+      function setup() {
+        const container = DI.createContainer();
+        const observerLocator = <IObserverLocator>container.get(IObserverLocator);
 
-      sut.setValue(null, BindingFlags.none);
-      changeSet.flushChanges();
-      expect(sut['callSubscribers']).not.to.have.been.called;
-    });
+        const el = <HTMLInputElement>createElement(`<input type="${inputType}"/>`);
+        document.body.appendChild(el);
 
-    it(`setValue(undefined) does not call subscribers - ${markup}`, () => {
-      el = createElement(markup);
-      changeSet = new ChangeSet();
-      sut = new ValueAttributeObserver(changeSet, el, 'value', new EventSubscriber(['change', 'input']));
-      sut['callSubscribers'] = spy();
+        const sut = <ValueAttributeObserver>observerLocator.getObserver(el, 'value');
 
-      sut.setValue(undefined, BindingFlags.none);
-      changeSet.flushChanges();
-      expect(sut['callSubscribers']).not.to.have.been.called;
+        let subscriber: IPropertySubscriber = { handleChange: spy() };
+        sut.subscribe(subscriber);
+
+        return { container, observerLocator, el, sut, subscriber };
+      }
+
+      function tearDown({ sut, el }: Partial<ReturnType<typeof setup>>) {
+        document.body.removeChild(el);
+        sut.dispose();
+      }
+
+      for (const valueBefore of [...nullValues, ...validValues]) {
+        for (const valueAfter of [...nullValues, ...validValues]) {
+          for (const event of ['change', 'input']) {
+
+            it(_`valueBefore=${valueBefore}, valueAfter=${valueAfter}`, () => {
+
+              const { sut, el, subscriber } = setup();
+
+              // TODO: only setting input.value to null sets it to empty string. Setting it to undefined actually coerces to 'undefined'. This should work consistently in both directions
+              const expectedValueBefore = valueBefore === null ? '' : valueBefore+'';
+              const expectedValueAfter = valueAfter === null ? '' : valueAfter+'';
+              let callCount = 0;
+
+              el.value = valueBefore;
+              el.dispatchEvent(new Event(event, eventDefaults));
+              expect(el.value).to.equal(expectedValueBefore, 'el.value 1');
+              expect(sut.getValue()).to.equal(expectedValueBefore, 'sut.getValue() 1');
+              if (expectedValueBefore !== '') {
+                callCount++;
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, BindingFlags.updateSourceExpression | BindingFlags.fromDOMEvent);
+              }
+
+              el.value = valueAfter;
+              el.dispatchEvent(new Event(event, eventDefaults));
+              expect(el.value).to.equal(expectedValueAfter, 'el.value 2');
+              expect(sut.getValue()).to.equal(expectedValueAfter, 'sut.getValue() 2');
+              if (expectedValueBefore !== expectedValueAfter) {
+                callCount++;
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, BindingFlags.updateSourceExpression | BindingFlags.fromDOMEvent);
+              }
+              expect((<SinonSpy>subscriber.handleChange).getCalls().length).to.equal(callCount);
+
+              tearDown({ sut, el });
+            });
+          }
+        }
+      }
     });
   }
 });
+
 
 
 type ObservedInputElement = HTMLInputElement & {

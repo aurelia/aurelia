@@ -101,7 +101,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind(flags | BindingFlags.bindOrigin);
+      this.$unbind(flags | BindingFlags.fromBind);
     }
     this.$scope = scope;
     this.$isBound = true;
@@ -126,7 +126,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       this.observer = this._items = null;
       // if this is a re-bind triggered by some ancestor repeater, then keep the views so we can reuse them
       // (this flag is passed down from handleInstanceMutation/handleItemsMutation down below at view.$bind)
-      if (!(flags & BindingFlags.bindOrigin)) {
+      if (!(flags & BindingFlags.fromBind)) {
         this.removeAllViews();
       }
     }

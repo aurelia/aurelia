@@ -18,7 +18,9 @@ function startObserving(observer: PropertyObserver, obj: any, propertyKey: Prope
   observer.currentValue = obj[propertyKey];
   const ownPropertyDescriptor = observer.ownPropertyDescriptor = getOwnPropertyDescriptor(obj, propertyKey);
   observedPropertyDescriptor.get = observer.getValue.bind(observer);
-  observedPropertyDescriptor.set = observer.setValue.bind(observer);
+  observedPropertyDescriptor.set = (value: any) => {
+    observer.setValue(value, BindingFlags.updateTargetInstance);
+  }
   observedPropertyDescriptor.enumerable = ownPropertyDescriptor === undefined || ownPropertyDescriptor.enumerable;
   if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {
     Reporter.write(1, propertyKey, obj);
@@ -26,80 +28,74 @@ function startObserving(observer: PropertyObserver, obj: any, propertyKey: Prope
   observer.observing = true;
 }
 
-function notify(this: PropertyObserver, newValue: any, previousValue?: any, flags?: BindingFlags): void {
+function notify(this: PropertyObserver, newValue: any, previousValue: any, flags: BindingFlags): void {
   this.hasChanges = newValue !== this.oldValue;
   const subscribers = this.subscribers;
-  const subscriberFlags = this.subscriberFlags;
   const len = subscribers.length;
   let i = 0;
   while (i < len) {
-    subscribers[i].handleChange(newValue, previousValue, flags | subscriberFlags[i]);
+    subscribers[i].handleChange(newValue, previousValue, flags);
     i++;
   }
   this.changeSet.add(this);
 }
 
-function observeAndSubscribe(this: PropertyObserver, subscriber: IPropertySubscriber, flags?: BindingFlags): void {
+function observeAndSubscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
   if (!this.observing) {
     startObserving(this, this.obj, this.propertyKey);
     this.subscribe = subscribe;
   }
   this.subscribers.push(subscriber);
-  this.subscriberFlags.push(flags);
 }
 
-function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber, flags?: BindingFlags): void {
+function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
   this.subscribers.push(subscriber);
-  this.subscriberFlags.push(flags);
 }
 
-function unsubscribe(this: PropertyObserver, subscriber: IPropertySubscriber, flags?: BindingFlags): void {
+function unsubscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
   const subscribers = this.subscribers;
   const len = subscribers.length;
   let i = 0;
   while (i < len) {
     if (subscribers[i] === subscriber) {
       subscribers.splice(i, 1);
-      this.subscriberFlags.splice(i, 1);
       break;
     }
     i++;
   }
 }
 
-function notifyBatched(this: PropertyObserver, newValue: any, oldValue?: any, flags?: BindingFlags): void {
+function notifyBatched(this: PropertyObserver, newValue: any, oldValue?: any): void {
   const subscribers = this.batchedSubscribers;
   const len = subscribers.length;
   let i = 0;
   while (i < len) {
-    subscribers[i].handleBatchedChange(newValue, oldValue, flags);
+    subscribers[i].handleBatchedChange(newValue, oldValue);
     i++;
   }
 }
 
-function subscribeBatched(this: PropertyObserver, subscriber: IBatchedPropertySubscriber, flags?: BindingFlags): void {
+function subscribeBatched(this: PropertyObserver, subscriber: IBatchedPropertySubscriber): void {
   this.batchedSubscribers.push(subscriber);
-  this.batchedSubscriberFlags.push(flags);
 }
 
-function unsubscribeBatched(this: PropertyObserver, subscriber: IBatchedPropertySubscriber, flags?: BindingFlags): void {
+function unsubscribeBatched(this: PropertyObserver, subscriber: IBatchedPropertySubscriber): void {
   const subscribers = this.batchedSubscribers;
   const len = subscribers.length;
   let i = 0;
   while (i < len) {
     if (subscribers[i] === subscriber) {
       subscribers.splice(i, 1);
-      this.batchedSubscriberFlags.splice(i, 1);
       break;
     }
     i++;
   }
 }
 
-function flushChanges(this: PropertyObserver, flags?: BindingFlags): void {
+function flushChanges(this: PropertyObserver): void {
   if (this.hasChanges) {
     this.hasChanges = false;
-    this.notifyBatched(this.oldValue, this.currentValue, flags);
+    this.notifyBatched(this.oldValue, this.currentValue);
     this.oldValue = this.previousValue = this.currentValue;
   }
 }
@@ -138,9 +134,6 @@ export function propertyObserver(): ClassDecorator {
 
     proto.subscribers = null;
     proto.batchedSubscribers = null;
-
-    proto.subscriberFlags = null;
-    proto.batchedSubscriberFlags = null;
 
     proto.notify = proto.notify || notify;
     proto.subscribe = proto.subscribe || observeAndSubscribe;

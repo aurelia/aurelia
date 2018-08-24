@@ -1,70 +1,68 @@
 import { BindingFlags } from './binding-flags';
 import { CollectionKind, CollectionObserver, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap } from './observation';
 
-function notify(this: CollectionObserver, origin: string, args?: IArguments, flags?: BindingFlags): void {
+const defaultFlags = BindingFlags.isCollectionMutation
+
+function notify(this: CollectionObserver, origin: string, args: IArguments): void {
   this.hasChanges = true;
   const subscribers = this.subscribers;
   const len = subscribers.length;
   let i = 0;
   while (i < len) {
-    subscribers[i].handleChange(origin, args, flags);
+    subscribers[i].handleChange(origin, args, defaultFlags);
     i++;
   }
   this.changeSet.add(this);
 }
 
-function subscribe(this: CollectionObserver, subscriber: ICollectionSubscriber, flags?: BindingFlags): void {
+function subscribe(this: CollectionObserver, subscriber: ICollectionSubscriber): void {
   this.subscribers.push(subscriber);
-  this.subscriberFlags.push(flags);
 }
 
-function unsubscribe(this: CollectionObserver, subscriber: ICollectionSubscriber, flags?: BindingFlags): void {
+function unsubscribe(this: CollectionObserver, subscriber: ICollectionSubscriber): void {
   const subscribers = this.subscribers;
   const len = subscribers.length;
   let i = 0;
   while (i < len) {
     if (subscribers[i] === subscriber) {
       subscribers.splice(i, 1);
-      this.subscriberFlags.splice(i, 1);
       break;
     }
     i++;
   }
 }
 
-function notifyBatched(this: CollectionObserver, indexMap: IndexMap, flags?: BindingFlags): void {
+function notifyBatched(this: CollectionObserver, indexMap: IndexMap): void {
   const subscribers = this.batchedSubscribers;
   const len = subscribers.length;
   let i = 0;
   while (i < len) {
-    subscribers[i].handleBatchedChange(indexMap, flags);
+    subscribers[i].handleBatchedChange(indexMap);
     i++;
   }
 }
 
-function subscribeBatched(this: CollectionObserver, subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags): void {
+function subscribeBatched(this: CollectionObserver, subscriber: IBatchedCollectionSubscriber): void {
   this.batchedSubscribers.push(subscriber);
-  this.batchedSubscriberFlags.push(flags);
 }
 
-function unsubscribeBatched(this: CollectionObserver, subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags): void {
+function unsubscribeBatched(this: CollectionObserver, subscriber: IBatchedCollectionSubscriber): void {
   const subscribers = this.batchedSubscribers;
   const len = subscribers.length;
   let i = 0;
   while (i < len) {
     if (subscribers[i] === subscriber) {
       subscribers.splice(i, 1);
-      this.batchedSubscriberFlags.splice(i, 1);
       break;
     }
     i++;
   }
 }
 
-function flushChanges(this: CollectionObserver, flags?: BindingFlags): void {
+function flushChanges(this: CollectionObserver): void {
   if (this.hasChanges) {
     this.hasChanges = false;
-    this.notifyBatched(this.indexMap, flags);
+    this.notifyBatched(this.indexMap);
     this.resetIndexMap();
   }
 }
@@ -113,13 +111,11 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
     proto.dispose = dispose;
 
     proto.subscribers = null;
-    proto.subscriberFlags = null;
     proto.notify = notify;
     proto.subscribe = subscribe;
     proto.unsubscribe = unsubscribe;
 
     proto.batchedSubscribers = null;
-    proto.batchedSubscriberFlags = null;
     proto.notifyBatched = notifyBatched;
     proto.subscribeBatched = subscribeBatched;
     proto.unsubscribeBatched = unsubscribeBatched;

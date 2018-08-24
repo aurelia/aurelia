@@ -1,4 +1,4 @@
-import { ICallable, Reporter } from '@aurelia/kernel';
+import { Reporter } from '@aurelia/kernel';
 import { IChangeSet } from './change-set';
 import { IDirtyChecker } from './dirty-checker';
 import { IAccessor, IChangeTracker, ISubscribable, MutationKind, IPropertySubscriber } from './observation';
@@ -22,7 +22,6 @@ export function computed(config: IComputedOverrides) {
 }
 
 const noProxy = !(typeof Proxy !== undefined);
-const computedContext = 'computed-observer';
 const computedOverrideDefaults: IComputedOverrides = { static: false, volatile: false };
 
 /* @internal */
@@ -76,18 +75,18 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
 
-    this.callSubscribers(newValue, oldValue);
+    this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
   }
 
-  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+  public subscribe(subscriber: IPropertySubscriber) {
     if (!this.observing) {
       this.convertProperty();
     }
-    this.addSubscriber(subscriber, flags);
+    this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
-    this.removeSubscriber(subscriber, flags);
+  public unsubscribe(subscriber: IPropertySubscriber) {
+    this.removeSubscriber(subscriber);
   }
 
   public convertProperty() {
@@ -145,17 +144,17 @@ export class GetterObserver extends SubscriberCollection implements IAccessor, I
     const newValue = this.controller.getValueAndCollectDependencies();
 
     if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue);
+      this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance);
     }
   }
 
-  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
-    this.addSubscriber(subscriber, flags);
+  public subscribe(subscriber: IPropertySubscriber) {
+    this.addSubscriber(subscriber);
     this.controller.onSubscriberAdded();
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
-    this.removeSubscriber(subscriber, flags);
+  public unsubscribe(subscriber: IPropertySubscriber) {
+    this.removeSubscriber(subscriber);
     this.controller.onSubscriberRemoved();
   }
 }
@@ -222,7 +221,7 @@ export class GetterController {
 
     if (dynamicDependencies) {
       this.isCollecting = false;
-      this.dependencies.forEach(x => x.subscribe(this, BindingFlags.computedOrigin));
+      this.dependencies.forEach(x => x.subscribe(this));
     }
 
     return this.value;
@@ -237,7 +236,7 @@ export class GetterController {
   }
 
   private unsubscribeAllDependencies() {
-    this.dependencies.forEach(x => x.unsubscribe(this, BindingFlags.computedOrigin));
+    this.dependencies.forEach(x => x.unsubscribe(this));
     this.dependencies.length = 0;
   }
 

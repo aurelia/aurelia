@@ -21,7 +21,7 @@ describe('Aurelia', () => {
     spy(sut['container'], 'register');
     class Foo{}
     class Bar{}
-    sut.register(Foo, Bar);
+    sut.register(<any>Foo, <any>Bar);
 
     expect(sut['container'].register).to.have.been.calledWith(Foo, Bar);
   });
@@ -30,7 +30,7 @@ describe('Aurelia', () => {
     spy(sut['container'], 'register');
     class Foo{}
     class Bar{}
-    sut.register([Foo, Bar]);
+    sut.register(<any>[Foo, Bar]);
 
     expect(sut['container'].register).to.have.been.calledWith([Foo, Bar]);
   });

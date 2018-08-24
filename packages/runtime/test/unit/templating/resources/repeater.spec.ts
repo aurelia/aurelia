@@ -1,4 +1,4 @@
-import { IContainer, DI, Registration } from '@aurelia/kernel';
+import { IContainer, DI, Registration, Writable } from '@aurelia/kernel';
 import { Repeat, IChangeSet, DOM, IRenderLocation, ForOfStatement, BindingIdentifier } from '@aurelia/runtime';
 import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
 import { IViewSlot, ViewSlot } from '@aurelia/runtime';
@@ -23,7 +23,7 @@ function createRenderLocation() {
 describe('ArrayRepeater - synchronize visuals', () => {
   let container: IContainer;
   let changeSet: IChangeSet;
-  let renderable: IRenderable;
+  let renderable: Writable<IRenderable>;
   let factory: IViewFactory;
   let location: IRenderLocation;
   let sut: Repeat<IObservedArray>;
@@ -82,7 +82,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
               const bindingContext = {}; // normally the items would be in here
               const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-              sut.$bind(BindingFlags.none, scope);
+              sut.$bind(BindingFlags.bindOrigin, scope);
               changeSet.flushChanges();
               let i = 0;
               while (i < times) {
@@ -124,7 +124,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
             const bindingContext = {}; // normally the items would be in here
             const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-            sut.$bind(BindingFlags.none, scope);
+            sut.$bind(BindingFlags.bindOrigin, scope);
             changeSet.flushChanges();
             let i = 0;
             while (i < times) {
@@ -178,7 +178,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
                 const bindingContext = {}; // normally the items would be in here
                 const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-                sut.$bind(BindingFlags.none, scope);
+                sut.$bind(BindingFlags.bindOrigin, scope);
                 changeSet.flushChanges();
                 let i = 0;
                 while (i < times) {
@@ -225,7 +225,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
             const bindingContext = {}; // normally the items would be in here
             const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-            sut.$bind(BindingFlags.none, scope);
+            sut.$bind(BindingFlags.bindOrigin, scope);
             changeSet.flushChanges();
             let i = 0;
             while (i < times) {
@@ -264,7 +264,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
 
             const bindingContext = {}; // normally the items would be in here
             const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-            sut.$bind(BindingFlags.none, scope);
+            sut.$bind(BindingFlags.bindOrigin, scope);
             changeSet.flushChanges();
             let i = 0;
             while (i < times) {
@@ -317,7 +317,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
     it('should ignore pending changes from previous instance when assigning a new instance', () => {
       (<any>sut)._items = [];
       renderable.$bindables = [new Binding(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), sut, 'items', <any>null, <any>null, <any>null)];
-      sut.$bind(BindingFlags.none, <any>{ });
+      sut.$bind(BindingFlags.bindOrigin, <any>{ });
 
       sut.items.push(1);
       expect(sut.items.length).to.equal(1);
@@ -332,7 +332,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
     it('should include pending changes from new instance when assigning a new instance', () => {
       (<any>sut)._items = [];
       renderable.$bindables = [new Binding(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), sut, 'items', <any>null, <any>null, <any>null)];
-      sut.$bind(BindingFlags.none, <any>{ });
+      sut.$bind(BindingFlags.bindOrigin, <any>{ });
 
       expect(sut.items.length).to.equal(0);
       expect(sut.views.length).to.equal(0);

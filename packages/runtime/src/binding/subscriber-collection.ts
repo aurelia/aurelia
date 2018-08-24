@@ -1,168 +1,144 @@
-import { ICallable } from '@aurelia/kernel';
 import { BindingFlags } from './binding-flags';
 import { IPropertySubscriber } from './observation';
+import { nativePush, nativeSplice } from './array-observer';
 
-const arrayPool1: BindingFlags[][] = [];
-const arrayPool2: IPropertySubscriber[][] = [];
-const poolUtilization: boolean[] = [];
+const enum SubscriberFlags {
+  None            = 0,
+  Subscriber0     = 0b0001,
+  Subscriber1     = 0b0010,
+  Subscriber2     = 0b0100,
+  SubscribersRest = 0b1000,
+  Any             = 0b1111,
+}
 
 export abstract class SubscriberCollection {
-  private _flags0: BindingFlags = null;
+  private _subscriberFlags: SubscriberFlags = SubscriberFlags.None;
   private _subscriber0: IPropertySubscriber = null;
-  private _flags1: BindingFlags = null;
   private _subscriber1: IPropertySubscriber = null;
-  private _flags2: BindingFlags = null;
   private _subscriber2: IPropertySubscriber = null;
-  private _flagsRest: BindingFlags[] = null;
   private _subscribersRest: IPropertySubscriber[] = null;
 
-  protected addSubscriber(subscriber: IPropertySubscriber, flags?: BindingFlags): boolean {
-    if (this.hasSubscriber(subscriber, flags)) {
+  protected addSubscriber(subscriber: IPropertySubscriber): boolean {
+    if (this.hasSubscriber(subscriber)) {
       return false;
     }
-    if (!this._subscriber0) {
-      this._flags0 = flags;
+    const subscriberFlags = this._subscriberFlags;
+    if (!(subscriberFlags & SubscriberFlags.Subscriber0)) {
       this._subscriber0 = subscriber;
+      this._subscriberFlags |= SubscriberFlags.Subscriber0;
       return true;
     }
-    if (!this._subscriber1) {
-      this._flags1 = flags;
+    if (!(subscriberFlags & SubscriberFlags.Subscriber1)) {
       this._subscriber1 = subscriber;
+      this._subscriberFlags |= SubscriberFlags.Subscriber1;
       return true;
     }
-    if (!this._subscriber2) {
-      this._flags2 = flags;
+    if (!(subscriberFlags & SubscriberFlags.Subscriber2)) {
       this._subscriber2 = subscriber;
+      this._subscriberFlags |= SubscriberFlags.Subscriber2;
       return true;
     }
-    if (!this._subscribersRest) {
-      this._flagsRest = [flags];
+    if (!(subscriberFlags & SubscriberFlags.SubscribersRest)) {
       this._subscribersRest = [subscriber];
+      this._subscriberFlags |= SubscriberFlags.SubscribersRest;
       return true;
     }
-    this._flagsRest.push(flags);
-    this._subscribersRest.push(subscriber);
+    nativePush.call(this._subscribersRest, subscriber);
     return true;
   }
 
-  protected removeSubscriber(subscriber: IPropertySubscriber, flags?: BindingFlags): boolean {
-    if (this._flags0 === flags && this._subscriber0 === subscriber) {
-      this._flags0 = null;
+  protected removeSubscriber(subscriber: IPropertySubscriber): boolean {
+    const subscriberFlags = this._subscriberFlags;
+    if ((subscriberFlags & SubscriberFlags.Subscriber0) && this._subscriber0 === subscriber) {
       this._subscriber0 = null;
+      this._subscriberFlags &= ~SubscriberFlags.Subscriber0;
       return true;
     }
-    if (this._flags1 === flags && this._subscriber1 === subscriber) {
-      this._flags1 = null;
+    if ((subscriberFlags & SubscriberFlags.Subscriber1) && this._subscriber1 === subscriber) {
       this._subscriber1 = null;
+      this._subscriberFlags &= ~SubscriberFlags.Subscriber1;
       return true;
     }
-    if (this._flags2 === flags && this._subscriber2 === subscriber) {
-      this._flags2 = null;
+    if ((subscriberFlags & SubscriberFlags.Subscriber2) && this._subscriber2 === subscriber) {
       this._subscriber2 = null;
+      this._subscriberFlags &= ~SubscriberFlags.Subscriber2;
       return true;
     }
-    const subscribers = this._subscribersRest;
-    if (subscribers === null || subscribers.length === 0) {
-      return false;
+    if (subscriberFlags & SubscriberFlags.SubscribersRest) {
+      const subscribers = this._subscribersRest;
+      for (let i = 0, ii = subscribers.length; i < ii; ++i) {
+        if (subscribers[i] === subscriber) {
+          nativeSplice.call(subscribers, i, 1);
+          if (ii === 1) {
+            this._subscriberFlags &= ~SubscriberFlags.SubscribersRest;
+          }
+          return true;
+        }
+      }
     }
-    const flagsRest = this._flagsRest;
-    let i = 0;
-    while (!(subscribers[i] === subscriber && flagsRest[i] === flags) && subscribers.length > i) {
-      i++;
-    }
-    if (i >= subscribers.length) {
-      return false;
-    }
-    flagsRest.splice(i, 1);
-    subscribers.splice(i, 1);
-    return true;
+    return false;
   }
 
-  protected callSubscribers(newValue: any, previousValue?: any, flags?: BindingFlags): void {
-    const flags0 = this._flags0;
+  protected callSubscribers(newValue: any, previousValue: any, flags: BindingFlags): void {
+    /**
+     * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
+     * callSubscribers invocation, so we're caching them all before invoking any.
+     * Subscribers added during this invocation are not invoked (and they shouldn't be).
+     * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
+     * however this is accounted for via $isBound and similar flags on the subscriber objects)
+     */
     const subscriber0 = this._subscriber0;
-    const flags1 = this._flags1;
     const subscriber1 = this._subscriber1;
-    const flags2 = this._flags2;
     const subscriber2 = this._subscriber2;
-    const length = this._flagsRest ? this._flagsRest.length : 0;
-    let flagsRest: BindingFlags[];
-    let subscribersRest: IPropertySubscriber[];
-    let poolIndex;
-    let i;
-    if (length) {
-      // grab temp arrays from the pool.
-      poolIndex = poolUtilization.length;
-      while (poolIndex-- && poolUtilization[poolIndex]) {
-        // Do nothing
-      }
-      if (poolIndex < 0) {
-        poolIndex = poolUtilization.length;
-        flagsRest = [];
-        subscribersRest = [];
-        poolUtilization.push(true);
-        arrayPool1.push(flagsRest);
-        arrayPool2.push(subscribersRest);
-      } else {
-        poolUtilization[poolIndex] = true;
-        flagsRest = arrayPool1[poolIndex];
-        subscribersRest = arrayPool2[poolIndex];
-      }
-      // copy the contents of the "rest" arrays.
-      i = length;
-      while (i--) {
-        flagsRest[i] = this._flagsRest[i];
-        subscribersRest[i] = this._subscribersRest[i];
-      }
+    let subscribers = this._subscribersRest;
+    if (subscribers !== null) {
+      subscribers = subscribers.slice();
     }
-
-    if (subscriber0) {
-      subscriber0.handleChange(newValue, previousValue, flags | flags0);
+    if (subscriber0 !== null) {
+      subscriber0.handleChange(newValue, previousValue, flags);
     }
-    if (subscriber1) {
-      subscriber1.handleChange(newValue, previousValue, flags | flags1);
+    if (subscriber1 !== null) {
+      subscriber1.handleChange(newValue, previousValue, flags);
     }
-    if (subscriber2) {
-      subscriber2.handleChange(newValue, previousValue, flags | flags2);
+    if (subscriber2 !== null) {
+      subscriber2.handleChange(newValue, previousValue, flags);
     }
-    if (length) {
-      for (i = 0; i < length; i++) {
-        const subscriber = subscribersRest[i];
-        const flagsI = flagsRest[i];
-        if (subscriber) {
-          subscriber.handleChange(newValue, previousValue, flags | flagsI);
+    const length = subscribers && subscribers.length || 0;
+    if (length > 0) {
+      for (let i = 0; i < length; ++i) {
+        const subscriber = subscribers[i];
+        if (subscriber !== null) {
+          subscriber.handleChange(newValue, previousValue, flags);
         }
-        flagsRest[i] = null;
-        subscribersRest[i] = null;
       }
-      poolUtilization[poolIndex] = false;
     }
   }
 
   protected hasSubscribers(): boolean {
-    return !!(
-      this._flags0
-      || this._flags1
-      || this._flags2
-      || this._flagsRest && this._flagsRest.length);
+    return this._subscriberFlags !== SubscriberFlags.None;
   }
 
-  protected hasSubscriber(subscriber: IPropertySubscriber, flags?: BindingFlags): boolean {
-    const has = this._flags0 === flags && this._subscriber0 === subscriber
-      || this._flags1 === flags && this._subscriber1 === subscriber
-      || this._flags2 === flags && this._subscriber2 === subscriber;
-    if (has) {
+  protected hasSubscriber(subscriber: IPropertySubscriber): boolean {
+    // Flags here is just a perf tweak
+    // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
+    // and minor slow-down when it does, and the former is more common than the latter.
+    const subscriberFlags = this._subscriberFlags;
+    if ((subscriberFlags & SubscriberFlags.Subscriber0) && this._subscriber0 === subscriber) {
       return true;
     }
-    let index;
-    const flagsRest = this._flagsRest;
-    if (!flagsRest || (index = flagsRest.length) === 0) { // eslint-disable-line no-cond-assign
-      return false;
+    if ((subscriberFlags & SubscriberFlags.Subscriber1) && this._subscriber1 === subscriber) {
+      return true;
     }
-    const subscribers = this._subscribersRest;
-    while (index--) {
-      if (flagsRest[index] === flags && subscribers[index] === subscriber) {
-        return true;
+    if ((subscriberFlags & SubscriberFlags.Subscriber2) && this._subscriber2 === subscriber) {
+      return true;
+    }
+    if (subscriberFlags & SubscriberFlags.SubscribersRest) {
+      // no need to check length; if the flag is set, there's always at least one
+      const subscribers = this._subscribersRest;
+      for (let i = 0, ii = subscribers.length; i < ii; ++i) {
+        if (subscribers[i] === subscriber) {
+          return true;
+        }
       }
     }
     return false;

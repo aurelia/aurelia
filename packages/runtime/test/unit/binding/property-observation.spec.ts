@@ -1,6 +1,6 @@
 import { spy } from 'sinon';
 import { PLATFORM } from '@aurelia/kernel';
-import { PrimitiveObserver, SetterObserver, ChangeSet } from '@aurelia/runtime';
+import { PrimitiveObserver, SetterObserver, ChangeSet, BindingFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { SpySubscriber } from '../util';
 
@@ -89,13 +89,14 @@ describe('SetterObserver', () => {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
+    const flags = BindingFlags.sourceOrigin;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
             sut = new SetterObserver(new ChangeSet(), object, <any>propertyName);
             sut.subscribe(new SpySubscriber());
-            sut.setValue(value);
+            sut.setValue(value, flags);
             expect(object[propertyName] === value).to.be.true;
           });
         }
@@ -106,6 +107,7 @@ describe('SetterObserver', () => {
   describe('subscribe()', () => {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
+    const flags = BindingFlags.sourceOrigin;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, () => {
@@ -133,15 +135,15 @@ describe('SetterObserver', () => {
                 sut.subscribe(subscriber);
               }
               let prevValue = object[propertyName];
-              sut.setValue(value);
+              sut.setValue(value, flags);
               for (const subscriber of subscribers) {
                 expect(subscriber.handleChange).to.have.been.calledOnce;
-                expect(subscriber.handleChange).to.have.been.calledWith(value, prevValue);
+                expect(subscriber.handleChange).to.have.been.calledWith(value, prevValue, flags);
               }
               if (calls === 2) {
-                sut.setValue(prevValue);
+                sut.setValue(prevValue, flags);
                 for (const subscriber of subscribers) {
-                  expect(subscriber.handleChange).to.have.been.calledWith(prevValue, value);
+                  expect(subscriber.handleChange).to.have.been.calledWith(prevValue, value, flags);
                   expect(subscriber.handleChange).to.have.been.calledTwice;
                 }
               }

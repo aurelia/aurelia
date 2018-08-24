@@ -15,25 +15,30 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
     this.currentValue = newValue;
-    this.currentFlags = flags;
-    return this.changeSet.add(this);
+    if (flags & BindingFlags.fromFlushChanges) {
+      this.setValueCore(newValue, flags);
+    } else {
+      this.currentFlags = flags;
+      return this.changeSet.add(this);
+    }
   }
   return Promise.resolve();
 }
+
+const defaultFlushChangesFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
 
 function flushChanges(this: BindingTargetAccessor): void {
   const currentValue = this.currentValue;
   // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
   // in which case the target doesn't need to be updated
   if (this.oldValue !== currentValue) {
-    this.setValueCore(currentValue, this.currentFlags);
+    this.setValueCore(currentValue, this.currentFlags | defaultFlushChangesFlags);
     this.oldValue = this.currentValue;
   }
 }
 
 function dispose(this: BindingTargetAccessor): void {
   this.currentValue = null;
-  this.currentFlags = null;
   this.oldValue = null;
   this.defaultValue = null;
 
@@ -48,7 +53,6 @@ export function targetObserver(defaultValue: Primitive | IIndexable = null): Cla
     const proto = <BindingTargetAccessor>target.prototype;
 
     proto.currentValue = defaultValue;
-    proto.currentFlags = 0;
     proto.oldValue = defaultValue;
     proto.defaultValue = defaultValue;
 

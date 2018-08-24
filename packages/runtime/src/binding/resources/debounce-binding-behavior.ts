@@ -56,11 +56,11 @@ export class DebounceBindingBehavior {
     if (binding instanceof Binding) {
       methodToDebounce = 'handleChange';
       debouncer = debounceCall;
-      callContextToDebounce = binding.mode & fromView ? BindingFlags.targetOrigin : BindingFlags.sourceOrigin;
+      callContextToDebounce = binding.mode & fromView ? BindingFlags.updateSourceExpression : BindingFlags.updateTargetInstance;
     } else {
       methodToDebounce = 'callSource';
       debouncer = debounceCallSource;
-      callContextToDebounce = BindingFlags.sourceOrigin;
+      callContextToDebounce = BindingFlags.updateTargetInstance;
     }
 
     // stash the original method and it's name.

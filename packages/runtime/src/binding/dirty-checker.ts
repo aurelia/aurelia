@@ -80,21 +80,21 @@ export class DirtyCheckProperty extends SubscriberCollection implements IAccesso
     let oldValue = this.oldValue;
     let newValue = this.getValue();
 
-    this.callSubscribers(newValue, oldValue);
+    this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
 
     this.oldValue = newValue;
   }
 
-  public subscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
+  public subscribe(subscriber: IPropertySubscriber) {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
       this.dirtyChecker.addProperty(this);
     }
-    this.addSubscriber(subscriber, flags);
+    this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber, flags?: BindingFlags) {
-    if (this.removeSubscriber(subscriber, flags) && !this.hasSubscribers()) {
+  public unsubscribe(subscriber: IPropertySubscriber) {
+    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.dirtyChecker.removeProperty(this);
     }
   }

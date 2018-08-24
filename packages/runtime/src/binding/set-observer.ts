@@ -47,7 +47,7 @@ function observeClear(this: IObservedSet): ReturnType<typeof nativeClear>  {
     }
     nativeClear.call(this);
     indexMap.length = 0;
-    o.notify('clear');
+    o.notify('clear', arguments);
   }
   return undefined;
 }
@@ -99,13 +99,13 @@ export function disableSetObservation(): void {
 @collectionObserver(CollectionKind.set)
 export class SetObserver implements ICollectionObserver<CollectionKind.set> {
   public resetIndexMap: () => void;
-  public notify: (origin: string, args?: IArguments, flags?: BindingFlags) => void;
-  public notifyBatched: (indexMap: IndexMap, flags?: BindingFlags) => void;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber, flags?: BindingFlags) => void;
-  public subscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber, flags?: BindingFlags) => void;
-  public flushChanges: (flags?: BindingFlags) => void;
+  public notify: (origin: string, args: IArguments, flags: BindingFlags) => void;
+  public notifyBatched: (indexMap: IndexMap) => void;
+  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+  public subscribe: (subscriber: ICollectionSubscriber) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
+  public flushChanges: () => void;
   public dispose: () => void;
 
   /*@internal*/
@@ -119,9 +119,6 @@ export class SetObserver implements ICollectionObserver<CollectionKind.set> {
   public subscribers: Array<ICollectionSubscriber>;
   public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
 
-  public subscriberFlags: Array<BindingFlags>;
-  public batchedSubscriberFlags: Array<BindingFlags>;
-
   constructor(changeSet: IChangeSet, set: Set<any> & { $observer?: ICollectionObserver<CollectionKind.set> }) {
     this.changeSet = changeSet;
     set.$observer = this;
@@ -129,8 +126,6 @@ export class SetObserver implements ICollectionObserver<CollectionKind.set> {
     this.resetIndexMap();
     this.subscribers = new Array();
     this.batchedSubscribers = new Array();
-    this.subscriberFlags = new Array();
-    this.batchedSubscriberFlags = new Array();
   }
 }
 

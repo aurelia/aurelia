@@ -140,11 +140,11 @@ export const CustomElementResource: ICustomElementResource = {
       const bindables = this.$bindables;
 
       for (let i = 0, ii = bindables.length; i < ii; ++i) {
-        bindables[i].$bind(flags | BindingFlags.bindOrigin, scope);
+        bindables[i].$bind(flags | BindingFlags.fromBind, scope);
       }
 
       if (this.$behavior.hasBound) {
-        (this as any).bound(flags | BindingFlags.bindOrigin);
+        (this as any).bound(flags | BindingFlags.fromBind);
       }
 
       this.$isBound = true;
@@ -218,11 +218,11 @@ export const CustomElementResource: ICustomElementResource = {
         let i = bindables.length;
 
         while (i--) {
-          bindables[i].$unbind(flags | BindingFlags.unbindOrigin);
+          bindables[i].$unbind(flags | BindingFlags.fromUnbind);
         }
 
         if (this.$behavior.hasUnbound) {
-          (this as any).unbound(flags | BindingFlags.unbindOrigin);
+          (this as any).unbound(flags | BindingFlags.fromUnbind);
         }
 
         this.$isBound = false;

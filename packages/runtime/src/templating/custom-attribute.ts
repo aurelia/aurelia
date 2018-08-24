@@ -122,13 +122,13 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
           return;
         }
 
-        this.$unbind(flags | BindingFlags.bindOrigin);
+        this.$unbind(flags | BindingFlags.fromBind);
       }
 
       this.$scope = scope;
 
       if (this.$behavior.hasBound) {
-        (this as any).bound(flags | BindingFlags.bindOrigin, scope);
+        (this as any).bound(flags | BindingFlags.fromBind, scope);
       }
 
       this.$isBound = true;
@@ -175,7 +175,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
     proto.$unbind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
       if (this.$isBound) {
         if (this.$behavior.hasUnbound) {
-          (this as any).unbound(flags | BindingFlags.unbindOrigin);
+          (this as any).unbound(flags | BindingFlags.fromUnbind);
         }
 
         this.$isBound = false;

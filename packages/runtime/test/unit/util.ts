@@ -7,17 +7,61 @@ import { IExpressionParser } from '@aurelia/runtime';
 import { AccessMember, AccessScope } from '@aurelia/runtime';
 import { Repeat } from '@aurelia/runtime';
 
+const toStringTag = Object.prototype.toString;
+
+export function _(strings: TemplateStringsArray, ...vars: any[]) {
+  let retVal = '';
+  const length = vars.length;
+  for (let i = 0; i < length; ++i) {
+    retVal = retVal + strings[i] + stringify(vars[i]);
+  }
+  return retVal + strings[length];
+}
+
 /**
- * stringify primitive value (null -> 'null' and undefined -> 'undefined')
+ * stringify primitive value (null -> 'null' and undefined -> 'undefined') or complex values with recursion guard
  */
 export function stringify(value: any): string {
-  if (value === undefined) {
-    return 'undefined';
-  } else if (value === null) {
-    return 'null';
-  } else {
-    return value.toString();
+  const type = toStringTag.call(value);
+  switch (type) {
+    case '[object Undefined]':
+      return 'undefined';
+    case '[object Null]':
+      return 'null';
+    case '[object String]':
+      return `'${value}'`;
+    case '[object Boolean]':
+    case '[object Number]':
+      return value;
+    case '[object Array]':
+      return `[${value.map(i => stringify(i)).join(',')}]`;
+    case '[object Event]':
+      return `'${value.type}'`;
+    default:
+      return jsonStringify(value).replace(/\r?\n/g, '');
   }
+}
+
+function jsonStringify(o) {
+  let cache = [];
+  const result = JSON.stringify(o, function(key, value) {
+    if (typeof value === 'object' && value !== null) {
+      if (value instanceof Node) {
+        return value['innerHTML']
+      }
+      if (cache.indexOf(value) !== -1) {
+        try {
+          return JSON.parse(JSON.stringify(value));
+        } catch (error) {
+          return;
+        }
+      }
+      cache.push(value);
+    }
+    return value;
+  });
+  cache = null;
+  return result;
 }
 
 /**

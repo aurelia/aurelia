@@ -1,13 +1,15 @@
 import { BindingFlags } from './binding-flags';
 import { CollectionKind, CollectionObserver, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap } from './observation';
 
-function notify(this: CollectionObserver, origin: string, args: IArguments, flags: BindingFlags): void {
+const defaultFlags = BindingFlags.isCollectionMutation
+
+function notify(this: CollectionObserver, origin: string, args: IArguments): void {
   this.hasChanges = true;
   const subscribers = this.subscribers;
   const len = subscribers.length;
   let i = 0;
   while (i < len) {
-    subscribers[i].handleChange(origin, args, flags);
+    subscribers[i].handleChange(origin, args, defaultFlags);
     i++;
   }
   this.changeSet.add(this);

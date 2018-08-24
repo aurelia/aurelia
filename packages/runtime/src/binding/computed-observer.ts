@@ -75,7 +75,7 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
 
-    this.callSubscribers(newValue, oldValue, BindingFlags.sourceOrigin | BindingFlags.fromFlushChanges);
+    this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
   }
 
   public subscribe(subscriber: IPropertySubscriber) {
@@ -144,7 +144,7 @@ export class GetterObserver extends SubscriberCollection implements IAccessor, I
     const newValue = this.controller.getValueAndCollectDependencies();
 
     if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, BindingFlags.sourceOrigin);
+      this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance);
     }
   }
 

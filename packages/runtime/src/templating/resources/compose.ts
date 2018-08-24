@@ -111,7 +111,7 @@ export class Compose {
     this.$bindables.push(newView);
 
     if (this.$isBound) {
-      newView.$bind(BindingFlags.bindOrigin, this.renderable.$scope);
+      newView.$bind(BindingFlags.fromBind, this.renderable.$scope);
     }
 
     return this.slot.swap(newView, this.swapOrder || SwapOrder.after);

@@ -49,11 +49,11 @@ export class Binding implements IBinding, IPropertySubscriber {
   }
 
   public updateTarget(value: any): void {
-    this.targetObserver.setValue(value, BindingFlags.sourceOrigin);
+    this.targetObserver.setValue(value, BindingFlags.updateTargetInstance);
   }
 
   public updateSource(value: any): void {
-    this.sourceExpression.assign(BindingFlags.targetOrigin, this.$scope, this.locator, value);
+    this.sourceExpression.assign(BindingFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
   public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void {
@@ -65,7 +65,7 @@ export class Binding implements IBinding, IPropertySubscriber {
     const $scope = this.$scope;
     const locator = this.locator;
 
-    if (flags & BindingFlags.sourceOrigin) {
+    if (flags & BindingFlags.updateTargetInstance) {
       const targetObserver = this.targetObserver;
       const mode = this.mode;
 
@@ -82,7 +82,7 @@ export class Binding implements IBinding, IPropertySubscriber {
       return;
     }
 
-    if (flags & BindingFlags.targetOrigin) {
+    if (flags & BindingFlags.updateSourceExpression) {
       if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
         sourceExpression.assign(flags, $scope, locator, newValue)
       }

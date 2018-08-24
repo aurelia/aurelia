@@ -29,7 +29,7 @@ function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
     this[i] = arguments[i - len]; o.indexMap[i] = - 2;
     i++;
   }
-  o.notify('push', arguments, BindingFlags.sourceOrigin);
+  o.notify('push', arguments);
   return this.length;
 }
 
@@ -47,7 +47,7 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift> 
   }
   nativeUnshift.apply(o.indexMap, inserts);
   const len = nativeUnshift.apply(this, arguments);
-  o.notify('unshift', arguments, BindingFlags.sourceOrigin);
+  o.notify('unshift', arguments);
   return len;
 }
 
@@ -65,7 +65,7 @@ function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativePop.call(indexMap);
-  o.notify('pop', arguments, BindingFlags.sourceOrigin);
+  o.notify('pop', arguments);
   return element;
 }
 
@@ -82,7 +82,7 @@ function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativeShift.call(indexMap);
-  o.notify('shift', arguments, BindingFlags.sourceOrigin);
+  o.notify('shift', arguments);
   return element;
 }
 
@@ -116,7 +116,7 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
     nativeSplice.call(indexMap, start, deleteCount);
   }
   const deleted = nativeSplice.apply(this, arguments);
-  o.notify('splice', arguments, BindingFlags.sourceOrigin);
+  o.notify('splice', arguments);
   return deleted;
 }
 
@@ -137,7 +137,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
     this[upper] = lowerValue; o.indexMap[upper] = lowerIndex;
     lower++;
   }
-  o.notify('reverse', arguments, BindingFlags.sourceOrigin);
+  o.notify('reverse', arguments);
   return this;
 }
 
@@ -164,7 +164,7 @@ function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => numbe
     compareFn = sortCompare;
   }
   quickSort(this, o.indexMap, 0, i, compareFn);
-  o.notify('sort', arguments, BindingFlags.sourceOrigin);
+  o.notify('sort', arguments);
   return this;
 }
 

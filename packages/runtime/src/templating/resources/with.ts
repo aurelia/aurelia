@@ -20,7 +20,7 @@ export class With {
   }
 
   public valueChanged(): void {
-    this.bindChild(BindingFlags.callbackOrigin);
+    this.bindChild(BindingFlags.fromBindableHandler);
   }
 
   public bound(flags: BindingFlags): void {

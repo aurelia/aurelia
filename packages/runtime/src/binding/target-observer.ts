@@ -25,12 +25,14 @@ function setValue(this: BindingTargetAccessor, newValue: Primitive | IIndexable,
   return Promise.resolve();
 }
 
+const defaultFlushChangesFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
+
 function flushChanges(this: BindingTargetAccessor): void {
   const currentValue = this.currentValue;
   // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
   // in which case the target doesn't need to be updated
   if (this.oldValue !== currentValue) {
-    this.setValueCore(currentValue, this.currentFlags);
+    this.setValueCore(currentValue, this.currentFlags | defaultFlushChangesFlags);
     this.oldValue = this.currentValue;
   }
 }

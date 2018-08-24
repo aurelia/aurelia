@@ -42,7 +42,7 @@ describe('ValueAttributeObserver', () => {
       sut = new ValueAttributeObserver(changeSet, el, 'value', new EventSubscriber(['change', 'input']));
       sut['callSubscribers'] = spy();
 
-      sut.setValue('foo', BindingFlags.sourceOrigin);
+      sut.setValue('foo', BindingFlags.none);
       expect(sut['callSubscribers']).not.to.have.been.called;
       changeSet.flushChanges();
       if (inputType !== 'file') {
@@ -58,7 +58,7 @@ describe('ValueAttributeObserver', () => {
       sut = new ValueAttributeObserver(changeSet, el, 'value', new EventSubscriber(['change', 'input']));
       sut['callSubscribers'] = spy();
 
-      sut.setValue(null, BindingFlags.sourceOrigin);
+      sut.setValue(null, BindingFlags.none);
       changeSet.flushChanges();
       expect(sut['callSubscribers']).not.to.have.been.called;
     });
@@ -69,7 +69,7 @@ describe('ValueAttributeObserver', () => {
       sut = new ValueAttributeObserver(changeSet, el, 'value', new EventSubscriber(['change', 'input']));
       sut['callSubscribers'] = spy();
 
-      sut.setValue(undefined, BindingFlags.sourceOrigin);
+      sut.setValue(undefined, BindingFlags.none);
       changeSet.flushChanges();
       expect(sut['callSubscribers']).not.to.have.been.called;
     });
@@ -137,28 +137,20 @@ describe('CheckedObserver', () => {
 
                 const { sut, changeSet, el, subscriber } = setup(hasSubscriber);
 
-                sut.setValue(propValue, BindingFlags.sourceOrigin);
+                sut.setValue(propValue, BindingFlags.none);
                 expect(changeSet.size).to.equal(changeCountBefore, 'changeSet.size 1');
                 changeSet.flushChanges();
                 expect(el.checked).to.equal(checkedBefore, 'el.checked 1');
                 expect(sut.getValue()).to.equal(expectedPropValue, 'sut.getValue() 1');
-                if (hasSubscriber && changeCountBefore) {
-                  expect(subscriber.handleChange).to.have.been.calledWith(expectedPropValue, null, BindingFlags.sourceOrigin);
-                }
 
-                sut.setValue(newValue, BindingFlags.sourceOrigin);
+                sut.setValue(newValue, BindingFlags.none);
                 expect(el.checked).to.equal(checkedBefore, 'el.checked 2');
                 expect(sut.getValue()).to.equal(expectedNewValue, 'sut.getValue() 2');
                 expect(changeSet.size).to.equal(changeCountAfter, 'changeSet.size 2');
                 changeSet.flushChanges();
 
                 expect(el.checked).to.equal(checkedAfter, 'el.checked 3');
-                if (hasSubscriber && changeCountAfter) {
-                  expect(subscriber.handleChange).to.have.been.calledWith(expectedNewValue, expectedPropValue, BindingFlags.sourceOrigin);
-                }
-                if (hasSubscriber) {
-                  expect((<SinonSpy>subscriber.handleChange).getCalls().length).to.equal(changeCountBefore + changeCountAfter);
-                }
+                expect(subscriber.handleChange).not.to.have.been.called;
 
                 tearDown({ sut, changeSet, el });
               });
@@ -201,14 +193,14 @@ describe('CheckedObserver', () => {
             el.checked = checkedBefore;
             el.dispatchEvent(new Event(event, eventDefaults));
             expect(sut.getValue()).to.equal(checkedBefore, 'sut.getValue() 1');
-            expect(subscriber.handleChange).to.have.been.calledWith(checkedBefore, null, BindingFlags.targetOrigin | BindingFlags.callbackOrigin);
+            expect(subscriber.handleChange).to.have.been.calledWith(checkedBefore, null, BindingFlags.updateSourceExpression | BindingFlags.fromDOMEvent);
 
             el.checked = checkedAfter;
             el.dispatchEvent(new Event(event, eventDefaults));
             expect(sut.getValue()).to.equal(checkedAfter, 'sut.getValue() 2');
 
             if (checkedBefore !== checkedAfter) {
-              expect(subscriber.handleChange).to.have.been.calledWith(checkedAfter, checkedBefore, BindingFlags.targetOrigin | BindingFlags.callbackOrigin);
+              expect(subscriber.handleChange).to.have.been.calledWith(checkedAfter, checkedBefore, BindingFlags.updateSourceExpression | BindingFlags.fromDOMEvent);
               expect(subscriber.handleChange).to.have.been.calledTwice;
             } else {
               expect(subscriber.handleChange).to.have.been.calledOnce;
@@ -277,9 +269,9 @@ describe('CheckedObserver', () => {
 
             const { sutA, sutB, sutC, elA, elB, elC, changeSet, subscriberA, subscriberB, subscriberC } = setup(hasSubscriber);
 
-            sutA.setValue(checkedBefore, BindingFlags.sourceOrigin);
-            sutB.setValue(checkedBefore, BindingFlags.sourceOrigin);
-            sutC.setValue(checkedBefore, BindingFlags.sourceOrigin);
+            sutA.setValue(checkedBefore, BindingFlags.none);
+            sutB.setValue(checkedBefore, BindingFlags.none);
+            sutC.setValue(checkedBefore, BindingFlags.none);
             expect(changeSet.size).to.equal(changeCountBefore, 'changeSet.size 1');
             changeSet.flushChanges();
             expect(elA.checked).to.equal(checkedBefore === 'A', 'elA.checked 1');
@@ -289,15 +281,9 @@ describe('CheckedObserver', () => {
             expect(sutB.getValue()).to.equal(expectedPropValue, 'sutB.getValue() 1');
             expect(sutC.getValue()).to.equal(expectedPropValue, 'sutC.getValue() 1');
 
-            if (hasSubscriber && changeCountBefore) {
-              expect(subscriberA.handleChange).to.have.been.calledWith(expectedPropValue, null, BindingFlags.sourceOrigin);
-              expect(subscriberB.handleChange).to.have.been.calledWith(expectedPropValue, null, BindingFlags.sourceOrigin);
-              expect(subscriberC.handleChange).to.have.been.calledWith(expectedPropValue, null, BindingFlags.sourceOrigin);
-            }
-
-            sutA.setValue(checkedAfter, BindingFlags.sourceOrigin);
-            sutB.setValue(checkedAfter, BindingFlags.sourceOrigin);
-            sutC.setValue(checkedAfter, BindingFlags.sourceOrigin);
+            sutA.setValue(checkedAfter, BindingFlags.none);
+            sutB.setValue(checkedAfter, BindingFlags.none);
+            sutC.setValue(checkedAfter, BindingFlags.none);
             expect(elA.checked).to.equal(checkedBefore === 'A', 'elA.checked 2');
             expect(elB.checked).to.equal(checkedBefore === 'B', 'elB.checked 2');
             expect(elC.checked).to.equal(checkedBefore === 'C', 'elC.checked 2');
@@ -311,11 +297,9 @@ describe('CheckedObserver', () => {
             expect(elB.checked).to.equal(checkedAfter === 'B', 'elB.checked 3');
             expect(elC.checked).to.equal(checkedAfter === 'C', 'elC.checked 3');
 
-            if (hasSubscriber && changeCountAfter) {
-              expect(subscriberA.handleChange).to.have.been.calledWith(expectedNewValue, expectedPropValue, BindingFlags.sourceOrigin);
-              expect(subscriberB.handleChange).to.have.been.calledWith(expectedNewValue, expectedPropValue, BindingFlags.sourceOrigin);
-              expect(subscriberC.handleChange).to.have.been.calledWith(expectedNewValue, expectedPropValue, BindingFlags.sourceOrigin);
-            }
+            expect(subscriberA.handleChange).not.to.have.been.called;
+            expect(subscriberB.handleChange).not.to.have.been.called;
+            expect(subscriberC.handleChange).not.to.have.been.called;
 
             tearDown({ sutA, sutB, sutC, elA, elB, elC, changeSet });
           });
@@ -449,19 +433,20 @@ describe('CheckedObserver', () => {
 
                     const { sut, changeSet, el, subscriber } = setup(hasSubscriber, value, prop);
 
-                    sut.setValue(propValue, BindingFlags.sourceOrigin);
+                    sut.setValue(propValue, BindingFlags.none);
                     expect(changeSet.size).to.equal(changeCountBefore, 'changeSet.size 1');
                     changeSet.flushChanges();
                     expect(el.checked).to.equal(valueCanBeChecked && checkedBefore, 'el.checked 1');
                     expect(sut.getValue()).to.equal(propValue, 'sut.getValue() 1');
 
-                    sut.setValue(newValue, BindingFlags.sourceOrigin);
+                    sut.setValue(newValue, BindingFlags.none);
                     expect(el.checked).to.equal(valueCanBeChecked && checkedBefore, 'el.checked 2');
                     expect(sut.getValue()).to.equal(newValue, 'sut.getValue() 2');
                     expect(changeSet.size).to.equal(changeCountAfter, 'changeSet.size 2');
                     changeSet.flushChanges();
 
                     expect(el.checked).to.equal(valueCanBeChecked && checkedAfter, 'el.checked 3');
+                    expect(subscriber.handleChange).not.to.have.been.called;
 
                     tearDown({ sut, changeSet, el });
                   });
@@ -513,7 +498,7 @@ describe('CheckedObserver', () => {
 
             const { sut, changeSet, el, subscriber } = setup(hasSubscriber, value, prop);
 
-            sut.setValue(array, BindingFlags.sourceOrigin);
+            sut.setValue(array, BindingFlags.none);
             expect(changeSet.size).to.equal(1, 'changeSet.size 1');
             changeSet.flushChanges();
             expect(el.checked).to.equal(false, 'el.checked 1');
@@ -530,6 +515,7 @@ describe('CheckedObserver', () => {
             expect(changeSet.size).to.equal(1, 'changeSet.size 3');
             changeSet.flushChanges();
             expect(el.checked).to.equal(false, 'el.checked 5');
+            expect(subscriber.handleChange).not.to.have.been.called;
 
             tearDown({ sut, changeSet, el });
           });
@@ -573,7 +559,7 @@ describe('CheckedObserver', () => {
                 const { sut, el, subscriber } = setup(value, prop);
 
                 const array = [];
-                await sut.setValue(array, BindingFlags.sourceOrigin);
+                await sut.setValue(array, BindingFlags.none);
                 el.checked = checkedBefore;
                 el.dispatchEvent(new Event(event, eventDefaults));
                 let actual = sut.getValue();
@@ -591,6 +577,7 @@ describe('CheckedObserver', () => {
                 } else {
                   expect(actual).to.equal(array);
                 }
+                expect(subscriber.handleChange).not.to.have.been.called;
 
                 tearDown({ sut, el });
               });
@@ -645,30 +632,25 @@ describe('CheckedObserver', () => {
 
                     const { sut, el, subscriber, valueOrModelObserver, changeSet } = setup(hasSubscriber, value, prop);
 
-                    sut.setValue(propValue, BindingFlags.sourceOrigin);
+                    sut.setValue(propValue, BindingFlags.none);
                     changeSet.flushChanges();
                     expect(sut.getValue()).to.equal(propValue, 'sut.getValue() 1');
 
                     expect(el.checked).to.equal(prop === 'model' && value === undefined && propValue === checkedValue, 'el.checked 1');
-                    valueOrModelObserver.setValue(value, BindingFlags.sourceOrigin | BindingFlags.fromFlushChanges);
+                    valueOrModelObserver.setValue(value, BindingFlags.none | BindingFlags.fromFlushChanges);
                     expect(el.checked).to.equal(valueCanBeChecked && checkedBefore, 'el.checked 2');
                     changeSet.flushChanges();
-                    if (hasSubscriber) {
-                      expect(subscriber.handleChange).to.have.been.calledWith(propValue, null, BindingFlags.sourceOrigin);
-                    }
                     expect(el.checked).to.equal(valueCanBeChecked && checkedBefore, 'el.checked 3');
 
-                    sut.setValue(newValue, BindingFlags.sourceOrigin);
+                    sut.setValue(newValue, BindingFlags.none);
                     changeSet.flushChanges();
                     expect(sut.getValue()).to.equal(newValue, 'sut.getValue() 2');
 
-                    valueOrModelObserver.setValue(value, BindingFlags.sourceOrigin | BindingFlags.fromFlushChanges);
+                    valueOrModelObserver.setValue(value, BindingFlags.none | BindingFlags.fromFlushChanges);
                     expect(el.checked).to.equal(valueCanBeChecked && checkedAfter, 'el.checked 4');
                     changeSet.flushChanges();
-                    if (hasSubscriber) {
-                      expect(subscriber.handleChange).to.have.been.calledWith(propValue, null, BindingFlags.sourceOrigin);
-                    }
                     expect(el.checked).to.equal(valueCanBeChecked && checkedAfter, 'el.checked 5');
+                    expect(subscriber.handleChange).not.to.have.been.called;
 
                     tearDown({ sut, el });
                   });
@@ -692,7 +674,7 @@ describe('SelectValueObserver', () => {
     const markup = `<select>\n${optionElements}\n</select>`;
     const el = <HTMLSelectElement>createElement(markup);
     const sut = <SelectValueObserver>observerLocator.getObserver(el, 'value');
-    sut.setValue(initialValue, BindingFlags.sourceOrigin);
+    sut.setValue(initialValue, BindingFlags.none);
     changeSet.flushChanges();
 
     return { changeSet, el, sut };

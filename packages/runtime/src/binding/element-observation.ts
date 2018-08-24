@@ -33,6 +33,8 @@ const inputValueDefaults = {
   ['week']: ''
 };
 
+const handleEventFlags = BindingFlags.fromDOMEvent | BindingFlags.updateSourceExpression;
+
 @targetObserver('')
 export class ValueAttributeObserver extends SubscriberCollection implements IBindingTargetObserver<INode, string, Primitive | IIndexable> {
   public currentValue: Primitive | IIndexable;
@@ -78,7 +80,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
   }
 
   public notify(flags: BindingFlags): void {
-    if (flags & BindingFlags.bindOrigin) {
+    if (flags & BindingFlags.fromBind) {
       return;
     }
     this.callSubscribers(this.currentValue, this.oldValue, flags);
@@ -87,7 +89,7 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
   public handleEvent(): void {
     this.oldValue = this.currentValue;
     this.currentValue = this.getValue();
-    this.notify(BindingFlags.targetOrigin);
+    this.notify(handleEventFlags);
     this.oldValue = this.currentValue;
   }
 
@@ -118,6 +120,8 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
 
 ValueAttributeObserver.prototype.propertyKey = '';
 ValueAttributeObserver.prototype.handler = null;
+
+const defaultHandleBatchedChangeFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
 
 @targetObserver()
 export class CheckedObserver extends SubscriberCollection implements IBindingTargetObserver<HTMLInputElement, string, Primitive | IIndexable>, IBatchedCollectionSubscriber, IPropertySubscriber {
@@ -162,19 +166,18 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
       this.arrayObserver.subscribeBatched(this);
     }
     this.synchronizeElement();
-    this.notify(flags);
   }
 
   // handleBatchedCollectionChange (todo: rename to make this explicit?)
   public handleBatchedChange(): void {
     this.synchronizeElement();
-    this.notify(BindingFlags.sourceOrigin);
+    this.notify(defaultHandleBatchedChangeFlags);
   }
 
   // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
   public handleChange(newValue: Primitive | IIndexable, previousValue: Primitive | IIndexable, flags: BindingFlags): void {
     this.synchronizeElement();
-    this.notify(flags | BindingFlags.sourceOrigin);
+    this.notify(flags);
   }
 
   public synchronizeElement(): void {
@@ -196,7 +199,7 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
   }
 
   public notify(flags: BindingFlags): void {
-    if (flags & BindingFlags.bindOrigin) {
+    if (flags & BindingFlags.fromBind) {
       return;
     }
     const oldValue = this.oldValue;
@@ -232,7 +235,7 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
     }
     this.oldValue = this.currentValue;
     this.currentValue = value;
-    this.notify(BindingFlags.callbackOrigin | BindingFlags.targetOrigin);
+    this.notify(handleEventFlags);
   }
 
   public subscribe(subscriber: IPropertySubscriber): void {
@@ -338,7 +341,7 @@ export class SelectValueObserver
   }
 
   public notify(flags: BindingFlags): void {
-    if (flags & BindingFlags.bindOrigin) {
+    if (flags & BindingFlags.fromBind) {
       return;
     }
     const oldValue = this.oldValue;
@@ -353,7 +356,7 @@ export class SelectValueObserver
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
     this.synchronizeValue();
     // TODO: need to clean up / improve the way collection changes are handled here (we currently just create and assign a new array to the source each change)
-    this.notify(BindingFlags.callbackOrigin | BindingFlags.targetOrigin);
+    this.notify(handleEventFlags);
   }
 
   public synchronizeOptions(indexMap?: IndexMap): void {

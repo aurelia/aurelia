@@ -25,7 +25,7 @@ function observeAdd(this: IObservedSet, value: any): ReturnType<typeof nativeAdd
     return this;
   }
   o.indexMap[oldSize] = -2;
-  o.notify('add', arguments, BindingFlags.sourceOrigin);
+  o.notify('add', arguments);
   return this;
 }
 
@@ -47,7 +47,7 @@ function observeClear(this: IObservedSet): ReturnType<typeof nativeClear>  {
     }
     nativeClear.call(this);
     indexMap.length = 0;
-    o.notify('clear', arguments, BindingFlags.sourceOrigin);
+    o.notify('clear', arguments);
   }
   return undefined;
 }
@@ -74,7 +74,7 @@ function observeDelete(this: IObservedSet, value: any): ReturnType<typeof native
     }
     i++;
   }
-  o.notify('delete', arguments, BindingFlags.sourceOrigin);
+  o.notify('delete', arguments);
   return false;
 }
 

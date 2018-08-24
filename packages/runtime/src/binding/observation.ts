@@ -124,7 +124,7 @@ export interface IBatchedPropertySubscriber { handleBatchedChange(newValue: any,
 /**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
  */
-export interface ICollectionChangeHandler { (origin: string, args: IArguments | null, flags: BindingFlags): void; }
+export interface ICollectionChangeHandler { (origin: string, args: IArguments | null, flags?: BindingFlags): void; }
 /**
  * Represents a (observer) function that can notify subscribers of mutations in a collection
  */

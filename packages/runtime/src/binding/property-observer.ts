@@ -19,7 +19,7 @@ function startObserving(observer: PropertyObserver, obj: any, propertyKey: Prope
   const ownPropertyDescriptor = observer.ownPropertyDescriptor = getOwnPropertyDescriptor(obj, propertyKey);
   observedPropertyDescriptor.get = observer.getValue.bind(observer);
   observedPropertyDescriptor.set = (value: any) => {
-    observer.setValue(value, BindingFlags.sourceOrigin);
+    observer.setValue(value, BindingFlags.updateTargetInstance);
   }
   observedPropertyDescriptor.enumerable = ownPropertyDescriptor === undefined || ownPropertyDescriptor.enumerable;
   if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {

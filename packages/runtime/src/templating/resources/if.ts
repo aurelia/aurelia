@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding';
-import { INode, IRenderLocation, DOM } from '../../dom';
+import { DOM, INode, IRenderLocation } from '../../dom';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
 import { IView, IViewFactory } from '../view';
@@ -39,46 +39,46 @@ export class If {
     this.update(newValue, BindingFlags.fromBindableHandler);
   }
 
-  private update(renderTrueBranch: boolean, flags: BindingFlags): void {
-    if (renderTrueBranch) {
-      if (this.$child) {
-        if (this.$child === this.ifView) {
-          return;
-        }
-
-        this.deactivateCurrentBranch(flags);
-      }
-
-      this.activateNewBranch(
-        this.ifView || (this.ifView = this.ifFactory.create()),
-        flags
-      );
+  private update(shouldRenderTrueBranch: boolean, flags: BindingFlags): void {
+    if (shouldRenderTrueBranch) {
+      this.activateBranch('if', flags);
     } else if (this.elseFactory) {
-      if (this.$child) {
-        if (this.$child === this.elseView) {
-          return;
-        }
-
-        this.deactivateCurrentBranch(flags);
-      }
-
-      this.activateNewBranch(
-        this.elseView || (this.elseView = this.elseFactory.create()),
-        flags
-      );
+      this.activateBranch('else', flags);
     } else if (this.$child) {
       this.deactivateCurrentBranch(flags);
     }
   }
 
-  private activateNewBranch(branch: IView, flags: BindingFlags): void {
-    this.$child = branch;
-    branch.$bind(flags, this.$scope);
-    branch.onRender = view => view.$nodes.insertBefore(this.location);
+  private activateBranch(name: 'if' | 'else', flags: BindingFlags): void {
+    const branchView = this.ensureViewCreated(name);
+
+    if (this.$child) {
+      if (this.$child === branchView) {
+        return;
+      }
+
+      this.deactivateCurrentBranch(flags);
+    }
+
+    this.$child = branchView;
+    branchView.$bind(flags, this.$scope);
 
     if (this.$isAttached) {
-      branch.$attach(this.encapsulationSource);
+      branchView.$attach(this.encapsulationSource);
     }
+  }
+
+  private ensureViewCreated(name: 'if' | 'else'): IView {
+    const viewPropertyName = `${name}View`;
+    let branchView = this[viewPropertyName] as IView;
+
+    if (!branchView) {
+      this[viewPropertyName] = branchView
+        = (this[`${name}Factory`] as IViewFactory).create();
+      branchView.onRender = view => view.$nodes.insertBefore(this.location);
+    }
+
+    return branchView;
   }
 
   private deactivateCurrentBranch(flags: BindingFlags): void {

@@ -96,7 +96,6 @@ export const enum BindingType {
         IsCommand  = 0b00000001 << 4,
 IsPropertyCommand  = 0b00000011 << 4,
    IsEventCommand  = 0b00000101 << 4,
-        IsBinding  = IsProperty | IsEvent | IsFunction | IsCustom,
 DelegationStrategyDelta =              0b0110,
            Command =                   0b1111,
     OneTimeCommand = 0b00000011 << 4 | 0b0001,
@@ -108,7 +107,7 @@ DelegationStrategyDelta =              0b0110,
     CaptureCommand = 0b00000101 << 4 | 0b0111,
    DelegateCommand = 0b00000101 << 4 | 0b1000,
        CallCommand = 0b00001001 << 4 | 0b1001,
-    OptionsCommand = 0b00010001 << 4 | 0b1010,
+    OptionsCommand = 0b00000001 << 4 | 0b1010,
         ForCommand = 0b00100001 << 4 | 0b1011,
      CustomCommand = 0b00010001 << 4 | 0b1100
 }

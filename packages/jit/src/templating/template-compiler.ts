@@ -240,8 +240,9 @@ export class OneTimeBindingInstruction implements IPropertyBindingInstruction {
   public mode: BindingMode.oneTime;
   public srcOrExpr: string | IExpression;
   public dest: string;
-  constructor(srcOrExpr: string | IExpression) {
+  constructor(srcOrExpr: string | IExpression, dest: string) {
     this.srcOrExpr = srcOrExpr;
+    this.dest = dest;
   }
 }
 export class ToViewBindingInstruction implements IPropertyBindingInstruction {

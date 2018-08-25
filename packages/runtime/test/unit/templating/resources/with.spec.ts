@@ -11,7 +11,7 @@ describe('The "with" template controller', () => {
     const { attribute } = hydrateCustomAttribute(With);
     const child = attribute['$child'];
 
-    attribute.$bind(BindingFlags.bindOrigin, createScope());
+    attribute.$bind(BindingFlags.fromBind, createScope());
 
     let withValue = {};
     attribute.value = withValue;

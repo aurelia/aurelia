@@ -16,7 +16,7 @@ export class With {
 
   constructor(private factory: IViewFactory, location: IRenderLocation) {
     this.$child = this.factory.create();
-    this.$child.$nodes.insertBefore(location);
+    this.$child.onRender = view => view.$nodes.insertBefore(location);
   }
 
   public valueChanged(): void {
@@ -32,6 +32,9 @@ export class With {
   }
 
   private bindChild(flags: BindingFlags): void {
-    this.$child.$bind(flags, BindingContext.createScopeFromParent(this.$scope, this.value));
+    this.$child.$bind(
+      flags,
+      BindingContext.createScopeFromParent(this.$scope, this.value)
+    );
   }
 }

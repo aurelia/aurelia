@@ -12,8 +12,22 @@ export function ensureSingleChildTemplateControllerBehaviors(Type: Constructable
     expect(attribute['$child']).to.be.instanceof(ViewFake);
   });
 
-  it('adds a child instance at the render location', () => {
+  it('enforces the attach lifecycle of its child instance', () => {
+    const { attribute } = hydrateCustomAttribute(Type);
+    const child = attribute['$child'];
+
+    let attachCalled = false;
+    child.$attach = function() { attachCalled = true; };
+
+    attribute.$attach(null, null);
+
+    expect(attachCalled).to.be.true;
+  });
+
+  it('adds a child instance at the render location when attaching', () => {
     const { attribute, location } = hydrateCustomAttribute(Type);
+
+    attribute.$attach(null);
 
     expect(location.previousSibling)
       .to.be.equal(attribute['$child'].$nodes.lastChild);
@@ -26,21 +40,9 @@ export function ensureSingleChildTemplateControllerBehaviors(Type: Constructable
     let bindCalled = false;
     child.$bind = function() { bindCalled = true; };
 
-    attribute.$bind(BindingFlags.bindOrigin, createScope());
+    attribute.$bind(BindingFlags.fromBind, createScope());
 
     expect(bindCalled).to.be.true;
-  });
-
-  it('enforces the attach lifecycle of its child instance', () => {
-    const { attribute } = hydrateCustomAttribute(Type);
-    const child = attribute['$child'];
-
-    let attachCalled = false;
-    child.$attach = function() { attachCalled = true; };
-
-    attribute.$attach(null, null);
-
-    expect(attachCalled).to.be.true;
   });
 
   it('enforces the detach lifecycle of its child instance', () => {
@@ -63,8 +65,8 @@ export function ensureSingleChildTemplateControllerBehaviors(Type: Constructable
     let unbindCalled = false;
     child.$unbind = function() { unbindCalled = true; };
 
-    attribute.$bind(BindingFlags.bindOrigin, createScope());
-    attribute.$unbind(BindingFlags.unbindOrigin);
+    attribute.$bind(BindingFlags.fromBind, createScope());
+    attribute.$unbind(BindingFlags.fromUnbind);
 
     expect(unbindCalled).to.be.true;
   });

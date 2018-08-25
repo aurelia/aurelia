@@ -42,6 +42,7 @@ export class ViewFake implements IView {
 
   // IAttach impl
   $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
+    this.onRender(this);
     this.$isAttached = true;
   }
 

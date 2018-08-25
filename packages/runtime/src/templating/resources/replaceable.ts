@@ -13,7 +13,7 @@ export class Replaceable {
 
   constructor(private factory: IViewFactory, location: IRenderLocation) {
     this.$child = this.factory.create();
-    this.$child.$nodes.insertBefore(location);
+    this.$child.onRender = view => view.$nodes.insertBefore(location);
   }
 
   public bound(flags: BindingFlags, scope: IScope): void {

@@ -75,7 +75,7 @@ export class If {
 
   private addChild(flags: BindingFlags): void {
     this.$child.$bind(flags, this.$scope);
-    this.$child.onRender = () => this.$child.$nodes.insertBefore(this.location);
+    this.$child.onRender = view => view.$nodes.insertBefore(this.location);
 
     if (this.$isAttached) {
       this.$child.$attach(this.encapsulationSource);

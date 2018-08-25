@@ -13,7 +13,7 @@ export class Call implements IBinding {
   private $scope: IScope;
 
   constructor(
-    private sourceExpression: IExpression,
+    public sourceExpression: IExpression,
     target: INode,
     targetProperty: string,
     observerLocator: IObserverLocator,

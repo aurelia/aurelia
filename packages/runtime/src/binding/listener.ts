@@ -13,10 +13,10 @@ export class Listener implements IBinding {
 
   constructor(
     public targetEvent: string,
-    private delegationStrategy: DelegationStrategy,
-    private sourceExpression: IExpression,
-    private target: INode,
-    private preventDefault: boolean,
+    public delegationStrategy: DelegationStrategy,
+    public sourceExpression: IExpression,
+    public target: INode,
+    public preventDefault: boolean,
     private eventManager: IEventManager,
     public locator: IServiceLocator
   ) { }

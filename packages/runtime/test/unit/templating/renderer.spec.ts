@@ -1,4 +1,4 @@
-import { Renderer, TargetedInstructionType, AccessScope, IExpressionParser, IRenderable, DOM, IRenderContext, IObserverLocator, IEventManager, IRenderingEngine, ITextBindingInstruction, Binding, BindingMode, IPropertyBindingInstruction, IExpression, ITargetedInstruction, DelegationStrategy, Listener, IListenerBindingInstruction, ICallBindingInstruction, Call, CallScope, Ref } from '@aurelia/runtime';
+import { Renderer, TargetedInstructionType, AccessScope, IExpressionParser, IRenderable, DOM, IRenderContext, IObserverLocator, IEventManager, IRenderingEngine, ITextBindingInstruction, Binding, BindingMode, IPropertyBindingInstruction, IExpression, ITargetedInstruction, DelegationStrategy, Listener, IListenerBindingInstruction, ICallBindingInstruction, Call, CallScope, Ref, Interpolation } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { _, createElement } from '../util';
 import { register } from '../../../../jit/src/binding/expression-parser';
@@ -45,7 +45,7 @@ describe('Renderer', () => {
   }
 
   describe('handles ITextBindingInstruction', () => {
-    for (const srcOrExpr of ['foo', new AccessScope('foo')]) {
+    for (const srcOrExpr of ['${foo}', new Interpolation(['', ''], [new AccessScope('foo')])]) {
       const instruction = new TextBindingInstruction(srcOrExpr);
       it(_`instruction=${instruction}`, () => {
         const { sut, renderable, target, placeholder, wrapper } = setup(instruction);
@@ -56,7 +56,9 @@ describe('Renderer', () => {
         expect(renderable.$bindables.length).to.equal(1);
         const bindable = <Binding>renderable.$bindables[0];
         expect(bindable.target).to.equal(placeholder);
-        expect(bindable.sourceExpression['name']).to.equal('foo');
+        expect(bindable.sourceExpression['expressions'][0]['name']).to.equal('foo');
+        expect(bindable.sourceExpression['parts'][0]).to.equal('');
+        expect(bindable.sourceExpression['parts'][1]).to.equal('');
         expect(bindable.mode).to.equal(BindingMode.toView);
         expect(target.isConnected).to.be.false;
 

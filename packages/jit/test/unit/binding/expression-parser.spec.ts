@@ -2,12 +2,11 @@ import { AccessKeyed, AccessMember, AccessScope, AccessThis,
   Assign, Binary, BindingBehavior, CallFunction,
   CallMember, CallScope, Conditional,
   ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template,
-  Unary, ValueConverter, TaggedTemplate } from '@aurelia/runtime';
+  Unary, ValueConverter, TaggedTemplate, BindingType, IExpressionParser } from '../../../../runtime/src';
 import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
 import { expect } from 'chai';
-import { DI } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/runtime';
-import { register } from '@aurelia/jit'
+import { DI } from '../../../../kernel/src';
+import { register } from '../../../../jit/src'
 import { verifyEqual } from '../../util';
 
 /* eslint-disable no-loop-func, no-floating-decimal, key-spacing, new-cap, quotes, comma-spacing */
@@ -81,7 +80,7 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr), expected);
+          verifyEqual(parser.parse(expr, BindingType.None), expected);
         });
       }
     });
@@ -106,7 +105,7 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr), expected);
+          verifyEqual(parser.parse(expr, BindingType.None), expected);
         });
       }
     });
@@ -135,7 +134,7 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr), expected);
+          verifyEqual(parser.parse(expr, BindingType.None), expected);
         });
       }
     });
@@ -158,7 +157,7 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr), expected);
+          verifyEqual(parser.parse(expr, BindingType.None), expected);
         });
       }
     });
@@ -180,7 +179,7 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected, paren } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr), expected);
+          verifyEqual(parser.parse(expr, BindingType.None), expected);
         });
 
         const nestedTests = [
@@ -191,7 +190,7 @@ describe('ExpressionParser', () => {
 
         for (const { expr: nExpr, expected: nExpected } of nestedTests) {
           it(nExpr, () => {
-            verifyEqual(parser.parse(nExpr), nExpected);
+            verifyEqual(parser.parse(nExpr, BindingType.None), nExpected);
           });
         }
       }
@@ -200,7 +199,7 @@ describe('ExpressionParser', () => {
     describe('Binary', () => {
       for (const op of binaryOps) {
         it(`\"${op}\"`, () => {
-          verifyEqual(parser.parse(`x ${op} y`), new Binary(op, $x, $y));
+          verifyEqual(parser.parse(`x ${op} y`, BindingType.None), new Binary(op, $x, $y));
         });
       }
     });
@@ -245,7 +244,7 @@ describe('ExpressionParser', () => {
 
                   for (const { expr, expected } of tests) {
                     it(expr, () => {
-                      const actual = parser.parse(expr);
+                      const actual = parser.parse(expr, BindingType.None);
                       expect(actual.toString()).to.equal(expected.toString());
                       verifyEqual(actual, expected);
                     });
@@ -286,7 +285,7 @@ describe('ExpressionParser', () => {
 
           for (const { expr, expected } of tests) {
             it(expr, () => {
-              const actual = parser.parse(expr);
+              const actual = parser.parse(expr, BindingType.None);
               expect(actual.toString()).to.equal(expected.toString());
               verifyEqual(actual, expected);
             });
@@ -322,29 +321,29 @@ describe('ExpressionParser', () => {
 
         for (const { expr, expected } of tests) {
           it(expr, () => {
-            verifyEqual(parser.parse(expr), expected);
+            verifyEqual(parser.parse(expr, BindingType.None), expected);
           });
         }
       });
     }
 
     it('chained BindingBehaviors', () => {
-      const expr = parser.parse('foo & bar:x:y:z & baz:a:b:c');
+      const expr = parser.parse('foo & bar:x:y:z & baz:a:b:c', BindingType.None);
       verifyEqual(expr, new BindingBehavior(new BindingBehavior($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
     });
 
     it('chained ValueConverters', () => {
-      const expr = parser.parse('foo | bar:x:y:z | baz:a:b:c');
+      const expr = parser.parse('foo | bar:x:y:z | baz:a:b:c', BindingType.None);
       verifyEqual(expr, new ValueConverter(new ValueConverter($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
     });
 
     it('chained ValueConverters and BindingBehaviors', () => {
-      const expr = parser.parse('foo | bar:x:y:z & baz:a:b:c');
+      const expr = parser.parse('foo | bar:x:y:z & baz:a:b:c', BindingType.None);
       verifyEqual(expr, new BindingBehavior(new ValueConverter($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
     });
 
     it('AccessScope', () => {
-      const expr = parser.parse('foo');
+      const expr = parser.parse('foo', BindingType.None);
       verifyEqual(expr, $foo);
     });
 
@@ -364,11 +363,11 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr), expected);
+          verifyEqual(parser.parse(expr, BindingType.None), expected);
         });
 
         it(`(${expr})`, () => {
-          verifyEqual(parser.parse(`(${expr})`), expected);
+          verifyEqual(parser.parse(`(${expr})`, BindingType.None), expected);
         });
       }
     });
@@ -391,18 +390,18 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr), expected);
+          verifyEqual(parser.parse(expr, BindingType.None), expected);
         });
       }
     });
 
     it('Assign', () => {
-      const expr = parser.parse('foo = bar');
+      const expr = parser.parse('foo = bar', BindingType.None);
       verifyEqual(expr, new Assign($foo, $bar));
     });
 
     it('chained Assign', () => {
-      const expr = parser.parse('foo = bar = baz');
+      const expr = parser.parse('foo = bar = baz', BindingType.None);
       verifyEqual(expr, new Assign($foo, new Assign($bar, $baz)));
     });
 
@@ -418,52 +417,52 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr), expected);
+          verifyEqual(parser.parse(expr, BindingType.None), expected);
         });
 
         it(`(${expr})`, () => {
-          verifyEqual(parser.parse(`(${expr})`), expected);
+          verifyEqual(parser.parse(`(${expr})`, BindingType.None), expected);
         });
       }
     });
 
     it('CallScope', () => {
-      const expr = parser.parse('foo(x)');
+      const expr = parser.parse('foo(x)', BindingType.None);
       verifyEqual(expr, new CallScope('foo', [$x], 0));
     });
 
     it('nested CallScope', () => {
-      const expr = parser.parse('foo(bar(x), y)');
+      const expr = parser.parse('foo(bar(x, y))', BindingType.None);
       verifyEqual(expr, new CallScope('foo', [new CallScope('bar', [$x], 0), $y], 0));
     });
 
     it('CallMember', () => {
-      const expr = parser.parse('foo.bar(x)');
+      const expr = parser.parse('foo.bar(x)', BindingType.None);
       verifyEqual(expr, new CallMember($foo, 'bar', [$x]));
     });
 
     it('nested CallMember', () => {
-      const expr = parser.parse('foo.bar.baz(x)');
+      const expr = parser.parse('foo.bar.baz(x)', BindingType.None);
       verifyEqual(expr, new CallMember(new AccessMember($foo, 'bar'), 'baz', [$x]));
     });
 
     it('$this', () => {
-      const expr = parser.parse('$this');
+      const expr = parser.parse('$this', BindingType.None);
       verifyEqual(expr, new AccessThis(0));
     });
 
     it('$this.member to AccessScope', () => {
-      const expr = parser.parse('$this.foo');
+      const expr = parser.parse('$this.foo', BindingType.None);
       verifyEqual(expr, $foo);
     });
 
     it('$this() to CallFunction', () => {
-      const expr = parser.parse('$this()');
+      const expr = parser.parse('$this()', BindingType.None);
       verifyEqual(expr, new CallFunction(new AccessThis(0), []));
     });
 
     it('$this.member() to CallScope', () => {
-      const expr = parser.parse('$this.foo(x)');
+      const expr = parser.parse('$this.foo(x)', BindingType.None);
       verifyEqual(expr, new CallScope('foo', [$x], 0));
     });
 
@@ -482,64 +481,64 @@ describe('ExpressionParser', () => {
     describe('$parent', () => {
       for (const { i, name } of parents) {
         it(name, () => {
-          const expr = parser.parse(name);
+          const expr = parser.parse(name, BindingType.None);
           verifyEqual(expr, new AccessThis(i));
         });
 
         it(`${name} before ValueConverter`, () => {
-          const expr = parser.parse(`${name} | foo`);
+          const expr = parser.parse(`${name} | foo`, BindingType.None);
           verifyEqual(expr, new ValueConverter(new AccessThis(i), 'foo', []));
         });
 
         it(`${name}.bar before ValueConverter`, () => {
-          const expr = parser.parse(`${name}.bar | foo`);
+          const expr = parser.parse(`${name}.bar | foo`, BindingType.None);
           verifyEqual(expr, new ValueConverter(new AccessScope('bar', i), 'foo', []));
         });
 
         it(`${name} before binding behavior`, () => {
-          const expr = parser.parse(`${name} & foo`);
+          const expr = parser.parse(`${name} & foo`, BindingType.None);
           verifyEqual(expr, new BindingBehavior(new AccessThis(i), 'foo', []));
         });
 
         it(`${name}.bar before binding behavior`, () => {
-          const expr = parser.parse(`${name}.bar & foo`);
+          const expr = parser.parse(`${name}.bar & foo`, BindingType.None);
           verifyEqual(expr, new BindingBehavior(new AccessScope('bar', i), 'foo', []));
         });
 
         it(`${name}.foo to AccessScope`, () => {
-          const expr = parser.parse(`${name}.foo`);
+          const expr = parser.parse(`${name}.foo`, BindingType.None);
           verifyEqual(expr, new AccessScope(`foo`, i));
         });
 
         it(`${name}.foo() to CallScope`, () => {
-          const expr = parser.parse(`${name}.foo()`);
+          const expr = parser.parse(`${name}.foo()`, BindingType.None);
           verifyEqual(expr, new CallScope(`foo`, [], i));
         });
 
         it(`${name}() to CallFunction`, () => {
-          const expr = parser.parse(`${name}()`);
+          const expr = parser.parse(`${name}()`, BindingType.None);
           verifyEqual(expr, new CallFunction(new AccessThis(i), []));
         });
 
         it(`${name}[0] to AccessKeyed`, () => {
-          const expr = parser.parse(`${name}[0]`);
+          const expr = parser.parse(`${name}[0]`, BindingType.None);
           verifyEqual(expr, new AccessKeyed(new AccessThis(i), $num0));
         });
       }
     });
 
     it('$parent inside CallMember', () => {
-      const expr = parser.parse('matcher.bind($parent)');
+      const expr = parser.parse('matcher.bind($parent)', BindingType.None);
       verifyEqual(expr, new CallMember(new AccessScope('matcher', 0), 'bind', [new AccessThis(1)]));
     });
 
     it('$parent in LiteralObject', () => {
-      const expr = parser.parse('{parent: $parent}');
+      const expr = parser.parse('{parent: $parent}', BindingType.None);
       verifyEqual(expr, new ObjectLiteral(['parent'], [new AccessThis(1)]));
     });
 
     it('$parent and foo in LiteralObject', () => {
-      const expr = parser.parse('{parent: $parent, foo: bar}');
+      const expr = parser.parse('{parent: $parent, foo: bar}', BindingType.None);
       verifyEqual(expr, new ObjectLiteral(['parent', 'foo'], [new AccessThis(1), $bar]));
     });
 
@@ -565,11 +564,11 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(`{${expr}}`, () => {
-          verifyEqual(parser.parse(`{${expr}}`), expected);
+          verifyEqual(parser.parse(`{${expr}}`, BindingType.None), expected);
         });
 
         it(`({${expr}})`, () => {
-          verifyEqual(parser.parse(`({${expr}})`), expected);
+          verifyEqual(parser.parse(`({${expr}})`, BindingType.None), expected);
         });
       }
     });
@@ -577,7 +576,7 @@ describe('ExpressionParser', () => {
     describe('unicode IdentifierStart', () => {
       for (const char of latin1IdentifierStartChars) {
         it(char, () => {
-          const expr = parser.parse(char);
+          const expr = parser.parse(char, BindingType.None);
           verifyEqual(expr, new AccessScope(char, 0));
         });
       }
@@ -587,7 +586,7 @@ describe('ExpressionParser', () => {
       for (const char of latin1IdentifierPartChars) {
         it(char, () => {
           const identifier = `$${char}`;
-          const expr = parser.parse(identifier);
+          const expr = parser.parse(identifier, BindingType.None);
           verifyEqual(expr, new AccessScope(identifier, 0));
         });
       }
@@ -760,7 +759,7 @@ describe('ExpressionParser', () => {
 function verifyError(parser: any, expr: any, errorMessage: any = ''): any {
   let error = null;
   try {
-    parser.parse(expr);
+    parser.parse(expr, BindingType.None);
   } catch (e) {
     error = e;
   }

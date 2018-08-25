@@ -3,7 +3,7 @@ import { Binding } from '../binding/binding';
 import { BindingMode } from '../binding/binding-mode';
 import { Call } from '../binding/call';
 import { IEventManager } from '../binding/event-manager';
-import { IExpressionParser } from '../binding/expression-parser';
+import { BindingType, IExpressionParser } from '../binding/expression-parser';
 import { Listener } from '../binding/listener';
 import { IObserverLocator } from '../binding/observer-locator';
 import { Ref } from '../binding/ref';
@@ -96,32 +96,32 @@ export class Renderer implements IRenderer {
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
     const srcOrExpr = instruction.srcOrExpr as any;
-    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
+    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.Interpolation), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.propertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IPropertyBindingInstruction>) {
     const srcOrExpr = instruction.srcOrExpr as any;
-    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.dest, instruction.mode, this.observerLocator, this.context));
+    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand | instruction.mode), target, instruction.dest, instruction.mode, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.listenerBinding](renderable: IRenderable, target: any, instruction: Immutable<IListenerBindingInstruction>) {
     const srcOrExpr = instruction.srcOrExpr as any;
-    renderable.$bindables.push(new Listener(instruction.dest, instruction.strategy, srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.preventDefault, this.eventManager, this.context));
+    renderable.$bindables.push(new Listener(instruction.dest, instruction.strategy, srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta)), target, instruction.preventDefault, this.eventManager, this.context));
   }
 
   public [TargetedInstructionType.callBinding](renderable: IRenderable, target: any, instruction: Immutable<ICallBindingInstruction>) {
     const srcOrExpr = instruction.srcOrExpr as any;
-    renderable.$bindables.push(new Call(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, instruction.dest, this.observerLocator, this.context));
+    renderable.$bindables.push(new Call(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.CallCommand), target, instruction.dest, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.refBinding](renderable: IRenderable, target: any, instruction: Immutable<IRefBindingInstruction>) {
     const srcOrExpr = instruction.srcOrExpr as any;
-    renderable.$bindables.push(new Ref(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), target, this.context));
+    renderable.$bindables.push(new Ref(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsRef), target, this.context));
   }
 
   public [TargetedInstructionType.stylePropertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IStylePropertyBindingInstruction>) {
     const srcOrExpr = instruction.srcOrExpr as any;
-    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr), (<any>target).style, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
+    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand | BindingMode.toView), (<any>target).style, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.setProperty](renderable: IRenderable, target: any, instruction: Immutable<ISetPropertyInstruction>) {

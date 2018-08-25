@@ -7,18 +7,18 @@ import { INode } from '../dom';
 import { ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
 
-export enum TargetedInstructionType {
-  textBinding = 1,
-  propertyBinding = 2,
-  listenerBinding = 3,
-  callBinding = 4,
-  refBinding = 5,
-  stylePropertyBinding = 6,
-  setProperty = 7,
-  setAttribute = 8,
-  hydrateElement = 9,
-  hydrateAttribute = 10,
-  hydrateTemplateController = 11
+export const enum TargetedInstructionType {
+  textBinding = 'a',
+  propertyBinding = 'b',
+  listenerBinding = 'c',
+  callBinding = 'd',
+  refBinding = 'e',
+  stylePropertyBinding = 'f',
+  setProperty = 'g',
+  setAttribute = 'h',
+  hydrateElement = 'i',
+  hydrateAttribute = 'j',
+  hydrateTemplateController = 'k'
 }
 
 export interface IBuildInstruction {

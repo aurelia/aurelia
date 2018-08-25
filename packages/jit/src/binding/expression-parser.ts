@@ -6,7 +6,7 @@ import {
   CallFunction, CallMember, CallScope,
   Conditional, ExpressionKind, ForOfStatement, IExpression, IExpressionParser,
   IsAssign, IsBinary, IsBindingBehavior, IsConditional, IsLeftHandSide,
-  IsPrimary, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter
+  IsPrimary, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, Interpolation
 } from '@aurelia/runtime';
 
 export function register(container: IContainer) {
@@ -44,10 +44,6 @@ export class ParserState {
     this.tokenValue = '';
     this.currentChar = input.charCodeAt(0);
     this.assignable = true;
-    nextToken(this);
-    if (this.currentToken & Token.ExpressionTerminal) {
-      error(this, 'Invalid start of expression');
-    }
   }
 }
 
@@ -59,6 +55,16 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
   T extends Precedence.Conditional ? IsConditional :
   T extends Precedence.Assign ? IsAssign :
   T extends Precedence.Variadic ? IsBindingBehavior : IsBinary {
+
+  if (state.index === 0) {
+    if (bindingType & BindingType.Interpolation) {
+      return <any>parseInterpolation(state);
+    }
+    nextToken(state);
+    if (state.currentToken & Token.ExpressionTerminal) {
+      error(state, 'Invalid start of expression');
+    }
+  }
 
   let exprStart = state.index;
   state.assignable = Precedence.Binary > minPrecedence;
@@ -379,13 +385,10 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
     }
     result = new BindingBehavior(result, name, args);
   }
-  if (bindingType & BindingType.Interpolation) {
-    expect(state, Token.CloseBrace);
-    // HACK (for performance)
-    (<any>result).$parserStateIndex = state.index;
-    return result;
-  }
   if (state.currentToken !== Token.EOF) {
+    if (bindingType & BindingType.Interpolation) {
+      return result;
+    }
     error(state, `Unconsumed token ${state.tokenRaw}`);
   }
   return result;
@@ -505,6 +508,45 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
   }
 }
 
+function parseInterpolation(state: ParserState) {
+  const parts = [];
+  const expressions = [];
+  const length = state.length;
+  let result = '';
+  while (state.index < length) {
+    switch (state.currentChar) {
+      case Char.Dollar:
+        if (state.input.charCodeAt(state.index + 1) === Char.OpenBrace) {
+          parts.push(result);
+          result = '';
+
+          state.index += 2;
+          state.currentChar = state.input.charCodeAt(state.index);
+          nextToken(state);
+          const expression = parse(state, Access.Reset, Precedence.Variadic, BindingType.Interpolation);
+          expressions.push(expression);
+          continue;
+        } else {
+          result += '$';
+        }
+        break;
+      case Char.Backslash:
+        result += String.fromCharCode(unescape(nextChar(state)));
+        break;
+      default:
+        result += String.fromCharCode(state.currentChar);
+    }
+    if (state.index >= length) {
+      break;
+    }
+    nextChar(state);
+  }
+  if (expressions.length) {
+    parts.push(result);
+    return new Interpolation(parts, expressions);
+  }
+  return null;
+}
 
 /**
  * parseTemplateLiteralExpression

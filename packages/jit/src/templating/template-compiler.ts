@@ -89,7 +89,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   /*@internal*/
   public compileTextNode(node: Text, instructions: TargetedInstruction[][]): boolean {
-    const expression = this.parseInterpolation(node.wholeText);
+    const expression = this.expressionParser.parse(node.wholeText, BindingType.Interpolation);
     if (expression === null) {
       return false;
     }
@@ -171,39 +171,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       return new HydrateAttributeInstruction(name, []);
     }
 
-    const expression = this.parseInterpolation(value);
+    const expression = this.expressionParser.parse(value, BindingType.Interpolation);
     if (expression !== null) {
       return new ToViewBindingInstruction(expression, name);
     }
-    return null;
-  }
-
-  private parseInterpolation(value: string): Interpolation | null {
-    // an attribute that is neither an attribute nor a binding command will only become a binding if an interpolation is found
-    // otherwise, null is returned
-    const valueLength = value.length;
-    const parts = [];
-    const expressions = [];
-    let prev = 0;
-    let i = 0;
-    while (i < valueLength) {
-      if (value.charCodeAt(i) === Char.Dollar && value.charCodeAt(i + 1) === Char.OpenBrace) {
-        parts.push(value.slice(prev, i));
-        // skip the Dollar+OpenBrace; the expression parser only knows about the closing brace being a valid expression end when in an interpolation
-        const expression = this.expressionParser.parse(value.slice(i + 2), BindingType.Interpolation);
-        expressions.push(expression);
-        // compensate for the skipped Dollar+OpenBrace
-        prev = i = i + (<any>expression).$parserStateIndex /*HACK (not deleting the property because we need a better approach to begin with)*/ + 2;
-        continue;
-      }
-      i++;
-    }
-    if (expressions.length) {
-      // add the string part that came after the last ClosingBrace
-      parts.push(value.slice(prev));
-      return new Interpolation(parts, expressions);
-    }
-    // nothing bindable could be parsed, return null
     return null;
   }
 }

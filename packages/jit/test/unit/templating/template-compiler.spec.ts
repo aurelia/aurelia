@@ -117,7 +117,7 @@ describe('TemplateCompiler', () => {
           let expected: TargetedInstruction;
           switch (attrName.split('.')[1]) {
             case 'one-time':
-              expected = new OneTimeBindingInstruction(expr);
+              expected = new OneTimeBindingInstruction(expr, attrName.split('.')[0]);
               break;
             case 'bind':
             case 'to-view':

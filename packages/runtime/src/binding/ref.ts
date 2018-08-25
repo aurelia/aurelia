@@ -9,8 +9,8 @@ export class Ref implements IBinding {
   private $scope: IScope;
 
   constructor(
-    private sourceExpression: IExpression,
-    private target: IBindingTarget,
+    public sourceExpression: IExpression,
+    public target: IBindingTarget,
     public locator: IServiceLocator) {
   }
 

@@ -103,12 +103,12 @@ export class Binding implements IBinding, IPropertySubscriber {
     this.$isBound = true;
     this.$scope = scope;
 
-    const mode = this.mode;
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
       sourceExpression.bind(flags, scope, this);
     }
 
+    const mode = this.mode;
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       if (mode & fromView) {

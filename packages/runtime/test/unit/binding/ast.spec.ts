@@ -1,13 +1,13 @@
-import { AccessKeyed, AccessMember, AccessScope, AccessThis,
+import {
+  AccessKeyed, AccessMember, AccessScope, AccessThis,
   Assign, Binary, BindingBehavior, CallFunction,
   CallMember, CallScope, Conditional,
   ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template,
-  Unary, ValueConverter, TaggedTemplate } from '@aurelia/runtime';
+  Unary, ValueConverter, TaggedTemplate, BindingContext, BindingFlags
+} from '../../../src/index';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
 import { createScopeForTest } from './shared';
-import { BindingContext } from '@aurelia/runtime';
-import { BindingFlags } from '@aurelia/runtime';
 
 describe('AccessKeyed', () => {
   let expression: AccessKeyed;

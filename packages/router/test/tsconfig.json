@@ -1,9 +1,3 @@
 {
-  "extends": "../tsconfig-test.json",
-  "compilerOptions": {
-    "baseUrl": "../",
-    "paths": {
-      "@aurelia/router": ["src"]
-    }
-  }
+  "extends": "../tsconfig-test.json"
 }

@@ -1,13 +1,6 @@
-import { ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior } from '@aurelia/runtime';
+import { ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, IObserverLocator, OneTimeBindingBehavior, Binding, BindingFlags, IExpression, BindingMode, IScope } from '../../../../src/index';
 import { expect } from 'chai';
-import { IObserverLocator } from '@aurelia/runtime';
-import { OneTimeBindingBehavior } from '@aurelia/runtime';
-import { Binding } from '@aurelia/runtime';
-import { BindingFlags } from '@aurelia/runtime';
-import { IExpression } from '@aurelia/runtime';
-import { BindingMode } from '@aurelia/runtime';
-import { IContainer } from '@aurelia/kernel';
-import { IScope } from '@aurelia/runtime';
+import { IContainer } from '../../../../../kernel/src/index';
 
 const tests = [
   { Behavior: OneTimeBindingBehavior, mode: BindingMode.oneTime },

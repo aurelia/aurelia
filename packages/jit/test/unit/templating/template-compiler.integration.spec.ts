@@ -1,9 +1,10 @@
-import { IContainer, DI, Registration } from '@aurelia/kernel';
-import { TemplateCompiler, register } from '@aurelia/jit';
-import { Aurelia, Repeat, If, Else, ITemplateCompiler, IChangeSet, CustomElementResource, valueConverter,
+import { IContainer, DI, Registration } from '../../../../kernel/src/index';
+import { TemplateCompiler, register } from '../../../src/index';
+import {
+  Aurelia, Repeat, If, Else, ITemplateCompiler, IChangeSet, CustomElementResource, valueConverter,
   OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior,
   DebounceBindingBehavior, ThrottleBindingBehavior
-} from '@aurelia/runtime';
+} from '../../../../runtime/src/index';
 import { expect } from 'chai';
 import { ExpressionParser } from '../../../../runtime/src/binding/expression-parser';
 import { spy } from 'sinon';

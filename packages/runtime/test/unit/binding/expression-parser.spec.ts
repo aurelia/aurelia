@@ -1,4 +1,4 @@
-import { ExpressionParser } from '@aurelia/runtime';
+import { ExpressionParser } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('ExpressionParser', () => {

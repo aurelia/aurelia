@@ -1,11 +1,48 @@
-import { HydrateAttributeInstruction, TextBindingInstruction, SetPropertyInstruction } from './../../../src/templating/template-compiler';
-import { DI } from '@aurelia/kernel';
-import { IExpressionParser, IResourceDescriptions, IExpression, BindingType, ExpressionKind, AccessScope, ObjectBindingPattern, CustomAttributeResource, BindingIdentifier, ArrayBindingPattern, PrimitiveLiteral, ArrayLiteral, BindingBehavior, ValueConverter, ForOfStatement, Interpolation, AccessMember, Binary, Template, TargetedInstruction } from '@aurelia/runtime';
-import { TemplateCompiler, register, BindingCommandResource, ToViewBindingInstruction, HydrateTemplateController, OneTimeBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, TriggerBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, CallBindingInstruction, RefBindingInstruction } from '@aurelia/jit';
+import { DI } from '../../../../kernel/src/index';
+import {
+  IExpressionParser,
+  IResourceDescriptions,
+  IExpression,
+  BindingType,
+  ExpressionKind,
+  AccessScope,
+  ObjectBindingPattern,
+  CustomAttributeResource,
+  BindingIdentifier,
+  ArrayBindingPattern,
+  PrimitiveLiteral,
+  ArrayLiteral,
+  BindingBehavior,
+  ValueConverter,
+  ForOfStatement,
+  Interpolation,
+  AccessMember,
+  Binary,
+  Template,
+  TargetedInstruction,
+  Repeat,
+  RuntimeCompilationResources
+} from '../../../../runtime/src/index';
+import {
+  TemplateCompiler,
+  register,
+  BindingCommandResource,
+  ToViewBindingInstruction,
+  HydrateTemplateController,
+  OneTimeBindingInstruction,
+  FromViewBindingInstruction,
+  TwoWayBindingInstruction,
+  TriggerBindingInstruction,
+  CaptureBindingInstruction,
+  DelegateBindingInstruction,
+  CallBindingInstruction,
+  RefBindingInstruction,
+  HydrateAttributeInstruction,
+  TextBindingInstruction,
+  SetPropertyInstruction
+} from '../../../src/index';
 import { expect } from 'chai';
-import { RuntimeCompilationResources } from '../../../../runtime/src/templating/rendering-engine';
 import { verifyEqual, createElement } from '../../util';
-import { Repeat } from '@aurelia/runtime';
 
 
 export function createAttribute(name: string, value: string): Attr {

@@ -1,8 +1,7 @@
 import { match } from 'sinon';
-import { ArrayObserver, enableArrayObservation, disableArrayObservation, IChangeSet } from '@aurelia/runtime';
+import { ArrayObserver, enableArrayObservation, disableArrayObservation, IChangeSet, IndexMap } from '../../../src/index';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
-import { IndexMap } from '@aurelia/runtime';
 import { ChangeSet } from '../../../src/binding/change-set';
 
 function assertArrayEqual(actual: any[], expected: any[]): void {

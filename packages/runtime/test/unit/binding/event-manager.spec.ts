@@ -1,4 +1,4 @@
-import { ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, EventSubscriber, EventManager } from '@aurelia/runtime';
+import { ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, EventSubscriber, EventManager } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('ListenerTracker', () => {

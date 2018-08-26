@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { Constructable } from '@aurelia/kernel';
-import { BindingFlags } from "@aurelia/runtime";
+import { Constructable } from '../../../../../kernel/src/index';
+import { BindingFlags } from '../../../../src/index';
 import { ViewFake } from '../fakes/view-fake';
 import { hydrateCustomAttribute } from '../attribute-assistance';
 import { createScope } from '../scope-assistance';
@@ -26,7 +26,7 @@ export function ensureSingleChildTemplateControllerBehaviors(Type: Constructable
     let bindCalled = false;
     child.$bind = function() { bindCalled = true; };
 
-    attribute.$bind(BindingFlags.bindOrigin, createScope());
+    attribute.$bind(BindingFlags.fromBind, createScope());
 
     expect(bindCalled).to.be.true;
   });
@@ -63,8 +63,8 @@ export function ensureSingleChildTemplateControllerBehaviors(Type: Constructable
     let unbindCalled = false;
     child.$unbind = function() { unbindCalled = true; };
 
-    attribute.$bind(BindingFlags.bindOrigin, createScope());
-    attribute.$unbind(BindingFlags.unbindOrigin);
+    attribute.$bind(BindingFlags.fromBind, createScope());
+    attribute.$unbind(BindingFlags.fromUnbind);
 
     expect(unbindCalled).to.be.true;
   });

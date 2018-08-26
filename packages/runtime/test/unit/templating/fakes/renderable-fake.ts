@@ -5,7 +5,7 @@ import {
   IScope,
   IRenderable,
   INodeSequence
-} from "@aurelia/runtime";
+} from "../../../../src/index";
 
 export class RenderableFake implements IRenderable {
   $context: IRenderContext;

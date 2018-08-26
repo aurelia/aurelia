@@ -1,15 +1,8 @@
 import { spy } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver } from '@aurelia/runtime';
-
-import { Binding, IBindingTarget } from '@aurelia/runtime';
-import { IObserverLocator } from '@aurelia/runtime';
-import { DI, IContainer } from '@aurelia/kernel';
-import { AccessScope } from '@aurelia/runtime';
+import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags } from '../../../src/index';
+import { DI, IContainer } from '../../../../kernel/src/index';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
-import { BindingMode } from '@aurelia/runtime';
-import { BindingFlags } from '@aurelia/runtime';
-
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -133,7 +126,7 @@ describe('Binding', () => {
     it('should not unbind if it is not already bound', () => {
       const scope: any = {};
       sut['$scope'] = scope;
-      sut.$unbind(BindingFlags.unbindOrigin);
+      sut.$unbind(BindingFlags.fromUnbind);
       expect(sut['$scope'] === scope).to.be.true;
     });
 
@@ -144,11 +137,11 @@ describe('Binding', () => {
       sut['targetObserver'] = <any>{};
       const unobserveSpy = spy(sut, 'unobserve');
       const unbindSpy = dummySourceExpression.unbind = spy();
-      sut.$unbind(BindingFlags.unbindOrigin);
+      sut.$unbind(BindingFlags.fromUnbind);
       expect(sut['$scope']).to.be.null;
       expect(sut['$isBound']).to.be.false;
       expect(unobserveSpy).to.have.been.calledWith(true);
-      expect(unbindSpy).to.have.been.calledWith(BindingFlags.unbindOrigin, scope, sut);
+      expect(unbindSpy).to.have.been.calledWith(BindingFlags.fromUnbind, scope, sut);
     });
   });
 

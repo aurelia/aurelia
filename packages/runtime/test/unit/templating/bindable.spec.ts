@@ -1,4 +1,4 @@
-import { addHyphenAndLower, hyphenate, bindable } from '@aurelia/runtime';
+import { addHyphenAndLower, hyphenate, bindable } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('addHyphenAndLower', () => {

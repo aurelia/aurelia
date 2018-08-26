@@ -1,12 +1,6 @@
-import { IExpression } from '@aurelia/runtime';
-import { IObserverLocator } from '@aurelia/runtime';
-import { IContainer } from '@aurelia/kernel';
-import { Binding } from '@aurelia/runtime';
-import { BindingFlags } from '@aurelia/runtime';
-import { IScope } from '@aurelia/runtime';
-import { BindingMode } from '@aurelia/runtime';
+import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, DebounceBindingBehavior } from '../../../../src/index';
 import { expect } from 'chai';
-import { DebounceBindingBehavior } from '@aurelia/runtime';
+import { IContainer } from '../../../../../kernel/src/index';
 
 describe('DebounceBindingBehavior', () => {
   let sourceExpression: IExpression;

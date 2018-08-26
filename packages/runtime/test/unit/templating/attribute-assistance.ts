@@ -8,8 +8,8 @@ import {
   IRenderingEngine,
   InstanceProvider,
   INode
-} from "@aurelia/runtime";
-import { DI, Registration, IContainer, Constructable } from '@aurelia/kernel';
+} from "../../../src/index";
+import { DI, Registration, IContainer, Constructable } from '../../../../kernel/src/index';
 import { ViewFactoryFake } from "./fakes/view-factory-fake";
 
 function createRenderLocation() {

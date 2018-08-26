@@ -1,8 +1,7 @@
 import { match } from 'sinon';
-import { MapObserver, enableMapObservation, disableMapObservation, nativeMapDelete, nativeSet } from '@aurelia/runtime';
+import { MapObserver, enableMapObservation, disableMapObservation, nativeMapDelete, nativeSet, IndexMap } from '../../../src/index';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
-import { IndexMap } from '@aurelia/runtime';
 import { ChangeSet } from '../../../src/binding/change-set';
 
 function assetMapEqual(actual: Map<any, any>, expected: Map<any, any>): void {

@@ -1,4 +1,4 @@
-import { DirtyChecker, DirtyCheckProperty } from '@aurelia/runtime';
+import { DirtyChecker, DirtyCheckProperty } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('DirtyChecker', () => {

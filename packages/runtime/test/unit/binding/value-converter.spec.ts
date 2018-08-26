@@ -1,5 +1,5 @@
-import { valueConverter, ValueConverterResource } from '@aurelia/runtime';
-import { IContainer, DI } from '@aurelia/kernel';
+import { valueConverter, ValueConverterResource } from '../../../src/index';
+import { IContainer, DI } from '../../../../kernel/src/index';
 import { expect } from 'chai';
 
 describe(`@valueConverter('foo')`, () => {

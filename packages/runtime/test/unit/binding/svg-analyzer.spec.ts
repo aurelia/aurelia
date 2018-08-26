@@ -1,4 +1,4 @@
-import { ISVGAnalyzer } from '@aurelia/runtime';
+import { ISVGAnalyzer } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('ISVGAnalyzer', () => {

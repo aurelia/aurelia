@@ -1,11 +1,6 @@
 import { spy } from 'sinon';
-import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier } from '@aurelia/runtime';
-import { CustomElementResource, ICustomElement } from '@aurelia/runtime';
-import { ITemplateSource, TargetedInstructionType } from '@aurelia/runtime';
-import { IContainer } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/runtime';
-import { AccessMember, AccessScope } from '@aurelia/runtime';
-import { Repeat } from '@aurelia/runtime';
+import { IContainer } from '../../../kernel/src/index';
+import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource, ICustomElement, ITemplateSource, TargetedInstructionType, IExpressionParser, AccessMember, AccessScope, Repeat } from '../../src/index';
 
 const toStringTag = Object.prototype.toString;
 

@@ -128,7 +128,7 @@ jobs:
       - store_artifacts:
           path: ./packages/plugin-svg/coverage
 
-  e2e_tests:
+  e2e_tests_jit_parcel:
     <<: *defaults
     steps:
       - checkout
@@ -153,6 +153,34 @@ jobs:
             cd ./packages/examples/jit-parcel
             npm run e2e
 
+  e2e_tests_jit_browserify:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - run:
+          name: "Bootstrap and build the packages"
+          command: |
+            npm run bootstrap
+            npm run build
+      - run:
+          name: Install jit-browserify
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm ci
+      - run:
+          name: Serve jit-browserify in the background
+          background: true
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run serve
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run e2e
+
 workflows:
     version: 2
     default_workflow:
@@ -164,7 +192,10 @@ workflows:
             - unit_tests:
                 requires:
                     - install
-            - e2e_tests:
+            - e2e_tests_jit_parcel:
                 requires:
                     - build
+            - e2e_tests_jit_browserify:
+                requires:
+                    - install
 

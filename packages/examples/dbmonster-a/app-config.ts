@@ -22,14 +22,9 @@ export const appConfig: ITemplateSource = {
           cache: "*",
           templateOrNode: `
             <tr>
-              <td class="dbname">
-                <au-marker class="au"></au-marker>
-              </td>
-              <td class="query-count">
-                <au-marker class="au"></au-marker>
-              </td>
-              <td class="au">
-              </td>
+              <td class="dbname"><au-marker class="au"></au-marker> </td>
+              <td class="query-count"><au-marker class="au"></au-marker> </td>
+              <td class="au"></td>
             </tr>
           `,
           instructions: [
@@ -39,15 +34,12 @@ export const appConfig: ITemplateSource = {
               {
                 type: TargetedInstructionType.hydrateTemplateController,
                 res: 'repeat',
-                srcOrExpr: {
+                src: {
                   cache: "*",
                   templateOrNode: `
                   <td>
-                    <au-marker class="au"></au-marker>
-                    <div class="popover left">
-                      <div class="popover-content">
-                        <au-marker class="au"></au-marker>
-                      </div>
+                    <au-marker class="au"></au-marker> <div class="popover left">
+                      <div class="popover-content"><au-marker class="au"></au-marker> </div>
                       <div class="arrow"></div>
                     </div>
                   </td>

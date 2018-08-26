@@ -7,9 +7,9 @@ import { Call } from '../call';
 import { Listener } from '../listener';
 
 export type DebounceableBinding = (Binding | Call | Listener) & {
-  debouncedMethod: ((context: string, newValue: any, oldValue: any) => void) & { originalName: string };
+  debouncedMethod: ((newValue: any, oldValue: any, flags: BindingFlags) => void) & { originalName: string };
   debounceState: {
-    callContextToDebounce: string,
+    callContextToDebounce: BindingFlags,
     delay: number,
     timeoutId: any,
     oldValue: any
@@ -26,12 +26,12 @@ export function debounceCallSource(event: Event) {
 }
 
 /*@internal*/
-export function debounceCall(this: DebounceableBinding, context: string, newValue: any, oldValue: any) {
+export function debounceCall(this: DebounceableBinding, newValue: any, oldValue: any, flags: BindingFlags) {
   const state = this.debounceState;
   clearTimeout(state.timeoutId);
-  if (context !== state.callContextToDebounce) {
+  if (!(flags & state.callContextToDebounce)) {
     state.oldValue = unset;
-    this.debouncedMethod(context, newValue, oldValue);
+    this.debouncedMethod(newValue, oldValue, flags);
     return;
   }
   if (state.oldValue === unset) {
@@ -40,7 +40,7 @@ export function debounceCall(this: DebounceableBinding, context: string, newValu
   state.timeoutId = setTimeout(() => {
     const ov = state.oldValue;
     state.oldValue = unset;
-    this.debouncedMethod(context, newValue, ov);
+    this.debouncedMethod(newValue, ov, flags);
   }, state.delay);
 }
 

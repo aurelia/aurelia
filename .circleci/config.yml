@@ -159,22 +159,20 @@ jobs:
       - checkout
       - restore_cache:
           key: *cache_key
-      - run:
-          name: "Bootstrap and build the packages"
-          command: |
-            npm run bootstrap
-            npm run build
+      - attach_workspace:
+          at: ~/repo
       - run:
           name: Install jit-browserify
           command: |
             cd ./packages/examples/jit-browserify
             npm ci
+            npm run build
       - run:
           name: Serve jit-browserify in the background
           background: true
           command: |
             cd ./packages/examples/jit-browserify
-            npm run serve
+            npm run start
       - run:
           name: Run the e2e tests
           command: |
@@ -197,5 +195,5 @@ workflows:
                     - build
             - e2e_tests_jit_browserify:
                 requires:
-                    - install
+                    - build
 

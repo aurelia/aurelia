@@ -2,7 +2,9 @@
   "name": "jit-browserify",
   "version": "0.1.0",
   "scripts": {
+    "build": "rimraf dist && gulp build",
     "serve": "rimraf dist && gulp",
+    "start": "http-server -c-1 -p 3000 .",
     "e2e": "mocha ./e2e/**/*.spec.ts --require ts-node/register -R spec -u bdd --recursive -c --check-leaks -t 10000 --watch-extensions ts",
     "e2e:watch": "npm run e2e -- -w"
   },
@@ -25,6 +27,7 @@
     "gulp": "^3.9.1",
     "gulp-typescript": "^5.0.0-alpha.3",
     "gulp-util": "^3.0.8",
+    "http-server": "^0.11.1",
     "mocha": "^5.2.0",
     "path": "^0.12.7",
     "rimraf": "^2.6.2",

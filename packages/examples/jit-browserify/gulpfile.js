@@ -6,15 +6,15 @@ const tsify = require('tsify');
 const gutil = require('gulp-util');
 const browserSync = require('browser-sync').create();
 
-const watchedBrowserify = watchify(
-  browserify({
-    basedir: '.',
-    debug: true,
-    entries: ['startup.ts'],
-    cache: {},
-    packageCache: {}
-  }).plugin(tsify)
-);
+const browserified = browserify({
+  basedir: '.',
+  debug: true,
+  entries: ['startup.ts'],
+  cache: {},
+  packageCache: {}
+}).plugin(tsify);
+
+const watchedBrowserify = watchify(browserified);
 
 gulp.task('browser-sync', function() {
   browserSync.init({
@@ -24,15 +24,21 @@ gulp.task('browser-sync', function() {
   });
 });
 
-function bundle() {
-  return watchedBrowserify
+function bundle(input) {
+  return input
     .bundle()
     .pipe(source('bundle.js'))
-    .pipe(gulp.dest('dist'))
-    .pipe(browserSync.reload({ stream: true }))
-    .on('change', browserSync.reload);
+    .pipe(gulp.dest('dist'));
 }
 
-gulp.task('default', ['browser-sync'], bundle);
-watchedBrowserify.on('update', bundle);
-watchedBrowserify.on('log', gutil.log);
+gulp.task('default', ['browser-sync'], () => {
+  return bundle(watchedBrowserify)
+    .pipe(browserSync.reload({ stream: true }))
+    .on('update', bundle)
+    .on('change', browserSync.reload)
+    .on('log', gutil.log);
+});
+gulp.task('build', [], () => {
+  return bundle(browserified)
+    .on('end', () => browserified.close());
+});

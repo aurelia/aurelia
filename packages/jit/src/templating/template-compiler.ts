@@ -1,7 +1,8 @@
-import { inject } from '@aurelia/kernel';
-import { BindingType, CustomAttributeResource, DOM, IExpression, IExpressionParser, Interpolation, IResourceDescriptions, ITargetedInstruction, ITemplateCompiler, TemplateDefinition, TargetedInstructionType, TargetedInstruction, DelegationStrategy, ITextBindingInstruction, IPropertyBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateElementInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, BindingMode, ITemplateSource, INode } from '@aurelia/runtime';
+import { inject, Immutable } from '@aurelia/kernel';
+import { BindingType, CustomAttributeResource, DOM, IExpression, IExpressionParser, Interpolation, IResourceDescriptions, ITargetedInstruction, ITemplateCompiler, TemplateDefinition, TargetedInstructionType, TargetedInstruction, DelegationStrategy, ITextBindingInstruction, IPropertyBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateElementInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, BindingMode, ITemplateSource, INode, CustomElementResource } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
 import { BindingCommandResource, IBindingCommandSource } from './binding-command';
+import * as RunTime from '@aurelia/runtime';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = document.createElement('au-marker');
@@ -68,17 +69,60 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   /*@internal*/
   public compileElementNode(node: Element, instructions: TargetedInstruction[][], resources: IResourceDescriptions): void {
+    let elementDefinition: Immutable<Required<ITemplateSource>>;
+    let elementInstruction: HydrateElementInstruction;
+    const tagName = node.tagName;
+    if (tagName === 'SLOT' || tagName === 'LET') {
+      throw new Error('<slot/> or <let/> not implemented');
+    }
+    elementDefinition = resources.find(
+      CustomElementResource,
+      CustomElementResource.keyFrom((RunTime as any).hyphenate(node.tagName))
+    );
+    if (elementDefinition) {
+      elementInstruction = new HydrateElementInstruction(
+        resources,
+        [],
+      );
+    }
     const attributes = node.attributes;
-    const attributeInstructions = new Array<TargetedInstruction>();
+    const attributeInstructions: TargetedInstruction[] = [];
+    let liftInstruction: HydrateTemplateController;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
-      const instruction = this.compileAttribute(attributes.item(i), node, resources);
+      const instruction = this.compileAttribute(attributes.item(i), node, resources, elementInstruction, false);
       if (instruction !== null) {
-        attributeInstructions.push(instruction);
+        // if it's a template controller instruction
+        // it could be nth template controller instruction: <div if.bind="" repeat.for="" with.bind=""></div>
+        // just keep refreshing the reference to the last template controller instruction
+        if (instruction.type === TargetedInstructionType.hydrateTemplateController) {
+          if (liftInstruction) {
+            liftInstruction.instructions.push(instruction);
+          }
+          liftInstruction = instruction;
+        } else {
+          if (liftInstruction) {
+            liftInstruction.instructions.push(instruction);
+          } else {
+            attributeInstructions.push(instruction);
+          }
+        }
       }
     }
-    if (attributeInstructions.length) {
+    if (elementInstruction) {
+      if (liftInstruction) {
+        liftInstruction.instructions.splice(0, 0, elementInstruction);
+      } else {
+        elementInstruction.instructions.push(...attributeInstructions);
+      }
+    }
+    if (elementInstruction || liftInstruction || attributeInstructions.length) {
       node.classList.add('au');
-      instructions.push(attributeInstructions);
+      instructions.push(liftInstruction
+        ? [liftInstruction]
+        : elementInstruction
+          ? [elementInstruction]
+          : attributeInstructions
+      );
     }
     node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
     let currentChild = node.firstChild;
@@ -103,7 +147,13 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /*@internal*/
-  public compileAttribute(attr: Attr, node: Element, resources: IResourceDescriptions): TargetedInstruction {
+  public compileAttribute(
+    attr: Attr,
+    node: Element,
+    resources: IResourceDescriptions,
+    elementInstruction: HydrateElementInstruction,
+    isForSurrogateElement: boolean
+  ): TargetedInstruction {
     const { name, value } = attr;
     // if the name has a period in it, targetName will be overwritten again with the left-hand side of the period
     // and commandName will be the right-hand side
@@ -125,6 +175,15 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
         break;
       }
+    }
+
+    const attributeDefiniton = resources.find(
+      CustomAttributeResource,
+      CustomAttributeResource.keyFrom(targetName)
+    );
+
+    if (attributeDefiniton.isTemplateController && isForSurrogateElement) {
+      throw new Error('You cannot put template controller on surrogate elements.');
     }
 
     if (BindingTargetLookup[targetName] === BindingType.IsRef) {
@@ -171,7 +230,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           const parts = binding.split(':');
           const attr = document.createAttribute(parts[0]);
           attr.value = parts[1];
-          instructions.push(this.compileAttribute(attr, node, resources));
+          instructions.push(this.compileAttribute(attr, node, resources, elementInstruction, false));
         }
         return new HydrateAttributeInstruction(targetName, instructions);
       }
@@ -206,7 +265,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     // TODO: other template controllers / binding commands
-
     return null;
   }
 }
@@ -218,17 +276,17 @@ const BindingTargetLookup = {
 };
 
 const BindingCommandLookup = {
-  ['one-time']:  BindingType.OneTimeCommand,
-  ['to-view']:   BindingType.ToViewCommand,
+  ['one-time']: BindingType.OneTimeCommand,
+  ['to-view']: BindingType.ToViewCommand,
   ['from-view']: BindingType.FromViewCommand,
-  ['two-way']:   BindingType.TwoWayCommand,
-  ['bind']:      BindingType.BindCommand,
-  ['trigger']:   BindingType.TriggerCommand,
-  ['capture']:   BindingType.CaptureCommand,
-  ['delegate']:  BindingType.DelegateCommand,
-  ['call']:      BindingType.CallCommand,
-  ['options']:   BindingType.OptionsCommand,
-  ['for']:       BindingType.ForCommand
+  ['two-way']: BindingType.TwoWayCommand,
+  ['bind']: BindingType.BindCommand,
+  ['trigger']: BindingType.TriggerCommand,
+  ['capture']: BindingType.CaptureCommand,
+  ['delegate']: BindingType.DelegateCommand,
+  ['call']: BindingType.CallCommand,
+  ['options']: BindingType.OptionsCommand,
+  ['for']: BindingType.ForCommand
 };
 
 // tslint:disable:no-reserved-keywords

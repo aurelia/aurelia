@@ -1,6 +1,17 @@
 import { Omit, PLATFORM } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
 
+const capitalMatcher = /([A-Z])/g;
+
+/*@internal*/
+export function addHyphenAndLower(char) {
+  return '-' + char.toLowerCase();
+}
+
+export function hyphenate(name) {
+  return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
+}
+
 export type BindableSource = Omit<IBindableDescription, 'property'>;
 
 export interface IBindableDescription {

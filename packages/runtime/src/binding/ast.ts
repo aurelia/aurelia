@@ -105,7 +105,7 @@ export class BindingBehavior implements IExpression {
     }
 
     binding[behaviorKey] = behavior;
-    behavior.bind.apply(behavior, [binding, scope].concat(evalList(flags, scope, locator, this.args)));
+    behavior.bind.apply(behavior, [flags, scope, binding].concat(evalList(flags, scope, locator, this.args)));
   }
 
   public unbind(flags: BindingFlags, scope: IScope, binding: IBinding) {

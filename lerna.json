@@ -7,6 +7,7 @@
     "packages/kernel",
     "packages/plugin-requirejs",
     "packages/plugin-svg",
+    "packages/router",
     "packages/runtime"
   ],
   "version": "0.1.0"

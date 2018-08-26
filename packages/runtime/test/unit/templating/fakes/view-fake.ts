@@ -14,7 +14,7 @@ import {
   DOM,
   IViewSlot,
   INodeSequence
-} from "@aurelia/runtime";
+} from "../../../../src/index";
 
 export class ViewFake implements IView {
   // IView impl

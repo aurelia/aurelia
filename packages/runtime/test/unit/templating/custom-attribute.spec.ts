@@ -1,4 +1,4 @@
-import { customAttribute, templateController, CustomAttributeResource, createCustomAttributeDescription } from '@aurelia/runtime';
+import { customAttribute, templateController, CustomAttributeResource, createCustomAttributeDescription } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('@customAttribute', () => {

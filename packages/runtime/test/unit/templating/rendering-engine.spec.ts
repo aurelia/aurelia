@@ -1,4 +1,4 @@
-import { RenderingEngine, CompiledTemplate, RuntimeCompilationResources, View, ViewFactory } from '@aurelia/runtime';
+import { RenderingEngine, CompiledTemplate, RuntimeCompilationResources, View, ViewFactory } from '../../../src/index';
 import { expect } from 'chai';
 
 

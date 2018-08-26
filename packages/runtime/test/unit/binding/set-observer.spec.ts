@@ -1,8 +1,7 @@
 import { match } from 'sinon';
-import { SetObserver, enableSetObservation, disableSetObservation, nativeSetDelete, nativeAdd } from '@aurelia/runtime';
+import { SetObserver, enableSetObservation, disableSetObservation, nativeSetDelete, nativeAdd, IndexMap } from '../../../src/index';
 import { expect } from 'chai';
 import { stringify, SpySubscriber } from '../util';
-import { IndexMap } from '@aurelia/runtime';
 import { ChangeSet } from '../../../src/binding/change-set';
 
 function assetSetEqual(actual: Set<any>, expected: Set<any>): void {

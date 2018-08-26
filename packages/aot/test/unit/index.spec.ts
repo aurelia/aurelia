@@ -1,4 +1,4 @@
-import { placeholder } from '@aurelia/aot';
+import { placeholder } from '../../src/index';
 import { expect } from 'chai';
 
 describe('index', () => {

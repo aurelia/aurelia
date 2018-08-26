@@ -1,4 +1,4 @@
-import { IScope, BindingContext } from "@aurelia/runtime";
+import { IScope, BindingContext } from "../../../src/index";
 
 export function createScope(bindingContext: any = {}): IScope {
   return {

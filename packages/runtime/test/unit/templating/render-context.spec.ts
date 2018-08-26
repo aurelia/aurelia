@@ -1,4 +1,4 @@
-import { createRenderContext, InstanceProvider, ViewFactoryProvider, ViewSlotProvider } from '@aurelia/runtime';
+import { createRenderContext, InstanceProvider, ViewFactoryProvider, ViewSlotProvider } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('createRenderContext', () => {

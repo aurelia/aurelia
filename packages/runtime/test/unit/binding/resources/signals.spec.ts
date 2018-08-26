@@ -1,14 +1,7 @@
+import { IExpression, IObserverLocator, Binding, BindingFlags, IScope, BindingMode, SignalBindingBehavior, ISignaler } from '../../../../src/index';
 import { spy } from 'sinon';
-import { IExpression } from '@aurelia/runtime';
-import { IObserverLocator } from '@aurelia/runtime';
-import { IContainer } from '@aurelia/kernel';
-import { Binding } from '@aurelia/runtime';
-import { BindingFlags } from '@aurelia/runtime';
-import { IScope } from '@aurelia/runtime';
-import { BindingMode } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { SignalBindingBehavior } from '@aurelia/runtime';
-import { ISignaler } from '@aurelia/runtime';
+import { IContainer } from '../../../../../kernel/src/index';
 
 describe('SignalBindingBehavior', () => {
   let sourceExpression: IExpression;

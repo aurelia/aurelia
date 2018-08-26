@@ -1,4 +1,4 @@
-import { customElement, useShadowDOM, containerless, CustomElementResource, createCustomElementDescription, ShadowDOMProjector, ContainerlessProjector, HostProjector } from '@aurelia/runtime';
+import { customElement, useShadowDOM, containerless, CustomElementResource, createCustomElementDescription, ShadowDOMProjector, ContainerlessProjector, HostProjector } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('@customElement', () => {

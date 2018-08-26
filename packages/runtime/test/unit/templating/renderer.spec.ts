@@ -1,9 +1,50 @@
-import { Renderer, TargetedInstructionType, AccessScope, IExpressionParser, IRenderable, DOM, IRenderContext, IObserverLocator, IEventManager, IRenderingEngine, ITextBindingInstruction, Binding, BindingMode, IPropertyBindingInstruction, IExpression, ITargetedInstruction, DelegationStrategy, Listener, IListenerBindingInstruction, ICallBindingInstruction, Call, CallScope, Ref, Interpolation } from '@aurelia/runtime';
+import {
+  Renderer,
+  TargetedInstructionType,
+  AccessScope,
+  IExpressionParser,
+  IRenderable,
+  DOM,
+  IRenderContext,
+  IObserverLocator,
+  IEventManager,
+  IRenderingEngine,
+  ITextBindingInstruction,
+  Binding,
+  BindingMode,
+  IPropertyBindingInstruction,
+  IExpression,
+  ITargetedInstruction,
+  DelegationStrategy,
+  Listener,
+  IListenerBindingInstruction,
+  ICallBindingInstruction,
+  Call,
+  CallScope,
+  Ref,
+  Interpolation
+} from '../../../src/index';
 import { expect } from 'chai';
 import { _, createElement } from '../util';
-import { register } from '../../../../jit/src/binding/expression-parser';
-import { CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, OneTimeBindingInstruction, RefBindingInstruction, SetAttributeInstruction, SetPropertyInstruction, StylePropertyBindingInstruction, TextBindingInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction } from '../../../../jit/src/templating/template-compiler';
-import { DI } from '@aurelia/kernel';
+import {
+  register,
+  CallBindingInstruction,
+  CaptureBindingInstruction,
+  DelegateBindingInstruction,
+  FromViewBindingInstruction,
+  HydrateAttributeInstruction,
+  HydrateElementInstruction,
+  OneTimeBindingInstruction,
+  RefBindingInstruction,
+  SetAttributeInstruction,
+  SetPropertyInstruction,
+  StylePropertyBindingInstruction,
+  TextBindingInstruction,
+  ToViewBindingInstruction,
+  TriggerBindingInstruction,
+  TwoWayBindingInstruction
+} from '../../../../jit/src/index';
+import { DI } from '../../../../kernel/src/index';
 import { spy, SinonSpy } from 'sinon';
 
 describe('Renderer', () => {

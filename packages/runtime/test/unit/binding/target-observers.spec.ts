@@ -1,4 +1,4 @@
-import { XLinkAttributeAccessor, DataAttributeAccessor, StyleAttributeAccessor, ChangeSet, ClassAttributeAccessor } from "@aurelia/runtime";
+import { XLinkAttributeAccessor, DataAttributeAccessor, StyleAttributeAccessor, ChangeSet, ClassAttributeAccessor } from "../../../src/index";
 import { createElement, globalAttributeNames } from "../util";
 import { expect } from "chai";
 import { CSS_PROPERTIES } from "../css-properties";

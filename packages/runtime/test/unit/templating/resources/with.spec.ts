@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { With, BindingFlags } from "@aurelia/runtime";
+import { With, BindingFlags } from '../../../../src/index';
 import { hydrateCustomAttribute } from '../attribute-assistance';
 import { createScope } from '../scope-assistance';
 import { ensureSingleChildTemplateControllerBehaviors } from './template-controller-tests';
@@ -11,7 +11,7 @@ describe('The "with" template controller', () => {
     const { attribute } = hydrateCustomAttribute(With);
     const child = attribute['$child'];
 
-    attribute.$bind(BindingFlags.bindOrigin, createScope());
+    attribute.$bind(BindingFlags.fromBind, createScope());
 
     let withValue = {};
     attribute.value = withValue;

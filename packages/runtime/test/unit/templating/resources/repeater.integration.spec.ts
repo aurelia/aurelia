@@ -1,13 +1,23 @@
-import { ITemplateSource, TargetedInstructionType, BindingMode, ForOfStatement, BindingIdentifier } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime';
-import { Repeat, IChangeSet } from '@aurelia/runtime';
-import { IContainer, DI } from '@aurelia/kernel';
-import { enableArrayObservation, disableArrayObservation } from '@aurelia/runtime';
-import { DOM, INode } from '@aurelia/runtime';
+import {
+  ITemplateSource,
+  TargetedInstructionType,
+  BindingMode,
+  ForOfStatement,
+  BindingIdentifier,
+  Aurelia,
+  Repeat,
+  IChangeSet,
+  enableArrayObservation,
+  disableArrayObservation,
+  DOM,
+  INode,
+  ICustomElement,
+  IExpressionParser,
+  AccessScope,
+  AccessMember
+} from '../../../../src/index';
+import { IContainer, DI } from '../../../../../kernel/src/index';
 import { createAureliaRepeaterConfig, IRepeaterFixture, padRight, createRepeater, assertDOMSynchronized, incrementItems, createRepeaterTemplateSource, createTextBindingTemplateSource } from '../../util';
-import { ICustomElement } from '@aurelia/runtime';
-import { IExpressionParser } from '@aurelia/runtime';
-import { AccessScope, AccessMember } from '@aurelia/runtime';
 import { expect } from 'chai';
 
 describe('ArrayRepeater - render html', () => {

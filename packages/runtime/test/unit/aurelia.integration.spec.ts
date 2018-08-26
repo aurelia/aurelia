@@ -6,7 +6,7 @@
 // import { spy } from 'sinon';
 // import { DOM } from '@aurelia/runtime';
 // import { ITaskQueue } from '@aurelia/runtime';
-// import { IContainer, DI } from '@aurelia/kernel';
+// import { IContainer, DI } from '../../../../kernel/src/index';
 
 // describe('Aurelia', () => {
 //   let container: IContainer;

@@ -1,4 +1,4 @@
-import { SubscriberCollection, BindingFlags } from '@aurelia/runtime';
+import { SubscriberCollection, BindingFlags } from '../../../src/index';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 
@@ -6,7 +6,7 @@ class Test extends SubscriberCollection {}
 
 describe('subscriberCollection', () => {
   it('calls subscribers', () => {
-    const flags = BindingFlags.targetOrigin;
+    const flags = BindingFlags.updateSourceExpression;
     const observer = new Test();
     const observer2 = new Test();
 

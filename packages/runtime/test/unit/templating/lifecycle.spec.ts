@@ -1,4 +1,4 @@
-import { AttachLifecycle, DetachLifecycle } from '@aurelia/runtime';
+import { AttachLifecycle, DetachLifecycle } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('AttachLifecycle', () => {

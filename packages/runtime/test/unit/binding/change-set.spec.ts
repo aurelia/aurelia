@@ -1,7 +1,7 @@
 import { spy, SinonSpy } from 'sinon';
 import { ChangeSet, IChangeSet } from './../../../src/binding/change-set';
 import { expect } from 'chai';
-import { IChangeTracker } from '@aurelia/runtime';
+import { IChangeTracker } from '../../../src/index';
 
 
 export class MockChangeTracker implements IChangeTracker {

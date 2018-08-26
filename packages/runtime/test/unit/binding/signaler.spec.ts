@@ -1,4 +1,4 @@
-import { ISignaler } from '@aurelia/runtime';
+import { ISignaler } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('ISignaler', () => {

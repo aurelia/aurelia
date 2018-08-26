@@ -1,8 +1,8 @@
-import { ValueAttributeObserver, EventSubscriber, ChangeSet, CheckedObserver, IObserverLocator, IChangeSet, SelectValueObserver, BindingFlags, Binding, IBindingTargetObserver, IPropertySubscriber, enableArrayObservation } from "@aurelia/runtime";
-import { createElement, _ } from "../util";
-import { expect } from "chai";
-import { spy, SinonSpy } from "sinon";
-import { DI } from "@aurelia/kernel";
+import { ValueAttributeObserver, EventSubscriber, ChangeSet, CheckedObserver, IObserverLocator, IChangeSet, SelectValueObserver, BindingFlags, Binding, IBindingTargetObserver, IPropertySubscriber, enableArrayObservation } from '../../../src/index';
+import { createElement, _ } from '../util';
+import { expect } from 'chai';
+import { spy, SinonSpy } from 'sinon';
+import { DI } from '../../../../kernel/src/index';
 
 describe('ValueAttributeObserver', () => {
   // TODO: these input types don't behave consistently due to their various constraints.

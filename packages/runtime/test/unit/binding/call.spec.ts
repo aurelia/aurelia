@@ -1,4 +1,4 @@
-import { Call } from '@aurelia/runtime';
+import { Call } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('Call', () => {

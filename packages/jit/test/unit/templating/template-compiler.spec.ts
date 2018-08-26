@@ -5,6 +5,7 @@ import { TemplateCompiler, register, BindingCommandResource, ToViewBindingInstru
 import { expect } from 'chai';
 import { RuntimeCompilationResources } from '../../../../runtime/src/templating/rendering-engine';
 import { verifyEqual, createElement } from '../../util';
+import { Repeat } from '@aurelia/runtime';
 
 
 export function createAttribute(name: string, value: string): Attr {
@@ -12,6 +13,59 @@ export function createAttribute(name: string, value: string): Attr {
   attr.value = value;
   return attr;
 }
+
+const attrNameArr = [
+  { $type: BindingType.Interpolation, attrName: 'one-time' },
+  { $type: BindingType.Interpolation, attrName: 'to-view' },
+  { $type: BindingType.Interpolation, attrName: 'from-view' },
+  { $type: BindingType.Interpolation, attrName: 'two-way' },
+  { $type: BindingType.Interpolation, attrName: 'bind' },
+  { $type: BindingType.Interpolation, attrName: 'trigger' },
+  { $type: BindingType.Interpolation, attrName: 'capture' },
+  { $type: BindingType.Interpolation, attrName: 'delegate' },
+  { $type: BindingType.Interpolation, attrName: 'call' },
+  { $type: BindingType.Interpolation, attrName: 'options' },
+  { $type: BindingType.Interpolation, attrName: 'for' },
+
+  { $type: BindingType.OneTimeCommand,  attrName: 'foo.one-time' },
+  { $type: BindingType.ToViewCommand,   attrName: 'foo.to-view' },
+  { $type: BindingType.FromViewCommand, attrName: 'foo.from-view' },
+  { $type: BindingType.TwoWayCommand,   attrName: 'foo.two-way' },
+  { $type: BindingType.BindCommand,     attrName: 'foo.bind' },
+  { $type: BindingType.TriggerCommand,  attrName: 'foo.trigger' },
+  { $type: BindingType.CaptureCommand,  attrName: 'foo.capture' },
+  { $type: BindingType.DelegateCommand, attrName: 'foo.delegate' },
+  { $type: BindingType.CallCommand,     attrName: 'foo.call' },
+  { $type: BindingType.Interpolation,   attrName: 'foo.options' },
+  { $type: BindingType.ForCommand,      attrName: 'foo.for' },
+  { $type: BindingType.Interpolation,   attrName: 'foo.foo' },
+  { $type: BindingType.BindCommand,     attrName: 'bind.bind' },
+
+  { $type: BindingType.Interpolation, attrName: 'bar' },
+
+  { $type: BindingType.Interpolation, attrName: 'foo.bar' },
+  { $type: BindingType.Interpolation, attrName: 'foo.ref' },
+  { $type: BindingType.Interpolation, attrName: 'foo.bind.bind' },
+
+  { $type: BindingType.IsCustom, attrName: 'foo' },
+  { $type: BindingType.IsRef,    attrName: 'ref' },
+];
+
+const declarationArr = [
+  { attrValue: 'item', output: new BindingIdentifier('item') },
+  { attrValue: '[key, value]', output: new ArrayBindingPattern([<any>new AccessScope('key'), <any>new AccessScope('value')]) },
+  { attrValue: '{foo, bar}', output: new ObjectBindingPattern(['foo', 'bar'], [<any>new AccessScope('foo'), <any>new AccessScope('bar')]) },
+  { attrValue: '{foo: bar}', output: new ObjectBindingPattern(['foo'], [<any>new AccessScope('bar')]) }
+];
+const statementArr = [
+  { attrValue: 'items', output: new AccessScope('items') },
+  { attrValue: '10', output: new PrimitiveLiteral(10) },
+  { attrValue: 'null', output: new PrimitiveLiteral(null) },
+  { attrValue: 'undefined', output: new PrimitiveLiteral(undefined) },
+  { attrValue: '[,1]', output: new ArrayLiteral([new PrimitiveLiteral(undefined), new PrimitiveLiteral(1)]) },
+  { attrValue: 'items | stuff', output: new ValueConverter(new AccessScope('items'), 'stuff', []) },
+  { attrValue: 'items & stuff', output: new BindingBehavior(<any>new AccessScope('items'), 'stuff', []) },
+];
 
 describe('TemplateCompiler', () => {
   let sut: TemplateCompiler;
@@ -21,6 +75,7 @@ describe('TemplateCompiler', () => {
   beforeEach(() => {
     const container = DI.createContainer();
     register(container);
+    Repeat.register(container);
     expressionParser = container.get(IExpressionParser);
     sut = new TemplateCompiler(expressionParser);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
@@ -28,60 +83,9 @@ describe('TemplateCompiler', () => {
     resources = new RuntimeCompilationResources(<any>container);
   });
 
-  const attrNameArr = [
-    { $type: BindingType.IsPlain, attrName: 'one-time' },
-    { $type: BindingType.IsPlain, attrName: 'to-view' },
-    { $type: BindingType.IsPlain, attrName: 'from-view' },
-    { $type: BindingType.IsPlain, attrName: 'two-way' },
-    { $type: BindingType.IsPlain, attrName: 'bind' },
-    { $type: BindingType.IsPlain, attrName: 'trigger' },
-    { $type: BindingType.IsPlain, attrName: 'capture' },
-    { $type: BindingType.IsPlain, attrName: 'delegate' },
-    { $type: BindingType.IsPlain, attrName: 'call' },
-    { $type: BindingType.IsPlain, attrName: 'options' },
-    { $type: BindingType.IsPlain, attrName: 'for' },
-
-    { $type: BindingType.OneTimeCommand,  attrName: 'foo.one-time' },
-    { $type: BindingType.ToViewCommand,   attrName: 'foo.to-view' },
-    { $type: BindingType.FromViewCommand, attrName: 'foo.from-view' },
-    { $type: BindingType.TwoWayCommand,   attrName: 'foo.two-way' },
-    { $type: BindingType.BindCommand,     attrName: 'foo.bind' },
-    { $type: BindingType.TriggerCommand,  attrName: 'foo.trigger' },
-    { $type: BindingType.CaptureCommand,  attrName: 'foo.capture' },
-    { $type: BindingType.DelegateCommand, attrName: 'foo.delegate' },
-    { $type: BindingType.CallCommand,     attrName: 'foo.call' },
-    { $type: BindingType.OptionsCommand,  attrName: 'foo.options' },
-    { $type: BindingType.ForCommand,      attrName: 'foo.for' },
-    { $type: BindingType.CustomCommand,   attrName: 'foo.foo' },
-    { $type: BindingType.BindCommand,     attrName: 'bind.bind' },
-
-    { $type: BindingType.IsPlain, attrName: 'bar' },
-
-    { $type: BindingType.IsPlain, attrName: 'foo.bar' },
-    { $type: BindingType.IsPlain, attrName: 'foo.ref' },
-    { $type: BindingType.IsPlain, attrName: 'foo.bind.bind' },
-
-    { $type: BindingType.IsCustom, attrName: 'foo' },
-    { $type: BindingType.IsRef,    attrName: 'ref' },
-  ];
 
   for (const { $type, attrName } of attrNameArr) {
     describe(`parseAttribute() - ${attrName}`, () => {
-      const declarationArr = [
-        { attrValue: 'item', output: new BindingIdentifier('item') },
-        { attrValue: '[key, value]', output: new ArrayBindingPattern([<any>new AccessScope('key'), <any>new AccessScope('value')]) },
-        { attrValue: '{foo, bar}', output: new ObjectBindingPattern(['foo', 'bar'], [<any>new AccessScope('foo'), <any>new AccessScope('bar')]) },
-        { attrValue: '{foo: bar}', output: new ObjectBindingPattern(['foo'], [<any>new AccessScope('bar')]) }
-      ];
-      const statementArr = [
-        { attrValue: 'items', output: new AccessScope('items') },
-        { attrValue: '10', output: new PrimitiveLiteral(10) },
-        { attrValue: 'null', output: new PrimitiveLiteral(null) },
-        { attrValue: 'undefined', output: new PrimitiveLiteral(undefined) },
-        { attrValue: '[,1]', output: new ArrayLiteral([new PrimitiveLiteral(undefined), new PrimitiveLiteral(1)]) },
-        { attrValue: 'items | stuff', output: new ValueConverter(new AccessScope('items'), 'stuff', []) },
-        { attrValue: 'items & stuff', output: new BindingBehavior(<any>new AccessScope('items'), 'stuff', []) },
-      ]
 
       for (const { attrValue: declAttrValue, output: declOutput } of declarationArr) {
         for (const { attrValue: sttmtAttrValue, output: sttmtOutput } of statementArr) {
@@ -99,11 +103,14 @@ describe('TemplateCompiler', () => {
             }
             if ($type & BindingType.IsIterator) {
               verifyEqual(actual, expected);
-            } else if ($type & BindingType.IsPlain) {
+            } else if ($type & BindingType.Interpolation) {
               expect(actual).to.be.null;
             } else {
-              expect(err).not.to.be.undefined;
-              expect(err.message).to.contain(`Parser Error: Unconsumed token of`);
+              if (err === undefined) {
+                expect(actual).to.be.null;
+              } else {
+                expect(err.message).to.contain(`Parser Error: Unconsumed token of`);
+              }
             }
           });
         }
@@ -161,11 +168,11 @@ describe('TemplateCompiler', () => {
           } catch (e) {
             err = e;
           }
-          if ($type & BindingType.IsPlain) {
+          if ($type & BindingType.Interpolation) {
             expect(actual).to.be.null;
           } else if ($type & BindingType.IsIterator) {
             expect(err).not.to.be.undefined;
-            expect(err.message).to.contain(`Parser Error: Missing expected token of`);
+            expect(err.message.length).to.be.greaterThan(0);
           } else {
             verifyEqual(actual, expected);
           }
@@ -210,14 +217,16 @@ describe('TemplateCompiler', () => {
               } catch (e) {
                 err = e;
               }
-              if ($type & BindingType.IsPlain) {
+              if ($type & BindingType.Interpolation) {
                 verifyEqual(actual, expected);
               } else if ($type & BindingType.IsIterator) {
-                expect(err).not.to.be.undefined;
-                expect(err.message).to.contain(`Parser Error: Missing expected token of`);
+                expect(err.message.length).to.be.greaterThan(0);
               } else {
-                expect(err).not.to.be.undefined;
-                expect(err.message).to.contain(`Parser Error: Unconsumed token {`);
+                if (err === undefined) {
+                  expect(actual).to.be.null;
+                } else {
+                  expect(err.message).to.contain(`Parser Error: Unconsumed token {`);
+                }
               }
             });
           }
@@ -313,7 +322,7 @@ describe('TemplateCompiler', () => {
         it(inputMarkup, () => {
           outputMarkup = new Array(count + 1).join(outputMarkup);
           instructions = new Array(count).fill(instructions).reduce((acc, item) => acc.concat(item));
-          const actual = sut.compile(<any>{templateOrNode: inputMarkup, instructions:[]},<any>{find(){}});
+          const actual = sut.compile(<any>{templateOrNode: inputMarkup, instructions:[]}, resources);
           const expected = {
             templateOrNode: createElement(outputMarkup),
             instructions: [instructions]

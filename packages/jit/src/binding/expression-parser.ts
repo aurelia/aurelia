@@ -6,7 +6,7 @@ import {
   CallFunction, CallMember, CallScope,
   Conditional, ExpressionKind, ForOfStatement, IExpression, IExpressionParser,
   IsAssign, IsBinary, IsBindingBehavior, IsConditional, IsLeftHandSide,
-  IsPrimary, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter
+  IsPrimary, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, Interpolation
 } from '@aurelia/runtime';
 
 export function register(container: IContainer) {
@@ -44,10 +44,6 @@ export class ParserState {
     this.tokenValue = '';
     this.currentChar = input.charCodeAt(0);
     this.assignable = true;
-    nextToken(this);
-    if (this.currentToken & Token.ExpressionTerminal) {
-      error(this, 'Invalid start of expression');
-    }
   }
 }
 
@@ -59,6 +55,16 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
   T extends Precedence.Conditional ? IsConditional :
   T extends Precedence.Assign ? IsAssign :
   T extends Precedence.Variadic ? IsBindingBehavior : IsBinary {
+
+  if (state.index === 0) {
+    if (bindingType & BindingType.Interpolation) {
+      return <any>parseInterpolation(state);
+    }
+    nextToken(state);
+    if (state.currentToken & Token.ExpressionTerminal) {
+      error(state, 'Invalid start of expression');
+    }
+  }
 
   let exprStart = state.index;
   state.assignable = Precedence.Binary > minPrecedence;
@@ -152,104 +158,10 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       consume(state, Token.CloseParen);
       break;
     case Token.OpenBracket:
-      /** parseArrayLiteralExpression
-       * https://tc39.github.io/ecma262/#prod-ArrayLiteral
-       *
-       * ArrayLiteral :
-       *   [ Elision(opt) ]
-       *   [ ElementList ]
-       *   [ ElementList, Elision(opt) ]
-       *
-       * ElementList :
-       *   Elision(opt) AssignmentExpression
-       *   ElementList, Elision(opt) AssignmentExpression
-       *
-       * Elision :
-       *  ,
-       *  Elision ,
-       */
-      nextToken(state);
-      const elements = new Array<IsAssign>();
-      while (state.currentToken !== <any>Token.CloseBracket) {
-        if (consumeOpt(state, Token.Comma)) {
-          elements.push($undefined);
-          if (state.currentToken === <any>Token.CloseBracket) {
-            elements.push($undefined);
-            break;
-          }
-        } else {
-          elements.push(parse(state, access, Precedence.Assign, bindingType & ~BindingType.IsIterator));
-          if (!consumeOpt(state, Token.Comma)) {
-            break;
-          }
-        }
-      }
-      consume(state, Token.CloseBracket);
-      if (bindingType & BindingType.IsIterator) {
-        result = new ArrayBindingPattern(elements);
-      } else {
-        result = new ArrayLiteral(elements);
-        state.assignable = false;
-      }
+      result = parseArrayLiteralExpression(state, access, bindingType);
       break;
     case Token.OpenBrace:
-      /** parseObjectLiteralExpression
-       * https://tc39.github.io/ecma262/#prod-Literal
-       *
-       * ObjectLiteral :
-       *   { }
-       *   { PropertyDefinitionList }
-       *
-       * PropertyDefinitionList :
-       *   PropertyDefinition
-       *   PropertyDefinitionList, PropertyDefinition
-       *
-       * PropertyDefinition :
-       *   IdentifierName
-       *   PropertyName : AssignmentExpression
-       *
-       * PropertyName :
-       *   IdentifierName
-       *   StringLiteral
-       *   NumericLiteral
-       */
-      const keys = new Array<string | number>();
-      const values = new Array<IsAssign>();
-      nextToken(state);
-      while (state.currentToken !== Token.CloseBrace) {
-        keys.push(state.tokenValue);
-        // Literal = mandatory colon
-        if (state.currentToken & Token.StringOrNumericLiteral) {
-          nextToken(state);
-          consume(state, Token.Colon);
-          values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
-        } else if (state.currentToken & Token.IdentifierName) {
-          // IdentifierName = optional colon
-          const { currentChar, currentToken, index } = <any>state;
-          nextToken(state);
-          if (consumeOpt(state, Token.Colon)) {
-            values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
-          } else {
-            // Shorthand
-            state.currentChar = currentChar;
-            state.currentToken = currentToken;
-            state.index = index;
-            values.push(parse(state, Access.Reset, Precedence.Primary, bindingType & ~BindingType.IsIterator));
-          }
-        } else {
-          error(state);
-        }
-        if (state.currentToken !== <any>Token.CloseBrace) {
-          consume(state, Token.Comma);
-        }
-      }
-      consume(state, Token.CloseBrace);
-      if (bindingType & BindingType.IsIterator) {
-        result = new ObjectBindingPattern(keys, values);
-      } else {
-        result = new ObjectLiteral(keys, values);
-        state.assignable = false;
-      }
+      result = parseObjectLiteralExpression(state, bindingType);
       break;
     case Token.TemplateTail:
       result = new Template([<string>state.tokenValue]);
@@ -257,53 +169,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       nextToken(state);
       break;
     case Token.TemplateContinuation:
-      /** parseTemplateLiteralExpression
-       * https://tc39.github.io/ecma262/#prod-Literal
-       *
-       * Template :
-       *   NoSubstitutionTemplate
-       *   TemplateHead
-       *
-       * NoSubstitutionTemplate :
-       *   ` TemplateCharacters(opt) `
-       *
-       * TemplateHead :
-       *   ` TemplateCharacters(opt) ${
-       *
-       * TemplateSubstitutionTail :
-       *   TemplateMiddle
-       *   TemplateTail
-       *
-       * TemplateMiddle :
-       *   } TemplateCharacters(opt) ${
-       *
-       * TemplateTail :
-       *   } TemplateCharacters(opt) `
-       *
-       * TemplateCharacters :
-       *   TemplateCharacter TemplateCharacters(opt)
-       *
-       * TemplateCharacter :
-       *   $ [lookahead ≠ {]
-       *   \ EscapeSequence
-       *   SourceCharacter (but not one of ` or \ or $)
-       *
-       * TODO: de-duplicate template parsing logic
-       */
-      const cooked = [<string>state.tokenValue];
-      consume(state, Token.TemplateContinuation);
-      const expressions = [parse(state, access, Precedence.Assign, bindingType)];
-
-      while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
-        cooked.push(<string>state.tokenValue);
-        consume(state, Token.TemplateContinuation);
-        expressions.push(parse(state, access, Precedence.Assign, bindingType));
-      }
-
-      cooked.push(<string>state.tokenValue);
-      nextToken(state);
-      result = new Template(cooked, expressions);
-      state.assignable = false;
+      result = parseTemplate(state, access, bindingType, result, false);
       break;
     case Token.StringLiteral:
     case Token.NumericLiteral:
@@ -328,13 +194,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
     }
 
     if (bindingType & BindingType.IsIterator) {
-      if (!(result.$kind & ExpressionKind.IsForDeclaration)) {
-        error(state, 'Invalid ForDeclaration');
-      }
-      consume(state, Token.OfKeyword);
-      const declaration = result;
-      const statement = <any>parse(state, Access.Reset, Precedence.Variadic, BindingType.None);
-      return new ForOfStatement(declaration, statement) as any;
+      return parseForOfStatement(state, result);
     }
     if (Precedence.LeftHandSide < minPrecedence) return result;
 
@@ -417,56 +277,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
         nextToken(state);
         break;
       case Token.TemplateContinuation:
-        /** parseTemplateLiteralExpression
-         * https://tc39.github.io/ecma262/#prod-Literal
-         *
-         * Template :
-         *   NoSubstitutionTemplate
-         *   TemplateHead
-         *
-         * NoSubstitutionTemplate :
-         *   ` TemplateCharacters(opt) `
-         *
-         * TemplateHead :
-         *   ` TemplateCharacters(opt) ${
-         *
-         * TemplateSubstitutionTail :
-         *   TemplateMiddle
-         *   TemplateTail
-         *
-         * TemplateMiddle :
-         *   } TemplateCharacters(opt) ${
-         *
-         * TemplateTail :
-         *   } TemplateCharacters(opt) `
-         *
-         * TemplateCharacters :
-         *   TemplateCharacter TemplateCharacters(opt)
-         *
-         * TemplateCharacter :
-         *   $ [lookahead ≠ {]
-         *   \ EscapeSequence
-         *   SourceCharacter (but not one of ` or \ or $)
-         *
-         * TODO: de-duplicate template parsing logic
-         */
-        state.assignable = false;
-        const cooked = [<string>state.tokenValue];
-        const raw = [state.tokenRaw];
-        consume(state, Token.TemplateContinuation);
-        const expressions = [parse(state, access, Precedence.Assign, bindingType)];
-
-        while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
-          cooked.push(<string>state.tokenValue);
-          raw.push(state.tokenRaw);
-          consume(state, Token.TemplateContinuation);
-          expressions.push(parse(state, access, Precedence.Assign, bindingType));
-        }
-
-        cooked.push(<string>state.tokenValue);
-        raw.push(state.tokenRaw);
-        nextToken(state);
-        result = new TaggedTemplate(cooked, raw, result, expressions);
+        result = parseTemplate(state, access, bindingType, result, true);
       default:
       }
     }
@@ -512,7 +323,8 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
   }
   if (Precedence.Conditional < minPrecedence) return result;
 
-  /** parseConditionalExpression
+  /**
+   * parseConditionalExpression
    * https://tc39.github.io/ecma262/#prod-ConditionalExpression
    *
    * ConditionalExpression :
@@ -522,6 +334,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
    * IsValidAssignmentTarget
    *   1,2 = false
    */
+
   if (consumeOpt(state, Token.Question)) {
     const yes = parse(state, access, Precedence.Assign, bindingType);
     consume(state, Token.Colon);
@@ -572,16 +385,224 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
     }
     result = new BindingBehavior(result, name, args);
   }
-  if (bindingType & BindingType.Interpolation) {
-    expect(state, Token.CloseBrace);
-    // HACK (for performance)
-    (<any>result).$parserStateIndex = state.index;
-    return result;
-  }
   if (state.currentToken !== Token.EOF) {
+    if (bindingType & BindingType.Interpolation) {
+      return result;
+    }
     error(state, `Unconsumed token ${state.tokenRaw}`);
   }
   return result;
+}
+
+/**
+ * parseArrayLiteralExpression
+ * https://tc39.github.io/ecma262/#prod-ArrayLiteral
+ *
+ * ArrayLiteral :
+ *   [ Elision(opt) ]
+ *   [ ElementList ]
+ *   [ ElementList, Elision(opt) ]
+ *
+ * ElementList :
+ *   Elision(opt) AssignmentExpression
+ *   ElementList, Elision(opt) AssignmentExpression
+ *
+ * Elision :
+ *  ,
+ *  Elision ,
+ */
+function parseArrayLiteralExpression(state: ParserState, access: Access, bindingType: BindingType) {
+  nextToken(state);
+  const elements = new Array<IsAssign>();
+  while (state.currentToken !== <any>Token.CloseBracket) {
+    if (consumeOpt(state, Token.Comma)) {
+      elements.push($undefined);
+      if (state.currentToken === <any>Token.CloseBracket) {
+        elements.push($undefined);
+        break;
+      }
+    } else {
+      elements.push(parse(state, access, Precedence.Assign, bindingType & ~BindingType.IsIterator));
+      if (!consumeOpt(state, Token.Comma)) {
+        break;
+      }
+    }
+  }
+  consume(state, Token.CloseBracket);
+  if (bindingType & BindingType.IsIterator) {
+    return new ArrayBindingPattern(elements);
+  } else {
+    state.assignable = false;
+    return new ArrayLiteral(elements);
+  }
+}
+
+function parseForOfStatement(state: ParserState, result: any) {
+  if (!(result.$kind & ExpressionKind.IsForDeclaration)) {
+    error(state, 'Invalid ForDeclaration');
+  }
+  consume(state, Token.OfKeyword);
+  const declaration = result;
+  const statement = <any>parse(state, Access.Reset, Precedence.Variadic, BindingType.None);
+  return new ForOfStatement(declaration, statement) as any;
+}
+
+/**
+ * parseObjectLiteralExpression
+ * https://tc39.github.io/ecma262/#prod-Literal
+ *
+ * ObjectLiteral :
+ *   { }
+ *   { PropertyDefinitionList }
+ *
+ * PropertyDefinitionList :
+ *   PropertyDefinition
+ *   PropertyDefinitionList, PropertyDefinition
+ *
+ * PropertyDefinition :
+ *   IdentifierName
+ *   PropertyName : AssignmentExpression
+ *
+ * PropertyName :
+ *   IdentifierName
+ *   StringLiteral
+ *   NumericLiteral
+ */
+function parseObjectLiteralExpression(state: ParserState, bindingType: BindingType) {
+  const keys = new Array<string | number>();
+  const values = new Array<IsAssign>();
+  nextToken(state);
+  while (state.currentToken !== Token.CloseBrace) {
+    keys.push(state.tokenValue);
+    // Literal = mandatory colon
+    if (state.currentToken & Token.StringOrNumericLiteral) {
+      nextToken(state);
+      consume(state, Token.Colon);
+      values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
+    } else if (state.currentToken & Token.IdentifierName) {
+      // IdentifierName = optional colon
+      const { currentChar, currentToken, index } = <any>state;
+      nextToken(state);
+      if (consumeOpt(state, Token.Colon)) {
+        values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator));
+      } else {
+        // Shorthand
+        state.currentChar = currentChar;
+        state.currentToken = currentToken;
+        state.index = index;
+        values.push(parse(state, Access.Reset, Precedence.Primary, bindingType & ~BindingType.IsIterator));
+      }
+    } else {
+      error(state);
+    }
+    if (state.currentToken !== <any>Token.CloseBrace) {
+      consume(state, Token.Comma);
+    }
+  }
+  consume(state, Token.CloseBrace);
+  if (bindingType & BindingType.IsIterator) {
+    return new ObjectBindingPattern(keys, values);
+  } else {
+    state.assignable = false;
+    return new ObjectLiteral(keys, values);
+  }
+}
+
+function parseInterpolation(state: ParserState) {
+  const parts = [];
+  const expressions = [];
+  const length = state.length;
+  let result = '';
+  while (state.index < length) {
+    switch (state.currentChar) {
+      case Char.Dollar:
+        if (state.input.charCodeAt(state.index + 1) === Char.OpenBrace) {
+          parts.push(result);
+          result = '';
+
+          state.index += 2;
+          state.currentChar = state.input.charCodeAt(state.index);
+          nextToken(state);
+          const expression = parse(state, Access.Reset, Precedence.Variadic, BindingType.Interpolation);
+          expressions.push(expression);
+          continue;
+        } else {
+          result += '$';
+        }
+        break;
+      case Char.Backslash:
+        result += String.fromCharCode(unescape(nextChar(state)));
+        break;
+      default:
+        result += String.fromCharCode(state.currentChar);
+    }
+    if (state.index >= length) {
+      break;
+    }
+    nextChar(state);
+  }
+  if (expressions.length) {
+    parts.push(result);
+    return new Interpolation(parts, expressions);
+  }
+  return null;
+}
+
+/**
+ * parseTemplateLiteralExpression
+ * https://tc39.github.io/ecma262/#prod-Literal
+ *
+ * Template :
+ *   NoSubstitutionTemplate
+ *   TemplateHead
+ *
+ * NoSubstitutionTemplate :
+ *   ` TemplateCharacters(opt) `
+ *
+ * TemplateHead :
+ *   ` TemplateCharacters(opt) ${
+ *
+ * TemplateSubstitutionTail :
+ *   TemplateMiddle
+ *   TemplateTail
+ *
+ * TemplateMiddle :
+ *   } TemplateCharacters(opt) ${
+ *
+ * TemplateTail :
+ *   } TemplateCharacters(opt) `
+ *
+ * TemplateCharacters :
+ *   TemplateCharacter TemplateCharacters(opt)
+ *
+ * TemplateCharacter :
+ *   $ [lookahead ≠ {]
+ *   \ EscapeSequence
+ *   SourceCharacter (but not one of ` or \ or $)
+ */
+function parseTemplate(state: ParserState, access: Access, bindingType: BindingType, result: any, tagged: boolean) {
+  const cooked = [<string>state.tokenValue];
+  const raw = [state.tokenRaw];
+  consume(state, Token.TemplateContinuation);
+  const expressions = [parse(state, access, Precedence.Assign, bindingType)];
+  while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
+    cooked.push(<string>state.tokenValue);
+    if (tagged) {
+      raw.push(state.tokenRaw);
+    }
+    consume(state, Token.TemplateContinuation);
+    expressions.push(parse(state, access, Precedence.Assign, bindingType));
+  }
+  cooked.push(<string>state.tokenValue);
+  state.assignable = false;
+  if (tagged) {
+    raw.push(state.tokenRaw);
+    nextToken(state);
+    return new TaggedTemplate(cooked, raw, result, expressions);
+  } else {
+    nextToken(state);
+    return new Template(cooked, expressions);
+  }
 }
 
 function nextToken(state: ParserState): void {

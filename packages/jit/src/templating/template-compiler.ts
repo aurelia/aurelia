@@ -1,7 +1,7 @@
 import { inject } from '@aurelia/kernel';
 import { BindingType, CustomAttributeResource, DOM, IExpression, IExpressionParser, Interpolation, IResourceDescriptions, ITargetedInstruction, ITemplateCompiler, TemplateDefinition, TargetedInstructionType, TargetedInstruction, DelegationStrategy, ITextBindingInstruction, IPropertyBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateElementInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, BindingMode, ITemplateSource, INode } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
-import { BindingCommandResource } from './binding-command';
+import { BindingCommandResource, IBindingCommandSource } from './binding-command';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = document.createElement('au-marker');
@@ -89,7 +89,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   /*@internal*/
   public compileTextNode(node: Text, instructions: TargetedInstruction[][]): boolean {
-    const expression = this.parseInterpolation(node.wholeText);
+    const expression = this.expressionParser.parse(node.wholeText, BindingType.Interpolation);
     if (expression === null) {
       return false;
     }
@@ -105,109 +105,114 @@ export class TemplateCompiler implements ITemplateCompiler {
   /*@internal*/
   public compileAttribute(attr: Attr, node: Element, resources: IResourceDescriptions): TargetedInstruction {
     const { name, value } = attr;
+    // if the name has a period in it, targetName will be overwritten again with the left-hand side of the period
+    // and commandName will be the right-hand side
+    let targetName: string = name;
+    let commandName: string = null;
+    let bindingCommand: BindingType = BindingType.None;
+
     const nameLength = name.length;
     let index = 0;
     while (index < nameLength) {
       if (name.charCodeAt(++index) === Char.Dot) {
-        // BindingCommand
-        const targetName = name.slice(0, index);
-        const commandName = name.slice(index + 1);
-        const bindingType = BindingCommandLookup[commandName];
-        if (bindingType !== undefined) {
-          const expression = this.expressionParser.parse(value, bindingType);
-          if (bindingType & BindingType.IsBinding) {
-            return new BindingInstruction[bindingType & BindingType.Command](expression, targetName);
-          }
-          switch (bindingType) {
-            case BindingType.OptionsCommand:
-              return new HydrateAttributeInstruction(targetName, []); // TODO
-            case BindingType.ForCommand:
-              let src: ITemplateSource = {
-                templateOrNode: null,
-                instructions: []
-              };
-              // Lift the childNodes from the templateController host node
-              // TODO: make this cleaner and clearer
-              let current: Node;
-              if (current = node.firstChild) {
-                const fragment = document.createDocumentFragment();
-                let next = current.nextSibling;
-                do {
-                  fragment.appendChild(current);
-                  current = next;
-                } while (current && (next = current.nextSibling));
-                src.templateOrNode = fragment;
-                src = <ITemplateSource>this.compile(<Required<ITemplateSource>>src, resources);
-              }
-              return new HydrateTemplateController(src, targetName, [
-                new ToViewBindingInstruction(expression, 'items'),
-                new SetPropertyInstruction('item', 'local')
-              ]);
-          }
+        targetName = name.slice(0, index);
+        commandName = name.slice(index + 1);
+        // TODO: get/process @bindingCommand decorator resource (not implemented yet)
+        bindingCommand = BindingCommandLookup[commandName] || BindingType.None;
+        if (bindingCommand === BindingType.None) {
+          // false alarm, we don't really have a command, use the full attribute name
+          targetName = name;
         }
-        const command = resources.find(BindingCommandResource, commandName);
-        if (command !== undefined) {
-          const expression = this.expressionParser.parse(value, BindingType.CustomCommand);
-          // TODO: implement behavior (this is just a temporary placeholder)
-          return new ToViewBindingInstruction(expression, targetName);
-        }
-        // TODO: should we drop down and see if there's an interpolation?
-        return null;
+        break;
       }
-    }
-    const bindingType = BindingTargetLookup[name];
-    if (bindingType !== undefined) {
-      const expression = this.expressionParser.parse(value, bindingType);
-      switch (bindingType) {
-        case BindingType.IsRef:
-          return new RefBindingInstruction(expression);
-      }
-    }
-    const attribute = resources.find(CustomAttributeResource, name);
-    if (attribute !== undefined) {
-      // CustomAttribute
-      // TODO: properly parse semicolon-separated bindings
-      const expression = this.expressionParser.parse(value, BindingType.IsCustom);
-      return new HydrateAttributeInstruction(name, []);
     }
 
-    const expression = this.parseInterpolation(value);
-    if (expression !== null) {
-      return new ToViewBindingInstruction(expression, name);
+    if (BindingTargetLookup[targetName] === BindingType.IsRef) {
+      // just a one-off special case for ref (we may want to make that a normal attribute resource, and deprecate this target lookup)
+      const expression = this.expressionParser.parse(value, bindingCommand);
+      return new RefBindingInstruction(expression);
     }
-    return null;
-  }
 
-  private parseInterpolation(value: string): Interpolation | null {
-    // an attribute that is neither an attribute nor a binding command will only become a binding if an interpolation is found
-    // otherwise, null is returned
-    const valueLength = value.length;
-    const parts = [];
-    const expressions = [];
-    let prev = 0;
-    let i = 0;
-    while (i < valueLength) {
-      if (value.charCodeAt(i) === Char.Dollar && value.charCodeAt(i + 1) === Char.OpenBrace) {
-        parts.push(value.slice(prev, i));
-        // skip the Dollar+OpenBrace; the expression parser only knows about the closing brace being a valid expression end when in an interpolation
-        const expression = this.expressionParser.parse(value.slice(i + 2), BindingType.Interpolation);
-        expressions.push(expression);
-        // compensate for the skipped Dollar+OpenBrace
-        prev = i = i + (<any>expression).$parserStateIndex /*HACK (not deleting the property because we need a better approach to begin with)*/ + 2;
-        continue;
+    const attribute = resources.find(CustomAttributeResource, targetName);
+    if (attribute === undefined) {
+      // if we don't have a custom attribute with this name, treat it as a regular attribute binding
+      if (bindingCommand === BindingType.None) {
+        // no binding command = look for interpolation
+        const expression = this.expressionParser.parse(value, BindingType.Interpolation);
+        if (expression === null) {
+          // no interpolation = no binding
+          return null;
+        }
+        return new ToViewBindingInstruction(expression, targetName);
       }
-      i++;
+      if (bindingCommand & (BindingType.IsProperty | BindingType.IsEvent | BindingType.IsFunction)) {
+        // covers oneTime, toView, fromView, twoWay, delegate, capture, trigger and call
+        const expression = this.expressionParser.parse(value, bindingCommand);
+        return new BindingInstruction[bindingCommand & BindingType.Command](expression, targetName);
+      }
+      // TODO: handle custom binding commands
+      return null;
     }
-    if (expressions.length) {
-      // add the string part that came after the last ClosingBrace
-      parts.push(value.slice(prev));
-      return new Interpolation(parts, expressions);
+
+    if (attribute.isTemplateController === false) {
+      // first get the simple stuff out of the way
+      if (bindingCommand & BindingType.IsProperty) {
+        // single bindable property
+        const expression = this.expressionParser.parse(value, bindingCommand);
+        const instruction = new BindingInstruction[bindingCommand & BindingType.Command](expression, targetName);
+        return new HydrateAttributeInstruction(targetName, [instruction]);
+      }
+      if (bindingCommand === BindingType.None) {
+        // TODO: this is very naive/inefficient, probably doesn't even work, and only meant as a placeholder
+        const instructions = [];
+        const bindings = value.split(';');
+        for (let i = 0, ii = bindings.length; i < ii; ++i) {
+          const binding = bindings[i];
+          const parts = binding.split(':');
+          const attr = document.createAttribute(parts[0]);
+          attr.value = parts[1];
+          instructions.push(this.compileAttribute(attr, node, resources));
+        }
+        return new HydrateAttributeInstruction(targetName, instructions);
+      }
+      // TODO: (hm? do we need more here?)
+      return null;
     }
-    // nothing bindable could be parsed, return null
+
+    // And on to the complex stuff (from here on it's just template controllers, with/without binding commands)
+    if (bindingCommand === BindingType.ForCommand) {
+      // Yes, indeed we're not looking for an attribute named "repeat". Anything could be iterable. No idea what/how yet though, besides the repeater :)
+      let src: ITemplateSource = {
+        templateOrNode: null,
+        instructions: []
+      };
+      // Lift the childNodes from the templateController host node
+      let current: Node;
+      if (current = node.firstChild) {
+        const fragment = document.createDocumentFragment();
+        let next = current.nextSibling;
+        do {
+          fragment.appendChild(current);
+          current = next;
+        } while (current && (next = current.nextSibling));
+        src.templateOrNode = fragment;
+        src = <ITemplateSource>this.compile(<Required<ITemplateSource>>src, resources);
+      }
+      const expression = this.expressionParser.parse(value, bindingCommand);
+      return new HydrateTemplateController(src, targetName, [
+        new ToViewBindingInstruction(expression, 'items'),
+        new SetPropertyInstruction('item', 'local')
+      ]);
+    }
+
+    // TODO: other template controllers / binding commands
+
     return null;
   }
 }
 
+// TODO: may want to get rid of these lookups completely and defer to resources.find() for both commands and attributes
+// Ultimately this lookup is just a performance optimization, and we can easily make resources.find() nearly just as fast
 const BindingTargetLookup = {
   ['ref']: BindingType.IsRef
 };

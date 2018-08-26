@@ -3,7 +3,7 @@ import { AccessMember, AccessScope, CallMember, CallScope, IExpression } from '.
 
 export interface IExpressionParser {
   cache(expressions: Record<string, IExpression>): void;
-  parse(expression: string, bindingType?: BindingType): IExpression;
+  parse(expression: string, bindingType: BindingType): IExpression;
 }
 
 export const IExpressionParser = DI.createInterface<IExpressionParser>()
@@ -12,15 +12,35 @@ export const IExpressionParser = DI.createInterface<IExpressionParser>()
 /*@internal*/
 export class ExpressionParser implements IExpressionParser {
   private lookup: Record<string, IExpression>;
+  private nonInterpolationLookup: Record<string, IExpression>;
   constructor() {
     this.lookup = Object.create(null);
+    // we use a separate cache for storing plain attribute values (attributes without a binding command)
+    // that were not found to be valid interpolations, to prevent the parser from trying to find
+    // interpolations repeatedly in the same attribute values
+    this.nonInterpolationLookup = Object.create(null);
   }
 
-  public parse(expression: string, bindingType?: BindingType): IExpression {
+  public parse(expression: string, bindingType: BindingType): IExpression {
+    if (bindingType & BindingType.Interpolation) {
+      if (this.nonInterpolationLookup[expression] === null) {
+        return null;
+      }
+      let found = this.lookup[expression];
+      if (found === undefined) {
+        found = this.parseCore(expression, bindingType);
+        if (found === null) {
+          this.nonInterpolationLookup[expression] = null;
+        } else {
+          this.lookup[expression] = found;
+        }
+      }
+      return found;
+    }
     let found = this.lookup[expression];
 
     if (found === undefined) {
-      found = this.parseCore(expression, bindingType === undefined ? BindingType.None : bindingType);
+      found = this.parseCore(expression, bindingType);
       this.lookup[expression] = found;
     }
 
@@ -65,30 +85,29 @@ export class ExpressionParser implements IExpressionParser {
 }
 
 export const enum BindingType {
-             None = 0,
-  Interpolation   = 0b0110000000 << 4,
-IsInterpolation   = 0b0100000000 << 4,
-       Text       = 0b1100000000 << 4,
-       IsPlain    = 0b0010000000 << 4,
-       IsRef      = 0b0001010000 << 4,
-       IsIterator = 0b0000100000 << 4,
-       IsCustom   = 0b0000010000 << 4,
-       IsFunction = 0b0000001000 << 4,
-       IsEvent    = 0b0000000100 << 4,
-       IsProperty = 0b0000000010 << 4,
-       IsCommand  = 0b0000000001 << 4,
-       IsBinding  = IsProperty | IsEvent | IsFunction | IsCustom,
-          Command =                     0b1111,
-   OneTimeCommand = 0b0000000011 << 4 | 0b0001,
-    ToViewCommand = 0b0000000011 << 4 | 0b0010,
-  FromViewCommand = 0b0000000011 << 4 | 0b0011,
-    TwoWayCommand = 0b0000000011 << 4 | 0b0100,
-      BindCommand = 0b0000000011 << 4 | 0b0101,
-   TriggerCommand = 0b0000000101 << 4 | 0b0110,
-   CaptureCommand = 0b0000000101 << 4 | 0b0111,
-  DelegateCommand = 0b0000000101 << 4 | 0b1000,
-      CallCommand = 0b0000001001 << 4 | 0b1001,
-   OptionsCommand = 0b0000010001 << 4 | 0b1010,
-       ForCommand = 0b0000100001 << 4 | 0b1011,
-    CustomCommand = 0b0000010001 << 4 | 0b1100
+              None = 0,
+     Interpolation = 0b10000000 << 4,
+        IsRef      = 0b01010000 << 4,
+        IsIterator = 0b00100000 << 4,
+        IsCustom   = 0b00010000 << 4,
+        IsFunction = 0b00001000 << 4,
+        IsEvent    = 0b00000100 << 4,
+        IsProperty = 0b00000010 << 4,
+        IsCommand  = 0b00000001 << 4,
+IsPropertyCommand  = 0b00000011 << 4,
+   IsEventCommand  = 0b00000101 << 4,
+DelegationStrategyDelta =              0b0110,
+           Command =                   0b1111,
+    OneTimeCommand = 0b00000011 << 4 | 0b0001,
+     ToViewCommand = 0b00000011 << 4 | 0b0010,
+   FromViewCommand = 0b00000011 << 4 | 0b0011,
+     TwoWayCommand = 0b00000011 << 4 | 0b0100,
+       BindCommand = 0b00000011 << 4 | 0b0101,
+    TriggerCommand = 0b00000101 << 4 | 0b0110,
+    CaptureCommand = 0b00000101 << 4 | 0b0111,
+   DelegateCommand = 0b00000101 << 4 | 0b1000,
+       CallCommand = 0b00001001 << 4 | 0b1001,
+    OptionsCommand = 0b00000001 << 4 | 0b1010,
+        ForCommand = 0b00100001 << 4 | 0b1011,
+     CustomCommand = 0b00010001 << 4 | 0b1100
 }

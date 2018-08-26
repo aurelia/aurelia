@@ -133,7 +133,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       return new RefBindingInstruction(expression);
     }
 
-    const attribute = resources.find(CustomAttributeResource, name);
+    const attribute = resources.find(CustomAttributeResource, targetName);
     if (attribute === undefined) {
       // if we don't have a custom attribute with this name, treat it as a regular attribute binding
       if (bindingCommand === BindingType.None) {
@@ -143,7 +143,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           // no interpolation = no binding
           return null;
         }
-        return new ToViewBindingInstruction(expression, name);
+        return new ToViewBindingInstruction(expression, targetName);
       }
       if (bindingCommand & (BindingType.IsProperty | BindingType.IsEvent | BindingType.IsFunction)) {
         // covers oneTime, toView, fromView, twoWay, delegate, capture, trigger and call

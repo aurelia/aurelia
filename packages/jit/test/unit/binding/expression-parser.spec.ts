@@ -50,14 +50,9 @@ describe('ExpressionParser', () => {
   let parser: IExpressionParser;
 
   beforeEach(() => {
-    console.log = function () {};
     const container = DI.createContainer();
     register(container);
     parser = container.get(IExpressionParser);
-  });
-
-  afterEach(() => {
-    delete console.log;
   });
 
   describe('should parse', () => {

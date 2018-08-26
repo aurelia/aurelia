@@ -3,8 +3,10 @@
   "references": [
     { "path": "kernel" },
     { "path": "runtime" },
+    { "path": "router" },
     { "path": "jit" },
     { "path": "debug" },
+    { "path": "aot" },
     { "path": "plugin-requirejs" },
     { "path": "plugin-svg" }
   ]

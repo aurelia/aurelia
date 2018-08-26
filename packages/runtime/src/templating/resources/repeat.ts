@@ -122,7 +122,9 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
   public $unbind(flags: BindingFlags): void {
     if (this.$isBound) {
       this.$isBound = false;
-      this.observer.unsubscribeBatched(this);
+      if (this.observer) {
+        this.observer.unsubscribeBatched(this);
+      }
       this.observer = this._items = null;
       // if this is a re-bind triggered by some ancestor repeater, then keep the views so we can reuse them
       // (this flag is passed down from handleInstanceMutation/handleItemsMutation down below at view.$bind)
@@ -138,12 +140,14 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
 
   public handleBatchedChange(indexMap?: number[]): void {
     if (this.hasPendingInstanceMutation) {
-      if (this.observer !== null) {
+      if (this.observer) {
         this.observer.unsubscribeBatched(this);
       }
       const items = this._items;
       this.observer = getCollectionObserver(this.changeSet, items);
-      this.observer.subscribeBatched(this);
+      if (this.observer) {
+        this.observer.subscribeBatched(this);
+      }
       this.handleBatchedItemsOrInstanceMutation();
     } else {
       this.handleBatchedItemsOrInstanceMutation(indexMap);
@@ -224,7 +228,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
         }
       } else {
         // TODO: optimize this again (but in a more efficient way and one that works in multiple scenarios)
-        view.$bind(flags, createChildScope(overrideContext, { [local]: item }));
+        view.$bind(flags | BindingFlags.fromBind, createChildScope(overrideContext, { [local]: item }));
       }
     });
     lifecycle.end(this);

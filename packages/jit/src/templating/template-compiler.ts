@@ -95,6 +95,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // it could be nth template controller instruction: <div if.bind="" repeat.for="" with.bind=""></div>
         // just keep refreshing the reference to the last template controller instruction
         if (instruction.type === TargetedInstructionType.hydrateTemplateController) {
+          i--; --ii;
           if (liftInstruction) {
             liftInstruction.instructions.push(instruction);
           }
@@ -182,7 +183,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       CustomAttributeResource.keyFrom(targetName)
     );
 
-    if (attributeDefiniton.isTemplateController && isForSurrogateElement) {
+    if (attributeDefiniton && attributeDefiniton.isTemplateController && isForSurrogateElement) {
       throw new Error('You cannot put template controller on surrogate elements.');
     }
 
@@ -265,7 +266,27 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     // TODO: other template controllers / binding commands
-    return null;
+
+    // the template controller will recompile the whole template as its src, needs to remove to avoid infinite loop
+    node.removeAttributeNode(attr);
+    let src: ITemplateSource = {
+      templateOrNode: node,
+      instructions: []
+    };
+    src = <ITemplateSource>this.compile(<Required<ITemplateSource>>src, resources);
+    // first get the simple stuff out of the way
+    if (bindingCommand & BindingType.IsProperty) {
+      if ((bindingCommand & BindingType.FromViewCommand) === BindingType.FromViewCommand) {
+        throw new Error('Invalid template. template controller ' + targetName + ' cannot work with .from-view');
+      }
+      // single bindable property
+      const expression = this.expressionParser.parse(value, bindingCommand);
+      const instruction = new ToViewBindingInstruction(expression, 'value');
+      return new HydrateTemplateController(src, targetName, [
+        instruction
+      ]);
+    }
+    throw new Error('Simple template controller usage not implemented.');
   }
 }
 

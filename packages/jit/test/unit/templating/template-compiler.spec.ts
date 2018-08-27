@@ -64,19 +64,19 @@ const attrNameArr = [
   { $type: BindingType.Interpolation, attrName: 'options' },
   { $type: BindingType.Interpolation, attrName: 'for' },
 
-  { $type: BindingType.OneTimeCommand,  attrName: 'foo.one-time' },
-  { $type: BindingType.ToViewCommand,   attrName: 'foo.to-view' },
+  { $type: BindingType.OneTimeCommand, attrName: 'foo.one-time' },
+  { $type: BindingType.ToViewCommand, attrName: 'foo.to-view' },
   { $type: BindingType.FromViewCommand, attrName: 'foo.from-view' },
-  { $type: BindingType.TwoWayCommand,   attrName: 'foo.two-way' },
-  { $type: BindingType.BindCommand,     attrName: 'foo.bind' },
-  { $type: BindingType.TriggerCommand,  attrName: 'foo.trigger' },
-  { $type: BindingType.CaptureCommand,  attrName: 'foo.capture' },
+  { $type: BindingType.TwoWayCommand, attrName: 'foo.two-way' },
+  { $type: BindingType.BindCommand, attrName: 'foo.bind' },
+  { $type: BindingType.TriggerCommand, attrName: 'foo.trigger' },
+  { $type: BindingType.CaptureCommand, attrName: 'foo.capture' },
   { $type: BindingType.DelegateCommand, attrName: 'foo.delegate' },
-  { $type: BindingType.CallCommand,     attrName: 'foo.call' },
-  { $type: BindingType.Interpolation,   attrName: 'foo.options' },
-  { $type: BindingType.ForCommand,      attrName: 'foo.for' },
-  { $type: BindingType.Interpolation,   attrName: 'foo.foo' },
-  { $type: BindingType.BindCommand,     attrName: 'bind.bind' },
+  { $type: BindingType.CallCommand, attrName: 'foo.call' },
+  { $type: BindingType.Interpolation, attrName: 'foo.options' },
+  { $type: BindingType.ForCommand, attrName: 'foo.for' },
+  { $type: BindingType.Interpolation, attrName: 'foo.foo' },
+  { $type: BindingType.BindCommand, attrName: 'bind.bind' },
 
   { $type: BindingType.Interpolation, attrName: 'bar' },
 
@@ -85,7 +85,7 @@ const attrNameArr = [
   { $type: BindingType.Interpolation, attrName: 'foo.bind.bind' },
 
   { $type: BindingType.IsCustom, attrName: 'foo' },
-  { $type: BindingType.IsRef,    attrName: 'ref' },
+  { $type: BindingType.IsRef, attrName: 'ref' },
 ];
 
 const declarationArr = [
@@ -189,7 +189,7 @@ describe('TemplateCompiler', () => {
               expected = new ToViewBindingInstruction(expr, attrName.split('.')[0]);
               break;
             case undefined:
-              switch(attrName) {
+              switch (attrName) {
                 case 'ref':
                   expected = new RefBindingInstruction(expr);
                   break;
@@ -227,7 +227,7 @@ describe('TemplateCompiler', () => {
         { attrValue: '-', output: '-' },
         { attrValue: '--', output: '--' }
       ];
-      const countArr = [ 1, 2, 3 ];
+      const countArr = [1, 2, 3];
 
       for (const { attrValue: exprAttrValue, output: exprOutput } of expressionArr) {
         for (const { attrValue: partAttrValue, output: partOutput } of partArr) {
@@ -338,17 +338,17 @@ describe('TemplateCompiler', () => {
         outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
         instructions: [
           new HydrateTemplateController({
-              templateOrNode: (<any>createElement(`<template><div repeat.for="item of items" class="au"></div></template>`)).content,
-              instructions: [[
-                new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
-                  new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
-                  new SetPropertyInstruction('item', 'local'),
-                ])
-              ]]
-            }, 'repeat', [
-            new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
-            new SetPropertyInstruction('item', 'local'),
-          ])
+            templateOrNode: (<any>createElement(`<template><div repeat.for="item of items" class="au"></div></template>`)).content,
+            instructions: [[
+              new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
+                new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
+                new SetPropertyInstruction('item', 'local'),
+              ])
+            ]]
+          }, 'repeat', [
+              new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
+              new SetPropertyInstruction('item', 'local'),
+            ])
         ]
       }
     ];
@@ -359,7 +359,7 @@ describe('TemplateCompiler', () => {
         it(inputMarkup, () => {
           outputMarkup = new Array(count + 1).join(outputMarkup);
           instructions = new Array(count).fill(instructions).reduce((acc, item) => acc.concat(item));
-          const actual = sut.compile(<any>{templateOrNode: inputMarkup, instructions:[]}, resources);
+          const actual = sut.compile(<any>{ templateOrNode: inputMarkup, instructions: [] }, resources);
           const expected = {
             templateOrNode: createElement(outputMarkup),
             instructions: [instructions]

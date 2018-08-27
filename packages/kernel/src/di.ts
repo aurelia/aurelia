@@ -126,19 +126,19 @@ export const DI = {
 
       Key.register = function(container: IContainer, key?: any) {
         return configure({
-          instance(value: any) {
+          instance(value: any): IResolver {
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.instance, value));
           },
-          singleton(value: Function) {
+          singleton(value: Function): IResolver {
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.singleton, value));
           },
-          transient(value: Function) {
+          transient(value: Function): IResolver {
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.transient, value));
           },
-          callback(value: ResolveCallback) {
+          callback(value: ResolveCallback): IResolver {
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.callback, value));
           },
-          aliasTo(destinationKey: any) {
+          aliasTo(destinationKey: any): IResolver {
             return container.registerResolver(destinationKey, new Resolver(key || Key, ResolverStrategy.alias, Key));
           },
         });
@@ -234,7 +234,7 @@ export const enum ResolverStrategy {
 export class Resolver implements IResolver, IRegistration {
   constructor(public key: any, public strategy: ResolverStrategy, public state: any) {}
 
-  public register(container: IContainer, key?: any) {
+  public register(container: IContainer, key?: any): IResolver {
     return container.registerResolver(key || this.key, this);
   }
 
@@ -287,6 +287,12 @@ export class Factory implements IFactory {
 
   constructor(public type: Function, private invoker: IInvoker, private dependencies: any[]) { }
 
+  public static create(type: Function): IFactory {
+    const dependencies = DI.getDependencies(type);
+    const invoker = classInvokers[dependencies.length] || fallbackInvoker;
+    return new Factory(type, invoker, dependencies);
+  }
+
   public construct(container: IContainer, dynamicDependencies?: any[]): any {
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
@@ -312,12 +318,6 @@ export class Factory implements IFactory {
     this.transformers.push(transformer);
     return true;
   }
-
-  public static create(type: Function): IFactory {
-    const dependencies = DI.getDependencies(type);
-    const invoker = classInvokers[dependencies.length] || classInvokers.fallback;
-    return new Factory(type, invoker, dependencies);
-  }
 }
 
 /*@internal*/
@@ -326,7 +326,7 @@ export interface IContainerConfiguration {
 }
 
 const containerResolver: IResolver = {
-  resolve(handler: IContainer, requestor: IContainer) {
+  resolve(handler: IContainer, requestor: IContainer): IContainer {
     return requestor;
   }
 };
@@ -338,7 +338,7 @@ function isRegistry(obj: any): obj is IRegistry {
 /*@internal*/
 export class Container implements IContainer {
   private parent: Container | null = null;
-  private resolvers = new Map<any, IResolver>();
+  private resolvers: Map<any, IResolver> = new Map<any, IResolver>();
   private factories: Map<Function, IFactory>;
   private configuration: IContainerConfiguration;
 
@@ -488,16 +488,6 @@ export class Container implements IContainer {
     return PLATFORM.emptyArray;
   }
 
-  private jitRegister(keyAsValue: any, handler: Container): IResolver {
-    if (keyAsValue.register) {
-      return keyAsValue.register(handler, keyAsValue);
-    }
-
-    const resolver = new Resolver(keyAsValue, 1, keyAsValue);
-    handler.resolvers.set(keyAsValue, resolver);
-    return resolver;
-  }
-
   public getFactory(type: Function): IFactory {
     let factory = this.factories.get(type);
 
@@ -513,6 +503,16 @@ export class Container implements IContainer {
     const child = new Container(this.configuration);
     child.parent = this;
     return child;
+  }
+
+  private jitRegister(keyAsValue: any, handler: Container): IResolver {
+    if (keyAsValue.register) {
+      return keyAsValue.register(handler, keyAsValue);
+    }
+
+    const resolver = new Resolver(keyAsValue, 1, keyAsValue);
+    handler.resolvers.set(keyAsValue, resolver);
+    return resolver;
   }
 }
 
@@ -565,13 +565,13 @@ export const Registration = {
 };
 
 /*@internal*/
-export function validateKey(key: any) {
+export function validateKey(key: any): void {
   if (key === null || key === undefined) {
     throw Reporter.error(5);
   }
 }
 
-function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: IContainer) {
+function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: IContainer): any[] {
   if (resolver instanceof Resolver && resolver.strategy === 4) {
     const state = resolver.state;
     let i = state.length;
@@ -588,34 +588,34 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
 }
 
 /*@internal*/
-export const classInvokers: Record<string, IInvoker> = {
-  [0]: {
-    invoke(container: IContainer, Type: Function) {
-      return new (Type as any)();
+export const classInvokers: IInvoker[] = [
+  {
+    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T): K {
+      return new Type();
     },
     invokeWithDynamicDependencies
   },
-  [1]: {
-    invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (Type as any)(container.get(deps[0]));
+  {
+    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+      return new Type(container.get(deps[0]));
     },
     invokeWithDynamicDependencies
   },
-  [2]: {
-    invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (Type as any)(container.get(deps[0]), container.get(deps[1]));
+  {
+    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+      return new Type(container.get(deps[0]), container.get(deps[1]));
     },
     invokeWithDynamicDependencies
   },
-  [3]: {
-    invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (Type as any)(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
+  {
+    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+      return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
     invokeWithDynamicDependencies
   },
-  [4]: {
-    invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (Type as any)(
+  {
+    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+      return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
         container.get(deps[2]),
@@ -624,9 +624,9 @@ export const classInvokers: Record<string, IInvoker> = {
     },
     invokeWithDynamicDependencies
   },
-  [5]: {
-    invoke(container: IContainer, Type: Function, deps: any[]) {
-      return new (Type as any)(
+  {
+    invoke<T extends Constructable<K>, K>(container: IContainer, Type: T, deps: any[]): K {
+      return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
         container.get(deps[2]),
@@ -635,20 +635,21 @@ export const classInvokers: Record<string, IInvoker> = {
       );
     },
     invokeWithDynamicDependencies
-  },
-  fallback: {
-    invoke: invokeWithDynamicDependencies as any,
-    invokeWithDynamicDependencies
   }
+];
+
+const fallbackInvoker: IInvoker = {
+  invoke: invokeWithDynamicDependencies as any,
+  invokeWithDynamicDependencies
 };
 
 /*@internal*/
-export function invokeWithDynamicDependencies(
+export function invokeWithDynamicDependencies<T extends Constructable<K>, K>(
   container: IContainer,
-  fn: Function,
+  Type: T,
   staticDependencies: any[],
   dynamicDependencies: any[]
-): any {
+): K {
   let i = staticDependencies.length;
   let args = new Array(i);
   let lookup;
@@ -667,5 +668,5 @@ export function invokeWithDynamicDependencies(
     args = args.concat(dynamicDependencies);
   }
 
-  return Reflect.construct(fn, args);
+  return Reflect.construct(Type, args);
 }

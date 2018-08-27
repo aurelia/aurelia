@@ -9,7 +9,7 @@ export interface If extends ICustomAttribute {}
 @templateController('if')
 @inject(IViewFactory, IRenderLocation)
 export class If {
-  @bindable public value: boolean;
+  @bindable public value: boolean = false;
   public elseFactory: IViewFactory;
 
   private ifView: IView;

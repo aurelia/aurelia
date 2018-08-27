@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { If, Else, IView, BindingFlags } from "../../../../src/index";
+import { If, Else, IView, BindingFlags } from '../../../../src/index';
 import { hydrateCustomAttribute } from '../attribute-assistance';
 import { createScope } from '../scope-assistance';
 import { ViewFake } from '../fakes/view-fake';
@@ -69,5 +69,34 @@ describe('The "if" template controller', () => {
     expect(elseView.$isAttached).to.be.true;
     expect(location.previousSibling)
       .to.equal(elseView.$nodes.lastChild);
+  });
+
+  it("detaches its child view when it is detached", () => {
+    const { attribute: ifAttr } = hydrateCustomAttribute(If);
+
+    ifAttr.value = true;
+    ifAttr.$bind(BindingFlags.fromBind, createScope());
+
+    const ifView = ifAttr['ifView'] as IView;
+
+    ifAttr.$attach(null);
+    ifAttr.$detach();
+
+    expect(ifView.$isAttached).to.be.false;
+    expect(ifAttr.$isAttached).to.be.false;
+  });
+
+  it("unbinds its child view when it is unbound", () => {
+    const { attribute: ifAttr } = hydrateCustomAttribute(If);
+
+    ifAttr.value = true;
+    ifAttr.$bind(BindingFlags.fromBind, createScope());
+
+    const ifView = ifAttr['ifView'] as IView;
+
+    ifAttr.$unbind(BindingFlags.fromUnbind);
+
+    expect(ifView.$isBound).to.be.false;
+    expect(ifAttr.$isBound).to.be.false;
   });
 });

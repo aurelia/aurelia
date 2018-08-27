@@ -1,71 +1,101 @@
 import { inject } from '@aurelia/kernel';
-import { bindable } from '../bindable';
-import { templateController } from '../custom-attribute';
-import { IViewFactory } from '../view';
-import { IViewSlot, SwapOrder } from '../view-slot';
-import { Else } from './else';
-import { IfCore } from './if-core';
 import { BindingFlags } from '../../binding';
+import { DOM, INode, IRenderLocation } from '../../dom';
+import { bindable } from '../bindable';
+import { ICustomAttribute, templateController } from '../custom-attribute';
+import { IView, IViewFactory } from '../view';
 
+export interface If extends ICustomAttribute {}
 @templateController('if')
-@inject(IViewFactory, IViewSlot)
-export class If extends IfCore {
-  @bindable public swapOrder: SwapOrder = SwapOrder.after;
-  @bindable public condition: boolean = false;
+@inject(IViewFactory, IRenderLocation)
+export class If {
+  @bindable public value: boolean = false;
+  public elseFactory: IViewFactory;
 
-  private animating: boolean = false;
-  private elseBehavior: Else;
+  private ifView: IView;
+  private elseView: IView;
 
-  public conditionChanged(newValue: boolean): void { // can/should we get the flags in here from @templateController's $bind?
+  private $child: IView;
+  private encapsulationSource: INode;
+
+  constructor(public ifFactory: IViewFactory, private location: IRenderLocation) {}
+
+  public bound(): void {
+    this.update(this.value, BindingFlags.fromBind);
+  }
+
+  public attaching(encapsulationSource: INode): void {
+    this.encapsulationSource = encapsulationSource;
+  }
+
+  public unbound(): void {
+    if (this.$child) {
+      this.$child.$unbind(BindingFlags.fromUnbind);
+      this.$child = null;
+    }
+  }
+
+  public valueChanged(newValue: any): void {
     this.update(newValue, BindingFlags.fromBindableHandler);
   }
 
-  public link(elseBehavior: Else): this {
-    if (this.elseBehavior === elseBehavior) {
-      return this;
-    }
-
-    this.elseBehavior = elseBehavior;
-    elseBehavior.link(this);
-
-    return this;
-  }
-
-  private update(show: boolean, flags: BindingFlags): void {
-    if (this.animating) {
-      return;
-    }
-
-    let promise;
-
-    if (this.elseBehavior) {
-      promise = show ? this.swap(this.elseBehavior, this, flags) : this.swap(this, this.elseBehavior, flags);
-    } else {
-      promise = show ? this.show(flags) : this.hide(flags);
-    }
-
-    if (promise) {
-      this.animating = true;
-
-      promise.then(() => {
-        this.animating = false;
-
-        if (this.condition !== this.showing) {
-          this.update(this.condition, flags);
-        }
-      });
+  private update(shouldRenderTrueBranch: boolean, flags: BindingFlags): void {
+    if (shouldRenderTrueBranch) {
+      this.activateBranch('if', flags);
+    } else if (this.elseFactory) {
+      this.activateBranch('else', flags);
+    } else if (this.$child) {
+      this.deactivateCurrentBranch(flags);
     }
   }
 
-  private swap(remove: IfCore, add: IfCore, flags: BindingFlags) {
-    switch (this.swapOrder) {
-      case SwapOrder.before:
-        return Promise.resolve(<any>add.show(flags)).then(() => remove.hide(flags));
-      case SwapOrder.with:
-        return Promise.all([<any>remove.hide(flags), add.show(flags)]);
-      default:  // "after", default and unknown values
-        let promise = remove.hide(flags);
-        return promise ? promise.then(() => <any>add.show(flags)) : add.show(flags);
+  private activateBranch(name: 'if' | 'else', flags: BindingFlags): void {
+    const branchView = this.ensureViewCreated(name);
+
+    if (this.$child) {
+      if (this.$child === branchView) {
+        return;
+      }
+
+      this.deactivateCurrentBranch(flags);
     }
+
+    this.$child = branchView;
+    branchView.$bind(flags, this.$scope);
+
+    if (this.$isAttached) {
+      branchView.$attach(this.encapsulationSource);
+    }
+  }
+
+  private ensureViewCreated(name: 'if' | 'else'): IView {
+    const viewPropertyName = `${name}View`;
+    let branchView = this[viewPropertyName] as IView;
+
+    if (!branchView) {
+      this[viewPropertyName] = branchView
+        = (this[`${name}Factory`] as IViewFactory).create();
+      branchView.onRender = view => view.$nodes.insertBefore(this.location);
+    }
+
+    return branchView;
+  }
+
+  private deactivateCurrentBranch(flags: BindingFlags): void {
+    this.$child.$detach();
+    this.$child.$unbind(flags);
+    this.$child = null;
+  }
+}
+
+@templateController('else')
+@inject(IViewFactory, IRenderLocation)
+export class Else {
+  constructor(private factory: IViewFactory, location: IRenderLocation) {
+    DOM.remove(location); // Only the location of the "if" is relevant.
+  }
+
+  public link(ifBehavior: If): void {
+    ifBehavior.elseFactory = this.factory;
   }
 }

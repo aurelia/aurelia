@@ -43,53 +43,36 @@ PrimitiveObserver.prototype.subscribe = noop;
 PrimitiveObserver.prototype.unsubscribe = noop;
 
 @propertyObserver()
-export class SetterObserver implements IPropertyObserver<IIndexable, string> {
-  public notify: (newValue: any, previousValue: any, flags: BindingFlags) => void;
+export class SetterObserver implements Partial<IPropertyObserver<IIndexable, string>> {
   public subscribe: (subscriber: IPropertySubscriber) => void;
   public unsubscribe: (subscriber: IPropertySubscriber) => void;
-  public dispose: () => void;
-
-  public observing: boolean;
   public obj: IIndexable;
   public propertyKey: string;
-  public currentValue: any;
-
-  public subscribers: IPropertySubscriber[];
 
   constructor(obj: IIndexable, propertyKey: string) {
     this.obj = obj;
     this.propertyKey = propertyKey;
-
-    this.subscribers = [];
   }
 
-  public getValue(): any {
+  public getValue(this: SetterObserver & IPropertyObserver<IIndexable, string>): any {
     return this.currentValue;
   }
-  public setValue(newValue: any, flags: BindingFlags): void {
+  public setValue(this: SetterObserver & IPropertyObserver<IIndexable, string>, newValue: any, flags: BindingFlags): void {
     const currentValue = this.currentValue;
     if (currentValue !== newValue) {
       this.currentValue = newValue;
       if (!(flags & BindingFlags.fromBind)) {
-        this.notify(newValue, currentValue, flags);
+        this.callSubscribers(newValue, currentValue, flags);
       }
     }
   }
 }
 
 @propertyObserver()
-export class Observer implements IPropertyObserver<IIndexable, string> {
-  public notify: (newValue: any, previousValue: any, flags: BindingFlags) => void;
-  public subscribe: (subscriber: IPropertySubscriber) => void;
-  public unsubscribe: (subscriber: IPropertySubscriber) => void;
-  public dispose: () => void;
-
-  public observing: boolean;
+export class Observer implements Partial<IPropertyObserver<IIndexable, string>> {
   public obj: IIndexable;
   public propertyKey: string;
   public currentValue: any;
-
-  public subscribers: IPropertySubscriber[];
 
   private callback: (oldValue: any, newValue: any) => any;
 
@@ -102,15 +85,13 @@ export class Observer implements IPropertyObserver<IIndexable, string> {
       this.callback = callbackName in instance
         ? instance[callbackName].bind(instance)
         : noop;
-
-      this.subscribers = [];
   }
 
-  public getValue(): any {
+  public getValue(this: Observer & IPropertyObserver<IIndexable, string>): any {
     return this.currentValue;
   }
 
-  public setValue<T>(newValue: T, flags: BindingFlags): void {
+  public setValue<T>(this: Observer & IPropertyObserver<IIndexable, string>, newValue: T, flags: BindingFlags): void {
     const currentValue = this.currentValue;
 
     if (currentValue !== newValue) {
@@ -123,7 +104,7 @@ export class Observer implements IPropertyObserver<IIndexable, string> {
           this.currentValue = newValue = coercedValue;
         }
 
-        this.notify(newValue, currentValue, flags);
+        this.callSubscribers(newValue, currentValue, flags);
       }
     }
   }

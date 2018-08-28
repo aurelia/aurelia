@@ -1,7 +1,7 @@
 import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
 import { collectionObserver } from './collection-observer';
-import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedMap } from './observation';
+import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedMap, IBatchedCollectionChangeNotifier, ICollectionChangeNotifier } from './observation';
 import { IChangeSet } from './change-set';
 
 const proto = Map.prototype;
@@ -35,7 +35,7 @@ function observeSet(this: IObservedMap, key: any, value: any): ReturnType<typeof
     return this;
   }
   o.indexMap[oldSize] = -2;
-  o.notify('set', arguments);
+  o.callSubscribers('set', arguments, BindingFlags.isCollectionMutation);
   return this;
 }
 
@@ -57,7 +57,7 @@ function observeClear(this: IObservedMap): ReturnType<typeof nativeClear>  {
     }
     nativeClear.call(this);
     indexMap.length = 0;
-    o.notify('clear', arguments);
+    o.callSubscribers('clear', arguments, BindingFlags.isCollectionMutation);
   }
   return undefined;
 }
@@ -84,7 +84,7 @@ function observeDelete(this: IObservedMap, value: any): ReturnType<typeof native
     }
     i++;
   }
-  o.notify('delete', arguments);
+  o.callSubscribers('delete', arguments, BindingFlags.isCollectionMutation);
   return false;
 }
 
@@ -108,34 +108,37 @@ export function disableMapObservation(): void {
 
 @collectionObserver(CollectionKind.map)
 export class MapObserver implements ICollectionObserver<CollectionKind.map> {
-  public resetIndexMap: () => void;
-  public notify: (origin: string, args: IArguments, flags: BindingFlags) => void;
-  public notifyBatched: (indexMap: IndexMap) => void;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public subscribe: (subscriber: ICollectionSubscriber) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
-  public flushChanges: () => void;
-  public dispose: () => void;
-
-  /*@internal*/
-  public changeSet: IChangeSet;
-  public collection: IObservedMap;
-  public indexMap: IndexMap;
-  public hasChanges: boolean;
   public lengthPropertyName: 'size';
   public collectionKind: CollectionKind.map;
+  public dispose: () => void;
+  public indexMap: IndexMap;
+  public hasChanges?: boolean;
+  public flushChanges: () => void;
+  public callSubscribers: ICollectionChangeNotifier;
+  public hasSubscribers: () => boolean;
+  public hasSubscriber: (subscriber: ICollectionSubscriber) => boolean;
+  public removeSubscriber: (subscriber: ICollectionSubscriber) => boolean;
+  public addSubscriber: (subscriber: ICollectionSubscriber) => boolean;
+  public subscribe: (subscriber: ICollectionSubscriber) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
+  public callBatchedSubscribers: IBatchedCollectionChangeNotifier;
+  public hasBatchedSubscribers: () => boolean;
+  public hasBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
+  public removeBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
+  public addBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
+  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
 
-  public subscribers: Array<ICollectionSubscriber>;
-  public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
+  public resetIndexMap: () => void;
+  public changeSet: IChangeSet;
 
-  constructor(changeSet: IChangeSet, map: Map<any, any> & { $observer?: ICollectionObserver<CollectionKind.map> }) {
+  public collection: IObservedMap;
+
+  constructor(changeSet: IChangeSet, map: Map<any, any> & { $observer?: Partial<ICollectionObserver<CollectionKind.map>> }) {
     this.changeSet = changeSet;
     map.$observer = this;
     this.collection = <IObservedMap>map;
     this.resetIndexMap();
-    this.subscribers = new Array();
-    this.batchedSubscribers = new Array();
   }
 }
 

@@ -161,15 +161,15 @@ export class ObserverLocator implements IObserverLocator {
       const tagName = obj['tagName'];
       const handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && tagName === 'SELECT') {
-        return new SelectValueObserver(this.changeSet, <HTMLSelectElement>obj, handler, this);
+        return new SelectValueObserver(this.changeSet, <HTMLSelectElement>obj, handler, this) as any;
       }
 
       if (propertyName === 'checked' && tagName === 'INPUT') {
-        return new CheckedObserver(this.changeSet, <HTMLInputElement>obj, handler, this);
+        return new CheckedObserver(this.changeSet, <HTMLInputElement>obj, handler, this) as any;
       }
 
       if (handler) {
-        return new ValueAttributeObserver(this.changeSet, obj, propertyName, handler);
+        return new ValueAttributeObserver(this.changeSet, obj, propertyName, handler) as any;
       }
 
       const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
@@ -224,6 +224,6 @@ export class ObserverLocator implements IObserverLocator {
       return this.dirtyChecker.createProperty(obj, propertyName) as any;
     }
 
-    return new SetterObserver(obj, propertyName);
+    return new SetterObserver(obj, propertyName) as any;
   }
 }

@@ -36,7 +36,8 @@ export interface IBindingTargetObserver<
   TProp = keyof TObj,
   TValue = any>
   extends IBindingTargetAccessor<TObj, TProp, TValue>,
-          ISubscribable<MutationKind.instance> {
+          ISubscribable<MutationKind.instance>,
+          ISubscriberCollection<MutationKind.instance> {
 
   bind?(flags: BindingFlags): void;
   unbind?(flags: BindingFlags): void;
@@ -177,25 +178,56 @@ export interface ISubscribable<T extends MutationKind> {
   unsubscribe(subscriber: MutationKindToSubscriber<T>): void;
 }
 
+/*@internal*/
+export const enum SubscriberFlags {
+  None            = 0,
+  Subscriber0     = 0b0001,
+  Subscriber1     = 0b0010,
+  Subscriber2     = 0b0100,
+  SubscribersRest = 0b1000,
+  Any             = 0b1111,
+}
+
 /**
  * A collection of property or collection subscribers
  */
 export interface ISubscriberCollection<T extends MutationKind> extends ISubscribable<T> {
-  subscribers: Array<MutationKindToSubscriber<T>>;
-  notify: MutationKindToNotifier<T>;
+  /*@internal*/_subscriberFlags?: SubscriberFlags;
+  /*@internal*/_subscriber0?: MutationKindToSubscriber<T>;
+  /*@internal*/_subscriber1?: MutationKindToSubscriber<T>;
+  /*@internal*/_subscriber2?: MutationKindToSubscriber<T>;
+  /*@internal*/_subscribersRest?: MutationKindToSubscriber<T>[];
+
+  callSubscribers: MutationKindToNotifier<T>;
+  hasSubscribers(): boolean;
+  hasSubscriber(subscriber: MutationKindToSubscriber<T>): boolean;
+  removeSubscriber(subscriber: MutationKindToSubscriber<T>): boolean;
+  addSubscriber(subscriber: MutationKindToSubscriber<T>): boolean;
+}
+
+/**
+ * A collection of batched property or collection subscribers
+ */
+export interface IBatchedSubscriberCollection<T extends MutationKind> extends IBatchedSubscribable<T> {
+  /*@internal*/_batchedSubscriberFlags?: SubscriberFlags;
+  /*@internal*/_batchedSubscriber0?: MutationKindToBatchedSubscriber<T>;
+  /*@internal*/_batchedSubscriber1?: MutationKindToBatchedSubscriber<T>;
+  /*@internal*/_batchedSubscriber2?: MutationKindToBatchedSubscriber<T>;
+  /*@internal*/_batchedSubscribersRest?: MutationKindToBatchedSubscriber<T>[];
+
+  /*@internal*/changeSet?: IChangeSet;
+  /*@internal*/flushChanges(): void;
+
+  callBatchedSubscribers: MutationKindToBatchedNotifier<T>;
+  hasBatchedSubscribers(): boolean;
+  hasBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;
+  removeBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;
+  addBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;
 }
 
 export interface IBatchedSubscribable<T extends MutationKind> {
   subscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>): void;
   unsubscribeBatched(subscriber: MutationKindToBatchedSubscriber<T>): void;
-}
-
-/**
- * A collection of batched property or batched collection subscribers
- */
-export interface IBatchedSubscriberCollection<T extends MutationKind> extends IBatchedSubscribable<T> {
-  batchedSubscribers: Array<MutationKindToBatchedSubscriber<T>>;
-  notifyBatched: MutationKindToBatchedNotifier<T>;
 }
 
 /**

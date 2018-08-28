@@ -1,8 +1,8 @@
 import { BindingFlags } from '../binding/binding-flags';
 import { IChangeSet } from '../binding/change-set';
-import { IAccessor, IPropertySubscriber, ISubscribable, MutationKind } from '../binding/observation';
+import { IAccessor, IPropertySubscriber, ISubscribable, ISubscriberCollection, MutationKind } from '../binding/observation';
 import { Observer } from '../binding/property-observation';
-import { SubscriberCollection } from '../binding/subscriber-collection';
+import { subscriberCollection } from '../binding/subscriber-collection';
 import { INode } from '../dom';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import {
@@ -111,16 +111,20 @@ function createGetterSetter(instance: any, name: string): void {
   });
 }
 
+export interface IChildrenObserver extends
+  IAccessor,
+  ISubscribable<MutationKind.instance>,
+  ISubscriberCollection<MutationKind.instance> { }
+
 /*@internal*/
-export class ChildrenObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance> {
+@subscriberCollection(MutationKind.instance)
+export class ChildrenObserver implements Partial<IChildrenObserver> {
   public hasChanges: boolean = false;
 
   private children: ICustomElement[] = null;
   private observing: boolean = false;
 
-  constructor(private changeSet: IChangeSet, private customElement: ICustomElement) {
-    super();
-  }
+  constructor(private changeSet: IChangeSet, private customElement: ICustomElement) { }
 
   public getValue(): ICustomElement[] {
     if (!this.observing) {
@@ -134,16 +138,16 @@ export class ChildrenObserver extends SubscriberCollection implements IAccessor,
 
   public setValue(newValue: any): void {}
 
-  public flushChanges(): void {
+  public flushChanges(this: ChildrenObserver & IChildrenObserver): void {
     this.callSubscribers(this.children, undefined, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
     this.hasChanges = false;
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(this: ChildrenObserver & IChildrenObserver, subscriber: IPropertySubscriber): void {
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(this: ChildrenObserver & IChildrenObserver, subscriber: IPropertySubscriber): void {
     this.removeSubscriber(subscriber);
   }
 

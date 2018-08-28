@@ -1,7 +1,7 @@
-import { nativePush, nativeSplice } from './array-observer';
-import { BindingFlags } from './binding-flags';
-import { IPropertySubscriber, PropertyObserver } from './observation';
 import { Reporter } from '@aurelia/kernel';
+import { BindingFlags } from './binding-flags';
+import { IPropertySubscriber, PropertyObserver, MutationKind } from './observation';
+import { subscriberCollection } from './subscriber-collection';
 
 const defineProperty = Reflect.defineProperty;
 // note: we're reusing the same object for setting all descriptors, just changing some properties as needed
@@ -14,13 +14,6 @@ const observedPropertyDescriptor: PropertyDescriptor = {
   configurable: true
 };
 
-function notify(this: PropertyObserver, newValue: any, previousValue: any, flags: BindingFlags): void {
-  const subscribers = this.subscribers;
-  for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-    subscribers[i].handleChange(newValue, previousValue, flags);
-  }
-}
-
 function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
   if (this.observing === false) {
     this.observing = true;
@@ -32,19 +25,8 @@ function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): voi
     if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {
       Reporter.write(1, propertyKey, obj);
     }
-    this.subscribe = subscribe;
   }
-  nativePush.call(this.subscribers, subscriber);
-}
-
-function unsubscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
-  const subscribers = this.subscribers;
-  for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-    if (subscribers[i] === subscriber) {
-      nativeSplice.call(subscribers, i, 1);
-      return;
-    }
-  }
+  this.addSubscriber(subscriber);
 }
 
 function dispose(this: PropertyObserver): void {
@@ -52,12 +34,11 @@ function dispose(this: PropertyObserver): void {
   this.obj = null;
   this.propertyKey = null;
   this.currentValue = null;
-
-  this.subscribers = null;
 }
 
 export function propertyObserver(): ClassDecorator {
   return function(target: Function): void {
+    subscriberCollection(MutationKind.instance)(target);
     const proto = <PropertyObserver>target.prototype;
 
     proto.observing = false;
@@ -65,11 +46,8 @@ export function propertyObserver(): ClassDecorator {
     proto.propertyKey = null;
     proto.currentValue = null;
 
-    proto.subscribers = null;
-
-    proto.notify = proto.notify || notify;
     proto.subscribe = proto.subscribe || subscribe;
-    proto.unsubscribe = proto.unsubscribe || unsubscribe;
+    proto.unsubscribe = proto.unsubscribe || proto.removeSubscriber;
 
     proto.dispose = proto.dispose || dispose;
   }

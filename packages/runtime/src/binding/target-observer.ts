@@ -1,7 +1,8 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
-import { IBindingTargetAccessor } from './observation';
+import { IBindingTargetAccessor, MutationKind } from './observation';
+import { subscriberCollection } from './subscriber-collection';
 
 type BindingTargetAccessor = IBindingTargetAccessor & {
   changeSet: IChangeSet;
@@ -52,6 +53,7 @@ function dispose(this: BindingTargetAccessor): void {
 
 export function targetObserver(defaultValue: Primitive | IIndexable = null): ClassDecorator {
   return function(target: Function): void {
+    subscriberCollection(MutationKind.instance)(target);
     const proto = <BindingTargetAccessor>target.prototype;
 
     proto.currentValue = defaultValue;

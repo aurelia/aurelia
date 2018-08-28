@@ -1,10 +1,10 @@
 import { Reporter } from '@aurelia/kernel';
 import { IChangeSet } from './change-set';
 import { IDirtyChecker } from './dirty-checker';
-import { IAccessor, IChangeTracker, ISubscribable, MutationKind, IPropertySubscriber } from './observation';
+import { IAccessor, IChangeTracker, ISubscribable, MutationKind, IPropertySubscriber, ISubscriberCollection } from './observation';
 import { IObserverLocator } from './observer-locator';
-import { SubscriberCollection } from './subscriber-collection';
 import { BindingFlags } from './binding-flags';
+import { subscriberCollection } from './subscriber-collection';
 
 export interface IComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -53,43 +53,48 @@ export function createComputedObserver(observerLocator: IObserverLocator, dirtyC
   throw Reporter.error(18, propertyName);
 }
 
+export interface ICustomSetterObserver extends
+  ISubscriberCollection<MutationKind.instance>,
+  IAccessor,
+  ISubscribable<MutationKind.instance>,
+  IChangeTracker { }
+
 // Used when the getter is dependent solely on changes that happen within the setter.
-export class CustomSetterObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker {
+@subscriberCollection(MutationKind.instance)
+export class CustomSetterObserver implements Partial<ICustomSetterObserver> {
   private observing = false;
   private currentValue: any;
   private oldValue: any;
 
-  constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private changeSet: IChangeSet) {
-    super();
-  }
+  constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private changeSet: IChangeSet) { }
 
-  public getValue() {
+  public getValue(): any {
     return this.instance[this.propertyName];
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any): void {
     this.instance[this.propertyName] = newValue;
   }
 
-  public flushChanges() {
+  public flushChanges(this: CustomSetterObserver & ICustomSetterObserver): void {
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
 
     this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
   }
 
-  public subscribe(subscriber: IPropertySubscriber) {
+  public subscribe(this: CustomSetterObserver & ICustomSetterObserver, subscriber: IPropertySubscriber): void {
     if (!this.observing) {
       this.convertProperty();
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber) {
+  public unsubscribe(this: CustomSetterObserver & ICustomSetterObserver, subscriber: IPropertySubscriber): void {
     this.removeSubscriber(subscriber);
   }
 
-  public convertProperty() {
+  public convertProperty(): void {
     const setter = this.descriptor.set;
     const that = this;
 
@@ -113,15 +118,20 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
   }
 }
 
+export interface IGetterObserver extends
+  ISubscriberCollection<MutationKind.instance>,
+  IAccessor,
+  ISubscribable<MutationKind.instance>,
+  IChangeTracker { }
+
 // Used when there is no setter, and the getter is dependent on other properties of the object;
 // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
 /*@internal*/
-export class GetterObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker {
+@subscriberCollection(MutationKind.instance)
+export class GetterObserver implements Partial<IGetterObserver> {
   private controller: GetterController;
 
   constructor(private overrides: IComputedOverrides, private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private changeSet: IChangeSet) {
-    super();
-
     this.controller = new GetterController(
       overrides,
       instance,
@@ -133,13 +143,13 @@ export class GetterObserver extends SubscriberCollection implements IAccessor, I
     );
   }
 
-  public getValue() {
+  public getValue(): any {
     return this.controller.value;
   }
 
-  public setValue(newValue) { }
+  public setValue(newValue): void { }
 
-  public flushChanges() {
+  public flushChanges(this: GetterObserver & IGetterObserver): void {
     const oldValue = this.controller.value;
     const newValue = this.controller.getValueAndCollectDependencies();
 
@@ -148,12 +158,12 @@ export class GetterObserver extends SubscriberCollection implements IAccessor, I
     }
   }
 
-  public subscribe(subscriber: IPropertySubscriber) {
+  public subscribe(this: GetterObserver & IGetterObserver, subscriber: IPropertySubscriber): void {
     this.addSubscriber(subscriber);
     this.controller.onSubscriberAdded();
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber) {
+  public unsubscribe(this: GetterObserver & IGetterObserver, subscriber: IPropertySubscriber): void {
     this.removeSubscriber(subscriber);
     this.controller.onSubscriberRemoved();
   }

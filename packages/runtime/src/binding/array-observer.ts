@@ -1,6 +1,6 @@
 import { BindingFlags } from './binding-flags';
 import { collectionObserver } from './collection-observer';
-import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray } from './observation';
+import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray, ICollectionChangeNotifier, IBatchedCollectionChangeNotifier } from './observation';
 import { IChangeSet } from './change-set';
 
 const proto = Array.prototype;
@@ -29,7 +29,7 @@ function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
     this[i] = arguments[i - len]; o.indexMap[i] = - 2;
     i++;
   }
-  o.notify('push', arguments);
+  o.callSubscribers('push', arguments, BindingFlags.isCollectionMutation);
   return this.length;
 }
 
@@ -47,7 +47,7 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift> 
   }
   nativeUnshift.apply(o.indexMap, inserts);
   const len = nativeUnshift.apply(this, arguments);
-  o.notify('unshift', arguments);
+  o.callSubscribers('unshift', arguments, BindingFlags.isCollectionMutation);
   return len;
 }
 
@@ -65,7 +65,7 @@ function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativePop.call(indexMap);
-  o.notify('pop', arguments);
+  o.callSubscribers('pop', arguments, BindingFlags.isCollectionMutation);
   return element;
 }
 
@@ -82,7 +82,7 @@ function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativeShift.call(indexMap);
-  o.notify('shift', arguments);
+  o.callSubscribers('shift', arguments, BindingFlags.isCollectionMutation);
   return element;
 }
 
@@ -116,7 +116,7 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
     nativeSplice.call(indexMap, start, deleteCount);
   }
   const deleted = nativeSplice.apply(this, arguments);
-  o.notify('splice', arguments);
+  o.callSubscribers('splice', arguments, BindingFlags.isCollectionMutation);
   return deleted;
 }
 
@@ -137,7 +137,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
     this[upper] = lowerValue; o.indexMap[upper] = lowerIndex;
     lower++;
   }
-  o.notify('reverse', arguments);
+  o.callSubscribers('reverse', arguments, BindingFlags.isCollectionMutation);
   return this;
 }
 
@@ -164,7 +164,7 @@ function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => numbe
     compareFn = sortCompare;
   }
   quickSort(this, o.indexMap, 0, i, compareFn);
-  o.notify('sort', arguments);
+  o.callSubscribers('sort', arguments, BindingFlags.isCollectionMutation);
   return this;
 }
 
@@ -321,34 +321,37 @@ export function disableArrayObservation(): void {
 
 @collectionObserver(CollectionKind.array)
 export class ArrayObserver implements ICollectionObserver<CollectionKind.array> {
-  public resetIndexMap: () => void;
-  public notify: (origin: string, args: IArguments, flags: BindingFlags) => void;
-  public notifyBatched: (indexMap: IndexMap) => void;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public subscribe: (subscriber: ICollectionSubscriber) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
-  public flushChanges: () => void;
-  public dispose: () => void;
-
-  /*@internal*/
-  public changeSet: IChangeSet;
-  public collection: IObservedArray;
-  public indexMap: IndexMap;
-  public hasChanges: boolean;
   public lengthPropertyName: 'length';
   public collectionKind: CollectionKind.array;
+  public dispose: () => void;
+  public indexMap: IndexMap;
+  public hasChanges?: boolean;
+  public flushChanges: () => void;
+  public callSubscribers: ICollectionChangeNotifier;
+  public hasSubscribers: () => boolean;
+  public hasSubscriber: (subscriber: ICollectionSubscriber) => boolean;
+  public removeSubscriber: (subscriber: ICollectionSubscriber) => boolean;
+  public addSubscriber: (subscriber: ICollectionSubscriber) => boolean;
+  public subscribe: (subscriber: ICollectionSubscriber) => void;
+  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
+  public callBatchedSubscribers: IBatchedCollectionChangeNotifier;
+  public hasBatchedSubscribers: () => boolean;
+  public hasBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
+  public removeBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
+  public addBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
+  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
 
-  public subscribers: Array<ICollectionSubscriber>;
-  public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
+  public resetIndexMap: () => void;
+  public changeSet: IChangeSet;
 
-  constructor(changeSet: IChangeSet, array: Array<any> & { $observer?: ICollectionObserver<CollectionKind.array> }) {
+  public collection: IObservedArray;
+
+  constructor(changeSet: IChangeSet, array: any[] & { $observer?: Partial<ICollectionObserver<CollectionKind.array>> }) {
     this.changeSet = changeSet;
     array.$observer = this;
     this.collection = <IObservedArray>array;
     this.resetIndexMap();
-    this.subscribers = new Array();
-    this.batchedSubscribers = new Array();
   }
 }
 

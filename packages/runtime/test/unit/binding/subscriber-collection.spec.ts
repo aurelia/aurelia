@@ -1,8 +1,9 @@
-import { SubscriberCollection, BindingFlags } from '../../../src/index';
+import { BindingFlags, subscriberCollection, MutationKind } from '../../../src/index';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 
-class Test extends SubscriberCollection {}
+@subscriberCollection(MutationKind.instance)
+class Test {}
 
 describe('subscriberCollection', () => {
   it('calls subscribers', () => {

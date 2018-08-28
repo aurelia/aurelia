@@ -61,13 +61,17 @@ export class App {
       }
       this.todos.push(...newTodos);
     }
-    this.cs.add(instrumenter);
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
   }
 
   public clearTodos(): void {
     instrumenter.markActionStart(`app-clearTodos-${this.todos.length}`, true);
     this.todos = [];
-    this.cs.add(instrumenter);
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
   }
 
   public toggleTodos(): void {
@@ -77,7 +81,9 @@ export class App {
       const todo = todos[i];
       todo.done = !todo.done;
     }
-    this.cs.add(instrumenter);
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
   }
 
   public updateTodos(): void {
@@ -87,13 +93,17 @@ export class App {
     for (let i = 0, ii = todos.length; i < ii; ++i) {
       todos[i].description = description;
     }
-    this.cs.add(instrumenter);
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
   }
 
   public reverseTodos(): void {
     instrumenter.markActionStart(`app-reverseTodos-${this.todos.length}`, true);
     this.todos.reverse();
-    this.cs.add(instrumenter);
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
   }
 
   public bound(): void {

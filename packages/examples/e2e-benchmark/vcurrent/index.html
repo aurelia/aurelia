@@ -27,15 +27,13 @@
         this.queuedActions = [];
         this.previousLifecycle = null;
         this.taskQueue = null;
-        this.queued = false;
       }
-      call() {
+      markEnd() {
         const actions = this.queuedActions;
         for (let i = 0, ii = actions.length; i < ii; ++i) {
           this.markActionEnd(actions[i]);
         }
         this.queuedActions = [];
-        this.queued = false;
       }
       markLifecycle(name) {
         const current = `aurelia-${name}`;
@@ -51,22 +49,12 @@
         const markStart = `aurelia-action-${name}-start`;
         performance.mark(markStart);
         this.queuedActions.push(name);
-        this['$'+name] = 0;
-        //console.log(markStart);
       }
       markActionEnd(name) {
         const markEnd = `aurelia-action-${name}-end`;
         const markStart = `aurelia-action-${name}-start`;
         performance.mark(markEnd);
-        const dollarName = '$'+name;
-        const flushCount = this[dollarName];
-        this[dollarName] = 0;
-        if (flushCount > 0) {
-          const measureFlush = `aurelia-action-${name}-flush-${flushCount}`;
-          performance.measure(measureFlush, measureFlush, markEnd);
-        }
         performance.measure(`aurelia-action-${name}`, markStart, markEnd);
-        //console.log(markEnd);
       }
     }
     var instrumenter = window.instrumenter = new Instrumenter();

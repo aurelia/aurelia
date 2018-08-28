@@ -4,7 +4,7 @@
   "scripts": {
     "build": "rimraf dist && au build",
     "start": "http-server -c-1 -p 3000 .",
-    "e2e": "mocha ../e2e/**/*.spec.ts --require ts-node/register -R spec -u bdd --recursive -c -t 120000 --watch-extensions ts"
+    "e2e": "cross-env TS_NODE_PROJECT=\"../tsconfig.json\" mocha ../e2e/**/*.spec.ts --require ts-node/register -R spec -u bdd --recursive -c -t 120000 --watch-extensions ts"
   },
   "dependencies": {
     "aurelia-binding": "^2.1.4",
@@ -36,6 +36,7 @@
     "browserify": "^16.2.2",
     "chai": "^4.1.2",
     "chromedriver": "^2.41.0",
+    "cross-env": "^5.2.0",
     "event-stream": "^3.3.4",
     "gulp": "^4.0.0",
     "gulp-changed-in-place": "^2.3.0",
@@ -51,6 +52,7 @@
     "rimraf": "^2.6.2",
     "selenium-webdriver": "^4.0.0-alpha.1",
     "ts-node": "^7.0.1",
+    "tsconfig-paths": "^3.5.0",
     "tsify": "^4.0.0",
     "typescript": "^3.0.1",
     "vinyl-source-stream": "^2.0.0"

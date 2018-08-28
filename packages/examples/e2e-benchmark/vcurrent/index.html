@@ -42,24 +42,6 @@
               this.queued = false;
             });
           }
-          const actions = this.queuedActions;
-          if (tq.microTaskQueue.length > 0) {
-            // we're trying to get to the end of the queue for the full measurement, so keep re-queueing until this flush is the last change
-            for (let i = 0, ii = actions.length; i < ii; ++i) {
-              const name = actions[i];
-              const flushCount = ++this['$'+name];
-              const markFlush = `aurelia-action-${name}-flush-${flushCount}`;
-              performance.mark(markFlush);
-              const measureFlush = `aurelia-action-${name}-flush-${flushCount-1}`;
-              if (flushCount === 1) {
-                const markStart = `aurelia-action-${name}-start`;
-                performance.measure(measureFlush, markStart, markFlush);
-              } else {
-                performance.measure(measureFlush, measureFlush, markFlush);
-              }
-            }
-            tq.queueMicroTask(this);
-          }
         }
       }
       markLifecycle(name) {

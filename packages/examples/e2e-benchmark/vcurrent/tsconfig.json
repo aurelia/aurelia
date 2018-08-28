@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig-build.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "sourceMap": false,
+    "module": "amd"
+  },
+  "include": ["."]
+}

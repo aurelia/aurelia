@@ -24,18 +24,18 @@
         "name": "app-bundle.js",
         "source": {
           "include": [
-            "[**/*.js]",
+            "**/*.js",
             "**/*.{html}"
           ]
-        },
-        "dependencies": [
-          "text"
-        ]
+        }
       },
       {
         "name": "vendor-bundle.js",
         "prepend": [
           "node_modules/requirejs/require.js"
+        ],
+        "dependencies": [
+          "text"
         ]
       }
     ],
@@ -66,7 +66,7 @@
     "id": "typescript",
     "displayName": "TypeScript",
     "fileExtension": ".ts",
-    "source": ["src/**/*.ts", "main.ts"]
+    "source": "src/**/*.ts"
   },
   "markupProcessor": {
     "id": "none",
@@ -83,7 +83,6 @@
     "displayName": "None"
   },
   "paths": {
-    "root": ".",
-    "view": "../../plugin-requirejs"
+    "root": "src"
   }
 }

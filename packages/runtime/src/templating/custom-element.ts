@@ -133,10 +133,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   this.$child = null;
   this.$isAttached = false;
   this.$isBound = false;
-  this.$scope = {
-    bindingContext: this,
-    overrideContext: BindingContext.createOverride()
-  };
+  this.$scope = BindingContext.createScope(this);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 

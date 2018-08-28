@@ -9,8 +9,18 @@ export interface IScope {
 }
 
 export const BindingContext = {
+  createScope(bindingContext: any, overrideContext?: IOverrideContext): IScope {
+    return {
+      bindingContext: bindingContext,
+      overrideContext: overrideContext || BindingContext.createOverride()
+    };
+  },
+
   createScopeFromOverride(overrideContext: IOverrideContext): IScope {
-    return { bindingContext: overrideContext.bindingContext, overrideContext };
+    return {
+      bindingContext: overrideContext.bindingContext,
+      overrideContext
+    };
   },
 
   createScopeFromParent(parentScope: IScope, bindingContext: any): IScope {

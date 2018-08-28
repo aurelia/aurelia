@@ -179,7 +179,7 @@ jobs:
             cd ./packages/examples/jit-browserify
             npm run e2e
 
-  e2e_benchmark:
+  e2e_benchmark_vnext:
     <<: *defaults
     steps:
       - checkout
@@ -188,21 +188,47 @@ jobs:
       - attach_workspace:
           at: ~/repo
       - run:
-          name: Install e2e-benchmark
+          name: Install e2e-benchmark/vnext
           command: |
-            cd ./packages/examples/e2e-benchmark
+            cd ./packages/examples/e2e-benchmark/vnext
             npm ci
             npm run build
       - run:
-          name: Serve e2e-benchmark in the background
+          name: Serve e2e-benchmark/vnext in the background
           background: true
           command: |
-            cd ./packages/examples/e2e-benchmark
+            cd ./packages/examples/e2e-benchmark/vnext
             npm run start
       - run:
           name: Run the e2e tests
           command: |
-            cd ./packages/examples/e2e-benchmark
+            cd ./packages/examples/e2e-benchmark/vnext
+            npm run e2e
+
+  e2e_benchmark_vcurrent:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Install e2e-benchmark/vcurrent
+          command: |
+            cd ./packages/examples/e2e-benchmark/vcurrent
+            npm ci
+            npm run build
+      - run:
+          name: Serve e2e-benchmark/vcurrent in the background
+          background: true
+          command: |
+            cd ./packages/examples/e2e-benchmark/vcurrent
+            npm run start
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./packages/examples/e2e-benchmark/vcurrent
             npm run e2e
 
 workflows:
@@ -222,7 +248,10 @@ workflows:
             - e2e_tests_jit_browserify:
                 requires:
                     - build
-            - e2e_benchmark:
+            - e2e_benchmark_vnext:
+                requires:
+                    - build
+            - e2e_benchmark_vcurrent:
                 requires:
                     - build
 

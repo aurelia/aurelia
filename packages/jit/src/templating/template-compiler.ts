@@ -40,15 +40,15 @@ export class TemplateCompiler implements ITemplateCompiler {
       definition.templateOrNode = node;
     }
     node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
-    while (node = this.compileNode(<Node>node, definition.instructions, resources)) { /* Do nothing */ }
+    while (node = this.compileNode(<Node>node, definition, definition.instructions, resources)) { /* Do nothing */ }
     return definition;
   }
 
   /*@internal*/
-  public compileNode(node: Node, instructions: TargetedInstruction[][], resources: IResourceDescriptions): Node {
+  public compileNode(node: Node, definition: Required<ITemplateSource>, instructions: TargetedInstruction[][], resources: IResourceDescriptions): Node {
     switch (node.nodeType) {
       case NodeType.Element:
-        this.compileElementNode(<Element>node, instructions, resources);
+        this.compileElementNode(<Element>node, definition, instructions, resources);
         return node.nextSibling;
       case NodeType.Text:
         if (!this.compileTextNode(<Text>node, instructions)) {
@@ -68,7 +68,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /*@internal*/
-  public compileElementNode(node: Element, instructions: TargetedInstruction[][], resources: IResourceDescriptions): void {
+  public compileElementNode(node: Element, definition: Required<ITemplateSource>, instructions: TargetedInstruction[][], resources: IResourceDescriptions): void {
     let elementDefinition: Immutable<Required<ITemplateSource>>;
     let elementInstruction: HydrateElementInstruction;
     const tagName = node.tagName;
@@ -89,13 +89,21 @@ export class TemplateCompiler implements ITemplateCompiler {
     const attributeInstructions: TargetedInstruction[] = [];
     let liftInstruction: HydrateTemplateController;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
-      const instruction = this.compileAttribute(attributes.item(i), node, resources, elementInstruction, false);
+      const instruction = this.compileAttribute(
+        attributes.item(i),
+        node,
+        resources,
+        elementInstruction,
+        definition,
+        false
+      );
       if (instruction !== null) {
         // if it's a template controller instruction
         // it could be nth template controller instruction: <div if.bind="" repeat.for="" with.bind=""></div>
         // just keep refreshing the reference to the last template controller instruction
         if (instruction.type === TargetedInstructionType.hydrateTemplateController) {
-          i--; --ii;
+          --i;
+          --ii;
           if (liftInstruction) {
             liftInstruction.instructions.push(instruction);
           }
@@ -117,18 +125,23 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
     if (elementInstruction || liftInstruction || attributeInstructions.length) {
-      node.classList.add('au');
-      instructions.push(liftInstruction
-        ? [liftInstruction]
-        : elementInstruction
+      if (liftInstruction) {
+        const marker = createMarker();
+        node.parentNode.replaceChild(marker, node);
+        node = marker;
+        instructions.push([liftInstruction]);
+      } else {
+        node.classList.add('au');
+        instructions.push(elementInstruction
           ? [elementInstruction]
           : attributeInstructions
-      );
+        );
+      }
     }
     node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
     let currentChild = node.firstChild;
     while (currentChild) {
-      currentChild = this.compileNode(currentChild, instructions, resources);
+      currentChild = this.compileNode(currentChild, definition, instructions, resources);
     }
   }
 
@@ -153,6 +166,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     node: Element,
     resources: IResourceDescriptions,
     elementInstruction: HydrateElementInstruction,
+    definition: Required<ITemplateSource>,
     isForSurrogateElement: boolean
   ): TargetedInstruction {
     const { name, value } = attr;
@@ -231,7 +245,14 @@ export class TemplateCompiler implements ITemplateCompiler {
           const parts = binding.split(':');
           const attr = document.createAttribute(parts[0]);
           attr.value = parts[1];
-          instructions.push(this.compileAttribute(attr, node, resources, elementInstruction, false));
+          instructions.push(this.compileAttribute(
+            attr,
+            node,
+            resources,
+            elementInstruction,
+            definition,
+            false
+          ));
         }
         return new HydrateAttributeInstruction(targetName, instructions);
       }
@@ -259,6 +280,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         src = <ITemplateSource>this.compile(<Required<ITemplateSource>>src, resources);
       }
       const expression = this.expressionParser.parse(value, bindingCommand);
+      (definition.dependencies || (definition.dependencies = [])).push(CustomAttributeResource)
       return new HydrateTemplateController(src, targetName, [
         new ToViewBindingInstruction(expression, 'items'),
         new SetPropertyInstruction('item', 'local')
@@ -273,7 +295,14 @@ export class TemplateCompiler implements ITemplateCompiler {
       templateOrNode: node,
       instructions: []
     };
-    src = <ITemplateSource>this.compile(<Required<ITemplateSource>>src, resources);
+    let current: Node;
+    if (current = node.firstChild) {
+      const template = DOM.createTemplate() as HTMLTemplateElement;
+      template.content.appendChild(node.cloneNode(true));
+      src.templateOrNode = template;
+      src = <ITemplateSource>this.compile(<Required<ITemplateSource>>src, resources);
+      src.templateOrNode = template;
+    }
     // first get the simple stuff out of the way
     if (bindingCommand & BindingType.IsProperty) {
       if ((bindingCommand & BindingType.FromViewCommand) === BindingType.FromViewCommand) {
@@ -286,7 +315,6 @@ export class TemplateCompiler implements ITemplateCompiler {
         instruction
       ]);
     }
-    throw new Error('Simple template controller usage not implemented.');
   }
 }
 

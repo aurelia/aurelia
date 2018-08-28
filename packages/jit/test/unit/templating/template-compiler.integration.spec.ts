@@ -3,7 +3,7 @@ import { TemplateCompiler, register } from '../../../src/index';
 import {
   Aurelia, Repeat, If, Else, ITemplateCompiler, IChangeSet, CustomElementResource, valueConverter,
   OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior,
-  DebounceBindingBehavior, ThrottleBindingBehavior
+  DebounceBindingBehavior, ThrottleBindingBehavior, ResourceDescription, ITemplateSource
 } from '../../../../runtime/src/index';
 import { expect } from 'chai';
 import { ExpressionParser } from '../../../../runtime/src/binding/expression-parser';
@@ -476,13 +476,13 @@ describe('TemplateCompiler (integration)', () => {
   });
 
   // TODO: implement this in template compiler
-  it.only(`if - shows and hides`, () => {
+  it(`if - shows and hides`, () => {
     component = createCustomElement(`<template><div if.bind="foo">bar</div></template>`);
     component.foo = true;
     au.app({ host, component: component }).start();
+    cs.flushChanges();
     expect(host.innerText).to.equal('bar');
     component.foo = false;
-    expect(host.innerText).to.equal('bar');
     cs.flushChanges();
     expect(host.innerText).to.equal('');
   });

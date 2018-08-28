@@ -370,4 +370,14 @@ describe('TemplateCompiler', () => {
     }
 
   });
+
+  describe('compileElement()', () => {
+
+    it('throws on <let/> + <slot/>', () => {
+      const markup = '<template><slot></slot></template>';
+      expect(() => {
+        sut.compile(<any>{ templateOrNode: markup, instructions: [] }, resources);
+      }).to.throw();
+    });
+  });
 });

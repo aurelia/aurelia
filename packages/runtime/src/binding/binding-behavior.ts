@@ -16,7 +16,7 @@ export function bindingBehavior(nameOrSource: string | IBindingBehaviorSource) {
 export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBindingBehaviorType> = {
   name: 'binding-behavior',
 
-  keyFrom(name: string) {
+  keyFrom(name: string): string {
     return `${this.name}:${name}`;
   },
 
@@ -25,15 +25,24 @@ export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBin
   },
 
   define<T extends Constructable>(nameOrSource: string | IBindingBehaviorSource, ctor: T): T & IBindingBehaviorType {
-    const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
-    const Type: T & IBindingBehaviorType = ctor as any;
+    const Type = ctor as T & IBindingBehaviorType;
+    const description = typeof nameOrSource === 'string'
+      ? { name: nameOrSource }
+      : nameOrSource;
 
     (Type as Writable<IBindingBehaviorType>).kind = BindingBehaviorResource;
     (Type as Writable<IBindingBehaviorType>).description = description;
-    Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
-    };
+    Type.register = register;
 
     return Type;
   }
 };
+
+function register(this: IBindingBehaviorType, container: IContainer): void {
+  container.register(
+    Registration.singleton(
+      BindingBehaviorResource.keyFrom(this.description.name),
+      this
+    )
+  );
+}

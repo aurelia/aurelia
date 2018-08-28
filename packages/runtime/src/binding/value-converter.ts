@@ -16,7 +16,7 @@ export function valueConverter(nameOrSource: string | IValueConverterSource) {
 export const ValueConverterResource: IResourceKind<IValueConverterSource, IValueConverterType> = {
   name: 'value-converter',
 
-  keyFrom(name: string) {
+  keyFrom(name: string): string {
     return `${this.name}:${name}`;
   },
 
@@ -25,15 +25,24 @@ export const ValueConverterResource: IResourceKind<IValueConverterSource, IValue
   },
 
   define<T extends Constructable>(nameOrSource: string | IValueConverterSource, ctor: T): T & IValueConverterType {
-    const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
-    const Type: T & IValueConverterType = ctor as any;
+    const Type = ctor as T & IValueConverterType;
+    const description = typeof nameOrSource === 'string'
+      ? { name: nameOrSource }
+      : nameOrSource;
 
     (Type as Writable<IValueConverterType>).kind = ValueConverterResource;
     (Type as Writable<IValueConverterType>).description = description;
-    Type.register = function(container: IContainer) {
-      container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
-    };
+    Type.register = register;
 
     return Type;
   }
 };
+
+function register(this: IValueConverterType, container: IContainer): void {
+  container.register(
+    Registration.singleton(
+      ValueConverterResource.keyFrom(this.description.name),
+      this
+    )
+  );
+}

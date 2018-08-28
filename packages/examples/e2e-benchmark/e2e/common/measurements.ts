@@ -22,6 +22,9 @@ export async function processMeasurements() {
   for (const { lifecycle, duration } of lifecycles) {
     console.log(`${lifecycle} took ${duration}ms`);
   }
+  const firstLifecycle = lifecycles.shift();
+  const lastLifecycle = lifecycles.pop();
+  console.log(`total app startup took ${((lastLifecycle.startTime - firstLifecycle.startTime) + 0.5) | 0}ms`);
   for (const { action, count, duration } of actions) {
     console.log(`${action} (x${count}) took ${duration}ms`);
   }

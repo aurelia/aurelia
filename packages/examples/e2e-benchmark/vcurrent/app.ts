@@ -52,13 +52,13 @@ export class App {
       }
       this.todos.push(...newTodos);
     }
-    this.tq.queueMicroTask(instrumenter);
+    this.tq.queueTask(instrumenter);
   }
 
   public clearTodos(): void {
     instrumenter.markActionStart(`app-clearTodos-${this.todos.length}`, true);
     this.todos = [];
-    this.tq.queueMicroTask(instrumenter);
+    this.tq.queueTask(instrumenter);
   }
 
   public toggleTodos(): void {
@@ -68,7 +68,7 @@ export class App {
       const todo = todos[i];
       todo.done = !todo.done;
     }
-    this.tq.queueMicroTask(instrumenter);
+    this.tq.queueTask(instrumenter);
   }
 
   public updateTodos(): void {
@@ -78,13 +78,13 @@ export class App {
     for (let i = 0, ii = todos.length; i < ii; ++i) {
       todos[i].description = description;
     }
-    this.tq.queueMicroTask(instrumenter);
+    this.tq.queueTask(instrumenter);
   }
 
   public reverseTodos(): void {
     instrumenter.markActionStart(`app-reverseTodos-${this.todos.length}`, true);
     this.todos.reverse();
-    this.tq.queueMicroTask(instrumenter);
+    this.tq.queueTask(instrumenter);
   }
 
   public bound(): void {

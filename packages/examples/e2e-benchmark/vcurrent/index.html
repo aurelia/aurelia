@@ -30,19 +30,12 @@
         this.queued = false;
       }
       call() {
-        const tq = this.taskQueue;
-        if (tq !== null) {
-          if (!this.queued) {
-            this.queued = true;
-            tq.queueTask(() => {
-              for (let i = 0, ii = actions.length; i < ii; ++i) {
-                this.markActionEnd(actions[i]);
-              }
-              this.queuedActions = [];
-              this.queued = false;
-            });
-          }
+        const actions = this.queuedActions;
+        for (let i = 0, ii = actions.length; i < ii; ++i) {
+          this.markActionEnd(actions[i]);
         }
+        this.queuedActions = [];
+        this.queued = false;
       }
       markLifecycle(name) {
         const current = `aurelia-${name}`;

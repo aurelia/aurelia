@@ -32,6 +32,7 @@
       flushChanges() {
         const changeSet = this.changeSet;
         if (changeSet !== null) {
+          const actions = this.queuedActions;
           if (!this.queued) {
             this.queued = true;
             changeSet.flushed.then(() => {
@@ -42,7 +43,6 @@
               this.queued = false;
             });
           }
-          const actions = this.queuedActions;
           if (changeSet.size > 0) {
             // we're trying to get to the end of the queue for the full measurement, so keep re-queueing until this flush is the last change
             for (let i = 0, ii = actions.length; i < ii; ++i) {

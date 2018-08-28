@@ -1,7 +1,7 @@
 // tslint:disable:typedef
 // tslint:disable:function-name
-import { By } from 'selenium-webdriver';
-import { browser, waitForElement, waitForElements } from '../common/browser';
+import { By, until } from 'selenium-webdriver';
+import { browser, waitForElement } from '../common/browser';
 import { AppConstants } from './app.constants';
 
 const { cssSelectors } = AppConstants;
@@ -16,12 +16,14 @@ export class AppPage {
   }
 
   public static async setDescriptionInputValue(value: string) {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.descriptionInput)), 1000);
     log(`set description input value to ${value}`);
     await this.descriptionInput.clear();
     await this.descriptionInput.sendKeys(value);
   }
 
   public static async getDescriptionInputValue() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.descriptionInput)), 1000);
     return this.descriptionInput.getAttribute('value');
   }
 
@@ -30,12 +32,14 @@ export class AppPage {
   }
 
   public static async setCountInputValue(value: number) {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.countInput)), 1000);
     log(`set count value to ${value}`);
     await this.countInput.clear();
     await this.countInput.sendKeys(value);
   }
 
   public static async getCountInputValue() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.descriptionInput)), 1000);
     return parseInt((await this.countInput.getAttribute('value')), 10);
   }
 
@@ -48,6 +52,7 @@ export class AppPage {
   }
 
   public static async addTodo() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.addTodoButton)), 1000);
     log(`click Add todo`);
     await this.addTodoButton.click();
   }
@@ -57,6 +62,7 @@ export class AppPage {
   }
 
   public static async clearTodos() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.clearTodosButton)), 1000);
     log(`click Clear todos`);
     await this.clearTodosButton.click();
   }
@@ -66,6 +72,7 @@ export class AppPage {
   }
 
   public static async toggleTodos() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.toggleTodosButton)), 1000);
     log(`click Toggle todos`);
     await this.toggleTodosButton.click();
   }
@@ -75,6 +82,7 @@ export class AppPage {
   }
 
   public static async updateTodos() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.updateTodosButton)), 1000);
     log(`click Update todos`);
     await this.updateTodosButton.click();
   }
@@ -84,6 +92,7 @@ export class AppPage {
   }
 
   public static async reverseTodos() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.reverseTodosButton)), 1000);
     log(`click Reverse todos`);
     await this.reverseTodosButton.click();
   }
@@ -93,6 +102,7 @@ export class AppPage {
   }
 
   public static async getDescriptionInterpolationText() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.descriptionText)), 1000);
     return this.descriptionInterpolation.getText();
   }
 

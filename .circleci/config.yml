@@ -190,21 +190,21 @@ jobs:
       - run:
           name: Install e2e-benchmark/vnext
           command: |
-            cd ./packages/examples/e2e-benchmark
+            cd ~/repo/packages/examples/e2e-benchmark
             npm ci
-            cd ./packages/examples/e2e-benchmark/vnext
+            cd ~/repo/packages/examples/e2e-benchmark/vnext
             npm ci
             npm run build
       - run:
           name: Serve e2e-benchmark/vnext in the background
           background: true
           command: |
-            cd ./packages/examples/e2e-benchmark/vnext
+            cd ~/repo/packages/examples/e2e-benchmark/vnext
             npm run start
       - run:
           name: Run the e2e tests
           command: |
-            cd ./packages/examples/e2e-benchmark/vnext
+            cd ~/repo/packages/examples/e2e-benchmark/vnext
             npm run e2e
 
   e2e_benchmark_vcurrent:
@@ -218,21 +218,21 @@ jobs:
       - run:
           name: Install e2e-benchmark/vcurrent
           command: |
-            cd ./packages/examples/e2e-benchmark
+            cd ~/repo/packages/examples/e2e-benchmark
             npm ci
-            cd ./packages/examples/e2e-benchmark/vcurrent
+            cd ~/repo/packages/examples/e2e-benchmark/vcurrent
             npm ci
             npm run build
       - run:
           name: Serve e2e-benchmark/vcurrent in the background
           background: true
           command: |
-            cd ./packages/examples/e2e-benchmark/vcurrent
+            cd ~/repo/packages/examples/e2e-benchmark/vcurrent
             npm run start
       - run:
           name: Run the e2e tests
           command: |
-            cd ./packages/examples/e2e-benchmark/vcurrent
+            cd ~/repo/packages/examples/e2e-benchmark/vcurrent
             npm run e2e
 
 workflows:

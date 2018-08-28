@@ -35,16 +35,16 @@ export class Binding implements IBinding, IPropertySubscriber {
 
   public targetObserver: AccessorOrObserver;
   /*@internal*/public __connectQueueId: number;
-  private observerSlots: number;
-  private version: number;
-  private $scope: IScope;
+  protected observerSlots: number;
+  protected version: number;
+  protected $scope: IScope;
 
   constructor(
     public sourceExpression: IExpression,
     public target: IBindingTarget,
     public targetProperty: string,
     public mode: BindingMode,
-    private observerLocator: IObserverLocator,
+    protected observerLocator: IObserverLocator,
     public locator: IServiceLocator) {
   }
 

@@ -1,4 +1,6 @@
-import { ArrayObserver, customElement, IChangeSet } from '@aurelia/runtime';
+import { customElement, IChangeSet } from '@aurelia/runtime';
+import { Instrumenter } from './instrumenter';
+declare var instrumenter: Instrumenter;
 
 let id = 0;
 class Todo {

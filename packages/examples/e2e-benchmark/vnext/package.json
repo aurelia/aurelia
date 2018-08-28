@@ -4,12 +4,12 @@
   "scripts": {
     "build": "rimraf dist && gulp",
     "start": "http-server -c-1 -p 3000 .",
-    "e2e": "mocha ./e2e/**/*.spec.ts --require ts-node/register -R spec -u bdd --recursive -c -t 120000 --watch-extensions ts"
+    "e2e": "mocha ../e2e/**/*.spec.ts --require ts-node/register -R spec -u bdd --recursive -c -t 120000 --watch-extensions ts"
   },
   "dependencies": {
-    "@aurelia/jit": "../../jit",
-    "@aurelia/kernel": "../../kernel",
-    "@aurelia/runtime": "../../runtime"
+    "@aurelia/jit": "../../../jit",
+    "@aurelia/kernel": "../../../kernel",
+    "@aurelia/runtime": "../../../runtime"
   },
   "devDependencies": {
     "@types/chai": "^4.1.4",

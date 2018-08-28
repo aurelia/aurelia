@@ -82,7 +82,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
   },
 
   define<T extends Constructable>(nameOrSource: string | ICustomAttributeSource, ctor: T): T & ICustomAttributeType {
-    const Type: T & ICustomAttributeType = ctor as any;
+    const Type = ctor as ICustomAttributeType & T;
     const proto: ICustomAttribute = Type.prototype;
     const description = createCustomAttributeDescription(
       typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource,
@@ -91,100 +91,111 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
 
     (Type as Writable<ICustomAttributeType>).kind = CustomAttributeResource;
     (Type as Writable<ICustomAttributeType>).description = description;
-    Type.register = function register(container: IContainer){
-      const resourceKey = Type.kind.keyFrom(description.name);
+    Type.register = register;
 
-      container.register(Registration.transient(resourceKey, Type));
-
-      const aliases = description.aliases;
-
-      for(let i = 0, ii = aliases.length; i < ii; ++i) {
-        container.register(Registration.alias(resourceKey, aliases[i]));
-      }
-    };
-
-    proto.$hydrate = function(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine): void {
-      this.$isAttached = false;
-      this.$isBound = false;
-      this.$scope = null;
-      this.$child = this.$child || null;
-
-      renderingEngine.applyRuntimeBehavior(Type, this);
-
-      if (this.$behavior.hasCreated) {
-        (this as any).created();
-      }
-    };
-
-    proto.$bind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope): void {
-      if (this.$isBound) {
-        if (this.$scope === scope) {
-          return;
-        }
-
-        this.$unbind(flags | BindingFlags.fromBind);
-      }
-
-      this.$scope = scope;
-
-      if (this.$behavior.hasBound) {
-        (this as any).bound(flags | BindingFlags.fromBind, scope);
-      }
-
-      this.$isBound = true;
-    };
-
-    proto.$attach = function(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle): void {
-      if (this.$isAttached) {
-        return;
-      }
-
-      if (this.$behavior.hasAttaching) {
-        (this as any).attaching(encapsulationSource);
-      }
-
-      if (this.$child !== null) {
-        this.$child.$attach(encapsulationSource, lifecycle);
-      }
-
-      if (this.$behavior.hasAttached) {
-        lifecycle.queueAttachedCallback(this);
-      }
-
-      this.$isAttached = true;
-    };
-
-    proto.$detach = function(this: IInternalCustomAttributeImplementation, lifecycle: DetachLifecycle): void {
-      if (this.$isAttached) {
-        if (this.$behavior.hasDetaching) {
-          (this as any).detaching();
-        }
-
-        if (this.$child !== null) {
-          this.$child.$detach(lifecycle);
-        }
-
-        if (this.$behavior.hasDetached) {
-          lifecycle.queueDetachedCallback(this);
-        }
-
-        this.$isAttached = false;
-      }
-    };
-
-    proto.$unbind = function(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
-      if (this.$isBound) {
-        if (this.$behavior.hasUnbound) {
-          (this as any).unbound(flags | BindingFlags.fromUnbind);
-        }
-
-        this.$isBound = false;
-      }
-    };
+    proto.$hydrate = hydrate;
+    proto.$bind = bind;
+    proto.$attach = attach;
+    proto.$detach = detach;
+    proto.$unbind = unbind;
 
     return Type;
   }
 };
+
+function register(this: IResourceType<ICustomAttributeSource>, container: IContainer): void {
+  const description = this.description;
+  const resourceKey = CustomAttributeResource.keyFrom(description.name);
+  const aliases = description.aliases;
+
+  container.register(Registration.transient(resourceKey, this));
+
+  for(let i = 0, ii = aliases.length; i < ii; ++i) {
+    container.register(Registration.alias(resourceKey, aliases[i]));
+  }
+}
+
+function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine): void {
+  this.$isAttached = false;
+  this.$isBound = false;
+  this.$scope = null;
+  this.$child = this.$child || null;
+
+  renderingEngine.applyRuntimeBehavior(
+    this.constructor as ICustomAttributeType,
+    this
+  );
+
+  if (this.$behavior.hasCreated) {
+    (this as any).created();
+  }
+}
+
+function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags, scope: IScope): void {
+  if (this.$isBound) {
+    if (this.$scope === scope) {
+      return;
+    }
+
+    this.$unbind(flags | BindingFlags.fromBind);
+  }
+
+  this.$scope = scope;
+
+  if (this.$behavior.hasBound) {
+    (this as any).bound(flags | BindingFlags.fromBind, scope);
+  }
+
+  this.$isBound = true;
+}
+
+function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
+  if (this.$isBound) {
+    if (this.$behavior.hasUnbound) {
+      (this as any).unbound(flags | BindingFlags.fromUnbind);
+    }
+
+    this.$isBound = false;
+  }
+}
+
+function attach(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle): void {
+  if (this.$isAttached) {
+    return;
+  }
+
+  if (this.$behavior.hasAttaching) {
+    (this as any).attaching(encapsulationSource);
+  }
+
+  if (this.$child !== null) {
+    this.$child.$attach(encapsulationSource, lifecycle);
+  }
+
+  if (this.$behavior.hasAttached) {
+    lifecycle.queueAttachedCallback(this);
+  }
+
+  this.$isAttached = true;
+}
+
+function detach(this: IInternalCustomAttributeImplementation, lifecycle: DetachLifecycle): void {
+  if (this.$isAttached) {
+    if (this.$behavior.hasDetaching) {
+      (this as any).detaching();
+    }
+
+    if (this.$child !== null) {
+      this.$child.$detach(lifecycle);
+    }
+
+    if (this.$behavior.hasDetached) {
+      lifecycle.queueDetachedCallback(this);
+    }
+
+    this.$isAttached = false;
+  }
+}
 
 /*@internal*/
 export function createCustomAttributeDescription(attributeSource: ICustomAttributeSource, Type: ICustomAttributeType): ResourceDescription<ICustomAttributeSource> {

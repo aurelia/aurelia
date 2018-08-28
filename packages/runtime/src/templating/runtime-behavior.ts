@@ -84,7 +84,6 @@ export class RuntimeBehavior implements IRuntimeBehavior {
       const name = observableNames[i];
 
       observers[name] = new Observer(
-        changeSet,
         instance,
         name,
         bindables[name].callback

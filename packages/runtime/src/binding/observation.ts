@@ -76,11 +76,9 @@ export enum MutationKind {
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = any> extends IChangeTracker {
+export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = any> {
   obj: TObj;
   propertyKey?: TProp;
-  oldValue?: TValue;
-  previousValue?: TValue;
   currentValue: TValue;
 }
 
@@ -104,22 +102,9 @@ export interface IPropertyChangeHandler { (newValue: any, previousValue: any, fl
 export interface IPropertyChangeNotifier extends IPropertyChangeHandler {}
 
 /**
- * Represents a (subscriber) function that can be called by a BatchedPropertyChangeNotifier
- */
-export interface IBatchedPropertyChangeHandler { (newValue: any, oldValue: any): void; }
-/**
- * Represents a (observer) function that can notify subscribers of batched mutations on a property
- */
-export interface IBatchedPropertyChangeNotifier extends IBatchedPropertyChangeHandler {}
-
-/**
  * Describes a (subscriber) type that has a function conforming to the IPropertyChangeHandler interface
  */
 export interface IPropertySubscriber { handleChange(newValue: any, previousValue: any, flags: BindingFlags): void; }
-/**
- * Describes a (subscriber) type that has a function conforming to the IBatchedPropertyChangeNotifier interface
- */
-export interface IBatchedPropertySubscriber { handleBatchedChange(newValue: any, oldValue: any): void; }
 
 /**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
@@ -155,7 +140,7 @@ export type Subscriber = ICollectionSubscriber | IPropertySubscriber;
 /**
  * Either a batched property or batched collection subscriber
  */
-export type BatchedSubscriber = IBatchedCollectionSubscriber | IBatchedPropertySubscriber;
+export type BatchedSubscriber = IBatchedCollectionSubscriber;
 
 /**
  * Helper type that translates from mutationKind enum to the correct subscriber interface
@@ -169,7 +154,6 @@ export type MutationKindToSubscriber<T> =
  * Helper type that translates from mutationKind enum to the correct batched subscriber interface
  */
 export type MutationKindToBatchedSubscriber<T> =
-  T extends MutationKind.instance ? IBatchedPropertySubscriber :
   T extends MutationKind.collection ? IBatchedCollectionSubscriber :
   never;
 
@@ -185,7 +169,6 @@ export type MutationKindToNotifier<T> =
  * Helper type that translates from mutationKind enum to the correct batched notifier interface
  */
 export type MutationKindToBatchedNotifier<T> =
-  T extends MutationKind.instance ? IBatchedPropertyChangeNotifier :
   T extends MutationKind.collection ? IBatchedCollectionChangeNotifier :
   never;
 
@@ -222,11 +205,8 @@ export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj
   IDisposable,
   IAccessor<any>,
   IPropertyChangeTracker<TObj, TProp>,
-  ISubscriberCollection<MutationKind.instance>,
-  IBatchedSubscriberCollection<MutationKind.instance> {
-  /*@internal*/changeSet: IChangeSet;
+  ISubscriberCollection<MutationKind.instance> {
   /*@internal*/observing: boolean;
-  /*@internal*/ownPropertyDescriptor: PropertyDescriptor;
 }
 
 /**

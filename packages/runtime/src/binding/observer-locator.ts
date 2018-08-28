@@ -224,6 +224,6 @@ export class ObserverLocator implements IObserverLocator {
       return this.dirtyChecker.createProperty(obj, propertyName) as any;
     }
 
-    return new SetterObserver(this.changeSet, obj, propertyName);
+    return new SetterObserver(obj, propertyName);
   }
 }

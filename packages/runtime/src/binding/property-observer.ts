@@ -1,8 +1,8 @@
-import { Reporter } from '@aurelia/kernel';
+import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
-import { IBatchedPropertySubscriber, IPropertySubscriber, PropertyObserver } from './observation';
+import { IPropertySubscriber, PropertyObserver } from './observation';
+import { Reporter } from '@aurelia/kernel';
 
-const getOwnPropertyDescriptor = Reflect.getOwnPropertyDescriptor;
 const defineProperty = Reflect.defineProperty;
 // note: we're reusing the same object for setting all descriptors, just changing some properties as needed
 //   this works, because the properties are copied by defineProperty (so changing them afterwards doesn't affect existing descriptors)
@@ -14,109 +14,46 @@ const observedPropertyDescriptor: PropertyDescriptor = {
   configurable: true
 };
 
-function startObserving(observer: PropertyObserver, obj: any, propertyKey: PropertyKey): void {
-  observer.currentValue = obj[propertyKey];
-  const ownPropertyDescriptor = observer.ownPropertyDescriptor = getOwnPropertyDescriptor(obj, propertyKey);
-  observedPropertyDescriptor.get = observer.getValue.bind(observer);
-  observedPropertyDescriptor.set = (value: any) => {
-    observer.setValue(value, BindingFlags.updateTargetInstance);
-  }
-  observedPropertyDescriptor.enumerable = ownPropertyDescriptor === undefined || ownPropertyDescriptor.enumerable;
-  if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {
-    Reporter.write(1, propertyKey, obj);
-  }
-  observer.observing = true;
-}
-
 function notify(this: PropertyObserver, newValue: any, previousValue: any, flags: BindingFlags): void {
-  this.hasChanges = newValue !== this.oldValue;
   const subscribers = this.subscribers;
-  const len = subscribers.length;
-  let i = 0;
-  while (i < len) {
+  for (let i = 0, ii = subscribers.length; i < ii; ++i) {
     subscribers[i].handleChange(newValue, previousValue, flags);
-    i++;
   }
-  this.changeSet.add(this);
-}
-
-function observeAndSubscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
-  if (!this.observing) {
-    startObserving(this, this.obj, this.propertyKey);
-    this.subscribe = subscribe;
-  }
-  this.subscribers.push(subscriber);
 }
 
 function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
-  this.subscribers.push(subscriber);
+  if (this.observing === false) {
+    this.observing = true;
+    // tslint:disable-next-line:no-this-assignment
+    const { obj, propertyKey } = this;
+    this.currentValue = obj[propertyKey];
+    observedPropertyDescriptor.get = () => this.getValue();
+    observedPropertyDescriptor.set = value => this.setValue(value, BindingFlags.updateTargetInstance);
+    if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {
+      Reporter.write(1, propertyKey, obj);
+    }
+    this.subscribe = subscribe;
+  }
+  nativePush.call(this.subscribers, subscriber);
 }
 
 function unsubscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
   const subscribers = this.subscribers;
-  const len = subscribers.length;
-  let i = 0;
-  while (i < len) {
+  for (let i = 0, ii = subscribers.length; i < ii; ++i) {
     if (subscribers[i] === subscriber) {
-      subscribers.splice(i, 1);
-      break;
+      nativeSplice.call(subscribers, i, 1);
+      return;
     }
-    i++;
-  }
-}
-
-function notifyBatched(this: PropertyObserver, newValue: any, oldValue?: any): void {
-  const subscribers = this.batchedSubscribers;
-  const len = subscribers.length;
-  let i = 0;
-  while (i < len) {
-    subscribers[i].handleBatchedChange(newValue, oldValue);
-    i++;
-  }
-}
-
-function subscribeBatched(this: PropertyObserver, subscriber: IBatchedPropertySubscriber): void {
-  this.batchedSubscribers.push(subscriber);
-}
-
-function unsubscribeBatched(this: PropertyObserver, subscriber: IBatchedPropertySubscriber): void {
-  const subscribers = this.batchedSubscribers;
-  const len = subscribers.length;
-  let i = 0;
-  while (i < len) {
-    if (subscribers[i] === subscriber) {
-      subscribers.splice(i, 1);
-      break;
-    }
-    i++;
-  }
-}
-
-function flushChanges(this: PropertyObserver): void {
-  if (this.hasChanges) {
-    this.hasChanges = false;
-    this.notifyBatched(this.oldValue, this.currentValue);
-    this.oldValue = this.previousValue = this.currentValue;
   }
 }
 
 function dispose(this: PropertyObserver): void {
-  const ownPropertyDescriptor = this.ownPropertyDescriptor;
-  // restore the property state to what it was before being observed
-  if (ownPropertyDescriptor === undefined) {
-    delete this.obj[this.propertyKey];
-  } else {
-    defineProperty(this.obj, this.propertyKey, ownPropertyDescriptor);
-  }
+  delete this.obj[this.propertyKey];
   this.obj = null;
   this.propertyKey = null;
-  this.oldValue = null;
-  this.previousValue = null;
   this.currentValue = null;
-  this.hasChanges = false;
 
   this.subscribers = null;
-  this.batchedSubscribers = null;
 }
 
 export function propertyObserver(): ClassDecorator {
@@ -126,24 +63,14 @@ export function propertyObserver(): ClassDecorator {
     proto.observing = false;
     proto.obj = null;
     proto.propertyKey = null;
-    proto.ownPropertyDescriptor = null;
-    proto.oldValue = null;
-    proto.previousValue = null;
     proto.currentValue = null;
-    proto.hasChanges = false;
 
     proto.subscribers = null;
-    proto.batchedSubscribers = null;
 
     proto.notify = proto.notify || notify;
-    proto.subscribe = proto.subscribe || observeAndSubscribe;
+    proto.subscribe = proto.subscribe || subscribe;
     proto.unsubscribe = proto.unsubscribe || unsubscribe;
 
-    proto.notifyBatched = proto.notifyBatched || notifyBatched;
-    proto.subscribeBatched = proto.subscribeBatched || subscribeBatched;
-    proto.unsubscribeBatched = proto.unsubscribeBatched || unsubscribeBatched;
-
-    proto.flushChanges = proto.flushChanges || flushChanges;
     proto.dispose = proto.dispose || dispose;
   }
 }

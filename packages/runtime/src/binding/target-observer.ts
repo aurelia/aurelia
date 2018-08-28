@@ -6,7 +6,9 @@ import { IBindingTargetAccessor } from './observation';
 type BindingTargetAccessor = IBindingTargetAccessor & {
   changeSet: IChangeSet;
   currentFlags: BindingFlags;
+  oldValue?: any;
   defaultValue: Primitive | IIndexable;
+  flushChanges(): void;
   setValueCore(value: Primitive | IIndexable, flags: BindingFlags): void;
 };
 

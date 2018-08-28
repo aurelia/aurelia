@@ -103,7 +103,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
   }
 };
 
-function register(this: IResourceType<ICustomAttributeSource>, container: IContainer): void {
+function register(this: ICustomAttributeType, container: IContainer): void {
   const description = this.description;
   const resourceKey = CustomAttributeResource.keyFrom(description.name);
   const aliases = description.aliases;

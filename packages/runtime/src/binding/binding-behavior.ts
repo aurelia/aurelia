@@ -38,7 +38,7 @@ export const BindingBehaviorResource: IResourceKind<IBindingBehaviorSource, IBin
   }
 };
 
-function register(this: IResourceType<IBindingBehaviorSource>, container: IContainer): void {
+function register(this: IBindingBehaviorType, container: IContainer): void {
   container.register(
     Registration.singleton(
       BindingBehaviorResource.keyFrom(this.description.name),

@@ -101,137 +101,152 @@ export const CustomElementResource: ICustomElementResource = {
 
     (Type as Writable<ICustomElementType>).kind = CustomElementResource;
     (Type as Writable<ICustomElementType>).description = description;
-    Type.register = function(container: IContainer): void {
-      container.register(Registration.transient(Type.kind.keyFrom(description.name), Type));
-    };
+    Type.register = register;
 
-    proto.$hydrate = function(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
-      const template = renderingEngine.getElementTemplate(description, Type);
-
-      this.$context = template.renderContext;
-      this.$bindables = [];
-      this.$attachables = [];
-      this.$child = null;
-      this.$isAttached = false;
-      this.$isBound = false;
-      this.$scope = {
-        bindingContext: this,
-        overrideContext: BindingContext.createOverride()
-      };
-
-      renderingEngine.applyRuntimeBehavior(Type, this);
-
-      this.$projector = determineProjector(this, host, description, options);
-      this.$nodes = this.$behavior.hasRender
-        ? (this as any).render(host, options.parts, template)
-        : template.createFor(this, host, options.parts);
-
-      if (this.$behavior.hasCreated) {
-        (this as any).created();
-      }
-    };
-
-    proto.$bind = function(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
-      if (this.$isBound) {
-        return;
-      }
-
-      const scope = this.$scope;
-      const bindables = this.$bindables;
-
-      for (let i = 0, ii = bindables.length; i < ii; ++i) {
-        bindables[i].$bind(flags | BindingFlags.fromBind, scope);
-      }
-
-      if (this.$behavior.hasBound) {
-        (this as any).bound(flags | BindingFlags.fromBind);
-      }
-
-      this.$isBound = true;
-    };
-
-    proto.$attach = function(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
-      if (this.$isAttached) {
-        return;
-      }
-
-      lifecycle = AttachLifecycle.start(this, lifecycle);
-      encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
-
-      if (this.$behavior.hasAttaching) {
-        (this as any).attaching(encapsulationSource);
-      }
-
-      const attachables = this.$attachables;
-
-      for (let i = 0, ii = attachables.length; i < ii; ++i) {
-        attachables[i].$attach(encapsulationSource, lifecycle);
-      }
-
-      if (this.$child !== null) {
-        this.$child.$attach(encapsulationSource, lifecycle);
-      }
-
-      this.$projector.project(this.$nodes);
-
-      if (this.$behavior.hasAttached) {
-        lifecycle.queueAttachedCallback(this);
-      }
-
-      this.$isAttached = true;
-      lifecycle.end(this);
-    };
-
-    proto.$detach = function(this: IInternalCustomElementImplementation, lifecycle?: DetachLifecycle): void {
-      if (this.$isAttached) {
-        lifecycle = DetachLifecycle.start(this, lifecycle);
-
-        if (this.$behavior.hasDetaching) {
-          (this as any).detaching();
-        }
-
-        lifecycle.queueViewRemoval(this);
-
-        const attachables = this.$attachables;
-        let i = attachables.length;
-
-        while (i--) {
-          attachables[i].$detach();
-        }
-
-        if (this.$child !== null) {
-          this.$child.$detach(lifecycle);
-        }
-
-        if (this.$behavior.hasDetached) {
-          lifecycle.queueDetachedCallback(this);
-        }
-
-        this.$isAttached = false;
-        lifecycle.end(this);
-      }
-    };
-
-    proto.$unbind = function(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
-      if (this.$isBound) {
-        const bindables = this.$bindables;
-        let i = bindables.length;
-
-        while (i--) {
-          bindables[i].$unbind(flags | BindingFlags.fromUnbind);
-        }
-
-        if (this.$behavior.hasUnbound) {
-          (this as any).unbound(flags | BindingFlags.fromUnbind);
-        }
-
-        this.$isBound = false;
-      }
-    };
+    proto.$hydrate = hydrate;
+    proto.$bind = bind;
+    proto.$attach = attach;
+    proto.$detach = detach;
+    proto.$unbind = unbind;
 
     return Type;
   }
 };
+
+function register(this: ICustomElementType, container: IContainer): void {
+  container.register(
+    Registration.transient(
+      CustomElementResource.keyFrom(this.description.name),
+      this
+    )
+  );
+}
+
+function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+  const Type = this.constructor as ICustomElementType;
+  const description = Type.description;
+  const template = renderingEngine.getElementTemplate(description, Type);
+
+  this.$context = template.renderContext;
+  this.$bindables = [];
+  this.$attachables = [];
+  this.$child = null;
+  this.$isAttached = false;
+  this.$isBound = false;
+  this.$scope = {
+    bindingContext: this,
+    overrideContext: BindingContext.createOverride()
+  };
+
+  renderingEngine.applyRuntimeBehavior(Type, this);
+
+  this.$projector = determineProjector(this, host, description, options);
+  this.$nodes = this.$behavior.hasRender
+    ? (this as any).render(host, options.parts, template)
+    : template.createFor(this, host, options.parts);
+
+  if (this.$behavior.hasCreated) {
+    (this as any).created();
+  }
+}
+
+function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
+  if (this.$isBound) {
+    return;
+  }
+
+  const scope = this.$scope;
+  const bindables = this.$bindables;
+
+  for (let i = 0, ii = bindables.length; i < ii; ++i) {
+    bindables[i].$bind(flags | BindingFlags.fromBind, scope);
+  }
+
+  if (this.$behavior.hasBound) {
+    (this as any).bound(flags | BindingFlags.fromBind);
+  }
+
+  this.$isBound = true;
+}
+
+function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
+  if (this.$isBound) {
+    const bindables = this.$bindables;
+    let i = bindables.length;
+
+    while (i--) {
+      bindables[i].$unbind(flags | BindingFlags.fromUnbind);
+    }
+
+    if (this.$behavior.hasUnbound) {
+      (this as any).unbound(flags | BindingFlags.fromUnbind);
+    }
+
+    this.$isBound = false;
+  }
+}
+
+function attach(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
+  if (this.$isAttached) {
+    return;
+  }
+
+  lifecycle = AttachLifecycle.start(this, lifecycle);
+  encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
+
+  if (this.$behavior.hasAttaching) {
+    (this as any).attaching(encapsulationSource);
+  }
+
+  const attachables = this.$attachables;
+
+  for (let i = 0, ii = attachables.length; i < ii; ++i) {
+    attachables[i].$attach(encapsulationSource, lifecycle);
+  }
+
+  if (this.$child !== null) {
+    this.$child.$attach(encapsulationSource, lifecycle);
+  }
+
+  this.$projector.project(this.$nodes);
+
+  if (this.$behavior.hasAttached) {
+    lifecycle.queueAttachedCallback(this);
+  }
+
+  this.$isAttached = true;
+  lifecycle.end(this);
+}
+
+function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLifecycle): void {
+  if (this.$isAttached) {
+    lifecycle = DetachLifecycle.start(this, lifecycle);
+
+    if (this.$behavior.hasDetaching) {
+      (this as any).detaching();
+    }
+
+    lifecycle.queueViewRemoval(this);
+
+    const attachables = this.$attachables;
+    let i = attachables.length;
+
+    while (i--) {
+      attachables[i].$detach();
+    }
+
+    if (this.$child !== null) {
+      this.$child.$detach(lifecycle);
+    }
+
+    if (this.$behavior.hasDetached) {
+      lifecycle.queueDetachedCallback(this);
+    }
+
+    this.$isAttached = false;
+    lifecycle.end(this);
+  }
+}
 
 /*@internal*/
 export function createCustomElementDescription(templateSource: ITemplateSource, Type: ICustomElementType): TemplateDefinition {

@@ -38,7 +38,7 @@ export const ValueConverterResource: IResourceKind<IValueConverterSource, IValue
   }
 };
 
-function register(this: IResourceType<IValueConverterSource>, container: IContainer): void {
+function register(this: IValueConverterType, container: IContainer): void {
   container.register(
     Registration.singleton(
       ValueConverterResource.keyFrom(this.description.name),

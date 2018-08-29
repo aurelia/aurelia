@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "scripts": {
     "watch": "au run --watch",
-    "build": "tsc -b"
+    "build": "au build",
+    "start": "http-server -c-1 -p 3000 .",
+    "e2e": "mocha ./e2e/**/*.spec.ts --require ts-node/register -R spec -u bdd --recursive -c --check-leaks -t 10000 --watch-extensions ts",
+    "e2e:watch": "npm run e2e -- -w"
   },
   "dependencies": {
     "@aurelia/debug": "../../debug",

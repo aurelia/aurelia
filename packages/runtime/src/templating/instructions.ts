@@ -18,7 +18,8 @@ export const enum TargetedInstructionType {
   setAttribute = 'h',
   hydrateElement = 'i',
   hydrateAttribute = 'j',
-  hydrateTemplateController = 'k'
+  hydrateTemplateController = 'k',
+  letBinding = 'l',
 }
 
 export interface IBuildInstruction {
@@ -132,4 +133,10 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
   instructions: TargetedInstruction[];
   src: ITemplateSource;
   link?: boolean;
+}
+
+export interface ILetBindingInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.letBinding;
+  srcOrExpr: string | IExpression;
+  dest: string;
 }

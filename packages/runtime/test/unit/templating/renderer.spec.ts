@@ -42,7 +42,8 @@ import {
   TextBindingInstruction,
   ToViewBindingInstruction,
   TriggerBindingInstruction,
-  TwoWayBindingInstruction
+  TwoWayBindingInstruction,
+  LetBindingInstruction
 } from '../../../../jit/src/index';
 import { DI } from '../../../../kernel/src/index';
 import { spy, SinonSpy } from 'sinon';
@@ -246,7 +247,7 @@ describe('Renderer', () => {
           sut[instruction.type](renderable, target, instruction);
 
           expect(renderable.$bindables.length).to.equal(0);
-          expect(target.getAttribute(dest)).to.equal(value+'');
+          expect(target.getAttribute(dest)).to.equal(value + '');
 
           tearDown({ wrapper });
         });
@@ -307,4 +308,20 @@ describe('Renderer', () => {
     }
   });
 
+  describe('handles ILetBindingInstruction', () => {
+    for (const dest of ['processedFoo', 'processedPoo']) {
+      for (const value of ['foo', new AccessScope('foo')]) {
+        const instruction = new LetBindingInstruction(value, dest);
+        it(_`instruction=${instruction}`, () => {
+          const { sut, renderable, target, wrapper } = setup(instruction);
+
+          sut[instruction.type](renderable, target, instruction);
+
+          expect(renderable.$bindables.length).to.equal(1);
+
+          tearDown({ wrapper });
+        });
+      }
+    }
+  });
 });

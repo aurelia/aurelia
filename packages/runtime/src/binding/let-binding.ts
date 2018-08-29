@@ -14,9 +14,6 @@ for (let i = 0; i < 100; i++) {
   versionSlotNames[i] = `_observerVersion${i}`;
 }
 
-// TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
-
-export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -30,7 +27,6 @@ export class LetBinding extends Binding {
   constructor(
     sourceExpression: IExpression,
     targetProperty: string,
-    mode: BindingMode,
     observerLocator: IObserverLocator,
     locator: IServiceLocator,
     private toViewModel: boolean = false
@@ -39,18 +35,18 @@ export class LetBinding extends Binding {
       sourceExpression,
       null,
       targetProperty,
-      mode,
+      toView,
       observerLocator,
       locator
     );
   }
 
   public updateTarget(value: any): void {
-    this.sourceExpression.assign(BindingFlags.fromFlushChanges, this.target, this.locator, value);
+    throw new Error('Updating target not allowed in LetBinding.');
   }
 
   public updateSource(value: any): void {
-    throw new Error('Updating source not allow in Let binding.');
+    throw new Error('Updating source not allowed in LetBinding.');
   }
 
   public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void {
@@ -94,7 +90,7 @@ export class LetBinding extends Binding {
     }
 
     const mode = this.mode;
-    if ((mode & BindingMode.toView) !== BindingMode.toView) {
+    if ((mode & toView) !== toView) {
       throw new Error('Let binding only supports [toView] binding mode.');
     }
     sourceExpression.connect(flags, scope, this);
@@ -111,6 +107,7 @@ export class LetBinding extends Binding {
       sourceExpression.unbind(flags, this.$scope, this);
     }
     this.$scope = null;
+    this.unobserve(true);
   }
 
   public connect(flags: BindingFlags): void {
@@ -124,7 +121,7 @@ export class LetBinding extends Binding {
     const value = sourceExpression.evaluate(flags, $scope, this.locator);
     // Let binding should initialize on their own
     // not waiting to be intied
-    this.updateTarget(value);
+    sourceExpression.assign(BindingFlags.none, $scope, this.locator, value);
 
     sourceExpression.connect(flags, $scope, this);
   }

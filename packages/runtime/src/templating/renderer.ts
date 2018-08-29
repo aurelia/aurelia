@@ -22,6 +22,7 @@ import {
   ISetPropertyInstruction,
   IStylePropertyBindingInstruction,
   ITextBindingInstruction,
+  ILetBindingInstruction,
   TargetedInstructionType,
   TemplateDefinition,
   TemplatePartDefinitions
@@ -29,6 +30,7 @@ import {
 import { IRenderContext } from './render-context';
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
+import { LetBinding } from '../binding/let-binding';
 
 export interface IRenderer {
   render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
@@ -43,7 +45,7 @@ export class Renderer implements IRenderer {
     private eventManager: IEventManager,
     private parser: IExpressionParser,
     private renderingEngine: IRenderingEngine
-  ) {}
+  ) { }
 
   public render(renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
@@ -185,5 +187,15 @@ export class Renderer implements IRenderer {
     renderable.$attachables.push(component);
 
     operation.dispose();
+  }
+
+  public [TargetedInstructionType.letBinding](renderable: IRenderable, target: any, instruction: Immutable<ILetBindingInstruction>) {
+    const srcOrExpr = instruction.srcOrExpr as any;
+    renderable.$bindables.push(new LetBinding(
+      srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand),
+      instruction.dest,
+      this.observerLocator,
+      this.context
+    ));
   }
 }

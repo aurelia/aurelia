@@ -25,7 +25,7 @@
         "source": {
           "include": [
             "**/*.js",
-            "**/*.{html}"
+            "**/*.html"
           ]
         }
       },
@@ -50,7 +50,7 @@
             ".html",
             ".css"
           ],
-          "stub": true
+          "stub": false
         }
       ]
     }

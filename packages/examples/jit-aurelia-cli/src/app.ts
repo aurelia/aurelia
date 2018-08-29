@@ -1,5 +1,6 @@
-import { ArrayObserver, customElement } from '@aurelia/runtime';
 
+import { ArrayObserver, customElement } from '@aurelia/runtime';
+import * as view from 'text!./app.html';
 
 let id = 0;
 class Todo {
@@ -12,48 +13,12 @@ type ObservedTodos = Todo[] & { $observer: ArrayObserver };
 
 @customElement({
   name: 'app',
-  templateOrNode: `
-  <template>
-    <div class="ui form">
-      <div class="fields">
-        <div class="five wide field">
-          <label>Description</label>
-          <input id="description" type="text" value.two-way="description">
-        </div>
-        <div class="two wide field">
-          <label>Count</label>
-          <input id="count" type="number" value.two-way="count">
-        </div>
-        <div class="two wide field">
-          <label>Log collection changes</label>
-          <input id="log" type="checkbox" checked.two-way="log">
-        </div>
-      </div>
-      <button id="addTodo" class="ui button" click.trigger="addTodo()">Add Todo</button>
-      <button id="clearTodos" class="ui button" click.trigger="clearTodos()">Clear Todos</button>
-      <button id="toggleTodos" class="ui button" click.trigger="toggleTodos()">Toggle Todos</button>
-    </div>
-    <div id="descriptionText">\${description}</div>
-    <div class="ui divided list todos">
-      <div repeat.for="todo of todos">
-        <div class="item todo">
-          <div id.bind="\`todo-\${todo.id}\`" class="content">
-            #\${todo.id} - \${todo.app.description} - \${todo.description}
-            <input id.bind="\`todo-\${todo.id}-done\`" type="checkbox" checked.two-way="todo.done">
-            \${todo.done ? 'Done' : ''}
-          </div>
-        </div>
-      </div>
-    </div>
-  </template>
-  `,
+  templateOrNode: <any>view,
   build: {
     required: true,
     compiler: 'default'
   },
-  instructions: [],
-  surrogates: [],
-  dependencies: []
+  instructions: []
 })
 export class App {
   public log: boolean = false;

@@ -179,6 +179,32 @@ jobs:
             cd ./packages/examples/jit-browserify
             npm run e2e
 
+  e2e_tests_jit_aurelia_cli:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Install jit-aurelia-cli
+          command: |
+            cd ./packages/examples/jit-aurelia-cli
+            npm ci
+            npm run build
+      - run:
+          name: Serve jit-aurelia-cli in the background
+          background: true
+          command: |
+            cd ./packages/examples/jit-aurelia-cli
+            npm run start
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./packages/examples/jit-aurelia-cli
+            npm run e2e
+
   e2e_benchmark_vnext:
     <<: *defaults
     steps:
@@ -250,6 +276,9 @@ workflows:
                 requires:
                     - build
             - e2e_tests_jit_browserify:
+                requires:
+                    - build
+            - e2e_tests_jit_aurelia_cli:
                 requires:
                     - build
             - e2e_benchmark_vnext:

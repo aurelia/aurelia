@@ -1,8 +1,24 @@
 {
   "name": "@aurelia/debug",
   "version": "0.1.0",
-  "main": "dist/commonjs/index.js",
-  "typings": "dist/commonjs/index.d.ts",
+  "main": "dist/umd/index.js",
+  "module": "dist/es2015/index.js",
+  "jsnext:main": "dist/es2015/index.js",
+  "typings": "dist/umd/index.d.ts",
+  "types": "dist/umd/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://aurelia.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aurelia/aurelia"
+  },
+  "bugs": {
+    "url": "https://github.com/aurelia/aurelia/issues"
+  },
+  "keywords": [
+    "aurelia",
+    "debug"
+  ],
   "scripts": {
     "lint": "cross-env tslint --project tsconfig-test.json -e \"test/**\" -t stylish",
     "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadless --single-run --coverage",

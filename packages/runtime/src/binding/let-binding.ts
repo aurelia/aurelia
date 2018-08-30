@@ -66,7 +66,7 @@ export class LetBinding extends Binding {
       return;
     }
 
-    throw Reporter.error(15, context);
+    throw Reporter.error(15, flags);
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {

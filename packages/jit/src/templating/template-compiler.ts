@@ -1,8 +1,6 @@
 import { inject } from '@aurelia/kernel';
-import { BindingType, CustomAttributeResource, DOM, IExpression, IExpressionParser, Interpolation, IResourceDescriptions, ITargetedInstruction, ITemplateCompiler, TemplateDefinition, TargetedInstructionType, TargetedInstruction, DelegationStrategy, ITextBindingInstruction, IPropertyBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateElementInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, BindingMode, ITemplateSource, INode } from '@aurelia/runtime';
+import { BindingMode, BindingType, CustomAttributeResource, DelegationStrategy, DOM, ICallBindingInstruction, IExpression, IExpressionParser, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, ILetBindingInstruction, IListenerBindingInstruction, INode, IPropertyBindingInstruction, IRefBindingInstruction, IResourceDescriptions, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateCompiler, ITemplateSource, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
-import { BindingCommandResource, IBindingCommandSource } from './binding-command';
-import { ILetBindingInstruction } from '@aurelia/runtime/src';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = document.createElement('au-marker');

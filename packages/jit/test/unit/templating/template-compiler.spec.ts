@@ -1,4 +1,4 @@
-import { DI } from '../../../../kernel/src/index';
+import { DI, Immutable, PLATFORM, Registration, IContainer } from '../../../../kernel/src/index';
 import {
   IExpressionParser,
   IResourceDescriptions,
@@ -21,7 +21,15 @@ import {
   Template,
   TargetedInstruction,
   Repeat,
-  RuntimeCompilationResources
+  RuntimeCompilationResources,
+  IResourceKind,
+  ICustomAttributeSource,
+  ICustomElementResource,
+  IResourceType,
+  ICustomElement,
+  CustomElementResource,
+  BindingMode,
+  customElement
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -105,12 +113,13 @@ const statementArr = [
 ];
 
 describe('TemplateCompiler', () => {
+  let container: IContainer;
   let sut: TemplateCompiler;
   let expressionParser: IExpressionParser;
   let resources: IResourceDescriptions;
 
   beforeEach(() => {
-    const container = DI.createContainer();
+    container = DI.createContainer();
     register(container);
     Repeat.register(container);
     expressionParser = container.get(IExpressionParser);
@@ -134,7 +143,7 @@ describe('TemplateCompiler', () => {
             let err: Error;
             let actual: IExpression;
             try {
-              actual = <any>sut.compileAttribute(attr, <any>null, resources);
+              actual = <any>sut.compileAttribute(attr, <any>null, resources, null, false);
             } catch (e) {
               err = e;
             }
@@ -371,13 +380,34 @@ describe('TemplateCompiler', () => {
 
   });
 
-  describe('compileElement()', () => {
+  describe.only('compileElement()', () => {
 
     it('throws on <let/> + <slot/>', () => {
       const markup = '<template><slot></slot></template>';
       expect(() => {
         sut.compile(<any>{ templateOrNode: markup, instructions: [] }, resources);
       }).to.throw();
+    });
+
+    it('compiles simple element', () => {
+      const markup = '<template><name-tag name.bind="name" label.bind="label" background-color.bind="bg"></name-tag></template>';
+      @customElement({
+        name: 'name-tag',
+        bindables: {
+          name: { attribute: 'name', mode: BindingMode.twoWay, property: 'name' },
+          label: { attribute: 'label', mode: BindingMode.toView, property: 'label' },
+          backgroundColor: { attribute: 'background-color', mode: BindingMode.toView, property: 'backgroundColor' }
+        }
+      })
+      class NameTagElement {
+        public static register(container: IContainer): void {
+          container.register(Registration.transient('custom-element:app', NameTagElement));
+        }
+      }
+      NameTagElement.register(container);
+      const actual = sut.compile(<any>{ templateOrNode: markup, instructions: [] }, resources);
+      debugger;
+      expect(actual.instructions.length).to.be.gte(1, 'It should have at least 1 instruction.');
     });
   });
 });

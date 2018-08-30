@@ -218,10 +218,12 @@ export class Conditional implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
-    this.condition.connect(flags, scope, binding);
-    if (this.condition.evaluate(flags, scope, null)) {
+    const condition = this.condition;
+    if (condition.evaluate(flags, scope, null)) {
+      this.condition.connect(flags, scope, binding);
       this.yes.connect(flags, scope, binding);
     } else {
+      this.condition.connect(flags, scope, binding);
       this.no.connect(flags, scope, binding);
     }
   }
@@ -285,8 +287,8 @@ export class AccessMember implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
-    this.object.connect(flags, scope, binding);
     const obj = this.object.evaluate(flags, scope, null);
+    this.object.connect(flags, scope, binding);
     if (obj) {
       binding.observeProperty(obj, this.name);
     }
@@ -315,8 +317,8 @@ export class AccessKeyed implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
-    this.object.connect(flags, scope, binding);
     const obj = this.object.evaluate(flags, scope, null);
+    this.object.connect(flags, scope, binding);
     if (typeof obj === 'object' && obj !== null) {
       this.key.connect(flags, scope, binding);
       const key = this.key.evaluate(flags, scope, null);
@@ -366,8 +368,8 @@ export class CallMember implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
-    this.object.connect(flags, scope, binding);
     const obj = this.object.evaluate(flags, scope, null);
+    this.object.connect(flags, scope, binding);
     if (getFunction(flags & ~BindingFlags.mustEvaluate, obj, this.name)) {
       const args = this.args;
       for (let i = 0, ii = args.length; i < ii; ++i) {
@@ -393,8 +395,8 @@ export class CallFunction implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
-    this.func.connect(flags, scope, binding);
     const func = this.func.evaluate(flags, scope, null);
+    this.func.connect(flags, scope, binding);
     if (typeof func === 'function') {
       const args = this.args;
       for (let i = 0, ii = args.length; i < ii; ++i) {
@@ -416,8 +418,8 @@ export class Binary implements IExpression {
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {}
 
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
-    this.left.connect(flags, scope, binding);
     const left = this.left.evaluate(flags, scope, null);
+    this.left.connect(flags, scope, binding);
     if (this.operation === '&&' && !left || this.operation === '||' && left) {
       return;
     }

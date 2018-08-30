@@ -29,7 +29,9 @@ import {
   ICustomElement,
   CustomElementResource,
   BindingMode,
-  customElement
+  customElement,
+  ICustomElementType,
+  TargetedInstructionType
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -47,7 +49,8 @@ import {
   RefBindingInstruction,
   HydrateAttributeInstruction,
   TextBindingInstruction,
-  SetPropertyInstruction
+  SetPropertyInstruction,
+  HydrateElementInstruction
 } from '../../../src/index';
 import { expect } from 'chai';
 import { verifyEqual, createElement } from '../../util';
@@ -380,7 +383,7 @@ describe('TemplateCompiler', () => {
 
   // });
 
-  describe('compileElement()', () => {
+  describe.only('compileElement()', () => {
 
     it('throws on <let/> + <slot/>', () => {
       const markup = '<template><slot></slot></template>';
@@ -400,17 +403,30 @@ describe('TemplateCompiler', () => {
         }
       })
       class NameTagElement {
-        public static register(container: IContainer): void {
-          container.register(Registration.transient('custom-element:app', NameTagElement));
-        }
       }
-      NameTagElement.register(container);
+      (NameTagElement as ICustomElementType).register(container);
       const actual = sut.compile(<any>{ templateOrNode: markup, instructions: [] }, resources);
       const targets = (actual.templateOrNode as HTMLTemplateElement).content.querySelectorAll('.au');
       expect(targets.length).to.equal(1, 'It should have marked element instruction');
       expect(targets[0].tagName).to.equal('NAME-TAG', 'It should have added class "au" to first element');
       expect(actual.instructions.length).to.equal(1, 'It should have had at least 1 instruction.');
-      expect(actual.instructions[0].length).to.equal(3, 'It should have had 3 instructions');
+      const [
+        nameTagElementInst
+      ] = actual.instructions[0] as [HydrateElementInstruction];
+      expect(nameTagElementInst.type).to.equal(TargetedInstructionType.hydrateElement, 'It should have element targetted type.');
+      expect(nameTagElementInst.instructions.length).to.equal(3, 'It should have had 3 instructions');
+      const [
+        nameBindingInst,
+        labelBindingInstr,
+        bgBindingInstr,
+      ] = nameTagElementInst.instructions as [
+        TwoWayBindingInstruction,
+        ToViewBindingInstruction,
+        ToViewBindingInstruction
+      ];
+      expect(nameBindingInst.mode).to.equal(BindingMode.twoWay, 'Binding mode instruction should have been two-way for "name"');
+      expect(labelBindingInstr.mode).to.equal(BindingMode.toView, 'Binding mode instruction should have been to-view for "label"');
+      expect(bgBindingInstr.mode).to.equal(BindingMode.toView, 'Binding mode instrcution should have been to-view for "background-color"');
     });
   });
 });

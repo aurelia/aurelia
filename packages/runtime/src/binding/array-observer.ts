@@ -1,7 +1,8 @@
+// tslint:disable:no-reserved-keywords
 import { BindingFlags } from './binding-flags';
-import { collectionObserver } from './collection-observer';
-import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray, ICollectionChangeNotifier, IBatchedCollectionChangeNotifier } from './observation';
 import { IChangeSet } from './change-set';
+import { collectionObserver } from './collection-observer';
+import { CollectionKind, IBatchedCollectionChangeNotifier, IBatchedCollectionSubscriber, ICollectionChangeNotifier, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray } from './observation';
 
 const proto = Array.prototype;
 export const nativePush = proto.push; // TODO: probably want to make these internal again
@@ -23,7 +24,7 @@ function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
   if (argCount === 0) {
     return len;
   }
-  this.length = o.indexMap.length = len + argCount
+  this.length = o.indexMap.length = len + argCount;
   let i = len;
   while (i < this.length) {
     this[i] = arguments[i - len]; o.indexMap[i] = - 2;
@@ -130,7 +131,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
   const middle = (len / 2) | 0;
   let lower = 0;
   while (lower !== middle) {
-    let upper = len - lower - 1;
+    const upper = len - lower - 1;
     const lowerValue = this[lower]; const lowerIndex = o.indexMap[lower];
     const upperValue = this[upper]; const upperIndex = o.indexMap[upper];
     this[lower] = upperValue; o.indexMap[lower] = upperIndex;
@@ -143,7 +144,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.sort
 // https://github.com/v8/v8/blob/master/src/js/array.js
-function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => number) {
+function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => number): IObservedArray {
   const o = this.$observer;
   if (o === undefined) {
     return nativeSort.call(this, compareFn);
@@ -219,6 +220,7 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
   let vpivot, ipivot, lowEnd, highStart;
   let velement, ielement, order, vtopElement, itopElement;
 
+  // tslint:disable-next-line:no-constant-condition
   while (true) {
     if (to - from <= 10) {
       insertionSort(arr, indexMap, from, to, compareFn);
@@ -319,35 +321,17 @@ export function disableArrayObservation(): void {
   if (proto.sort['observing'] === true) proto.sort = nativeSort;
 }
 
-@collectionObserver(CollectionKind.array)
-export class ArrayObserver implements ICollectionObserver<CollectionKind.array> {
-  public lengthPropertyName: 'length';
-  public collectionKind: CollectionKind.array;
-  public dispose: () => void;
-  public indexMap: IndexMap;
-  public hasChanges?: boolean;
-  public flushChanges: () => void;
-  public callSubscribers: ICollectionChangeNotifier;
-  public hasSubscribers: () => boolean;
-  public hasSubscriber: (subscriber: ICollectionSubscriber) => boolean;
-  public removeSubscriber: (subscriber: ICollectionSubscriber) => boolean;
-  public addSubscriber: (subscriber: ICollectionSubscriber) => boolean;
-  public subscribe: (subscriber: ICollectionSubscriber) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
-  public callBatchedSubscribers: IBatchedCollectionChangeNotifier;
-  public hasBatchedSubscribers: () => boolean;
-  public hasBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
-  public removeBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
-  public addBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+// tslint:disable-next-line:interface-name
+export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
 
+@collectionObserver(CollectionKind.array)
+export class ArrayObserver implements ArrayObserver {
   public resetIndexMap: () => void;
   public changeSet: IChangeSet;
 
   public collection: IObservedArray;
 
-  constructor(changeSet: IChangeSet, array: any[] & { $observer?: Partial<ICollectionObserver<CollectionKind.array>> }) {
+  constructor(changeSet: IChangeSet, array: any[] & { $observer?: ArrayObserver }) {
     this.changeSet = changeSet;
     array.$observer = this;
     this.collection = <IObservedArray>array;

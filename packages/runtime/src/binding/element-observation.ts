@@ -3,7 +3,7 @@ import { DOM, INode, INodeObserver } from '../dom';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { IEventSubscriber } from './event-manager';
-import { CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver, IPropertySubscriber, IndexMap } from './observation';
+import { CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver, IndexMap, IPropertySubscriber } from './observation';
 import { IObserverLocator } from './observer-locator';
 import { targetObserver } from './target-observer';
 
@@ -34,11 +34,12 @@ const inputValueDefaults = {
 
 const handleEventFlags = BindingFlags.fromDOMEvent | BindingFlags.updateSourceExpression;
 
-export interface IValueAttributeObserver extends
-  Partial<IBindingTargetObserver<INode, string, Primitive | IIndexable>> { }
+// tslint:disable-next-line:interface-name
+export interface ValueAttributeObserver extends
+  IBindingTargetObserver<INode, string, Primitive | IIndexable> { }
 
 @targetObserver('')
-export class ValueAttributeObserver implements IValueAttributeObserver {
+export class ValueAttributeObserver implements ValueAttributeObserver {
   public currentValue: Primitive | IIndexable;
   public currentFlags: BindingFlags;
   public oldValue: Primitive | IIndexable;
@@ -72,7 +73,7 @@ export class ValueAttributeObserver implements IValueAttributeObserver {
     return this.obj[this.propertyKey];
   }
 
-  public setValueCore(this: ValueAttributeObserver & IValueAttributeObserver, newValue: Primitive | IIndexable, flags: BindingFlags): void {
+  public setValueCore(newValue: Primitive | IIndexable, flags: BindingFlags): void {
     this.obj[this.propertyKey] = newValue;
     if (flags & BindingFlags.fromBind) {
       return;
@@ -80,7 +81,7 @@ export class ValueAttributeObserver implements IValueAttributeObserver {
     this.callSubscribers(this.currentValue, this.oldValue, flags);
   }
 
-  public handleEvent(this: ValueAttributeObserver & IValueAttributeObserver): void {
+  public handleEvent(): void {
     const oldValue = this.oldValue = this.currentValue;
     const newValue = this.currentValue = this.getValue();
     if (oldValue !== newValue) {
@@ -89,7 +90,7 @@ export class ValueAttributeObserver implements IValueAttributeObserver {
     }
   }
 
-  public subscribe(this: ValueAttributeObserver & IValueAttributeObserver, subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
       this.handler.subscribe(this.obj, this);
@@ -97,13 +98,13 @@ export class ValueAttributeObserver implements IValueAttributeObserver {
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(this: ValueAttributeObserver & IValueAttributeObserver, subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: IPropertySubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }
 
-  private flushFileChanges(this: ValueAttributeObserver & IValueAttributeObserver): void {
+  private flushFileChanges(): void {
     const currentValue = this.currentValue;
     if (this.oldValue !== currentValue) {
       if (currentValue === '') {
@@ -119,13 +120,14 @@ ValueAttributeObserver.prototype.handler = null;
 
 const defaultHandleBatchedChangeFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
 
-export interface ICheckedObserver extends
-  Partial<IBindingTargetObserver<HTMLInputElement, string, Primitive | IIndexable>>,
+// tslint:disable-next-line:interface-name
+export interface CheckedObserver extends
+  IBindingTargetObserver<HTMLInputElement, string, Primitive | IIndexable>,
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
 @targetObserver()
-export class CheckedObserver implements ICheckedObserver {
+export class CheckedObserver implements CheckedObserver {
   public currentValue: Primitive | IIndexable;
   public currentFlags: BindingFlags;
   public oldValue: Primitive | IIndexable;
@@ -166,13 +168,13 @@ export class CheckedObserver implements ICheckedObserver {
   }
 
   // handleBatchedCollectionChange (todo: rename to make this explicit?)
-  public handleBatchedChange(this: CheckedObserver & ICheckedObserver): void {
+  public handleBatchedChange(): void {
     this.synchronizeElement();
     this.notify(defaultHandleBatchedChangeFlags);
   }
 
   // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
-  public handleChange(this: CheckedObserver & ICheckedObserver, newValue: Primitive | IIndexable, previousValue: Primitive | IIndexable, flags: BindingFlags): void {
+  public handleChange(newValue: Primitive | IIndexable, previousValue: Primitive | IIndexable, flags: BindingFlags): void {
     this.synchronizeElement();
     this.notify(flags);
   }
@@ -195,7 +197,7 @@ export class CheckedObserver implements ICheckedObserver {
     }
   }
 
-  public notify(this: CheckedObserver & ICheckedObserver, flags: BindingFlags): void {
+  public notify(flags: BindingFlags): void {
     if (flags & BindingFlags.fromBind) {
       return;
     }
@@ -207,7 +209,7 @@ export class CheckedObserver implements ICheckedObserver {
     this.callSubscribers(this.currentValue, this.oldValue, flags);
   }
 
-  public handleEvent(this: CheckedObserver & ICheckedObserver): void {
+  public handleEvent(): void {
     let value = this.currentValue;
     const element = this.obj;
     const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
@@ -235,14 +237,14 @@ export class CheckedObserver implements ICheckedObserver {
     this.notify(handleEventFlags);
   }
 
-  public subscribe(this: CheckedObserver & ICheckedObserver, subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.obj, this);
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(this: CheckedObserver & ICheckedObserver, subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: IPropertySubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
@@ -275,13 +277,14 @@ function defaultMatcher(a: Primitive | IIndexable, b: Primitive | IIndexable): b
   return a === b;
 }
 
-export interface ISelectValueObserver extends
-  Partial<IBindingTargetObserver<HTMLSelectElement & { matcher?: typeof defaultMatcher }, string, Primitive | UntypedArray>>,
+// tslint:disable-next-line:interface-name
+export interface SelectValueObserver extends
+  IBindingTargetObserver<HTMLSelectElement & { matcher?: typeof defaultMatcher }, string, Primitive | UntypedArray>,
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
 @targetObserver()
-export class SelectValueObserver implements ISelectValueObserver {
+export class SelectValueObserver implements SelectValueObserver {
   public currentValue: Primitive | UntypedArray;
   public currentFlags: BindingFlags;
   public oldValue: Primitive | UntypedArray;
@@ -303,7 +306,7 @@ export class SelectValueObserver implements ISelectValueObserver {
     return this.currentValue;
   }
 
-  public setValueCore(this: SelectValueObserver & ISelectValueObserver, newValue: Primitive | UntypedArray, flags: BindingFlags): void {
+  public setValueCore(newValue: Primitive | UntypedArray, flags: BindingFlags): void {
     const isArray = Array.isArray(newValue);
     if (!isArray && newValue !== null && newValue !== undefined && this.obj.multiple) {
       throw new Error('Only null or Array instances can be bound to a multi-select.');
@@ -321,18 +324,18 @@ export class SelectValueObserver implements ISelectValueObserver {
   }
 
   // called when the array mutated (items sorted/added/removed, etc)
-  public handleBatchedChange(this: SelectValueObserver & ISelectValueObserver, indexMap: number[]): void {
+  public handleBatchedChange(indexMap: number[]): void {
     // we don't need to go through the normal setValue logic and can directly call synchronizeOptions here,
     // because the change already waited one tick (batched) and there's no point in calling notify when the instance didn't change
     this.synchronizeOptions(indexMap);
   }
 
   // called when a different value was assigned
-  public handleChange(this: SelectValueObserver & ISelectValueObserver, newValue: Primitive | UntypedArray, previousValue: Primitive | UntypedArray, flags: BindingFlags): void {
+  public handleChange(newValue: Primitive | UntypedArray, previousValue: Primitive | UntypedArray, flags: BindingFlags): void {
     this.setValue(newValue, flags);
   }
 
-  public notify(this: SelectValueObserver & ISelectValueObserver, flags: BindingFlags): void {
+  public notify(flags: BindingFlags): void {
     if (flags & BindingFlags.fromBind) {
       return;
     }
@@ -344,14 +347,14 @@ export class SelectValueObserver implements ISelectValueObserver {
     this.callSubscribers(newValue, oldValue, flags);
   }
 
-  public handleEvent(this: SelectValueObserver & ISelectValueObserver): void {
+  public handleEvent(): void {
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
     this.synchronizeValue();
     // TODO: need to clean up / improve the way collection changes are handled here (we currently just create and assign a new array to the source each change)
     this.notify(handleEventFlags);
   }
 
-  public synchronizeOptions(this: SelectValueObserver & ISelectValueObserver, indexMap?: IndexMap): void {
+  public synchronizeOptions(indexMap?: IndexMap): void {
     const currentValue = this.currentValue;
     const isArray = Array.isArray(currentValue);
     const obj = this.obj;
@@ -370,7 +373,7 @@ export class SelectValueObserver implements ISelectValueObserver {
     }
   }
 
-  public synchronizeValue(this: SelectValueObserver & ISelectValueObserver): void {
+  public synchronizeValue(): void {
     const obj = this.obj;
     const options = obj.options;
     const len = options.length;
@@ -404,14 +407,14 @@ export class SelectValueObserver implements ISelectValueObserver {
     }
   }
 
-  public subscribe(this: SelectValueObserver & ISelectValueObserver, subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.obj, this);
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(this: SelectValueObserver & ISelectValueObserver, subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: IPropertySubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }

@@ -1,8 +1,9 @@
+// tslint:disable:no-reserved-keywords
 import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
-import { collectionObserver } from './collection-observer';
-import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedMap, IBatchedCollectionChangeNotifier, ICollectionChangeNotifier } from './observation';
 import { IChangeSet } from './change-set';
+import { collectionObserver } from './collection-observer';
+import { CollectionKind, ICollectionObserver, IObservedMap } from './observation';
 
 const proto = Map.prototype;
 export const nativeSet = proto.set; // TODO: probably want to make these internal again
@@ -106,35 +107,17 @@ export function disableMapObservation(): void {
   if (proto.delete['observing'] === true) proto.delete = nativeDelete;
 }
 
-@collectionObserver(CollectionKind.map)
-export class MapObserver implements ICollectionObserver<CollectionKind.map> {
-  public lengthPropertyName: 'size';
-  public collectionKind: CollectionKind.map;
-  public dispose: () => void;
-  public indexMap: IndexMap;
-  public hasChanges?: boolean;
-  public flushChanges: () => void;
-  public callSubscribers: ICollectionChangeNotifier;
-  public hasSubscribers: () => boolean;
-  public hasSubscriber: (subscriber: ICollectionSubscriber) => boolean;
-  public removeSubscriber: (subscriber: ICollectionSubscriber) => boolean;
-  public addSubscriber: (subscriber: ICollectionSubscriber) => boolean;
-  public subscribe: (subscriber: ICollectionSubscriber) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
-  public callBatchedSubscribers: IBatchedCollectionChangeNotifier;
-  public hasBatchedSubscribers: () => boolean;
-  public hasBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
-  public removeBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
-  public addBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+// tslint:disable-next-line:interface-name
+export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
+@collectionObserver(CollectionKind.map)
+export class MapObserver implements MapObserver {
   public resetIndexMap: () => void;
   public changeSet: IChangeSet;
 
   public collection: IObservedMap;
 
-  constructor(changeSet: IChangeSet, map: Map<any, any> & { $observer?: Partial<ICollectionObserver<CollectionKind.map>> }) {
+  constructor(changeSet: IChangeSet, map: Map<any, any> & { $observer?: MapObserver }) {
     this.changeSet = changeSet;
     map.$observer = this;
     this.collection = <IObservedMap>map;

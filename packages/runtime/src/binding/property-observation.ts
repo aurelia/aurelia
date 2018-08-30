@@ -42,8 +42,11 @@ PrimitiveObserver.prototype.setValue = noop;
 PrimitiveObserver.prototype.subscribe = noop;
 PrimitiveObserver.prototype.unsubscribe = noop;
 
+// tslint:disable-next-line:interface-name
+export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
+
 @propertyObserver()
-export class SetterObserver implements Partial<IPropertyObserver<IIndexable, string>> {
+export class SetterObserver implements SetterObserver {
   public subscribe: (subscriber: IPropertySubscriber) => void;
   public unsubscribe: (subscriber: IPropertySubscriber) => void;
   public obj: IIndexable;
@@ -54,10 +57,10 @@ export class SetterObserver implements Partial<IPropertyObserver<IIndexable, str
     this.propertyKey = propertyKey;
   }
 
-  public getValue(this: SetterObserver & IPropertyObserver<IIndexable, string>): any {
+  public getValue(): any {
     return this.currentValue;
   }
-  public setValue(this: SetterObserver & IPropertyObserver<IIndexable, string>, newValue: any, flags: BindingFlags): void {
+  public setValue(newValue: any, flags: BindingFlags): void {
     const currentValue = this.currentValue;
     if (currentValue !== newValue) {
       this.currentValue = newValue;
@@ -68,8 +71,11 @@ export class SetterObserver implements Partial<IPropertyObserver<IIndexable, str
   }
 }
 
+// tslint:disable-next-line:interface-name
+export interface Observer extends IPropertyObserver<IIndexable, string> {}
+
 @propertyObserver()
-export class Observer implements Partial<IPropertyObserver<IIndexable, string>> {
+export class Observer implements Observer {
   public obj: IIndexable;
   public propertyKey: string;
   public currentValue: any;
@@ -87,11 +93,11 @@ export class Observer implements Partial<IPropertyObserver<IIndexable, string>> 
         : noop;
   }
 
-  public getValue(this: Observer & IPropertyObserver<IIndexable, string>): any {
+  public getValue(): any {
     return this.currentValue;
   }
 
-  public setValue<T>(this: Observer & IPropertyObserver<IIndexable, string>, newValue: T, flags: BindingFlags): void {
+  public setValue<T>(newValue: T, flags: BindingFlags): void {
     const currentValue = this.currentValue;
 
     if (currentValue !== newValue) {

@@ -4,11 +4,11 @@ import { bindingBehavior } from '../binding-behavior';
 import { IScope } from '../binding-context';
 import { BindingFlags } from '../binding-flags';
 import { BindingMode } from '../binding-mode';
-import { CheckedObserver, ICheckedObserver, ISelectValueObserver, IValueAttributeObserver, SelectValueObserver, ValueAttributeObserver } from '../element-observation';
+import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from '../element-observation';
 import { EventSubscriber, IEventSubscriber } from '../event-manager';
 import { IObserverLocator } from '../observer-locator';
 
-export type UpdateTriggerableObserver = ((ValueAttributeObserver & Required<IValueAttributeObserver>) | (CheckedObserver & Required<ICheckedObserver>) | (SelectValueObserver & Required<ISelectValueObserver>)) & {
+export type UpdateTriggerableObserver = ((ValueAttributeObserver & Required<ValueAttributeObserver>) | (CheckedObserver & Required<CheckedObserver>) | (SelectValueObserver & Required<SelectValueObserver>)) & {
   originalHandler?: IEventSubscriber;
 };
 

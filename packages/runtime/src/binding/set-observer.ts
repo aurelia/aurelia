@@ -1,8 +1,9 @@
+// tslint:disable:no-reserved-keywords
 import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { collectionObserver } from './collection-observer';
-import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedSet, ICollectionChangeNotifier, IBatchedCollectionChangeNotifier } from './observation';
+import { CollectionKind, IBatchedCollectionChangeNotifier, IBatchedCollectionSubscriber, ICollectionChangeNotifier, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedSet } from './observation';
 
 const proto = Set.prototype;
 export const nativeAdd = proto.add; // TODO: probably want to make these internal again
@@ -96,35 +97,17 @@ export function disableSetObservation(): void {
   if (proto.delete['observing'] === true) proto.delete = nativeDelete;
 }
 
-@collectionObserver(CollectionKind.set)
-export class SetObserver implements ICollectionObserver<CollectionKind.set> {
-  public lengthPropertyName: 'size';
-  public collectionKind: CollectionKind.set;
-  public dispose: () => void;
-  public indexMap: IndexMap;
-  public hasChanges?: boolean;
-  public flushChanges: () => void;
-  public callSubscribers: ICollectionChangeNotifier;
-  public hasSubscribers: () => boolean;
-  public hasSubscriber: (subscriber: ICollectionSubscriber) => boolean;
-  public removeSubscriber: (subscriber: ICollectionSubscriber) => boolean;
-  public addSubscriber: (subscriber: ICollectionSubscriber) => boolean;
-  public subscribe: (subscriber: ICollectionSubscriber) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
-  public callBatchedSubscribers: IBatchedCollectionChangeNotifier;
-  public hasBatchedSubscribers: () => boolean;
-  public hasBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
-  public removeBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
-  public addBatchedSubscriber: (subscriber: IBatchedCollectionSubscriber) => boolean;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
+// tslint:disable-next-line:interface-name
+export interface SetObserver extends ICollectionObserver<CollectionKind.set> {};
 
+@collectionObserver(CollectionKind.set)
+export class SetObserver implements SetObserver {
   public resetIndexMap: () => void;
   public changeSet: IChangeSet;
 
   public collection: IObservedSet;
 
-  constructor(changeSet: IChangeSet, set: Set<any> & { $observer?: Partial<ICollectionObserver<CollectionKind.set>> }) {
+  constructor(changeSet: IChangeSet, set: Set<any> & { $observer?: SetObserver }) {
     this.changeSet = changeSet;
     set.$observer = this;
     this.collection = <IObservedSet>set;

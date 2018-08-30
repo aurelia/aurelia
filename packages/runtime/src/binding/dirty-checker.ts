@@ -56,7 +56,8 @@ export class DirtyChecker {
   }
 }
 
-export interface IDirtyCheckProperty extends
+// tslint:disable-next-line:interface-name
+export interface DirtyCheckProperty extends
   IAccessor,
   ISubscribable<MutationKind.instance>,
   ISubscriberCollection<MutationKind.instance>,
@@ -64,7 +65,7 @@ export interface IDirtyCheckProperty extends
 
 /*@internal*/
 @subscriberCollection(MutationKind.instance)
-export class DirtyCheckProperty implements Partial<IDirtyCheckProperty> {
+export class DirtyCheckProperty implements DirtyCheckProperty {
   public oldValue: any;
 
   constructor(private dirtyChecker: DirtyChecker, private obj: any, private propertyName: string) { }
@@ -81,7 +82,7 @@ export class DirtyCheckProperty implements Partial<IDirtyCheckProperty> {
     this.obj[this.propertyName] = newValue;
   }
 
-  public flushChanges(this: DirtyCheckProperty & IDirtyCheckProperty): void {
+  public flushChanges(): void {
     const oldValue = this.oldValue;
     const newValue = this.getValue();
 
@@ -90,7 +91,7 @@ export class DirtyCheckProperty implements Partial<IDirtyCheckProperty> {
     this.oldValue = newValue;
   }
 
-  public subscribe(this: DirtyCheckProperty & IDirtyCheckProperty, subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
       this.dirtyChecker.addProperty(this);
@@ -98,7 +99,7 @@ export class DirtyCheckProperty implements Partial<IDirtyCheckProperty> {
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(this: DirtyCheckProperty & IDirtyCheckProperty, subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: IPropertySubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.dirtyChecker.removeProperty(this);
     }

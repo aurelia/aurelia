@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/aot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "dist/umd/index.js",
   "module": "dist/es2015/index.js",
   "jsnext:main": "dist/es2015/index.js",
@@ -34,9 +34,9 @@
     "publish:local": "npm pack"
   },
   "dependencies": {
-    "@aurelia/jit": "^0.1.0",
-    "@aurelia/kernel": "^0.1.0",
-    "@aurelia/runtime": "^0.1.0"
+    "@aurelia/jit": "^0.1.1",
+    "@aurelia/kernel": "^0.1.1",
+    "@aurelia/runtime": "^0.1.1"
   },
   "devDependencies": {
     "@types/chai": "^4.1.4",

@@ -1,8 +1,8 @@
-import { inject, Immutable } from '@aurelia/kernel';
-import { BindingType, CustomAttributeResource, DOM, IExpression, IExpressionParser, Interpolation, IResourceDescriptions, ITargetedInstruction, ITemplateCompiler, TemplateDefinition, TargetedInstructionType, TargetedInstruction, DelegationStrategy, ITextBindingInstruction, IPropertyBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateElementInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, BindingMode, ITemplateSource, INode, CustomElementResource } from '@aurelia/runtime';
-import { Char } from '../binding/expression-parser';
-import { BindingCommandResource, IBindingCommandSource } from './binding-command';
+import { Immutable, inject } from '@aurelia/kernel';
 import * as RunTime from '@aurelia/runtime';
+import { BindingMode, BindingType, CustomAttributeResource, CustomElementResource, DelegationStrategy, DOM, ICallBindingInstruction, IExpression, IExpressionParser, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateTemplateController, IListenerBindingInstruction, INode, IPropertyBindingInstruction, IRefBindingInstruction, IResourceDescriptions, ISetPropertyInstruction, IStylePropertyBindingInstruction, ITargetedInstruction, ITemplateCompiler, ITemplateSource, ITextBindingInstruction, TargetedInstruction, TargetedInstructionType, TemplateDefinition } from '@aurelia/runtime';
+import { Char } from '../binding/expression-parser';
+import { camelCase } from './camel-case';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = document.createElement('au-marker');
@@ -94,7 +94,6 @@ export class TemplateCompiler implements ITemplateCompiler {
         node,
         resources,
         elementInstruction,
-        definition,
         false
       );
       if (instruction !== null) {
@@ -166,7 +165,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     node: Element,
     resources: IResourceDescriptions,
     elementInstruction: HydrateElementInstruction,
-    definition: Required<ITemplateSource>,
     isForSurrogateElement: boolean
   ): TargetedInstruction {
     const { name, value } = attr;
@@ -192,12 +190,12 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
 
-    const attributeDefiniton = resources.find(
+    const attributeDefinition = resources.find(
       CustomAttributeResource,
       CustomAttributeResource.keyFrom(targetName)
     );
 
-    if (attributeDefiniton && attributeDefiniton.isTemplateController && isForSurrogateElement) {
+    if (attributeDefinition && attributeDefinition.isTemplateController && isForSurrogateElement) {
       throw new Error('You cannot put template controller on surrogate elements.');
     }
 
@@ -207,8 +205,37 @@ export class TemplateCompiler implements ITemplateCompiler {
       return new RefBindingInstruction(expression);
     }
 
-    const attribute = resources.find(CustomAttributeResource, targetName);
-    if (attribute === undefined) {
+    // Event commands win all
+    if (bindingCommand & BindingType.IsEvent) {
+      return new BindingInstruction[bindingCommand & BindingType.Command](value, targetName);
+    }
+
+    if (attributeDefinition === undefined) {
+      if (elementInstruction) {
+        const elementDefinition = resources.find(
+          CustomElementResource,
+          CustomElementResource.keyFrom((RunTime as any).hyphenate(node.tagName))
+        );
+        const propertyName = camelCase(targetName);
+        const elementProperty = elementDefinition.bindables[propertyName];
+        if (elementProperty) {
+          let attrInstruction: IPropertyBindingInstruction;
+          if (bindingCommand === BindingType.BindCommand) {
+            switch (elementProperty.mode) {
+              case BindingMode.fromView: attrInstruction = new FromViewBindingInstruction(value, propertyName);
+              case BindingMode.oneTime: attrInstruction = new OneTimeBindingInstruction(value, propertyName);
+              case BindingMode.twoWay: attrInstruction = new TwoWayBindingInstruction(value, propertyName);
+              case BindingMode.toView: attrInstruction = new ToViewBindingInstruction(value, propertyName);
+              default: throw new Error('Invalid bindable mode');
+            }
+          } else {
+            attrInstruction = new BindingInstruction[bindingCommand & BindingType.Command](value, propertyName);
+          }
+          elementInstruction.instructions.push(attrInstruction);
+          // Is it safe to return null ?
+          return null;
+        }
+      }
       // if we don't have a custom attribute with this name, treat it as a regular attribute binding
       if (bindingCommand === BindingType.None) {
         // no binding command = look for interpolation
@@ -228,7 +255,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       return null;
     }
 
-    if (attribute.isTemplateController === false) {
+    if (attributeDefinition.isTemplateController === false) {
       // first get the simple stuff out of the way
       if (bindingCommand & BindingType.IsProperty) {
         // single bindable property
@@ -250,7 +277,6 @@ export class TemplateCompiler implements ITemplateCompiler {
             node,
             resources,
             elementInstruction,
-            definition,
             false
           ));
         }
@@ -280,7 +306,6 @@ export class TemplateCompiler implements ITemplateCompiler {
         src = <ITemplateSource>this.compile(<Required<ITemplateSource>>src, resources);
       }
       const expression = this.expressionParser.parse(value, bindingCommand);
-      (definition.dependencies || (definition.dependencies = [])).push(CustomAttributeResource)
       return new HydrateTemplateController(src, targetName, [
         new ToViewBindingInstruction(expression, 'items'),
         new SetPropertyInstruction('item', 'local')

@@ -1,104 +1,41 @@
-import { BindingFlags } from './binding-flags';
-import { CollectionKind, CollectionObserver, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap } from './observation';
-
-const defaultFlags = BindingFlags.isCollectionMutation
-
-function notify(this: CollectionObserver, origin: string, args: IArguments): void {
-  this.hasChanges = true;
-  const subscribers = this.subscribers;
-  const len = subscribers.length;
-  let i = 0;
-  while (i < len) {
-    subscribers[i].handleChange(origin, args, defaultFlags);
-    i++;
-  }
-  this.changeSet.add(this);
-}
-
-function subscribe(this: CollectionObserver, subscriber: ICollectionSubscriber): void {
-  this.subscribers.push(subscriber);
-}
-
-function unsubscribe(this: CollectionObserver, subscriber: ICollectionSubscriber): void {
-  const subscribers = this.subscribers;
-  const len = subscribers.length;
-  let i = 0;
-  while (i < len) {
-    if (subscribers[i] === subscriber) {
-      subscribers.splice(i, 1);
-      break;
-    }
-    i++;
-  }
-}
-
-function notifyBatched(this: CollectionObserver, indexMap: IndexMap): void {
-  const subscribers = this.batchedSubscribers;
-  const len = subscribers.length;
-  let i = 0;
-  while (i < len) {
-    subscribers[i].handleBatchedChange(indexMap);
-    i++;
-  }
-}
-
-function subscribeBatched(this: CollectionObserver, subscriber: IBatchedCollectionSubscriber): void {
-  this.batchedSubscribers.push(subscriber);
-}
-
-function unsubscribeBatched(this: CollectionObserver, subscriber: IBatchedCollectionSubscriber): void {
-  const subscribers = this.batchedSubscribers;
-  const len = subscribers.length;
-  let i = 0;
-  while (i < len) {
-    if (subscribers[i] === subscriber) {
-      subscribers.splice(i, 1);
-      break;
-    }
-    i++;
-  }
-}
+import { CollectionKind, CollectionObserver, ICollectionObserver, IndexMap, MutationKind } from './observation';
+import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';
 
 function flushChanges(this: CollectionObserver): void {
-  if (this.hasChanges) {
-    this.hasChanges = false;
-    this.notifyBatched(this.indexMap);
-    this.resetIndexMap();
-  }
+  this.callBatchedSubscribers(this.indexMap);
+  this.resetIndexMap();
 }
 
 function dispose(this: CollectionObserver): void {
   this.collection.$observer = undefined;
   this.collection = null;
   this.indexMap = null;
-  this.batchedSubscribers = null;
-  this.subscribers = null;
-  this.batchedSubscribers = null;
-  this.subscribers = null;
 }
 
 function resetIndexMapIndexed(this: ICollectionObserver<CollectionKind.indexed>): void {
   const len = this.collection.length;
-  const indexMap: IndexMap = (this.indexMap = new Array(len));
+  const indexMap: IndexMap = (this.indexMap = Array(len));
   let i = 0;
   while (i < len) {
     indexMap[i] = i++;
   }
-  indexMap.deletedItems = new Array(0);
+  indexMap.deletedItems = [];
 }
 
 function resetIndexMapKeyed(this: ICollectionObserver<CollectionKind.keyed>): void {
   const len = this.collection.size;
-  const indexMap: IndexMap = (this.indexMap = new Array(len));
+  const indexMap: IndexMap = (this.indexMap = Array(len));
   let i = 0;
   while (i < len) {
     indexMap[i] = i++;
   }
-  indexMap.deletedItems = new Array(0);
+  indexMap.deletedItems = [];
 }
 
 export function collectionObserver(kind: CollectionKind.array | CollectionKind.set | CollectionKind.map): ClassDecorator {
   return function(target: Function): void {
+    subscriberCollection(MutationKind.collection)(target);
+    batchedSubscriberCollection()(target);
     const proto = <CollectionObserver>target.prototype;
 
     proto.collection = null;
@@ -110,14 +47,10 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
     proto.flushChanges = flushChanges;
     proto.dispose = dispose;
 
-    proto.subscribers = null;
-    proto.notify = notify;
-    proto.subscribe = subscribe;
-    proto.unsubscribe = unsubscribe;
+    proto.subscribe = proto.subscribe || proto.addSubscriber;
+    proto.unsubscribe = proto.unsubscribe || proto.removeSubscriber;
 
-    proto.batchedSubscribers = null;
-    proto.notifyBatched = notifyBatched;
-    proto.subscribeBatched = subscribeBatched;
-    proto.unsubscribeBatched = unsubscribeBatched;
+    proto.subscribeBatched = proto.subscribeBatched || proto.addBatchedSubscriber;
+    proto.unsubscribeBatched = proto.unsubscribeBatched || proto.removeBatchedSubscriber;
   };
 }

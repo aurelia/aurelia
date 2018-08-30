@@ -1,7 +1,8 @@
+// tslint:disable:no-reserved-keywords
 import { BindingFlags } from './binding-flags';
-import { collectionObserver } from './collection-observer';
-import { CollectionKind, IBatchedCollectionSubscriber, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray } from './observation';
 import { IChangeSet } from './change-set';
+import { collectionObserver } from './collection-observer';
+import { CollectionKind, IBatchedCollectionChangeNotifier, IBatchedCollectionSubscriber, ICollectionChangeNotifier, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray } from './observation';
 
 const proto = Array.prototype;
 export const nativePush = proto.push; // TODO: probably want to make these internal again
@@ -23,13 +24,13 @@ function observePush(this: IObservedArray): ReturnType<typeof nativePush> {
   if (argCount === 0) {
     return len;
   }
-  this.length = o.indexMap.length = len + argCount
+  this.length = o.indexMap.length = len + argCount;
   let i = len;
   while (i < this.length) {
     this[i] = arguments[i - len]; o.indexMap[i] = - 2;
     i++;
   }
-  o.notify('push', arguments);
+  o.callSubscribers('push', arguments, BindingFlags.isCollectionMutation);
   return this.length;
 }
 
@@ -47,7 +48,7 @@ function observeUnshift(this: IObservedArray): ReturnType<typeof nativeUnshift> 
   }
   nativeUnshift.apply(o.indexMap, inserts);
   const len = nativeUnshift.apply(this, arguments);
-  o.notify('unshift', arguments);
+  o.callSubscribers('unshift', arguments, BindingFlags.isCollectionMutation);
   return len;
 }
 
@@ -65,7 +66,7 @@ function observePop(this: IObservedArray): ReturnType<typeof nativePop> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativePop.call(indexMap);
-  o.notify('pop', arguments);
+  o.callSubscribers('pop', arguments, BindingFlags.isCollectionMutation);
   return element;
 }
 
@@ -82,7 +83,7 @@ function observeShift(this: IObservedArray): ReturnType<typeof nativeShift> {
     nativePush.call(indexMap.deletedItems, element);
   }
   nativeShift.call(indexMap);
-  o.notify('shift', arguments);
+  o.callSubscribers('shift', arguments, BindingFlags.isCollectionMutation);
   return element;
 }
 
@@ -116,7 +117,7 @@ function observeSplice(this: IObservedArray, start: number, deleteCount?: number
     nativeSplice.call(indexMap, start, deleteCount);
   }
   const deleted = nativeSplice.apply(this, arguments);
-  o.notify('splice', arguments);
+  o.callSubscribers('splice', arguments, BindingFlags.isCollectionMutation);
   return deleted;
 }
 
@@ -130,20 +131,20 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
   const middle = (len / 2) | 0;
   let lower = 0;
   while (lower !== middle) {
-    let upper = len - lower - 1;
+    const upper = len - lower - 1;
     const lowerValue = this[lower]; const lowerIndex = o.indexMap[lower];
     const upperValue = this[upper]; const upperIndex = o.indexMap[upper];
     this[lower] = upperValue; o.indexMap[lower] = upperIndex;
     this[upper] = lowerValue; o.indexMap[upper] = lowerIndex;
     lower++;
   }
-  o.notify('reverse', arguments);
+  o.callSubscribers('reverse', arguments, BindingFlags.isCollectionMutation);
   return this;
 }
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.sort
 // https://github.com/v8/v8/blob/master/src/js/array.js
-function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => number) {
+function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => number): IObservedArray {
   const o = this.$observer;
   if (o === undefined) {
     return nativeSort.call(this, compareFn);
@@ -164,7 +165,7 @@ function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => numbe
     compareFn = sortCompare;
   }
   quickSort(this, o.indexMap, 0, i, compareFn);
-  o.notify('sort', arguments);
+  o.callSubscribers('sort', arguments, BindingFlags.isCollectionMutation);
   return this;
 }
 
@@ -219,6 +220,7 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
   let vpivot, ipivot, lowEnd, highStart;
   let velement, ielement, order, vtopElement, itopElement;
 
+  // tslint:disable-next-line:no-constant-condition
   while (true) {
     if (to - from <= 10) {
       insertionSort(arr, indexMap, from, to, compareFn);
@@ -319,36 +321,21 @@ export function disableArrayObservation(): void {
   if (proto.sort['observing'] === true) proto.sort = nativeSort;
 }
 
+// tslint:disable-next-line:interface-name
+export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
+
 @collectionObserver(CollectionKind.array)
-export class ArrayObserver implements ICollectionObserver<CollectionKind.array> {
+export class ArrayObserver implements ArrayObserver {
   public resetIndexMap: () => void;
-  public notify: (origin: string, args: IArguments, flags: BindingFlags) => void;
-  public notifyBatched: (indexMap: IndexMap) => void;
-  public subscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public unsubscribeBatched: (subscriber: IBatchedCollectionSubscriber) => void;
-  public subscribe: (subscriber: ICollectionSubscriber) => void;
-  public unsubscribe: (subscriber: ICollectionSubscriber) => void;
-  public flushChanges: () => void;
-  public dispose: () => void;
-
-  /*@internal*/
   public changeSet: IChangeSet;
+
   public collection: IObservedArray;
-  public indexMap: IndexMap;
-  public hasChanges: boolean;
-  public lengthPropertyName: 'length';
-  public collectionKind: CollectionKind.array;
 
-  public subscribers: Array<ICollectionSubscriber>;
-  public batchedSubscribers: Array<IBatchedCollectionSubscriber>;
-
-  constructor(changeSet: IChangeSet, array: Array<any> & { $observer?: ICollectionObserver<CollectionKind.array> }) {
+  constructor(changeSet: IChangeSet, array: any[] & { $observer?: ArrayObserver }) {
     this.changeSet = changeSet;
     array.$observer = this;
     this.collection = <IObservedArray>array;
     this.resetIndexMap();
-    this.subscribers = new Array();
-    this.batchedSubscribers = new Array();
   }
 }
 

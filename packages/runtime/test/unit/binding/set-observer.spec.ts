@@ -91,7 +91,7 @@ describe(`SetObserver`, () => {
     });
   });
 
-  describe('should not notify batched subscribers if there are no changes', () => {
+  xdescribe('should not notify batched subscribers if there are no changes', () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();

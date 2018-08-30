@@ -3,9 +3,8 @@ import { DOM, INode, INodeObserver } from '../dom';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { IEventSubscriber } from './event-manager';
-import { CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver, IPropertySubscriber, IndexMap } from './observation';
+import { CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver, IndexMap, IPropertySubscriber } from './observation';
 import { IObserverLocator } from './observer-locator';
-import { SubscriberCollection } from './subscriber-collection';
 import { targetObserver } from './target-observer';
 
 const inputValueDefaults = {
@@ -35,16 +34,18 @@ const inputValueDefaults = {
 
 const handleEventFlags = BindingFlags.fromDOMEvent | BindingFlags.updateSourceExpression;
 
+// tslint:disable-next-line:interface-name
+export interface ValueAttributeObserver extends
+  IBindingTargetObserver<INode, string, Primitive | IIndexable> { }
+
 @targetObserver('')
-export class ValueAttributeObserver extends SubscriberCollection implements IBindingTargetObserver<INode, string, Primitive | IIndexable> {
+export class ValueAttributeObserver implements ValueAttributeObserver {
   public currentValue: Primitive | IIndexable;
   public currentFlags: BindingFlags;
   public oldValue: Primitive | IIndexable;
   public defaultValue: Primitive | IIndexable;
 
-  public setValue: (newValue: Primitive | IIndexable, flags: BindingFlags) => Promise<void>;
   public flushChanges: () => void;
-  public dispose: () => void;
 
   constructor(
     public changeSet: IChangeSet,
@@ -52,8 +53,6 @@ export class ValueAttributeObserver extends SubscriberCollection implements IBin
     public propertyKey: string,
     public handler: IEventSubscriber
   ) {
-    super();
-
     // note: input.files can be assigned and this was fixed in Firefox 57:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
 
@@ -121,16 +120,20 @@ ValueAttributeObserver.prototype.handler = null;
 
 const defaultHandleBatchedChangeFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
 
+// tslint:disable-next-line:interface-name
+export interface CheckedObserver extends
+  IBindingTargetObserver<HTMLInputElement, string, Primitive | IIndexable>,
+  IBatchedCollectionSubscriber,
+  IPropertySubscriber { }
+
 @targetObserver()
-export class CheckedObserver extends SubscriberCollection implements IBindingTargetObserver<HTMLInputElement, string, Primitive | IIndexable>, IBatchedCollectionSubscriber, IPropertySubscriber {
+export class CheckedObserver implements CheckedObserver {
   public currentValue: Primitive | IIndexable;
   public currentFlags: BindingFlags;
   public oldValue: Primitive | IIndexable;
   public defaultValue: Primitive | IIndexable;
 
-  public setValue: (newValue: Primitive | IIndexable, flags: BindingFlags) => Promise<void>;
   public flushChanges: () => void;
-  public dispose: () => void;
 
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private valueObserver: ValueAttributeObserver;
@@ -140,9 +143,7 @@ export class CheckedObserver extends SubscriberCollection implements IBindingTar
     public obj: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
-  ) {
-    super();
-  }
+  ) { }
 
   public getValue(): Primitive | IIndexable {
     return this.currentValue;
@@ -276,22 +277,20 @@ function defaultMatcher(a: Primitive | IIndexable, b: Primitive | IIndexable): b
   return a === b;
 }
 
-@targetObserver()
-export class SelectValueObserver
-  extends SubscriberCollection
-  implements
-    IBindingTargetObserver<HTMLSelectElement & { matcher?: typeof defaultMatcher }, string, Primitive | UntypedArray>,
-    IBatchedCollectionSubscriber,
-    IPropertySubscriber {
+// tslint:disable-next-line:interface-name
+export interface SelectValueObserver extends
+  IBindingTargetObserver<HTMLSelectElement & { matcher?: typeof defaultMatcher }, string, Primitive | UntypedArray>,
+  IBatchedCollectionSubscriber,
+  IPropertySubscriber { }
 
+@targetObserver()
+export class SelectValueObserver implements SelectValueObserver {
   public currentValue: Primitive | UntypedArray;
   public currentFlags: BindingFlags;
   public oldValue: Primitive | UntypedArray;
   public defaultValue: Primitive | UntypedArray;
 
-  public setValue: (newValue: Primitive | UntypedArray, flags: BindingFlags) => Promise<void>;
   public flushChanges: () => void;
-  public dispose: () => void;
 
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private nodeObserver: INodeObserver;
@@ -301,9 +300,7 @@ export class SelectValueObserver
     public obj: HTMLSelectElement & { matcher?: typeof defaultMatcher },
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
-  ) {
-    super();
-  }
+  ) { }
 
   public getValue(): Primitive | UntypedArray {
     return this.currentValue;

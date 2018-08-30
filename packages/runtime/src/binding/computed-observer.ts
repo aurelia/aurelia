@@ -1,12 +1,13 @@
 import { Reporter } from '@aurelia/kernel';
+import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { IDirtyChecker } from './dirty-checker';
-import { IAccessor, IChangeTracker, ISubscribable, MutationKind, IPropertySubscriber } from './observation';
+import { IAccessor, IChangeTracker, IPropertySubscriber, ISubscribable, ISubscriberCollection, MutationKind } from './observation';
 import { IObserverLocator } from './observer-locator';
-import { SubscriberCollection } from './subscriber-collection';
-import { BindingFlags } from './binding-flags';
+import { subscriberCollection } from './subscriber-collection';
 
-export interface IComputedOverrides {
+// tslint:disable-next-line:interface-name
+export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
   static?: boolean;
 
@@ -14,7 +15,7 @@ export interface IComputedOverrides {
   volatile?: boolean;
 }
 
-export function computed(config: IComputedOverrides) {
+export function computed(config: ComputedOverrides) {
   return function(target, key, descriptor) {
     let computed = target.computed || (target.computed = {});
     computed[key] = config;
@@ -22,7 +23,7 @@ export function computed(config: IComputedOverrides) {
 }
 
 const noProxy = !(typeof Proxy !== undefined);
-const computedOverrideDefaults: IComputedOverrides = { static: false, volatile: false };
+const computedOverrideDefaults: ComputedOverrides = { static: false, volatile: false };
 
 /* @internal */
 export function createComputedObserver(observerLocator: IObserverLocator, dirtyChecker: IDirtyChecker, changeSet: IChangeSet, instance: any, propertyName: string, descriptor: PropertyDescriptor) {
@@ -31,7 +32,7 @@ export function createComputedObserver(observerLocator: IObserverLocator, dirtyC
   }
 
   if (descriptor.get) {
-    const overrides: IComputedOverrides = instance.constructor.computed
+    const overrides: ComputedOverrides = instance.constructor.computed
       ? instance.constructor.computed[propertyName] || computedOverrideDefaults
       : computedOverrideDefaults;
 
@@ -53,43 +54,49 @@ export function createComputedObserver(observerLocator: IObserverLocator, dirtyC
   throw Reporter.error(18, propertyName);
 }
 
+// tslint:disable-next-line:interface-name
+export interface CustomSetterObserver extends
+  ISubscriberCollection<MutationKind.instance>,
+  IAccessor,
+  ISubscribable<MutationKind.instance>,
+  IChangeTracker { }
+
 // Used when the getter is dependent solely on changes that happen within the setter.
-export class CustomSetterObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker {
+@subscriberCollection(MutationKind.instance)
+export class CustomSetterObserver implements CustomSetterObserver {
   private observing = false;
   private currentValue: any;
   private oldValue: any;
 
-  constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private changeSet: IChangeSet) {
-    super();
-  }
+  constructor(private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private changeSet: IChangeSet) { }
 
-  public getValue() {
+  public getValue(): any {
     return this.instance[this.propertyName];
   }
 
-  setValue(newValue: any) {
+  public setValue(newValue: any): void {
     this.instance[this.propertyName] = newValue;
   }
 
-  public flushChanges() {
+  public flushChanges(): void {
     const oldValue = this.oldValue;
     const newValue = this.currentValue;
 
     this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
   }
 
-  public subscribe(subscriber: IPropertySubscriber) {
+  public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.observing) {
       this.convertProperty();
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber) {
+  public unsubscribe(subscriber: IPropertySubscriber): void {
     this.removeSubscriber(subscriber);
   }
 
-  public convertProperty() {
+  public convertProperty(): void {
     const setter = this.descriptor.set;
     const that = this;
 
@@ -113,15 +120,21 @@ export class CustomSetterObserver extends SubscriberCollection implements IAcces
   }
 }
 
+// tslint:disable-next-line:interface-name
+export interface GetterObserver extends
+  ISubscriberCollection<MutationKind.instance>,
+  IAccessor,
+  ISubscribable<MutationKind.instance>,
+  IChangeTracker { }
+
 // Used when there is no setter, and the getter is dependent on other properties of the object;
 // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
 /*@internal*/
-export class GetterObserver extends SubscriberCollection implements IAccessor, ISubscribable<MutationKind.instance>, IChangeTracker {
+@subscriberCollection(MutationKind.instance)
+export class GetterObserver implements GetterObserver {
   private controller: GetterController;
 
-  constructor(private overrides: IComputedOverrides, private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private changeSet: IChangeSet) {
-    super();
-
+  constructor(private overrides: ComputedOverrides, private instance: any, private propertyName: string, private descriptor: PropertyDescriptor, private observerLocator: IObserverLocator, private changeSet: IChangeSet) {
     this.controller = new GetterController(
       overrides,
       instance,
@@ -133,13 +146,13 @@ export class GetterObserver extends SubscriberCollection implements IAccessor, I
     );
   }
 
-  public getValue() {
+  public getValue(): any {
     return this.controller.value;
   }
 
-  public setValue(newValue) { }
+  public setValue(newValue): void { }
 
-  public flushChanges() {
+  public flushChanges(): void {
     const oldValue = this.controller.value;
     const newValue = this.controller.getValueAndCollectDependencies();
 
@@ -148,12 +161,12 @@ export class GetterObserver extends SubscriberCollection implements IAccessor, I
     }
   }
 
-  public subscribe(subscriber: IPropertySubscriber) {
+  public subscribe(subscriber: IPropertySubscriber): void {
     this.addSubscriber(subscriber);
     this.controller.onSubscriberAdded();
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber) {
+  public unsubscribe(subscriber: IPropertySubscriber): void {
     this.removeSubscriber(subscriber);
     this.controller.onSubscriberRemoved();
   }
@@ -168,7 +181,7 @@ export class GetterController {
   public isCollecting = false;
 
   constructor(
-    private overrides: IComputedOverrides,
+    private overrides: ComputedOverrides,
     private instance: any,
     private propertyName: string,
     descriptor: PropertyDescriptor,

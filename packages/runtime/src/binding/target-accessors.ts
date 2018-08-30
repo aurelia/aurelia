@@ -7,15 +7,14 @@ import { targetObserver } from './target-observer';
 // tslint:disable-next-line:no-http-string
 const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
 
+// tslint:disable-next-line:interface-name
+export interface XLinkAttributeAccessor extends IBindingTargetAccessor<Element, string, string> {}
+
 @targetObserver('')
-export class XLinkAttributeAccessor implements IBindingTargetAccessor<Element, string, string> {
+export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
   public currentValue: string;
   public oldValue: string;
   public defaultValue: string;
-
-  public setValue: (newValue: string) => Promise<void>;
-  public flushChanges: () => void;
-  public dispose: () => void;
 
   // xlink namespaced attributes require getAttributeNS/setAttributeNS
   // (even though the NS version doesn't work for other namespaces
@@ -44,15 +43,14 @@ export class XLinkAttributeAccessor implements IBindingTargetAccessor<Element, s
 
 XLinkAttributeAccessor.prototype.attributeName = '';
 
+// tslint:disable-next-line:interface-name
+export interface DataAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {}
+
 @targetObserver()
-export class DataAttributeAccessor implements IBindingTargetAccessor<INode, string, string> {
+export class DataAttributeAccessor implements DataAttributeAccessor {
   public currentValue: string;
   public oldValue: string;
   public defaultValue: string;
-
-  public setValue: (newValue: string) => Promise<void>;
-  public flushChanges: () => void;
-  public dispose: () => void;
 
   constructor(
     public changeSet: IChangeSet,
@@ -75,17 +73,16 @@ export class DataAttributeAccessor implements IBindingTargetAccessor<INode, stri
   }
 }
 
+// tslint:disable-next-line:interface-name
+export interface StyleAttributeAccessor extends IBindingTargetAccessor<HTMLElement, 'style', string | IIndexable> {}
+
 @targetObserver()
-export class StyleAttributeAccessor implements IBindingTargetAccessor<HTMLElement, 'style', string | IIndexable> {
+export class StyleAttributeAccessor implements StyleAttributeAccessor {
   public currentValue: string | IIndexable;
   public oldValue: string | IIndexable;
   public defaultValue: string | IIndexable;
 
   public propertyKey: 'style';
-
-  public setValue: (newValue: string | IIndexable) => Promise<void>;
-  public flushChanges: () => void;
-  public dispose: () => void;
 
   public styles: IIndexable;
   public version: number;
@@ -162,15 +159,14 @@ StyleAttributeAccessor.prototype.styles = null;
 StyleAttributeAccessor.prototype.version = 0;
 StyleAttributeAccessor.prototype.propertyKey = 'style';
 
+// tslint:disable-next-line:interface-name
+export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {}
+
 @targetObserver('')
-export class ClassAttributeAccessor implements IBindingTargetAccessor<INode, string, string> {
+export class ClassAttributeAccessor implements ClassAttributeAccessor {
   public currentValue: string;
   public oldValue: string;
   public defaultValue: string;
-
-  public setValue: (newValue: string) => Promise<void>;
-  public flushChanges: () => void;
-  public dispose: () => void;
 
   public doNotCache: true;
   public version: number;
@@ -233,15 +229,14 @@ ClassAttributeAccessor.prototype.doNotCache = true;
 ClassAttributeAccessor.prototype.version = 0;
 ClassAttributeAccessor.prototype.nameIndex = null;
 
+// tslint:disable-next-line:interface-name
+export interface PropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
+
 @targetObserver()
-export class PropertyAccessor implements IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {
+export class PropertyAccessor implements PropertyAccessor {
   public currentValue: string;
   public oldValue: string;
   public defaultValue: string;
-
-  public setValue: (newValue: string) => Promise<void>;
-  public flushChanges: () => void;
-  public dispose: () => void;
 
   constructor(
     public changeSet: IChangeSet,

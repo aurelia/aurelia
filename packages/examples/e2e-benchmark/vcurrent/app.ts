@@ -52,13 +52,17 @@ export class App {
       }
       this.todos.push(...newTodos);
     }
-    this.tq.queueTask(instrumenter);
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
   }
 
   public clearTodos(): void {
     instrumenter.markActionStart(`app-clearTodos-${this.todos.length}`, true);
     this.todos = [];
-    this.tq.queueTask(instrumenter);
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
   }
 
   public toggleTodos(): void {
@@ -68,7 +72,9 @@ export class App {
       const todo = todos[i];
       todo.done = !todo.done;
     }
-    this.tq.queueTask(instrumenter);
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
   }
 
   public updateTodos(): void {
@@ -78,13 +84,17 @@ export class App {
     for (let i = 0, ii = todos.length; i < ii; ++i) {
       todos[i].description = description;
     }
-    this.tq.queueTask(instrumenter);
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
   }
 
   public reverseTodos(): void {
     instrumenter.markActionStart(`app-reverseTodos-${this.todos.length}`, true);
     this.todos.reverse();
-    this.tq.queueTask(instrumenter);
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
   }
 
   public bound(): void {

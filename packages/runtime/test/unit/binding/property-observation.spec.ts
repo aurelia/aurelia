@@ -73,7 +73,7 @@ describe('SetterObserver', () => {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, () => {
-          sut = new SetterObserver(new ChangeSet(), object, <any>propertyName);
+          sut = new SetterObserver(object, <any>propertyName);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
           // note: we're deliberately using explicit strict equality here (and in various other places) instead of expect(actual).to.equal(expected)
@@ -94,7 +94,7 @@ describe('SetterObserver', () => {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
-            sut = new SetterObserver(new ChangeSet(), object, <any>propertyName);
+            sut = new SetterObserver(object, <any>propertyName);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
             expect(object[propertyName] === value).to.be.true;
@@ -111,7 +111,7 @@ describe('SetterObserver', () => {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, () => {
-          sut = new SetterObserver(new ChangeSet(), object, <any>propertyName);
+          sut = new SetterObserver(object, <any>propertyName);
           sut.subscribe(new SpySubscriber());
         });
       }
@@ -130,7 +130,7 @@ describe('SetterObserver', () => {
           for (const subscribers of subscribersArr) {
             const object = {};
             it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, () => {
-              sut = new SetterObserver(new ChangeSet(), object, <any>propertyName);
+              sut = new SetterObserver(object, <any>propertyName);
               for (const subscriber of subscribers) {
                 sut.subscribe(subscriber);
               }

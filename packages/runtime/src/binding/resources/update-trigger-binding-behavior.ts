@@ -8,8 +8,8 @@ import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from '..
 import { EventSubscriber, IEventSubscriber } from '../event-manager';
 import { IObserverLocator } from '../observer-locator';
 
-export type UpdateTriggerableObserver = (ValueAttributeObserver | CheckedObserver | SelectValueObserver) & {
-  originalHandler?: IEventSubscriber
+export type UpdateTriggerableObserver = ((ValueAttributeObserver & Required<ValueAttributeObserver>) | (CheckedObserver & Required<CheckedObserver>) | (SelectValueObserver & Required<SelectValueObserver>)) & {
+  originalHandler?: IEventSubscriber;
 };
 
 export type UpdateTriggerableBinding = Binding & {
@@ -31,7 +31,7 @@ export class UpdateTriggerBindingBehavior {
     }
 
     // ensure the binding's target observer has been set.
-    let targetObserver = <UpdateTriggerableObserver>this.observerLocator.getObserver(binding.target, binding.targetProperty);
+    const targetObserver = <UpdateTriggerableObserver>this.observerLocator.getObserver(binding.target, binding.targetProperty);
     if (!targetObserver.handler) {
       throw Reporter.error(10);
     }

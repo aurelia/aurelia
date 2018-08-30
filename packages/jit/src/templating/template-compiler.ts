@@ -77,7 +77,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
     elementDefinition = resources.find(
       CustomElementResource,
-      CustomElementResource.keyFrom((RunTime as any).hyphenate(node.tagName))
+      (RunTime as any).hyphenate(node.tagName.toLowerCase())
     );
     if (elementDefinition) {
       elementInstruction = new HydrateElementInstruction(
@@ -192,7 +192,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     const attributeDefinition = resources.find(
       CustomAttributeResource,
-      CustomAttributeResource.keyFrom(targetName)
+      targetName
     );
 
     if (attributeDefinition && attributeDefinition.isTemplateController && isForSurrogateElement) {
@@ -214,18 +214,26 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (elementInstruction) {
         const elementDefinition = resources.find(
           CustomElementResource,
-          CustomElementResource.keyFrom((RunTime as any).hyphenate(node.tagName))
+          (RunTime as any).hyphenate(node.tagName.toLowerCase())
         );
         const propertyName = camelCase(targetName);
         const elementProperty = elementDefinition.bindables[propertyName];
         if (elementProperty) {
           let attrInstruction: IPropertyBindingInstruction;
-          if (bindingCommand === BindingType.BindCommand) {
+          if (bindingCommand & BindingType.BindCommand) {
             switch (elementProperty.mode) {
-              case BindingMode.fromView: attrInstruction = new FromViewBindingInstruction(value, propertyName);
-              case BindingMode.oneTime: attrInstruction = new OneTimeBindingInstruction(value, propertyName);
-              case BindingMode.twoWay: attrInstruction = new TwoWayBindingInstruction(value, propertyName);
-              case BindingMode.toView: attrInstruction = new ToViewBindingInstruction(value, propertyName);
+              case BindingMode.fromView:
+                attrInstruction = new FromViewBindingInstruction(value, propertyName);
+                break;
+              case BindingMode.oneTime:
+                attrInstruction = new OneTimeBindingInstruction(value, propertyName);
+                break;
+              case BindingMode.twoWay:
+                attrInstruction = new TwoWayBindingInstruction(value, propertyName);
+                break;
+              case BindingMode.toView:
+                attrInstruction = new ToViewBindingInstruction(value, propertyName);
+                break;
               default: throw new Error('Invalid bindable mode');
             }
           } else {

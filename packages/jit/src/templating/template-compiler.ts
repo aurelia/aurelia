@@ -1,7 +1,36 @@
-import { inject } from '@aurelia/kernel';
-import { BindingType, CustomAttributeResource, DOM, IExpression, IExpressionParser, Interpolation, IResourceDescriptions, ITargetedInstruction, ITemplateCompiler, TemplateDefinition, TargetedInstructionType, TargetedInstruction, DelegationStrategy, ITextBindingInstruction, IPropertyBindingInstruction, IListenerBindingInstruction, ICallBindingInstruction, IRefBindingInstruction, IStylePropertyBindingInstruction, ISetPropertyInstruction, ISetAttributeInstruction, IHydrateElementInstruction, IHydrateAttributeInstruction, IHydrateTemplateController, BindingMode, ITemplateSource, INode } from '@aurelia/runtime';
+import { Immutable, inject } from '@aurelia/kernel';
+import { hyphenate } from '@aurelia/runtime';
+import {
+  BindingMode,
+  BindingType,
+  CustomAttributeResource,
+  CustomElementResource,
+  DelegationStrategy,
+  DOM,
+  ICallBindingInstruction,
+  IExpression,
+  IExpressionParser,
+
+  IHydrateAttributeInstruction,
+  IHydrateElementInstruction,
+  IHydrateTemplateController,
+  IListenerBindingInstruction,
+  INode,
+  IPropertyBindingInstruction,
+  IRefBindingInstruction,
+  IResourceDescriptions,
+  ISetPropertyInstruction,
+  IStylePropertyBindingInstruction,
+  ITargetedInstruction,
+  ITemplateCompiler,
+  ITemplateSource,
+  ITextBindingInstruction,
+  TargetedInstruction,
+  TargetedInstructionType,
+  TemplateDefinition
+} from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
-import { BindingCommandResource, IBindingCommandSource } from './binding-command';
+import { camelCase } from './camel-case';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = document.createElement('au-marker');
@@ -38,16 +67,26 @@ export class TemplateCompiler implements ITemplateCompiler {
       node = domParser.firstElementChild;
       definition.templateOrNode = node;
     }
+    const source = node;
     node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
-    while (node = this.compileNode(<Node>node, definition.instructions, resources)) { /* Do nothing */ }
+    while (node = this.compileNode(<Node>node, definition, definition.instructions, resources, source)) { /* Do nothing */ }
     return definition;
   }
 
+  // TODO: make the param order make more sense
   /*@internal*/
-  public compileNode(node: Node, instructions: TargetedInstruction[][], resources: IResourceDescriptions): Node {
+  public compileNode(
+    node: Node,
+    definition: Required<ITemplateSource>,
+    instructions: TargetedInstruction[][],
+    resources: IResourceDescriptions,
+    // Parent node is required for remove / replace operation,
+    // incase node is the direct child of document fragment
+    parentNode: Node
+  ): Node {
     switch (node.nodeType) {
       case NodeType.Element:
-        this.compileElementNode(<Element>node, instructions, resources);
+        this.compileElementNode(<Element>node, definition, instructions, resources, parentNode);
         return node.nextSibling;
       case NodeType.Text:
         if (!this.compileTextNode(<Text>node, instructions)) {
@@ -67,23 +106,81 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /*@internal*/
-  public compileElementNode(node: Element, instructions: TargetedInstruction[][], resources: IResourceDescriptions): void {
+  public compileElementNode(
+    node: Element,
+    definition: Required<ITemplateSource>,
+    instructions: TargetedInstruction[][],
+    resources: IResourceDescriptions,
+    // Parent node is required for remove / replace operation,
+    // incase node is the direct child of document fragment
+    parentNode: Node
+  ): void {
+    let elementDefinition: Immutable<Required<ITemplateSource>>;
+    let elementInstruction: HydrateElementInstruction;
+    const tagName = node.tagName;
+    if (tagName === 'SLOT' || tagName === 'LET') {
+      throw new Error('<slot/> or <let/> not implemented');
+    }
+    elementDefinition = resources.find(
+      CustomElementResource,
+      hyphenate(node.tagName.toLowerCase())
+    );
+    if (elementDefinition) {
+      elementInstruction = new HydrateElementInstruction(
+        resources,
+        [],
+      );
+    }
     const attributes = node.attributes;
-    const attributeInstructions = new Array<TargetedInstruction>();
+    const attributeInstructions: TargetedInstruction[] = [];
+    let liftInstruction: HydrateTemplateController;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
-      const instruction = this.compileAttribute(attributes.item(i), node, resources);
+      const instruction = this.compileAttribute(
+        attributes.item(i),
+        node,
+        resources,
+        elementInstruction,
+        false
+      );
       if (instruction !== null) {
-        attributeInstructions.push(instruction);
+        // if it's a template controller instruction
+        // it could be nth template controller instruction: <div if.bind="" repeat.for="" with.bind=""></div>
+        // just keep refreshing the reference to the last template controller instruction
+        if (instruction.type === TargetedInstructionType.hydrateTemplateController) {
+          liftInstruction = instruction;
+          // lift instructions will take over the compilation
+          // no need to process further if hit 1
+          break;
+        } else {
+          // if instruction is not null, it's a normal targetted instruction
+          // not a `elementInstruction.instructions`
+          attributeInstructions.push(instruction);
+        }
       }
     }
-    if (attributeInstructions.length) {
-      node.classList.add('au');
-      instructions.push(attributeInstructions);
+    if (liftInstruction) {
+      node = this.swapWithMarker(node, parentNode as Element);
+      this.compile(<any>liftInstruction.src, resources);
+      // All normal attributes processed before template controller need to be added to template controller
+      liftInstruction.instructions.splice(0, 0, ...attributeInstructions);
+      instructions.push([liftInstruction]);
+    } else {
+      const targetInstructions: TargetedInstruction[] = [];
+      if (elementInstruction) {
+        targetInstructions.push(elementInstruction);
+      }
+      if (attributeInstructions.length) {
+        targetInstructions.push(...attributeInstructions);
+      }
+      if (targetInstructions.length) {
+        instructions.push(targetInstructions);
+        node.classList.add('au');
+      }
     }
-    node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
+    // node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
     let currentChild = node.firstChild;
     while (currentChild) {
-      currentChild = this.compileNode(currentChild, instructions, resources);
+      currentChild = this.compileNode(currentChild, definition, instructions, resources, parentNode);
     }
   }
 
@@ -103,7 +200,14 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /*@internal*/
-  public compileAttribute(attr: Attr, node: Element, resources: IResourceDescriptions): TargetedInstruction {
+  public compileAttribute(
+    attr: Attr,
+    node: Element,
+    resources: IResourceDescriptions,
+    elementInstruction: HydrateElementInstruction,
+    isForSurrogateElement: boolean
+  ): TargetedInstruction {
+    const tagName = node.tagName.toLowerCase();
     const { name, value } = attr;
     // if the name has a period in it, targetName will be overwritten again with the left-hand side of the period
     // and commandName will be the right-hand side
@@ -127,22 +231,96 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
 
+    // Event commands win all
+    // This may feel very weird when coming from vCurrent
+    // but later, extensibility should be added and event command precedence won't be hard coded like this
+    if (bindingCommand & BindingType.IsEvent) {
+      return new BindingInstruction[bindingCommand & BindingType.Command](value, targetName);
+    }
+
+    const attributeDefinition = resources.find(
+      CustomAttributeResource,
+      targetName
+    );
+
+    if (attributeDefinition && attributeDefinition.isTemplateController && isForSurrogateElement) {
+      throw new Error('You cannot put template controller on surrogate elements.');
+    }
+
     if (BindingTargetLookup[targetName] === BindingType.IsRef) {
       // just a one-off special case for ref (we may want to make that a normal attribute resource, and deprecate this target lookup)
       const expression = this.expressionParser.parse(value, bindingCommand);
       return new RefBindingInstruction(expression);
     }
 
-    const attribute = resources.find(CustomAttributeResource, targetName);
-    if (attribute === undefined) {
+    if (attributeDefinition === undefined) {
+      if (elementInstruction) {
+        const elementDefinition = resources.find(
+          CustomElementResource,
+          hyphenate(tagName)
+        );
+        const propertyName = camelCase(targetName);
+        const elementProperty = elementDefinition.bindables[propertyName];
+        if (elementProperty) {
+          // IPropertyBindingInstruction = with binding command / interpolation
+          // ISetPropertyInstruction = plain html attribute
+          let attrInstruction: IPropertyBindingInstruction | ISetPropertyInstruction;
+          if (bindingCommand) {
+            // When it's `.bind`, needs to select the right instruction based on
+            // default binding mode of the element property
+            if (bindingCommand & BindingType.BindCommand) {
+              switch (elementProperty.mode) {
+                case BindingMode.fromView:
+                  attrInstruction = new FromViewBindingInstruction(value, propertyName);
+                  break;
+                case BindingMode.oneTime:
+                  attrInstruction = new OneTimeBindingInstruction(value, propertyName);
+                  break;
+                case BindingMode.twoWay:
+                  attrInstruction = new TwoWayBindingInstruction(value, propertyName);
+                  break;
+                case BindingMode.toView:
+                  attrInstruction = new ToViewBindingInstruction(value, propertyName);
+                  break;
+                default: throw new Error('Invalid bindable mode: ' + elementProperty.mode);
+              }
+            }
+            // `.one-way`, `.two-way`, `.to-view`, `.from-view`, `.call`, `.one-time`
+            else if (bindingCommand & (BindingType.IsFunction | BindingType.IsProperty)) {
+              attrInstruction = new BindingInstruction[bindingCommand & BindingType.Command](value, propertyName);
+            }
+            // Atm, throw as a TODO. Later, should properly check for user's defined instruction,
+            // including custom binding command, generally the whole attribute via callback
+            // before do our processing
+            else {
+              throw new Error('Custom binding command for element property not supported');
+            }
+          } else {
+            const expression = this.expressionParser.parse(value, BindingType.Interpolation);
+            // <my-input value="init value without binding" />
+            if (expression === null) {
+              attrInstruction = new SetPropertyInstruction(value, propertyName);
+            }
+            // <my-input value="init value with binding: ${initValue}" />
+            else {
+              attrInstruction = new ToViewBindingInstruction(expression, propertyName);
+            }
+          }
+          elementInstruction.instructions.push(attrInstruction);
+          // Is it safe to return null ?
+          return null;
+        }
+      }
       // if we don't have a custom attribute with this name, treat it as a regular attribute binding
       if (bindingCommand === BindingType.None) {
         // no binding command = look for interpolation
         const expression = this.expressionParser.parse(value, BindingType.Interpolation);
+        // <div class="simple plain attribute"></div>
         if (expression === null) {
           // no interpolation = no binding
           return null;
         }
+        // <div class="bg-${type}"></div>
         return new ToViewBindingInstruction(expression, targetName);
       }
       if (bindingCommand & (BindingType.IsProperty | BindingType.IsEvent | BindingType.IsFunction)) {
@@ -154,32 +332,54 @@ export class TemplateCompiler implements ITemplateCompiler {
       return null;
     }
 
-    if (attribute.isTemplateController === false) {
+    if (attributeDefinition.isTemplateController === false) {
       // first get the simple stuff out of the way
       if (bindingCommand & BindingType.IsProperty) {
         // single bindable property
         const expression = this.expressionParser.parse(value, bindingCommand);
-        const instruction = new BindingInstruction[bindingCommand & BindingType.Command](expression, targetName);
+        const instruction = new BindingInstruction[bindingCommand & BindingType.Command](
+          expression,
+          // IMPORANT difference between vNext and vCurrent
+          // for vNext, there is always a default / primary property with name "value"
+          // this may not make enough sense, so subject for future change
+          'value'
+        );
         return new HydrateAttributeInstruction(targetName, [instruction]);
       }
       if (bindingCommand === BindingType.None) {
         // TODO: this is very naive/inefficient, probably doesn't even work, and only meant as a placeholder
-        const instructions = [];
+        // normal usage looks like this: <div if="value.bind: showDiv; cache: false;"></div>
+        // needs to parse properly to differenciate between property with / without binding command
+        const hydrateAttrChildInstructions = [];
         const bindings = value.split(';');
         for (let i = 0, ii = bindings.length; i < ii; ++i) {
           const binding = bindings[i];
           const parts = binding.split(':');
           const attr = document.createAttribute(parts[0]);
           attr.value = parts[1];
-          instructions.push(this.compileAttribute(attr, node, resources));
+          hydrateAttrChildInstructions.push(this.compileAttribute(
+            attr,
+            node,
+            resources,
+            elementInstruction,
+            false
+          ));
         }
-        return new HydrateAttributeInstruction(targetName, instructions);
+        return new HydrateAttributeInstruction(targetName, hydrateAttrChildInstructions);
       }
-      // TODO: (hm? do we need more here?)
-      return null;
+      // Atm, throw as a TODO. Later, should properly check for user's defined instruction,
+      // including custom binding command, generally the whole attribute via callback
+      // before do our processing
+      else {
+        throw new Error('Custom attribute with custom binding command not supported');
+      }
     }
-
+    // ============
     // And on to the complex stuff (from here on it's just template controllers, with/without binding commands)
+    // ============
+
+    // TODO: reconsider this to move it upper level as a custom command, plugged in to the view compiler
+    // instead of a bolted in check
     if (bindingCommand === BindingType.ForCommand) {
       // Yes, indeed we're not looking for an attribute named "repeat". Anything could be iterable. No idea what/how yet though, besides the repeater :)
       let src: ITemplateSource = {
@@ -204,10 +404,49 @@ export class TemplateCompiler implements ITemplateCompiler {
         new SetPropertyInstruction('item', 'local')
       ]);
     }
+    // There are 3 steps involved in processing a template controller:
+    // 1. Swap the current element with a marker
+    // 2. Added swapped out element into a template
+    // 3. Start compiling the newly created template
+    // Because of 1, template controller cannot be fully processed here
+    // =============================================
+    // the template controller will extract & compile
+    // Remove attribute to avoid infinite loop
+    node.removeAttributeNode(attr);
+    if (bindingCommand === BindingType.None) {
+      // throw as todo. It should be extracted and consolidated with normal attribute compilation
+      throw new Error('Plain template controller instruction not implemented.');
+    } else {
+      const expression = this.expressionParser.parse(value, BindingType.None);
+      const instruction = new ToViewBindingInstruction(
+        expression,
+        // IMPORANT difference between vNext and vCurrent
+        // for vNext, there is always a default / primary property with name "value"
+        // this may not make enough sense, so subject for future change
+        'value'
+      );
+      const src: ITemplateSource = {
+        templateOrNode: node,
+        instructions: []
+      };
+      return new HydrateTemplateController(src, targetName, [
+        instruction
+      ]);
+    }
+  }
 
-    // TODO: other template controllers / binding commands
+  private swapWithMarker(node: Element, parentNode: Element): HTMLTemplateElement {
+    const marker = createMarker();
+    const template = DOM.createElement('template') as HTMLTemplateElement;
+    parentNode.replaceChild(marker, node);
+    template.content.appendChild(node);
+    return template;
+  }
 
-    return null;
+  private extractContent(node: Element, fragment: DocumentFragment) {
+    while (node.firstChild) {
+      fragment.appendChild(node.firstChild);
+    }
   }
 }
 

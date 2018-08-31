@@ -1,4 +1,4 @@
-import { DI } from '../../../../kernel/src/index';
+import { DI, Immutable, PLATFORM, Registration, IContainer } from '../../../../kernel/src/index';
 import {
   IExpressionParser,
   IResourceDescriptions,
@@ -21,7 +21,21 @@ import {
   Template,
   TargetedInstruction,
   Repeat,
-  RuntimeCompilationResources
+  RuntimeCompilationResources,
+  IResourceKind,
+  ICustomAttributeSource,
+  ICustomElementResource,
+  IResourceType,
+  ICustomElement,
+  CustomElementResource,
+  BindingMode,
+  customElement,
+  ICustomElementType,
+  TargetedInstructionType,
+  bindable,
+  ITargetedInstruction,
+  IPropertyBindingInstruction,
+  customAttribute
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -39,7 +53,8 @@ import {
   RefBindingInstruction,
   HydrateAttributeInstruction,
   TextBindingInstruction,
-  SetPropertyInstruction
+  SetPropertyInstruction,
+  HydrateElementInstruction
 } from '../../../src/index';
 import { expect } from 'chai';
 import { verifyEqual, createElement } from '../../util';
@@ -64,19 +79,19 @@ const attrNameArr = [
   { $type: BindingType.Interpolation, attrName: 'options' },
   { $type: BindingType.Interpolation, attrName: 'for' },
 
-  { $type: BindingType.OneTimeCommand,  attrName: 'foo.one-time' },
-  { $type: BindingType.ToViewCommand,   attrName: 'foo.to-view' },
+  { $type: BindingType.OneTimeCommand, attrName: 'foo.one-time' },
+  { $type: BindingType.ToViewCommand, attrName: 'foo.to-view' },
   { $type: BindingType.FromViewCommand, attrName: 'foo.from-view' },
-  { $type: BindingType.TwoWayCommand,   attrName: 'foo.two-way' },
-  { $type: BindingType.BindCommand,     attrName: 'foo.bind' },
-  { $type: BindingType.TriggerCommand,  attrName: 'foo.trigger' },
-  { $type: BindingType.CaptureCommand,  attrName: 'foo.capture' },
+  { $type: BindingType.TwoWayCommand, attrName: 'foo.two-way' },
+  { $type: BindingType.BindCommand, attrName: 'foo.bind' },
+  { $type: BindingType.TriggerCommand, attrName: 'foo.trigger' },
+  { $type: BindingType.CaptureCommand, attrName: 'foo.capture' },
   { $type: BindingType.DelegateCommand, attrName: 'foo.delegate' },
-  { $type: BindingType.CallCommand,     attrName: 'foo.call' },
-  { $type: BindingType.Interpolation,   attrName: 'foo.options' },
-  { $type: BindingType.ForCommand,      attrName: 'foo.for' },
-  { $type: BindingType.Interpolation,   attrName: 'foo.foo' },
-  { $type: BindingType.BindCommand,     attrName: 'bind.bind' },
+  { $type: BindingType.CallCommand, attrName: 'foo.call' },
+  { $type: BindingType.Interpolation, attrName: 'foo.options' },
+  { $type: BindingType.ForCommand, attrName: 'foo.for' },
+  { $type: BindingType.Interpolation, attrName: 'foo.foo' },
+  { $type: BindingType.BindCommand, attrName: 'bind.bind' },
 
   { $type: BindingType.Interpolation, attrName: 'bar' },
 
@@ -85,7 +100,7 @@ const attrNameArr = [
   { $type: BindingType.Interpolation, attrName: 'foo.bind.bind' },
 
   { $type: BindingType.IsCustom, attrName: 'foo' },
-  { $type: BindingType.IsRef,    attrName: 'ref' },
+  { $type: BindingType.IsRef, attrName: 'ref' },
 ];
 
 const declarationArr = [
@@ -105,12 +120,13 @@ const statementArr = [
 ];
 
 describe('TemplateCompiler', () => {
+  let container: IContainer;
   let sut: TemplateCompiler;
   let expressionParser: IExpressionParser;
   let resources: IResourceDescriptions;
 
   beforeEach(() => {
-    const container = DI.createContainer();
+    container = DI.createContainer();
     register(container);
     Repeat.register(container);
     expressionParser = container.get(IExpressionParser);
@@ -134,7 +150,7 @@ describe('TemplateCompiler', () => {
             let err: Error;
             let actual: IExpression;
             try {
-              actual = <any>sut.compileAttribute(attr, <any>null, resources);
+              actual = <any>sut.compileAttribute(attr, <any>null, resources, null, false);
             } catch (e) {
               err = e;
             }
@@ -189,7 +205,7 @@ describe('TemplateCompiler', () => {
               expected = new ToViewBindingInstruction(expr, attrName.split('.')[0]);
               break;
             case undefined:
-              switch(attrName) {
+              switch (attrName) {
                 case 'ref':
                   expected = new RefBindingInstruction(expr);
                   break;
@@ -201,7 +217,7 @@ describe('TemplateCompiler', () => {
           let err: Error;
           let actual: IExpression;
           try {
-            actual = <any>sut.compileAttribute(attr, <any>null, resources);
+            actual = <any>sut.compileAttribute(attr, <any>null, resources, null, false);
           } catch (e) {
             err = e;
           }
@@ -227,7 +243,7 @@ describe('TemplateCompiler', () => {
         { attrValue: '-', output: '-' },
         { attrValue: '--', output: '--' }
       ];
-      const countArr = [ 1, 2, 3 ];
+      const countArr = [1, 2, 3];
 
       for (const { attrValue: exprAttrValue, output: exprOutput } of expressionArr) {
         for (const { attrValue: partAttrValue, output: partOutput } of partArr) {
@@ -250,7 +266,7 @@ describe('TemplateCompiler', () => {
               let err: Error;
               let actual: Interpolation;
               try {
-                actual = <any>sut.compileAttribute(attr, <any>null, resources);
+                actual = <any>sut.compileAttribute(attr, <any>null, resources, null, false);
               } catch (e) {
                 err = e;
               }
@@ -272,102 +288,253 @@ describe('TemplateCompiler', () => {
     });
   }
 
-  describe(`compile()`, () => {
-    const tests = [
-      {
-        inputMarkup: `<input type="text" value.bind="foo">`,
-        outputMarkup: `<input type="text" value.bind="foo" class="au">`,
-        instructions: [new ToViewBindingInstruction(new AccessScope('foo'), 'value')]
-      },
-      {
-        inputMarkup: `<input type="text" value.bind="foo"><div><input type="text" value.bind="foo"></div>`,
-        outputMarkup: `<input type="text" value.bind="foo" class="au"><div><input type="text" value.bind="foo" class="au"></div>`,
-        instructions: [
-          new ToViewBindingInstruction(new AccessScope('foo'), 'value'),
-          new ToViewBindingInstruction(new AccessScope('foo'), 'value')
-        ]
-      },
-      {
-        inputMarkup: `<input type="text" value="\${foo}">`,
-        outputMarkup: `<input type="text" value="\${foo}" class="au">`,
-        instructions: [new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value')]
-      },
-      {
-        inputMarkup: `<input type="text" value="\${foo}"><div><input type="text" value="\${foo}"></div>`,
-        outputMarkup: `<input type="text" value="\${foo}" class="au"><div><input type="text" value="\${foo}" class="au"></div>`,
-        instructions: [
-          new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value'),
-          new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value')
-        ]
-      },
-      {
-        inputMarkup: `<div>\${foo}</div>`,
-        outputMarkup: `<div><au-marker class="au"></au-marker> </div>`,
-        instructions: [new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]))]
-      },
-      {
-        inputMarkup: `<div>\${foo}<div>\${foo}</div></div>`,
-        outputMarkup: `<div><au-marker class="au"></au-marker> <div><au-marker class="au"></au-marker> </div></div>`,
-        instructions: [
-          new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')])),
-          new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]))
-        ]
-      },
-      {
-        inputMarkup: `<div repeat.for="item of items"></div>`,
-        outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
-        instructions: [
-          new HydrateTemplateController({ templateOrNode: null, instructions: [] }, 'repeat', [
-            new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
-            new SetPropertyInstruction('item', 'local'),
-          ])
-        ]
-      },
-      {
-        inputMarkup: `<div repeat.for="item of items"><div></div></div>`,
-        outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
-        instructions: [
-          new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
-            new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
-            new SetPropertyInstruction('item', 'local'),
-          ])
-        ]
-      },
-      {
-        inputMarkup: `<div repeat.for="item of items"><div repeat.for="item of items"><div></div></div></div>`,
-        outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
-        instructions: [
-          new HydrateTemplateController({
-              templateOrNode: (<any>createElement(`<template><div repeat.for="item of items" class="au"></div></template>`)).content,
-              instructions: [[
-                new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
-                  new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
-                  new SetPropertyInstruction('item', 'local'),
-                ])
-              ]]
-            }, 'repeat', [
-            new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
-            new SetPropertyInstruction('item', 'local'),
-          ])
-        ]
-      }
-    ];
+  // describe(`compile()`, () => {
+  //   const tests = [
+  //     {
+  //       inputMarkup: `<input type="text" value.bind="foo">`,
+  //       outputMarkup: `<input type="text" value.bind="foo" class="au">`,
+  //       instructions: [new ToViewBindingInstruction(new AccessScope('foo'), 'value')]
+  //     },
+  //     {
+  //       inputMarkup: `<input type="text" value.bind="foo"><div><input type="text" value.bind="foo"></div>`,
+  //       outputMarkup: `<input type="text" value.bind="foo" class="au"><div><input type="text" value.bind="foo" class="au"></div>`,
+  //       instructions: [
+  //         new ToViewBindingInstruction(new AccessScope('foo'), 'value'),
+  //         new ToViewBindingInstruction(new AccessScope('foo'), 'value')
+  //       ]
+  //     },
+  //     {
+  //       inputMarkup: `<input type="text" value="\${foo}">`,
+  //       outputMarkup: `<input type="text" value="\${foo}" class="au">`,
+  //       instructions: [new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value')]
+  //     },
+  //     {
+  //       inputMarkup: `<input type="text" value="\${foo}"><div><input type="text" value="\${foo}"></div>`,
+  //       outputMarkup: `<input type="text" value="\${foo}" class="au"><div><input type="text" value="\${foo}" class="au"></div>`,
+  //       instructions: [
+  //         new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value'),
+  //         new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value')
+  //       ]
+  //     },
+  //     {
+  //       inputMarkup: `<div>\${foo}</div>`,
+  //       outputMarkup: `<div><au-marker class="au"></au-marker> </div>`,
+  //       instructions: [new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]))]
+  //     },
+  //     {
+  //       inputMarkup: `<div>\${foo}<div>\${foo}</div></div>`,
+  //       outputMarkup: `<div><au-marker class="au"></au-marker> <div><au-marker class="au"></au-marker> </div></div>`,
+  //       instructions: [
+  //         new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')])),
+  //         new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]))
+  //       ]
+  //     },
+  //     {
+  //       inputMarkup: `<div repeat.for="item of items"></div>`,
+  //       outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
+  //       instructions: [
+  //         new HydrateTemplateController({ templateOrNode: null, instructions: [] }, 'repeat', [
+  //           new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
+  //           new SetPropertyInstruction('item', 'local'),
+  //         ])
+  //       ]
+  //     },
+  //     {
+  //       inputMarkup: `<div repeat.for="item of items"><div></div></div>`,
+  //       outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
+  //       instructions: [
+  //         new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
+  //           new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
+  //           new SetPropertyInstruction('item', 'local'),
+  //         ])
+  //       ]
+  //     },
+  //     {
+  //       inputMarkup: `<div repeat.for="item of items"><div repeat.for="item of items"><div></div></div></div>`,
+  //       outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
+  //       instructions: [
+  //         new HydrateTemplateController({
+  //           templateOrNode: (<any>createElement(`<template><div repeat.for="item of items" class="au"></div></template>`)).content,
+  //           instructions: [[
+  //             new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
+  //               new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
+  //               new SetPropertyInstruction('item', 'local'),
+  //             ])
+  //           ]]
+  //         }, 'repeat', [
+  //             new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
+  //             new SetPropertyInstruction('item', 'local'),
+  //           ])
+  //       ]
+  //     }
+  //   ];
 
-    for (const count of [1, 2, 3]) {
-      for (let { inputMarkup, outputMarkup, instructions } of tests) {
-        inputMarkup = new Array(count + 1).join(inputMarkup);
-        it(inputMarkup, () => {
-          outputMarkup = new Array(count + 1).join(outputMarkup);
-          instructions = new Array(count).fill(instructions).reduce((acc, item) => acc.concat(item));
-          const actual = sut.compile(<any>{templateOrNode: inputMarkup, instructions:[]}, resources);
-          const expected = {
-            templateOrNode: createElement(outputMarkup),
-            instructions: [instructions]
-          };
-          verifyEqual(actual, expected);
+  //   for (const count of [1, 2, 3]) {
+  //     for (let { inputMarkup, outputMarkup, instructions } of tests) {
+  //       inputMarkup = new Array(count + 1).join(inputMarkup);
+  //       it(inputMarkup, () => {
+  //         outputMarkup = new Array(count + 1).join(outputMarkup);
+  //         instructions = new Array(count).fill(instructions).reduce((acc, item) => acc.concat(item));
+  //         const actual = sut.compile(<any>{ templateOrNode: inputMarkup, instructions: [] }, resources);
+  //         const expected = {
+  //           templateOrNode: createElement(outputMarkup),
+  //           instructions: [instructions]
+  //         };
+  //         verifyEqual(actual, expected);
+  //       });
+  //     }
+  //   }
+
+  // });
+
+  describe.only('compileElement()', () => {
+
+    it('throws on <let/> + <slot/>', () => {
+      const markup = '<template><slot></slot></template>';
+      expect(() => {
+        sut.compile(<any>{ templateOrNode: markup, instructions: [] }, resources);
+      }).to.throw(/not implemented/i);
+    });
+
+    describe('with custom element', () => {
+
+      it('understand attributes precendence: event > attribute > element prop', () => {
+        const rootElMarkup =
+        `<template>
+          <el prop1.bind="p" prop2.trigger="p" prop3="t"></el>
+        </template>`;
+        @customElement('el')
+        class El {
+
+          @bindable() prop1: string;
+          @bindable() prop2: string;
+          @bindable() prop3: string;
+        }
+        (El as any).register(container);
+        @customAttribute('prop3')
+        class Prop {}
+        (Prop as any).register(container);
+
+        const actual = sut.compile(<any>{ templateOrNode: rootElMarkup, instructions: [] }, resources);
+        const rootInstructions = actual.instructions[0] as any[];
+        const expectedRootInstructions = [
+          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateElement, res: 'el' },
+          { toVerify: ['type', 'res'], type: TargetedInstructionType.listenerBinding, dest: 'prop2' },
+          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateAttribute, res: 'prop3' }
+        ];
+        verifyInstructions(rootInstructions, expectedRootInstructions);
+      });
+
+      it('distinguishs element properties / normal attributes', () => {
+        const rootElMarkup =
+        `<template>
+          <el name="name" name2="label"></el>
+        </template>`;
+        @customElement('el')
+        class El {
+
+          @bindable()
+          name: string;
+        }
+        (El as any).register(container);
+
+        const actual = sut.compile(<any>{ templateOrNode: rootElMarkup, instructions: [] }, resources);
+        const rootInstructions = actual.instructions[0] as any[];
+        const expectedRootInstructions = [
+          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateElement, res: 'el' }
+        ];
+        verifyInstructions(rootInstructions, expectedRootInstructions);
+
+        const expectedElInstructions = [
+          { toVerify: ['type', 'mode', 'dest'], type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, dest: 'name' },
+        ];
+        verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
+      });
+
+      it('understands element property casing', () => {
+        const rootElMarkup =
+        `<template>
+          <el background-color="label"></el>
+        </template>`;
+        @customElement('el')
+        class El {
+
+          @bindable()
+          backgroundColor: string;
+        }
+        (El as any).register(container);
+
+        const actual = sut.compile(<any>{ templateOrNode: rootElMarkup, instructions: [] }, resources);
+        const rootInstructions = actual.instructions[0] as any[];
+
+        const expectedElInstructions = [
+          { toVerify: ['type', 'mode', 'dest'], type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, dest: 'backgroundColor' },
+        ];
+        verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
+      });
+
+      it('understands binding commands', () => {
+        const rootElMarkup =
+        `<template>
+          <el
+            prop-prop1.bind="prop1"
+            prop2.one-time="prop2"
+            prop-prop3.to-view="prop3"
+            prop4.from-view="prop4"
+            prop-prop5.two-way="prop5"
+            ></el>
+        </template>`;
+        @customElement('el')
+        class El {
+          @bindable({ mode: BindingMode.twoWay }) propProp1: string;
+          @bindable() prop2: string;
+          @bindable() propProp3: string;
+          @bindable() prop4: string;
+          @bindable() propProp5: string;
+        }
+        (El as any).register(container);
+
+        const actual = sut.compile(<any>{ templateOrNode: rootElMarkup, instructions: [] }, resources);
+        const rootInstructions = actual.instructions[0] as any[];
+
+        const expectedElInstructions = [
+          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.twoWay, dest: 'propProp1' },
+          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.oneTime, dest: 'prop2' },
+          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.toView, dest: 'propProp3' },
+          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.fromView, dest: 'prop4' },
+          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.twoWay, dest: 'propProp5' },
+        ].map((e: any) => {
+          e.type = TargetedInstructionType.propertyBinding;
+          return e;
         });
-      }
+        verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
+      });
+
+      describe('and with template controller', () => {
+
+      })
+    });
+
+    interface IExpectedInstruction {
+      toVerify: string[];
+      [prop: string]: any;
     }
 
+    function verifyInstructions(actual: any[], expectation: IExpectedInstruction[]) {
+      expect(actual.length).to.equal(expectation.length, `Expected to have ${expectation.length} instructions. Received: ${actual.length}`);
+      actual.forEach((inst, idx) => {
+        const expectedInst = expectation[idx];
+        for (const prop in expectedInst.toVerify) {
+          verifyInstructionProp(inst, expectedInst, prop);
+        }
+      });
+    }
+
+    function verifyInstructionProp(actual: ITargetedInstruction, expected: IExpectedInstruction, prop: string) {
+      expect(
+        actual[prop]).to.equal(expected[prop],
+        `Expected actual instruction to have "${prop}": ${expected[prop]}. Received: ${actual[prop]}`
+      );
+    }
   });
 });

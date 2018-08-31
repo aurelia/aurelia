@@ -3,7 +3,7 @@ import { TemplateCompiler, register } from '../../../src/index';
 import {
   Aurelia, Repeat, If, Else, ITemplateCompiler, IChangeSet, CustomElementResource, valueConverter,
   OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior,
-  DebounceBindingBehavior, ThrottleBindingBehavior
+  DebounceBindingBehavior, ThrottleBindingBehavior, ResourceDescription, ITemplateSource
 } from '../../../../runtime/src/index';
 import { expect } from 'chai';
 import { ExpressionParser } from '../../../../runtime/src/binding/expression-parser';
@@ -67,7 +67,7 @@ function createCustomElement(markup: string): { [key: string]: any } {
     build: { required: true, compiler: 'default' },
     instructions: [],
     surrogates: []
-  }, class App {}))();
+  }, class App { }))();
 }
 
 function stringify(o) {
@@ -223,8 +223,8 @@ describe('TemplateCompiler (integration)', () => {
     host.firstChild['value'] = '{"foo":"bar"}';
     expect(component.message).to.be.undefined;
     host.firstChild.dispatchEvent(new CustomEvent('change'));
-    expect(component.message).to.deep.equal({foo: 'bar'});
-    component.message = {bar: 'baz'};
+    expect(component.message).to.deep.equal({ foo: 'bar' });
+    component.message = { bar: 'baz' };
     expect(host.firstChild['value']).to.equal('{"foo":"bar"}');
     cs.flushChanges();
     expect(host.firstChild['value']).to.equal('{"bar":"baz"}');
@@ -459,7 +459,7 @@ describe('TemplateCompiler (integration)', () => {
     component = createCustomElement(`<template><div repeat.for="item of items | sort:'id'">\${item.id}</div></template>`);
     au.app({ host, component: component }).start();
     expect(host.innerText).to.equal('');
-    component.items = [{id:'3'}, {id:'2'}, {id:'1'}];
+    component.items = [{ id: '3' }, { id: '2' }, { id: '1' }];
     expect(host.innerText).to.equal('');
     cs.flushChanges();
     expect(host.innerText).to.equal('123');
@@ -469,23 +469,23 @@ describe('TemplateCompiler (integration)', () => {
     component = createCustomElement(`<template><div repeat.for="item of items | sort:'id':'desc'">\${item.id}</div></template>`);
     au.app({ host, component: component }).start();
     expect(host.innerText).to.equal('');
-    component.items = [{id:'1'}, {id:'2'}, {id:'3'}];
+    component.items = [{ id: '1' }, { id: '2' }, { id: '3' }];
     expect(host.innerText).to.equal('');
     cs.flushChanges();
     expect(host.innerText).to.equal('321');
   });
 
   // TODO: implement this in template compiler
-  // it(`if - shows and hides`, () => {
-  //   component = createCustomElement(`<template><div if.bind="foo">bar</div></template>`);
-  //   component.foo = true;
-  //   au.app({ host, component: component }).start();
-  //   expect(host.innerText).to.equal('bar');
-  //   component.foo = false;
-  //   expect(host.innerText).to.equal('bar');
-  //   cs.flushChanges();
-  //   expect(host.innerText).to.equal('');
-  // });
+  it(`if - shows and hides`, () => {
+    component = createCustomElement(`<template><div if.bind="foo">bar</div></template>`);
+    component.foo = true;
+    au.app({ host, component: component }).start();
+    cs.flushChanges();
+    expect(host.innerText).to.equal('bar');
+    component.foo = false;
+    cs.flushChanges();
+    expect(host.innerText).to.equal('');
+  });
 
   // it(`if - shows and hides - toggles else`, () => {
   //   component = createCustomElement(`<template><div if.bind="foo">bar</div else><div>baz</div></template>`);

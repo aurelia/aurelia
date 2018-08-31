@@ -32,7 +32,10 @@ import {
   customElement,
   ICustomElementType,
   TargetedInstructionType,
-  bindable
+  bindable,
+  ITargetedInstruction,
+  IPropertyBindingInstruction,
+  customAttribute
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -390,48 +393,148 @@ describe('TemplateCompiler', () => {
       const markup = '<template><slot></slot></template>';
       expect(() => {
         sut.compile(<any>{ templateOrNode: markup, instructions: [] }, resources);
-      }).to.throw();
+      }).to.throw(/not implemented/i);
     });
 
-    it('compiles simple element', () => {
-      const markup = '<template><name-tag name.bind="name" label.bind="label" background-color.bind="bg"></name-tag></template>';
-      @customElement('name-tag')
-      class NameTagElement {
+    describe('with custom element', () => {
 
-        @bindable({
-          mode: BindingMode.twoWay
-        })
-        name: string;
+      it('understand attributes precendence: event > attribute > element prop', () => {
+        const rootElMarkup =
+        `<template>
+          <el prop1.bind="p" prop2.trigger="p" prop3="t"></el>
+        </template>`;
+        @customElement('el')
+        class El {
 
-        @bindable()
-        label: string;
+          @bindable() prop1: string;
+          @bindable() prop2: string;
+          @bindable() prop3: string;
+        }
+        (El as any).register(container);
+        @customAttribute('prop3')
+        class Prop {}
+        (Prop as any).register(container);
 
-        @bindable()
-        backgroundColor: string;
-      }
-      (NameTagElement as any).register(container);
-      const actual = sut.compile(<any>{ templateOrNode: markup, instructions: [] }, resources);
-      const targets = (actual.templateOrNode as HTMLTemplateElement).content.querySelectorAll('.au');
-      expect(targets.length).to.equal(1, 'It should have marked element instruction');
-      expect(targets[0].tagName).to.equal('NAME-TAG', 'It should have added class "au" to first element');
-      expect(actual.instructions.length).to.equal(1, 'It should have had at least 1 instruction.');
-      const [
-        nameTagElementInst
-      ] = actual.instructions[0] as [HydrateElementInstruction];
-      expect(nameTagElementInst.type).to.equal(TargetedInstructionType.hydrateElement, 'It should have element targetted type.');
-      expect(nameTagElementInst.instructions.length).to.equal(3, 'It should have had 3 instructions');
-      const [
-        nameBindingInst,
-        labelBindingInstr,
-        bgBindingInstr,
-      ] = nameTagElementInst.instructions as [
-        TwoWayBindingInstruction,
-        ToViewBindingInstruction,
-        ToViewBindingInstruction
-      ];
-      expect(nameBindingInst.mode).to.equal(BindingMode.twoWay, 'Binding mode instruction should have been two-way for "name"');
-      expect(labelBindingInstr.mode).to.equal(BindingMode.toView, 'Binding mode instruction should have been to-view for "label"');
-      expect(bgBindingInstr.mode).to.equal(BindingMode.toView, 'Binding mode instrcution should have been to-view for "background-color"');
+        const actual = sut.compile(<any>{ templateOrNode: rootElMarkup, instructions: [] }, resources);
+        const rootInstructions = actual.instructions[0] as any[];
+        const expectedRootInstructions = [
+          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateElement, res: 'el' },
+          { toVerify: ['type', 'res'], type: TargetedInstructionType.listenerBinding, dest: 'prop2' },
+          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateAttribute, res: 'prop3' }
+        ];
+        verifyInstructions(rootInstructions, expectedRootInstructions);
+      });
+
+      it('distinguishs element properties / normal attributes', () => {
+        const rootElMarkup =
+        `<template>
+          <el name="name" name2="label"></el>
+        </template>`;
+        @customElement('el')
+        class El {
+
+          @bindable()
+          name: string;
+        }
+        (El as any).register(container);
+
+        const actual = sut.compile(<any>{ templateOrNode: rootElMarkup, instructions: [] }, resources);
+        const rootInstructions = actual.instructions[0] as any[];
+        const expectedRootInstructions = [
+          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateElement, res: 'el' }
+        ];
+        verifyInstructions(rootInstructions, expectedRootInstructions);
+
+        const expectedElInstructions = [
+          { toVerify: ['type', 'mode', 'dest'], type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, dest: 'name' },
+        ];
+        verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
+      });
+
+      it('understands element property casing', () => {
+        const rootElMarkup =
+        `<template>
+          <el background-color="label"></el>
+        </template>`;
+        @customElement('el')
+        class El {
+
+          @bindable()
+          backgroundColor: string;
+        }
+        (El as any).register(container);
+
+        const actual = sut.compile(<any>{ templateOrNode: rootElMarkup, instructions: [] }, resources);
+        const rootInstructions = actual.instructions[0] as any[];
+
+        const expectedElInstructions = [
+          { toVerify: ['type', 'mode', 'dest'], type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, dest: 'backgroundColor' },
+        ];
+        verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
+      });
+
+      it('understands binding commands', () => {
+        const rootElMarkup =
+        `<template>
+          <el
+            prop-prop1.bind="prop1"
+            prop2.one-time="prop2"
+            prop-prop3.to-view="prop3"
+            prop4.from-view="prop4"
+            prop-prop5.two-way="prop5"
+            ></el>
+        </template>`;
+        @customElement('el')
+        class El {
+          @bindable({ mode: BindingMode.twoWay }) propProp1: string;
+          @bindable() prop2: string;
+          @bindable() propProp3: string;
+          @bindable() prop4: string;
+          @bindable() propProp5: string;
+        }
+        (El as any).register(container);
+
+        const actual = sut.compile(<any>{ templateOrNode: rootElMarkup, instructions: [] }, resources);
+        const rootInstructions = actual.instructions[0] as any[];
+
+        const expectedElInstructions = [
+          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.twoWay, dest: 'propProp1' },
+          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.oneTime, dest: 'prop2' },
+          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.toView, dest: 'propProp3' },
+          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.fromView, dest: 'prop4' },
+          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.twoWay, dest: 'propProp5' },
+        ].map((e: any) => {
+          e.type = TargetedInstructionType.propertyBinding;
+          return e;
+        });
+        verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
+      });
+
+      describe('and with template controller', () => {
+
+      })
     });
+
+    interface IExpectedInstruction {
+      toVerify: string[];
+      [prop: string]: any;
+    }
+
+    function verifyInstructions(actual: any[], expectation: IExpectedInstruction[]) {
+      expect(actual.length).to.equal(expectation.length, `Expected to have ${expectation.length} instructions. Received: ${actual.length}`);
+      actual.forEach((inst, idx) => {
+        const expectedInst = expectation[idx];
+        for (const prop in expectedInst.toVerify) {
+          verifyInstructionProp(inst, expectedInst, prop);
+        }
+      });
+    }
+
+    function verifyInstructionProp(actual: ITargetedInstruction, expected: IExpectedInstruction, prop: string) {
+      expect(
+        actual[prop]).to.equal(expected[prop],
+        `Expected actual instruction to have "${prop}": ${expected[prop]}. Received: ${actual[prop]}`
+      );
+    }
   });
 });

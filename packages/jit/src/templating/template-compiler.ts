@@ -374,10 +374,12 @@ export class TemplateCompiler implements ITemplateCompiler {
         throw new Error('Custom attribute with custom binding command not supported');
       }
     }
+    // ============
+    // And on to the complex stuff (from here on it's just template controllers, with/without binding commands)
+    // ============
 
     // TODO: reconsider this to move it upper level as a custom command, plugged in to the view compiler
     // instead of a bolted in check
-    // And on to the complex stuff (from here on it's just template controllers, with/without binding commands)
     if (bindingCommand === BindingType.ForCommand) {
       // Yes, indeed we're not looking for an attribute named "repeat". Anything could be iterable. No idea what/how yet though, besides the repeater :)
       let src: ITemplateSource = {

@@ -1,6 +1,6 @@
 {
   "name": "jit-parcel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "build": "rimraf dist && parcel build index.html --no-cache --no-minify --experimental-scope-hoisting --no-source-maps",
     "serve": "rimraf dist && parcel index.html --no-cache --no-source-maps",
@@ -8,10 +8,10 @@
     "e2e:watch": "npm run e2e -- -w"
   },
   "dependencies": {
-    "@aurelia/debug": "file:../../debug/aurelia-debug-0.1.0.tgz",
-    "@aurelia/jit": "file:../../jit/aurelia-jit-0.1.0.tgz",
-    "@aurelia/kernel": "file:../../kernel/aurelia-kernel-0.1.0.tgz",
-    "@aurelia/runtime": "file:../../runtime/aurelia-runtime-0.1.0.tgz"
+    "@aurelia/debug": "file:../../debug/aurelia-debug-0.1.1.tgz",
+    "@aurelia/jit": "file:../../jit/aurelia-jit-0.1.1.tgz",
+    "@aurelia/kernel": "file:../../kernel/aurelia-kernel-0.1.1.tgz",
+    "@aurelia/runtime": "file:../../runtime/aurelia-runtime-0.1.1.tgz"
   },
   "devDependencies": {
     "@types/chai": "^4.1.4",

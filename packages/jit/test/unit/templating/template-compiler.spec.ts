@@ -31,7 +31,8 @@ import {
   BindingMode,
   customElement,
   ICustomElementType,
-  TargetedInstructionType
+  TargetedInstructionType,
+  bindable
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -394,17 +395,21 @@ describe('TemplateCompiler', () => {
 
     it('compiles simple element', () => {
       const markup = '<template><name-tag name.bind="name" label.bind="label" background-color.bind="bg"></name-tag></template>';
-      @customElement({
-        name: 'name-tag',
-        bindables: {
-          name: { attribute: 'name', mode: BindingMode.twoWay, property: 'name' },
-          label: { attribute: 'label', mode: BindingMode.toView, property: 'label' },
-          backgroundColor: { attribute: 'background-color', mode: BindingMode.toView, property: 'backgroundColor' }
-        }
-      })
+      @customElement('name-tag')
       class NameTagElement {
+
+        @bindable({
+          mode: BindingMode.twoWay
+        })
+        name: string;
+
+        @bindable()
+        label: string;
+
+        @bindable()
+        backgroundColor: string;
       }
-      (NameTagElement as ICustomElementType).register(container);
+      (NameTagElement as any).register(container);
       const actual = sut.compile(<any>{ templateOrNode: markup, instructions: [] }, resources);
       const targets = (actual.templateOrNode as HTMLTemplateElement).content.querySelectorAll('.au');
       expect(targets.length).to.equal(1, 'It should have marked element instruction');

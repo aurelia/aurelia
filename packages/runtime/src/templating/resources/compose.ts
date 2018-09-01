@@ -7,7 +7,6 @@ import { IRenderContext } from '../render-context';
 import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
 import { ViewWithCentralComponent } from '../view';
-import { IViewSlot, SwapOrder } from '../view-slot';
 
 const composeSource = {
   name: 'au-compose',
@@ -19,10 +18,10 @@ const composeProps = ['component', 'swapOrder', 'isComposing'];
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
-@inject(IRenderable, INode, IViewSlot, ITargetedInstruction, IRenderingEngine)
+@inject(IRenderable, INode, ITargetedInstruction, IRenderingEngine)
 export class Compose {
   public component: any;
-  public swapOrder: SwapOrder;
+  //public swapOrder: SwapOrder;
   public isComposing: boolean;
 
   private task: CompositionTask = null;
@@ -34,7 +33,6 @@ export class Compose {
   constructor(
     private renderable: IRenderable,
     private host: INode,
-    private slot: IViewSlot,
     instruction: Immutable<IHydrateElementInstruction>,
     private renderingEngine: IRenderingEngine
   ) {
@@ -114,11 +112,11 @@ export class Compose {
       newView.$bind(BindingFlags.fromBind, this.renderable.$scope);
     }
 
-    return this.slot.swap(newView, this.swapOrder || SwapOrder.after);
+    // return this.slot.swap(newView, this.swapOrder || SwapOrder.after);
   }
 
   private clear(): void {
-    this.slot.removeAll();
+    // this.slot.removeAll();
   }
 }
 

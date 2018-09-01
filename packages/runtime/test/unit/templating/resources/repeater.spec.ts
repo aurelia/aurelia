@@ -8,8 +8,6 @@ import {
   BindingIdentifier,
   enableArrayObservation,
   disableArrayObservation,
-  IViewSlot,
-  ViewSlot,
   IRenderable,
   IViewFactory,
   AccessScope,

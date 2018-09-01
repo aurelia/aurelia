@@ -11,5 +11,6 @@ export * from './renderable';
 export * from './rendering-engine';
 export * from './runtime-behavior';
 export * from './template-compiler';
+export * from './view-compile-flags';
 export * from './template';
 export * from './view';

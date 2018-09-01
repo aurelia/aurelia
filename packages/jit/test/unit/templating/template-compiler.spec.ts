@@ -35,7 +35,8 @@ import {
   bindable,
   ITargetedInstruction,
   IPropertyBindingInstruction,
-  customAttribute
+  customAttribute,
+  ViewCompileFlags
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -424,6 +425,29 @@ describe('TemplateCompiler', () => {
 
     describe('with custom element', () => {
 
+      describe('compiles surrogate', () => {
+
+        it('compiles surrogate', () => {
+          const { instructions, surrogates } = compileWith(
+            `<template class="h-100"></template>`,
+            [],
+            ViewCompileFlags.surrogate
+          );
+          verifyInstructions(instructions as any, []);
+          verifyInstructions(surrogates as any, [
+            { toVerify: ['type', 'value', 'dest'], type: TargetedInstructionType.setAttribute, value: 'h-100', dest: 'class' }
+          ]);
+        });
+
+        it('throws on attributes that require to be unique', () => {
+          expect(() => compileWith(
+            `<template id="id" part="part" replace-part="asd" class="h-100"></template>`,
+            [],
+            ViewCompileFlags.surrogate
+          )).to.throw(/Invalid surrogate attribute/);
+        });
+      });
+
       it('understands attr precendence: event > custom attr > element prop', () => {
         @customElement('el')
         class El {
@@ -560,9 +584,9 @@ describe('TemplateCompiler', () => {
       [prop: string]: any;
     }
 
-    function compileWith(markup: string, extraResources: any[]) {
+    function compileWith(markup: string, extraResources: any[], viewCompileFlags?: ViewCompileFlags) {
       extraResources.forEach(e => e.register(container));
-      return sut.compile(<any>{ templateOrNode: markup, instructions: [] }, resources);
+      return sut.compile(<any>{ templateOrNode: markup, instructions: [], surrogates: [] }, resources, viewCompileFlags);
     }
 
     function verifyInstructions(actual: any[], expectation: IExpectedInstruction[]) {

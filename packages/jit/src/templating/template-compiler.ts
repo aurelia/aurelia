@@ -26,7 +26,9 @@ import {
   PrimitiveLiteral,
   TargetedInstruction,
   TargetedInstructionType,
-  TemplateDefinition
+  TemplateDefinition,
+
+  ViewCompileFlags,
 } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
 
@@ -65,7 +67,11 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   constructor(private expressionParser: IExpressionParser) { }
 
-  public compile(definition: Required<ITemplateSource>, resources: IResourceDescriptions): TemplateDefinition {
+  public compile(
+    definition: Required<ITemplateSource>,
+    resources: IResourceDescriptions,
+    viewCompileFlags?: ViewCompileFlags
+  ): TemplateDefinition {
     let node = <Node>definition.templateOrNode;
     if (!node.nodeType) {
       domParser.innerHTML = <any>node;
@@ -73,9 +79,17 @@ export class TemplateCompiler implements ITemplateCompiler {
       definition.templateOrNode = node;
     }
     // may need to rework this abit, it looks ... weird
-    const source = node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node;
+    const source = node;
+    const rootNode = node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node;
     node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
-    while (node = this.compileNode(<Node>node, definition, definition.instructions, resources, source)) { /* Do nothing */ }
+    while (node = this.compileNode(<Node>node, definition.instructions, resources, rootNode)) { /* Do nothing */ }
+    if ((viewCompileFlags & ViewCompileFlags.surrogate)
+      // defensive code, for first iteration
+      // ideally the flag should be passed correctly from rendering engine
+      && source.nodeName === 'TEMPLATE'
+    ) {
+      this.compileSurrogate(source as Element, definition.surrogates, resources);
+    }
     return definition;
   }
 
@@ -83,7 +97,6 @@ export class TemplateCompiler implements ITemplateCompiler {
   /*@internal*/
   public compileNode(
     node: Node,
-    definition: Required<ITemplateSource>,
     instructions: TargetedInstruction[][],
     resources: IResourceDescriptions,
     // Parent node is required for remove / replace operation,
@@ -93,7 +106,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let nextSibling = node.nextSibling;
     switch (node.nodeType) {
       case NodeType.Element:
-        this.compileElementNode(<Element>node, definition, instructions, resources, parentNode);
+        this.compileElementNode(<Element>node, instructions, resources, parentNode);
         return nextSibling;
       case NodeType.Text:
         if (!this.compileTextNode(<Text>node, instructions)) {
@@ -112,10 +125,52 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
+  /**@internal */
+  public compileSurrogate(
+    node: Element,
+    surrogateInstructions: TargetedInstruction[],
+    resources: IResourceDescriptions
+  ) {
+    const attributes = node.attributes;
+    for (let i = 0, ii = attributes.length; i < ii; ++i) {
+      const attr = attributes.item(i);
+      const instruction = this.compileAttribute(
+        attr,
+        node,
+        resources,
+        null
+      );
+      if (instruction !== null) {
+        if (instruction.type === TargetedInstructionType.hydrateTemplateController) {
+          throw new Error('Cannot have template controller on surrogate element.');
+        } else {
+          surrogateInstructions.push(instruction);
+        }
+      } else {
+        const { name, value } = attr;
+        let attrInst: TargetedInstruction;
+        // Doesn't make sense for these properties as they need to be unique
+        if (name !== 'id' && name !== 'part' && name !== 'replace-part') {
+          switch (name) {
+            // TODO: handle simple surrogate style attribute
+            case 'style':
+              attrInst = new SetAttributeInstruction(value, name);
+              break;
+            default:
+              attrInst = new SetAttributeInstruction(value, name);
+              break;
+          }
+          surrogateInstructions.push(attrInst);
+        } else {
+          throw new Error(`Invalid surrogate attribute: ${name}`);
+        }
+      }
+    }
+  }
+
   /*@internal*/
   public compileElementNode(
     node: Element,
-    definition: Required<ITemplateSource>,
     instructions: TargetedInstruction[][],
     resources: IResourceDescriptions,
     // Parent node is required for remove / replace operation,
@@ -137,7 +192,12 @@ export class TemplateCompiler implements ITemplateCompiler {
     const attributeInstructions: TargetedInstruction[] = [];
     let liftInstruction: HydrateTemplateController;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
-      const instruction = this.compileAttribute(attributes.item(i), node, resources, elementInstruction, false);
+      const instruction = this.compileAttribute(
+        attributes.item(i),
+        node,
+        resources,
+        elementInstruction
+      );
       if (instruction !== null) {
         // if it's a template controller instruction
         // it could be nth template controller instruction: <div if.bind="" repeat.for="" with.bind=""></div>
@@ -179,7 +239,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
     let currentChild = node.firstChild;
     while (currentChild) {
-      currentChild = this.compileNode(currentChild, definition, instructions, resources, parentNode);
+      currentChild = this.compileNode(currentChild, instructions, resources, parentNode);
     }
   }
 
@@ -203,11 +263,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     attr: Attr,
     node: Element,
     resources: IResourceDescriptions,
-    elementInstruction: HydrateElementInstruction,
-    isForSurrogateElement: boolean
+    elementInstruction: HydrateElementInstruction
   ): TargetedInstruction {
     const expressionParser = this.expressionParser;
-    const tagResourceKey = node.tagName.toLowerCase();
     const { name, value } = attr;
     // if the name has a period in it, targetName will be overwritten again with the left-hand side of the period
     // and commandName will be the right-hand side
@@ -243,10 +301,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       targetName
     );
 
-    if (attributeDefinition && attributeDefinition.isTemplateController && isForSurrogateElement) {
-      throw new Error('You cannot put template controller on surrogate elements.');
-    }
-
     if (BindingTargetLookup[targetName] === BindingType.IsRef) {
       // just a one-off special case for ref (we may want to make that a normal attribute resource, and deprecate this target lookup)
       const expression = expressionParser.parse(value, bindingCommand);
@@ -255,7 +309,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if (attributeDefinition === undefined) {
       if (elementInstruction) {
-        const elementDefinition = resources.find(CustomElementResource, tagResourceKey);
+        // Only use element name here, lazily resolve it.
+        const elementDefinition = resources.find(CustomElementResource, node.tagName.toLowerCase());
         const propertyName = PLATFORM.camelCase(targetName);
         const elementProperty = elementDefinition.bindables[propertyName];
         if (elementProperty) {
@@ -267,7 +322,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             // default binding mode of the element property
             if (bindingCommand & BindingType.BindCommand) {
               // Maybe needs to have some custom logic to handle the default mode
-              // This is a potential nice extensibility point
+              // This is a potentially nice extensibility point
               const mode = elementProperty.mode === BindingMode.default
                 ? BindingMode.toView
                 : elementProperty.mode;
@@ -349,8 +404,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             attr,
             node,
             resources,
-            elementInstruction,
-            false
+            elementInstruction
           ));
         }
         return new HydrateAttributeInstruction(targetName, hydrateAttrChildInstructions);

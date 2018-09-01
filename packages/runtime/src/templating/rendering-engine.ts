@@ -16,6 +16,7 @@ import { RuntimeBehavior } from './runtime-behavior';
 import { ITemplate } from './template';
 import { ITemplateCompiler } from './template-compiler';
 import { IViewFactory, View, ViewFactory, ViewWithCentralComponent } from './view';
+import { ViewCompileFlags } from './view-compile-flags';
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate;
@@ -178,7 +179,7 @@ export class RenderingEngine implements IRenderingEngine {
           throw Reporter.error(20, compilerName);
         }
 
-        definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>context));
+        definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>context), ViewCompileFlags.surrogate);
       }
 
       return new CompiledTemplate(this, context, definition);

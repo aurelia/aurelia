@@ -87,6 +87,8 @@ export class Observer implements Observer {
     propertyName: string,
     callbackName: string
   ) {
+      this.obj = instance;
+      this.propertyKey = propertyName;
       this.currentValue = instance[propertyName];
       this.callback = callbackName in instance
         ? instance[callbackName].bind(instance)

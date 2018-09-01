@@ -509,19 +509,20 @@ describe('TemplateCompiler (integration)', () => {
     expect(host.textContent).to.equal('');
   });
 
-  // it.only(`if - shows and hides - toggles else`, () => {
+  // it(`if - shows and hides - toggles else`, () => {
   //   component = createCustomElement(`<template><div if.bind="foo">bar</div><div else>baz</div></template>`);
   //   component.foo = true;
   //   au.app({ host, component: component }).start();
-  //   expect(host.innerText).to.equal('baz');
-  //   component.foo = false;
   //   cs.flushChanges();
   //   expect(host.innerText).to.equal('bar');
+  //   component.foo = false;
   //   cs.flushChanges();
   //   expect(host.innerText).to.equal('baz');
+  //   cs.flushChanges();
+  //   expect(host.innerText).to.equal('bar');
   // });
 
-  it.only(`custom elements`, () => {
+  it(`custom elements`, () => {
     component = createCustomElement(
       `<template><name-tag name="bigopon"></name-tag></template>`,
     );

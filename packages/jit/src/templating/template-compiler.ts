@@ -1,5 +1,5 @@
 import { Immutable, inject } from '@aurelia/kernel';
-import { hyphenate } from '@aurelia/runtime';
+import { hyphenate, PrimitiveLiteral } from '@aurelia/runtime';
 import {
   BindingMode,
   BindingType,
@@ -408,7 +408,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
     const expression = value
       ? expressionParser.parse(value, BindingType.Interpolation) || expressionParser.parse(value, BindingType.None)
-      : null;
+      : new PrimitiveLiteral('');
     const instruction = new ToViewBindingInstruction(
       expression,
       // IMPORANT difference between vNext and vCurrent

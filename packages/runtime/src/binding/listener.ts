@@ -1,3 +1,5 @@
+// tslint:disable:no-any
+// tslint:disable:function-name
 import { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { IExpression } from './ast';
@@ -21,11 +23,11 @@ export class Listener implements IBinding {
     public locator: IServiceLocator
   ) { }
 
-  public callSource(event: Event) {
-    let overrideContext = this.source.overrideContext as any;
+  public callSource(event: Event): any {
+    const overrideContext = this.source.overrideContext as any;
     overrideContext['$event'] = event;
 
-    let result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.source, this.locator);
+    const result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.source, this.locator);
 
     delete overrideContext['$event'];
 
@@ -36,11 +38,11 @@ export class Listener implements IBinding {
     return result;
   }
 
-  public handleEvent(event: Event) {
+  public handleEvent(event: Event): void {
     this.callSource(event);
   }
 
-  public $bind(flags: BindingFlags, source: IScope) {
+  public $bind(flags: BindingFlags, source: IScope): void {
     if (this.$isBound) {
       if (this.source === source) {
         return;
@@ -64,7 +66,7 @@ export class Listener implements IBinding {
     );
   }
 
-  public $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
@@ -80,5 +82,6 @@ export class Listener implements IBinding {
     this.handler = null;
   }
 
-  public observeProperty() { }
+  // tslint:disable-next-line:no-empty
+  public observeProperty(): void { }
 }

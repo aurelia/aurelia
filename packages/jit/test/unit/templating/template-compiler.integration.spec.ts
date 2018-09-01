@@ -366,18 +366,21 @@ describe('TemplateCompiler (integration)', () => {
     expect(component.doStuff).to.have.been.called;
   });
 
-  // TODO: fix delegate/capture :)
-  // it(`delegate - button`, done => {
-  //   component = createCustomElement(`<template><button click.delegate="doStuff()"></button></template>`);
-  //   au.app({ host, component }).start();
-  //   component.doStuff = spy()
-  //   host.firstChild.dispatchEvent(new CustomEvent('click', { bubbles: true }))
+  it(`delegate - button`, () => {
+    component = createCustomElement(`<template><button click.delegate="doStuff()"></button></template>`);
+    au.app({ host, component }).start();
+    component.doStuff = spy()
+    host.firstChild.dispatchEvent(new CustomEvent('click', { bubbles: true }));
+    expect(component.doStuff).to.have.been.called;
+  });
 
-  //   setTimeout(() => {
-  //     expect(component.doStuff).to.have.been.called;
-  //     done();
-  //   });
-  // });
+  it(`capture - button`, () => {
+    component = createCustomElement(`<template><button click.capture="doStuff()"></button></template>`);
+    au.app({ host, component }).start();
+    component.doStuff = spy()
+    host.firstChild.dispatchEvent(new CustomEvent('click', { bubbles: true }));
+    expect(component.doStuff).to.have.been.called;
+  });
 
   it(`repeater - array`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items">\${item}</div></template>`);

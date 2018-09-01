@@ -36,6 +36,13 @@ const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = document.createElement('au-marker');
 marker.classList.add('au');
 const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
+const swapWithMarker = (node: Element, parentNode: Element) => {
+  const marker = createMarker();
+  const template = DOM.createElement('template') as HTMLTemplateElement;
+  (node.parentNode || parentNode).replaceChild(marker, node);
+  template.content.appendChild(node);
+  return marker;
+}
 
 const enum NodeType {
   Element = 1,
@@ -71,7 +78,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     const source = node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node;
     node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
     while (node = this.compileNode(<Node>node, definition, definition.instructions, resources, source)) { /* Do nothing */ }
-    debugger;
     return definition;
   }
 
@@ -130,7 +136,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     );
     if (elementDefinition) {
       elementInstruction = new HydrateElementInstruction(
-        resources,
+        tagName.toLowerCase(),
         [],
       );
     }
@@ -162,7 +168,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
     if (liftInstruction) {
-      node = this.swapWithMarker(node, parentNode as Element);
+      node = swapWithMarker(node, parentNode as Element);
       const template = DOM.createTemplate() as HTMLTemplateElement;
       template.content.appendChild(liftInstruction.src.templateOrNode as Node);
       liftInstruction.src.templateOrNode = template;
@@ -213,6 +219,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     elementInstruction: HydrateElementInstruction,
     isForSurrogateElement: boolean
   ): TargetedInstruction {
+    const expressionParser = this.expressionParser;
+    // hyphenate('NAME-TAG') === 'n-a-m-e-t-a-g'
     const tagName = node.tagName.toLowerCase();
     const { name, value } = attr;
     // if the name has a period in it, targetName will be overwritten again with the left-hand side of the period
@@ -255,7 +263,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if (BindingTargetLookup[targetName] === BindingType.IsRef) {
       // just a one-off special case for ref (we may want to make that a normal attribute resource, and deprecate this target lookup)
-      const expression = this.expressionParser.parse(value, bindingCommand);
+      const expression = expressionParser.parse(value, bindingCommand);
       return new RefBindingInstruction(expression);
     }
 
@@ -275,21 +283,12 @@ export class TemplateCompiler implements ITemplateCompiler {
             // When it's `.bind`, needs to select the right instruction based on
             // default binding mode of the element property
             if (bindingCommand & BindingType.BindCommand) {
-              switch (elementProperty.mode) {
-                case BindingMode.fromView:
-                  attrInstruction = new FromViewBindingInstruction(value, propertyName);
-                  break;
-                case BindingMode.oneTime:
-                  attrInstruction = new OneTimeBindingInstruction(value, propertyName);
-                  break;
-                case BindingMode.twoWay:
-                  attrInstruction = new TwoWayBindingInstruction(value, propertyName);
-                  break;
-                case BindingMode.toView:
-                  attrInstruction = new ToViewBindingInstruction(value, propertyName);
-                  break;
-                default: throw new Error('Invalid bindable mode: ' + elementProperty.mode);
-              }
+              // Maybe needs to have some custom logic to handle the default mode
+              // This is a potential nice extensibility point
+              const mode = elementProperty.mode === BindingMode.default
+                ? BindingMode.toView
+                : elementProperty.mode;
+              attrInstruction = new BindingInstruction[mode](value, propertyName);
             }
             // `.one-way`, `.two-way`, `.to-view`, `.from-view`, `.call`, `.one-time`
             else if (bindingCommand & (BindingType.IsFunction | BindingType.IsProperty)) {
@@ -320,7 +319,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // if we don't have a custom attribute with this name, treat it as a regular attribute binding
       if (bindingCommand === BindingType.None) {
         // no binding command = look for interpolation
-        const expression = this.expressionParser.parse(value, BindingType.Interpolation);
+        const expression = expressionParser.parse(value, BindingType.Interpolation);
         // <div class="simple plain attribute"></div>
         if (expression === null) {
           // no interpolation = no binding
@@ -331,7 +330,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
       if (bindingCommand & (BindingType.IsProperty | BindingType.IsEvent | BindingType.IsFunction)) {
         // covers oneTime, toView, fromView, twoWay, delegate, capture, trigger and call
-        const expression = this.expressionParser.parse(value, bindingCommand);
+        const expression = expressionParser.parse(value, bindingCommand);
         return new BindingInstruction[bindingCommand & BindingType.Command](expression, targetName);
       }
       // TODO: handle custom binding commands
@@ -342,7 +341,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // first get the simple stuff out of the way
       if (bindingCommand & BindingType.IsProperty) {
         // single bindable property
-        const expression = this.expressionParser.parse(value, bindingCommand);
+        const expression = expressionParser.parse(value, bindingCommand);
         const instruction = new BindingInstruction[bindingCommand & BindingType.Command](
           expression,
           // IMPORANT difference between vNext and vCurrent
@@ -401,52 +400,29 @@ export class TemplateCompiler implements ITemplateCompiler {
         templateOrNode: node,
         instructions: []
       };
-      // Lift the childNodes from the templateController host node
-      // let current: Node;
-      // if (current = node.firstChild) {
-      //   const fragment = document.createDocumentFragment();
-      //   let next = current.nextSibling;
-      //   do {
-      //     fragment.appendChild(current);
-      //     current = next;
-      //   } while (current && (next = current.nextSibling));
-      //   src.templateOrNode = fragment;
-      //   src = <ITemplateSource>this.compile(<Required<ITemplateSource>>src, resources);
-      // }
-      const expression = this.expressionParser.parse(value, bindingCommand);
+      const expression = expressionParser.parse(value, bindingCommand);
       return new HydrateTemplateController(src, targetName, [
         new ToViewBindingInstruction(expression, 'items'),
         new SetPropertyInstruction('item', 'local')
       ]);
     }
-    if (bindingCommand === BindingType.None) {
-      // throw as todo. It should be extracted and consolidated with normal attribute compilation
-      throw new Error('Plain template controller instruction not implemented.');
-    } else {
-      const expression = this.expressionParser.parse(value, BindingType.None);
-      const instruction = new ToViewBindingInstruction(
-        expression,
-        // IMPORANT difference between vNext and vCurrent
-        // for vNext, there is always a default / primary property with name "value"
-        // this may not make enough sense, so subject for future change
-        'value'
-      );
-      const src: ITemplateSource = {
-        templateOrNode: node,
-        instructions: []
-      };
-      return new HydrateTemplateController(src, targetName, [
-        instruction
-      ]);
-    }
-  }
-
-  private swapWithMarker(node: Element, parentNode: Element): Element {
-    const marker = createMarker();
-    const template = DOM.createElement('template') as HTMLTemplateElement;
-    (node.parentNode || parentNode).replaceChild(marker, node);
-    template.content.appendChild(node);
-    return marker;
+    const expression = value
+      ? expressionParser.parse(value, BindingType.Interpolation) || expressionParser.parse(value, BindingType.None)
+      : null;
+    const instruction = new ToViewBindingInstruction(
+      expression,
+      // IMPORANT difference between vNext and vCurrent
+      // for vNext, there is always a default / primary property with name "value"
+      // this may not make enough sense, so subject for future change
+      'value'
+    );
+    const src: ITemplateSource = {
+      templateOrNode: node,
+      instructions: []
+    };
+    return new HydrateTemplateController(src, targetName, [
+      instruction
+    ]);
   }
 }
 
@@ -680,3 +656,4 @@ const BindingInstruction: any[] = [
   DelegateBindingInstruction,
   CallBindingInstruction
 ];
+

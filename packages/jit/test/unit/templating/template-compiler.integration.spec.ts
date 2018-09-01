@@ -36,6 +36,21 @@ export class JsonValueConverter {
   }
 }
 
+
+@customElement({
+  name: 'name-tag',
+  templateOrNode: '<template>${name}</template>',
+  build: { required: true, compiler: 'default' },
+  dependencies: [],
+  instructions: [],
+  surrogates: []
+})
+class NameTag {
+
+  @bindable()
+  name: string;
+}
+
 const globalResources: any[] = [
   If,
   Else,
@@ -47,7 +62,8 @@ const globalResources: any[] = [
   FromViewBindingBehavior,
   TwoWayBindingBehavior,
   DebounceBindingBehavior,
-  ThrottleBindingBehavior
+  ThrottleBindingBehavior,
+  NameTag
 ];
 
 const TestConfiguration = {
@@ -505,19 +521,9 @@ describe('TemplateCompiler (integration)', () => {
   //   expect(host.innerText).to.equal('baz');
   // });
 
-  it(`custom elements`, () => {
-    @customElement({
-      name: 'name-tag',
-      templateOrNode: '<template>${name}</template>'
-    })
-    class NameTag {
-
-      @bindable()
-      name: string;
-    }
+  it.only(`custom elements`, () => {
     component = createCustomElement(
       `<template><name-tag name="bigopon"></name-tag></template>`,
-      NameTag
     );
     au.app({ host, component: component }).start();
     cs.flushChanges();

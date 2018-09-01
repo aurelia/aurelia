@@ -1,5 +1,4 @@
-import { Immutable, inject } from '@aurelia/kernel';
-import { hyphenate, PrimitiveLiteral } from '@aurelia/runtime';
+import { Immutable, inject, PLATFORM } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
@@ -10,7 +9,6 @@ import {
   ICallBindingInstruction,
   IExpression,
   IExpressionParser,
-
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
   IHydrateTemplateController,
@@ -25,12 +23,12 @@ import {
   ITemplateCompiler,
   ITemplateSource,
   ITextBindingInstruction,
+  PrimitiveLiteral,
   TargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition
 } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
-import { camelCase } from './camel-case';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = document.createElement('au-marker');
@@ -130,27 +128,16 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (tagName === 'SLOT' || tagName === 'LET') {
       throw new Error('<slot/> or <let/> not implemented');
     }
-    elementDefinition = resources.find(
-      CustomElementResource,
-      hyphenate(node.tagName.toLowerCase())
-    );
+    const tagResourceKey = tagName.toLowerCase();
+    elementDefinition = resources.find(CustomElementResource, tagResourceKey);
     if (elementDefinition) {
-      elementInstruction = new HydrateElementInstruction(
-        tagName.toLowerCase(),
-        [],
-      );
+      elementInstruction = new HydrateElementInstruction(tagResourceKey, []);
     }
     const attributes = node.attributes;
     const attributeInstructions: TargetedInstruction[] = [];
     let liftInstruction: HydrateTemplateController;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
-      const instruction = this.compileAttribute(
-        attributes.item(i),
-        node,
-        resources,
-        elementInstruction,
-        false
-      );
+      const instruction = this.compileAttribute(attributes.item(i), node, resources, elementInstruction, false);
       if (instruction !== null) {
         // if it's a template controller instruction
         // it could be nth template controller instruction: <div if.bind="" repeat.for="" with.bind=""></div>
@@ -220,8 +207,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     isForSurrogateElement: boolean
   ): TargetedInstruction {
     const expressionParser = this.expressionParser;
-    // hyphenate('NAME-TAG') === 'n-a-m-e-t-a-g'
-    const tagName = node.tagName.toLowerCase();
+    const tagResourceKey = node.tagName.toLowerCase();
     const { name, value } = attr;
     // if the name has a period in it, targetName will be overwritten again with the left-hand side of the period
     // and commandName will be the right-hand side
@@ -269,11 +255,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if (attributeDefinition === undefined) {
       if (elementInstruction) {
-        const elementDefinition = resources.find(
-          CustomElementResource,
-          hyphenate(tagName)
-        );
-        const propertyName = camelCase(targetName);
+        const elementDefinition = resources.find(CustomElementResource, tagResourceKey);
+        const propertyName = PLATFORM.camelCase(tagResourceKey);
         const elementProperty = elementDefinition.bindables[propertyName];
         if (elementProperty) {
           // IPropertyBindingInstruction = with binding command / interpolation

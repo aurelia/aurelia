@@ -417,14 +417,15 @@ describe('EventManager', () => {
     });
   });
 
-  describe('addEventListener()', () => {
+  describe.only('addEventListener()', () => {
     function setup(
       eventName: string,
       listener: EventListenerOrEventListenerObject,
       bubbles: boolean,
       stopPropagation: boolean,
       returnValue: any,
-      strategy: DelegationStrategy) {
+      strategy: DelegationStrategy,
+      shadow: string) {
 
       const childHandlerPath: Array<ReturnType<typeof eventPropertiesShallowClone>> = [];
       const parentHandlerPath: Array<ReturnType<typeof eventPropertiesShallowClone>> = [];
@@ -453,24 +454,31 @@ describe('EventManager', () => {
       }
 
       const sut = new EventManager();
+      const wrapper = document.createElement('div');
       const parentEl = document.createElement('parent-div');
       const childEl = document.createElement('child-div');
       const parentSubscription = sut.addEventListener(parentEl, eventName, parentListener, strategy);
       const childSubscription = sut.addEventListener(childEl, eventName, childListener, strategy);
       parentEl.appendChild(childEl);
-      document.body.appendChild(parentEl);
+      if (shadow !== null) {
+        const shadowRoot = wrapper.attachShadow(<any>{ mode: shadow });
+        shadowRoot.appendChild(parentEl);
+      } else {
+        wrapper.appendChild(parentEl);
+      }
+      document.body.appendChild(wrapper);
       const event = new UIEvent(eventName, {
         bubbles,
         cancelable: true,
         view: window
       });
-      return { sut, parentEl, childEl, parentSubscription, childSubscription, childListener, parentListener, childHandlerPath, parentHandlerPath, event };
+      return { sut, wrapper, parentEl, childEl, parentSubscription, childSubscription, childListener, parentListener, childHandlerPath, parentHandlerPath, event };
     }
 
-    function tearDown({ parentEl, parentSubscription, childSubscription }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ wrapper, parentSubscription, childSubscription }: Partial<ReturnType<typeof setup>>) {
       parentSubscription.dispose();
       childSubscription.dispose();
-      document.body.removeChild(parentEl);
+      document.body.removeChild(wrapper);
     }
 
     for (const eventName of ['click']) {
@@ -478,87 +486,132 @@ describe('EventManager', () => {
         for (const strategy of [DelegationStrategy.bubbling, DelegationStrategy.capturing, DelegationStrategy.none]) {
           for (const stopPropagation of [true, false]) {
             for (const returnValue of [true, false, undefined]) {
-              for (const listenerObj of [null, { handleEvent: null }]) {
-                it(_`strategy=${DelegationStrategy[strategy]}, eventName=${eventName}, bubbles=${bubbles}, stopPropagation=${stopPropagation}, returnValue=${returnValue}, listener=${listenerObj}`, () => {
-                  const {
-                    sut,
-                    parentEl,
-                    childEl,
-                    parentSubscription,
-                    childSubscription,
-                    parentListener,
-                    childListener,
-                    parentHandlerPath,
-                    childHandlerPath,
-                    event
-                  } = setup(eventName, listenerObj, bubbles, stopPropagation, returnValue, strategy);
+              for (const shadow of [null, 'open', 'closed']) { // TODO: 'open' should probably work in some way, so we need to try and fix this
+                for (const listenerObj of [null, { handleEvent: null }]) {
+                  it(_`strategy=${DelegationStrategy[strategy]}, eventName=${eventName}, bubbles=${bubbles}, stopPropagation=${stopPropagation}, returnValue=${returnValue}, shadow=${shadow}, listener=${listenerObj}`, () => {
+                    const {
+                      sut,
+                      wrapper,
+                      parentEl,
+                      childEl,
+                      parentSubscription,
+                      childSubscription,
+                      parentListener,
+                      childListener,
+                      parentHandlerPath,
+                      childHandlerPath,
+                      event
+                    } = setup(eventName, listenerObj, bubbles, stopPropagation, returnValue, strategy, shadow);
 
-                  switch (strategy) {
-                    case DelegationStrategy.bubbling:
-                    case DelegationStrategy.capturing:
-                      expect(parentSubscription).to.be.instanceof(DelegateOrCaptureSubscription);
-                      expect(childSubscription).to.be.instanceof(DelegateOrCaptureSubscription);
-                      break;
-                    case DelegationStrategy.none:
-                      expect(parentSubscription).to.be.instanceof(TriggerSubscription);
-                      expect(childSubscription).to.be.instanceof(TriggerSubscription);
-                      break;
-                  }
+                    switch (strategy) {
+                      case DelegationStrategy.bubbling:
+                      case DelegationStrategy.capturing:
+                        expect(parentSubscription).to.be.instanceof(DelegateOrCaptureSubscription);
+                        expect(childSubscription).to.be.instanceof(DelegateOrCaptureSubscription);
+                        break;
+                      case DelegationStrategy.none:
+                        expect(parentSubscription).to.be.instanceof(TriggerSubscription);
+                        expect(childSubscription).to.be.instanceof(TriggerSubscription);
+                        break;
+                    }
 
-                  childEl.dispatchEvent(event);
+                    childEl.dispatchEvent(event);
 
-                  switch (strategy) {
-                    case DelegationStrategy.bubbling:
-                      if (bubbles) {
-                        expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
-                        expect(childHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
-                        expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                        expect(childHandlerPath[0].currentTarget).to.equal(document);
-                        if (stopPropagation) {
-                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                    switch (strategy) {
+                      case DelegationStrategy.bubbling:
+                        if (bubbles && shadow === null) {
+                          expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
+                          expect(childHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
+                          expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
+                          expect(childHandlerPath[0].currentTarget).to.equal(document);
+                          if (stopPropagation) {
+                            expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                          } else {
+                            expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
+                            expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
+                            expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
+                            expect(parentHandlerPath[0].currentTarget).to.equal(document);
+                          }
                         } else {
+                          expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
+                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                        }
+                        break;
+                      case DelegationStrategy.capturing:
+                        if (shadow === null) {
+                          expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
+                          expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
+                          expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
+                          expect(parentHandlerPath[0].currentTarget).to.equal(document);
+                          if (stopPropagation) {
+                            expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
+                          } else {
+                            expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
+                            expect(childHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
+                            expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
+                            expect(childHandlerPath[0].currentTarget).to.equal(document);
+                          }
+                        } else {
+                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                          expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
+                        }
+                        break;
+                      case DelegationStrategy.none:
+                        expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
+                        expect(childHandlerPath[0].eventPhase).to.equal(AT_TARGET, 'eventPhase');
+                        expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
+                        expect(childHandlerPath[0].currentTarget).to.equal(childEl);
+                        if (bubbles && !stopPropagation) {
                           expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                           expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
                           expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(document);
+                          expect(parentHandlerPath[0].currentTarget).to.equal(parentEl);
+                        } else {
+                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
                         }
-                      } else {
-                        expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
-                        expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
-                      }
-                      break;
-                    case DelegationStrategy.capturing:
-                      expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
-                      expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
-                      expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                      expect(parentHandlerPath[0].currentTarget).to.equal(document);
-                      if (stopPropagation) {
-                        expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
-                      } else {
-                        expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
-                        expect(childHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
-                        expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                        expect(childHandlerPath[0].currentTarget).to.equal(document);
-                      }
-                      break;
-                    case DelegationStrategy.none:
-                      expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
-                      expect(childHandlerPath[0].eventPhase).to.equal(AT_TARGET, 'eventPhase');
-                      expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                      expect(childHandlerPath[0].currentTarget).to.equal(childEl);
-                      if (bubbles && !stopPropagation) {
-                        expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
-                        expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
-                        expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                        expect(parentHandlerPath[0].currentTarget).to.equal(parentEl);
-                      } else {
-                        expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
-                      }
-                      break;
-                  }
+                        break;
+                    }
 
-                  tearDown({ parentEl, parentSubscription, childSubscription })
-                });
+                    childHandlerPath.splice(0);
+                    parentHandlerPath.splice(0);
+
+                    parentEl.dispatchEvent(event);
+
+                    switch (strategy) {
+                      case DelegationStrategy.bubbling:
+                        expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
+                        if (bubbles && shadow === null) {
+                          expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
+                          expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
+                          expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
+                          expect(parentHandlerPath[0].currentTarget).to.equal(document);
+                        } else {
+                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                        }
+                        break;
+                      case DelegationStrategy.capturing:
+                        expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
+                        if (shadow === null) {
+                          expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
+                          expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
+                          expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
+                          expect(parentHandlerPath[0].currentTarget).to.equal(document);
+                        } else {
+                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                        }
+                        break;
+                      case DelegationStrategy.none:
+                        expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
+                        expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
+                        expect(parentHandlerPath[0].eventPhase).to.equal(AT_TARGET, 'eventPhase');
+                        expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
+                        expect(parentHandlerPath[0].currentTarget).to.equal(parentEl);
+                        break;
+                    }
+
+                    tearDown({ wrapper, parentSubscription, childSubscription })
+                  });
+                }
               }
             }
           }

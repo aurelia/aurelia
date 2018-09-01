@@ -3,7 +3,8 @@ import { TemplateCompiler, register } from '../../../src/index';
 import {
   Aurelia, Repeat, If, Else, ITemplateCompiler, IChangeSet, CustomElementResource, valueConverter,
   OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior,
-  DebounceBindingBehavior, ThrottleBindingBehavior
+  DebounceBindingBehavior, ThrottleBindingBehavior, ResourceDescription, ITemplateSource, customElement,
+  bindable
 } from '../../../../runtime/src/index';
 import { expect } from 'chai';
 import { ExpressionParser } from '../../../../runtime/src/binding/expression-parser';
@@ -35,6 +36,21 @@ export class JsonValueConverter {
   }
 }
 
+
+@customElement({
+  name: 'name-tag',
+  templateOrNode: '<template>${name}</template>',
+  build: { required: true, compiler: 'default' },
+  dependencies: [],
+  instructions: [],
+  surrogates: []
+})
+class NameTag {
+
+  @bindable()
+  name: string;
+}
+
 const globalResources: any[] = [
   If,
   Else,
@@ -46,7 +62,8 @@ const globalResources: any[] = [
   FromViewBindingBehavior,
   TwoWayBindingBehavior,
   DebounceBindingBehavior,
-  ThrottleBindingBehavior
+  ThrottleBindingBehavior,
+  NameTag
 ];
 
 const TestConfiguration = {
@@ -59,15 +76,15 @@ const TestConfiguration = {
   }
 }
 
-function createCustomElement(markup: string): { [key: string]: any } {
+function createCustomElement(markup: string, ...dependencies: Function[]): { [key: string]: any } {
   return new (CustomElementResource.define({
     name: 'app',
-    dependencies: [],
+    dependencies: [...dependencies],
     templateOrNode: markup,
     build: { required: true, compiler: 'default' },
     instructions: [],
     surrogates: []
-  }, class App {}))();
+  }, class App { }))();
 }
 
 function stringify(o) {
@@ -223,8 +240,8 @@ describe('TemplateCompiler (integration)', () => {
     host.firstChild['value'] = '{"foo":"bar"}';
     expect(component.message).to.be.undefined;
     host.firstChild.dispatchEvent(new CustomEvent('change'));
-    expect(component.message).to.deep.equal({foo: 'bar'});
-    component.message = {bar: 'baz'};
+    expect(component.message).to.deep.equal({ foo: 'bar' });
+    component.message = { bar: 'baz' };
     expect(host.firstChild['value']).to.equal('{"foo":"bar"}');
     cs.flushChanges();
     expect(host.firstChild['value']).to.equal('{"bar":"baz"}');
@@ -385,120 +402,132 @@ describe('TemplateCompiler (integration)', () => {
   it(`repeater - array`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items">\${item}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     component.items = ['1', '2', '3'];
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     cs.flushChanges();
-    expect(host.innerText).to.equal('123');
+    expect(host.outerHTML).to.equal('<app><div>1</div><div>2</div><div>3</div><!--au-loc--></app>');
+    expect(host.innerText).to.equal('1\n2\n3');
+    expect(host.textContent).to.equal('123');
   });
 
   it(`repeater - array literal`, () => {
     component = createCustomElement(`<template><div repeat.for="item of [1,2,3]">\${item}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     cs.flushChanges();
-    expect(host.innerText).to.equal('123');
+    expect(host.textContent).to.equal('123');
   });
 
   it(`repeater - array object literal`, () => {
     component = createCustomElement(`<template><div repeat.for="item of [{i:1},{i:2},{i:3}]">\${item.i}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     cs.flushChanges();
-    expect(host.innerText).to.equal('123');
+    expect(host.textContent).to.equal('123');
   });
 
   it(`repeater - set`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items">\${item}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     component.items = new Set(['1', '2', '3']);
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     cs.flushChanges();
-    expect(host.innerText).to.equal('123');
+    expect(host.textContent).to.equal('123');
   });
 
   it(`repeater - map`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items">\${item[0]}\${item[1]}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     component.items = new Map([['1', '1'], ['2', '2'], ['3', '3']]);
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     cs.flushChanges();
-    expect(host.innerText).to.equal('112233');
+    expect(host.textContent).to.equal('112233');
   });
 
   it(`nested repeater - array`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items"><div repeat.for="child of item">\${child}</div></div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     component.items = [['1'], ['2'], ['3']];
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     cs.flushChanges();
-    expect(host.innerText).to.equal('123');
+    expect(host.textContent).to.equal('123');
   });
 
   it(`repeater - sorted primitive array - asc`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items | sort">\${item}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     component.items = ['3', '2', '1'];
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     cs.flushChanges();
-    expect(host.innerText).to.equal('123');
+    expect(host.textContent).to.equal('123');
   });
 
   it(`repeater - sorted primitive array - desc`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items | sort:null:'desc'">\${item}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     component.items = ['1', '2', '3'];
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
     cs.flushChanges();
-    expect(host.innerText).to.equal('321');
+    expect(host.textContent).to.equal('321');
   });
 
   it(`repeater - sorted object array - asc`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items | sort:'id'">\${item.id}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.innerText).to.equal('');
-    component.items = [{id:'3'}, {id:'2'}, {id:'1'}];
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
+    component.items = [{ id: '3' }, { id: '2' }, { id: '1' }];
+    expect(host.textContent).to.equal('');
     cs.flushChanges();
-    expect(host.innerText).to.equal('123');
+    expect(host.textContent).to.equal('123');
   });
 
   it(`repeater - sorted object array - desc`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items | sort:'id':'desc'">\${item.id}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.innerText).to.equal('');
-    component.items = [{id:'1'}, {id:'2'}, {id:'3'}];
-    expect(host.innerText).to.equal('');
+    expect(host.textContent).to.equal('');
+    component.items = [{ id: '1' }, { id: '2' }, { id: '3' }];
+    expect(host.textContent).to.equal('');
     cs.flushChanges();
-    expect(host.innerText).to.equal('321');
+    expect(host.textContent).to.equal('321');
   });
 
   // TODO: implement this in template compiler
-  // it(`if - shows and hides`, () => {
-  //   component = createCustomElement(`<template><div if.bind="foo">bar</div></template>`);
-  //   component.foo = true;
-  //   au.app({ host, component: component }).start();
-  //   expect(host.innerText).to.equal('bar');
-  //   component.foo = false;
-  //   expect(host.innerText).to.equal('bar');
-  //   cs.flushChanges();
-  //   expect(host.innerText).to.equal('');
-  // });
+  it(`if - shows and hides`, () => {
+    component = createCustomElement(`<template><div if.bind="foo">bar</div></template>`);
+    component.foo = true;
+    au.app({ host, component: component }).start();
+    cs.flushChanges();
+    expect(host.textContent).to.equal('bar');
+    component.foo = false;
+    cs.flushChanges();
+    expect(host.textContent).to.equal('');
+  });
 
   // it(`if - shows and hides - toggles else`, () => {
-  //   component = createCustomElement(`<template><div if.bind="foo">bar</div else><div>baz</div></template>`);
+  //   component = createCustomElement(`<template><div if.bind="foo">bar</div><div else>baz</div></template>`);
   //   component.foo = true;
   //   au.app({ host, component: component }).start();
+  //   cs.flushChanges();
   //   expect(host.innerText).to.equal('bar');
   //   component.foo = false;
-  //   expect(host.innerText).to.equal('bar');
   //   cs.flushChanges();
   //   expect(host.innerText).to.equal('baz');
+  //   cs.flushChanges();
+  //   expect(host.innerText).to.equal('bar');
   // });
 
+  it(`custom elements`, () => {
+    component = createCustomElement(
+      `<template><name-tag name="bigopon"></name-tag></template>`,
+    );
+    au.app({ host, component: component }).start();
+    cs.flushChanges();
+    expect(host.textContent).to.equal('bigopon');
+  });
 });

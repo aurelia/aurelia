@@ -6,7 +6,6 @@ export * from './custom-element';
 export * from './instructions';
 export * from './lifecycle';
 export * from './render-context';
-export * from './view-slot';
 export * from './renderer';
 export * from './renderable';
 export * from './rendering-engine';

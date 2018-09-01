@@ -9,7 +9,6 @@ import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
 import { IRenderContext } from './render-context';
 import { IRenderable } from './renderable';
 import { ITemplate } from './template';
-import { IViewSlot } from './view-slot';
 
 export type RenderCallback = (view: IView) => void;
 
@@ -21,7 +20,6 @@ export enum MotionDirection {
 export interface IView extends IBindScope, IRenderable, IAttach {
   readonly factory: IViewFactory;
 
-  parent: IViewSlot;
   onRender: RenderCallback;
   renderState: any;
 
@@ -49,7 +47,6 @@ export class View implements IView {
   public $isBound: boolean = false;
   public $isAttached: boolean = false;
   public $context: IRenderContext;
-  public parent: IViewSlot;
   public onRender: RenderCallback;
   public renderState: any;
   public inCache: boolean = false;

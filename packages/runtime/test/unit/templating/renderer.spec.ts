@@ -64,8 +64,6 @@ describe('Renderer', () => {
       },
       beginComponentOperation(renderable, target, instruction, factory, parts, location, locationIsContainer) {
         return <any>{
-          tryConnectElementToSlot: spy(),
-          tryConnectTemplateControllerToSlot: spy(),
           dispose: spy()
         }
       }
@@ -269,7 +267,6 @@ describe('Renderer', () => {
           const component = (<SinonSpy>renderContext.get).getCalls()[0].returnValue;
           expect(sut.hydrateElementInstance).to.have.been.calledWith(renderable, target, instruction, component);
           const operation = (<SinonSpy>renderContext.beginComponentOperation).getCalls()[0].returnValue;
-          expect(operation.tryConnectElementToSlot).to.have.been.calledWith(component);
           expect(operation.dispose).to.have.been.called;
 
           tearDown({ wrapper });
@@ -294,8 +291,6 @@ describe('Renderer', () => {
           if (instructions.length) {
             expect(component.foo).to.equal('bar');
           }
-          const operation = (<SinonSpy>renderContext.beginComponentOperation).getCalls()[0].returnValue;
-          expect(operation.dispose).to.have.been.called;
           expect(renderable.$bindables.length).to.equal(1);
           expect(renderable.$attachables.length).to.equal(1);
           expect(renderable.$bindables[0]).to.equal(component);

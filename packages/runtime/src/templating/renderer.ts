@@ -134,20 +134,17 @@ export class Renderer implements IRenderer {
 
   public [TargetedInstructionType.hydrateElement](renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>) {
     const context = this.context;
-    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
-    const component = context.get<ICustomElement>(CustomElementResource.keyFrom(instruction.res));
+    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);    const component = context.get<ICustomElement>(CustomElementResource.keyFrom(instruction.res));
 
     this.hydrateElementInstance(renderable, target, instruction, component);
-    operation.tryConnectElementToSlot(component);
-
     operation.dispose();
   }
 
   public [TargetedInstructionType.hydrateAttribute](renderable: IRenderable, target: any, instruction: Immutable<IHydrateAttributeInstruction>) {
     const childInstructions = instruction.instructions;
     const context = this.context;
-    const operation = context.beginComponentOperation(renderable, target, instruction);
 
+    const operation = context.beginComponentOperation(renderable, target, instruction);
     const component = context.get<ICustomAttribute>(CustomAttributeResource.keyFrom(instruction.res));
     component.$hydrate(this.renderingEngine);
 
@@ -170,7 +167,6 @@ export class Renderer implements IRenderer {
 
     const component = context.get<ICustomAttribute>(CustomAttributeResource.keyFrom(instruction.res));
     component.$hydrate(this.renderingEngine);
-    operation.tryConnectTemplateControllerToSlot(component);
 
     if (instruction.link) {
       (component as any).link(renderable.$attachables[renderable.$attachables.length - 1]);

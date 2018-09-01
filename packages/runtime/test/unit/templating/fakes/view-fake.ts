@@ -12,7 +12,6 @@ import {
   IBindScope,
   IAttach,
   DOM,
-  IViewSlot,
   INodeSequence
 } from "../../../../src/index";
 
@@ -20,7 +19,6 @@ export class ViewFake implements IView {
   // IView impl
   factory: IViewFactory;
 
-  parent: IViewSlot;
   onRender: RenderCallback;
   renderState: any;
   $isAttached: boolean = false;

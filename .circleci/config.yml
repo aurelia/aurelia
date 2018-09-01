@@ -38,7 +38,7 @@ jobs:
           name: "Bootstrap and build the packages"
           command: |
             npm run bootstrap
-            npm run build
+            npm run build:all
       - run:
           name: "Create tarballs from the build outputs"
           command: |

@@ -35,7 +35,7 @@ import { camelCase } from './camel-case';
 const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = document.createElement('au-marker');
 marker.classList.add('au');
-const createMarker = marker.cloneNode.bind(marker, false);
+const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
 
 const enum NodeType {
   Element = 1,
@@ -67,7 +67,8 @@ export class TemplateCompiler implements ITemplateCompiler {
       node = domParser.firstElementChild;
       definition.templateOrNode = node;
     }
-    const source = node;
+    // may need to rework this abit, it looks ... weird
+    const source = node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node;
     node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
     while (node = this.compileNode(<Node>node, definition, definition.instructions, resources, source)) { /* Do nothing */ }
     return definition;
@@ -160,6 +161,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
     if (liftInstruction) {
       node = this.swapWithMarker(node, parentNode as Element);
+      const template = DOM.createTemplate() as HTMLTemplateElement;
+      template.content.appendChild(liftInstruction.src.templateOrNode as Node);
+      liftInstruction.src.templateOrNode = template;
       this.compile(<any>liftInstruction.src, resources);
       // All normal attributes processed before template controller need to be added to template controller
       liftInstruction.instructions.splice(0, 0, ...attributeInstructions);
@@ -377,33 +381,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     // ============
     // And on to the complex stuff (from here on it's just template controllers, with/without binding commands)
     // ============
-
-    // TODO: reconsider this to move it upper level as a custom command, plugged in to the view compiler
-    // instead of a bolted in check
-    if (bindingCommand === BindingType.ForCommand) {
-      // Yes, indeed we're not looking for an attribute named "repeat". Anything could be iterable. No idea what/how yet though, besides the repeater :)
-      let src: ITemplateSource = {
-        templateOrNode: null,
-        instructions: []
-      };
-      // Lift the childNodes from the templateController host node
-      let current: Node;
-      if (current = node.firstChild) {
-        const fragment = document.createDocumentFragment();
-        let next = current.nextSibling;
-        do {
-          fragment.appendChild(current);
-          current = next;
-        } while (current && (next = current.nextSibling));
-        src.templateOrNode = fragment;
-        src = <ITemplateSource>this.compile(<Required<ITemplateSource>>src, resources);
-      }
-      const expression = this.expressionParser.parse(value, bindingCommand);
-      return new HydrateTemplateController(src, targetName, [
-        new ToViewBindingInstruction(expression, 'items'),
-        new SetPropertyInstruction('item', 'local')
-      ]);
-    }
     // There are 3 steps involved in processing a template controller:
     // 1. Swap the current element with a marker
     // 2. Added swapped out element into a template
@@ -413,6 +390,33 @@ export class TemplateCompiler implements ITemplateCompiler {
     // the template controller will extract & compile
     // Remove attribute to avoid infinite loop
     node.removeAttributeNode(attr);
+
+    // TODO: reconsider this to move it upper level as a custom command, plugged in to the view compiler
+    // instead of a bolted in check
+    if (bindingCommand === BindingType.ForCommand) {
+      // Yes, indeed we're not looking for an attribute named "repeat". Anything could be iterable. No idea what/how yet though, besides the repeater :)
+      let src: ITemplateSource = {
+        templateOrNode: node,
+        instructions: []
+      };
+      // Lift the childNodes from the templateController host node
+      // let current: Node;
+      // if (current = node.firstChild) {
+      //   const fragment = document.createDocumentFragment();
+      //   let next = current.nextSibling;
+      //   do {
+      //     fragment.appendChild(current);
+      //     current = next;
+      //   } while (current && (next = current.nextSibling));
+      //   src.templateOrNode = fragment;
+      //   src = <ITemplateSource>this.compile(<Required<ITemplateSource>>src, resources);
+      // }
+      const expression = this.expressionParser.parse(value, bindingCommand);
+      return new HydrateTemplateController(src, targetName, [
+        new ToViewBindingInstruction(expression, 'items'),
+        new SetPropertyInstruction('item', 'local')
+      ]);
+    }
     if (bindingCommand === BindingType.None) {
       // throw as todo. It should be extracted and consolidated with normal attribute compilation
       throw new Error('Plain template controller instruction not implemented.');
@@ -435,18 +439,12 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
-  private swapWithMarker(node: Element, parentNode: Element): HTMLTemplateElement {
+  private swapWithMarker(node: Element, parentNode: Element): Element {
     const marker = createMarker();
     const template = DOM.createElement('template') as HTMLTemplateElement;
-    parentNode.replaceChild(marker, node);
+    (node.parentNode || parentNode).replaceChild(marker, node);
     template.content.appendChild(node);
-    return template;
-  }
-
-  private extractContent(node: Element, fragment: DocumentFragment) {
-    while (node.firstChild) {
-      fragment.appendChild(node.firstChild);
-    }
+    return marker;
   }
 }
 

@@ -69,7 +69,6 @@ function handleDelegatedEvent(event: IEventWithStandardPropagation): void {
   }
 }
 
-/*@internal*/
 export class ListenerTracker {
   private count: number = 0;
 

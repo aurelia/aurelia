@@ -256,7 +256,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (attributeDefinition === undefined) {
       if (elementInstruction) {
         const elementDefinition = resources.find(CustomElementResource, tagResourceKey);
-        const propertyName = PLATFORM.camelCase(tagResourceKey);
+        const propertyName = PLATFORM.camelCase(targetName);
         const elementProperty = elementDefinition.bindables[propertyName];
         if (elementProperty) {
           // IPropertyBindingInstruction = with binding command / interpolation

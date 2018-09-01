@@ -8,23 +8,22 @@ import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescriptio
 import { IAnimator } from './animator';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
-import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition, TemplatePartDefinitions } from './instructions';
+import { ITemplateSource, TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { createRenderContext, ExposedContext, IRenderContext } from './render-context';
 import { IRenderable } from './renderable';
 import { IRenderer, Renderer } from './renderer';
 import { RuntimeBehavior } from './runtime-behavior';
 import { ITemplate } from './template';
 import { ITemplateCompiler } from './template-compiler';
-import { IViewFactory, View, ViewFactory, ViewWithCentralComponent } from './view';
+import { IViewFactory, ViewFactory } from './view';
 
 export interface IRenderingEngine {
-  getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate;
-  getViewFactory(context: IRenderContext, source: Immutable<ITemplateSource>): IViewFactory;
+  getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;
+  getViewFactory(source: Immutable<ITemplateSource>, parentContext?: IRenderContext): IViewFactory;
 
   applyRuntimeBehavior(type: ICustomAttributeType, instance: ICustomAttribute): void;
   applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement): void
 
-  createViewFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): ViewWithCentralComponent;
   createRenderer(context: IRenderContext): IRenderer;
 }
 
@@ -67,7 +66,7 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
-  public getElementTemplate(definition: TemplateDefinition, componentType: ICustomElementType): ITemplate {
+  public getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate {
     if (!definition) {
       return null;
     }
@@ -75,10 +74,10 @@ export class RenderingEngine implements IRenderingEngine {
     let found = this.templateLookup.get(definition);
 
     if (!found) {
-      found = this.templateFromSource(<ExposedContext>this.container, definition);
+      found = this.templateFromSource(definition);
 
       //If the element has a view, support Recursive Components by adding self to own view template container.
-      if (found.renderContext !== null) {
+      if (found.renderContext !== null && componentType) {
         componentType.register(<ExposedContext>found.renderContext);
       }
 
@@ -88,7 +87,7 @@ export class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  public getViewFactory(context: IRenderContext, definition: Immutable<ITemplateSource>): IViewFactory {
+  public getViewFactory(definition: Immutable<ITemplateSource>, parentContext?: IRenderContext): IViewFactory {
     if (!definition) {
       return null;
     }
@@ -97,7 +96,7 @@ export class RenderingEngine implements IRenderingEngine {
 
     if (!found) {
       const validSource = createDefinition(definition);
-      found = this.factoryFromSource(context, validSource);
+      found = this.factoryFromSource(validSource, parentContext);
       this.factoryLookup.set(definition, found);
     }
 
@@ -115,42 +114,6 @@ export class RenderingEngine implements IRenderingEngine {
     found.applyTo(instance, this.changeSet);
   }
 
-  public createViewFromComponent(context: IRenderContext, componentOrType: any, instruction: Immutable<IHydrateElementInstruction>): ViewWithCentralComponent {
-    const animator = this.animator;
-
-    class ComponentView extends View {
-      public component: ICustomElement;
-
-      constructor() {
-        super(null, null, animator);
-        this.$context = context;
-      }
-
-      public createNodes(): INodeSequence {
-        let target: INode;
-
-        if (typeof componentOrType === 'function') {
-          target = DOM.createElement(componentOrType.source.name);
-          context.hydrateElement(this, target, instruction);
-          this.component = <ICustomElement>this.$attachables[this.$attachables.length - 1];
-        } else {
-          const componentType = <ICustomElementType>componentOrType.constructor;
-          target = componentOrType.element || DOM.createElement(componentType.description.name);
-          context.hydrateElementInstance(this, target, instruction, componentOrType);
-          this.component = componentOrType;
-        }
-
-        return NodeSequence.fromNode(target);
-      }
-
-      public tryReturnToCache(): false {
-        return false;
-      }
-    }
-
-    return new ComponentView();
-  }
-
   public createRenderer(context: IRenderContext): IRenderer {
     return new Renderer(
       context,
@@ -161,14 +124,16 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
-  private factoryFromSource(context: IRenderContext, definition: TemplateDefinition): IViewFactory {
-    const template = this.templateFromSource(context, definition);
+  private factoryFromSource(definition: TemplateDefinition, parentContext?: IRenderContext): IViewFactory {
+    const template = this.templateFromSource(definition, parentContext);
     const factory = new ViewFactory(definition.name, template, this.animator);
     factory.setCacheSize(definition.cache, true);
     return factory;
   }
 
-  private templateFromSource(context: IRenderContext, definition: TemplateDefinition): ITemplate {
+  private templateFromSource(definition: TemplateDefinition, parentContext?: IRenderContext,): ITemplate {
+    parentContext = parentContext || <ExposedContext>this.container;
+
     if (definition && definition.templateOrNode) {
       if (definition.build.required) {
         const compilerName = definition.build.compiler || defaultCompilerName;
@@ -178,10 +143,10 @@ export class RenderingEngine implements IRenderingEngine {
           throw Reporter.error(20, compilerName);
         }
 
-        definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>context));
+        definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>parentContext));
       }
 
-      return new CompiledTemplate(this, context, definition);
+      return new CompiledTemplate(this, parentContext, definition);
     }
 
     return noViewTemplate;

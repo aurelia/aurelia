@@ -161,7 +161,7 @@ export class Renderer implements IRenderer {
 
   public [TargetedInstructionType.hydrateTemplateController](renderable: IRenderable, target: any, instruction: Immutable<IHydrateTemplateController>, parts?: TemplatePartDefinitions) {
     const childInstructions = instruction.instructions;
-    const factory = this.renderingEngine.getViewFactory(this.context, instruction.src);
+    const factory = this.renderingEngine.getViewFactory(instruction.src, this.context);
     const context = this.context;
     const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
 

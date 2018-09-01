@@ -6,7 +6,7 @@ import { IHydrateElementInstruction, ITargetedInstruction, TargetedInstructionTy
 import { IRenderContext } from '../render-context';
 import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
-import { ViewWithCentralComponent } from '../view';
+import { IView } from '../view';
 
 const composeSource = {
   name: 'au-compose',
@@ -14,18 +14,17 @@ const composeSource = {
   instructions: null
 };
 
-const composeProps = ['component', 'swapOrder', 'isComposing'];
+const composeProps = ['component', 'isComposing'];
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
 @inject(IRenderable, INode, ITargetedInstruction, IRenderingEngine)
 export class Compose {
   public component: any;
-  //public swapOrder: SwapOrder;
   public isComposing: boolean;
 
   private task: CompositionTask = null;
-  private view: ViewWithCentralComponent = null;
+  private $child: IView = null;
   private content: INode = null;
   private baseInstruction: Immutable<IHydrateElementInstruction>;
   private compositionContext: IRenderContext;
@@ -54,18 +53,18 @@ export class Compose {
       content: this.createContentElement()
     };
 
-    const view = this.renderingEngine.createViewFromComponent(
-      this.compositionContext,
-      toBeComposed,
-      instruction
-    );
+    // const view = this.renderingEngine.createViewFromComponent(
+    //   this.compositionContext,
+    //   toBeComposed,
+    //   instruction
+    // );
 
-    return this.swap(view);
+    // return this.swap(view);
   }
 
   /** @internal */
-  public componentChanged(toBeComposed: any): void {
-    if (this.view !== null && this.view.component === toBeComposed) {
+  public componentChanged(toBeComposed: IView): void {
+    if (this.$child !== null && this.$child === toBeComposed) {
       return;
     }
 
@@ -99,13 +98,13 @@ export class Compose {
     return DOM.cloneNode(content);
   }
 
-  private swap(newView: ViewWithCentralComponent) {
-    const index = this.$bindables.indexOf(this.view);
+  private swap(newView: IView) {
+    const index = this.$bindables.indexOf(this.$child);
     if (index !== -1) {
       this.$bindables.splice(index, 1);
     }
 
-    this.view = newView;
+    this.$child = newView;
     this.$bindables.push(newView);
 
     if (this.$isBound) {

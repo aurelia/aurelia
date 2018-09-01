@@ -16,6 +16,7 @@ import { AttachLifecycle, DetachLifecycle, IAttach, IBindSelf } from './lifecycl
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
+import { ITemplate } from './template';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 
@@ -125,22 +126,35 @@ function register(this: ICustomElementType, container: IContainer): void {
 function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
-  const template = renderingEngine.getElementTemplate(description, Type);
 
-  this.$context = template.renderContext;
   this.$bindables = [];
   this.$attachables = [];
   this.$child = null;
   this.$isAttached = false;
   this.$isBound = false;
   this.$scope = BindingContext.createScope(this);
+  this.$projector = determineProjector(this, host, description, options);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
-  this.$projector = determineProjector(this, host, description, options);
-  this.$nodes = this.$behavior.hasRender
-    ? (this as any).render(host, options.parts, template)
-    : template.createFor(this, host, options.parts);
+  let template: ITemplate;
+
+  if (this.$behavior.hasRender) {
+    const result = (this as any).render(host, options.parts);
+
+    if (result.getTemplate) {
+      template = result.getElementTemplate(renderingEngine, Type);
+    } else {
+      this.$nodes = result;
+    }
+  } else {
+    template = renderingEngine.getElementTemplate(description, Type);
+  }
+
+  if (template) {
+    this.$context = template.renderContext;
+    this.$nodes = template.createFor(this, host, options.parts);
+  }
 
   if (this.$behavior.hasCreated) {
     (this as any).created();

@@ -9,8 +9,6 @@ import { IViewFactory } from './view';
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;
   render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-  hydrateElement(renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>): void;
-  hydrateElementInstance(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
   beginComponentOperation(renderable: IRenderable, target: any, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IDisposable;
 }
 
@@ -57,14 +55,6 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     return context;
   };
 
-  context.hydrateElement = function(renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>): void {
-    renderer[TargetedInstructionType.hydrateElement](renderable, target, instruction);
-  };
-
-  context.hydrateElementInstance = function(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void {
-    renderer.hydrateElementInstance(renderable, target, instruction, component);
-  };
-
   context.dispose = function(): void {
     factoryProvider.dispose();
     renderableProvider.dispose();
@@ -109,7 +99,7 @@ export class ViewFactoryProvider implements IResolver {
     const found = this.replacements[this.factory.name];
 
     if (found) {
-      return this.renderingEngine.getViewFactory(requestor, found);
+      return this.renderingEngine.getViewFactory(found, requestor);
     }
 
     return this.factory;

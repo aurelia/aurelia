@@ -28,6 +28,7 @@
     "Injectable",
     "Renderable",
     "attachables",
-    "bindables"
+    "bindables",
+    "containerless"
   ]
 }

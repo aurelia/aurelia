@@ -1,10 +1,9 @@
-import { Constructable, DI, Reporter } from '@aurelia/kernel';
+import { DI, Reporter } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
 import { DOM, INode, INodeSequence } from '../dom';
 import { IAnimator } from './animator';
-import { ICustomElement } from './custom-element';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
 import { IRenderContext } from './render-context';
 import { IRenderable } from './renderable';
@@ -26,8 +25,6 @@ export interface IView extends IBindScope, IRenderable, IAttach {
   animate(direction: MotionDirection): void | Promise<boolean>;
   tryReturnToCache(): boolean;
 }
-
-export type ViewWithCentralComponent = IView & { component: ICustomElement };
 
 export interface IViewFactory {
   readonly name: string;

@@ -142,7 +142,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   if (this.$behavior.hasRender) {
     const result = (this as any).render(host, options.parts);
 
-    if (result.getTemplate) {
+    if (result.getElementTemplate) {
       template = result.getElementTemplate(renderingEngine, Type);
     } else {
       this.$nodes = result;

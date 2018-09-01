@@ -417,7 +417,7 @@ describe('EventManager', () => {
     });
   });
 
-  describe.only('addEventListener()', () => {
+  describe('addEventListener()', () => {
     function setup(
       eventName: string,
       listener: EventListenerOrEventListenerObject,

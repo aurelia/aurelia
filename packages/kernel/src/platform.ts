@@ -1,3 +1,8 @@
+const camelCaseLookup = {};
+const kebabCaseLookup = {};
+
+const fromCharCode = String.fromCharCode;
+
 export const PLATFORM = {
   global: (function() {
     // Workers don’t have `window`, only `self`
@@ -19,6 +24,55 @@ export const PLATFORM = {
   noop() { },
   now(): number {
     return performance.now();
+  },
+
+  camelCase(input: string): string {
+    // benchmark: http://jsben.ch/lCFIe
+    let value = camelCaseLookup[input];
+    if (value !== undefined) {
+      return value;
+    }
+    let char = input.charCodeAt(0); // make first char toLower
+    if (char > 64 && char < 91) { // 65-90 = A-Z
+      value = fromCharCode(char + 32); // 32 is the offset between lower case and upper case char codes
+    } else {
+      value = fromCharCode(char);
+    }
+    for (let i = 1, ii = input.length; i < ii; ++i) {
+      char = input.charCodeAt(i);
+      if (char === 45 /*-*/ || char === 46 /*.*/ || char === 95 /*_*/) {
+        const next = input.charCodeAt(++i);
+        if (next > 96 && next < 123) { // 97-122 = a-z
+          value += fromCharCode(next - 32); // make char following a separator toUpper
+          continue;
+        }
+      }
+      value += fromCharCode(char);
+    }
+    return camelCaseLookup[input] = value;
+  },
+
+  kebabCase(input: string): string {
+    // benchmark: http://jsben.ch/K6D8o
+    let value = kebabCaseLookup[input];
+    if (value !== undefined) {
+      return value;
+    }
+    let char = input.charCodeAt(0); // make first char toLower
+    if (char > 64 && char < 91) { // 65-90 = A-Z
+      value = fromCharCode(char + 32); // 32 is the offset between lower case and upper case char codes
+    } else {
+      value = fromCharCode(char);
+    }
+    for (let i = 1, ii = input.length; i < ii; ++i) {
+      char = input.charCodeAt(i);
+      if (char > 64 && char < 91) {
+        value += `-${fromCharCode(char + 32)}`;
+        continue;
+      }
+      value += fromCharCode(char);
+    }
+    return kebabCaseLookup[input] = value;
   },
 
   requestAnimationFrame(callback: (time: number) => void): number {

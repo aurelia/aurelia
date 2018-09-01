@@ -1,17 +1,5 @@
-import { Omit } from '@aurelia/kernel';
+import { Omit, PLATFORM } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
-
-const capitalMatcher = /([A-Z])/g;
-
-/*@internal*/
-export function addHyphenAndLower(char) {
-  return '-' + char.toLowerCase();
-}
-
-/*@internal*/
-export function hyphenate(name) {
-  return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
-}
 
 export type BindableSource = Omit<IBindableDescription, 'property'>;
 
@@ -34,7 +22,7 @@ export function bindable(configOrTarget?: BindableSource | Object, key?, descrip
     let config: IBindableDescription = configOrTarget || {};
 
     if (!config.attribute) {
-      config.attribute = hyphenate(key2);
+      config.attribute = PLATFORM.kebabCase(key2);
     }
 
     if (!config.callback) {

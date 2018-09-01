@@ -30,7 +30,7 @@
     "build:esnext": "tsc -b tsconfig/esnext.json",
     "build:system": "tsc -b tsconfig/system.json",
     "build:umd": "tsc -b tsconfig/umd.json",
-    "build:all": "run-p build:*",
+    "build-all": "run-p build:*",
     "publish:local": "npm pack"
   },
   "dependencies": {

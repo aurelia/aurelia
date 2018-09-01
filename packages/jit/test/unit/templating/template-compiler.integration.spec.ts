@@ -519,8 +519,6 @@ describe('TemplateCompiler (integration)', () => {
       `<template><name-tag name="bigopon"></name-tag></template>`,
       NameTag
     );
-    debugger;
-    // (component.constructor as any).description.dependencies.push(NameTag);
     au.app({ host, component: component }).start();
     cs.flushChanges();
     expect(host.textContent).to.equal('bigopon');

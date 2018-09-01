@@ -294,104 +294,124 @@ describe('TemplateCompiler', () => {
     }
   });
 
-  // describe(`compile()`, () => {
-  //   const tests = [
-  //     {
-  //       inputMarkup: `<input type="text" value.bind="foo">`,
-  //       outputMarkup: `<input type="text" value.bind="foo" class="au">`,
-  //       instructions: [new ToViewBindingInstruction(new AccessScope('foo'), 'value')]
-  //     },
-  //     {
-  //       inputMarkup: `<input type="text" value.bind="foo"><div><input type="text" value.bind="foo"></div>`,
-  //       outputMarkup: `<input type="text" value.bind="foo" class="au"><div><input type="text" value.bind="foo" class="au"></div>`,
-  //       instructions: [
-  //         new ToViewBindingInstruction(new AccessScope('foo'), 'value'),
-  //         new ToViewBindingInstruction(new AccessScope('foo'), 'value')
-  //       ]
-  //     },
-  //     {
-  //       inputMarkup: `<input type="text" value="\${foo}">`,
-  //       outputMarkup: `<input type="text" value="\${foo}" class="au">`,
-  //       instructions: [new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value')]
-  //     },
-  //     {
-  //       inputMarkup: `<input type="text" value="\${foo}"><div><input type="text" value="\${foo}"></div>`,
-  //       outputMarkup: `<input type="text" value="\${foo}" class="au"><div><input type="text" value="\${foo}" class="au"></div>`,
-  //       instructions: [
-  //         new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value'),
-  //         new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]), 'value')
-  //       ]
-  //     },
-  //     {
-  //       inputMarkup: `<div>\${foo}</div>`,
-  //       outputMarkup: `<div><au-marker class="au"></au-marker> </div>`,
-  //       instructions: [new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]))]
-  //     },
-  //     {
-  //       inputMarkup: `<div>\${foo}<div>\${foo}</div></div>`,
-  //       outputMarkup: `<div><au-marker class="au"></au-marker> <div><au-marker class="au"></au-marker> </div></div>`,
-  //       instructions: [
-  //         new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')])),
-  //         new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]))
-  //       ]
-  //     },
-  //     {
-  //       inputMarkup: `<div repeat.for="item of items"></div>`,
-  //       outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
-  //       instructions: [
-  //         new HydrateTemplateController({ templateOrNode: null, instructions: [] }, 'repeat', [
-  //           new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
-  //           new SetPropertyInstruction('item', 'local'),
-  //         ])
-  //       ]
-  //     },
-  //     {
-  //       inputMarkup: `<div repeat.for="item of items"><div></div></div>`,
-  //       outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
-  //       instructions: [
-  //         new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
-  //           new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
-  //           new SetPropertyInstruction('item', 'local'),
-  //         ])
-  //       ]
-  //     },
-  //     {
-  //       inputMarkup: `<div repeat.for="item of items"><div repeat.for="item of items"><div></div></div></div>`,
-  //       outputMarkup: `<div repeat.for="item of items" class="au"></div>`,
-  //       instructions: [
-  //         new HydrateTemplateController({
-  //           templateOrNode: (<any>createElement(`<template><div repeat.for="item of items" class="au"></div></template>`)).content,
-  //           instructions: [[
-  //             new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
-  //               new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
-  //               new SetPropertyInstruction('item', 'local'),
-  //             ])
-  //           ]]
-  //         }, 'repeat', [
-  //             new ToViewBindingInstruction(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'),
-  //             new SetPropertyInstruction('item', 'local'),
-  //           ])
-  //       ]
-  //     }
-  //   ];
+  describe(`compile()`, () => {
+    const tests = [
+      // {
+      //   inputMarkup: `<input type="text" value.bind="foo">`,
+      //   outputMarkup: `<input type="text" value.bind="foo" class="au">`,
+      //   instructions: [new ToViewBindingInstruction(new AccessScope('foo') as any, 'value')]
+      // },
+      // {
+      //   inputMarkup: `<input type="text" value.bind="foo"><div><input type="text" value.bind="foo"></div>`,
+      //   outputMarkup: `<input type="text" value.bind="foo" class="au"><div><input type="text" value.bind="foo" class="au"></div>`,
+      //   instructions: [
+      //     new ToViewBindingInstruction(new AccessScope('foo') as any, 'value'),
+      //     new ToViewBindingInstruction(new AccessScope('foo') as any, 'value')
+      //   ]
+      // },
+      // {
+      //   inputMarkup: `<input type="text" value="\${foo}">`,
+      //   outputMarkup: `<input type="text" value="\${foo}" class="au">`,
+      //   instructions: [
+      //     new ToViewBindingInstruction(
+      //       new Interpolation(
+      //         ['', ''],
+      //         [new AccessScope('foo')]
+      //       ) as any,
+      //       'value'
+      //     )
+      //   ]
+      // },
+      // {
+      //   inputMarkup: `<input type="text" value="\${foo}"><div><input type="text" value="\${foo}"></div>`,
+      //   outputMarkup: `<input type="text" value="\${foo}" class="au"><div><input type="text" value="\${foo}" class="au"></div>`,
+      //   instructions: [
+      //     new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]) as any, 'value'),
+      //     new ToViewBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]) as any, 'value')
+      //   ]
+      // },
+      // {
+      //   inputMarkup: `<div>\${foo}</div>`,
+      //   outputMarkup: `<div><au-marker class="au"></au-marker> </div>`,
+      //   instructions: [new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]) as any)]
+      // },
+      // {
+      //   inputMarkup: `<div>\${foo}<div>\${foo}</div></div>`,
+      //   outputMarkup: `<div><au-marker class="au"></au-marker> <div><au-marker class="au"></au-marker> </div></div>`,
+      //   instructions: [
+      //     new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]) as any),
+      //     new TextBindingInstruction(new Interpolation(['', ''], [new AccessScope('foo')]) as any)
+      //   ]
+      // },
+      // {
+      //   inputMarkup: `<div repeat.for="item of items"></div>`,
+      //   outputMarkup: `<div></div>`,
+      //   instructions: [
+      //     new HydrateTemplateController({ templateOrNode: null, instructions: [] }, 'repeat', [
+      //       new ToViewBindingInstruction(
+      //         new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')) as any,
+      //         'items'
+      //       ),
+      //       new SetPropertyInstruction('item', 'local'),
+      //     ])
+      //   ]
+      // },
+      // {
+      //   inputMarkup: `<div repeat.for="item of items"><div></div></div>`,
+      //   outputMarkup: `<au-marker class="au"></au-marker><div></div>`,
+      //   instructions: [
+      //     new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
+      //       new ToViewBindingInstruction(
+      //         new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')) as any,
+      //         'items'
+      //       ),
+      //       new SetPropertyInstruction('item', 'local'),
+      //     ])
+      //   ]
+      // },
+      // {
+      //   inputMarkup: `<div repeat.for="item of items"><div repeat.for="item of items"><div></div></div></div>`,
+      //   outputMarkup: `<au-marker class="au"></au-marker>`,
+      //   instructions: [
+      //     new HydrateTemplateController({
+      //       templateOrNode: (<any>createElement(`<template><div></div></template>`)).content,
+      //       instructions: [[
+      //         new HydrateTemplateController({ templateOrNode: (<any>createElement(`<template><div></div></template>`)).content, instructions: [] }, 'repeat', [
+      //           new ToViewBindingInstruction(
+      //             new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')) as any,
+      //             'items'
+      //           ),
+      //           new SetPropertyInstruction('item', 'local'),
+      //         ])
+      //       ]]
+      //     }, 'repeat', [
+      //         new ToViewBindingInstruction(
+      //           new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')) as any,
+      //           'items'
+      //         ),
+      //         new SetPropertyInstruction('item', 'local'),
+      //       ])
+      //   ]
+      // }
+    ];
 
-  //   for (const count of [1, 2, 3]) {
-  //     for (let { inputMarkup, outputMarkup, instructions } of tests) {
-  //       inputMarkup = new Array(count + 1).join(inputMarkup);
-  //       it(inputMarkup, () => {
-  //         outputMarkup = new Array(count + 1).join(outputMarkup);
-  //         instructions = new Array(count).fill(instructions).reduce((acc, item) => acc.concat(item));
-  //         const actual = sut.compile(<any>{ templateOrNode: inputMarkup, instructions: [] }, resources);
-  //         const expected = {
-  //           templateOrNode: createElement(outputMarkup),
-  //           instructions: [instructions]
-  //         };
-  //         verifyEqual(actual, expected);
-  //       });
-  //     }
-  //   }
+    for (const count of [1, 2, 3]) {
+      for (let { inputMarkup, outputMarkup, instructions } of tests) {
+        inputMarkup = new Array(count + 1).join(inputMarkup);
+        it(inputMarkup, () => {
+          outputMarkup = new Array(count + 1).join(outputMarkup);
+          instructions = new Array(count).fill(instructions).reduce((acc, item) => acc.concat(item));
+          const actual = sut.compile(<any>{ templateOrNode: inputMarkup, instructions: [] }, resources);
+          const expected = {
+            templateOrNode: createElement(outputMarkup),
+            instructions: [instructions]
+          };
+          verifyEqual(actual, expected);
+        });
+      }
+    }
 
-  // });
+  });
 
   describe('compileElement()', () => {
 

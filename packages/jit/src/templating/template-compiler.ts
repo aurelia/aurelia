@@ -71,6 +71,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const source = node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node;
     node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
     while (node = this.compileNode(<Node>node, definition, definition.instructions, resources, source)) { /* Do nothing */ }
+    debugger;
     return definition;
   }
 
@@ -85,22 +86,23 @@ export class TemplateCompiler implements ITemplateCompiler {
     // incase node is the direct child of document fragment
     parentNode: Node
   ): Node {
+    let nextSibling = node.nextSibling;
     switch (node.nodeType) {
       case NodeType.Element:
         this.compileElementNode(<Element>node, definition, instructions, resources, parentNode);
-        return node.nextSibling;
+        return nextSibling;
       case NodeType.Text:
         if (!this.compileTextNode(<Text>node, instructions)) {
           while ((node = node.nextSibling) && node.nodeType === NodeType.Text) { /* Do nothing */ }
           return node;
         }
-        return node.nextSibling;
+        return nextSibling;
       case NodeType.Comment:
-        return node.nextSibling;
+        return nextSibling;
       case NodeType.Document:
         return node.firstChild;
       case NodeType.DocumentType:
-        return node.nextSibling;
+        return nextSibling;
       case NodeType.DocumentFragment:
         return node.firstChild;
     }

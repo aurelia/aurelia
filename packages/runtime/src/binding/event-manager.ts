@@ -97,7 +97,6 @@ export class ListenerTracker {
 /**
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
-/*@internal*/
 export class DelegateOrCaptureSubscription {
   constructor(
     public entry: ListenerTracker,
@@ -117,7 +116,6 @@ export class DelegateOrCaptureSubscription {
 /**
  * Enable dispose() pattern for addEventListener for `trigger`
  */
-/*@internal*/
 export class TriggerSubscription {
   constructor(
     public target: INode,

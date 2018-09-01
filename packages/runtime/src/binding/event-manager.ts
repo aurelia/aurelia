@@ -283,12 +283,14 @@ export class EventManager implements IEventManager {
     if (strategy === DelegationStrategy.bubbling) {
       delegatedHandlers = this.delegatedHandlers;
       handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleDelegatedEvent, false));
+      handlerEntry.increment();
       const delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
       return new DelegateOrCaptureSubscription(handlerEntry, delegatedCallbacks, targetEvent, callbackOrListener);
     }
     if (strategy === DelegationStrategy.capturing) {
       capturedHandlers = this.capturedHandlers;
       handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleCapturedEvent, true));
+      handlerEntry.increment();
       const capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
       return new DelegateOrCaptureSubscription(handlerEntry, capturedCallbacks, targetEvent, callbackOrListener);
     }

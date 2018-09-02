@@ -21,8 +21,8 @@
   ],
   "scripts": {
     "lint": "cross-env tslint --project tsconfig-test.json -e \"test/**\" -t stylish",
-    "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=ChromeHeadless --single-run --coverage",
-    "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=ChromeHeadless --coverage",
+    "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=ChromeHeadlessOpt --single-run --coverage",
+    "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=ChromeHeadlessOpt --coverage",
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=ChromeDebugging",
     "build:amd": "tsc -b tsconfig/amd.json",
     "build:commonjs": "tsc -b tsconfig/commonjs.json",

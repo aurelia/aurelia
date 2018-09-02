@@ -27,19 +27,33 @@ function buildDriver() {
   logPref.setLevel(logging.Type.BROWSER, logging.Level.ALL);
 
   let options = new chrome.Options();
-  options = options.addArguments('--js-flags=--expose-gc');
-  options = options.addArguments('--no-sandbox');
-  options = options.addArguments('--no-first-run');
-  options = options.addArguments('--enable-automation');
-  options = options.addArguments('--disable-infobars');
-  options = options.addArguments('--disable-background-networking');
-  options = options.addArguments('--disable-background-timer-throttling');
-  options = options.addArguments('--disable-cache');
-  options = options.addArguments('--disable-translate');
-  options = options.addArguments('--disable-sync');
-  options = options.addArguments('--disable-extensions');
-  options = options.addArguments('--disable-default-apps');
-  options = options.addArguments('--window-size=1200,800');
+  [
+    '--enable-automation',
+    '--js-flags=--expose-gc',
+    '--no-default-browser-check',
+    '--no-first-run',
+    '--no-managed-user-acknowledgment-check',
+    '--no-pings',
+    '--no-sandbox',
+    '--no-wifi',
+    '--no-zygote',
+    '--disable-background-networking',
+    '--disable-background-timer-throttling',
+    '--disable-backing-store-limit',
+    '--disable-boot-animation',
+    '--disable-breakpad',
+    '--disable-cache',
+    '--disable-clear-browsing-data-counters',
+    '--disable-cloud-import',
+    '--disable-component-extensions-with-background-pages',
+    '--disable-contextual-search',
+    '--disable-default-apps',
+    '--disable-extensions',
+    '--disable-infobars',
+    '--disable-translate',
+    '--disable-sync',
+    '--window-size=1200,800'
+  ].reduce((opt, flag) => opt.addArguments(flag), options);
   options = options.setLoggingPrefs(logPref);
   options = options.setPerfLoggingPrefs(<any>{
     enableNetwork: true,

@@ -19,6 +19,31 @@ export interface IKarmaConfigOptions extends karma.ConfigOptions {
   webpackMiddleware: any;
 }
 
+const commonChromeFlags = [
+  '--no-default-browser-check',
+  '--no-first-run',
+  '--no-managed-user-acknowledgment-check',
+  '--no-pings',
+  '--no-sandbox',
+  '--no-wifi',
+  '--no-zygote',
+  '--disable-background-networking',
+  '--disable-background-timer-throttling',
+  '--disable-backing-store-limit',
+  '--disable-boot-animation',
+  '--disable-breakpad',
+  '--disable-cache',
+  '--disable-clear-browsing-data-counters',
+  '--disable-cloud-import',
+  '--disable-component-extensions-with-background-pages',
+  '--disable-contextual-search',
+  '--disable-default-apps',
+  '--disable-extensions',
+  '--disable-infobars',
+  '--disable-translate',
+  '--disable-sync'
+];
+
 export default function(config: IKarmaConfig): void {
   const packages = path.resolve(__dirname, '..', 'packages');
   const basePath = path.join(packages, config.package);
@@ -78,8 +103,17 @@ export default function(config: IKarmaConfig): void {
     customLaunchers: {
       ChromeDebugging: {
         base: "Chrome",
-        flags: ['--disable-translate', '--disable-extensions', '--remote-debugging-port=9333'],
+        flags: [
+          ...commonChromeFlags,
+          '--remote-debugging-port=9333'
+        ],
         debug: true
+      },
+      ChromeHeadlessOpt: {
+        base: "ChromeHeadless",
+        flags: [
+          ...commonChromeFlags
+        ]
       }
     }
   };

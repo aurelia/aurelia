@@ -13,7 +13,7 @@ import { IView, IViewFactory, ViewFactory } from './view';
 
 type ChildType = ProtoRenderable | string | INode;
 
-export function createElement(tagOrType: string | Constructable, props?: any, children?: ChildType[]): ProtoRenderable {
+export function createElement(tagOrType: string | Constructable, props?: any, children?: ArrayLike<ChildType>): ProtoRenderable {
   if (typeof tagOrType === 'string') {
     return createElementForTag(tagOrType, props, children);
   } else {
@@ -22,28 +22,16 @@ export function createElement(tagOrType: string | Constructable, props?: any, ch
 }
 
 export class ProtoRenderable {
-  private definition: TemplateDefinition;
+  private lazyDefinition: TemplateDefinition;
 
   constructor(
-    public readonly node: INode,
-    public readonly instructions: TargetedInstruction[][],
-    public readonly dependencies: ReadonlyArray<any>
+    private readonly node: INode,
+    private readonly instructions: TargetedInstruction[][],
+    private readonly dependencies: ReadonlyArray<any>
   ) {}
 
-  public getElementTemplate(engine: IRenderingEngine, type?: ICustomElementType): ITemplate {
-    return engine.getElementTemplate(this.createDefinition(), type);
-  }
-
-  public createView(engine: IRenderingEngine, parentContext?: IRenderContext): IView {
-    return this.getViewFactory(engine, parentContext).create();
-  }
-
-  public getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext): IViewFactory {
-    return engine.getViewFactory(this.createDefinition(), parentContext);
-  }
-
-  public createDefinition(): TemplateDefinition {
-    return this.definition || (this.definition = {
+  public get definition(): TemplateDefinition {
+    return this.lazyDefinition || (this.lazyDefinition = {
       name: 'unnamed',
       templateOrNode: this.node,
       cache: 0,
@@ -59,9 +47,28 @@ export class ProtoRenderable {
       surrogates: PLATFORM.emptyArray
     });
   }
+
+  public getElementTemplate(engine: IRenderingEngine, type?: ICustomElementType): ITemplate {
+    return engine.getElementTemplate(this.definition, type);
+  }
+
+  public createView(engine: IRenderingEngine, parentContext?: IRenderContext): IView {
+    return this.getViewFactory(engine, parentContext).create();
+  }
+
+  public getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext): IViewFactory {
+    return engine.getViewFactory(this.definition, parentContext);
+  }
+
+  /*@internal*/
+  public mergeInto(parent: INode, instructions: TargetedInstruction[][], dependencies: any[]): void {
+    DOM.appendChild(parent, this.node);
+    instructions.push(...this.instructions);
+    dependencies.push(...this.dependencies);
+  }
 }
 
-function createElementForTag(tagName: string, props?: any, children?: ChildType[]): ProtoRenderable {
+function createElementForTag(tagName: string, props?: any, children?: ArrayLike<ChildType>): ProtoRenderable {
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
   const dependencies = [];
@@ -79,7 +86,7 @@ function createElementForTag(tagName: string, props?: any, children?: ChildType[
   return new ProtoRenderable(element, allInstructions, dependencies);
 }
 
-function createElementForType(Type: ICustomElementType, props?: any, children?: ChildType[]): ProtoRenderable {
+function createElementForType(Type: ICustomElementType, props?: any, children?: ArrayLike<ChildType>): ProtoRenderable {
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
@@ -125,16 +132,16 @@ function createElementForType(Type: ICustomElementType, props?: any, children?: 
   return new ProtoRenderable(element, allInstructions, dependencies);
 }
 
-function addChildren(parent: INode, children: ChildType[], allInstructions: TargetedInstruction[][], dependencies: any[]): void {
-  children.forEach(x => {
-    if (typeof x === 'string') {
+function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructions: TargetedInstruction[][], dependencies: any[]): void {
+  for (let i = 0, ii = children.length; i < ii; ++i) {
+    const current = children[i];
+
+    if (typeof current === 'string') {
       // create text node and append
-    } else if (DOM.isNodeInstance(x)) {
-      DOM.appendChild(parent, x);
+    } else if (DOM.isNodeInstance(current)) {
+      DOM.appendChild(parent, current);
     } else {
-      DOM.appendChild(parent, x.node);
-      allInstructions.push(...x.instructions);
-      dependencies.push(...x.dependencies);
+      current.mergeInto(parent, allInstructions, dependencies);
     }
-  });
+  }
 }

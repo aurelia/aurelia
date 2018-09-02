@@ -1,8 +1,9 @@
-import { Immutable, inject } from '@aurelia/kernel';
+import { Immutable, inject, Constructable } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding/binding-flags';
-import { DOM, INode } from '../../dom';
+import { INode, IRenderLocation } from '../../dom';
+import { createElement } from '../create-element';
 import { customElement, ICustomElement } from '../custom-element';
-import { IHydrateElementInstruction, ITargetedInstruction, TargetedInstructionType } from '../instructions';
+import { IHydrateElementInstruction, ITargetedInstruction } from '../instructions';
 import { IRenderContext } from '../render-context';
 import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
@@ -18,110 +19,99 @@ const composeProps = ['component', 'isComposing'];
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
-@inject(IRenderable, INode, ITargetedInstruction, IRenderingEngine)
+@inject(IRenderable, INode, ITargetedInstruction, IRenderingEngine, IRenderLocation)
 export class Compose {
   public component: any;
-  public isComposing: boolean;
+  public composing: boolean;
 
   private task: CompositionTask = null;
-  private $child: IView = null;
+  private currentView: IView = null;
   private content: INode = null;
-  private baseInstruction: Immutable<IHydrateElementInstruction>;
   private compositionContext: IRenderContext;
+  private encapsulationSource: INode;
 
   constructor(
     private renderable: IRenderable,
     private host: INode,
     instruction: Immutable<IHydrateElementInstruction>,
-    private renderingEngine: IRenderingEngine
+    private renderingEngine: IRenderingEngine,
+    private location: IRenderLocation
   ) {
     this.compositionContext = renderable.$context;
-    this.baseInstruction = {
-      type: TargetedInstructionType.hydrateElement,
-      res: null,
-      parts: instruction.parts,
-      instructions: instruction.instructions
-        .filter((x: any) => !composeProps.includes(x.dest))
-    };
+  }
+
+  public attaching(encapsulationSource: INode): void {
+    this.encapsulationSource = encapsulationSource;
   }
 
   /** @internal */
-  public compose(toBeComposed: any) {
-    const instruction: Immutable<IHydrateElementInstruction> = {
-      ...this.baseInstruction,
-      res: toBeComposed,
-      content: this.createContentElement()
-    };
+  public compose(component: Constructable): void {
+    const protoRenderable = createElement(
+      component,
+      {}, // TODO: get the prop instructions from the the hydrate instruction
+      this.content.childNodes // TODO: get the content
+    );
 
-    // const view = this.renderingEngine.createViewFromComponent(
-    //   this.compositionContext,
-    //   toBeComposed,
-    //   instruction
-    // );
+    const view = protoRenderable.createView(
+      this.renderingEngine,
+      this.compositionContext
+    );
 
-    // return this.swap(view);
+    this.swap(view);
   }
 
   /** @internal */
-  public componentChanged(toBeComposed: IView): void {
-    if (this.$child !== null && this.$child === toBeComposed) {
-      return;
-    }
-
-    if (!toBeComposed) {
+  public componentChanged(newComponent: any): void {
+    if (!newComponent) {
       this.clear();
     } else {
-      const previousTask = this.task;
-      const newTask = this.task = new CompositionTask(this);
-
-      if (previousTask !== null) {
-        const cancelResult = previousTask.cancel();
-
-        if (cancelResult instanceof Promise) {
-          cancelResult.then(() => newTask.start(toBeComposed));
-          return;
-        }
+      if (this.task) {
+        this.task.cancel();
       }
 
-      newTask.start(toBeComposed);
+      this.task = new CompositionTask(this);
+      this.task.start(newComponent);
     }
   }
 
-  private createContentElement(): INode {
-    let content = this.content;
+  private swap(newView: IView): void {
+    this.clear();
 
-    if (content == null) {
-      this.content = content = DOM.createElement('au-content');
-      DOM.migrateChildNodes(this.host, content);
-    }
+    newView.onRender = view => view.$nodes.insertBefore(this.location);
 
-    return DOM.cloneNode(content);
-  }
-
-  private swap(newView: IView) {
-    const index = this.$bindables.indexOf(this.$child);
-    if (index !== -1) {
-      this.$bindables.splice(index, 1);
-    }
-
-    this.$child = newView;
+    this.currentView = newView;
     this.$bindables.push(newView);
+    this.$attachables.push(newView);
 
     if (this.$isBound) {
       newView.$bind(BindingFlags.fromBind, this.renderable.$scope);
     }
 
-    // return this.slot.swap(newView, this.swapOrder || SwapOrder.after);
+    if (this.$isAttached) {
+      newView.$attach(this.encapsulationSource);
+    }
   }
 
   private clear(): void {
-    // this.slot.removeAll();
+    if (this.currentView) {
+      const bindableIndex = this.$bindables.indexOf(this.currentView);
+      if (bindableIndex !== -1) {
+        this.$bindables.splice(bindableIndex, 1);
+      }
+
+      const attachableIndex = this.$attachables.indexOf(this.currentView);
+      if (attachableIndex !== -1) {
+        this.$attachables.splice(attachableIndex, 1);
+      }
+
+      this.currentView.$detach();
+      this.currentView.$unbind(BindingFlags.fromUnbind);
+    }
   }
 }
 
 class CompositionTask {
   private isCancelled: boolean = false;
-  private composeResult = null;
 
   constructor(private compose: Compose) {}
 
@@ -130,33 +120,26 @@ class CompositionTask {
       return;
     }
 
-    this.compose.isComposing = true;
+    this.compose.composing = true;
 
     if (toBeComposed instanceof Promise) {
-      toBeComposed.then(x => this.render(x));
+      toBeComposed.then(x => this.complete(x));
     } else {
-      this.render(toBeComposed);
+      this.complete(toBeComposed);
     }
   }
 
-  public cancel() {
-    this.compose.isComposing = false;
+  public cancel(): void {
     this.isCancelled = true;
-    return this.composeResult;
+    this.compose.composing = false;
   }
 
-  private render(toBeComposed: any): void {
+  private complete(toBeComposed: any): void {
     if (this.isCancelled) {
       return;
     }
 
-    this.composeResult = this.compose.compose(toBeComposed);
-
-    if (this.composeResult instanceof Promise) {
-      this.composeResult = this.composeResult.then(() =>  this.compose.isComposing = false);
-    } else {
-      this.compose.isComposing = false;
-      this.composeResult = null;
-    }
+    this.compose.compose(toBeComposed);
+    this.compose.composing = false;
   }
 }

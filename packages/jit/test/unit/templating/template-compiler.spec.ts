@@ -440,11 +440,14 @@ describe('TemplateCompiler', () => {
         });
 
         it('throws on attributes that require to be unique', () => {
-          expect(() => compileWith(
-            `<template id="id" part="part" replace-part="asd" class="h-100"></template>`,
-            [],
-            ViewCompileFlags.surrogate
-          )).to.throw(/Invalid surrogate attribute/);
+          const attrs = ['id', 'part', 'replace-part'];
+          attrs.forEach(attr => {
+            expect(() => compileWith(
+              `<template ${attr}="${attr}"></template>`,
+              [],
+              ViewCompileFlags.surrogate
+            )).to.throw(/Invalid surrogate attribute/);
+          });
         });
       });
 
@@ -560,7 +563,7 @@ describe('TemplateCompiler', () => {
       });
 
       describe('with template controller', () => {
-        it('throws when there is no binding command', () => {
+        it('compiles', () => {
           @customAttribute({
             name: 'prop',
             isTemplateController: true
@@ -574,7 +577,31 @@ describe('TemplateCompiler', () => {
           );
           expect((templateOrNode as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
-          expect((hydratePropAttrInstruction.src.templateOrNode as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>')
+          expect((hydratePropAttrInstruction.src.templateOrNode as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
+        });
+
+        it('moves attrbiutes instructions before the template controller into it', () => {
+          @customAttribute({
+            name: 'prop',
+            isTemplateController: true
+          })
+          class Prop {
+            value: any;
+          }
+          const { templateOrNode, instructions } = compileWith(
+            `<template><el name.bind="name" title.bind="title" prop.bind="p"></el></template>`,
+            [Prop]
+          );
+          expect((templateOrNode as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
+          const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
+          verifyInstructions(hydratePropAttrInstruction.instructions as any, [
+            { toVerify: ['type', 'dest', 'srcOrExp'],
+              type: TargetedInstructionType.propertyBinding, dest: 'value', srcOrExp: 'p' },
+            { toVerify: ['type', 'dest', 'srcOrExp'],
+              type: TargetedInstructionType.propertyBinding, dest: 'name', srcOrExp: 'name' },
+            { toVerify: ['type', 'dest', 'srcOrExp'],
+              type: TargetedInstructionType.propertyBinding, dest: 'title', srcOrExp: 'title' },
+          ]);
         });
       });
     });

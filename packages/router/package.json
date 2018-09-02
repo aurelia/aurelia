@@ -31,6 +31,7 @@
     "build:system": "tsc -b tsconfig/system.json",
     "build:umd": "tsc -b tsconfig/umd.json",
     "build-all": "run-p build:*",
+    "dev": "tsc -b tsconfig/umd.json -w",
     "publish:local": "npm pack"
   },
   "dependencies": {

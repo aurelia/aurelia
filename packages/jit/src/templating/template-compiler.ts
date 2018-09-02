@@ -31,7 +31,7 @@ import {
   ViewCompileFlags,
 } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
-import { IBindingCommand, BindingCommandResource } from './instruction-compiler';
+import { IBindingCommand, BindingCommandResource } from './binding-command';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = DOM.createElement('au-marker') as Element;

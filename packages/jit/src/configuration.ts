@@ -31,7 +31,7 @@ import {
   ToViewBindingCommand,
   TriggerBindingCommand,
   TwoWayBindingCommand
-} from './templating/instruction-compiler';
+} from './templating/binding-command';
 import { TemplateCompiler } from './templating/template-compiler';
 
 const globalResources: any[] = [

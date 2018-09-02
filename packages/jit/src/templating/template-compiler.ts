@@ -33,7 +33,7 @@ import {
 import { Char } from '../binding/expression-parser';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
-const marker = document.createElement('au-marker');
+const marker = DOM.createElement('au-marker') as Element;
 marker.classList.add('au');
 const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
 const swapWithMarker = (node: Element, parentNode: Element) => {
@@ -192,16 +192,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     const attributeInstructions: TargetedInstruction[] = [];
     let liftInstruction: HydrateTemplateController;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
-      const instruction = this.compileAttribute(
-        attributes.item(i),
-        node,
-        resources,
-        elementInstruction
-      );
+      const instruction = this.compileAttribute(attributes.item(i), node, resources, elementInstruction);
       if (instruction !== null) {
-        // if it's a template controller instruction
-        // it could be nth template controller instruction: <div if.bind="" repeat.for="" with.bind=""></div>
-        // just keep refreshing the reference to the last template controller instruction
         if (instruction.type === TargetedInstructionType.hydrateTemplateController) {
           liftInstruction = instruction;
           // lift instructions will take over the compilation
@@ -221,7 +213,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       liftInstruction.src.templateOrNode = template;
       this.compile(<any>liftInstruction.src, resources);
       // All normal attributes processed before template controller need to be added to template controller
-      liftInstruction.instructions.splice(0, 0, ...attributeInstructions);
+      // But all should come after the first instruction,
+      // which is the instruction that sets the value/ values of the template controller
+
+      liftInstruction.instructions.splice(1, 0, ...attributeInstructions);
       instructions.push([liftInstruction]);
     } else {
       const targetInstructions: TargetedInstruction[] = [];
@@ -235,11 +230,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         instructions.push(targetInstructions);
         node.classList.add('au');
       }
-    }
-    // node = <Element>(node.nodeName === 'TEMPLATE' ? (<HTMLTemplateElement>node).content : node);
-    let currentChild = node.firstChild;
-    while (currentChild) {
-      currentChild = this.compileNode(currentChild, instructions, resources, parentNode);
+      const current = node;
+      let currentChild = node.firstChild;
+      while (currentChild) {
+        currentChild = this.compileNode(currentChild, instructions, resources, current);
+      }
     }
   }
 
@@ -459,7 +454,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     };
     return new HydrateTemplateController(src, targetName, [
       instruction
-    ]);
+    ], attributeDefinition.name === 'else');
   }
 }
 

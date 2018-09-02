@@ -509,18 +509,19 @@ describe('TemplateCompiler (integration)', () => {
     expect(host.textContent).to.equal('');
   });
 
-  // it(`if - shows and hides - toggles else`, () => {
-  //   component = createCustomElement(`<template><div if.bind="foo">bar</div><div else>baz</div></template>`);
-  //   component.foo = true;
-  //   au.app({ host, component: component }).start();
-  //   cs.flushChanges();
-  //   expect(host.innerText).to.equal('bar');
-  //   component.foo = false;
-  //   cs.flushChanges();
-  //   expect(host.innerText).to.equal('baz');
-  //   cs.flushChanges();
-  //   expect(host.innerText).to.equal('bar');
-  // });
+  it(`if - shows and hides - toggles else`, () => {
+    component = createCustomElement(`<template><div if.bind="foo">bar</div><div else>baz</div></template>`);
+    component.foo = true;
+    au.app({ host, component: component }).start();
+    cs.flushChanges();
+    expect(host.innerText).to.equal('bar');
+    component.foo = false;
+    cs.flushChanges();
+    expect(host.innerText).to.equal('baz');
+    component.foo = true;
+    cs.flushChanges();
+    expect(host.innerText).to.equal('bar');
+  });
 
   it(`custom elements`, () => {
     component = createCustomElement(

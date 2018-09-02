@@ -4,10 +4,12 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --ci --hoist",
     "build": "lerna run build:umd",
+    "dev": "lerna run dev --parallel",
     "build-all": "lerna run build-all",
-    "test": "lerna run test",
-    "lint": "lerna run lint",
-    "publish:local": "lerna run publish:local",
+    "test": "lerna run test --parallel",
+    "test:watch": "lerna run test:watch --parallel",
+    "lint": "lerna run lint --parallel",
+    "publish:local": "lerna run publish:local --parallel",
     "init": "npm ci && npm run bootstrap && npm run build && npm run publish:local"
   },
   "dependencies": {},

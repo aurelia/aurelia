@@ -249,4 +249,8 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
 
     return null;
   }
+
+  public create<TSource, TType extends IResourceType<TSource>>(kind: IResourceKind<TSource, TType>, name: string): InstanceType<TType> | null {
+    return this.context.get(kind.keyFrom(name)) || null;
+  }
 }

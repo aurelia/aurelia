@@ -41,7 +41,6 @@ import {
 import {
   TemplateCompiler,
   register,
-  BindingCommandResource,
   ToViewBindingInstruction,
   HydrateTemplateController,
   OneTimeBindingInstruction,
@@ -133,7 +132,6 @@ describe('TemplateCompiler', () => {
     expressionParser = container.get(IExpressionParser);
     sut = new TemplateCompiler(expressionParser as any);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
-    container.registerResolver(BindingCommandResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
   });
 
@@ -451,7 +449,7 @@ describe('TemplateCompiler', () => {
         });
       });
 
-      it('understands attr precendence: event > custom attr > element prop', () => {
+      it('understands attr precendence: custom attr > element prop', () => {
         @customElement('el')
         class El {
           @bindable() prop1: string;
@@ -464,16 +462,18 @@ describe('TemplateCompiler', () => {
 
         const actual = compileWith(
           `<template>
-            <el prop1.bind="p" prop2.trigger="p" prop3.delegate="t" prop3="t"></el>
+            <el prop1.bind="p" prop2.bind="p" prop3.bind="t" prop3="t"></el>
           </template>`,
           [El, Prop]
         );
-        const rootInstructions = actual.instructions[0] as any[];
+        expect(actual.instructions.length).to.equal(1);
+        expect(actual.instructions[0].length).to.equal(1);
+        const rootInstructions = actual.instructions[0][0]['instructions'] as any[];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateElement, res: 'el' },
-          { toVerify: ['type', 'res'], type: TargetedInstructionType.listenerBinding, dest: 'prop2' },
-          { toVerify: ['type', 'res'], type: TargetedInstructionType.listenerBinding, dest: 'prop2' },
-          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateAttribute, res: 'prop3' }
+          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.propertyBinding, dest: 'prop1' },
+          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.propertyBinding, dest: 'prop2' },
+          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.hydrateAttribute, res: 'prop3' },
+          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.hydrateAttribute, res: 'prop3' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
       });
@@ -499,7 +499,7 @@ describe('TemplateCompiler', () => {
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'mode', 'dest'], type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, dest: 'name' },
+          { toVerify: ['type', 'dest', 'value'], type: TargetedInstructionType.setProperty, dest: 'name', value: 'name' },
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -521,7 +521,7 @@ describe('TemplateCompiler', () => {
         const rootInstructions = actual.instructions[0] as any[];
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'mode', 'dest'], type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, dest: 'backgroundColor' },
+          { toVerify: ['type', 'value', 'dest'], type: TargetedInstructionType.setProperty, value: 'label', dest: 'backgroundColor' },
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -595,12 +595,12 @@ describe('TemplateCompiler', () => {
           expect((templateOrNode as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.instructions as any, [
-            { toVerify: ['type', 'dest', 'srcOrExp'],
-              type: TargetedInstructionType.propertyBinding, dest: 'value', srcOrExp: 'p' },
-            { toVerify: ['type', 'dest', 'srcOrExp'],
-              type: TargetedInstructionType.propertyBinding, dest: 'name', srcOrExp: 'name' },
-            { toVerify: ['type', 'dest', 'srcOrExp'],
-              type: TargetedInstructionType.propertyBinding, dest: 'title', srcOrExp: 'title' },
+            { toVerify: ['type', 'dest', 'srcOrExpr'],
+              type: TargetedInstructionType.propertyBinding, dest: 'value', srcOrExpr: new AccessScope('p') },
+            { toVerify: ['type', 'dest', 'srcOrExpr'],
+              type: TargetedInstructionType.propertyBinding, dest: 'name', srcOrExpr: new AccessScope('name') },
+            { toVerify: ['type', 'dest', 'srcOrExpr'],
+              type: TargetedInstructionType.propertyBinding, dest: 'title', srcOrExpr: new AccessScope('title') },
           ]);
         });
       });
@@ -618,19 +618,23 @@ describe('TemplateCompiler', () => {
 
     function verifyInstructions(actual: any[], expectation: IExpectedInstruction[]) {
       expect(actual.length).to.equal(expectation.length, `Expected to have ${expectation.length} instructions. Received: ${actual.length}`);
-      actual.forEach((inst, idx) => {
-        const expectedInst = expectation[idx];
-        for (const prop in expectedInst.toVerify) {
-          verifyInstructionProp(inst, expectedInst, prop);
+      for (let i = 0, ii = actual.length; i < ii; ++i) {
+        const actualInst = actual[i];
+        const expectedInst = expectation[i];
+        for (const prop of expectedInst.toVerify) {
+          if (expectedInst[prop] instanceof Object) {
+            expect(
+              actualInst[prop]).to.deep.equal(expectedInst[prop],
+              `Expected actual instruction to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
+            );
+          } else {
+            expect(
+              actualInst[prop]).to.equal(expectedInst[prop],
+              `Expected actual instruction to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
+            );
+          }
         }
-      });
-    }
-
-    function verifyInstructionProp(actual: ITargetedInstruction, expected: IExpectedInstruction, prop: string) {
-      expect(
-        actual[prop]).to.equal(expected[prop],
-        `Expected actual instruction to have "${prop}": ${expected[prop]}. Received: ${actual[prop]}`
-      );
+      }
     }
   });
 });

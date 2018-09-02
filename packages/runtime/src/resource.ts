@@ -16,4 +16,5 @@ export interface IResourceType<TSource = {}, T = {}> extends Constructable<T>, I
 
 export interface IResourceDescriptions {
   find<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null;
+  create<TSource, TType extends IResourceType<TSource>>(kind: IResourceKind<TSource, TType>, name: string): InstanceType<TType> | null;
 }

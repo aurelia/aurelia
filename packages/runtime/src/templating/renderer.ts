@@ -18,6 +18,7 @@ import {
   IListenerBindingInstruction,
   IPropertyBindingInstruction,
   IRefBindingInstruction,
+  IRenderStrategyInstruction,
   ISetAttributeInstruction,
   ISetPropertyInstruction,
   IStylePropertyBindingInstruction,
@@ -27,6 +28,7 @@ import {
   TemplatePartDefinitions
 } from './instructions';
 import { IRenderContext } from './render-context';
+import { IRenderStrategy, RenderStrategyResource } from './render-strategy';
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 
@@ -84,7 +86,7 @@ export class Renderer implements IRenderer {
         realTarget = component;
       }
 
-      (this[current.type] as any)(renderable, realTarget, current);
+      ((<any>this)[currentType] as any)(renderable, realTarget, current);
     }
 
     renderable.$bindables.push(component);
@@ -181,5 +183,17 @@ export class Renderer implements IRenderer {
     renderable.$attachables.push(component);
 
     operation.dispose();
+  }
+
+  public [TargetedInstructionType.renderStrategy](renderable: IRenderable, target: any, instruction: Immutable<IRenderStrategyInstruction>): void {
+    const strategyName = instruction.name;
+    if (this[strategyName] === undefined) {
+      const strategy = this.context.get(RenderStrategyResource.keyFrom(strategyName)) as IRenderStrategy;
+      if (strategy === null || strategy === undefined) {
+        throw new Error(`Unknown renderStrategy "${strategyName}"`);
+      }
+      this[strategyName] = strategy.render.bind(strategy);
+    }
+    this[strategyName](renderable, target, instruction);
   }
 }

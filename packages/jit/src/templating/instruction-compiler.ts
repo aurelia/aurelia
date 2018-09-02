@@ -1,12 +1,12 @@
-import { Constructable, IContainer, Immutable, Registration, Writable } from '@aurelia/kernel';
-import { ICustomAttributeSource, INode, IResourceDescriptions, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
-import { HydrateElementInstruction } from './template-compiler';
+import { Constructable, IContainer, Immutable, Registration, Writable, IIndexable, PLATFORM } from '@aurelia/kernel';
+import { ICustomAttributeSource, INode, IResourceDescriptions, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction, IExpressionParser, IRenderStrategyInstruction, TargetedInstructionType, BindingType, BindingMode } from '@aurelia/runtime';
+import { HydrateElementInstruction, OneTimeBindingInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, FromViewBindingInstruction, TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, CallBindingInstruction, HydrateTemplateController, SetPropertyInstruction } from './template-compiler';
 
-export interface IInstructionCompilerSource {
+export interface IBindingCommandSource {
   name: string;
 }
 
-export interface IInstructionCompiler {
+export interface IBindingCommand {
   compile(
     attr: { name: string; value: string },
     node: INode,
@@ -18,31 +18,31 @@ export interface IInstructionCompiler {
   ): TargetedInstruction;
 }
 
-export type IInstructionCompilerType = IResourceType<IInstructionCompilerSource, IInstructionCompiler>;
+export type IBindingCommandType = IResourceType<IBindingCommandSource, IBindingCommand>;
 
-export function instructionCompiler(nameOrSource: string | IInstructionCompilerSource) {
+export function bindingCommand(nameOrSource: string | IBindingCommandSource) {
   return function<T extends Constructable>(target: T) {
-    return InstructionCompilerResource.define(nameOrSource, target);
+    return BindingCommandResource.define(nameOrSource, target);
   };
 }
 
-export const InstructionCompilerResource: IResourceKind<IInstructionCompilerSource, IInstructionCompilerType> = {
-  name: 'instruction-compiler',
+export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindingCommandType> = {
+  name: 'binding-command',
 
   keyFrom(name: string): string {
     return `${this.name}:${name}`;
   },
 
-  isType<T extends Constructable>(type: T): type is T & IInstructionCompilerType {
+  isType<T extends Constructable>(type: T): type is T & IBindingCommandType {
     return (type as any).kind === this;
   },
 
-  define<T extends Constructable>(nameOrSource: string | IInstructionCompilerSource, ctor: T): T & IInstructionCompilerType {
+  define<T extends Constructable>(nameOrSource: string | IBindingCommandSource, ctor: T): T & IBindingCommandType {
     const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
-    const Type: T & IInstructionCompilerType = ctor as any;
+    const Type: T & IBindingCommandType = ctor as any;
 
-    (Type as Writable<IInstructionCompilerType>).kind = InstructionCompilerResource;
-    (Type as Writable<IInstructionCompilerType>).description = description;
+    (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;
+    (Type as Writable<IBindingCommandType>).description = description;
     Type.register = function(container: IContainer) {
       container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
     };
@@ -50,3 +50,114 @@ export const InstructionCompilerResource: IResourceKind<IInstructionCompilerSour
     return Type;
   }
 };
+
+@bindingCommand('bind')
+export class DefaultBindingCommand implements IBindingCommand {
+  constructor(private parser: IExpressionParser) {}
+
+  public compile(
+    attr: { name: string; value: string },
+    node: INode,
+    targetName: string,
+    resources: IResourceDescriptions,
+    attributeDefinition: Immutable<Required<ICustomAttributeSource>> | null,
+    elementDefinition: Immutable<Required<ITemplateSource>> | null
+  ): TargetedInstruction {
+    let mode = BindingMode.toView;
+    if (elementDefinition) {
+      const bindable = elementDefinition.bindables[targetName];
+      if (bindable && bindable.mode && bindable.mode !== BindingMode.default) {
+        mode = bindable.mode;
+      }
+    }
+    switch (mode) {
+      case BindingMode.oneTime:
+        return new OneTimeBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
+      case BindingMode.toView:
+        return new ToViewBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
+      case BindingMode.fromView:
+        return new FromViewBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
+      case BindingMode.twoWay:
+        return new TwoWayBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
+    }
+  }
+}
+
+@bindingCommand('one-time')
+export class OneTimeBindingCommand implements IBindingCommand {
+  constructor(private parser: IExpressionParser) {}
+  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
+    return new OneTimeBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
+  }
+}
+
+@bindingCommand('to-view')
+export class ToViewBindingCommand implements IBindingCommand {
+  constructor(private parser: IExpressionParser) {}
+  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
+    return new ToViewBindingInstruction(this.parser.parse(attr.value, BindingType.ToViewCommand), targetName);
+  }
+}
+
+@bindingCommand('from-view')
+export class FromViewBindingCommand implements IBindingCommand {
+  constructor(private parser: IExpressionParser) {}
+  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
+    return new FromViewBindingInstruction(this.parser.parse(attr.value, BindingType.FromViewCommand), targetName);
+  }
+}
+
+@bindingCommand('two-way')
+export class TwoWayBindingCommand implements IBindingCommand {
+  constructor(private parser: IExpressionParser) {}
+  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
+    return new TwoWayBindingInstruction(this.parser.parse(attr.value, BindingType.TwoWayCommand), targetName);
+  }
+}
+
+@bindingCommand('trigger')
+export class TriggerBindingCommand implements IBindingCommand {
+  constructor(private parser: IExpressionParser) {}
+  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
+    return new TriggerBindingInstruction(this.parser.parse(attr.value, BindingType.TriggerCommand), targetName);
+  }
+}
+
+@bindingCommand('delegate')
+export class DelegateBindingCommand implements IBindingCommand {
+  constructor(private parser: IExpressionParser) {}
+  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
+    return new DelegateBindingInstruction(this.parser.parse(attr.value, BindingType.DelegateCommand), targetName);
+  }
+}
+
+@bindingCommand('capture')
+export class CaptureBindingCommand implements IBindingCommand {
+  constructor(private parser: IExpressionParser) {}
+  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
+    return new CaptureBindingInstruction(this.parser.parse(attr.value, BindingType.CaptureCommand), targetName);
+  }
+}
+
+@bindingCommand('call')
+export class CallBindingCommand implements IBindingCommand {
+  constructor(private parser: IExpressionParser) {}
+  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
+    return new CallBindingInstruction(this.parser.parse(attr.value, BindingType.CallCommand), targetName);
+  }
+}
+
+@bindingCommand('for')
+export class ForBindingCommand implements IBindingCommand {
+  constructor(private parser: IExpressionParser) {}
+  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
+    const src: ITemplateSource = {
+      templateOrNode: node,
+      instructions: []
+    };
+    return new HydrateTemplateController(src, targetName, [
+      new ToViewBindingInstruction(this.parser.parse(attr.value, BindingType.ForCommand), 'items'),
+      new SetPropertyInstruction('item', 'local')
+    ]);
+  }
+}

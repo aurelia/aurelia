@@ -1,61 +1,24 @@
-import { DI, Immutable, PLATFORM, Registration, IContainer } from '../../../../kernel/src/index';
+import { DI, IContainer } from '../../../../kernel/src/index';
 import {
   IExpressionParser,
   IResourceDescriptions,
-  IExpression,
   BindingType,
-  ExpressionKind,
   AccessScope,
-  ObjectBindingPattern,
   CustomAttributeResource,
-  BindingIdentifier,
-  ArrayBindingPattern,
-  PrimitiveLiteral,
-  ArrayLiteral,
-  BindingBehavior,
-  ValueConverter,
-  ForOfStatement,
-  Interpolation,
-  AccessMember,
-  Binary,
-  Template,
-  TargetedInstruction,
   Repeat,
   RuntimeCompilationResources,
-  IResourceKind,
-  ICustomAttributeSource,
-  ICustomElementResource,
-  IResourceType,
-  ICustomElement,
-  CustomElementResource,
   BindingMode,
   customElement,
-  ICustomElementType,
   TargetedInstructionType,
   bindable,
-  ITargetedInstruction,
-  IPropertyBindingInstruction,
   customAttribute,
   ViewCompileFlags
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
   register,
-  ToViewBindingInstruction,
   HydrateTemplateController,
-  OneTimeBindingInstruction,
-  FromViewBindingInstruction,
-  TwoWayBindingInstruction,
-  TriggerBindingInstruction,
-  CaptureBindingInstruction,
-  DelegateBindingInstruction,
-  CallBindingInstruction,
-  RefBindingInstruction,
-  HydrateAttributeInstruction,
-  TextBindingInstruction,
-  SetPropertyInstruction,
-  HydrateElementInstruction
-} from '../../../src/index';
+  BasicConfiguration} from '../../../src/index';
 import { expect } from 'chai';
 import { verifyEqual, createElement } from '../../util';
 
@@ -103,21 +66,6 @@ const attrNameArr = [
   { $type: BindingType.IsRef, attrName: 'ref' },
 ];
 
-const declarationArr = [
-  { attrValue: 'item', output: new BindingIdentifier('item') },
-  { attrValue: '[key, value]', output: new ArrayBindingPattern([<any>new AccessScope('key'), <any>new AccessScope('value')]) },
-  { attrValue: '{foo, bar}', output: new ObjectBindingPattern(['foo', 'bar'], [<any>new AccessScope('foo'), <any>new AccessScope('bar')]) },
-  { attrValue: '{foo: bar}', output: new ObjectBindingPattern(['foo'], [<any>new AccessScope('bar')]) }
-];
-const statementArr = [
-  { attrValue: 'items', output: new AccessScope('items') },
-  { attrValue: '10', output: new PrimitiveLiteral(10) },
-  { attrValue: 'null', output: new PrimitiveLiteral(null) },
-  { attrValue: 'undefined', output: new PrimitiveLiteral(undefined) },
-  { attrValue: '[,1]', output: new ArrayLiteral([new PrimitiveLiteral(undefined), new PrimitiveLiteral(1)]) },
-  { attrValue: 'items | stuff', output: new ValueConverter(new AccessScope('items'), 'stuff', []) },
-  { attrValue: 'items & stuff', output: new BindingBehavior(<any>new AccessScope('items'), 'stuff', []) },
-];
 
 describe('TemplateCompiler', () => {
   let container: IContainer;
@@ -127,8 +75,7 @@ describe('TemplateCompiler', () => {
 
   beforeEach(() => {
     container = DI.createContainer();
-    register(container);
-    Repeat.register(container);
+    container.register(BasicConfiguration);
     expressionParser = container.get(IExpressionParser);
     sut = new TemplateCompiler(expressionParser as any);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
@@ -137,7 +84,7 @@ describe('TemplateCompiler', () => {
 
 
   describe('attribute compilation', () => {
-    for (const { $type, attrName } of attrNameArr) {
+    for (const { attrName } of attrNameArr) {
       describe(`parseAttribute() - ${attrName}`, () => {
 
         // for (const { attrValue: declAttrValue, output: declOutput } of declarationArr) {

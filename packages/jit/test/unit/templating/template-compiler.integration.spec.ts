@@ -1,5 +1,5 @@
 import { IContainer, DI, Registration } from '../../../../kernel/src/index';
-import { TemplateCompiler, register } from '../../../src/index';
+import { TemplateCompiler, register, BasicConfiguration } from '../../../src/index';
 import {
   Aurelia, Repeat, If, Else, ITemplateCompiler, IChangeSet, CustomElementResource, valueConverter,
   OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior,
@@ -52,27 +52,14 @@ class NameTag {
 }
 
 const globalResources: any[] = [
-  If,
-  Else,
-  Repeat,
   SortValueConverter,
   JsonValueConverter,
-  OneTimeBindingBehavior,
-  ToViewBindingBehavior,
-  FromViewBindingBehavior,
-  TwoWayBindingBehavior,
-  DebounceBindingBehavior,
-  ThrottleBindingBehavior,
   NameTag
 ];
 
 const TestConfiguration = {
   register(container: IContainer) {
-    container.register(
-      <any>ExpressionParser,
-      Registration.singleton(ITemplateCompiler, TemplateCompiler),
-      ...globalResources
-    );
+    container.register(...globalResources);
   }
 }
 
@@ -119,10 +106,10 @@ describe('TemplateCompiler (integration)', () => {
   beforeEach(() => {
     const container = DI.createContainer();
     cs = container.get(IChangeSet);
-    register(container);
+    container.register(TestConfiguration, BasicConfiguration)
     host = document.createElement('app');
     document.body.appendChild(host);
-    au = new Aurelia(container).register(TestConfiguration);
+    au = new Aurelia(container);
   });
 
   afterEach(() => {

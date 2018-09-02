@@ -1,4 +1,4 @@
-import { instructionCompiler, IInstructionCompiler, HydrateElementInstruction, register, TemplateCompiler } from "../../../src";
+import { bindingCommand, IBindingCommand, HydrateElementInstruction, register, TemplateCompiler, BasicConfiguration } from "../../../src";
 import { IExpressionParser, INode, IResourceDescriptions, ICustomAttributeSource, ITemplateSource, TargetedInstructionType, BindingType, IRenderable, BindingMode, IObserverLocator, IRenderContext, Binding, IRenderStrategyInstruction, renderStrategy, IRenderStrategy, ITemplateCompiler, Aurelia, IChangeSet, customElement, CustomElementResource, bindable, IEventManager, Listener, IExpression, DelegationStrategy } from "@aurelia/runtime";
 import { Immutable, IIndexable, DI, IContainer, Registration, IServiceLocator } from "@aurelia/kernel";
 import { ExpressionParser } from '../../../../runtime/src/binding/expression-parser';
@@ -7,8 +7,8 @@ import { spy } from "sinon";
 
 
 
-@instructionCompiler('keyup')
-export class KeyupInstructionCompiler implements IInstructionCompiler {
+@bindingCommand('keyup')
+export class KeyupBindingCommand implements IBindingCommand {
   constructor(private parser: IExpressionParser) {}
 
   public compile(
@@ -65,17 +65,13 @@ export class KeyupListener extends Listener {
 }
 
 const globalResources: any[] = [
-  KeyupInstructionCompiler,
+  KeyupBindingCommand,
   KeyupRenderStrategy
 ]
 
 const TestConfiguration = {
   register(container: IContainer) {
-    container.register(
-      <any>ExpressionParser,
-      Registration.singleton(ITemplateCompiler, TemplateCompiler),
-      ...globalResources
-    );
+    container.register(...globalResources);
   }
 }
 
@@ -91,7 +87,7 @@ function createCustomElement(markup: string, ...dependencies: Function[]): { [ke
 }
 
 
-describe('instructionCompiler', () => {
+describe('bindingCommand', () => {
   let au: Aurelia;
   let host: HTMLElement;
   let component: ReturnType<typeof createCustomElement>;
@@ -103,7 +99,7 @@ describe('instructionCompiler', () => {
     register(container);
     host = document.createElement('app');
     document.body.appendChild(host);
-    au = new Aurelia(container).register(TestConfiguration);
+    au = new Aurelia(container).register(TestConfiguration, BasicConfiguration);
   });
 
   it(`keyup listens for ctrl+v, receives ctrl+v, calls source`, () => {

@@ -4,6 +4,7 @@ import {
   Compose,
   DebounceBindingBehavior,
   Else,
+  FromViewBindingBehavior,
   If,
   ITemplateCompiler,
   OneTimeBindingBehavior,
@@ -16,10 +17,9 @@ import {
   ToViewBindingBehavior,
   TwoWayBindingBehavior,
   UpdateTriggerBindingBehavior,
-  With,
-  FromViewBindingBehavior
+  With
 } from '@aurelia/runtime';
-import * as ExpressionParser from './binding/expression-parser';
+import { register } from './binding/expression-parser';
 import {
   CallBindingCommand,
   CaptureBindingCommand,
@@ -33,7 +33,6 @@ import {
   TwoWayBindingCommand
 } from './templating/instruction-compiler';
 import { TemplateCompiler } from './templating/template-compiler';
-import { register } from './binding/expression-parser';
 
 const globalResources: any[] = [
   Compose,
@@ -70,12 +69,11 @@ const defaultBindingLanguage: any[] = [
 
 export const BasicConfiguration = {
   register(container: IContainer) {
+    register(container);
     container.register(
-      ExpressionParser,
       Registration.singleton(ITemplateCompiler, TemplateCompiler),
       ...globalResources,
       ...defaultBindingLanguage
     );
-    register(container);
   }
 };

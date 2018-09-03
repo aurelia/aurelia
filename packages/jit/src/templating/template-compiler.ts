@@ -291,26 +291,25 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
     const attributeDefinition = resources.find(CustomAttributeResource, targetName);
     if (!attributeDefinition) {
-      if (bindingCommand === null) {
-        const expression = this.expressionParser.parse(value, BindingType.Interpolation);
-        if (expression !== null) {
-          // <my-input value="init value with binding: ${initValue}" />
-          return new ToViewBindingInstruction(expression, propertyName);
-        }
-        // check if it's an existing property
-        if (elementDefinition && elementDefinition.bindables[propertyName]) {
-          return new SetPropertyInstruction(value, propertyName);
-        }
-        // no command, no interpolation, no property -> return null (no attribute instruction)
-        return null;
-      } else {
+      if (bindingCommand !== null && bindingCommand.handles(attributeDefinition)) {
         return bindingCommand.compile(attr, node, propertyName, resources, attributeDefinition, elementDefinition, elementInstruction);
       }
+      const expression = this.expressionParser.parse(value, BindingType.Interpolation);
+      if (expression !== null) {
+        // <my-input value="init value with binding: ${initValue}" />
+        return new ToViewBindingInstruction(expression, propertyName);
+      }
+      // check if it's an existing property
+      if (elementDefinition && elementDefinition.bindables[propertyName]) {
+        return new SetPropertyInstruction(value, propertyName);
+      }
+      // no command, no interpolation, no property -> return null (no attribute instruction)
+      return null;
     }
 
     if (attributeDefinition.isTemplateController === false) {
       // first get the simple stuff out of the way
-      if (bindingCommand !== null) {
+      if (bindingCommand !== null && bindingCommand.handles(attributeDefinition)) {
         // IMPORANT difference between vNext and vCurrent
         // for vNext, there is always a default / primary property with name "value"
         // this may not make enough sense, so subject for future change
@@ -350,9 +349,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     // Remove attribute to avoid infinite loop
     node.removeAttributeNode(attr);
 
-    // TODO: get rid of this hard-coded thing
-    if (commandName === 'for') {
-      return bindingCommand.compile(attr, node, targetName, resources, attributeDefinition, elementDefinition, elementInstruction);
+    if (bindingCommand !== null && bindingCommand.handles(attributeDefinition)) {
+      return bindingCommand.compile(attr, node, propertyName, resources, attributeDefinition, elementDefinition, elementInstruction);
     }
 
     const expression = value

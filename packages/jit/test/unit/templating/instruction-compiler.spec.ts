@@ -27,6 +27,10 @@ export class KeyupBindingCommand implements IBindingCommand {
       name: 'keyup'
     };
   }
+
+  public handles(attributeDefinition: Immutable<Required<ICustomAttributeSource>> | null): boolean {
+    return true;
+  }
 }
 
 @renderStrategy('keyup')

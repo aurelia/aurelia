@@ -16,6 +16,7 @@ export interface IBindingCommand {
     elementDefinition: Immutable<Required<ITemplateSource>> | null,
     elementInstruction?: HydrateElementInstruction
   ): TargetedInstruction;
+  handles(attributeDefinition: Immutable<Required<ICustomAttributeSource>> | null): boolean;
 }
 
 export type IBindingCommandType = IResourceType<IBindingCommandSource, IBindingCommand>;
@@ -38,7 +39,7 @@ export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindi
   },
 
   define<T extends Constructable>(nameOrSource: string | IBindingCommandSource, ctor: T): T & IBindingCommandType {
-    const description = typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource;
+    const description = typeof nameOrSource === 'string' ? { name: nameOrSource, targetName: null } : nameOrSource;
     const Type: T & IBindingCommandType = ctor as any;
 
     (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;
@@ -47,9 +48,19 @@ export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindi
       container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
     };
 
+    const proto = Type.prototype;
+
+    proto.handles = proto.handles || defaultHandles;
+
     return Type;
   }
 };
+
+function defaultHandles(this: IBindingCommand, attributeDefinition: Immutable<Required<ICustomAttributeSource>>): boolean {
+  return !attributeDefinition || attributeDefinition.isTemplateController === false;
+}
+
+export interface DefaultBindingCommand extends IBindingCommand {}
 
 @bindingCommand('bind')
 export class DefaultBindingCommand implements IBindingCommand {
@@ -84,6 +95,8 @@ export class DefaultBindingCommand implements IBindingCommand {
   }
 }
 
+export interface OneTimeBindingCommand extends IBindingCommand {}
+
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
@@ -92,6 +105,8 @@ export class OneTimeBindingCommand implements IBindingCommand {
     return new OneTimeBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
   }
 }
+
+export interface ToViewBindingCommand extends IBindingCommand {}
 
 @bindingCommand('to-view')
 export class ToViewBindingCommand implements IBindingCommand {
@@ -102,6 +117,8 @@ export class ToViewBindingCommand implements IBindingCommand {
   }
 }
 
+export interface FromViewBindingCommand extends IBindingCommand {}
+
 @bindingCommand('from-view')
 export class FromViewBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
@@ -110,6 +127,8 @@ export class FromViewBindingCommand implements IBindingCommand {
     return new FromViewBindingInstruction(this.parser.parse(attr.value, BindingType.FromViewCommand), targetName);
   }
 }
+
+export interface TwoWayBindingCommand extends IBindingCommand {}
 
 @bindingCommand('two-way')
 export class TwoWayBindingCommand implements IBindingCommand {
@@ -120,6 +139,8 @@ export class TwoWayBindingCommand implements IBindingCommand {
   }
 }
 
+export interface TriggerBindingCommand extends IBindingCommand {}
+
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
@@ -128,6 +149,8 @@ export class TriggerBindingCommand implements IBindingCommand {
     return new TriggerBindingInstruction(this.parser.parse(attr.value, BindingType.TriggerCommand), targetName);
   }
 }
+
+export interface DelegateBindingCommand extends IBindingCommand {}
 
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements IBindingCommand {
@@ -138,6 +161,8 @@ export class DelegateBindingCommand implements IBindingCommand {
   }
 }
 
+export interface CaptureBindingCommand extends IBindingCommand {}
+
 @bindingCommand('capture')
 export class CaptureBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
@@ -146,6 +171,8 @@ export class CaptureBindingCommand implements IBindingCommand {
     return new CaptureBindingInstruction(this.parser.parse(attr.value, BindingType.CaptureCommand), targetName);
   }
 }
+
+export interface CallBindingCommand extends IBindingCommand {}
 
 @bindingCommand('call')
 export class CallBindingCommand implements IBindingCommand {
@@ -169,5 +196,9 @@ export class ForBindingCommand implements IBindingCommand {
       new ToViewBindingInstruction(this.parser.parse(attr.value, BindingType.ForCommand), 'items'),
       new SetPropertyInstruction('item', 'local')
     ]);
+  }
+
+  public handles(attributeDefinition: Immutable<Required<ICustomAttributeSource>>): boolean {
+    return !!attributeDefinition && attributeDefinition.name === 'repeat';
   }
 }

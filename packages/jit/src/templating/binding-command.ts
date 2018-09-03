@@ -75,11 +75,11 @@ export class DefaultBindingCommand implements IBindingCommand {
       case BindingMode.oneTime:
         return new OneTimeBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
       case BindingMode.toView:
-        return new ToViewBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
+        return new ToViewBindingInstruction(this.parser.parse(attr.value, BindingType.ToViewCommand), targetName);
       case BindingMode.fromView:
-        return new FromViewBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
+        return new FromViewBindingInstruction(this.parser.parse(attr.value, BindingType.FromViewCommand), targetName);
       case BindingMode.twoWay:
-        return new TwoWayBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
+        return new TwoWayBindingInstruction(this.parser.parse(attr.value, BindingType.TwoWayCommand), targetName);
     }
   }
 }

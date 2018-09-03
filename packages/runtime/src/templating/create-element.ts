@@ -9,11 +9,11 @@ import {
 import { IRenderContext } from './render-context';
 import { IRenderingEngine } from './rendering-engine';
 import { ITemplate } from './template';
-import { IView, IViewFactory, ViewFactory } from './view';
+import { IView, IViewFactory } from './view';
 
-type ChildType = ProtoRenderable | string | INode;
+type ChildType = PotentialRenderable | string | INode;
 
-export function createElement(tagOrType: string | Constructable, props?: any, children?: ArrayLike<ChildType>): ProtoRenderable {
+export function createElement(tagOrType: string | Constructable, props?: any, children?: ArrayLike<ChildType>): PotentialRenderable {
   if (typeof tagOrType === 'string') {
     return createElementForTag(tagOrType, props, children);
   } else {
@@ -21,7 +21,7 @@ export function createElement(tagOrType: string | Constructable, props?: any, ch
   }
 }
 
-export class ProtoRenderable {
+export class PotentialRenderable {
   private lazyDefinition: TemplateDefinition;
 
   constructor(
@@ -68,7 +68,7 @@ export class ProtoRenderable {
   }
 }
 
-function createElementForTag(tagName: string, props?: any, children?: ArrayLike<ChildType>): ProtoRenderable {
+function createElementForTag(tagName: string, props?: any, children?: ArrayLike<ChildType>): PotentialRenderable {
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
   const dependencies = [];
@@ -83,10 +83,10 @@ function createElementForTag(tagName: string, props?: any, children?: ArrayLike<
     addChildren(element, children, allInstructions, dependencies);
   }
 
-  return new ProtoRenderable(element, allInstructions, dependencies);
+  return new PotentialRenderable(element, allInstructions, dependencies);
 }
 
-function createElementForType(Type: ICustomElementType, props?: any, children?: ArrayLike<ChildType>): ProtoRenderable {
+function createElementForType(Type: ICustomElementType, props?: any, children?: ArrayLike<ChildType>): PotentialRenderable {
   const tagName = Type.description.name;
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
@@ -97,7 +97,10 @@ function createElementForType(Type: ICustomElementType, props?: any, children?: 
 
   DOM.setAttribute(element, 'class', 'au');
 
-  dependencies.push(Type);
+  if (!dependencies.includes(Type)) {
+    dependencies.push(Type);
+  }
+
   instructions.push({
     type: TargetedInstructionType.hydrateElement,
     res: tagName,
@@ -129,7 +132,7 @@ function createElementForType(Type: ICustomElementType, props?: any, children?: 
     addChildren(element, children, allInstructions, dependencies);
   }
 
-  return new ProtoRenderable(element, allInstructions, dependencies);
+  return new PotentialRenderable(element, allInstructions, dependencies);
 }
 
 function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructions: TargetedInstruction[][], dependencies: any[]): void {

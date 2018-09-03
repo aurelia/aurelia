@@ -30,7 +30,6 @@ export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
   $behavior: IRuntimeBehavior;
-  $child: IAttach;
 }
 
 /**
@@ -129,7 +128,6 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
 
   this.$bindables = [];
   this.$attachables = [];
-  this.$child = null;
   this.$isAttached = false;
   this.$isBound = false;
   this.$scope = BindingContext.createScope(this);
@@ -215,10 +213,6 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
     attachables[i].$attach(encapsulationSource, lifecycle);
   }
 
-  if (this.$child !== null) {
-    this.$child.$attach(encapsulationSource, lifecycle);
-  }
-
   this.$projector.project(this.$nodes);
 
   if (this.$behavior.hasAttached) {
@@ -244,10 +238,6 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLi
 
     while (i--) {
       attachables[i].$detach();
-    }
-
-    if (this.$child !== null) {
-      this.$child.$detach(lifecycle);
     }
 
     if (this.$behavior.hasDetached) {

@@ -1,4 +1,4 @@
-import { Immutable, inject, Constructable } from '@aurelia/kernel';
+import { Constructable, Immutable, inject } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding/binding-flags';
 import { INode, IRenderLocation } from '../../dom';
 import { createElement } from '../create-element';
@@ -33,7 +33,7 @@ export class Compose {
   constructor(
     private renderable: IRenderable,
     private host: INode,
-    instruction: Immutable<IHydrateElementInstruction>,
+    private instruction: Immutable<IHydrateElementInstruction>,
     private renderingEngine: IRenderingEngine,
     private location: IRenderLocation
   ) {
@@ -48,7 +48,15 @@ export class Compose {
   public compose(component: Constructable): void {
     const protoRenderable = createElement(
       component,
-      {}, // TODO: get the prop instructions from the the hydrate instruction
+      this.instruction.instructions
+        .filter((x: any) => !composeProps.includes(x.dest))
+        .reduce((acc, item: any) => {
+          if (item.dest) {
+            acc[item.dest] = item;
+          }
+
+          return acc;
+        }, {}), // TODO: implement this in the actual createElement function
       this.content.childNodes // TODO: get the content
     );
 
@@ -58,6 +66,7 @@ export class Compose {
     );
 
     this.swap(view);
+    this.composing = false;
   }
 
   /** @internal */
@@ -80,7 +89,7 @@ export class Compose {
     newView.onRender = view => view.$nodes.insertBefore(this.location);
 
     this.currentView = newView;
-    this.$bindables.push(newView);
+    this.$bindables.push(newView); // it's going to get the wrong scope ;(
     this.$attachables.push(newView);
 
     if (this.$isBound) {
@@ -140,6 +149,5 @@ class CompositionTask {
     }
 
     this.compose.compose(toBeComposed);
-    this.compose.composing = false;
   }
 }

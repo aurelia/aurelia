@@ -31,7 +31,7 @@ import {
   ViewCompileFlags,
 } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
-import { IBindingCommand, BindingCommandResource } from './binding-command';
+import { BindingCommandResource, IBindingCommand } from './binding-command';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = DOM.createElement('au-marker') as Element;
@@ -43,7 +43,7 @@ const swapWithMarker = (node: Element, parentNode: Element) => {
   (node.parentNode || parentNode).replaceChild(marker, node);
   template.content.appendChild(node);
   return marker;
-}
+};
 
 const enum NodeType {
   Element = 1,
@@ -62,7 +62,7 @@ const enum NodeType {
 
 @inject(IExpressionParser)
 export class TemplateCompiler implements ITemplateCompiler {
-  public get name() {
+  public get name(): string {
     return 'default';
   }
 
@@ -75,6 +75,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   ): TemplateDefinition {
     let node = <Node>definition.templateOrNode;
     if (!node.nodeType) {
+      // tslint:disable-next-line:no-inner-html
       domParser.innerHTML = <any>node;
       node = domParser.firstElementChild;
       definition.templateOrNode = node;
@@ -128,7 +129,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     node: Element,
     surrogateInstructions: TargetedInstruction[],
     resources: IResourceDescriptions
-  ) {
+  ): void {
     const attributes = node.attributes;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const attr = attributes.item(i);
@@ -370,6 +371,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 }
 
 // tslint:disable:no-reserved-keywords
+// tslint:disable:no-any
 export class TextBindingInstruction implements ITextBindingInstruction {
   public type: TargetedInstructionType.textBinding;
   public srcOrExpr: string | IExpression;
@@ -566,4 +568,5 @@ HydrateElementInstruction.prototype.type = TargetedInstructionType.hydrateElemen
 HydrateAttributeInstruction.prototype.type = TargetedInstructionType.hydrateAttribute;
 HydrateTemplateController.prototype.type = TargetedInstructionType.hydrateTemplateController;
 
-
+// tslint:enable:no-reserved-keywords
+// tslint:enable:no-any

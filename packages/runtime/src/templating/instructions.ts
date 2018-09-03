@@ -1,5 +1,5 @@
 // tslint:disable:no-reserved-keywords
-import { DI, Immutable } from '@aurelia/kernel';
+import { DI, Immutable, IIndexable, Writable } from '@aurelia/kernel';
 import { IExpression } from '../binding/ast';
 import { BindingMode } from '../binding/binding-mode';
 import { DelegationStrategy } from '../binding/event-manager';
@@ -18,7 +18,8 @@ export const enum TargetedInstructionType {
   setAttribute = 'h',
   hydrateElement = 'i',
   hydrateAttribute = 'j',
-  hydrateTemplateController = 'k'
+  hydrateTemplateController = 'k',
+  renderStrategy = 'l'
 }
 
 export interface IBuildInstruction {
@@ -60,7 +61,8 @@ export type TargetedInstruction =
   ISetAttributeInstruction |
   IHydrateElementInstruction |
   IHydrateAttributeInstruction |
-  IHydrateTemplateController;
+  IHydrateTemplateController |
+  IRenderStrategyInstruction;
 
 export interface ITextBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.textBinding;
@@ -132,4 +134,9 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
   instructions: TargetedInstruction[];
   src: ITemplateSource;
   link?: boolean;
+}
+
+export interface IRenderStrategyInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.renderStrategy;
+  name: string;
 }

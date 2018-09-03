@@ -1,62 +1,24 @@
-import { DI, Immutable, PLATFORM, Registration, IContainer } from '../../../../kernel/src/index';
+import { DI, IContainer } from '../../../../kernel/src/index';
 import {
   IExpressionParser,
   IResourceDescriptions,
-  IExpression,
   BindingType,
-  ExpressionKind,
   AccessScope,
-  ObjectBindingPattern,
   CustomAttributeResource,
-  BindingIdentifier,
-  ArrayBindingPattern,
-  PrimitiveLiteral,
-  ArrayLiteral,
-  BindingBehavior,
-  ValueConverter,
-  ForOfStatement,
-  Interpolation,
-  AccessMember,
-  Binary,
-  Template,
-  TargetedInstruction,
   Repeat,
   RuntimeCompilationResources,
-  IResourceKind,
-  ICustomAttributeSource,
-  ICustomElementResource,
-  IResourceType,
-  ICustomElement,
-  CustomElementResource,
   BindingMode,
   customElement,
-  ICustomElementType,
   TargetedInstructionType,
   bindable,
-  ITargetedInstruction,
-  IPropertyBindingInstruction,
   customAttribute,
   ViewCompileFlags
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
   register,
-  BindingCommandResource,
-  ToViewBindingInstruction,
   HydrateTemplateController,
-  OneTimeBindingInstruction,
-  FromViewBindingInstruction,
-  TwoWayBindingInstruction,
-  TriggerBindingInstruction,
-  CaptureBindingInstruction,
-  DelegateBindingInstruction,
-  CallBindingInstruction,
-  RefBindingInstruction,
-  HydrateAttributeInstruction,
-  TextBindingInstruction,
-  SetPropertyInstruction,
-  HydrateElementInstruction
-} from '../../../src/index';
+  BasicConfiguration} from '../../../src/index';
 import { expect } from 'chai';
 import { verifyEqual, createElement } from '../../util';
 
@@ -104,21 +66,6 @@ const attrNameArr = [
   { $type: BindingType.IsRef, attrName: 'ref' },
 ];
 
-const declarationArr = [
-  { attrValue: 'item', output: new BindingIdentifier('item') },
-  { attrValue: '[key, value]', output: new ArrayBindingPattern([<any>new AccessScope('key'), <any>new AccessScope('value')]) },
-  { attrValue: '{foo, bar}', output: new ObjectBindingPattern(['foo', 'bar'], [<any>new AccessScope('foo'), <any>new AccessScope('bar')]) },
-  { attrValue: '{foo: bar}', output: new ObjectBindingPattern(['foo'], [<any>new AccessScope('bar')]) }
-];
-const statementArr = [
-  { attrValue: 'items', output: new AccessScope('items') },
-  { attrValue: '10', output: new PrimitiveLiteral(10) },
-  { attrValue: 'null', output: new PrimitiveLiteral(null) },
-  { attrValue: 'undefined', output: new PrimitiveLiteral(undefined) },
-  { attrValue: '[,1]', output: new ArrayLiteral([new PrimitiveLiteral(undefined), new PrimitiveLiteral(1)]) },
-  { attrValue: 'items | stuff', output: new ValueConverter(new AccessScope('items'), 'stuff', []) },
-  { attrValue: 'items & stuff', output: new BindingBehavior(<any>new AccessScope('items'), 'stuff', []) },
-];
 
 describe('TemplateCompiler', () => {
   let container: IContainer;
@@ -128,18 +75,16 @@ describe('TemplateCompiler', () => {
 
   beforeEach(() => {
     container = DI.createContainer();
-    register(container);
-    Repeat.register(container);
+    container.register(BasicConfiguration);
     expressionParser = container.get(IExpressionParser);
     sut = new TemplateCompiler(expressionParser as any);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
-    container.registerResolver(BindingCommandResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
   });
 
 
   describe('attribute compilation', () => {
-    for (const { $type, attrName } of attrNameArr) {
+    for (const { attrName } of attrNameArr) {
       describe(`parseAttribute() - ${attrName}`, () => {
 
         // for (const { attrValue: declAttrValue, output: declOutput } of declarationArr) {
@@ -451,7 +396,7 @@ describe('TemplateCompiler', () => {
         });
       });
 
-      it('understands attr precendence: event > custom attr > element prop', () => {
+      it('understands attr precendence: custom attr > element prop', () => {
         @customElement('el')
         class El {
           @bindable() prop1: string;
@@ -464,16 +409,18 @@ describe('TemplateCompiler', () => {
 
         const actual = compileWith(
           `<template>
-            <el prop1.bind="p" prop2.trigger="p" prop3.delegate="t" prop3="t"></el>
+            <el prop1.bind="p" prop2.bind="p" prop3.bind="t" prop3="t"></el>
           </template>`,
           [El, Prop]
         );
-        const rootInstructions = actual.instructions[0] as any[];
+        expect(actual.instructions.length).to.equal(1);
+        expect(actual.instructions[0].length).to.equal(1);
+        const rootInstructions = actual.instructions[0][0]['instructions'] as any[];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateElement, res: 'el' },
-          { toVerify: ['type', 'res'], type: TargetedInstructionType.listenerBinding, dest: 'prop2' },
-          { toVerify: ['type', 'res'], type: TargetedInstructionType.listenerBinding, dest: 'prop2' },
-          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateAttribute, res: 'prop3' }
+          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.propertyBinding, dest: 'prop1' },
+          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.propertyBinding, dest: 'prop2' },
+          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.hydrateAttribute, res: 'prop3' },
+          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.hydrateAttribute, res: 'prop3' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
       });
@@ -499,7 +446,7 @@ describe('TemplateCompiler', () => {
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'mode', 'dest'], type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, dest: 'name' },
+          { toVerify: ['type', 'dest', 'value'], type: TargetedInstructionType.setProperty, dest: 'name', value: 'name' },
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -521,7 +468,7 @@ describe('TemplateCompiler', () => {
         const rootInstructions = actual.instructions[0] as any[];
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'mode', 'dest'], type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, dest: 'backgroundColor' },
+          { toVerify: ['type', 'value', 'dest'], type: TargetedInstructionType.setProperty, value: 'label', dest: 'backgroundColor' },
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -595,12 +542,12 @@ describe('TemplateCompiler', () => {
           expect((templateOrNode as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.instructions as any, [
-            { toVerify: ['type', 'dest', 'srcOrExp'],
-              type: TargetedInstructionType.propertyBinding, dest: 'value', srcOrExp: 'p' },
-            { toVerify: ['type', 'dest', 'srcOrExp'],
-              type: TargetedInstructionType.propertyBinding, dest: 'name', srcOrExp: 'name' },
-            { toVerify: ['type', 'dest', 'srcOrExp'],
-              type: TargetedInstructionType.propertyBinding, dest: 'title', srcOrExp: 'title' },
+            { toVerify: ['type', 'dest', 'srcOrExpr'],
+              type: TargetedInstructionType.propertyBinding, dest: 'value', srcOrExpr: new AccessScope('p') },
+            { toVerify: ['type', 'dest', 'srcOrExpr'],
+              type: TargetedInstructionType.propertyBinding, dest: 'name', srcOrExpr: new AccessScope('name') },
+            { toVerify: ['type', 'dest', 'srcOrExpr'],
+              type: TargetedInstructionType.propertyBinding, dest: 'title', srcOrExpr: new AccessScope('title') },
           ]);
         });
       });
@@ -618,19 +565,23 @@ describe('TemplateCompiler', () => {
 
     function verifyInstructions(actual: any[], expectation: IExpectedInstruction[]) {
       expect(actual.length).to.equal(expectation.length, `Expected to have ${expectation.length} instructions. Received: ${actual.length}`);
-      actual.forEach((inst, idx) => {
-        const expectedInst = expectation[idx];
-        for (const prop in expectedInst.toVerify) {
-          verifyInstructionProp(inst, expectedInst, prop);
+      for (let i = 0, ii = actual.length; i < ii; ++i) {
+        const actualInst = actual[i];
+        const expectedInst = expectation[i];
+        for (const prop of expectedInst.toVerify) {
+          if (expectedInst[prop] instanceof Object) {
+            expect(
+              actualInst[prop]).to.deep.equal(expectedInst[prop],
+              `Expected actual instruction to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
+            );
+          } else {
+            expect(
+              actualInst[prop]).to.equal(expectedInst[prop],
+              `Expected actual instruction to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
+            );
+          }
         }
-      });
-    }
-
-    function verifyInstructionProp(actual: ITargetedInstruction, expected: IExpectedInstruction, prop: string) {
-      expect(
-        actual[prop]).to.equal(expected[prop],
-        `Expected actual instruction to have "${prop}": ${expected[prop]}. Received: ${actual[prop]}`
-      );
+      }
     }
   });
 });

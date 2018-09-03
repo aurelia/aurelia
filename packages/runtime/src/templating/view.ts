@@ -11,18 +11,12 @@ import { ITemplate } from './template';
 
 export type RenderCallback = (view: IView) => void;
 
-export enum MotionDirection {
-  enter = 'enter',
-  leave = 'leave'
-}
-
 export interface IView extends IBindScope, IRenderable, IAttach {
   readonly factory: IViewFactory;
 
   onRender: RenderCallback;
   renderState: any;
 
-  animate(direction: MotionDirection): void | Promise<boolean>;
   tryReturnToCache(): boolean;
 }
 
@@ -56,23 +50,6 @@ export class View implements IView {
 
   public createNodes(): INodeSequence {
     return this.template.createFor(this);
-  }
-
-  public animate(direction: MotionDirection = MotionDirection.enter): void | Promise<boolean> {
-    const element = this.getAnimationRoot();
-
-    if (element === null) {
-      return;
-    }
-
-    switch (direction) {
-      case MotionDirection.enter:
-        return this.animator.enter(element);
-      case MotionDirection.leave:
-        return this.animator.leave(element);
-      default:
-        throw Reporter.error(4, direction);
-    }
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {

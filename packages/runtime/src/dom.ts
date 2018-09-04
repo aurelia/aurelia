@@ -215,21 +215,10 @@ export const DOM = {
     (<any>node).auInterpolationTarget = true;
   },
 
-  convertToRenderLocation(node: INode, proxy?: boolean): IRenderLocation {
-    const location = <CommentProxy>document.createComment('au-loc');
-
-    if (proxy) {
-      location.$proxyTarget = <Element>node;
-      // binding explicitly to the comment instead of implicitly
-      // to ensure the correct 'this' assignment
-      location.hasAttribute = hasAttribute.bind(location);
-      location.getAttribute = getAttribute.bind(location);
-      location.setAttribute = setAttribute.bind(location);
-    }
-
+  convertToRenderLocation(node: INode): IRenderLocation {
+    const location = document.createComment('au-loc');
     // let this throw if node does not have a parent
     (<Node>node.parentNode).replaceChild(location, <any>node);
-
     return location;
   },
 
@@ -285,25 +274,6 @@ export const NodeSequence = {
     };
   }
 };
-
-interface CommentProxy extends Comment {
-  $proxyTarget: Element;
-  hasAttribute: typeof Element.prototype.hasAttribute;
-  getAttribute: typeof Element.prototype.getAttribute;
-  setAttribute: typeof Element.prototype.setAttribute;
-}
-
-function hasAttribute(this: CommentProxy, qualifiedName: string): boolean {
-  return this.$proxyTarget.hasAttribute(qualifiedName);
-}
-
-function getAttribute(this: CommentProxy, qualifiedName: string): string {
-  return this.$proxyTarget.getAttribute(qualifiedName);
-}
-
-function setAttribute(this: CommentProxy, qualifiedName: string, value: string): void {
-  this.$proxyTarget.setAttribute(qualifiedName, value);
-}
 
 // This is the most common form of INodeSequence.
 // Every custom element or template controller whose node sequence is based on an HTML template

@@ -25,17 +25,13 @@ export class Compose {
 
   private task: CompositionTask = null;
   private currentView: IView = null;
-  private childNodes: INode[] = null;
   private properties: any = null;
 
   constructor(
     private renderable: IRenderable,
-    host: INode,
     instruction: Immutable<IHydrateElementInstruction>,
-    private renderingEngine: IRenderingEngine,
-    private location: IRenderLocation
+    private renderingEngine: IRenderingEngine
   ) {
-    this.childNodes = Array.from(host.childNodes);
     this.properties = instruction.instructions
       .filter((x: any) => !composeProps.includes(x.dest))
       .reduce((acc, item: any) => {
@@ -62,7 +58,7 @@ export class Compose {
     const potential = createElement(
       component,
       this.properties,
-      this.childNodes
+      this.$projector.children
     );
 
     const view = potential.createView(
@@ -70,7 +66,7 @@ export class Compose {
       this.renderable.$context
     );
 
-    view.onRender = view => view.$nodes.insertBefore(this.location);
+    view.onRender = view => view.$nodes.insertBefore(this.$projector.host);
     view.lockScope(this.renderable.$scope);
 
     this.clear();

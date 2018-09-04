@@ -117,7 +117,6 @@ export interface IHydrateElementInstruction extends ITargetedInstruction {
   res: any;
   instructions: TargetedInstruction[];
   parts?: Record<string, ITemplateSource>;
-  content?: INode; // Usage: Compose
 }
 
 export interface IHydrateAttributeInstruction extends ITargetedInstruction {

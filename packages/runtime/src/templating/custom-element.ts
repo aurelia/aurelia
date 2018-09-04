@@ -20,7 +20,7 @@ import { ITemplate } from './template';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 
-export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'content'>>;
+export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
 export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable> {
   readonly $projector: IViewProjector;
@@ -134,7 +134,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   this.$isAttached = false;
   this.$isBound = false;
   this.$scope = BindingContext.createScope(this);
-  this.$projector = determineProjector(this, host, description, options);
+  this.$projector = determineProjector(this, host, description);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
@@ -275,6 +275,7 @@ export function createCustomElementDescription(templateSource: ITemplateSource, 
 }
 
 export interface IViewProjector {
+  readonly host: INode;
   readonly children: ArrayLike<INode>;
   onChildrenChanged(callback: () => void): void;
   provideEncapsulationSource(parentEncapsulationSource: INode): INode;
@@ -284,17 +285,14 @@ export interface IViewProjector {
 function determineProjector(
   customElement: ICustomElement,
   host: INode,
-  definition: TemplateDefinition,
-  options: IElementHydrationOptions
+  definition: TemplateDefinition
 ): IViewProjector {
-  if (definition.shadowOptions
-    || definition.hasSlots
-    || (options.content && options.content.childNodes.length)) {
+  if (definition.shadowOptions || definition.hasSlots) {
     if (definition.containerless) {
       throw Reporter.error(21);
     }
 
-    return new ShadowDOMProjector(customElement, host, definition, options);
+    return new ShadowDOMProjector(customElement, host, definition);
   }
 
   if (definition.containerless) {
@@ -306,20 +304,14 @@ function determineProjector(
 
 const childObserverOptions = { childList: true };
 
-/*@internal*/
 export class ShadowDOMProjector implements IViewProjector {
-  private shadowRoot: INode;
+  public shadowRoot: INode;
 
   constructor(
     customElement: ICustomElement,
-    private host: INode,
-    definition: TemplateDefinition,
-    options: IElementHydrationOptions
+    public host: INode,
+    definition: TemplateDefinition
   ) {
-    if (options && options.content) {
-      DOM.migrateChildNodes(options.content, host);
-    }
-
     this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
     (host as any).$customElement = customElement;
     (this.shadowRoot as any).$customElement = customElement;
@@ -342,17 +334,23 @@ export class ShadowDOMProjector implements IViewProjector {
   }
 }
 
-/*@internal*/
 export class ContainerlessProjector implements IViewProjector {
-  private location: IRenderLocation;
+  public host: IRenderLocation;
+  private childNodes: ArrayLike<INode>;
 
   constructor(customElement: ICustomElement, host: INode) {
-    this.location = DOM.convertToRenderLocation(host, true);
-    (this.location as any).$customElement = customElement;
+    if (host.childNodes.length) {
+      this.childNodes = Array.from(host.childNodes);
+    } else {
+      this.childNodes = PLATFORM.emptyArray;
+    }
+
+    this.host = DOM.convertToRenderLocation(host);
+    (this.host as any).$customElement = customElement;
   }
 
   get children(): ArrayLike<INode> {
-    return PLATFORM.emptyArray;
+    return this.childNodes;
   }
 
   public onChildrenChanged(callback: () => void): void {
@@ -368,13 +366,12 @@ export class ContainerlessProjector implements IViewProjector {
   }
 
   public project(nodes: INodeSequence): void {
-    nodes.insertBefore(this.location);
+    nodes.insertBefore(this.host);
   }
 }
 
-/*@internal*/
 export class HostProjector implements IViewProjector {
-  constructor(customElement: ICustomElement, private host: INode) {
+  constructor(customElement: ICustomElement, public host: INode) {
     (host as any).$customElement = customElement;
   }
 

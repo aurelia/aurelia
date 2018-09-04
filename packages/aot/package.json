@@ -34,6 +34,9 @@
     "dev": "tsc -b tsconfig/umd.json -w",
     "publish:local": "npm pack"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@aurelia/jit": "^0.1.1",
     "@aurelia/kernel": "^0.1.1",

@@ -97,7 +97,7 @@ function stringify(o) {
 }
 
 
-describe.only('TemplateCompiler (integration)', () => {
+describe('TemplateCompiler (integration)', () => {
   let au: Aurelia;
   let host: HTMLElement;
   let component: ReturnType<typeof createCustomElement>;

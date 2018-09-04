@@ -1,5 +1,5 @@
 import { bindingCommand, IBindingCommand, HydrateElementInstruction, register, TemplateCompiler, BasicConfiguration } from "../../../src";
-import { IExpressionParser, INode, IResourceDescriptions, ICustomAttributeSource, ITemplateSource, TargetedInstructionType, BindingType, IRenderable, BindingMode, IObserverLocator, IRenderContext, Binding, IRenderStrategyInstruction, renderStrategy, IRenderStrategy, ITemplateCompiler, Aurelia, IChangeSet, customElement, CustomElementResource, bindable, IEventManager, Listener, IExpression, DelegationStrategy } from "@aurelia/runtime";
+import { IExpressionParser, INode, IResourceDescriptions, ICustomAttributeSource, ITemplateSource, TargetedInstructionType, BindingType, IRenderable, BindingMode, IObserverLocator, IRenderContext, Binding, IRenderStrategyInstruction, renderStrategy, IRenderStrategy, ITemplateCompiler, Aurelia, IChangeSet, customElement, CustomElementResource, bindable, IEventManager, Listener, IExpression, DelegationStrategy, AttributeDefinition, ElementDefinition } from "@aurelia/runtime";
 import { Immutable, IIndexable, DI, IContainer, Registration, IServiceLocator } from "@aurelia/kernel";
 import { ExpressionParser } from '../../../../runtime/src/binding/expression-parser';
 import { expect } from "chai";
@@ -11,19 +11,11 @@ import { spy } from "sinon";
 export class KeyupBindingCommand implements IBindingCommand {
   constructor(private parser: IExpressionParser) {}
 
-  public compile(
-    attr: { name: string; value: string },
-    node: INode,
-    targetName: string,
-    resources: IResourceDescriptions,
-    attributeDefinition: Immutable<Required<ICustomAttributeSource>> | null,
-    elementDefinition: Immutable<Required<ITemplateSource>> | null,
-    elementInstruction?: HydrateElementInstruction
-  ): IRenderStrategyInstruction & IIndexable {
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): IRenderStrategyInstruction & IIndexable {
     return {
       type: TargetedInstructionType.renderStrategy,
-      expr: this.parser.parse(`${attr.value}`, BindingType.TriggerCommand),
-      keys: targetName.split('+'),
+      expr: this.parser.parse(`${value}`, BindingType.TriggerCommand),
+      keys: target.split('+'),
       name: 'keyup'
     };
   }

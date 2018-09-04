@@ -41,7 +41,6 @@ const marker = DOM.createElement('au-marker') as Element;
 marker.classList.add('au');
 const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
 
-
 const enum NodeType {
   Element = 1,
   Attr = 2,
@@ -91,6 +90,8 @@ export function resolveTarget(target: string, element: ElementDefinition, attrib
   return target;
 }
 
+const attributeInspectionBuffer: [string, AttributeDefinition, IBindingCommand | null] = <any>Array(3);
+
 /*@internal*/
 export function inspectAttribute(name: string, resources: IResourceDescriptions):
   [string, AttributeDefinition, IBindingCommand | null] {
@@ -113,7 +114,10 @@ export function inspectAttribute(name: string, resources: IResourceDescriptions)
   }
   const attributeDefinition = resources.find(CustomAttributeResource, targetName) || null;
 
-  return [targetName, attributeDefinition, bindingCommand];
+  attributeInspectionBuffer[0] = targetName;
+  attributeInspectionBuffer[1] = attributeDefinition;
+  attributeInspectionBuffer[2] = bindingCommand;
+  return attributeInspectionBuffer;
 }
 
 

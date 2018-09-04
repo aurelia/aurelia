@@ -68,7 +68,7 @@ const attrNameArr = [
 ];
 
 
-describe.only('TemplateCompiler', () => {
+describe('TemplateCompiler', () => {
   let container: IContainer;
   let sut: TemplateCompiler;
   let expressionParser: IExpressionParser;

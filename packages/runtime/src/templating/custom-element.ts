@@ -13,7 +13,7 @@ import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
 import { AttachLifecycle, DetachLifecycle, IAttach, IBindSelf } from './lifecycle';
-import { IRenderable } from './renderable';
+import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 import { ITemplate } from './template';
@@ -30,6 +30,7 @@ export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
   $behavior: IRuntimeBehavior;
+  $encapsulationSource: INode;
 }
 
 /**
@@ -108,6 +109,8 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$attach = attach;
     proto.$detach = detach;
     proto.$unbind = unbind;
+    (proto.$addChild as any) = addRenderableChild;
+    (proto.$removeChild as any) = removeRenderableChild;
 
     return Type;
   }
@@ -201,7 +204,9 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   }
 
   lifecycle = AttachLifecycle.start(this, lifecycle);
-  encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
+
+  this.$encapsulationSource = encapsulationSource
+    = this.$projector.provideEncapsulationSource(encapsulationSource);
 
   if (this.$behavior.hasAttaching) {
     (this as any).attaching(encapsulationSource);

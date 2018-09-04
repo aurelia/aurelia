@@ -261,6 +261,19 @@ jobs:
             cd ~/repo/packages/examples/e2e-benchmark/vcurrent
             npm run e2e
 
+  publish_nightly:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: "Publish nightly release"
+          command: |
+            npm run publish:nightly
+
 workflows:
     version: 2
     default_workflow:
@@ -287,4 +300,43 @@ workflows:
             - e2e_benchmark_vcurrent:
                 requires:
                     - build
+    nightly:
+        triggers:
+            - schedule:
+                cron: "0 0 * * *"
+                filters:
+                  branches:
+                    only:
+                      - master
+        jobs:
+            - install
+            - build:
+                requires:
+                    - install
+            - unit_tests:
+                requires:
+                    - install
+            - e2e_tests_jit_parcel:
+                requires:
+                    - build
+            - e2e_tests_jit_browserify:
+                requires:
+                    - build
+            - e2e_tests_jit_aurelia_cli:
+                requires:
+                    - build
+            - e2e_benchmark_vnext:
+                requires:
+                    - build
+            - e2e_benchmark_vcurrent:
+                requires:
+                    - build
+            - publish_nightly:
+                requires:
+                    - build
+                    - unit_tests
+                    - e2e_tests_jit_parcel
+                    - e2e_tests_jit_browserify
+                    - e2e_tests_jit_aurelia_cli
+                    - e2e_benchmark_vnext
 

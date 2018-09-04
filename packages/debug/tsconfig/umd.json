@@ -2,6 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "../dist/umd",
-    "module": "umd"
+    "module": "umd",
+    "target": "es2018"
   }
 }

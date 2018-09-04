@@ -3,6 +3,8 @@
 
 **/node_modules
 **/coverage
+**/dist
+**/*.tgz
 /test/**/coverage
 
 **/debug.log

@@ -18,7 +18,7 @@ const composeProps = ['component', 'composing'];
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
-@inject(IRenderable, INode, ITargetedInstruction, IRenderingEngine, IRenderLocation)
+@inject(IRenderable, ITargetedInstruction, IRenderingEngine)
 export class Compose {
   @bindable public component: any;
   @bindable public composing: boolean;

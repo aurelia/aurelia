@@ -1,22 +1,14 @@
-import { Constructable, IContainer, Immutable, Registration, Writable } from '@aurelia/kernel';
-import { BindingMode, BindingType, ICustomAttributeSource, IExpressionParser, INode, IResourceDescriptions, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
-import { CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, HydrateElementInstruction, HydrateTemplateController, OneTimeBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction } from './template-compiler';
+import { Constructable, IContainer, Immutable, Registration, Writable, PLATFORM } from '@aurelia/kernel';
+import { BindingMode, BindingType, ICustomAttributeSource, IExpressionParser, INode, IResourceDescriptions, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction, AttributeDefinition, ElementDefinition } from '@aurelia/runtime';
+import { CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, HydrateElementInstruction, HydrateTemplateController, OneTimeBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction, resolveTarget } from './template-compiler';
 
 export interface IBindingCommandSource {
   name: string;
 }
 
 export interface IBindingCommand {
-  compile(
-    attr: { name: string; value: string },
-    node: INode,
-    targetName: string,
-    resources: IResourceDescriptions,
-    attributeDefinition: Immutable<Required<ICustomAttributeSource>> | null,
-    elementDefinition: Immutable<Required<ITemplateSource>> | null,
-    elementInstruction?: HydrateElementInstruction
-  ): TargetedInstruction;
-  handles(attributeDefinition: Immutable<Required<ICustomAttributeSource>> | null): boolean;
+  compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction;
+  handles(attribute: Immutable<Required<ICustomAttributeSource>> | null): boolean;
 }
 
 export type IBindingCommandType = IResourceType<IBindingCommandSource, IBindingCommand>;
@@ -39,7 +31,7 @@ export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindi
   },
 
   define<T extends Constructable>(nameOrSource: string | IBindingCommandSource, ctor: T): T & IBindingCommandType {
-    const description = typeof nameOrSource === 'string' ? { name: nameOrSource, targetName: null } : nameOrSource;
+    const description = typeof nameOrSource === 'string' ? { name: nameOrSource, target: null } : nameOrSource;
     const Type: T & IBindingCommandType = ctor as any;
 
     (Type as Writable<IBindingCommandType>).kind = BindingCommandResource;
@@ -67,30 +59,24 @@ export class DefaultBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
 
-  public compile(
-    attr: { name: string; value: string },
-    node: INode,
-    targetName: string,
-    resources: IResourceDescriptions,
-    attributeDefinition: Immutable<Required<ICustomAttributeSource>> | null,
-    elementDefinition: Immutable<Required<ITemplateSource>> | null
-  ): TargetedInstruction {
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
     let mode = BindingMode.toView;
-    if (elementDefinition) {
-      const bindable = elementDefinition.bindables[targetName];
+    if (element) {
+      target = resolveTarget(target, element, attribute);
+      const bindable = element.bindables[target];
       if (bindable && bindable.mode && bindable.mode !== BindingMode.default) {
         mode = bindable.mode;
       }
     }
     switch (mode) {
       case BindingMode.oneTime:
-        return new OneTimeBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
+        return new OneTimeBindingInstruction(this.parser.parse(value, BindingType.OneTimeCommand), target);
       case BindingMode.toView:
-        return new ToViewBindingInstruction(this.parser.parse(attr.value, BindingType.ToViewCommand), targetName);
+        return new ToViewBindingInstruction(this.parser.parse(value, BindingType.ToViewCommand), target);
       case BindingMode.fromView:
-        return new FromViewBindingInstruction(this.parser.parse(attr.value, BindingType.FromViewCommand), targetName);
+        return new FromViewBindingInstruction(this.parser.parse(value, BindingType.FromViewCommand), target);
       case BindingMode.twoWay:
-        return new TwoWayBindingInstruction(this.parser.parse(attr.value, BindingType.TwoWayCommand), targetName);
+        return new TwoWayBindingInstruction(this.parser.parse(value, BindingType.TwoWayCommand), target);
     }
   }
 }
@@ -101,8 +87,8 @@ export interface OneTimeBindingCommand extends IBindingCommand {}
 export class OneTimeBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
-    return new OneTimeBindingInstruction(this.parser.parse(attr.value, BindingType.OneTimeCommand), targetName);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
+    return new OneTimeBindingInstruction(this.parser.parse(value, BindingType.OneTimeCommand), resolveTarget(target, element, attribute));
   }
 }
 
@@ -112,8 +98,8 @@ export interface ToViewBindingCommand extends IBindingCommand {}
 export class ToViewBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
-    return new ToViewBindingInstruction(this.parser.parse(attr.value, BindingType.ToViewCommand), targetName);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
+    return new ToViewBindingInstruction(this.parser.parse(value, BindingType.ToViewCommand), resolveTarget(target, element, attribute));
   }
 }
 
@@ -123,8 +109,8 @@ export interface FromViewBindingCommand extends IBindingCommand {}
 export class FromViewBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
-    return new FromViewBindingInstruction(this.parser.parse(attr.value, BindingType.FromViewCommand), targetName);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
+    return new FromViewBindingInstruction(this.parser.parse(value, BindingType.FromViewCommand), resolveTarget(target, element, attribute));
   }
 }
 
@@ -134,8 +120,8 @@ export interface TwoWayBindingCommand extends IBindingCommand {}
 export class TwoWayBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
-    return new TwoWayBindingInstruction(this.parser.parse(attr.value, BindingType.TwoWayCommand), targetName);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
+    return new TwoWayBindingInstruction(this.parser.parse(value, BindingType.TwoWayCommand), resolveTarget(target, element, attribute));
   }
 }
 
@@ -145,8 +131,8 @@ export interface TriggerBindingCommand extends IBindingCommand {}
 export class TriggerBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
-    return new TriggerBindingInstruction(this.parser.parse(attr.value, BindingType.TriggerCommand), targetName);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
+    return new TriggerBindingInstruction(this.parser.parse(value, BindingType.TriggerCommand), target);
   }
 }
 
@@ -156,8 +142,8 @@ export interface DelegateBindingCommand extends IBindingCommand {}
 export class DelegateBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
-    return new DelegateBindingInstruction(this.parser.parse(attr.value, BindingType.DelegateCommand), targetName);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
+    return new DelegateBindingInstruction(this.parser.parse(value, BindingType.DelegateCommand), target);
   }
 }
 
@@ -167,8 +153,8 @@ export interface CaptureBindingCommand extends IBindingCommand {}
 export class CaptureBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
-    return new CaptureBindingInstruction(this.parser.parse(attr.value, BindingType.CaptureCommand), targetName);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
+    return new CaptureBindingInstruction(this.parser.parse(value, BindingType.CaptureCommand), target);
   }
 }
 
@@ -178,8 +164,8 @@ export interface CallBindingCommand extends IBindingCommand {}
 export class CallBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
-    return new CallBindingInstruction(this.parser.parse(attr.value, BindingType.CallCommand), targetName);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
+    return new CallBindingInstruction(this.parser.parse(value, BindingType.CallCommand), resolveTarget(target, element, attribute));
   }
 }
 
@@ -187,13 +173,13 @@ export class CallBindingCommand implements IBindingCommand {
 export class ForBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(attr: { name: string; value: string }, node: INode, targetName: string): TargetedInstruction {
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
     const src: ITemplateSource = {
       templateOrNode: node,
       instructions: []
     };
-    return new HydrateTemplateController(src, targetName, [
-      new ToViewBindingInstruction(this.parser.parse(attr.value, BindingType.ForCommand), 'items'),
+    return new HydrateTemplateController(src, 'repeat', [
+      new ToViewBindingInstruction(this.parser.parse(value, BindingType.ForCommand), 'items'),
       new SetPropertyInstruction('item', 'local')
     ]);
   }

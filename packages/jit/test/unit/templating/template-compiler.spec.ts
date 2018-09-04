@@ -21,6 +21,7 @@ import {
   BasicConfiguration} from '../../../src/index';
 import { expect } from 'chai';
 import { verifyEqual, createElement } from '../../util';
+import { spy } from 'sinon';
 
 
 export function createAttribute(name: string, value: string): Attr {
@@ -67,7 +68,7 @@ const attrNameArr = [
 ];
 
 
-describe('TemplateCompiler', () => {
+describe.only('TemplateCompiler', () => {
   let container: IContainer;
   let sut: TemplateCompiler;
   let expressionParser: IExpressionParser;
@@ -80,6 +81,333 @@ describe('TemplateCompiler', () => {
     sut = new TemplateCompiler(expressionParser as any);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
+  });
+
+
+  describe(`compileNode()`, () => {
+    function setup() {
+      const container = DI.createContainer();
+      container.register(BasicConfiguration);
+      const expressionParser = container.get(IExpressionParser);
+      const sut = new TemplateCompiler(expressionParser as any);
+      const resources = new RuntimeCompilationResources(<any>container);
+      const instructions = [];
+      return { sut, resources, instructions };
+    }
+
+    it(`handles Element with Element nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      sut.compileElementNode = spy();
+
+      const parent = document.createElement('div');
+      const node = document.createElement('div');
+      const nextSibling = document.createElement('div');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Element with Text nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      sut.compileElementNode = spy();
+
+      const parent = document.createElement('div');
+      const node = document.createElement('div');
+      const nextSibling = document.createTextNode('foo');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Element with Comment nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      sut.compileElementNode = spy();
+
+      const parent = document.createElement('div');
+      const node = document.createElement('div');
+      const nextSibling = document.createComment('foo');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles TextNode without interpolation`, () => {
+      const { sut, resources, instructions } = setup();
+
+      sut.compileTextNode = spy(() => false)
+
+      const parent = document.createElement('div');
+      const firstChild = document.createTextNode(' ');
+      parent.appendChild(firstChild);
+      parent.appendChild(document.createTextNode('asdf'));
+      parent.appendChild(document.createTextNode(' '));
+      parent.appendChild(document.createTextNode(' '));
+      parent.appendChild(document.createTextNode('asdf'));
+      parent.appendChild(document.createTextNode(' '));
+      const nextSibling = document.createElement('div');
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(firstChild, parent, instructions, resources);
+
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles TextNode with interpolation`, () => {
+      const { sut, resources, instructions } = setup();
+
+      sut.compileTextNode = spy(() => true)
+
+      const parent = document.createElement('div');
+      const firstChild = document.createTextNode(' ');
+      parent.appendChild(firstChild);
+      const nextSibling = document.createTextNode('asdf');
+      parent.appendChild(nextSibling);
+      parent.appendChild(document.createTextNode(' '));
+      parent.appendChild(document.createTextNode(' '));
+      parent.appendChild(document.createTextNode('asdf'));
+      parent.appendChild(document.createTextNode(' '));
+      parent.appendChild(document.createElement('div'));
+
+      const actual = sut.compileNode(firstChild, parent, instructions, resources);
+
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Comment with Element nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      const parent = document.createElement('div');
+      const node = document.createComment('foo');
+      const nextSibling = document.createElement('div');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Comment with Text nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      const parent = document.createElement('div');
+      const node = document.createComment('foo');
+      const nextSibling = document.createTextNode('foo');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Comment with Comment nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      const parent = document.createElement('div');
+      const node = document.createComment('foo');
+      const nextSibling = document.createComment('foo');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Document`, () => {
+      const { sut, resources, instructions } = setup();
+
+      const actual = sut.compileNode(document, null, instructions, resources);
+
+      expect(actual).to.equal(document.firstChild);
+    });
+
+    it(`handles DocumentType`, () => {
+      const { sut, resources, instructions } = setup();
+
+      const actual = <Element>sut.compileNode(document.firstChild, null, instructions, resources);
+
+      expect(actual).to.equal(document.firstChild.nextSibling);
+    });
+  });
+
+  describe(`compileSurrogate()`, () => {
+    function setup() {
+      const container = DI.createContainer();
+      container.register(BasicConfiguration);
+      const expressionParser = container.get(IExpressionParser);
+      const sut = new TemplateCompiler(expressionParser as any);
+      const resources = new RuntimeCompilationResources(<any>container);
+      const instructions = [];
+      return { sut, resources, instructions };
+    }
+
+    it(`handles Element with Element nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      sut.compileElementNode = spy();
+
+      const parent = document.createElement('div');
+      const node = document.createElement('div');
+      const nextSibling = document.createElement('div');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Element with Text nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      sut.compileElementNode = spy();
+
+      const parent = document.createElement('div');
+      const node = document.createElement('div');
+      const nextSibling = document.createTextNode('foo');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Element with Comment nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      sut.compileElementNode = spy();
+
+      const parent = document.createElement('div');
+      const node = document.createElement('div');
+      const nextSibling = document.createComment('foo');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles TextNode without interpolation`, () => {
+      const { sut, resources, instructions } = setup();
+
+      sut.compileTextNode = spy(() => false)
+
+      const parent = document.createElement('div');
+      const firstChild = document.createTextNode(' ');
+      parent.appendChild(firstChild);
+      parent.appendChild(document.createTextNode('asdf'));
+      parent.appendChild(document.createTextNode(' '));
+      parent.appendChild(document.createTextNode(' '));
+      parent.appendChild(document.createTextNode('asdf'));
+      parent.appendChild(document.createTextNode(' '));
+      const nextSibling = document.createElement('div');
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(firstChild, parent, instructions, resources);
+
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles TextNode with interpolation`, () => {
+      const { sut, resources, instructions } = setup();
+
+      sut.compileTextNode = spy(() => true)
+
+      const parent = document.createElement('div');
+      const firstChild = document.createTextNode(' ');
+      parent.appendChild(firstChild);
+      const nextSibling = document.createTextNode('asdf');
+      parent.appendChild(nextSibling);
+      parent.appendChild(document.createTextNode(' '));
+      parent.appendChild(document.createTextNode(' '));
+      parent.appendChild(document.createTextNode('asdf'));
+      parent.appendChild(document.createTextNode(' '));
+      parent.appendChild(document.createElement('div'));
+
+      const actual = sut.compileNode(firstChild, parent, instructions, resources);
+
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Comment with Element nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      const parent = document.createElement('div');
+      const node = document.createComment('foo');
+      const nextSibling = document.createElement('div');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Comment with Text nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      const parent = document.createElement('div');
+      const node = document.createComment('foo');
+      const nextSibling = document.createTextNode('foo');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Comment with Comment nextSibling`, () => {
+      const { sut, resources, instructions } = setup();
+
+      const parent = document.createElement('div');
+      const node = document.createComment('foo');
+      const nextSibling = document.createComment('foo');
+      parent.appendChild(node);
+      parent.appendChild(nextSibling);
+
+      const actual = sut.compileNode(node, parent, instructions, resources);
+
+      expect(actual).to.equal(nextSibling);
+    });
+
+    it(`handles Document`, () => {
+      const { sut, resources, instructions } = setup();
+
+      const actual = sut.compileNode(document, null, instructions, resources);
+
+      expect(actual).to.equal(document.firstChild);
+    });
+
+    it(`handles DocumentType`, () => {
+      const { sut, resources, instructions } = setup();
+
+      const actual = <Element>sut.compileNode(document.firstChild, null, instructions, resources);
+
+      expect(actual).to.equal(document.firstChild.nextSibling);
+    });
   });
 
 
@@ -447,6 +775,7 @@ describe('TemplateCompiler', () => {
 
         const expectedElInstructions = [
           { toVerify: ['type', 'dest', 'value'], type: TargetedInstructionType.setProperty, dest: 'name', value: 'name' },
+          { toVerify: ['type', 'dest', 'value'], type: TargetedInstructionType.setProperty, dest: 'name2', value: 'label' },
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });

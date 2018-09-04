@@ -1,6 +1,5 @@
-import { Constructable, Immutable, inject } from '@aurelia/kernel';
+import { Immutable, inject } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding/binding-flags';
-import { INode, IRenderLocation } from '../../dom';
 import { bindable } from '../bindable';
 import { createElement } from '../create-element';
 import { customElement, ICustomElement } from '../custom-element';
@@ -14,14 +13,14 @@ const composeSource: ITemplateSource = {
   containerless: true
 };
 
-const composeProps = ['component', 'composing'];
+const composeProps = ['subject', 'composing'];
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
 @inject(IRenderable, ITargetedInstruction, IRenderingEngine)
 export class Compose {
-  @bindable public component: any;
-  @bindable public composing: boolean;
+  @bindable public subject: any = null;
+  @bindable public composing: boolean = false;
 
   private task: CompositionTask = null;
   private currentView: IView = null;
@@ -44,27 +43,33 @@ export class Compose {
   }
 
   /** @internal */
-  public componentChanged(newValue: any): void {
+  public subjectChanged(newValue: any): void {
     this.startComposition(newValue, BindingFlags.fromBindableHandler);
   }
 
   /** @internal */
   public bound(): void {
-    this.startComposition(this.component, BindingFlags.fromBind);
+    this.startComposition(this.subject, BindingFlags.fromBind);
   }
 
   /** @internal */
-  public endComposition(component: Constructable, flags: BindingFlags): void {
-    const potential = createElement(
-      component,
-      this.properties,
-      this.$projector.children
-    );
+  public endComposition(subject: any, flags: BindingFlags): void {
+    let view: IView;
 
-    const view = potential.createView(
-      this.renderingEngine,
-      this.renderable.$context
-    );
+    if (subject.onRender && subject.lockScope) {
+      view = subject;
+    } else {
+      const potential = createElement(
+        subject,
+        this.properties,
+        this.$projector.children
+      );
+
+      view = potential.createView(
+        this.renderingEngine,
+        this.renderable.$context
+      );
+    }
 
     view.onRender = view => view.$nodes.insertBefore(this.$projector.host);
     view.lockScope(this.renderable.$scope);
@@ -76,8 +81,8 @@ export class Compose {
     this.composing = false;
   }
 
-  private startComposition(toBeComposed: any, flags: BindingFlags): void {
-    if (!toBeComposed) {
+  private startComposition(subject: any, flags: BindingFlags): void {
+    if (!subject) {
       this.clear();
     } else {
       if (this.task) {
@@ -85,7 +90,7 @@ export class Compose {
       }
 
       this.task = new CompositionTask(this, flags);
-      this.task.start(toBeComposed);
+      this.task.start(subject);
     }
   }
 
@@ -101,17 +106,17 @@ class CompositionTask {
 
   constructor(private compose: Compose, private flags: BindingFlags) {}
 
-  public start(toBeComposed: any): void {
+  public start(subject: any): void {
     if (this.isCancelled) {
       return;
     }
 
     this.compose.composing = true;
 
-    if (toBeComposed instanceof Promise) {
-      toBeComposed.then(x => this.complete(x));
+    if (subject instanceof Promise) {
+      subject.then(x => this.complete(x));
     } else {
-      this.complete(toBeComposed);
+      this.complete(subject);
     }
   }
 
@@ -120,11 +125,11 @@ class CompositionTask {
     this.compose.composing = false;
   }
 
-  private complete(toBeComposed: any): void {
+  private complete(subject: any): void {
     if (this.isCancelled) {
       return;
     }
 
-    this.compose.endComposition(toBeComposed, this.flags);
+    this.compose.endComposition(subject, this.flags);
   }
 }

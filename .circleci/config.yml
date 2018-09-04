@@ -285,9 +285,6 @@ workflows:
       - unit_tests:
           requires:
             - install
-      - e2e_tests_jit_parcel:
-          requires:
-            - build
       - e2e_tests_jit_browserify:
           requires:
             - build
@@ -316,9 +313,6 @@ workflows:
       - unit_tests:
           requires:
             - install
-      - e2e_tests_jit_parcel:
-          requires:
-            - build
       - e2e_tests_jit_browserify:
           requires:
             - build
@@ -335,7 +329,6 @@ workflows:
           requires:
             - build
             - unit_tests
-            - e2e_tests_jit_parcel
             - e2e_tests_jit_browserify
             - e2e_tests_jit_aurelia_cli
             - e2e_benchmark_vnext

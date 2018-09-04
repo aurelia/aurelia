@@ -1,6 +1,6 @@
 {
   "name": "e2e-benchmark",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "build": "rimraf dist && gulp",
     "start": "http-server -c-1 -p 3000 .",

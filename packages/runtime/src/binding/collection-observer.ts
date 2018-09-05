@@ -1,5 +1,5 @@
 import { BindingFlags } from './binding-flags';
-import { Collection, CollectionKind, CollectionObserver, IBindingTargetAccessor, ICollectionObserver, IndexMap, MutationKind } from './observation';
+import { Collection, CollectionKind, CollectionObserver, IBindingTargetObserver, ICollectionObserver, IndexMap, IPropertySubscriber, MutationKind } from './observation';
 import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';
 import { targetObserver } from './target-observer';
 
@@ -63,7 +63,7 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
 }
 
 // tslint:disable-next-line:interface-name
-export interface CollectionLengthObserver extends IBindingTargetAccessor<any, string> {}
+export interface CollectionLengthObserver extends IBindingTargetObserver<any, string> {}
 
 @targetObserver()
 export class CollectionLengthObserver implements CollectionLengthObserver {
@@ -80,5 +80,13 @@ export class CollectionLengthObserver implements CollectionLengthObserver {
 
   public setValueCore(newValue: number): void {
     this.obj[this.propertyKey] = newValue;
+  }
+
+  public subscribe(subscriber: IPropertySubscriber): void {
+    this.addSubscriber(subscriber);
+  }
+
+  public unsubscribe(subscriber: IPropertySubscriber): void {
+    this.removeSubscriber(subscriber);
   }
 }

@@ -26,6 +26,8 @@ export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
+export type ElementDefinition = Immutable<Required<ITemplateSource>> | null;
+
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
   $behavior: IRuntimeBehavior;

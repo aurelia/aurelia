@@ -270,7 +270,10 @@ jobs:
       - attach_workspace:
           at: ~/repo
       - run:
-          name: "Publish nightly release"
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN" > ~/repo/.npmrc
+      - run:
+          name: Publish nightly release
           command: |
             npm run publish:nightly
 

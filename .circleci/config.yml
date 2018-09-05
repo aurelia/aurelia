@@ -300,17 +300,10 @@ workflows:
       - e2e_benchmark_vcurrent:
           requires:
             - build
-      - publish_nightly:
-          requires:
-            - build
-            - unit_tests
-            - e2e_tests_jit_browserify
-            - e2e_tests_jit_aurelia_cli
-            - e2e_benchmark_vnext
   nightly:
     triggers:
       - schedule:
-          cron: "0 6 * * *"
+          cron: "0 0 * * *"
           filters:
             branches:
               only:

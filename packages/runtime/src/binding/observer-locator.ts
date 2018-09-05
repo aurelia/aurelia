@@ -13,6 +13,8 @@ import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ClassAttributeAccessor, DataAttributeAccessor, PropertyAccessor, StyleAttributeAccessor, XLinkAttributeAccessor } from './target-accessors';
 
+const toStringTag = Object.prototype.toString;
+
 export interface ObjectObservationAdapter {
   getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }
@@ -184,6 +186,26 @@ export class ObserverLocator implements IObserverLocator {
       }
     }
 
+    const tag = toStringTag.call(obj);
+    switch (tag) {
+      case '[object Array]':
+        if (propertyName === 'length') {
+          return this.getArrayObserver(obj).getLengthObserver();
+        }
+        return this.dirtyChecker.createProperty(obj, propertyName) as any;
+      case '[object Map]':
+        if (propertyName === 'size') {
+          return this.getMapObserver(obj).getLengthObserver();
+        }
+        return this.dirtyChecker.createProperty(obj, propertyName) as any;
+      case '[object Set]':
+        if (propertyName === 'size') {
+          return this.getSetObserver(obj).getLengthObserver();
+        }
+        return this.dirtyChecker.createProperty(obj, propertyName) as any;
+    }
+
+
     const descriptor: any = getPropertyDescriptor(obj, propertyName);
 
     if (descriptor) {
@@ -201,29 +223,6 @@ export class ObserverLocator implements IObserverLocator {
         return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor) as any;
       }
     }
-
-    if (obj instanceof Array) {
-      if (propertyName === 'length') {
-        // TODO: implement length observation via proxy
-        //return this.getArrayObserver(obj).getLengthObserver();
-      }
-
-      // TODO: get rid of dirty checker and use proxy instead
-      return this.dirtyChecker.createProperty(obj, propertyName) as any;
-    } else if (obj instanceof Map) {
-      if (propertyName === 'size') {
-        //return this.getMapObserver(obj).getLengthObserver();
-      }
-
-      return this.dirtyChecker.createProperty(obj, propertyName) as any;
-    } else if (obj instanceof Set) {
-      if (propertyName === 'size') {
-        //return this.getSetObserver(obj).getLengthObserver();
-      }
-
-      return this.dirtyChecker.createProperty(obj, propertyName) as any;
-    }
-
     return new SetterObserver(obj, propertyName) as any;
   }
 }

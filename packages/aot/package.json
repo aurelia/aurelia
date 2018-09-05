@@ -2,10 +2,7 @@
   "name": "@aurelia/aot",
   "version": "0.1.1",
   "main": "dist/umd/index.js",
-  "module": "dist/es2015/index.js",
-  "jsnext:main": "dist/es2015/index.js",
-  "typings": "dist/umd/index.d.ts",
-  "types": "dist/umd/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "license": "MIT",
   "homepage": "https://aurelia.io",
   "repository": {
@@ -19,13 +16,17 @@
     "aurelia",
     "aot"
   ],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "lint": "cross-env tslint --project tsconfig-test.json -e \"test/**\" -t stylish",
     "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=aot --browsers=ChromeHeadlessOpt --single-run --coverage",
     "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=aot --browsers=ChromeHeadlessOpt --coverage",
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=aot --browsers=ChromeDebugging",
-    "build:amd": "tsc -b tsconfig/amd.json",
-    "build:commonjs": "tsc -b tsconfig/commonjs.json",
     "build:es2015": "tsc -b tsconfig/es2015.json",
     "build:esnext": "tsc -b tsconfig/esnext.json",
     "build:system": "tsc -b tsconfig/system.json",
@@ -33,6 +34,9 @@
     "build-all": "run-p build:*",
     "dev": "tsc -b tsconfig/umd.json -w",
     "publish:local": "npm pack"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@aurelia/jit": "^0.1.1",

@@ -2,6 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "../dist/system",
-    "module": "system"
+    "module": "system",
+    "target": "es2018"
   }
 }

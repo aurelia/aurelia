@@ -271,7 +271,7 @@ jobs:
           at: ~/repo
       - run:
           name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN" > ~/repo/.npmrc
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
       - run:
           name: Publish nightly release
           command: |
@@ -303,7 +303,7 @@ workflows:
   nightly:
     triggers:
       - schedule:
-          cron: "45 3 * * *"
+          cron: "0 6 * * *"
           filters:
             branches:
               only:

@@ -1,12 +1,12 @@
-import { Immutable, inject } from '@aurelia/kernel';
+import { Immutable, inject, Constructable } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding/binding-flags';
 import { bindable } from '../bindable';
-import { createElement } from '../create-element';
+import { createElement, PotentialRenderable } from '../create-element';
 import { customElement, ICustomElement } from '../custom-element';
-import { IHydrateElementInstruction, ITargetedInstruction, ITemplateSource } from '../instructions';
+import { IHydrateElementInstruction, ITargetedInstruction, ITemplateSource, TemplateDefinition } from '../instructions';
 import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
-import { IView } from '../view';
+import { IView, IViewFactory } from '../view';
 
 const composeSource: ITemplateSource = {
   name: 'au-compose',
@@ -14,6 +14,8 @@ const composeSource: ITemplateSource = {
 };
 
 const composeProps = ['subject', 'composing'];
+
+type Subject = IViewFactory | IView | PotentialRenderable | Constructable | TemplateDefinition;
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
@@ -54,22 +56,7 @@ export class Compose {
 
   /** @internal */
   public endComposition(subject: any, flags: BindingFlags): void {
-    let view: IView;
-
-    if (subject.onRender && subject.lockScope) {
-      view = subject;
-    } else {
-      const potential = createElement(
-        subject,
-        this.properties,
-        this.$projector.children
-      );
-
-      view = potential.createView(
-        this.renderingEngine,
-        this.renderable.$context
-      );
-    }
+    const view = this.provideViewFor(subject);
 
     view.onRender = view => view.$nodes.insertBefore(this.$projector.host);
     view.lockScope(this.renderable.$scope);
@@ -79,6 +66,35 @@ export class Compose {
     this.$addChild(this.currentView, flags);
 
     this.composing = false;
+  }
+
+  private provideViewFor(subject: Subject): IView {
+    if ('templateOrNode' in subject) {
+      return this.renderingEngine.getViewFactory(
+        subject,
+        this.renderable.$context
+      ).create();
+    } else if ('create' in subject) {
+      return subject.create();
+    } else if ('createView' in subject) {
+      return subject.createView(
+        this.renderingEngine,
+        this.renderable.$context
+      );
+    } else if ('onRender' in subject) {
+      return subject;
+    } else {
+      const potential = createElement(
+        subject,
+        this.properties,
+        this.$projector.children
+      );
+
+      return potential.createView(
+        this.renderingEngine,
+        this.renderable.$context
+      );
+    }
   }
 
   private startComposition(subject: any, flags: BindingFlags): void {

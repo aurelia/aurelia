@@ -7,9 +7,9 @@
     "build": "lerna run build",
     "dev": "lerna run dev --parallel",
     "build-all": "lerna run build-all",
-    "test": "lerna run test --parallel",
-    "test:watch": "lerna run test:watch --parallel",
-    "lint": "lerna run lint --parallel",
+    "test": "lerna run test",
+    "test:watch": "lerna run test:watch",
+    "lint": "lerna run lint",
     "publish:local": "lerna run publish:local --parallel",
     "publish:nightly": "ts-node scripts/publish-nightly.ts dev lerna.json"
   },

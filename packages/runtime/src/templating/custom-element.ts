@@ -264,7 +264,7 @@ export function createCustomElementDescription(templateSource: ITemplateSource, 
       required: false,
       compiler: 'default'
     },
-    bindables: Object.assign({}, (Type as any).bindables, templateSource.bindables),
+    bindables: {...(Type as any).bindables, ...templateSource.bindables},
     instructions: templateSource.instructions ? Array.from(templateSource.instructions) : PLATFORM.emptyArray,
     dependencies: templateSource.dependencies ? Array.from(templateSource.dependencies) : PLATFORM.emptyArray,
     surrogates: templateSource.surrogates ? Array.from(templateSource.surrogates) : PLATFORM.emptyArray,

@@ -21,6 +21,8 @@ export const enum TargetedInstructionType {
   hydrateTemplateController = 'k'
 }
 
+const instructionTypeValues = 'abcdefghij';
+
 export interface IBuildInstruction {
   required: boolean;
   compiler?: string;
@@ -61,6 +63,11 @@ export type TargetedInstruction =
   IHydrateElementInstruction |
   IHydrateAttributeInstruction |
   IHydrateTemplateController;
+
+export function isTargetedInstruction(value: any): value is TargetedInstruction {
+  const type = value.type;
+  return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
+}
 
 export interface ITextBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.textBinding;

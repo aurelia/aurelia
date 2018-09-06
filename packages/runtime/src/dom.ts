@@ -99,6 +99,10 @@ export const DOM = {
     return document.createElement(name);
   },
 
+  createText(text: string): INode {
+    return document.createTextNode(text);
+  },
+
   createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit) {
     const observer = new MutationObserver(callback);
     observer.observe(target as Node, options);

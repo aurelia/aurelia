@@ -6,7 +6,7 @@ import { INode, INodeSequence } from '../dom';
 import { IAnimator } from './animator';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
 import { IRenderContext } from './render-context';
-import { IRenderable, addRenderableChild, removeRenderableChild } from './renderable';
+import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
 import { ITemplate } from './template';
 
 export type RenderCallback = (view: IView) => void;

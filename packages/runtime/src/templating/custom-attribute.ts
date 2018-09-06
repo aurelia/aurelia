@@ -204,6 +204,6 @@ export function createCustomAttributeDescription(attributeSource: ICustomAttribu
     aliases: attributeSource.aliases || PLATFORM.emptyArray,
     defaultBindingMode: attributeSource.defaultBindingMode || BindingMode.toView,
     isTemplateController: attributeSource.isTemplateController || false,
-    bindables: Object.assign({}, (Type as any).bindables, attributeSource.bindables)
+    bindables: {...(Type as any).bindables, ...attributeSource.bindables}
   };
 }

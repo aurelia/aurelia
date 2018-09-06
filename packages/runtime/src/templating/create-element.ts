@@ -2,6 +2,7 @@ import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { DOM, INode } from '../dom';
 import { ICustomElementType } from './custom-element';
 import {
+  isTargetedInstruction,
   TargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition
@@ -70,13 +71,28 @@ export class PotentialRenderable {
 
 function createElementForTag(tagName: string, props?: any, children?: ArrayLike<ChildType>): PotentialRenderable {
   const instructions: TargetedInstruction[] = [];
-  const allInstructions = [instructions];
+  const allInstructions = [];
   const dependencies = [];
   const element = DOM.createElement(tagName);
+  let hasInstructions = false;
 
   if (props) {
     Object.keys(props)
-      .forEach(x => DOM.setAttribute(element, x, props[x]));
+      .forEach(dest => {
+        const value = props[dest];
+
+        if (isTargetedInstruction(value)) {
+          hasInstructions = true;
+          instructions.push(value);
+        } else {
+          DOM.setAttribute(element, dest, value);
+        }
+      });
+  }
+
+  if (hasInstructions) {
+    DOM.setAttribute(element, 'class', 'au');
+    allInstructions.push(instructions);
   }
 
   if (children) {
@@ -109,21 +125,27 @@ function createElementForType(Type: ICustomElementType, props?: any, children?: 
 
   if (props) {
     Object.keys(props)
-      .forEach(x => {
-        const bindable = bindables[x];
+      .forEach(dest => {
+        const value = props[dest];
 
-        if (bindable) {
-          childInstructions.push({
-            type: TargetedInstructionType.setProperty,
-            dest: x,
-            value: props[x]
-          });
+        if (isTargetedInstruction(value)) {
+          childInstructions.push(value);
         } else {
-          childInstructions.push({
-            type: TargetedInstructionType.setAttribute,
-            dest: x,
-            value: props[x]
-          });
+          const bindable = bindables[dest];
+
+          if (bindable) {
+            childInstructions.push({
+              type: TargetedInstructionType.setProperty,
+              dest,
+              value
+            });
+          } else {
+            childInstructions.push({
+              type: TargetedInstructionType.setAttribute,
+              dest,
+              value
+            });
+          }
         }
       });
   }
@@ -140,7 +162,7 @@ function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructi
     const current = children[i];
 
     if (typeof current === 'string') {
-      // create text node and append
+      DOM.appendChild(parent, DOM.createText(current));
     } else if (DOM.isNodeInstance(current)) {
       DOM.appendChild(parent, current);
     } else {

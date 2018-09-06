@@ -1,9 +1,15 @@
-import { Immutable, inject, Constructable } from '@aurelia/kernel';
+import { Constructable, Immutable, inject } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding/binding-flags';
 import { bindable } from '../bindable';
 import { createElement, PotentialRenderable } from '../create-element';
 import { customElement, ICustomElement } from '../custom-element';
-import { IHydrateElementInstruction, ITargetedInstruction, ITemplateSource, TemplateDefinition } from '../instructions';
+import {
+  IHydrateElementInstruction,
+  ITargetedInstruction,
+  ITemplateSource,
+  TargetedInstruction,
+  TemplateDefinition
+} from '../instructions';
 import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
 import { IView, IViewFactory } from '../view';
@@ -26,7 +32,7 @@ export class Compose {
 
   private task: CompositionTask = null;
   private currentView: IView = null;
-  private properties: any = null;
+  private properties: Record<string, TargetedInstruction> = null;
 
   constructor(
     private renderable: IRenderable,
@@ -55,42 +61,47 @@ export class Compose {
   }
 
   /** @internal */
-  public endComposition(subject: any, flags: BindingFlags): void {
+  public endComposition(subject: Subject, flags: BindingFlags): void {
     const view = this.provideViewFor(subject);
 
-    view.onRender = view => view.$nodes.insertBefore(this.$projector.host);
-    view.lockScope(this.renderable.$scope);
-
     this.clear();
-    this.currentView = view;
-    this.$addChild(this.currentView, flags);
+
+    if (view) {
+      view.onRender = () => view.$nodes.insertBefore(this.$projector.host);
+      view.lockScope(this.renderable.$scope);
+
+      this.currentView = view;
+      this.$addChild(view, flags);
+    }
 
     this.composing = false;
   }
 
-  private provideViewFor(subject: Subject): IView {
-    if ('templateOrNode' in subject) {
+  private provideViewFor(subject: Subject): IView | null {
+    if (!subject) {
+      return null;
+    }
+
+    if ('templateOrNode' in subject) { // Raw Template Definition
       return this.renderingEngine.getViewFactory(
         subject,
         this.renderable.$context
       ).create();
-    } else if ('create' in subject) {
+    } else if ('create' in subject) { // IViewFactory
       return subject.create();
-    } else if ('createView' in subject) {
+    } else if ('createView' in subject) { // PotentialRenderable
       return subject.createView(
         this.renderingEngine,
         this.renderable.$context
       );
-    } else if ('onRender' in subject) {
+    } else if ('onRender' in subject) { // IView
       return subject;
-    } else {
-      const potential = createElement(
+    } else { // Constructable (Custom Element Constructor)
+      return createElement(
         subject,
         this.properties,
         this.$projector.children
-      );
-
-      return potential.createView(
+      ).createView(
         this.renderingEngine,
         this.renderable.$context
       );
@@ -113,6 +124,7 @@ export class Compose {
   private clear(): void {
     if (this.currentView) {
       this.$removeChild(this.currentView);
+      this.currentView = null;
     }
   }
 }

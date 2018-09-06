@@ -12,6 +12,7 @@ import {
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
   IHydrateTemplateController,
+  ILetBindingInstruction,
   IListenerBindingInstruction,
   INode,
   IPropertyBindingInstruction,
@@ -23,6 +24,8 @@ import {
   ITemplateCompiler,
   ITemplateSource,
   ITextBindingInstruction,
+
+  PrimitiveLiteral,
   TargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition,
@@ -40,6 +43,16 @@ const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = DOM.createElement('au-marker') as Element;
 marker.classList.add('au');
 const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
+<<<<<<< HEAD
+=======
+const swapWithMarker = (node: Element, parentNode: Element) => {
+  const marker = createMarker();
+  const template = DOM.createElement('template') as HTMLTemplateElement;
+  (node.parentNode || parentNode).replaceChild(marker, node);
+  template.content.appendChild(node);
+  return marker;
+};
+>>>>>>> feat(runtime): Let binding, priorityInstructions
 
 const enum NodeType {
   Element = 1,
@@ -224,8 +237,19 @@ export class TemplateCompiler implements ITemplateCompiler {
     resources: IResourceDescriptions
   ): void {
     const tagName = node.tagName;
-    if (tagName === 'SLOT' || tagName === 'LET') {
-      throw new Error('<slot/> or <let/> not implemented');
+
+    if (tagName === 'SLOT') {
+      throw new Error('<slot/> not implemented.');
+    } else if (tagName === 'LET') {
+      const letInstructions = this.compileLetElement(node);
+      if (letInstructions.length > 0) {
+        instructions.push(letInstructions);
+        // theoretically there's no need to replace, but to keep it consistent
+        DOM.replaceNode(createMarker(), node);
+      } else {
+        node.remove();
+      }
+      return;
     }
     // if there is a custom element or template controller, then the attribute instructions become children
     // of the hydrate instruction, otherwise they are added directly to instructions as a single array
@@ -299,6 +323,50 @@ export class TemplateCompiler implements ITemplateCompiler {
     while (currentChild) {
       currentChild = this.compileNode(currentChild, current, instructions, resources);
     }
+  }
+
+  /**@internal */
+  public compileLetElement(node: Element): TargetedInstruction[] {
+    const letInstructions: TargetedInstruction[] = [];
+    const attributes = node.attributes;
+    // ToViewModel flag needs to be determined in advance
+    // before compiling any attribute
+    const toViewModel = node.hasAttribute('to-view-model');
+    node.removeAttribute('to-view-model');
+
+    for (let i = 0, ii = attributes.length; ii > i; ++i) {
+      const attr = attributes.item(i);
+      const { name, value } = attr;
+      // if the name has a period in it, targetName will be overwritten again with the left-hand side of the period
+      // and commandName will be the right-hand side
+      let targetName: string = name;
+      let commandName: string = null;
+      let letInstruction: LetBindingInstruction;
+
+      const nameLength = name.length;
+      let index = 0;
+      while (index < nameLength) {
+        if (name.charCodeAt(++index) === Char.Dot) {
+          targetName = PLATFORM.camelCase(name.slice(0, index));
+          commandName = name.slice(index + 1);
+          break;
+        }
+      }
+      if (!commandName) {
+        const expression = this.expressionParser.parse(value, BindingType.Interpolation);
+        if (expression === null) {
+          // Should just be a warning, but throw for now
+          throw new Error(`Invalid let binding. String liternal given for attribute: ${targetName}`);
+        }
+        letInstruction = new LetBindingInstruction(expression, targetName, toViewModel);
+      } else if (commandName !== 'bind') {
+        throw new Error('Only bind command supported for "let" element.');
+      } else {
+        letInstruction = new LetBindingInstruction(value, targetName, toViewModel);
+      }
+      letInstructions.push(letInstruction);
+    }
+    return letInstructions;
   }
 
   /*@internal*/
@@ -548,6 +616,17 @@ export class HydrateTemplateController implements IHydrateTemplateController {
     this.link = link;
   }
 }
+export class LetBindingInstruction implements ILetBindingInstruction {
+  public type: TargetedInstructionType.letBinding;
+  public srcOrExpr: string | IExpression;
+  public dest: string;
+  public toViewModel: boolean;
+  constructor(srcOrExpr: string | IExpression, dest: string, toViewModel?: boolean) {
+    this.srcOrExpr = srcOrExpr;
+    this.dest = dest;
+    this.toViewModel = !!toViewModel;
+  }
+}
 // tslint:enable:no-reserved-keywords
 
 // See ast.ts (at the bottom) for an explanation of what/why
@@ -581,6 +660,7 @@ SetAttributeInstruction.prototype.type = TargetedInstructionType.setAttribute;
 HydrateElementInstruction.prototype.type = TargetedInstructionType.hydrateElement;
 HydrateAttributeInstruction.prototype.type = TargetedInstructionType.hydrateAttribute;
 HydrateTemplateController.prototype.type = TargetedInstructionType.hydrateTemplateController;
+LetBindingInstruction.prototype.type = TargetedInstructionType.letBinding;
 
 // tslint:enable:no-reserved-keywords
 // tslint:enable:no-any

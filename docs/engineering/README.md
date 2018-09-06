@@ -8,6 +8,7 @@ These docs cover more detailed aspects of Aurelia which are useful for those imp
 - [Development setup (manual browser testing)](#development-setup-manual-browser-testing)
 - [Cross-package development workflow (manual browser testing)](#cross-package-development-workflow-manual-browser-testing)
 - [Setup + workflow (TDD + manual browser testing)](setup-workflow-tdd-manual-browser-testing)
+- [Speeding up the TDD workflow](speeding-up-the-tdd-workflow)
 
 ## Building and testing
 
@@ -152,3 +153,12 @@ Some stuff is easier to develop/debug with unit tests (especially well-isolated 
 You can also combine the two. In general everything runs fine in parallel.
 
 Open 4 shell prompts, follow steps 1-3 from the TDD workflow and add step 2 from the manual browser testing workflow to the 4th prompt.
+
+## Speeding up the TDD workflow
+
+There are a lot of tests and they take a while to run. When developing a new feature from scratch this can be quite unproductive. A few tips to improve this:
+
+- Run `npm run test:debug -- --bail` -> the first error will cause further processing to stop. The error won't be reported to the system console but it will be logged in the browser console.
+- Tests are run in alphabetical order, from top-level to lower level. So if you want your test to run first, put the file directly under `test/unit` and name the file `aa.ts` for example. When you're done, rename and move it to the appropriate place.
+
+As an alternative to the above (if you just want to run one specific test or suite at all), simply change `describe(` to `describe.only(`. This works at any level and also works for `it(`

@@ -4,7 +4,7 @@
   "scripts": {
     "init": "npm ci && npm run bootstrap && npm run build && npm run publish:local",
     "bootstrap": "lerna bootstrap --ci --hoist",
-    "build": "lerna run build:umd",
+    "build": "lerna run build",
     "dev": "lerna run dev --parallel",
     "build-all": "lerna run build-all",
     "test": "lerna run test --parallel",

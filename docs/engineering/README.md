@@ -158,8 +158,8 @@ Open 4 shell prompts, follow steps 1-3 from the TDD workflow and add step 2 from
 
 There are a lot of tests and they take a while to run. When developing a new feature from scratch this can be quite unproductive. A few tips to improve this:
 
-- Run `npm run test:debug -- --bail` -> the first error will cause further processing to stop. The error won't be reported to the system console but it will be logged in the browser console.
+- Run `npm run test:debugger -- --bail` -> the first error will cause further processing to stop. The error won't be reported to the system console but it will be logged in the browser console.
 - Tests are run in alphabetical order, from top-level to lower level. So if you want your test to run first, put the file directly under `test/unit` and name the file `aa.ts` for example. When you're done, rename and move it to the appropriate place.
-- Add a failing test at the end of your file so your local `npm run test:debug -- --bail` mode won't run the other thousands of tests that come after it, but the top-level `npm run test:watch` will still run all tests from all packages, giving you the option to verify them on occasion.
+- Add a failing test at the end of your file so your local `npm run test:debugger -- --bail` mode won't run the other thousands of tests that come after it, but the top-level `npm run test:watch` will still run all tests from all packages, giving you the option to verify them on occasion.
 
 As an alternative to the above (if you just want to run one specific test or suite at all), simply change `describe(` to `describe.only(`. This works at any level and also works for `it(`

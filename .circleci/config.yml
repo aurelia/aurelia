@@ -50,16 +50,25 @@ jobs:
             - packages/*/node_modules
             - packages/*/*.tgz
 
-  unit_tests:
+  unit_tests_firefox:
     <<: *defaults
     steps:
       - checkout
       - restore_cache:
           key: *cache_key
-      #- run:
-      #    command: "./node_modules/.bin/karma start --browsers=FirefoxHeadless --single-run=true --auto-watch=false"
-      #    environment:
-      #      TS_NODE_PROJECT: tsconfig.json
+      - run:
+          name: "Run unit tests"
+          command: |
+            npm run test-firefox
+          environment:
+            TS_NODE_PROJECT: ./scripts/tsconfig.json
+
+  unit_tests_chrome:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
       - run:
           name: "Run unit tests"
           command: |
@@ -285,7 +294,10 @@ workflows:
       - build:
           requires:
             - install
-      - unit_tests:
+      - unit_tests_chrome:
+          requires:
+            - install
+      - unit_tests_firefox:
           requires:
             - install
       - e2e_tests_jit_browserify:
@@ -313,7 +325,10 @@ workflows:
       - build:
           requires:
             - install
-      - unit_tests:
+      - unit_tests_chrome:
+          requires:
+            - install
+      - unit_tests_firefox:
           requires:
             - install
       - e2e_tests_jit_browserify:
@@ -331,7 +346,8 @@ workflows:
       - publish_nightly:
           requires:
             - build
-            - unit_tests
+            - unit_tests_chrome
+            - unit_tests_firefox
             - e2e_tests_jit_browserify
             - e2e_tests_jit_aurelia_cli
             - e2e_benchmark_vnext

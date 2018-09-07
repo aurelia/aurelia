@@ -14,7 +14,16 @@
       "webRoot": "${workspaceRoot}",
       "sourceMapPathOverrides": {
         "webpack:///*": "${webRoot}/*"
-      }
+      },
+      "skipFiles": [
+        "chai",
+        "karma",
+        "karma-chai",
+        "karma-mocha",
+        "mocha",
+        "sinon",
+        "sinon-chai"
+      ]
     }
   ]
 }

@@ -115,6 +115,13 @@ export default function(config: IKarmaConfig): void {
           ...commonChromeFlags
         ]
       }
+    },
+    client: <any>{
+      captureConsole: true,
+      mocha: {
+        bail: config['bail'],
+        ui: 'bdd'
+      }
     }
   };
 

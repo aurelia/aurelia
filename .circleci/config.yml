@@ -62,6 +62,20 @@ jobs:
             npm run test-firefox
           environment:
             TS_NODE_PROJECT: ./scripts/tsconfig.json
+            JUNIT_REPORT_NAME: test-results.xml
+            TS_NODE_PROJECT: ./scripts/tsconfig.json
+      - store_test_results:
+          path: ./packages/debug/junit
+      - store_test_results:
+          path: ./packages/jit/junit
+      - store_test_results:
+          path: ./packages/kernel/junit
+      - store_test_results:
+          path: ./packages/runtime/junit
+      - store_test_results:
+          path: ./packages/plugin-requirejs/junit
+      - store_test_results:
+          path: ./packages/plugin-svg/junit
 
   unit_tests_chrome:
     <<: *defaults

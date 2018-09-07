@@ -26,7 +26,8 @@ import {
   ILetBindingInstruction,
   TargetedInstructionType,
   TemplateDefinition,
-  TemplatePartDefinitions
+  TemplatePartDefinitions,
+  ILetElementInstruction
 } from './instructions';
 import { IRenderContext } from './render-context';
 import { IRenderStrategy, RenderStrategyResource } from './render-strategy';
@@ -202,15 +203,20 @@ export class Renderer implements IRenderer {
     this[strategyName](renderable, target, instruction);
   }
 
-  public [TargetedInstructionType.letBinding](renderable: IRenderable, target: any, instruction: Immutable<ILetBindingInstruction>) {
+  public [TargetedInstructionType.letElement](renderable: IRenderable, target: any, instruction: Immutable<ILetElementInstruction>): void {
     target.remove();
-    const srcOrExpr = instruction.srcOrExpr as any;
-    renderable.$bindables.push(new LetBinding(
-      srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand),
-      instruction.dest,
-      this.observerLocator,
-      this.context,
-      instruction.toViewModel
-    ));
+    const childInstructions = instruction.instructions;
+    const toViewModel = instruction.toViewModel;
+    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+      const childInstruction = childInstructions[i];
+      const srcOrExpr: any = childInstruction.srcOrExpr;
+      renderable.$bindables.push(new LetBinding(
+        srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand),
+        childInstruction.dest,
+        this.observerLocator,
+        this.context,
+        toViewModel
+      ));
+    }
   }
 }

@@ -19,8 +19,9 @@ export const enum TargetedInstructionType {
   hydrateElement = 'i',
   hydrateAttribute = 'j',
   hydrateTemplateController = 'k',
-  letBinding = 'l',
-  renderStrategy = 'm',
+  letElement = 'l',
+  letBinding = 'm',
+  renderStrategy = 'n',
 }
 
 export interface IBuildInstruction {
@@ -64,7 +65,7 @@ export type TargetedInstruction =
   IHydrateAttributeInstruction |
   IHydrateTemplateController |
   IRenderStrategyInstruction |
-  ILetBindingInstruction;
+  ILetElementInstruction;
 
 export interface ITextBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.textBinding;
@@ -143,9 +144,14 @@ export interface IRenderStrategyInstruction extends ITargetedInstruction {
   name: string;
 }
 
+export interface ILetElementInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.letElement;
+  instructions: ILetBindingInstruction[];
+  toViewModel: boolean;
+}
+
 export interface ILetBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.letBinding;
   srcOrExpr: string | IExpression;
   dest: string;
-  toViewModel: boolean;
 }

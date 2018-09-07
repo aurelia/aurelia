@@ -12,7 +12,10 @@ import {
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
   IHydrateTemplateController,
+
   ILetBindingInstruction,
+  ILetElementInstruction,
+
   IListenerBindingInstruction,
   INode,
   IPropertyBindingInstruction,
@@ -43,16 +46,6 @@ const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = DOM.createElement('au-marker') as Element;
 marker.classList.add('au');
 const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
-<<<<<<< HEAD
-=======
-const swapWithMarker = (node: Element, parentNode: Element) => {
-  const marker = createMarker();
-  const template = DOM.createElement('template') as HTMLTemplateElement;
-  (node.parentNode || parentNode).replaceChild(marker, node);
-  template.content.appendChild(node);
-  return marker;
-};
->>>>>>> feat(runtime): Let binding, priorityInstructions
 
 const enum NodeType {
   Element = 1,
@@ -241,14 +234,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (tagName === 'SLOT') {
       throw new Error('<slot/> not implemented.');
     } else if (tagName === 'LET') {
-      const letInstructions = this.compileLetElement(node);
-      if (letInstructions.length > 0) {
-        instructions.push(letInstructions);
-        // theoretically there's no need to replace, but to keep it consistent
-        DOM.replaceNode(createMarker(), node);
-      } else {
-        node.remove();
-      }
+      const letElementInstruction = this.compileLetElement(node, resources);
+      instructions.push([letElementInstruction]);
+      // theoretically there's no need to replace, but to keep it consistent
+      DOM.replaceNode(createMarker(), node);
       return;
     }
     // if there is a custom element or template controller, then the attribute instructions become children
@@ -325,48 +314,36 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
-  /**@internal */
-  public compileLetElement(node: Element): TargetedInstruction[] {
-    const letInstructions: TargetedInstruction[] = [];
+  public compileLetElement(node: Element, resources: IResourceDescriptions): ILetElementInstruction {
+    const letInstructions: ILetBindingInstruction[] = [];
     const attributes = node.attributes;
     // ToViewModel flag needs to be determined in advance
     // before compiling any attribute
     const toViewModel = node.hasAttribute('to-view-model');
     node.removeAttribute('to-view-model');
-
     for (let i = 0, ii = attributes.length; ii > i; ++i) {
       const attr = attributes.item(i);
       const { name, value } = attr;
-      // if the name has a period in it, targetName will be overwritten again with the left-hand side of the period
-      // and commandName will be the right-hand side
-      let targetName: string = name;
-      let commandName: string = null;
+      let [target, , command] = inspectAttribute(name, resources);
+      target = PLATFORM.camelCase(target);
       let letInstruction: LetBindingInstruction;
 
-      const nameLength = name.length;
-      let index = 0;
-      while (index < nameLength) {
-        if (name.charCodeAt(++index) === Char.Dot) {
-          targetName = PLATFORM.camelCase(name.slice(0, index));
-          commandName = name.slice(index + 1);
-          break;
-        }
-      }
-      if (!commandName) {
-        const expression = this.expressionParser.parse(value, BindingType.Interpolation);
+      if (!command) {
+        const expression = this.parser.parse(value, BindingType.Interpolation);
         if (expression === null) {
           // Should just be a warning, but throw for now
-          throw new Error(`Invalid let binding. String liternal given for attribute: ${targetName}`);
+          throw new Error(`Invalid let binding. String liternal given for attribute: ${target}`);
         }
-        letInstruction = new LetBindingInstruction(expression, targetName, toViewModel);
-      } else if (commandName !== 'bind') {
+        letInstruction = new LetBindingInstruction(expression, target);
+      } else if (command === null) {
+        // TODO: this does work well with no built in command spirit
         throw new Error('Only bind command supported for "let" element.');
       } else {
-        letInstruction = new LetBindingInstruction(value, targetName, toViewModel);
+        letInstruction = new LetBindingInstruction(value, target);
       }
       letInstructions.push(letInstruction);
     }
-    return letInstructions;
+    return new LetElementInstruction(letInstructions, toViewModel);
   }
 
   /*@internal*/
@@ -616,15 +593,22 @@ export class HydrateTemplateController implements IHydrateTemplateController {
     this.link = link;
   }
 }
+export class LetElementInstruction implements ILetElementInstruction {
+  public type: TargetedInstructionType.letElement;
+  public instructions: ILetBindingInstruction[];
+  public toViewModel: boolean;
+  constructor(instructions: ILetBindingInstruction[], toViewModel: boolean) {
+    this.instructions = instructions;
+    this.toViewModel = toViewModel;
+  }
+}
 export class LetBindingInstruction implements ILetBindingInstruction {
   public type: TargetedInstructionType.letBinding;
   public srcOrExpr: string | IExpression;
   public dest: string;
-  public toViewModel: boolean;
-  constructor(srcOrExpr: string | IExpression, dest: string, toViewModel?: boolean) {
+  constructor(srcOrExpr: string | IExpression, dest: string) {
     this.srcOrExpr = srcOrExpr;
     this.dest = dest;
-    this.toViewModel = !!toViewModel;
   }
 }
 // tslint:enable:no-reserved-keywords
@@ -660,6 +644,7 @@ SetAttributeInstruction.prototype.type = TargetedInstructionType.setAttribute;
 HydrateElementInstruction.prototype.type = TargetedInstructionType.hydrateElement;
 HydrateAttributeInstruction.prototype.type = TargetedInstructionType.hydrateAttribute;
 HydrateTemplateController.prototype.type = TargetedInstructionType.hydrateTemplateController;
+LetElementInstruction.prototype.type = TargetedInstructionType.letElement;
 LetBindingInstruction.prototype.type = TargetedInstructionType.letBinding;
 
 // tslint:enable:no-reserved-keywords

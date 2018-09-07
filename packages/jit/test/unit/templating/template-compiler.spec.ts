@@ -12,7 +12,8 @@ import {
   TargetedInstructionType,
   bindable,
   customAttribute,
-  ViewCompileFlags
+  ViewCompileFlags,
+  ILetElementInstruction
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -883,9 +884,14 @@ describe('TemplateCompiler', () => {
 
       describe('<let/> element', () => {
 
-        it('does not generate instruction when there is no bindings', () => {
+        it('compiles', () => {
           const { instructions } = compileWith(`<template><let></let></template>`);
-          verifyInstructions(instructions as any, []);
+          expect(instructions.length).to.equal(1);
+        });
+
+        it('does not generate instructions when there is no bindings', () => {
+          const { instructions } = compileWith(`<template><let></let></template>`);
+          expect((instructions[0][0] as any).instructions.length).to.equal(0);
         });
 
         it('ignores custom element resource', () => {
@@ -896,40 +902,35 @@ describe('TemplateCompiler', () => {
             `<template><let></let></template>`,
             [Let]
           );
-          expect(instructions[0]).to.be.undefined;
-        });
-
-        it('throws on any command except bind', () => {
-          const commands = ['to-view', 'one-time', 'two-way', 'from-view', 'call', 'trigger'];
-          commands.forEach(cmd => {
-            expect(() => compileWith(`<let attr.${cmd}="a"></let>`)).to.throw(/only bind command supported/i);
-          });
-        });
-
-        it('compiles', () => {
-          const { instructions } = compileWith(`<let a.bind="b" c="\${d}"></let>`);
           verifyInstructions(instructions[0] as any, [
+            { toVerify: ['type'], type: TargetedInstructionType.letElement }
+          ]);
+        });
+
+        it('compiles with attributes', () => {
+          const { instructions } = compileWith(`<let a.bind="b" c="\${d}"></let>`);
+          verifyInstructions((instructions[0][0] as any).instructions, [
             { toVerify: ['type', 'dest', 'srcOrExp'],
-              type: TargetedInstructionType.letBinding, dest: 'a', srcOrExp: 'b' },
+              type: TargetedInstructionType.letBinding, dest: 'a', srcOrExpr: 'b' },
             { toVerify: ['type', 'dest'],
               type: TargetedInstructionType.letBinding, dest: 'c' }
           ]);
         });
 
         describe('[to-view-model]', () => {
-          it('does not compile [to-view-model]', () => {
+          it('understands [to-view-model]', () => {
             const { instructions } = compileWith(`<template><let to-view-model></let></template>`);
-            expect(instructions[0]).to.be.undefined;
+            expect((instructions[0][0] as any).toViewModel).to.be.true;
           });
 
           it('ignores [to-view-model] order', () => {
-            let letInstructions = compileWith(`<template><let a.bind="a" to-view-model></let></template>`).instructions[0];
-            verifyInstructions(letInstructions as any, [
-              { toVerify: ['type', 'toViewModel'], type: TargetedInstructionType.letBinding, toViewModel: true }
+            let instructions = compileWith(`<template><let a.bind="a" to-view-model></let></template>`).instructions[0] as any;
+            verifyInstructions(instructions, [
+              { toVerify: ['type', 'toViewModel'], type: TargetedInstructionType.letElement, toViewModel: true }
             ]);
-            letInstructions = compileWith(`<template><let to-view-model a.bind="a"></let></template>`).instructions[0];
-            verifyInstructions(letInstructions as any, [
-              { toVerify: ['type', 'toViewModel'], type: TargetedInstructionType.letBinding, toViewModel: true }
+            instructions = compileWith(`<template><let to-view-model a.bind="a"></let></template>`).instructions[0] as any;
+            verifyInstructions(instructions, [
+              { toVerify: ['type', 'toViewModel'], type: TargetedInstructionType.letElement, toViewModel: true }
             ]);
           });
         });
@@ -958,6 +959,7 @@ describe('TemplateCompiler', () => {
               `Expected actual instruction to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
             );
           } else {
+            debugger;
             expect(
               actualInst[prop]).to.equal(expectedInst[prop],
               `Expected actual instruction to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`

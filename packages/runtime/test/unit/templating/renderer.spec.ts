@@ -43,7 +43,8 @@ import {
   ToViewBindingInstruction,
   TriggerBindingInstruction,
   TwoWayBindingInstruction,
-  LetBindingInstruction
+  LetBindingInstruction,
+  LetElementInstruction
 } from '../../../../jit/src/index';
 import { DI } from '../../../../kernel/src/index';
 import { spy, SinonSpy } from 'sinon';
@@ -303,20 +304,28 @@ describe('Renderer', () => {
     }
   });
 
-  describe('handles ILetBindingInstruction', () => {
-    for (const dest of ['processedFoo', 'processedPoo']) {
-      for (const value of ['foo', new AccessScope('foo')]) {
-        const instruction = new LetBindingInstruction(value, dest);
-        it(_`instruction=${instruction}`, () => {
-          const { sut, renderable, target, wrapper } = setup(instruction);
+  describe('<let/>', () => {
 
-          sut[instruction.type](renderable, target, instruction);
+    describe('ILetElementInstruction', () => {
+      for (const dest of ['processedFoo', 'processedPoo']) {
+        for (const value of ['foo', new AccessScope('foo')]) {
+          const instruction = new LetElementInstruction(
+            [new LetBindingInstruction(value, dest)],
+            Math.random() > .4
+          );
+          it(_`instruction=${instruction}`, () => {
+            const { sut, renderable, target, wrapper } = setup(instruction);
 
-          expect(renderable.$bindables.length).to.equal(1);
+            sut[instruction.type](renderable, target, instruction);
 
-          tearDown({ wrapper });
-        });
+            expect(renderable.$bindables.length).to.equal(1);
+
+            expect(document.contains(target)).to.be.false;
+
+            tearDown({ wrapper });
+          });
+        }
       }
-    }
+    });
   });
 });

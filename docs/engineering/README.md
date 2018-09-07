@@ -7,8 +7,8 @@ These docs cover more detailed aspects of Aurelia which are useful for those imp
 - [Cross-package development workflow (TDD)](#cross-package-development-workflow-tdd)
 - [Development setup (manual browser testing)](#development-setup-manual-browser-testing)
 - [Cross-package development workflow (manual browser testing)](#cross-package-development-workflow-manual-browser-testing)
-- [Setup + workflow (TDD + manual browser testing)](setup-workflow-tdd-manual-browser-testing)
-- [Speeding up the TDD workflow](speeding-up-the-tdd-workflow)
+- [Setup + workflow (TDD + manual browser testing)](#setup-workflow-tdd-manual-browser-testing)
+- [Speeding up the TDD workflow](#speeding-up-the-tdd-workflow)
 
 ## Building and testing
 

@@ -959,7 +959,6 @@ describe('TemplateCompiler', () => {
               `Expected actual instruction to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
             );
           } else {
-            debugger;
             expect(
               actualInst[prop]).to.equal(expectedInst[prop],
               `Expected actual instruction to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`

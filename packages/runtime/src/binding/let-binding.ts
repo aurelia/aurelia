@@ -1,25 +1,13 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
 import { IExpression } from './ast';
 import { Binding } from './binding';
-import { BindingContext, IScope } from './binding-context';
+import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
 import { IObserverLocator } from './observer-locator';
 
-const slotNames: string[] = new Array(100);
-const versionSlotNames: string[] = new Array(100);
-
-for (let i = 0; i < 100; i++) {
-  slotNames[i] = `_observer${i}`;
-  versionSlotNames[i] = `_observerVersion${i}`;
-}
-
-
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
-const { oneTime, toView, fromView } = BindingMode;
-
-// pre-combining flags for bitwise checks is a minor perf tweak
-const toViewOrOneTime = toView | oneTime;
+const { toView } = BindingMode;
 
 // tslint:disable:no-any
 export class LetBinding extends Binding {

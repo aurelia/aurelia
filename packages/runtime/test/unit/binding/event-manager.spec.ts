@@ -1,4 +1,4 @@
-import { ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, EventSubscriber, EventManager, DelegationStrategy } from '../../../src/index';
+import { ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, EventSubscriber, EventManager, DelegationStrategy, DOM } from '../../../src/index';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { _, createElement } from '../util';
@@ -481,12 +481,14 @@ describe('EventManager', () => {
       document.body.removeChild(wrapper);
     }
 
+    const hasShadow = Element.prototype.attachShadow !== undefined;
     for (const eventName of ['click']) {
       for (const bubbles of [true, false]) {
         for (const strategy of [DelegationStrategy.bubbling, DelegationStrategy.capturing, DelegationStrategy.none]) {
           for (const stopPropagation of [true, false]) {
             for (const returnValue of [true, false, undefined]) {
-              for (const shadow of [null, 'open', 'closed']) { // TODO: 'open' should probably work in some way, so we need to try and fix this
+              // TODO: for firefox this won't work because ShadowDOM is not implemented yet. The webcomponents polyfill won't make it work either. Need to investigate what we can or cannot support.
+              for (const shadow of hasShadow ? [null, 'open', 'closed'] : [null]) { // TODO: 'open' should probably work in some way, so we need to try and fix this
                 for (const listenerObj of [null, { handleEvent: null }]) {
                   it(_`strategy=${DelegationStrategy[strategy]}, eventName=${eventName}, bubbles=${bubbles}, stopPropagation=${stopPropagation}, returnValue=${returnValue}, shadow=${shadow}, listener=${listenerObj}`, () => {
                     const {

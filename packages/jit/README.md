@@ -3,9 +3,7 @@
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![CircleCI](https://circleci.com/gh/aurelia/aurelia.svg?style=shield)](https://circleci.com/gh/aurelia/aurelia)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/5ac0e13689735698073a/test_coverage)](https://codeclimate.com/github/aurelia/aurelia/test_coverage)
-[![Downloads](https://img.shields.io/npm/dm/@aurelia/jit.svg)](https://www.npmjs.com/package/@aurelia/jit)
 [![npm](https://img.shields.io/npm/v/@aurelia/jit.svg?maxAge=3600)](https://www.npmjs.com/package/@aurelia/jit)
-[![Dependency Status](https://david-dm.org/aurelia/aurelia.svg?path=packages/jit)](https://david-dm.org/aurelia/aurelia?path=packages/jit)
 # @aurelia/jit
 
 ## Installing

@@ -25,7 +25,7 @@
   "scripts": {
     "lint": "cross-env tslint --project tsconfig-test.json -e \"test/**\" -t stylish",
     "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=ChromeHeadlessOpt --single-run --coverage",
-    "test-firefox": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=runtime --browsers=FirefoxHeadless --single-run",
+    "test-firefox": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=FirefoxHeadless --single-run --coverage",
     "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=ChromeHeadlessOpt --coverage",
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=router --browsers=ChromeDebugging",
     "build": "npm run build:umd",

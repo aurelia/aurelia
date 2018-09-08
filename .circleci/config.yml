@@ -428,19 +428,19 @@ workflows:
             - build_jit_browserify
       - e2e_tests_jit_browserify_bs_chrome_mac:
           requires:
-            - build_jit_browserify
+            - e2e_tests_jit_browserify_bs_chrome_win
       - e2e_tests_jit_browserify_bs_firefox_win:
           requires:
-            - build_jit_browserify
+            - e2e_tests_jit_browserify_bs_chrome_mac
       - e2e_tests_jit_browserify_bs_firefox_mac:
           requires:
-            - build_jit_browserify
+            - e2e_tests_jit_browserify_bs_firefox_win
       - e2e_tests_jit_browserify_bs_edge:
           requires:
-            - build_jit_browserify
+            - e2e_tests_jit_browserify_bs_firefox_mac
       - e2e_tests_jit_browserify_bs_safari:
           requires:
-            - build_jit_browserify
+            - e2e_tests_jit_browserify_bs_edge
       - e2e_tests_jit_aurelia_cli:
           requires:
             - build

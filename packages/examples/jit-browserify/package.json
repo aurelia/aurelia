@@ -39,6 +39,7 @@
     "tsify": "^4.0.0",
     "typescript": "^3.0.1",
     "vinyl-source-stream": "^2.0.0",
-    "watchify": "^3.11.0"
+    "watchify": "^3.11.0",
+    "wdio-browserstack-service": "^0.1.16"
   }
 }

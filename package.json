@@ -4,12 +4,13 @@
   "scripts": {
     "init": "npm ci && npm run bootstrap && npm run build && npm run publish:local",
     "bootstrap": "lerna bootstrap --ci --hoist",
-    "build": "lerna run build:umd",
+    "build": "lerna run build",
     "dev": "lerna run dev --parallel",
     "build-all": "lerna run build-all",
-    "test": "lerna run test --parallel",
-    "test:watch": "lerna run test:watch --parallel",
-    "lint": "lerna run lint --parallel",
+    "test": "lerna run test",
+    "test-firefox": "lerna run test-firefox",
+    "test:watch": "lerna run test:watch",
+    "lint": "lerna run lint",
     "publish:local": "lerna run publish:local --parallel",
     "publish:nightly": "ts-node scripts/publish-nightly.ts dev lerna.json"
   },

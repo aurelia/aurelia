@@ -47,6 +47,14 @@ const commonChromeFlags = [
 export default function(config: IKarmaConfig): void {
   const packages = path.resolve(__dirname, '..', 'packages');
   const basePath = path.join(packages, config.package);
+  let browsers: string[];
+  if (process.env.BROWSERS) {
+    browsers = [process.env.BROWSERS];
+  } else if (config.browsers) {
+    browsers = config.browsers;
+  } else {
+    browsers = ['Chrome'];
+  }
 
   const options: IKarmaConfigOptions = {
     basePath: basePath,
@@ -99,7 +107,7 @@ export default function(config: IKarmaConfig): void {
         publicPath: false
       }
     },
-    browsers: config.browsers || ['Chrome'],
+    browsers: browsers,
     customLaunchers: {
       ChromeDebugging: {
         base: "Chrome",
@@ -114,6 +122,13 @@ export default function(config: IKarmaConfig): void {
         flags: [
           ...commonChromeFlags
         ]
+      }
+    },
+    client: <any>{
+      captureConsole: true,
+      mocha: {
+        bail: config['bail'],
+        ui: 'bdd'
       }
     }
   };

@@ -965,6 +965,60 @@ describe('TemplateCompiler', () => {
           });
         });
       });
+
+      describe('<let/> element', () => {
+
+        it('compiles', () => {
+          const { instructions } = compileWith(`<template><let></let></template>`);
+          expect(instructions.length).to.equal(1);
+        });
+
+        it('does not generate instructions when there is no bindings', () => {
+          const { instructions } = compileWith(`<template><let></let></template>`);
+          expect((instructions[0][0] as any).instructions.length).to.equal(0);
+        });
+
+        it('ignores custom element resource', () => {
+          @customElement('let')
+          class Let {}
+
+          const { instructions } = compileWith(
+            `<template><let></let></template>`,
+            [Let]
+          );
+          verifyInstructions(instructions[0] as any, [
+            { toVerify: ['type'], type: TargetedInstructionType.letElement }
+          ]);
+        });
+
+        it('compiles with attributes', () => {
+          const { instructions } = compileWith(`<let a.bind="b" c="\${d}"></let>`);
+          verifyInstructions((instructions[0][0] as any).instructions, [
+            { toVerify: ['type', 'dest', 'srcOrExp'],
+              type: TargetedInstructionType.letBinding, dest: 'a', srcOrExpr: 'b' },
+            { toVerify: ['type', 'dest'],
+              type: TargetedInstructionType.letBinding, dest: 'c' }
+          ]);
+        });
+
+        describe('[to-view-model]', () => {
+          it('understands [to-view-model]', () => {
+            const { instructions } = compileWith(`<template><let to-view-model></let></template>`);
+            expect((instructions[0][0] as any).toViewModel).to.be.true;
+          });
+
+          it('ignores [to-view-model] order', () => {
+            let instructions = compileWith(`<template><let a.bind="a" to-view-model></let></template>`).instructions[0] as any;
+            verifyInstructions(instructions, [
+              { toVerify: ['type', 'toViewModel'], type: TargetedInstructionType.letElement, toViewModel: true }
+            ]);
+            instructions = compileWith(`<template><let to-view-model a.bind="a"></let></template>`).instructions[0] as any;
+            verifyInstructions(instructions, [
+              { toVerify: ['type', 'toViewModel'], type: TargetedInstructionType.letElement, toViewModel: true }
+            ]);
+          });
+        });
+      });
     });
 
     interface IExpectedInstruction {

@@ -176,7 +176,7 @@ jobs:
             cd ./packages/examples/jit-parcel
             npm run e2e
 
-  e2e_tests_jit_browserify:
+  build_jit_browserify:
     <<: *defaults
     steps:
       - checkout
@@ -190,6 +190,20 @@ jobs:
             cd ./packages/examples/jit-browserify
             npm ci
             npm run build
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - packages/examples/jit-browserify/dist
+            - packages/examples/jit-browserify/node_modules
+
+  e2e_tests_jit_browserify:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
       - run:
           name: Serve jit-browserify in the background
           background: true
@@ -314,9 +328,12 @@ workflows:
       - unit_tests_firefox:
           requires:
             - install
-      - e2e_tests_jit_browserify:
+      - build_jit_browserify:
           requires:
             - build
+      - e2e_tests_jit_browserify:
+          requires:
+            - build_jit_browserify
       - e2e_tests_jit_aurelia_cli:
           requires:
             - build

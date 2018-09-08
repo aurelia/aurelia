@@ -538,7 +538,9 @@ describe('TemplateCompiler (integration)', () => {
     );
     au.app({ host, component: component }).start();
     component.firstName = 'bi';
+    expect(component.fullName).to.equal('bi undefined');
     component.lastName = 'go';
+    expect(component.fullName).to.equal('bi go');
     cs.flushChanges();
     expect(host.textContent).to.equal('bi go');
   });

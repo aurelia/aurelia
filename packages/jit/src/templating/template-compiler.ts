@@ -126,7 +126,6 @@ export function inspectAttribute(name: string, resources: IResourceDescriptions)
   return attributeInspectionBuffer;
 }
 
-
 @inject(IExpressionParser)
 export class TemplateCompiler implements ITemplateCompiler {
   public get name(): string {
@@ -147,7 +146,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // Parent node is required for remove / replace operation incase node is the direct child of document fragment
     const parentNode = node = isTemplate ? (<HTMLTemplateElement>node).content : node;
 
-    while (node = this.compileNode(node, parentNode, definition.instructions, resources)) { /* Do nothing */ }
+    while (node = this.compileNode(node, parentNode, definition, definition.instructions, resources)) { /* Do nothing */ }
 
     // ideally the flag should be passed correctly from rendering engine
     if (isTemplate && (flags & ViewCompileFlags.surrogate)) {
@@ -160,13 +159,14 @@ export class TemplateCompiler implements ITemplateCompiler {
   public compileNode(
     node: Node,
     parentNode: Node,
+    definition: Required<ITemplateSource>,
     instructions: TargetedInstruction[][],
     resources: IResourceDescriptions
   ): Node {
     const nextSibling = node.nextSibling;
     switch (node.nodeType) {
       case NodeType.Element:
-        this.compileElementNode(<Element>node, parentNode, instructions, resources);
+        this.compileElementNode(<Element>node, parentNode, definition, instructions, resources);
         return nextSibling;
       case NodeType.Text:
         if (!this.compileTextNode(<Text>node, instructions)) {
@@ -226,13 +226,15 @@ export class TemplateCompiler implements ITemplateCompiler {
   public compileElementNode(
     node: Element,
     parentNode: Node,
+    definition: Required<ITemplateSource>,
     instructions: TargetedInstruction[][],
     resources: IResourceDescriptions
   ): void {
     const tagName = node.tagName;
 
     if (tagName === 'SLOT') {
-      throw new Error('<slot/> not implemented.');
+      definition.hasSlots = true;
+      return;
     } else if (tagName === 'LET') {
       const letElementInstruction = this.compileLetElement(node, resources);
       instructions.push([letElementInstruction]);
@@ -310,7 +312,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const current = node;
     let currentChild = node.firstChild;
     while (currentChild) {
-      currentChild = this.compileNode(currentChild, current, instructions, resources);
+      currentChild = this.compileNode(currentChild, current, definition, instructions, resources);
     }
   }
 

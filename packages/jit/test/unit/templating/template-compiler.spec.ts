@@ -13,7 +13,8 @@ import {
   bindable,
   customAttribute,
   ViewCompileFlags,
-  ILetElementInstruction
+  ILetElementInstruction,
+  ITemplateSource
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -92,12 +93,18 @@ describe('TemplateCompiler', () => {
       const expressionParser = container.get(IExpressionParser);
       const sut = new TemplateCompiler(expressionParser as any);
       const resources = new RuntimeCompilationResources(<any>container);
-      const instructions = [];
-      return { sut, resources, instructions };
+      const definition: any = {
+        hasSlots: false,
+        bindables: {},
+        instructions: [],
+        surrogates: []
+      } as Required<ITemplateSource>;
+      const instructions = definition.instructions;
+      return { sut, resources, definition, instructions };
     }
 
     it(`handles Element with Element nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       sut.compileElementNode = spy();
 
@@ -107,14 +114,14 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
-      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, definition, instructions, resources);
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Element with Text nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       sut.compileElementNode = spy();
 
@@ -124,14 +131,14 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
-      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, definition, instructions, resources);
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Element with Comment nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       sut.compileElementNode = spy();
 
@@ -141,14 +148,14 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
-      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, definition, instructions, resources);
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles TextNode without interpolation`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       sut.compileTextNode = spy(() => false)
 
@@ -163,13 +170,13 @@ describe('TemplateCompiler', () => {
       const nextSibling = document.createElement('div');
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(firstChild, parent, instructions, resources);
+      const actual = sut.compileNode(firstChild, parent, definition, instructions, resources);
 
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles TextNode with interpolation`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       sut.compileTextNode = spy(() => true)
 
@@ -184,13 +191,13 @@ describe('TemplateCompiler', () => {
       parent.appendChild(document.createTextNode(' '));
       parent.appendChild(document.createElement('div'));
 
-      const actual = sut.compileNode(firstChild, parent, instructions, resources);
+      const actual = sut.compileNode(firstChild, parent, definition, instructions, resources);
 
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Comment with Element nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       const parent = document.createElement('div');
       const node = document.createComment('foo');
@@ -198,13 +205,13 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Comment with Text nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       const parent = document.createElement('div');
       const node = document.createComment('foo');
@@ -212,13 +219,13 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Comment with Comment nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       const parent = document.createElement('div');
       const node = document.createComment('foo');
@@ -226,23 +233,23 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Document`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
-      const actual = sut.compileNode(document, null, instructions, resources);
+      const actual = sut.compileNode(document, null, definition, instructions, resources);
 
       expect(actual).to.equal(document.firstChild);
     });
 
     it(`handles DocumentType`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
-      const actual = <Element>sut.compileNode(document.firstChild, null, instructions, resources);
+      const actual = <Element>sut.compileNode(document.firstChild, null, definition, instructions, resources);
 
       expect(actual).to.equal(document.firstChild.nextSibling);
     });
@@ -255,12 +262,18 @@ describe('TemplateCompiler', () => {
       const expressionParser = container.get(IExpressionParser);
       const sut = new TemplateCompiler(expressionParser as any);
       const resources = new RuntimeCompilationResources(<any>container);
-      const instructions = [];
-      return { sut, resources, instructions };
+      const definition: any = {
+        hasSlots: false,
+        bindables: {},
+        instructions: [],
+        surrogates: []
+      } as Required<ITemplateSource>;
+      const instructions = definition.instructions;
+      return { sut, resources, definition, instructions };
     }
 
     it(`handles Element with Element nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       sut.compileElementNode = spy();
 
@@ -270,14 +283,14 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
-      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, definition, instructions, resources);
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Element with Text nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       sut.compileElementNode = spy();
 
@@ -287,14 +300,14 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
-      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, definition, instructions, resources);
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Element with Comment nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       sut.compileElementNode = spy();
 
@@ -304,14 +317,14 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
-      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, instructions, resources);
+      expect(sut.compileElementNode).to.have.been.calledWith(node, parent, definition, instructions, resources);
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles TextNode without interpolation`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       sut.compileTextNode = spy(() => false)
 
@@ -326,13 +339,13 @@ describe('TemplateCompiler', () => {
       const nextSibling = document.createElement('div');
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(firstChild, parent, instructions, resources);
+      const actual = sut.compileNode(firstChild, parent, definition, instructions, resources);
 
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles TextNode with interpolation`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       sut.compileTextNode = spy(() => true)
 
@@ -347,13 +360,13 @@ describe('TemplateCompiler', () => {
       parent.appendChild(document.createTextNode(' '));
       parent.appendChild(document.createElement('div'));
 
-      const actual = sut.compileNode(firstChild, parent, instructions, resources);
+      const actual = sut.compileNode(firstChild, parent, definition, instructions, resources);
 
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Comment with Element nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       const parent = document.createElement('div');
       const node = document.createComment('foo');
@@ -361,13 +374,13 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Comment with Text nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       const parent = document.createElement('div');
       const node = document.createComment('foo');
@@ -375,13 +388,13 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Comment with Comment nextSibling`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
       const parent = document.createElement('div');
       const node = document.createComment('foo');
@@ -389,23 +402,23 @@ describe('TemplateCompiler', () => {
       parent.appendChild(node);
       parent.appendChild(nextSibling);
 
-      const actual = sut.compileNode(node, parent, instructions, resources);
+      const actual = sut.compileNode(node, parent, definition, instructions, resources);
 
       expect(actual).to.equal(nextSibling);
     });
 
     it(`handles Document`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
-      const actual = sut.compileNode(document, null, instructions, resources);
+      const actual = sut.compileNode(document, null, definition, instructions, resources);
 
       expect(actual).to.equal(document.firstChild);
     });
 
     it(`handles DocumentType`, () => {
-      const { sut, resources, instructions } = setup();
+      const { sut, resources, definition, instructions } = setup();
 
-      const actual = <Element>sut.compileNode(document.firstChild, null, instructions, resources);
+      const actual = <Element>sut.compileNode(document.firstChild, null, definition, instructions, resources);
 
       expect(actual).to.equal(document.firstChild.nextSibling);
     });
@@ -690,11 +703,11 @@ describe('TemplateCompiler', () => {
 
   describe('compileElement()', () => {
 
-    it('throws on <slot/>', () => {
-      const markup = '<template><slot></slot></template>';
-      expect(() => {
-        sut.compile(<any>{ templateOrNode: markup, instructions: [] }, resources);
-      }).to.throw(/not implemented/i);
+    it('set hasSlots to true <slot/>', () => {
+      const definition = compileWith('<template><slot></slot></template>', []);
+      expect(definition.hasSlots).to.be.true;
+
+      // test this with nested slot inside template controller
     });
 
     describe('with custom element', () => {

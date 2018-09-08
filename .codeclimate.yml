@@ -60,7 +60,3 @@ exclude_patterns:
   - "dist/"
   - "**/node_modules/"
   - "**/*.d.ts"
-plugins:
-  tslint:
-    enabled: true
-    config: tslint.json

@@ -225,6 +225,9 @@ jobs:
 
   e2e_tests_jit_browserify_webdriver:
     <<: *defaults
+    environment:
+      APP_PORT: 3000
+      APP_HOST: localhost
     steps:
       - checkout
       - *step_restore_cache

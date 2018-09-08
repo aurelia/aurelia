@@ -22,7 +22,7 @@ aliases:
       background: true
       command: |
         cd ./packages/examples/jit-browserify
-        npm run start
+        npm run start:port -- -p 9000
   - &step_run_jit_browserify_e2e
     run:
       name: Run the e2e tests
@@ -239,6 +239,7 @@ jobs:
           environment:
             BS_TARGET: chromeWin
             IS_BROWSERSTACK: true
+            APP_PORT: 9000
 
   e2e_tests_jit_browserify_bs_chrome_mac:
     <<: *defaults
@@ -255,6 +256,7 @@ jobs:
           environment:
             BS_TARGET: chromeMac
             IS_BROWSERSTACK: true
+            APP_PORT: 9000
 
   e2e_tests_jit_browserify_bs_firefox_win:
     <<: *defaults
@@ -271,6 +273,7 @@ jobs:
           environment:
             BS_TARGET: firefoxWin
             IS_BROWSERSTACK: true
+            APP_PORT: 9000
 
   e2e_tests_jit_browserify_bs_firefox_mac:
     <<: *defaults
@@ -287,6 +290,7 @@ jobs:
           environment:
             BS_TARGET: firefoxMac
             IS_BROWSERSTACK: true
+            APP_PORT: 9000
 
   e2e_tests_jit_browserify_bs_edge:
     <<: *defaults
@@ -303,6 +307,7 @@ jobs:
           environment:
             BS_TARGET: edge
             IS_BROWSERSTACK: true
+            APP_PORT: 9000
 
   e2e_tests_jit_browserify_bs_safari:
     <<: *defaults
@@ -319,6 +324,7 @@ jobs:
           environment:
             BS_TARGET: safari
             IS_BROWSERSTACK: true
+            APP_PORT: 9000
 
   e2e_tests_jit_aurelia_cli:
     <<: *defaults

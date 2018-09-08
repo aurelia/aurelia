@@ -96,6 +96,18 @@ jobs:
           path: ./packages/plugin-requirejs/junit
       - store_test_results:
           path: ./packages/plugin-svg/junit
+      - store_artifacts:
+          path: ./packages/debug/junit
+      - store_artifacts:
+          path: ./packages/jit/junit
+      - store_artifacts:
+          path: ./packages/kernel/junit
+      - store_artifacts:
+          path: ./packages/runtime/junit
+      - store_artifacts:
+          path: ./packages/plugin-requirejs/junit
+      - store_artifacts:
+          path: ./packages/plugin-svg/junit
 
   unit_tests_chrome:
     <<: *defaults

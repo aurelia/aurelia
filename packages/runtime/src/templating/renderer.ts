@@ -23,14 +23,17 @@ import {
   ISetPropertyInstruction,
   IStylePropertyBindingInstruction,
   ITextBindingInstruction,
+  ILetBindingInstruction,
   TargetedInstructionType,
   TemplateDefinition,
-  TemplatePartDefinitions
+  TemplatePartDefinitions,
+  ILetElementInstruction
 } from './instructions';
 import { IRenderContext } from './render-context';
 import { IRenderStrategy, RenderStrategyResource } from './render-strategy';
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
+import { LetBinding } from '../binding/let-binding';
 
 export interface IRenderer {
   render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
@@ -48,7 +51,7 @@ export class Renderer implements IRenderer {
     private eventManager: IEventManager,
     private parser: IExpressionParser,
     private renderingEngine: IRenderingEngine
-  ) {}
+  ) { }
 
   public render(renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
@@ -198,5 +201,22 @@ export class Renderer implements IRenderer {
       this[strategyName] = strategy.render.bind(strategy);
     }
     this[strategyName](renderable, target, instruction);
+  }
+
+  public [TargetedInstructionType.letElement](renderable: IRenderable, target: any, instruction: Immutable<ILetElementInstruction>): void {
+    target.remove();
+    const childInstructions = instruction.instructions;
+    const toViewModel = instruction.toViewModel;
+    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+      const childInstruction = childInstructions[i];
+      const srcOrExpr: any = childInstruction.srcOrExpr;
+      renderable.$bindables.push(new LetBinding(
+        srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand),
+        childInstruction.dest,
+        this.observerLocator,
+        this.context,
+        toViewModel
+      ));
+    }
   }
 }

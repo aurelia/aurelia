@@ -98,13 +98,14 @@ function stringify(o) {
 
 
 describe('TemplateCompiler (integration)', () => {
+  let container: IContainer;
   let au: Aurelia;
   let host: HTMLElement;
   let component: ReturnType<typeof createCustomElement>;
   let cs: IChangeSet
 
   beforeEach(() => {
-    const container = DI.createContainer();
+    container = DI.createContainer();
     cs = container.get(IChangeSet);
     container.register(TestConfiguration, BasicConfiguration)
     host = document.createElement('app');
@@ -517,5 +518,51 @@ describe('TemplateCompiler (integration)', () => {
     au.app({ host, component: component }).start();
     cs.flushChanges();
     expect(host.textContent).to.equal('bigopon');
+  });
+
+  describe('[as-element]', () => {
+
+    it('works with custom element with [as-element]', () => {
+      component = createCustomElement(
+        `<template><div as-element="name-tag" name="bigopon"></div></template>`,
+      );
+      au.app({ host, component: component }).start();
+      cs.flushChanges();
+      expect(host.textContent).to.equal('bigopon');
+    });
+
+    it('ignores tag name', () => {
+      component = createCustomElement(
+        `<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`,
+      );
+      au.app({ host, component: component }).start();
+      expect(host.textContent).to.equal('Fred');
+    });
+  });
+
+  it('<let/>', () => {
+    component = createCustomElement(
+      '<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>',
+    );
+    au.app({ host, component: component }).start();
+    expect(host.textContent).to.equal(' ');
+    component.firstName = 'bi';
+    component.lastName = 'go';
+    expect(host.textContent).to.equal(' ');
+    cs.flushChanges();
+    expect(host.textContent).to.equal('bi go');
+  });
+
+  it('<let [to-view-model] />', () => {
+    component = createCustomElement(
+      '<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>',
+    );
+    au.app({ host, component: component }).start();
+    component.firstName = 'bi';
+    expect(component.fullName).to.equal('bi undefined');
+    component.lastName = 'go';
+    expect(component.fullName).to.equal('bi go');
+    cs.flushChanges();
+    expect(host.textContent).to.equal('bi go');
   });
 });

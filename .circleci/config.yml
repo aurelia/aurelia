@@ -237,6 +237,7 @@ jobs:
             npm run e2e
           environment:
             BS_TARGET: chromeWin
+            IS_BROWSERSTACK: true
 
   e2e_tests_jit_browserify_bs_chrome_mac:
     <<: *defaults
@@ -259,6 +260,7 @@ jobs:
             npm run e2e
           environment:
             BS_TARGET: chromeMac
+            IS_BROWSERSTACK: true
 
   e2e_tests_jit_browserify_bs_firefox_win:
     <<: *defaults
@@ -281,6 +283,7 @@ jobs:
             npm run e2e
           environment:
             BS_TARGET: firefoxWin
+            IS_BROWSERSTACK: true
 
   e2e_tests_jit_browserify_bs_firefox_mac:
     <<: *defaults
@@ -303,6 +306,7 @@ jobs:
             npm run e2e
           environment:
             BS_TARGET: firefoxMac
+            IS_BROWSERSTACK: true
 
   e2e_tests_jit_browserify_bs_edge:
     <<: *defaults
@@ -325,6 +329,7 @@ jobs:
             npm run e2e
           environment:
             BS_TARGET: edge
+            IS_BROWSERSTACK: true
 
   e2e_tests_jit_browserify_bs_safari:
     <<: *defaults
@@ -347,6 +352,7 @@ jobs:
             npm run e2e
           environment:
             BS_TARGET: safari
+            IS_BROWSERSTACK: true
 
   e2e_tests_jit_aurelia_cli:
     <<: *defaults

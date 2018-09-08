@@ -22,7 +22,7 @@ aliases:
       background: true
       command: |
         cd ./packages/examples/jit-browserify
-        npm run start:port -- -p 9000
+        npm run start:port -- -p $APP_PORT
   - &step_run_jit_browserify_e2e
     run:
       name: Run the e2e tests
@@ -238,6 +238,10 @@ jobs:
 
   e2e_tests_jit_browserify_bs_chrome_win:
     <<: *defaults
+    environment:
+      BS_TARGET: chromeWin
+      IS_BROWSERSTACK: true
+      APP_PORT: 9000
     steps:
       - checkout
       - *step_restore_cache
@@ -248,13 +252,13 @@ jobs:
           command: |
             cd ./packages/examples/jit-browserify
             npm run e2e
-          environment:
-            BS_TARGET: chromeWin
-            IS_BROWSERSTACK: true
-            APP_PORT: 9000
 
   e2e_tests_jit_browserify_bs_chrome_mac:
     <<: *defaults
+    environment:
+      BS_TARGET: chromeMac
+      IS_BROWSERSTACK: true
+      APP_PORT: 9001
     steps:
       - checkout
       - *step_restore_cache
@@ -265,13 +269,13 @@ jobs:
           command: |
             cd ./packages/examples/jit-browserify
             npm run e2e
-          environment:
-            BS_TARGET: chromeMac
-            IS_BROWSERSTACK: true
-            APP_PORT: 9000
 
   e2e_tests_jit_browserify_bs_firefox_win:
     <<: *defaults
+    environment:
+      BS_TARGET: firefoxWin
+      IS_BROWSERSTACK: true
+      APP_PORT: 9002
     steps:
       - checkout
       - *step_restore_cache
@@ -282,13 +286,13 @@ jobs:
           command: |
             cd ./packages/examples/jit-browserify
             npm run e2e
-          environment:
-            BS_TARGET: firefoxWin
-            IS_BROWSERSTACK: true
-            APP_PORT: 9000
 
   e2e_tests_jit_browserify_bs_firefox_mac:
     <<: *defaults
+    environment:
+      BS_TARGET: firefoxMac
+      IS_BROWSERSTACK: true
+      APP_PORT: 9003
     steps:
       - checkout
       - *step_restore_cache
@@ -299,13 +303,13 @@ jobs:
           command: |
             cd ./packages/examples/jit-browserify
             npm run e2e
-          environment:
-            BS_TARGET: firefoxMac
-            IS_BROWSERSTACK: true
-            APP_PORT: 9000
 
   e2e_tests_jit_browserify_bs_edge:
     <<: *defaults
+    environment:
+      BS_TARGET: edge
+      IS_BROWSERSTACK: true
+      APP_PORT: 9004
     steps:
       - checkout
       - *step_restore_cache
@@ -316,13 +320,13 @@ jobs:
           command: |
             cd ./packages/examples/jit-browserify
             npm run e2e
-          environment:
-            BS_TARGET: edge
-            IS_BROWSERSTACK: true
-            APP_PORT: 9000
 
   e2e_tests_jit_browserify_bs_safari:
     <<: *defaults
+    environment:
+      BS_TARGET: safari
+      IS_BROWSERSTACK: true
+      APP_PORT: 9005
     steps:
       - checkout
       - *step_restore_cache
@@ -333,10 +337,6 @@ jobs:
           command: |
             cd ./packages/examples/jit-browserify
             npm run e2e
-          environment:
-            BS_TARGET: safari
-            IS_BROWSERSTACK: true
-            APP_PORT: 9000
 
   e2e_tests_jit_aurelia_cli:
     <<: *defaults

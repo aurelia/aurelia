@@ -230,11 +230,7 @@ jobs:
       - *step_restore_cache
       - *step_attach_workspace
       - *step_serve_jit_browserify
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run e2e
+      - *step_run_jit_browserify_e2e
 
   e2e_tests_jit_browserify_bs_chrome_win:
     <<: *defaults
@@ -247,11 +243,7 @@ jobs:
       - *step_restore_cache
       - *step_attach_workspace
       - *step_serve_jit_browserify
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run e2e
+      - *step_run_jit_browserify_e2e
 
   e2e_tests_jit_browserify_bs_chrome_mac:
     <<: *defaults
@@ -264,11 +256,7 @@ jobs:
       - *step_restore_cache
       - *step_attach_workspace
       - *step_serve_jit_browserify
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run e2e
+      - *step_run_jit_browserify_e2e
 
   e2e_tests_jit_browserify_bs_firefox_win:
     <<: *defaults
@@ -281,11 +269,7 @@ jobs:
       - *step_restore_cache
       - *step_attach_workspace
       - *step_serve_jit_browserify
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run e2e
+      - *step_run_jit_browserify_e2e
 
   e2e_tests_jit_browserify_bs_firefox_mac:
     <<: *defaults
@@ -298,11 +282,7 @@ jobs:
       - *step_restore_cache
       - *step_attach_workspace
       - *step_serve_jit_browserify
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run e2e
+      - *step_run_jit_browserify_e2e
 
   e2e_tests_jit_browserify_bs_edge:
     <<: *defaults
@@ -315,11 +295,7 @@ jobs:
       - *step_restore_cache
       - *step_attach_workspace
       - *step_serve_jit_browserify
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run e2e
+      - *step_run_jit_browserify_e2e
 
   e2e_tests_jit_browserify_bs_safari:
     <<: *defaults
@@ -332,11 +308,7 @@ jobs:
       - *step_restore_cache
       - *step_attach_workspace
       - *step_serve_jit_browserify
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run e2e
+      - *step_run_jit_browserify_e2e
 
   e2e_tests_jit_aurelia_cli:
     <<: *defaults

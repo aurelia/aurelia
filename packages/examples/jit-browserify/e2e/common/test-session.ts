@@ -21,6 +21,11 @@ export class TestSession {
     console.log(`BS_LOCAL: ${val}`);
     return val;
   }
+  public static get BS_LOCALIDENTIFIER(): string {
+    const val = process.env.BS_LOCALIDENTIFIER || 'localIdentifier';
+    console.log(`BS_LOCALIDENTIFIER: ${val}`);
+    return val;
+  }
   public static get BS_DEBUG(): string {
     const val = process.env.BS_DEBUG || 'true';
     console.log(`BS_DEBUG: ${val}`);
@@ -104,6 +109,7 @@ export class TestSession {
       const capabilities = {
         ...this.BS_TARGET,
         ['browserstack.local']: this.BS_LOCAL,
+        ['browserstack.localIdentifier']: this.BS_LOCALIDENTIFIER,
         ['browserstack.debug']: this.BS_DEBUG,
         ['browserstack.console']: this.BS_CONSOLE,
         ['browserstack.networkLogs']: this.BS_NETWORK_LOGS,

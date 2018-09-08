@@ -5,6 +5,8 @@ import { Builder, ThenableWebDriver } from 'selenium-webdriver';
 import targets from './targets';
 import * as os from 'os';
 
+const localIdentifier = `id_${Date.now()}`;
+
 export class TestSession {
   public static get IS_BROWSERSTACK(): boolean {
     const val = !!process.env.IS_BROWSERSTACK;
@@ -22,7 +24,7 @@ export class TestSession {
     return val;
   }
   public static get BS_LOCALIDENTIFIER(): string {
-    const val = process.env.BS_LOCALIDENTIFIER || 'localIdentifier';
+    const val = process.env.BS_LOCALIDENTIFIER || localIdentifier;
     console.log(`BS_LOCALIDENTIFIER: ${val}`);
     return val;
   }

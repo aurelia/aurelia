@@ -196,7 +196,7 @@ jobs:
             - packages/examples/jit-browserify/dist
             - packages/examples/jit-browserify/node_modules
 
-  e2e_tests_jit_browserify:
+  e2e_tests_jit_browserify_webdriver:
     <<: *defaults
     steps:
       - checkout
@@ -215,6 +215,138 @@ jobs:
           command: |
             cd ./packages/examples/jit-browserify
             npm run e2e
+
+  e2e_tests_jit_browserify_bs_chrome_win:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Serve jit-browserify in the background
+          background: true
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run start
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run e2e
+          environment:
+            BS_TARGET: chromeWin
+
+  e2e_tests_jit_browserify_bs_chrome_mac:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Serve jit-browserify in the background
+          background: true
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run start
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run e2e
+          environment:
+            BS_TARGET: chromeMac
+
+  e2e_tests_jit_browserify_bs_firefox_win:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Serve jit-browserify in the background
+          background: true
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run start
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run e2e
+          environment:
+            BS_TARGET: firefoxWin
+
+  e2e_tests_jit_browserify_bs_firefox_mac:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Serve jit-browserify in the background
+          background: true
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run start
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run e2e
+          environment:
+            BS_TARGET: firefoxMac
+
+  e2e_tests_jit_browserify_bs_edge:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Serve jit-browserify in the background
+          background: true
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run start
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run e2e
+          environment:
+            BS_TARGET: edge
+
+  e2e_tests_jit_browserify_bs_safari:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: *cache_key
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Serve jit-browserify in the background
+          background: true
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run start
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./packages/examples/jit-browserify
+            npm run e2e
+          environment:
+            BS_TARGET: safari
 
   e2e_tests_jit_aurelia_cli:
     <<: *defaults
@@ -331,7 +463,25 @@ workflows:
       - build_jit_browserify:
           requires:
             - build
-      - e2e_tests_jit_browserify:
+      - e2e_tests_jit_browserify_webdriver:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_chrome_win:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_chrome_mac:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_firefox_win:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_firefox_mac:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_edge:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_safari:
           requires:
             - build_jit_browserify
       - e2e_tests_jit_aurelia_cli:
@@ -362,9 +512,30 @@ workflows:
       - unit_tests_firefox:
           requires:
             - install
-      - e2e_tests_jit_browserify:
+      - build_jit_browserify:
           requires:
             - build
+      - e2e_tests_jit_browserify_webdriver:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_chrome_win:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_chrome_mac:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_firefox_win:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_firefox_mac:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_edge:
+          requires:
+            - build_jit_browserify
+      - e2e_tests_jit_browserify_bs_safari:
+          requires:
+            - build_jit_browserify
       - e2e_tests_jit_aurelia_cli:
           requires:
             - build
@@ -379,7 +550,13 @@ workflows:
             - build
             - unit_tests_chrome
             - unit_tests_firefox
-            - e2e_tests_jit_browserify
+            - e2e_tests_jit_browserify_webdriver
+            - e2e_tests_jit_browserify_chrome_win
+            - e2e_tests_jit_browserify_chrome_mac
+            - e2e_tests_jit_browserify_firefox_win
+            - e2e_tests_jit_browserify_firefox_mac
+            - e2e_tests_jit_browserify_edge
+            - e2e_tests_jit_browserify_safari
             - e2e_tests_jit_aurelia_cli
             - e2e_benchmark_vnext
 

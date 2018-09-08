@@ -111,7 +111,7 @@ export class TestSession {
       const capabilities = {
         ...this.BS_TARGET,
         ['browserstack.local']: this.BS_LOCAL,
-        ['browserstack.localIdentifier']: this.BS_LOCALIDENTIFIER,
+       // ['browserstack.localIdentifier']: this.BS_LOCALIDENTIFIER,
         ['browserstack.debug']: this.BS_DEBUG,
         ['browserstack.console']: this.BS_CONSOLE,
         ['browserstack.networkLogs']: this.BS_NETWORK_LOGS,

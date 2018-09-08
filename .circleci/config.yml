@@ -8,6 +8,28 @@ defaults: &defaults
 # Variables
 var_1: &cache_key aurelia-{{ .Branch }}-{{ checksum "package-lock.json" }}
 
+# Reusable steps
+aliases:
+  - &step_restore_cache
+    restore_cache:
+      key: *cache_key
+  - &step_attach_workspace
+    attach_workspace:
+      at: ~/repo
+  - &step_serve_jit_browserify
+    run:
+      name: Serve jit-browserify in the background
+      background: true
+      command: |
+        cd ./packages/examples/jit-browserify
+        npm run start
+  - &step_run_jit_browserify_e2e
+    run:
+      name: Run the e2e tests
+      command: |
+        cd ./packages/examples/jit-browserify
+        npm run e2e
+
 version: 2
 jobs:
   install:
@@ -32,8 +54,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
+      - *step_restore_cache
       - run:
           name: "Bootstrap and build the packages"
           command: |
@@ -54,8 +75,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
+      - *step_restore_cache
       - run:
           name: "Run unit tests"
           command: |
@@ -81,8 +101,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
+      - *step_restore_cache
       - run:
           name: "Run unit tests"
           command: |
@@ -155,10 +174,8 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
+      - *step_restore_cache
+      - *step_attach_workspace
       - run:
           name: Install jit-parcel
           command: |
@@ -180,10 +197,8 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
+      - *step_restore_cache
+      - *step_attach_workspace
       - run:
           name: Install jit-browserify
           command: |
@@ -200,16 +215,9 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
-      - run:
-          name: Serve jit-browserify in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run start
+      - *step_restore_cache
+      - *step_attach_workspace
+      - *step_serve_jit_browserify
       - run:
           name: Run the e2e tests
           command: |
@@ -220,16 +228,9 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
-      - run:
-          name: Serve jit-browserify in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run start
+      - *step_restore_cache
+      - *step_attach_workspace
+      - *step_serve_jit_browserify
       - run:
           name: Run the e2e tests
           command: |
@@ -243,16 +244,9 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
-      - run:
-          name: Serve jit-browserify in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run start
+      - *step_restore_cache
+      - *step_attach_workspace
+      - *step_serve_jit_browserify
       - run:
           name: Run the e2e tests
           command: |
@@ -266,16 +260,9 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
-      - run:
-          name: Serve jit-browserify in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run start
+      - *step_restore_cache
+      - *step_attach_workspace
+      - *step_serve_jit_browserify
       - run:
           name: Run the e2e tests
           command: |
@@ -289,16 +276,9 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
-      - run:
-          name: Serve jit-browserify in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run start
+      - *step_restore_cache
+      - *step_attach_workspace
+      - *step_serve_jit_browserify
       - run:
           name: Run the e2e tests
           command: |
@@ -312,16 +292,9 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
-      - run:
-          name: Serve jit-browserify in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run start
+      - *step_restore_cache
+      - *step_attach_workspace
+      - *step_serve_jit_browserify
       - run:
           name: Run the e2e tests
           command: |
@@ -335,16 +308,9 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
-      - run:
-          name: Serve jit-browserify in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run start
+      - *step_restore_cache
+      - *step_attach_workspace
+      - *step_serve_jit_browserify
       - run:
           name: Run the e2e tests
           command: |
@@ -358,10 +324,8 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
+      - *step_restore_cache
+      - *step_attach_workspace
       - run:
           name: Install jit-aurelia-cli
           command: |
@@ -384,10 +348,8 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
+      - *step_restore_cache
+      - *step_attach_workspace
       - run:
           name: Install e2e-benchmark/vnext
           command: |
@@ -412,10 +374,8 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
+      - *step_restore_cache
+      - *step_attach_workspace
       - run:
           name: Install e2e-benchmark/vcurrent
           command: |
@@ -440,10 +400,8 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
+      - *step_restore_cache
+      - *step_attach_workspace
       - run:
           name: Authenticate with registry
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc

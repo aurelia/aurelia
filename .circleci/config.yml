@@ -241,6 +241,7 @@ jobs:
       BS_TARGET: chromeWin
       IS_BROWSERSTACK: true
       APP_PORT: 9000
+      APP_HOST: localhost
     steps:
       - checkout
       - *step_restore_cache
@@ -254,6 +255,7 @@ jobs:
       BS_TARGET: chromeMac
       IS_BROWSERSTACK: true
       APP_PORT: 9001
+      APP_HOST: localhost
     steps:
       - checkout
       - *step_restore_cache
@@ -267,6 +269,7 @@ jobs:
       BS_TARGET: firefoxWin
       IS_BROWSERSTACK: true
       APP_PORT: 9002
+      APP_HOST: localhost
     steps:
       - checkout
       - *step_restore_cache
@@ -280,6 +283,7 @@ jobs:
       BS_TARGET: firefoxMac
       IS_BROWSERSTACK: true
       APP_PORT: 9003
+      APP_HOST: localhost
     steps:
       - checkout
       - *step_restore_cache
@@ -293,6 +297,7 @@ jobs:
       BS_TARGET: edge
       IS_BROWSERSTACK: true
       APP_PORT: 9004
+      APP_HOST: localhost
     steps:
       - checkout
       - *step_restore_cache
@@ -306,6 +311,7 @@ jobs:
       BS_TARGET: safari
       IS_BROWSERSTACK: true
       APP_PORT: 9005
+      APP_HOST: localhost
     steps:
       - checkout
       - *step_restore_cache

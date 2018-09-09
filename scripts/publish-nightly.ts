@@ -1,7 +1,8 @@
 import { normalize } from 'path';
 import { readFileSync, writeFileSync } from 'fs';
 import * as lerna from 'lerna';
-import log from 'fancy-log';
+import * as l from 'fancy-log';
+const log = <typeof import('fancy-log')>(<any>l);
 import * as c from 'chalk';
 const chalk = <import('chalk').Chalk>(c.default || c);
 

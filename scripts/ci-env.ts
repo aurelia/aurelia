@@ -1,4 +1,5 @@
-import log from 'fancy-log';
+import * as l from 'fancy-log';
+const log = <typeof import('fancy-log')>(<any>l);
 import * as request from 'request';
 import * as c from 'chalk';
 const chalk = <import('chalk').Chalk>(c.default || c);
@@ -227,7 +228,7 @@ export class CIEnv {
     return logSecretVariable(process.env.GITHUB_TOKEN, 'GITHUB_TOKEN');
   }
   public static get APP_PORT(): string {
-    return logVariable(process.env.APP_PORT, 'APP_PORT');
+    return logVariable(process.env.APP_PORT || '9000', 'APP_PORT');
   }
   public static get APP_HOST(): string {
     let val = process.env.APP_HOST;
@@ -243,7 +244,7 @@ export class CIEnv {
         }
       }
     }
-    return logVariable(val, 'APP_PORT');
+    return logVariable(val || 'localhost', 'APP_HOST');
   }
 
   public static async circleGet(path: string): Promise<any> {

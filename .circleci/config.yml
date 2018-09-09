@@ -156,6 +156,7 @@ jobs:
           command: |
             cd ./test/e2e
             npm run e2e
+            npm run allure:generate
       - store_artifacts:
           path: ./test/e2e/allure-report
 

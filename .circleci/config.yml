@@ -16,19 +16,6 @@ aliases:
   - &step_attach_workspace
     attach_workspace:
       at: ~/repo
-  - &step_serve_jit_browserify
-    run:
-      name: Serve jit-browserify in the background
-      background: true
-      command: |
-        cd ./packages/examples/jit-browserify
-        npm run start:port -- -p $APP_PORT
-  - &step_run_jit_browserify_e2e
-    run:
-      name: Run the e2e tests
-      command: |
-        cd ./packages/examples/jit-browserify
-        npm run e2e
 
 version: 2
 jobs:
@@ -85,29 +72,17 @@ jobs:
             JUNIT_REPORT_NAME: test-results.xml
             TS_NODE_PROJECT: ./scripts/tsconfig.json
       - store_test_results:
-          path: ./packages/debug/junit
-      - store_test_results:
           path: ./packages/jit/junit
       - store_test_results:
           path: ./packages/kernel/junit
       - store_test_results:
           path: ./packages/runtime/junit
-      - store_test_results:
-          path: ./packages/plugin-requirejs/junit
-      - store_test_results:
-          path: ./packages/plugin-svg/junit
-      - store_artifacts:
-          path: ./packages/debug/junit
       - store_artifacts:
           path: ./packages/jit/junit
       - store_artifacts:
           path: ./packages/kernel/junit
       - store_artifacts:
           path: ./packages/runtime/junit
-      - store_artifacts:
-          path: ./packages/plugin-requirejs/junit
-      - store_artifacts:
-          path: ./packages/plugin-svg/junit
 
   unit_tests_chrome:
     <<: *defaults
@@ -126,12 +101,9 @@ jobs:
           name: Process coverage results for Code Climate
           command: |
             mkdir ~/repo/code-climate
-            #~/cc-test-reporter format-coverage ~/repo/packages/debug/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-debug.json
             ~/cc-test-reporter format-coverage ~/repo/packages/jit/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-jit.json
             ~/cc-test-reporter format-coverage ~/repo/packages/kernel/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-kernel.json
             ~/cc-test-reporter format-coverage ~/repo/packages/runtime/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-runtime.json
-            #~/cc-test-reporter format-coverage ~/repo/packages/plugin-requirejs/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-plugin-requirejs.json
-            #~/cc-test-reporter format-coverage ~/repo/packages/plugin-svg/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-plugin-svg.json
             ~/cc-test-reporter sum-coverage ~/repo/code-climate/coverage-*.json -p 3 -o ~/repo/coverage-combined.json
             ~/cc-test-reporter upload-coverage -i ~/repo/coverage-combined.json
           environment:
@@ -139,125 +111,27 @@ jobs:
       - run:
           name: Process coverage for Codecov
           command: |
-            codecov -f ~/repo/packages/debug/coverage/coverage-final.json
             codecov -f ~/repo/packages/jit/coverage/coverage-final.json
             codecov -f ~/repo/packages/kernel/coverage/coverage-final.json
             codecov -f ~/repo/packages/runtime/coverage/coverage-final.json
-            codecov -f ~/repo/packages/plugin-requirejs/coverage/coverage-final.json
-            codecov -f ~/repo/packages/plugin-svg/coverage/coverage-final.json
-      - store_test_results:
-          path: ./packages/debug/junit
       - store_test_results:
           path: ./packages/jit/junit
       - store_test_results:
           path: ./packages/kernel/junit
       - store_test_results:
           path: ./packages/runtime/junit
-      - store_test_results:
-          path: ./packages/plugin-requirejs/junit
-      - store_test_results:
-          path: ./packages/plugin-svg/junit
-      - store_artifacts:
-          path: ./packages/debug/junit
       - store_artifacts:
           path: ./packages/jit/junit
       - store_artifacts:
           path: ./packages/kernel/junit
       - store_artifacts:
           path: ./packages/runtime/junit
-      - store_artifacts:
-          path: ./packages/plugin-requirejs/junit
-      - store_artifacts:
-          path: ./packages/plugin-svg/junit
-      - store_artifacts:
-          path: ./packages/debug/coverage
       - store_artifacts:
           path: ./packages/jit/coverage
       - store_artifacts:
           path: ./packages/kernel/coverage
       - store_artifacts:
           path: ./packages/runtime/coverage
-      - store_artifacts:
-          path: ./packages/plugin-requirejs/coverage
-      - store_artifacts:
-          path: ./packages/plugin-svg/coverage
-
-  e2e_tests_jit_parcel:
-    <<: *defaults
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - run:
-          name: Install jit-parcel
-          command: |
-            cd ./packages/examples/jit-parcel
-            npm install
-      - run:
-          name: Serve jit-parcel in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-parcel
-            npm run serve
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./packages/examples/jit-parcel
-            npm run e2e
-
-  build_jit_browserify:
-    <<: *defaults
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - run:
-          name: Install jit-browserify
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm ci
-            npm run build
-      - persist_to_workspace:
-          root: ~/repo
-          paths:
-            - packages/examples/jit-browserify/dist
-            - packages/examples/jit-browserify/node_modules
-
-  e2e_tests_jit_browserify_webdriver:
-    <<: *defaults
-    environment:
-      APP_PORT: 3000
-      APP_HOST: localhost
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - *step_serve_jit_browserify
-      - *step_run_jit_browserify_e2e
-
-  e2e_tests_jit_aurelia_cli:
-    <<: *defaults
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - run:
-          name: Install jit-aurelia-cli
-          command: |
-            cd ./packages/examples/jit-aurelia-cli
-            npm ci
-            npm run build
-      - run:
-          name: Serve jit-aurelia-cli in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-aurelia-cli
-            npm run start
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./packages/examples/jit-aurelia-cli
-            npm run e2e
 
   e2e_browserstack:
     <<: *defaults
@@ -368,15 +242,6 @@ workflows:
       - e2e_browserstack:
           requires:
             - build
-      - build_jit_browserify:
-          requires:
-            - build
-      - e2e_tests_jit_browserify_webdriver:
-          requires:
-            - build_jit_browserify
-      - e2e_tests_jit_aurelia_cli:
-          requires:
-            - build
       - e2e_benchmark_vnext:
           requires:
             - build
@@ -405,27 +270,10 @@ workflows:
       - e2e_browserstack:
           requires:
             - build
-      - build_jit_browserify:
-          requires:
-            - build
-      - e2e_tests_jit_browserify_webdriver:
-          requires:
-            - build_jit_browserify
-      - e2e_tests_jit_aurelia_cli:
-          requires:
-            - build
-      - e2e_benchmark_vnext:
-          requires:
-            - build
-      - e2e_benchmark_vcurrent:
-          requires:
-            - build
       - publish_nightly:
           requires:
             - build
             - unit_tests_chrome
             - unit_tests_firefox
-            - e2e_tests_jit_browserify_webdriver
-            - e2e_tests_jit_aurelia_cli
-            - e2e_benchmark_vnext
+            - e2e_browserstack
 

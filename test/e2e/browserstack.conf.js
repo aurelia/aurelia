@@ -84,7 +84,7 @@ exports.config = {
   },
 
   // TODO: make this more explicitly configurable and flexible
-  capabilities: process.env.CIRCLE_BRANCH	 === 'master' ? [
+  capabilities: process.env.CIRCLE_BRANCH	=== 'master' && process.env.CIRCLE_JOB !== 'publish_nightly' ? [
     ...combine([
       { versions: ['68', '67', '66'], name: 'Chrome' },
       { versions: ['61', '60', '59'], name: 'Firefox' }

@@ -27,7 +27,8 @@ checks:
   method-complexity:
     enabled: true
     config:
-      treshold: 5 # default 5
+      # Increased to 15 because the developer audience of a framework should be used to more complexity than most developers who work on regular projects
+      treshold: 15 # default 5
 # Method count
 # Classes defined with a high number of functions or methods
   method-count:
@@ -57,6 +58,15 @@ checks:
   similar-code:
     enabled: true # default true
 exclude_patterns:
-  - "dist/"
+  # Exclude code that is not actually built and published
+  # The reasoning being that dev code like tests or build scripts can be changed without having to account for backwards compatibility and thus is much easier to refactor / tidy up at a later point in time
   - "**/node_modules/"
-  - "**/*.d.ts"
+  - "**/dist/"
+  - "**/coverage/"
+  - "**/test/"
+  - "**/examples/"
+  - "/scripts/"
+plugins:
+  tslint:
+    enabled: true
+    config: tslint.json

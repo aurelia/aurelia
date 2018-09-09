@@ -103,7 +103,7 @@ export class AppPage {
     const el = $(`#todo-${id}-done`);
     el.waitForVisible(timeout);
     el.click();
-    if (browser.options.capabilities[0].browserName === 'Edge') {
+    if (browser.desiredCapabilities.browserName === 'Edge') {
       // because Edge is slow :)
       browser.pause(1000);
     }

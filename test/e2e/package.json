@@ -28,6 +28,7 @@
     "path": "^0.12.7",
     "rimraf": "^2.6.2",
     "stringify": "^5.2.0",
+    "ts-node": "^7.0.1",
     "tsify": "^4.0.0",
     "typescript": "^3.0.1",
     "wdio": "^2.0.2",

@@ -1,8 +1,9 @@
 import { normalize } from 'path';
 import { readFileSync, writeFileSync } from 'fs';
 import * as lerna from 'lerna';
-import * as log from 'fancy-log';
-import chalk from 'chalk';
+import log from 'fancy-log';
+import * as c from 'chalk';
+const chalk = <import('chalk').Chalk>(c.default || c);
 
 interface LernaJson {
   lerna: string;

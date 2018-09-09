@@ -1,0 +1,39 @@
+{
+  "name": "e2e",
+  "version": "0.1.1",
+  "scripts": {
+    "build": "rimraf dist  && tsc && browserify src/startup.ts -p [ tsify ] -t [ stringify --applies-to [ --include-extensions [ '.html' ] ] ] > dist/bundle.js",
+    "start": "http-server -c-1 -p 9000 .",
+    "e2e": "rimraf allure-results && npm run build && wdio browserstack.conf.js",
+    "allure:generate": "allure generate -c -o allure-report allure-results",
+    "allure:open": "allure open allure-report",
+    "allure:post": "ts-node ../../scripts/post-allure.ts"
+  },
+  "dependencies": {
+    "@aurelia/jit": "../../packages/jit",
+    "@aurelia/kernel": "../../packages/kernel",
+    "@aurelia/runtime": "../../packages/runtime"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^8.10.22",
+    "@types/webdriverio": "^4.10.3",
+    "allure-commandline": "^2.7.0",
+    "browserify": "^16.2.2",
+    "browserstack-local": "^1.3.4",
+    "chai": "^4.1.2",
+    "cross-env": "^5.2.0",
+    "http-server": "^0.11.1",
+    "mocha": "^5.2.0",
+    "path": "^0.12.7",
+    "rimraf": "^2.6.2",
+    "stringify": "^5.2.0",
+    "ts-node": "^7.0.1",
+    "tsify": "^4.0.0",
+    "typescript": "^3.0.1",
+    "wdio": "^2.0.2",
+    "wdio-allure-reporter": "^0.7.0",
+    "wdio-mocha-framework": "^0.6.3"
+  }
+}

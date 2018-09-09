@@ -1,0 +1,6 @@
+dist
+.cache
+errorShots
+allure-report
+allure-results
+*.log

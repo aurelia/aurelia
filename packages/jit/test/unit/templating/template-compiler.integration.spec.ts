@@ -274,7 +274,7 @@ describe('TemplateCompiler (integration)', () => {
     setTimeout(() => {
       expect(host.firstChild['value']).to.equal('hello!!!');
       done();
-    }, 125);
+    }, 175);
   });
 
   // TODO: fix throttle

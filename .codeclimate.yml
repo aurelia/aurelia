@@ -27,7 +27,8 @@ checks:
   method-complexity:
     enabled: true
     config:
-      treshold: 5 # default 5
+      # Increased to 15 because the developer audience of a framework should be used to more complexity than most developers who work on regular projects
+      treshold: 15 # default 5
 # Method count
 # Classes defined with a high number of functions or methods
   method-count:
@@ -56,7 +57,22 @@ checks:
 # Duplicate code which is not identical but shares the same structure (e.g. variable names may differ)
   similar-code:
     enabled: true # default true
+plugins:
+  tslint:
+    enabled: true
+    config: tslint.json
 exclude_patterns:
-  - "dist/"
-  - "**/node_modules/"
-  - "**/*.d.ts"
+# Exclude code that is not actually built and published
+# The reasoning being that dev code like tests or build scripts can be changed without having to account for backwards compatibility and thus is much easier to refactor / tidy up at a later point in time
+- ".circleci/"
+- ".vscode/"
+- "docs/"
+- "**/node_modules/"
+- "**/dist/"
+- "**/coverage/"
+- "**/test/"
+- "**/examples/"
+- "/scripts/"
+# The array-observer is complex because it closely follows the (well-documented) ES spec and uses a quickSort algorithm based on the well-known V8 engine.
+# This logic is thoroughly tested and will likely never need to change, thus shouldn't be considered a maintenance burden.
+- "packages/runtime/src/binding/array-observer.ts"

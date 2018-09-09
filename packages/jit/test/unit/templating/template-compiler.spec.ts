@@ -22,7 +22,7 @@ import {
   HydrateTemplateController,
   BasicConfiguration} from '../../../src/index';
 import { expect } from 'chai';
-import { verifyEqual, createElement } from '../../util';
+import { verifyEqual, createElement } from '../util';
 import { spy } from 'sinon';
 
 

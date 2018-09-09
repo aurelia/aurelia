@@ -12,6 +12,9 @@ const toStringTag = Object.prototype.toString;
  * - Array (recurses through the items and wraps them in brackets)
  * - Event (returns the type name)
  * - Node (returns textContent or innerHTML)
+ * - Object (returns json representation)
+ * - Class constructor (returns class name)
+ * - Instance of custom class (returns class name + json representation)
  */
 export function _(strings: TemplateStringsArray, ...vars: any[]): string {
   let retVal = '';
@@ -23,6 +26,7 @@ export function _(strings: TemplateStringsArray, ...vars: any[]): string {
 }
 
 const newline = /\r?\n/g;
+const whitespace = /\s+/g;
 
 /**
  * stringify primitive value (null -> 'null' and undefined -> 'undefined') or complex values with recursion guard
@@ -43,6 +47,19 @@ export function stringify(value: any): string {
       return `[${value.map(i => stringify(i)).join(',')}]`;
     case '[object Event]':
       return `'${value.type}'`;
+    case '[object Object]':
+    {
+      const proto = Object.getPrototypeOf(value);
+      if (!proto || !proto.constructor || proto.constructor.name === 'Object') {
+        return jsonStringify(value);
+      }
+      return `class ${proto.constructor.name}${jsonStringify(value)}`;
+    }
+    case '[object Function]':
+      if (value.name && value.name.length) {
+        return `class ${value.name}`;
+      }
+      return value.toString().replace(whitespace, '');
     default:
       return jsonStringify(value);
   }

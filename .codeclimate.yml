@@ -66,6 +66,9 @@ exclude_patterns:
   - "**/test/"
   - "**/examples/"
   - "/scripts/"
+  # The array-observer is complex because it closely follows the (well-documented) ES spec and uses a quickSort algorithm based on the well-known V8 engine.
+  # This logic is thoroughly tested and will likely never need to change, thus shouldn't be considered a maintenance burden.
+  - "/packages/runtime/src/binding/array-observer.ts"
 plugins:
   tslint:
     enabled: true

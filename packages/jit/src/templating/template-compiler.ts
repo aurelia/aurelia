@@ -245,7 +245,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // if there is a custom element or template controller, then the attribute instructions become children
     // of the hydrate instruction, otherwise they are added directly to instructions as a single array
     const attributeInstructions: TargetedInstruction[] = [];
-    const tagResourceKey = tagName.toLowerCase();
+    const tagResourceKey = (node.getAttribute('as-element') || tagName).toLowerCase();
     const element = resources.find(CustomElementResource, tagResourceKey) || null;
     const attributes = node.attributes;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {

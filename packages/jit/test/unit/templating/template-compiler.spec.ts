@@ -893,6 +893,23 @@ describe('TemplateCompiler', () => {
               type: TargetedInstructionType.propertyBinding, dest: 'title', srcOrExpr: new AccessScope('title') },
           ]);
         });
+
+        describe('[as-element]', () => {
+          it('understands [as-element]', () => {
+            @customElement('not-div')
+            class NotDiv {}
+            const { instructions } = compileWith('<template><div as-element="not-div"></div></template>', [NotDiv]);
+            verifyInstructions(instructions[0] as any, [
+              { toVerify: ['type', 'res'],
+                type: TargetedInstructionType.hydrateElement, res: 'not-div' }
+            ]);
+          });
+
+          it('does not throw when element is not found', () => {
+            const { instructions } = compileWith('<template><div as-element="not-div"></div></template>');
+            expect(instructions.length).to.equal(0);
+          });
+        });
       });
 
       describe('<let/> element', () => {

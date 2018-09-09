@@ -71,8 +71,8 @@ exports.config = {
 
   maxInstances: 5,
   commonCapabilities: {
-    'name': 'aurelia',
-    'build': build,
+    'name': `${process.env.CIRCLE_PROJECT_REPONAME}_${process.env.CIRCLE_BRANCH}`,
+    'build': `${process.env.CIRCLE_JOB}_${process.env.CIRCLE_BUILD_NUM}`,
     'browserstack.local': true,
     'browserstack.opts':  {
       localIdentifier: build,
@@ -83,7 +83,8 @@ exports.config = {
     'browserstack.timezone': 'UTC',
   },
 
-  capabilities: [
+  // TODO: make this more explicitly configurable and flexible
+  capabilities: process.env.CIRCLE_BRANCH	 === 'master' ? [
     ...combine([
       { versions: ['68', '67', '66'], name: 'Chrome' },
       { versions: ['61', '60', '59'], name: 'Firefox' }
@@ -130,6 +131,24 @@ exports.config = {
       { versions: ['8'], name: 'Safari' },
     ], [
       { versions: ['Yosemite'], name: 'OS X' }
+    ])
+  ] : [
+    ...combine([
+      { versions: ['68'], name: 'Chrome' },
+      { versions: ['61'], name: 'Firefox' }
+    ], [
+      { versions: ['10'], name: 'Windows' },
+      { versions: ['High Sierra'], name: 'OS X' }
+    ]),
+    ...combine([
+      { versions: ['17'], name: 'Edge' },
+    ], [
+      { versions: ['10'], name: 'Windows' }
+    ]),
+    ...combine([
+      { versions: ['11.1'], name: 'Safari' },
+    ], [
+      { versions: ['High Sierra'], name: 'OS X' }
     ])
   ],
 

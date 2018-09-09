@@ -402,6 +402,9 @@ workflows:
       - unit_tests_firefox:
           requires:
             - install
+      - e2e_browserstack:
+          requires:
+            - build
       - build_jit_browserify:
           requires:
             - build

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "lib": ["esnext", "dom"],
+    "module": "umd",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "rootDir": ".",
+    "target": "es2015"
+  },
+  "include": ["."]
+}

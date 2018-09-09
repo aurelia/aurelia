@@ -235,84 +235,6 @@ jobs:
       - *step_serve_jit_browserify
       - *step_run_jit_browserify_e2e
 
-  e2e_tests_jit_browserify_bs_chrome_win:
-    <<: *defaults
-    environment:
-      BS_TARGET: chromeWin
-      IS_BROWSERSTACK: true
-      APP_PORT: 9000
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - *step_serve_jit_browserify
-      - *step_run_jit_browserify_e2e
-
-  e2e_tests_jit_browserify_bs_chrome_mac:
-    <<: *defaults
-    environment:
-      BS_TARGET: chromeMac
-      IS_BROWSERSTACK: true
-      APP_PORT: 9001
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - *step_serve_jit_browserify
-      - *step_run_jit_browserify_e2e
-
-  e2e_tests_jit_browserify_bs_firefox_win:
-    <<: *defaults
-    environment:
-      BS_TARGET: firefoxWin
-      IS_BROWSERSTACK: true
-      APP_PORT: 9002
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - *step_serve_jit_browserify
-      - *step_run_jit_browserify_e2e
-
-  e2e_tests_jit_browserify_bs_firefox_mac:
-    <<: *defaults
-    environment:
-      BS_TARGET: firefoxMac
-      IS_BROWSERSTACK: true
-      APP_PORT: 9003
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - *step_serve_jit_browserify
-      - *step_run_jit_browserify_e2e
-
-  e2e_tests_jit_browserify_bs_edge:
-    <<: *defaults
-    environment:
-      BS_TARGET: edge
-      IS_BROWSERSTACK: true
-      APP_PORT: 9004
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - *step_serve_jit_browserify
-      - *step_run_jit_browserify_e2e
-
-  e2e_tests_jit_browserify_bs_safari:
-    <<: *defaults
-    environment:
-      BS_TARGET: safari
-      IS_BROWSERSTACK: true
-      APP_PORT: 9005
-    steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - *step_serve_jit_browserify
-      - *step_run_jit_browserify_e2e
-
   e2e_tests_jit_aurelia_cli:
     <<: *defaults
     steps:
@@ -335,6 +257,30 @@ jobs:
           name: Run the e2e tests
           command: |
             cd ./packages/examples/jit-aurelia-cli
+            npm run e2e
+
+  e2e_browserstack:
+    <<: *defaults
+    steps:
+      - checkout
+      - *step_restore_cache
+      - *step_attach_workspace
+      - run:
+          name: Install e2e tests
+          command: |
+            cd ./test/e2e
+            npm install
+            npm run build
+      - run:
+          name: Serve the e2e app in the background
+          background: true
+          command: |
+            cd ./test/e2e
+            npm run start
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./test/e2e
             npm run e2e
 
   e2e_benchmark_vnext:
@@ -417,30 +363,15 @@ workflows:
       - unit_tests_firefox:
           requires:
             - install
+      - e2e_browserstack:
+          requires:
+            - build
       - build_jit_browserify:
           requires:
             - build
       - e2e_tests_jit_browserify_webdriver:
           requires:
             - build_jit_browserify
-      - e2e_tests_jit_browserify_bs_chrome_win:
-          requires:
-            - build_jit_browserify
-      - e2e_tests_jit_browserify_bs_chrome_mac:
-          requires:
-            - e2e_tests_jit_browserify_bs_chrome_win
-      - e2e_tests_jit_browserify_bs_firefox_win:
-          requires:
-            - e2e_tests_jit_browserify_bs_chrome_mac
-      - e2e_tests_jit_browserify_bs_firefox_mac:
-          requires:
-            - e2e_tests_jit_browserify_bs_firefox_win
-      - e2e_tests_jit_browserify_bs_edge:
-          requires:
-            - e2e_tests_jit_browserify_bs_firefox_mac
-      - e2e_tests_jit_browserify_bs_safari:
-          requires:
-            - e2e_tests_jit_browserify_bs_edge
       - e2e_tests_jit_aurelia_cli:
           requires:
             - build
@@ -475,24 +406,6 @@ workflows:
       - e2e_tests_jit_browserify_webdriver:
           requires:
             - build_jit_browserify
-      - e2e_tests_jit_browserify_bs_chrome_win:
-          requires:
-            - build_jit_browserify
-      - e2e_tests_jit_browserify_bs_chrome_mac:
-          requires:
-            - build_jit_browserify
-      - e2e_tests_jit_browserify_bs_firefox_win:
-          requires:
-            - build_jit_browserify
-      - e2e_tests_jit_browserify_bs_firefox_mac:
-          requires:
-            - build_jit_browserify
-      - e2e_tests_jit_browserify_bs_edge:
-          requires:
-            - build_jit_browserify
-      - e2e_tests_jit_browserify_bs_safari:
-          requires:
-            - build_jit_browserify
       - e2e_tests_jit_aurelia_cli:
           requires:
             - build
@@ -508,12 +421,6 @@ workflows:
             - unit_tests_chrome
             - unit_tests_firefox
             - e2e_tests_jit_browserify_webdriver
-            - e2e_tests_jit_browserify_chrome_win
-            - e2e_tests_jit_browserify_chrome_mac
-            - e2e_tests_jit_browserify_firefox_win
-            - e2e_tests_jit_browserify_firefox_mac
-            - e2e_tests_jit_browserify_edge
-            - e2e_tests_jit_browserify_safari
             - e2e_tests_jit_aurelia_cli
             - e2e_benchmark_vnext
 

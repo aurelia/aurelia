@@ -9,6 +9,7 @@
     "**/.vscode/**",
     "**/aurelia_project/**",
     "**/coverage/**",
+    "**/allure-results/**",
     "**/node_modules/**",
     "**/scripts/**",
     "**/test/**"
@@ -20,6 +21,7 @@
     "**/.vscode": true,
     "**/aurelia_project": true,
     "**/coverage": true,
+    "**/allure-results": true,
     "**/node_modules": true,
     "**/scripts": true
   },

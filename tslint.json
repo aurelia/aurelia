@@ -1,7 +1,6 @@
 {
   "extends": [
     "tslint:latest",
-    "tslint-no-unused-expression-chai",
     "tslint-microsoft-contrib"
   ],
   "linterOptions": {

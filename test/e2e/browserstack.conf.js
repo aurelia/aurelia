@@ -146,9 +146,11 @@ exports.config = {
       { versions: ['10'], name: 'Windows' }
     ]),
     ...combine([
-      { versions: ['11.1'], name: 'Safari' },
+      //{ versions: ['11.1'], name: 'Safari' }
+      { versions: ['10.1'], name: 'Safari' }
     ], [
-      { versions: ['High Sierra'], name: 'OS X' }
+      //{ versions: ['High Sierra'], name: 'OS X' }
+      { versions: ['Sierra'], name: 'OS X' }
     ])
   ],
 

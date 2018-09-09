@@ -282,6 +282,8 @@ jobs:
           command: |
             cd ./test/e2e
             npm run e2e
+      - store_artifacts:
+          path: ./test/e2e/allure-report
 
   e2e_benchmark_vnext:
     <<: *defaults

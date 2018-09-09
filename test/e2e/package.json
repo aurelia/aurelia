@@ -6,7 +6,8 @@
     "start": "http-server -c-1 -p 9000 .",
     "e2e": "rimraf allure-results && npm run build && wdio browserstack.conf.js",
     "allure:generate": "allure generate -c -o allure-report allure-results",
-    "allure:open": "allure open allure-report"
+    "allure:open": "allure open allure-report",
+    "allure:post": "ts-node ../scripts/post-allure.ts"
   },
   "dependencies": {
     "@aurelia/jit": "../../packages/jit",

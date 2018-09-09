@@ -163,6 +163,11 @@ jobs:
             npm run allure:generate
       - store_artifacts:
           path: ./test/e2e/allure-report
+      - run:
+          name: Post the link to allure report in PR comment
+          command: |
+            cd ./test/e2e
+            npm run allure:post
 
   e2e_benchmark_vnext:
     <<: *defaults

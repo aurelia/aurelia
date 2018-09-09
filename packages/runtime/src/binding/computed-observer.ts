@@ -114,7 +114,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
 
     Reflect.defineProperty(this.obj, this.propertyKey, {
       set: function(newValue: IIndexable | Primitive): void {
-        setter(newValue);
+        setter.call(that.obj, newValue);
 
         const oldValue = this.currentValue;
 

@@ -118,8 +118,67 @@ describe('Binding', () => {
 
   });
 
-  describe('$bind()', () => {
+  describe.only('$bind()', () => {
+    const bindingModeArr = [
+      BindingMode.oneTime,
+      BindingMode.toView,
+      BindingMode.fromView,
+      BindingMode.twoWay
+    ];
+    const targetArr = [
+      document.createElement('div'),
+      document.createTextNode('foo'),
+      document.createElement('div').style,
+      { foo: 'bar' }
+    ];
+    const targetPropertyArr = [
+      'foo',
+      'textContent',
+      'innerText'
+    ];
+    const sourceExpressionArr = [
+      new AccessScope('foo'),
+      new AccessMember(new AccessScope('foo'), 'bar'),
+      new PrimitiveLiteral(null)
+    ];
+    const flags = [
+      BindingFlags.fromBind,
+      BindingFlags.fromBind | BindingFlags.mustEvaluate
+    ];
 
+    const title1 = '$bind() ';
+    for (const bindingMode of bindingModeArr) {
+      const title2 = title1 + ' bindingMode=' + BindingMode[bindingMode];
+
+      for (const target of targetArr) {
+      const title3 = title2 + ' target=' + padRight(`${getName(target)}`, 20);
+
+        for (const targetProperty of targetPropertyArr) {
+          const title4 = title3 + ' targetProperty=' + padRight(`${targetProperty}`, 12);
+
+          for (const sourceExpression of sourceExpressionArr) {
+            const title5 = title4 + ' sourceExpression=' + unparse(sourceExpression);
+
+            const scopeArr = [
+              createScopeForTest({foo: {bar: 42}}),
+              createScopeForTest({foo: {bar: undefined}}),
+              createScopeForTest({foo: {bar: 'baz'}})
+            ];
+            for (const flag of flags) {
+
+              for (const scope of scopeArr) {
+                const title = title5 + ' scope=' + padRight(`${getName(scope)} with flag: ${BindingFlags[flag]}`, 2);
+
+                it(title, () => {
+                  sut = new Binding(sourceExpression, target, targetProperty, bindingMode, observerLocator, container);
+                  sut.$bind(flag, scope);
+                });
+              }
+            }
+          }
+        }
+      }
+    }
   });
 
   describe('$unbind()', () => {
@@ -284,6 +343,17 @@ describe('Binding', () => {
   describe('unobserve()', () => {
 
   });
+
+  // TODO: create proper unparser
+  function unparse(expr: IExpression): string {
+    return expr instanceof AccessScope
+      ? `AccessScope{${expr.name} | ${expr.ancestor}}`
+      : expr instanceof AccessMember
+        ? `AccessMember{${unparse(expr.object)}.${expr.name}}`
+        : expr instanceof PrimitiveLiteral
+          ? `Primitive{${expr.value}}`
+          : expr.constructor.name;
+  }
 });
 
 class MockObserver implements IBindingTargetObserver {

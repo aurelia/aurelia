@@ -227,6 +227,9 @@ export class CIEnv {
   public static get GITHUB_TOKEN(): string {
     return logSecretVariable(process.env.GITHUB_TOKEN, 'GITHUB_TOKEN');
   }
+  public static get BS_COMPAT_CHECK(): boolean {
+    return logVariable(toBoolean(process.env.BS_COMPAT_CHECK), 'BS_COMPAT_CHECK');
+  }
   public static get APP_PORT(): string {
     return logVariable(process.env.APP_PORT || '9000', 'APP_PORT');
   }

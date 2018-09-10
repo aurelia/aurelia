@@ -16,6 +16,20 @@ aliases:
   - &step_attach_workspace
     attach_workspace:
       at: ~/repo
+  - &step_install_e2e_bs
+    run:
+      name: Install e2e tests
+      command: |
+        cd ./test/e2e
+        npm install
+        npm run build
+  - &step_serve_e2e_bs
+    run:
+      name: Serve the e2e app in the background
+      background: true
+      command: |
+        cd ./test/e2e
+        npm run start
 
 version: 2
 jobs:
@@ -108,12 +122,14 @@ jobs:
             ~/cc-test-reporter upload-coverage -i ~/repo/coverage-combined.json
           environment:
             CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
+          when: always
       - run:
           name: Process coverage for Codecov
           command: |
             codecov -f ~/repo/packages/jit/coverage/coverage-final.json
             codecov -f ~/repo/packages/kernel/coverage/coverage-final.json
             codecov -f ~/repo/packages/runtime/coverage/coverage-final.json
+          when: always
       - store_test_results:
           path: ./packages/jit/junit
       - store_test_results:
@@ -139,18 +155,8 @@ jobs:
       - checkout
       - *step_restore_cache
       - *step_attach_workspace
-      - run:
-          name: Install e2e tests
-          command: |
-            cd ./test/e2e
-            npm install
-            npm run build
-      - run:
-          name: Serve the e2e app in the background
-          background: true
-          command: |
-            cd ./test/e2e
-            npm run start
+      - *step_install_e2e_bs
+      - *step_serve_e2e_bs
       - run:
           name: Run the e2e tests
           command: |
@@ -161,6 +167,7 @@ jobs:
           command: |
             cd ./test/e2e
             npm run allure:generate
+          when: always
       - store_artifacts:
           path: ./test/e2e/allure-report
       - run:
@@ -168,6 +175,31 @@ jobs:
           command: |
             cd ./test/e2e
             npm run allure:post
+          when: always
+
+  e2e_browserstack_compat:
+    <<: *defaults
+    steps:
+      - checkout
+      - *step_restore_cache
+      - *step_attach_workspace
+      - *step_install_e2e_bs
+      - *step_serve_e2e_bs
+      - run:
+          name: Run the e2e tests
+          command: |
+            cd ./test/e2e
+            npm run e2e
+          environment:
+            BS_COMPAT_CHECK: true
+      - run:
+          name: Generate allure report
+          command: |
+            cd ./test/e2e
+            npm run allure:generate
+          when: always
+      - store_artifacts:
+          path: ./test/e2e/allure-report
 
   e2e_benchmark_vnext:
     <<: *defaults
@@ -249,15 +281,30 @@ workflows:
       - unit_tests_firefox:
           requires:
             - install
+          filters:
+            branches:
+              only: master
       - e2e_browserstack:
           requires:
             - build
+          filters:
+            branches:
+              ignore: master
+      - e2e_browserstack_compat:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
       - e2e_benchmark_vnext:
           requires:
             - build
       - e2e_benchmark_vcurrent:
           requires:
             - build
+          filters:
+            branches:
+              only: master
   nightly:
     triggers:
       - schedule:

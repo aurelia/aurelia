@@ -48,8 +48,7 @@ exports.config = {
     'browserstack.timezone': 'UTC',
   },
 
-  // TODO: make this more explicitly configurable and flexible
-  capabilities: CIEnv.CIRCLE_BRANCH	=== 'master' && CIEnv.CIRCLE_JOB !== 'publish_nightly' ? [
+  capabilities: CIEnv.BS_COMPAT_CHECK ? [
     ...combine([
       { versions: ['68', '67', '66'], name: 'Chrome' },
       { versions: ['61', '60', '59'], name: 'Firefox' }
@@ -103,7 +102,7 @@ exports.config = {
       { versions: ['61'], name: 'Firefox' }
     ], [
       { versions: ['10'], name: 'Windows' },
-      { versions: ['High Sierra'], name: 'OS X' }
+      //{ versions: ['High Sierra'], name: 'OS X' }
     ]),
     ...combine([
       { versions: ['17'], name: 'Edge' },

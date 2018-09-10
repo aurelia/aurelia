@@ -269,6 +269,7 @@ jobs:
 
 workflows:
   version: 2
+  # This workflow runs on every commit to any branch (with or without PR)
   default_workflow:
     jobs:
       - install
@@ -278,18 +279,25 @@ workflows:
       - unit_tests_chrome:
           requires:
             - install
+      # Only run the tests in firefox when on master (that's the thorough testing branch)
+      # - todo: move to browserstack and add more browsers
+      # - todo: later we'll have another specialized workflow (or variant of this one) for release branch
       - unit_tests_firefox:
           requires:
             - install
           filters:
             branches:
               only: master
+      # This is the "lightweight" browserstack test set (only latest browser / latest OS)
+      # It runs on every commit on every non-master branch
       - e2e_browserstack:
           requires:
             - build
           filters:
             branches:
               ignore: master
+      # This is the full browserstack test set (last 3 versions of every browser on multiple OSes + OS versions)
+      # It runs on every commit to master
       - e2e_browserstack_compat:
           requires:
             - build
@@ -299,12 +307,16 @@ workflows:
       - e2e_benchmark_vnext:
           requires:
             - build
+      # Only run the vCurrent benchmark on commits to master (don't need to refresh data we already have on every commit to every branch)
       - e2e_benchmark_vcurrent:
           requires:
             - build
           filters:
             branches:
               only: master
+
+  # This workflow runs once per day on 0:00 UTC on the master branch
+  # - todo: add another schedule for release branch that generates change log and publishes normal release (only if there are changes and all integration+e2e tests pass)
   nightly:
     triggers:
       - schedule:
@@ -324,6 +336,7 @@ workflows:
       - unit_tests_firefox:
           requires:
             - install
+      # We only run the lightweight version of browserstack tests because failing tests on very old browsers shouldn't block a dev publish
       - e2e_browserstack:
           requires:
             - build

@@ -335,7 +335,7 @@ const containerResolver: IResolver = {
   }
 };
 
-function isRegistry(obj: any): obj is IRegistry {
+function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistry {
   return typeof obj.register === 'function';
 }
 
@@ -355,9 +355,9 @@ export class Container implements IContainer {
   public register(registry: (IRegistry | Record<string, Partial<IRegistry>>)): void;
   public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void {
     for (let i = 0, ii = params.length; i < ii; ++i) {
-      const current = params[i];
+      const current = params[i] as IRegistry | Record<string, IRegistry>;
       if (isRegistry(current)) {
-        (<any>current)['register'](this);
+        current.register(this);
       } else {
         const keys = Object.keys(current);
         for (let j = 0, jj = keys.length; j < jj; ++j) {
@@ -365,9 +365,9 @@ export class Container implements IContainer {
           // note: we could remove this if-branch and call this.register directly
           // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
           if (isRegistry(value)) {
-            value['register'](this);
+            value.register(this);
           } else {
-            this.register(<any>value);
+            this.register(value);
           }
         }
       }

@@ -1,8 +1,9 @@
 import { spy } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags } from '../../../src/index';
+import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, BindingBehavior, IScope } from '../../../src/index';
 import { DI, IContainer } from '../../../../kernel/src/index';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
+import { _, loopCartesianJoin } from '../util';
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -49,63 +50,6 @@ describe('Binding', () => {
   });
 
 
-  // TODO: a bunch of these fail (which might not necessarily indicate bugs, they just need to be split up a bit more and properly asserted)
-  // describe('$bind()', () => {
-  //   const bindingModeArr = [
-  //     BindingMode.oneTime,
-  //     BindingMode.toView,
-  //     BindingMode.fromView,
-  //     BindingMode.twoWay
-  //   ];
-  //   const targetArr = [
-  //     document.createElement('div'),
-  //     document.createTextNode('foo'),
-  //     document.createElement('div').style,
-  //     { foo: 'bar' }
-  //   ];
-  //   const targetPropertyArr = [
-  //     'foo', 'textContent', 'innerText'
-  //   ];
-  //   const sourceExpressionArr = [
-  //     new AccessScope('foo'),
-  //     new AccessMember(new AccessScope('foo'), 'bar'),
-  //     new PrimitiveLiteral(null)
-  //   ];
-
-  //   const title1 = '$bind() ';
-  //   for (const bindingMode of bindingModeArr) {
-  //     const title2 = title1 + ' bindingMode=' + padRight(`${bindingMode}`, 2);
-
-  //     for (const target of targetArr) {
-  //     const title3 = title2 + ' target=' + padRight(`${getName(target)}`, 20);
-
-  //       for (const targetProperty of targetPropertyArr) {
-  //         const title4 = title3 + ' targetProperty=' + padRight(`${targetProperty}`, 12);
-
-  //         for (const sourceExpression of sourceExpressionArr) {
-  //           const title5 = title4 + ' sourceExpression=' + padRight(`${sourceExpression.constructor.name}`, 16);
-
-  //           const scopeArr = [
-  //             createScopeForTest({foo: {bar: 42}}),
-  //             createScopeForTest({foo: {bar: undefined}}),
-  //             createScopeForTest({foo: {bar: 'baz'}})
-  //           ];
-
-  //           for (const scope of scopeArr) {
-  //             const title = title5 + ' scope=' + padRight(`${getName(scope)}`, 2);
-
-  //             it(title, () => {
-  //               sut = new Binding(sourceExpression, target, targetProperty, bindingMode, observerLocator, container);
-  //               sut.$bind(scope);
-  //             });
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  // });
-
-
   describe('updateTarget()', () => {
 
   });
@@ -141,44 +85,105 @@ describe('Binding', () => {
       new AccessMember(new AccessScope('foo'), 'bar'),
       new PrimitiveLiteral(null)
     ];
-    const flags = [
+    const flags: BindingFlags[] = [
       BindingFlags.fromBind,
       BindingFlags.fromBind | BindingFlags.mustEvaluate
     ];
-
-    const title1 = '$bind() ';
-    for (const bindingMode of bindingModeArr) {
-      const title2 = title1 + ' bindingMode=' + BindingMode[bindingMode];
-
-      for (const target of targetArr) {
-      const title3 = title2 + ' target=' + padRight(`${getName(target)}`, 20);
-
-        for (const targetProperty of targetPropertyArr) {
-          const title4 = title3 + ' targetProperty=' + padRight(`${targetProperty}`, 12);
-
-          for (const sourceExpression of sourceExpressionArr) {
-            const title5 = title4 + ' sourceExpression=' + unparse(sourceExpression);
-
-            const scopeArr = [
-              createScopeForTest({foo: {bar: 42}}),
-              createScopeForTest({foo: {bar: undefined}}),
-              createScopeForTest({foo: {bar: 'baz'}})
-            ];
-            for (const flag of flags) {
-
-              for (const scope of scopeArr) {
-                const title = title5 + ' scope=' + padRight(`${getName(scope)} with flag: ${BindingFlags[flag]}`, 2);
-
-                it(title, () => {
-                  sut = new Binding(sourceExpression, target, targetProperty, bindingMode, observerLocator, container);
-                  sut.$bind(flag, scope);
-                });
-              }
-            }
-          }
-        }
+    loopCartesianJoin(
+      bindingModeArr,
+      targetArr,
+      targetPropertyArr,
+      sourceExpressionArr,
+      flags,
+      (bindingMode, target, propertyName, sourceExpression, flag) => {
+        const scopeArr = [
+          createScopeForTest({foo: {bar: 42}}),
+          createScopeForTest({foo: {bar: undefined}}),
+          createScopeForTest({foo: {bar: 'baz'}})
+        ];
+        scopeArr.forEach((scope) => {
+          it(`$bind() bindingMode=${BindingMode[bindingMode]} target=${padRight(`${getName(target)}`, 20)} sourceExpression=${unparse(sourceExpression)} scope=${padRight(`${getName(scope)} with flag: ${BindingFlags[flag]}`, 2)}`, () => {
+            sut = new Binding(sourceExpression, target, propertyName, bindingMode, observerLocator, container);
+            sut.$bind(flag, scope);
+          });
+        });
       }
-    }
+    )
+
+    // describe('sourceExpression.bind()', () => {
+    //   // const bindingModeArr = [
+    //   //   BindingMode.oneTime,
+    //   //   BindingMode.toView,
+    //   //   BindingMode.fromView,
+    //   //   BindingMode.twoWay
+    //   // ];
+    //   // const targetArr = [
+    //   //   document.createElement('div'),
+    //   //   document.createTextNode('foo'),
+    //   //   document.createElement('div').style,
+    //   //   { foo: 'bar' }
+    //   // ];
+    //   // const targetPropertyArr = [
+    //   //   'foo',
+    //   //   'textContent',
+    //   //   'innerText'
+    //   // ];
+    //   // const sourceExpressionArr = [
+    //   //   new AccessScope('foo'),
+    //   //   new AccessMember(new AccessScope('foo'), 'bar'),
+    //   //   new PrimitiveLiteral(null)
+    //   // ].map(expr => {
+    //   //   const mock = new MockExpression();
+    //   //   let isCalled = false;
+    //   //   mock.bind = function(flags: BindingFlags, scope: IScope, binding: Binding) {
+    //   //     isCalled = true;
+    //   //     binding.sourceExpression = expr;
+    //   //   } as any;
+    //   //   return {
+    //   //     sourceExpression: mock,
+    //   //     success: (binding: Binding) => binding.sourceExpression === expr && isCalled === true
+    //   //   }
+    //   // });
+    //   // const flags = [
+    //   //   BindingFlags.fromBind,
+    //   //   BindingFlags.fromBind | BindingFlags.mustEvaluate
+    //   // ];
+
+    //   const title1 = '$bind() ';
+    //   // for (const bindingMode of bindingModeArr) {
+    //   //   const title2 = title1 + ' bindingMode=' + BindingMode[bindingMode];
+
+    //   //   for (const target of targetArr) {
+    //   //   const title3 = title2 + ' target=' + padRight(`${getName(target)}`, 20);
+
+    //   //     for (const targetProperty of targetPropertyArr) {
+    //   //       const title4 = title3 + ' targetProperty=' + padRight(`${targetProperty}`, 12);
+
+    //   //       for (const { sourceExpression, success } of sourceExpressionArr) {
+    //   //         const title5 = title4 + ' sourceExpression=' + unparse(sourceExpression);
+
+    //   //         const scopeArr = [
+    //   //           createScopeForTest({foo: {bar: 42}}),
+    //   //           createScopeForTest({foo: {bar: undefined}}),
+    //   //           createScopeForTest({foo: {bar: 'baz'}})
+    //   //         ];
+    //   //         for (const flag of flags) {
+
+    //   //           for (const scope of scopeArr) {
+    //   //             const title = title5 + ' scope=' + padRight(`${getName(scope)} with flag: ${BindingFlags[flag]}`, 2);
+
+    //   //             it(title, () => {
+    //   //               sut = new Binding(sourceExpression, target, targetProperty, bindingMode, observerLocator, container);
+    //   //               sut.$bind(flag, scope);
+    //   //               expect(success(sut)).to.be.true;
+    //   //             });
+    //   //           }
+    //   //         }
+    //   //       }
+    //   //     }
+    //   //   }
+    //   // }
+    // });
   });
 
   describe('$unbind()', () => {

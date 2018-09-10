@@ -3,6 +3,66 @@ import { IContainer } from '../../../kernel/src/index';
 import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource, ICustomElement, ITemplateSource, TargetedInstructionType, IExpressionParser, AccessMember, AccessScope, Repeat } from '../../src/index';
 import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight } from '../../../../scripts/test-lib';
 
+export function loopCartesianJoin<T1>(args: T1[], callback: (arg1: T1) => any): void;
+export function loopCartesianJoin<T1, T1>(args1: T1[], args2: T1[], callback: (arg1: T1, arg2: T1) => any): void;
+export function loopCartesianJoin<T1, T2, T3>(args1: T1[], args2: T2[], args3: T3[], callback: (arg1: T1, arg2: T2, arg3: T3) => any): void;
+export function loopCartesianJoin<T1, T2, T3, T4>(args1: T1[], args2: T2[], args3: T3[], args4: T4[], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => any): void;
+export function loopCartesianJoin<T1, T2, T3, T4, T5>(args1: T1[], args2: T2[], args3: T3[], args4: T4[], args5: T5[], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => any): void;
+export function loopCartesianJoin(...args: any[]) {
+  const arrays = args.slice(0, -1).filter(arr => arr.length > 0);
+  const callback = args[args.length - 1];
+  if (typeof callback !== 'function') {
+    throw new Error('Callback is not a function');
+  }
+  if (arrays.length > 10) {
+    throw new Error('Maximum number of arguments exceeded');
+  }
+  const totalCallCount: number = arrays.reduce((count: number, arr: any[]) => count *= arr.length, 1);
+  const argsIndices = Array(arrays.length).fill(0);
+  args = updateElementByIndices(arrays, Array(arrays.length), argsIndices);
+  callback(...updateElementByIndices(arrays, args, argsIndices));
+  let callCount = 1;
+  if (totalCallCount === callCount) {
+    return;
+  }
+  while (true) {
+    const hasUpdate = updateIndices(arrays, argsIndices);
+    if (hasUpdate) {
+      callback(...updateElementByIndices(arrays, args, argsIndices));
+      callCount++;
+      if (totalCallCount < callCount) {
+        throw new Error('Invalid loop implementation.');
+      }
+    } else {
+      break;
+    }
+  }
+}
+function updateIndices(arrays: any[][], indices: number[]) {
+  let arrIndex = arrays.length;
+  while (arrIndex--) {
+    if (indices[arrIndex] === arrays[arrIndex].length - 1) {
+      if (arrIndex === 0) {
+        return false;
+      }
+      continue;
+    }
+
+    indices[arrIndex] += 1;
+    for (let i = arrIndex + 1, ii = arrays.length; ii > i; ++i) {
+      indices[i] = 0;
+    }
+    return true;
+  }
+  return false;
+}
+function updateElementByIndices(arrays: any[][], args: any[], indices: number[]) {
+  for (let i = 0, ii = arrays.length; ii > i; ++i) {
+    args[indices[i]] = arrays[i][indices[i]];
+  }
+  return args;
+}
+
 /**
  * Object describing a test fixture
  *

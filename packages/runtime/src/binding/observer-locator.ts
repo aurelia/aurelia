@@ -150,8 +150,8 @@ export class ObserverLocator implements IObserverLocator {
     if (!(obj instanceof Object)) {
       return new PrimitiveObserver(obj, propertyName) as IBindingTargetAccessor;
     }
-
-    if (DOM.isNodeInstance(obj)) {
+    const isNode = DOM.isNodeInstance(obj);
+    if (isNode) {
       if (propertyName === 'class') {
         return new ClassAttributeAccessor(this.changeSet, obj);
       }
@@ -220,6 +220,9 @@ export class ObserverLocator implements IObserverLocator {
         const adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
         if (adapterObserver) {
           return adapterObserver;
+        }
+        if (isNode && obj.constructor.prototype[propertyName] !== undefined) {
+          return this.dirtyChecker.createProperty(obj, propertyName) as any;
         }
 
         return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor);

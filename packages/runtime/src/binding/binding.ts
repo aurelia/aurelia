@@ -103,7 +103,7 @@ export class Binding implements IBinding, IPropertySubscriber {
     this.$isBound = true;
     this.$scope = scope;
 
-    const sourceExpression = this.sourceExpression;
+    let sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
       sourceExpression.bind(flags, scope, this);
     }
@@ -121,6 +121,8 @@ export class Binding implements IBinding, IPropertySubscriber {
       targetObserver.bind(flags);
     }
 
+    // during bind, binding behavior might have changed sourceExpression
+    sourceExpression = this.sourceExpression;
     if (mode & toViewOrOneTime) {
       targetObserver.setValue(sourceExpression.evaluate(flags, scope, this.locator), flags);
     }

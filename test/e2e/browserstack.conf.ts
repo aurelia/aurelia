@@ -102,7 +102,7 @@ exports.config = {
       { versions: ['61'], name: 'Firefox' }
     ], [
       { versions: ['10'], name: 'Windows' },
-      { versions: ['High Sierra'], name: 'OS X' }
+      //{ versions: ['High Sierra'], name: 'OS X' }
     ]),
     ...combine([
       { versions: ['17'], name: 'Edge' },

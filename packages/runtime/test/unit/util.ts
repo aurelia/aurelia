@@ -3,12 +3,12 @@ import { IContainer } from '../../../kernel/src/index';
 import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource, ICustomElement, ITemplateSource, TargetedInstructionType, IExpressionParser, AccessMember, AccessScope, Repeat } from '../../src/index';
 import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight } from '../../../../scripts/test-lib';
 
-export function loopCartesianJoin<T1>(args: T1[], callback: (arg1: T1) => any): void;
-export function loopCartesianJoin<T1, T1>(args1: T1[], args2: T1[], callback: (arg1: T1, arg2: T1) => any): void;
-export function loopCartesianJoin<T1, T2, T3>(args1: T1[], args2: T2[], args3: T3[], callback: (arg1: T1, arg2: T2, arg3: T3) => any): void;
-export function loopCartesianJoin<T1, T2, T3, T4>(args1: T1[], args2: T2[], args3: T3[], args4: T4[], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => any): void;
-export function loopCartesianJoin<T1, T2, T3, T4, T5>(args1: T1[], args2: T2[], args3: T3[], args4: T4[], args5: T5[], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => any): void;
-export function loopCartesianJoin(...args: any[]) {
+export function eachCartesianJoin<T1>(args: T1[], callback: (arg1: T1) => any): void;
+export function eachCartesianJoin<T1, T1>(args1: T1[], args2: T1[], callback: (arg1: T1, arg2: T1) => any): void;
+export function eachCartesianJoin<T1, T2, T3>(args1: T1[], args2: T2[], args3: T3[], callback: (arg1: T1, arg2: T2, arg3: T3) => any): void;
+export function eachCartesianJoin<T1, T2, T3, T4>(args1: T1[], args2: T2[], args3: T3[], args4: T4[], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => any): void;
+export function eachCartesianJoin<T1, T2, T3, T4, T5>(args1: T1[], args2: T2[], args3: T3[], args4: T4[], args5: T5[], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => any): void;
+export function eachCartesianJoin(...args: any[]) {
   const arrays = args.slice(0, -1).filter(arr => arr.length > 0);
   const callback = args[args.length - 1];
   if (typeof callback !== 'function') {

@@ -3,7 +3,7 @@ import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTa
 import { DI, IContainer } from '../../../../kernel/src/index';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
-import { _, loopCartesianJoin } from '../util';
+import { _, eachCartesianJoin } from '../util';
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -89,7 +89,7 @@ describe('Binding', () => {
       BindingFlags.fromBind,
       BindingFlags.fromBind | BindingFlags.mustEvaluate
     ];
-    loopCartesianJoin(
+    eachCartesianJoin(
       bindingModeArr,
       targetArr,
       targetPropertyArr,

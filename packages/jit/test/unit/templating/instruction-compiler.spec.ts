@@ -1,6 +1,6 @@
 import { bindingCommand, IBindingCommand, HydrateElementInstruction, register, TemplateCompiler, BasicConfiguration } from "../../../src";
 import { IExpressionParser, INode, IResourceDescriptions, ICustomAttributeSource, ITemplateSource, TargetedInstructionType, BindingType, IRenderable, BindingMode, IObserverLocator, IRenderContext, Binding, IRenderStrategyInstruction, renderStrategy, IRenderStrategy, ITemplateCompiler, Aurelia, IChangeSet, customElement, CustomElementResource, bindable, IEventManager, Listener, IExpression, DelegationStrategy, AttributeDefinition, ElementDefinition } from "@aurelia/runtime";
-import { Immutable, IIndexable, DI, IContainer, Registration, IServiceLocator } from "@aurelia/kernel";
+import { Immutable, IIndexable, DI, IContainer, Registration, IServiceLocator, inject } from "@aurelia/kernel";
 import { ExpressionParser } from '../../../../runtime/src/binding/expression-parser';
 import { expect } from "chai";
 import { spy } from "sinon";
@@ -8,6 +8,7 @@ import { spy } from "sinon";
 
 
 @bindingCommand('keyup')
+@inject(IExpressionParser)
 export class KeyupBindingCommand implements IBindingCommand {
   constructor(private parser: IExpressionParser) {}
 
@@ -26,8 +27,9 @@ export class KeyupBindingCommand implements IBindingCommand {
 }
 
 @renderStrategy('keyup')
+@inject(IContainer, IEventManager)
 export class KeyupRenderStrategy implements IRenderStrategy {
-  constructor(private context: IRenderContext, private eventManager: IEventManager) {}
+  constructor(private context: IContainer, private eventManager: IEventManager) {}
 
   public render(renderable: IRenderable, target: any, instruction: IRenderStrategyInstruction & IIndexable): void {
     const binding = new KeyupListener(instruction.keys, instruction.expr, target, this.eventManager, this.context);

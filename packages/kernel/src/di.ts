@@ -1,8 +1,11 @@
-import { Constructable, IIndexable, Injectable } from './interfaces';
+// tslint:disable:no-reserved-keywords
+import { Constructable, IIndexable, Injectable, Primitive } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 
 export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+
+export type Key<T> = InterfaceSymbol<T> | Primitive | IIndexable | Function;
 
 export type InterfaceSymbol<T> = (target: Injectable, property: string, index: number) => any;
 
@@ -17,7 +20,7 @@ export interface IResolver<T = any> {
 }
 
 export interface IRegistration<T = any> {
-  register(container: IContainer, key?: any): IResolver<T>;
+  register(container: IContainer, key?: Key<T>): IResolver<T>;
 }
 
 export interface IFactory<T = any> {
@@ -29,10 +32,10 @@ export interface IFactory<T = any> {
 export interface IServiceLocator {
   has(key: any, searchAncestors: boolean): boolean;
 
-  get<T>(key: InterfaceSymbol<T> | any): T;
+  get<T>(key: Key<T>): T;
   get<T extends Constructable>(key: T): InstanceType<T>;
 
-  getAll<T>(key: InterfaceSymbol<T> | any): ReadonlyArray<T>;
+  getAll<T>(key: Key<T>): ReadonlyArray<T>;
   getAll<T extends Constructable>(key: T): ReadonlyArray<InstanceType<T>>;
 }
 
@@ -42,14 +45,15 @@ export interface IRegistry {
 
 export interface IContainer extends IServiceLocator {
   register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void;
+  register(registry: IRegistry | Record<string, Partial<IRegistry>>): void;
 
-  registerResolver<T>(key: InterfaceSymbol<T> | any, resolver: IResolver<T>): IResolver<T>;
+  registerResolver<T>(key: Key<T>, resolver: IResolver<T>): IResolver<T>;
   registerResolver<T extends Constructable>(key: T, resolver: IResolver<InstanceType<T>>): IResolver<InstanceType<T>>;
 
-  registerTransformer<T>(key: InterfaceSymbol<T> | any, transformer: (instance: T) => T): boolean;
+  registerTransformer<T>(key: Key<T>, transformer: (instance: T) => T): boolean;
   registerTransformer<T extends Constructable>(key: T, transformer: (instance: InstanceType<T>) => T): boolean;
 
-  getResolver<T>(key: InterfaceSymbol<T> | any, autoRegister?: boolean): IResolver<T> | null;
+  getResolver<T>(key: Key<T>, autoRegister?: boolean): IResolver<T> | null;
   getResolver<T extends Constructable>(key: T, autoRegister?: boolean): IResolver<InstanceType<T>> | null;
 
   getFactory<T extends Constructable>(type: T): IFactory<InstanceType<T>>;
@@ -62,7 +66,7 @@ export interface IResolverBuilder<T> {
   singleton(value: Constructable<T>): IResolver;
   transient(value: Constructable<T>): IResolver;
   callback(value: ResolveCallback<T>): IResolver;
-  aliasTo(destinationKey: any): IResolver;
+  aliasTo(destinationKey: Key<T>): IResolver;
 }
 
 if (!('getOwnMetadata' in Reflect)) {
@@ -86,10 +90,10 @@ export const DI = {
     return (Reflect as any).getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
   },
 
-  getDependencies(type: Function): any[] {
+  getDependencies(type: Function & { inject?: any }): any[] {
     let dependencies: any[];
 
-    if ((type as any).inject === undefined) {
+    if (type.inject === undefined) {
       dependencies = DI.getDesignParamTypes(type);
     } else {
       dependencies = [];
@@ -97,7 +101,7 @@ export const DI = {
 
       while (typeof ctor === 'function') {
         if (ctor.hasOwnProperty('inject')) {
-          dependencies.push(...(ctor as any).inject);
+          dependencies.push(...ctor.inject);
         }
 
         ctor = Object.getPrototypeOf(ctor);
@@ -120,13 +124,13 @@ export const DI = {
     };
 
     Key.withDefault = function(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T> {
-      Key.withDefault = function() {
+      Key.withDefault = function(): void {
         throw Reporter.error(17, Key);
       };
 
-      Key.register = function(container: IContainer, key?: any) {
+      Key.register = function(container: IContainer, key?: Key<T>): IResolver<T> {
         return configure({
-          instance(value: any): IResolver {
+          instance(value: T): IResolver {
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.instance, value));
           },
           singleton(value: Function): IResolver {
@@ -138,7 +142,7 @@ export const DI = {
           callback(value: ResolveCallback): IResolver {
             return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.callback, value));
           },
-          aliasTo(destinationKey: any): IResolver {
+          aliasTo(destinationKey: T): IResolver {
             return container.registerResolver(destinationKey, new Resolver(key || Key, ResolverStrategy.alias, Key));
           },
         });
@@ -251,7 +255,7 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.callback:
         return (this.state as ResolveCallback)(handler, requestor, this);
       case ResolverStrategy.array:
-        return this.state[0].get(handler, requestor);
+        return this.state[0].resolve(handler, requestor);
       case ResolverStrategy.alias:
         return handler.get(this.state);
       default:
@@ -322,7 +326,7 @@ export class Factory implements IFactory {
 
 /*@internal*/
 export interface IContainerConfiguration {
-  factories?: Map<Function, any>;
+  factories?: Map<Function, IFactory>;
 }
 
 const containerResolver: IResolver = {
@@ -348,22 +352,24 @@ export class Container implements IContainer {
     this.resolvers.set(IContainer, containerResolver);
   }
 
+  public register(registry: (IRegistry | Record<string, Partial<IRegistry>>)): void;
   public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): void {
-    const resolvers = this.resolvers;
-
     for (let i = 0, ii = params.length; i < ii; ++i) {
       const current = params[i];
-
       if (isRegistry(current)) {
-        current.register(this);
+        (<any>current)['register'](this);
       } else {
-        Object.keys(current).forEach(key => {
-          const value = current[key];
-
-          if (value.register) {
-            value.register(this);
+        const keys = Object.keys(current);
+        for (let j = 0, jj = keys.length; j < jj; ++j) {
+          const value = current[keys[j]];
+          // note: we could remove this if-branch and call this.register directly
+          // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
+          if (isRegistry(value)) {
+            value['register'](this);
+          } else {
+            this.register(<any>value);
           }
-        });
+        }
       }
     }
   }
@@ -376,10 +382,10 @@ export class Container implements IContainer {
 
     if (result === undefined) {
       resolvers.set(key, resolver);
-    } else if (resolver instanceof Resolver && (resolver as Resolver).strategy === 4) {
+    } else if (result instanceof Resolver && (result as Resolver).strategy === ResolverStrategy.array) {
       (result as Resolver).state.push(resolver);
     } else {
-      resolvers.set(key, new Resolver(key, 4, [result, resolver]));
+      resolvers.set(key, new Resolver(key, ResolverStrategy.array, [result, resolver]));
     }
 
     return resolver;
@@ -510,7 +516,7 @@ export class Container implements IContainer {
       return keyAsValue.register(handler, keyAsValue);
     }
 
-    const resolver = new Resolver(keyAsValue, 1, keyAsValue);
+    const resolver = new Resolver(keyAsValue, ResolverStrategy.singleton, keyAsValue);
     handler.resolvers.set(keyAsValue, resolver);
     return resolver;
   }
@@ -566,13 +572,15 @@ export const Registration = {
 
 /*@internal*/
 export function validateKey(key: any): void {
-  if (key === null || key === undefined) {
+  // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
+  // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
+  if (key === null || key === undefined || key === Object) {
     throw Reporter.error(5);
   }
 }
 
 function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: IContainer): any[] {
-  if (resolver instanceof Resolver && resolver.strategy === 4) {
+  if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
     const state = resolver.state;
     let i = state.length;
     const results = new Array(i);
@@ -638,7 +646,8 @@ export const classInvokers: IInvoker[] = [
   }
 ];
 
-const fallbackInvoker: IInvoker = {
+/*@internal*/
+export const fallbackInvoker: IInvoker = {
   invoke: invokeWithDynamicDependencies as any,
   invokeWithDynamicDependencies
 };

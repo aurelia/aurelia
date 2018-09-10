@@ -163,3 +163,33 @@ export function createElement(markup: string): Node {
   const element = domParser.firstElementChild;
   return element;
 }
+
+export function lazyProduct(sets: any[][], f: (...args: any[]) => void, context?: any): void {
+  if (context === undefined) {
+    context = this;
+  }
+  const product = [];
+  const max = sets.length - 1;
+  const lens = [];
+  for (let i = sets.length; i--; ) {
+    lens[i] = sets[i].length;
+  }
+
+  function dive(depth: number): void {
+    const a = sets[depth];
+    const len = lens[depth];
+    if (depth == max) {
+      for (let i = 0; i < len; ++i) {
+        product[depth] = a[i];
+        f.apply(context, product);
+      }
+    } else {
+      for (let i = 0; i < len; ++i) {
+        product[depth] = a[i];
+        dive(depth + 1);
+      }
+    }
+    product.pop();
+  }
+  dive(0);
+}

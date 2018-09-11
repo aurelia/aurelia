@@ -14,7 +14,8 @@
     "publish:local": "lerna run publish:local --parallel",
     "publish:nightly": "ts-node scripts/publish-nightly.ts dev lerna.json",
     "combine-coverage:json": "ts-node scripts/combine-coverage.ts json",
-    "combine-coverage:lcov": "ts-node scripts/combine-coverage.ts lcovonly"
+    "combine-coverage:lcov": "ts-node scripts/combine-coverage.ts lcovonly",
+    "refresh": "lerna clean -y && nodetouch ensurestash && git add . && git stash && git clean -xfd && git stash pop && git rm -f ensurestash && npm ci && npm run bootstrap && npm run build"
   },
   "dependencies": {},
   "devDependencies": {
@@ -52,6 +53,7 @@
     "request": "^2.88.0",
     "sinon": "^6.1.4",
     "sinon-chai": "^3.2.0",
+    "touch": "^3.1.0",
     "ts-loader": "^4.4.2",
     "ts-node": "^7.0.0",
     "tsconfig-paths": "^3.5.0",

@@ -4,7 +4,7 @@ import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomEleme
 import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight } from '../../../../scripts/test-lib';
 
 export function eachCartesianJoin<T1>(args: T1[], callback: (arg1: T1) => any): void;
-export function eachCartesianJoin<T1, T1>(args1: T1[], args2: T1[], callback: (arg1: T1, arg2: T1) => any): void;
+export function eachCartesianJoin<T1, T2>(args1: T1[], args2: T2[], callback: (arg1: T1, arg2: T2) => any): void;
 export function eachCartesianJoin<T1, T2, T3>(args1: T1[], args2: T2[], args3: T3[], callback: (arg1: T1, arg2: T2, arg3: T3) => any): void;
 export function eachCartesianJoin<T1, T2, T3, T4>(args1: T1[], args2: T2[], args3: T3[], args4: T4[], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => any): void;
 export function eachCartesianJoin<T1, T2, T3, T4, T5>(args1: T1[], args2: T2[], args3: T3[], args4: T4[], args5: T5[], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => any): void;
@@ -58,7 +58,7 @@ function updateIndices(arrays: any[][], indices: number[]) {
 }
 function updateElementByIndices(arrays: any[][], args: any[], indices: number[]) {
   for (let i = 0, ii = arrays.length; ii > i; ++i) {
-    args[indices[i]] = arrays[i][indices[i]];
+    args[i] = arrays[i][indices[i]];
   }
   return args;
 }

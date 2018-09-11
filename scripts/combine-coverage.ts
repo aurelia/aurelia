@@ -1,19 +1,18 @@
-import * as path from 'path';
-import * as fs from 'fs';
+import { join } from 'path';
+import { existsSync, readFileSync } from 'fs';
 import * as istanbul from 'istanbul';
+import project from './project';
 
-
-const root = path.resolve(__dirname, '..');
-const targetDir = path.join(root, 'coverage');
-const opts = { dir: targetDir };
+const opts = { dir: project.coverage.path };
 
 function combine(output: string): void {
   const collector = new istanbul.Collector();
-  const covDir = path.resolve(__dirname, '..', 'coverage');
-  const coveragePaths = ['kernel', 'runtime', 'jit'].map(p => path.join(covDir, p, 'coverage-final.json'));
+  const coveragePaths = ['kernel', 'runtime', 'jit']
+    .map(p => join(project.coverage.path, p, 'coverage-final.json'));
+
   for (const coveragePath of coveragePaths) {
-    if (fs.existsSync(coveragePath)) {
-      const json = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
+    if (existsSync(coveragePath)) {
+      const json = JSON.parse(readFileSync(coveragePath, 'utf8'));
       collector.add(json);
     }
   }

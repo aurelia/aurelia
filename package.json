@@ -12,9 +12,9 @@
     "test:watch": "lerna run test:watch",
     "lint": "lerna run lint",
     "publish:local": "lerna run publish:local --parallel",
-    "publish:nightly": "ts-node scripts/publish-nightly.ts dev lerna.json",
-    "combine-coverage:json": "ts-node scripts/combine-coverage.ts json",
-    "combine-coverage:lcov": "ts-node scripts/combine-coverage.ts lcovonly",
+    "publish:nightly": "ts-node -P scripts/tsconfig.json scripts/publish-nightly.ts dev",
+    "combine-coverage:json": "ts-node -P scripts/tsconfig.json scripts/combine-coverage.ts json",
+    "combine-coverage:lcov": "ts-node -P scripts/tsconfig.json scripts/combine-coverage.ts lcovonly",
     "refresh": "lerna clean -y && nodetouch ensurestash && git add . && git stash && git clean -xfd && git stash pop && git rm -f ensurestash && npm ci && npm run bootstrap && npm run build"
   },
   "dependencies": {},

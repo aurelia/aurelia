@@ -1,7 +1,6 @@
 import * as karma from 'karma';
 import * as webpack from 'webpack';
-import * as path from 'path';
-import { getAlias } from './packages';
+import project from './project';
 
 export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
   transpileOnly?: boolean;
@@ -45,10 +44,7 @@ const commonChromeFlags = [
 ];
 
 export default function(config: IKarmaConfig): void {
-  const root = path.resolve(__dirname, '..');
-  const cov = path.join(root, 'coverage', config.package);
-  const packages = path.join(root, 'packages');
-  const basePath = path.join(packages, config.package);
+  const thisPackage = project.packages.find(p => p.name === config.package);
   let browsers: string[];
   if (process.env.BROWSERS) {
     browsers = [process.env.BROWSERS];
@@ -59,7 +55,7 @@ export default function(config: IKarmaConfig): void {
   }
 
   const options: IKarmaConfigOptions = {
-    basePath: basePath,
+    basePath: thisPackage.path,
     frameworks: ['mocha', 'chai'],
     files: ['test/setup.ts'],
     preprocessors: {
@@ -70,7 +66,10 @@ export default function(config: IKarmaConfig): void {
       resolve: {
         extensions: ['.ts', '.js'],
         modules: ['src', 'node_modules'],
-        alias: getAlias(packages)
+        alias: project.packages.reduce((alias, p) => {
+          alias[p.scopedName] = p.src;
+          return alias;
+        }, {})
       },
       devtool: 'cheap-module-eval-source-map',
       module: {
@@ -146,10 +145,10 @@ export default function(config: IKarmaConfig): void {
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {
       reports: ["html", "text-summary", "json", "lcovonly", "cobertura"],
-      dir: cov
+      dir: thisPackage.coverage
     };
     options.junitReporter = {
-      outputDir: cov,
+      outputDir: thisPackage.coverage,
       outputFile: 'test-results.xml',
       useBrowserName: false
     };

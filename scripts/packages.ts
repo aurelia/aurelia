@@ -10,3 +10,7 @@ export function getAlias(packagesDir: string): { [key: string]: string } {
   }
   return alias;
 }
+
+export function getNames(): string[] {
+  return lernaConfig.packages.map(p => p.split('/')[1]);
+}

@@ -18,22 +18,30 @@ import {
   IListenerBindingInstruction,
   IPropertyBindingInstruction,
   IRefBindingInstruction,
+  IRenderStrategyInstruction,
   ISetAttributeInstruction,
   ISetPropertyInstruction,
   IStylePropertyBindingInstruction,
   ITextBindingInstruction,
+  ILetBindingInstruction,
   TargetedInstructionType,
   TemplateDefinition,
-  TemplatePartDefinitions
+  TemplatePartDefinitions,
+  ILetElementInstruction
 } from './instructions';
 import { IRenderContext } from './render-context';
+import { IRenderStrategy, RenderStrategyResource } from './render-strategy';
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
+import { LetBinding } from '../binding/let-binding';
 
 export interface IRenderer {
   render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
   hydrateElementInstance(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
 }
+
+// tslint:disable:function-name
+// tslint:disable:no-any
 
 /* @internal */
 export class Renderer implements IRenderer {
@@ -43,7 +51,7 @@ export class Renderer implements IRenderer {
     private eventManager: IEventManager,
     private parser: IExpressionParser,
     private renderingEngine: IRenderingEngine
-  ) {}
+  ) { }
 
   public render(renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
@@ -54,7 +62,7 @@ export class Renderer implements IRenderer {
 
       for (let j = 0, jj = instructions.length; j < jj; ++j) {
         const current = instructions[j];
-        (this[current.type] as any)(renderable, target, current, parts);
+        (this as any)[current.type](renderable, target, current, parts);
       }
     }
 
@@ -63,13 +71,13 @@ export class Renderer implements IRenderer {
 
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
         const current = surrogateInstructions[i];
-        (this[current.type] as any)(renderable, host, current, parts);
+        (this as any)[current.type](renderable, host, current, parts);
       }
     }
   }
 
-  public hydrateElementInstance(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement) {
-    let childInstructions = instruction.instructions;
+  public hydrateElementInstance(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void {
+    const childInstructions = instruction.instructions;
 
     component.$hydrate(this.renderingEngine, target, instruction);
 
@@ -84,14 +92,14 @@ export class Renderer implements IRenderer {
         realTarget = component;
       }
 
-      (this[current.type] as any)(renderable, realTarget, current);
+      (this as any)[currentType](renderable, realTarget, current);
     }
 
     renderable.$bindables.push(component);
     renderable.$attachables.push(component);
   }
 
-  public [TargetedInstructionType.textBinding](renderable: IRenderable, target: any, instruction: Immutable<ITextBindingInstruction>) {
+  public [TargetedInstructionType.textBinding](renderable: IRenderable, target: any, instruction: Immutable<ITextBindingInstruction>): void {
     const next = target.nextSibling;
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
@@ -99,40 +107,40 @@ export class Renderer implements IRenderer {
     renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.Interpolation), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
   }
 
-  public [TargetedInstructionType.propertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IPropertyBindingInstruction>) {
+  public [TargetedInstructionType.propertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IPropertyBindingInstruction>): void {
     const srcOrExpr = instruction.srcOrExpr as any;
     renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand | instruction.mode), target, instruction.dest, instruction.mode, this.observerLocator, this.context));
   }
 
-  public [TargetedInstructionType.listenerBinding](renderable: IRenderable, target: any, instruction: Immutable<IListenerBindingInstruction>) {
+  public [TargetedInstructionType.listenerBinding](renderable: IRenderable, target: any, instruction: Immutable<IListenerBindingInstruction>): void {
     const srcOrExpr = instruction.srcOrExpr as any;
     renderable.$bindables.push(new Listener(instruction.dest, instruction.strategy, srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta)), target, instruction.preventDefault, this.eventManager, this.context));
   }
 
-  public [TargetedInstructionType.callBinding](renderable: IRenderable, target: any, instruction: Immutable<ICallBindingInstruction>) {
+  public [TargetedInstructionType.callBinding](renderable: IRenderable, target: any, instruction: Immutable<ICallBindingInstruction>): void {
     const srcOrExpr = instruction.srcOrExpr as any;
     renderable.$bindables.push(new Call(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.CallCommand), target, instruction.dest, this.observerLocator, this.context));
   }
 
-  public [TargetedInstructionType.refBinding](renderable: IRenderable, target: any, instruction: Immutable<IRefBindingInstruction>) {
+  public [TargetedInstructionType.refBinding](renderable: IRenderable, target: any, instruction: Immutable<IRefBindingInstruction>): void {
     const srcOrExpr = instruction.srcOrExpr as any;
     renderable.$bindables.push(new Ref(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsRef), target, this.context));
   }
 
-  public [TargetedInstructionType.stylePropertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IStylePropertyBindingInstruction>) {
+  public [TargetedInstructionType.stylePropertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IStylePropertyBindingInstruction>): void {
     const srcOrExpr = instruction.srcOrExpr as any;
     renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand | BindingMode.toView), (<any>target).style, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
   }
 
-  public [TargetedInstructionType.setProperty](renderable: IRenderable, target: any, instruction: Immutable<ISetPropertyInstruction>) {
+  public [TargetedInstructionType.setProperty](renderable: IRenderable, target: any, instruction: Immutable<ISetPropertyInstruction>): void {
     target[instruction.dest] = instruction.value;
   }
 
-  public [TargetedInstructionType.setAttribute](renderable: IRenderable, target: any, instruction: Immutable<ISetAttributeInstruction>) {
+  public [TargetedInstructionType.setAttribute](renderable: IRenderable, target: any, instruction: Immutable<ISetAttributeInstruction>): void {
     DOM.setAttribute(target, instruction.dest, instruction.value);
   }
 
-  public [TargetedInstructionType.hydrateElement](renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>) {
+  public [TargetedInstructionType.hydrateElement](renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>): void {
     const context = this.context;
     const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);    const component = context.get<ICustomElement>(CustomElementResource.keyFrom(instruction.res));
 
@@ -140,7 +148,7 @@ export class Renderer implements IRenderer {
     operation.dispose();
   }
 
-  public [TargetedInstructionType.hydrateAttribute](renderable: IRenderable, target: any, instruction: Immutable<IHydrateAttributeInstruction>) {
+  public [TargetedInstructionType.hydrateAttribute](renderable: IRenderable, target: any, instruction: Immutable<IHydrateAttributeInstruction>): void {
     const childInstructions = instruction.instructions;
     const context = this.context;
 
@@ -150,7 +158,7 @@ export class Renderer implements IRenderer {
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
-      (this[current.type] as any)(renderable, component, current);
+      (this as any)[current.type](renderable, component, current);
     }
 
     renderable.$bindables.push(component);
@@ -159,7 +167,7 @@ export class Renderer implements IRenderer {
     operation.dispose();
   }
 
-  public [TargetedInstructionType.hydrateTemplateController](renderable: IRenderable, target: any, instruction: Immutable<IHydrateTemplateController>, parts?: TemplatePartDefinitions) {
+  public [TargetedInstructionType.hydrateTemplateController](renderable: IRenderable, target: any, instruction: Immutable<IHydrateTemplateController>, parts?: TemplatePartDefinitions): void {
     const childInstructions = instruction.instructions;
     const factory = this.renderingEngine.getViewFactory(instruction.src, this.context);
     const context = this.context;
@@ -174,12 +182,41 @@ export class Renderer implements IRenderer {
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
-      (this[current.type] as any)(renderable, component, current);
+      (this as any)[current.type](renderable, component, current);
     }
 
     renderable.$bindables.push(component);
     renderable.$attachables.push(component);
 
     operation.dispose();
+  }
+
+  public [TargetedInstructionType.renderStrategy](renderable: IRenderable, target: any, instruction: Immutable<IRenderStrategyInstruction>): void {
+    const strategyName = instruction.name;
+    if (this[strategyName] === undefined) {
+      const strategy = this.context.get(RenderStrategyResource.keyFrom(strategyName)) as IRenderStrategy;
+      if (strategy === null || strategy === undefined) {
+        throw new Error(`Unknown renderStrategy "${strategyName}"`);
+      }
+      this[strategyName] = strategy.render.bind(strategy);
+    }
+    this[strategyName](renderable, target, instruction);
+  }
+
+  public [TargetedInstructionType.letElement](renderable: IRenderable, target: any, instruction: Immutable<ILetElementInstruction>): void {
+    target.remove();
+    const childInstructions = instruction.instructions;
+    const toViewModel = instruction.toViewModel;
+    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+      const childInstruction = childInstructions[i];
+      const srcOrExpr: any = childInstruction.srcOrExpr;
+      renderable.$bindables.push(new LetBinding(
+        srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand),
+        childInstruction.dest,
+        this.observerLocator,
+        this.context,
+        toViewModel
+      ));
+    }
   }
 }

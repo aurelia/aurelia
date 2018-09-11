@@ -1,5 +1,5 @@
 // tslint:disable:no-reserved-keywords
-import { DI, Immutable } from '@aurelia/kernel';
+import { DI, Immutable, IIndexable, Writable } from '@aurelia/kernel';
 import { IExpression } from '../binding/ast';
 import { BindingMode } from '../binding/binding-mode';
 import { DelegationStrategy } from '../binding/event-manager';
@@ -18,7 +18,10 @@ export const enum TargetedInstructionType {
   setAttribute = 'h',
   hydrateElement = 'i',
   hydrateAttribute = 'j',
-  hydrateTemplateController = 'k'
+  hydrateTemplateController = 'k',
+  letElement = 'l',
+  letBinding = 'm',
+  renderStrategy = 'n',
 }
 
 const instructionTypeValues = 'abcdefghij';
@@ -62,7 +65,9 @@ export type TargetedInstruction =
   ISetAttributeInstruction |
   IHydrateElementInstruction |
   IHydrateAttributeInstruction |
-  IHydrateTemplateController;
+  IHydrateTemplateController |
+  IRenderStrategyInstruction |
+  ILetElementInstruction;
 
 export function isTargetedInstruction(value: any): value is TargetedInstruction {
   const type = value.type;
@@ -138,4 +143,21 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
   instructions: TargetedInstruction[];
   src: ITemplateSource;
   link?: boolean;
+}
+
+export interface IRenderStrategyInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.renderStrategy;
+  name: string;
+}
+
+export interface ILetElementInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.letElement;
+  instructions: ILetBindingInstruction[];
+  toViewModel: boolean;
+}
+
+export interface ILetBindingInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.letBinding;
+  srcOrExpr: string | IExpression;
+  dest: string;
 }

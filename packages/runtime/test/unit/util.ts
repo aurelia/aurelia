@@ -1,75 +1,7 @@
 import { spy } from 'sinon';
 import { IContainer } from '../../../kernel/src/index';
 import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource, ICustomElement, ITemplateSource, TargetedInstructionType, IExpressionParser, AccessMember, AccessScope, Repeat } from '../../src/index';
-
-const toStringTag = Object.prototype.toString;
-
-export function _(strings: TemplateStringsArray, ...vars: any[]) {
-  let retVal = '';
-  const length = vars.length;
-  for (let i = 0; i < length; ++i) {
-    retVal = retVal + strings[i] + stringify(vars[i]);
-  }
-  return retVal + strings[length];
-}
-
-/**
- * stringify primitive value (null -> 'null' and undefined -> 'undefined') or complex values with recursion guard
- */
-export function stringify(value: any): string {
-  const type = toStringTag.call(value);
-  switch (type) {
-    case '[object Undefined]':
-      return 'undefined';
-    case '[object Null]':
-      return 'null';
-    case '[object String]':
-      return `'${value}'`;
-    case '[object Boolean]':
-    case '[object Number]':
-      return value;
-    case '[object Array]':
-      return `[${value.map(i => stringify(i)).join(',')}]`;
-    case '[object Event]':
-      return `'${value.type}'`;
-    default:
-      return jsonStringify(value).replace(/\r?\n/g, '');
-  }
-}
-
-function jsonStringify(o) {
-  let cache = [];
-  const result = JSON.stringify(o, function(key, value) {
-    if (typeof value === 'object' && value !== null) {
-      if (value instanceof Node) {
-        return value['innerHTML']
-      }
-      if (cache.indexOf(value) !== -1) {
-        try {
-          return JSON.parse(JSON.stringify(value));
-        } catch (error) {
-          return;
-        }
-      }
-      cache.push(value);
-    }
-    return value;
-  });
-  cache = null;
-  return result;
-}
-
-/**
- * pad a string with spaces on the right-hand side until it's the specified length
- */
-export function padRight(str: any, len: number): string {
-  str = str + '';
-  const strLen = str.length;
-  if (strLen >= len) {
-    return str;
-  }
-  return str + new Array(len - strLen + 1).join(' ');
-}
+import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight } from '../../../../scripts/test-lib';
 
 /**
  * Object describing a test fixture
@@ -250,13 +182,6 @@ export class SpySubscriber {
   }
 }
 
-const domParser = <HTMLDivElement>DOM.createElement('div');
-export function createElement(markup: string): Element {
-  domParser.innerHTML = markup;
-  const element = domParser.firstElementChild;
-  return element;
-}
-
 
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes
 // These attributes are valid on every HTML element and we want to rule out any potential quirk by ensuring
@@ -356,3 +281,5 @@ export const globalAttributeNames = [
   'onwaiting'
 ];
 
+
+export { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight };

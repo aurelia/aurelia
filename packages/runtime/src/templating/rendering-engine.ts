@@ -16,6 +16,7 @@ import { RuntimeBehavior } from './runtime-behavior';
 import { ITemplate } from './template';
 import { ITemplateCompiler } from './template-compiler';
 import { IViewFactory, ViewFactory } from './view';
+import { ViewCompileFlags } from './view-compile-flags';
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;
@@ -131,7 +132,7 @@ export class RenderingEngine implements IRenderingEngine {
     return factory;
   }
 
-  private templateFromSource(definition: TemplateDefinition, parentContext?: IRenderContext,): ITemplate {
+  private templateFromSource(definition: TemplateDefinition, parentContext?: IRenderContext): ITemplate {
     parentContext = parentContext || <ExposedContext>this.container;
 
     if (definition && definition.templateOrNode) {
@@ -143,7 +144,7 @@ export class RenderingEngine implements IRenderingEngine {
           throw Reporter.error(20, compilerName);
         }
 
-        definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>parentContext));
+        definition = compiler.compile(definition, new RuntimeCompilationResources(<ExposedContext>parentContext), ViewCompileFlags.surrogate);
       }
 
       return new CompiledTemplate(this, parentContext, definition);
@@ -212,5 +213,9 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
     }
 
     return null;
+  }
+
+  public create<TSource, TType extends IResourceType<TSource>>(kind: IResourceKind<TSource, TType>, name: string): InstanceType<TType> | null {
+    return this.context.get(kind.keyFrom(name)) || null;
   }
 }

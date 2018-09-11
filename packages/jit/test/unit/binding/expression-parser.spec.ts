@@ -7,7 +7,7 @@ import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifi
 import { expect } from 'chai';
 import { DI } from '../../../../kernel/src';
 import { register } from '../../../../jit/src'
-import { verifyEqual } from '../../util';
+import { verifyEqual } from '../util';
 
 /* eslint-disable no-loop-func, no-floating-decimal, key-spacing, new-cap, quotes, comma-spacing */
 

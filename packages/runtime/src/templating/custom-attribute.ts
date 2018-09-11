@@ -4,7 +4,8 @@ import {
   Omit,
   PLATFORM,
   Registration,
-  Writable
+  Writable,
+  Immutable
 } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
@@ -24,6 +25,8 @@ export interface ICustomAttributeSource {
   isTemplateController?: boolean;
   bindables?: Record<string, IBindableDescription>;
 }
+
+export type AttributeDefinition = Immutable<Required<ICustomAttributeSource>> | null;
 
 export type ICustomAttributeType = IResourceType<ICustomAttributeSource, ICustomAttribute>;
 

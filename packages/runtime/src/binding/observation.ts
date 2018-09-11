@@ -319,6 +319,8 @@ export interface ICollectionObserver<T extends CollectionKind> extends
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;
+    lengthObserver: IBindingTargetAccessor;
+    getLengthObserver(): IBindingTargetAccessor;
 }
 
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

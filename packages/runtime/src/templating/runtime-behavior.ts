@@ -107,7 +107,7 @@ function createGetterSetter(instance: any, name: string): void {
   Reflect.defineProperty(instance, name, {
     enumerable: true,
     get: function() { return this.$observers[name].getValue(); },
-    set: function(value) { this.$observers[name].setValue(value); }
+    set: function(value) { this.$observers[name].setValue(value, BindingFlags.updateTargetInstance); }
   });
 }
 

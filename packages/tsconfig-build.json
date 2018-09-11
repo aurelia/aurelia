@@ -5,11 +5,11 @@
     "declaration": true,
     "declarationMap": true,
     "experimentalDecorators": true,
-    "lib": ["es2017", "dom"],
-    "module": "commonjs",
+    "lib": ["esnext", "dom"],
+    "module": "umd",
     "moduleResolution": "node",
     "sourceMap": true,
     "stripInternal": true,
-    "target": "es2015"
+    "target": "es2018"
   }
 }

@@ -8,6 +8,29 @@ defaults: &defaults
 # Variables
 var_1: &cache_key aurelia-{{ .Branch }}-{{ checksum "package-lock.json" }}
 
+# Reusable steps
+aliases:
+  - &step_restore_cache
+    restore_cache:
+      key: *cache_key
+  - &step_attach_workspace
+    attach_workspace:
+      at: ~/repo
+  - &step_install_e2e_bs
+    run:
+      name: Install e2e tests
+      command: |
+        cd ./test/e2e
+        npm install
+        npm run build
+  - &step_serve_e2e_bs
+    run:
+      name: Serve the e2e app in the background
+      background: true
+      command: |
+        cd ./test/e2e
+        npm run start
+
 version: 2
 jobs:
   install:
@@ -32,13 +55,12 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
+      - *step_restore_cache
       - run:
           name: "Bootstrap and build the packages"
           command: |
             npm run bootstrap
-            npm run build
+            npm run build-all
       - run:
           name: "Create tarballs from the build outputs"
           command: |
@@ -50,169 +72,115 @@ jobs:
             - packages/*/node_modules
             - packages/*/*.tgz
 
-  unit_tests:
+  unit_tests_firefox:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      #- run:
-      #    command: "./node_modules/.bin/karma start --browsers=FirefoxHeadless --single-run=true --auto-watch=false"
-      #    environment:
-      #      TS_NODE_PROJECT: tsconfig.json
+      - *step_restore_cache
+      - run:
+          name: "Run unit tests"
+          command: |
+            npm run test-firefox
+          environment:
+            TS_NODE_PROJECT: ./scripts/tsconfig.json
+      - store_test_results:
+          path: ~/repo/coverage
+      - store_artifacts:
+          path: ~/repo/coverage
+
+  unit_tests_chrome:
+    <<: *defaults
+    steps:
+      - checkout
+      - *step_restore_cache
       - run:
           name: "Run unit tests"
           command: |
             npm run test
           environment:
-            JUNIT_REPORT_PATH: ./junit/
-            JUNIT_REPORT_NAME: test-results.xml
             TS_NODE_PROJECT: ./scripts/tsconfig.json
+      - run:
+          name: Combine coverage reports
+          command: |
+            npm run combine-coverage:json
+            npm run combine-coverage:lcov
+          when: always
       - run:
           name: Process coverage results for Code Climate
           command: |
-            mkdir ~/repo/code-climate
-            #~/cc-test-reporter format-coverage ~/repo/packages/debug/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-debug.json
-            ~/cc-test-reporter format-coverage ~/repo/packages/jit/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-jit.json
-            ~/cc-test-reporter format-coverage ~/repo/packages/kernel/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-kernel.json
-            ~/cc-test-reporter format-coverage ~/repo/packages/runtime/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-runtime.json
-            #~/cc-test-reporter format-coverage ~/repo/packages/plugin-requirejs/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-plugin-requirejs.json
-            #~/cc-test-reporter format-coverage ~/repo/packages/plugin-svg/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-plugin-svg.json
-            ~/cc-test-reporter sum-coverage ~/repo/code-climate/coverage-*.json -p 3 -o ~/repo/coverage-combined.json
-            ~/cc-test-reporter upload-coverage -i ~/repo/coverage-combined.json
+            ~/cc-test-reporter format-coverage ~/repo/coverage/lcov.info -t lcov -o ~/repo/coverage/cc-final.json
+            ~/cc-test-reporter upload-coverage -i ~/repo/coverage/cc-final.json
           environment:
             CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
+          when: always
       - run:
           name: Process coverage for Codecov
           command: |
-            codecov -f ~/repo/packages/debug/coverage/coverage-final.json
-            codecov -f ~/repo/packages/jit/coverage/coverage-final.json
-            codecov -f ~/repo/packages/kernel/coverage/coverage-final.json
-            codecov -f ~/repo/packages/runtime/coverage/coverage-final.json
-            codecov -f ~/repo/packages/plugin-requirejs/coverage/coverage-final.json
-            codecov -f ~/repo/packages/plugin-svg/coverage/coverage-final.json
+            codecov -f ~/repo/coverage/coverage-final.json
+          when: always
       - store_test_results:
-          path: ./packages/debug/junit
-      - store_test_results:
-          path: ./packages/jit/junit
-      - store_test_results:
-          path: ./packages/kernel/junit
-      - store_test_results:
-          path: ./packages/runtime/junit
-      - store_test_results:
-          path: ./packages/plugin-requirejs/junit
-      - store_test_results:
-          path: ./packages/plugin-svg/junit
+          path: ~/repo/coverage
       - store_artifacts:
-          path: ./packages/debug/junit
-      - store_artifacts:
-          path: ./packages/jit/junit
-      - store_artifacts:
-          path: ./packages/kernel/junit
-      - store_artifacts:
-          path: ./packages/runtime/junit
-      - store_artifacts:
-          path: ./packages/plugin-requirejs/junit
-      - store_artifacts:
-          path: ./packages/plugin-svg/junit
-      - store_artifacts:
-          path: ./packages/debug/coverage
-      - store_artifacts:
-          path: ./packages/jit/coverage
-      - store_artifacts:
-          path: ./packages/kernel/coverage
-      - store_artifacts:
-          path: ./packages/runtime/coverage
-      - store_artifacts:
-          path: ./packages/plugin-requirejs/coverage
-      - store_artifacts:
-          path: ./packages/plugin-svg/coverage
+          path: ~/repo/coverage
 
-  e2e_tests_jit_parcel:
+  e2e_browserstack:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
-      - run:
-          name: Install jit-parcel
-          command: |
-            cd ./packages/examples/jit-parcel
-            npm install
-      - run:
-          name: Serve jit-parcel in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-parcel
-            npm run serve
+      - *step_restore_cache
+      - *step_attach_workspace
+      - *step_install_e2e_bs
+      - *step_serve_e2e_bs
       - run:
           name: Run the e2e tests
           command: |
-            cd ./packages/examples/jit-parcel
+            cd ./test/e2e
             npm run e2e
+      - run:
+          name: Generate allure report
+          command: |
+            cd ./test/e2e
+            npm run allure:generate
+          when: always
+      - store_artifacts:
+          path: ./test/e2e/allure-report
+      - run:
+          name: Post the link to allure report in PR comment
+          command: |
+            cd ./test/e2e
+            npm run allure:post
+          when: always
 
-  e2e_tests_jit_browserify:
+  e2e_browserstack_compat:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
-      - run:
-          name: Install jit-browserify
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm ci
-            npm run build
-      - run:
-          name: Serve jit-browserify in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-browserify
-            npm run start
+      - *step_restore_cache
+      - *step_attach_workspace
+      - *step_install_e2e_bs
+      - *step_serve_e2e_bs
       - run:
           name: Run the e2e tests
           command: |
-            cd ./packages/examples/jit-browserify
+            cd ./test/e2e
             npm run e2e
-
-  e2e_tests_jit_aurelia_cli:
-    <<: *defaults
-    steps:
-      - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
+          environment:
+            BS_COMPAT_CHECK: true
       - run:
-          name: Install jit-aurelia-cli
+          name: Generate allure report
           command: |
-            cd ./packages/examples/jit-aurelia-cli
-            npm ci
-            npm run build
-      - run:
-          name: Serve jit-aurelia-cli in the background
-          background: true
-          command: |
-            cd ./packages/examples/jit-aurelia-cli
-            npm run start
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ./packages/examples/jit-aurelia-cli
-            npm run e2e
+            cd ./test/e2e
+            npm run allure:generate
+          when: always
+      - store_artifacts:
+          path: ./test/e2e/allure-report
 
   e2e_benchmark_vnext:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
+      - *step_restore_cache
+      - *step_attach_workspace
       - run:
           name: Install e2e-benchmark/vnext
           command: |
@@ -237,10 +205,8 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          key: *cache_key
-      - attach_workspace:
-          at: ~/repo
+      - *step_restore_cache
+      - *step_attach_workspace
       - run:
           name: Install e2e-benchmark/vcurrent
           command: |
@@ -261,30 +227,97 @@ jobs:
             cd ~/repo/packages/examples/e2e-benchmark/vcurrent
             npm run e2e
 
+  publish_nightly:
+    <<: *defaults
+    steps:
+      - checkout
+      - *step_restore_cache
+      - *step_attach_workspace
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+      - run:
+          name: Publish nightly release
+          command: |
+            npm run publish:nightly
+
 workflows:
-    version: 2
-    default_workflow:
-        jobs:
+  version: 2
+  # This workflow runs on every commit to any branch (with or without PR)
+  default_workflow:
+    jobs:
+      - install
+      - build:
+          requires:
             - install
-            - build:
-                requires:
-                    - install
-            - unit_tests:
-                requires:
-                    - install
-            - e2e_tests_jit_parcel:
-                requires:
-                    - build
-            - e2e_tests_jit_browserify:
-                requires:
-                    - build
-            - e2e_tests_jit_aurelia_cli:
-                requires:
-                    - build
-            - e2e_benchmark_vnext:
-                requires:
-                    - build
-            - e2e_benchmark_vcurrent:
-                requires:
-                    - build
+      - unit_tests_chrome:
+          requires:
+            - install
+      # Only run the tests in firefox when on master (that's the thorough testing branch)
+      # - todo: move to browserstack and add more browsers
+      # - todo: later we'll have another specialized workflow (or variant of this one) for release branch
+      - unit_tests_firefox:
+          requires:
+            - install
+          filters:
+            branches:
+              only: master
+      # This is the "lightweight" browserstack test set (only latest browser / latest OS)
+      # It runs on every commit on every non-master branch
+      - e2e_browserstack:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: master
+      # This is the full browserstack test set (last 3 versions of every browser on multiple OSes + OS versions)
+      # It runs on every commit to master
+      - e2e_browserstack_compat:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+      - e2e_benchmark_vnext:
+          requires:
+            - build
+      # Only run the vCurrent benchmark on commits to master (don't need to refresh data we already have on every commit to every branch)
+      - e2e_benchmark_vcurrent:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+
+  # This workflow runs once per day on 0:00 UTC on the master branch
+  # - todo: add another schedule for release branch that generates change log and publishes normal release (only if there are changes and all integration+e2e tests pass)
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - install
+      - build:
+          requires:
+            - install
+      - unit_tests_chrome:
+          requires:
+            - install
+      - unit_tests_firefox:
+          requires:
+            - install
+      # We only run the lightweight version of browserstack tests because failing tests on very old browsers shouldn't block a dev publish
+      - e2e_browserstack:
+          requires:
+            - build
+      - publish_nightly:
+          requires:
+            - build
+            - unit_tests_chrome
+            - unit_tests_firefox
+            - e2e_browserstack
 

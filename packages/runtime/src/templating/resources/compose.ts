@@ -87,25 +87,32 @@ export class Compose {
         subject,
         this.renderable.$context
       ).create();
-    } else if ('create' in subject) { // IViewFactory
+    }
+
+    if ('create' in subject) { // IViewFactory
       return subject.create();
-    } else if ('createView' in subject) { // PotentialRenderable
+    }
+
+    if ('createView' in subject) { // PotentialRenderable
       return subject.createView(
         this.renderingEngine,
         this.renderable.$context
       );
-    } else if ('lockScope' in subject) { // IView
-      return subject;
-    } else { // Constructable (Custom Element Constructor)
-      return createElement(
-        subject,
-        this.properties,
-        this.$projector.children
-      ).createView(
-        this.renderingEngine,
-        this.renderable.$context
-      );
     }
+
+    if ('lockScope' in subject) { // IView
+      return subject;
+    }
+
+    // Constructable (Custom Element Constructor)
+    return createElement(
+      subject,
+      this.properties,
+      this.$projector.children
+    ).createView(
+      this.renderingEngine,
+      this.renderable.$context
+    );
   }
 
   private startComposition(subject: any, flags: BindingFlags): void {

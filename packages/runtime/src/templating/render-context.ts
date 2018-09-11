@@ -1,7 +1,6 @@
 import { IContainer, IDisposable, Immutable, ImmutableArray, IResolver, IServiceLocator, PLATFORM } from '@aurelia/kernel';
 import { DOM, INode, IRenderLocation } from '../dom';
-import { ICustomElement } from './custom-element';
-import { IHydrateElementInstruction, ITargetedInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from './instructions';
+import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IViewFactory } from './view';

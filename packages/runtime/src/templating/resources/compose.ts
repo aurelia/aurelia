@@ -94,7 +94,7 @@ export class Compose {
         this.renderingEngine,
         this.renderable.$context
       );
-    } else if ('onRender' in subject) { // IView
+    } else if ('lockScope' in subject) { // IView
       return subject;
     } else { // Constructable (Custom Element Constructor)
       return createElement(

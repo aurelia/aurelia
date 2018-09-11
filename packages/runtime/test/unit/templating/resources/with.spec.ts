@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { With, BindingFlags } from '../../../../src/index';
-import { hydrateCustomAttribute } from '../attribute-assistance';
+import { hydrateCustomAttribute } from '../behavior-assistance';
 import { createScope } from '../scope-assistance';
 import { ensureSingleChildTemplateControllerBehaviors } from './template-controller-tests';
 

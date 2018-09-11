@@ -39,7 +39,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     renderer.render(renderable, targets, templateDefinition, host, parts)
   };
 
-  context.beginComponentOperation = function(renderable: IRenderable, target: any, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IDisposable {
+  context.beginComponentOperation = function(renderable: IRenderable, target: any, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);

@@ -2,7 +2,6 @@ import {
   IView,
   IViewFactory,
   RenderCallback,
-  MotionDirection,
   BindingFlags,
   IScope,
   INode,
@@ -16,6 +15,19 @@ import {
 } from "../../../../src/index";
 
 export class ViewFake implements IView {
+  lockScope(scope: IScope): void {
+    this.$scope = scope;
+    this.$bind = () => {
+      this.$isBound = true;
+    };
+  }
+
+  $addChild(child: IBindScope | IAttach, flags: BindingFlags): void {
+  }
+
+  $removeChild(child: IBindScope | IAttach): void {
+  }
+
   // IView impl
   factory: IViewFactory;
 
@@ -23,7 +35,6 @@ export class ViewFake implements IView {
   renderState: any;
   $isAttached: boolean = false;
 
-  animate(direction: MotionDirection): void | Promise<boolean> {}
   tryReturnToCache(): boolean {
     return true;
   }
@@ -61,6 +72,6 @@ export class ViewFake implements IView {
   constructor() {
     this.$bindables = [];
     this.$attachables = [];
-    this.$nodes = DOM.createFactoryFromMarkupOrNode('<div></div>')();
+    this.$nodes = DOM.createFactoryFromMarkupOrNode('<div>Fake View</div>')();
   }
 }

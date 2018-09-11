@@ -174,11 +174,11 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
     bindables[i].$bind(flags | BindingFlags.fromBind, scope);
   }
 
+  this.$isBound = true;
+
   if (this.$behavior.hasBound) {
     (this as any).bound(flags | BindingFlags.fromBind);
   }
-
-  this.$isBound = true;
 }
 
 function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
@@ -190,11 +190,11 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
       bindables[i].$unbind(flags | BindingFlags.fromUnbind);
     }
 
+    this.$isBound = false;
+
     if (this.$behavior.hasUnbound) {
       (this as any).unbound(flags | BindingFlags.fromUnbind);
     }
-
-    this.$isBound = false;
   }
 }
 
@@ -220,11 +220,12 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
 
   this.$projector.project(this.$nodes);
 
+  this.$isAttached = true;
+
   if (this.$behavior.hasAttached) {
     lifecycle.queueAttachedCallback(this);
   }
 
-  this.$isAttached = true;
   lifecycle.end(this);
 }
 
@@ -245,11 +246,12 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLi
       attachables[i].$detach();
     }
 
+    this.$isAttached = false;
+
     if (this.$behavior.hasDetached) {
       lifecycle.queueDetachedCallback(this);
     }
 
-    this.$isAttached = false;
     lifecycle.end(this);
   }
 }

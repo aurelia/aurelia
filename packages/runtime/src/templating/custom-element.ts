@@ -258,9 +258,9 @@ export function createCustomElementDescription(templateSource: ITemplateSource, 
       compiler: 'default'
     },
     bindables: Object.assign({}, (Type as any).bindables, templateSource.bindables),
-    instructions: templateSource.instructions ? Array.from(templateSource.instructions) : PLATFORM.emptyArray,
-    dependencies: templateSource.dependencies ? Array.from(templateSource.dependencies) : PLATFORM.emptyArray,
-    surrogates: templateSource.surrogates ? Array.from(templateSource.surrogates) : PLATFORM.emptyArray,
+    instructions: templateSource.instructions ? PLATFORM.toArray(templateSource.instructions) : PLATFORM.emptyArray,
+    dependencies: templateSource.dependencies ? PLATFORM.toArray(templateSource.dependencies) : PLATFORM.emptyArray,
+    surrogates: templateSource.surrogates ? PLATFORM.toArray(templateSource.surrogates) : PLATFORM.emptyArray,
     containerless: templateSource.containerless || (Type as any).containerless || false,
     shadowOptions: templateSource.shadowOptions || (Type as any).shadowOptions || null,
     hasSlots: templateSource.hasSlots || false

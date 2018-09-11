@@ -607,42 +607,6 @@ describe('DOM', () => {
       expect(node.childNodes.length).to.equal(1);
       expect(node.firstChild === location).to.be.true;
     });
-
-    it('should proxy the provided node via the comment if proxy=true', () => {
-      const {childNode} = createTestNodes();
-      const location: any = DOM.convertToRenderLocation(childNode, true);
-      expect(location.$proxyTarget === childNode).to.be.true;
-    });
-
-    it(`should pass "hasAttribute" through to the node if proxy=true`, () => {
-      const {childNode} = createTestNodes();
-      childNode.setAttribute('foo', 'bar');
-      const location: any = DOM.convertToRenderLocation(childNode, true);
-      const actual = location.hasAttribute('foo');
-      expect(actual).to.be.true;
-    });
-
-    it(`should pass "getAttribute" through to the node if proxy=true`, () => {
-      const {childNode} = createTestNodes();
-      childNode.setAttribute('foo', 'bar');
-      const location: any = DOM.convertToRenderLocation(childNode, true);
-      const actual = location.getAttribute('foo');
-      expect(actual).to.equal('bar');
-    });
-
-    it(`should pass "setAttribute" through to the node if proxy=true`, () => {
-      const {childNode} = createTestNodes();
-      const location: any = DOM.convertToRenderLocation(childNode, true);
-      location.setAttribute('foo', 'bar');
-      const actual = childNode.getAttribute('foo');
-      expect(actual).to.equal('bar');
-    });
-
-    it('should NOT proxy the provided node via the comment if proxy is not true', () => {
-      const {childNode} = createTestNodes();
-      const location: any = DOM.convertToRenderLocation(childNode);
-      expect(location.$proxyTarget).to.be.undefined;
-    });
   });
 
   describe('registerElementResolver', () => {

@@ -144,21 +144,20 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
   }
 
   this.$scope = scope;
+  this.$isBound = true;
 
   if (this.$behavior.hasBound) {
     (this as any).bound(flags | BindingFlags.fromBind, scope);
   }
-
-  this.$isBound = true;
 }
 
 function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
   if (this.$isBound) {
+    this.$isBound = false;
+
     if (this.$behavior.hasUnbound) {
       (this as any).unbound(flags | BindingFlags.fromUnbind);
     }
-
-    this.$isBound = false;
   }
 }
 
@@ -175,11 +174,11 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
     this.$child.$attach(encapsulationSource, lifecycle);
   }
 
+  this.$isAttached = true;
+
   if (this.$behavior.hasAttached) {
     lifecycle.queueAttachedCallback(this);
   }
-
-  this.$isAttached = true;
 }
 
 function detach(this: IInternalCustomAttributeImplementation, lifecycle: DetachLifecycle): void {
@@ -192,11 +191,11 @@ function detach(this: IInternalCustomAttributeImplementation, lifecycle: DetachL
       this.$child.$detach(lifecycle);
     }
 
+    this.$isAttached = false;
+
     if (this.$behavior.hasDetached) {
       lifecycle.queueDetachedCallback(this);
     }
-
-    this.$isAttached = false;
   }
 }
 
@@ -207,6 +206,6 @@ export function createCustomAttributeDescription(attributeSource: ICustomAttribu
     aliases: attributeSource.aliases || PLATFORM.emptyArray,
     defaultBindingMode: attributeSource.defaultBindingMode || BindingMode.toView,
     isTemplateController: attributeSource.isTemplateController || false,
-    bindables: Object.assign({}, (Type as any).bindables, attributeSource.bindables)
+    bindables: {...(Type as any).bindables, ...attributeSource.bindables}
   };
 }

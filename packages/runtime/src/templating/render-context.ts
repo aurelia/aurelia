@@ -1,7 +1,6 @@
 import { IContainer, IDisposable, Immutable, ImmutableArray, IResolver, IServiceLocator, PLATFORM } from '@aurelia/kernel';
 import { DOM, INode, IRenderLocation } from '../dom';
-import { ICustomElement } from './custom-element';
-import { IHydrateElementInstruction, ITargetedInstruction, TargetedInstructionType, TemplateDefinition, TemplatePartDefinitions } from './instructions';
+import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IViewFactory } from './view';
@@ -9,8 +8,6 @@ import { IViewFactory } from './view';
 export interface IRenderContext extends IServiceLocator {
   createChild(): IRenderContext;
   render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
-  hydrateElement(renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>): void;
-  hydrateElementInstance(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void;
   beginComponentOperation(renderable: IRenderable, target: any, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IDisposable;
 }
 
@@ -41,7 +38,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     renderer.render(renderable, targets, templateDefinition, host, parts)
   };
 
-  context.beginComponentOperation = function(renderable: IRenderable, target: any, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation, locationIsContainer?: boolean): IDisposable {
+  context.beginComponentOperation = function(renderable: IRenderable, target: any, instruction: ITargetedInstruction, factory?: IViewFactory, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);
@@ -55,14 +52,6 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
     }
 
     return context;
-  };
-
-  context.hydrateElement = function(renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>): void {
-    renderer[TargetedInstructionType.hydrateElement](renderable, target, instruction);
-  };
-
-  context.hydrateElementInstance = function(renderable: IRenderable, target: INode, instruction: Immutable<IHydrateElementInstruction>, component: ICustomElement): void {
-    renderer.hydrateElementInstance(renderable, target, instruction, component);
   };
 
   context.dispose = function(): void {
@@ -109,7 +98,7 @@ export class ViewFactoryProvider implements IResolver {
     const found = this.replacements[this.factory.name];
 
     if (found) {
-      return this.renderingEngine.getViewFactory(requestor, found);
+      return this.renderingEngine.getViewFactory(found, requestor);
     }
 
     return this.factory;

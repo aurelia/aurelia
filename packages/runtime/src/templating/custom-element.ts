@@ -13,13 +13,14 @@ import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
 import { AttachLifecycle, DetachLifecycle, IAttach, IBindSelf } from './lifecycle';
-import { IRenderable } from './renderable';
+import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
+import { ITemplate } from './template';
 
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 
-export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts' | 'content'>>;
+export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
 export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable> {
   readonly $projector: IViewProjector;
@@ -31,7 +32,7 @@ export type ElementDefinition = Immutable<Required<ITemplateSource>> | null;
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
   $behavior: IRuntimeBehavior;
-  $child: IAttach;
+  $encapsulationSource: INode;
 }
 
 /**
@@ -110,6 +111,8 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$attach = attach;
     proto.$detach = detach;
     proto.$unbind = unbind;
+    (proto.$addChild as any) = addRenderableChild;
+    (proto.$removeChild as any) = removeRenderableChild;
 
     return Type;
   }
@@ -127,22 +130,34 @@ function register(this: ICustomElementType, container: IContainer): void {
 function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
-  const template = renderingEngine.getElementTemplate(description, Type);
 
-  this.$context = template.renderContext;
   this.$bindables = [];
   this.$attachables = [];
-  this.$child = null;
   this.$isAttached = false;
   this.$isBound = false;
   this.$scope = BindingContext.createScope(this);
+  this.$projector = determineProjector(this, host, description);
 
   renderingEngine.applyRuntimeBehavior(Type, this);
 
-  this.$projector = determineProjector(this, host, description, options);
-  this.$nodes = this.$behavior.hasRender
-    ? (this as any).render(host, options.parts, template)
-    : template.createFor(this, host, options.parts);
+  let template: ITemplate;
+
+  if (this.$behavior.hasRender) {
+    const result = (this as any).render(host, options.parts);
+
+    if (result.getElementTemplate) {
+      template = result.getElementTemplate(renderingEngine, Type);
+    } else {
+      this.$nodes = result;
+    }
+  } else {
+    template = renderingEngine.getElementTemplate(description, Type);
+  }
+
+  if (template) {
+    this.$context = template.renderContext;
+    this.$nodes = template.createFor(this, host, options.parts);
+  }
 
   if (this.$behavior.hasCreated) {
     (this as any).created();
@@ -161,11 +176,11 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
     bindables[i].$bind(flags | BindingFlags.fromBind, scope);
   }
 
+  this.$isBound = true;
+
   if (this.$behavior.hasBound) {
     (this as any).bound(flags | BindingFlags.fromBind);
   }
-
-  this.$isBound = true;
 }
 
 function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
@@ -177,11 +192,11 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
       bindables[i].$unbind(flags | BindingFlags.fromUnbind);
     }
 
+    this.$isBound = false;
+
     if (this.$behavior.hasUnbound) {
       (this as any).unbound(flags | BindingFlags.fromUnbind);
     }
-
-    this.$isBound = false;
   }
 }
 
@@ -191,7 +206,9 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   }
 
   lifecycle = AttachLifecycle.start(this, lifecycle);
-  encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
+
+  this.$encapsulationSource = encapsulationSource
+    = this.$projector.provideEncapsulationSource(encapsulationSource);
 
   if (this.$behavior.hasAttaching) {
     (this as any).attaching(encapsulationSource);
@@ -203,17 +220,14 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
     attachables[i].$attach(encapsulationSource, lifecycle);
   }
 
-  if (this.$child !== null) {
-    this.$child.$attach(encapsulationSource, lifecycle);
-  }
-
   this.$projector.project(this.$nodes);
+
+  this.$isAttached = true;
 
   if (this.$behavior.hasAttached) {
     lifecycle.queueAttachedCallback(this);
   }
 
-  this.$isAttached = true;
   lifecycle.end(this);
 }
 
@@ -234,15 +248,12 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLi
       attachables[i].$detach();
     }
 
-    if (this.$child !== null) {
-      this.$child.$detach(lifecycle);
-    }
+    this.$isAttached = false;
 
     if (this.$behavior.hasDetached) {
       lifecycle.queueDetachedCallback(this);
     }
 
-    this.$isAttached = false;
     lifecycle.end(this);
   }
 }
@@ -257,7 +268,7 @@ export function createCustomElementDescription(templateSource: ITemplateSource, 
       required: false,
       compiler: 'default'
     },
-    bindables: Object.assign({}, (Type as any).bindables, templateSource.bindables),
+    bindables: {...(Type as any).bindables, ...templateSource.bindables},
     instructions: templateSource.instructions ? PLATFORM.toArray(templateSource.instructions) : PLATFORM.emptyArray,
     dependencies: templateSource.dependencies ? PLATFORM.toArray(templateSource.dependencies) : PLATFORM.emptyArray,
     surrogates: templateSource.surrogates ? PLATFORM.toArray(templateSource.surrogates) : PLATFORM.emptyArray,
@@ -268,6 +279,7 @@ export function createCustomElementDescription(templateSource: ITemplateSource, 
 }
 
 export interface IViewProjector {
+  readonly host: INode;
   readonly children: ArrayLike<INode>;
   onChildrenChanged(callback: () => void): void;
   provideEncapsulationSource(parentEncapsulationSource: INode): INode;
@@ -277,17 +289,14 @@ export interface IViewProjector {
 function determineProjector(
   customElement: ICustomElement,
   host: INode,
-  definition: TemplateDefinition,
-  options: IElementHydrationOptions
+  definition: TemplateDefinition
 ): IViewProjector {
-  if (definition.shadowOptions
-    || definition.hasSlots
-    || (options.content && options.content.childNodes.length)) {
+  if (definition.shadowOptions || definition.hasSlots) {
     if (definition.containerless) {
       throw Reporter.error(21);
     }
 
-    return new ShadowDOMProjector(customElement, host, definition, options);
+    return new ShadowDOMProjector(customElement, host, definition);
   }
 
   if (definition.containerless) {
@@ -299,20 +308,14 @@ function determineProjector(
 
 const childObserverOptions = { childList: true };
 
-/*@internal*/
 export class ShadowDOMProjector implements IViewProjector {
-  private shadowRoot: INode;
+  public shadowRoot: INode;
 
   constructor(
     customElement: ICustomElement,
-    private host: INode,
-    definition: TemplateDefinition,
-    options: IElementHydrationOptions
+    public host: INode,
+    definition: TemplateDefinition
   ) {
-    if (options && options.content) {
-      DOM.migrateChildNodes(options.content, host);
-    }
-
     this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
     (host as any).$customElement = customElement;
     (this.shadowRoot as any).$customElement = customElement;
@@ -335,17 +338,23 @@ export class ShadowDOMProjector implements IViewProjector {
   }
 }
 
-/*@internal*/
 export class ContainerlessProjector implements IViewProjector {
-  private location: IRenderLocation;
+  public host: IRenderLocation;
+  private childNodes: ArrayLike<INode>;
 
   constructor(customElement: ICustomElement, host: INode) {
-    this.location = DOM.convertToRenderLocation(host, true);
-    (this.location as any).$customElement = customElement;
+    if (host.childNodes.length) {
+      this.childNodes = Array.from(host.childNodes);
+    } else {
+      this.childNodes = PLATFORM.emptyArray;
+    }
+
+    this.host = DOM.convertToRenderLocation(host);
+    (this.host as any).$customElement = customElement;
   }
 
   get children(): ArrayLike<INode> {
-    return PLATFORM.emptyArray;
+    return this.childNodes;
   }
 
   public onChildrenChanged(callback: () => void): void {
@@ -361,13 +370,12 @@ export class ContainerlessProjector implements IViewProjector {
   }
 
   public project(nodes: INodeSequence): void {
-    nodes.insertBefore(this.location);
+    nodes.insertBefore(this.host);
   }
 }
 
-/*@internal*/
 export class HostProjector implements IViewProjector {
-  constructor(customElement: ICustomElement, private host: INode) {
+  constructor(customElement: ICustomElement, public host: INode) {
     (host as any).$customElement = customElement;
   }
 

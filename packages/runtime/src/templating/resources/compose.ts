@@ -1,163 +1,166 @@
-import { Immutable, inject } from '@aurelia/kernel';
+import { Constructable, Immutable, inject } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding/binding-flags';
-import { DOM, INode } from '../../dom';
+import { bindable } from '../bindable';
+import { createElement, PotentialRenderable } from '../create-element';
 import { customElement, ICustomElement } from '../custom-element';
-import { IHydrateElementInstruction, ITargetedInstruction, TargetedInstructionType } from '../instructions';
-import { IRenderContext } from '../render-context';
+import {
+  IHydrateElementInstruction,
+  ITargetedInstruction,
+  ITemplateSource,
+  TargetedInstruction,
+  TemplateDefinition
+} from '../instructions';
 import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
-import { ViewWithCentralComponent } from '../view';
+import { IView, IViewFactory } from '../view';
 
-const composeSource = {
+const composeSource: ITemplateSource = {
   name: 'au-compose',
-  templateOrNode: null,
-  instructions: null
+  containerless: true
 };
 
-const composeProps = ['component', 'swapOrder', 'isComposing'];
+const composeProps = ['subject', 'composing'];
+
+type Subject = IViewFactory | IView | PotentialRenderable | Constructable | TemplateDefinition;
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
-@inject(IRenderable, INode, ITargetedInstruction, IRenderingEngine)
+@inject(IRenderable, ITargetedInstruction, IRenderingEngine)
 export class Compose {
-  public component: any;
-  //public swapOrder: SwapOrder;
-  public isComposing: boolean;
+  @bindable public subject: any = null;
+  @bindable public composing: boolean = false;
 
   private task: CompositionTask = null;
-  private view: ViewWithCentralComponent = null;
-  private content: INode = null;
-  private baseInstruction: Immutable<IHydrateElementInstruction>;
-  private compositionContext: IRenderContext;
+  private currentView: IView = null;
+  private properties: Record<string, TargetedInstruction> = null;
 
   constructor(
     private renderable: IRenderable,
-    private host: INode,
     instruction: Immutable<IHydrateElementInstruction>,
     private renderingEngine: IRenderingEngine
   ) {
-    this.compositionContext = renderable.$context;
-    this.baseInstruction = {
-      type: TargetedInstructionType.hydrateElement,
-      res: null,
-      parts: instruction.parts,
-      instructions: instruction.instructions
-        .filter((x: any) => !composeProps.includes(x.dest))
-    };
-  }
-
-  /** @internal */
-  public compose(toBeComposed: any) {
-    const instruction: Immutable<IHydrateElementInstruction> = {
-      ...this.baseInstruction,
-      res: toBeComposed,
-      content: this.createContentElement()
-    };
-
-    const view = this.renderingEngine.createViewFromComponent(
-      this.compositionContext,
-      toBeComposed,
-      instruction
-    );
-
-    return this.swap(view);
-  }
-
-  /** @internal */
-  public componentChanged(toBeComposed: any): void {
-    if (this.view !== null && this.view.component === toBeComposed) {
-      return;
-    }
-
-    if (!toBeComposed) {
-      this.clear();
-    } else {
-      const previousTask = this.task;
-      const newTask = this.task = new CompositionTask(this);
-
-      if (previousTask !== null) {
-        const cancelResult = previousTask.cancel();
-
-        if (cancelResult instanceof Promise) {
-          cancelResult.then(() => newTask.start(toBeComposed));
-          return;
+    this.properties = instruction.instructions
+      .filter((x: any) => !composeProps.includes(x.dest))
+      .reduce((acc, item: any) => {
+        if (item.dest) {
+          acc[item.dest] = item;
         }
-      }
 
-      newTask.start(toBeComposed);
-    }
+        return acc;
+      }, {});
   }
 
-  private createContentElement(): INode {
-    let content = this.content;
-
-    if (content == null) {
-      this.content = content = DOM.createElement('au-content');
-      DOM.migrateChildNodes(this.host, content);
-    }
-
-    return DOM.cloneNode(content);
+  /** @internal */
+  public subjectChanged(newValue: any): void {
+    this.startComposition(newValue, BindingFlags.fromBindableHandler);
   }
 
-  private swap(newView: ViewWithCentralComponent) {
-    const index = this.$bindables.indexOf(this.view);
-    if (index !== -1) {
-      this.$bindables.splice(index, 1);
+  /** @internal */
+  public bound(): void {
+    this.startComposition(this.subject, BindingFlags.fromBind);
+  }
+
+  /** @internal */
+  public endComposition(subject: Subject, flags: BindingFlags): void {
+    const view = this.provideViewFor(subject);
+
+    this.clear();
+
+    if (view) {
+      view.onRender = () => view.$nodes.insertBefore(this.$projector.host);
+      view.lockScope(this.renderable.$scope);
+
+      this.currentView = view;
+      this.$addChild(view, flags);
     }
 
-    this.view = newView;
-    this.$bindables.push(newView);
+    this.composing = false;
+  }
 
-    if (this.$isBound) {
-      newView.$bind(BindingFlags.fromBind, this.renderable.$scope);
+  private provideViewFor(subject: Subject): IView | null {
+    if (!subject) {
+      return null;
     }
 
-    // return this.slot.swap(newView, this.swapOrder || SwapOrder.after);
+    if ('templateOrNode' in subject) { // Raw Template Definition
+      return this.renderingEngine.getViewFactory(
+        subject,
+        this.renderable.$context
+      ).create();
+    }
+
+    if ('create' in subject) { // IViewFactory
+      return subject.create();
+    }
+
+    if ('createView' in subject) { // PotentialRenderable
+      return subject.createView(
+        this.renderingEngine,
+        this.renderable.$context
+      );
+    }
+
+    if ('lockScope' in subject) { // IView
+      return subject;
+    }
+
+    // Constructable (Custom Element Constructor)
+    return createElement(
+      subject,
+      this.properties,
+      this.$projector.children
+    ).createView(
+      this.renderingEngine,
+      this.renderable.$context
+    );
+  }
+
+  private startComposition(subject: any, flags: BindingFlags): void {
+    if (this.task) {
+      this.task.cancel();
+    }
+
+    this.task = new CompositionTask(this, flags);
+    this.task.start(subject);
   }
 
   private clear(): void {
-    // this.slot.removeAll();
+    if (this.currentView) {
+      this.$removeChild(this.currentView);
+      this.currentView = null;
+    }
   }
 }
 
 class CompositionTask {
   private isCancelled: boolean = false;
-  private composeResult = null;
 
-  constructor(private compose: Compose) {}
+  constructor(private compose: Compose, private flags: BindingFlags) {}
 
-  public start(toBeComposed: any): void {
+  public start(subject: any): void {
     if (this.isCancelled) {
       return;
     }
 
-    this.compose.isComposing = true;
+    this.compose.composing = true;
 
-    if (toBeComposed instanceof Promise) {
-      toBeComposed.then(x => this.render(x));
+    if (subject instanceof Promise) {
+      subject.then(x => this.complete(x));
     } else {
-      this.render(toBeComposed);
+      this.complete(subject);
     }
   }
 
-  public cancel() {
-    this.compose.isComposing = false;
+  public cancel(): void {
     this.isCancelled = true;
-    return this.composeResult;
+    this.compose.composing = false;
   }
 
-  private render(toBeComposed: any): void {
+  private complete(subject: any): void {
     if (this.isCancelled) {
       return;
     }
 
-    this.composeResult = this.compose.compose(toBeComposed);
-
-    if (this.composeResult instanceof Promise) {
-      this.composeResult = this.composeResult.then(() =>  this.compose.isComposing = false);
-    } else {
-      this.compose.isComposing = false;
-      this.composeResult = null;
-    }
+    this.compose.endComposition(subject, this.flags);
   }
 }

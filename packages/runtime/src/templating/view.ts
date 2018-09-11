@@ -1,21 +1,15 @@
-import { Constructable, DI, Reporter } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
-import { DOM, INode, INodeSequence } from '../dom';
+import { INode, INodeSequence } from '../dom';
 import { IAnimator } from './animator';
-import { ICustomElement } from './custom-element';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
 import { IRenderContext } from './render-context';
-import { IRenderable } from './renderable';
+import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
 import { ITemplate } from './template';
 
 export type RenderCallback = (view: IView) => void;
-
-export enum MotionDirection {
-  enter = 'enter',
-  leave = 'leave'
-}
 
 export interface IView extends IBindScope, IRenderable, IAttach {
   readonly factory: IViewFactory;
@@ -23,11 +17,9 @@ export interface IView extends IBindScope, IRenderable, IAttach {
   onRender: RenderCallback;
   renderState: any;
 
-  animate(direction: MotionDirection): void | Promise<boolean>;
+  lockScope(scope: IScope): void;
   tryReturnToCache(): boolean;
 }
-
-export type ViewWithCentralComponent = IView & { component: ICustomElement };
 
 export interface IViewFactory {
   readonly name: string;
@@ -37,6 +29,9 @@ export interface IViewFactory {
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>().noDefault();
+
+/*@internal*/
+export interface View extends IView {}
 
 /*@internal*/
 export class View implements IView {
@@ -50,8 +45,7 @@ export class View implements IView {
   public onRender: RenderCallback;
   public renderState: any;
   public inCache: boolean = false;
-
-  private animationRoot: INode;
+  private $encapsulationSource: INode;
 
   constructor(public factory: ViewFactory, private template: ITemplate, private animator: IAnimator) {
     this.$nodes = this.createNodes();
@@ -61,21 +55,9 @@ export class View implements IView {
     return this.template.createFor(this);
   }
 
-  public animate(direction: MotionDirection = MotionDirection.enter): void | Promise<boolean> {
-    const element = this.getAnimationRoot();
-
-    if (element === null) {
-      return;
-    }
-
-    switch (direction) {
-      case MotionDirection.enter:
-        return this.animator.enter(element);
-      case MotionDirection.leave:
-        return this.animator.leave(element);
-      default:
-        throw Reporter.error(4, direction);
-    }
+  public lockScope(scope: IScope): void {
+    this.$scope = scope;
+    this.$bind = lockedBind;
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
@@ -102,6 +84,7 @@ export class View implements IView {
       return;
     }
 
+    this.$encapsulationSource = encapsulationSource;
     lifecycle = AttachLifecycle.start(this, lifecycle);
 
     const attachables = this.$attachables;
@@ -149,29 +132,10 @@ export class View implements IView {
   public tryReturnToCache(): boolean {
     return this.factory.tryReturnToCache(this);
   }
-
-  private getAnimationRoot(): INode {
-    if (this.animationRoot !== undefined) {
-      return this.animationRoot;
-    }
-
-    let currentChild = this.$nodes.firstChild;
-    const lastChild = this.$nodes.lastChild;
-    const isElementNodeType = DOM.isElementNodeType;
-
-    while (currentChild !== lastChild && !isElementNodeType(currentChild)) {
-      currentChild = currentChild.nextSibling;
-    }
-
-    if (currentChild && isElementNodeType(currentChild)) {
-      return this.animationRoot = DOM.hasClass(currentChild, 'au-animate')
-        ? currentChild
-        : null;
-    }
-
-    return this.animationRoot = null;
-  }
 }
+
+View.prototype.$addChild = addRenderableChild;
+View.prototype.$removeChild = removeRenderableChild;
 
 /*@internal*/
 export class ViewFactory implements IViewFactory {
@@ -225,4 +189,19 @@ export class ViewFactory implements IViewFactory {
 
     return new View(this, this.template, this.animator);
   }
+}
+
+function lockedBind(this: View, flags: BindingFlags): void {
+  if (this.$isBound) {
+    return;
+  }
+
+  const lockedScope = this.$scope;
+  const bindables = this.$bindables;
+
+  for (let i = 0, ii = bindables.length; i < ii; ++i) {
+    bindables[i].$bind(flags, lockedScope);
+  }
+
+  this.$isBound = true;
 }

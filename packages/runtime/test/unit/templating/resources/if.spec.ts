@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { If, Else, IView, BindingFlags } from '../../../../src/index';
-import { hydrateCustomAttribute } from '../attribute-assistance';
+import { hydrateCustomAttribute } from '../behavior-assistance';
 import { createScope } from '../scope-assistance';
 import { ViewFake } from '../fakes/view-fake';
 

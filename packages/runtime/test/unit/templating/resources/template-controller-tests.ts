@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { Constructable } from '../../../../../kernel/src/index';
 import { BindingFlags } from '../../../../src/index';
 import { ViewFake } from '../fakes/view-fake';
-import { hydrateCustomAttribute } from '../attribute-assistance';
+import { hydrateCustomAttribute } from '../behavior-assistance';
 import { createScope } from '../scope-assistance';
 
 export function ensureSingleChildTemplateControllerBehaviors(Type: Constructable) {

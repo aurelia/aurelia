@@ -83,20 +83,10 @@ jobs:
             npm run test-firefox
           environment:
             TS_NODE_PROJECT: ./scripts/tsconfig.json
-            JUNIT_REPORT_NAME: test-results.xml
-            TS_NODE_PROJECT: ./scripts/tsconfig.json
       - store_test_results:
-          path: ./packages/jit/junit
-      - store_test_results:
-          path: ./packages/kernel/junit
-      - store_test_results:
-          path: ./packages/runtime/junit
+          path: ~/repo/coverage
       - store_artifacts:
-          path: ./packages/jit/junit
-      - store_artifacts:
-          path: ./packages/kernel/junit
-      - store_artifacts:
-          path: ./packages/runtime/junit
+          path: ~/repo/coverage
 
   unit_tests_chrome:
     <<: *defaults
@@ -108,46 +98,29 @@ jobs:
           command: |
             npm run test
           environment:
-            JUNIT_REPORT_PATH: ./junit/
-            JUNIT_REPORT_NAME: test-results.xml
             TS_NODE_PROJECT: ./scripts/tsconfig.json
+      - run:
+          name: Combine coverage reports
+          command: |
+            npm run combine-coverage:json
+            npm run combine-coverage:lcov
+          when: always
       - run:
           name: Process coverage results for Code Climate
           command: |
-            mkdir ~/repo/code-climate
-            ~/cc-test-reporter format-coverage ~/repo/packages/jit/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-jit.json
-            ~/cc-test-reporter format-coverage ~/repo/packages/kernel/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-kernel.json
-            ~/cc-test-reporter format-coverage ~/repo/packages/runtime/coverage/lcov.info -t lcov -o ~/repo/code-climate/coverage-runtime.json
-            ~/cc-test-reporter sum-coverage ~/repo/code-climate/coverage-*.json -p 3 -o ~/repo/coverage-combined.json
-            ~/cc-test-reporter upload-coverage -i ~/repo/coverage-combined.json
+            ~/cc-test-reporter upload-coverage -i ~/repo/coverage/coverage-final.json
           environment:
             CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
           when: always
       - run:
           name: Process coverage for Codecov
           command: |
-            codecov -f ~/repo/packages/jit/coverage/coverage-final.json
-            codecov -f ~/repo/packages/kernel/coverage/coverage-final.json
-            codecov -f ~/repo/packages/runtime/coverage/coverage-final.json
+            codecov -f ~/repo/coverage/coverage-final.json
           when: always
       - store_test_results:
-          path: ./packages/jit/junit
-      - store_test_results:
-          path: ./packages/kernel/junit
-      - store_test_results:
-          path: ./packages/runtime/junit
+          path: ~/repo/coverage
       - store_artifacts:
-          path: ./packages/jit/junit
-      - store_artifacts:
-          path: ./packages/kernel/junit
-      - store_artifacts:
-          path: ./packages/runtime/junit
-      - store_artifacts:
-          path: ./packages/jit/coverage
-      - store_artifacts:
-          path: ./packages/kernel/coverage
-      - store_artifacts:
-          path: ./packages/runtime/coverage
+          path: ~/repo/coverage
 
   e2e_browserstack:
     <<: *defaults

@@ -148,14 +148,84 @@ describe('The "compose" custom element', () => {
     }
   }
 
-  function waitForCompositionEnd(element: Compose, callback: () => void, done: () => void) {
+  for (let producer of producerPossibilities) {
+    it(`can swap between views ${producer.description}`, done => {
+      const view1 = createViewFactory().create();
+      const view2 = createViewFactory().create();
+      const { element } = hydrateCustomElement(Compose);
+
+      waitForCompositionEnd(element, () => {
+        expect(element['currentView']).to.equal(view1);
+
+        waitForCompositionEnd(element, () => {
+          expect(element['currentView']).to.equal(view2);
+
+          waitForCompositionEnd(element, () => {
+            expect(element['currentView']).to.equal(view1);
+          }, done);
+
+          element.subject = producer.create(view1);
+        });
+
+        element.subject = producer.create(view2);
+      });
+
+      element.subject = producer.create(view1);
+    });
+  }
+
+  const noSubjectValues = [null, undefined];
+
+  for(let value of noSubjectValues) {
+    for (let producer of producerPossibilities) {
+      it(`clears out the view when the subject is ${value} ${producer.description}`, done => {
+        const view1 = createViewFactory().create();
+        const { element, parent } = hydrateCustomElement(Compose);
+        const location = element.$projector.host;
+
+        waitForCompositionEnd(element, () => {
+          element.$attach(parent);
+
+          expect(location.previousSibling)
+            .to.be.equal(element['currentView'].$nodes.lastChild);
+
+          let detachCalled = false;
+          const detach = view1.$detach;
+          view1.$detach = function(lifecycle) {
+            detachCalled = true;
+            detach.apply(view1, [lifecycle]);
+          };
+
+          let unbindCalled = false;
+          view1.$unbind = function() { unbindCalled = true; };
+
+          waitForCompositionEnd(element, () => {
+            expect(unbindCalled).to.be.true;
+            expect(detachCalled).to.be.true;
+            expect(location.previousSibling)
+              .to.be.equal(null);
+          }, done);
+
+          element.subject = producer.create(value);
+        });
+
+        element.subject = view1;
+      });
+    }
+  }
+
+  function waitForCompositionEnd(element: Compose, callback: () => void, done?: () => void) {
     const endComposition = element.endComposition;
 
     element.endComposition = function(subject, flags) {
       element.endComposition = endComposition;
       endComposition.apply(element, [subject, flags]);
+
       callback();
-      done();
+
+      if (done) {
+        done();
+      }
     };
   }
 

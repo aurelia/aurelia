@@ -109,16 +109,12 @@ export class Compose {
   }
 
   private startComposition(subject: any, flags: BindingFlags): void {
-    if (!subject) {
-      this.clear();
-    } else {
-      if (this.task) {
-        this.task.cancel();
-      }
-
-      this.task = new CompositionTask(this, flags);
-      this.task.start(subject);
+    if (this.task) {
+      this.task.cancel();
     }
+
+    this.task = new CompositionTask(this, flags);
+    this.task.start(subject);
   }
 
   private clear(): void {

@@ -45,7 +45,9 @@ const commonChromeFlags = [
 ];
 
 export default function(config: IKarmaConfig): void {
-  const packages = path.resolve(__dirname, '..', 'packages');
+  const root = path.resolve(__dirname, '..');
+  const cov = path.join(root, 'coverage', config.package);
+  const packages = path.join(root, 'packages');
   const basePath = path.join(packages, config.package);
   let browsers: string[];
   if (process.env.BROWSERS) {
@@ -88,7 +90,7 @@ export default function(config: IKarmaConfig): void {
     mime: {
       'text/x-typescript': ['ts']
     },
-    reporters: ['mocha'],
+    reporters: [process.env.CI ? 'junit' : 'mocha'],
     webpackMiddleware: {
       stats: {
         colors: true,
@@ -143,18 +145,14 @@ export default function(config: IKarmaConfig): void {
     });
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {
-      reports: ["html", "text-summary", "json", "lcov"],
-      fixWebpackSourcePaths: true
+      reports: ["html", "text-summary", "json", "lcovonly", "cobertura"],
+      dir: cov
     };
-    // if we're in CircleCI, add CircleCI-compatible junit report
-    if (process.env.CI) {
-      options.reporters.push('junit');
-      options.junitReporter = {
-        outputDir: process.env.JUNIT_REPORT_PATH,
-        outputFile: process.env.JUNIT_REPORT_NAME,
-        useBrowserName: false
-      };
-    }
+    options.junitReporter = {
+      outputDir: cov,
+      outputFile: 'test-results.xml',
+      useBrowserName: false
+    };
   }
 
   config.set(options);

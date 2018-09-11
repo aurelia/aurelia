@@ -341,7 +341,7 @@ describe(`The DI object`, () => {
     it(`throws when inject is not an array`, () => {
       class Bar {}
       class Foo{ static inject = Bar; }
-      expect(() => DI.getDependencies(Foo)).to.throw(/non-callable @@iterator/);
+      expect(() => DI.getDependencies(Foo)).to.throw();
       expect(getDesignParamTypes).not.to.have.been.called;
     });
 
@@ -1085,7 +1085,7 @@ describe(`The invokeWithDynamicDependencies function`, () => {
   const deps = [class Dep1{}, class Dep2{}, class Dep3{}];
 
   it(_`throws when staticDeps is null`, () => {
-    expect(() => invokeWithDynamicDependencies(container, Foo, null, [])).to.throw(/of null/);
+    expect(() => invokeWithDynamicDependencies(container, Foo, null, [])).to.throw();
   });
 
   it(_`throws when any of the staticDeps is null`, () => {
@@ -1097,7 +1097,7 @@ describe(`The invokeWithDynamicDependencies function`, () => {
   });
 
   it(_`throws when staticDeps is undefined`, () => {
-    expect(() => invokeWithDynamicDependencies(container, Foo, undefined, [])).to.throw(/of undefined/);
+    expect(() => invokeWithDynamicDependencies(container, Foo, undefined, [])).to.throw();
   });
 
   it(_`handles staticDeps is ${deps}`, () => {

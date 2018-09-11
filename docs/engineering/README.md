@@ -9,6 +9,7 @@ These docs cover more detailed aspects of Aurelia which are useful for those imp
 - [Cross-package development workflow (manual browser testing)](#cross-package-development-workflow-manual-browser-testing)
 - [Setup + workflow (TDD + manual browser testing)](#setup-workflow-tdd-manual-browser-testing)
 - [Speeding up the TDD workflow](#speeding-up-the-tdd-workflow)
+- [Cleaning up the working directory](#cleaning-up-the-working-directory)
 
 ## Building and testing
 
@@ -163,3 +164,26 @@ There are a lot of tests and they take a while to run. When developing a new fea
 - Add a failing test at the end of your file so your local `npm run test:debugger -- --bail` mode won't run the other thousands of tests that come after it, but the top-level `npm run test:watch` will still run all tests from all packages, giving you the option to verify them on occasion.
 
 As an alternative to the above (if you just want to run one specific test or suite at all), simply change `describe(` to `describe.only(`. This works at any level and also works for `it(`
+
+
+## Cleaning up the working directory
+
+For a wide variety of reasons the working directory may cause building/testing to become flaky. This can happen after making/reverting several big changes, switching branches or doing a big rebase/merge.
+
+If in one way or another a lot of errors are occurring during building, testing, or in intellisense, running `npm run refresh` may help.
+
+This convenience script does the following:
+
+- `lerna clean -y` unlinks the packages, effectively deleting their node_modules folders
+- `nodetouch ensurestash` creates an empty file named "ensurestash" which, as the name implies, ensures that `git stash` has something to stash (if the working directly is already clean)
+- `git add . && git stash` stashes any staged and unstaged changes that aren't committed yet
+- `git clean -xfd` recursively removes all files and folders which are not tracked and committed (that includes dist, node_modules, coverage, etc)
+- `git stash pop` restores the previously uncommitted changes (or just the "ensurestash" file if there were none)
+- `npm ci` installs the top-level node_modules again
+- `rimraf ensurestash` removes the ensurestash file again
+- `npm run bootstrap` links the packages again
+- `npm run build` compiles the typescript so that all typings are correct again
+
+End result should be equivalent to a complete delete and re-clone of the repository, except that it keeps local branches and any (non-ignored) changes in the working directory.
+
+It is probably a good idea to also close and reopen the folder in VS Code after doing this.

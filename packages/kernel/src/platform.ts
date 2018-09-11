@@ -27,52 +27,50 @@ export const PLATFORM = {
   },
 
   camelCase(input: string): string {
-    // benchmark: http://jsben.ch/lCFIe
+    // benchmark: http://jsben.ch/qIz4Z
     let value = camelCaseLookup[input];
-    if (value !== undefined) {
-      return value;
-    }
-    let char = input.charCodeAt(0); // make first char toLower
-    if (char > 64 && char < 91) { // 65-90 = A-Z
-      value = fromCharCode(char + 32); // 32 is the offset between lower case and upper case char codes
-    } else {
-      value = fromCharCode(char);
-    }
-    for (let i = 1, ii = input.length; i < ii; ++i) {
-      char = input.charCodeAt(i);
-      if (char === 45 /*-*/ || char === 46 /*.*/ || char === 95 /*_*/) {
-        const next = input.charCodeAt(++i);
-        if (next > 96 && next < 123) { // 97-122 = a-z
-          value += fromCharCode(next - 32); // make char following a separator toUpper
-          continue;
-        }
+    if (value !== undefined) return value;
+    value = '';
+    let first = true;
+    let sep = false;
+    let char: string;
+    for (let i = 0, ii = input.length; i < ii; ++i) {
+      char = input.charAt(i);
+      if (char === '-' || char === '.' || char === '_') {
+        sep = true; // skip separators
+      } else {
+        value = value + (first ? char.toLowerCase() : (sep ? char.toUpperCase() : char));
+        sep = false;
       }
-      value += fromCharCode(char);
+      first = false;
     }
     return camelCaseLookup[input] = value;
   },
 
   kebabCase(input: string): string {
-    // benchmark: http://jsben.ch/K6D8o
+    // benchmark: http://jsben.ch/v7K9T
     let value = kebabCaseLookup[input];
-    if (value !== undefined) {
-      return value;
-    }
-    let char = input.charCodeAt(0); // make first char toLower
-    if (char > 64 && char < 91) { // 65-90 = A-Z
-      value = fromCharCode(char + 32); // 32 is the offset between lower case and upper case char codes
-    } else {
-      value = fromCharCode(char);
-    }
-    for (let i = 1, ii = input.length; i < ii; ++i) {
-      char = input.charCodeAt(i);
-      if (char > 64 && char < 91) {
-        value += `-${fromCharCode(char + 32)}`;
-        continue;
-      }
-      value += fromCharCode(char);
+    if (value !== undefined) return value;
+    value = '';
+    let first = true;
+    let char: string, lower: string;
+    for (let i = 0, ii = input.length; i < ii; ++i) {
+      char = input.charAt(i);
+      lower = char.toLowerCase();
+      value = value + (first ? lower : (char !== lower ? `-${lower}` : lower));
+      first = false;
     }
     return kebabCaseLookup[input] = value;
+  },
+
+  toArray<T = any>(input: ArrayLike<T>): T[] {
+    // benchmark: http://jsben.ch/xjsyF
+    const len = input.length;
+    const arr = Array(len);
+    for (let i = 0; i < len; ++i) {
+        arr[i] = input[i];
+    }
+    return arr;
   },
 
   requestAnimationFrame(callback: (time: number) => void): number {

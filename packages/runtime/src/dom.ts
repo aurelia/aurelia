@@ -296,17 +296,7 @@ export class FragmentNodeSequence implements INodeSequence {
     this.fragment = fragment;
     this.firstChild = fragment.firstChild;
     this.lastChild = fragment.lastChild;
-
-    const childNodes = fragment.childNodes;
-    // pre-allocated array with a manual while loop is 3-10x faster than Array.from()
-    const len = childNodes.length;
-    const childNodesArr = new Array(len);
-    let i = 0;
-    while (i < len) {
-      childNodesArr[i] = childNodes.item(i);
-      i++;
-    }
-    this.childNodes = childNodesArr;
+    this.childNodes = PLATFORM.toArray(fragment.childNodes);
   }
 
   findTargets(): ArrayLike<Node> {

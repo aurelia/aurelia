@@ -179,8 +179,8 @@ This convenience script does the following:
 - `git add . && git stash` stashes any staged and unstaged changes that aren't committed yet
 - `git clean -xfd` recursively removes all files and folders which are not tracked and committed (that includes dist, node_modules, coverage, etc)
 - `git stash pop` restores the previously uncommitted changes (or just the "ensurestash" file if there were none)
+- `git rm -f ensurestash` removes the ensurestash file again
 - `npm ci` installs the top-level node_modules again
-- `rimraf ensurestash` removes the ensurestash file again
 - `npm run bootstrap` links the packages again
 - `npm run build` compiles the typescript so that all typings are correct again
 

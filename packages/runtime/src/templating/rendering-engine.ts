@@ -199,9 +199,9 @@ export function createDefinition(definition: Immutable<ITemplateSource>): Templa
       required: false
     },
     bindables: definition.bindables || PLATFORM.emptyObject,
-    instructions: definition.instructions ? Array.from(definition.instructions) : PLATFORM.emptyArray,
-    dependencies: definition.dependencies ? Array.from(definition.dependencies) : PLATFORM.emptyArray,
-    surrogates: definition.surrogates ? Array.from(definition.surrogates) : PLATFORM.emptyArray,
+    instructions: definition.instructions ? PLATFORM.toArray(definition.instructions) : PLATFORM.emptyArray,
+    dependencies: definition.dependencies ? PLATFORM.toArray(definition.dependencies) : PLATFORM.emptyArray,
+    surrogates: definition.surrogates ? PLATFORM.toArray(definition.surrogates) : PLATFORM.emptyArray,
     containerless: definition.containerless || false,
     shadowOptions: definition.shadowOptions || null,
     hasSlots: definition.hasSlots || false

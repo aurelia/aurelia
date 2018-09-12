@@ -16,7 +16,7 @@ const selectMap = {
   9: 'nine'
 };
 
-describe(`Select App`, () => {
+describe(`Select App - `, () => {
   beforeEach(() => {
     browser.url('index.select.html');
   });
@@ -66,5 +66,12 @@ describe(`Select App`, () => {
       AppPage.checkCheckbox();
     });
 
+
+    it(`select each item one by one by index`, () => {
+      for (let i = 0; i < 10; ++i) {
+        AppPage.setSelectByIndex(i);
+        expect(AppPage.options.filter(o => o.isSelected()).length).to.equal(i+1);
+      }
+    });
   });
 });

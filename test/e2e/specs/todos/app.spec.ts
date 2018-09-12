@@ -5,7 +5,7 @@ import { AppPage } from './app.page';
 import * as a from 'wdio-allure-reporter';
 const allure = <import('wdio-allure-reporter').allure>(a.default || a);
 
-describe(`App Page`, () => {
+describe(`Todos App - `, () => {
   beforeEach(() => {
     browser.url('index.todos.html');
     allure.addEnvironment('browserName', browser.desiredCapabilities['browserName']);

@@ -57,4 +57,8 @@ export class AppPage {
     logAction(`clickCheckbox`);
     this.checkbox.click();
   }
+
+  public static get options() {
+    return $$('.option');
+  }
 }

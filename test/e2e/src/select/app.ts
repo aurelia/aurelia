@@ -16,8 +16,6 @@ export interface IOption {
   dependencies: []
 })
 export class App {
-  public app: HTMLDivElement;
-
   public options: IOption[] = [
     { value: 0, text: 'zero'  },
     { value: 1, text: 'one'   },
@@ -30,12 +28,4 @@ export class App {
     { value: 8, text: 'eight' },
     { value: 9, text: 'nine'  }
   ];
-
-  public attached(): void {
-    this.app['$app'] = this;
-  }
-
-  public detached(): void {
-    delete this.app['$app'];
-  }
 }

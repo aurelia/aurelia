@@ -32,7 +32,7 @@ exports.config = {
 
   updateJob: false,
   specs: [
-    'dist/test/e2e/specs/select/app.spec.js'
+    'dist/test/e2e/**/*.spec.js'
   ],
   exclude: [],
 
@@ -248,7 +248,7 @@ exports.config = {
     after: function (result, capabilities, specs) {
       if (result > 0) {
         console.log(`Error - marking session ${browser.sessionId} as failed - code ${result}`);
-        CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: 'code 1' });
+        CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: `code ${result}` });
       }
     },
     /**

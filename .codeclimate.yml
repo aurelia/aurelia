@@ -56,7 +56,7 @@ checks:
 # Similar blocks of code
 # Duplicate code which is not identical but shares the same structure (e.g. variable names may differ)
   similar-code:
-    enabled: true # default true
+    enabled: false # default true
 plugins:
   tslint:
     enabled: true

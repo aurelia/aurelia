@@ -27,14 +27,14 @@ async function bundle() {
       file: join(pkg.path, 'dist', 'index.es6.js'),
       name: PLATFORM.camelCase(pkg.name),
       format: 'esm',
-      sourcemap: 'inline'
+      sourcemap: true
     });
 
     await bundle.write({
       file: join(pkg.path, 'dist', 'index.js'),
       name: PLATFORM.camelCase(pkg.name),
       format: 'umd',
-      sourcemap: 'inline'
+      sourcemap: true
     });
   }
 }

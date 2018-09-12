@@ -13,8 +13,10 @@
     "test-firefox": "lerna run test-firefox",
     "test:watch": "lerna run test:watch",
     "lint": "lerna run lint",
+    "prepare-release": "lerna version --conventional-commits --no-push --no-git-tag-version --exact --loglevel verbose -y",
     "publish:local": "lerna run publish:local --parallel",
-    "publish:nightly": "ts-node -P scripts/tsconfig.json scripts/publish-nightly.ts dev",
+    "publish:dev": "ts-node -P scripts/tsconfig.json scripts/publish.ts dev",
+    "publish:latest": "ts-node -P scripts/tsconfig.json scripts/publish.ts latest",
     "combine-coverage:json": "ts-node -P scripts/tsconfig.json scripts/combine-coverage.ts json",
     "combine-coverage:lcov": "ts-node -P scripts/tsconfig.json scripts/combine-coverage.ts lcovonly",
     "refresh": "lerna clean -y && nodetouch ensurestash && git add . && git stash && git clean -xfd && git stash pop && git rm -f ensurestash && npm ci && npm run bootstrap && npm run build"

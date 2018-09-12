@@ -163,9 +163,7 @@ jobs:
           name: Run the e2e tests
           command: |
             cd ./test/e2e
-            npm run e2e
-          environment:
-            BS_COMPAT_CHECK: true
+            npm run e2e:compat
       - run:
           name: Generate allure report
           command: |
@@ -227,7 +225,7 @@ jobs:
             cd ~/repo/packages/examples/e2e-benchmark/vcurrent
             npm run e2e
 
-  publish_nightly:
+  publish_dev:
     <<: *defaults
     steps:
       - checkout
@@ -237,50 +235,91 @@ jobs:
           name: Authenticate with registry
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
       - run:
-          name: Publish nightly release
+          name: Publish to @dev
           command: |
-            npm run publish:nightly
+            npm run publish:dev
+
+  merge_push_release:
+    <<: *defaults
+    steps:
+      - checkout
+      - *step_restore_cache
+      - *step_attach_workspace
+      - run:
+          name: Merge tag into release
+          command: |
+            git checkout release
+            git merge $CIRCLE_TAG --squash --no-ff
+            git push
+
+  publish_latest:
+    <<: *defaults
+    steps:
+      - checkout
+      - *step_restore_cache
+      - *step_attach_workspace
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+      - run:
+          name: Publish to @latest
+          command: |
+            npm run publish:latest
 
 workflows:
   version: 2
   # This workflow runs on every commit to any branch (with or without PR)
-  default_workflow:
+  build_test:
     jobs:
       - install
       - build:
           requires:
             - install
+          filters:
+            tags:
+              only: /^v.*/
       - unit_tests_chrome:
           requires:
             - install
-      # Only run the tests in firefox when on master (that's the thorough testing branch)
+          filters:
+            tags:
+              only: /^v.*/
+      # Only run the tests in firefox when on master or release (those are the thorough testing branches)
       # - todo: move to browserstack and add more browsers
-      # - todo: later we'll have another specialized workflow (or variant of this one) for release branch
       - unit_tests_firefox:
           requires:
             - install
           filters:
             branches:
-              only: master
+              only:
+                - master
+                - release
+            tags:
+              only: /^v.*/
       # This is the "lightweight" browserstack test set (only latest browser / latest OS)
-      # It runs on every commit on every non-master branch
+      # It runs on every commit on every non-release branch
       - e2e_browserstack:
           requires:
             - build
           filters:
             branches:
-              ignore: master
+              ignore: release
+            tags:
+              only: /^v.*/
       # This is the full browserstack test set (last 3 versions of every browser on multiple OSes + OS versions)
-      # It runs on every commit to master
+      # It runs on every commit to release
       - e2e_browserstack_compat:
           requires:
             - build
           filters:
             branches:
-              only: master
+              only: release
       - e2e_benchmark_vnext:
           requires:
             - build
+          filters:
+            tags:
+              only: /^v.*/
       # Only run the vCurrent benchmark on commits to master (don't need to refresh data we already have on every commit to every branch)
       - e2e_benchmark_vcurrent:
           requires:
@@ -288,10 +327,33 @@ workflows:
           filters:
             branches:
               only: master
+      # Merge the master branch into release
+      - merge_push_release:
+          requires:
+            - build
+            - unit_tests_chrome
+            - unit_tests_firefox
+            - e2e_browserstack
+            - e2e_benchmark_vnext
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+      - publish_latest:
+          type: approval
+          requires:
+            - build
+            - unit_tests_chrome
+            - unit_tests_firefox
+            - e2e_browserstack_compat
+            - e2e_benchmark_vnext
+          filters:
+            branches:
+              only: release
 
   # This workflow runs once per day on 0:00 UTC on the master branch
-  # - todo: add another schedule for release branch that generates change log and publishes normal release (only if there are changes and all integration+e2e tests pass)
-  nightly:
+  build_test_deploy_dev:
     triggers:
       - schedule:
           cron: "0 0 * * *"
@@ -314,10 +376,11 @@ workflows:
       - e2e_browserstack:
           requires:
             - build
-      - publish_nightly:
+      - publish_dev:
           requires:
             - build
             - unit_tests_chrome
             - unit_tests_firefox
             - e2e_browserstack
+
 

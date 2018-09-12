@@ -20,7 +20,7 @@ async function bundle() {
           typescript: ts
         })
       ],
-      external: project.packages.filter(p => p.name !== pkg.name).map(p => p.scopedName)
+      external: project.packages.filter(p => p.name !== pkg.name).map(p => p.scopedName).concat('tslib')
     });
 
     await bundle.write({
@@ -32,7 +32,15 @@ async function bundle() {
 
     await bundle.write({
       file: join(pkg.path, 'dist', 'index.js'),
+      exports: 'named',
       name: PLATFORM.camelCase(pkg.name),
+      globals: {
+        ...project.packages.reduce((g, pkg) => {
+          g[pkg.scopedName] = pkg.name;
+          return g;
+        }, {}),
+        'tslib': 'tslib'
+      },
       format: 'umd',
       sourcemap: true
     });

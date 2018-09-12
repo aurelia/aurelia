@@ -5,6 +5,7 @@
     "declaration": true,
     "declarationMap": true,
     "experimentalDecorators": true,
+    "importHelpers": true,
     "lib": ["esnext", "dom"],
     "module": "esnext",
     "moduleResolution": "node",

@@ -22,7 +22,9 @@
     "combine-coverage:lcov": "ts-node -P scripts/tsconfig.json scripts/combine-coverage.ts lcovonly",
     "refresh": "lerna clean -y && nodetouch ensurestash && git add . && git stash && git clean -xfd && git stash pop && git rm -f ensurestash && npm ci && npm run bootstrap && npm run build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "tslib": "^1.9.3"
+  },
   "devDependencies": {
     "@types/acorn": "^4.0.3",
     "@types/chai": "^4.1.4",

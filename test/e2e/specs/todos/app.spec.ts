@@ -1,13 +1,13 @@
 // tslint:disable:mocha-no-side-effect-code
 // tslint:disable:typedef
 import { expect } from 'chai';
-import { AppPage } from '../page-objects/app.page';
+import { AppPage } from './app.page';
 import * as a from 'wdio-allure-reporter';
 const allure = <import('wdio-allure-reporter').allure>(a.default || a);
 
 describe(`App Page`, () => {
   beforeEach(() => {
-    browser.url('');
+    browser.url('index.todos.html');
     allure.addEnvironment('browserName', browser.desiredCapabilities['browserName']);
     allure.addEnvironment('browser_version', browser.desiredCapabilities['browser_version']);
     allure.addEnvironment('os', browser.desiredCapabilities['os']);

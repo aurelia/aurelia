@@ -31,7 +31,9 @@ exports.config = {
   key: CIEnv.BS_KEY,
 
   updateJob: false,
-  specs: ['dist/**/*.spec.js'],
+  specs: [
+    'dist/test/e2e/specs/select/app.spec.js'
+  ],
   exclude: [],
 
   maxInstances: 5,
@@ -219,8 +221,8 @@ exports.config = {
       if (result) {
         const { state, status } = result;
         if (state === 'failure' || status === 'failure' || state === 1 || status === 1) {
-          console.log('Marking test as failed');
-          CIEnv.browserstackPut(`sessions/${result.sessionId}.json`, { status: 'failed', reason: error });
+          console.log(`Error - marking session ${browser.sessionId} as failed - ${error}`);
+          CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: error });
         }
       }
     },
@@ -244,6 +246,10 @@ exports.config = {
      * @param {Array.<String>} specs List of spec file paths that ran
      */
     after: function (result, capabilities, specs) {
+      if (result > 0) {
+        console.log(`Error - marking session ${browser.sessionId} as failed - code ${result}`);
+        CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: 'code 1' });
+      }
     },
     /**
      * Gets executed right after terminating the webdriver session.
@@ -260,6 +266,7 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      */
     onComplete: function (exitCode, config, capabilities) {
+      console.log(`onComplete, exitCode: ${exitCode}`);
       exports.bs_local.stop(function() {});
     },
     /**
@@ -267,7 +274,8 @@ exports.config = {
     * @ {String} error message
     */
     onError: function(message) {
-      console.log('onError', message);
+      console.log(`Error - marking session ${browser.sessionId} as failed - ${message}`);
+      CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: message });
     }
 }
 

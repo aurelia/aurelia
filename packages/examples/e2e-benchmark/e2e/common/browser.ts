@@ -109,3 +109,7 @@ export async function getRenderTime() {
 export async function getAureliaMeasurements() {
   return executeScript<{name: string; startTime: number; duration: number}[]>('return getAureliaMeasurements();');
 }
+
+export async function getAllEntries() {
+  return executeScript<any[]>('return performance.getEntries();');
+}

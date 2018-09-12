@@ -198,6 +198,8 @@ jobs:
           command: |
             cd ~/repo/packages/examples/e2e-benchmark/vnext
             npm run e2e
+      - store_artifacts:
+          path: ~/repo/packages/examples/e2e-benchmark/vnext/performance-entries.json
 
   e2e_benchmark_vcurrent:
     <<: *defaults
@@ -224,6 +226,8 @@ jobs:
           command: |
             cd ~/repo/packages/examples/e2e-benchmark/vcurrent
             npm run e2e
+      - store_artifacts:
+          path: ~/repo/packages/examples/e2e-benchmark/vcurrent/performance-entries.json
 
   publish_dev:
     <<: *defaults

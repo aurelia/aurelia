@@ -1,21 +1,27 @@
 // tslint:disable:mocha-no-side-effect-code
 // tslint:disable:typedef
 import { expect } from 'chai';
-import { browser, loadUrl } from './common/browser';
+import { writeFileSync } from 'fs';
+import { browser, getAllEntries, loadUrl } from './common/browser';
 import { processMeasurements } from './common/measurements';
 import { AppPage } from './page-objects/app.page';
 
 describe(`App page`, () => {
+  const entries = [];
+
   beforeEach(async () => {
     await loadUrl(`http://localhost:3000`);
   });
 
   afterEach(async () => {
     await processMeasurements();
+    entries.push(...(await getAllEntries()));
   });
 
   after(async () => {
     await browser.quit();
+    const results = JSON.stringify(entries, null, 2);
+    writeFileSync('./performance-entries.json', results, { encoding: 'utf8' })
   });
 
   describe(`warmup`, () => {

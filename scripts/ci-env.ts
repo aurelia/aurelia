@@ -280,4 +280,22 @@ export class CIEnv {
       });
     });
   }
+
+  public static async browserstackPut(path: string, body: any): Promise<any> {
+    const baseUrl = 'https://api.browserstack.com/automate';
+    const auth = new Buffer(`${CIEnv.BS_USER}:${CIEnv.BS_KEY}`).toString('base64');
+    return new Promise(resolve => {
+      request.put({
+        url: `${baseUrl}/${path}`,
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'request'
+        },
+        body: JSON.stringify(body)
+      }, (err, resp, body) => {
+        resolve(resp);
+      });
+    });
+  }
 }

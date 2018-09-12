@@ -216,6 +216,13 @@ exports.config = {
      * @param {Object} error error object if any
      */
     afterCommand: function (commandName, args, result, error) {
+      if (result) {
+        const { state, status } = result;
+        if (state === 'failure' || status === 'failure' || state === 1 || status === 1) {
+          console.log('Marking test as failed');
+          CIEnv.browserstackPut(`sessions/${result.sessionId}.json`, { status: 'failed', reason: error });
+        }
+      }
     },
     /**
      * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
@@ -260,6 +267,7 @@ exports.config = {
     * @ {String} error message
     */
     onError: function(message) {
+      console.log('onError', message);
     }
 }
 

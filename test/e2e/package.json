@@ -16,7 +16,8 @@
   "dependencies": {
     "@aurelia/jit": "../../packages/jit",
     "@aurelia/kernel": "../../packages/kernel",
-    "@aurelia/runtime": "../../packages/runtime"
+    "@aurelia/runtime": "../../packages/runtime",
+    "tslib": "^1.9.3"
   },
   "devDependencies": {
     "@types/chai": "^4.1.4",

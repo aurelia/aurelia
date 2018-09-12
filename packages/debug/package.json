@@ -1,9 +1,9 @@
 {
   "name": "@aurelia/debug",
   "version": "0.1.1",
-  "main": "dist/umd/index.js",
-  "module": "dist/esnext/index.js",
-  "jsnext:main": "dist/esnext/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es6.js",
+  "jsnext:main": "dist/index.es6.js",
   "types": "dist/types/index.d.ts",
   "typings": "dist/types/index.d.ts",
   "license": "MIT",

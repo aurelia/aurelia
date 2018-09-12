@@ -18,17 +18,17 @@ export class AppPage {
 
   public static setSelectByValue(value: string) {
     logAction(`setSelectByValue: ${value}`);
-    this.select.selectByValue(value)
+    this.select.selectByValue(value);
   }
 
   public static setSelectByVisibleText(text: string) {
     logAction(`setSelectByVisibleText: ${text}`);
-    this.select.selectByVisibleText(text)
+    this.select.selectByVisibleText(text);
   }
 
   public static setSelectByIndex(index: number) {
     logAction(`setSelectByIndex: ${index}`);
-    this.select.selectByIndex(index)
+    this.select.selectByIndex(index);
   }
 
   public static get checkbox() {
@@ -60,5 +60,9 @@ export class AppPage {
 
   public static get options() {
     return $$('.option');
+  }
+
+  public static option(index: number) {
+    return $(`#option-${index}`);
   }
 }

@@ -1,3 +1,4 @@
+import { IIndexable, Primitive } from '@aurelia/kernel';
 // tslint:disable:no-reserved-keywords
 import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
@@ -14,7 +15,7 @@ export const nativeDelete = proto.delete;
 // fortunately, map/delete/clear are easy to reconstruct for the indexMap
 
 // https://tc39.github.io/ecma262/#sec-map.prototype.map
-function observeSet(this: IObservedMap, key: any, value: any): ReturnType<typeof nativeSet> {
+function observeSet(this: IObservedMap, key: IIndexable | Primitive, value: IIndexable | Primitive): ReturnType<typeof nativeSet> {
   const o = this.$observer;
   if (o === undefined) {
     return nativeSet.call(this, key, value);
@@ -23,7 +24,7 @@ function observeSet(this: IObservedMap, key: any, value: any): ReturnType<typeof
   nativeSet.call(this, key, value);
   const newSize = this.size;
   if (newSize === oldSize) {
-    let i = 0
+    let i = 0;
     for (const entry of this.entries()) {
       if (entry[0] === key) {
         if (entry[1] !== value) {
@@ -64,7 +65,7 @@ function observeClear(this: IObservedMap): ReturnType<typeof nativeClear>  {
 }
 
 // https://tc39.github.io/ecma262/#sec-map.prototype.delete
-function observeDelete(this: IObservedMap, value: any): ReturnType<typeof nativeDelete> {
+function observeDelete(this: IObservedMap, value: IIndexable | Primitive): ReturnType<typeof nativeDelete> {
   const o = this.$observer;
   if (o === undefined) {
     return nativeDelete.call(this, value);
@@ -117,14 +118,14 @@ export class MapObserver implements MapObserver {
 
   public collection: IObservedMap;
 
-  constructor(changeSet: IChangeSet, map: Map<any, any> & { $observer?: MapObserver }) {
+  constructor(changeSet: IChangeSet, map: IObservedMap) {
     this.changeSet = changeSet;
     map.$observer = this;
-    this.collection = <IObservedMap>map;
+    this.collection = map;
     this.resetIndexMap();
   }
 }
 
-export function getMapObserver(changeSet: IChangeSet, map: any): MapObserver {
-  return map.$observer || new MapObserver(changeSet, map);
+export function getMapObserver(changeSet: IChangeSet, map: IObservedMap): MapObserver {
+  return (map.$observer as MapObserver) || new MapObserver(changeSet, map);
 }

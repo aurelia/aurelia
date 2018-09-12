@@ -16,9 +16,10 @@ export class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.
   public setValue: () => void;
   public subscribe: () => void;
   public unsubscribe: () => void;
+  public dispose: () => void;
 
   public doNotCache: boolean = true;
-  private obj: Primitive;
+  public obj: Primitive;
 
   constructor(obj: Primitive, propertyKey: PropertyKey) {
     // we don't need to store propertyName because only 'length' can return a useful value
@@ -32,7 +33,7 @@ export class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.
   }
 
   private getStringLength(): number {
-    return (<any>this.obj).length;
+    return (<string>this.obj).length;
   }
   private returnUndefined(): undefined {
     return undefined;
@@ -41,6 +42,7 @@ export class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.
 PrimitiveObserver.prototype.setValue = noop;
 PrimitiveObserver.prototype.subscribe = noop;
 PrimitiveObserver.prototype.unsubscribe = noop;
+PrimitiveObserver.prototype.dispose = noop;
 
 // tslint:disable-next-line:interface-name
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
@@ -57,10 +59,10 @@ export class SetterObserver implements SetterObserver {
     this.propertyKey = propertyKey;
   }
 
-  public getValue(): any {
+  public getValue(): IIndexable | Primitive {
     return this.currentValue;
   }
-  public setValue(newValue: any, flags: BindingFlags): void {
+  public setValue(newValue: IIndexable | Primitive, flags: BindingFlags): void {
     const currentValue = this.currentValue;
     if (currentValue !== newValue) {
       this.currentValue = newValue;
@@ -78,9 +80,9 @@ export interface Observer extends IPropertyObserver<IIndexable, string> {}
 export class Observer implements Observer {
   public obj: IIndexable;
   public propertyKey: string;
-  public currentValue: any;
+  public currentValue: IIndexable | Primitive;
 
-  private callback: (oldValue: any, newValue: any) => any;
+  private callback: (oldValue: IIndexable | Primitive, newValue: IIndexable | Primitive) => IIndexable | Primitive;
 
   constructor(
     instance: object,
@@ -95,11 +97,11 @@ export class Observer implements Observer {
         : noop;
   }
 
-  public getValue(): any {
+  public getValue(): IIndexable | Primitive {
     return this.currentValue;
   }
 
-  public setValue<T>(newValue: T, flags: BindingFlags): void {
+  public setValue(newValue: IIndexable | Primitive, flags: BindingFlags): void {
     const currentValue = this.currentValue;
 
     if (currentValue !== newValue) {

@@ -7,7 +7,7 @@ import { subscriberCollection } from './subscriber-collection';
 type BindingTargetAccessor = IBindingTargetAccessor & {
   changeSet: IChangeSet;
   currentFlags: BindingFlags;
-  oldValue?: any;
+  oldValue?: IIndexable | Primitive;
   defaultValue: Primitive | IIndexable;
   flushChanges(): void;
   setValueCore(value: Primitive | IIndexable, flags: BindingFlags): void;

@@ -1,7 +1,8 @@
-import { IDisposable } from '@aurelia/kernel';
+import { IDisposable, IIndexable } from '@aurelia/kernel';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
+// tslint:disable:no-any
 
 export interface IBindScope {
   readonly $isBound: boolean;
@@ -45,17 +46,17 @@ export interface IBindingTargetObserver<
 
 export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
 
-export interface IObservable<T = any> {
-  $observers: Record<string, AccessorOrObserver>;
-}
+export type IObservable = (IIndexable | string | Node | Collection) & {
+  $observers?: Record<string, AccessorOrObserver>;
+};
 
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
  *
  * The deletedItems property contains the items (in case of an array) or keys (in case of map or set) that have been deleted.
  */
-export type IndexMap = Array<number> & {
-  deletedItems?: Array<any>;
+export type IndexMap = number[] & {
+  deletedItems?: any[];
 };
 
 /**
@@ -80,7 +81,7 @@ export enum MutationKind {
 export interface IPropertyChangeTracker<TObj extends Object, TProp = keyof TObj, TValue = any> {
   obj: TObj;
   propertyKey?: TProp;
-  currentValue: TValue;
+  currentValue?: TValue;
 }
 
 /**
@@ -92,11 +93,10 @@ export interface ICollectionChangeTracker<T extends Collection> extends IChangeT
   resetIndexMap(): void;
 }
 
-
 /**
  * Represents a (subscriber) function that can be called by a PropertyChangeNotifier
  */
-export interface IPropertyChangeHandler { (newValue: any, previousValue: any, flags: BindingFlags): void; }
+export type IPropertyChangeHandler<TValue = any> = (newValue: TValue, previousValue: TValue, flags: BindingFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of mutations on a property
  */
@@ -105,12 +105,12 @@ export interface IPropertyChangeNotifier extends IPropertyChangeHandler {}
 /**
  * Describes a (subscriber) type that has a function conforming to the IPropertyChangeHandler interface
  */
-export interface IPropertySubscriber { handleChange(newValue: any, previousValue: any, flags: BindingFlags): void; }
+export interface IPropertySubscriber<TValue = any> { handleChange(newValue: TValue, previousValue: TValue, flags: BindingFlags): void; }
 
 /**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
  */
-export interface ICollectionChangeHandler { (origin: string, args: IArguments | null, flags?: BindingFlags): void; }
+export type ICollectionChangeHandler = (origin: string, args: IArguments | null, flags?: BindingFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of mutations in a collection
  */
@@ -119,7 +119,7 @@ export interface ICollectionChangeNotifier extends ICollectionChangeHandler {}
 /**
  * Represents a (subscriber) function that can be called by a BatchedCollectionChangeNotifier
  */
-export interface IBatchedCollectionChangeHandler { (indexMap: Array<number>): void; }
+export type IBatchedCollectionChangeHandler = (indexMap: number[]) => void;
 /**
  * Represents a (observer) function that can notify subscribers of batched mutations in a collection
  */
@@ -132,7 +132,7 @@ export interface ICollectionSubscriber { handleChange(origin: string, args: IArg
 /**
  * Describes a (subscriber) type that has a function conforming to the IBatchedCollectionChangeNotifier interface
  */
-export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: Array<number>): void; }
+export interface IBatchedCollectionSubscriber { handleBatchedChange(indexMap: number[]): void; }
 
 /**
  * Either a property or collection subscriber
@@ -216,9 +216,9 @@ export interface IBatchedSubscriberCollection<T extends MutationKind> extends IB
   /*@internal*/_batchedSubscribersRest?: MutationKindToBatchedSubscriber<T>[];
 
   /*@internal*/changeSet?: IChangeSet;
-  /*@internal*/flushChanges(): void;
-
   callBatchedSubscribers: MutationKindToBatchedNotifier<T>;
+
+  /*@internal*/flushChanges(): void;
   hasBatchedSubscribers(): boolean;
   hasBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;
   removeBatchedSubscriber(subscriber: MutationKindToBatchedSubscriber<T>): boolean;
@@ -235,7 +235,7 @@ export interface IBatchedSubscribable<T extends MutationKind> {
  */
 export interface IPropertyObserver<TObj extends Object, TProp extends keyof TObj> extends
   IDisposable,
-  IAccessor<any>,
+  IAccessor<TObj[TProp]>,
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection<MutationKind.instance> {
   /*@internal*/observing: boolean;
@@ -249,7 +249,7 @@ export type PropertyObserver = IPropertyObserver<any, PropertyKey>;
 /**
  * A collection (array, set or map)
  */
-export type Collection = Array<any> | Set<any> | Map<any, any>;
+export type Collection = any[] | Set<any> | Map<any, any>;
 interface IObservedCollection {
   $observer: CollectionObserver;
 }
@@ -257,15 +257,15 @@ interface IObservedCollection {
 /**
  * An array that is being observed for mutations
  */
-export interface IObservedArray extends IObservedCollection, Array<any> { }
+export interface IObservedArray<T = any> extends IObservedCollection, Array<T> { }
 /**
  * A set that is being observed for mutations
  */
-export interface IObservedSet extends IObservedCollection, Set<any> { }
+export interface IObservedSet<T = any> extends IObservedCollection, Set<T> { }
 /**
  * A map that is being observed for mutations
  */
-export interface IObservedMap extends IObservedCollection, Map<any, any> { }
+export interface IObservedMap<K = any, V = any> extends IObservedCollection, Map<K, V> { }
 /**
  * A collection that is being observed for mutations
  */
@@ -280,20 +280,20 @@ export const enum CollectionKind {
 }
 
 type LengthPropertyName<T> =
-  T extends Array<any> ? 'length' :
+  T extends any[] ? 'length' :
   T extends Set<any> ? 'size' :
   T extends Map<any, any> ? 'size' :
   never;
 
 type CollectionTypeToKind<T> =
-  T extends Array<any> ? CollectionKind.array | CollectionKind.indexed :
+  T extends any[] ? CollectionKind.array | CollectionKind.indexed :
   T extends Set<any> ? CollectionKind.set | CollectionKind.keyed :
   T extends Map<any, any> ? CollectionKind.map | CollectionKind.keyed :
   never;
 
 type CollectionKindToType<T> =
-  T extends CollectionKind.array ? Array<any> :
-  T extends CollectionKind.indexed ? Array<any> :
+  T extends CollectionKind.array ? any[] :
+  T extends CollectionKind.indexed ? any[] :
   T extends CollectionKind.map ? Map<any, any> :
   T extends CollectionKind.set ? Set<any> :
   T extends CollectionKind.keyed ? Set<any> | Map<any, any> :
@@ -319,8 +319,8 @@ export interface ICollectionObserver<T extends CollectionKind> extends
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;
-    lengthObserver: IBindingTargetAccessor;
-    getLengthObserver(): IBindingTargetAccessor;
+    lengthObserver: IBindingTargetObserver;
+    getLengthObserver(): IBindingTargetObserver;
 }
 
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

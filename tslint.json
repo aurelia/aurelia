@@ -5,7 +5,9 @@
   ],
   "linterOptions": {
     "exclude": [
-      "**/test/**"
+      "**/test/**",
+      "scripts/**",
+      "**/examples/**"
     ]
   },
   "defaultSeverity": "warning",
@@ -125,7 +127,7 @@
     "comment-format": true,
     "completed-docs": [true, "classes"],
     "export-name": false,
-    "function-name": true,
+    "function-name": false,
     "import-name": true,
     "interface-name": [true, "always-prefix"],
     "jsdoc-format": true,

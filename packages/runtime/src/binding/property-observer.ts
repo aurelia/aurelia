@@ -1,6 +1,6 @@
 import { Reporter } from '@aurelia/kernel';
 import { BindingFlags } from './binding-flags';
-import { IPropertySubscriber, PropertyObserver, MutationKind } from './observation';
+import { IPropertySubscriber, MutationKind, PropertyObserver } from './observation';
 import { subscriberCollection } from './subscriber-collection';
 
 const defineProperty = Reflect.defineProperty;
@@ -50,5 +50,5 @@ export function propertyObserver(): ClassDecorator {
     proto.unsubscribe = proto.unsubscribe || proto.removeSubscriber;
 
     proto.dispose = proto.dispose || dispose;
-  }
+  };
 }

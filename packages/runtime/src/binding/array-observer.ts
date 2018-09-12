@@ -1,3 +1,4 @@
+import { IIndexable, Primitive } from '@aurelia/kernel';
 // tslint:disable:no-reserved-keywords
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
@@ -144,7 +145,7 @@ function observeReverse(this: IObservedArray): ReturnType<typeof nativeReverse> 
 
 // https://tc39.github.io/ecma262/#sec-array.prototype.sort
 // https://github.com/v8/v8/blob/master/src/js/array.js
-function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => number): IObservedArray {
+function observeSort(this: IObservedArray, compareFn?: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): IObservedArray {
   const o = this.$observer;
   if (o === undefined) {
     return nativeSort.call(this, compareFn);
@@ -170,7 +171,7 @@ function observeSort(this: IObservedArray, compareFn?: (a: any, b: any) => numbe
 }
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
-function sortCompare(x: any, y: any): number {
+function sortCompare(x: IIndexable | Primitive, y: IIndexable | Primitive): number {
   if (x === y) {
     return 0;
   }
@@ -179,7 +180,7 @@ function sortCompare(x: any, y: any): number {
   return x < y ? -1 : 1;
 }
 
-function preSortCompare(x: any, y: any): number {
+function preSortCompare(x: IIndexable | Primitive, y: IIndexable | Primitive): number {
   if (x === undefined) {
     if (y === undefined) {
       return 0;
@@ -193,7 +194,7 @@ function preSortCompare(x: any, y: any): number {
   return 0;
 }
 
-function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: any, b: any) => number): void {
+function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): void {
   let velement, ielement, vtmp, itmp, order;
   let i, j;
   for (i = from + 1; i < to; i++) {
@@ -211,14 +212,14 @@ function insertionSort(arr: IObservedArray, indexMap: IndexMap, from: number, to
   }
 }
 
-function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: any, b: any) => number): void {
+function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: number, compareFn: (a: IIndexable | Primitive, b: IIndexable | Primitive) => number): void {
   let thirdIndex = 0, i = 0;
   let v0, v1, v2;
   let i0, i1, i2;
   let c01, c02, c12;
   let vtmp, itmp;
   let vpivot, ipivot, lowEnd, highStart;
-  let velement, ielement, order, vtopElement, itopElement;
+  let velement, ielement, order, vtopElement;
 
   // tslint:disable-next-line:no-constant-condition
   while (true) {
@@ -269,11 +270,11 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
       } else if (order > 0) {
         do {
           highStart--;
+          // tslint:disable-next-line:triple-equals
           if (highStart == i) {
             break partition;
           }
-          vtopElement = arr[highStart]; itopElement = indexMap[highStart];
-          order = compareFn(vtopElement, vpivot);
+          vtopElement = arr[highStart];          order = compareFn(vtopElement, vpivot);
         } while (order > 0);
         arr[i] = arr[highStart];   indexMap[i] = indexMap[highStart];
         arr[highStart] = velement; indexMap[highStart] = ielement;
@@ -331,14 +332,14 @@ export class ArrayObserver implements ArrayObserver {
 
   public collection: IObservedArray;
 
-  constructor(changeSet: IChangeSet, array: any[] & { $observer?: ArrayObserver }) {
+  constructor(changeSet: IChangeSet, array: IObservedArray) {
     this.changeSet = changeSet;
     array.$observer = this;
-    this.collection = <IObservedArray>array;
+    this.collection = array;
     this.resetIndexMap();
   }
 }
 
-export function getArrayObserver(changeSet: IChangeSet, array: any): ArrayObserver {
-  return array.$observer || new ArrayObserver(changeSet, array);
+export function getArrayObserver(changeSet: IChangeSet, array: IObservedArray): ArrayObserver {
+  return (array.$observer as ArrayObserver) || new ArrayObserver(changeSet, array);
 }

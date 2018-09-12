@@ -1,9 +1,10 @@
+import { IIndexable, Primitive } from '@aurelia/kernel';
 // tslint:disable:no-reserved-keywords
 import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { collectionObserver } from './collection-observer';
-import { CollectionKind, IBatchedCollectionChangeNotifier, IBatchedCollectionSubscriber, ICollectionChangeNotifier, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservedSet } from './observation';
+import { CollectionKind, ICollectionObserver, IObservedSet } from './observation';
 
 const proto = Set.prototype;
 export const nativeAdd = proto.add; // TODO: probably want to make these internal again
@@ -14,7 +15,7 @@ export const nativeDelete = proto.delete;
 // fortunately, add/delete/clear are easy to reconstruct for the indexMap
 
 // https://tc39.github.io/ecma262/#sec-set.prototype.add
-function observeAdd(this: IObservedSet, value: any): ReturnType<typeof nativeAdd> {
+function observeAdd(this: IObservedSet, value: IIndexable | Primitive): ReturnType<typeof nativeAdd> {
   const o = this.$observer;
   if (o === undefined) {
     return nativeAdd.call(this, value);
@@ -54,7 +55,7 @@ function observeClear(this: IObservedSet): ReturnType<typeof nativeClear>  {
 }
 
 // https://tc39.github.io/ecma262/#sec-set.prototype.delete
-function observeDelete(this: IObservedSet, value: any): ReturnType<typeof nativeDelete> {
+function observeDelete(this: IObservedSet, value: IIndexable | Primitive): ReturnType<typeof nativeDelete> {
   const o = this.$observer;
   if (o === undefined) {
     return nativeDelete.call(this, value);
@@ -98,7 +99,7 @@ export function disableSetObservation(): void {
 }
 
 // tslint:disable-next-line:interface-name
-export interface SetObserver extends ICollectionObserver<CollectionKind.set> {};
+export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
 @collectionObserver(CollectionKind.set)
 export class SetObserver implements SetObserver {
@@ -107,14 +108,14 @@ export class SetObserver implements SetObserver {
 
   public collection: IObservedSet;
 
-  constructor(changeSet: IChangeSet, set: Set<any> & { $observer?: SetObserver }) {
+  constructor(changeSet: IChangeSet, set: IObservedSet) {
     this.changeSet = changeSet;
     set.$observer = this;
-    this.collection = <IObservedSet>set;
+    this.collection = set;
     this.resetIndexMap();
   }
 }
 
-export function getSetObserver(changeSet: IChangeSet, set: any): SetObserver {
-  return set.$observer || new SetObserver(changeSet, set);
+export function getSetObserver(changeSet: IChangeSet, set: IObservedSet): SetObserver {
+  return (set.$observer as SetObserver) || new SetObserver(changeSet, set);
 }

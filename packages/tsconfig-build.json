@@ -6,7 +6,7 @@
     "declarationMap": true,
     "experimentalDecorators": true,
     "lib": ["esnext", "dom"],
-    "module": "umd",
+    "module": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
     "stripInternal": true,

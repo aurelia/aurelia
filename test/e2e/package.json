@@ -5,6 +5,7 @@
     "build": "rimraf dist  && tsc && browserify src/startup.ts -p [ tsify ] -t [ stringify --applies-to [ --include-extensions [ '.html' ] ] ] > dist/bundle.js",
     "start": "http-server -c-1 -p 9000 .",
     "e2e": "rimraf allure-results && npm run build && wdio browserstack.conf.js",
+    "e2e:compat": "cross-env BS_COMPAT_CHECK=true npm run e2e",
     "allure:generate": "allure generate -c -o allure-report allure-results",
     "allure:open": "allure open allure-report",
     "allure:post": "ts-node ../../scripts/post-allure.ts"

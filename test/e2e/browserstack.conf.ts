@@ -56,46 +56,46 @@ exports.config = {
       { versions: ['10', '8.1', '8', '7'], name: 'Windows' },
       { versions: ['High Sierra', 'Sierra', 'El Capitan', 'Yosemite'], name: 'OS X' }
     ]),
+    // ...combine([
+    //   { versions: ['12.15', '12.16'], name: 'Opera' },
+    // ], [
+    //   { versions: ['8.1', '8', '7'], name: 'Windows' }
+    // ]),
+    // ...combine([
+    //   { versions: ['11'], name: 'IE' },
+    // ], [
+    //   { versions: ['10', '8.1', '7'], name: 'Windows' }
+    // ]),
+    // ...combine([
+    //   { versions: ['10'], name: 'IE' },
+    // ], [
+    //   { versions: ['8', '7'], name: 'Windows' }
+    // ]),
     ...combine([
-      { versions: ['12.15', '12.16'], name: 'Opera' },
-    ], [
-      { versions: ['8.1', '8', '7'], name: 'Windows' }
-    ]),
-    ...combine([
-      { versions: ['11'], name: 'IE' },
-    ], [
-      { versions: ['10', '8.1', '7'], name: 'Windows' }
-    ]),
-    ...combine([
-      { versions: ['10'], name: 'IE' },
-    ], [
-      { versions: ['8', '7'], name: 'Windows' }
-    ]),
-    ...combine([
-      { versions: ['17', '16', '15'], name: 'Edge' },
+      { versions: ['17', '16'/*, '15'*/], name: 'Edge' },
     ], [
       { versions: ['10'], name: 'Windows' }
     ]),
-    ...combine([
-      { versions: ['11.1'], name: 'Safari' },
-    ], [
-      { versions: ['High Sierra'], name: 'OS X' }
-    ]),
+    // ...combine([
+    //   { versions: ['11.1'], name: 'Safari' },
+    // ], [
+    //   { versions: ['High Sierra'], name: 'OS X' }
+    // ]),
     ...combine([
       { versions: ['10.1'], name: 'Safari' },
     ], [
       { versions: ['Sierra'], name: 'OS X' }
     ]),
-    ...combine([
-      { versions: ['9.1'], name: 'Safari' },
-    ], [
-      { versions: ['El Capitan'], name: 'OS X' }
-    ]),
-    ...combine([
-      { versions: ['8'], name: 'Safari' },
-    ], [
-      { versions: ['Yosemite'], name: 'OS X' }
-    ])
+    // ...combine([
+    //   { versions: ['9.1'], name: 'Safari' },
+    // ], [
+    //   { versions: ['El Capitan'], name: 'OS X' }
+    // ]),
+    // ...combine([
+    //   { versions: ['8'], name: 'Safari' },
+    // ], [
+    //   { versions: ['Yosemite'], name: 'OS X' }
+    // ])
   ] : [
     ...combine([
       { versions: ['68'], name: 'Chrome' },

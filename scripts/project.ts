@@ -37,9 +37,9 @@ export default {
     const namespace = `au`;
     const fullName = `${namespace}.${jsName}`;
     const dist = join(path, 'dist');
-    const iife = join(dist, `${name}.js`);
     const umd = join(dist, `index.umd.js`);
     const es6 = join(dist, `index.es6.js`);
+    const iife = join(rootPath, 'dist', `${name}.js`);
     return { name, jsName, namespace, fullName, path, iife, umd, es6, src, dist, scopedName, coverage };
   }),
   'scripts': {

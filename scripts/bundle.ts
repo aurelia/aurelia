@@ -42,7 +42,13 @@ async function bundle() {
           tsconfig: join(pkg.path, 'tsconfig.json'),
           typescript: ts, // ensure we're using the same typescript (3.x) for rollup as for regular builds etc
           tsconfigOverride: {
-            stripInternal: true
+            module: 'esnext',
+            stripInternal: true,
+            emitDeclarationOnly: false,
+            composite: false,
+            declaration: false,
+            declarationMap: false,
+            sourceMap: true
           }
         })
       ],

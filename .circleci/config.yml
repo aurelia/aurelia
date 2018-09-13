@@ -60,7 +60,11 @@ jobs:
           name: "Bootstrap and build the packages"
           command: |
             npm run bootstrap
-            npm run build-all
+            npm run build
+      - run:
+          name: "Create bundles with rollup"
+          command: |
+            npm run bundle
       - run:
           name: "Create tarballs from the build outputs"
           command: |

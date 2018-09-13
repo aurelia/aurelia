@@ -5,8 +5,8 @@
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
   "browser": "dist/index.umd.js",
-  "types": "dist/types/index.d.ts",
-  "typings": "dist/types/index.d.ts",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
   "license": "MIT",
   "homepage": "https://aurelia.io",
   "repository": {
@@ -32,11 +32,8 @@
     "test-firefox": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=runtime --browsers=FirefoxHeadless --single-run --coverage",
     "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=runtime --browsers=ChromeHeadlessOpt --coverage",
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=runtime --browsers=ChromeDebugging",
-    "build": "npm run build:umd",
-    "build:esnext": "tsc -b tsconfig/esnext.json",
-    "build:umd": "tsc -b tsconfig/umd.json",
-    "build-all": "run-p build:*",
-    "dev": "tsc -b tsconfig/umd.json -w",
+    "build": "tsc -b",
+    "dev": "tsc -b -w",
     "publish:local": "npm pack"
   },
   "publishConfig": {

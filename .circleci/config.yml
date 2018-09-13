@@ -21,7 +21,7 @@ aliases:
       name: Install e2e tests
       command: |
         cd ./test/e2e
-        npm install
+        npm ci
         npm run build
   - &step_serve_e2e_bs
     run:

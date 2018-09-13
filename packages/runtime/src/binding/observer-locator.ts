@@ -150,8 +150,9 @@ export class ObserverLocator implements IObserverLocator {
     if (!(obj instanceof Object)) {
       return new PrimitiveObserver(obj, propertyName) as IBindingTargetAccessor;
     }
-    const isNode = DOM.isNodeInstance(obj);
-    if (isNode) {
+
+    let isNode: boolean;
+    if (DOM.isNodeInstance(obj)) {
       if (propertyName === 'class') {
         return new ClassAttributeAccessor(this.changeSet, obj);
       }
@@ -184,6 +185,7 @@ export class ObserverLocator implements IObserverLocator {
         || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
         return new DataAttributeAccessor(this.changeSet, obj, propertyName);
       }
+      isNode = true;
     }
 
     const tag = toStringTag.call(obj);

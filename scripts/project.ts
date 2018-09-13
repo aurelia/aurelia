@@ -36,7 +36,11 @@ export default {
     const jsName = PLATFORM.camelCase(name);
     const namespace = `au`;
     const fullName = `${namespace}.${jsName}`;
-    return { name, jsName, namespace, fullName, path, src, scopedName, coverage };
+    const dist = join(path, 'dist');
+    const iife = join(dist, `${name}.js`);
+    const umd = join(dist, `index.umd.js`);
+    const es6 = join(dist, `index.es6.js`);
+    return { name, jsName, namespace, fullName, path, iife, umd, es6, src, dist, scopedName, coverage };
   }),
   'scripts': {
     'path': join(rootPath, 'scripts')

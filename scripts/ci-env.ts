@@ -24,8 +24,23 @@ function toNumber(value: any): number {
   return 0;
 }
 
+function toString(value: any): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (value === null || value === undefined) {
+    return '';
+  }
+  return value.toString();
+}
+
+const seenVariables = {};
+
 function logVariable(value: any, name: string): any {
-  log(`${c.grey('process.env.')}${c.white(name)}${c.grey(':')} ${c.yellowBright(value)} (${c.grey(typeof value)})`);
+  if (seenVariables[name] !== value) {
+    seenVariables[name] = value;
+    log(`${c.grey('process.env.')}${c.white(name)}${c.grey(':')} ${c.yellowBright(value)} (${c.grey(typeof value)})`);
+  }
   return value;
 }
 
@@ -46,7 +61,7 @@ export class CIEnv {
    * The name of the Git branch currently being built.
    */
   public static get CIRCLE_BRANCH(): string {
-    return logVariable(process.env.CIRCLE_BRANCH, 'CIRCLE_BRANCH');
+    return logVariable(toString(process.env.CIRCLE_BRANCH), 'CIRCLE_BRANCH');
   }
 
   /**
@@ -60,28 +75,28 @@ export class CIEnv {
    * The URL for the current build.
    */
   public static get CIRCLE_BUILD_URL(): string {
-    return logVariable(process.env.CIRCLE_BUILD_URL, 'CIRCLE_BUILD_URL');
+    return logVariable(toString(process.env.CIRCLE_BUILD_URL), 'CIRCLE_BUILD_URL');
   }
 
   /**
    * The GitHub or Bitbucket URL to compare commits of a build.
    */
   public static get CIRCLE_COMPARE_URL(): string {
-    return logVariable(process.env.CIRCLE_COMPARE_URL, 'CIRCLE_COMPARE_URL');
+    return logVariable(toString(process.env.CIRCLE_COMPARE_URL), 'CIRCLE_COMPARE_URL');
   }
 
   /**
    * The directory where test timing data is saved.
    */
   public static get CIRCLE_INTERNAL_TASK_DATA(): string {
-    return logVariable(process.env.CIRCLE_INTERNAL_TASK_DATA, 'CIRCLE_INTERNAL_TASK_DATA');
+    return logVariable(toString(process.env.CIRCLE_INTERNAL_TASK_DATA), 'CIRCLE_INTERNAL_TASK_DATA');
   }
 
   /**
    * The name of the current job.
    */
   public static get CIRCLE_JOB(): string {
-    return logVariable(process.env.CIRCLE_JOB, 'CIRCLE_JOB');
+    return logVariable(toString(process.env.CIRCLE_JOB), 'CIRCLE_JOB');
   }
 
   /**
@@ -109,14 +124,14 @@ export class CIEnv {
    * The name of the GitHub or Bitbucket repository where the pull request was created. Only available on forked PRs.
    */
   public static get CIRCLE_PR_REPONAME(): string {
-    return logVariable(process.env.CIRCLE_PR_REPONAME, 'CIRCLE_PR_REPONAME');
+    return logVariable(toString(process.env.CIRCLE_PR_REPONAME), 'CIRCLE_PR_REPONAME');
   }
 
   /**
    * The GitHub or Bitbucket username of the user who created the pull request. Only available on forked PRs.
    */
   public static get CIRCLE_PR_USERNAME(): string {
-    return logVariable(process.env.CIRCLE_PR_USERNAME, 'CIRCLE_PR_USERNAME');
+    return logVariable(toString(process.env.CIRCLE_PR_USERNAME), 'CIRCLE_PR_USERNAME');
   }
 
   /**
@@ -130,70 +145,70 @@ export class CIEnv {
    * The name of the repository of the current project.
    */
   public static get CIRCLE_PROJECT_REPONAME(): string {
-    return logVariable(process.env.CIRCLE_PROJECT_REPONAME, 'CIRCLE_PROJECT_REPONAME');
+    return logVariable(toString(process.env.CIRCLE_PROJECT_REPONAME), 'CIRCLE_PROJECT_REPONAME');
   }
 
   /**
    * The GitHub or Bitbucket username of the current project.
    */
   public static get CIRCLE_PROJECT_USERNAME(): string {
-    return logVariable(process.env.CIRCLE_PROJECT_USERNAME, 'CIRCLE_PROJECT_USERNAME');
+    return logVariable(toString(process.env.CIRCLE_PROJECT_USERNAME), 'CIRCLE_PROJECT_USERNAME');
   }
 
   /**
    * The URL of the associated pull request. If there are multiple associated pull requests, one URL is randomly chosen.
    */
   public static get CIRCLE_PULL_REQUEST(): string {
-    return logVariable(process.env.CIRCLE_PULL_REQUEST, 'CIRCLE_PULL_REQUEST');
+    return logVariable(toString(process.env.CIRCLE_PULL_REQUEST), 'CIRCLE_PULL_REQUEST');
   }
 
   /**
    * Comma-separated list of URLs of the current build’s associated pull requests.
    */
   public static get CIRCLE_PULL_REQUESTS(): string {
-    return logVariable(process.env.CIRCLE_PULL_REQUESTS, 'CIRCLE_PULL_REQUESTS');
+    return logVariable(toString(process.env.CIRCLE_PULL_REQUESTS), 'CIRCLE_PULL_REQUESTS');
   }
 
   /**
    * The URL of your GitHub or Bitbucket repository.
    */
   public static get CIRCLE_REPOSITORY_URL(): string {
-    return logVariable(process.env.CIRCLE_REPOSITORY_URL, 'CIRCLE_REPOSITORY_URL');
+    return logVariable(toString(process.env.CIRCLE_REPOSITORY_URL), 'CIRCLE_REPOSITORY_URL');
   }
 
   /**
    * The SHA1 hash of the last commit of the current build.
    */
   public static get CIRCLE_SHA1(): string {
-    return logVariable(process.env.CIRCLE_SHA1, 'CIRCLE_SHA1');
+    return logVariable(toString(process.env.CIRCLE_SHA1), 'CIRCLE_SHA1');
   }
 
   /**
    * The name of the git tag, if the current build is tagged. For more information, see the Git Tag Job Execution.
    */
   public static get CIRCLE_TAG(): string {
-    return logVariable(process.env.CIRCLE_TAG, 'CIRCLE_TAG');
+    return logVariable(toString(process.env.CIRCLE_TAG), 'CIRCLE_TAG');
   }
 
   /**
    * The GitHub or Bitbucket username of the user who triggered the build.
    */
   public static get CIRCLE_USERNAME(): string {
-    return logVariable(process.env.CIRCLE_USERNAME, 'CIRCLE_USERNAME');
+    return logVariable(toString(process.env.CIRCLE_USERNAME), 'CIRCLE_USERNAME');
   }
 
   /**
    * A unique identifier for the workflow instance of the current job. This identifier is the same for every job in a given workflow instance.
    */
   public static get CIRCLE_WORKFLOW_ID(): string {
-    return logVariable(process.env.CIRCLE_WORKFLOW_ID, 'CIRCLE_WORKFLOW_ID');
+    return logVariable(toString(process.env.CIRCLE_WORKFLOW_ID), 'CIRCLE_WORKFLOW_ID');
   }
 
   /**
    * The value of the working_directory key of the current job.
    */
   public static get CIRCLE_WORKING_DIRECTORY(): string {
-    return logVariable(process.env.CIRCLE_WORKING_DIRECTORY, 'CIRCLE_WORKING_DIRECTORY');
+    return logVariable(toString(process.env.CIRCLE_WORKING_DIRECTORY), 'CIRCLE_WORKING_DIRECTORY');
   }
 
   /**
@@ -207,24 +222,24 @@ export class CIEnv {
    * Your home directory
    */
   public static get HOME(): string {
-    return logVariable(process.env.HOME, 'HOME');
+    return logVariable(toString(process.env.HOME), 'HOME');
   }
 
   // custom variables
   public static get BS_KEY(): string {
-    return logSecretVariable(process.env.BS_KEY, 'BS_KEY');
+    return logSecretVariable(toString(process.env.BS_KEY), 'BS_KEY');
   }
   public static get BS_USER(): string {
-    return logSecretVariable(process.env.BS_USER, 'BS_USER');
+    return logSecretVariable(toString(process.env.BS_USER), 'BS_USER');
   }
   public static get NPM_TOKEN(): string {
-    return logSecretVariable(process.env.NPM_TOKEN, 'NPM_TOKEN');
+    return logSecretVariable(toString(process.env.NPM_TOKEN), 'NPM_TOKEN');
   }
   public static get CIRCLE_TOKEN(): string {
-    return logSecretVariable(process.env.CIRCLE_TOKEN, 'CIRCLE_TOKEN');
+    return logSecretVariable(toString(process.env.CIRCLE_TOKEN), 'CIRCLE_TOKEN');
   }
   public static get GITHUB_TOKEN(): string {
-    return logSecretVariable(process.env.GITHUB_TOKEN, 'GITHUB_TOKEN');
+    return logSecretVariable(toString(process.env.GITHUB_TOKEN), 'GITHUB_TOKEN');
   }
   public static get BS_COMPAT_CHECK(): boolean {
     return logVariable(toBoolean(process.env.BS_COMPAT_CHECK), 'BS_COMPAT_CHECK');

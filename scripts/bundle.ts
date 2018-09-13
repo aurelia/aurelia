@@ -25,44 +25,46 @@ async function bundle() {
       case 'aot':
         return 3;
     }
-  })
+  });
+  const count = packages.length;
+  let cur = 0;
   for (const pkg of packages) {
-    log(`${c.green(pkg.scopedName)} creating regular bundles`);
+    const logPrefix = c.grey(`[${++cur}/${count}] ${pkg.scopedName}`)
+    log(`${logPrefix} creating bundle`);
 
-    const input = join(pkg.src, 'index.ts');
-    const plugins = [
-      resolve({
-        jsnext: true // use the jsnext:main field from our packages package.json files to resolve dependencies
-      }),
-      typescript2({
-        tsconfig: join(pkg.path, 'tsconfig.json'),
-        typescript: ts // ensure we're using the same typescript (3.x) for rollup as for regular builds etc
-      })
-    ];
+    const bundle = await rollup.rollup({
+      input: join(pkg.src, 'index.ts'),
+      plugins: [
+        resolve({
+          jsnext: true // use the jsnext:main field from our packages package.json files to resolve dependencies
+        }),
+        typescript2({
+          tsconfig: join(pkg.path, 'tsconfig.json'),
+          typescript: ts, // ensure we're using the same typescript (3.x) for rollup as for regular builds etc
+          tsconfigOverride: {
+            stripInternal: true
+          }
+        })
+      ],
+      // mark all packages that are not *this* package as external so they don't get included in the bundle
+      // include tslib in the bundles since only __decorate is really used by multiple packages (we can figure out a way to deduplicate that later on if need be)
+      external: project.packages.filter(p => p.name !== pkg.name).map(p => p.scopedName)
+    });
 
-    // mark all packages that are not *this* package as external so they don't get included in the bundle
-    // include tslib in the bundles since only __decorate is really used by multiple packages (we can figure out a way to deduplicate that later on if need be)
-    const external = project.packages.filter(p => p.name !== pkg.name).map(p => p.scopedName);
 
-    let bundle = await rollup.rollup({ input, plugins, external });
-
-    let file = join(pkg.path, 'dist', 'index.es6.js');
-
-    log(`${c.green(pkg.scopedName)} writing ${file}`);
+    log(`${logPrefix} writing ${pkg.es6}`);
 
     await bundle.write({
-      file,
+      file: pkg.es6,
       name: pkg.jsName,
       format: 'esm',
       sourcemap: true
     });
 
-    file = join(pkg.path, 'dist', 'index.js');
-
-    log(`${c.green(pkg.scopedName)} writing ${file}`);
+    log(`${logPrefix} writing ${pkg.umd}`);
 
     await bundle.write({
-      file,
+      file: pkg.umd,
       exports: 'named',
       name: pkg.jsName,
       globals: {
@@ -76,16 +78,10 @@ async function bundle() {
       sourcemap: true
     });
 
-    log(`${c.green(pkg.scopedName)} creating iife bundle`);
-
-    bundle = await rollup.rollup({ input, plugins, external });
-
-    file = join(pkg.path, 'dist', 'index.iife.js');
-
-    log(`${c.green(pkg.scopedName)} writing ${file}`);
+    log(`${logPrefix} writing ${pkg.iife}`);
 
     await bundle.write({
-      file,
+      file: pkg.iife,
       exports: 'named',
       name: pkg.fullName,
       globals: {
@@ -96,11 +92,11 @@ async function bundle() {
         'tslib': 'tslib'
       },
       format: 'iife',
-      sourcemap: true
+      sourcemap: false
     });
+
+    log(`${logPrefix} ${c.greenBright('done')}`);
   }
 }
 
-bundle().then(() => {
-  console.log('done');
-})
+bundle();

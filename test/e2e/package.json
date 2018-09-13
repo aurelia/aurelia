@@ -16,8 +16,7 @@
   "dependencies": {
     "@aurelia/jit": "../../packages/jit",
     "@aurelia/kernel": "../../packages/kernel",
-    "@aurelia/runtime": "../../packages/runtime",
-    "tslib": "^1.9.3"
+    "@aurelia/runtime": "../../packages/runtime"
   },
   "devDependencies": {
     "@types/chai": "^4.1.4",
@@ -37,6 +36,7 @@
     "stringify": "^5.2.0",
     "ts-node": "^7.0.1",
     "tsify": "^4.0.0",
+    "tslib": "^1.9.3",
     "typescript": "^3.0.1",
     "wdio": "^2.0.2",
     "wdio-allure-reporter": "^0.7.0",

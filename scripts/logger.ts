@@ -1,5 +1,5 @@
 import * as l from 'fancy-log';
-const log = <typeof import('fancy-log')>(<any>l.default || l);
+const log = <typeof import('fancy-log')>(<any>(<any>l).default || l);
 import * as c from 'chalk';
 const chalk = <import('chalk').Chalk>(c.default || c);
 

@@ -1,10 +1,11 @@
+import { IIndexable, Primitive } from '@aurelia/kernel';
 import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
-import { IPropertySubscriber, ISubscriberCollection, MutationKind, MutationKindToSubscriber, SubscriberFlags, IBatchedSubscriberCollection, MutationKindToBatchedSubscriber, IBatchedCollectionSubscriber, IndexMap } from './observation';
+import { IBatchedCollectionSubscriber, IBatchedSubscriberCollection, IndexMap, IPropertySubscriber, ISubscriberCollection, MutationKind, MutationKindToBatchedSubscriber, MutationKindToSubscriber, SubscriberFlags } from './observation';
 
 export function subscriberCollection<T extends MutationKind>(mutationKind: T): ClassDecorator {
   return function(target: Function): void {
-    const proto = <ISubscriberCollection<T>>target.prototype;
+    const proto = <ISubscriberCollection<MutationKind.instance | MutationKind.collection>>target.prototype;
 
     proto._subscriberFlags = SubscriberFlags.None;
     proto._subscriber0 = null;
@@ -16,7 +17,7 @@ export function subscriberCollection<T extends MutationKind>(mutationKind: T): C
     proto.removeSubscriber = removeSubscriber;
     proto.hasSubscriber = hasSubscriber;
     proto.hasSubscribers = hasSubscribers;
-    proto.callSubscribers = <any>(mutationKind === MutationKind.instance ? callPropertySubscribers : callCollectionSubscribers);
+    proto.callSubscribers = (mutationKind === MutationKind.instance ? callPropertySubscribers : callCollectionSubscribers);
   };
 }
 
@@ -81,7 +82,11 @@ function removeSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>
   return false;
 }
 
-function callPropertySubscribers(this: ISubscriberCollection<MutationKind.instance>, newValue: any, previousValue: any, flags: BindingFlags): void {
+function callPropertySubscribers(
+  this: ISubscriberCollection<MutationKind.instance>,
+  newValue: IIndexable | Primitive,
+  previousValue: IIndexable | Primitive,
+  flags: BindingFlags): void {
   /**
    * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
    * callSubscribers invocation, so we're caching them all before invoking any.
@@ -145,7 +150,7 @@ function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.coll
   this.changeSet.add(this);
 }
 
-function hasSubscribers<T extends MutationKind>(this: ISubscriberCollection<T>, ): boolean {
+function hasSubscribers<T extends MutationKind>(this: ISubscriberCollection<T>): boolean {
   return this._subscriberFlags !== SubscriberFlags.None;
 }
 

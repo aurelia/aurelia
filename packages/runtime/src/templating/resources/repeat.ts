@@ -7,7 +7,7 @@ import { BindingFlags } from '../../binding/binding-flags';
 import { BindingMode } from '../../binding/binding-mode';
 import { IChangeSet } from '../../binding/change-set';
 import { getMapObserver } from '../../binding/map-observer';
-import { CollectionObserver, ObservedCollection } from '../../binding/observation';
+import { CollectionObserver, IObservedArray, IObservedSet, ObservedCollection } from '../../binding/observation';
 import { getSetObserver } from '../../binding/set-observer';
 import { INode, IRenderLocation } from '../../dom';
 import { IResourceKind, IResourceType } from '../../resource';
@@ -17,15 +17,15 @@ import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
 import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
 import { IView, IViewFactory } from '../view';
-import { IBatchedCollectionSubscriber } from './../../binding/observation';
+import { IBatchedCollectionSubscriber, IObservedMap } from './../../binding/observation';
 
-export function getCollectionObserver(changeSet: IChangeSet, collection: any): CollectionObserver {
+export function getCollectionObserver(changeSet: IChangeSet, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver {
   if (Array.isArray(collection)) {
-    return <any>getArrayObserver(changeSet, collection);
+    return getArrayObserver(changeSet, collection);
   } else if (collection instanceof Map) {
-    return <any>getMapObserver(changeSet, collection);
+    return getMapObserver(changeSet, collection);
   } else if (collection instanceof Set) {
-    return <any>getSetObserver(changeSet, collection);
+    return getSetObserver(changeSet, collection);
   }
 }
 

@@ -1,4 +1,4 @@
-import { DI, inject, Reporter } from '@aurelia/kernel';
+import { DI, IIndexable, inject, Primitive, Reporter } from '@aurelia/kernel';
 import { DOM } from '../dom';
 import { getArrayObserver } from './array-observer';
 import { IChangeSet } from './change-set';
@@ -7,7 +7,7 @@ import { IDirtyChecker } from './dirty-checker';
 import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from './element-observation';
 import { IEventManager } from './event-manager';
 import { getMapObserver } from './map-observer';
-import { AccessorOrObserver, CollectionKind, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable } from './observation';
+import { AccessorOrObserver, CollectionKind, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet } from './observation';
 import { PrimitiveObserver, SetterObserver } from './property-observation';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
@@ -15,18 +15,18 @@ import { ClassAttributeAccessor, DataAttributeAccessor, PropertyAccessor, StyleA
 
 const toStringTag = Object.prototype.toString;
 
-export interface ObjectObservationAdapter {
-  getObserver(object: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
+export interface IObjectObservationAdapter {
+  getObserver(object: IObservable, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }
 
 export interface IObserverLocator {
-  getObserver(obj: any, propertyName: string): AccessorOrObserver;
-  getAccessor(obj: any, propertyName: string): IBindingTargetAccessor;
-  addAdapter(adapter: ObjectObservationAdapter): void;
-  getArrayObserver(array: any[]): ICollectionObserver<CollectionKind.array>;
-  getMapObserver(map: Map<any, any>): ICollectionObserver<CollectionKind.map>;
+  getObserver(obj: IObservable, propertyName: string): AccessorOrObserver;
+  getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor;
+  addAdapter(adapter: IObjectObservationAdapter): void;
+  getArrayObserver(array: (IIndexable | Primitive)[]): ICollectionObserver<CollectionKind.array>;
+  getMapObserver(map: Map<IIndexable | Primitive, IIndexable | Primitive>): ICollectionObserver<CollectionKind.map>;
   // tslint:disable-next-line:no-reserved-keywords
-  getSetObserver(set: Set<any>): ICollectionObserver<CollectionKind.set>;
+  getSetObserver(set: Set<IIndexable | Primitive>): ICollectionObserver<CollectionKind.set>;
 }
 
 export const IObserverLocator = DI.createInterface<IObserverLocator>()
@@ -47,7 +47,7 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 @inject(IChangeSet, IEventManager, IDirtyChecker, ISVGAnalyzer)
 /*@internal*/
 export class ObserverLocator implements IObserverLocator {
-  private adapters: ObjectObservationAdapter[] = [];
+  private adapters: IObjectObservationAdapter[] = [];
 
   constructor(
     private changeSet: IChangeSet,
@@ -56,7 +56,7 @@ export class ObserverLocator implements IObserverLocator {
     private svgAnalyzer: ISVGAnalyzer
   ) {}
 
-  public getObserver(obj: any, propertyName: string): AccessorOrObserver {
+  public getObserver(obj: IObservable, propertyName: string): AccessorOrObserver {
     let observersLookup = obj.$observers;
     let observer;
 
@@ -77,11 +77,11 @@ export class ObserverLocator implements IObserverLocator {
     return observer;
   }
 
-  public addAdapter(adapter: ObjectObservationAdapter): void {
+  public addAdapter(adapter: IObjectObservationAdapter): void {
     this.adapters.push(adapter);
   }
 
-  public getAccessor(obj: any, propertyName: string): IBindingTargetAccessor {
+  public getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor {
     if (DOM.isNodeInstance(obj)) {
       const tagName = obj['tagName'];
 
@@ -90,7 +90,7 @@ export class ObserverLocator implements IObserverLocator {
         || propertyName === 'checked' && tagName === 'INPUT'
         || propertyName === 'model' && tagName === 'INPUT'
         || /^xlink:.+$/.exec(propertyName)) {
-        return <any>this.getObserver(obj, propertyName);
+        return this.getObserver(obj, propertyName);
       }
 
       if (/^\w+:|^data-|^aria-/.test(propertyName)
@@ -105,16 +105,16 @@ export class ObserverLocator implements IObserverLocator {
     return new PropertyAccessor(this.changeSet, obj, propertyName);
   }
 
-  public getArrayObserver(array: any[]): ICollectionObserver<CollectionKind.array> {
+  public getArrayObserver(array: IObservedArray): ICollectionObserver<CollectionKind.array> {
     return getArrayObserver(this.changeSet, array);
   }
 
-  public getMapObserver(map: Map<any, any>): ICollectionObserver<CollectionKind.map>  {
+  public getMapObserver(map: IObservedMap): ICollectionObserver<CollectionKind.map>  {
     return getMapObserver(this.changeSet, map);
   }
 
   // tslint:disable-next-line:no-reserved-keywords
-  public getSetObserver(set: Set<any>): ICollectionObserver<CollectionKind.set>  {
+  public getSetObserver(set: IObservedSet): ICollectionObserver<CollectionKind.set>  {
     return getSetObserver(this.changeSet, set);
   }
 
@@ -135,7 +135,7 @@ export class ObserverLocator implements IObserverLocator {
     return value;
   }
 
-  private getAdapterObserver(obj: any, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null {
+  private getAdapterObserver(obj: IObservable, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null {
     for (let i = 0, ii = this.adapters.length; i < ii; i++) {
       const adapter = this.adapters[i];
       const observer = adapter.getObserver(obj, propertyName, descriptor);
@@ -146,9 +146,9 @@ export class ObserverLocator implements IObserverLocator {
     return null;
   }
 
-  private createPropertyObserver(obj: any, propertyName: string): AccessorOrObserver {
+  private createPropertyObserver(obj: IObservable, propertyName: string): AccessorOrObserver {
     if (!(obj instanceof Object)) {
-      return new PrimitiveObserver(obj, propertyName) as any;
+      return new PrimitiveObserver(obj, propertyName) as IBindingTargetAccessor;
     }
 
     if (DOM.isNodeInstance(obj)) {
@@ -163,15 +163,15 @@ export class ObserverLocator implements IObserverLocator {
       const tagName = obj['tagName'];
       const handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && tagName === 'SELECT') {
-        return new SelectValueObserver(this.changeSet, <HTMLSelectElement>obj, handler, this) as any;
+        return new SelectValueObserver(this.changeSet, <HTMLSelectElement>obj, handler, this);
       }
 
       if (propertyName === 'checked' && tagName === 'INPUT') {
-        return new CheckedObserver(this.changeSet, <HTMLInputElement>obj, handler, this) as any;
+        return new CheckedObserver(this.changeSet, <HTMLInputElement>obj, handler, this);
       }
 
       if (handler) {
-        return new ValueAttributeObserver(this.changeSet, obj, propertyName, handler) as any;
+        return new ValueAttributeObserver(this.changeSet, obj, propertyName, handler);
       }
 
       const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
@@ -190,23 +190,25 @@ export class ObserverLocator implements IObserverLocator {
     switch (tag) {
       case '[object Array]':
         if (propertyName === 'length') {
-          return this.getArrayObserver(obj).getLengthObserver();
+          return this.getArrayObserver(<IObservedArray>obj).getLengthObserver();
         }
-        return this.dirtyChecker.createProperty(obj, propertyName) as any;
+        return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Map]':
         if (propertyName === 'size') {
-          return this.getMapObserver(obj).getLengthObserver();
+          return this.getMapObserver(<IObservedMap>obj).getLengthObserver();
         }
-        return this.dirtyChecker.createProperty(obj, propertyName) as any;
+        return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Set]':
         if (propertyName === 'size') {
-          return this.getSetObserver(obj).getLengthObserver();
+          return this.getSetObserver(<IObservedSet>obj).getLengthObserver();
         }
-        return this.dirtyChecker.createProperty(obj, propertyName) as any;
+        return this.dirtyChecker.createProperty(obj, propertyName);
     }
 
-
-    const descriptor: any = getPropertyDescriptor(obj, propertyName);
+    const descriptor = getPropertyDescriptor(obj, propertyName) as PropertyDescriptor & {
+      // tslint:disable-next-line:no-reserved-keywords
+      get: PropertyDescriptor['get'] & { getObserver(obj: IObservable): IBindingTargetObserver };
+    };
 
     if (descriptor) {
       if (descriptor.get || descriptor.set) {
@@ -220,9 +222,9 @@ export class ObserverLocator implements IObserverLocator {
           return adapterObserver;
         }
 
-        return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor) as any;
+        return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor);
       }
     }
-    return new SetterObserver(obj, propertyName) as any;
+    return new SetterObserver(obj, propertyName);
   }
 }

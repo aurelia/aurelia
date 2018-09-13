@@ -1,10 +1,10 @@
-import { DI } from '@aurelia/kernel';
+import { DI, IIndexable, Primitive } from '@aurelia/kernel';
 import { BindingFlags } from './binding-flags';
-import { IAccessor, IChangeTracker, IPropertySubscriber, ISubscribable, ISubscriberCollection, MutationKind } from './observation';
-import { subscriberCollection } from './subscriber-collection';
+import { IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertySubscriber } from './observation';
+import { propertyObserver } from './property-observer';
 
 export interface IDirtyChecker {
-  createProperty(obj: any, propertyName: string): IAccessor & ISubscribable<MutationKind.instance> & IChangeTracker;
+  createProperty(obj: IObservable, propertyName: string): IBindingTargetAccessor;
 }
 
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>()
@@ -12,10 +12,10 @@ export const IDirtyChecker = DI.createInterface<IDirtyChecker>()
 
 /*@internal*/
 export class DirtyChecker {
-  private tracked: any[] = [];
+  private tracked: DirtyCheckProperty[] = [];
   private checkDelay: number = 120;
 
-  public createProperty(obj: any, propertyName: string): DirtyCheckProperty {
+  public createProperty(obj: IObservable, propertyName: string): DirtyCheckProperty {
     return new DirtyCheckProperty(this, obj, propertyName);
   }
 
@@ -46,7 +46,7 @@ export class DirtyChecker {
       const current = tracked[i];
 
       if (current.isDirty()) {
-        current.call();
+        current.flushChanges();
       }
     }
 
@@ -57,29 +57,30 @@ export class DirtyChecker {
 }
 
 // tslint:disable-next-line:interface-name
-export interface DirtyCheckProperty extends
-  IAccessor,
-  ISubscribable<MutationKind.instance>,
-  ISubscriberCollection<MutationKind.instance>,
-  IChangeTracker { }
+export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
 /*@internal*/
-@subscriberCollection(MutationKind.instance)
+@propertyObserver()
 export class DirtyCheckProperty implements DirtyCheckProperty {
-  public oldValue: any;
+  public oldValue: IIndexable | Primitive;
 
-  constructor(private dirtyChecker: DirtyChecker, private obj: any, private propertyName: string) { }
+  constructor(
+    private dirtyChecker: DirtyChecker,
+    public obj: IObservable,
+    public propertyKey: string) {
+
+    }
 
   public isDirty(): boolean {
-    return this.oldValue !== this.obj[this.propertyName];
+    return this.oldValue !== this.obj[this.propertyKey];
   }
 
-  public getValue(): any {
-    return this.obj[this.propertyName];
+  public getValue(): IIndexable | Primitive {
+    return this.obj[this.propertyKey];
   }
 
-  public setValue(newValue: any): void {
-    this.obj[this.propertyName] = newValue;
+  public setValue(newValue: IIndexable | Primitive): void {
+    this.obj[this.propertyKey] = newValue;
   }
 
   public flushChanges(): void {

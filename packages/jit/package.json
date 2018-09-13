@@ -4,6 +4,7 @@
   "main": "dist/index.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
+  "browser": "dist/index.iife.js",
   "types": "dist/types/index.d.ts",
   "typings": "dist/types/index.d.ts",
   "license": "MIT",

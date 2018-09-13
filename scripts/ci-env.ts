@@ -1,9 +1,8 @@
-import * as l from 'fancy-log';
-const log = <typeof import('fancy-log')>(<any>l);
 import * as request from 'request';
-import * as c from 'chalk';
-const chalk = <import('chalk').Chalk>(c.default || c);
 import * as os from 'os';
+import { createLogger, c } from './logger';
+
+const log = createLogger('ci-env');
 
 function toBoolean(value: any): boolean {
   if (value === true || value === 'true' || value === 1) {
@@ -26,7 +25,7 @@ function toNumber(value: any): number {
 }
 
 function logVariable(value: any, name: string): any {
-  log(`> ${chalk.grey('process.env.')}${chalk.white(name)}${chalk.grey(':')} ${chalk.yellowBright(value)} (${chalk.grey(typeof value)})`);
+  log(`${c.grey('process.env.')}${c.white(name)}${c.grey(':')} ${c.yellowBright(value)} (${c.grey(typeof value)})`);
   return value;
 }
 

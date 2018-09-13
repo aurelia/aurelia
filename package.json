@@ -9,6 +9,7 @@
     "build": "lerna run build",
     "dev": "lerna run dev --parallel",
     "build-all": "lerna run build-all",
+    "clean": "rimraf packages/*/dist .rpt2_cache",
     "bundle": "ts-node -P scripts/tsconfig.json scripts/bundle.ts",
     "test": "lerna run test",
     "test-firefox": "lerna run test-firefox",

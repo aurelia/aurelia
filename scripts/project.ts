@@ -1,4 +1,5 @@
 import { join, resolve } from 'path';
+import { PLATFORM } from '../packages/kernel/src/platform';
 import * as lernaJson from '../lerna.json';
 import * as packageJson from '../package.json';
 
@@ -32,7 +33,10 @@ export default {
     const src = join(path, 'src');
     const scopedName = `@aurelia/${name}`;
     const coverage = join(rootPath, 'coverage', name);
-    return { name, path, src, scopedName, coverage };
+    const jsName = PLATFORM.camelCase(name);
+    const namespace = `au`;
+    const fullName = `${namespace}.${jsName}`;
+    return { name, jsName, namespace, fullName, path, src, scopedName, coverage };
   }),
   'scripts': {
     'path': join(rootPath, 'scripts')

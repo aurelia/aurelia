@@ -1,0 +1,6 @@
+<template>
+  <input id="checkbox" type="checkbox" checked.two-way="multiple">
+  <select multiple.bind="multiple" id="select" value.bind="value" style.bind="multiple ? 'height: 300px': ''">
+    <option repeat.for="option of options" id="option-${option.value}" class="option" value.bind="option.value">${option.text}</option>
+  </select>
+</template>

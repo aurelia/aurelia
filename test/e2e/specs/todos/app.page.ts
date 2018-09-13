@@ -1,10 +1,7 @@
+import { logAction } from "../logger";
+
 // tslint:disable:typedef
 // tslint:disable:function-name
-
-function log(msg: string) {
-  msg = `     * ${msg}`;
-  console.log(msg);
-}
 
 export class AppPage {
   public static get descriptionInput() {
@@ -12,7 +9,7 @@ export class AppPage {
   }
 
   public static setDescriptionInputValue(value: string) {
-    log(`set description input value to ${value}`);
+    logAction(`set description input value to ${value}`);
     this.descriptionInput.clearElement();
     this.descriptionInput.setValue(value);
   }
@@ -26,7 +23,7 @@ export class AppPage {
   }
 
   public static setCountInputValue(value: number) {
-    log(`set count value to ${value}`);
+    logAction(`set count value to ${value}`);
     this.countInput.clearElement();
     this.countInput.setValue(value);
   }
@@ -52,7 +49,7 @@ export class AppPage {
   }
 
   public static addTodo() {
-    log(`click Add todo`);
+    logAction(`click Add todo`);
     this.addTodoButton.click();
   }
 
@@ -61,17 +58,17 @@ export class AppPage {
   }
 
   public static clearTodos() {
-    log(`click Clear todos`);
+    logAction(`click Clear todos`);
     this.clearTodosButton.click();
   }
 
   public static get toggleTodosButton() {
-    log(`click Toggle todos`);
+    logAction(`click Toggle todos`);
     return $('#toggleTodos');
   }
 
   public static toggleTodos() {
-    log(`toggle todos`);
+    logAction(`toggle todos`);
     this.toggleTodosButton.click();
   }
 
@@ -99,7 +96,7 @@ export class AppPage {
   }
 
   public static clickTodoDoneCheckbox(id: number, timeout: number = 100) {
-    log(`click Todo done checkbox`);
+    logAction(`click Todo done checkbox`);
     const el = $(`#todo-${id}-done`);
     el.waitForVisible(timeout);
     el.click();

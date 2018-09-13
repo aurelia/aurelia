@@ -5,10 +5,11 @@
     "declaration": true,
     "declarationMap": true,
     "experimentalDecorators": true,
+    "importHelpers": true,
     "lib": ["esnext", "dom"],
     "module": "umd",
     "moduleResolution": "node",
-    "sourceMap": true,
+    "sourceMap": false,
     "stripInternal": true,
     "target": "es2018"
   }

@@ -1,5 +1,6 @@
 .idea
 .DS_STORE
+.rpt2_cache
 
 **/node_modules
 **/coverage

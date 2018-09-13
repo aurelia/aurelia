@@ -21,7 +21,7 @@ aliases:
       name: Install e2e tests
       command: |
         cd ./test/e2e
-        npm install
+        npm ci
         npm run build
   - &step_serve_e2e_bs
     run:
@@ -60,7 +60,11 @@ jobs:
           name: "Bootstrap and build the packages"
           command: |
             npm run bootstrap
-            npm run build-all
+            npm run build
+      - run:
+          name: "Create bundles with rollup"
+          command: |
+            npm run bundle:dist
       - run:
           name: "Create tarballs from the build outputs"
           command: |

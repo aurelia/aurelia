@@ -1,8 +1,12 @@
 {
   "name": "@aurelia/jit",
   "version": "0.1.1",
-  "main": "dist/umd/index.js",
-  "types": "dist/types/index.d.ts",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es6.js",
+  "jsnext:main": "dist/index.es6.js",
+  "browser": "dist/index.umd.js",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
   "license": "MIT",
   "homepage": "https://aurelia.io",
   "repository": {
@@ -28,13 +32,8 @@
     "test-firefox": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit --browsers=FirefoxHeadless --single-run --coverage",
     "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit --browsers=ChromeHeadlessOpt --coverage",
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=jit --browsers=ChromeDebugging",
-    "build": "npm run build:umd",
-    "build:es2015": "tsc -b tsconfig/es2015.json",
-    "build:esnext": "tsc -b tsconfig/esnext.json",
-    "build:system": "tsc -b tsconfig/system.json",
-    "build:umd": "tsc -b tsconfig/umd.json",
-    "build-all": "run-p build:*",
-    "dev": "tsc -b tsconfig/umd.json -w",
+    "build": "tsc -b",
+    "dev": "tsc -b -w",
     "publish:local": "npm pack"
   },
   "publishConfig": {
@@ -75,6 +74,7 @@
     "ts-loader": "^4.4.2",
     "ts-node": "^7.0.0",
     "tsconfig-paths": "^3.5.0",
+    "tslib": "^1.9.3",
     "tslint": "^5.11.0",
     "tslint-microsoft-contrib": "^5.1.0",
     "typescript": "^3.0.1",

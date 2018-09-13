@@ -64,7 +64,7 @@ jobs:
       - run:
           name: "Create bundles with rollup"
           command: |
-            npm run bundle
+            npm run bundle:dist
       - run:
           name: "Create tarballs from the build outputs"
           command: |

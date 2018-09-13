@@ -39,8 +39,11 @@ export default {
     const dist = join(path, 'dist');
     const umd = join(dist, `index.umd.js`);
     const es6 = join(dist, `index.es6.js`);
+    const system = join(dist, `index.system.js`);
+    const amd = join(dist, `index.amd.js`);
+    const cjs = join(dist, `index.cjs.js`);
     const iife = join(rootPath, 'dist', `${name}.js`);
-    return { name, jsName, namespace, fullName, path, iife, umd, es6, src, dist, scopedName, coverage };
+    return { name, jsName, namespace, fullName, path, iife, umd, es6, system, amd, cjs, src, dist, scopedName, coverage };
   }),
   'scripts': {
     'path': join(rootPath, 'scripts')

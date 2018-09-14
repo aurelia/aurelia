@@ -1,6 +1,586 @@
 this.au = this.au || {};
-this.au.runtime = (function (exports,kernel) {
+this.au.jit = (function (exports) {
     'use strict';
+
+    const camelCaseLookup = {};
+    const kebabCaseLookup = {};
+    const PLATFORM = {
+        global: (function () {
+            // Workers don’t have `window`, only `self`
+            if (typeof self !== 'undefined') {
+                return self;
+            }
+            if (typeof global !== 'undefined') {
+                return global;
+            }
+            // Not all environments allow eval and Function
+            // Use only as a last resort:
+            return new Function('return this')();
+        })(),
+        emptyArray: Object.freeze([]),
+        emptyObject: Object.freeze({}),
+        /* tslint:disable-next-line:no-empty */
+        noop() { },
+        now() {
+            return performance.now();
+        },
+        camelCase(input) {
+            // benchmark: http://jsben.ch/qIz4Z
+            let value = camelCaseLookup[input];
+            if (value !== undefined)
+                return value;
+            value = '';
+            let first = true;
+            let sep = false;
+            let char;
+            for (let i = 0, ii = input.length; i < ii; ++i) {
+                char = input.charAt(i);
+                if (char === '-' || char === '.' || char === '_') {
+                    sep = true; // skip separators
+                }
+                else {
+                    value = value + (first ? char.toLowerCase() : (sep ? char.toUpperCase() : char));
+                    sep = false;
+                }
+                first = false;
+            }
+            return camelCaseLookup[input] = value;
+        },
+        kebabCase(input) {
+            // benchmark: http://jsben.ch/v7K9T
+            let value = kebabCaseLookup[input];
+            if (value !== undefined)
+                return value;
+            value = '';
+            let first = true;
+            let char, lower;
+            for (let i = 0, ii = input.length; i < ii; ++i) {
+                char = input.charAt(i);
+                lower = char.toLowerCase();
+                value = value + (first ? lower : (char !== lower ? `-${lower}` : lower));
+                first = false;
+            }
+            return kebabCaseLookup[input] = value;
+        },
+        toArray(input) {
+            // benchmark: http://jsben.ch/xjsyF
+            const len = input.length;
+            const arr = Array(len);
+            for (let i = 0; i < len; ++i) {
+                arr[i] = input[i];
+            }
+            return arr;
+        },
+        requestAnimationFrame(callback) {
+            return requestAnimationFrame(callback);
+        },
+        createTaskFlushRequester(onFlush) {
+            return function requestFlush() {
+                // We dispatch a timeout with a specified delay of 0 for engines that
+                // can reliably accommodate that request. This will usually be snapped
+                // to a 4 millisecond delay, but once we're flushing, there's no delay
+                // between events.
+                const timeoutHandle = setTimeout(handleFlushTimer, 0);
+                // However, since this timer gets frequently dropped in Firefox
+                // workers, we enlist an interval handle that will try to fire
+                // an event 20 times per second until it succeeds.
+                const intervalHandle = setInterval(handleFlushTimer, 50);
+                function handleFlushTimer() {
+                    // Whichever timer succeeds will cancel both timers and request the
+                    // flush.
+                    clearTimeout(timeoutHandle);
+                    clearInterval(intervalHandle);
+                    onFlush();
+                }
+            };
+        },
+        createMicroTaskFlushRequestor(onFlush) {
+            const observer = new MutationObserver(onFlush);
+            const node = document.createTextNode('');
+            const values = Object.create(null);
+            let val = 'a';
+            values.a = 'b';
+            values.b = 'a';
+            observer.observe(node, { characterData: true });
+            return function requestFlush() {
+                node.data = val = values[val];
+            };
+        }
+    };
+
+    const Reporter = {
+        /* tslint:disable-next-line:no-empty */
+        write(code, ...params) { },
+        error(code, ...params) { return new Error(`Code ${code}`); }
+    };
+
+    if (!('getOwnMetadata' in Reflect)) {
+        Reflect.getOwnMetadata = function (key, target) {
+            return target[key];
+        };
+        Reflect.metadata = function (key, value) {
+            return function (target) {
+                target[key] = value;
+            };
+        };
+    }
+    const DI = {
+        createContainer() {
+            return new Container();
+        },
+        getDesignParamTypes(target) {
+            return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
+        },
+        getDependencies(type) {
+            let dependencies;
+            if (type.inject === undefined) {
+                dependencies = DI.getDesignParamTypes(type);
+            }
+            else {
+                dependencies = [];
+                let ctor = type;
+                while (typeof ctor === 'function') {
+                    if (ctor.hasOwnProperty('inject')) {
+                        dependencies.push(...ctor.inject);
+                    }
+                    ctor = Object.getPrototypeOf(ctor);
+                }
+            }
+            return dependencies;
+        },
+        createInterface(friendlyName) {
+            const Key = function (target, property, index) {
+                const inject = target.inject || (target.inject = []);
+                Key.friendlyName = friendlyName || 'Interface';
+                inject[index] = Key;
+                return target;
+            };
+            Key.noDefault = function () {
+                return Key;
+            };
+            Key.withDefault = function (configure) {
+                Key.withDefault = function () {
+                    throw Reporter.error(17, Key);
+                };
+                Key.register = function (container, key) {
+                    return configure({
+                        instance(value) {
+                            return container.registerResolver(Key, new Resolver(key || Key, 0 /* instance */, value));
+                        },
+                        singleton(value) {
+                            return container.registerResolver(Key, new Resolver(key || Key, 1 /* singleton */, value));
+                        },
+                        transient(value) {
+                            return container.registerResolver(Key, new Resolver(key || Key, 2 /* transient */, value));
+                        },
+                        callback(value) {
+                            return container.registerResolver(Key, new Resolver(key || Key, 3 /* callback */, value));
+                        },
+                        aliasTo(destinationKey) {
+                            return container.registerResolver(destinationKey, new Resolver(key || Key, 5 /* alias */, Key));
+                        },
+                    });
+                };
+                return Key;
+            };
+            return Key;
+        },
+        inject(...dependencies) {
+            return function (target, key, descriptor) {
+                if (typeof descriptor === 'number') { // It's a parameter decorator.
+                    if (!target.hasOwnProperty('inject')) {
+                        target.inject = DI.getDesignParamTypes(target).slice();
+                    }
+                    if (dependencies.length === 1) {
+                        target.inject[descriptor] = dependencies[0];
+                    }
+                }
+                else if (key) { // It's a property decorator. Not supported by the container without plugins.
+                    const actualTarget = target.constructor;
+                    const inject = actualTarget.inject || (actualTarget.inject = {});
+                    inject[key] = dependencies[0];
+                }
+                else if (descriptor) { // It's a function decorator (not a Class constructor)
+                    const fn = descriptor.value;
+                    fn.inject = dependencies;
+                }
+                else { // It's a class decorator.
+                    if (!dependencies || dependencies.length === 0) {
+                        target.inject = DI.getDesignParamTypes(target).slice();
+                    }
+                    else {
+                        target.inject = dependencies;
+                    }
+                }
+            };
+        }
+    };
+    const IContainer = DI.createInterface().noDefault();
+    function createResolver(getter) {
+        return function (key) {
+            const Key = function Key(target, property, descriptor) {
+                return DI.inject(Key)(target, property, descriptor);
+            };
+            Key.resolve = function (handler, requestor) {
+                return getter(key, handler, requestor);
+            };
+            return Key;
+        };
+    }
+    const inject = DI.inject;
+    const all = createResolver((key, handler, requestor) => requestor.getAll(key));
+    /*@internal*/
+    class Resolver {
+        constructor(key, strategy, state) {
+            this.key = key;
+            this.strategy = strategy;
+            this.state = state;
+        }
+        register(container, key) {
+            return container.registerResolver(key || this.key, this);
+        }
+        resolve(handler, requestor) {
+            switch (this.strategy) {
+                case 0 /* instance */:
+                    return this.state;
+                case 1 /* singleton */:
+                    this.strategy = 0 /* instance */;
+                    return this.state = handler.getFactory(this.state).construct(handler);
+                case 2 /* transient */:
+                    // Always create transients from the requesting container
+                    return handler.getFactory(this.state).construct(requestor);
+                case 3 /* callback */:
+                    return this.state(handler, requestor, this);
+                case 4 /* array */:
+                    return this.state[0].resolve(handler, requestor);
+                case 5 /* alias */:
+                    return handler.get(this.state);
+                default:
+                    throw Reporter.error(6, this.strategy);
+            }
+        }
+        getFactory(container) {
+            switch (this.strategy) {
+                case 1 /* singleton */:
+                case 2 /* transient */:
+                    return container.getFactory(this.state);
+                default:
+                    return null;
+            }
+        }
+    }
+    /*@internal*/
+    class Factory {
+        constructor(type, invoker, dependencies) {
+            this.type = type;
+            this.invoker = invoker;
+            this.dependencies = dependencies;
+            this.transformers = null;
+        }
+        static create(type) {
+            const dependencies = DI.getDependencies(type);
+            const invoker = classInvokers[dependencies.length] || fallbackInvoker;
+            return new Factory(type, invoker, dependencies);
+        }
+        construct(container, dynamicDependencies) {
+            const transformers = this.transformers;
+            let instance = dynamicDependencies !== undefined
+                ? this.invoker.invokeWithDynamicDependencies(container, this.type, this.dependencies, dynamicDependencies)
+                : this.invoker.invoke(container, this.type, this.dependencies);
+            if (transformers === null) {
+                return instance;
+            }
+            for (let i = 0, ii = transformers.length; i < ii; ++i) {
+                instance = transformers[i](instance);
+            }
+            return instance;
+        }
+        registerTransformer(transformer) {
+            if (this.transformers === null) {
+                this.transformers = [];
+            }
+            this.transformers.push(transformer);
+            return true;
+        }
+    }
+    const containerResolver = {
+        resolve(handler, requestor) {
+            return requestor;
+        }
+    };
+    function isRegistry(obj) {
+        return typeof obj.register === 'function';
+    }
+    /*@internal*/
+    class Container {
+        constructor(configuration = {}) {
+            this.parent = null;
+            this.resolvers = new Map();
+            this.configuration = configuration;
+            this.factories = configuration.factories || (configuration.factories = new Map());
+            this.resolvers.set(IContainer, containerResolver);
+        }
+        register(...params) {
+            for (let i = 0, ii = params.length; i < ii; ++i) {
+                const current = params[i];
+                if (isRegistry(current)) {
+                    current.register(this);
+                }
+                else {
+                    const keys = Object.keys(current);
+                    for (let j = 0, jj = keys.length; j < jj; ++j) {
+                        const value = current[keys[j]];
+                        // note: we could remove this if-branch and call this.register directly
+                        // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
+                        if (isRegistry(value)) {
+                            value.register(this);
+                        }
+                        else {
+                            this.register(value);
+                        }
+                    }
+                }
+            }
+        }
+        registerResolver(key, resolver) {
+            validateKey(key);
+            const resolvers = this.resolvers;
+            const result = resolvers.get(key);
+            if (result === undefined) {
+                resolvers.set(key, resolver);
+            }
+            else if (result instanceof Resolver && result.strategy === 4 /* array */) {
+                result.state.push(resolver);
+            }
+            else {
+                resolvers.set(key, new Resolver(key, 4 /* array */, [result, resolver]));
+            }
+            return resolver;
+        }
+        registerTransformer(key, transformer) {
+            const resolver = this.getResolver(key);
+            if (resolver === null) {
+                return false;
+            }
+            if (resolver.getFactory) {
+                const handler = resolver.getFactory(this);
+                if (handler === null) {
+                    return false;
+                }
+                return handler.registerTransformer(transformer);
+            }
+            return false;
+        }
+        getResolver(key, autoRegister = true) {
+            validateKey(key);
+            if (key.resolve) {
+                return key;
+            }
+            /* tslint:disable-next-line:no-this-assignment */
+            let current = this;
+            while (current !== null) {
+                const resolver = current.resolvers.get(key);
+                if (resolver === undefined) {
+                    if (current.parent === null) {
+                        return autoRegister ? this.jitRegister(key, current) : null;
+                    }
+                    current = current.parent;
+                }
+                else {
+                    return resolver;
+                }
+            }
+            return null;
+        }
+        has(key, searchAncestors = false) {
+            return this.resolvers.has(key)
+                ? true
+                : searchAncestors && this.parent !== null
+                    ? this.parent.has(key, true)
+                    : false;
+        }
+        get(key) {
+            validateKey(key);
+            if (key.resolve) {
+                return key.resolve(this, this);
+            }
+            /* tslint:disable-next-line:no-this-assignment */
+            let current = this;
+            while (current !== null) {
+                const resolver = current.resolvers.get(key);
+                if (resolver === undefined) {
+                    if (current.parent === null) {
+                        return this.jitRegister(key, current).resolve(current, this);
+                    }
+                    current = current.parent;
+                }
+                else {
+                    return resolver.resolve(current, this);
+                }
+            }
+        }
+        getAll(key) {
+            validateKey(key);
+            /* tslint:disable-next-line:no-this-assignment */
+            let current = this;
+            while (current !== null) {
+                const resolver = current.resolvers.get(key);
+                if (resolver === undefined) {
+                    if (this.parent === null) {
+                        return PLATFORM.emptyArray;
+                    }
+                    current = current.parent;
+                }
+                else {
+                    return buildAllResponse(resolver, current, this);
+                }
+            }
+            return PLATFORM.emptyArray;
+        }
+        getFactory(type) {
+            let factory = this.factories.get(type);
+            if (factory === undefined) {
+                factory = Factory.create(type);
+                this.factories.set(type, factory);
+            }
+            return factory;
+        }
+        createChild() {
+            const child = new Container(this.configuration);
+            child.parent = this;
+            return child;
+        }
+        jitRegister(keyAsValue, handler) {
+            if (keyAsValue.register) {
+                return keyAsValue.register(handler, keyAsValue);
+            }
+            const resolver = new Resolver(keyAsValue, 1 /* singleton */, keyAsValue);
+            handler.resolvers.set(keyAsValue, resolver);
+            return resolver;
+        }
+    }
+    const Registration = {
+        instance(key, value) {
+            return new Resolver(key, 0 /* instance */, value);
+        },
+        singleton(key, value) {
+            return new Resolver(key, 1 /* singleton */, value);
+        },
+        transient(key, value) {
+            return new Resolver(key, 2 /* transient */, value);
+        },
+        callback(key, callback) {
+            return new Resolver(key, 3 /* callback */, callback);
+        },
+        alias(originalKey, aliasKey) {
+            return new Resolver(aliasKey, 5 /* alias */, originalKey);
+        },
+        interpret(interpreterKey, ...rest) {
+            return {
+                register(container) {
+                    const resolver = container.getResolver(interpreterKey);
+                    if (resolver !== null) {
+                        let registry = null;
+                        if (resolver.getFactory) {
+                            const factory = resolver.getFactory(container);
+                            if (factory !== null) {
+                                registry = factory.construct(container, rest);
+                            }
+                        }
+                        else {
+                            registry = resolver.resolve(container, container);
+                        }
+                        if (registry !== null) {
+                            registry.register(container);
+                        }
+                    }
+                }
+            };
+        }
+    };
+    /*@internal*/
+    function validateKey(key) {
+        // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
+        // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
+        if (key === null || key === undefined || key === Object) {
+            throw Reporter.error(5);
+        }
+    }
+    function buildAllResponse(resolver, handler, requestor) {
+        if (resolver instanceof Resolver && resolver.strategy === 4 /* array */) {
+            const state = resolver.state;
+            let i = state.length;
+            const results = new Array(i);
+            while (i--) {
+                results[i] = state[i].get(handler, requestor);
+            }
+            return results;
+        }
+        return [resolver.resolve(handler, requestor)];
+    }
+    /*@internal*/
+    const classInvokers = [
+        {
+            invoke(container, Type) {
+                return new Type();
+            },
+            invokeWithDynamicDependencies
+        },
+        {
+            invoke(container, Type, deps) {
+                return new Type(container.get(deps[0]));
+            },
+            invokeWithDynamicDependencies
+        },
+        {
+            invoke(container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]));
+            },
+            invokeWithDynamicDependencies
+        },
+        {
+            invoke(container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
+            },
+            invokeWithDynamicDependencies
+        },
+        {
+            invoke(container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]));
+            },
+            invokeWithDynamicDependencies
+        },
+        {
+            invoke(container, Type, deps) {
+                return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]), container.get(deps[4]));
+            },
+            invokeWithDynamicDependencies
+        }
+    ];
+    /*@internal*/
+    const fallbackInvoker = {
+        invoke: invokeWithDynamicDependencies,
+        invokeWithDynamicDependencies
+    };
+    /*@internal*/
+    function invokeWithDynamicDependencies(container, Type, staticDependencies, dynamicDependencies) {
+        let i = staticDependencies.length;
+        let args = new Array(i);
+        let lookup;
+        while (i--) {
+            lookup = staticDependencies[i];
+            if (lookup === null || lookup === undefined) {
+                throw Reporter.error(7, `Index ${i}.`);
+            }
+            else {
+                args[i] = container.get(lookup);
+            }
+        }
+        if (dynamicDependencies !== undefined) {
+            args = args.concat(dynamicDependencies);
+        }
+        return Reflect.construct(Type, args);
+    }
 
     /*! *****************************************************************************
     Copyright (c) Microsoft Corporation. All rights reserved.
@@ -49,9 +629,10 @@ this.au.runtime = (function (exports,kernel) {
         }
     };
     function register(container) {
-        container.register(kernel.Registration.singleton(BindingBehaviorResource.keyFrom(this.description.name), this));
+        container.register(Registration.singleton(BindingBehaviorResource.keyFrom(this.description.name), this));
     }
 
+    var BindingFlags;
     (function (BindingFlags) {
         BindingFlags[BindingFlags["none"] = 0] = "none";
         BindingFlags[BindingFlags["mustEvaluate"] = 1073741824] = "mustEvaluate";
@@ -71,15 +652,16 @@ this.au.runtime = (function (exports,kernel) {
         BindingFlags[BindingFlags["fromDOMEvent"] = 1024] = "fromDOMEvent";
         BindingFlags[BindingFlags["fromObserverSetter"] = 2048] = "fromObserverSetter";
         BindingFlags[BindingFlags["fromBindableHandler"] = 4096] = "fromBindableHandler";
-    })(exports.BindingFlags || (exports.BindingFlags = {}));
+    })(BindingFlags || (BindingFlags = {}));
 
     /**
      * Mostly just a marker enum to help with typings (specifically to reduce duplication)
      */
+    var MutationKind;
     (function (MutationKind) {
         MutationKind[MutationKind["instance"] = 1] = "instance";
         MutationKind[MutationKind["collection"] = 2] = "collection";
-    })(exports.MutationKind || (exports.MutationKind = {}));
+    })(MutationKind || (MutationKind = {}));
 
     function subscriberCollection(mutationKind) {
         return function (target) {
@@ -93,7 +675,7 @@ this.au.runtime = (function (exports,kernel) {
             proto.removeSubscriber = removeSubscriber;
             proto.hasSubscriber = hasSubscriber;
             proto.hasSubscribers = hasSubscribers;
-            proto.callSubscribers = (mutationKind === exports.MutationKind.instance ? callPropertySubscribers : callCollectionSubscribers);
+            proto.callSubscribers = (mutationKind === MutationKind.instance ? callPropertySubscribers : callCollectionSubscribers);
         };
     }
     function addSubscriber(subscriber) {
@@ -380,7 +962,7 @@ this.au.runtime = (function (exports,kernel) {
         newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
         if (currentValue !== newValue) {
             this.currentValue = newValue;
-            if (flags & exports.BindingFlags.fromFlushChanges) {
+            if (flags & BindingFlags.fromFlushChanges) {
                 this.setValueCore(newValue, flags);
             }
             else {
@@ -390,7 +972,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         return Promise.resolve();
     }
-    const defaultFlushChangesFlags = exports.BindingFlags.fromFlushChanges | exports.BindingFlags.updateTargetInstance;
+    const defaultFlushChangesFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
     function flushChanges() {
         const currentValue = this.currentValue;
         // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
@@ -410,7 +992,7 @@ this.au.runtime = (function (exports,kernel) {
     }
     function targetObserver(defaultValue = null) {
         return function (target) {
-            subscriberCollection(exports.MutationKind.instance)(target);
+            subscriberCollection(MutationKind.instance)(target);
             const proto = target.prototype;
             proto.currentValue = defaultValue;
             proto.oldValue = defaultValue;
@@ -452,11 +1034,11 @@ this.au.runtime = (function (exports,kernel) {
         indexMap.deletedItems = [];
     }
     function getLengthObserver() {
-        return this.lengthObserver || (this.lengthObserver = new exports.CollectionLengthObserver(this, this.lengthPropertyName));
+        return this.lengthObserver || (this.lengthObserver = new CollectionLengthObserver(this, this.lengthPropertyName));
     }
     function collectionObserver(kind) {
         return function (target) {
-            subscriberCollection(exports.MutationKind.collection)(target);
+            subscriberCollection(MutationKind.collection)(target);
             batchedSubscriberCollection()(target);
             const proto = target.prototype;
             proto.collection = null;
@@ -474,7 +1056,7 @@ this.au.runtime = (function (exports,kernel) {
             proto.unsubscribeBatched = proto.unsubscribeBatched || proto.removeBatchedSubscriber;
         };
     }
-    exports.CollectionLengthObserver = class CollectionLengthObserver {
+    let CollectionLengthObserver = class CollectionLengthObserver {
         constructor(obj, propertyKey) {
             this.obj = obj;
             this.propertyKey = propertyKey;
@@ -493,9 +1075,9 @@ this.au.runtime = (function (exports,kernel) {
             this.removeSubscriber(subscriber);
         }
     };
-    exports.CollectionLengthObserver = __decorate([
+    CollectionLengthObserver = __decorate([
         targetObserver()
-    ], exports.CollectionLengthObserver);
+    ], CollectionLengthObserver);
 
     const proto = Array.prototype;
     const nativePush = proto.push; // TODO: probably want to make these internal again
@@ -523,7 +1105,7 @@ this.au.runtime = (function (exports,kernel) {
             o.indexMap[i] = -2;
             i++;
         }
-        o.callSubscribers('push', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('push', arguments, BindingFlags.isCollectionMutation);
         return this.length;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
@@ -540,7 +1122,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         nativeUnshift.apply(o.indexMap, inserts);
         const len = nativeUnshift.apply(this, arguments);
-        o.callSubscribers('unshift', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('unshift', arguments, BindingFlags.isCollectionMutation);
         return len;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.pop
@@ -557,7 +1139,7 @@ this.au.runtime = (function (exports,kernel) {
             nativePush.call(indexMap.deletedItems, element);
         }
         nativePop.call(indexMap);
-        o.callSubscribers('pop', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('pop', arguments, BindingFlags.isCollectionMutation);
         return element;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.shift
@@ -573,7 +1155,7 @@ this.au.runtime = (function (exports,kernel) {
             nativePush.call(indexMap.deletedItems, element);
         }
         nativeShift.call(indexMap);
-        o.callSubscribers('shift', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('shift', arguments, BindingFlags.isCollectionMutation);
         return element;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.splice
@@ -607,7 +1189,7 @@ this.au.runtime = (function (exports,kernel) {
             nativeSplice.call(indexMap, start, deleteCount);
         }
         const deleted = nativeSplice.apply(this, arguments);
-        o.callSubscribers('splice', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('splice', arguments, BindingFlags.isCollectionMutation);
         return deleted;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
@@ -631,7 +1213,7 @@ this.au.runtime = (function (exports,kernel) {
             o.indexMap[upper] = lowerIndex;
             lower++;
         }
-        o.callSubscribers('reverse', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('reverse', arguments, BindingFlags.isCollectionMutation);
         return this;
     }
     // https://tc39.github.io/ecma262/#sec-array.prototype.sort
@@ -657,7 +1239,7 @@ this.au.runtime = (function (exports,kernel) {
             compareFn = sortCompare;
         }
         quickSort(this, o.indexMap, 0, i, compareFn);
-        o.callSubscribers('sort', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('sort', arguments, BindingFlags.isCollectionMutation);
         return this;
     }
     // https://tc39.github.io/ecma262/#sec-sortcompare
@@ -835,23 +1417,7 @@ this.au.runtime = (function (exports,kernel) {
             proto.sort = observeSort;
     }
     enableArrayObservation();
-    function disableArrayObservation() {
-        if (proto.push['observing'] === true)
-            proto.push = nativePush;
-        if (proto.unshift['observing'] === true)
-            proto.unshift = nativeUnshift;
-        if (proto.pop['observing'] === true)
-            proto.pop = nativePop;
-        if (proto.shift['observing'] === true)
-            proto.shift = nativeShift;
-        if (proto.splice['observing'] === true)
-            proto.splice = nativeSplice;
-        if (proto.reverse['observing'] === true)
-            proto.reverse = nativeReverse;
-        if (proto.sort['observing'] === true)
-            proto.sort = nativeSort;
-    }
-    exports.ArrayObserver = class ArrayObserver {
+    let ArrayObserver = class ArrayObserver {
         constructor(changeSet, array) {
             this.changeSet = changeSet;
             array.$observer = this;
@@ -859,11 +1425,11 @@ this.au.runtime = (function (exports,kernel) {
             this.resetIndexMap();
         }
     };
-    exports.ArrayObserver = __decorate([
+    ArrayObserver = __decorate([
         collectionObserver(9 /* array */)
-    ], exports.ArrayObserver);
+    ], ArrayObserver);
     function getArrayObserver(changeSet, array) {
-        return array.$observer || new exports.ArrayObserver(changeSet, array);
+        return array.$observer || new ArrayObserver(changeSet, array);
     }
 
     const proto$1 = Set.prototype;
@@ -885,7 +1451,7 @@ this.au.runtime = (function (exports,kernel) {
             return this;
         }
         o.indexMap[oldSize] = -2;
-        o.callSubscribers('add', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('add', arguments, BindingFlags.isCollectionMutation);
         return this;
     }
     // https://tc39.github.io/ecma262/#sec-set.prototype.clear
@@ -906,7 +1472,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             nativeClear.call(this);
             indexMap.length = 0;
-            o.callSubscribers('clear', arguments, exports.BindingFlags.isCollectionMutation);
+            o.callSubscribers('clear', arguments, BindingFlags.isCollectionMutation);
         }
         return undefined;
     }
@@ -932,7 +1498,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             i++;
         }
-        o.callSubscribers('delete', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('delete', arguments, BindingFlags.isCollectionMutation);
         return false;
     }
     for (const observe of [observeAdd, observeClear, observeDelete]) {
@@ -947,15 +1513,7 @@ this.au.runtime = (function (exports,kernel) {
             proto$1.delete = observeDelete;
     }
     enableSetObservation();
-    function disableSetObservation() {
-        if (proto$1.add['observing'] === true)
-            proto$1.add = nativeAdd;
-        if (proto$1.clear['observing'] === true)
-            proto$1.clear = nativeClear;
-        if (proto$1.delete['observing'] === true)
-            proto$1.delete = nativeDelete;
-    }
-    exports.SetObserver = class SetObserver {
+    let SetObserver = class SetObserver {
         constructor(changeSet, set) {
             this.changeSet = changeSet;
             set.$observer = this;
@@ -963,14 +1521,14 @@ this.au.runtime = (function (exports,kernel) {
             this.resetIndexMap();
         }
     };
-    exports.SetObserver = __decorate([
+    SetObserver = __decorate([
         collectionObserver(7 /* set */)
-    ], exports.SetObserver);
+    ], SetObserver);
     function getSetObserver(changeSet, set) {
-        return set.$observer || new exports.SetObserver(changeSet, set);
+        return set.$observer || new SetObserver(changeSet, set);
     }
 
-    const IChangeSet = kernel.DI.createInterface()
+    const IChangeSet = DI.createInterface()
         .withDefault(x => x.singleton(ChangeSet));
     /*@internal*/
     class ChangeSet extends Set {
@@ -1013,8 +1571,8 @@ this.au.runtime = (function (exports,kernel) {
         }
     }
 
-    const INode = kernel.DI.createInterface().noDefault();
-    const IRenderLocation = kernel.DI.createInterface().noDefault();
+    const INode = DI.createInterface().noDefault();
+    const IRenderLocation = DI.createInterface().noDefault();
     /*@internal*/
     function createNodeSequenceFromFragment(fragment) {
         return new FragmentNodeSequence(fragment.cloneNode(true));
@@ -1165,8 +1723,8 @@ this.au.runtime = (function (exports,kernel) {
     const emptySequence = {
         firstChild: null,
         lastChild: null,
-        childNodes: kernel.PLATFORM.emptyArray,
-        findTargets() { return kernel.PLATFORM.emptyArray; },
+        childNodes: PLATFORM.emptyArray,
+        findTargets() { return PLATFORM.emptyArray; },
         insertBefore(refNode) { },
         appendTo(parent) { },
         remove() { }
@@ -1188,7 +1746,7 @@ this.au.runtime = (function (exports,kernel) {
                 lastChild: node,
                 childNodes: [node],
                 findTargets() {
-                    return kernel.PLATFORM.emptyArray;
+                    return PLATFORM.emptyArray;
                 },
                 insertBefore(refNode) {
                     DOM.insertBefore(node, refNode);
@@ -1213,7 +1771,7 @@ this.au.runtime = (function (exports,kernel) {
             this.fragment = fragment;
             this.firstChild = fragment.firstChild;
             this.lastChild = fragment.lastChild;
-            this.childNodes = kernel.PLATFORM.toArray(fragment.childNodes);
+            this.childNodes = PLATFORM.toArray(fragment.childNodes);
         }
         findTargets() {
             return this.fragment.querySelectorAll('.au');
@@ -1244,7 +1802,7 @@ this.au.runtime = (function (exports,kernel) {
 
     // tslint:disable-next-line:no-http-string
     const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
-    exports.XLinkAttributeAccessor = class XLinkAttributeAccessor {
+    let XLinkAttributeAccessor = class XLinkAttributeAccessor {
         // xlink namespaced attributes require getAttributeNS/setAttributeNS
         // (even though the NS version doesn't work for other namespaces
         // in html5 documents)
@@ -1264,11 +1822,11 @@ this.au.runtime = (function (exports,kernel) {
             this.obj.setAttributeNS(xlinkAttributeNS, this.attributeName, newValue);
         }
     };
-    exports.XLinkAttributeAccessor = __decorate([
+    XLinkAttributeAccessor = __decorate([
         targetObserver('')
-    ], exports.XLinkAttributeAccessor);
-    exports.XLinkAttributeAccessor.prototype.attributeName = '';
-    exports.DataAttributeAccessor = class DataAttributeAccessor {
+    ], XLinkAttributeAccessor);
+    XLinkAttributeAccessor.prototype.attributeName = '';
+    let DataAttributeAccessor = class DataAttributeAccessor {
         constructor(changeSet, obj, propertyKey) {
             this.changeSet = changeSet;
             this.obj = obj;
@@ -1287,10 +1845,10 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
     };
-    exports.DataAttributeAccessor = __decorate([
+    DataAttributeAccessor = __decorate([
         targetObserver()
-    ], exports.DataAttributeAccessor);
-    exports.StyleAttributeAccessor = class StyleAttributeAccessor {
+    ], DataAttributeAccessor);
+    let StyleAttributeAccessor = class StyleAttributeAccessor {
         constructor(changeSet, obj) {
             this.changeSet = changeSet;
             this.obj = obj;
@@ -1351,13 +1909,13 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
     };
-    exports.StyleAttributeAccessor = __decorate([
+    StyleAttributeAccessor = __decorate([
         targetObserver()
-    ], exports.StyleAttributeAccessor);
-    exports.StyleAttributeAccessor.prototype.styles = null;
-    exports.StyleAttributeAccessor.prototype.version = 0;
-    exports.StyleAttributeAccessor.prototype.propertyKey = 'style';
-    exports.ClassAttributeAccessor = class ClassAttributeAccessor {
+    ], StyleAttributeAccessor);
+    StyleAttributeAccessor.prototype.styles = null;
+    StyleAttributeAccessor.prototype.version = 0;
+    StyleAttributeAccessor.prototype.propertyKey = 'style';
+    let ClassAttributeAccessor = class ClassAttributeAccessor {
         constructor(changeSet, obj) {
             this.changeSet = changeSet;
             this.obj = obj;
@@ -1406,13 +1964,13 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
     };
-    exports.ClassAttributeAccessor = __decorate([
+    ClassAttributeAccessor = __decorate([
         targetObserver('')
-    ], exports.ClassAttributeAccessor);
-    exports.ClassAttributeAccessor.prototype.doNotCache = true;
-    exports.ClassAttributeAccessor.prototype.version = 0;
-    exports.ClassAttributeAccessor.prototype.nameIndex = null;
-    exports.PropertyAccessor = class PropertyAccessor {
+    ], ClassAttributeAccessor);
+    ClassAttributeAccessor.prototype.doNotCache = true;
+    ClassAttributeAccessor.prototype.version = 0;
+    ClassAttributeAccessor.prototype.nameIndex = null;
+    let PropertyAccessor = class PropertyAccessor {
         constructor(changeSet, obj, propertyKey) {
             this.changeSet = changeSet;
             this.obj = obj;
@@ -1426,20 +1984,20 @@ this.au.runtime = (function (exports,kernel) {
             this.obj[this.propertyKey] = value;
         }
     };
-    exports.PropertyAccessor = __decorate([
+    PropertyAccessor = __decorate([
         targetObserver()
-    ], exports.PropertyAccessor);
+    ], PropertyAccessor);
 
-    exports.AttrBindingBehavior = class AttrBindingBehavior {
+    let AttrBindingBehavior = class AttrBindingBehavior {
         bind(flags, scope, binding) {
-            binding.targetObserver = new exports.DataAttributeAccessor(binding.locator.get(IChangeSet), binding.target, binding.targetProperty);
+            binding.targetObserver = new DataAttributeAccessor(binding.locator.get(IChangeSet), binding.target, binding.targetProperty);
         }
         // tslint:disable-next-line:no-empty
         unbind(flags, scope, binding) { }
     };
-    exports.AttrBindingBehavior = __decorate([
+    AttrBindingBehavior = __decorate([
         bindingBehavior('attr')
-    ], exports.AttrBindingBehavior);
+    ], AttrBindingBehavior);
 
     /*
     * Note: the oneTime binding now has a non-zero value for 2 reasons:
@@ -1449,15 +2007,16 @@ this.au.runtime = (function (exports,kernel) {
     * Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
     * This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
     */
+    var BindingMode;
     (function (BindingMode) {
         BindingMode[BindingMode["oneTime"] = 1] = "oneTime";
         BindingMode[BindingMode["toView"] = 2] = "toView";
         BindingMode[BindingMode["fromView"] = 4] = "fromView";
         BindingMode[BindingMode["twoWay"] = 6] = "twoWay";
         BindingMode[BindingMode["default"] = 8] = "default";
-    })(exports.BindingMode || (exports.BindingMode = {}));
+    })(BindingMode || (BindingMode = {}));
 
-    const { oneTime, toView, fromView, twoWay } = exports.BindingMode;
+    const { oneTime, toView, fromView, twoWay } = BindingMode;
     class BindingModeBehavior {
         constructor(mode) {
             this.mode = mode;
@@ -1471,38 +2030,38 @@ this.au.runtime = (function (exports,kernel) {
             binding.originalMode = null;
         }
     }
-    exports.OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBehavior {
+    let OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBehavior {
         constructor() {
             super(oneTime);
         }
     };
-    exports.OneTimeBindingBehavior = __decorate([
+    OneTimeBindingBehavior = __decorate([
         bindingBehavior('oneTime')
-    ], exports.OneTimeBindingBehavior);
-    exports.ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
+    ], OneTimeBindingBehavior);
+    let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
         constructor() {
             super(toView);
         }
     };
-    exports.ToViewBindingBehavior = __decorate([
+    ToViewBindingBehavior = __decorate([
         bindingBehavior('toView')
-    ], exports.ToViewBindingBehavior);
-    exports.FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
+    ], ToViewBindingBehavior);
+    let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
         constructor() {
             super(fromView);
         }
     };
-    exports.FromViewBindingBehavior = __decorate([
+    FromViewBindingBehavior = __decorate([
         bindingBehavior('fromView')
-    ], exports.FromViewBindingBehavior);
-    exports.TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
+    ], FromViewBindingBehavior);
+    let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
         constructor() {
             super(twoWay);
         }
     };
-    exports.TwoWayBindingBehavior = __decorate([
+    TwoWayBindingBehavior = __decorate([
         bindingBehavior('twoWay')
-    ], exports.TwoWayBindingBehavior);
+    ], TwoWayBindingBehavior);
 
     const slotNames = new Array(100);
     const versionSlotNames = new Array(100);
@@ -1511,7 +2070,7 @@ this.au.runtime = (function (exports,kernel) {
         versionSlotNames[i] = `_observerVersion${i}`;
     }
     // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
-    const { oneTime: oneTime$1, toView: toView$1, fromView: fromView$1 } = exports.BindingMode;
+    const { oneTime: oneTime$1, toView: toView$1, fromView: fromView$1 } = BindingMode;
     // pre-combining flags for bitwise checks is a minor perf tweak
     const toViewOrOneTime = toView$1 | oneTime$1;
     // tslint:disable:no-any
@@ -1526,10 +2085,10 @@ this.au.runtime = (function (exports,kernel) {
             this.$isBound = false;
         }
         updateTarget(value) {
-            this.targetObserver.setValue(value, exports.BindingFlags.updateTargetInstance);
+            this.targetObserver.setValue(value, BindingFlags.updateTargetInstance);
         }
         updateSource(value) {
-            this.sourceExpression.assign(exports.BindingFlags.updateSourceExpression, this.$scope, this.locator, value);
+            this.sourceExpression.assign(BindingFlags.updateSourceExpression, this.$scope, this.locator, value);
         }
         handleChange(newValue, previousValue, flags) {
             if (!this.$isBound) {
@@ -1538,7 +2097,7 @@ this.au.runtime = (function (exports,kernel) {
             const sourceExpression = this.sourceExpression;
             const $scope = this.$scope;
             const locator = this.locator;
-            if (flags & exports.BindingFlags.updateTargetInstance) {
+            if (flags & BindingFlags.updateTargetInstance) {
                 const targetObserver = this.targetObserver;
                 const mode = this.mode;
                 previousValue = targetObserver.getValue();
@@ -1553,13 +2112,13 @@ this.au.runtime = (function (exports,kernel) {
                 }
                 return;
             }
-            if (flags & exports.BindingFlags.updateSourceExpression) {
+            if (flags & BindingFlags.updateSourceExpression) {
                 if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
                     sourceExpression.assign(flags, $scope, locator, newValue);
                 }
                 return;
             }
-            throw kernel.Reporter.error(15, exports.BindingFlags[flags]);
+            throw Reporter.error(15, BindingFlags[flags]);
         }
         $bind(flags, scope) {
             if (this.$isBound) {
@@ -1622,7 +2181,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             const sourceExpression = this.sourceExpression;
             const $scope = this.$scope;
-            if (flags & exports.BindingFlags.mustEvaluate) {
+            if (flags & BindingFlags.mustEvaluate) {
                 const value = sourceExpression.evaluate(flags, $scope, this.locator);
                 this.targetObserver.setValue(value, flags);
             }
@@ -1666,12 +2225,12 @@ this.au.runtime = (function (exports,kernel) {
              */
             this.addObserver(observer);
         }
-        unobserve(all) {
+        unobserve(all$$1) {
             const slots = this.observerSlots;
             let i = 0;
             let slotName;
             let observer;
-            if (all) {
+            if (all$$1) {
                 // forward array processing is easier on the cpu than backwards (unlike a loop without array processing)
                 while (i < slots) {
                     slotName = slotNames[i];
@@ -1724,8 +2283,8 @@ this.au.runtime = (function (exports,kernel) {
             this.debouncedMethod(newValue, ov, flags);
         }, state.delay);
     }
-    const fromView$2 = exports.BindingMode.fromView;
-    exports.DebounceBindingBehavior = class DebounceBindingBehavior {
+    const fromView$2 = BindingMode.fromView;
+    let DebounceBindingBehavior = class DebounceBindingBehavior {
         bind(flags, scope, binding, delay = 200) {
             let methodToDebounce;
             let callContextToDebounce;
@@ -1733,12 +2292,12 @@ this.au.runtime = (function (exports,kernel) {
             if (binding instanceof Binding) {
                 methodToDebounce = 'handleChange';
                 debouncer = debounceCall;
-                callContextToDebounce = binding.mode & fromView$2 ? exports.BindingFlags.updateSourceExpression : exports.BindingFlags.updateTargetInstance;
+                callContextToDebounce = binding.mode & fromView$2 ? BindingFlags.updateSourceExpression : BindingFlags.updateTargetInstance;
             }
             else {
                 methodToDebounce = 'callSource';
                 debouncer = debounceCallSource;
-                callContextToDebounce = exports.BindingFlags.updateTargetInstance;
+                callContextToDebounce = BindingFlags.updateTargetInstance;
             }
             // stash the original method and it's name.
             // note: a generic name like "originalMethod" is not used to avoid collisions
@@ -1764,9 +2323,9 @@ this.au.runtime = (function (exports,kernel) {
             binding.debounceState = null;
         }
     };
-    exports.DebounceBindingBehavior = __decorate([
+    DebounceBindingBehavior = __decorate([
         bindingBehavior('debounce')
-    ], exports.DebounceBindingBehavior);
+    ], DebounceBindingBehavior);
 
     function valueConverter(nameOrSource) {
         return function (target) {
@@ -1793,11 +2352,11 @@ this.au.runtime = (function (exports,kernel) {
         }
     };
     function register$1(container) {
-        container.register(kernel.Registration.singleton(ValueConverterResource.keyFrom(this.description.name), this));
+        container.register(Registration.singleton(ValueConverterResource.keyFrom(this.description.name), this));
     }
 
     const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-    const ISanitizer = kernel.DI.createInterface()
+    const ISanitizer = DI.createInterface()
         .withDefault(x => x.singleton(class {
         sanitize(input) {
             return input.replace(SCRIPT_REGEX, '');
@@ -1806,7 +2365,7 @@ this.au.runtime = (function (exports,kernel) {
     /**
      * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
      */
-    exports.SanitizeValueConverter = class SanitizeValueConverter {
+    let SanitizeValueConverter = class SanitizeValueConverter {
         constructor(sanitizer) {
             this.sanitizer = sanitizer;
             this.sanitizer = sanitizer;
@@ -1822,10 +2381,10 @@ this.au.runtime = (function (exports,kernel) {
             return this.sanitizer.sanitize(untrustedMarkup);
         }
     };
-    exports.SanitizeValueConverter = __decorate([
+    SanitizeValueConverter = __decorate([
         valueConverter('sanitize'),
-        kernel.inject(ISanitizer)
-    ], exports.SanitizeValueConverter);
+        inject(ISanitizer)
+    ], SanitizeValueConverter);
 
     /*@internal*/
     function findOriginalEventTarget(event) {
@@ -1839,10 +2398,10 @@ this.au.runtime = (function (exports,kernel) {
         }
         this.selfEventCallSource(event);
     }
-    exports.SelfBindingBehavior = class SelfBindingBehavior {
+    let SelfBindingBehavior = class SelfBindingBehavior {
         bind(flags, scope, binding) {
             if (!binding.callSource || !binding.targetEvent) {
-                throw kernel.Reporter.error(8);
+                throw Reporter.error(8);
             }
             binding.selfEventCallSource = binding.callSource;
             binding.callSource = handleSelfEvent;
@@ -1852,11 +2411,11 @@ this.au.runtime = (function (exports,kernel) {
             binding.selfEventCallSource = null;
         }
     };
-    exports.SelfBindingBehavior = __decorate([
+    SelfBindingBehavior = __decorate([
         bindingBehavior('self')
-    ], exports.SelfBindingBehavior);
+    ], SelfBindingBehavior);
 
-    const ISignaler = kernel.DI.createInterface()
+    const ISignaler = DI.createInterface()
         .withDefault(x => x.singleton(class {
         dispatchSignal(name) {
             let bindings = this.signals[name];
@@ -1865,7 +2424,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             let i = bindings.length;
             while (i--) {
-                bindings[i].handleChange(undefined, undefined, exports.BindingFlags.updateTargetInstance);
+                bindings[i].handleChange(undefined, undefined, BindingFlags.updateTargetInstance);
             }
         }
         addSignalListener(name, listener) {
@@ -1879,13 +2438,13 @@ this.au.runtime = (function (exports,kernel) {
         }
     }));
 
-    exports.SignalBindingBehavior = class SignalBindingBehavior {
+    let SignalBindingBehavior = class SignalBindingBehavior {
         constructor(signaler) {
             this.signaler = signaler;
         }
         bind(flags, scope, binding) {
             if (!binding.updateTarget) {
-                throw kernel.Reporter.error(11);
+                throw Reporter.error(11);
             }
             if (arguments.length === 4) {
                 let name = arguments[3];
@@ -1902,7 +2461,7 @@ this.au.runtime = (function (exports,kernel) {
                 binding.signal = names;
             }
             else {
-                throw kernel.Reporter.error(12);
+                throw Reporter.error(12);
             }
         }
         unbind(flags, scope, binding) {
@@ -1920,10 +2479,10 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
     };
-    exports.SignalBindingBehavior = __decorate([
+    SignalBindingBehavior = __decorate([
         bindingBehavior('signal'),
-        kernel.inject(ISignaler)
-    ], exports.SignalBindingBehavior);
+        inject(ISignaler)
+    ], SignalBindingBehavior);
 
     /*@internal*/
     function throttle(newValue) {
@@ -1945,11 +2504,11 @@ this.au.runtime = (function (exports,kernel) {
             }, state.delay - elapsed);
         }
     }
-    exports.ThrottleBindingBehavior = class ThrottleBindingBehavior {
+    let ThrottleBindingBehavior = class ThrottleBindingBehavior {
         bind(flags, scope, binding, delay = 200) {
             let methodToThrottle;
             if (binding instanceof Binding) {
-                if (binding.mode === exports.BindingMode.twoWay) {
+                if (binding.mode === BindingMode.twoWay) {
                     methodToThrottle = 'updateSource';
                 }
                 else {
@@ -1982,9 +2541,9 @@ this.au.runtime = (function (exports,kernel) {
             binding.throttleState = null;
         }
     };
-    exports.ThrottleBindingBehavior = __decorate([
+    ThrottleBindingBehavior = __decorate([
         bindingBehavior('throttle')
-    ], exports.ThrottleBindingBehavior);
+    ], ThrottleBindingBehavior);
 
     //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
     function findOriginalEventTarget$1(event) {
@@ -2095,11 +2654,12 @@ this.au.runtime = (function (exports,kernel) {
             DOM.removeEventListener(this.targetEvent, this.callback, this.target);
         }
     }
+    var DelegationStrategy;
     (function (DelegationStrategy) {
         DelegationStrategy[DelegationStrategy["none"] = 0] = "none";
         DelegationStrategy[DelegationStrategy["capturing"] = 1] = "capturing";
         DelegationStrategy[DelegationStrategy["bubbling"] = 2] = "bubbling";
-    })(exports.DelegationStrategy || (exports.DelegationStrategy = {}));
+    })(DelegationStrategy || (DelegationStrategy = {}));
     class EventSubscriber {
         constructor(events) {
             this.events = events;
@@ -2127,7 +2687,7 @@ this.au.runtime = (function (exports,kernel) {
             this.target = this.handler = null;
         }
     }
-    const IEventManager = kernel.DI.createInterface()
+    const IEventManager = DI.createInterface()
         .withDefault(x => x.singleton(EventManager));
     /*@internal*/
     class EventManager {
@@ -2198,14 +2758,14 @@ this.au.runtime = (function (exports,kernel) {
             let delegatedHandlers;
             let capturedHandlers;
             let handlerEntry;
-            if (strategy === exports.DelegationStrategy.bubbling) {
+            if (strategy === DelegationStrategy.bubbling) {
                 delegatedHandlers = this.delegatedHandlers;
                 handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleDelegatedEvent, false));
                 handlerEntry.increment();
                 const delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
                 return new DelegateOrCaptureSubscription(handlerEntry, delegatedCallbacks, targetEvent, callbackOrListener);
             }
-            if (strategy === exports.DelegationStrategy.capturing) {
+            if (strategy === DelegationStrategy.capturing) {
                 capturedHandlers = this.capturedHandlers;
                 handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new ListenerTracker(targetEvent, handleCapturedEvent, true));
                 handlerEntry.increment();
@@ -2214,13 +2774,6 @@ this.au.runtime = (function (exports,kernel) {
             }
             return new TriggerSubscription(target, targetEvent, callbackOrListener);
         }
-    }
-
-    function computed(config) {
-        return function (target, key) {
-            const computed = target.computed || (target.computed = {});
-            computed[key] = config;
-        };
     }
     const noProxy = !(typeof Proxy !== undefined);
     const computedOverrideDefaults = { static: false, volatile: false };
@@ -2239,18 +2792,18 @@ this.au.runtime = (function (exports,kernel) {
                 if (overrides.volatile) {
                     return noProxy
                         ? dirtyChecker.createProperty(instance, propertyName)
-                        : new exports.GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, changeSet);
+                        : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, changeSet);
                 }
-                return new exports.CustomSetterObserver(instance, propertyName, descriptor, changeSet);
+                return new CustomSetterObserver(instance, propertyName, descriptor, changeSet);
             }
             return noProxy
                 ? dirtyChecker.createProperty(instance, propertyName)
-                : new exports.GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, changeSet);
+                : new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, changeSet);
         }
-        throw kernel.Reporter.error(18, propertyName);
+        throw Reporter.error(18, propertyName);
     }
     // Used when the getter is dependent solely on changes that happen within the setter.
-    exports.CustomSetterObserver = class CustomSetterObserver {
+    let CustomSetterObserver = class CustomSetterObserver {
         constructor(obj, propertyKey, descriptor, changeSet) {
             this.obj = obj;
             this.propertyKey = propertyKey;
@@ -2267,7 +2820,7 @@ this.au.runtime = (function (exports,kernel) {
         flushChanges() {
             const oldValue = this.oldValue;
             const newValue = this.currentValue;
-            this.callSubscribers(newValue, oldValue, exports.BindingFlags.updateTargetInstance | exports.BindingFlags.fromFlushChanges);
+            this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
         }
         subscribe(subscriber) {
             if (!this.observing) {
@@ -2297,14 +2850,14 @@ this.au.runtime = (function (exports,kernel) {
             });
         }
     };
-    exports.CustomSetterObserver = __decorate([
-        subscriberCollection(exports.MutationKind.instance)
-    ], exports.CustomSetterObserver);
-    exports.CustomSetterObserver.prototype.dispose = kernel.PLATFORM.noop;
+    CustomSetterObserver = __decorate([
+        subscriberCollection(MutationKind.instance)
+    ], CustomSetterObserver);
+    CustomSetterObserver.prototype.dispose = PLATFORM.noop;
     // Used when there is no setter, and the getter is dependent on other properties of the object;
     // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
     /*@internal*/
-    exports.GetterObserver = class GetterObserver {
+    let GetterObserver = class GetterObserver {
         constructor(overrides, obj, propertyKey, descriptor, observerLocator, changeSet) {
             this.overrides = overrides;
             this.obj = obj;
@@ -2323,7 +2876,7 @@ this.au.runtime = (function (exports,kernel) {
             const oldValue = this.controller.value;
             const newValue = this.controller.getValueAndCollectDependencies();
             if (oldValue !== newValue) {
-                this.callSubscribers(newValue, oldValue, exports.BindingFlags.updateTargetInstance);
+                this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance);
             }
         }
         subscribe(subscriber) {
@@ -2335,10 +2888,10 @@ this.au.runtime = (function (exports,kernel) {
             this.controller.onSubscriberRemoved();
         }
     };
-    exports.GetterObserver = __decorate([
-        subscriberCollection(exports.MutationKind.instance)
-    ], exports.GetterObserver);
-    exports.GetterObserver.prototype.dispose = kernel.PLATFORM.noop;
+    GetterObserver = __decorate([
+        subscriberCollection(MutationKind.instance)
+    ], GetterObserver);
+    GetterObserver.prototype.dispose = PLATFORM.noop;
     /*@internal*/
     class GetterController {
         constructor(overrides, instance, propertyName, descriptor, owner, observerLocator, changeSet) {
@@ -2460,10 +3013,8 @@ this.au.runtime = (function (exports,kernel) {
             const { obj, propertyKey } = this;
             this.currentValue = obj[propertyKey];
             observedPropertyDescriptor.get = () => this.getValue();
-            observedPropertyDescriptor.set = value => this.setValue(value, exports.BindingFlags.updateTargetInstance);
-            if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {
-                kernel.Reporter.write(1, propertyKey, obj);
-            }
+            observedPropertyDescriptor.set = value => this.setValue(value, BindingFlags.updateTargetInstance);
+            if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) ;
         }
         this.addSubscriber(subscriber);
     }
@@ -2475,7 +3026,7 @@ this.au.runtime = (function (exports,kernel) {
     }
     function propertyObserver() {
         return function (target) {
-            subscriberCollection(exports.MutationKind.instance)(target);
+            subscriberCollection(MutationKind.instance)(target);
             const proto = target.prototype;
             proto.observing = false;
             proto.obj = null;
@@ -2487,7 +3038,7 @@ this.au.runtime = (function (exports,kernel) {
         };
     }
 
-    const IDirtyChecker = kernel.DI.createInterface()
+    const IDirtyChecker = DI.createInterface()
         .withDefault(x => x.singleton(DirtyChecker));
     /*@internal*/
     class DirtyChecker {
@@ -2496,7 +3047,7 @@ this.au.runtime = (function (exports,kernel) {
             this.checkDelay = 120;
         }
         createProperty(obj, propertyName) {
-            return new exports.DirtyCheckProperty(this, obj, propertyName);
+            return new DirtyCheckProperty(this, obj, propertyName);
         }
         addProperty(property) {
             const tracked = this.tracked;
@@ -2527,7 +3078,7 @@ this.au.runtime = (function (exports,kernel) {
         }
     }
     /*@internal*/
-    exports.DirtyCheckProperty = class DirtyCheckProperty {
+    let DirtyCheckProperty = class DirtyCheckProperty {
         constructor(dirtyChecker, obj, propertyKey) {
             this.dirtyChecker = dirtyChecker;
             this.obj = obj;
@@ -2545,7 +3096,7 @@ this.au.runtime = (function (exports,kernel) {
         flushChanges() {
             const oldValue = this.oldValue;
             const newValue = this.getValue();
-            this.callSubscribers(newValue, oldValue, exports.BindingFlags.updateTargetInstance | exports.BindingFlags.fromFlushChanges);
+            this.callSubscribers(newValue, oldValue, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
             this.oldValue = newValue;
         }
         subscribe(subscriber) {
@@ -2561,9 +3112,9 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
     };
-    exports.DirtyCheckProperty = __decorate([
+    DirtyCheckProperty = __decorate([
         propertyObserver()
-    ], exports.DirtyCheckProperty);
+    ], DirtyCheckProperty);
 
     const inputValueDefaults = {
         ['button']: '',
@@ -2589,8 +3140,8 @@ this.au.runtime = (function (exports,kernel) {
         ['url']: '',
         ['week']: ''
     };
-    const handleEventFlags = exports.BindingFlags.fromDOMEvent | exports.BindingFlags.updateSourceExpression;
-    exports.ValueAttributeObserver = class ValueAttributeObserver {
+    const handleEventFlags = BindingFlags.fromDOMEvent | BindingFlags.updateSourceExpression;
+    let ValueAttributeObserver = class ValueAttributeObserver {
         constructor(changeSet, obj, propertyKey, handler) {
             // note: input.files can be assigned and this was fixed in Firefox 57:
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
@@ -2616,7 +3167,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         setValueCore(newValue, flags) {
             this.obj[this.propertyKey] = newValue;
-            if (flags & exports.BindingFlags.fromBind) {
+            if (flags & BindingFlags.fromBind) {
                 return;
             }
             this.callSubscribers(this.currentValue, this.oldValue, flags);
@@ -2651,13 +3202,13 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
     };
-    exports.ValueAttributeObserver = __decorate([
+    ValueAttributeObserver = __decorate([
         targetObserver('')
-    ], exports.ValueAttributeObserver);
-    exports.ValueAttributeObserver.prototype.propertyKey = '';
-    exports.ValueAttributeObserver.prototype.handler = null;
-    const defaultHandleBatchedChangeFlags = exports.BindingFlags.fromFlushChanges | exports.BindingFlags.updateTargetInstance;
-    exports.CheckedObserver = class CheckedObserver {
+    ], ValueAttributeObserver);
+    ValueAttributeObserver.prototype.propertyKey = '';
+    ValueAttributeObserver.prototype.handler = null;
+    const defaultHandleBatchedChangeFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
+    let CheckedObserver = class CheckedObserver {
         constructor(changeSet, obj, handler, observerLocator) {
             this.changeSet = changeSet;
             this.obj = obj;
@@ -2714,7 +3265,7 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
         notify(flags) {
-            if (flags & exports.BindingFlags.fromBind) {
+            if (flags & BindingFlags.fromBind) {
                 return;
             }
             const oldValue = this.oldValue;
@@ -2774,11 +3325,11 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
     };
-    exports.CheckedObserver = __decorate([
+    CheckedObserver = __decorate([
         targetObserver()
-    ], exports.CheckedObserver);
-    exports.CheckedObserver.prototype.handler = null;
-    exports.CheckedObserver.prototype.observerLocator = null;
+    ], CheckedObserver);
+    CheckedObserver.prototype.handler = null;
+    CheckedObserver.prototype.observerLocator = null;
     const childObserverOptions = {
         childList: true,
         subtree: true,
@@ -2787,7 +3338,7 @@ this.au.runtime = (function (exports,kernel) {
     function defaultMatcher(a, b) {
         return a === b;
     }
-    exports.SelectValueObserver = class SelectValueObserver {
+    let SelectValueObserver = class SelectValueObserver {
         constructor(changeSet, obj, handler, observerLocator) {
             this.changeSet = changeSet;
             this.obj = obj;
@@ -2824,7 +3375,7 @@ this.au.runtime = (function (exports,kernel) {
             this.setValue(newValue, flags);
         }
         notify(flags) {
-            if (flags & exports.BindingFlags.fromBind) {
+            if (flags & BindingFlags.fromBind) {
                 return;
             }
             const oldValue = this.oldValue;
@@ -2916,11 +3467,11 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
     };
-    exports.SelectValueObserver = __decorate([
+    SelectValueObserver = __decorate([
         targetObserver()
-    ], exports.SelectValueObserver);
-    exports.SelectValueObserver.prototype.handler = null;
-    exports.SelectValueObserver.prototype.observerLocator = null;
+    ], SelectValueObserver);
+    SelectValueObserver.prototype.handler = null;
+    SelectValueObserver.prototype.observerLocator = null;
 
     const proto$2 = Map.prototype;
     const nativeSet = proto$2.set; // TODO: probably want to make these internal again
@@ -2951,7 +3502,7 @@ this.au.runtime = (function (exports,kernel) {
             return this;
         }
         o.indexMap[oldSize] = -2;
-        o.callSubscribers('set', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('set', arguments, BindingFlags.isCollectionMutation);
         return this;
     }
     // https://tc39.github.io/ecma262/#sec-map.prototype.clear
@@ -2972,7 +3523,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             nativeClear$1.call(this);
             indexMap.length = 0;
-            o.callSubscribers('clear', arguments, exports.BindingFlags.isCollectionMutation);
+            o.callSubscribers('clear', arguments, BindingFlags.isCollectionMutation);
         }
         return undefined;
     }
@@ -2998,7 +3549,7 @@ this.au.runtime = (function (exports,kernel) {
             }
             i++;
         }
-        o.callSubscribers('delete', arguments, exports.BindingFlags.isCollectionMutation);
+        o.callSubscribers('delete', arguments, BindingFlags.isCollectionMutation);
         return false;
     }
     for (const observe of [observeSet, observeClear$1, observeDelete$1]) {
@@ -3013,15 +3564,7 @@ this.au.runtime = (function (exports,kernel) {
             proto$2.delete = observeDelete$1;
     }
     enableMapObservation();
-    function disableMapObservation() {
-        if (proto$2.set['observing'] === true)
-            proto$2.set = nativeSet;
-        if (proto$2.clear['observing'] === true)
-            proto$2.clear = nativeClear$1;
-        if (proto$2.delete['observing'] === true)
-            proto$2.delete = nativeDelete$1;
-    }
-    exports.MapObserver = class MapObserver {
+    let MapObserver = class MapObserver {
         constructor(changeSet, map) {
             this.changeSet = changeSet;
             map.$observer = this;
@@ -3029,14 +3572,14 @@ this.au.runtime = (function (exports,kernel) {
             this.resetIndexMap();
         }
     };
-    exports.MapObserver = __decorate([
+    MapObserver = __decorate([
         collectionObserver(6 /* map */)
-    ], exports.MapObserver);
+    ], MapObserver);
     function getMapObserver(changeSet, map) {
-        return map.$observer || new exports.MapObserver(changeSet, map);
+        return map.$observer || new MapObserver(changeSet, map);
     }
 
-    const noop = kernel.PLATFORM.noop;
+    const noop = PLATFORM.noop;
     // note: string.length is the only property of any primitive that is not a function,
     // so we can hardwire it to that and simply return undefined for anything else
     // note#2: a modified primitive constructor prototype would not work (and really, it shouldn't..)
@@ -3064,7 +3607,7 @@ this.au.runtime = (function (exports,kernel) {
     PrimitiveObserver.prototype.subscribe = noop;
     PrimitiveObserver.prototype.unsubscribe = noop;
     PrimitiveObserver.prototype.dispose = noop;
-    exports.SetterObserver = class SetterObserver {
+    let SetterObserver = class SetterObserver {
         constructor(obj, propertyKey) {
             this.obj = obj;
             this.propertyKey = propertyKey;
@@ -3076,16 +3619,16 @@ this.au.runtime = (function (exports,kernel) {
             const currentValue = this.currentValue;
             if (currentValue !== newValue) {
                 this.currentValue = newValue;
-                if (!(flags & exports.BindingFlags.fromBind)) {
+                if (!(flags & BindingFlags.fromBind)) {
                     this.callSubscribers(newValue, currentValue, flags);
                 }
             }
         }
     };
-    exports.SetterObserver = __decorate([
+    SetterObserver = __decorate([
         propertyObserver()
-    ], exports.SetterObserver);
-    exports.Observer = class Observer {
+    ], SetterObserver);
+    let Observer = class Observer {
         constructor(instance, propertyName, callbackName) {
             this.obj = instance;
             this.propertyKey = propertyName;
@@ -3101,7 +3644,7 @@ this.au.runtime = (function (exports,kernel) {
             const currentValue = this.currentValue;
             if (currentValue !== newValue) {
                 this.currentValue = newValue;
-                if (!(flags & exports.BindingFlags.fromBind)) {
+                if (!(flags & BindingFlags.fromBind)) {
                     const coercedValue = this.callback(newValue, currentValue);
                     if (coercedValue !== undefined) {
                         this.currentValue = newValue = coercedValue;
@@ -3111,11 +3654,11 @@ this.au.runtime = (function (exports,kernel) {
             }
         }
     };
-    exports.Observer = __decorate([
+    Observer = __decorate([
         propertyObserver()
-    ], exports.Observer);
+    ], Observer);
 
-    const ISVGAnalyzer = kernel.DI.createInterface()
+    const ISVGAnalyzer = DI.createInterface()
         .withDefault(x => x.singleton(class {
         isStandardSvgAttribute(node, attributeName) {
             return false;
@@ -3123,8 +3666,8 @@ this.au.runtime = (function (exports,kernel) {
     }));
 
     const toStringTag = Object.prototype.toString;
-    const IObserverLocator = kernel.DI.createInterface()
-        .withDefault(x => x.singleton(exports.ObserverLocator));
+    const IObserverLocator = DI.createInterface()
+        .withDefault(x => x.singleton(ObserverLocator));
     function getPropertyDescriptor(subject, name) {
         let pd = Object.getOwnPropertyDescriptor(subject, name);
         let proto = Object.getPrototypeOf(subject);
@@ -3134,7 +3677,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         return pd;
     }
-    exports.ObserverLocator = 
+    let ObserverLocator = 
     /*@internal*/
     class ObserverLocator {
         constructor(changeSet, eventManager, dirtyChecker, svgAnalyzer) {
@@ -3176,10 +3719,10 @@ this.au.runtime = (function (exports,kernel) {
                     || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)
                     || tagName === 'IMG' && propertyName === 'src'
                     || tagName === 'A' && propertyName === 'href') {
-                    return new exports.DataAttributeAccessor(this.changeSet, obj, propertyName);
+                    return new DataAttributeAccessor(this.changeSet, obj, propertyName);
                 }
             }
-            return new exports.PropertyAccessor(this.changeSet, obj, propertyName);
+            return new PropertyAccessor(this.changeSet, obj, propertyName);
         }
         getArrayObserver(array) {
             return getArrayObserver(this.changeSet, array);
@@ -3201,9 +3744,7 @@ this.au.runtime = (function (exports,kernel) {
                 configurable: false,
                 writable: false,
                 value: value
-            })) {
-                kernel.Reporter.write(0, obj);
-            }
+            })) ;
             return value;
         }
         getAdapterObserver(obj, propertyName, descriptor) {
@@ -3222,30 +3763,30 @@ this.au.runtime = (function (exports,kernel) {
             }
             if (DOM.isNodeInstance(obj)) {
                 if (propertyName === 'class') {
-                    return new exports.ClassAttributeAccessor(this.changeSet, obj);
+                    return new ClassAttributeAccessor(this.changeSet, obj);
                 }
                 if (propertyName === 'style' || propertyName === 'css') {
-                    return new exports.StyleAttributeAccessor(this.changeSet, obj);
+                    return new StyleAttributeAccessor(this.changeSet, obj);
                 }
                 const tagName = obj['tagName'];
                 const handler = this.eventManager.getElementHandler(obj, propertyName);
                 if (propertyName === 'value' && tagName === 'SELECT') {
-                    return new exports.SelectValueObserver(this.changeSet, obj, handler, this);
+                    return new SelectValueObserver(this.changeSet, obj, handler, this);
                 }
                 if (propertyName === 'checked' && tagName === 'INPUT') {
-                    return new exports.CheckedObserver(this.changeSet, obj, handler, this);
+                    return new CheckedObserver(this.changeSet, obj, handler, this);
                 }
                 if (handler) {
-                    return new exports.ValueAttributeObserver(this.changeSet, obj, propertyName, handler);
+                    return new ValueAttributeObserver(this.changeSet, obj, propertyName, handler);
                 }
                 const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
                 if (xlinkResult) {
-                    return new exports.XLinkAttributeAccessor(this.changeSet, obj, propertyName, xlinkResult[1]);
+                    return new XLinkAttributeAccessor(this.changeSet, obj, propertyName, xlinkResult[1]);
                 }
                 if (propertyName === 'role'
                     || /^\w+:|^data-|^aria-/.test(propertyName)
                     || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
-                    return new exports.DataAttributeAccessor(this.changeSet, obj, propertyName);
+                    return new DataAttributeAccessor(this.changeSet, obj, propertyName);
                 }
             }
             const tag = toStringTag.call(obj);
@@ -3280,29 +3821,29 @@ this.au.runtime = (function (exports,kernel) {
                     return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor);
                 }
             }
-            return new exports.SetterObserver(obj, propertyName);
+            return new SetterObserver(obj, propertyName);
         }
     };
-    exports.ObserverLocator = __decorate([
-        kernel.inject(IChangeSet, IEventManager, IDirtyChecker, ISVGAnalyzer)
+    ObserverLocator = __decorate([
+        inject(IChangeSet, IEventManager, IDirtyChecker, ISVGAnalyzer)
         /*@internal*/
-    ], exports.ObserverLocator);
+    ], ObserverLocator);
 
-    exports.UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
+    let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
         constructor(observerLocator) {
             this.observerLocator = observerLocator;
         }
         bind(flags, scope, binding, ...events) {
             if (events.length === 0) {
-                throw kernel.Reporter.error(9);
+                throw Reporter.error(9);
             }
-            if (binding.mode !== exports.BindingMode.twoWay && binding.mode !== exports.BindingMode.fromView) {
-                throw kernel.Reporter.error(10);
+            if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
+                throw Reporter.error(10);
             }
             // ensure the binding's target observer has been set.
             const targetObserver = this.observerLocator.getObserver(binding.target, binding.targetProperty);
             if (!targetObserver.handler) {
-                throw kernel.Reporter.error(10);
+                throw Reporter.error(10);
             }
             binding.targetObserver = targetObserver;
             // stash the original element subscribe function.
@@ -3317,10 +3858,10 @@ this.au.runtime = (function (exports,kernel) {
             binding.targetObserver.originalHandler = null;
         }
     };
-    exports.UpdateTriggerBindingBehavior = __decorate([
+    UpdateTriggerBindingBehavior = __decorate([
         bindingBehavior('updateTrigger'),
-        kernel.inject(IObserverLocator)
-    ], exports.UpdateTriggerBindingBehavior);
+        inject(IObserverLocator)
+    ], UpdateTriggerBindingBehavior);
 
     const BindingContext = {
         createScope(bindingContext, overrideContext) {
@@ -3660,7 +4201,7 @@ this.au.runtime = (function (exports,kernel) {
         connect(flags, scope, binding) {
             const obj = this.object.evaluate(flags, scope, null);
             this.object.connect(flags, scope, binding);
-            if (getFunction(flags & ~exports.BindingFlags.mustEvaluate, obj, this.name)) {
+            if (getFunction(flags & ~BindingFlags.mustEvaluate, obj, this.name)) {
                 const args = this.args;
                 for (let i = 0, ii = args.length; i < ii; ++i) {
                     args[i].connect(flags, scope, binding);
@@ -3678,7 +4219,7 @@ this.au.runtime = (function (exports,kernel) {
             if (typeof func === 'function') {
                 return func.apply(null, evalList(flags, scope, locator, this.args));
             }
-            if (!(flags & exports.BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
+            if (!(flags & BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
                 return undefined;
             }
             throw new Error(`${this.func} is not a function`);
@@ -4065,7 +4606,7 @@ this.au.runtime = (function (exports,kernel) {
         if (typeof func === 'function') {
             return func;
         }
-        if (!(flags & exports.BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
+        if (!(flags & BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
             return null;
         }
         throw new Error(`${name} is not a function`);
@@ -4142,7 +4683,7 @@ this.au.runtime = (function (exports,kernel) {
             let overrideContext = this.$scope.overrideContext;
             Object.assign(overrideContext, $event);
             overrideContext.$event = $event; // deprecate this?
-            let result = this.sourceExpression.evaluate(exports.BindingFlags.mustEvaluate, this.$scope, this.locator);
+            let result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.$scope, this.locator);
             delete overrideContext.$event;
             for (let prop in $event) {
                 delete overrideContext[prop];
@@ -4177,7 +4718,7 @@ this.au.runtime = (function (exports,kernel) {
         observeProperty() { }
     }
 
-    const IExpressionParser = kernel.DI.createInterface()
+    const IExpressionParser = DI.createInterface()
         .withDefault(x => x.singleton(ExpressionParser));
     /*@internal*/
     class ExpressionParser {
@@ -4221,7 +4762,7 @@ this.au.runtime = (function (exports,kernel) {
                 const firstPart = parts[0];
                 let current;
                 if (firstPart.endsWith('()')) {
-                    current = new CallScope(firstPart.replace('()', ''), kernel.PLATFORM.emptyArray);
+                    current = new CallScope(firstPart.replace('()', ''), PLATFORM.emptyArray);
                 }
                 else {
                     current = new AccessScope(parts[0]);
@@ -4230,7 +4771,7 @@ this.au.runtime = (function (exports,kernel) {
                 while (index < parts.length) {
                     let currentPart = parts[index];
                     if (currentPart.endsWith('()')) {
-                        current = new CallMember(current, currentPart.replace('()', ''), kernel.PLATFORM.emptyArray);
+                        current = new CallMember(current, currentPart.replace('()', ''), PLATFORM.emptyArray);
                     }
                     else {
                         current = new AccessMember(current, parts[index]);
@@ -4240,7 +4781,7 @@ this.au.runtime = (function (exports,kernel) {
                 return current;
             }
             catch (e) {
-                throw kernel.Reporter.error(3, e);
+                throw Reporter.error(3, e);
             }
         }
     }
@@ -4259,7 +4800,7 @@ this.au.runtime = (function (exports,kernel) {
         callSource(event) {
             const overrideContext = this.source.overrideContext;
             overrideContext['$event'] = event;
-            const result = this.sourceExpression.evaluate(exports.BindingFlags.mustEvaluate, this.source, this.locator);
+            const result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.source, this.locator);
             delete overrideContext['$event'];
             if (result !== true && this.preventDefault) {
                 event.preventDefault();
@@ -4346,13 +4887,13 @@ this.au.runtime = (function (exports,kernel) {
             let bindables = target.bindables || (target.bindables = {});
             let config = configOrTarget || {};
             if (!config.attribute) {
-                config.attribute = kernel.PLATFORM.kebabCase(key2);
+                config.attribute = PLATFORM.kebabCase(key2);
             }
             if (!config.callback) {
                 config.callback = `${key2}Changed`;
             }
             if (!config.mode) {
-                config.mode = exports.BindingMode.toView;
+                config.mode = BindingMode.toView;
             }
             config.property = key2;
             bindables[key2] = config;
@@ -4367,7 +4908,7 @@ this.au.runtime = (function (exports,kernel) {
 
     // tslint:disable:no-reserved-keywords
     const instructionTypeValues = 'abcdefghij';
-    const ITargetedInstruction = kernel.DI.createInterface();
+    const ITargetedInstruction = DI.createInterface();
     function isTargetedInstruction(value) {
         const type = value.type;
         return typeof type === 'string' && instructionTypeValues.indexOf(type) !== -1;
@@ -4401,7 +4942,7 @@ this.au.runtime = (function (exports,kernel) {
                 containerless: false,
                 hasSlots: false,
                 shadowOptions: null,
-                surrogates: kernel.PLATFORM.emptyArray
+                surrogates: PLATFORM.emptyArray
             });
         }
         getElementTemplate(engine, type) {
@@ -4588,7 +5129,7 @@ this.au.runtime = (function (exports,kernel) {
         detached() { }
     }
 
-    const IRenderable = kernel.DI.createInterface().noDefault();
+    const IRenderable = DI.createInterface().noDefault();
     /*@internal*/
     function addRenderableChild(child, flags) {
         if ('$bind' in child) {
@@ -4614,7 +5155,7 @@ this.au.runtime = (function (exports,kernel) {
         const bindableIndex = this.$bindables.indexOf(child);
         if (bindableIndex !== -1) {
             this.$bindables.splice(bindableIndex, 1);
-            child.$unbind(exports.BindingFlags.fromUnbind);
+            child.$unbind(BindingFlags.fromUnbind);
         }
     }
 
@@ -4629,31 +5170,6 @@ this.au.runtime = (function (exports,kernel) {
     const defaultShadowOptions = {
         mode: 'open'
     };
-    /**
-     * Decorator: Indicates that the custom element should render its view in Shadow
-     * DOM.
-     */
-    function useShadowDOM(targetOrOptions) {
-        let options = typeof targetOrOptions === 'function' || !targetOrOptions
-            ? defaultShadowOptions
-            : targetOrOptions;
-        let deco = function (target) {
-            target.shadowOptions = options;
-            return target;
-        };
-        return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
-    }
-    /**
-     * Decorator: Indicates that the custom element should be rendered without its
-     * element container.
-     */
-    function containerless(target) {
-        let deco = function (target) {
-            target.containerless = true;
-            return target;
-        };
-        return target ? deco(target) : deco;
-    }
     const CustomElementResource = {
         name: 'custom-element',
         keyFrom(name) {
@@ -4684,9 +5200,9 @@ this.au.runtime = (function (exports,kernel) {
         }
     };
     function register$2(container) {
-        container.register(kernel.Registration.transient(CustomElementResource.keyFrom(this.description.name), this));
+        container.register(Registration.transient(CustomElementResource.keyFrom(this.description.name), this));
     }
-    function hydrate(renderingEngine, host, options = kernel.PLATFORM.emptyObject) {
+    function hydrate(renderingEngine, host, options = PLATFORM.emptyObject) {
         const Type = this.constructor;
         const description = Type.description;
         this.$bindables = [];
@@ -4724,11 +5240,11 @@ this.au.runtime = (function (exports,kernel) {
         const scope = this.$scope;
         const bindables = this.$bindables;
         for (let i = 0, ii = bindables.length; i < ii; ++i) {
-            bindables[i].$bind(flags | exports.BindingFlags.fromBind, scope);
+            bindables[i].$bind(flags | BindingFlags.fromBind, scope);
         }
         this.$isBound = true;
         if (this.$behavior.hasBound) {
-            this.bound(flags | exports.BindingFlags.fromBind);
+            this.bound(flags | BindingFlags.fromBind);
         }
     }
     function unbind(flags) {
@@ -4736,11 +5252,11 @@ this.au.runtime = (function (exports,kernel) {
             const bindables = this.$bindables;
             let i = bindables.length;
             while (i--) {
-                bindables[i].$unbind(flags | exports.BindingFlags.fromUnbind);
+                bindables[i].$unbind(flags | BindingFlags.fromUnbind);
             }
             this.$isBound = false;
             if (this.$behavior.hasUnbound) {
-                this.unbound(flags | exports.BindingFlags.fromUnbind);
+                this.unbound(flags | BindingFlags.fromUnbind);
             }
         }
     }
@@ -4795,9 +5311,9 @@ this.au.runtime = (function (exports,kernel) {
                 compiler: 'default'
             },
             bindables: Object.assign({}, Type.bindables, templateSource.bindables),
-            instructions: templateSource.instructions ? kernel.PLATFORM.toArray(templateSource.instructions) : kernel.PLATFORM.emptyArray,
-            dependencies: templateSource.dependencies ? kernel.PLATFORM.toArray(templateSource.dependencies) : kernel.PLATFORM.emptyArray,
-            surrogates: templateSource.surrogates ? kernel.PLATFORM.toArray(templateSource.surrogates) : kernel.PLATFORM.emptyArray,
+            instructions: templateSource.instructions ? PLATFORM.toArray(templateSource.instructions) : PLATFORM.emptyArray,
+            dependencies: templateSource.dependencies ? PLATFORM.toArray(templateSource.dependencies) : PLATFORM.emptyArray,
+            surrogates: templateSource.surrogates ? PLATFORM.toArray(templateSource.surrogates) : PLATFORM.emptyArray,
             containerless: templateSource.containerless || Type.containerless || false,
             shadowOptions: templateSource.shadowOptions || Type.shadowOptions || null,
             hasSlots: templateSource.hasSlots || false
@@ -4806,7 +5322,7 @@ this.au.runtime = (function (exports,kernel) {
     function determineProjector(customElement, host, definition) {
         if (definition.shadowOptions || definition.hasSlots) {
             if (definition.containerless) {
-                throw kernel.Reporter.error(21);
+                throw Reporter.error(21);
             }
             return new ShadowDOMProjector(customElement, host, definition);
         }
@@ -4842,7 +5358,7 @@ this.au.runtime = (function (exports,kernel) {
                 this.childNodes = Array.from(host.childNodes);
             }
             else {
-                this.childNodes = kernel.PLATFORM.emptyArray;
+                this.childNodes = PLATFORM.emptyArray;
             }
             this.host = DOM.convertToRenderLocation(host);
             this.host.$customElement = customElement;
@@ -4855,7 +5371,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         provideEncapsulationSource(parentEncapsulationSource) {
             if (!parentEncapsulationSource) {
-                throw kernel.Reporter.error(22);
+                throw Reporter.error(22);
             }
             return parentEncapsulationSource;
         }
@@ -4869,7 +5385,7 @@ this.au.runtime = (function (exports,kernel) {
             host.$customElement = customElement;
         }
         get children() {
-            return kernel.PLATFORM.emptyArray;
+            return PLATFORM.emptyArray;
         }
         onChildrenChanged(callback) {
             // Do nothing since this scenario will never have children.
@@ -4904,7 +5420,7 @@ this.au.runtime = (function (exports,kernel) {
     // slot comment. When direct children of that node change, the projector
     // will gather up all nodes between the start and end slot comments.
 
-    const IAnimator = kernel.DI.createInterface()
+    const IAnimator = DI.createInterface()
         .withDefault(x => x.singleton(class {
         enter(node) {
             return Promise.resolve(false);
@@ -4922,7 +5438,7 @@ this.au.runtime = (function (exports,kernel) {
         }
     }));
 
-    const IViewFactory = kernel.DI.createInterface().noDefault();
+    const IViewFactory = DI.createInterface().noDefault();
     /*@internal*/
     class View {
         constructor(factory, template, animator) {
@@ -5125,7 +5641,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         prepare(factory, parts) {
             this.factory = factory;
-            this.replacements = parts || kernel.PLATFORM.emptyObject;
+            this.replacements = parts || PLATFORM.emptyObject;
         }
         resolve(handler, requestor) {
             const found = this.replacements[this.factory.name];
@@ -5138,15 +5654,6 @@ this.au.runtime = (function (exports,kernel) {
             this.factory = null;
             this.replacements = null;
         }
-    }
-
-    /**
-     * Decorator: Indicates that the decorated class is a custom attribute.
-     */
-    function customAttribute(nameOrSource) {
-        return function (target) {
-            return CustomAttributeResource.define(nameOrSource, target);
-        };
     }
     /**
      * Decorator: Applied to custom attributes. Indicates that whatever element the
@@ -5195,9 +5702,9 @@ this.au.runtime = (function (exports,kernel) {
         const description = this.description;
         const resourceKey = CustomAttributeResource.keyFrom(description.name);
         const aliases = description.aliases;
-        container.register(kernel.Registration.transient(resourceKey, this));
+        container.register(Registration.transient(resourceKey, this));
         for (let i = 0, ii = aliases.length; i < ii; ++i) {
-            container.register(kernel.Registration.alias(resourceKey, aliases[i]));
+            container.register(Registration.alias(resourceKey, aliases[i]));
         }
     }
     function hydrate$1(renderingEngine) {
@@ -5215,19 +5722,19 @@ this.au.runtime = (function (exports,kernel) {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags | exports.BindingFlags.fromBind);
+            this.$unbind(flags | BindingFlags.fromBind);
         }
         this.$scope = scope;
         this.$isBound = true;
         if (this.$behavior.hasBound) {
-            this.bound(flags | exports.BindingFlags.fromBind, scope);
+            this.bound(flags | BindingFlags.fromBind, scope);
         }
     }
     function unbind$1(flags) {
         if (this.$isBound) {
             this.$isBound = false;
             if (this.$behavior.hasUnbound) {
-                this.unbound(flags | exports.BindingFlags.fromUnbind);
+                this.unbound(flags | BindingFlags.fromUnbind);
             }
         }
     }
@@ -5264,16 +5771,10 @@ this.au.runtime = (function (exports,kernel) {
     function createCustomAttributeDescription(attributeSource, Type) {
         return {
             name: attributeSource.name,
-            aliases: attributeSource.aliases || kernel.PLATFORM.emptyArray,
-            defaultBindingMode: attributeSource.defaultBindingMode || exports.BindingMode.toView,
+            aliases: attributeSource.aliases || PLATFORM.emptyArray,
+            defaultBindingMode: attributeSource.defaultBindingMode || BindingMode.toView,
             isTemplateController: attributeSource.isTemplateController || false,
             bindables: Object.assign({}, Type.bindables, attributeSource.bindables)
-        };
-    }
-
-    function renderStrategy(nameOrSource) {
-        return function (target) {
-            return RenderStrategyResource.define(nameOrSource, target);
         };
     }
     const RenderStrategyResource = {
@@ -5290,14 +5791,14 @@ this.au.runtime = (function (exports,kernel) {
             Type.kind = RenderStrategyResource;
             Type.description = description;
             Type.register = function (container) {
-                container.register(kernel.Registration.singleton(Type.kind.keyFrom(description.name), Type));
+                container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
             };
             return Type;
         }
     };
 
     // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
-    const { toView: toView$2 } = exports.BindingMode;
+    const { toView: toView$2 } = BindingMode;
     // tslint:disable:no-any
     class LetBinding extends Binding {
         constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
@@ -5319,7 +5820,7 @@ this.au.runtime = (function (exports,kernel) {
             const locator = this.locator;
             const target = this.target;
             const targetProperty = this.targetProperty;
-            if (flags & exports.BindingFlags.updateTargetInstance) {
+            if (flags & BindingFlags.updateTargetInstance) {
                 const currValue = target[targetProperty];
                 const newValue = sourceExpression.evaluate(flags, $scope, locator);
                 if (newValue !== currValue) {
@@ -5327,7 +5828,7 @@ this.au.runtime = (function (exports,kernel) {
                 }
                 return;
             }
-            throw kernel.Reporter.error(15, flags);
+            throw Reporter.error(15, flags);
         }
         $bind(flags, scope) {
             if (this.$isBound) {
@@ -5344,7 +5845,7 @@ this.au.runtime = (function (exports,kernel) {
                 sourceExpression.bind(flags, scope, this);
             }
             // sourceExpression might have been changed during bind
-            this.target[this.targetProperty] = this.sourceExpression.evaluate(exports.BindingFlags.fromBind, scope, this.locator);
+            this.target[this.targetProperty] = this.sourceExpression.evaluate(BindingFlags.fromBind, scope, this.locator);
             const mode = this.mode;
             if ((mode & toView$2) !== toView$2) {
                 throw new Error('Let binding only supports [toView] binding mode.');
@@ -5430,7 +5931,7 @@ this.au.runtime = (function (exports,kernel) {
             DOM.treatAsNonWhitespace(next);
             DOM.remove(target);
             const srcOrExpr = instruction.srcOrExpr;
-            renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, 2048 /* Interpolation */), next, 'textContent', exports.BindingMode.toView, this.observerLocator, this.context));
+            renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, 2048 /* Interpolation */), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
         }
         ["b" /* propertyBinding */](renderable, target, instruction) {
             const srcOrExpr = instruction.srcOrExpr;
@@ -5450,7 +5951,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         ["f" /* stylePropertyBinding */](renderable, target, instruction) {
             const srcOrExpr = instruction.srcOrExpr;
-            renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, 48 /* IsPropertyCommand */ | exports.BindingMode.toView), target.style, instruction.dest, exports.BindingMode.toView, this.observerLocator, this.context));
+            renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, 48 /* IsPropertyCommand */ | BindingMode.toView), target.style, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
         }
         ["g" /* setProperty */](renderable, target, instruction) {
             target[instruction.dest] = instruction.value;
@@ -5555,7 +6056,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         applyToElement(changeSet, instance) {
             const observers = this.applyToCore(changeSet, instance);
-            observers.$children = new exports.ChildrenObserver(changeSet, instance);
+            observers.$children = new ChildrenObserver(changeSet, instance);
             Reflect.defineProperty(instance, '$children', {
                 enumerable: false,
                 get: function () {
@@ -5569,7 +6070,7 @@ this.au.runtime = (function (exports,kernel) {
             const observableNames = Object.getOwnPropertyNames(bindables);
             for (let i = 0, ii = observableNames.length; i < ii; ++i) {
                 const name = observableNames[i];
-                observers[name] = new exports.Observer(instance, name, bindables[name].callback);
+                observers[name] = new Observer(instance, name, bindables[name].callback);
                 createGetterSetter(instance, name);
             }
             Reflect.defineProperty(instance, '$observers', {
@@ -5584,11 +6085,11 @@ this.au.runtime = (function (exports,kernel) {
         Reflect.defineProperty(instance, name, {
             enumerable: true,
             get: function () { return this.$observers[name].getValue(); },
-            set: function (value) { this.$observers[name].setValue(value, exports.BindingFlags.updateTargetInstance); }
+            set: function (value) { this.$observers[name].setValue(value, BindingFlags.updateTargetInstance); }
         });
     }
     /*@internal*/
-    exports.ChildrenObserver = class ChildrenObserver {
+    let ChildrenObserver = class ChildrenObserver {
         constructor(changeSet, customElement$$1) {
             this.changeSet = changeSet;
             this.customElement = customElement$$1;
@@ -5606,7 +6107,7 @@ this.au.runtime = (function (exports,kernel) {
         }
         setValue(newValue) { }
         flushChanges() {
-            this.callSubscribers(this.children, undefined, exports.BindingFlags.updateTargetInstance | exports.BindingFlags.fromFlushChanges);
+            this.callSubscribers(this.children, undefined, BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges);
             this.hasChanges = false;
         }
         subscribe(subscriber) {
@@ -5624,9 +6125,9 @@ this.au.runtime = (function (exports,kernel) {
             this.hasChanges = true;
         }
     };
-    exports.ChildrenObserver = __decorate([
-        subscriberCollection(exports.MutationKind.instance)
-    ], exports.ChildrenObserver);
+    ChildrenObserver = __decorate([
+        subscriberCollection(MutationKind.instance)
+    ], ChildrenObserver);
     const elementBehaviorFor = CustomElementResource.behaviorFor;
     /*@internal*/
     function findElements(nodes) {
@@ -5641,16 +6142,17 @@ this.au.runtime = (function (exports,kernel) {
         return components;
     }
 
-    const ITemplateCompiler = kernel.DI.createInterface().noDefault();
+    const ITemplateCompiler = DI.createInterface().noDefault();
 
+    var ViewCompileFlags;
     (function (ViewCompileFlags) {
         ViewCompileFlags[ViewCompileFlags["none"] = 1] = "none";
         ViewCompileFlags[ViewCompileFlags["surrogate"] = 2] = "surrogate";
         ViewCompileFlags[ViewCompileFlags["shadowDOM"] = 4] = "shadowDOM";
-    })(exports.ViewCompileFlags || (exports.ViewCompileFlags = {}));
+    })(ViewCompileFlags || (ViewCompileFlags = {}));
 
-    const IRenderingEngine = kernel.DI.createInterface()
-        .withDefault(x => x.singleton(exports.RenderingEngine));
+    const IRenderingEngine = DI.createInterface()
+        .withDefault(x => x.singleton(RenderingEngine));
     // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
     const noViewTemplate = {
         renderContext: null,
@@ -5659,7 +6161,7 @@ this.au.runtime = (function (exports,kernel) {
         }
     };
     const defaultCompilerName = 'default';
-    exports.RenderingEngine = 
+    let RenderingEngine = 
     /*@internal*/
     class RenderingEngine {
         constructor(container, changeSet, observerLocator, eventManager, parser, animator, templateCompilers) {
@@ -5728,19 +6230,19 @@ this.au.runtime = (function (exports,kernel) {
                     const compilerName = definition.build.compiler || defaultCompilerName;
                     const compiler = this.compilers[compilerName];
                     if (!compiler) {
-                        throw kernel.Reporter.error(20, compilerName);
+                        throw Reporter.error(20, compilerName);
                     }
-                    definition = compiler.compile(definition, new RuntimeCompilationResources(parentContext), exports.ViewCompileFlags.surrogate);
+                    definition = compiler.compile(definition, new RuntimeCompilationResources(parentContext), ViewCompileFlags.surrogate);
                 }
                 return new CompiledTemplate(this, parentContext, definition);
             }
             return noViewTemplate;
         }
     };
-    exports.RenderingEngine = __decorate([
-        kernel.inject(kernel.IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, IAnimator, kernel.all(ITemplateCompiler))
+    RenderingEngine = __decorate([
+        inject(IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, IAnimator, all(ITemplateCompiler))
         /*@internal*/
-    ], exports.RenderingEngine);
+    ], RenderingEngine);
     /*@internal*/
     function createDefinition(definition) {
         return {
@@ -5750,10 +6252,10 @@ this.au.runtime = (function (exports,kernel) {
             build: definition.build || {
                 required: false
             },
-            bindables: definition.bindables || kernel.PLATFORM.emptyObject,
-            instructions: definition.instructions ? kernel.PLATFORM.toArray(definition.instructions) : kernel.PLATFORM.emptyArray,
-            dependencies: definition.dependencies ? kernel.PLATFORM.toArray(definition.dependencies) : kernel.PLATFORM.emptyArray,
-            surrogates: definition.surrogates ? kernel.PLATFORM.toArray(definition.surrogates) : kernel.PLATFORM.emptyArray,
+            bindables: definition.bindables || PLATFORM.emptyObject,
+            instructions: definition.instructions ? PLATFORM.toArray(definition.instructions) : PLATFORM.emptyArray,
+            dependencies: definition.dependencies ? PLATFORM.toArray(definition.dependencies) : PLATFORM.emptyArray,
+            surrogates: definition.surrogates ? PLATFORM.toArray(definition.surrogates) : PLATFORM.emptyArray,
             containerless: definition.containerless || false,
             shadowOptions: definition.shadowOptions || null,
             hasSlots: definition.hasSlots || false
@@ -5804,7 +6306,7 @@ this.au.runtime = (function (exports,kernel) {
         containerless: true
     };
     const composeProps = ['subject', 'composing'];
-    exports.Compose = class Compose {
+    let Compose = class Compose {
         constructor(renderable, instruction, renderingEngine) {
             this.renderable = renderable;
             this.renderingEngine = renderingEngine;
@@ -5824,11 +6326,11 @@ this.au.runtime = (function (exports,kernel) {
         }
         /** @internal */
         subjectChanged(newValue) {
-            this.startComposition(newValue, exports.BindingFlags.fromBindableHandler);
+            this.startComposition(newValue, BindingFlags.fromBindableHandler);
         }
         /** @internal */
         bound() {
-            this.startComposition(this.subject, exports.BindingFlags.fromBind);
+            this.startComposition(this.subject, BindingFlags.fromBind);
         }
         /** @internal */
         endComposition(subject, flags) {
@@ -5877,14 +6379,14 @@ this.au.runtime = (function (exports,kernel) {
     };
     __decorate([
         bindable
-    ], exports.Compose.prototype, "subject", void 0);
+    ], Compose.prototype, "subject", void 0);
     __decorate([
         bindable
-    ], exports.Compose.prototype, "composing", void 0);
-    exports.Compose = __decorate([
+    ], Compose.prototype, "composing", void 0);
+    Compose = __decorate([
         customElement(composeSource),
-        kernel.inject(IRenderable, ITargetedInstruction, IRenderingEngine)
-    ], exports.Compose);
+        inject(IRenderable, ITargetedInstruction, IRenderingEngine)
+    ], Compose);
     class CompositionTask {
         constructor(compose, flags) {
             this.compose = compose;
@@ -5915,26 +6417,26 @@ this.au.runtime = (function (exports,kernel) {
         }
     }
 
-    exports.If = class If {
+    let If = class If {
         constructor(ifFactory, location) {
             this.ifFactory = ifFactory;
             this.location = location;
             this.value = false;
         }
         bound() {
-            this.update(this.value, exports.BindingFlags.fromBind);
+            this.update(this.value, BindingFlags.fromBind);
         }
         attaching(encapsulationSource) {
             this.encapsulationSource = encapsulationSource;
         }
         unbound() {
             if (this.$child) {
-                this.$child.$unbind(exports.BindingFlags.fromUnbind);
+                this.$child.$unbind(BindingFlags.fromUnbind);
                 this.$child = null;
             }
         }
         valueChanged(newValue) {
-            this.update(newValue, exports.BindingFlags.fromBindableHandler);
+            this.update(newValue, BindingFlags.fromBindableHandler);
         }
         update(shouldRenderTrueBranch, flags) {
             if (shouldRenderTrueBranch) {
@@ -5979,12 +6481,12 @@ this.au.runtime = (function (exports,kernel) {
     };
     __decorate([
         bindable
-    ], exports.If.prototype, "value", void 0);
-    exports.If = __decorate([
+    ], If.prototype, "value", void 0);
+    If = __decorate([
         templateController('if'),
-        kernel.inject(IViewFactory, IRenderLocation)
-    ], exports.If);
-    exports.Else = class Else {
+        inject(IViewFactory, IRenderLocation)
+    ], If);
+    let Else = class Else {
         constructor(factory, location) {
             this.factory = factory;
             DOM.remove(location); // Only the location of the "if" is relevant.
@@ -5993,10 +6495,10 @@ this.au.runtime = (function (exports,kernel) {
             ifBehavior.elseFactory = this.factory;
         }
     };
-    exports.Else = __decorate([
+    Else = __decorate([
         templateController('else'),
-        kernel.inject(IViewFactory, IRenderLocation)
-    ], exports.Else);
+        inject(IViewFactory, IRenderLocation)
+    ], Else);
 
     var Repeat_1;
     function getCollectionObserver(changeSet, collection) {
@@ -6010,7 +6512,7 @@ this.au.runtime = (function (exports,kernel) {
             return getSetObserver(changeSet, collection);
         }
     }
-    exports.Repeat = Repeat_1 = class Repeat {
+    let Repeat = Repeat_1 = class Repeat {
         constructor(changeSet, location, renderable, factory, container) {
             this.changeSet = changeSet;
             this.location = location;
@@ -6029,7 +6531,7 @@ this.au.runtime = (function (exports,kernel) {
             this.hasPendingInstanceMutation = false;
         }
         static register(container) {
-            container.register(kernel.Registration.transient('custom-attribute:repeat', Repeat_1));
+            container.register(Registration.transient('custom-attribute:repeat', Repeat_1));
         }
         $hydrate(renderingEngine) {
             let b = renderingEngine['behaviorLookup'].get(Repeat_1);
@@ -6063,7 +6565,7 @@ this.au.runtime = (function (exports,kernel) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags | exports.BindingFlags.fromBind);
+                this.$unbind(flags | BindingFlags.fromBind);
             }
             this.$scope = scope;
             this.$isBound = true;
@@ -6090,7 +6592,7 @@ this.au.runtime = (function (exports,kernel) {
                 this.observer = this._items = null;
                 // if this is a re-bind triggered by some ancestor repeater, then keep the views so we can reuse them
                 // (this flag is passed down from handleInstanceMutation/handleItemsMutation down below at view.$bind)
-                if (!(flags & exports.BindingFlags.fromBind)) {
+                if (!(flags & BindingFlags.fromBind)) {
                     this.removeAllViews();
                 }
             }
@@ -6141,7 +6643,7 @@ this.au.runtime = (function (exports,kernel) {
                 previousScopes[i] = views[i].$scope;
                 i++;
             }
-            let flags = exports.BindingFlags.none;
+            let flags = BindingFlags.none;
             const isAttached = this.$isAttached;
             const scope = this.$scope;
             const overrideContext = scope.overrideContext;
@@ -6186,7 +6688,7 @@ this.au.runtime = (function (exports,kernel) {
                 }
                 else {
                     // TODO: optimize this again (but in a more efficient way and one that works in multiple scenarios)
-                    view.$bind(flags | exports.BindingFlags.fromBind, createChildScope(overrideContext, { [local]: item }));
+                    view.$bind(flags | BindingFlags.fromBind, createChildScope(overrideContext, { [local]: item }));
                 }
             });
             lifecycle.end(this);
@@ -6208,21 +6710,21 @@ this.au.runtime = (function (exports,kernel) {
             lifecycle.end(this);
         }
     };
-    exports.Repeat.kind = CustomAttributeResource;
-    exports.Repeat.description = {
+    Repeat.kind = CustomAttributeResource;
+    Repeat.description = {
         name: 'repeat',
-        aliases: kernel.PLATFORM.emptyArray,
-        defaultBindingMode: exports.BindingMode.toView,
+        aliases: PLATFORM.emptyArray,
+        defaultBindingMode: BindingMode.toView,
         isTemplateController: true,
         bindables: {
-            items: { attribute: 'items', mode: exports.BindingMode.toView, property: 'items' },
-            local: { attribute: 'local', mode: exports.BindingMode.toView, property: 'local' }
+            items: { attribute: 'items', mode: BindingMode.toView, property: 'items' },
+            local: { attribute: 'local', mode: BindingMode.toView, property: 'local' }
         }
     };
-    exports.Repeat = Repeat_1 = __decorate([
-        kernel.inject(IChangeSet, IRenderLocation, IRenderable, IViewFactory, kernel.IContainer)
-    ], exports.Repeat);
-    exports.Repeat.prototype.observer = null;
+    Repeat = Repeat_1 = __decorate([
+        inject(IChangeSet, IRenderLocation, IRenderable, IViewFactory, IContainer)
+    ], Repeat);
+    Repeat.prototype.observer = null;
     function createChildScope(parentOverrideContext, bindingContext) {
         return {
             bindingContext,
@@ -6233,7 +6735,7 @@ this.au.runtime = (function (exports,kernel) {
         };
     }
 
-    exports.Replaceable = class Replaceable {
+    let Replaceable = class Replaceable {
         constructor(factory, location) {
             this.factory = factory;
             this.$child = this.factory.create();
@@ -6246,12 +6748,12 @@ this.au.runtime = (function (exports,kernel) {
             this.$child.$unbind(flags);
         }
     };
-    exports.Replaceable = __decorate([
+    Replaceable = __decorate([
         templateController('replaceable'),
-        kernel.inject(IViewFactory, IRenderLocation)
-    ], exports.Replaceable);
+        inject(IViewFactory, IRenderLocation)
+    ], Replaceable);
 
-    exports.With = class With {
+    let With = class With {
         constructor(factory, location) {
             this.factory = factory;
             this.value = null;
@@ -6260,7 +6762,7 @@ this.au.runtime = (function (exports,kernel) {
             this.$child.onRender = view => view.$nodes.insertBefore(location);
         }
         valueChanged() {
-            this.bindChild(exports.BindingFlags.fromBindableHandler);
+            this.bindChild(BindingFlags.fromBindableHandler);
         }
         bound(flags) {
             this.bindChild(flags);
@@ -6274,14 +6776,14 @@ this.au.runtime = (function (exports,kernel) {
     };
     __decorate([
         bindable
-    ], exports.With.prototype, "value", void 0);
-    exports.With = __decorate([
+    ], With.prototype, "value", void 0);
+    With = __decorate([
         templateController('with'),
-        kernel.inject(IViewFactory, IRenderLocation)
-    ], exports.With);
+        inject(IViewFactory, IRenderLocation)
+    ], With);
 
     class Aurelia {
-        constructor(container = kernel.DI.createContainer()) {
+        constructor(container = DI.createContainer()) {
             this.container = container;
             this.components = [];
             this.startTasks = [];
@@ -6299,13 +6801,13 @@ this.au.runtime = (function (exports,kernel) {
                     this.components.push(component);
                     component.$hydrate(this.container.get(IRenderingEngine), config.host);
                 }
-                component.$bind(exports.BindingFlags.fromStartTask | exports.BindingFlags.fromBind);
+                component.$bind(BindingFlags.fromStartTask | BindingFlags.fromBind);
                 component.$attach(config.host);
             };
             this.startTasks.push(startTask);
             this.stopTasks.push(() => {
                 component.$detach();
-                component.$unbind(exports.BindingFlags.fromStopTask | exports.BindingFlags.fromUnbind);
+                component.$unbind(BindingFlags.fromStopTask | BindingFlags.fromUnbind);
             });
             if (this.isStarted) {
                 startTask();
@@ -6323,9 +6825,9 @@ this.au.runtime = (function (exports,kernel) {
             return this;
         }
     }
-    kernel.PLATFORM.global.Aurelia = Aurelia;
+    PLATFORM.global.Aurelia = Aurelia;
 
-    const ITaskQueue = kernel.DI.createInterface()
+    const ITaskQueue = DI.createInterface()
         .withDefault(x => x.singleton(TaskQueue));
     /*@internal*/
     class TaskQueue {
@@ -6336,8 +6838,8 @@ this.au.runtime = (function (exports,kernel) {
             this.taskQueue = new Array(0xFF);
             this.taskCursor = 0;
             this.taskIndex = 0;
-            this.requestFlushMicroTaskQueue = kernel.PLATFORM.createMicroTaskFlushRequestor(() => this.flushMicroTaskQueue());
-            this.requestFlushTaskQueue = kernel.PLATFORM.createTaskFlushRequester(() => this.flushTaskQueue());
+            this.requestFlushMicroTaskQueue = PLATFORM.createMicroTaskFlushRequestor(() => this.flushMicroTaskQueue());
+            this.requestFlushTaskQueue = PLATFORM.createTaskFlushRequester(() => this.flushTaskQueue());
             this.flushing = false;
             this.longStacks = false;
         }
@@ -6427,11 +6929,11 @@ this.au.runtime = (function (exports,kernel) {
         }
         // Overwritten in debug mode.
         prepareTaskStack() {
-            throw kernel.Reporter.error(13);
+            throw Reporter.error(13);
         }
         // Overwritten in debug mode.
         prepareMicroTaskStack() {
-            throw kernel.Reporter.error(13);
+            throw Reporter.error(13);
         }
         // Overwritten in debug mode.
         onError(error, task) {
@@ -6444,138 +6946,1658 @@ this.au.runtime = (function (exports,kernel) {
         }
     }
 
-    exports.enableArrayObservation = enableArrayObservation;
-    exports.disableArrayObservation = disableArrayObservation;
-    exports.nativePush = nativePush;
-    exports.nativePop = nativePop;
-    exports.nativeShift = nativeShift;
-    exports.nativeUnshift = nativeUnshift;
-    exports.nativeSplice = nativeSplice;
-    exports.nativeReverse = nativeReverse;
-    exports.nativeSort = nativeSort;
-    exports.enableMapObservation = enableMapObservation;
-    exports.disableMapObservation = disableMapObservation;
-    exports.nativeSet = nativeSet;
-    exports.nativeMapDelete = nativeDelete$1;
-    exports.nativeMapClear = nativeClear$1;
-    exports.enableSetObservation = enableSetObservation;
-    exports.disableSetObservation = disableSetObservation;
-    exports.nativeAdd = nativeAdd;
-    exports.nativeSetDelete = nativeDelete;
-    exports.nativeSetClear = nativeClear;
-    exports.BindingModeBehavior = BindingModeBehavior;
-    exports.debounceCallSource = debounceCallSource;
-    exports.debounceCall = debounceCall;
-    exports.ISanitizer = ISanitizer;
-    exports.findOriginalEventTarget = findOriginalEventTarget;
-    exports.handleSelfEvent = handleSelfEvent;
-    exports.throttle = throttle;
-    exports.BindingBehavior = BindingBehavior;
-    exports.ValueConverter = ValueConverter;
-    exports.Assign = Assign;
-    exports.Conditional = Conditional;
-    exports.AccessThis = AccessThis;
-    exports.AccessScope = AccessScope;
-    exports.AccessMember = AccessMember;
-    exports.AccessKeyed = AccessKeyed;
-    exports.CallScope = CallScope;
-    exports.CallMember = CallMember;
-    exports.CallFunction = CallFunction;
-    exports.Binary = Binary;
-    exports.Unary = Unary;
-    exports.PrimitiveLiteral = PrimitiveLiteral;
-    exports.HtmlLiteral = HtmlLiteral;
-    exports.ArrayLiteral = ArrayLiteral;
-    exports.ObjectLiteral = ObjectLiteral;
-    exports.Template = Template;
-    exports.TaggedTemplate = TaggedTemplate;
-    exports.ArrayBindingPattern = ArrayBindingPattern;
-    exports.ObjectBindingPattern = ObjectBindingPattern;
-    exports.BindingIdentifier = BindingIdentifier;
-    exports.ForOfStatement = ForOfStatement;
-    exports.Interpolation = Interpolation;
-    exports.IterateForOfStatement = IterateForOfStatement;
-    exports.CountForOfStatement = CountForOfStatement;
-    exports.bindingBehavior = bindingBehavior;
-    exports.BindingBehaviorResource = BindingBehaviorResource;
-    exports.BindingContext = BindingContext;
-    exports.Binding = Binding;
-    exports.Call = Call;
-    exports.IChangeSet = IChangeSet;
-    exports.ChangeSet = ChangeSet;
-    exports.collectionObserver = collectionObserver;
-    exports.computed = computed;
-    exports.createComputedObserver = createComputedObserver;
-    exports.GetterController = GetterController;
-    exports.IDirtyChecker = IDirtyChecker;
-    exports.DirtyChecker = DirtyChecker;
-    exports.ListenerTracker = ListenerTracker;
-    exports.DelegateOrCaptureSubscription = DelegateOrCaptureSubscription;
-    exports.TriggerSubscription = TriggerSubscription;
-    exports.EventSubscriber = EventSubscriber;
-    exports.IEventManager = IEventManager;
-    exports.EventManager = EventManager;
-    exports.IExpressionParser = IExpressionParser;
-    exports.ExpressionParser = ExpressionParser;
-    exports.Listener = Listener;
-    exports.IObserverLocator = IObserverLocator;
-    exports.PrimitiveObserver = PrimitiveObserver;
-    exports.Ref = Ref;
-    exports.ISignaler = ISignaler;
-    exports.subscriberCollection = subscriberCollection;
-    exports.batchedSubscriberCollection = batchedSubscriberCollection;
-    exports.ISVGAnalyzer = ISVGAnalyzer;
-    exports.targetObserver = targetObserver;
-    exports.valueConverter = valueConverter;
-    exports.ValueConverterResource = ValueConverterResource;
-    exports.getCollectionObserver = getCollectionObserver;
-    exports.IAnimator = IAnimator;
-    exports.bindable = bindable;
-    exports.customAttribute = customAttribute;
-    exports.templateController = templateController;
-    exports.CustomAttributeResource = CustomAttributeResource;
-    exports.createCustomAttributeDescription = createCustomAttributeDescription;
-    exports.customElement = customElement;
-    exports.useShadowDOM = useShadowDOM;
-    exports.containerless = containerless;
-    exports.CustomElementResource = CustomElementResource;
-    exports.createCustomElementDescription = createCustomElementDescription;
-    exports.ShadowDOMProjector = ShadowDOMProjector;
-    exports.ContainerlessProjector = ContainerlessProjector;
-    exports.HostProjector = HostProjector;
-    exports.ITargetedInstruction = ITargetedInstruction;
-    exports.isTargetedInstruction = isTargetedInstruction;
-    exports.AttachLifecycle = AttachLifecycle;
-    exports.DetachLifecycle = DetachLifecycle;
-    exports.createRenderContext = createRenderContext;
-    exports.InstanceProvider = InstanceProvider;
-    exports.ViewFactoryProvider = ViewFactoryProvider;
-    exports.renderStrategy = renderStrategy;
-    exports.RenderStrategyResource = RenderStrategyResource;
-    exports.Renderer = Renderer;
-    exports.IRenderable = IRenderable;
-    exports.addRenderableChild = addRenderableChild;
-    exports.removeRenderableChild = removeRenderableChild;
-    exports.IRenderingEngine = IRenderingEngine;
-    exports.createDefinition = createDefinition;
-    exports.CompiledTemplate = CompiledTemplate;
-    exports.RuntimeCompilationResources = RuntimeCompilationResources;
-    exports.RuntimeBehavior = RuntimeBehavior;
-    exports.findElements = findElements;
-    exports.ITemplateCompiler = ITemplateCompiler;
-    exports.IViewFactory = IViewFactory;
-    exports.View = View;
-    exports.ViewFactory = ViewFactory;
-    exports.Aurelia = Aurelia;
-    exports.INode = INode;
-    exports.IRenderLocation = IRenderLocation;
-    exports.createNodeSequenceFromFragment = createNodeSequenceFromFragment;
-    exports.DOM = DOM;
-    exports.NodeSequence = NodeSequence;
-    exports.FragmentNodeSequence = FragmentNodeSequence;
-    exports.ITaskQueue = ITaskQueue;
-    exports.TaskQueue = TaskQueue;
+    function register$4(container) {
+        container.registerTransformer(IExpressionParser, parser => {
+            return Object.assign(parser, {
+                parseCore(expression, bindingType) {
+                    return parse(new ParserState(expression), 0 /* Reset */, 61 /* Variadic */, bindingType);
+                }
+            });
+        });
+    }
+    /*@internal*/
+    class ParserState {
+        get tokenRaw() {
+            return this.input.slice(this.startIndex, this.index);
+        }
+        constructor(input) {
+            this.index = 0;
+            this.startIndex = 0;
+            this.lastIndex = 0;
+            this.input = input;
+            this.length = input.length;
+            this.currentToken = 1572864 /* EOF */;
+            this.tokenValue = '';
+            this.currentChar = input.charCodeAt(0);
+            this.assignable = true;
+        }
+    }
+    /*@internal*/
+    function parse(state, access, minPrecedence, bindingType) {
+        if (state.index === 0) {
+            if (bindingType & 2048 /* Interpolation */) {
+                return parseInterpolation(state);
+            }
+            nextToken(state);
+            if (state.currentToken & 1048576 /* ExpressionTerminal */) {
+                error(state, 'Invalid start of expression');
+            }
+        }
+        let exprStart = state.index;
+        state.assignable = 448 /* Binary */ > minPrecedence;
+        let result = undefined;
+        if (state.currentToken & 32768 /* UnaryOp */) {
+            /** parseUnaryExpression
+             * https://tc39.github.io/ecma262/#sec-unary-operators
+             *
+             * UnaryExpression :
+             *   1. LeftHandSideExpression
+             *   2. void UnaryExpression
+             *   3. typeof UnaryExpression
+             *   4. + UnaryExpression
+             *   5. - UnaryExpression
+             *   6. ! UnaryExpression
+             *
+             * IsValidAssignmentTarget
+             *   2,3,4,5,6 = false
+             *   1 = see parseLeftHandSideExpression
+             *
+             * Note: technically we should throw on ++ / -- / +++ / ---, but there's nothing to gain from that
+             */
+            const op = TokenValues[state.currentToken & 63 /* Type */];
+            nextToken(state);
+            result = new Unary(op, parse(state, access, 449 /* Primary */, bindingType));
+        }
+        else {
+            /** parsePrimaryExpression
+             * https://tc39.github.io/ecma262/#sec-primary-expression
+             *
+             * PrimaryExpression :
+             *   1. this
+             *   2. IdentifierName
+             *   3. Literal
+             *   4. ArrayLiteral
+             *   5. ObjectLiteral
+             *   6. TemplateLiteral
+             *   7. ParenthesizedExpression
+             *
+             * Literal :
+             *    NullLiteral
+             *    BooleanLiteral
+             *    NumericLiteral
+             *    StringLiteral
+             *
+             * ParenthesizedExpression :
+             *   ( AssignmentExpression )
+             *
+             * IsValidAssignmentTarget
+             *   1,3,4,5,6,7 = false
+             *   2 = true
+             */
+            primary: switch (state.currentToken) {
+                case 3077 /* ParentScope */: // $parent
+                    state.assignable = false;
+                    do {
+                        nextToken(state);
+                        access++; // ancestor
+                        if (consumeOpt(state, 16392 /* Dot */)) {
+                            if (state.currentToken === 16392 /* Dot */) {
+                                error(state);
+                            }
+                            continue;
+                        }
+                        else if (state.currentToken & 524288 /* AccessScopeTerminal */) {
+                            result = new AccessThis(access & 511 /* Ancestor */);
+                            access = 512 /* This */;
+                            break primary;
+                        }
+                        else {
+                            error(state);
+                        }
+                    } while (state.currentToken === 3077 /* ParentScope */);
+                // falls through
+                case 1024 /* Identifier */: // identifier
+                    if (bindingType & 512 /* IsIterator */) {
+                        result = new BindingIdentifier(state.tokenValue);
+                    }
+                    else {
+                        result = new AccessScope(state.tokenValue, access & 511 /* Ancestor */);
+                        access = 1024 /* Scope */;
+                    }
+                    nextToken(state);
+                    break;
+                case 3076 /* ThisScope */: // $this
+                    state.assignable = false;
+                    nextToken(state);
+                    result = new AccessThis(0);
+                    access = 512 /* This */;
+                    break;
+                case 671750 /* OpenParen */: // parenthesized expression
+                    nextToken(state);
+                    result = parse(state, 0 /* Reset */, 63 /* Conditional */, bindingType);
+                    consume(state, 1835018 /* CloseParen */);
+                    break;
+                case 671756 /* OpenBracket */:
+                    result = parseArrayLiteralExpression(state, access, bindingType);
+                    break;
+                case 131079 /* OpenBrace */:
+                    result = parseObjectLiteralExpression(state, bindingType);
+                    break;
+                case 16425 /* TemplateTail */:
+                    result = new Template([state.tokenValue]);
+                    state.assignable = false;
+                    nextToken(state);
+                    break;
+                case 16426 /* TemplateContinuation */:
+                    result = parseTemplate(state, access, bindingType, result, false);
+                    break;
+                case 4096 /* StringLiteral */:
+                case 8192 /* NumericLiteral */:
+                    result = new PrimitiveLiteral(state.tokenValue);
+                    state.assignable = false;
+                    nextToken(state);
+                    break;
+                case 2050 /* NullKeyword */:
+                case 2051 /* UndefinedKeyword */:
+                case 2049 /* TrueKeyword */:
+                case 2048 /* FalseKeyword */:
+                    result = TokenValues[state.currentToken & 63 /* Type */];
+                    state.assignable = false;
+                    nextToken(state);
+                    break;
+                default:
+                    if (state.index >= state.length) {
+                        error(state, 'Unexpected end of expression');
+                    }
+                    else {
+                        error(state);
+                    }
+            }
+            if (bindingType & 512 /* IsIterator */) {
+                return parseForOfStatement(state, result);
+            }
+            if (448 /* LeftHandSide */ < minPrecedence)
+                return result;
+            /** parseMemberExpression (Token.Dot, Token.OpenBracket, Token.TemplateContinuation)
+             * MemberExpression :
+             *   1. PrimaryExpression
+             *   2. MemberExpression [ AssignmentExpression ]
+             *   3. MemberExpression . IdentifierName
+             *   4. MemberExpression TemplateLiteral
+             *
+             * IsValidAssignmentTarget
+             *   1,4 = false
+             *   2,3 = true
+             *
+             *
+             * parseCallExpression (Token.OpenParen)
+             * CallExpression :
+             *   1. MemberExpression Arguments
+             *   2. CallExpression Arguments
+             *   3. CallExpression [ AssignmentExpression ]
+             *   4. CallExpression . IdentifierName
+             *   5. CallExpression TemplateLiteral
+             *
+             * IsValidAssignmentTarget
+             *   1,2,5 = false
+             *   3,4 = true
+             */
+            let name = state.tokenValue;
+            while (state.currentToken & 16384 /* LeftHandSide */) {
+                switch (state.currentToken) {
+                    case 16392 /* Dot */:
+                        state.assignable = true;
+                        nextToken(state);
+                        if (!(state.currentToken & 3072 /* IdentifierName */)) {
+                            error(state);
+                        }
+                        name = state.tokenValue;
+                        nextToken(state);
+                        // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
+                        access = ((access & (512 /* This */ | 1024 /* Scope */)) << 1) | (access & 2048 /* Member */) | ((access & 4096 /* Keyed */) >> 1);
+                        if (state.currentToken === 671750 /* OpenParen */) {
+                            continue;
+                        }
+                        if (access & 1024 /* Scope */) {
+                            result = new AccessScope(name, result.ancestor);
+                        }
+                        else { // if it's not $Scope, it's $Member
+                            result = new AccessMember(result, name);
+                        }
+                        continue;
+                    case 671756 /* OpenBracket */:
+                        state.assignable = true;
+                        nextToken(state);
+                        access = 4096 /* Keyed */;
+                        result = new AccessKeyed(result, parse(state, 0 /* Reset */, 63 /* Conditional */, bindingType));
+                        consume(state, 1310733 /* CloseBracket */);
+                        break;
+                    case 671750 /* OpenParen */:
+                        state.assignable = false;
+                        nextToken(state);
+                        const args = new Array();
+                        while (state.currentToken !== 1835018 /* CloseParen */) {
+                            args.push(parse(state, 0 /* Reset */, 63 /* Conditional */, bindingType));
+                            if (!consumeOpt(state, 524299 /* Comma */)) {
+                                break;
+                            }
+                        }
+                        consume(state, 1835018 /* CloseParen */);
+                        if (access & 1024 /* Scope */) {
+                            result = new CallScope(name, args, result.ancestor);
+                        }
+                        else if (access & 2048 /* Member */) {
+                            result = new CallMember(result, name, args);
+                        }
+                        else {
+                            result = new CallFunction(result, args);
+                        }
+                        access = 0;
+                        break;
+                    case 16425 /* TemplateTail */:
+                        state.assignable = false;
+                        result = new TaggedTemplate([state.tokenValue], [state.tokenRaw], result);
+                        nextToken(state);
+                        break;
+                    case 16426 /* TemplateContinuation */:
+                        result = parseTemplate(state, access, bindingType, result, true);
+                    default:
+                }
+            }
+        }
+        if (448 /* Binary */ < minPrecedence)
+            return result;
+        /** parseBinaryExpression
+         * https://tc39.github.io/ecma262/#sec-multiplicative-operators
+         *
+         * MultiplicativeExpression : (local precedence 6)
+         *   UnaryExpression
+         *   MultiplicativeExpression * / % UnaryExpression
+         *
+         * AdditiveExpression : (local precedence 5)
+         *   MultiplicativeExpression
+         *   AdditiveExpression + - MultiplicativeExpression
+         *
+         * RelationalExpression : (local precedence 4)
+         *   AdditiveExpression
+         *   RelationalExpression < > <= >= instanceof in AdditiveExpression
+         *
+         * EqualityExpression : (local precedence 3)
+         *   RelationalExpression
+         *   EqualityExpression == != === !== RelationalExpression
+         *
+         * LogicalANDExpression : (local precedence 2)
+         *   EqualityExpression
+         *   LogicalANDExpression && EqualityExpression
+         *
+         * LogicalORExpression : (local precedence 1)
+         *   LogicalANDExpression
+         *   LogicalORExpression || LogicalANDExpression
+         */
+        while (state.currentToken & 65536 /* BinaryOp */) {
+            const opToken = state.currentToken;
+            if ((opToken & 448 /* Precedence */) < minPrecedence) {
+                break;
+            }
+            nextToken(state);
+            result = new Binary(TokenValues[opToken & 63 /* Type */], result, parse(state, access, opToken & 448 /* Precedence */, bindingType));
+            state.assignable = false;
+        }
+        if (63 /* Conditional */ < minPrecedence)
+            return result;
+        /**
+         * parseConditionalExpression
+         * https://tc39.github.io/ecma262/#prod-ConditionalExpression
+         *
+         * ConditionalExpression :
+         *   1. BinaryExpression
+         *   2. BinaryExpression ? AssignmentExpression : AssignmentExpression
+         *
+         * IsValidAssignmentTarget
+         *   1,2 = false
+         */
+        if (consumeOpt(state, 15 /* Question */)) {
+            const yes = parse(state, access, 62 /* Assign */, bindingType);
+            consume(state, 524302 /* Colon */);
+            result = new Conditional(result, yes, parse(state, access, 62 /* Assign */, bindingType));
+            state.assignable = false;
+        }
+        /** parseAssignmentExpression
+         * https://tc39.github.io/ecma262/#prod-AssignmentExpression
+         * Note: AssignmentExpression here is equivalent to ES Expression because we don't parse the comma operator
+         *
+         * AssignmentExpression :
+         *   1. ConditionalExpression
+         *   2. LeftHandSideExpression = AssignmentExpression
+         *
+         * IsValidAssignmentTarget
+         *   1,2 = false
+         */
+        if (consumeOpt(state, 39 /* Equals */)) {
+            if (!state.assignable) {
+                error(state, `Expression ${state.input.slice(exprStart, state.startIndex)} is not assignable`);
+            }
+            exprStart = state.index;
+            result = new Assign(result, parse(state, access, 62 /* Assign */, bindingType));
+        }
+        if (61 /* Variadic */ < minPrecedence)
+            return result;
+        /** parseValueConverter
+         */
+        while (consumeOpt(state, 524307 /* Bar */)) {
+            const name = state.tokenValue;
+            nextToken(state);
+            const args = new Array();
+            while (consumeOpt(state, 524302 /* Colon */)) {
+                args.push(parse(state, access, 62 /* Assign */, bindingType));
+            }
+            result = new ValueConverter(result, name, args);
+        }
+        /** parseBindingBehavior
+         */
+        while (consumeOpt(state, 524304 /* Ampersand */)) {
+            const name = state.tokenValue;
+            nextToken(state);
+            const args = new Array();
+            while (consumeOpt(state, 524302 /* Colon */)) {
+                args.push(parse(state, access, 62 /* Assign */, bindingType));
+            }
+            result = new BindingBehavior(result, name, args);
+        }
+        if (state.currentToken !== 1572864 /* EOF */) {
+            if (bindingType & 2048 /* Interpolation */) {
+                return result;
+            }
+            error(state, `Unconsumed token ${state.tokenRaw}`);
+        }
+        return result;
+    }
+    /**
+     * parseArrayLiteralExpression
+     * https://tc39.github.io/ecma262/#prod-ArrayLiteral
+     *
+     * ArrayLiteral :
+     *   [ Elision(opt) ]
+     *   [ ElementList ]
+     *   [ ElementList, Elision(opt) ]
+     *
+     * ElementList :
+     *   Elision(opt) AssignmentExpression
+     *   ElementList, Elision(opt) AssignmentExpression
+     *
+     * Elision :
+     *  ,
+     *  Elision ,
+     */
+    function parseArrayLiteralExpression(state, access, bindingType) {
+        nextToken(state);
+        const elements = new Array();
+        while (state.currentToken !== 1310733 /* CloseBracket */) {
+            if (consumeOpt(state, 524299 /* Comma */)) {
+                elements.push($undefined);
+                if (state.currentToken === 1310733 /* CloseBracket */) {
+                    elements.push($undefined);
+                    break;
+                }
+            }
+            else {
+                elements.push(parse(state, access, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
+                if (!consumeOpt(state, 524299 /* Comma */)) {
+                    break;
+                }
+            }
+        }
+        consume(state, 1310733 /* CloseBracket */);
+        if (bindingType & 512 /* IsIterator */) {
+            return new ArrayBindingPattern(elements);
+        }
+        else {
+            state.assignable = false;
+            return new ArrayLiteral(elements);
+        }
+    }
+    function parseForOfStatement(state, result) {
+        if (!(result.$kind & 4096 /* IsForDeclaration */)) {
+            error(state, 'Invalid ForDeclaration');
+        }
+        consume(state, 2603 /* OfKeyword */);
+        const declaration = result;
+        const statement = parse(state, 0 /* Reset */, 61 /* Variadic */, 0 /* None */);
+        return new ForOfStatement(declaration, statement);
+    }
+    /**
+     * parseObjectLiteralExpression
+     * https://tc39.github.io/ecma262/#prod-Literal
+     *
+     * ObjectLiteral :
+     *   { }
+     *   { PropertyDefinitionList }
+     *
+     * PropertyDefinitionList :
+     *   PropertyDefinition
+     *   PropertyDefinitionList, PropertyDefinition
+     *
+     * PropertyDefinition :
+     *   IdentifierName
+     *   PropertyName : AssignmentExpression
+     *
+     * PropertyName :
+     *   IdentifierName
+     *   StringLiteral
+     *   NumericLiteral
+     */
+    function parseObjectLiteralExpression(state, bindingType) {
+        const keys = new Array();
+        const values = new Array();
+        nextToken(state);
+        while (state.currentToken !== 1835017 /* CloseBrace */) {
+            keys.push(state.tokenValue);
+            // Literal = mandatory colon
+            if (state.currentToken & 12288 /* StringOrNumericLiteral */) {
+                nextToken(state);
+                consume(state, 524302 /* Colon */);
+                values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
+            }
+            else if (state.currentToken & 3072 /* IdentifierName */) {
+                // IdentifierName = optional colon
+                const { currentChar, currentToken, index } = state;
+                nextToken(state);
+                if (consumeOpt(state, 524302 /* Colon */)) {
+                    values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
+                }
+                else {
+                    // Shorthand
+                    state.currentChar = currentChar;
+                    state.currentToken = currentToken;
+                    state.index = index;
+                    values.push(parse(state, 0 /* Reset */, 449 /* Primary */, bindingType & ~512 /* IsIterator */));
+                }
+            }
+            else {
+                error(state);
+            }
+            if (state.currentToken !== 1835017 /* CloseBrace */) {
+                consume(state, 524299 /* Comma */);
+            }
+        }
+        consume(state, 1835017 /* CloseBrace */);
+        if (bindingType & 512 /* IsIterator */) {
+            return new ObjectBindingPattern(keys, values);
+        }
+        else {
+            state.assignable = false;
+            return new ObjectLiteral(keys, values);
+        }
+    }
+    function parseInterpolation(state) {
+        const parts = [];
+        const expressions = [];
+        const length = state.length;
+        let result = '';
+        while (state.index < length) {
+            switch (state.currentChar) {
+                case 36 /* Dollar */:
+                    if (state.input.charCodeAt(state.index + 1) === 123 /* OpenBrace */) {
+                        parts.push(result);
+                        result = '';
+                        state.index += 2;
+                        state.currentChar = state.input.charCodeAt(state.index);
+                        nextToken(state);
+                        const expression = parse(state, 0 /* Reset */, 61 /* Variadic */, 2048 /* Interpolation */);
+                        expressions.push(expression);
+                        continue;
+                    }
+                    else {
+                        result += '$';
+                    }
+                    break;
+                case 92 /* Backslash */:
+                    result += String.fromCharCode(unescape(nextChar(state)));
+                    break;
+                default:
+                    result += String.fromCharCode(state.currentChar);
+            }
+            if (state.index >= length) {
+                break;
+            }
+            nextChar(state);
+        }
+        if (expressions.length) {
+            parts.push(result);
+            return new Interpolation(parts, expressions);
+        }
+        return null;
+    }
+    /**
+     * parseTemplateLiteralExpression
+     * https://tc39.github.io/ecma262/#prod-Literal
+     *
+     * Template :
+     *   NoSubstitutionTemplate
+     *   TemplateHead
+     *
+     * NoSubstitutionTemplate :
+     *   ` TemplateCharacters(opt) `
+     *
+     * TemplateHead :
+     *   ` TemplateCharacters(opt) ${
+     *
+     * TemplateSubstitutionTail :
+     *   TemplateMiddle
+     *   TemplateTail
+     *
+     * TemplateMiddle :
+     *   } TemplateCharacters(opt) ${
+     *
+     * TemplateTail :
+     *   } TemplateCharacters(opt) `
+     *
+     * TemplateCharacters :
+     *   TemplateCharacter TemplateCharacters(opt)
+     *
+     * TemplateCharacter :
+     *   $ [lookahead ≠ {]
+     *   \ EscapeSequence
+     *   SourceCharacter (but not one of ` or \ or $)
+     */
+    function parseTemplate(state, access, bindingType, result, tagged) {
+        const cooked = [state.tokenValue];
+        const raw = [state.tokenRaw];
+        consume(state, 16426 /* TemplateContinuation */);
+        const expressions = [parse(state, access, 62 /* Assign */, bindingType)];
+        while ((state.currentToken = scanTemplateTail(state)) !== 16425 /* TemplateTail */) {
+            cooked.push(state.tokenValue);
+            if (tagged) {
+                raw.push(state.tokenRaw);
+            }
+            consume(state, 16426 /* TemplateContinuation */);
+            expressions.push(parse(state, access, 62 /* Assign */, bindingType));
+        }
+        cooked.push(state.tokenValue);
+        state.assignable = false;
+        if (tagged) {
+            raw.push(state.tokenRaw);
+            nextToken(state);
+            return new TaggedTemplate(cooked, raw, result, expressions);
+        }
+        else {
+            nextToken(state);
+            return new Template(cooked, expressions);
+        }
+    }
+    function nextToken(state) {
+        while (state.index < state.length) {
+            state.startIndex = state.index;
+            if ((state.currentToken = CharScanners[state.currentChar](state)) !== null) { // a null token means the character must be skipped
+                return;
+            }
+        }
+        state.currentToken = 1572864 /* EOF */;
+    }
+    function nextChar(state) {
+        return state.currentChar = state.input.charCodeAt(++state.index);
+    }
+    function scanIdentifier(state) {
+        // run to the next non-idPart
+        while (IdParts[nextChar(state)]) { }
+        return KeywordLookup[state.tokenValue = state.tokenRaw] || 1024 /* Identifier */;
+    }
+    function scanNumber(state, isFloat) {
+        if (isFloat) {
+            state.tokenValue = 0;
+        }
+        else {
+            state.tokenValue = state.currentChar - 48 /* Zero */;
+            while (nextChar(state) <= 57 /* Nine */ && state.currentChar >= 48 /* Zero */) {
+                state.tokenValue = state.tokenValue * 10 + state.currentChar - 48 /* Zero */;
+            }
+        }
+        if (isFloat || state.currentChar === 46 /* Dot */) {
+            // isFloat (coming from the period scanner) means the period was already skipped
+            if (!isFloat) {
+                nextChar(state);
+            }
+            const start = state.index;
+            let value = state.currentChar - 48 /* Zero */;
+            while (nextChar(state) <= 57 /* Nine */ && state.currentChar >= 48 /* Zero */) {
+                value = value * 10 + state.currentChar - 48 /* Zero */;
+            }
+            state.tokenValue = state.tokenValue + value / 10 ** (state.index - start);
+        }
+        return 8192 /* NumericLiteral */;
+    }
+    function scanString(state) {
+        const quote = state.currentChar;
+        nextChar(state); // Skip initial quote.
+        let unescaped = 0;
+        const buffer = new Array();
+        let marker = state.index;
+        while (state.currentChar !== quote) {
+            if (state.currentChar === 92 /* Backslash */) {
+                buffer.push(state.input.slice(marker, state.index));
+                nextChar(state);
+                unescaped = unescape(state.currentChar);
+                nextChar(state);
+                buffer.push(String.fromCharCode(unescaped));
+                marker = state.index;
+            }
+            else if (state.currentChar === /*EOF*/ 0) {
+                error(state, 'Unterminated quote');
+            }
+            else {
+                nextChar(state);
+            }
+        }
+        const last = state.input.slice(marker, state.index);
+        nextChar(state); // Skip terminating quote.
+        // Compute the unescaped string value.
+        let unescapedStr = last;
+        if (buffer !== null && buffer !== undefined) {
+            buffer.push(last);
+            unescapedStr = buffer.join('');
+        }
+        state.tokenValue = unescapedStr;
+        return 4096 /* StringLiteral */;
+    }
+    function scanTemplate(state) {
+        let tail = true;
+        let result = '';
+        while (nextChar(state) !== 96 /* Backtick */) {
+            if (state.currentChar === 36 /* Dollar */) {
+                if ((state.index + 1) < state.length && state.input.charCodeAt(state.index + 1) === 123 /* OpenBrace */) {
+                    state.index++;
+                    tail = false;
+                    break;
+                }
+                else {
+                    result += '$';
+                }
+            }
+            else if (state.currentChar === 92 /* Backslash */) {
+                result += String.fromCharCode(unescape(nextChar(state)));
+            }
+            else {
+                result += String.fromCharCode(state.currentChar);
+            }
+        }
+        nextChar(state);
+        state.tokenValue = result;
+        if (tail) {
+            return 16425 /* TemplateTail */;
+        }
+        return 16426 /* TemplateContinuation */;
+    }
+    function scanTemplateTail(state) {
+        if (state.index >= state.length) {
+            error(state, 'Unterminated template');
+        }
+        state.index--;
+        return scanTemplate(state);
+    }
+    function error(state, message = `Unexpected token ${state.tokenRaw}`, column = state.startIndex) {
+        throw new Error(`Parser Error: ${message} at column ${column} in expression [${state.input}]`);
+    }
+    function consumeOpt(state, token) {
+        if (state.currentToken === token) {
+            nextToken(state);
+            return true;
+        }
+        return false;
+    }
+    function consume(state, token) {
+        if (state.currentToken === token) {
+            nextToken(state);
+        }
+        else {
+            error(state, `Missing expected token ${TokenValues[token & 63 /* Type */]}`, state.index);
+        }
+    }
+    function unescape(code) {
+        switch (code) {
+            case 98 /* LowerB */: return 8 /* Backspace */;
+            case 116 /* LowerT */: return 9 /* Tab */;
+            case 110 /* LowerN */: return 10 /* LineFeed */;
+            case 118 /* LowerV */: return 11 /* VerticalTab */;
+            case 102 /* LowerF */: return 12 /* FormFeed */;
+            case 114 /* LowerR */: return 13 /* CarriageReturn */;
+            case 34 /* DoubleQuote */: return 34 /* DoubleQuote */;
+            case 39 /* SingleQuote */: return 39 /* SingleQuote */;
+            case 92 /* Backslash */: return 92 /* Backslash */;
+            default: return code;
+        }
+    }
+    const $false = new PrimitiveLiteral(false);
+    const $true = new PrimitiveLiteral(true);
+    const $null = new PrimitiveLiteral(null);
+    const $undefined = new PrimitiveLiteral(undefined);
+    /**
+     * Array for mapping tokens to token values. The indices of the values
+     * correspond to the token bits 0-38.
+     * For this to work properly, the values in the array must be kept in
+     * the same order as the token bits.
+     * Usage: TokenValues[token & Token.Type]
+     */
+    const TokenValues = [
+        $false, $true, $null, $undefined, '$this', '$parent',
+        '(', '{', '.', '}', ')', ',', '[', ']', ':', '?', '\'', '"',
+        '&', '|', '||', '&&', '==', '!=', '===', '!==', '<', '>',
+        '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
+        16425 /* TemplateTail */, 16426 /* TemplateContinuation */,
+        'of'
+    ];
+    const KeywordLookup = Object.create(null);
+    KeywordLookup.true = 2049 /* TrueKeyword */;
+    KeywordLookup.null = 2050 /* NullKeyword */;
+    KeywordLookup.false = 2048 /* FalseKeyword */;
+    KeywordLookup.undefined = 2051 /* UndefinedKeyword */;
+    KeywordLookup.$this = 3076 /* ThisScope */;
+    KeywordLookup.$parent = 3077 /* ParentScope */;
+    KeywordLookup.in = 67934 /* InKeyword */;
+    KeywordLookup.instanceof = 67935 /* InstanceOfKeyword */;
+    KeywordLookup.typeof = 34850 /* TypeofKeyword */;
+    KeywordLookup.void = 34851 /* VoidKeyword */;
+    KeywordLookup.of = 2603 /* OfKeyword */;
+    /**
+     * Ranges of code points in pairs of 2 (eg 0x41-0x5B, 0x61-0x7B, ...) where the second value is not inclusive (5-7 means 5 and 6)
+     * Single values are denoted by the second value being a 0
+     *
+     * Copied from output generated with "node build/generate-unicode.js"
+     *
+     * See also: https://en.wikibooks.org/wiki/Unicode/Character_reference/0000-0FFF
+     */
+    const codes = {
+        /* [$0-9A-Za_a-z] */
+        AsciiIdPart: [0x24, 0, 0x30, 0x3A, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B],
+        IdStart: /*IdentifierStart*/ [0x24, 0, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B, 0xAA, 0, 0xBA, 0, 0xC0, 0xD7, 0xD8, 0xF7, 0xF8, 0x2B9, 0x2E0, 0x2E5, 0x1D00, 0x1D26, 0x1D2C, 0x1D5D, 0x1D62, 0x1D66, 0x1D6B, 0x1D78, 0x1D79, 0x1DBF, 0x1E00, 0x1F00, 0x2071, 0, 0x207F, 0, 0x2090, 0x209D, 0x212A, 0x212C, 0x2132, 0, 0x214E, 0, 0x2160, 0x2189, 0x2C60, 0x2C80, 0xA722, 0xA788, 0xA78B, 0xA7AF, 0xA7B0, 0xA7B8, 0xA7F7, 0xA800, 0xAB30, 0xAB5B, 0xAB5C, 0xAB65, 0xFB00, 0xFB07, 0xFF21, 0xFF3B, 0xFF41, 0xFF5B],
+        Digit: /*DecimalNumber*/ [0x30, 0x3A],
+        Skip: /*Skippable*/ [0, 0x21, 0x7F, 0xA1]
+    };
+    /**
+     * Decompress the ranges into an array of numbers so that the char code
+     * can be used as an index to the lookup
+     */
+    function decompress(lookup, set, compressed, value) {
+        const rangeCount = compressed.length;
+        for (let i = 0; i < rangeCount; i += 2) {
+            const start = compressed[i];
+            let end = compressed[i + 1];
+            end = end > 0 ? end : start + 1;
+            if (lookup) {
+                lookup.fill(value, start, end);
+            }
+            if (set) {
+                for (let ch = start; ch < end; ch++) {
+                    set.add(ch);
+                }
+            }
+        }
+    }
+    // CharFuncLookup functions
+    function returnToken(token) {
+        return s => {
+            nextChar(s);
+            return token;
+        };
+    }
+    const unexpectedCharacter = s => {
+        error(s, `Unexpected character [${String.fromCharCode(s.currentChar)}]`);
+        return null;
+    };
+    unexpectedCharacter.notMapped = true;
+    // ASCII IdentifierPart lookup
+    const AsciiIdParts = new Set();
+    decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
+    // IdentifierPart lookup
+    const IdParts = new Uint8Array(0xFFFF);
+    decompress(IdParts, null, codes.IdStart, 1);
+    decompress(IdParts, null, codes.Digit, 1);
+    // Character scanning function lookup
+    const CharScanners = new Array(0xFFFF);
+    CharScanners.fill(unexpectedCharacter, 0, 0xFFFF);
+    decompress(CharScanners, null, codes.Skip, s => {
+        nextChar(s);
+        return null;
+    });
+    decompress(CharScanners, null, codes.IdStart, scanIdentifier);
+    decompress(CharScanners, null, codes.Digit, s => scanNumber(s, false));
+    CharScanners[34 /* DoubleQuote */] =
+        CharScanners[39 /* SingleQuote */] = s => {
+            return scanString(s);
+        };
+    CharScanners[96 /* Backtick */] = s => {
+        return scanTemplate(s);
+    };
+    // !, !=, !==
+    CharScanners[33 /* Exclamation */] = s => {
+        if (nextChar(s) !== 61 /* Equals */) {
+            return 32808 /* Exclamation */;
+        }
+        if (nextChar(s) !== 61 /* Equals */) {
+            return 65815 /* ExclamationEquals */;
+        }
+        nextChar(s);
+        return 65817 /* ExclamationEqualsEquals */;
+    };
+    // =, ==, ===
+    CharScanners[61 /* Equals */] = s => {
+        if (nextChar(s) !== 61 /* Equals */) {
+            return 39 /* Equals */;
+        }
+        if (nextChar(s) !== 61 /* Equals */) {
+            return 65814 /* EqualsEquals */;
+        }
+        nextChar(s);
+        return 65816 /* EqualsEqualsEquals */;
+    };
+    // &, &&
+    CharScanners[38 /* Ampersand */] = s => {
+        if (nextChar(s) !== 38 /* Ampersand */) {
+            return 524304 /* Ampersand */;
+        }
+        nextChar(s);
+        return 65749 /* AmpersandAmpersand */;
+    };
+    // |, ||
+    CharScanners[124 /* Bar */] = s => {
+        if (nextChar(s) !== 124 /* Bar */) {
+            return 524307 /* Bar */;
+        }
+        nextChar(s);
+        return 65684 /* BarBar */;
+    };
+    // .
+    CharScanners[46 /* Dot */] = s => {
+        if (nextChar(s) <= 57 /* Nine */ && s.currentChar >= 48 /* Zero */) {
+            return scanNumber(s, true);
+        }
+        return 16392 /* Dot */;
+    };
+    // <, <=
+    CharScanners[60 /* LessThan */] = s => {
+        if (nextChar(s) !== 61 /* Equals */) {
+            return 65882 /* LessThan */;
+        }
+        nextChar(s);
+        return 65884 /* LessThanEquals */;
+    };
+    // >, >=
+    CharScanners[62 /* GreaterThan */] = s => {
+        if (nextChar(s) !== 61 /* Equals */) {
+            return 65883 /* GreaterThan */;
+        }
+        nextChar(s);
+        return 65885 /* GreaterThanEquals */;
+    };
+    CharScanners[37 /* Percent */] = returnToken(66021 /* Percent */);
+    CharScanners[40 /* OpenParen */] = returnToken(671750 /* OpenParen */);
+    CharScanners[41 /* CloseParen */] = returnToken(1835018 /* CloseParen */);
+    CharScanners[42 /* Asterisk */] = returnToken(66020 /* Asterisk */);
+    CharScanners[43 /* Plus */] = returnToken(98720 /* Plus */);
+    CharScanners[44 /* Comma */] = returnToken(524299 /* Comma */);
+    CharScanners[45 /* Minus */] = returnToken(98721 /* Minus */);
+    CharScanners[47 /* Slash */] = returnToken(66022 /* Slash */);
+    CharScanners[58 /* Colon */] = returnToken(524302 /* Colon */);
+    CharScanners[63 /* Question */] = returnToken(15 /* Question */);
+    CharScanners[91 /* OpenBracket */] = returnToken(671756 /* OpenBracket */);
+    CharScanners[93 /* CloseBracket */] = returnToken(1310733 /* CloseBracket */);
+    CharScanners[123 /* OpenBrace */] = returnToken(131079 /* OpenBrace */);
+    CharScanners[125 /* CloseBrace */] = returnToken(1835017 /* CloseBrace */);
+
+    /*! *****************************************************************************
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+    this file except in compliance with the License. You may obtain a copy of the
+    License at http://www.apache.org/licenses/LICENSE-2.0
+
+    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+    WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+    MERCHANTABLITY OR NON-INFRINGEMENT.
+
+    See the Apache Version 2.0 License for specific language governing permissions
+    and limitations under the License.
+    ***************************************************************************** */
+
+    function __decorate$1(decorators, target, key, desc) {
+        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+        return c > 3 && r && Object.defineProperty(target, key, r), r;
+    }
+
+    // tslint:disable:no-inner-html
+    const domParser = DOM.createElement('div');
+    const marker = DOM.createElement('au-marker');
+    marker.classList.add('au');
+    const createMarker = marker.cloneNode.bind(marker, false);
+    /*@internal*/
+    function resolveTarget(target, element, attribute) {
+        // give custom attributes priority over custom element properties (is this correct? should we throw if there's a conflict?)
+        if (attribute !== null) {
+            // only consider semicolon-separated bindings for normal custom attributes, not template controllers
+            if (attribute.isTemplateController === false) {
+                // users must not have a semicolon-separated binding with the same name as the attribute; behavior would be unpredictable
+                if (target !== attribute.name) {
+                    const propertyName = PLATFORM.camelCase(target);
+                    const bindable$$1 = attribute.bindables[propertyName];
+                    if (bindable$$1 !== null) {
+                        return bindable$$1.property || propertyName;
+                    }
+                    return target;
+                }
+            }
+            const bindableNames = Object.keys(attribute.bindables);
+            if (bindableNames.length) {
+                // return the first by convention (usually there should only be one)
+                return bindableNames[0];
+            }
+            // if there are no bindables declared, default to 'value'
+            return 'value';
+        }
+        if (element !== null) {
+            const propertyName = PLATFORM.camelCase(target);
+            const bindable$$1 = element.bindables[propertyName];
+            if (bindable$$1) {
+                return bindable$$1.property || propertyName;
+            }
+        }
+        return target;
+    }
+    const attributeInspectionBuffer = Array(3);
+    /*@internal*/
+    function inspectAttribute(name, resources) {
+        let targetName = name;
+        let bindingCommand$$1 = null;
+        for (let i = 0, ii = name.length; i < ii; ++i) {
+            if (name.charCodeAt(i) === 46 /* Dot */) {
+                // set the targetName to only the part that comes before the first dot
+                if (name === targetName) {
+                    targetName = name.slice(0, i);
+                }
+                const commandName = name.slice(i + 1);
+                bindingCommand$$1 = resources.create(BindingCommandResource, commandName) || null;
+                if (bindingCommand$$1 !== null) {
+                    // keep looping until the part after any dot (doesn't have to be the first/last) is a bindingCommand
+                    break;
+                }
+            }
+        }
+        const attributeDefinition = resources.find(CustomAttributeResource, targetName) || null;
+        attributeInspectionBuffer[0] = targetName;
+        attributeInspectionBuffer[1] = attributeDefinition;
+        attributeInspectionBuffer[2] = bindingCommand$$1;
+        return attributeInspectionBuffer;
+    }
+    exports.TemplateCompiler = class TemplateCompiler {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        get name() {
+            return 'default';
+        }
+        compile(definition, resources, flags) {
+            let node = definition.templateOrNode;
+            if (typeof node === 'string') {
+                domParser.innerHTML = node;
+                node = definition.templateOrNode = domParser.firstElementChild;
+            }
+            const rootNode = node;
+            const isTemplate = node.nodeName === 'TEMPLATE';
+            // Parent node is required for remove / replace operation incase node is the direct child of document fragment
+            const parentNode = node = isTemplate ? node.content : node;
+            while (node = this.compileNode(node, parentNode, definition, definition.instructions, resources)) { /* Do nothing */ }
+            // ideally the flag should be passed correctly from rendering engine
+            if (isTemplate && (flags & ViewCompileFlags.surrogate)) {
+                this.compileSurrogate(rootNode, definition.surrogates, resources);
+            }
+            return definition;
+        }
+        /*@internal*/
+        compileNode(node, parentNode, definition, instructions, resources) {
+            const nextSibling = node.nextSibling;
+            switch (node.nodeType) {
+                case 1 /* Element */:
+                    this.compileElementNode(node, parentNode, definition, instructions, resources);
+                    return nextSibling;
+                case 3 /* Text */:
+                    if (!this.compileTextNode(node, instructions)) {
+                        while ((node = node.nextSibling) && node.nodeType === 3 /* Text */) { /* Do nothing */ }
+                        return node;
+                    }
+                    return nextSibling;
+                case 8 /* Comment */:
+                    return nextSibling;
+                case 9 /* Document */:
+                    return node.firstChild;
+                case 10 /* DocumentType */:
+                    return nextSibling;
+                case 11 /* DocumentFragment */:
+                    return node.firstChild;
+            }
+        }
+        /*@internal*/
+        compileSurrogate(node, surrogateInstructions, resources) {
+            const attributes = node.attributes;
+            for (let i = 0, ii = attributes.length; i < ii; ++i) {
+                const attr = attributes.item(i);
+                const { name, value } = attr;
+                const [target, attribute, command] = inspectAttribute(name, resources);
+                if (attribute && attribute.isTemplateController) {
+                    throw new Error('Cannot have template controller on surrogate element.');
+                }
+                const instruction = this.compileAttribute(target, value, node, attribute, null, command);
+                if (instruction !== null) {
+                    surrogateInstructions.push(instruction);
+                }
+                else {
+                    let attrInst;
+                    // Doesn't make sense for these properties as they need to be unique
+                    if (name !== 'id' && name !== 'part' && name !== 'replace-part') {
+                        switch (name) {
+                            // TODO: handle simple surrogate style attribute
+                            case 'style':
+                                attrInst = new SetAttributeInstruction(value, name);
+                                break;
+                            default:
+                                attrInst = new SetAttributeInstruction(value, name);
+                        }
+                        surrogateInstructions.push(attrInst);
+                    }
+                    else {
+                        throw new Error(`Invalid surrogate attribute: ${name}`);
+                    }
+                }
+            }
+        }
+        /*@internal*/
+        compileElementNode(node, parentNode, definition, instructions, resources) {
+            const tagName = node.tagName;
+            if (tagName === 'SLOT') {
+                definition.hasSlots = true;
+                return;
+            }
+            else if (tagName === 'LET') {
+                const letElementInstruction = this.compileLetElement(node, resources);
+                instructions.push([letElementInstruction]);
+                // theoretically there's no need to replace, but to keep it consistent
+                DOM.replaceNode(createMarker(), node);
+                return;
+            }
+            // if there is a custom element or template controller, then the attribute instructions become children
+            // of the hydrate instruction, otherwise they are added directly to instructions as a single array
+            const attributeInstructions = [];
+            const tagResourceKey = (node.getAttribute('as-element') || tagName).toLowerCase();
+            const element = resources.find(CustomElementResource, tagResourceKey) || null;
+            const attributes = node.attributes;
+            for (let i = 0, ii = attributes.length; i < ii; ++i) {
+                const attr = attributes.item(i);
+                const { name, value } = attr;
+                const [target, attribute, command] = inspectAttribute(name, resources);
+                if (attribute !== null) {
+                    if (attribute.isTemplateController) {
+                        node.removeAttributeNode(attr);
+                        let instruction = this.compileAttribute(target, value, node, attribute, element, command);
+                        // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
+                        if (instruction.type !== "k" /* hydrateTemplateController */) {
+                            const src = {
+                                name: attribute.name,
+                                templateOrNode: node,
+                                instructions: []
+                            };
+                            instruction = new HydrateTemplateController(src, target, [instruction], attribute.name === 'else');
+                        }
+                        (node.parentNode || parentNode).replaceChild(createMarker(), node);
+                        const template = DOM.createTemplate();
+                        template.content.appendChild(node);
+                        instruction.src.templateOrNode = template;
+                        instruction.instructions.push(...attributeInstructions);
+                        this.compile(instruction.src, resources);
+                        instructions.push([instruction]);
+                        return;
+                    }
+                    else {
+                        const childInstructions = [];
+                        const bindings = value.split(';');
+                        // TODO: improve this
+                        if (bindings.length > 1) {
+                            for (let i = 0, ii = bindings.length; i < ii; ++i) {
+                                const binding = bindings[i];
+                                const parts = binding.split(':');
+                                const [childTarget, , childCommand] = inspectAttribute(parts[0].trim(), resources);
+                                childInstructions.push(this.compileAttribute(childTarget, parts[1].trim(), node, attribute, element, childCommand));
+                            }
+                        }
+                        else {
+                            childInstructions.push(this.compileAttribute(target, value, node, attribute, element, command));
+                        }
+                        attributeInstructions.push(new HydrateAttributeInstruction(target, childInstructions));
+                    }
+                }
+                else {
+                    const instruction = this.compileAttribute(target, value, node, attribute, element, command);
+                    if (instruction !== null) {
+                        attributeInstructions.push(instruction);
+                    }
+                }
+            }
+            // no template controller; see if there's a custom element
+            if (element) {
+                // custom element takes the attributes as children
+                instructions.push([new HydrateElementInstruction(tagResourceKey, attributeInstructions)]);
+                node.classList.add('au');
+            }
+            else if (attributeInstructions.length) {
+                // no custom element or template controller, add the attributes directly
+                instructions.push(attributeInstructions);
+                node.classList.add('au');
+            }
+            const current = node;
+            let currentChild = node.firstChild;
+            while (currentChild) {
+                currentChild = this.compileNode(currentChild, current, definition, instructions, resources);
+            }
+        }
+        compileLetElement(node, resources) {
+            const letInstructions = [];
+            const attributes = node.attributes;
+            // ToViewModel flag needs to be determined in advance
+            // before compiling any attribute
+            const toViewModel = node.hasAttribute('to-view-model');
+            node.removeAttribute('to-view-model');
+            for (let i = 0, ii = attributes.length; ii > i; ++i) {
+                const attr = attributes.item(i);
+                const { name, value } = attr;
+                let [target, , command] = inspectAttribute(name, resources);
+                target = PLATFORM.camelCase(target);
+                let letInstruction;
+                if (!command) {
+                    const expression = this.parser.parse(value, 2048 /* Interpolation */);
+                    if (expression === null) {
+                        // Should just be a warning, but throw for now
+                        throw new Error(`Invalid let binding. String liternal given for attribute: ${target}`);
+                    }
+                    letInstruction = new LetBindingInstruction(expression, target);
+                }
+                else if (command === null) {
+                    // TODO: this does work well with no built in command spirit
+                    throw new Error('Only bind command supported for "let" element.');
+                }
+                else {
+                    letInstruction = new LetBindingInstruction(value, target);
+                }
+                letInstructions.push(letInstruction);
+            }
+            return new LetElementInstruction(letInstructions, toViewModel);
+        }
+        /*@internal*/
+        compileTextNode(node, instructions) {
+            const expression = this.parser.parse(node.wholeText, 2048 /* Interpolation */);
+            if (expression === null) {
+                return false;
+            }
+            node.parentNode.insertBefore(createMarker(), node);
+            node.textContent = ' ';
+            while (node.nextSibling && node.nextSibling.nodeType === 3 /* Text */) {
+                node.parentNode.removeChild(node.nextSibling);
+            }
+            instructions.push([new TextBindingInstruction(expression)]);
+            return true;
+        }
+        /*@internal*/
+        compileAttribute(target, value, node, attribute, element, command) {
+            // binding commands get priority over all; they may override default behaviors
+            // it is the responsibility of the implementor to ensure they filter out stuff they shouldn't override
+            if (command !== null && command.handles(attribute)) {
+                return command.compile(target, value, node, attribute, element);
+            }
+            // simple path for ref binding
+            const parser = this.parser;
+            if (target === 'ref') {
+                return new RefBindingInstruction(parser.parse(value, 1280 /* IsRef */));
+            }
+            // simple path for style bindings (TODO: this doesnt work, but we need to use StylePropertyBindingInstruction right?)
+            // if (target === 'style' || target === 'css') {
+            //   const expression = parser.parse(value, BindingType.Interpolation);
+            //   if (expression === null) {
+            //     return null;
+            //   }
+            //   return new StylePropertyBindingInstruction(expression, target);
+            // }
+            // plain custom attribute on any kind of element
+            if (attribute !== null) {
+                target = resolveTarget(target, element, attribute);
+                value = value && value.length ? value : '""';
+                const expression = parser.parse(value, 2048 /* Interpolation */) || parser.parse(value, 50 /* ToViewCommand */);
+                if (attribute.defaultBindingMode) {
+                    switch (attribute.defaultBindingMode) {
+                        case BindingMode.oneTime:
+                            return new OneTimeBindingInstruction(expression, target);
+                        case BindingMode.fromView:
+                            return new FromViewBindingInstruction(expression, target);
+                        case BindingMode.twoWay:
+                            return new TwoWayBindingInstruction(expression, target);
+                        case BindingMode.toView:
+                        default:
+                            return new ToViewBindingInstruction(expression, target);
+                    }
+                }
+                return new ToViewBindingInstruction(expression, target);
+            }
+            // plain attribute on a custom element
+            if (element !== null) {
+                target = resolveTarget(target, element, attribute);
+                const expression = parser.parse(value, 2048 /* Interpolation */);
+                if (expression === null) {
+                    // no interpolation -> make it a setProperty on the component
+                    return new SetPropertyInstruction(value, target);
+                }
+                // interpolation -> behave like toView (e.g. foo="${someProp}")
+                return new ToViewBindingInstruction(expression, target);
+            }
+            // plain attribute on a normal element
+            const expression = parser.parse(value, 2048 /* Interpolation */);
+            if (expression === null) {
+                // no interpolation -> do not return an instruction
+                return null;
+            }
+            // interpolation -> behave like toView (e.g. id="${someId}")
+            return new ToViewBindingInstruction(expression, target);
+        }
+    };
+    exports.TemplateCompiler = __decorate$1([
+        inject(IExpressionParser)
+    ], exports.TemplateCompiler);
+    // tslint:disable:no-reserved-keywords
+    // tslint:disable:no-any
+    class TextBindingInstruction {
+        constructor(srcOrExpr) {
+            this.srcOrExpr = srcOrExpr;
+        }
+    }
+    class OneTimeBindingInstruction {
+        constructor(srcOrExpr, dest) {
+            this.srcOrExpr = srcOrExpr;
+            this.dest = dest;
+        }
+    }
+    class ToViewBindingInstruction {
+        constructor(srcOrExpr, dest) {
+            this.srcOrExpr = srcOrExpr;
+            this.dest = dest;
+        }
+    }
+    class FromViewBindingInstruction {
+        constructor(srcOrExpr, dest) {
+            this.srcOrExpr = srcOrExpr;
+            this.dest = dest;
+        }
+    }
+    class TwoWayBindingInstruction {
+        constructor(srcOrExpr, dest) {
+            this.srcOrExpr = srcOrExpr;
+            this.dest = dest;
+        }
+    }
+    class TriggerBindingInstruction {
+        constructor(srcOrExpr, dest) {
+            this.srcOrExpr = srcOrExpr;
+            this.dest = dest;
+        }
+    }
+    class DelegateBindingInstruction {
+        constructor(srcOrExpr, dest) {
+            this.srcOrExpr = srcOrExpr;
+            this.dest = dest;
+        }
+    }
+    class CaptureBindingInstruction {
+        constructor(srcOrExpr, dest) {
+            this.srcOrExpr = srcOrExpr;
+            this.dest = dest;
+        }
+    }
+    class CallBindingInstruction {
+        constructor(srcOrExpr, dest) {
+            this.srcOrExpr = srcOrExpr;
+            this.dest = dest;
+        }
+    }
+    class RefBindingInstruction {
+        constructor(srcOrExpr) {
+            this.srcOrExpr = srcOrExpr;
+        }
+    }
+    class StylePropertyBindingInstruction {
+        constructor(srcOrExpr, dest) {
+            this.srcOrExpr = srcOrExpr;
+            this.dest = dest;
+        }
+    }
+    class SetPropertyInstruction {
+        constructor(value, dest) {
+            this.value = value;
+            this.dest = dest;
+        }
+    }
+    class SetAttributeInstruction {
+        constructor(value, dest) {
+            this.value = value;
+            this.dest = dest;
+        }
+    }
+    class HydrateElementInstruction {
+        constructor(res, instructions, parts, contentOverride) {
+            this.res = res;
+            this.instructions = instructions;
+            this.parts = parts;
+            this.contentOverride = contentOverride;
+        }
+    }
+    class HydrateAttributeInstruction {
+        constructor(res, instructions) {
+            this.res = res;
+            this.instructions = instructions;
+        }
+    }
+    class HydrateTemplateController {
+        constructor(src, res, instructions, link) {
+            this.src = src;
+            this.res = res;
+            this.instructions = instructions;
+            this.link = link;
+        }
+    }
+    class LetElementInstruction {
+        constructor(instructions, toViewModel) {
+            this.instructions = instructions;
+            this.toViewModel = toViewModel;
+        }
+    }
+    class LetBindingInstruction {
+        constructor(srcOrExpr, dest) {
+            this.srcOrExpr = srcOrExpr;
+            this.dest = dest;
+        }
+    }
+    // tslint:enable:no-reserved-keywords
+    // See ast.ts (at the bottom) for an explanation of what/why
+    TextBindingInstruction.prototype.type = "a" /* textBinding */;
+    OneTimeBindingInstruction.prototype.type = "b" /* propertyBinding */;
+    OneTimeBindingInstruction.prototype.mode = BindingMode.oneTime;
+    OneTimeBindingInstruction.prototype.oneTime = true;
+    ToViewBindingInstruction.prototype.type = "b" /* propertyBinding */;
+    ToViewBindingInstruction.prototype.mode = BindingMode.toView;
+    ToViewBindingInstruction.prototype.oneTime = false;
+    FromViewBindingInstruction.prototype.type = "b" /* propertyBinding */;
+    FromViewBindingInstruction.prototype.mode = BindingMode.fromView;
+    FromViewBindingInstruction.prototype.oneTime = false;
+    TwoWayBindingInstruction.prototype.type = "b" /* propertyBinding */;
+    TwoWayBindingInstruction.prototype.mode = BindingMode.twoWay;
+    TwoWayBindingInstruction.prototype.oneTime = false;
+    TriggerBindingInstruction.prototype.type = "c" /* listenerBinding */;
+    TriggerBindingInstruction.prototype.strategy = DelegationStrategy.none;
+    TriggerBindingInstruction.prototype.preventDefault = true;
+    CaptureBindingInstruction.prototype.type = "c" /* listenerBinding */;
+    CaptureBindingInstruction.prototype.strategy = DelegationStrategy.capturing;
+    CaptureBindingInstruction.prototype.preventDefault = false;
+    DelegateBindingInstruction.prototype.type = "c" /* listenerBinding */;
+    DelegateBindingInstruction.prototype.strategy = DelegationStrategy.bubbling;
+    DelegateBindingInstruction.prototype.preventDefault = false;
+    CallBindingInstruction.prototype.type = "d" /* callBinding */;
+    RefBindingInstruction.prototype.type = "e" /* refBinding */;
+    StylePropertyBindingInstruction.prototype.type = "f" /* stylePropertyBinding */;
+    SetPropertyInstruction.prototype.type = "g" /* setProperty */;
+    SetAttributeInstruction.prototype.type = "h" /* setAttribute */;
+    HydrateElementInstruction.prototype.type = "i" /* hydrateElement */;
+    HydrateAttributeInstruction.prototype.type = "j" /* hydrateAttribute */;
+    HydrateTemplateController.prototype.type = "k" /* hydrateTemplateController */;
+    LetElementInstruction.prototype.type = "l" /* letElement */;
+    LetBindingInstruction.prototype.type = "m" /* letBinding */;
+    // tslint:enable:no-reserved-keywords
+    // tslint:enable:no-any
+
+    function bindingCommand(nameOrSource) {
+        return function (target) {
+            return BindingCommandResource.define(nameOrSource, target);
+        };
+    }
+    const BindingCommandResource = {
+        name: 'binding-command',
+        keyFrom(name) {
+            return `${this.name}:${name}`;
+        },
+        isType(type) {
+            return type.kind === this;
+        },
+        define(nameOrSource, ctor) {
+            const description = typeof nameOrSource === 'string' ? { name: nameOrSource, target: null } : nameOrSource;
+            const Type = ctor;
+            Type.kind = BindingCommandResource;
+            Type.description = description;
+            Type.register = function (container) {
+                container.register(Registration.singleton(Type.kind.keyFrom(description.name), Type));
+            };
+            const proto = Type.prototype;
+            proto.handles = proto.handles || defaultHandles;
+            return Type;
+        }
+    };
+    function defaultHandles(attributeDefinition) {
+        return !attributeDefinition || attributeDefinition.isTemplateController === false;
+    }
+    exports.DefaultBindingCommand = class DefaultBindingCommand {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        compile(target, value, node, attribute, element) {
+            let mode = BindingMode.toView;
+            if (element) {
+                target = resolveTarget(target, element, attribute);
+                const bindable$$1 = element.bindables[target];
+                if (bindable$$1 && bindable$$1.mode && bindable$$1.mode !== BindingMode.default) {
+                    mode = bindable$$1.mode;
+                }
+            }
+            switch (mode) {
+                case BindingMode.oneTime:
+                    return new OneTimeBindingInstruction(this.parser.parse(value, 49 /* OneTimeCommand */), target);
+                case BindingMode.toView:
+                    return new ToViewBindingInstruction(this.parser.parse(value, 50 /* ToViewCommand */), target);
+                case BindingMode.fromView:
+                    return new FromViewBindingInstruction(this.parser.parse(value, 51 /* FromViewCommand */), target);
+                case BindingMode.twoWay:
+                    return new TwoWayBindingInstruction(this.parser.parse(value, 52 /* TwoWayCommand */), target);
+            }
+        }
+    };
+    exports.DefaultBindingCommand.inject = [IExpressionParser];
+    exports.DefaultBindingCommand = __decorate$1([
+        bindingCommand('bind')
+    ], exports.DefaultBindingCommand);
+    exports.OneTimeBindingCommand = class OneTimeBindingCommand {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        compile(target, value, node, attribute, element) {
+            return new OneTimeBindingInstruction(this.parser.parse(value, 49 /* OneTimeCommand */), resolveTarget(target, element, attribute));
+        }
+    };
+    exports.OneTimeBindingCommand.inject = [IExpressionParser];
+    exports.OneTimeBindingCommand = __decorate$1([
+        bindingCommand('one-time')
+    ], exports.OneTimeBindingCommand);
+    exports.ToViewBindingCommand = class ToViewBindingCommand {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        compile(target, value, node, attribute, element) {
+            return new ToViewBindingInstruction(this.parser.parse(value, 50 /* ToViewCommand */), resolveTarget(target, element, attribute));
+        }
+    };
+    exports.ToViewBindingCommand.inject = [IExpressionParser];
+    exports.ToViewBindingCommand = __decorate$1([
+        bindingCommand('to-view')
+    ], exports.ToViewBindingCommand);
+    exports.FromViewBindingCommand = class FromViewBindingCommand {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        compile(target, value, node, attribute, element) {
+            return new FromViewBindingInstruction(this.parser.parse(value, 51 /* FromViewCommand */), resolveTarget(target, element, attribute));
+        }
+    };
+    exports.FromViewBindingCommand.inject = [IExpressionParser];
+    exports.FromViewBindingCommand = __decorate$1([
+        bindingCommand('from-view')
+    ], exports.FromViewBindingCommand);
+    exports.TwoWayBindingCommand = class TwoWayBindingCommand {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        compile(target, value, node, attribute, element) {
+            return new TwoWayBindingInstruction(this.parser.parse(value, 52 /* TwoWayCommand */), resolveTarget(target, element, attribute));
+        }
+    };
+    exports.TwoWayBindingCommand.inject = [IExpressionParser];
+    exports.TwoWayBindingCommand = __decorate$1([
+        bindingCommand('two-way')
+    ], exports.TwoWayBindingCommand);
+    exports.TriggerBindingCommand = class TriggerBindingCommand {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        compile(target, value, node, attribute, element) {
+            return new TriggerBindingInstruction(this.parser.parse(value, 86 /* TriggerCommand */), target);
+        }
+    };
+    exports.TriggerBindingCommand.inject = [IExpressionParser];
+    exports.TriggerBindingCommand = __decorate$1([
+        bindingCommand('trigger')
+    ], exports.TriggerBindingCommand);
+    exports.DelegateBindingCommand = class DelegateBindingCommand {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        compile(target, value, node, attribute, element) {
+            return new DelegateBindingInstruction(this.parser.parse(value, 88 /* DelegateCommand */), target);
+        }
+    };
+    exports.DelegateBindingCommand.inject = [IExpressionParser];
+    exports.DelegateBindingCommand = __decorate$1([
+        bindingCommand('delegate')
+    ], exports.DelegateBindingCommand);
+    exports.CaptureBindingCommand = class CaptureBindingCommand {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        compile(target, value, node, attribute, element) {
+            return new CaptureBindingInstruction(this.parser.parse(value, 87 /* CaptureCommand */), target);
+        }
+    };
+    exports.CaptureBindingCommand.inject = [IExpressionParser];
+    exports.CaptureBindingCommand = __decorate$1([
+        bindingCommand('capture')
+    ], exports.CaptureBindingCommand);
+    exports.CallBindingCommand = class CallBindingCommand {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        compile(target, value, node, attribute, element) {
+            return new CallBindingInstruction(this.parser.parse(value, 153 /* CallCommand */), resolveTarget(target, element, attribute));
+        }
+    };
+    exports.CallBindingCommand.inject = [IExpressionParser];
+    exports.CallBindingCommand = __decorate$1([
+        bindingCommand('call')
+    ], exports.CallBindingCommand);
+    exports.ForBindingCommand = class ForBindingCommand {
+        constructor(parser) {
+            this.parser = parser;
+        }
+        compile(target, value, node, attribute, element) {
+            const src = {
+                templateOrNode: node,
+                instructions: []
+            };
+            return new HydrateTemplateController(src, 'repeat', [
+                new ToViewBindingInstruction(this.parser.parse(value, 539 /* ForCommand */), 'items'),
+                new SetPropertyInstruction('item', 'local')
+            ]);
+        }
+        handles(attributeDefinition) {
+            return !!attributeDefinition && attributeDefinition.name === 'repeat';
+        }
+    };
+    exports.ForBindingCommand.inject = [IExpressionParser];
+    exports.ForBindingCommand = __decorate$1([
+        bindingCommand('for')
+    ], exports.ForBindingCommand);
+
+    const globalResources = [
+        Compose,
+        If,
+        Else,
+        Repeat,
+        Replaceable,
+        With,
+        SanitizeValueConverter,
+        AttrBindingBehavior,
+        DebounceBindingBehavior,
+        OneTimeBindingBehavior,
+        ToViewBindingBehavior,
+        FromViewBindingBehavior,
+        SelfBindingBehavior,
+        SignalBindingBehavior,
+        ThrottleBindingBehavior,
+        TwoWayBindingBehavior,
+        UpdateTriggerBindingBehavior
+    ];
+    const defaultBindingLanguage = [
+        exports.DefaultBindingCommand,
+        exports.OneTimeBindingCommand,
+        exports.ToViewBindingCommand,
+        exports.FromViewBindingCommand,
+        exports.TwoWayBindingCommand,
+        exports.TriggerBindingCommand,
+        exports.DelegateBindingCommand,
+        exports.CaptureBindingCommand,
+        exports.CallBindingCommand,
+        exports.ForBindingCommand
+    ];
+    const BasicConfiguration = {
+        register(container) {
+            register$4(container);
+            container.register(Registration.singleton(ITemplateCompiler, exports.TemplateCompiler), ...globalResources, ...defaultBindingLanguage);
+        }
+    };
+
+    exports.register = register$4;
+    exports.ParserState = ParserState;
+    exports.parse = parse;
+    exports.bindingCommand = bindingCommand;
+    exports.BindingCommandResource = BindingCommandResource;
+    exports.resolveTarget = resolveTarget;
+    exports.inspectAttribute = inspectAttribute;
+    exports.TextBindingInstruction = TextBindingInstruction;
+    exports.OneTimeBindingInstruction = OneTimeBindingInstruction;
+    exports.ToViewBindingInstruction = ToViewBindingInstruction;
+    exports.FromViewBindingInstruction = FromViewBindingInstruction;
+    exports.TwoWayBindingInstruction = TwoWayBindingInstruction;
+    exports.TriggerBindingInstruction = TriggerBindingInstruction;
+    exports.DelegateBindingInstruction = DelegateBindingInstruction;
+    exports.CaptureBindingInstruction = CaptureBindingInstruction;
+    exports.CallBindingInstruction = CallBindingInstruction;
+    exports.RefBindingInstruction = RefBindingInstruction;
+    exports.StylePropertyBindingInstruction = StylePropertyBindingInstruction;
+    exports.SetPropertyInstruction = SetPropertyInstruction;
+    exports.SetAttributeInstruction = SetAttributeInstruction;
+    exports.HydrateElementInstruction = HydrateElementInstruction;
+    exports.HydrateAttributeInstruction = HydrateAttributeInstruction;
+    exports.HydrateTemplateController = HydrateTemplateController;
+    exports.LetElementInstruction = LetElementInstruction;
+    exports.LetBindingInstruction = LetBindingInstruction;
+    exports.BasicConfiguration = BasicConfiguration;
 
     return exports;
 
-}({},au.kernel));
+}({}));

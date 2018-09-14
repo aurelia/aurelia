@@ -164,6 +164,51 @@ async function bundle() {
 
     log(`${logPrefix} ${c.greenBright('done')}`);
   }
+
+
+  if (outputs.indexOf('iife') !== -1) {
+    const logPrefix = c.grey(`au.bundle.js`);
+
+    log(`${logPrefix} creating iife full bundle`);
+
+    const pkg = project.packages.find(p => p.name === 'jit');
+
+    const bundle = await rollup.rollup({
+      input: join(pkg.src, 'index.ts'),
+      plugins: [
+        resolve({ jsnext: true }),
+        typescript2({
+          tsconfig: join(pkg.path, 'tsconfig.json'),
+          typescript: ts,
+          tsconfigOverride: {
+            module: 'esnext',
+            stripInternal: true,
+            emitDeclarationOnly: false,
+            composite: false,
+            declaration: false,
+            declarationMap: false
+          }
+        })
+      ]
+    });
+
+    log(`${logPrefix} writing iife - ${pkg.iife}`);
+
+    await bundle.write({
+      file: pkg.iife.replace('jit', 'au.bundle'),
+      exports: 'named',
+      name: pkg.fullName,
+      globals: {
+        ...project.packages.reduce((g, pkg) => {
+          g[pkg.scopedName] = pkg.fullName;
+          return g;
+        }, {}),
+        'tslib': 'tslib'
+      },
+      format: 'iife',
+      sourcemap: false
+    });
+  }
 }
 
 bundle();

@@ -1,0 +1,24 @@
+{
+  "name": "jit-webpack-ts",
+  "version": "0.1.1",
+  "scripts": {
+    "watch": "webpack-dev-server --no-inline",
+    "build": "rimraf dist && webpack --config webpack.config.js",
+    "serve": "http-server -c-1 -p 9000 dist"
+  },
+  "dependencies": {
+    "@aurelia/jit": "dev"
+  },
+  "devDependencies": {
+    "@types/node": "^8.10.22",
+    "html-loader": "latest",
+    "html-webpack-plugin": "latest",
+    "http-server": "latest",
+    "rimraf": "latest",
+    "ts-loader": "latest",
+    "typescript": "latest",
+    "webpack-cli": "latest",
+    "webpack-dev-server": "latest",
+    "webpack": "latest"
+  }
+}

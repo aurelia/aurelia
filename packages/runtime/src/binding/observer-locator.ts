@@ -223,8 +223,9 @@ export class ObserverLocator implements IObserverLocator {
         if (adapterObserver) {
           return adapterObserver;
         }
-        if (isNode && obj.constructor.prototype[propertyName] !== undefined) {
-          return this.dirtyChecker.createProperty(obj, propertyName) as any;
+        if (isNode) {
+          // TODO: use MutationObserver
+          return this.dirtyChecker.createProperty(obj, propertyName);
         }
 
         return createComputedObserver(this, this.dirtyChecker, this.changeSet, obj, propertyName, descriptor);

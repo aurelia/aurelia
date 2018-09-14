@@ -1,4 +1,4 @@
-# jit-aurelia-cli
+# jit-browserify-ts
 
 ## Getting started
 

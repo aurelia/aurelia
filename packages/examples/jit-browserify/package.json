@@ -2,44 +2,23 @@
   "name": "jit-browserify",
   "version": "0.1.1",
   "scripts": {
-    "build": "rimraf dist && gulp build",
-    "serve": "rimraf dist && gulp",
-    "start": "http-server -c-1 -p 3000 .",
-    "start:port": "http-server -c-1 .",
-    "e2e": "mocha ./e2e/**/*.spec.ts --require ts-node/register -R spec -u bdd --recursive -c --check-leaks -t 60000 --watch-extensions ts",
-    "e2e:watch": "npm run e2e -- -w"
+    "watch": "gulp",
+    "build": "gulp build",
+    "serve": "http-server -c-1 -p 9000 ."
   },
   "dependencies": {
-    "@aurelia/debug": "../../debug",
-    "@aurelia/jit": "../../jit",
-    "@aurelia/kernel": "../../kernel",
-    "@aurelia/runtime": "../../runtime"
+    "@aurelia/jit": "dev"
   },
   "devDependencies": {
-    "@types/chai": "^4.1.4",
-    "@types/mocha": "^5.2.5",
     "@types/node": "^8.10.22",
-    "@types/selenium-webdriver": "^3.0.10",
-    "browser-sync": "^2.24.6",
-    "browserify": "^16.2.2",
-    "browserstack-local": "^1.3.4",
-    "chai": "^4.1.2",
-    "chromedriver": "^2.41.0",
-    "cross-env": "^5.2.0",
-    "gulp": "^3.9.1",
-    "gulp-typescript": "^5.0.0-alpha.3",
-    "gulp-util": "^3.0.8",
-    "http-server": "^0.11.1",
-    "mocha": "^5.2.0",
-    "path": "^0.12.7",
-    "rimraf": "^2.6.2",
-    "selenium-webdriver": "^4.0.0-alpha.1",
-    "ts-node": "^7.0.1",
-    "tsconfig-paths": "^3.5.0",
-    "tsify": "^4.0.0",
-    "typescript": "^3.0.1",
-    "vinyl-source-stream": "^2.0.0",
-    "watchify": "^3.11.0",
-    "wdio-browserstack-service": "^0.1.16"
+    "browser-sync": "latest",
+    "browserify": "latest",
+    "gulp": "latest",
+    "http-server": "latest",
+    "stringify": "latest",
+    "tsify": "latest",
+    "typescript": "latest",
+    "vinyl-source-stream": "latest",
+    "watchify": "latest"
   }
 }

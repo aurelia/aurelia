@@ -3,42 +3,34 @@ const browserify = require('browserify');
 const source = require('vinyl-source-stream');
 const watchify = require('watchify');
 const tsify = require('tsify');
-const gutil = require('gulp-util');
+const log = require('fancy-log');
 const browserSync = require('browser-sync').create();
+const stringify = require('stringify');
 
-const browserified = browserify({
-  basedir: '.',
-  debug: true,
-  entries: ['startup.ts'],
-  cache: {},
-  packageCache: {}
-}).plugin(tsify);
 
-const watchedBrowserify = watchify(browserified);
+const b = browserify({
+    baseDir: '.',
+    debug: true,
+    entries: ['src/startup.ts'],
+    cache: {},
+    packageCache: {}
+  })
+  .plugin(tsify)
+  .transform(stringify, { appliesTo: { includeExtensions: ['.html'] } });
 
-gulp.task('browser-sync', function() {
-  browserSync.init({
-    server: {
-      baseDir: '.'
-    }
-  });
-});
-
-function bundle(input) {
-  return input
+function bundle() {
+  return b
     .bundle()
     .pipe(source('bundle.js'))
     .pipe(gulp.dest('dist'));
 }
 
-gulp.task('default', ['browser-sync'], () => {
-  return bundle(watchedBrowserify)
-    .pipe(browserSync.reload({ stream: true }))
-    .on('update', bundle)
-    .on('change', browserSync.reload)
-    .on('log', gutil.log);
+gulp.task('default', [],  () => {
+  browserSync.init({ watch: true, server: '.', port: 9000 });
+  b.on('update', bundle);
+  b.on('change', browserSync.reload);
+  return bundle(watchify(b))
 });
-gulp.task('build', [], () => {
-  return bundle(browserified)
-    .on('end', () => browserified.close());
-});
+
+gulp.task('build', [], () => bundle(b));
+b.on('log', log);

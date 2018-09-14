@@ -5,7 +5,7 @@
     "lib": ["esnext", "dom"],
     "module": "umd",
     "moduleResolution": "node",
-    "target": "es2018"
+    "target": "es2015"
   },
   "include": ["src"]
 }

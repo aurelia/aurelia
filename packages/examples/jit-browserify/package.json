@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "scripts": {
     "watch": "gulp",
-    "build": "gulp build",
+    "build": "rimraf dist && gulp build",
     "serve": "http-server -c-1 -p 9000 ."
   },
   "dependencies": {
@@ -15,6 +15,7 @@
     "browserify": "latest",
     "gulp": "latest",
     "http-server": "latest",
+    "rimraf": "latest",
     "stringify": "latest",
     "tsify": "latest",
     "typescript": "latest",

@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "scripts": {
     "watch": "au run --watch",
-    "build": "au build",
+    "build": "rimraf scripts && au build",
     "start": "http-server -c-1 -p 9000 ."
   },
   "dependencies": {
@@ -18,14 +18,15 @@
     "connect-history-api-fallback": "latest",
     "debounce": "latest",
     "event-stream": "latest",
-    "gulp": "^4.0.0",
     "gulp-changed-in-place": "latest",
     "gulp-notify": "latest",
     "gulp-plumber": "latest",
     "gulp-sourcemaps": "latest",
     "gulp-typescript": "latest",
     "gulp-watch": "latest",
+    "gulp": "^4.0.0",
     "minimatch": "latest",
+    "rimraf": "latest",
     "typescript": "latest"
   }
 }

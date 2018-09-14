@@ -90,11 +90,13 @@ describe('Binding', () => {
       BindingFlags.fromBind | BindingFlags.mustEvaluate
     ];
     eachCartesianJoin(
-      bindingModeArr,
-      targetArr,
-      targetPropertyArr,
-      sourceExpressionArr,
-      flags,
+      [
+        bindingModeArr,
+        targetArr,
+        targetPropertyArr,
+        sourceExpressionArr,
+        flags,
+      ],
       (bindingMode, target, propertyName, sourceExpression, flag) => {
         const scopeArr = [
           createScopeForTest({foo: {bar: 42}}),

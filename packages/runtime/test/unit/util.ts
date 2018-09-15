@@ -40,7 +40,7 @@ export function eachCartesianJoin<T extends any, U>(
   }
   const totalCallCount: number = arrays.reduce((count: number, arr: (()=>T)[]) => count *= arr.length, 1);
   const argsIndices = Array(arrays.length).fill(0);
-  const args: T[] = updateElementByIndices(arrays, Array(arrays.length * 2), argsIndices);
+  const args: T[] = updateElementByIndices(arrays, Array(arrays.length), argsIndices);
   callback(...args);
   let callCount = 1;
   if (totalCallCount === callCount) {

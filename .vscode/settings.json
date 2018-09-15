@@ -31,6 +31,8 @@
     "Renderable",
     "attachables",
     "bindables",
-    "containerless"
+    "containerless",
+    "renderables",
+    "requestor's"
   ]
 }

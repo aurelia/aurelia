@@ -225,7 +225,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   this.$isAttached = true;
 
   if (this.$behavior.hasAttached) {
-    lifecycle.queueAttachedCallback(this);
+    lifecycle.queueAttachedCallback(this as any);
   }
 
   lifecycle.end(this);
@@ -251,7 +251,7 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLi
     this.$isAttached = false;
 
     if (this.$behavior.hasDetached) {
-      lifecycle.queueDetachedCallback(this);
+      lifecycle.queueDetachedCallback(this as any);
     }
 
     lifecycle.end(this);

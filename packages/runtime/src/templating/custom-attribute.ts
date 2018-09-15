@@ -177,7 +177,7 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
   this.$isAttached = true;
 
   if (this.$behavior.hasAttached) {
-    lifecycle.queueAttachedCallback(this);
+    lifecycle.queueAttachedCallback(this as any);
   }
 }
 
@@ -194,7 +194,7 @@ function detach(this: IInternalCustomAttributeImplementation, lifecycle: DetachL
     this.$isAttached = false;
 
     if (this.$behavior.hasDetached) {
-      lifecycle.queueDetachedCallback(this);
+      lifecycle.queueDetachedCallback(this as any);
     }
   }
 }

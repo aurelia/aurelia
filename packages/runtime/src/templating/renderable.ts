@@ -17,8 +17,13 @@ export interface IRenderable {
   readonly $isAttached: boolean;
   readonly $attachables: IAttach[];
 
+  $removeNodes(): void;
   $addChild(child: IAttach | IBindScope, flags: BindingFlags): void;
   $removeChild(child: IAttach | IBindScope): void;
+}
+
+export function isRenderable(object: any): object is IRenderable {
+  return '$removeNodes' in object;
 }
 
 /*@internal*/

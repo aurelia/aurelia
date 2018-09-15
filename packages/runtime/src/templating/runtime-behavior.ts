@@ -129,7 +129,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   public getValue(): ICustomElement[] {
     if (!this.observing) {
       this.observing = true;
-      this.customElement.$projector.onChildrenChanged(() => this.onChildrenChanged());
+      this.customElement.$projector.subscribeToChildrenChange(() => this.onChildrenChanged());
       this.children = findElements(this.customElement.$projector.children);
     }
 

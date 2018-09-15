@@ -2,7 +2,7 @@ import { DI } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
-import { INode, INodeSequence } from '../dom';
+import { INode, INodeSequence, IRenderLocation } from '../dom';
 import { IAnimator } from './animator';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
 import { IRenderContext } from './render-context';
@@ -13,10 +13,7 @@ export type RenderCallback = (view: IView) => void;
 
 export interface IView extends IBindScope, IRenderable, IAttach {
   readonly factory: IViewFactory;
-
-  onRender: RenderCallback;
-  renderState: any;
-
+  mount(location: IRenderLocation): void;
   lockScope(scope: IScope): void;
   tryReturnToCache(): boolean;
 }
@@ -42,10 +39,10 @@ export class View implements IView {
   public $isBound: boolean = false;
   public $isAttached: boolean = false;
   public $context: IRenderContext;
-  public onRender: RenderCallback;
-  public renderState: any;
   public inCache: boolean = false;
   private $encapsulationSource: INode;
+  private location: IRenderLocation;
+  private requiresMount: boolean = false;
 
   constructor(public factory: ViewFactory, private template: ITemplate, private animator: IAnimator) {
     this.$nodes = this.createNodes();
@@ -53,6 +50,11 @@ export class View implements IView {
 
   public createNodes(): INodeSequence {
     return this.template.createFor(this);
+  }
+
+  public mount(location: IRenderLocation): void {
+    this.requiresMount = true;
+    this.location = location;
   }
 
   public lockScope(scope: IScope): void {
@@ -79,6 +81,11 @@ export class View implements IView {
     this.$isBound = true;
   }
 
+  public $removeNodes(): void {
+    this.requiresMount = true;
+    this.$nodes.remove();
+  }
+
   public $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
     if (this.$isAttached) {
       return;
@@ -93,7 +100,11 @@ export class View implements IView {
       attachables[i].$attach(encapsulationSource, lifecycle);
     }
 
-    this.onRender(this);
+    if (this.requiresMount) {
+      this.requiresMount = false;
+      this.$nodes.insertBefore(this.location);
+    }
+
     this.$isAttached = true;
     lifecycle.end(this);
   }
@@ -101,7 +112,7 @@ export class View implements IView {
   public $detach(lifecycle?: DetachLifecycle): void {
     if (this.$isAttached) {
       lifecycle = DetachLifecycle.start(this, lifecycle);
-      lifecycle.queueViewRemoval(this);
+      lifecycle.queueNodeRemoval(this);
 
       const attachables = this.$attachables;
       let i = attachables.length;

@@ -23,7 +23,7 @@ export interface ICustomElementType extends IResourceType<ITemplateSource, ICust
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
 export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable> {
-  readonly $projector: IViewProjector;
+  readonly $projector: IElementProjector;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
@@ -53,14 +53,14 @@ const defaultShadowOptions = {
  * DOM.
  */
 export function useShadowDOM(targetOrOptions?): any {
-  let options = typeof targetOrOptions === 'function' || !targetOrOptions
+  const options = typeof targetOrOptions === 'function' || !targetOrOptions
     ? defaultShadowOptions
     : targetOrOptions;
 
-  let deco = function<T extends Constructable>(target: T) {
-    (<any>target).shadowOptions = options;
+  const deco = function<T extends Constructable>(target: T): T {
+    (target as any).shadowOptions = options;
     return target;
-  }
+  };
 
   return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
 }
@@ -70,10 +70,10 @@ export function useShadowDOM(targetOrOptions?): any {
  * element container.
  */
 export function containerless(target?): any {
-  let deco = function<T extends Constructable>(target: T) {
-    (<any>target).containerless = true;
+  const deco = function<T extends Constructable>(target: T): T {
+    (target as any).containerless = true;
     return target;
-  }
+  };
 
   return target ? deco(target) : deco;
 }
@@ -111,6 +111,7 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$attach = attach;
     proto.$detach = detach;
     proto.$unbind = unbind;
+    (proto.$removeNodes as any) = removeNodes;
     (proto.$addChild as any) = addRenderableChild;
     (proto.$removeChild as any) = removeRenderableChild;
 
@@ -221,7 +222,6 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   }
 
   this.$projector.project(this.$nodes);
-
   this.$isAttached = true;
 
   if (this.$behavior.hasAttached) {
@@ -239,7 +239,7 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLi
       (this as any).detaching();
     }
 
-    lifecycle.queueViewRemoval(this);
+    lifecycle.queueNodeRemoval(this);
 
     const attachables = this.$attachables;
     let i = attachables.length;
@@ -256,6 +256,10 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLi
 
     lifecycle.end(this);
   }
+}
+
+function removeNodes(this: IInternalCustomElementImplementation): void {
+  this.$projector.onElementRemoved();
 }
 
 /*@internal*/
@@ -278,19 +282,24 @@ export function createCustomElementDescription(templateSource: ITemplateSource, 
   };
 }
 
-export interface IViewProjector {
+export interface IElementProjector {
   readonly host: INode;
   readonly children: ArrayLike<INode>;
-  onChildrenChanged(callback: () => void): void;
+
   provideEncapsulationSource(parentEncapsulationSource: INode): INode;
   project(nodes: INodeSequence): void;
+
+  subscribeToChildrenChange(callback: () => void): void;
+
+  /*@internal*/
+  onElementRemoved(): void;
 }
 
 function determineProjector(
   customElement: ICustomElement,
   host: INode,
   definition: TemplateDefinition
-): IViewProjector {
+): IElementProjector {
   if (definition.shadowOptions || definition.hasSlots) {
     if (definition.containerless) {
       throw Reporter.error(21);
@@ -308,7 +317,7 @@ function determineProjector(
 
 const childObserverOptions = { childList: true };
 
-export class ShadowDOMProjector implements IViewProjector {
+export class ShadowDOMProjector implements IElementProjector {
   public shadowRoot: INode;
 
   constructor(
@@ -325,7 +334,7 @@ export class ShadowDOMProjector implements IViewProjector {
     return this.host.childNodes;
   }
 
-  public onChildrenChanged(callback: () => void): void {
+  public subscribeToChildrenChange(callback: () => void): void {
     DOM.createNodeObserver(this.host, callback, childObserverOptions);
   }
 
@@ -334,15 +343,23 @@ export class ShadowDOMProjector implements IViewProjector {
   }
 
   public project(nodes: INodeSequence): void {
-    nodes.appendTo(this.shadowRoot);
+    nodes.appendTo(this.host);
+    this.project = PLATFORM.noop;
+  }
+
+  public onElementRemoved(): void {
+    // No special behavior is required because the host element removal
+    // will result in the projected nodes being removed, since they are in
+    // the ShadowDOM.
   }
 }
 
-export class ContainerlessProjector implements IViewProjector {
+export class ContainerlessProjector implements IElementProjector {
   public host: IRenderLocation;
   private childNodes: ArrayLike<INode>;
+  private requiresMount: boolean = true;
 
-  constructor(customElement: ICustomElement, host: INode) {
+  constructor(private customElement: ICustomElement, host: INode) {
     if (host.childNodes.length) {
       this.childNodes = Array.from(host.childNodes);
     } else {
@@ -357,7 +374,7 @@ export class ContainerlessProjector implements IViewProjector {
     return this.childNodes;
   }
 
-  public onChildrenChanged(callback: () => void): void {
+  public subscribeToChildrenChange(callback: () => void): void {
     // Do nothing since this scenario will never have children.
   }
 
@@ -370,11 +387,19 @@ export class ContainerlessProjector implements IViewProjector {
   }
 
   public project(nodes: INodeSequence): void {
-    nodes.insertBefore(this.host);
+    if (this.requiresMount) {
+      this.requiresMount = false;
+      nodes.insertBefore(this.host);
+    }
+  }
+
+  public onElementRemoved(): void {
+    this.requiresMount = true;
+    this.customElement.$nodes.remove();
   }
 }
 
-export class HostProjector implements IViewProjector {
+export class HostProjector implements IElementProjector {
   constructor(customElement: ICustomElement, public host: INode) {
     (host as any).$customElement = customElement;
   }
@@ -383,7 +408,7 @@ export class HostProjector implements IViewProjector {
     return PLATFORM.emptyArray;
   }
 
-  public onChildrenChanged(callback: () => void): void {
+  public subscribeToChildrenChange(callback: () => void): void {
     // Do nothing since this scenario will never have children.
   }
 
@@ -393,6 +418,12 @@ export class HostProjector implements IViewProjector {
 
   public project(nodes: INodeSequence): void {
     nodes.appendTo(this.host);
+    this.project = PLATFORM.noop;
+  }
+
+  public onElementRemoved(): void {
+    // No special behavior is required because the host element removal
+    // will result in the projected nodes being removed, since they are children.
   }
 }
 

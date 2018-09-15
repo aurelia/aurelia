@@ -1,7 +1,6 @@
 import {
   IView,
   IViewFactory,
-  RenderCallback,
   BindingFlags,
   IScope,
   INode,
@@ -11,7 +10,8 @@ import {
   IBindScope,
   IAttach,
   DOM,
-  INodeSequence
+  INodeSequence,
+  IRenderLocation
 } from "../../../../src/index";
 
 export class ViewFake implements IView {
@@ -28,12 +28,21 @@ export class ViewFake implements IView {
   $removeChild(child: IBindScope | IAttach): void {
   }
 
+  $removeNodes() {
+    this.mountRequired = true;
+    this.$nodes.remove();
+  }
+
+  mount(location: IRenderLocation): void {
+    this.mountRequired = true;
+    this.location = location;
+  }
+
   // IView impl
   factory: IViewFactory;
-
-  onRender: RenderCallback;
-  renderState: any;
   $isAttached: boolean = false;
+  location: IRenderLocation;
+  mountRequired = false;
 
   tryReturnToCache(): boolean {
     return true;
@@ -51,13 +60,18 @@ export class ViewFake implements IView {
 
   // IAttach impl
   $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
-    this.onRender(this);
+    if (this.mountRequired) {
+      this.$nodes.insertBefore(this.location);
+    }
+
     this.$isAttached = true;
   }
 
   $detach(lifecycle?: DetachLifecycle): void {
-    this.$nodes.remove();
+    lifecycle = DetachLifecycle.start(this, lifecycle);
+    lifecycle.queueNodeRemoval(this);
     this.$isAttached = false;
+    lifecycle.end(this);
   }
 
   // IViewOwner impl

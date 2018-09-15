@@ -220,9 +220,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
         // add view if it doesn't exist yet
         view = views[i] = factory.create();
         view.$bind(flags, createChildScope(overrideContext, { [local]: item }));
-        view.onRender = () => {
-          view.$nodes.insertBefore(location);
-        };
+        view.mount(location);
         if (isAttached) {
           view.$attach(encapsulationSource, lifecycle);
         }

@@ -1,13 +1,14 @@
+import { PLATFORM } from '@aurelia/kernel';
 import { BindingFlags } from '../binding/binding-flags';
 import { INode } from '../dom';
-import { IRenderable } from './renderable';
+import { IRenderable, isRenderable } from './renderable';
 
 export class AttachLifecycle {
   private tail = null;
   private head = null;
   private $nextAttached = null;
 
-  private constructor(private owner) {
+  private constructor(private owner: any) {
     this.tail = this.head = this;
   }
 
@@ -15,12 +16,12 @@ export class AttachLifecycle {
     return existingLifecycle || new AttachLifecycle(owner);
   }
 
-  public queueAttachedCallback(requestor: IAttach) {
+  public queueAttachedCallback(requestor: IAttach): void {
     this.tail.$nextAttached = requestor;
     this.tail = requestor;
   }
 
-  public end(owner: any) {
+  public end(owner: any): void {
     if (owner === this.owner) {
       let current = this.head;
       let next;
@@ -42,56 +43,83 @@ const dummyNodeSequence = { remove() {} };
 export class DetachLifecycle {
   private detachedHead = null; //LOL
   private detachedTail = null;
-  private viewRemoveHead = null;
-  private viewRemoveTail = null;
+  private removeNodesHead = null;
+  private removeNodesTail = null;
   private $nextDetached = null;
-  private $nextRemoveView = null;
-  private $nodes = dummyNodeSequence;
+  private $nextRemoveNodes = null;
+  private rootRenderable: IRenderable = null;
 
-  private constructor(private owner) {
+  private constructor(private owner: any) {
     this.detachedTail = this.detachedHead = this;
-    this.viewRemoveTail = this.viewRemoveHead = this;
+
+    if (isRenderable(owner)) {
+      // If the owner is a renderable, then we only need to remove its nodes from
+      // the DOM. We don't need any of its children to have their nodes removed,
+      // because they will be disconnected from the DOM via their parent.
+      this.removeNodesHead = owner;
+    } else {
+      // If the owner is not a renderable (eg. Repeat), then we need to remove
+      // nodes for any root renderables that it invokes the detach lifecycle on.
+      this.queueNodeRemoval = queueNodeRemoval;
+      this.removeNodesTail = this.removeNodesHead = this;
+    }
   }
 
   public static start(owner: any, existingLifecycle?: DetachLifecycle) {
     return existingLifecycle || new DetachLifecycle(owner);
   }
 
-  public queueViewRemoval(requestor: IRenderable) {
-    this.viewRemoveTail.$nextRemoveView = requestor;
-    this.viewRemoveTail = requestor;
-  }
+  public queueNodeRemoval(requestor: IRenderable): void {}
 
-  public queueDetachedCallback(requestor: IAttach) {
+  public queueDetachedCallback(requestor: IAttach): void {
+    // While we only sometimes actually remove a requestor's nodes directly,
+    // we must always execute the requested lifecycle hooks.
     this.detachedTail.$nextDetached = requestor;
     this.detachedTail = requestor;
   }
 
-  public end(owner: any) {
-    if (owner == this.owner) {
-      let current = this.detachedHead;
-      let next;
+  public end(owner: any): void {
+    if (owner === this.owner) {
+      let currentRemoveNodes = this.removeNodesHead;
+      let nextRemoveNodes;
 
-      while (current) {
-        current.detached();
-        next = current.$nextDetached;
-        current.$nextDetached = null;
-        current = next;
+      while (currentRemoveNodes) {
+        currentRemoveNodes.$removeNodes();
+        nextRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
+        currentRemoveNodes.$nextRemoveNodes = null;
+        currentRemoveNodes = nextRemoveNodes;
       }
 
-      let current2 = this.viewRemoveHead;
-      let next2;
+      let currentDetached = this.detachedHead;
+      let nextDetached;
 
-      while (current2) {
-        current2.$nodes.remove();
-        next2 = current2.$nextRemoveView;
-        current2.$nextRemoveView = null;
-        current2 = next2;
+      while (currentDetached) {
+        currentDetached.detached();
+        nextDetached = currentDetached.$nextDetached;
+        currentDetached.$nextDetached = null;
+        currentDetached = nextDetached;
       }
+    } else if (owner === this.rootRenderable) {
+      // The root renderable has called "end" on the lifecycle, so we put back
+      // the ability to queue node removal for the next top-level renderable.
+      this.queueNodeRemoval = queueNodeRemoval;
     }
   }
 
   private detached() {}
+  private $removeNodes() {}
+}
+
+function queueNodeRemoval(requestor: IRenderable): void {
+  this.removeNodesTail.$nextRemoveNodes = requestor;
+  this.removeNodesTail = requestor;
+
+  // If the owner is not a renderable, we still want to be careful not to over
+  // remove nodes from the DOM. So, we only queue node removal for root renderables.
+  // This is accomplished by disabling queueNodeRemoval until after the root
+  // requestor has called "end" on the lifecycle.
+  this.queueNodeRemoval = PLATFORM.noop;
+  this.rootRenderable = requestor;
 }
 
 export interface IAttach {

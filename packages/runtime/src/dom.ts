@@ -232,7 +232,7 @@ export const DOM = {
     container.registerResolver(HTMLElement, resolver);
     container.registerResolver(SVGElement, resolver);
   }
-}
+};
 
 // This is an implementation of INodeSequence that represents "no DOM" to render.
 // It's used in various places to avoid null and to encode
@@ -248,35 +248,7 @@ const emptySequence: INodeSequence = {
 };
 
 export const NodeSequence = {
-  empty: emptySequence,
-  // This creates an instance of INodeSequence based on an existing INode.
-  // It's used by the rendering engine to create an instance of IView,
-  // based on a single component. The rendering engine's createViewFromComponent
-  // method has one consumer: the compose element. The compose element uses this
-  // to create an IView based on a dynamically determined component instance.
-  // This is required because there's no way to get a "loose" component into the view
-  // hierarchy without it being part of an IView.
-  // IViews can only be added via an IViewSlot or IRenderLocation.
-  // So, this form of node sequence effectively enables a single component to be added into an IViewSlot.
-  fromNode(node: INode): INodeSequence {
-    return {
-      firstChild: node,
-      lastChild: node,
-      childNodes: [node],
-      findTargets(): ReadonlyArray<INode> {
-        return PLATFORM.emptyArray;
-      },
-      insertBefore(refNode: INode): void {
-        DOM.insertBefore(node, refNode);
-      },
-      appendTo(parent: INode): void {
-        DOM.appendChild(parent, node);
-      },
-      remove(): void {
-        DOM.remove(node);
-      }
-    };
-  }
+  empty: emptySequence
 };
 
 // This is the most common form of INodeSequence.
@@ -286,11 +258,11 @@ export const NodeSequence = {
 // CompiledTemplates create instances of FragmentNodeSequence.
 /*@internal*/
 export class FragmentNodeSequence implements INodeSequence {
-  private fragment: DocumentFragment;
+  public firstChild: Node;
+  public lastChild: Node;
+  public childNodes: Node[];
 
-  firstChild: Node;
-  lastChild: Node;
-  childNodes: Node[];
+  private fragment: DocumentFragment;
 
   constructor(fragment: DocumentFragment) {
     this.fragment = fragment;
@@ -299,19 +271,19 @@ export class FragmentNodeSequence implements INodeSequence {
     this.childNodes = PLATFORM.toArray(fragment.childNodes);
   }
 
-  findTargets(): ArrayLike<Node> {
+  public findTargets(): ArrayLike<Node> {
     return this.fragment.querySelectorAll('.au');
   }
 
-  insertBefore(refNode: Node): void {
+  public insertBefore(refNode: Node): void {
     refNode.parentNode.insertBefore(this.fragment, refNode);
   }
 
-  appendTo(parent: Node): void {
+  public appendTo(parent: Node): void {
     parent.appendChild(this.fragment);
   }
 
-  remove(): void {
+  public remove(): void {
     const fragment = this.fragment;
     // this bind is a small perf tweak to minimize member accessors
     const append = fragment.appendChild.bind(fragment);

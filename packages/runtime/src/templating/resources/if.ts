@@ -75,7 +75,7 @@ export class If {
     if (!branchView) {
       this[viewPropertyName] = branchView
         = (this[`${name}Factory`] as IViewFactory).create();
-      branchView.onRender = view => view.$nodes.insertBefore(this.location);
+      branchView.mount(this.location);
     }
 
     return branchView;

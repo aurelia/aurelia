@@ -67,7 +67,7 @@ export class Compose {
     this.clear();
 
     if (view) {
-      view.onRender = () => view.$nodes.insertBefore(this.$projector.host);
+      view.mount(this.$projector.host);
       view.lockScope(this.renderable.$scope);
 
       this.currentView = view;

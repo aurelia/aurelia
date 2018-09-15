@@ -16,7 +16,7 @@ export class With {
 
   constructor(private factory: IViewFactory, location: IRenderLocation) {
     this.$child = this.factory.create();
-    this.$child.onRender = view => view.$nodes.insertBefore(location);
+    this.$child.mount(location);
   }
 
   public valueChanged(): void {

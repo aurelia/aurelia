@@ -23,7 +23,7 @@ export function padRight(str: any, len: number): string {
 const $nil: any = undefined;
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
-describe('Binding', () => {
+describe.only('Binding', () => {
   let dummySourceExpression: IExpression;
   let dummyTarget: IBindingTarget;
   let dummyTargetProperty: string;
@@ -71,35 +71,35 @@ describe('Binding', () => {
   describe('$bind() [one-time] assigns the target value', () => {
     eachCartesianJoin(
       [
-        <[() => {foo:string}, string][]>[
-          [() => ({ foo: 'bar' }), `{foo:'bar'} `],
-          [() => ({}),             `{}          `]
+        <(() => [{foo:string}, string])[]>[
+          () => [({ foo: 'bar' }), `{foo:'bar'} `],
+          () => [({}),             `{}          `]
         ],
-        <[() => string, string][]>[
-          [() => 'foo', `'foo' `],
-          [() => 'bar', `'bar' `]
+        <(() => [string, string])[]>[
+          () => ['foo', `'foo' `],
+          () => ['bar', `'bar' `]
         ],
-        <[() => IExpression, string][]>[
-          [() => new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
-          [() => new AccessScope('foo'),                                   `foo        `],
-          [() => new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-          [() => new PrimitiveLiteral(null),                               `null       `],
-          [() => new PrimitiveLiteral(undefined),                          `undefined  `]
+        <(() => [IExpression, string])[]>[
+          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
+          () => [new AccessScope('foo'),                                   `foo        `],
+          () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
+          () => [new PrimitiveLiteral(null),                               `null       `],
+          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
         ],
-        <[() => BindingFlags, string][]>[
-          [() => BindingFlags.fromBind,                                            `fromBind               `],
-          [() => BindingFlags.updateTargetInstance,                                `updateTarget           `],
-          [() => BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
+        <(() => [BindingFlags, string])[]>[
+          () => [BindingFlags.fromBind,                                            `fromBind               `],
+          () => [BindingFlags.updateTargetInstance,                                `updateTarget           `],
+          () => [BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
         ],
-        <[() => IScope, string][]>[
-          [() => createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
-          [() => createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-          [() => createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
-          [() => createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
-          [() => createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+        <(() => [IScope, string])[]>[
+          () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
+          () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
+          () => [createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
+          () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
+          () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
         ]
       ],
-      (target, $1, prop, $2, expr, $3, flags, $4, scope, $5) => {
+      ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
         const { sut, changeSet, container, observerLocator } = setup(expr, target, prop, BindingMode.oneTime);
         const srcVal = expr.evaluate(BindingFlags.none, scope, container);
         const targVal = target[prop];
@@ -155,36 +155,36 @@ describe('Binding', () => {
   describe('$bind() [to-view] assigns the target value and listens for changes', () => {
     eachCartesianJoin(
       [
-        <[() => {foo:string}, string][]>[
-          [() => ({ foo: 'bar' }), `{foo:'bar'} `],
-          [() => ({ foo: null }),  `{foo:null}  `],
-          [() => ({}),             `{}          `]
+        <(() => [{foo:string}, string])[]>[
+          () => [({ foo: 'bar' }), `{foo:'bar'} `],
+          () => [({ foo: null }),  `{foo:null}  `],
+          () => [({}),             `{}          `]
         ],
-        <[() => string, string][]>[
-          [() => 'foo', `'foo' `],
-          [() => 'bar', `'bar' `]
+        <(() => [string, string])[]>[
+          () => ['foo', `'foo' `],
+          () => ['bar', `'bar' `]
         ],
-        <[() => IExpression, string][]>[
-          [() => new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
-          [() => new AccessScope('foo'),                                   `foo        `],
-          [() => new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-          [() => new PrimitiveLiteral(null),                               `null       `],
-          [() => new PrimitiveLiteral(undefined),                          `undefined  `]
+        <(() => [IExpression, string])[]>[
+          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
+          () => [new AccessScope('foo'),                                   `foo        `],
+          () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
+          () => [new PrimitiveLiteral(null),                               `null       `],
+          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
         ],
-        <[() => BindingFlags, string][]>[
-          [() => BindingFlags.fromBind,                                            `fromBind               `],
-          [() => BindingFlags.updateTargetInstance,                                `updateTarget           `],
-          [() => BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
+        <(() => [BindingFlags, string])[]>[
+          () => [BindingFlags.fromBind,                                            `fromBind               `],
+          () => [BindingFlags.updateTargetInstance,                                `updateTarget           `],
+          () => [BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
         ],
-        <[() => IScope, string][]>[
-          [() => createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
-          [() => createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-          [() => createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
-          [() => createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
-          [() => createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+        <(() => [IScope, string])[]>[
+          () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
+          () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
+          () => [createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
+          () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
+          () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
         ]
       ],
-      (target, $1, prop, $2, expr, $3, flags, $4, scope, $5) => {
+      ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
         const { sut, changeSet, container, observerLocator } = setup(expr, target, prop, BindingMode.toView);
         const srcVal = expr.evaluate(BindingFlags.none, scope, container);
         const targVal = target[prop];
@@ -392,33 +392,33 @@ describe('Binding', () => {
   // describe('$bind() with Object target, correctly initializes observers and values', () => {
   //   eachCartesianJoin(
   //     [
-  //       <[() => BindingMode, string][]>[
-  //         [() => BindingMode.oneTime,  `oneTime  `],
-  //         [() => BindingMode.toView,   `toView   `],
-  //         [() => BindingMode.fromView, `fromView `],
-  //         [() => BindingMode.twoWay,   `twoWay   `],
+  //       <(() => [BindingMode, string])[]>[
+  //         () => [BindingMode.oneTime,  `oneTime  `],
+  //         () => [BindingMode.toView,   `toView   `],
+  //         () => [BindingMode.fromView, `fromView `],
+  //         () => [BindingMode.twoWay,   `twoWay   `],
   //       ],
-  //       <[() => {foo:string}, string][]>[
-  //         [() => ({ foo: 'bar' }), `{foo:'bar'} `]
+  //       <(() => [{foo:string}, string])[]>[
+  //         () => [({ foo: 'bar' }), `{foo:'bar'} `]
   //       ],
-  //       <[() => string, string][]>[
-  //         [() => 'foo', `'foo' `],
-  //         [() => 'bar', `'bar' `]
+  //       <(() => [string, string])[]>[
+  //         () => ['foo', `'foo' `],
+  //         () => ['bar', `'bar' `]
   //       ],
-  //       <[() => IExpression, string][]>[
-  //         [() => new AccessScope('foo'),                         `foo     `],
-  //         [() => new AccessMember(new AccessScope('foo'), 'bar'),`foo.bar `],
-  //         [() => new PrimitiveLiteral(null),                     `null    `]
+  //       <(() => [IExpression, string])[]>[
+  //         () => [new AccessScope('foo'),                         `foo     `],
+  //         () => [new AccessMember(new AccessScope('foo'), 'bar'),`foo.bar `],
+  //         () => [new PrimitiveLiteral(null),                     `null    `]
   //       ],
-  //       <[() => BindingFlags, string][]>[
-  //         [() => BindingFlags.fromBind,                                            `fromBind               `],
-  //         [() => BindingFlags.updateTargetInstance,                                `updateTarget           `],
-  //         [() => BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
+  //       <(() => [BindingFlags, string])[]>[
+  //         () => [BindingFlags.fromBind,                                            `fromBind               `],
+  //         () => [BindingFlags.updateTargetInstance,                                `updateTarget           `],
+  //         () => [BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
   //       ],
-  //       <[() => IScope, string][]>[
-  //         [() => createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-  //         [() => createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
-  //         [() => createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+  //       <(() => [IScope, string])[]>[
+  //         () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
+  //         () => [createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
+  //         () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
   //       ]
   //     ],
   //     (mode, $1, target, $2, prop, $3, expr, $4, flags, $5, scope, $6) => {

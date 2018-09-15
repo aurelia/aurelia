@@ -15,7 +15,8 @@ export async function createContainer(containerName: string): Promise<any> {
         log.error(`${c.redBright('failed:')} ${err.message}`);
         reject(err);
       } else {
-        log.error(`${c.greenBright(`Container '${containerName}' created`)}`);
+        const url = blobService.getUrl(containerName);
+        log.error(`${c.greenBright(`Container '${containerName}' available at ${url}`)}`);
         resolve();
       }
     });
@@ -31,7 +32,8 @@ export async function uploadFile(containerName: string, blobName: string, source
         log.error(`${c.redBright('failed:')} ${err.message}`);
         reject(err);
       } else {
-        log.error(`${c.greenBright(`Upload of '${blobName}' complete`)}`);
+        const url = blobService.getUrl(containerName, blobName);
+        log.error(`${c.greenBright(`File available at ${url}`)}`);
         resolve();
       }
     });

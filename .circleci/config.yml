@@ -264,7 +264,6 @@ jobs:
             npm run upload-dist:latest
 
 workflows:
-  version: 2.1
   # This workflow runs on every commit to any branch (with or without PR)
   build_test:
     jobs:

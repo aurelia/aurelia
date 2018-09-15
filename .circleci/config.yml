@@ -212,13 +212,13 @@ jobs:
     <<: *defaults
     steps:
       - run_benchmark
-        folder: "vnext"
+          folder: "vnext"
 
   e2e_benchmark_vcurrent:
     <<: *defaults
     steps:
       - run_benchmark
-        folder: "vcurrent"
+          folder: "vcurrent"
 
   publish_dev:
     <<: *defaults

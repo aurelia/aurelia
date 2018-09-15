@@ -3,7 +3,6 @@ import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
 import { INode, INodeSequence } from '../dom';
-import { IAnimator } from './animator';
 import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
 import { IRenderContext } from './render-context';
 import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
@@ -47,7 +46,7 @@ export class View implements IView {
   public inCache: boolean = false;
   private $encapsulationSource: INode;
 
-  constructor(public factory: ViewFactory, private template: ITemplate, private animator: IAnimator) {
+  constructor(public factory: ViewFactory, private template: ITemplate) {
     this.$nodes = this.createNodes();
   }
 
@@ -144,7 +143,7 @@ export class ViewFactory implements IViewFactory {
   private cacheSize: number = -1;
   private cache: View[] = null;
 
-  constructor(public name: string, private template: ITemplate, private animator: IAnimator) {}
+  constructor(public name: string, private template: ITemplate) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {
@@ -187,7 +186,7 @@ export class ViewFactory implements IViewFactory {
       return view;
     }
 
-    return new View(this, this.template, this.animator);
+    return new View(this, this.template);
   }
 }
 

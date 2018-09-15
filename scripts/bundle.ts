@@ -174,7 +174,7 @@ async function bundle() {
     const pkg = project.packages.find(p => p.name === 'jit');
 
     const bundle = await rollup.rollup({
-      input: join(pkg.src, 'index.ts'),
+      input: join(pkg.src, 'index.full.ts'),
       plugins: [
         resolve({ jsnext: true }),
         typescript2({
@@ -198,7 +198,7 @@ async function bundle() {
     await bundle.write({
       file: fullBundle,
       exports: 'named',
-      name: pkg.fullName,
+      name: 'au',
       globals: {
         ...project.packages.reduce((g, pkg) => {
           g[pkg.scopedName] = pkg.fullName;

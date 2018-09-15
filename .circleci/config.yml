@@ -211,13 +211,13 @@ jobs:
   e2e_benchmark_vnext:
     <<: *defaults
     steps:
-      - run_benchmark
+      - run_benchmark:
           folder: "vnext"
 
   e2e_benchmark_vcurrent:
     <<: *defaults
     steps:
-      - run_benchmark
+      - run_benchmark:
           folder: "vcurrent"
 
   publish_dev:
@@ -264,6 +264,7 @@ jobs:
             npm run upload-dist:latest
 
 workflows:
+  version: 2.1
   # This workflow runs on every commit to any branch (with or without PR)
   build_test:
     jobs:

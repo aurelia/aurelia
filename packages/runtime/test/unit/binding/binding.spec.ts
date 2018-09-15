@@ -23,7 +23,7 @@ export function padRight(str: any, len: number): string {
 const $nil: any = undefined;
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
-describe.only('Binding', () => {
+describe('Binding', () => {
   let dummySourceExpression: IExpression;
   let dummyTarget: IBindingTarget;
   let dummyTargetProperty: string;
@@ -389,321 +389,68 @@ describe.only('Binding', () => {
       }
     )
   });
-  // describe('$bind() with Object target, correctly initializes observers and values', () => {
-  //   eachCartesianJoin(
-  //     [
-  //       <(() => [BindingMode, string])[]>[
-  //         () => [BindingMode.oneTime,  `oneTime  `],
-  //         () => [BindingMode.toView,   `toView   `],
-  //         () => [BindingMode.fromView, `fromView `],
-  //         () => [BindingMode.twoWay,   `twoWay   `],
-  //       ],
-  //       <(() => [{foo:string}, string])[]>[
-  //         () => [({ foo: 'bar' }), `{foo:'bar'} `]
-  //       ],
-  //       <(() => [string, string])[]>[
-  //         () => ['foo', `'foo' `],
-  //         () => ['bar', `'bar' `]
-  //       ],
-  //       <(() => [IExpression, string])[]>[
-  //         () => [new AccessScope('foo'),                         `foo     `],
-  //         () => [new AccessMember(new AccessScope('foo'), 'bar'),`foo.bar `],
-  //         () => [new PrimitiveLiteral(null),                     `null    `]
-  //       ],
-  //       <(() => [BindingFlags, string])[]>[
-  //         () => [BindingFlags.fromBind,                                            `fromBind               `],
-  //         () => [BindingFlags.updateTargetInstance,                                `updateTarget           `],
-  //         () => [BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
-  //       ],
-  //       <(() => [IScope, string])[]>[
-  //         () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-  //         () => [createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
-  //         () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
-  //       ]
-  //     ],
-  //     (mode, $1, target, $2, prop, $3, expr, $4, flags, $5, scope, $6) => {
-  //       it(`$bind() mode=${$1} target=${$2} prop=${$3} expr=${$4} flags=${$5} scope=${$6}`, () => {
-  //         // Arrange #1
-  //         const { sut, changeSet, container, observerLocator } = setup(expr, target, prop, mode);
 
-  //         let stub: SinonStub;
-  //         let targetObserver: IBindingTargetAccessor;
-  //         if (mode & BindingMode.fromView) {
-  //           targetObserver = observerLocator.getObserver(target, prop);
-  //           stub = sinon.stub(observerLocator, 'getObserver').returns(targetObserver);
-  //         } else {
-  //           targetObserver = observerLocator.getAccessor(target, prop);
-  //           stub = sinon.stub(observerLocator, 'getAccessor').returns(targetObserver);
-  //         }
 
-  //         massSpy(targetObserver, 'setValue', 'getValue', 'addSubscriber', 'removeSubscriber', 'callSubscribers');
-  //         massSpy(sut, 'updateTarget', 'updateSource', 'handleChange', 'connect', 'addObserver', 'observeProperty', 'unobserve');
-  //         massSpy(expr, 'assign', 'connect', 'evaluate');
+  // TODO: this test is still in draft and not testing much useful yet
+  describe('$bind() [from-view] does not assign the target, and listens for changes', () => {
+    eachCartesianJoin(
+      [
+        <(() => [{foo:string}, string])[]>[
+          () => [({ foo: 'bar' }), `{foo:'bar'} `],
+          () => [({ foo: null }),  `{foo:null}  `],
+          () => [({}),             `{}          `]
+        ],
+        <(() => [string, string])[]>[
+          () => ['foo', `'foo' `],
+          () => ['bar', `'bar' `]
+        ],
+        <(() => [IExpression, string])[]>[
+          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
+          () => [new AccessScope('foo'),                                   `foo        `],
+          () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
+          () => [new PrimitiveLiteral(null),                               `null       `],
+          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+        ],
+        <(() => [BindingFlags, string])[]>[
+          () => [BindingFlags.fromBind,                                            `fromBind               `],
+          () => [BindingFlags.updateTargetInstance,                                `updateTarget           `],
+          () => [BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
+        ],
+        <(() => [IScope, string])[]>[
+          () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
+          () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
+          () => [createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
+          () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
+          () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+        ]
+      ],
+      ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
+        const { sut, changeSet, container, observerLocator } = setup(expr, target, prop, BindingMode.fromView);
+        const targetObserver = observerLocator.getObserver(target, prop) as IBindingTargetObserver;
 
-  //         // Act #1
-  //         sut.$bind(flags, scope);
+        it(`$bind() [from-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, () => {
+          const stub = sinon.stub(observerLocator, 'getAccessor').returns(targetObserver);
 
-  //         stub.restore();
+          massSpy(targetObserver, 'setValue', 'getValue', 'subscribe', 'unsubscribe', 'addSubscriber', 'removeSubscriber', 'callSubscribers');
+          massSpy(expr, 'evaluate', 'connect');
 
-  //         // Assert #1
-  //         expect(sut.updateTarget).not.to.have.been.called;
-  //         expect(sut.updateSource).not.to.have.been.called;
-  //         expect(sut.handleChange).not.to.have.been.called;
-  //         expect(sut.connect).not.to.have.been.called;
-  //         expect(sut.unobserve).not.to.have.been.called;
+          massStub(sut,
+            (stub, name) => stub.throws(new Error(`Binding.${name} should not be called`)),
+            'updateTarget', 'updateSource', 'handleChange', 'connect', 'addObserver', 'observeProperty', 'unobserve');
 
-  //         expect(targetObserver.)
+          sut.$bind(flags, scope);
 
-  //         if (mode & (BindingMode.toView | BindingMode.oneTime)) {
-  //           expect(expr.evaluate).to.have.been.calledOnce;
-  //           expect(expr.evaluate).to.have.been.calledWith(flags, scope, container);
-  //         } else {
-  //           expect(expr.evaluate).not.to.have.been.called;
-  //         }
-  //         if (mode & BindingMode.toView) {
-  //           expect(expr.connect).to.have.been.calledOnce;
-  //           expect(expr.connect).to.have.been.calledWith(flags, scope, sut);
+          stub.restore();
 
-  //           if (expr instanceof AccessMember) {
-  //             expect(sut.addObserver).to.have.been.calledTwice;
-  //             expect(sut.observeProperty).to.have.been.calledTwice;
-  //           } else if (expr instanceof AccessScope) {
-  //             expect(sut.addObserver).to.have.been.calledOnce;
-  //             expect(sut.observeProperty).to.have.been.calledOnce;
-  //           } else if (expr instanceof PrimitiveLiteral) {
-  //             expect(sut.addObserver).not.to.have.been.called;
-  //             expect(sut.observeProperty).not.to.have.been.called;
-  //           }
-  //         } else {
-  //           expect(expr.connect).not.to.have.been.called;
-  //           expect(sut.addObserver).not.to.have.been.called;
-  //           expect(sut.observeProperty).not.to.have.been.called;
-  //         }
-  //         if (mode & BindingMode.fromView) {
-  //           expect(sut.targetObserver).to.be.instanceof(SetterObserver);
-  //           expect(target['$observers'][prop]).to.equal(sut.targetObserver);
-  //         } else {
-  //           expect(sut.targetObserver).to.be.instanceof(PropertyAccessor);
-  //           expect(target['$observers']).to.be.undefined;
-  //         }
+          expect(sut.targetObserver).to.be.instanceof(SetterObserver);
+          expect(target['$observers'][prop]).to.be.instanceof(SetterObserver);
 
-  //         // Arrange #2
-  //         // const obsSetValue = spy(sut.targetObserver, 'setValue');
-  //         // const obsGetValue = spy(sut.targetObserver, 'getValue');
-
-  //         // sut.updateTarget = spy(sut, 'updateTarget');
-  //         // sut.updateSource = spy(sut, 'updateSource');
-  //         // sut.handleChange = spy(sut, 'handleChange');
-  //         // sut.connect = spy(sut, 'connect');
-  //         // sut.addObserver = spy(sut, 'addObserver');
-  //         // sut.observeProperty = spy(sut, 'observeProperty');
-  //         // sut.unobserve = spy(sut, 'unobserve');
-
-  //         // sut.assign = spy(expr, 'assign');
-  //         // expr.connect = spy(expr, 'connect');
-  //         // //exprEvaluate = spy(expr, 'evaluate');
-
-  //         // // Act #2
-  //         // changeSet.flushChanges();
-
-  //         // // TearDown #2
-  //         // sut.updateTarget.restore();
-  //         // sut.updateSource.restore();
-  //         // sut.handleChange.restore();
-  //         // sut.connect.restore();
-  //         // sut.addObserver.restore();
-  //         // sut.observeProperty.restore();
-  //         // sut.unobserve.restore();
-
-  //         // sut.assign.restore();
-  //         // expr.connect.restore();
-  //         // //exprEvaluate.restore();
-
-  //         // // Assert #2
-  //         // expect(sut.updateTarget).not.to.have.been.called;
-  //         // expect(sut.updateSource).not.to.have.been.called;
-  //         // expect(sut.handleChange).not.to.have.been.called;
-  //         // expect(sut.connect).not.to.have.been.called;
-  //         // expect(sut.unobserve).not.to.have.been.called;
-
-  //         // //expect(exprEvaluate).not.to.have.been.called;
-  //         // expect(expr.connect).not.to.have.been.called;
-  //         // expect(sut.addObserver).not.to.have.been.called;
-  //         // expect(sut.observeProperty).not.to.have.been.called;
-
-  //         // if (mode & (BindingMode.toView | BindingMode.oneTime)) {
-  //         // }
-  //         // if (mode === BindingMode.toView) {
-  //         //   expect(connect).to.have.been.calledOnce;
-  //         //   expect(connect).to.have.been.calledWith(flags, scope, sut);
-  //         //   expect(target[prop]).to.equal(initialValue);
-  //         //   changeSet.flushChanges();
-  //         //   switch (expr['constructor'].name) {
-  //         //     case 'AccessScope':
-  //         //       expect(target[prop]).to.equal(scope.bindingContext.foo);
-  //         //       break;
-  //         //     case 'AccessMember':
-  //         //       // Note: this default value thing may not be how we want it to work. It prevents people from setting stuff from undefined to null explicitly. Perhaps work in some toggle via flags?
-  //         //       expect(target[prop]).to.equal(scope.bindingContext.foo.bar === undefined ? sut.targetObserver['defaultValue'] : scope.bindingContext.foo.bar);
-  //         //       break;
-  //         //     case 'PrimitiveLiteral':
-  //         //       expect(target[prop]).to.equal(null);
-  //         //       break;
-  //         //   }
-  //         // }
-  //       });
-  //     }
-  //   )
-
-    // describe('sourceExpression.bind()', () => {
-    //   // const bindingModeArr = [
-    //   //   BindingMode.oneTime,
-    //   //   BindingMode.toView,
-    //   //   BindingMode.fromView,
-    //   //   BindingMode.twoWay
-    //   // ];
-    //   // const targetArr = [
-    //   //   document.createElement('div'),
-    //   //   document.createTextNode('foo'),
-    //   //   document.createElement('div').style,
-    //   //   { foo: 'bar' }
-    //   // ];
-    //   // const targetPropertyArr = [
-    //   //   'foo',
-    //   //   'textContent',
-    //   //   'innerText'
-    //   // ];
-    //   // const sourceExpressionArr = [
-    //   //   new AccessScope('foo'),
-    //   //   new AccessMember(new AccessScope('foo'), 'bar'),
-    //   //   new PrimitiveLiteral(null)
-    //   // ].map(expr => {
-    //   //   const mock = new MockExpression();
-    //   //   let isCalled = false;
-    //   //   mock.bind = function(flags: BindingFlags, scope: IScope, binding: Binding) {
-    //   //     isCalled = true;
-    //   //     binding.sourceExpression = expr;
-    //   //   } as any;
-    //   //   return {
-    //   //     sourceExpression: mock,
-    //   //     success: (binding: Binding) => binding.sourceExpression === expr && isCalled === true
-    //   //   }
-    //   // });
-    //   // const flags = [
-    //   //   BindingFlags.fromBind,
-    //   //   BindingFlags.fromBind | BindingFlags.mustEvaluate
-    //   // ];
-
-    //   const title1 = '$bind() ';
-    //   // for (const bindingMode of bindingModeArr) {
-    //   //   const title2 = title1 + ' bindingMode=' + BindingMode[bindingMode];
-
-    //   //   for (const target of targetArr) {
-    //   //   const title3 = title2 + ' target=' + padRight(`${getName(target)}`, 20);
-
-    //   //     for (const targetProperty of targetPropertyArr) {
-    //   //       const title4 = title3 + ' targetProperty=' + padRight(`${targetProperty}`, 12);
-
-    //   //       for (const { sourceExpression, success } of sourceExpressionArr) {
-    //   //         const title5 = title4 + ' sourceExpression=' + unparse(sourceExpression);
-
-    //   //         const scopeArr = [
-    //   //           createScopeForTest({foo: {bar: 42}}),
-    //   //           createScopeForTest({foo: {bar: undefined}}),
-    //   //           createScopeForTest({foo: {bar: 'baz'}})
-    //   //         ];
-    //   //         for (const flag of flags) {
-
-    //   //           for (const scope of scopeArr) {
-    //   //             const title = title5 + ' scope=' + padRight(`${getName(scope)} with flag: ${BindingFlags[flag]}`, 2);
-
-    //   //             it(title, () => {
-    //   //               sut = new Binding(sourceExpression, target, targetProperty, bindingMode, observerLocator, container);
-    //   //               sut.$bind(flag, scope);
-    //   //               expect(success(sut)).to.be.true;
-    //   //             });
-    //   //           }
-    //   //         }
-    //   //       }
-    //   //     }
-    //   //   }
-    //   // }
-    // });
-
-  // describe('$bind() - Node', () => {
-  //   const bindingModeArr = [
-  //     BindingMode.oneTime,
-  //     BindingMode.toView,
-  //     BindingMode.fromView,
-  //     BindingMode.twoWay
-  //   ];
-  //   const targetArr = [
-  //     document.createElement('div'),
-  //     document.createTextNode('foo'),
-  //     document.createElement('div').style
-  //   ];
-  //   const targetPropertyArr = [
-  //     'foo',
-  //     'textContent',
-  //     'innerText'
-  //   ];
-  //   const sourceExpressionArr = [
-  //     new AccessScope('foo'),
-  //     new AccessMember(new AccessScope('foo'), 'bar'),
-  //     new PrimitiveLiteral(null)
-  //   ];
-  //   const flags: BindingFlags[] = [
-  //     BindingFlags.fromBind,
-  //     BindingFlags.fromBind | BindingFlags.mustEvaluate
-  //   ];
-  //   eachCartesianJoin(
-  //     [
-  //       bindingModeArr,
-  //       targetArr,
-  //       targetPropertyArr,
-  //       sourceExpressionArr,
-  //       flags,
-  //     ],
-  //     (bindingMode, target, propertyName, sourceExpression, flag) => {
-  //       const scopeArr = [
-  //         createScopeForTest({foo: {bar: 42}}),
-  //         createScopeForTest({foo: {bar: undefined}}),
-  //         createScopeForTest({foo: {bar: 'baz'}})
-  //       ];
-  //       scopeArr.forEach((scope) => {
-  //         it(`$bind() bindingMode=${BindingMode[bindingMode]} target=${padRight(`${getName(target)}`, 20)} property=${padRight(propertyName, 12)} sourceExpression=${unparse(sourceExpression)} scope=${padRight(`${getName(scope)} with flag: ${BindingFlags[flag]}`, 2)}`, () => {
-  //           const { sut, changeSet, container, observerLocator } = setup(sourceExpression, target, propertyName, bindingMode);
-  //           const initialValue = target[propertyName];
-  //           const connect = spy(sourceExpression, 'connect');
-
-  //           sut.$bind(flag, scope);
-
-  //           connect.restore();
-
-  //           if (!(bindingMode & BindingMode.toView)) {
-  //             expect(target[propertyName]).to.equal(initialValue);
-  //           }
-  //           if (bindingMode & BindingMode.toView) {
-  //             expect(connect).to.have.been.calledOnce;
-  //             expect(connect).to.have.been.calledWith(flag, scope, sut);
-  //             const valueMustBeString = target instanceof Node && (propertyName === 'textContent' || propertyName === 'innerText');
-  //             switch (sourceExpression['constructor'].name) {
-  //               case 'AccessScope':
-  //                 //expect(target[propertyName]).to.equal(valueMustBeString ? scope.bindingContext.foo+'' : scope.bindingContext.foo);
-  //                 break;
-  //               case 'AccessMember':
-  //                 //expect(target[propertyName]).to.equal(scope['foo'].bar);
-  //                 break;
-  //               case 'PrimitiveLiteral':
-  //                 //expect(target[propertyName]).to.equal(valueMustBeString ? '' : null);
-  //                 break;
-  //             }
-  //           }
-  //         });
-  //       });
-  //     }
-  //   )
-  // });
+          expect(targetObserver.subscribe).to.have.been.calledOnce;
+          expect(targetObserver.subscribe).to.have.been.calledWithExactly(sut);
+        });
+      }
+    )
+  });
 
   describe('$unbind()', () => {
     it('should not unbind if it is not already bound', () => {

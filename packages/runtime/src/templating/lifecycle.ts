@@ -38,8 +38,6 @@ export class AttachLifecycle {
   private attached() {}
 }
 
-const dummyNodeSequence = { remove() {} };
-
 export class DetachLifecycle {
   private detachedHead = null; //LOL
   private detachedTail = null;

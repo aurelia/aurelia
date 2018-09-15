@@ -31,6 +31,36 @@ aliases:
         cd ./test/e2e
         npm run start
 
+# Reusable commands
+commands:
+  run_benchmark:
+    parameters:
+      folder:
+        type: string
+    steps:
+      - checkout
+      - *step_restore_cache
+      - *step_attach_workspace
+      - run:
+          name: "Install e2e-benchmark/<< parameters.folder >>"
+          command: |
+            cd ~/repo/packages/examples/e2e-benchmark
+            npm ci
+            cd ~/repo/packages/examples/e2e-benchmark/<< parameters.folder >>
+            npm ci
+            npm run build
+      - run:
+          name: "Serve e2e-benchmark/<< parameters.folder >> in the background"
+          background: true
+          command: |
+            cd ~/repo/packages/examples/e2e-benchmark/<< parameters.folder >>
+            npm run start
+      - run:
+          name: "Run the e2e tests"
+          command: |
+            cd ~/repo/packages/examples/e2e-benchmark/<< parameters.folder >>
+            npm run e2e
+
 version: 2.1
 jobs:
   install:
@@ -181,54 +211,14 @@ jobs:
   e2e_benchmark_vnext:
     <<: *defaults
     steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - run:
-          name: Install e2e-benchmark/vnext
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark
-            npm ci
-            cd ~/repo/packages/examples/e2e-benchmark/vnext
-            npm ci
-            npm run build
-      - run:
-          name: Serve e2e-benchmark/vnext in the background
-          background: true
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark/vnext
-            npm run start
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark/vnext
-            npm run e2e
+      - run_benchmark
+        folder: "vnext"
 
   e2e_benchmark_vcurrent:
     <<: *defaults
     steps:
-      - checkout
-      - *step_restore_cache
-      - *step_attach_workspace
-      - run:
-          name: Install e2e-benchmark/vcurrent
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark
-            npm ci
-            cd ~/repo/packages/examples/e2e-benchmark/vcurrent
-            npm ci
-            npm run build
-      - run:
-          name: Serve e2e-benchmark/vcurrent in the background
-          background: true
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark/vcurrent
-            npm run start
-      - run:
-          name: Run the e2e tests
-          command: |
-            cd ~/repo/packages/examples/e2e-benchmark/vcurrent
-            npm run e2e
+      - run_benchmark
+        folder: "vcurrent"
 
   publish_dev:
     <<: *defaults
@@ -388,5 +378,4 @@ workflows:
             - unit_tests_chrome
             - unit_tests_firefox
             - e2e_browserstack
-
 

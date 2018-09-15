@@ -192,10 +192,11 @@ async function bundle() {
       ]
     });
 
-    log(`${logPrefix} writing iife - ${pkg.iife}`);
+    const fullBundle = pkg.iife.replace('jit', 'au.bundle');
+    log(`${logPrefix} writing iife - ${fullBundle}`);
 
     await bundle.write({
-      file: pkg.iife.replace('jit', 'au.bundle'),
+      file: fullBundle,
       exports: 'named',
       name: pkg.fullName,
       globals: {

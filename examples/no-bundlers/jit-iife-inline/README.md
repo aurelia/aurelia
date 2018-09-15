@@ -2,9 +2,4 @@
 
 ## Getting started
 
-To install and run the app
-
-```bash
-npm install
-npm run serve
-```
+Simply open index.html in your browser!

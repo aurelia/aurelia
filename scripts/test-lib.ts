@@ -1,6 +1,86 @@
+import { spy, SinonStub } from 'sinon';
 import { expect } from "chai";
+import sinon from 'sinon';
 
 const toStringTag = Object.prototype.toString;
+
+const wrappedObjects = new WeakMap<any, string[]>();
+
+export function massSpy(obj: any, ...properties: string[]): void {
+  const existing = wrappedObjects.get(obj);
+  if (existing !== undefined) {
+    for (let i = 0, ii = properties.length; i < ii; ++i) {
+      const prop = properties[i];
+      if (existing.indexOf(prop) === -1) {
+        spy(obj, prop);
+        existing.push(prop);
+      } else {
+        obj[prop].restore();
+        spy(obj, prop);
+      }
+    }
+  } else {
+    for (let i = 0, ii = properties.length; i < ii; ++i) {
+      spy(obj, properties[i]);
+    }
+    wrappedObjects.set(obj, properties);
+  }
+}
+
+export function massStub(obj: any, configure: (stub: SinonStub, prop: string) => void, ...properties: string[]): void {
+  const existing = wrappedObjects.get(obj);
+  if (existing !== undefined) {
+    for (let i = 0, ii = properties.length; i < ii; ++i) {
+      const prop = properties[i];
+      if (existing.indexOf(prop) === -1) {
+        configure(sinon.stub(obj, prop), prop);
+        existing.push(prop);
+      } else {
+        obj[prop].restore();
+        configure(sinon.stub(obj, prop), prop);
+      }
+    }
+  } else {
+    for (let i = 0, ii = properties.length; i < ii; ++i) {
+      spy(obj, properties[i]);
+    }
+    wrappedObjects.set(obj, properties);
+  }
+}
+
+export function massRestore(obj: any, ...properties: string[]): void {
+  const existing = wrappedObjects.get(obj);
+  if (existing !== undefined) {
+    if (properties.length === 0) {
+      properties = existing;
+    }
+    for (let i = 0, ii = properties.length; i < ii; ++i) {
+      const prop = properties[i];
+      if (existing.indexOf(prop) !== -1) {
+        obj[prop].restore();
+        existing.splice(i, 1);
+      }
+    }
+    if (existing.length === 0) {
+      wrappedObjects.delete(obj);
+    }
+  }
+}
+
+export function massReset(obj: any, ...properties: string[]): void {
+  const existing = wrappedObjects.get(obj);
+  if (existing !== undefined) {
+    if (properties.length === 0) {
+      properties = existing;
+    }
+    for (let i = 0, ii = properties.length; i < ii; ++i) {
+      const prop = properties[i];
+      if (existing.indexOf(prop) !== -1) {
+        obj[prop].resetHistory();
+      }
+    }
+  }
+}
 
 /**
  * Template tag function that properly stringifies the template parameters. Currently supports:

@@ -3,13 +3,34 @@ import { IContainer } from '../../../kernel/src/index';
 import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource, ICustomElement, ITemplateSource, TargetedInstructionType, IExpressionParser, AccessMember, AccessScope, Repeat } from '../../src/index';
 import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight } from '../../../../scripts/test-lib';
 
-export function eachCartesianJoin<T1, U>(arrays: [T1[]], callback: (arg1: T1) => U): void;
-export function eachCartesianJoin<T1, T2, U>(arrays: [T1[], T2[]], callback: (arg1: T1, arg2: T2) => U): void;
-export function eachCartesianJoin<T1, T2, T3, U>(arrays: [T1[], T2[], T3[]], callback: (arg1: T1, arg2: T2, arg3: T3) => U): void;
-export function eachCartesianJoin<T1, T2, T3, T4, U>(arrays: [T1[], T2[], T3[], T4[]], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => U): void;
-export function eachCartesianJoin<T1, T2, T3, T4, T5, U>(arrays: [T1[], T2[], T3[], T4[], T5[]], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => U): void;
-export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, U>(arrays: [T1[], T2[], T3[], T4[], T5[], T6], callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => U): void;
-export function eachCartesianJoin<T extends any[], U>(arrays: T[], callback: (...args: T) => U): void {
+export function eachCartesianJoin<T1, U>(
+  arrays: [[()=>T1, string][]],
+  callback: (arg1: T1, str1: string) => U): void;
+
+export function eachCartesianJoin<T1, T2, U>(
+  arrays: [[()=>T1, string][], [()=>T2, string][]],
+  callback: (arg1: T1, str1: string, arg2: T2, str2: string) => U): void;
+
+export function eachCartesianJoin<T1, T2, T3, U>(
+  arrays: [[()=>T1, string][], [()=>T2, string][], [()=>T3, string][]],
+  callback: (arg1: T1, str1: string, arg2: T2, str2: string, arg3: T3, str3: string) => U): void;
+
+export function eachCartesianJoin<T1, T2, T3, T4, U>(
+  arrays: [[()=>T1, string][], [()=>T2, string][], [()=>T3, string][], [()=>T4, string][]],
+  callback: (arg1: T1, str1: string, arg2: T2, str2: string, arg3: T3, str3: string, arg4: T4, str4: string) => U): void;
+
+export function eachCartesianJoin<T1, T2, T3, T4, T5, U>(
+  arrays: [[()=>T1, string][], [()=>T2, string][], [()=>T3, string][], [()=>T4, string][], [()=>T5, string][]],
+  callback: (arg1: T1, str1: string, arg2: T2, str2: string, arg3: T3, str3: string, arg4: T4, str4: string, arg5: T5, str5: string) => U): void
+
+export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, U>(
+  arrays: [[()=>T1, string][], [()=>T2, string][], [()=>T3, string][], [()=>T4, string][], [()=>T5, string][], [()=>T6, string][]],
+  callback: (arg1: T1, str1: string, arg2: T2, str2: string, arg3: T3, str3: string, arg4: T4, str4: string, arg5: T5, str5: string, arg6: T6, str6: string) => U): void;
+
+export function eachCartesianJoin<T extends any, U>(
+  arrays: [() => T, string][][],
+  callback: (...args: any[]) => U): void {
+
   arrays = arrays.slice(0).filter(arr => arr.length > 0);
   if (typeof callback !== 'function') {
     throw new Error('Callback is not a function');
@@ -17,9 +38,9 @@ export function eachCartesianJoin<T extends any[], U>(arrays: T[], callback: (..
   if (arrays.length === 0) {
     return;
   }
-  const totalCallCount: number = arrays.reduce((count: number, arr: any[]) => count *= arr.length, 1);
+  const totalCallCount: number = arrays.reduce((count: number, arr: [()=>T, string][]) => count *= arr.length, 1);
   const argsIndices = Array(arrays.length).fill(0);
-  const args: T = updateElementByIndices(arrays, Array(arrays.length) as T, argsIndices);
+  const args: T[] = updateElementByIndices(arrays, Array(arrays.length * 2), argsIndices);
   callback(...args);
   let callCount = 1;
   if (totalCallCount === callCount) {
@@ -38,7 +59,7 @@ export function eachCartesianJoin<T extends any[], U>(arrays: T[], callback: (..
     }
   }
 }
-function updateIndices<T extends any[]>(arrays: T[], indices: number[]) {
+function updateIndices<T extends any>(arrays: [()=>T, string][][], indices: number[]) {
   let arrIndex = arrays.length;
   while (arrIndex--) {
     if (indices[arrIndex] === arrays[arrIndex].length - 1) {
@@ -56,9 +77,11 @@ function updateIndices<T extends any[]>(arrays: T[], indices: number[]) {
   }
   return false;
 }
-function updateElementByIndices<T extends any[]>(arrays: T[], args: T, indices: number[]): T {
+function updateElementByIndices<T extends any>(arrays: [()=>T, string][][], args: T[], indices: number[]): T[] {
+  let j = 0;
   for (let i = 0, ii = arrays.length; ii > i; ++i) {
-    args[i] = arrays[i][indices[i]];
+    args[j++] = arrays[i][indices[i]][0]();
+    args[j++] = <any>arrays[i][indices[i]][1];
   }
   return args;
 }

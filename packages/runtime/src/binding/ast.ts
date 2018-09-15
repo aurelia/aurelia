@@ -1,7 +1,7 @@
 // tslint:disable:no-any
 // tslint:disable:function-name
 // tslint:disable:no-empty
-import { IServiceLocator } from '@aurelia/kernel';
+import { IServiceLocator, PLATFORM } from '@aurelia/kernel';
 import { IBinding } from './binding';
 import { BindingBehaviorResource } from './binding-behavior';
 import { BindingContext, IScope } from './binding-context';
@@ -209,6 +209,7 @@ export class Assign implements IExpression {
 
 export class Conditional implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(public condition: IExpression, public yes: IExpression, public no: IExpression) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
@@ -231,6 +232,8 @@ export class Conditional implements IExpression {
 
 export class AccessThis implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
+  public connect: IExpression['connect'];
   constructor(public ancestor: number = 0) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
@@ -241,8 +244,6 @@ export class AccessThis implements IExpression {
     }
     return i < 1 && oc ? oc.bindingContext : undefined;
   }
-
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
 }
 
 export class AccessScope implements IExpression {
@@ -333,6 +334,7 @@ export class AccessKeyed implements IExpression {
 
 export class CallScope implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(public name: string, public args: ReadonlyArray<IExpression>, public ancestor: number = 0) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null): any {
@@ -355,6 +357,7 @@ export class CallScope implements IExpression {
 
 export class CallMember implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(public object: IExpression, public name: string, public args: ReadonlyArray<IExpression>) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
@@ -381,6 +384,7 @@ export class CallMember implements IExpression {
 
 export class CallFunction implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(public func: IExpression, public args: IExpression[]) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
@@ -408,6 +412,7 @@ export class CallFunction implements IExpression {
 
 export class Binary implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(public operation: string, public left: IExpression, public right: IExpression) {
     // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
     // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less
@@ -529,18 +534,18 @@ export class Unary {
 
 export class PrimitiveLiteral implements IExpression {
   public $kind: ExpressionKind;
+  public connect: IExpression['connect'];
+  public assign: IExpression['assign'];
   constructor(public value: any) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     return this.value;
   }
-
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
-  }
 }
 
 export class HtmlLiteral implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(public parts: IExpression[]) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
@@ -565,6 +570,7 @@ export class HtmlLiteral implements IExpression {
 
 export class ArrayLiteral implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(public elements: IExpression[]) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any[] {
@@ -587,6 +593,7 @@ export class ArrayLiteral implements IExpression {
 
 export class ObjectLiteral implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(public keys: (number | string)[], public values: IExpression[]) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
@@ -610,6 +617,7 @@ export class ObjectLiteral implements IExpression {
 
 export class Template implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(public cooked: string[], public expressions?: IsAssign[]) {
     this.expressions = expressions || [];
   }
@@ -636,6 +644,7 @@ export class Template implements IExpression {
 
 export class TaggedTemplate implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(
     public cooked: string[] & { raw?: string[] },
     raw: string[],
@@ -758,6 +767,7 @@ export class ForOfStatement implements IExpression {
 */
 export class Interpolation implements IExpression {
   public $kind: ExpressionKind;
+  public assign: IExpression['assign'];
   constructor(public parts: string[], public expressions: IExpression[]) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
@@ -778,6 +788,8 @@ export class Interpolation implements IExpression {
     }
   }
 }
+
+
 
 /*
 * Note: for a property that is always the same, directly assigning it to the prototype is more efficient CPU wise
@@ -890,3 +902,15 @@ export const CountForOfStatement = {
   ['[object Null]'](result: null): number { return 0; },
   ['[object Undefined]'](result: null): number { return 0; }
 };
+
+// Give each AST class a noop for each interface method if and only if it's not already defined
+// This accomplishes the following:
+//   1) no runtime error due to bad AST structure (it's the parser's job to guard against that)
+//   2) no runtime error due to a bad binding such as two-way on a literal (no need, since it doesn't threaten the integrity of the app's state)
+//   3) should we decide something else, we can easily change the global behavior of 1) and 2) by simply assigning a different method here (either in the source or via AOT)
+const ast = [AccessThis, AccessScope, ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template, Unary, CallFunction, CallMember, CallScope, AccessMember, AccessKeyed, TaggedTemplate, Binary, Conditional, Assign];
+for (let i = 0, ii = ast.length; i < ii; ++i) {
+  const proto = ast[i].prototype;
+  proto.assign = proto.assign || PLATFORM.noop;
+  proto.connect = proto.connect || PLATFORM.noop;
+}

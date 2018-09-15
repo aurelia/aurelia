@@ -21,6 +21,9 @@ export default {
   'coverage': {
     'path': join(rootPath, 'coverage')
   },
+  'dist': {
+    'path': join(rootPath, 'dist')
+  },
   'docs': {
     'path': join(rootPath, 'docs')
   },

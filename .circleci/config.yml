@@ -64,7 +64,7 @@ jobs:
       - run:
           name: "Create bundles with rollup"
           command: |
-            npm run bundle:dist
+            npm run bundle:all
       - run:
           name: "Create tarballs from the build outputs"
           command: |
@@ -72,6 +72,7 @@ jobs:
       - persist_to_workspace:
           root: ~/repo
           paths:
+            - dist
             - packages/*/dist
             - packages/*/node_modules
             - packages/*/*.tgz
@@ -242,6 +243,7 @@ jobs:
           name: Publish to @dev
           command: |
             npm run publish:dev
+            npm run upload-dist:dev
 
   merge_push_release:
     <<: *defaults
@@ -269,6 +271,7 @@ jobs:
           name: Publish to @latest
           command: |
             npm run publish:latest
+            npm run upload-dist:latest
 
 workflows:
   version: 2

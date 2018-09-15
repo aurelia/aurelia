@@ -174,7 +174,7 @@ async function bundle() {
     const pkg = project.packages.find(p => p.name === 'jit');
 
     const bundle = await rollup.rollup({
-      input: join(pkg.src, 'index.ts'),
+      input: join(pkg.src, 'index.full.ts'),
       plugins: [
         resolve({ jsnext: true }),
         typescript2({
@@ -192,12 +192,13 @@ async function bundle() {
       ]
     });
 
-    log(`${logPrefix} writing iife - ${pkg.iife}`);
+    const fullBundle = pkg.iife.replace('jit', 'au.bundle');
+    log(`${logPrefix} writing iife - ${fullBundle}`);
 
     await bundle.write({
-      file: pkg.iife.replace('jit', 'au.bundle'),
+      file: fullBundle,
       exports: 'named',
-      name: pkg.fullName,
+      name: 'au',
       globals: {
         ...project.packages.reduce((g, pkg) => {
           g[pkg.scopedName] = pkg.fullName;

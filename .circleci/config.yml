@@ -378,4 +378,3 @@ workflows:
             - unit_tests_chrome
             - unit_tests_firefox
             - e2e_browserstack
-

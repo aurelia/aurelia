@@ -1,3 +1,4 @@
+version: 2.1
 # Defaults for all jobs
 
 defaults: &defaults
@@ -31,7 +32,6 @@ aliases:
         cd ./test/e2e
         npm run start
 
-version: 2
 jobs:
   install:
     <<: *defaults
@@ -274,7 +274,6 @@ jobs:
             npm run upload-dist:latest
 
 workflows:
-  version: 2
   # This workflow runs on every commit to any branch (with or without PR)
   build_test:
     jobs:

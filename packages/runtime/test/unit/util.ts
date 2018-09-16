@@ -1,88 +1,8 @@
 import { spy } from 'sinon';
 import { IContainer } from '../../../kernel/src/index';
 import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource, ICustomElement, ITemplateSource, TargetedInstructionType, IExpressionParser, AccessMember, AccessScope, Repeat } from '../../src/index';
-import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled } from '../../../../scripts/test-lib';
+import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 
-export function eachCartesianJoin<T1, U>(
-  arrays: [(()=>T1)[]],
-  callback: (arg1: T1) => U): void;
-
-export function eachCartesianJoin<T1, T2, U>(
-  arrays: [(()=>T1)[], (()=>T2)[]],
-  callback: (arg1: T1, arg2: T2) => U): void;
-
-export function eachCartesianJoin<T1, T2, T3, U>(
-  arrays: [(()=>T1)[], (()=>T2)[], (()=>T3)[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3) => U): void;
-
-export function eachCartesianJoin<T1, T2, T3, T4, U>(
-  arrays: [(()=>T1)[], (()=>T2)[], (()=>T3)[], (()=>T4)[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => U): void;
-
-export function eachCartesianJoin<T1, T2, T3, T4, T5, U>(
-  arrays: [(()=>T1)[], (()=>T2)[], (()=>T3)[], (()=>T4)[], (()=>T5)[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => U): void
-
-export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, U>(
-  arrays: [(()=>T1)[], (()=>T2)[], (()=>T3)[], (()=>T4)[], (()=>T5)[], (()=>T6)[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => U): void;
-
-export function eachCartesianJoin<T extends any, U>(
-  arrays: (() => T)[][],
-  callback: (...args: any[]) => U): void {
-
-  arrays = arrays.slice(0).filter(arr => arr.length > 0);
-  if (typeof callback !== 'function') {
-    throw new Error('Callback is not a function');
-  }
-  if (arrays.length === 0) {
-    return;
-  }
-  const totalCallCount: number = arrays.reduce((count: number, arr: (()=>T)[]) => count *= arr.length, 1);
-  const argsIndices = Array(arrays.length).fill(0);
-  const args: T[] = updateElementByIndices(arrays, Array(arrays.length), argsIndices);
-  callback(...args);
-  let callCount = 1;
-  if (totalCallCount === callCount) {
-    return;
-  }
-  while (true) {
-    const hasUpdate = updateIndices(arrays, argsIndices);
-    if (hasUpdate) {
-      callback(...updateElementByIndices(arrays, args, argsIndices));
-      callCount++;
-      if (totalCallCount < callCount) {
-        throw new Error('Invalid loop implementation.');
-      }
-    } else {
-      break;
-    }
-  }
-}
-function updateIndices<T extends any>(arrays: (()=>T)[][], indices: number[]) {
-  let arrIndex = arrays.length;
-  while (arrIndex--) {
-    if (indices[arrIndex] === arrays[arrIndex].length - 1) {
-      if (arrIndex === 0) {
-        return false;
-      }
-      continue;
-    }
-
-    indices[arrIndex] += 1;
-    for (let i = arrIndex + 1, ii = arrays.length; ii > i; ++i) {
-      indices[i] = 0;
-    }
-    return true;
-  }
-  return false;
-}
-function updateElementByIndices<T extends any>(arrays: (()=>T)[][], args: T[], indices: number[]): T[] {
-  for (let i = 0, ii = arrays.length; ii > i; ++i) {
-    args[i] = arrays[i][indices[i]]();
-  }
-  return args;
-}
 
 /**
  * Object describing a test fixture
@@ -363,4 +283,4 @@ export const globalAttributeNames = [
 ];
 
 
-export { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled };
+export { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };

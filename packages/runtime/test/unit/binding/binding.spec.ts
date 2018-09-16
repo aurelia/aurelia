@@ -4,7 +4,7 @@ import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTa
 import { DI, IContainer } from '../../../../kernel/src/index';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
-import { _, eachCartesianJoin, massSpy, massStub, massReset, massRestore, ensureNotCalled } from '../util';
+import { _, eachCartesianJoin, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoinFactory } from '../util';
 import sinon from 'sinon';
 
 /**
@@ -68,7 +68,7 @@ describe('Binding', () => {
   });
 
   describe('$bind() [one-time] assigns the target value', () => {
-    eachCartesianJoin(
+    eachCartesianJoinFactory(
       [
         <(() => [{foo:string}, string])[]>[
           () => [({ foo: 'bar' }), `{foo:'bar'} `],
@@ -146,7 +146,7 @@ describe('Binding', () => {
   });
 
   describe('$bind() [to-view] assigns the target value and listens for changes', () => {
-    eachCartesianJoin(
+    eachCartesianJoinFactory(
       [
         <(() => [{foo:string}, string])[]>[
           () => [({ foo: 'bar' }), `{foo:'bar'} `],
@@ -369,8 +369,8 @@ describe('Binding', () => {
   });
 
 
-  describe.only('$bind() [from-view] does not assign the target, and listens for changes', () => {
-    eachCartesianJoin(
+  describe('$bind() [from-view] does not assign the target, and listens for changes', () => {
+    eachCartesianJoinFactory(
       [
         <(() => [{foo:string}, string])[]>[
           () => [({ foo: 'bar' }), `{foo:'bar'} `],

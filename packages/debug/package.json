@@ -31,7 +31,9 @@
     "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadlessOpt --single-run --coverage",
     "test-firefox": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=FirefoxHeadless --single-run --coverage",
     "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadlessOpt --coverage",
+    "test:watch:verbose": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadlessOpt --coverage --reporter=mocha",
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeDebugging",
+    "test:debugger:verbose": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeDebugging --reporter=mocha",
     "build": "tsc -b",
     "dev": "tsc -b -w",
     "publish:local": "npm pack"

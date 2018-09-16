@@ -7,6 +7,7 @@ export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
   noInfo?: boolean;
   coverage?: boolean;
   package?: string;
+  reporter?: string;
   set(config: IKarmaConfigOptions): void;
 }
 
@@ -89,7 +90,7 @@ export default function(config: IKarmaConfig): void {
     mime: {
       'text/x-typescript': ['ts']
     },
-    reporters: [process.env.CI ? 'junit' : 'progress'],
+    reporters: [process.env.CI ? 'junit' : config.reporter || 'progress'],
     webpackMiddleware: {
       stats: {
         colors: true,

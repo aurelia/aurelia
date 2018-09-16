@@ -107,6 +107,7 @@ describe('Binding', () => {
 
         it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}  ${_`srcVal=${srcVal}`} targVal=${targVal} expectedTargVal=${expectedTargVal}`, () => {
           const stub = sinon.stub(observerLocator, 'getAccessor').returns(targetObserver);
+          stub.withArgs(target, prop);
 
           massSpy(targetObserver, 'setValue', 'setValueCore', 'getValue');
           massSpy(expr, 'evaluate');
@@ -187,6 +188,7 @@ describe('Binding', () => {
 
         it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}  ${_`srcVal=${srcVal}`} targVal=${targVal} expectedTargVal=${expectedTargVal}`, () => {
           const stub = sinon.stub(observerLocator, 'getAccessor').returns(targetObserver);
+          stub.withArgs(target, prop);
 
           massSpy(targetObserver, 'setValue', 'setValueCore', 'getValue');
           massSpy(expr, 'evaluate', 'connect');
@@ -396,7 +398,7 @@ describe('Binding', () => {
           () => [BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
         ],
         <(() => [IScope, string])[]>[
-          () => [createScopeForTest({foo: {}}), `{foo:{bar:{}}} `]
+          () => [createScopeForTest({foo: {}}), `{foo:{}} `]
         ]
       ],
       ([target, $1], [prop, $2], [newValue, $3], [expr, $4], [flags, $5], [scope, $6]) => {
@@ -405,6 +407,7 @@ describe('Binding', () => {
 
         it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, () => {
           const stub = sinon.stub(observerLocator, 'getObserver').returns(targetObserver);
+          stub.withArgs(target, prop);
 
           massSpy(targetObserver, 'subscribe');
 
@@ -459,6 +462,129 @@ describe('Binding', () => {
             expect(expr.evaluate).not.to.have.been.called;
             expect(expr.assign).not.to.have.been.called;
           }
+        });
+      }
+    )
+  });
+
+  describe('$bind() [two-way] assign the targets, and listens for changes', () => {
+    eachCartesianJoinFactory(
+      [
+        <(() => [{foo:string}, string])[]>[
+          () => [{ foo: 'bar' },       `{foo:'bar'}     `],
+          () => [({ foo: null }),      `{foo:null}      `],
+          () => [({ foo: undefined }), `{foo:undefined} `],
+          () => [({}),                 `{}              `]
+        ],
+        <(() => [string, string])[]>[
+          () => ['foo', `'foo' `],
+          () => ['bar', `'bar' `]
+        ],
+        <(() => [any, string])[]>[
+          () => [{},        `{}        `]
+        ],
+        <(() => [IExpression, string])[]>[
+          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
+          () => [new AccessScope('foo'),                                   `foo        `],
+          () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
+          () => [new PrimitiveLiteral(null),                               `null       `],
+          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+        ],
+        <(() => [BindingFlags, string])[]>[
+          () => [BindingFlags.fromBind,                                            `fromBind               `],
+          () => [BindingFlags.updateTargetInstance,                                `updateTarget           `],
+          () => [BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
+        ],
+        <(() => [IScope, string])[]>[
+          () => [createScopeForTest({foo: {}}),              `{foo:{}} `],
+          () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
+          () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
+          () => [createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
+          () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
+          () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+        ]
+      ],
+      ([target, $1], [prop, $2], [newValue, $3], [expr, $4], [flags, $5], [scope, $6]) => {
+        const { sut, changeSet, container, observerLocator } = setup(expr, target, prop, BindingMode.twoWay);
+        const srcVal = expr.evaluate(flags, scope, container);
+        const targVal = target[prop];
+        const targetObserver = observerLocator.getObserver(target, prop) as IBindingTargetObserver;
+
+        it(`$bind() [two-way]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, () => {
+          const stub = sinon.stub(observerLocator, 'getObserver').returns(targetObserver);
+          stub.withArgs(target, prop);
+
+          massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
+          massSpy(expr, 'evaluate', 'connect');
+          massSpy(sut, 'addObserver', 'observeProperty', 'handleChange');
+
+          sut.$bind(flags, scope);
+
+          stub.restore();
+
+          const observer00: SetterObserver = sut['_observer0'];
+          const observer01: SetterObserver = sut['_observer1'];
+
+          const subscriber00: IPropertySubscriber = targetObserver['_subscriber0'];
+          const subscriber01: IPropertySubscriber = targetObserver['_subscriber1'];
+          if (expr instanceof AccessScope) {
+            expect(observer00).to.be.instanceof(SetterObserver);
+            expect(observer01).to.be.undefined;
+          } else if (expr instanceof AccessMember) {
+            expect(observer00).to.be.instanceof(SetterObserver);
+            expect(observer01).to.be.undefined;
+          } else {
+            expect(observer00).to.be.undefined;
+          }
+
+          expect(subscriber00).to.equal(sut);
+          expect(subscriber01).to.be.null;
+
+          expect(sut.targetObserver).to.be.instanceof(SetterObserver);
+          expect(target['$observers'][prop]).to.be.instanceof(SetterObserver);
+
+          expect(expr.evaluate).to.have.been.calledOnce;
+          expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
+
+          expect(expr.connect).to.have.been.calledOnce;
+          expect(expr.connect).to.have.been.calledWithExactly(flags, scope, sut);
+
+          expect(targetObserver.setValue).to.have.been.calledOnce;
+          expect(targetObserver.setValue).to.have.been.calledWithExactly(srcVal, flags);
+
+          if (expr instanceof AccessMember) {
+            expect(sut.addObserver).to.have.been.calledTwice;
+            expect(sut.observeProperty).to.have.been.calledTwice
+            const obj = scope.bindingContext[expr.object['name']];
+            expect(sut.observeProperty).to.have.been.calledWithExactly(obj, expr.name);
+            expect(sut.observeProperty).to.have.been.calledWithExactly(scope.bindingContext, expr.object['name']);
+          } else if (expr instanceof AccessScope) {
+            expect(sut.addObserver).to.have.been.calledOnce;
+            expect(sut.observeProperty).to.have.been.calledOnce;
+            expect(sut.observeProperty).to.have.been.calledWithExactly(scope.bindingContext, expr.name);
+          } else {
+            expect(sut.addObserver).not.to.have.been.called;
+            expect(sut.observeProperty).not.to.have.been.called;
+          }
+
+          expect(changeSet.size).to.equal(0);
+          expect(targetObserver['setValue']).to.have.been.calledOnce;
+          expect(targetObserver['setValue']).to.have.been.calledWithExactly(srcVal, flags);
+
+          if (srcVal instanceof Object) {
+            expect(target[prop]).to.deep.equal(srcVal);
+            expect(targetObserver.currentValue).to.deep.equal(srcVal);
+          } else {
+            expect(target[prop]).to.equal(srcVal);
+            expect(targetObserver.currentValue).to.equal(srcVal);
+          }
+
+          if (!(flags & BindingFlags.fromBind)) {
+            expect(targetObserver.callSubscribers).to.have.been.calledOnce;
+          } else {
+            expect(targetObserver.callSubscribers).not.to.have.been.called;
+          }
+          expect(sut.handleChange).not.to.have.been.called;
         });
       }
     )

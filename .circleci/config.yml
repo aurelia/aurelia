@@ -30,6 +30,12 @@ aliases:
       command: |
         cd ./test/e2e
         npm run start
+  - &step_bootstrap_build
+    run:
+      name: Bootstrap and build the packages
+      command: |
+        npm run bootstrap
+        npm run build
 
 version: 2
 jobs:
@@ -56,11 +62,7 @@ jobs:
     steps:
       - checkout
       - *step_restore_cache
-      - run:
-          name: "Bootstrap and build the packages"
-          command: |
-            npm run bootstrap
-            npm run build
+      - *step_bootstrap_build
       - run:
           name: "Create bundles with rollup"
           command: |
@@ -133,7 +135,11 @@ jobs:
     steps:
       - checkout
       - *step_restore_cache
-      - *step_attach_workspace
+      - *step_bootstrap_build
+      - run:
+          name: "Create bundles with rollup"
+          command: |
+            npm run bundle:dist
       - *step_install_e2e_bs
       - *step_serve_e2e_bs
       - run:
@@ -161,7 +167,11 @@ jobs:
     steps:
       - checkout
       - *step_restore_cache
-      - *step_attach_workspace
+      - *step_bootstrap_build
+      - run:
+          name: "Create bundles with rollup"
+          command: |
+            npm run bundle:dist
       - *step_install_e2e_bs
       - *step_serve_e2e_bs
       - run:
@@ -307,7 +317,7 @@ workflows:
       # It runs on every commit on every non-release branch
       - e2e_browserstack:
           requires:
-            - build
+            - install
           filters:
             branches:
               ignore: release
@@ -317,7 +327,7 @@ workflows:
       # It runs on every commit to release
       - e2e_browserstack_compat:
           requires:
-            - build
+            - install
           filters:
             branches:
               only: release
@@ -382,7 +392,7 @@ workflows:
       # We only run the lightweight version of browserstack tests because failing tests on very old browsers shouldn't block a dev publish
       - e2e_browserstack:
           requires:
-            - build
+            - install
       - publish_dev:
           requires:
             - build

@@ -4,7 +4,7 @@
   "scripts": {
     "watch": "node fuse dev",
     "build": "rimraf dist && node fuse prod",
-    "start": "http-server -c-1 -p 9000 dist"
+    "serve": "http-server -c-1 -p 9000 dist"
   },
   "dependencies": {
     "@aurelia/jit": "dev"

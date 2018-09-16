@@ -14,5 +14,5 @@ To install and run the app (in "prod" mode):
 ```bash
 npm install
 npm run build
-npm run start
+npm run serve
 ```

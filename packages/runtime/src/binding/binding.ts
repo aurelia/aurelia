@@ -84,7 +84,7 @@ export class Binding implements IBinding, IPropertySubscriber {
 
     if (flags & BindingFlags.updateSourceExpression) {
       if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
-        sourceExpression.assign(flags, $scope, locator, newValue)
+        sourceExpression.assign(flags, $scope, locator, newValue);
       }
       return;
     }

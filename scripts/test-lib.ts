@@ -4,78 +4,86 @@ import sinon from 'sinon';
 
 const toStringTag = Object.prototype.toString;
 
-const wrappedObjects = new WeakMap<any, string[]>();
+const wrappedObjects = new Map<any, string[]>();
 
 export function massSpy(obj: any, ...properties: string[]): void {
-  const existing = wrappedObjects.get(obj);
-  if (existing !== undefined) {
-    for (let i = 0, ii = properties.length; i < ii; ++i) {
-      const prop = properties[i];
-      if (existing.indexOf(prop) === -1) {
-        spy(obj, prop);
-        existing.push(prop);
-      } else {
-        obj[prop].restore();
+  if (properties.length === 0) {
+    for (const prop in obj) {
+      if (typeof obj[prop] === 'function') {
+        if (obj[prop].restore) {
+          obj[prop].restore();
+        }
         spy(obj, prop);
       }
     }
   } else {
     for (let i = 0, ii = properties.length; i < ii; ++i) {
-      spy(obj, properties[i]);
+      const prop = properties[i];
+      if (obj[prop].restore) {
+        obj[prop].restore();
+      }
+      spy(obj, prop);
     }
-    wrappedObjects.set(obj, properties);
   }
 }
 
+export function ensureNotCalled(obj: any, ...properties: string[]): void {
+  massStub(obj, (stub, prop) => stub.throws(`${obj.constructor.name}.${prop} should not be called`), ...properties);
+}
+
 export function massStub(obj: any, configure: (stub: SinonStub, prop: string) => void, ...properties: string[]): void {
-  const existing = wrappedObjects.get(obj);
-  if (existing !== undefined) {
-    for (let i = 0, ii = properties.length; i < ii; ++i) {
-      const prop = properties[i];
-      if (existing.indexOf(prop) === -1) {
-        configure(sinon.stub(obj, prop), prop);
-        existing.push(prop);
-      } else {
-        obj[prop].restore();
+  if (properties.length === 0) {
+    for (const prop in obj) {
+      if (typeof obj[prop] === 'function') {
+        if (obj[prop].restore) {
+          obj[prop].restore();
+        }
         configure(sinon.stub(obj, prop), prop);
       }
     }
   } else {
     for (let i = 0, ii = properties.length; i < ii; ++i) {
-      spy(obj, properties[i]);
+      const prop = properties[i];
+      if (obj[prop].restore) {
+        obj[prop].restore();
+      }
+      configure(sinon.stub(obj, prop), prop);
     }
-    wrappedObjects.set(obj, properties);
   }
 }
 
 export function massRestore(obj: any, ...properties: string[]): void {
-  const existing = wrappedObjects.get(obj);
-  if (existing !== undefined) {
-    if (properties.length === 0) {
-      properties = existing;
-    }
-    for (let i = 0, ii = properties.length; i < ii; ++i) {
-      const prop = properties[i];
-      if (existing.indexOf(prop) !== -1) {
-        obj[prop].restore();
-        existing.splice(i, 1);
+  if (properties.length === 0) {
+    for (const prop in obj) {
+      if (typeof obj[prop] === 'function') {
+        if (obj[prop].restore) {
+          obj[prop].restore();
+        }
       }
     }
-    if (existing.length === 0) {
-      wrappedObjects.delete(obj);
+  } else {
+    for (let i = 0, ii = properties.length; i < ii; ++i) {
+      const prop = properties[i];
+      if (obj[prop].restore) {
+        obj[prop].restore();
+      }
     }
   }
 }
 
 export function massReset(obj: any, ...properties: string[]): void {
-  const existing = wrappedObjects.get(obj);
-  if (existing !== undefined) {
-    if (properties.length === 0) {
-      properties = existing;
+  if (properties.length === 0) {
+    for (const prop in obj) {
+      if (typeof obj[prop] === 'function') {
+        if (obj[prop].resetHistory) {
+          obj[prop].resetHistory();
+        }
+      }
     }
+  } else {
     for (let i = 0, ii = properties.length; i < ii; ++i) {
       const prop = properties[i];
-      if (existing.indexOf(prop) !== -1) {
+      if (obj[prop].resetHistory) {
         obj[prop].resetHistory();
       }
     }

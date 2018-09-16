@@ -1,7 +1,7 @@
 import { spy } from 'sinon';
 import { IContainer } from '../../../kernel/src/index';
 import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource, ICustomElement, ITemplateSource, TargetedInstructionType, IExpressionParser, AccessMember, AccessScope, Repeat } from '../../src/index';
-import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight } from '../../../../scripts/test-lib';
+import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled } from '../../../../scripts/test-lib';
 
 export function eachCartesianJoin<T1, U>(
   arrays: [(()=>T1)[]],
@@ -363,4 +363,4 @@ export const globalAttributeNames = [
 ];
 
 
-export { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight };
+export { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled };

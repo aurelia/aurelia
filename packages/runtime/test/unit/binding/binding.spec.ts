@@ -1,11 +1,10 @@
 import { PLATFORM } from './../../../../kernel/src/platform';
 import { spy, SinonSpy, SinonStub } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, BindingBehavior, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, PropertyAccessor, IBindingTargetAccessor, ObjectLiteral } from '../../../src/index';
+import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, BindingBehavior, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, PropertyAccessor, IBindingTargetAccessor, ObjectLiteral, AccessorOrObserver } from '../../../src/index';
 import { DI, IContainer } from '../../../../kernel/src/index';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
-import { _, eachCartesianJoin } from '../util';
-import { massSpy, massStub, massReset, massRestore } from '../../../../../scripts/test-lib';
+import { _, eachCartesianJoin, massSpy, massStub, massReset, massRestore, ensureNotCalled } from '../util';
 import sinon from 'sinon';
 
 /**
@@ -112,15 +111,9 @@ describe('Binding', () => {
           massSpy(targetObserver, 'setValue', 'setValueCore', 'getValue');
           massSpy(expr, 'evaluate');
 
-          massStub(targetObserver,
-            (stub, name) => stub.throws(new Error(`${targetObserver.constructor.name}.${name} should not be called`)),
-            'addSubscriber', 'removeSubscriber', 'callSubscribers');
-          massStub(sut,
-            (stub, name) => stub.throws(new Error(`Binding.${name} should not be called`)),
-            'updateTarget', 'updateSource', 'handleChange', 'connect', 'addObserver', 'observeProperty', 'unobserve');
-          massStub(expr,
-            (stub, name) => stub.throws(new Error(`${expr.constructor.name}.${name} should not be called`)),
-            'assign', 'connect');
+          ensureNotCalled(targetObserver, 'addSubscriber', 'removeSubscriber', 'callSubscribers');
+          ensureNotCalled(sut, 'updateTarget', 'updateSource', 'handleChange', 'connect', 'addObserver', 'observeProperty', 'unobserve');
+          ensureNotCalled(expr, 'assign', 'connect');
 
           sut.$bind(flags, scope);
 
@@ -197,13 +190,10 @@ describe('Binding', () => {
 
           massSpy(targetObserver, 'setValue', 'setValueCore', 'getValue');
           massSpy(expr, 'evaluate', 'connect');
+          massSpy(sut, 'addObserver', 'observeProperty');
 
-          massStub(targetObserver,
-            (stub, name) => stub.throws(new Error(`${targetObserver.constructor.name}.${name} should not be called`)),
-            'addSubscriber', 'removeSubscriber', 'callSubscribers');
-          massStub(sut,
-            (stub, name) => stub.throws(new Error(`Binding.${name} should not be called`)),
-            'updateTarget', 'updateSource', 'handleChange', 'connect', 'addObserver', 'observeProperty', 'unobserve');
+          ensureNotCalled(targetObserver, 'addSubscriber', 'removeSubscriber');
+          ensureNotCalled(sut, 'updateTarget', 'updateSource', 'handleChange', 'connect', 'unobserve');
 
           sut.$bind(flags, scope);
 
@@ -283,32 +273,20 @@ describe('Binding', () => {
           massRestore(sut);
           massRestore(expr);
           if (observer00) {
-            massStub(observer00,
-              (stub, name) => stub.throws(new Error(`${observer00.constructor.name}.${name} should not be called`)),
-              'addSubscriber', 'removeSubscriber', 'callSubscribers', 'unsubscribe', 'subscribe');
+            ensureNotCalled(observer00, 'addSubscriber', 'removeSubscriber', 'unsubscribe', 'subscribe');
             massSpy(observer00, 'setValue', 'getValue');
             if (observer01) {
-              massStub(observer01,
-                (stub, name) => stub.throws(new Error(`${observer01.constructor.name}.${name} should not be called`)),
-                'addSubscriber', 'removeSubscriber', 'callSubscribers', 'unsubscribe', 'subscribe');
+              ensureNotCalled(observer01, 'addSubscriber', 'removeSubscriber', 'unsubscribe', 'subscribe');
               massSpy(observer01, 'setValue', 'getValue');
             }
-            massStub(sut,
-              (stub, name) => stub.throws(new Error(`Binding.${name} should not be called`)),
-              'updateTarget', 'updateSource', 'connect');
+            ensureNotCalled(sut, 'updateTarget', 'updateSource', 'connect');
             massSpy(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
             massSpy(targetObserver, 'setValue', 'setValueCore', 'getValue');
             massSpy(expr, 'evaluate', 'connect');
           } else {
-            massStub(targetObserver,
-              (stub, name) => stub.throws(new Error(`${targetObserver.constructor.name}.${name} should not be called`)),
-              'setValue', 'setValueCore', 'getValue', 'addSubscriber', 'removeSubscriber', 'callSubscribers');
-            massStub(sut,
-              (stub, name) => stub.throws(new Error(`Binding.${name} should not be called`)),
-              'updateTarget', 'updateSource', 'handleChange', 'connect', 'addObserver', 'observeProperty', 'unobserve');
-            massStub(expr,
-              (stub, name) => stub.throws(new Error(`${expr.constructor.name}.${name} should not be called`)),
-              'evaluate', 'connect');
+            ensureNotCalled(targetObserver, 'setValue', 'setValueCore', 'getValue', 'addSubscriber', 'removeSubscriber');
+            ensureNotCalled(sut, 'updateTarget', 'updateSource', 'handleChange', 'connect', 'addObserver', 'observeProperty', 'unobserve');
+            ensureNotCalled(expr, 'evaluate', 'connect');
           }
 
 
@@ -391,8 +369,7 @@ describe('Binding', () => {
   });
 
 
-  // TODO: this test is still in draft and not testing much useful yet
-  describe('$bind() [from-view] does not assign the target, and listens for changes', () => {
+  describe.only('$bind() [from-view] does not assign the target, and listens for changes', () => {
     eachCartesianJoin(
       [
         <(() => [{foo:string}, string])[]>[
@@ -404,12 +381,14 @@ describe('Binding', () => {
           () => ['foo', `'foo' `],
           () => ['bar', `'bar' `]
         ],
+        <(() => [any, string])[]>[
+          () => [{},        `{}        `],
+          () => [null,      `null      `],
+          () => [undefined, `undefined `],
+          () => [42,        `42        `]
+        ],
         <(() => [IExpression, string])[]>[
-          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
-          () => [new AccessScope('foo'),                                   `foo        `],
-          () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-          () => [new PrimitiveLiteral(null),                               `null       `],
-          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+          () => [new AccessScope('foo'), `foo `]
         ],
         <(() => [BindingFlags, string])[]>[
           () => [BindingFlags.fromBind,                                            `fromBind               `],
@@ -417,26 +396,23 @@ describe('Binding', () => {
           () => [BindingFlags.updateTargetInstance | BindingFlags.fromFlushChanges,`updateTarget|fromFlush `]
         ],
         <(() => [IScope, string])[]>[
-          () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
-          () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-          () => [createScopeForTest({foo: {bar: undefined}}),`{foo:{bar:undefined}}`],
-          () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
-          () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+          () => [createScopeForTest({foo: {}}), `{foo:{bar:{}}} `]
         ]
       ],
-      ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
+      ([target, $1], [prop, $2], [newValue, $3], [expr, $4], [flags, $5], [scope, $6]) => {
         const { sut, changeSet, container, observerLocator } = setup(expr, target, prop, BindingMode.fromView);
         const targetObserver = observerLocator.getObserver(target, prop) as IBindingTargetObserver;
 
-        it(`$bind() [from-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, () => {
-          const stub = sinon.stub(observerLocator, 'getAccessor').returns(targetObserver);
+        it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, () => {
+          const stub = sinon.stub(observerLocator, 'getObserver').returns(targetObserver);
 
-          massSpy(targetObserver, 'setValue', 'getValue', 'subscribe', 'unsubscribe', 'addSubscriber', 'removeSubscriber', 'callSubscribers');
-          massSpy(expr, 'evaluate', 'connect');
+          massSpy(targetObserver, 'subscribe');
 
-          massStub(sut,
-            (stub, name) => stub.throws(new Error(`Binding.${name} should not be called`)),
-            'updateTarget', 'updateSource', 'handleChange', 'connect', 'addObserver', 'observeProperty', 'unobserve');
+          ensureNotCalled(expr, 'evaluate', 'connect', 'assign');
+          ensureNotCalled(targetObserver, 'setValue', 'getValue', 'unsubscribe', 'removeSubscriber', 'callSubscribers');
+          ensureNotCalled(sut, 'updateTarget', 'updateSource', 'handleChange', 'connect', 'addObserver', 'observeProperty', 'unobserve');
+
+          const initialVal = target[prop];
 
           sut.$bind(flags, scope);
 
@@ -447,6 +423,38 @@ describe('Binding', () => {
 
           expect(targetObserver.subscribe).to.have.been.calledOnce;
           expect(targetObserver.subscribe).to.have.been.calledWithExactly(sut);
+
+          expect(sut['_observer0']).to.be.undefined;
+          expect(sut['_observer1']).to.be.undefined;
+
+          massReset(targetObserver);
+          massReset(sut);
+          massReset(expr);
+          ensureNotCalled(targetObserver, 'subscribe');
+          massRestore(targetObserver, 'setValue', 'callSubscribers');
+          massSpy(sut, 'handleChange');
+          massSpy(expr, 'evaluate', 'assign');
+
+          flags = BindingFlags.updateSourceExpression;
+          targetObserver.setValue(newValue, flags);
+
+          expect(sut['_observer0']).to.be.undefined;
+          expect(sut['_observer1']).to.be.undefined;
+
+          if (initialVal !== newValue) {
+            expect(sut.handleChange).to.have.been.calledOnce;
+            expect(sut.handleChange).to.have.been.calledWithExactly(newValue, initialVal, flags);
+
+            expect(expr.evaluate).to.have.been.calledOnce;
+            expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
+
+            expect(expr.assign).to.have.been.calledOnce;
+            expect(expr.assign).to.have.been.calledWithExactly(flags, scope, container, newValue);
+          } else {
+            expect(sut.handleChange).not.to.have.been.called;
+            expect(expr.evaluate).not.to.have.been.called;
+            expect(expr.assign).not.to.have.been.called;
+          }
         });
       }
     )

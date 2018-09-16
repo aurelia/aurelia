@@ -418,6 +418,8 @@ describe('Binding', () => {
 
           stub.restore();
 
+          expect(changeSet.size).to.equal(0);
+
           expect(sut.targetObserver).to.be.instanceof(SetterObserver);
           expect(target['$observers'][prop]).to.be.instanceof(SetterObserver);
 
@@ -437,6 +439,8 @@ describe('Binding', () => {
 
           flags = BindingFlags.updateSourceExpression;
           targetObserver.setValue(newValue, flags);
+
+          expect(changeSet.size).to.equal(0);
 
           expect(sut['_observer0']).to.be.undefined;
           expect(sut['_observer1']).to.be.undefined;

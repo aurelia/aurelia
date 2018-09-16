@@ -1,5 +1,4 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { BindingFlags } from '../binding/binding-flags';
 import { INode } from '../dom';
 import { IRenderable, isRenderable } from './renderable';
 
@@ -8,6 +7,12 @@ type LifecycleAttachable = {
   $nextAttached?: LifecycleAttachable;
   attached(): void;
 };
+
+export interface IAttach {
+  readonly $isAttached: boolean;
+  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void;
+  $detach(lifecycle?: DetachLifecycle): void;
+}
 
 export class AttachLifecycle {
   /*@internal*/
@@ -142,16 +147,4 @@ export class DetachLifecycle {
     this.queueNodeRemoval = PLATFORM.noop;
     this.rootRenderable = requestor;
   }
-}
-
-export interface IAttach {
-  readonly $isAttached: boolean;
-  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void;
-  $detach(lifecycle?: DetachLifecycle): void;
-}
-
-export interface IBindSelf {
-  readonly $isBound: boolean;
-  $bind(flags: BindingFlags): void;
-  $unbind(flags: BindingFlags): void;
 }

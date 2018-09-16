@@ -12,7 +12,7 @@ import { BindingFlags } from '../binding/binding-flags';
 import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
-import { AttachLifecycle, DetachLifecycle, IAttach, IBindSelf } from './lifecycle';
+import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
 import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
@@ -21,6 +21,12 @@ import { ITemplate } from './template';
 export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement> { }
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
+
+export interface IBindSelf {
+  readonly $isBound: boolean;
+  $bind(flags: BindingFlags): void;
+  $unbind(flags: BindingFlags): void;
+}
 
 export interface ICustomElement extends IBindSelf, IAttach, Readonly<IRenderable> {
   readonly $projector: IElementProjector;

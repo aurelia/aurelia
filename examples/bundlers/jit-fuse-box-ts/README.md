@@ -1,4 +1,4 @@
-# jit-aurelia-cli-ts
+# jit-fuse-box-ts
 
 ## Getting started
 

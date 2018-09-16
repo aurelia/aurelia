@@ -4,7 +4,7 @@
   "scripts": {
     "watch": "au run --watch",
     "build": "rimraf scripts && au build",
-    "start": "http-server -c-1 -p 9000 ."
+    "serve": "http-server -c-1 -p 9000 ."
   },
   "dependencies": {
     "@aurelia/jit": "dev",

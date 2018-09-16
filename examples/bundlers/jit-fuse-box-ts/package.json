@@ -1,0 +1,21 @@
+{
+  "name": "jit-fuse-box-ts",
+  "version": "0.1.1",
+  "scripts": {
+    "watch": "node fuse dev",
+    "build": "rimraf dist && node fuse prod",
+    "serve": "http-server -c-1 -p 9000 dist"
+  },
+  "dependencies": {
+    "@aurelia/jit": "dev"
+  },
+  "devDependencies": {
+    "@types/node": "^8.10.22",
+    "http-server": "latest",
+    "rimraf": "latest",
+    "typescript": "latest",
+    "fuse-box": "latest",
+    "uglify-es": "latest",
+    "uglify-js": "latest"
+  }
+}

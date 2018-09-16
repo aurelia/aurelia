@@ -288,24 +288,13 @@ workflows:
   # This workflow runs on every commit to any branch (with or without PR)
   build_test:
     jobs:
-      - install:
-          filters:
-            tags:
-              only: /^v.*/
+      - install
       - build:
           requires:
             - install
-          filters:
-            tags:
-              only: /^v.*/
       - unit_tests_chrome:
           requires:
             - install
-          filters:
-            tags:
-              only: /^v.*/
-      # Only run the tests in firefox when on master or release (those are the thorough testing branches)
-      # - todo: move to browserstack and add more browsers
       - unit_tests_firefox:
           requires:
             - install
@@ -314,63 +303,72 @@ workflows:
               only:
                 - master
                 - release
-            tags:
-              only: /^v.*/
-      # This is the "lightweight" browserstack test set (only latest browser / latest OS)
-      # It runs on every commit on every non-release branch
       - e2e_browserstack:
           requires:
             - install
-          filters:
-            branches:
-              ignore: release
-            tags:
-              only: /^v.*/
-      # This is the full browserstack test set (last 3 versions of every browser on multiple OSes + OS versions)
-      # It runs on every commit to release
-      - e2e_browserstack_compat:
-          requires:
-            - install
-          filters:
-            branches:
-              only: release
-      #- e2e_benchmark_vnext:
-      #    requires:
-      #      - build
-      #    filters:
-      #      tags:
-      #        only: /^v.*/
-      # Only run the vCurrent benchmark on commits to master (don't need to refresh data we already have on every commit to every branch)
-      #- e2e_benchmark_vcurrent:
-      #    requires:
-      #      - build
-      #    filters:
-      #      branches:
-      #        only: master
-      # Merge the master branch into release
-      - merge_push_release:
-          requires:
-            - build
-            - unit_tests_chrome
-            - unit_tests_firefox
-            - e2e_browserstack
-            #- e2e_benchmark_vnext
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
       - publish_latest:
           type: approval
           requires:
             - build
             - unit_tests_chrome
             - unit_tests_firefox
-            - e2e_browserstack_compat
-            #- e2e_benchmark_vnext
+            - e2e_browserstack
           filters:
             branches:
               only: release
+
+  # This workflow runs on tag push
+  prepare_release:
+    jobs:
+      - install:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - build:
+          requires:
+            - install
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - unit_tests_chrome:
+          requires:
+            - install
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - unit_tests_firefox:
+          requires:
+            - install
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - e2e_browserstack:
+          requires:
+            - install
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+      - merge_push_release:
+          requires:
+            - build
+            - unit_tests_chrome
+            - unit_tests_firefox
+            - e2e_browserstack
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
 
   # This workflow runs once per day on 0:00 UTC on the master branch
   build_test_deploy_dev:

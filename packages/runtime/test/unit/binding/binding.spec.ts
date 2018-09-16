@@ -21,7 +21,7 @@ export function padRight(str: any, len: number): string {
 const $nil: any = undefined;
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
-describe.only('Binding', () => {
+describe('Binding', () => {
   let dummySourceExpression: IExpression;
   let dummyTarget: IBindingTarget;
   let dummyTargetProperty: string;

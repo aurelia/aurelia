@@ -266,6 +266,7 @@ jobs:
           command: |
             git checkout release
             git merge $CIRCLE_TAG --squash
+            git commit --no-edit
             git push
 
   publish_latest:

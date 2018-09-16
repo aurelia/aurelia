@@ -1,5 +1,4 @@
 export * from './resources';
-export * from './animator';
 export * from './bindable';
 export * from './custom-attribute';
 export * from './custom-element';

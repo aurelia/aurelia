@@ -141,20 +141,20 @@ jobs:
           command: |
             cd ./test/e2e
             npm run e2e
-      - run:
-          name: Generate allure report
-          command: |
-            cd ./test/e2e
-            npm run allure:generate
-          when: always
-      - store_artifacts:
-          path: ./test/e2e/allure-report
-      - run:
-          name: Post the link to allure report in PR comment
-          command: |
-            cd ./test/e2e
-            npm run allure:post
-          when: always
+      #- run:
+      #    name: Generate allure report
+      #    command: |
+      #      cd ./test/e2e
+      #      npm run allure:generate
+      #    when: always
+      #- store_artifacts:
+      #    path: ./test/e2e/allure-report
+      #- run:
+      #    name: Post the link to allure report in PR comment
+      #    command: |
+      #      cd ./test/e2e
+      #      npm run allure:post
+      #    when: always
 
   e2e_browserstack_compat:
     <<: *defaults
@@ -169,14 +169,14 @@ jobs:
           command: |
             cd ./test/e2e
             npm run e2e:compat
-      - run:
-          name: Generate allure report
-          command: |
-            cd ./test/e2e
-            npm run allure:generate
-          when: always
-      - store_artifacts:
-          path: ./test/e2e/allure-report
+      #- run:
+      #    name: Generate allure report
+      #    command: |
+      #      cd ./test/e2e
+      #      npm run allure:generate
+      #    when: always
+      #- store_artifacts:
+      #    path: ./test/e2e/allure-report
 
   e2e_benchmark_vnext:
     <<: *defaults
@@ -321,19 +321,19 @@ workflows:
           filters:
             branches:
               only: release
-      - e2e_benchmark_vnext:
-          requires:
-            - build
-          filters:
-            tags:
-              only: /^v.*/
+      #- e2e_benchmark_vnext:
+      #    requires:
+      #      - build
+      #    filters:
+      #      tags:
+      #        only: /^v.*/
       # Only run the vCurrent benchmark on commits to master (don't need to refresh data we already have on every commit to every branch)
-      - e2e_benchmark_vcurrent:
-          requires:
-            - build
-          filters:
-            branches:
-              only: master
+      #- e2e_benchmark_vcurrent:
+      #    requires:
+      #      - build
+      #    filters:
+      #      branches:
+      #        only: master
       # Merge the master branch into release
       - merge_push_release:
           requires:
@@ -341,7 +341,7 @@ workflows:
             - unit_tests_chrome
             - unit_tests_firefox
             - e2e_browserstack
-            - e2e_benchmark_vnext
+            #- e2e_benchmark_vnext
           filters:
             branches:
               ignore: /.*/
@@ -354,7 +354,7 @@ workflows:
             - unit_tests_chrome
             - unit_tests_firefox
             - e2e_browserstack_compat
-            - e2e_benchmark_vnext
+            #- e2e_benchmark_vnext
           filters:
             branches:
               only: release

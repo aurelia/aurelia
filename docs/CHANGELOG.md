@@ -6,7 +6,6 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 <a name="0.2.0"></a>
 # 0.2.0 (2018-09-16)
 
-
 ### Bug Fixes
 
 * **app:** make $observers non-enumerable ([48bd5b1](https://github.com/aurelia/aurelia/commit/48bd5b1))

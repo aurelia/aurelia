@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/debug",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -31,7 +31,9 @@
     "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadlessOpt --single-run --coverage",
     "test-firefox": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=FirefoxHeadless --single-run --coverage",
     "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadlessOpt --coverage",
+    "test:watch:verbose": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeHeadlessOpt --coverage --reporter=mocha",
     "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeDebugging",
+    "test:debugger:verbose": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug --browsers=ChromeDebugging --reporter=mocha",
     "build": "tsc -b",
     "dev": "tsc -b -w",
     "publish:local": "npm pack"
@@ -40,8 +42,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "^0.1.1",
-    "@aurelia/runtime": "^0.1.1"
+    "@aurelia/kernel": "0.2.0",
+    "@aurelia/runtime": "0.2.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.4",

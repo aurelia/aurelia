@@ -1,4 +1,5 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
+import { INode } from '../dom';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
@@ -46,7 +47,7 @@ export interface IBindingTargetObserver<
 
 export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
 
-export type IObservable = (IIndexable | string | Node | Collection) & {
+export type IObservable = (IIndexable | string | Node | INode | Collection) & {
   $observers?: Record<string, AccessorOrObserver>;
 };
 

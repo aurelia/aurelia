@@ -44,7 +44,12 @@ export function propertyObserver(): ClassDecorator {
     proto.observing = false;
     proto.obj = null;
     proto.propertyKey = null;
-    proto.currentValue = null;
+    // Note: this will generate some "false positive" changes when setting a target undefined from a source undefined,
+    // but those aren't harmful because the changes won't be propagated through to subscribers during $bind anyway.
+    // It will, however, solve some "false negative" changes when the source value is undefined but the target value is not;
+    // in such cases, this.currentValue in the observer being undefined will block the change from propagating to the target.
+    // This is likely not working correctly in vCurrent either.
+    proto.currentValue = Symbol();
 
     proto.subscribe = proto.subscribe || subscribe;
     proto.unsubscribe = proto.unsubscribe || proto.removeSubscriber;

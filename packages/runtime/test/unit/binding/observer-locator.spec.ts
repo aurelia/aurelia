@@ -27,7 +27,7 @@ describe('ObserverLocator', () => {
     `<input model="foo"></input>`,
     `<div xlink:type="foo"></div>`,
   ]) {
-    const el = createElement(markup);
+    const el = <Element>createElement(markup);
     const attr = el.attributes[0];
     const { sut } = setup();
     const expected = sut.getObserver(el, attr.name);
@@ -52,7 +52,7 @@ describe('ObserverLocator', () => {
     `<div aria-a=""></div>`,
   ]) {
     it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, () => {
-      const el = createElement(markup);
+      const el = <Element>createElement(markup);
       const attr = el.attributes[0];
       const { sut } = setup();
       const actual = sut.getAccessor(el, attr.name);
@@ -76,7 +76,7 @@ describe('ObserverLocator', () => {
     `<div ariaa=""></div>`,
   ]) {
     it(_`getAccessor() - ${markup} - returns PropertyAccessor`, () => {
-      const el = createElement(markup);
+      const el = <Element>createElement(markup);
       const attr = el.attributes[0];
       const { sut } = setup();
       const actual = sut.getAccessor(el, attr.name);
@@ -93,7 +93,7 @@ describe('ObserverLocator', () => {
     expect(actual).to.be.instanceof(PropertyAccessor);
   });
 
-  for (const obj of [
+  for (const obj of <any[]>[
     undefined, null, true, false, '', 'foo',
     Number.MAX_VALUE, Number.MAX_SAFE_INTEGER, Number.MIN_VALUE, Number.MIN_SAFE_INTEGER, 0, +Infinity, -Infinity, NaN
   ]) {
@@ -142,7 +142,7 @@ describe('ObserverLocator', () => {
     { markup: `<div aria-a=""></div>`, ctor: DataAttributeAccessor }
   ]) {
     it(_`getObserver() - ${markup} - returns ${ctor.name}`, () => {
-      const el = createElement(markup);
+      const el = <Element>createElement(markup);
       const attr = el.attributes[0];
       const { sut } = setup();
       const actual = sut.getObserver(el, attr.name);
@@ -185,7 +185,7 @@ describe('ObserverLocator', () => {
                     if (hasOverrides) {
                       obj.constructor['computed'] = { isVolatile };
                     }
-                    it(_`getObserver() - descriptor=${descriptor}, hasGetter=${hasGetter}, hasSetter=${hasSetter}, hasOverrides=${hasOverrides}, isVolatile=${isVolatile}, hasAdapterObserver=${hasAdapterObserver}`, () => {
+                    it(_`getObserver() - descriptor=${descriptor}, hasGetter=${hasGetter}, hasSetter=${hasSetter}, hasOverrides=${hasOverrides}, isVolatile=${isVolatile}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, () => {
                       Object.defineProperty(obj, 'foo', descriptor);
                       if (hasSetter && configurable && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
                         expect(() => sut.getObserver(obj, 'foo')).to.throw(/18/);
@@ -219,6 +219,49 @@ describe('ObserverLocator', () => {
               }
             }
           }
+        }
+      }
+    }
+  }
+
+  for (const hasGetObserver of [true, false]) {
+    for (const hasAdapterObserver of [true, false]) {
+      for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
+        const descriptors = {
+          ...Object.getOwnPropertyDescriptors(Node.prototype),
+          ...Object.getOwnPropertyDescriptors(Element.prototype),
+          ...Object.getOwnPropertyDescriptors(HTMLElement.prototype),
+          ...Object.getOwnPropertyDescriptors(HTMLDivElement.prototype)
+        };
+        for (const property of Object.keys(descriptors)) {
+          const { sut } = setup();
+          const obj = document.createElement('div');
+          const dummyObserver = <any>{};
+          if (hasAdapterObserver) {
+            if (adapterIsDefined) {
+              sut.addAdapter({getObserver() { return dummyObserver }});
+            } else {
+              sut.addAdapter({getObserver() { return null }});
+            }
+          }
+          it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, () => {
+            const actual = sut.getObserver(obj, property);
+            if (property === 'textContent' || property === 'innerHTML' || property === 'scrollTop' || property === 'scrollLeft') {
+              expect(actual.constructor.name).to.equal(ValueAttributeObserver.name);
+            } else if (property === 'style' || property === 'css') {
+              expect(actual.constructor.name).to.equal(StyleAttributeAccessor.name);
+            } else if (descriptors[property].get === undefined) {
+              expect(actual.constructor.name).to.equal(SetterObserver.name);
+            } else {
+              if (!(hasAdapterObserver && adapterIsDefined)) {
+                expect(actual.constructor.name).to.equal(DirtyCheckProperty.name);
+              } else if ((!hasGetObserver && hasAdapterObserver && adapterIsDefined) || hasGetObserver) {
+                expect(actual).to.equal(dummyObserver);
+              } else {
+                expect(actual.constructor.name).to.equal(DirtyCheckProperty.name);
+              }
+            }
+          });
         }
       }
     }

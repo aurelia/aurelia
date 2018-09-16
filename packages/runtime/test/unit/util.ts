@@ -1,7 +1,8 @@
 import { spy } from 'sinon';
 import { IContainer } from '../../../kernel/src/index';
 import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource, ICustomElement, ITemplateSource, TargetedInstructionType, IExpressionParser, AccessMember, AccessScope, Repeat } from '../../src/index';
-import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight } from '../../../../scripts/test-lib';
+import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
+
 
 /**
  * Object describing a test fixture
@@ -166,7 +167,7 @@ export function createRepeater(fixture: IRepeaterFixture, initialItems: any[], s
   const Type = CustomElementResource.define(src, class {});
   const component = new Type();
   component[fixture.colName] = initialItems;
-  return component;
+  return component as ICustomElement;
 }
 
 export class SpySubscriber {
@@ -282,4 +283,4 @@ export const globalAttributeNames = [
 ];
 
 
-export { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight };
+export { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };

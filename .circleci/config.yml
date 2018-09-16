@@ -288,7 +288,10 @@ workflows:
   # This workflow runs on every commit to any branch (with or without PR)
   build_test:
     jobs:
-      - install
+      - install:
+          filters:
+            tags:
+              only: /^v.*/
       - build:
           requires:
             - install

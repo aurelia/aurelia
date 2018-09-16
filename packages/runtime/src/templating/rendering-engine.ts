@@ -1,5 +1,4 @@
 import { all, DI, IContainer, Immutable, inject, PLATFORM, Reporter } from '@aurelia/kernel';
-import { IChangeSet } from '../binding/change-set';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
 import { IObserverLocator } from '../binding/observer-locator';
@@ -40,7 +39,7 @@ const noViewTemplate: ITemplate = {
 
 const defaultCompilerName = 'default';
 
-@inject(IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
+@inject(IContainer, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
   private templateLookup = new Map<TemplateDefinition, ITemplate>();
@@ -50,7 +49,6 @@ export class RenderingEngine implements IRenderingEngine {
 
   constructor(
     private container: IContainer,
-    private changeSet: IChangeSet,
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
     private parser: IExpressionParser,
@@ -110,7 +108,7 @@ export class RenderingEngine implements IRenderingEngine {
       this.behaviorLookup.set(type, found);
     }
 
-    found.applyTo(instance, this.changeSet);
+    found.applyTo(instance);
   }
 
   public createRenderer(context: IRenderContext): IRenderer {

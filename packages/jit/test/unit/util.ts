@@ -1,6 +1,5 @@
-import { _, stringify, jsonStringify, htmlStringify, createElement, verifyEqual } from '../../../../scripts/test-lib';
-
-export { _, stringify, jsonStringify, htmlStringify, createElement, verifyEqual };
+import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
+import { expect } from 'chai';
 
 const emptyArray = [];
 
@@ -41,3 +40,36 @@ export function h<T extends keyof HTMLElementTagNameMap, TChildren extends (stri
 function isNodeOrTextOrComment(obj: any): obj is Text | Comment | Node {
   return obj instanceof Node || obj instanceof Text || obj instanceof Comment;
 }
+export function verifyBindingInstructionsEqual(actual: any, expected: any, path?: string): any {
+  if (path === undefined) {
+    path = 'instruction';
+  }
+  if (typeof expected !== 'object' || expected === null || expected === undefined || typeof actual !== 'object' || actual === null || actual === undefined) {
+    expect(actual).to.equal(expected, path);
+    return;
+  }
+  if (expected instanceof Array) {
+    for (let i = 0, ii = Math.max(expected.length, actual.length); i < ii; ++i) {
+      verifyBindingInstructionsEqual(actual[i], expected[i], `${path}[${i}]`);
+    }
+    return;
+  }
+  if (expected instanceof Node) {
+    if (expected.nodeType === 11) {
+      for (let i = 0, ii = Math.max(expected.childNodes.length, actual.childNodes.length); i < ii; ++i) {
+        verifyBindingInstructionsEqual(actual.childNodes.item(i), expected.childNodes.item(i), `${path}.childNodes[${i}]`);
+      }
+    } else {
+      expect(actual.outerHTML).to.equal((<any>expected).outerHTML, `${path}.outerHTML`);
+    }
+    return;
+  }
+
+  if (actual) {
+    for (const prop of (new Set(Object.keys(expected).concat(Object.keys(actual)))).keys()) {
+      verifyBindingInstructionsEqual(actual[prop], expected[prop], `${path}.${prop}`);
+    }
+  }
+}
+
+export { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };

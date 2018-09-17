@@ -111,14 +111,14 @@ export function inspectAttribute(name: string, resources: IResourceDescriptions)
         targetName = name.slice(0, i);
       }
       const commandName = name.slice(i + 1);
-      bindingCommand = resources.create(BindingCommandResource, commandName) || null;
+      bindingCommand = resources.create(BindingCommandResource, commandName);
       if (bindingCommand !== null) {
         // keep looping until the part after any dot (doesn't have to be the first/last) is a bindingCommand
         break;
       }
     }
   }
-  const attributeDefinition = resources.find(CustomAttributeResource, targetName) || null;
+  const attributeDefinition = resources.find(CustomAttributeResource, targetName);
 
   attributeInspectionBuffer[0] = targetName;
   attributeInspectionBuffer[1] = attributeDefinition;
@@ -247,7 +247,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // of the hydrate instruction, otherwise they are added directly to instructions as a single array
     const attributeInstructions: TargetedInstruction[] = [];
     const tagResourceKey = (node.getAttribute('as-element') || tagName).toLowerCase();
-    const element = resources.find(CustomElementResource, tagResourceKey) || null;
+    const element = resources.find(CustomElementResource, tagResourceKey);
     const attributes = node.attributes;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const attr = attributes.item(i);

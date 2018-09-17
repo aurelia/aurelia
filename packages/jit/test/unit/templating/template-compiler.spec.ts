@@ -1,4 +1,5 @@
-import { DI, IContainer } from '../../../../kernel/src/index';
+import { ForOfStatement, BindingIdentifier, IExpression, CallScope } from './../../../../runtime/src/binding/ast';
+import { DI, IContainer, IRegistry } from '../../../../kernel/src/index';
 import {
   IExpressionParser,
   IResourceDescriptions,
@@ -9,22 +10,34 @@ import {
   RuntimeCompilationResources,
   BindingMode,
   customElement,
-  TargetedInstructionType,
+  TargetedInstructionType as TT,
   bindable,
   customAttribute,
   ViewCompileFlags,
   ILetElementInstruction,
   ITemplateSource,
   IHydrateTemplateController,
-  IHydrateElementInstruction
+  IHydrateElementInstruction,
+  ITargetedInstruction,
+  TargetedInstructionType
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
   register,
   HydrateTemplateController,
-  BasicConfiguration} from '../../../src/index';
+  BasicConfiguration,
+  RefBindingInstruction,
+  ToViewBindingInstruction,
+  FromViewBindingInstruction,
+  TwoWayBindingInstruction,
+  OneTimeBindingInstruction,
+  SetPropertyInstruction,
+  TriggerBindingInstruction,
+  DelegateBindingInstruction,
+  CaptureBindingInstruction,
+  CallBindingInstruction} from '../../../src/index';
 import { expect } from 'chai';
-import { verifyEqual, createElement } from '../util';
+import { verifyEqual, createElement, eachCartesianJoin, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from '../util';
 import { spy } from 'sinon';
 
 
@@ -724,7 +737,7 @@ describe('TemplateCompiler', () => {
           );
           verifyInstructions(instructions as any, []);
           verifyInstructions(surrogates as any, [
-            { toVerify: ['type', 'value', 'dest'], type: TargetedInstructionType.setAttribute, value: 'h-100', dest: 'class' }
+            { toVerify: ['type', 'value', 'dest'], type: TT.setAttribute, value: 'h-100', dest: 'class' }
           ]);
         });
 
@@ -761,10 +774,10 @@ describe('TemplateCompiler', () => {
         expect(actual.instructions[0].length).to.equal(1);
         const rootInstructions = actual.instructions[0][0]['instructions'] as any[];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.propertyBinding, dest: 'prop1' },
-          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.propertyBinding, dest: 'prop2' },
-          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.hydrateAttribute, res: 'prop3' },
-          { toVerify: ['type', 'res', 'dest'], type: TargetedInstructionType.hydrateAttribute, res: 'prop3' }
+          { toVerify: ['type', 'res', 'dest'], type: TT.propertyBinding, dest: 'prop1' },
+          { toVerify: ['type', 'res', 'dest'], type: TT.propertyBinding, dest: 'prop2' },
+          { toVerify: ['type', 'res', 'dest'], type: TT.hydrateAttribute, res: 'prop3' },
+          { toVerify: ['type', 'res', 'dest'], type: TT.hydrateAttribute, res: 'prop3' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
       });
@@ -785,13 +798,13 @@ describe('TemplateCompiler', () => {
         );
         const rootInstructions = actual.instructions[0] as any[];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res'], type: TargetedInstructionType.hydrateElement, res: 'el' }
+          { toVerify: ['type', 'res'], type: TT.hydrateElement, res: 'el' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'dest', 'value'], type: TargetedInstructionType.setProperty, dest: 'name', value: 'name' },
-          { toVerify: ['type', 'dest', 'value'], type: TargetedInstructionType.setProperty, dest: 'name2', value: 'label' },
+          { toVerify: ['type', 'dest', 'value'], type: TT.setProperty, dest: 'name', value: 'name' },
+          { toVerify: ['type', 'dest', 'value'], type: TT.setProperty, dest: 'name2', value: 'label' },
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -813,7 +826,7 @@ describe('TemplateCompiler', () => {
         const rootInstructions = actual.instructions[0] as any[];
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'value', 'dest'], type: TargetedInstructionType.setProperty, value: 'label', dest: 'backgroundColor' },
+          { toVerify: ['type', 'value', 'dest'], type: TT.setProperty, value: 'label', dest: 'backgroundColor' },
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -848,7 +861,7 @@ describe('TemplateCompiler', () => {
           { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.fromView, dest: 'prop4' },
           { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.twoWay, dest: 'propProp5' },
         ].map((e: any) => {
-          e.type = TargetedInstructionType.propertyBinding;
+          e.type = TT.propertyBinding;
           return e;
         });
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
@@ -888,11 +901,11 @@ describe('TemplateCompiler', () => {
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.instructions as any, [
             { toVerify: ['type', 'dest', 'srcOrExpr'],
-              type: TargetedInstructionType.propertyBinding, dest: 'value', srcOrExpr: new AccessScope('p') },
+              type: TT.propertyBinding, dest: 'value', srcOrExpr: new AccessScope('p') },
             { toVerify: ['type', 'dest', 'srcOrExpr'],
-              type: TargetedInstructionType.propertyBinding, dest: 'name', srcOrExpr: new AccessScope('name') },
+              type: TT.propertyBinding, dest: 'name', srcOrExpr: new AccessScope('name') },
             { toVerify: ['type', 'dest', 'srcOrExpr'],
-              type: TargetedInstructionType.propertyBinding, dest: 'title', srcOrExpr: new AccessScope('title') },
+              type: TT.propertyBinding, dest: 'title', srcOrExpr: new AccessScope('title') },
           ]);
         });
 
@@ -903,7 +916,7 @@ describe('TemplateCompiler', () => {
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>', [NotDiv]);
             verifyInstructions(instructions[0] as any, [
               { toVerify: ['type', 'res'],
-                type: TargetedInstructionType.hydrateElement, res: 'not-div' }
+                type: TT.hydrateElement, res: 'not-div' }
             ]);
           });
 
@@ -962,7 +975,7 @@ describe('TemplateCompiler', () => {
             [Let]
           );
           verifyInstructions(instructions[0] as any, [
-            { toVerify: ['type'], type: TargetedInstructionType.letElement }
+            { toVerify: ['type'], type: TT.letElement }
           ]);
         });
 
@@ -970,9 +983,9 @@ describe('TemplateCompiler', () => {
           const { instructions } = compileWith(`<let a.bind="b" c="\${d}"></let>`);
           verifyInstructions((instructions[0][0] as any).instructions, [
             { toVerify: ['type', 'dest', 'srcOrExp'],
-              type: TargetedInstructionType.letBinding, dest: 'a', srcOrExpr: 'b' },
+              type: TT.letBinding, dest: 'a', srcOrExpr: 'b' },
             { toVerify: ['type', 'dest'],
-              type: TargetedInstructionType.letBinding, dest: 'c' }
+              type: TT.letBinding, dest: 'c' }
           ]);
         });
 
@@ -985,11 +998,11 @@ describe('TemplateCompiler', () => {
           it('ignores [to-view-model] order', () => {
             let instructions = compileWith(`<template><let a.bind="a" to-view-model></let></template>`).instructions[0] as any;
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toViewModel'], type: TargetedInstructionType.letElement, toViewModel: true }
+              { toVerify: ['type', 'toViewModel'], type: TT.letElement, toViewModel: true }
             ]);
             instructions = compileWith(`<template><let to-view-model a.bind="a"></let></template>`).instructions[0] as any;
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toViewModel'], type: TargetedInstructionType.letElement, toViewModel: true }
+              { toVerify: ['type', 'toViewModel'], type: TT.letElement, toViewModel: true }
             ]);
           });
         });
@@ -1027,4 +1040,111 @@ describe('TemplateCompiler', () => {
       }
     }
   });
+});
+
+type AttrTestData = [string, string, any];
+type ExprTestData = [string, string, IExpression];
+type ElTestData = [string];
+
+
+describe.only(`TemplateCompiler`, () => {
+  function setup(...globals: IRegistry[]) {
+    const container = DI.createContainer();
+    container.register(BasicConfiguration, ...globals);
+    const expressionParser = container.get<IExpressionParser>(IExpressionParser);
+    const sut = new TemplateCompiler(expressionParser as any);
+    const resources = new RuntimeCompilationResources(<any>container);
+    return { container, expressionParser, sut, resources }
+  }
+
+  eachCartesianJoinFactory([
+    <(() => ElTestData)[]>[
+      () => ['div'],
+      () => ['input']
+    ],
+    <(($1: ElTestData) => ExprTestData)[]>[
+      ($1) => ['foo', 'bar', new AccessScope('bar')],
+      ($1) => ['value', 'value', new AccessScope('value')]
+    ],
+    <(($1: ElTestData, $2: ExprTestData) => AttrTestData)[]>[
+      ($1, [dest, value, srcOrExpr]) => [`ref`,               value, { type: TT.refBinding,      srcOrExpr }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.bind`,      value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.to-view`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.one-time`,  value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime,  oneTime: true }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.from-view`, value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView, oneTime: false }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.two-way`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay,   oneTime: false }]
+    ]
+  ], ([el], $2, [n1, v1, i1]) => {
+    const input = { templateOrNode: `<${el} ${n1}="${v1}"></${el}>`, instructions: [], surrogates: [] };
+    const expected = { templateOrNode: createElement(`<${el} ${n1}="${v1}" class="au"></${el}>`), instructions: [[i1]], surrogates: [] };
+
+    it(`${input.templateOrNode}`, () => {
+      const { sut, resources } = setup();
+
+      const actual = sut.compile(<any>input, resources);
+
+      verifyBindingInstructionsEqual(actual, expected);
+    });
+  });
+
+  eachCartesianJoinFactory([
+    <(() => ElTestData)[]>[
+      () => ['div'],
+      () => ['input']
+    ],
+    <(($1: ElTestData) => ExprTestData)[]>[
+      ($1) => ['foo', 'bar()', new CallScope('bar', [])],
+      ($1) => ['value', 'value()', new CallScope('value', [])]
+    ],
+    <(($1: ElTestData, $2: ExprTestData) => AttrTestData)[]>[
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.trigger`,   value, { type: TT.listenerBinding, srcOrExpr, dest }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.delegate`,  value, { type: TT.listenerBinding, srcOrExpr, dest }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.capture`,   value, { type: TT.listenerBinding, srcOrExpr, dest }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.call`,      value, { type: TT.callBinding,     srcOrExpr, dest }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.${dest}.trigger`,   value, { type: TT.listenerBinding, srcOrExpr, dest }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.${dest}.delegate`,  value, { type: TT.listenerBinding, srcOrExpr, dest }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.${dest}.capture`,   value, { type: TT.listenerBinding, srcOrExpr, dest }],
+      ($1, [dest, value, srcOrExpr]) => [`${dest}.${dest}.call`,      value, { type: TT.callBinding,     srcOrExpr, dest }]
+    ]
+  ], ([el], $2, [n1, v1, i1]) => {
+    const input = { templateOrNode: `<${el} ${n1}="${v1}"></${el}>`, instructions: [], surrogates: [] };
+    const expected = { templateOrNode: createElement(`<${el} ${n1}="${v1}" class="au"></${el}>`), instructions: [[i1]], surrogates: [] };
+
+    it(`${input.templateOrNode}`, () => {
+      const { sut, resources } = setup();
+
+      const actual = sut.compile(<any>input, resources);
+
+      verifyBindingInstructionsEqual(actual, expected);
+    });
+  });
+
+  // eachCartesianJoinFactory([
+  //   <(() => string)[]>[
+  //     () => 'div',
+  //     () => 'name-tag'
+  //   ],
+  //   <((el: string) => AttrTestData)[]>[
+  //     (el) => ['ref', 'foo', new RefBindingInstruction(<any>new AccessScope('foo'))],
+  //     (el) => ['foo.bind', 'bar', new ToViewBindingInstruction(<any>new AccessScope('bar'), 'foo')]
+  //   ],
+  //   <((el: string, args1: AttrTestData) => ITemplateSource)[]>[
+  //     (el, [n1, v1, i1]) => ({ templateOrNode: createElement(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`), instructions: [[i1]] })
+  //   ],
+  //   <((el: string, args1: AttrTestData, src1: ITemplateSource) => AttrTestData)[]>[
+  //     (el, [n1, v1, i1], src1) => ['repeat.for', 'item of items', new HydrateTemplateController(<any>src1, 'repeat', [new ToViewBindingInstruction(<any>new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), 'items'), new SetPropertyInstruction('item', 'local'), i1])],
+  //     (el, [n1, v1, i1], src1) => ['if.bind', 'show', new HydrateTemplateController(<any>src1, 'if', [new ToViewBindingInstruction(<any>new AccessScope('show'), 'value'), i1], false)]
+  //   ]
+  // ], (el, [n1, v1, i1], src1, [n2, v2, i2]) => {
+  //   const input = { templateOrNode: `<${el} ${n1}="${v1}" ${n2}="${v2}" class="au"></${el}>`, instructions: [], surrogates: [] };
+  //   const expected =  { name: i2.res === 'if' ? 'if' : undefined, templateOrNode: createElement(`<${el} ${n1}="${v1}" class="au"></${el}>`), instructions: [[i2]], surrogates: [] };
+
+  //   it(`${input.templateOrNode}`, () => {
+  //     const { sut, resources } = setup();
+
+  //     const actual = sut.compile(<any>input, resources);
+
+  //     verifyBindingInstructionsEqual(actual, expected);
+  //   });
+  // });
 });

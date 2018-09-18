@@ -9,7 +9,7 @@
     "lib": ["esnext", "dom"],
     "module": "umd",
     "moduleResolution": "node",
-    "sourceMap": false,
+    "sourceMap": true,
     "stripInternal": true,
     "target": "es2018"
   }

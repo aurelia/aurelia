@@ -1,21 +1,23 @@
 import { inject, PLATFORM } from '@aurelia/kernel';
 import {
+  AttributeDefinition,
   BindingMode,
   BindingType,
   CustomAttributeResource,
   CustomElementResource,
   DelegationStrategy,
   DOM,
+  ElementDefinition,
   ICallBindingInstruction,
   IExpression,
   IExpressionParser,
   IHydrateAttributeInstruction,
+
   IHydrateElementInstruction,
   IHydrateTemplateController,
 
   ILetBindingInstruction,
   ILetElementInstruction,
-
   IListenerBindingInstruction,
   INode,
   IPropertyBindingInstruction,
@@ -25,17 +27,14 @@ import {
   IStylePropertyBindingInstruction,
   ITargetedInstruction,
   ITemplateCompiler,
+
   ITemplateSource,
   ITextBindingInstruction,
-
-  PrimitiveLiteral,
   TargetedInstruction,
+
   TargetedInstructionType,
   TemplateDefinition,
-
   ViewCompileFlags,
-  AttributeDefinition,
-  ElementDefinition,
 } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
@@ -62,41 +61,55 @@ const enum NodeType {
   Notation = 12
 }
 
+const trgBuffer: [string, BindingMode] = <any>Array(2);
+
 /*@internal*/
-export function resolveTarget(target: string, element: ElementDefinition, attribute: AttributeDefinition): string {
+export function resolveTarget(target: string, element: ElementDefinition, attribute: AttributeDefinition): [string, BindingMode] {
   // give custom attributes priority over custom element properties (is this correct? should we throw if there's a conflict?)
-  if (attribute !== null) {
+  if (attribute) {
+    const propertyName = PLATFORM.camelCase(target);
     // only consider semicolon-separated bindings for normal custom attributes, not template controllers
     if (attribute.isTemplateController === false) {
       // users must not have a semicolon-separated binding with the same name as the attribute; behavior would be unpredictable
-      if (target !== attribute.name) {
-        const propertyName = PLATFORM.camelCase(target);
-        const bindable = attribute.bindables[propertyName]
-        if (bindable !== null) {
-          return bindable.property || propertyName;
+      if (propertyName !== attribute.name) {
+        const bindable = attribute.bindables[propertyName];
+        if (bindable) {
+          trgBuffer[0] = bindable.property || propertyName;
+          trgBuffer[1] = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : (attribute.defaultBindingMode || BindingMode.toView);
+        } else {
+          trgBuffer[0] = propertyName;
+          trgBuffer[1] = attribute.defaultBindingMode || BindingMode.toView;
         }
-        return target;
+        return trgBuffer;
       }
     }
-    const bindableNames = Object.keys(attribute.bindables);
-    if (bindableNames.length) {
+    for (const prop in attribute.bindables) {
       // return the first by convention (usually there should only be one)
-      return bindableNames[0];
+      const bindable = attribute.bindables[prop];
+      trgBuffer[0] = bindable.property;
+      trgBuffer[1] = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : (attribute.defaultBindingMode || BindingMode.toView);
+      return trgBuffer;
     }
     // if there are no bindables declared, default to 'value'
-    return 'value';
+    trgBuffer[0] = 'value';
+    trgBuffer[1] = attribute.defaultBindingMode || BindingMode.toView;
+    return trgBuffer;
   }
-  if (element !== null) {
+  if (element) {
     const propertyName = PLATFORM.camelCase(target);
     const bindable = element.bindables[propertyName];
     if (bindable) {
-      return bindable.property || propertyName;
+      trgBuffer[0] = bindable.property || propertyName;
+      trgBuffer[1] = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : BindingMode.toView;
+      return trgBuffer;
     }
   }
-  return target;
+  trgBuffer[0] = target;
+  trgBuffer[1] = BindingMode.toView;
+  return trgBuffer;
 }
 
-const attributeInspectionBuffer: [string, AttributeDefinition, IBindingCommand | null] = <any>Array(3);
+const attrBuffer: [string, AttributeDefinition, IBindingCommand | null] = <any>Array(3);
 
 /*@internal*/
 export function inspectAttribute(name: string, resources: IResourceDescriptions):
@@ -118,12 +131,12 @@ export function inspectAttribute(name: string, resources: IResourceDescriptions)
       }
     }
   }
-  const attributeDefinition = resources.find(CustomAttributeResource, targetName);
+  const attributeDefinition = resources.find(CustomAttributeResource, PLATFORM.camelCase(targetName));
 
-  attributeInspectionBuffer[0] = targetName;
-  attributeInspectionBuffer[1] = attributeDefinition;
-  attributeInspectionBuffer[2] = bindingCommand;
-  return attributeInspectionBuffer;
+  attrBuffer[0] = targetName;
+  attrBuffer[1] = attributeDefinition;
+  attrBuffer[2] = bindingCommand;
+  return attrBuffer;
 }
 
 @inject(IExpressionParser)
@@ -196,7 +209,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const attr = attributes.item(i);
       const { name, value } = attr;
-      const [target, attribute, command] = inspectAttribute(name, resources);
+      const inspected = inspectAttribute(name, resources);
+      const target = inspected[0];
+      const attribute = inspected[1];
+      const command = inspected[2];
       if (attribute && attribute.isTemplateController) {
         throw new Error('Cannot have template controller on surrogate element.');
       }
@@ -255,7 +271,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (name === 'as-element') {
         continue;
       }
-      const [target, attribute, command] = inspectAttribute(name, resources);
+      const inspected = inspectAttribute(name, resources);
+      const target = inspected[0];
+      const attribute = inspected[1];
+      const command = inspected[2];
 
       if (attribute !== null) {
         if (attribute.isTemplateController) {
@@ -288,7 +307,9 @@ export class TemplateCompiler implements ITemplateCompiler {
             for (let i = 0, ii = bindings.length; i < ii; ++i) {
               const binding = bindings[i];
               const parts = binding.split(':');
-              const [childTarget, , childCommand] = inspectAttribute(parts[0].trim(), resources);
+              const inspected = inspectAttribute(parts[0].trim(), resources);
+              const childTarget = inspected[0];
+              const childCommand = inspected[2];
               childInstructions.push(this.compileAttribute(childTarget, parts[1].trim(), node, attribute, element, childCommand));
             }
           } else {
@@ -330,8 +351,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     for (let i = 0, ii = attributes.length; ii > i; ++i) {
       const attr = attributes.item(i);
       const { name, value } = attr;
-      // tslint:disable-next-line:prefer-const
-      let [target, , command] = inspectAttribute(name, resources);
+      const inspected = inspectAttribute(name, resources);
+      let target = inspected[0];
+      const command = inspected[2];
       target = PLATFORM.camelCase(target);
       let letInstruction: LetBindingInstruction;
 
@@ -378,7 +400,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     command: IBindingCommand | null): TargetedInstruction {
       // binding commands get priority over all; they may override default behaviors
       // it is the responsibility of the implementor to ensure they filter out stuff they shouldn't override
-      if (command !== null && command.handles(attribute)) {
+      if (command && command.handles(attribute)) {
         return command.compile(target, value, node, attribute, element);
       }
       // simple path for ref binding
@@ -395,28 +417,27 @@ export class TemplateCompiler implements ITemplateCompiler {
       //   return new StylePropertyBindingInstruction(expression, target);
       // }
       // plain custom attribute on any kind of element
-      if (attribute !== null) {
-        target = resolveTarget(target, element, attribute);
+      if (attribute) {
+        const resolved = resolveTarget(target, element, attribute);
+        target = resolved[0];
+        const mode = resolved[1];
         value = value && value.length ? value : '""';
         const expression = parser.parse(value, BindingType.Interpolation) || parser.parse(value, BindingType.ToViewCommand);
-        if (attribute.defaultBindingMode) {
-          switch (attribute.defaultBindingMode) {
-            case BindingMode.oneTime:
-              return new OneTimeBindingInstruction(expression, target);
-            case BindingMode.fromView:
-              return new FromViewBindingInstruction(expression, target);
-            case BindingMode.twoWay:
-              return new TwoWayBindingInstruction(expression, target);
-            case BindingMode.toView:
-            default:
-              return new ToViewBindingInstruction(expression, target);
-          }
+        switch (mode) {
+          case BindingMode.oneTime:
+            return new OneTimeBindingInstruction(expression, target);
+          case BindingMode.fromView:
+            return new FromViewBindingInstruction(expression, target);
+          case BindingMode.twoWay:
+            return new TwoWayBindingInstruction(expression, target);
+          case BindingMode.toView:
+          default:
+            return new ToViewBindingInstruction(expression, target);
         }
-        return new ToViewBindingInstruction(expression, target);
       }
       // plain attribute on a custom element
-      if (element !== null) {
-        target = resolveTarget(target, element, attribute);
+      if (element) {
+        target = resolveTarget(target, element, attribute)[0];
         const expression = parser.parse(value, BindingType.Interpolation);
         if (expression === null) {
           // no interpolation -> make it a setProperty on the component

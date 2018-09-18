@@ -1,7 +1,7 @@
+import { ExpressionParser } from './../../../../runtime/src/binding/expression-parser';
 import { Constructable } from './../../../../kernel/src/interfaces';
-import { ICustomAttributeSource } from './../../../../runtime/src/templating/custom-attribute';
 import { ForOfStatement, BindingIdentifier, IExpression, CallScope, PrimitiveLiteral } from './../../../../runtime/src/binding/ast';
-import { DI, IContainer, IRegistry, PLATFORM } from '../../../../kernel/src/index';
+import { DI, IContainer, IRegistry, PLATFORM, Registration } from '../../../../kernel/src/index';
 import {
   IExpressionParser,
   IResourceDescriptions,
@@ -723,7 +723,7 @@ describe('TemplateCompiler', () => {
   });
 });
 
-describe(`TemplateCompiler`, () => {
+describe(`TemplateCompiler - combinations`, () => {
   function setup(...globals: IRegistry[]) {
     const container = DI.createContainer();
     container.register(BasicConfiguration, ...globals);
@@ -817,6 +817,136 @@ describe(`TemplateCompiler`, () => {
       const actual = sut.compile(<any>input, resources);
 
       verifyBindingInstructionsEqual(actual, expected);
+    });
+  });
+
+  function createTplCtrlAttributeInstruction(attr: string, value: string) {
+    if (attr === 'repeat.for') {
+      return [{
+        type: TT.propertyBinding,
+        srcOrExpr: new ForOfStatement(
+          new BindingIdentifier(value.split(' of ')[0]),
+          new AccessScope(value.split(' of ')[1])),
+        dest: 'items',
+        mode: BindingMode.toView,
+        oneTime: false
+      }, {
+        type: TT.setProperty,
+        value: 'item',
+        dest: 'local'
+      }];
+    } else {
+      return [{
+        type: TT.propertyBinding,
+        srcOrExpr: value.length === 0 ? new PrimitiveLiteral('') : new AccessScope(value),
+        dest: 'value',
+        mode: BindingMode.toView,
+        oneTime: false
+      }];
+    }
+  }
+
+  function createTemplateController(attr: string, target: string, value: string, markupOpen: string, markupClose: string, finalize: boolean, childInstr?, childTpl?) {
+    // multiple template controllers per element
+    if (markupOpen === null && markupClose === null) {
+      const instruction = {
+        type: TT.hydrateTemplateController,
+        res: target,
+        src: {
+          name: target,
+          templateOrNode: createElement(`<template><au-marker class="au"></au-marker></template>`),
+          instructions: [[childInstr]]
+        },
+        instructions: createTplCtrlAttributeInstruction(attr, value),
+        link: attr === 'else'
+      };
+      const rawMarkup = childTpl.replace('<div', `<div ${attr}="${value||''}"`);
+      const input = {
+        templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+        instructions: []
+      }
+      const output = {
+        templateOrNode: createElement(`<div><au-marker class="au"></au-marker></div>`),
+        instructions: [[instruction]]
+      }
+      return [input, output];
+    } else {
+      let compiledMarkup;
+      let instructions;
+      if (childInstr === undefined) {
+        compiledMarkup = `${markupOpen}${markupClose}`;
+        instructions = []
+      } else {
+        compiledMarkup = `${markupOpen}<au-marker class="au"></au-marker>${markupClose}`;
+        instructions = [[childInstr]]
+      }
+      const instruction = {
+        type: TT.hydrateTemplateController,
+        res: target,
+        src: {
+          name: target,
+          templateOrNode: createElement(`<template>${compiledMarkup}</template>`),
+          instructions
+        },
+        instructions: createTplCtrlAttributeInstruction(attr, value),
+        link: attr === 'else'
+      };
+      const rawMarkup = `${markupOpen.slice(0, -1)} ${attr}="${value||''}">${childTpl||''}${markupClose}`;
+      const input = {
+        templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+        instructions: []
+      }
+      const output = {
+        templateOrNode: createElement(`<div><au-marker class="au"></au-marker></div>`),
+        instructions: [[instruction]]
+      }
+      return [input, output];
+    }
+  }
+
+  type CTCResult = [ITemplateSource, ITemplateSource];
+
+  eachCartesianJoinFactory([
+    <(() => CTCResult)[]>[
+      () => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false),
+      () => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false),
+      () => createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false),
+      () => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)
+    ],
+    <(($1: CTCResult) => CTCResult)[]>[
+      ([input, output]) => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
+      ([input, output]) => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
+      ([input, output]) => createTemplateController('bar',        'bar',    '',              null,     null,    false, output.instructions[0][0], input.templateOrNode),
+      ([input, output]) => createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
+      ([input, output]) => createTemplateController('else',       'else',   '',              null,     null,    false, output.instructions[0][0], input.templateOrNode),
+      ([input, output]) => createTemplateController('else',       'else',   '',              '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
+      ([input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
+      ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           '<div>', '<div>',  false, output.instructions[0][0], input.templateOrNode),
+      ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           null,    null,     false, output.instructions[0][0], input.templateOrNode)
+    ],
+    <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
+      ($1, [input, output]) => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode),
+      ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode),
+      ($1, [input, output]) => createTemplateController('baz',        'baz',    '',              null,     null,    true, output.instructions[0][0], input.templateOrNode),
+      ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode)
+    ]
+  ], ($1, $2, [input, output]) => {
+
+    it(`${input.templateOrNode}`, () => {
+
+      const { sut, resources } = setup(
+        <any>CustomAttributeResource.define({ name: 'foo', isTemplateController: true }, class Foo{}),
+        <any>CustomAttributeResource.define({ name: 'bar', isTemplateController: true }, class Bar{}),
+        <any>CustomAttributeResource.define({ name: 'baz', isTemplateController: true }, class Baz{})
+      );
+
+      const actual = sut.compile(<any>input, resources);
+      try {
+        verifyBindingInstructionsEqual(actual, output);
+      } catch(err) {
+        console.log(JSON.stringify(output.instructions[0][0], null, 2));
+        throw err;
+      }
     });
   });
 });

@@ -178,13 +178,15 @@ export class ForBindingCommand implements IBindingCommand {
   constructor(private parser: IExpressionParser) {}
   public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
     const src: ITemplateSource = {
+      name: 'repeat',
       templateOrNode: node,
       instructions: []
     };
     return new HydrateTemplateController(src, 'repeat', [
       new ToViewBindingInstruction(this.parser.parse(value, BindingType.ForCommand), 'items'),
       new SetPropertyInstruction('item', 'local')
-    ]);
+    // tslint:disable-next-line:align
+    ], false);
   }
 
   public handles(attributeDefinition: Immutable<Required<ICustomAttributeSource>>): boolean {

@@ -59,7 +59,7 @@ export class OneTimeBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new OneTimeBindingInstruction(this.parser.parse(value, BindingType.OneTimeCommand), resolveTarget(target, element, attribute)[0]);
+    return new OneTimeBindingInstruction(this.parser.parse(value, BindingType.OneTimeCommand), resolveTarget(target, element, attribute).target);
   }
 }
 
@@ -70,7 +70,7 @@ export class ToViewBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new ToViewBindingInstruction(this.parser.parse(value, BindingType.ToViewCommand), resolveTarget(target, element, attribute)[0]);
+    return new ToViewBindingInstruction(this.parser.parse(value, BindingType.ToViewCommand), resolveTarget(target, element, attribute).target);
   }
 }
 
@@ -81,7 +81,7 @@ export class FromViewBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new FromViewBindingInstruction(this.parser.parse(value, BindingType.FromViewCommand), resolveTarget(target, element, attribute)[0]);
+    return new FromViewBindingInstruction(this.parser.parse(value, BindingType.FromViewCommand), resolveTarget(target, element, attribute).target);
   }
 }
 
@@ -92,7 +92,7 @@ export class TwoWayBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new TwoWayBindingInstruction(this.parser.parse(value, BindingType.TwoWayCommand), resolveTarget(target, element, attribute)[0]);
+    return new TwoWayBindingInstruction(this.parser.parse(value, BindingType.TwoWayCommand), resolveTarget(target, element, attribute).target);
   }
 }
 
@@ -116,8 +116,8 @@ export class DefaultBindingCommand implements IBindingCommand {
     let mode = BindingMode.toView;
     if (element || attribute) {
       const resolved = resolveTarget(target, element, attribute);
-      target = resolved[0];
-      mode = resolved[1];
+      target = resolved.target;
+      mode = resolved.mode;
     }
     return this[compileMode[mode]](target, value, node, attribute, element);
   }
@@ -168,7 +168,7 @@ export class CallBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new CallBindingInstruction(this.parser.parse(value, BindingType.CallCommand), resolveTarget(target, element, attribute)[0]);
+    return new CallBindingInstruction(this.parser.parse(value, BindingType.CallCommand), resolveTarget(target, element, attribute).target);
   }
 }
 

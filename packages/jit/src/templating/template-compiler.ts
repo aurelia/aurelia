@@ -139,6 +139,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (typeof node === 'string') {
       domParser.innerHTML = node;
       node = definition.templateOrNode = domParser.firstElementChild;
+      domParser.removeChild(node);
     }
     const rootNode = <Element>node;
     const isTemplate = node.nodeName === 'TEMPLATE';
@@ -251,6 +252,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const attr = attributes.item(i);
       const { name, value } = attr;
+      if (name === 'as-element') {
+        continue;
+      }
       const [target, attribute, command] = inspectAttribute(name, resources);
 
       if (attribute !== null) {
@@ -326,6 +330,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     for (let i = 0, ii = attributes.length; ii > i; ++i) {
       const attr = attributes.item(i);
       const { name, value } = attr;
+      // tslint:disable-next-line:prefer-const
       let [target, , command] = inspectAttribute(name, resources);
       target = PLATFORM.camelCase(target);
       let letInstruction: LetBindingInstruction;

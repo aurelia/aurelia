@@ -14,7 +14,9 @@ import {
   customAttribute,
   ViewCompileFlags,
   ILetElementInstruction,
-  ITemplateSource
+  ITemplateSource,
+  IHydrateTemplateController,
+  IHydrateElementInstruction
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -909,6 +911,33 @@ describe('TemplateCompiler', () => {
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>');
             expect(instructions.length).to.equal(0);
           });
+
+          describe('with template controller', () => {
+            it('compiles', () => {
+              @customElement('not-div')
+              class NotDiv {}
+              const { instructions } = compileWith(
+                '<template><div if.bind="value" as-element="not-div"></div></template>',
+                [NotDiv]
+              );
+
+              verifyInstructions(instructions[0] as any, [
+                { toVerify: ['type', 'res', 'dest'],
+                  type: TargetedInstructionType.hydrateTemplateController, res: 'if' }
+              ]);
+              const templateControllerInst = instructions[0][0] as any as IHydrateTemplateController;
+              verifyInstructions(templateControllerInst.instructions, [
+                { toVerify: ['type', 'dest', 'srcOrExpr'],
+                  type: TargetedInstructionType.propertyBinding, dest: 'value', srcOrExpr: new AccessScope('value') }
+              ]);
+              const [hydrateNotDivInstruction] = templateControllerInst.src.instructions[0] as [IHydrateElementInstruction];
+              verifyInstructions([hydrateNotDivInstruction], [
+                { toVerify: ['type', 'res'],
+                  type: TargetedInstructionType.hydrateElement, res: 'not-div' }
+              ]);
+              verifyInstructions(hydrateNotDivInstruction.instructions, []);
+            });
+          });
         });
       });
 
@@ -972,7 +1001,7 @@ describe('TemplateCompiler', () => {
       [prop: string]: any;
     }
 
-    function compileWith(markup: string, extraResources: any[] = [], viewCompileFlags?: ViewCompileFlags) {
+    function compileWith(markup: string | Element, extraResources: any[] = [], viewCompileFlags?: ViewCompileFlags) {
       extraResources.forEach(e => e.register(container));
       return sut.compile(<any>{ templateOrNode: markup, instructions: [], surrogates: [] }, resources, viewCompileFlags);
     }

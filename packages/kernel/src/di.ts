@@ -513,7 +513,7 @@ export class Container implements IContainer {
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
     if (keyAsValue.register) {
-      return keyAsValue.register(handler, keyAsValue);
+      return keyAsValue.register(handler, keyAsValue) || null;
     }
 
     const resolver = new Resolver(keyAsValue, ResolverStrategy.singleton, keyAsValue);

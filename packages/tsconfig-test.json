@@ -8,6 +8,7 @@
     "lib": ["esnext", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
+    "preserveConstEnums": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "target": "es2018"

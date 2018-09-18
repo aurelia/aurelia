@@ -202,13 +202,13 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
 
   public find<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null {
     const key = kind.keyFrom(name);
-    const resolver = this.context.getResolver(key);
+    const resolver = this.context.getResolver<TSource>(key);
 
     if (resolver !== null && resolver.getFactory) {
       const factory = resolver.getFactory(this.context);
 
       if (factory !== null) {
-        return (factory.type as IResourceType<TSource>).description;
+        return (factory.type as IResourceType<TSource>).description || null;
       }
     }
 
@@ -216,6 +216,10 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
   }
 
   public create<TSource, TType extends IResourceType<TSource>>(kind: IResourceKind<TSource, TType>, name: string): InstanceType<TType> | null {
-    return this.context.get(kind.keyFrom(name)) || null;
+    const key = kind.keyFrom(name);
+    if (this.context.has(key, false)) {
+      return this.context.get(key) || null;
+    }
+    return null;
   }
 }

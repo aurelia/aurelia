@@ -1,6 +1,4 @@
-import { _, stringify, jsonStringify, htmlStringify, createElement, verifyEqual } from '../../../../scripts/test-lib';
-
-export { _, stringify, jsonStringify, htmlStringify, createElement, verifyEqual };
+import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 
 const emptyArray = [];
 
@@ -41,3 +39,46 @@ export function h<T extends keyof HTMLElementTagNameMap, TChildren extends (stri
 function isNodeOrTextOrComment(obj: any): obj is Text | Comment | Node {
   return obj instanceof Node || obj instanceof Text || obj instanceof Comment;
 }
+export function verifyBindingInstructionsEqual(actual: any, expected: any, errors?: string[], path?: string): any {
+  if (path === undefined) {
+    path = 'instruction';
+  }
+  if (errors === undefined) {
+    errors = [];
+  }
+  if (typeof expected !== 'object' || expected === null || expected === undefined || typeof actual !== 'object' || actual === null || actual === undefined) {
+    if (actual !== expected) {
+      errors.push(`Expected ${path} === ${expected}, but got: ${actual}`)
+    }
+  } else if (expected instanceof Array) {
+    for (let i = 0, ii = Math.max(expected.length, actual.length); i < ii; ++i) {
+      verifyBindingInstructionsEqual(actual[i], expected[i], errors, `${path}[${i}]`);
+    }
+  } else if (expected instanceof Node) {
+    if (expected.nodeType === 11) {
+      for (let i = 0, ii = Math.max(expected.childNodes.length, actual.childNodes.length); i < ii; ++i) {
+        verifyBindingInstructionsEqual(actual.childNodes.item(i), expected.childNodes.item(i), errors, `${path}.childNodes[${i}]`);
+      }
+    } else {
+      if (actual.outerHTML !== expected['outerHTML']) {
+        errors.push(`Expected ${path}.outerHTML === ${expected['outerHTML']}, but got: ${actual.outerHTML}`)
+      }
+    }
+  } else if (actual) {
+    const seen = {};
+    for (const prop in expected) {
+      verifyBindingInstructionsEqual(actual[prop], expected[prop], errors, `${path}.${prop}`);
+      seen[prop] = true;
+    }
+    for (const prop in actual) {
+      if (!seen[prop]) {
+        verifyBindingInstructionsEqual(actual[prop], expected[prop], errors, `${path}.${prop}`);
+      }
+    }
+  }
+  if (path === 'instruction' && errors.length) {
+    throw new Error('Failed assertion: binding instruction mismatch\n  - '+errors.join('\n  - '));
+  }
+}
+
+export { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };

@@ -1,21 +1,24 @@
 import { inject, PLATFORM } from '@aurelia/kernel';
 import {
+  AttributeDefinition,
   BindingMode,
   BindingType,
   CustomAttributeResource,
   CustomElementResource,
   DelegationStrategy,
   DOM,
+  ElementDefinition,
+  IBindableDescription,
   ICallBindingInstruction,
   IExpression,
   IExpressionParser,
+
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
-  IHydrateTemplateController,
 
+  IHydrateTemplateController,
   ILetBindingInstruction,
   ILetElementInstruction,
-
   IListenerBindingInstruction,
   INode,
   IPropertyBindingInstruction,
@@ -24,18 +27,15 @@ import {
   ISetPropertyInstruction,
   IStylePropertyBindingInstruction,
   ITargetedInstruction,
+
   ITemplateCompiler,
   ITemplateSource,
   ITextBindingInstruction,
 
-  PrimitiveLiteral,
   TargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition,
-
   ViewCompileFlags,
-  AttributeDefinition,
-  ElementDefinition,
 } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
@@ -62,45 +62,57 @@ const enum NodeType {
   Notation = 12
 }
 
+const resolved = {
+  target: <string>'',
+  mode: <BindingMode>BindingMode.default
+};
+
 /*@internal*/
-export function resolveTarget(target: string, element: ElementDefinition, attribute: AttributeDefinition): string {
+export function resolveTarget(target: string, element: ElementDefinition, attribute: AttributeDefinition): typeof resolved {
+  let bindable: IBindableDescription;
+  const propertyName = PLATFORM.camelCase(target);
   // give custom attributes priority over custom element properties (is this correct? should we throw if there's a conflict?)
-  if (attribute !== null) {
+  if (attribute) {
     // only consider semicolon-separated bindings for normal custom attributes, not template controllers
-    if (attribute.isTemplateController === false) {
-      // users must not have a semicolon-separated binding with the same name as the attribute; behavior would be unpredictable
-      if (target !== attribute.name) {
-        const propertyName = PLATFORM.camelCase(target);
-        const bindable = attribute.bindables[propertyName]
-        if (bindable !== null) {
-          return bindable.property || propertyName;
-        }
-        return target;
+    // users must not have a semicolon-separated binding with the same name as the attribute; behavior would be unpredictable
+    if (attribute.isTemplateController === false && propertyName !== attribute.name) {
+      if (bindable = attribute.bindables[propertyName]) {
+        resolved.target = bindable.property || propertyName;
+        resolved.mode = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : (attribute.defaultBindingMode || BindingMode.toView);
+      } else {
+        resolved.target = propertyName;
+        resolved.mode = attribute.defaultBindingMode || BindingMode.toView;
       }
+    } else {
+      for (const prop in attribute.bindables) {
+        // return the first by convention (usually there should only be one)
+        const bindable = attribute.bindables[prop];
+        resolved.target = bindable.property;
+        resolved.mode = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : (attribute.defaultBindingMode || BindingMode.toView);
+        return resolved;
+      }
+      // if there are no bindables declared, default to 'value'
+      resolved.target = 'value';
+      resolved.mode = attribute.defaultBindingMode || BindingMode.toView;
     }
-    const bindableNames = Object.keys(attribute.bindables);
-    if (bindableNames.length) {
-      // return the first by convention (usually there should only be one)
-      return bindableNames[0];
-    }
-    // if there are no bindables declared, default to 'value'
-    return 'value';
+  } else if (element && (bindable = element.bindables[propertyName])) {
+    resolved.target = bindable.property || propertyName;
+    resolved.mode = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : BindingMode.toView;
+  } else {
+    resolved.target = target;
+    resolved.mode = BindingMode.toView;
   }
-  if (element !== null) {
-    const propertyName = PLATFORM.camelCase(target);
-    const bindable = element.bindables[propertyName];
-    if (bindable) {
-      return bindable.property || propertyName;
-    }
-  }
-  return target;
+  return resolved;
 }
 
-const attributeInspectionBuffer: [string, AttributeDefinition, IBindingCommand | null] = <any>Array(3);
+const inspected = {
+  target: <string>'',
+  attribute: <AttributeDefinition | null>null,
+  command: <IBindingCommand | null>null
+};
 
 /*@internal*/
-export function inspectAttribute(name: string, resources: IResourceDescriptions):
-  [string, AttributeDefinition, IBindingCommand | null] {
+export function inspectAttribute(name: string, resources: IResourceDescriptions): typeof inspected {
   let targetName = name;
   let bindingCommand: IBindingCommand = null;
 
@@ -111,19 +123,18 @@ export function inspectAttribute(name: string, resources: IResourceDescriptions)
         targetName = name.slice(0, i);
       }
       const commandName = name.slice(i + 1);
-      bindingCommand = resources.create(BindingCommandResource, commandName) || null;
+      bindingCommand = resources.create(BindingCommandResource, commandName);
       if (bindingCommand !== null) {
         // keep looping until the part after any dot (doesn't have to be the first/last) is a bindingCommand
         break;
       }
     }
   }
-  const attributeDefinition = resources.find(CustomAttributeResource, targetName) || null;
 
-  attributeInspectionBuffer[0] = targetName;
-  attributeInspectionBuffer[1] = attributeDefinition;
-  attributeInspectionBuffer[2] = bindingCommand;
-  return attributeInspectionBuffer;
+  inspected.target = targetName;
+  inspected.attribute = resources.find(CustomAttributeResource, PLATFORM.camelCase(targetName));
+  inspected.command = bindingCommand;
+  return inspected;
 }
 
 @inject(IExpressionParser)
@@ -196,7 +207,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const attr = attributes.item(i);
       const { name, value } = attr;
-      const [target, attribute, command] = inspectAttribute(name, resources);
+      const { target, attribute, command } = inspectAttribute(name, resources);
       if (attribute && attribute.isTemplateController) {
         throw new Error('Cannot have template controller on surrogate element.');
       }
@@ -247,7 +258,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // of the hydrate instruction, otherwise they are added directly to instructions as a single array
     const attributeInstructions: TargetedInstruction[] = [];
     const tagResourceKey = (node.getAttribute('as-element') || tagName).toLowerCase();
-    const element = resources.find(CustomElementResource, tagResourceKey) || null;
+    const element = resources.find(CustomElementResource, tagResourceKey);
     const attributes = node.attributes;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const attr = attributes.item(i);
@@ -255,7 +266,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (name === 'as-element') {
         continue;
       }
-      const [target, attribute, command] = inspectAttribute(name, resources);
+      const { target, attribute, command } = inspectAttribute(name, resources);
 
       if (attribute !== null) {
         if (attribute.isTemplateController) {
@@ -288,8 +299,8 @@ export class TemplateCompiler implements ITemplateCompiler {
             for (let i = 0, ii = bindings.length; i < ii; ++i) {
               const binding = bindings[i];
               const parts = binding.split(':');
-              const [childTarget, , childCommand] = inspectAttribute(parts[0].trim(), resources);
-              childInstructions.push(this.compileAttribute(childTarget, parts[1].trim(), node, attribute, element, childCommand));
+              const inspected = inspectAttribute(parts[0].trim(), resources);
+              childInstructions.push(this.compileAttribute(inspected.target, parts[1].trim(), node, attribute, element, inspected.command));
             }
           } else {
             childInstructions.push(this.compileAttribute(target, value, node, attribute, element, command));
@@ -331,7 +342,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       const attr = attributes.item(i);
       const { name, value } = attr;
       // tslint:disable-next-line:prefer-const
-      let [target, , command] = inspectAttribute(name, resources);
+      let { target, command } = inspectAttribute(name, resources);
       target = PLATFORM.camelCase(target);
       let letInstruction: LetBindingInstruction;
 
@@ -378,7 +389,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     command: IBindingCommand | null): TargetedInstruction {
       // binding commands get priority over all; they may override default behaviors
       // it is the responsibility of the implementor to ensure they filter out stuff they shouldn't override
-      if (command !== null && command.handles(attribute)) {
+      if (command && command.handles(attribute)) {
         return command.compile(target, value, node, attribute, element);
       }
       // simple path for ref binding
@@ -395,35 +406,32 @@ export class TemplateCompiler implements ITemplateCompiler {
       //   return new StylePropertyBindingInstruction(expression, target);
       // }
       // plain custom attribute on any kind of element
-      if (attribute !== null) {
-        target = resolveTarget(target, element, attribute);
+      if (attribute) {
+        const resolved = resolveTarget(target, element, attribute);
         value = value && value.length ? value : '""';
         const expression = parser.parse(value, BindingType.Interpolation) || parser.parse(value, BindingType.ToViewCommand);
-        if (attribute.defaultBindingMode) {
-          switch (attribute.defaultBindingMode) {
-            case BindingMode.oneTime:
-              return new OneTimeBindingInstruction(expression, target);
-            case BindingMode.fromView:
-              return new FromViewBindingInstruction(expression, target);
-            case BindingMode.twoWay:
-              return new TwoWayBindingInstruction(expression, target);
-            case BindingMode.toView:
-            default:
-              return new ToViewBindingInstruction(expression, target);
-          }
+        switch (resolved.mode) {
+          case BindingMode.oneTime:
+            return new OneTimeBindingInstruction(expression, resolved.target);
+          case BindingMode.fromView:
+            return new FromViewBindingInstruction(expression, resolved.target);
+          case BindingMode.twoWay:
+            return new TwoWayBindingInstruction(expression, resolved.target);
+          case BindingMode.toView:
+          default:
+            return new ToViewBindingInstruction(expression, resolved.target);
         }
-        return new ToViewBindingInstruction(expression, target);
       }
       // plain attribute on a custom element
-      if (element !== null) {
-        target = resolveTarget(target, element, attribute);
+      if (element) {
+        const resolved = resolveTarget(target, element, attribute);
         const expression = parser.parse(value, BindingType.Interpolation);
         if (expression === null) {
           // no interpolation -> make it a setProperty on the component
-          return new SetPropertyInstruction(value, target);
+          return new SetPropertyInstruction(value, resolved.target);
         }
         // interpolation -> behave like toView (e.g. foo="${someProp}")
-        return new ToViewBindingInstruction(expression, target);
+        return new ToViewBindingInstruction(expression, resolved.target);
       }
       // plain attribute on a normal element
       const expression = parser.parse(value, BindingType.Interpolation);

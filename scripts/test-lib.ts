@@ -308,6 +308,18 @@ export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, U>(
   arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => U): void;
 
+export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, T7, U>(
+  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6)=>T7)[]],
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => U): void;
+
+export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, T7, T8, U>(
+  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6)=>T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7)=>T8)[]],
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => U): void;
+
+export function eachCartesianJoinFactory<T1, T2, T3, T4, T5, T6, T7, T8, T9, U>(
+  arrays: [(()=>T1)[], ((arg1: T1)=>T2)[], ((arg1: T1, arg2: T2)=>T3)[], ((arg1: T1, arg2: T2, arg3: T3)=>T4)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4)=>T5)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5)=>T6)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6)=>T7)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7)=>T8)[], ((arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8)=>T9)[]],
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9) => U): void;
+
 export function eachCartesianJoinFactory<T extends any, U>(
   arrays: ((...args: T[]) => T)[][],
   callback: (...args: any[]) => U): void {
@@ -370,6 +382,18 @@ export function eachCartesianJoin<T1, T2, T3, T4, T5, U>(
 export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, U>(
   arrays: [T1[], T2[], T3[], T4[], T5[], T6[]],
   callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => U): void;
+
+export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, T7, U>(
+  arrays: [T1[], T2[], T3[], T4[], T5[], T6[], T7[]],
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => U): void;
+
+export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, T7, T8, U>(
+  arrays: [T1[], T2[], T3[], T4[], T5[], T6[], T7[], T8[]],
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => U): void;
+
+export function eachCartesianJoin<T1, T2, T3, T4, T5, T6, T7, T8, T9, U>(
+  arrays: [T1[], T2[], T3[], T4[], T5[], T6[], T7[], T8[], T9[]],
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9) => U): void;
 
 export function eachCartesianJoin<T extends any, U>(
   arrays: T[][],

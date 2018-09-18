@@ -1,5 +1,5 @@
 import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
-import { AccessMember, AccessScope, CallMember, CallScope, IExpression } from './ast';
+import { AccessMember, AccessScope, CallMember, CallScope, IExpression, PrimitiveLiteral } from './ast';
 
 export interface IExpressionParser {
   cache(expressions: Record<string, IExpression>): void;
@@ -8,6 +8,8 @@ export interface IExpressionParser {
 
 export const IExpressionParser = DI.createInterface<IExpressionParser>()
   .withDefault(x => x.singleton(ExpressionParser));
+
+const emptyString = new PrimitiveLiteral('');
 
 /*@internal*/
 export class ExpressionParser implements IExpressionParser {
@@ -36,6 +38,12 @@ export class ExpressionParser implements IExpressionParser {
         }
       }
       return found;
+    }
+
+    // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
+    // But don't cache it, because empty strings are always invalid for any other type of binding
+    if (expression.length === 0 && (bindingType & (BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand))) {
+      return emptyString;
     }
     let found = this.lookup[expression];
 

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/kernel",
-  "version": "0.2.0",
+  "version": "0.1.1",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -79,5 +79,6 @@
     "webpack": "^4.16.3",
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.5"
-  }
+  },
+  "dependencies": {}
 }

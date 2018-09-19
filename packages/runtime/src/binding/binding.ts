@@ -34,7 +34,6 @@ export class Binding implements IBinding, IPropertySubscriber {
   public $isBound: boolean = false;
 
   public targetObserver: AccessorOrObserver;
-  /*@internal*/public __connectQueueId: number;
   protected observerSlots: number;
   protected version: number;
   protected $scope: IScope;

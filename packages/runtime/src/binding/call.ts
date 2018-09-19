@@ -1,4 +1,4 @@
-import { IServiceLocator } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator, Primitive } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { IExpression } from './ast';
 import { IBinding } from './binding';
@@ -21,21 +21,19 @@ export class Call implements IBinding {
     this.targetObserver = observerLocator.getObserver(target, targetProperty);
   }
 
-  public callSource($event) {
-    let overrideContext = <any>this.$scope.overrideContext;
-    Object.assign(overrideContext, $event);
-    overrideContext.$event = $event; // deprecate this?
-    let result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.$scope, this.locator);
-    delete overrideContext.$event;
+  public callSource(args: IIndexable): Primitive | IIndexable {
+    const overrideContext = this.$scope.overrideContext;
+    Object.assign(overrideContext, args);
+    const result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.$scope, this.locator);
 
-    for (let prop in $event) {
+    for (const prop in args) {
       delete overrideContext[prop];
     }
 
     return result;
   }
 
-  public $bind(flags: BindingFlags, scope: IScope) {
+  public $bind(flags: BindingFlags, scope: IScope): void {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -54,7 +52,7 @@ export class Call implements IBinding {
     this.targetObserver.setValue($event => this.callSource($event), flags);
   }
 
-  public $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
@@ -69,5 +67,6 @@ export class Call implements IBinding {
     this.targetObserver.setValue(null, flags);
   }
 
-  public observeProperty() { }
+  // tslint:disable-next-line:no-empty
+  public observeProperty(): void { }
 }

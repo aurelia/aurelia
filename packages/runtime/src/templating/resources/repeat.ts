@@ -182,7 +182,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       i++;
     }
 
-    let flags = BindingFlags.none;
+    const flags = BindingFlags.none;
     const isAttached = this.$isAttached;
     const scope = this.$scope;
     const overrideContext = scope.overrideContext;
@@ -195,13 +195,13 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       // remove any surplus views
       i = newLength;
       const lifecycle = DetachLifecycle.start(this);
+
       while (i < oldLength) {
         const view = views[i++];
-        if (isAttached) {
-          view.$detach(lifecycle);
-        }
-        view.tryReturnToCache();
+        view.release();
+        view.$detach(lifecycle);
       }
+
       lifecycle.end(this);
       views.length = newLength;
     }
@@ -237,15 +237,14 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     this.views = [];
     const len = views.length;
     let i = 0;
-    const isAttached = this.$isAttached;
     const lifecycle = DetachLifecycle.start(this);
+
     while (i < len) {
       const view = views[i++];
-      if (isAttached) {
-        view.$detach(lifecycle);
-      }
-      view.tryReturnToCache();
+      view.release();
+      view.$detach(lifecycle);
     }
+
     lifecycle.end(this);
   }
 }

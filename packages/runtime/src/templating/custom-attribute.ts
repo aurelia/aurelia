@@ -167,7 +167,7 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
   }
 
   if (this.$behavior.hasAttaching) {
-    (this as any).attaching(encapsulationSource);
+    (this as any).attaching(encapsulationSource, lifecycle);
   }
 
   if (this.$child !== null) {
@@ -184,7 +184,7 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
 function detach(this: IInternalCustomAttributeImplementation, lifecycle: DetachLifecycle): void {
   if (this.$isAttached) {
     if (this.$behavior.hasDetaching) {
-      (this as any).detaching();
+      (this as any).detaching(lifecycle);
     }
 
     if (this.$child !== null) {

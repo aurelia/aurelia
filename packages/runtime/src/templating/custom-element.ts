@@ -218,7 +218,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
     = this.$projector.provideEncapsulationSource(encapsulationSource);
 
   if (this.$behavior.hasAttaching) {
-    (this as any).attaching(encapsulationSource);
+    (this as any).attaching(encapsulationSource, lifecycle);
   }
 
   const attachables = this.$attachables;
@@ -242,7 +242,7 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLi
     lifecycle = DetachLifecycle.start(this, lifecycle);
 
     if (this.$behavior.hasDetaching) {
-      (this as any).detaching();
+      (this as any).detaching(lifecycle);
     }
 
     lifecycle.queueNodeRemoval(this);

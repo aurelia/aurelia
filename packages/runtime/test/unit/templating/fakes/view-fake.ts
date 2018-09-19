@@ -38,11 +38,16 @@ export class ViewFake implements IView {
     this.location = location;
   }
 
+  release() {
+    this.isFree = true;
+  }
+
   // IView impl
   factory: IViewFactory;
   $isAttached: boolean = false;
   location: IRenderLocation;
   mountRequired = false;
+  private isFree: boolean = false;
 
   tryReturnToCache(): boolean {
     return true;

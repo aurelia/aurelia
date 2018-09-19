@@ -13,9 +13,11 @@ export type RenderCallback = (view: IView) => void;
 
 export interface IView extends IBindScope, IRenderable, IAttach {
   readonly factory: IViewFactory;
+
   mount(location: IRenderLocation): void;
+  release(): void;
+
   lockScope(scope: IScope): void;
-  tryReturnToCache(): boolean;
 }
 
 export interface IViewFactory {
@@ -39,10 +41,10 @@ export class View implements IView {
   public $isBound: boolean = false;
   public $isAttached: boolean = false;
   public $context: IRenderContext;
-  public inCache: boolean = false;
   private $encapsulationSource: INode;
   private location: IRenderLocation;
   private requiresMount: boolean = false;
+  private isFree: boolean = false;
 
   constructor(public factory: ViewFactory, private template: ITemplate, private animator: IAnimator) {
     this.$nodes = this.createNodes();
@@ -84,6 +86,11 @@ export class View implements IView {
   public $removeNodes(): void {
     this.requiresMount = true;
     this.$nodes.remove();
+
+    if (this.isFree) {
+      this.isFree = false;
+      this.factory.tryReturnToCache(this);
+    }
   }
 
   public $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
@@ -140,8 +147,13 @@ export class View implements IView {
     }
   }
 
-  public tryReturnToCache(): boolean {
-    return this.factory.tryReturnToCache(this);
+  public release(): void {
+    if (this.$isAttached) {
+      this.isFree = true;
+    } else {
+      this.isFree = false;
+      this.factory.tryReturnToCache(this);
+    }
   }
 }
 
@@ -181,7 +193,6 @@ export class ViewFactory implements IViewFactory {
 
   public tryReturnToCache(view: View): boolean {
     if (this.cache !== null && this.cache.length < this.cacheSize) {
-      view.inCache = true;
       this.cache.push(view);
       return true;
     }
@@ -193,9 +204,7 @@ export class ViewFactory implements IViewFactory {
     const cache = this.cache;
 
     if (cache !== null && cache.length > 0) {
-      const view = cache.pop();
-      view.inCache = false;
-      return view;
+      return cache.pop();
     }
 
     return new View(this, this.template, this.animator);

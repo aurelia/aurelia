@@ -80,6 +80,7 @@ export class DetachLifecycle {
   private removeNodesHead: LifecycleNodeRemovable;
   private removeNodesTail: LifecycleNodeRemovable;
   private rootRenderable: LifecycleNodeRemovable;
+  private tasks: Promise<void>[] = null;
 
   private constructor(private owner: unknown) {
     this.detachedTail = this.detachedHead = this;
@@ -108,31 +109,53 @@ export class DetachLifecycle {
     this.detachedTail = requestor;
   }
 
-  public end(owner: unknown): void {
+  public addTask(task: Promise<void>): void {
+    let tasks = this.tasks;
+
+    if (tasks === null) {
+      this.tasks = tasks = [];
+    }
+
+    tasks.push(task);
+  }
+
+  public end(owner: unknown): Promise<void> | null {
     if (owner === this.owner) {
-      let currentRemoveNodes = this.removeNodesHead;
-      let nextRemoveNodes;
+      const tasks = this.tasks;
 
-      while (currentRemoveNodes) {
-        currentRemoveNodes.$removeNodes();
-        nextRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
-        currentRemoveNodes.$nextRemoveNodes = null;
-        currentRemoveNodes = nextRemoveNodes;
+      if (tasks !== null) {
+        return Promise.all(tasks).then(() => this.run());
       }
 
-      let currentDetached = this.detachedHead;
-      let nextDetached;
-
-      while (currentDetached) {
-        currentDetached.detached();
-        nextDetached = currentDetached.$nextDetached;
-        currentDetached.$nextDetached = null;
-        currentDetached = nextDetached;
-      }
+      this.run();
     } else if (owner === this.rootRenderable) {
       // The root renderable has called "end" on the lifecycle, so we put back
       // the ability to queue node removal for the next top-level renderable.
       this.queueNodeRemoval = this.queueNodeRemovalForRoot;
+    }
+
+    return null;
+  }
+
+  private run(): void {
+    let currentRemoveNodes = this.removeNodesHead;
+    let nextRemoveNodes;
+
+    while (currentRemoveNodes) {
+      currentRemoveNodes.$removeNodes();
+      nextRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
+      currentRemoveNodes.$nextRemoveNodes = null;
+      currentRemoveNodes = nextRemoveNodes;
+    }
+
+    let currentDetached = this.detachedHead;
+    let nextDetached;
+
+    while (currentDetached) {
+      currentDetached.detached();
+      nextDetached = currentDetached.$nextDetached;
+      currentDetached.$nextDetached = null;
+      currentDetached = nextDetached;
     }
   }
 

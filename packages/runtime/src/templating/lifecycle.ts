@@ -20,7 +20,7 @@ export interface IAttach {
 }
 
 export interface IAttachLifecycle {
-  queueTask(task: Promise<void>): void;
+  registerTask(task: Promise<unknown>): void;
   queueAddNodes(requestor: LifecycleNodeAddable): void;
   queueAttachedCallback(requestor: LifecycleAttachable): void;
   end(owner: unknown): Promise<void> | null;
@@ -41,7 +41,7 @@ export class AttachLifecycle implements IAttachLifecycle {
   private attachedTail: LifecycleAttachable;
   private addNodesHead: LifecycleNodeAddable;
   private addNodesTail: LifecycleNodeAddable;
-  private tasks: Promise<void>[] = null;
+  private tasks: Promise<unknown>[] = null;
 
   private constructor(private owner: unknown) {
     this.addNodesTail = this.addNodesHead = this;
@@ -62,7 +62,7 @@ export class AttachLifecycle implements IAttachLifecycle {
     this.attachedTail = requestor;
   }
 
-  public queueTask(task: Promise<void>): void {
+  public registerTask(task: Promise<unknown>): void {
     let tasks = this.tasks;
 
     if (tasks === null) {
@@ -121,7 +121,7 @@ type LifecycleNodeRemovable = Pick<IRenderable, '$removeNodes'> & {
 };
 
 export interface IDetachLifecycle {
-  queueTask(task: Promise<void>): void;
+  registerTask(task: Promise<unknown>): void;
   queueRemoveNodes(requestor: LifecycleNodeRemovable): void;
   queueDetachedCallback(requestor: LifecycleDetachable): void;
   end(owner: unknown): Promise<void> | null;
@@ -146,7 +146,7 @@ export class DetachLifecycle implements IDetachLifecycle {
   private removeNodesHead: LifecycleNodeRemovable;
   private removeNodesTail: LifecycleNodeRemovable;
   private rootRenderable: LifecycleNodeRemovable;
-  private tasks: Promise<void>[] = null;
+  private tasks: Promise<unknown>[] = null;
 
   private constructor(private owner: unknown) {
     this.detachedTail = this.detachedHead = this;
@@ -175,7 +175,7 @@ export class DetachLifecycle implements IDetachLifecycle {
     this.detachedTail = requestor;
   }
 
-  public queueTask(task: Promise<void>): void {
+  public registerTask(task: Promise<unknown>): void {
     let tasks = this.tasks;
 
     if (tasks === null) {

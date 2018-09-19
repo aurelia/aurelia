@@ -4,7 +4,7 @@ import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
 import { IAnimator } from './animator';
-import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
+import { AttachLifecycle, DetachLifecycle, IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
 import { IRenderContext } from './render-context';
 import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
 import { ITemplate } from './template';
@@ -83,6 +83,11 @@ export class View implements IView {
     this.$isBound = true;
   }
 
+  public $addNodes(): void {
+    this.requiresMount = false;
+    this.$nodes.insertBefore(this.location);
+  }
+
   public $removeNodes(): void {
     this.requiresMount = true;
     this.$nodes.remove();
@@ -93,7 +98,7 @@ export class View implements IView {
     }
   }
 
-  public $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
+  public $attach(encapsulationSource: INode, lifecycle?: IAttachLifecycle): void {
     if (this.$isAttached) {
       return;
     }
@@ -108,18 +113,17 @@ export class View implements IView {
     }
 
     if (this.requiresMount) {
-      this.requiresMount = false;
-      this.$nodes.insertBefore(this.location);
+      lifecycle.queueAddNodes(this);
     }
 
     this.$isAttached = true;
     lifecycle.end(this);
   }
 
-  public $detach(lifecycle?: DetachLifecycle): void {
+  public $detach(lifecycle?: IDetachLifecycle): void {
     if (this.$isAttached) {
       lifecycle = DetachLifecycle.start(this, lifecycle);
-      lifecycle.queueNodeRemoval(this);
+      lifecycle.queueRemoveNodes(this);
 
       const attachables = this.$attachables;
       let i = attachables.length;

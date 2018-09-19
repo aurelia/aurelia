@@ -12,7 +12,7 @@ import { BindingFlags } from '../binding/binding-flags';
 import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
-import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
+import { AttachLifecycle, DetachLifecycle, IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
 import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
@@ -117,6 +117,7 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$attach = attach;
     proto.$detach = detach;
     proto.$unbind = unbind;
+    (proto.$addNodes as any) = addNodes;
     (proto.$removeNodes as any) = removeNodes;
     (proto.$addChild as any) = addRenderableChild;
     (proto.$removeChild as any) = removeRenderableChild;
@@ -207,7 +208,7 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
   }
 }
 
-function attach(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
+function attach(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle?: IAttachLifecycle): void {
   if (this.$isAttached) {
     return;
   }
@@ -227,7 +228,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
     attachables[i].$attach(encapsulationSource, lifecycle);
   }
 
-  this.$projector.project(this.$nodes);
+  lifecycle.queueAddNodes(this);
   this.$isAttached = true;
 
   if (this.$behavior.hasAttached) {
@@ -237,7 +238,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   lifecycle.end(this);
 }
 
-function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLifecycle): void {
+function detach(this: IInternalCustomElementImplementation, lifecycle?: IDetachLifecycle): void {
   if (this.$isAttached) {
     lifecycle = DetachLifecycle.start(this, lifecycle);
 
@@ -245,7 +246,7 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLi
       (this as any).detaching(lifecycle);
     }
 
-    lifecycle.queueNodeRemoval(this);
+    lifecycle.queueRemoveNodes(this);
 
     const attachables = this.$attachables;
     let i = attachables.length;
@@ -262,6 +263,10 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: DetachLi
 
     lifecycle.end(this);
   }
+}
+
+function addNodes(this: IInternalCustomElementImplementation): void {
+  this.$projector.project(this.$nodes);
 }
 
 function removeNodes(this: IInternalCustomElementImplementation): void {

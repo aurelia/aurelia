@@ -1,11 +1,11 @@
 import {
   Constructable,
   IContainer,
+  Immutable,
   Omit,
   PLATFORM,
   Registration,
-  Writable,
-  Immutable
+  Writable
 } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
@@ -14,7 +14,7 @@ import { IBindScope } from '../binding/observation';
 import { INode } from '../dom';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
-import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
+import { IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
@@ -161,7 +161,7 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
   }
 }
 
-function attach(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle): void {
+function attach(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
   if (this.$isAttached) {
     return;
   }
@@ -181,7 +181,7 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
   }
 }
 
-function detach(this: IInternalCustomAttributeImplementation, lifecycle: DetachLifecycle): void {
+function detach(this: IInternalCustomAttributeImplementation, lifecycle: IDetachLifecycle): void {
   if (this.$isAttached) {
     if (this.$behavior.hasDetaching) {
       (this as any).detaching(lifecycle);

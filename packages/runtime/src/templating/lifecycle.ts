@@ -8,45 +8,103 @@ type LifecycleAttachable = {
   attached(): void;
 };
 
+type LifecycleNodeAddable = Pick<IRenderable, '$addNodes'> & {
+  /*@internal*/
+  $nextAddNodes?: LifecycleNodeAddable;
+};
+
 export interface IAttach {
   readonly $isAttached: boolean;
-  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void;
-  $detach(lifecycle?: DetachLifecycle): void;
+  $attach(encapsulationSource: INode, lifecycle?: IAttachLifecycle): void;
+  $detach(lifecycle?: IDetachLifecycle): void;
 }
 
-export class AttachLifecycle {
+export interface IAttachLifecycle {
+  queueTask(task: Promise<void>): void;
+  queueAddNodes(requestor: LifecycleNodeAddable): void;
+  queueAttachedCallback(requestor: LifecycleAttachable): void;
+  end(owner: unknown): Promise<void> | null;
+}
+
+export class AttachLifecycle implements IAttachLifecycle {
+  /*@internal*/
+  public $nextAddNodes: LifecycleNodeAddable;
   /*@internal*/
   public $nextAttached: LifecycleAttachable;
+
+  /*@internal*/
+  public $addNodes: typeof PLATFORM.noop = PLATFORM.noop;
   /*@internal*/
   public attached: typeof PLATFORM.noop = PLATFORM.noop;
 
-  private tail: LifecycleAttachable;
-  private head: LifecycleAttachable;
+  private attachedHead: LifecycleAttachable;
+  private attachedTail: LifecycleAttachable;
+  private addNodesHead: LifecycleNodeAddable;
+  private addNodesTail: LifecycleNodeAddable;
+  private tasks: Promise<void>[] = null;
 
   private constructor(private owner: unknown) {
-    this.tail = this.head = this;
+    this.addNodesTail = this.addNodesHead = this;
+    this.attachedTail = this.attachedHead = this;
   }
 
-  public static start(owner: unknown, existingLifecycle?: AttachLifecycle): AttachLifecycle {
+  public static start(owner: unknown, existingLifecycle?: IAttachLifecycle): IAttachLifecycle {
     return existingLifecycle || new AttachLifecycle(owner);
   }
 
-  public queueAttachedCallback(requestor: LifecycleAttachable): void {
-    this.tail.$nextAttached = requestor;
-    this.tail = requestor;
+  public queueAddNodes(requestor: LifecycleNodeAddable): void {
+    this.addNodesTail.$nextAddNodes = requestor;
+    this.addNodesTail = requestor;
   }
 
-  public end(owner: unknown): void {
-    if (owner === this.owner) {
-      let current = this.head;
-      let next;
+  public queueAttachedCallback(requestor: LifecycleAttachable): void {
+    this.attachedTail.$nextAttached = requestor;
+    this.attachedTail = requestor;
+  }
 
-      while (current) {
-        current.attached();
-        next = current.$nextAttached;
-        current.$nextAttached = null;
-        current = next;
+  public queueTask(task: Promise<void>): void {
+    let tasks = this.tasks;
+
+    if (tasks === null) {
+      this.tasks = tasks = [];
+    }
+
+    tasks.push(task);
+  }
+
+  public end(owner: unknown): Promise<void> | null {
+    if (owner === this.owner) {
+      const tasks = this.tasks;
+
+      if (tasks !== null) {
+        return Promise.all(tasks).then(() => this.run());
       }
+
+      this.run();
+    }
+
+    return null;
+  }
+
+  private run(): void {
+    let currentAddNodes = this.addNodesHead;
+    let nextAddNodes;
+
+    while (currentAddNodes) {
+      currentAddNodes.$addNodes();
+      nextAddNodes = currentAddNodes.$nextAddNodes;
+      currentAddNodes.$nextAddNodes = null;
+      currentAddNodes = nextAddNodes;
+    }
+
+    let currentAttached = this.attachedHead;
+    let nextAttached;
+
+    while (currentAttached) {
+      currentAttached.attached();
+      nextAttached = currentAttached.$nextAttached;
+      currentAttached.$nextAttached = null;
+      currentAttached = nextAttached;
     }
   }
 }
@@ -62,17 +120,25 @@ type LifecycleNodeRemovable = Pick<IRenderable, '$removeNodes'> & {
   $nextRemoveNodes?: LifecycleNodeRemovable;
 };
 
-export class DetachLifecycle {
-  /*@internal*/
-  public $nextDetached: LifecycleDetachable;
+export interface IDetachLifecycle {
+  queueTask(task: Promise<void>): void;
+  queueRemoveNodes(requestor: LifecycleNodeRemovable): void;
+  queueDetachedCallback(requestor: LifecycleDetachable): void;
+  end(owner: unknown): Promise<void> | null;
+}
+
+export class DetachLifecycle implements IDetachLifecycle {
   /*@internal*/
   public $nextRemoveNodes: LifecycleNodeRemovable;
   /*@internal*/
-  public detached: typeof PLATFORM.noop = PLATFORM.noop;
+  public $nextDetached: LifecycleDetachable;
+
   /*@internal*/
   public $removeNodes: typeof PLATFORM.noop = PLATFORM.noop;
+  /*@internal*/
+  public detached: typeof PLATFORM.noop = PLATFORM.noop;
 
-  public queueNodeRemoval: (requestor: LifecycleNodeRemovable) => void
+  public queueRemoveNodes: (requestor: LifecycleNodeRemovable) => void
     = PLATFORM.noop;
 
   private detachedHead: LifecycleDetachable; //LOL
@@ -93,12 +159,12 @@ export class DetachLifecycle {
     } else {
       // If the owner is not a renderable (eg. Repeat), then we need to remove
       // nodes for any root renderables that it invokes the detach lifecycle on.
-      this.queueNodeRemoval = this.queueNodeRemovalForRoot;
+      this.queueRemoveNodes = this.queueNodeRemovalForRoot;
       this.removeNodesTail = this.removeNodesHead = this;
     }
   }
 
-  public static start(owner: unknown, existingLifecycle?: DetachLifecycle): DetachLifecycle {
+  public static start(owner: unknown, existingLifecycle?: IDetachLifecycle): IDetachLifecycle {
     return existingLifecycle || new DetachLifecycle(owner);
   }
 
@@ -109,7 +175,7 @@ export class DetachLifecycle {
     this.detachedTail = requestor;
   }
 
-  public addTask(task: Promise<void>): void {
+  public queueTask(task: Promise<void>): void {
     let tasks = this.tasks;
 
     if (tasks === null) {
@@ -131,7 +197,7 @@ export class DetachLifecycle {
     } else if (owner === this.rootRenderable) {
       // The root renderable has called "end" on the lifecycle, so we put back
       // the ability to queue node removal for the next top-level renderable.
-      this.queueNodeRemoval = this.queueNodeRemovalForRoot;
+      this.queueRemoveNodes = this.queueNodeRemovalForRoot;
     }
 
     return null;
@@ -167,7 +233,7 @@ export class DetachLifecycle {
     // remove nodes from the DOM. So, we only queue node removal for root renderables.
     // This is accomplished by disabling queueNodeRemoval until after the root
     // requestor has called "end" on the lifecycle.
-    this.queueNodeRemoval = PLATFORM.noop;
+    this.queueRemoveNodes = PLATFORM.noop;
     this.rootRenderable = requestor;
   }
 }

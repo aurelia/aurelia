@@ -11,7 +11,9 @@ import {
   IAttach,
   DOM,
   INodeSequence,
-  IRenderLocation
+  IRenderLocation,
+  IDetachLifecycle,
+  IAttachLifecycle
 } from "../../../../src/index";
 
 export class ViewFake implements IView {
@@ -26,6 +28,10 @@ export class ViewFake implements IView {
   }
 
   $removeChild(child: IBindScope | IAttach): void {
+  }
+
+  $addNodes() {
+    this.$nodes.insertBefore(this.location);
   }
 
   $removeNodes() {
@@ -64,17 +70,22 @@ export class ViewFake implements IView {
   }
 
   // IAttach impl
-  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
+  $attach(encapsulationSource: INode, lifecycle?: IAttachLifecycle): void {
+    lifecycle = AttachLifecycle.start(this, lifecycle);
+
     if (this.mountRequired) {
-      this.$nodes.insertBefore(this.location);
+      lifecycle.queueAddNodes(this);
     }
 
     this.$isAttached = true;
+    lifecycle.end(this);
   }
 
-  $detach(lifecycle?: DetachLifecycle): void {
+  $detach(lifecycle?: IDetachLifecycle): void {
     lifecycle = DetachLifecycle.start(this, lifecycle);
-    lifecycle.queueNodeRemoval(this);
+
+    lifecycle.queueRemoveNodes(this);
+
     this.$isAttached = false;
     lifecycle.end(this);
   }

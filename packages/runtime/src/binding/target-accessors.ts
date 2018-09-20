@@ -1,8 +1,9 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
 import { DOM, INode } from '../dom';
 import { IChangeSet } from './change-set';
-import { IBindingTargetAccessor } from './observation';
+import { IBindingTargetAccessor, MutationKind } from './observation';
 import { targetObserver } from './target-observer';
+import { subscriberCollection } from './subscriber-collection';
 
 // tslint:disable-next-line:no-http-string
 const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
@@ -230,26 +231,32 @@ ClassAttributeAccessor.prototype.version = 0;
 ClassAttributeAccessor.prototype.nameIndex = null;
 
 // tslint:disable-next-line:interface-name
-export interface PropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
+export interface ElementPropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
 
-@targetObserver()
-export class PropertyAccessor implements PropertyAccessor {
-  public currentValue: string;
-  public oldValue: string;
-  public defaultValue: string;
-
-  constructor(
-    public changeSet: IChangeSet,
-    public obj: IIndexable,
-    public propertyKey: string) {
-    this.oldValue = this.currentValue = obj[propertyKey];
-  }
+@targetObserver('')
+export class ElementPropertyAccessor implements ElementPropertyAccessor {
+  constructor(public changeSet: IChangeSet, public obj: IIndexable, public propertyKey: string) { }
 
   public getValue(): Primitive | IIndexable {
     return this.obj[this.propertyKey];
   }
 
   public setValueCore(value: Primitive | IIndexable): void {
+    this.obj[this.propertyKey] = value;
+  }
+}
+
+// tslint:disable-next-line:interface-name
+export interface PropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
+
+export class PropertyAccessor implements PropertyAccessor {
+  constructor(public obj: IIndexable, public propertyKey: string) { }
+
+  public getValue(): Primitive | IIndexable {
+    return this.obj[this.propertyKey];
+  }
+
+  public setValue(value: Primitive | IIndexable): void {
     this.obj[this.propertyKey] = value;
   }
 }

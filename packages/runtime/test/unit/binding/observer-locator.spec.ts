@@ -1,4 +1,4 @@
-import { ObserverLocator, IChangeSet, IEventManager, IDirtyChecker, ISVGAnalyzer, DOM, DataAttributeAccessor, PropertyAccessor, BindingFlags, PrimitiveObserver, ClassAttributeAccessor, StyleAttributeAccessor, SelectValueObserver, ValueAttributeObserver, CheckedObserver, XLinkAttributeAccessor, GetterObserver, DirtyCheckProperty, CustomSetterObserver, SetterObserver, CollectionLengthObserver } from '../../../src/index';
+import { ObserverLocator, IChangeSet, IEventManager, IDirtyChecker, ISVGAnalyzer, DataAttributeAccessor, PrimitiveObserver, ClassAttributeAccessor, StyleAttributeAccessor, SelectValueObserver, ValueAttributeObserver, CheckedObserver, XLinkAttributeAccessor, DirtyCheckProperty, CustomSetterObserver, SetterObserver, CollectionLengthObserver, PropertyAccessor, ElementPropertyAccessor } from '../../../src/index';
 import { expect } from 'chai';
 import { DI } from '@aurelia/kernel';
 import { _, createElement } from '../util';
@@ -75,13 +75,13 @@ describe('ObserverLocator', () => {
     `<div aria=""></div>`,
     `<div ariaa=""></div>`,
   ]) {
-    it(_`getAccessor() - ${markup} - returns PropertyAccessor`, () => {
+    it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, () => {
       const el = <Element>createElement(markup);
       const attr = el.attributes[0];
       const { sut } = setup();
       const actual = sut.getAccessor(el, attr.name);
-      expect(actual.constructor.name).to.equal(PropertyAccessor.name);
-      expect(actual).to.be.instanceof(PropertyAccessor);
+      expect(actual.constructor.name).to.equal(ElementPropertyAccessor.name);
+      expect(actual).to.be.instanceof(ElementPropertyAccessor);
     });
   }
 

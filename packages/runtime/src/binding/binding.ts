@@ -6,13 +6,20 @@ import { BindingMode } from './binding-mode';
 import { AccessorOrObserver, IBindingTargetObserver, IBindScope, IPropertySubscriber, ISubscribable, MutationKind } from './observation';
 import { IObserverLocator } from './observer-locator';
 
-const slotNames: string[] = new Array(100);
-const versionSlotNames: string[] = new Array(100);
-
-for (let i = 0; i < 100; i++) {
-  slotNames[i] = `_observer${i}`;
-  versionSlotNames[i] = `_observerVersion${i}`;
+const slotNames: string[] = [];
+const versionSlotNames: string[] = [];
+let lastSlot = -1;
+function ensureEnoughSlotNames(currentSlot: number): void {
+  if (currentSlot === lastSlot) {
+    lastSlot += 5;
+    const ii = slotNames.length = versionSlotNames.length = lastSlot + 1;
+    for (let i = currentSlot + 1; i < ii; ++i) {
+      slotNames[i] = `_observer${i}`;
+      versionSlotNames[i] = `_observerVersion${i}`;
+    }
+  }
 }
+ensureEnoughSlotNames(-1);
 
 export interface IBinding extends IBindScope {
   locator: IServiceLocator;
@@ -34,7 +41,6 @@ export class Binding implements IBinding, IPropertySubscriber {
   public $isBound: boolean = false;
 
   public targetObserver: AccessorOrObserver;
-  /*@internal*/public __connectQueueId: number;
   protected observerSlots: number;
   protected version: number;
   protected $scope: IScope;
@@ -178,9 +184,7 @@ export class Binding implements IBinding, IPropertySubscriber {
     const observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
     let i = observerSlots;
 
-    while (i-- && this[slotNames[i]] !== observer) {
-      // Do nothing
-    }
+    while (i-- && this[slotNames[i]] !== observer);
 
     // if we are not already observing, put the observer in an open slot and subscribe.
     if (i === -1) {
@@ -200,6 +204,7 @@ export class Binding implements IBinding, IPropertySubscriber {
       this.version = 0;
     }
     this[versionSlotNames[i]] = this.version;
+    ensureEnoughSlotNames(i);
   }
 
   public observeProperty(obj: any, propertyName: string): void {

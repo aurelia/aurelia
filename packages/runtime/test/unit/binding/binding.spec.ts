@@ -1,10 +1,12 @@
+import { BindingContext } from './../../../src/binding/binding-context';
 import { spy, SinonSpy } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor } from '../../../src/index';
+import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType } from '../../../src/index';
 import { DI } from '../../../../kernel/src/index';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
 import { _, massSpy, massReset, massRestore, ensureNotCalled, eachCartesianJoinFactory, verifyEqual } from '../util';
 import sinon from 'sinon';
+import { parse, ParserState, Access, Precedence } from '../../../../jit/src';
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -65,6 +67,44 @@ describe('Binding', () => {
   describe('handleChange()', () => {
 
   });
+
+  it(`$bind() [to-view] works with 200 observers`, () => {
+    const count = 200;
+    let rawExpr = '';
+    const ctx = {};
+    const args = Array(count);
+    for (let i = 0; i < count; ++i) {
+      const prop = args[i] = `$${i}`;
+      ctx[prop] = 1;
+    }
+    rawExpr += args.join('+');
+    const expr = parse(new ParserState(rawExpr), Access.Reset, Precedence.Variadic, 0);
+    const container = DI.createContainer();
+    const observerLocator = container.get<IObserverLocator>(IObserverLocator);
+    const target = {val: 0};
+    const sut = new Binding(<any>expr, target, 'val', BindingMode.toView, observerLocator, container);
+    const scope = BindingContext.createScope(ctx);
+
+    sut.$bind(BindingFlags.fromBind, scope);
+
+    expect(target.val).to.equal(count);
+
+    for (let i = 0; i < count; ++i) {
+      ctx[args[i]] = 2;
+    }
+
+    expect(target.val).to.equal(count * 2);
+
+    const ctx2 = {};
+    for (let i = 0; i < count; ++i) {
+      ctx2[args[i]] = 3;
+    }
+    const scope2 = BindingContext.createScope(ctx2);
+
+    sut.$bind(BindingFlags.fromBind, scope2);
+
+    expect(target.val).to.equal(count * 3);
+  }).timeout(20000);
 
   describe('$bind() [one-time] assigns the target value', () => {
     eachCartesianJoinFactory(

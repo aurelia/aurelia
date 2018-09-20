@@ -1,4 +1,4 @@
-import { Omit, PLATFORM } from '@aurelia/kernel';
+import { Omit, PLATFORM, Reporter } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
 
 export type BindableSource = Omit<IBindableDescription, 'property'>;
@@ -34,7 +34,8 @@ export function bindable(configOrTarget?: BindableSource | Object, key?, descrip
     }
 
     config.property = key2;
-    bindables[key2] = config;
+    config.attribute = validateAttributeName(config.attribute);
+    bindables[config.attribute] = config;
   };
 
   if (key) { //placed on a property without parens
@@ -44,4 +45,12 @@ export function bindable(configOrTarget?: BindableSource | Object, key?, descrip
   }
 
   return deco;
+}
+
+function validateAttributeName(attrName: string): string {
+  if (/[A-Z]/.test(attrName)) {
+    Reporter.error(100, attrName);
+    attrName = PLATFORM.kebabCase(attrName);
+  }
+  return attrName;
 }

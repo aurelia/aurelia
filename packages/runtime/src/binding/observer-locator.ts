@@ -102,7 +102,7 @@ export class ObserverLocator implements IObserverLocator {
       }
     }
 
-    return new PropertyAccessor(this.changeSet, obj, propertyName);
+    return new PropertyAccessor(obj, propertyName);
   }
 
   public getArrayObserver(array: IObservedArray): ICollectionObserver<CollectionKind.array> {

@@ -1,4 +1,4 @@
-import { ObserverLocator, IChangeSet, IEventManager, IDirtyChecker, ISVGAnalyzer, DOM, DataAttributeAccessor, PropertyAccessor, BindingFlags, PrimitiveObserver, ClassAttributeAccessor, StyleAttributeAccessor, SelectValueObserver, ValueAttributeObserver, CheckedObserver, XLinkAttributeAccessor, GetterObserver, DirtyCheckProperty, CustomSetterObserver, SetterObserver, CollectionLengthObserver } from '../../../src/index';
+import { ObserverLocator, IChangeSet, IEventManager, IDirtyChecker, ISVGAnalyzer, DataAttributeAccessor, PrimitiveObserver, ClassAttributeAccessor, StyleAttributeAccessor, SelectValueObserver, ValueAttributeObserver, CheckedObserver, XLinkAttributeAccessor, DirtyCheckProperty, CustomSetterObserver, SetterObserver, CollectionLengthObserver, PropertyAccessor } from '../../../src/index';
 import { expect } from 'chai';
 import { DI } from '@aurelia/kernel';
 import { _, createElement } from '../util';

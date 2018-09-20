@@ -49,7 +49,7 @@ export class Call implements IBinding {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.targetObserver.setValue($event => this.callSource($event), flags);
+    this.targetObserver.setValue($args => this.callSource($args), flags);
   }
 
   public $unbind(flags: BindingFlags): void {

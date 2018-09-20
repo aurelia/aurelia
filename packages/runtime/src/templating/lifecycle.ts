@@ -2,6 +2,12 @@ import { PLATFORM } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { IRenderable, isRenderable } from './renderable';
 
+export enum LifecycleFlags {
+  none                  = 0b0_001,
+  skipAnimation         = 0b0_010,
+  unbindAfterDetached   = 0b0_100,
+}
+
 type LifecycleAttachable = {
   /*@internal*/
   $nextAttached?: LifecycleAttachable;

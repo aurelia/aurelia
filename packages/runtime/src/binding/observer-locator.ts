@@ -11,7 +11,7 @@ import { AccessorOrObserver, CollectionKind, IBindingTargetAccessor, IBindingTar
 import { PrimitiveObserver, SetterObserver } from './property-observation';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
-import { ClassAttributeAccessor, DataAttributeAccessor, PropertyAccessor, StyleAttributeAccessor, XLinkAttributeAccessor } from './target-accessors';
+import { ClassAttributeAccessor, DataAttributeAccessor, PropertyAccessor, StyleAttributeAccessor, XLinkAttributeAccessor, ElementPropertyAccessor } from './target-accessors';
 
 const toStringTag = Object.prototype.toString;
 
@@ -84,7 +84,12 @@ export class ObserverLocator implements IObserverLocator {
   public getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor {
     if (DOM.isNodeInstance(obj)) {
       const tagName = obj['tagName'];
+      // this check comes first for hot path optimization
+      if (propertyName === 'textContent') {
+        return new ElementPropertyAccessor(this.changeSet, obj, propertyName);
+      }
 
+      // TODO: optimize and make pluggable
       if (propertyName === 'class' || propertyName === 'style' || propertyName === 'css'
         || propertyName === 'value' && (tagName === 'INPUT' || tagName === 'SELECT')
         || propertyName === 'checked' && tagName === 'INPUT'
@@ -100,6 +105,7 @@ export class ObserverLocator implements IObserverLocator {
       ) {
         return new DataAttributeAccessor(this.changeSet, obj, propertyName);
       }
+      return new ElementPropertyAccessor(this.changeSet, obj, propertyName);
     }
 
     return new PropertyAccessor(obj, propertyName);

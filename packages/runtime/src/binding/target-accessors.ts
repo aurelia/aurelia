@@ -231,6 +231,22 @@ ClassAttributeAccessor.prototype.version = 0;
 ClassAttributeAccessor.prototype.nameIndex = null;
 
 // tslint:disable-next-line:interface-name
+export interface ElementPropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
+
+@targetObserver('')
+export class ElementPropertyAccessor implements ElementPropertyAccessor {
+  constructor(public changeSet: IChangeSet, public obj: IIndexable, public propertyKey: string) { }
+
+  public getValue(): Primitive | IIndexable {
+    return this.obj[this.propertyKey];
+  }
+
+  public setValueCore(value: Primitive | IIndexable): void {
+    this.obj[this.propertyKey] = value;
+  }
+}
+
+// tslint:disable-next-line:interface-name
 export interface PropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
 
 export class PropertyAccessor implements PropertyAccessor {

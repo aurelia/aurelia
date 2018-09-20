@@ -265,8 +265,7 @@ jobs:
           name: Merge tag into release
           command: |
             git checkout release
-            git merge $CIRCLE_TAG --squash
-            git commit --no-edit
+            git merge $CIRCLE_TAG --no-ff
             git push
 
   publish_latest:
@@ -307,13 +306,19 @@ workflows:
       - e2e_browserstack:
           requires:
             - install
-      - publish_latest:
+      - request_publish_latest:
           type: approval
           requires:
             - build
             - unit_tests_chrome
             - unit_tests_firefox
             - e2e_browserstack
+          filters:
+            branches:
+              only: release
+      - publish_latest:
+          requires:
+            - request_publish_latest
           filters:
             branches:
               only: release

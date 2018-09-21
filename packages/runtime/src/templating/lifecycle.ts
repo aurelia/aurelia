@@ -26,6 +26,7 @@ export interface IAttach {
 }
 
 export interface IAttachLifecycle {
+  readonly flags: LifecycleFlags;
   registerTask(task: Promise<unknown>): void;
   createChild(): IAttachLifecycle;
   queueAddNodes(requestor: LifecycleNodeAddable): void;
@@ -45,13 +46,22 @@ export class AttachLifecycle implements IAttachLifecycle {
   private addNodesTail: LifecycleNodeAddable;
   private tasks: Promise<unknown>[] = null;
 
-  private constructor(private owner: unknown, private isChild: boolean) {
+  private constructor(
+    private owner: unknown,
+    private isChild: boolean,
+    public readonly flags: LifecycleFlags
+  ) {
     this.addNodesTail = this.addNodesHead = this;
     this.attachedTail = this.attachedHead = this;
   }
 
-  public static start(owner: unknown, existingLifecycle?: IAttachLifecycle): IAttachLifecycle {
-    return existingLifecycle || new AttachLifecycle(owner, false);
+  public static start(
+    owner: unknown,
+    existingLifecycle?: IAttachLifecycle,
+    flags?: LifecycleFlags
+  ): IAttachLifecycle {
+    return existingLifecycle
+      || new AttachLifecycle(owner, false, flags || LifecycleFlags.none);
   }
 
   public queueAddNodes(requestor: LifecycleNodeAddable): void {
@@ -79,7 +89,7 @@ export class AttachLifecycle implements IAttachLifecycle {
   }
 
   public createChild(): IAttachLifecycle {
-    const lifecycle = new AttachLifecycle(this, true);
+    const lifecycle = new AttachLifecycle(this, true, this.flags);
     this.queueAddNodes(lifecycle);
     this.queueAttachedCallback(lifecycle);
     return lifecycle;
@@ -153,6 +163,7 @@ type LifecycleNodeRemovable = Pick<IRenderable, '$removeNodes'> & {
 };
 
 export interface IDetachLifecycle {
+  readonly flags: LifecycleFlags;
   registerTask(task: Promise<unknown>): void;
   createChild(): IDetachLifecycle;
   queueRemoveNodes(requestor: LifecycleNodeRemovable): void;
@@ -176,7 +187,11 @@ export class DetachLifecycle implements IDetachLifecycle {
   private rootRenderable: LifecycleNodeRemovable;
   private tasks: Promise<unknown>[] = null;
 
-  private constructor(private owner: unknown, private isChild) {
+  private constructor(
+    private owner: unknown,
+    private isChild: boolean,
+    public readonly flags: LifecycleFlags
+  ) {
     this.detachedTail = this.detachedHead = this;
 
     if (isRenderable(owner)) {
@@ -192,8 +207,13 @@ export class DetachLifecycle implements IDetachLifecycle {
     }
   }
 
-  public static start(owner: unknown, existingLifecycle?: IDetachLifecycle): IDetachLifecycle {
-    return existingLifecycle || new DetachLifecycle(owner, false);
+  public static start(
+    owner: unknown,
+    existingLifecycle?: IDetachLifecycle,
+    flags?: LifecycleFlags
+  ): IDetachLifecycle {
+    return existingLifecycle
+      || new DetachLifecycle(owner, false, flags || LifecycleFlags.none);
   }
 
   public queueDetachedCallback(requestor: LifecycleDetachable): void {
@@ -218,7 +238,7 @@ export class DetachLifecycle implements IDetachLifecycle {
   }
 
   public createChild(): IDetachLifecycle {
-    const lifecycle = new DetachLifecycle(this, true);
+    const lifecycle = new DetachLifecycle(this, true, this.flags);
     this.queueRemoveNodes(lifecycle);
     this.queueDetachedCallback(lifecycle);
     return lifecycle;

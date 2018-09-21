@@ -64,7 +64,8 @@ const enum NodeType {
 
 const resolved = {
   target: <string>'',
-  mode: <BindingMode>BindingMode.default
+  mode: <BindingMode>BindingMode.default,
+  bindable: <IBindableDescription | null>null
 };
 
 /*@internal*/
@@ -79,28 +80,45 @@ export function resolveTarget(target: string, element: ElementDefinition, attrib
       if (bindable = attribute.bindables[propertyName]) {
         resolved.target = bindable.property || propertyName;
         resolved.mode = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : (attribute.defaultBindingMode || BindingMode.toView);
+        resolved.bindable = bindable;
       } else {
         resolved.target = propertyName;
         resolved.mode = attribute.defaultBindingMode || BindingMode.toView;
+        resolved.bindable = null;
       }
     } else {
-      for (const prop in attribute.bindables) {
+      const bindables = attribute.bindables;
+      for (const prop in bindables) {
         // return the first by convention (usually there should only be one)
-        const bindable = attribute.bindables[prop];
+        const bindable = bindables[prop];
         resolved.target = bindable.property;
         resolved.mode = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : (attribute.defaultBindingMode || BindingMode.toView);
+        resolved.bindable = bindable;
         return resolved;
       }
       // if there are no bindables declared, default to 'value'
       resolved.target = 'value';
       resolved.mode = attribute.defaultBindingMode || BindingMode.toView;
+      resolved.bindable = null;
     }
-  } else if (element && (bindable = element.bindables[propertyName])) {
-    resolved.target = bindable.property || propertyName;
-    resolved.mode = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : BindingMode.toView;
+  } else if (element) {
+    const bindables = element.bindables;
+    for (const prop in bindables) {
+      const bindable = bindables[prop];
+      if (bindable.attribute === target) {
+        resolved.target = bindable.property;
+        resolved.mode = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : BindingMode.toView;
+        resolved.bindable = bindable;
+        return resolved;
+      }
+    }
+    resolved.target = target;
+    resolved.mode = BindingMode.toView;
+    resolved.bindable = null;
   } else {
     resolved.target = target;
     resolved.mode = BindingMode.toView;
+    resolved.bindable = null;
   }
   return resolved;
 }
@@ -158,7 +176,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // Parent node is required for remove / replace operation incase node is the direct child of document fragment
     const parentNode = node = isTemplate ? (<HTMLTemplateElement>node).content : node;
 
-    while (node = this.compileNode(node, parentNode, definition, definition.instructions, resources)) { /* Do nothing */ }
+    while (node = this.compileNode(node, parentNode, definition, definition.instructions, resources));
 
     // ideally the flag should be passed correctly from rendering engine
     if (isTemplate && (flags & ViewCompileFlags.surrogate)) {
@@ -182,7 +200,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         return nextSibling;
       case NodeType.Text:
         if (!this.compileTextNode(<Text>node, instructions)) {
-          while ((node = node.nextSibling) && node.nodeType === NodeType.Text) { /* Do nothing */ }
+          while ((node = node.nextSibling) && node.nodeType === NodeType.Text);
           return node;
         }
         return nextSibling;
@@ -254,9 +272,12 @@ export class TemplateCompiler implements ITemplateCompiler {
       DOM.replaceNode(createMarker(), node);
       return;
     }
-    // if there is a custom element or template controller, then the attribute instructions become children
-    // of the hydrate instruction, otherwise they are added directly to instructions as a single array
+    // if there is a template controller, then all attribute instructions become children of the hydrate instruction
+
+    // if there is a custom element, then only the attributes that map to bindables become children of the hydrate instruction,
+    // otherwise they become sibling instructions
     const attributeInstructions: TargetedInstruction[] = [];
+    const siblingInstructions: TargetedInstruction[] = [];
     const tagResourceKey = (node.getAttribute('as-element') || tagName).toLowerCase();
     const element = resources.find(CustomElementResource, tagResourceKey);
     const attributes = node.attributes;
@@ -305,19 +326,29 @@ export class TemplateCompiler implements ITemplateCompiler {
           } else {
             childInstructions.push(this.compileAttribute(target, value, node, attribute, element, command));
           }
-          attributeInstructions.push(new HydrateAttributeInstruction(target, childInstructions));
+          // TODO: prevent the double call to resolveTarget
+          if (!element || resolveTarget(target, element, attribute).bindable !== null) {
+            attributeInstructions.push(new HydrateAttributeInstruction(target, childInstructions));
+          } else {
+            siblingInstructions.push(new HydrateAttributeInstruction(target, childInstructions));
+          }
         }
       } else {
         const instruction = this.compileAttribute(target, value, node, attribute, element, command);
         if (instruction !== null) {
-          attributeInstructions.push(instruction);
+          // TODO: prevent the double call to resolveTarget
+          if (!element || resolveTarget(target, element, attribute).bindable !== null) {
+            attributeInstructions.push(instruction);
+          } else {
+            siblingInstructions.push(instruction);
+          }
         }
       }
     }
     // no template controller; see if there's a custom element
     if (element) {
       // custom element takes the attributes as children
-      instructions.push([new HydrateElementInstruction(tagResourceKey, attributeInstructions)]);
+      instructions.push([new HydrateElementInstruction(tagResourceKey, attributeInstructions), ...siblingInstructions]);
       node.classList.add('au');
     } else if (attributeInstructions.length) {
       // no custom element or template controller, add the attributes directly
@@ -425,13 +456,16 @@ export class TemplateCompiler implements ITemplateCompiler {
       // plain attribute on a custom element
       if (element) {
         const resolved = resolveTarget(target, element, attribute);
-        const expression = parser.parse(value, BindingType.Interpolation);
-        if (expression === null) {
-          // no interpolation -> make it a setProperty on the component
-          return new SetPropertyInstruction(value, resolved.target);
+        // bindable attribute
+        if (resolved.bindable !== null) {
+          const expression = parser.parse(value, BindingType.Interpolation);
+          if (expression === null) {
+            // no interpolation -> make it a setProperty on the component
+            return new SetPropertyInstruction(value, resolved.target);
+          }
+          // interpolation -> behave like toView (e.g. foo="${someProp}")
+          return new ToViewBindingInstruction(expression, resolved.target);
         }
-        // interpolation -> behave like toView (e.g. foo="${someProp}")
-        return new ToViewBindingInstruction(expression, resolved.target);
       }
       // plain attribute on a normal element
       const expression = parser.parse(value, BindingType.Interpolation);

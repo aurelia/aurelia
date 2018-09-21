@@ -1,13 +1,7 @@
-import { IContainer, DI, Registration } from '../../../../kernel/src/index';
-import { TemplateCompiler, register, BasicConfiguration } from '../../../src/index';
-import {
-  Aurelia, Repeat, If, Else, ITemplateCompiler, IChangeSet, CustomElementResource, valueConverter,
-  OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior,
-  DebounceBindingBehavior, ThrottleBindingBehavior, ResourceDescription, ITemplateSource, customElement,
-  bindable
-} from '../../../../runtime/src/index';
+import { IContainer, DI } from '../../../../kernel/src/index';
+import { BasicConfiguration } from '../../../src/index';
+import { Aurelia, IChangeSet, CustomElementResource, valueConverter, customElement, bindable } from '../../../../runtime/src/index';
 import { expect } from 'chai';
-import { ExpressionParser } from '../../../../runtime/src/binding/expression-parser';
 import { spy } from 'sinon';
 
 
@@ -97,7 +91,7 @@ function stringify(o) {
 }
 
 
-describe('TemplateCompiler (integration)', () => {
+describe.only('TemplateCompiler (integration)', () => {
   let container: IContainer;
   let au: Aurelia;
   let host: HTMLElement;

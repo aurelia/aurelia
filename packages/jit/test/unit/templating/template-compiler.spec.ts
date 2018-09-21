@@ -1,6 +1,6 @@
 import { ExpressionParser } from './../../../../runtime/src/binding/expression-parser';
 import { Constructable } from './../../../../kernel/src/interfaces';
-import { ForOfStatement, BindingIdentifier, IExpression, CallScope, PrimitiveLiteral } from './../../../../runtime/src/binding/ast';
+import { ForOfStatement, BindingIdentifier, IExpression, CallScope, PrimitiveLiteral, Interpolation } from './../../../../runtime/src/binding/ast';
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '../../../../kernel/src/index';
 import {
   IExpressionParser,
@@ -23,7 +23,9 @@ import {
   ITargetedInstruction,
   TargetedInstructionType,
   IBindableDescription,
-  DelegationStrategy
+  DelegationStrategy,
+  CustomElementResource,
+  DOM
 } from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
@@ -42,7 +44,7 @@ export function createAttribute(name: string, value: string): Attr {
   return attr;
 }
 
-describe('TemplateCompiler', () => {
+describe.only('TemplateCompiler', () => {
   let container: IContainer;
   let sut: TemplateCompiler;
   let expressionParser: IExpressionParser;
@@ -452,13 +454,17 @@ describe('TemplateCompiler', () => {
           [El, Prop]
         );
         expect(actual.instructions.length).to.equal(1);
-        expect(actual.instructions[0].length).to.equal(1);
+        expect(actual.instructions[0].length).to.equal(3);
+        const siblingInstructions = actual.instructions[0].slice(1);
+        const expectedSiblingInstructions = [
+          { toVerify: ['type', 'res', 'dest'], type: TT.hydrateAttribute, res: 'prop3' },
+          { toVerify: ['type', 'res', 'dest'], type: TT.hydrateAttribute, res: 'prop3' }
+        ];
+        verifyInstructions(siblingInstructions, expectedSiblingInstructions);
         const rootInstructions = actual.instructions[0][0]['instructions'] as any[];
         const expectedRootInstructions = [
           { toVerify: ['type', 'res', 'dest'], type: TT.propertyBinding, dest: 'prop1' },
-          { toVerify: ['type', 'res', 'dest'], type: TT.propertyBinding, dest: 'prop2' },
-          { toVerify: ['type', 'res', 'dest'], type: TT.hydrateAttribute, res: 'prop3' },
-          { toVerify: ['type', 'res', 'dest'], type: TT.hydrateAttribute, res: 'prop3' }
+          { toVerify: ['type', 'res', 'dest'], type: TT.propertyBinding, dest: 'prop2' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
       });
@@ -484,8 +490,7 @@ describe('TemplateCompiler', () => {
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'dest', 'value'], type: TT.setProperty, dest: 'name', value: 'name' },
-          { toVerify: ['type', 'dest', 'value'], type: TT.setProperty, dest: 'name2', value: 'label' },
+          { toVerify: ['type', 'dest', 'value'], type: TT.setProperty, dest: 'name', value: 'name' }
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -723,7 +728,7 @@ describe('TemplateCompiler', () => {
   });
 });
 
-describe(`TemplateCompiler - combinations`, () => {
+describe.only(`TemplateCompiler - combinations`, () => {
   function setup(...globals: IRegistry[]) {
     const container = DI.createContainer();
     container.register(BasicConfiguration, ...globals);
@@ -938,6 +943,112 @@ describe(`TemplateCompiler - combinations`, () => {
         <any>CustomAttributeResource.define({ name: 'foo', isTemplateController: true }, class Foo{}),
         <any>CustomAttributeResource.define({ name: 'bar', isTemplateController: true }, class Bar{}),
         <any>CustomAttributeResource.define({ name: 'baz', isTemplateController: true }, class Baz{})
+      );
+
+      const actual = sut.compile(<any>input, resources);
+      try {
+        verifyBindingInstructionsEqual(actual, output);
+      } catch(err) {
+        console.log(JSON.stringify(output.instructions[0][0], null, 2));
+        throw err;
+      }
+    });
+  });
+
+  function createCustomElement(tagName: string, finalize: boolean, attributes: [string, string][], childInstructions: any[], siblingInstructions: any[], nestedElInstructions: any[], childOutput?, childInput?) {
+    const instruction = {
+      type: TT.hydrateElement,
+      res: tagName,
+      instructions: childInstructions
+    };
+    const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
+    const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput&&childInput.templateOrNode)||''}</${tagName}>`;
+    const input = {
+      templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+      instructions: []
+    }
+    const outputMarkup = <HTMLElement>createElement(`<${tagName} ${attributeMarkup}>${(childOutput&&childOutput.templateOrNode.outerHTML)||''}</${tagName}>`);
+    outputMarkup.classList.add('au');
+    const output = {
+      templateOrNode: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
+      instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
+    }
+    return [input, output];
+  }
+
+  eachCartesianJoinFactory([
+    <(() => CTCResult)[]>[
+      () => createCustomElement(`foo`, true, [[`class`,        `foo`]],             [],                                                                                                                                      [], []),
+      () => createCustomElement(`foo`, true, [[`style`,        `color: green;`]],   [],                                                                                                                                      [], []),
+      () => createCustomElement(`foo`, true, [[`id`,           `$1`]],              [],                                                                                                                                      [], []),
+      () => createCustomElement(`foo`, true, [[`foo1.bind`,    `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'foo1', mode: 2, oneTime: false }],                           [], []),
+      () => createCustomElement(`foo`, true, [[`foo2.bind`,    `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'foo2', mode: 1, oneTime: true }],                            [], []),
+      () => createCustomElement(`foo`, true, [[`foo3.bind`,    `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'foo3', mode: 2, oneTime: false }],                           [], []),
+      () => createCustomElement(`foo`, true, [[`foo4.bind`,    `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'foo4', mode: 4, oneTime: false }],                           [], []),
+      () => createCustomElement(`foo`, true, [[`foo5.bind`,    `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'foo5', mode: 6, oneTime: false }],                           [], []),
+      () => createCustomElement(`foo`, true, [[`foo-foo.bind`, `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'asdf', mode: 2, oneTime: false }],                           [], []),
+      () => createCustomElement(`foo`, true, [[`foo1`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo1', value: 'bar' }],                                                                                  [], []),
+      () => createCustomElement(`foo`, true, [[`foo2`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo2', value: 'bar' }],                                                                                  [], []),
+      () => createCustomElement(`foo`, true, [[`foo3`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo3', value: 'bar' }],                                                                                  [], []),
+      () => createCustomElement(`foo`, true, [[`foo4`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo4', value: 'bar' }],                                                                                  [], []),
+      () => createCustomElement(`foo`, true, [[`foo5`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo5', value: 'bar' }],                                                                                  [], []),
+      () => createCustomElement(`foo`, true, [[`foo5`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo5', value: 'bar' }],                                                                                  [], []),
+      () => createCustomElement(`foo`, true, [[`foo6`,         `bar`]],             [],                                                                                                                                      [], []),
+      () => createCustomElement(`foo`, true, [[`asdf`,         `bar`]],             [],                                                                                                                                      [], []),
+      () => createCustomElement(`foo`, true, [[`foo-foo`,      `bar`]],             [{ type: TT.setProperty, dest: 'asdf', value: 'bar' }],                                                                                  [], []),
+      () => createCustomElement(`foo`, true, [[`foo-foo`,      `\${bar}`]],         [{ type: TT.propertyBinding, srcOrExpr: new Interpolation(['', ''], [new AccessScope('bar')]), dest: 'asdf', mode: 2, oneTime: false }], [], []),
+      () => createCustomElement(`foo`, true, [[`class.bind`,   `'foo'`]],           [], [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('foo'),           dest: 'class', mode: 2, oneTime: false }],                []),
+      () => createCustomElement(`foo`, true, [[`style.bind`,   `'color: green;'`]], [], [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('color: green;'), dest: 'style', mode: 2, oneTime: false }],                []),
+      () => createCustomElement(`foo`, true, [[`id.bind`,      `'$1'`]],            [], [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('$1'),            dest: 'id',    mode: 2, oneTime: false }],                [])
+    ]
+  ], ([input, output]) => {
+    it(`${input.templateOrNode}`, () => {
+
+      const bindables = {
+        foo1: { property: 'foo1', attribute: 'foo1', mode: BindingMode.default },
+        foo2: { property: 'foo2', attribute: 'foo2', mode: BindingMode.oneTime },
+        foo3: { property: 'foo3', attribute: 'foo3', mode: BindingMode.toView },
+        foo4: { property: 'foo4', attribute: 'foo4', mode: BindingMode.fromView },
+        foo5: { property: 'foo5', attribute: 'foo5', mode: BindingMode.twoWay },
+        asdf: { property: 'asdf', attribute: 'foo-foo', mode: BindingMode.default }
+      }
+      const { sut, resources } = setup(
+        <any>CustomElementResource.define({ name: 'foo', bindables }, class Foo{})
+      );
+
+      const actual = sut.compile(<any>input, resources);
+      try {
+        verifyBindingInstructionsEqual(actual, output);
+      } catch(err) {
+        console.log(JSON.stringify(output.instructions[0][0], null, 2));
+        throw err;
+      }
+    });
+  });
+
+  eachCartesianJoinFactory([
+    <(() => CTCResult)[]>[
+      () => createCustomElement(`foo`, false, [], [], [], []),
+      () => createCustomElement(`bar`, false, [], [], [], []),
+      () => createCustomElement(`baz`, false, [], [], [], [])
+    ],
+    <(($1: CTCResult) => CTCResult)[]>[
+      ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),
+      ([input, output]) => createCustomElement(`bar`, false, [], [], [], output.instructions, output, input),
+      ([input, output]) => createCustomElement(`baz`, false, [], [], [], output.instructions, output, input)
+    ],
+    <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
+      ($1, [input, output]) => createCustomElement(`foo`, true, [], [], [], output.instructions, output, input),
+      ($1, [input, output]) => createCustomElement(`bar`, true, [], [], [], output.instructions, output, input),
+      ($1, [input, output]) => createCustomElement(`baz`, true, [], [], [], output.instructions, output, input)
+    ]
+  ], ($1, $2, [input, output]) => {
+    it(`${input.templateOrNode}`, () => {
+
+      const { sut, resources } = setup(
+        <any>CustomElementResource.define({ name: 'foo' }, class Foo{}),
+        <any>CustomElementResource.define({ name: 'bar' }, class Bar{}),
+        <any>CustomElementResource.define({ name: 'baz' }, class Baz{})
       );
 
       const actual = sut.compile(<any>input, resources);

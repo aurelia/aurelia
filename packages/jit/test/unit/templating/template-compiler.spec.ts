@@ -44,7 +44,7 @@ export function createAttribute(name: string, value: string): Attr {
   return attr;
 }
 
-describe.only('TemplateCompiler', () => {
+describe('TemplateCompiler', () => {
   let container: IContainer;
   let sut: TemplateCompiler;
   let expressionParser: IExpressionParser;
@@ -728,7 +728,7 @@ describe.only('TemplateCompiler', () => {
   });
 });
 
-describe.only(`TemplateCompiler - combinations`, () => {
+describe(`TemplateCompiler - combinations`, () => {
   function setup(...globals: IRegistry[]) {
     const container = DI.createContainer();
     container.register(BasicConfiguration, ...globals);
@@ -976,45 +976,50 @@ describe.only(`TemplateCompiler - combinations`, () => {
     return [input, output];
   }
 
-  eachCartesianJoinFactory([
-    <(() => CTCResult)[]>[
-      () => createCustomElement(`foo`, true, [[`class`,        `foo`]],             [],                                                                                                                                      [], []),
-      () => createCustomElement(`foo`, true, [[`style`,        `color: green;`]],   [],                                                                                                                                      [], []),
-      () => createCustomElement(`foo`, true, [[`id`,           `$1`]],              [],                                                                                                                                      [], []),
-      () => createCustomElement(`foo`, true, [[`foo1.bind`,    `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'foo1', mode: 2, oneTime: false }],                           [], []),
-      () => createCustomElement(`foo`, true, [[`foo2.bind`,    `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'foo2', mode: 1, oneTime: true }],                            [], []),
-      () => createCustomElement(`foo`, true, [[`foo3.bind`,    `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'foo3', mode: 2, oneTime: false }],                           [], []),
-      () => createCustomElement(`foo`, true, [[`foo4.bind`,    `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'foo4', mode: 4, oneTime: false }],                           [], []),
-      () => createCustomElement(`foo`, true, [[`foo5.bind`,    `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'foo5', mode: 6, oneTime: false }],                           [], []),
-      () => createCustomElement(`foo`, true, [[`foo-foo.bind`, `'bar'`]],           [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('bar'), dest: 'asdf', mode: 2, oneTime: false }],                           [], []),
-      () => createCustomElement(`foo`, true, [[`foo1`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo1', value: 'bar' }],                                                                                  [], []),
-      () => createCustomElement(`foo`, true, [[`foo2`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo2', value: 'bar' }],                                                                                  [], []),
-      () => createCustomElement(`foo`, true, [[`foo3`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo3', value: 'bar' }],                                                                                  [], []),
-      () => createCustomElement(`foo`, true, [[`foo4`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo4', value: 'bar' }],                                                                                  [], []),
-      () => createCustomElement(`foo`, true, [[`foo5`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo5', value: 'bar' }],                                                                                  [], []),
-      () => createCustomElement(`foo`, true, [[`foo5`,         `bar`]],             [{ type: TT.setProperty, dest: 'foo5', value: 'bar' }],                                                                                  [], []),
-      () => createCustomElement(`foo`, true, [[`foo6`,         `bar`]],             [],                                                                                                                                      [], []),
-      () => createCustomElement(`foo`, true, [[`asdf`,         `bar`]],             [],                                                                                                                                      [], []),
-      () => createCustomElement(`foo`, true, [[`foo-foo`,      `bar`]],             [{ type: TT.setProperty, dest: 'asdf', value: 'bar' }],                                                                                  [], []),
-      () => createCustomElement(`foo`, true, [[`foo-foo`,      `\${bar}`]],         [{ type: TT.propertyBinding, srcOrExpr: new Interpolation(['', ''], [new AccessScope('bar')]), dest: 'asdf', mode: 2, oneTime: false }], [], []),
-      () => createCustomElement(`foo`, true, [[`class.bind`,   `'foo'`]],           [], [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('foo'),           dest: 'class', mode: 2, oneTime: false }],                []),
-      () => createCustomElement(`foo`, true, [[`style.bind`,   `'color: green;'`]], [], [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('color: green;'), dest: 'style', mode: 2, oneTime: false }],                []),
-      () => createCustomElement(`foo`, true, [[`id.bind`,      `'$1'`]],            [], [{ type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral('$1'),            dest: 'id',    mode: 2, oneTime: false }],                [])
-    ]
-  ], ([input, output]) => {
-    it(`${input.templateOrNode}`, () => {
+  type Bindables = { [pdName: string]: IBindableDescription };
 
-      const bindables = {
-        foo1: { property: 'foo1', attribute: 'foo1', mode: BindingMode.default },
-        foo2: { property: 'foo2', attribute: 'foo2', mode: BindingMode.oneTime },
-        foo3: { property: 'foo3', attribute: 'foo3', mode: BindingMode.toView },
-        foo4: { property: 'foo4', attribute: 'foo4', mode: BindingMode.fromView },
-        foo5: { property: 'foo5', attribute: 'foo5', mode: BindingMode.twoWay },
-        asdf: { property: 'asdf', attribute: 'foo-foo', mode: BindingMode.default }
-      }
+  eachCartesianJoinFactory([
+    <(() => string)[]>[
+      () => 'foo',
+      () => 'bar'
+    ],
+    <(($1: string) => string)[]>[
+      (pdName) => pdName,
+      (pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
+    ],
+    <(($1: string, $2: string) => string)[]>[
+      (pdName, pdProp) => PLATFORM.kebabCase(pdProp),
+      (pdName, pdProp) => `${PLATFORM.kebabCase(pdProp)}-baz` // descriptor.attribute is different from kebab-cased descriptor.property
+    ],
+    <(($1: string, $2: string, $3: string) => Bindables)[]>[
+      (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.default  } }),
+      (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  } }),
+      (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   } }),
+      (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView } }),
+      (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   } })
+    ],
+    <(($1: string, $2: string, $3: string, $4: Bindables) => [string, BindingMode | null])[]>[
+      (pdName, pdProp, pdAttr, bindables) => [``,           null                  ],
+      (pdName, pdProp, pdAttr, bindables) => [`.bind`,      bindables[pdName].mode === BindingMode.default ? BindingMode.toView : bindables[pdName].mode],
+      (pdName, pdProp, pdAttr, bindables) => [`.one-time`,  BindingMode.oneTime   ],
+      (pdName, pdProp, pdAttr, bindables) => [`.to-view`,   BindingMode.toView    ],
+      (pdName, pdProp, pdAttr, bindables) => [`.from-view`, BindingMode.fromView  ],
+      (pdName, pdProp, pdAttr, bindables) => [`.two-way`,   BindingMode.twoWay    ]
+    ],
+    <(($1: string, $2: string, $3: string, $4: Bindables, $5: [string, BindingMode | null]) => [boolean, string, string, any])[]>[
+      (pdName, pdProp, pdAttr, bindables, [cmd, mode]) => [true, `${pdAttr}${cmd}`,      `''`, mode === null ? { type: TT.setProperty, dest: pdProp, value: `''` } : { type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral(''), dest: pdProp,          mode,                                              oneTime: mode === BindingMode.oneTime }],
+      (pdName, pdProp, pdAttr, bindables, [cmd, mode]) => [false, `${pdAttr}-qux${cmd}`, `''`, mode === null ? null                                                : { type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral(''), dest: `${pdAttr}-qux`, mode: cmd === '.bind' ? BindingMode.toView : mode, oneTime: cmd === '.one-time' }]
+    ]
+  ], (pdName, pdProp, pdAttr, bindables, [cmd, mode], [isBindable, attrName, attrValue, instruction]) => {
+    it(`pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  pdMode=${mode}  attrName=${attrName}  attrValue=${attrValue}`, () => {
+
       const { sut, resources } = setup(
         <any>CustomElementResource.define({ name: 'foo', bindables }, class Foo{})
       );
+
+      const instructions = instruction === null ? [] : [instruction];
+
+      const [input, output] = createCustomElement('foo', true, [[attrName, attrValue]], isBindable ? instructions : [], !isBindable ? instructions : [], []);
 
       const actual = sut.compile(<any>input, resources);
       try {

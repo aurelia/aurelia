@@ -1,14 +1,12 @@
-import { ExpressionParser } from './../../../../runtime/src/binding/expression-parser';
 import { Constructable } from './../../../../kernel/src/interfaces';
-import { ForOfStatement, BindingIdentifier, IExpression, CallScope, PrimitiveLiteral, Interpolation } from './../../../../runtime/src/binding/ast';
-import { DI, IContainer, IRegistry, PLATFORM, Registration } from '../../../../kernel/src/index';
+import { ForOfStatement, BindingIdentifier, IExpression, PrimitiveLiteral } from './../../../../runtime/src/binding/ast';
+import { DI, IContainer, IRegistry, PLATFORM } from '../../../../kernel/src/index';
 import {
   IExpressionParser,
   IResourceDescriptions,
   BindingType,
   AccessScope,
   CustomAttributeResource,
-  Repeat,
   RuntimeCompilationResources,
   BindingMode,
   customElement,
@@ -16,25 +14,21 @@ import {
   bindable,
   customAttribute,
   ViewCompileFlags,
-  ILetElementInstruction,
   ITemplateSource,
   IHydrateTemplateController,
   IHydrateElementInstruction,
-  ITargetedInstruction,
   TargetedInstructionType,
   IBindableDescription,
   DelegationStrategy,
-  CustomElementResource,
-  DOM
-} from '../../../../runtime/src/index';
+  CustomElementResource} from '../../../../runtime/src/index';
 import {
   TemplateCompiler,
-  register,
   HydrateTemplateController,
-  BasicConfiguration
+  BasicConfiguration,
+  parseCore
 } from '../../../src/index';
 import { expect } from 'chai';
-import { verifyEqual, createElement, eachCartesianJoin, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from '../util';
+import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from '../util';
 import { spy } from 'sinon';
 
 
@@ -728,6 +722,174 @@ describe('TemplateCompiler', () => {
   });
 });
 
+
+
+function createTplCtrlAttributeInstruction(attr: string, value: string) {
+  if (attr === 'repeat.for') {
+    return [{
+      type: TT.propertyBinding,
+      srcOrExpr: new ForOfStatement(
+        new BindingIdentifier(value.split(' of ')[0]),
+        new AccessScope(value.split(' of ')[1])),
+      dest: 'items',
+      mode: BindingMode.toView,
+      oneTime: false
+    }, {
+      type: TT.setProperty,
+      value: 'item',
+      dest: 'local'
+    }];
+  } else {
+    return [{
+      type: TT.propertyBinding,
+      srcOrExpr: value.length === 0 ? new PrimitiveLiteral('') : new AccessScope(value),
+      dest: 'value',
+      mode: BindingMode.toView,
+      oneTime: false
+    }];
+  }
+}
+
+function createTemplateController(attr: string, target: string, value: string, markupOpen: string, markupClose: string, finalize: boolean, childInstr?, childTpl?) {
+  // multiple template controllers per element
+  if (markupOpen === null && markupClose === null) {
+    const instruction = {
+      type: TT.hydrateTemplateController,
+      res: target,
+      src: {
+        name: target,
+        templateOrNode: createElement(`<template><au-marker class="au"></au-marker></template>`),
+        instructions: [[childInstr]]
+      },
+      instructions: createTplCtrlAttributeInstruction(attr, value),
+      link: attr === 'else'
+    };
+    const rawMarkup = childTpl.replace('<div', `<div ${attr}="${value||''}"`);
+    const input = {
+      templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+      instructions: []
+    }
+    const output = {
+      templateOrNode: createElement(`<div><au-marker class="au"></au-marker></div>`),
+      instructions: [[instruction]]
+    }
+    return [input, output];
+  } else {
+    let compiledMarkup;
+    let instructions;
+    if (childInstr === undefined) {
+      compiledMarkup = `${markupOpen}${markupClose}`;
+      instructions = []
+    } else {
+      compiledMarkup = `${markupOpen}<au-marker class="au"></au-marker>${markupClose}`;
+      instructions = [[childInstr]]
+    }
+    const instruction = {
+      type: TT.hydrateTemplateController,
+      res: target,
+      src: {
+        name: target,
+        templateOrNode: createElement(`<template>${compiledMarkup}</template>`),
+        instructions
+      },
+      instructions: createTplCtrlAttributeInstruction(attr, value),
+      link: attr === 'else'
+    };
+    const rawMarkup = `${markupOpen.slice(0, -1)} ${attr}="${value||''}">${childTpl||''}${markupClose}`;
+    const input = {
+      templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+      instructions: []
+    }
+    const output = {
+      templateOrNode: createElement(`<div><au-marker class="au"></au-marker></div>`),
+      instructions: [[instruction]]
+    }
+    return [input, output];
+  }
+}
+
+function createCustomElement(tagName: string, finalize: boolean, attributes: [string, string][], childInstructions: any[], siblingInstructions: any[], nestedElInstructions: any[], childOutput?, childInput?) {
+  const instruction = {
+    type: TT.hydrateElement,
+    res: tagName,
+    instructions: childInstructions
+  };
+  const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
+  const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput&&childInput.templateOrNode)||''}</${tagName}>`;
+  const input = {
+    templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+    instructions: []
+  }
+  const outputMarkup = <HTMLElement>createElement(`<${tagName} ${attributeMarkup}>${(childOutput&&childOutput.templateOrNode.outerHTML)||''}</${tagName}>`);
+  outputMarkup.classList.add('au');
+  const output = {
+    templateOrNode: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
+    instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
+  }
+  return [input, output];
+}
+
+const commandToMode = {
+  'one-time': BindingMode.oneTime,
+  'to-view': BindingMode.toView,
+  'from-view': BindingMode.fromView,
+  'two-way': BindingMode.twoWay
+};
+
+const validCommands = ['bind', 'one-time', 'to-view', 'from-view', 'two-way', 'trigger', 'delegate', 'capture', 'call'];
+
+function createAttributeInstruction(bindable: IBindableDescription | null, attributeName: string, attributeValue: string) {
+  const parts = attributeName.split('.');
+  const attr = parts[0];
+  const cmd = parts.pop();
+  const defaultMode = !!bindable ? (bindable.mode === BindingMode.default ? BindingMode.toView : bindable.mode) : BindingMode.toView;
+  const mode = commandToMode[cmd] || defaultMode;
+  const oneTime = mode === BindingMode.oneTime;
+
+  if (!!bindable) {
+    if (!!cmd && validCommands.indexOf(cmd) !== -1) {
+      const type = TT.propertyBinding;
+      const dest = bindable.property;
+      const srcOrExpr = parseCore(attributeValue);
+      return { type, dest, mode, srcOrExpr, oneTime };
+    } else {
+      const srcOrExpr = parseCore(attributeValue, <any>BindingType.Interpolation);
+      if (!!srcOrExpr) {
+        const mode = BindingMode.toView;
+        const type = TT.propertyBinding;
+        const dest = bindable.property;
+        const oneTime = false;
+        return { type, dest, mode, srcOrExpr, oneTime };
+      } else {
+        const type = TT.setProperty;
+        const dest = bindable.property;
+        const value = attributeValue;
+        return { type, dest, value };
+      }
+    }
+  } else {
+    const type = TT.propertyBinding;
+    const dest = attr;
+    if (!!cmd && validCommands.indexOf(cmd) !== -1) {
+      const srcOrExpr = parseCore(attributeValue);
+      return { type, dest, mode, srcOrExpr, oneTime };
+    } else {
+      const mode = BindingMode.toView;
+      const oneTime = false;
+      const srcOrExpr = parseCore(attributeValue, <any>BindingType.Interpolation);
+      if (!!srcOrExpr) {
+        return { type, dest, mode, srcOrExpr, oneTime };
+      } else {
+        return null;
+      }
+    }
+  }
+}
+
+type CTCResult = [ITemplateSource, ITemplateSource];
+
+type Bindables = { [pdName: string]: IBindableDescription };
+
 describe(`TemplateCompiler - combinations`, () => {
   function setup(...globals: IRegistry[]) {
     const container = DI.createContainer();
@@ -743,13 +905,13 @@ describe(`TemplateCompiler - combinations`, () => {
       () => ['div']
     ],
     <(($1: [string]) => [string, string, string, IExpression])[]>[
-      ($1) => ['foo', 'foo', 'bar', new AccessScope('bar')],
-      ($1) => ['foo.bar', 'foo', 'bar', new AccessScope('bar')],
-      ($1) => ['foo.bind', 'foo', 'bar', new AccessScope('bar')],
-      ($1) => ['value', 'value', 'value', new AccessScope('value')]
+      () => ['foo', 'foo', 'bar', new AccessScope('bar')],
+      () => ['foo.bar', 'foo', 'bar', new AccessScope('bar')],
+      () => ['foo.bind', 'foo', 'bar', new AccessScope('bar')],
+      () => ['value', 'value', 'value', new AccessScope('value')]
     ],
     <(($1: [string], $2: [string, string, string, IExpression]) => [string, string, any])[]>[
-      ($1, [attr, dest, value, srcOrExpr]) => [`ref`,               value, { type: TT.refBinding,      srcOrExpr }],
+      ($1, [,, value, srcOrExpr]) => [`ref`,               value, { type: TT.refBinding,      srcOrExpr }],
       ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
       ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
       ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime,  oneTime: true  }],
@@ -799,14 +961,14 @@ describe(`TemplateCompiler - combinations`, () => {
       () => BindingMode.twoWay
     ],
     <(($1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, IExpression, Constructable], $3: BindingMode) => [string, any])[]>[
-      ([$11, mode, dest], [attr, $21, srcOrExpr], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-      ([$11, mode, dest], [attr, $21, srcOrExpr], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-      ([$11, mode, dest], [attr, $21, srcOrExpr], defaultMode) => [`${attr}.to-view`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView }],
-      ([$11, mode, dest], [attr, $21, srcOrExpr], defaultMode) => [`${attr}.one-time`,  { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime }],
-      ([$11, mode, dest], [attr, $21, srcOrExpr], defaultMode) => [`${attr}.from-view`, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView }],
-      ([$11, mode, dest], [attr, $21, srcOrExpr], defaultMode) => [`${attr}.two-way`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay }]
+      ([, mode, dest], [attr,, srcOrExpr], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+      ([, mode, dest], [attr,, srcOrExpr], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+      ([,, dest], [attr,, srcOrExpr]) => [`${attr}.to-view`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView }],
+      ([,, dest], [attr,, srcOrExpr]) => [`${attr}.one-time`,  { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime }],
+      ([,, dest], [attr,, srcOrExpr]) => [`${attr}.from-view`, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView }],
+      ([,, dest], [attr,, srcOrExpr]) => [`${attr}.two-way`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay }]
     ]
-  ], ([bindables], [attr, value, srcOrExpr, ctor], defaultBindingMode, [name, childInstruction]) => {
+  ], ([bindables], [attr, value,, ctor], defaultBindingMode, [name, childInstruction]) => {
     childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
     const src = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
     const markup = `<div ${name}="${value}"></div>`;
@@ -824,92 +986,6 @@ describe(`TemplateCompiler - combinations`, () => {
       verifyBindingInstructionsEqual(actual, expected);
     });
   });
-
-  function createTplCtrlAttributeInstruction(attr: string, value: string) {
-    if (attr === 'repeat.for') {
-      return [{
-        type: TT.propertyBinding,
-        srcOrExpr: new ForOfStatement(
-          new BindingIdentifier(value.split(' of ')[0]),
-          new AccessScope(value.split(' of ')[1])),
-        dest: 'items',
-        mode: BindingMode.toView,
-        oneTime: false
-      }, {
-        type: TT.setProperty,
-        value: 'item',
-        dest: 'local'
-      }];
-    } else {
-      return [{
-        type: TT.propertyBinding,
-        srcOrExpr: value.length === 0 ? new PrimitiveLiteral('') : new AccessScope(value),
-        dest: 'value',
-        mode: BindingMode.toView,
-        oneTime: false
-      }];
-    }
-  }
-
-  function createTemplateController(attr: string, target: string, value: string, markupOpen: string, markupClose: string, finalize: boolean, childInstr?, childTpl?) {
-    // multiple template controllers per element
-    if (markupOpen === null && markupClose === null) {
-      const instruction = {
-        type: TT.hydrateTemplateController,
-        res: target,
-        src: {
-          name: target,
-          templateOrNode: createElement(`<template><au-marker class="au"></au-marker></template>`),
-          instructions: [[childInstr]]
-        },
-        instructions: createTplCtrlAttributeInstruction(attr, value),
-        link: attr === 'else'
-      };
-      const rawMarkup = childTpl.replace('<div', `<div ${attr}="${value||''}"`);
-      const input = {
-        templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
-        instructions: []
-      }
-      const output = {
-        templateOrNode: createElement(`<div><au-marker class="au"></au-marker></div>`),
-        instructions: [[instruction]]
-      }
-      return [input, output];
-    } else {
-      let compiledMarkup;
-      let instructions;
-      if (childInstr === undefined) {
-        compiledMarkup = `${markupOpen}${markupClose}`;
-        instructions = []
-      } else {
-        compiledMarkup = `${markupOpen}<au-marker class="au"></au-marker>${markupClose}`;
-        instructions = [[childInstr]]
-      }
-      const instruction = {
-        type: TT.hydrateTemplateController,
-        res: target,
-        src: {
-          name: target,
-          templateOrNode: createElement(`<template>${compiledMarkup}</template>`),
-          instructions
-        },
-        instructions: createTplCtrlAttributeInstruction(attr, value),
-        link: attr === 'else'
-      };
-      const rawMarkup = `${markupOpen.slice(0, -1)} ${attr}="${value||''}">${childTpl||''}${markupClose}`;
-      const input = {
-        templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
-        instructions: []
-      }
-      const output = {
-        templateOrNode: createElement(`<div><au-marker class="au"></au-marker></div>`),
-        instructions: [[instruction]]
-      }
-      return [input, output];
-    }
-  }
-
-  type CTCResult = [ITemplateSource, ITemplateSource];
 
   eachCartesianJoinFactory([
     <(() => CTCResult)[]>[
@@ -955,29 +1031,6 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  function createCustomElement(tagName: string, finalize: boolean, attributes: [string, string][], childInstructions: any[], siblingInstructions: any[], nestedElInstructions: any[], childOutput?, childInput?) {
-    const instruction = {
-      type: TT.hydrateElement,
-      res: tagName,
-      instructions: childInstructions
-    };
-    const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
-    const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput&&childInput.templateOrNode)||''}</${tagName}>`;
-    const input = {
-      templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
-      instructions: []
-    }
-    const outputMarkup = <HTMLElement>createElement(`<${tagName} ${attributeMarkup}>${(childOutput&&childOutput.templateOrNode.outerHTML)||''}</${tagName}>`);
-    outputMarkup.classList.add('au');
-    const output = {
-      templateOrNode: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
-      instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
-    }
-    return [input, output];
-  }
-
-  type Bindables = { [pdName: string]: IBindableDescription };
-
   eachCartesianJoinFactory([
     <(() => string)[]>[
       () => 'foo',
@@ -998,28 +1051,36 @@ describe(`TemplateCompiler - combinations`, () => {
       (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView } }),
       (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   } })
     ],
-    <(($1: string, $2: string, $3: string, $4: Bindables) => [string, BindingMode | null])[]>[
-      (pdName, pdProp, pdAttr, bindables) => [``,           null                  ],
-      (pdName, pdProp, pdAttr, bindables) => [`.bind`,      bindables[pdName].mode === BindingMode.default ? BindingMode.toView : bindables[pdName].mode],
-      (pdName, pdProp, pdAttr, bindables) => [`.one-time`,  BindingMode.oneTime   ],
-      (pdName, pdProp, pdAttr, bindables) => [`.to-view`,   BindingMode.toView    ],
-      (pdName, pdProp, pdAttr, bindables) => [`.from-view`, BindingMode.fromView  ],
-      (pdName, pdProp, pdAttr, bindables) => [`.two-way`,   BindingMode.twoWay    ]
+    <(() => [string, string])[]>[
+      () => [``,           `''`],
+      () => [``,           `\${a}`],
+      () => [`.bind`,      `''`],
+      () => [`.one-time`,  `''`],
+      () => [`.to-view`,   `''`],
+      () => [`.from-view`, `''`],
+      () => [`.two-way`,   `''`]
     ],
-    <(($1: string, $2: string, $3: string, $4: Bindables, $5: [string, BindingMode | null]) => [boolean, string, string, any])[]>[
-      (pdName, pdProp, pdAttr, bindables, [cmd, mode]) => [true, `${pdAttr}${cmd}`,      `''`, mode === null ? { type: TT.setProperty, dest: pdProp, value: `''` } : { type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral(''), dest: pdProp,          mode,                                              oneTime: mode === BindingMode.oneTime }],
-      (pdName, pdProp, pdAttr, bindables, [cmd, mode]) => [false, `${pdAttr}-qux${cmd}`, `''`, mode === null ? null                                                : { type: TT.propertyBinding, srcOrExpr: new PrimitiveLiteral(''), dest: `${pdAttr}-qux`, mode: cmd === '.bind' ? BindingMode.toView : mode, oneTime: cmd === '.one-time' }]
+    <(($1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [IBindableDescription, string])[]>[
+      (pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
+      (pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}.qux${cmd}`],
+      (pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}-qux${cmd}`]
+    ],
+    <(() => string)[]>[
+      () => `''`
     ]
-  ], (pdName, pdProp, pdAttr, bindables, [cmd, mode], [isBindable, attrName, attrValue, instruction]) => {
-    it(`pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  pdMode=${mode}  attrName=${attrName}  attrValue=${attrValue}`, () => {
+  ], (pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindable, attrName]) => {
+    it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, () => {
 
       const { sut, resources } = setup(
-        <any>CustomElementResource.define({ name: 'foo', bindables }, class Foo{})
+        <any>CustomElementResource.define({ name: 'foobar', bindables }, class FooBar{})
       );
 
+      const instruction = createAttributeInstruction(bindable, attrName, attrValue);
       const instructions = instruction === null ? [] : [instruction];
+      const childInstructions = !!bindable ? instructions : [];
+      const siblingInstructions = !bindable ? instructions : [];
 
-      const [input, output] = createCustomElement('foo', true, [[attrName, attrValue]], isBindable ? instructions : [], !isBindable ? instructions : [], []);
+      const [input, output] = createCustomElement('foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []);
 
       const actual = sut.compile(<any>input, resources);
       try {

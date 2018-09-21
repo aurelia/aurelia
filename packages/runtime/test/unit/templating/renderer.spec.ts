@@ -27,7 +27,6 @@ import {
 import { expect } from 'chai';
 import { _, createElement } from '../util';
 import {
-  register,
   CallBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
@@ -44,7 +43,8 @@ import {
   TriggerBindingInstruction,
   TwoWayBindingInstruction,
   LetBindingInstruction,
-  LetElementInstruction
+  LetElementInstruction,
+  ParserRegistration
 } from '../../../../jit/src/index';
 import { DI } from '../../../../kernel/src/index';
 import { spy, SinonSpy } from 'sinon';
@@ -52,7 +52,7 @@ import { spy, SinonSpy } from 'sinon';
 describe('Renderer', () => {
   function setup<T extends ITargetedInstruction>(instruction: T) {
     const container = DI.createContainer();
-    register(container);
+    ParserRegistration.register(container);
     const parser = <IExpressionParser>container.get(IExpressionParser);
     const renderable = <IRenderable>{ $bindables: [], $attachables: [] };
     const wrapper = <HTMLElement>createElement('<div><au-target class="au"></au-target> </div>');

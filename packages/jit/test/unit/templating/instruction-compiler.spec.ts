@@ -1,7 +1,7 @@
-import { bindingCommand, IBindingCommand, HydrateElementInstruction, register, TemplateCompiler, BasicConfiguration } from "../../../src";
-import { IExpressionParser, INode, IResourceDescriptions, ICustomAttributeSource, ITemplateSource, TargetedInstructionType, BindingType, IRenderable, BindingMode, IObserverLocator, IRenderContext, Binding, IRenderStrategyInstruction, renderStrategy, IRenderStrategy, ITemplateCompiler, Aurelia, IChangeSet, customElement, CustomElementResource, bindable, IEventManager, Listener, IExpression, DelegationStrategy, AttributeDefinition, ElementDefinition } from "@aurelia/runtime";
-import { Immutable, IIndexable, DI, IContainer, Registration, IServiceLocator, inject } from "@aurelia/kernel";
-import { ExpressionParser } from '../../../../runtime/src/binding/expression-parser';
+import { ParserRegistration } from './../../../src/binding/expression-parser';
+import { bindingCommand, IBindingCommand, BasicConfiguration } from "../../../src";
+import { IExpressionParser, INode, ICustomAttributeSource, TargetedInstructionType, BindingType, IRenderable, IRenderStrategyInstruction, renderStrategy, IRenderStrategy, Aurelia, IChangeSet, CustomElementResource, IEventManager, Listener, IExpression, DelegationStrategy, AttributeDefinition, ElementDefinition } from "@aurelia/runtime";
+import { Immutable, IIndexable, DI, IContainer, IServiceLocator, inject } from "@aurelia/kernel";
 import { expect } from "chai";
 import { spy } from "sinon";
 
@@ -89,12 +89,10 @@ describe('bindingCommand', () => {
   let au: Aurelia;
   let host: HTMLElement;
   let component: ReturnType<typeof createCustomElement>;
-  let cs: IChangeSet
 
   beforeEach(() => {
     const container = DI.createContainer();
-    cs = container.get(IChangeSet);
-    register(container);
+    container.register(ParserRegistration);
     host = document.createElement('app');
     document.body.appendChild(host);
     au = new Aurelia(container).register(TestConfiguration, BasicConfiguration);

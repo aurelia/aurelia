@@ -27,9 +27,10 @@ export interface IAttach {
 
 export interface IAttachLifecycle {
   registerTask(task: Promise<unknown>): void;
+  createChild(): IAttachLifecycle;
   queueAddNodes(requestor: LifecycleNodeAddable): void;
   queueAttachedCallback(requestor: LifecycleAttachable): void;
-  end(owner: unknown): Promise<void> | null;
+  end(owner: unknown): Promise<boolean> | boolean;
 }
 
 export class AttachLifecycle implements IAttachLifecycle {
@@ -38,24 +39,19 @@ export class AttachLifecycle implements IAttachLifecycle {
   /*@internal*/
   public $nextAttached: LifecycleAttachable;
 
-  /*@internal*/
-  public $addNodes: typeof PLATFORM.noop = PLATFORM.noop;
-  /*@internal*/
-  public attached: typeof PLATFORM.noop = PLATFORM.noop;
-
   private attachedHead: LifecycleAttachable;
   private attachedTail: LifecycleAttachable;
   private addNodesHead: LifecycleNodeAddable;
   private addNodesTail: LifecycleNodeAddable;
   private tasks: Promise<unknown>[] = null;
 
-  private constructor(private owner: unknown) {
+  private constructor(private owner: unknown, private isChild: boolean) {
     this.addNodesTail = this.addNodesHead = this;
     this.attachedTail = this.attachedHead = this;
   }
 
   public static start(owner: unknown, existingLifecycle?: IAttachLifecycle): IAttachLifecycle {
-    return existingLifecycle || new AttachLifecycle(owner);
+    return existingLifecycle || new AttachLifecycle(owner, false);
   }
 
   public queueAddNodes(requestor: LifecycleNodeAddable): void {
@@ -69,30 +65,58 @@ export class AttachLifecycle implements IAttachLifecycle {
   }
 
   public registerTask(task: Promise<unknown>): void {
-    let tasks = this.tasks;
+    if (this.isChild) {
+      (this.owner as IAttachLifecycle).registerTask(task);
+    } else {
+      let tasks = this.tasks;
 
-    if (tasks === null) {
-      this.tasks = tasks = [];
-    }
-
-    tasks.push(task);
-  }
-
-  public end(owner: unknown): Promise<void> | null {
-    if (owner === this.owner) {
-      const tasks = this.tasks;
-
-      if (tasks !== null) {
-        return Promise.all(tasks).then(() => this.run());
+      if (tasks === null) {
+        this.tasks = tasks = [];
       }
 
-      this.run();
+      tasks.push(task);
     }
-
-    return null;
   }
 
-  private run(): void {
+  public createChild(): IAttachLifecycle {
+    const lifecycle = new AttachLifecycle(this, true);
+    this.queueAddNodes(lifecycle);
+    this.queueAttachedCallback(lifecycle);
+    return lifecycle;
+  }
+
+  public end(owner: unknown): Promise<boolean> | boolean {
+    if (owner === this.owner) {
+      if (this.tasks !== null) {
+        const tasks = PLATFORM.toArray(this.tasks);
+        this.tasks = null;
+        return Promise.all(tasks).then(() => this.end(owner));
+      }
+
+      this.processAddNodes();
+      this.processAttachedCallbacks();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /*@internal*/
+  public $addNodes(): void {
+    if (this.isChild) {
+      this.processAddNodes();
+    }
+  }
+
+  /*@internal*/
+  public attached(): void {
+    if (this.isChild) {
+      this.processAttachedCallbacks();
+    }
+  }
+
+  private processAddNodes(): void {
     let currentAddNodes = this.addNodesHead;
     let nextAddNodes;
 
@@ -102,7 +126,9 @@ export class AttachLifecycle implements IAttachLifecycle {
       currentAddNodes.$nextAddNodes = null;
       currentAddNodes = nextAddNodes;
     }
+  }
 
+  private processAttachedCallbacks(): void {
     let currentAttached = this.attachedHead;
     let nextAttached;
 

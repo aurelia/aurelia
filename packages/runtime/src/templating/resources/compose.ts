@@ -74,6 +74,7 @@ export class Compose {
       this.$addChild(view, flags);
     }
 
+    this.task = null;
     this.composing = false;
   }
 
@@ -116,7 +117,7 @@ export class Compose {
   }
 
   private startComposition(subject: any, flags: BindingFlags): void {
-    if (this.task) {
+    if (this.task !== null) {
       this.task.cancel();
     }
 

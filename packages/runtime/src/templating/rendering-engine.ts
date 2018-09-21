@@ -5,7 +5,6 @@ import { IExpressionParser } from '../binding/expression-parser';
 import { IObserverLocator } from '../binding/observer-locator';
 import { DOM, INode, INodeSequence, NodeSequence } from '../dom';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
-import { IAnimator } from './animator';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { ITemplateSource, TemplateDefinition, TemplatePartDefinitions } from './instructions';
@@ -41,7 +40,7 @@ const noViewTemplate: ITemplate = {
 
 const defaultCompilerName = 'default';
 
-@inject(IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, IAnimator, all(ITemplateCompiler))
+@inject(IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
   private templateLookup = new Map<TemplateDefinition, ITemplate>();
@@ -55,7 +54,6 @@ export class RenderingEngine implements IRenderingEngine {
     private observerLocator: IObserverLocator,
     private eventManager: IEventManager,
     private parser: IExpressionParser,
-    private animator: IAnimator,
     templateCompilers: ITemplateCompiler[]
   ) {
     this.compilers = templateCompilers.reduce(
@@ -127,7 +125,7 @@ export class RenderingEngine implements IRenderingEngine {
 
   private factoryFromSource(definition: TemplateDefinition, parentContext?: IRenderContext): IViewFactory {
     const template = this.templateFromSource(definition, parentContext);
-    const factory = new ViewFactory(definition.name, template, this.animator);
+    const factory = new ViewFactory(definition.name, template);
     factory.setCacheSize(definition.cache, true);
     return factory;
   }

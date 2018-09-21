@@ -900,230 +900,241 @@ describe(`TemplateCompiler - combinations`, () => {
     return { container, expressionParser, sut, resources }
   }
 
-  eachCartesianJoinFactory([
-    <(() => [string])[]>[
-      () => ['div']
-    ],
-    <(($1: [string]) => [string, string, string, IExpression])[]>[
-      () => ['foo', 'foo', 'bar', new AccessScope('bar')],
-      () => ['foo.bar', 'foo', 'bar', new AccessScope('bar')],
-      () => ['foo.bind', 'foo', 'bar', new AccessScope('bar')],
-      () => ['value', 'value', 'value', new AccessScope('value')]
-    ],
-    <(($1: [string], $2: [string, string, string, IExpression]) => [string, string, any])[]>[
-      ($1, [,, value, srcOrExpr]) => [`ref`,               value, { type: TT.refBinding,      srcOrExpr }],
-      ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
-      ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
-      ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime,  oneTime: true  }],
-      ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView, oneTime: false }],
-      ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay,   oneTime: false }],
-      ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.none,      preventDefault: true }],
-      ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
-      ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.capturing, preventDefault: false }],
-      ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.call`,      value, { type: TT.callBinding,     srcOrExpr, dest }]
-    ]
-  ], ([el], $2, [n1, v1, i1]) => {
-    const markup = `<${el} ${n1}="${v1}"></${el}>`;
+  describe('plain attributes', () => {
+    eachCartesianJoinFactory([
+      <(() => [string])[]>[
+        () => ['div']
+      ],
+      <(($1: [string]) => [string, string, string, IExpression])[]>[
+        () => ['foo', 'foo', 'bar', new AccessScope('bar')],
+        () => ['foo.bar', 'foo', 'bar', new AccessScope('bar')],
+        () => ['foo.bind', 'foo', 'bar', new AccessScope('bar')],
+        () => ['value', 'value', 'value', new AccessScope('value')]
+      ],
+      <(($1: [string], $2: [string, string, string, IExpression]) => [string, string, any])[]>[
+        ($1, [,, value, srcOrExpr]) => [`ref`,               value, { type: TT.refBinding,      srcOrExpr }],
+        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
+        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
+        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime,  oneTime: true  }],
+        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView, oneTime: false }],
+        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay,   oneTime: false }],
+        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.none,      preventDefault: true }],
+        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
+        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.capturing, preventDefault: false }],
+        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.call`,      value, { type: TT.callBinding,     srcOrExpr, dest }]
+      ]
+    ], ([el], $2, [n1, v1, i1]) => {
+      const markup = `<${el} ${n1}="${v1}"></${el}>`;
 
-    it(markup, () => {
-      const input = { templateOrNode: markup, instructions: [], surrogates: [] };
-      const expected = { templateOrNode: createElement(`<${el} ${n1}="${v1}" class="au"></${el}>`), instructions: [[i1]], surrogates: [] };
+      it(markup, () => {
+        const input = { templateOrNode: markup, instructions: [], surrogates: [] };
+        const expected = { templateOrNode: createElement(`<${el} ${n1}="${v1}" class="au"></${el}>`), instructions: [[i1]], surrogates: [] };
 
-      const { sut, resources } = setup();
+        const { sut, resources } = setup();
 
-      const actual = sut.compile(<any>input, resources);
+        const actual = sut.compile(<any>input, resources);
 
-      verifyBindingInstructionsEqual(actual, expected);
+        verifyBindingInstructionsEqual(actual, expected);
+      });
     });
   });
 
-  eachCartesianJoinFactory([
-    // ICustomAttributeSource.bindables
-    <(() => [Record<string, IBindableDescription> | undefined, BindingMode | undefined, string])[]>[
-      () => [undefined, undefined, 'value'],
-      () => [{}, undefined,  'value'],
-      () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.oneTime } }, BindingMode.oneTime, 'bazBaz'],
-      () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.fromView } }, BindingMode.fromView, 'bazBaz'],
-      () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.twoWay } }, BindingMode.twoWay, 'bazBaz'],
-      () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.default } }, BindingMode.default, 'bazBaz']
-    ],
-    <(() => [string, string, IExpression, Constructable])[]>[
-      () => ['foo',     '', new PrimitiveLiteral(''), class Foo{}],
-      () => ['foo-foo', '', new PrimitiveLiteral(''), class FooFoo{}],
-      () => ['foo',     'bar', new AccessScope('bar'), class Foo{}]
-    ],
-    // ICustomAttributeSource.defaultBindingMode
-    <(() => BindingMode | undefined)[]>[
-      () => undefined,
-      () => BindingMode.oneTime,
-      () => BindingMode.toView,
-      () => BindingMode.fromView,
-      () => BindingMode.twoWay
-    ],
-    <(($1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, IExpression, Constructable], $3: BindingMode) => [string, any])[]>[
-      ([, mode, dest], [attr,, srcOrExpr], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-      ([, mode, dest], [attr,, srcOrExpr], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-      ([,, dest], [attr,, srcOrExpr]) => [`${attr}.to-view`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView }],
-      ([,, dest], [attr,, srcOrExpr]) => [`${attr}.one-time`,  { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime }],
-      ([,, dest], [attr,, srcOrExpr]) => [`${attr}.from-view`, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView }],
-      ([,, dest], [attr,, srcOrExpr]) => [`${attr}.two-way`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay }]
-    ]
-  ], ([bindables], [attr, value,, ctor], defaultBindingMode, [name, childInstruction]) => {
-    childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
-    const src = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
-    const markup = `<div ${name}="${value}"></div>`;
+  describe('custom attributes', () => {
+    eachCartesianJoinFactory([
+      // ICustomAttributeSource.bindables
+      <(() => [Record<string, IBindableDescription> | undefined, BindingMode | undefined, string])[]>[
+        () => [undefined, undefined, 'value'],
+        () => [{}, undefined,  'value'],
+        () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.oneTime } }, BindingMode.oneTime, 'bazBaz'],
+        () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.fromView } }, BindingMode.fromView, 'bazBaz'],
+        () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.twoWay } }, BindingMode.twoWay, 'bazBaz'],
+        () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.default } }, BindingMode.default, 'bazBaz']
+      ],
+      <(() => [string, string, IExpression, Constructable])[]>[
+        () => ['foo',     '', new PrimitiveLiteral(''), class Foo{}],
+        () => ['foo-foo', '', new PrimitiveLiteral(''), class FooFoo{}],
+        () => ['foo',     'bar', new AccessScope('bar'), class Foo{}]
+      ],
+      // ICustomAttributeSource.defaultBindingMode
+      <(() => BindingMode | undefined)[]>[
+        () => undefined,
+        () => BindingMode.oneTime,
+        () => BindingMode.toView,
+        () => BindingMode.fromView,
+        () => BindingMode.twoWay
+      ],
+      <(($1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, IExpression, Constructable], $3: BindingMode) => [string, any])[]>[
+        ([, mode, dest], [attr,, srcOrExpr], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        ([, mode, dest], [attr,, srcOrExpr], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.to-view`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView }],
+        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.one-time`,  { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime }],
+        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.from-view`, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView }],
+        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.two-way`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay }]
+      ]
+    ], ([bindables], [attr, value,, ctor], defaultBindingMode, [name, childInstruction]) => {
+      childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
+      const src = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
+      const markup = `<div ${name}="${value}"></div>`;
 
-    it(`${markup}  CustomAttribute=${JSON.stringify(src)}`, () => {
-      const input = { templateOrNode: markup, instructions: [], surrogates: [] };
-      const instruction = { type: TT.hydrateAttribute, res: attr, instructions: [childInstruction] };
-      const expected = { templateOrNode: createElement(`<div ${name}="${value}" class="au"></div>`), instructions: [[instruction]], surrogates: [] };
+      it(`${markup}  CustomAttribute=${JSON.stringify(src)}`, () => {
+        const input = { templateOrNode: markup, instructions: [], surrogates: [] };
+        const instruction = { type: TT.hydrateAttribute, res: attr, instructions: [childInstruction] };
+        const expected = { templateOrNode: createElement(`<div ${name}="${value}" class="au"></div>`), instructions: [[instruction]], surrogates: [] };
 
-      const def = CustomAttributeResource.define(src, ctor);
-      const { sut, resources } = setup(def);
+        const def = CustomAttributeResource.define(src, ctor);
+        const { sut, resources } = setup(def);
 
-      const actual = sut.compile(<any>input, resources);
+        const actual = sut.compile(<any>input, resources);
 
-      verifyBindingInstructionsEqual(actual, expected);
+        verifyBindingInstructionsEqual(actual, expected);
+      });
     });
   });
 
-  eachCartesianJoinFactory([
-    <(() => CTCResult)[]>[
-      () => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false),
-      () => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false),
-      () => createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false),
-      () => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)
-    ],
-    <(($1: CTCResult) => CTCResult)[]>[
-      ([input, output]) => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
-      ([input, output]) => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
-      ([input, output]) => createTemplateController('bar',        'bar',    '',              null,     null,    false, output.instructions[0][0], input.templateOrNode),
-      ([input, output]) => createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
-      ([input, output]) => createTemplateController('else',       'else',   '',              null,     null,    false, output.instructions[0][0], input.templateOrNode),
-      ([input, output]) => createTemplateController('else',       'else',   '',              '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
-      ([input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
-      ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           '<div>', '<div>',  false, output.instructions[0][0], input.templateOrNode),
-      ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           null,    null,     false, output.instructions[0][0], input.templateOrNode)
-    ],
-    <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
-      ($1, [input, output]) => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode),
-      ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode),
-      ($1, [input, output]) => createTemplateController('baz',        'baz',    '',              null,     null,    true, output.instructions[0][0], input.templateOrNode),
-      ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode)
-    ]
-  ], ($1, $2, [input, output]) => {
+  describe('template controllers', () => {
 
-    it(`${input.templateOrNode}`, () => {
+    eachCartesianJoinFactory([
+      <(() => CTCResult)[]>[
+        () => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false),
+        () => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false),
+        () => createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false),
+        () => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)
+      ],
+      <(($1: CTCResult) => CTCResult)[]>[
+        ([input, output]) => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('bar',        'bar',    '',              null,     null,    false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('else',       'else',   '',              null,     null,    false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('else',       'else',   '',              '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           '<div>', '<div>',  false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           null,    null,     false, output.instructions[0][0], input.templateOrNode)
+      ],
+      <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('baz',        'baz',    '',              null,     null,    true, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode)
+      ]
+    ], ($1, $2, [input, output]) => {
 
-      const { sut, resources } = setup(
-        <any>CustomAttributeResource.define({ name: 'foo', isTemplateController: true }, class Foo{}),
-        <any>CustomAttributeResource.define({ name: 'bar', isTemplateController: true }, class Bar{}),
-        <any>CustomAttributeResource.define({ name: 'baz', isTemplateController: true }, class Baz{})
-      );
+      it(`${input.templateOrNode}`, () => {
 
-      const actual = sut.compile(<any>input, resources);
-      try {
-        verifyBindingInstructionsEqual(actual, output);
-      } catch(err) {
-        console.log(JSON.stringify(output.instructions[0][0], null, 2));
-        throw err;
-      }
+        const { sut, resources } = setup(
+          <any>CustomAttributeResource.define({ name: 'foo', isTemplateController: true }, class Foo{}),
+          <any>CustomAttributeResource.define({ name: 'bar', isTemplateController: true }, class Bar{}),
+          <any>CustomAttributeResource.define({ name: 'baz', isTemplateController: true }, class Baz{})
+        );
+
+        const actual = sut.compile(<any>input, resources);
+        try {
+          verifyBindingInstructionsEqual(actual, output);
+        } catch(err) {
+          console.log(JSON.stringify(output.instructions[0][0], null, 2));
+          throw err;
+        }
+      });
     });
   });
 
-  eachCartesianJoinFactory([
-    <(() => string)[]>[
-      () => 'foo',
-      () => 'bar'
-    ],
-    <(($1: string) => string)[]>[
-      (pdName) => pdName,
-      (pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
-    ],
-    <(($1: string, $2: string) => string)[]>[
-      (pdName, pdProp) => PLATFORM.kebabCase(pdProp),
-      (pdName, pdProp) => `${PLATFORM.kebabCase(pdProp)}-baz` // descriptor.attribute is different from kebab-cased descriptor.property
-    ],
-    <(($1: string, $2: string, $3: string) => Bindables)[]>[
-      (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.default  } }),
-      (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  } }),
-      (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   } }),
-      (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView } }),
-      (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   } })
-    ],
-    <(() => [string, string])[]>[
-      () => [``,           `''`],
-      () => [``,           `\${a}`],
-      () => [`.bind`,      `''`],
-      () => [`.one-time`,  `''`],
-      () => [`.to-view`,   `''`],
-      () => [`.from-view`, `''`],
-      () => [`.two-way`,   `''`]
-    ],
-    <(($1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [IBindableDescription, string])[]>[
-      (pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
-      (pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}.qux${cmd}`],
-      (pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}-qux${cmd}`]
-    ],
-    <(() => string)[]>[
-      () => `''`
-    ]
-  ], (pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindable, attrName]) => {
-    it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, () => {
+  describe('attributes on custom elements', () => {
+    eachCartesianJoinFactory([
+      <(() => string)[]>[
+        () => 'foo',
+        () => 'bar'
+      ],
+      <(($1: string) => string)[]>[
+        (pdName) => pdName,
+        (pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
+      ],
+      <(($1: string, $2: string) => string)[]>[
+        (pdName, pdProp) => PLATFORM.kebabCase(pdProp),
+        (pdName, pdProp) => `${PLATFORM.kebabCase(pdProp)}-baz` // descriptor.attribute is different from kebab-cased descriptor.property
+      ],
+      <(($1: string, $2: string, $3: string) => Bindables)[]>[
+        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.default  } }),
+        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  } }),
+        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   } }),
+        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView } }),
+        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   } })
+      ],
+      <(() => [string, string])[]>[
+        () => [``,           `''`],
+        () => [``,           `\${a}`],
+        () => [`.bind`,      `''`],
+        () => [`.one-time`,  `''`],
+        () => [`.to-view`,   `''`],
+        () => [`.from-view`, `''`],
+        () => [`.two-way`,   `''`]
+      ],
+      <(($1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [IBindableDescription, string])[]>[
+        (pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
+        (pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}.qux${cmd}`],
+        (pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}-qux${cmd}`]
+      ],
+      <(() => string)[]>[
+        () => `''`
+      ]
+    ], (pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindable, attrName]) => {
+      it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, () => {
 
-      const { sut, resources } = setup(
-        <any>CustomElementResource.define({ name: 'foobar', bindables }, class FooBar{})
-      );
+        const { sut, resources } = setup(
+          <any>CustomElementResource.define({ name: 'foobar', bindables }, class FooBar{})
+        );
 
-      const instruction = createAttributeInstruction(bindable, attrName, attrValue);
-      const instructions = instruction === null ? [] : [instruction];
-      const childInstructions = !!bindable ? instructions : [];
-      const siblingInstructions = !bindable ? instructions : [];
+        const instruction = createAttributeInstruction(bindable, attrName, attrValue);
+        const instructions = instruction === null ? [] : [instruction];
+        const childInstructions = !!bindable ? instructions : [];
+        const siblingInstructions = !bindable ? instructions : [];
 
-      const [input, output] = createCustomElement('foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []);
+        const [input, output] = createCustomElement('foobar', true, [[attrName, attrValue]], childInstructions, siblingInstructions, []);
 
-      const actual = sut.compile(<any>input, resources);
-      try {
-        verifyBindingInstructionsEqual(actual, output);
-      } catch(err) {
-        console.log(JSON.stringify(output.instructions[0][0], null, 2));
-        throw err;
-      }
+        const actual = sut.compile(<any>input, resources);
+        try {
+          verifyBindingInstructionsEqual(actual, output);
+        } catch(err) {
+          console.log(JSON.stringify(output.instructions[0][0], null, 2));
+          throw err;
+        }
+      });
     });
   });
 
-  eachCartesianJoinFactory([
-    <(() => CTCResult)[]>[
-      () => createCustomElement(`foo`, false, [], [], [], []),
-      () => createCustomElement(`bar`, false, [], [], [], []),
-      () => createCustomElement(`baz`, false, [], [], [], [])
-    ],
-    <(($1: CTCResult) => CTCResult)[]>[
-      ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),
-      ([input, output]) => createCustomElement(`bar`, false, [], [], [], output.instructions, output, input),
-      ([input, output]) => createCustomElement(`baz`, false, [], [], [], output.instructions, output, input)
-    ],
-    <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
-      ($1, [input, output]) => createCustomElement(`foo`, true, [], [], [], output.instructions, output, input),
-      ($1, [input, output]) => createCustomElement(`bar`, true, [], [], [], output.instructions, output, input),
-      ($1, [input, output]) => createCustomElement(`baz`, true, [], [], [], output.instructions, output, input)
-    ]
-  ], ($1, $2, [input, output]) => {
-    it(`${input.templateOrNode}`, () => {
+  describe('custom elements', () => {
+    eachCartesianJoinFactory([
+      <(() => CTCResult)[]>[
+        () => createCustomElement(`foo`, false, [], [], [], []),
+        () => createCustomElement(`bar`, false, [], [], [], []),
+        () => createCustomElement(`baz`, false, [], [], [], [])
+      ],
+      <(($1: CTCResult) => CTCResult)[]>[
+        ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),
+        ([input, output]) => createCustomElement(`bar`, false, [], [], [], output.instructions, output, input),
+        ([input, output]) => createCustomElement(`baz`, false, [], [], [], output.instructions, output, input)
+      ],
+      <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
+        ($1, [input, output]) => createCustomElement(`foo`, true, [], [], [], output.instructions, output, input),
+        ($1, [input, output]) => createCustomElement(`bar`, true, [], [], [], output.instructions, output, input),
+        ($1, [input, output]) => createCustomElement(`baz`, true, [], [], [], output.instructions, output, input)
+      ]
+    ], ($1, $2, [input, output]) => {
+      it(`${input.templateOrNode}`, () => {
 
-      const { sut, resources } = setup(
-        <any>CustomElementResource.define({ name: 'foo' }, class Foo{}),
-        <any>CustomElementResource.define({ name: 'bar' }, class Bar{}),
-        <any>CustomElementResource.define({ name: 'baz' }, class Baz{})
-      );
+        const { sut, resources } = setup(
+          <any>CustomElementResource.define({ name: 'foo' }, class Foo{}),
+          <any>CustomElementResource.define({ name: 'bar' }, class Bar{}),
+          <any>CustomElementResource.define({ name: 'baz' }, class Baz{})
+        );
 
-      const actual = sut.compile(<any>input, resources);
-      try {
-        verifyBindingInstructionsEqual(actual, output);
-      } catch(err) {
-        console.log(JSON.stringify(output.instructions[0][0], null, 2));
-        throw err;
-      }
+        const actual = sut.compile(<any>input, resources);
+        try {
+          verifyBindingInstructionsEqual(actual, output);
+        } catch(err) {
+          console.log(JSON.stringify(output.instructions[0][0], null, 2));
+          throw err;
+        }
+      });
     });
   });
 });

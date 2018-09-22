@@ -69,23 +69,25 @@ const resolved = {
 };
 
 /*@internal*/
-export function resolveTarget(target: string, element: ElementDefinition, attribute: AttributeDefinition): typeof resolved {
-  let bindable: IBindableDescription;
-  const propertyName = PLATFORM.camelCase(target);
+export function resolveTarget(target: string, element: ElementDefinition, attribute: AttributeDefinition, isMultiAttrBinding: boolean): typeof resolved {
   // give custom attributes priority over custom element properties (is this correct? should we throw if there's a conflict?)
   if (attribute) {
     // only consider semicolon-separated bindings for normal custom attributes, not template controllers
     // users must not have a semicolon-separated binding with the same name as the attribute; behavior would be unpredictable
-    if (attribute.isTemplateController === false && propertyName !== attribute.name) {
-      if (bindable = attribute.bindables[propertyName]) {
-        resolved.target = bindable.property || propertyName;
-        resolved.mode = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : (attribute.defaultBindingMode || BindingMode.toView);
-        resolved.bindable = bindable;
-      } else {
-        resolved.target = propertyName;
-        resolved.mode = attribute.defaultBindingMode || BindingMode.toView;
-        resolved.bindable = null;
+    if (isMultiAttrBinding) {
+      const bindables = attribute.bindables;
+      for (const prop in bindables) {
+        const bindable = bindables[prop];
+        if (bindable.attribute === target) {
+          resolved.target = bindable.property;
+          resolved.mode = (bindable.mode && bindable.mode !== BindingMode.default) ? bindable.mode : BindingMode.toView;
+          resolved.bindable = bindable;
+          return resolved;
+        }
       }
+      resolved.target = target;
+      resolved.mode = BindingMode.toView;
+      resolved.bindable = null;
     } else {
       const bindables = attribute.bindables;
       for (const prop in bindables) {
@@ -229,7 +231,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (attribute && attribute.isTemplateController) {
         throw new Error('Cannot have template controller on surrogate element.');
       }
-      const instruction = this.compileAttribute(target, value, node, attribute, null, command);
+      const instruction = this.compileAttribute(target, value, node, attribute, null, command, false);
       if (instruction !== null) {
         surrogateInstructions.push(instruction);
       } else {
@@ -293,7 +295,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (attribute.isTemplateController) {
           node.removeAttributeNode(attr);
 
-          let instruction = this.compileAttribute(target, value, node, attribute, element, command);
+          let instruction = this.compileAttribute(target, value, node, attribute, element, command, false);
           // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
           if (instruction.type !== TargetedInstructionType.hydrateTemplateController) {
             const src: ITemplateSource = {
@@ -318,26 +320,27 @@ export class TemplateCompiler implements ITemplateCompiler {
           // TODO: improve this
           if (bindings.length > 1) {
             for (let i = 0, ii = bindings.length; i < ii; ++i) {
-              const binding = bindings[i];
+              const binding = bindings[i].trim();
+              if (binding.length === 0) continue;
               const parts = binding.split(':');
               const inspected = inspectAttribute(parts[0].trim(), resources);
-              childInstructions.push(this.compileAttribute(inspected.target, parts[1].trim(), node, attribute, element, inspected.command));
+              childInstructions.push(this.compileAttribute(inspected.target, parts[1].trim(), node, attribute, element, inspected.command, true));
             }
           } else {
-            childInstructions.push(this.compileAttribute(target, value, node, attribute, element, command));
+            childInstructions.push(this.compileAttribute(target, value, node, attribute, element, command, false));
           }
           // TODO: prevent the double call to resolveTarget
-          if (!element || resolveTarget(target, element, attribute).bindable !== null) {
+          if (!element || resolveTarget(target, element, attribute, false).bindable !== null) {
             attributeInstructions.push(new HydrateAttributeInstruction(target, childInstructions));
           } else {
             siblingInstructions.push(new HydrateAttributeInstruction(target, childInstructions));
           }
         }
       } else {
-        const instruction = this.compileAttribute(target, value, node, attribute, element, command);
+        const instruction = this.compileAttribute(target, value, node, attribute, element, command, false);
         if (instruction !== null) {
           // TODO: prevent the double call to resolveTarget
-          if (!element || resolveTarget(target, element, attribute).bindable !== null) {
+          if (!element || resolveTarget(target, element, attribute, false).bindable !== null) {
             attributeInstructions.push(instruction);
           } else {
             siblingInstructions.push(instruction);
@@ -417,11 +420,12 @@ export class TemplateCompiler implements ITemplateCompiler {
     node: Node,
     attribute: AttributeDefinition,
     element: ElementDefinition,
-    command: IBindingCommand | null): TargetedInstruction {
+    command: IBindingCommand | null,
+    isMultiAttrBinding: boolean): TargetedInstruction {
       // binding commands get priority over all; they may override default behaviors
       // it is the responsibility of the implementor to ensure they filter out stuff they shouldn't override
       if (command && command.handles(attribute)) {
-        return command.compile(target, value, node, attribute, element);
+        return command.compile(target, value, node, attribute, element, isMultiAttrBinding);
       }
       // simple path for ref binding
       const parser = this.parser;
@@ -438,9 +442,15 @@ export class TemplateCompiler implements ITemplateCompiler {
       // }
       // plain custom attribute on any kind of element
       if (attribute) {
-        const resolved = resolveTarget(target, element, attribute);
-        value = value && value.length ? value : '""';
-        const expression = parser.parse(value, BindingType.Interpolation) || parser.parse(value, BindingType.ToViewCommand);
+        const resolved = resolveTarget(target, element, attribute, isMultiAttrBinding);
+        let expression = parser.parse(value, BindingType.Interpolation);
+        if (expression !== null) {
+          return new ToViewBindingInstruction(expression, resolved.target);
+        }
+        if (!command && resolved.bindable && isMultiAttrBinding) {
+          return new SetPropertyInstruction(value, resolved.target);
+        }
+        expression = parser.parse(value, BindingType.ToViewCommand);
         switch (resolved.mode) {
           case BindingMode.oneTime:
             return new OneTimeBindingInstruction(expression, resolved.target);
@@ -455,7 +465,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
       // plain attribute on a custom element
       if (element) {
-        const resolved = resolveTarget(target, element, attribute);
+        const resolved = resolveTarget(target, element, attribute, isMultiAttrBinding);
         // bindable attribute
         if (resolved.bindable !== null) {
           const expression = parser.parse(value, BindingType.Interpolation);

@@ -883,6 +883,7 @@ export const enum Char {
   Minus          = 0x2D,
   Dot            = 0x2E,
   Slash          = 0x2F,
+  Semicolon      = 0x3B,
   Backtick       = 0x60,
   OpenBracket    = 0x5B,
   Backslash      = 0x5C,

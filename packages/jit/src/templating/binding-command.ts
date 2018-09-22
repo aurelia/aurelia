@@ -7,7 +7,7 @@ export interface IBindingCommandSource {
 }
 
 export interface IBindingCommand {
-  compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction;
+  compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding?: boolean): TargetedInstruction;
   handles(attribute: Immutable<Required<ICustomAttributeSource>> | null): boolean;
 }
 
@@ -58,8 +58,8 @@ export interface OneTimeBindingCommand extends IBindingCommand {}
 export class OneTimeBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new OneTimeBindingInstruction(this.parser.parse(value, BindingType.OneTimeCommand), resolveTarget(target, element, attribute).target);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding: boolean): TargetedInstruction {
+    return new OneTimeBindingInstruction(this.parser.parse(value, BindingType.OneTimeCommand), resolveTarget(target, element, attribute, isMultiAttrBinding).target);
   }
 }
 
@@ -69,8 +69,8 @@ export interface ToViewBindingCommand extends IBindingCommand {}
 export class ToViewBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new ToViewBindingInstruction(this.parser.parse(value, BindingType.ToViewCommand), resolveTarget(target, element, attribute).target);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding: boolean): TargetedInstruction {
+    return new ToViewBindingInstruction(this.parser.parse(value, BindingType.ToViewCommand), resolveTarget(target, element, attribute, isMultiAttrBinding).target);
   }
 }
 
@@ -80,8 +80,8 @@ export interface FromViewBindingCommand extends IBindingCommand {}
 export class FromViewBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new FromViewBindingInstruction(this.parser.parse(value, BindingType.FromViewCommand), resolveTarget(target, element, attribute).target);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding: boolean): TargetedInstruction {
+    return new FromViewBindingInstruction(this.parser.parse(value, BindingType.FromViewCommand), resolveTarget(target, element, attribute, isMultiAttrBinding).target);
   }
 }
 
@@ -91,8 +91,8 @@ export interface TwoWayBindingCommand extends IBindingCommand {}
 export class TwoWayBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new TwoWayBindingInstruction(this.parser.parse(value, BindingType.TwoWayCommand), resolveTarget(target, element, attribute).target);
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding: boolean): TargetedInstruction {
+    return new TwoWayBindingInstruction(this.parser.parse(value, BindingType.TwoWayCommand), resolveTarget(target, element, attribute, isMultiAttrBinding).target);
   }
 }
 
@@ -112,14 +112,14 @@ export class DefaultBindingCommand implements IBindingCommand {
 
   constructor(private parser: IExpressionParser) {}
 
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
+  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding: boolean): TargetedInstruction {
     let mode = BindingMode.toView;
     if (element || attribute) {
-      const resolved = resolveTarget(target, element, attribute);
+      const resolved = resolveTarget(target, element, attribute, isMultiAttrBinding);
       target = resolved.target;
       mode = resolved.mode;
     }
-    return this[compileMode[mode]](target, value, node, attribute, element);
+    return this[compileMode[mode]](target, value, node, attribute, element, isMultiAttrBinding);
   }
 }
 
@@ -168,7 +168,7 @@ export class CallBindingCommand implements IBindingCommand {
   static inject = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new CallBindingInstruction(this.parser.parse(value, BindingType.CallCommand), resolveTarget(target, element, attribute).target);
+    return new CallBindingInstruction(this.parser.parse(value, BindingType.CallCommand), resolveTarget(target, element, attribute, false).target);
   }
 }
 

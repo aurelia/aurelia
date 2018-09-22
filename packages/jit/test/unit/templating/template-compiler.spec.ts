@@ -829,6 +829,27 @@ function createCustomElement(tagName: string, finalize: boolean, attributes: [st
   return [input, output];
 }
 
+function createCustomAttribute(resName: string, finalize: boolean, attributes: [string, string][], childInstructions: any[], siblingInstructions: any[], nestedElInstructions: any[], childOutput?, childInput?) {
+  const instruction = {
+    type: TT.hydrateAttribute,
+    res: resName,
+    instructions: childInstructions
+  };
+  const attributeMarkup = attributes.map(a => `${a[0]}: ${a[1]};`).join('');
+  const rawMarkup = `<div ${resName}="${attributeMarkup}">${(childInput&&childInput.templateOrNode)||''}</div>`;
+  const input = {
+    templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+    instructions: []
+  }
+  const outputMarkup = <HTMLElement>createElement(`<div ${resName}="${attributeMarkup}">${(childOutput&&childOutput.templateOrNode.outerHTML)||''}</div>`);
+  outputMarkup.classList.add('au');
+  const output = {
+    templateOrNode: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
+    instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
+  }
+  return [input, output];
+}
+
 const commandToMode = {
   'one-time': BindingMode.oneTime,
   'to-view': BindingMode.toView,
@@ -838,7 +859,7 @@ const commandToMode = {
 
 const validCommands = ['bind', 'one-time', 'to-view', 'from-view', 'two-way', 'trigger', 'delegate', 'capture', 'call'];
 
-function createAttributeInstruction(bindable: IBindableDescription | null, attributeName: string, attributeValue: string) {
+function createAttributeInstruction(bindable: IBindableDescription | null, attributeName: string, attributeValue: string, isMulti: boolean) {
   const parts = attributeName.split('.');
   const attr = parts[0];
   const cmd = parts.pop();
@@ -876,8 +897,11 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
     } else {
       const mode = BindingMode.toView;
       const oneTime = false;
-      const srcOrExpr = parseCore(attributeValue, <any>BindingType.Interpolation);
+      let srcOrExpr = parseCore(attributeValue, <any>BindingType.Interpolation);
       if (!!srcOrExpr) {
+        return { type, dest, mode, srcOrExpr, oneTime };
+      } else if (isMulti) {
+        srcOrExpr = parseCore(attributeValue, <any>BindingType.BindCommand);
         return { type, dest, mode, srcOrExpr, oneTime };
       } else {
         return null;
@@ -945,10 +969,10 @@ describe(`TemplateCompiler - combinations`, () => {
       <(() => [Record<string, IBindableDescription> | undefined, BindingMode | undefined, string])[]>[
         () => [undefined, undefined, 'value'],
         () => [{}, undefined,  'value'],
-        () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.oneTime } }, BindingMode.oneTime, 'bazBaz'],
-        () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.fromView } }, BindingMode.fromView, 'bazBaz'],
-        () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.twoWay } }, BindingMode.twoWay, 'bazBaz'],
-        () => [{ asdf: { attribute: 'baz-baz', property: 'bazBaz', mode: BindingMode.default } }, BindingMode.default, 'bazBaz']
+        () => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.oneTime } }, BindingMode.oneTime, 'bazBaz'],
+        () => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView } }, BindingMode.fromView, 'bazBaz'],
+        () => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay } }, BindingMode.twoWay, 'bazBaz'],
+        () => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default } }, BindingMode.default, 'bazBaz']
       ],
       <(() => [string, string, IExpression, Constructable])[]>[
         () => ['foo',     '', new PrimitiveLiteral(''), class Foo{}],
@@ -987,6 +1011,65 @@ describe(`TemplateCompiler - combinations`, () => {
         const actual = sut.compile(<any>input, resources);
 
         verifyBindingInstructionsEqual(actual, expected);
+      });
+    });
+  });
+
+  describe('custom attributes with multiple bindings', () => {
+
+    eachCartesianJoinFactory([
+      <(() => string)[]>[
+        () => 'foo',
+        () => 'bar42'
+      ],
+      <(($1: string) => string)[]>[
+        (pdName) => pdName,
+        (pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
+      ],
+      <(($1: string, $2: string) => string)[]>[
+        (pdName, pdProp) => pdProp,
+        (pdName, pdProp) => `${pdProp}Baz` // descriptor.attribute is different from kebab-cased descriptor.property
+      ],
+      <(($1: string, $2: string, $3: string) => Bindables)[]>[
+        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.default  } }),
+        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  } }),
+        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   } }),
+        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView } }),
+        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   } })
+      ],
+      <(() => [string, string])[]>[
+        () => [``,           `''`],
+        () => [``,           `\${a}`],
+        () => [`.bind`,      `''`],
+        () => [`.one-time`,  `''`],
+        () => [`.to-view`,   `''`],
+        () => [`.from-view`, `''`],
+        () => [`.two-way`,   `''`]
+      ],
+      <(($1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [IBindableDescription, string])[]>[
+        (pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
+        (pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}.qux${cmd}`],
+        (pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}Qux${cmd}`]
+        // TODO: test fallback to attribute name when no matching binding exists (or throw if we don't want to support this)
+      ]
+    ], (pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindable, attrName]) => {
+      it(`div - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, () => {
+
+        const { sut, resources } = setup(
+          <any>CustomAttributeResource.define({ name: 'asdf', bindables }, class FooBar{})
+        );
+
+        const instruction = createAttributeInstruction(bindable, attrName, attrValue, true);
+
+        const [input, output] = createCustomAttribute('asdf', true, [[attrName, attrValue]], [instruction], [], []);
+
+        const actual = sut.compile(<any>input, resources);
+        try {
+          verifyBindingInstructionsEqual(actual, output);
+        } catch(err) {
+          console.log(JSON.stringify(output.instructions[0][0], null, 2));
+          throw err;
+        }
       });
     });
   });
@@ -1042,7 +1125,7 @@ describe(`TemplateCompiler - combinations`, () => {
     eachCartesianJoinFactory([
       <(() => string)[]>[
         () => 'foo',
-        () => 'bar'
+        () => 'bar42'
       ],
       <(($1: string) => string)[]>[
         (pdName) => pdName,
@@ -1083,7 +1166,7 @@ describe(`TemplateCompiler - combinations`, () => {
           <any>CustomElementResource.define({ name: 'foobar', bindables }, class FooBar{})
         );
 
-        const instruction = createAttributeInstruction(bindable, attrName, attrValue);
+        const instruction = createAttributeInstruction(bindable, attrName, attrValue, false);
         const instructions = instruction === null ? [] : [instruction];
         const childInstructions = !!bindable ? instructions : [];
         const siblingInstructions = !bindable ? instructions : [];

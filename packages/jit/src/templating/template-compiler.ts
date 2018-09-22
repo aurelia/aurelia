@@ -207,7 +207,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const attr = attributes.item(i);
       const { name, value } = attr;
-      const { target, attribute, command } = inspectAttribute(this.attrParser.parse(name), resources);
+      const { target, attribute, command } = inspectAttribute(this.attrParser.parse(name, value), resources);
       if (attribute && attribute.isTemplateController) {
         throw new Error('Cannot have template controller on surrogate element.');
       }
@@ -269,7 +269,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (name === 'as-element') {
         continue;
       }
-      const { target, attribute, command } = inspectAttribute(this.attrParser.parse(name), resources);
+      const { target, attribute, command } = inspectAttribute(this.attrParser.parse(name, value), resources);
 
       if (attribute !== null) {
         if (attribute.isTemplateController) {
@@ -303,7 +303,7 @@ export class TemplateCompiler implements ITemplateCompiler {
               const binding = bindings[i].trim();
               if (binding.length === 0) continue;
               const parts = binding.split(':');
-              const inspected = inspectAttribute(this.attrParser.parse(parts[0].trim()), resources);
+              const inspected = inspectAttribute(this.attrParser.parse(parts[0].trim(), value), resources);
               childInstructions.push(this.compileAttribute(inspected.target, parts[1].trim(), node, attribute, element, inspected.command, true));
             }
           } else {
@@ -356,7 +356,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       const attr = attributes.item(i);
       const { name, value } = attr;
       // tslint:disable-next-line:prefer-const
-      let { target, command } = inspectAttribute(this.attrParser.parse(name), resources);
+      let { target, command } = inspectAttribute(this.attrParser.parse(name, value), resources);
       target = PLATFORM.camelCase(target);
       let letInstruction: LetBindingInstruction;
 

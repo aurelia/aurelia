@@ -3,13 +3,14 @@ import { Char } from '../binding/expression-parser';
 
 export class AttrSyntax {
   constructor(
-    public readonly raw: string,
+    public readonly rawName: string,
+    public readonly rawValue: string,
     public readonly target: string,
     public readonly command: string | null) { }
 }
 
 export interface IAttributeParser {
-  parse(name: string): AttrSyntax;
+  parse(name: string, value: string): AttrSyntax;
 }
 
 export const IAttributeParser = DI.createInterface<IAttributeParser>()
@@ -22,7 +23,7 @@ export class AttributeParser implements IAttributeParser {
     this.cache = {};
   }
 
-  public parse(name: string): AttrSyntax {
+  public parse(name: string, value: string): AttrSyntax {
     const existing = this.cache[name];
     if (existing !== undefined) {
       return existing;
@@ -39,6 +40,6 @@ export class AttributeParser implements IAttributeParser {
       }
     }
     const command = name.slice(lastIndex + 1);
-    return this.cache[name] = new AttrSyntax(name, target, command.length ? command : null);
+    return this.cache[name] = new AttrSyntax(name, value, target, command.length ? command : null);
   }
 }

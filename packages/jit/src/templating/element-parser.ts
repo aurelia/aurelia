@@ -64,7 +64,8 @@ export class ElementParser implements IElementParser {
     const attrLen = nodeAttributes.length;
     const attributes: AttrSyntax[] = Array(attrLen);
     for (let i = 0, ii = attrLen; i < ii; ++i) {
-      attributes[i] = this.attrParser.parse(nodeAttributes[i].name);
+      const attr = nodeAttributes[i];
+      attributes[i] = this.attrParser.parse(attr.name, attr.value);
     }
 
     return this.cache[markup] = new ElementSyntax(markup, node, node.nodeName, children, attributes);

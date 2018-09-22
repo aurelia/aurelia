@@ -147,11 +147,14 @@ export class TemplateCompiler implements ITemplateCompiler {
     return 'default';
   }
 
-  constructor(private exprParser: IExpressionParser, private attrParser: IAttributeParser, private elParser: IElementParser) { }
+  constructor(
+    private exprParser: IExpressionParser,
+    private attrParser: IAttributeParser,
+    private elParser: IElementParser) { }
 
   public compile(definition: Required<ITemplateSource>, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
-    const el = this.elParser.parse(definition.templateOrNode);
-    definition.templateOrNode = el.node;
+    const $symbol = new SemanticModel(this.elParser.parse(definition.templateOrNode), resources).getElementSymbolRoot(definition);
+    definition.templateOrNode = $symbol.syntax.node;
     return this.compileCore(definition, resources, flags);
   }
 

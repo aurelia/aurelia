@@ -1,3 +1,4 @@
+import { SemanticModel } from './semantic-model';
 import { inject, PLATFORM } from '@aurelia/kernel';
 import {
   AttributeDefinition,
@@ -150,7 +151,12 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   public compile(definition: Required<ITemplateSource>, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
     const el = this.elParser.parse(definition.templateOrNode);
-    let node = <Node>(definition.templateOrNode = el.node);
+    definition.templateOrNode = el.node;
+    return this.compileCore(definition, resources, flags);
+  }
+
+  public compileCore(definition: Required<ITemplateSource>, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
+    let node = <Node>definition.templateOrNode;
 
     const rootNode = <Element>node;
     const isTemplate = node.nodeName === 'TEMPLATE';
@@ -291,7 +297,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           template.content.appendChild(node);
           instruction.src.templateOrNode = template;
           instruction.instructions.push(...attributeInstructions);
-          this.compile(<Required<ITemplateSource>>instruction.src, resources);
+          this.compileCore(<Required<ITemplateSource>>instruction.src, resources);
           instructions.push([instruction]);
           return;
         } else {

@@ -9,11 +9,11 @@ export class ElementSyntax {
     return (<Node>this._node).cloneNode(true);
   }
   constructor(
-    public readonly markup: string,
-    private readonly _node: INode,
-    public readonly name: string,
-    public readonly children: ElementSyntax[],
-    public readonly attributes: AttrSyntax[]) { }
+    public markup: string,
+    private _node: INode,
+    public name: string,
+    public children: ElementSyntax[],
+    public attributes: AttrSyntax[]) { }
 }
 
 export interface IElementParser {
@@ -40,10 +40,10 @@ export class ElementParser implements IElementParser {
     } else {
       markup = <string>markupOrNode;
     }
-    const existing = this.cache[markup];
-    if (existing !== undefined) {
-      return existing;
-    }
+    // const existing = this.cache[markup];
+    // if (existing !== undefined) {
+    //   return existing;
+    // }
     if (isParsed) {
       node = <Element>markupOrNode;
     } else {
@@ -68,6 +68,7 @@ export class ElementParser implements IElementParser {
       attributes[i] = this.attrParser.parse(attr.name, attr.value);
     }
 
-    return this.cache[markup] = new ElementSyntax(markup, node, node.nodeName, children, attributes);
+    //return this.cache[markup] = new ElementSyntax(markup, node, node.nodeName, children, attributes);
+    return new ElementSyntax(markup, node, node.nodeName, children, attributes);
   }
 }

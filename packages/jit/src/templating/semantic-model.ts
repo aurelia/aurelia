@@ -1,39 +1,39 @@
 import { Immutable, PLATFORM } from '@aurelia/kernel';
-import { AttributeDefinition, CustomAttributeResource, CustomElementResource, ElementDefinition, IResourceDescriptions, ITemplateSource } from '@aurelia/runtime';
+import { CustomAttributeResource, CustomElementResource, ICustomAttributeSource, IResourceDescriptions, ITemplateSource } from '@aurelia/runtime';
 import { AttrSyntax } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
 import { ElementSyntax } from './element-parser';
 
 export class SemanticModel {
-  public readonly isSemanticModel: true = true;
-  private readonly attrDefCache: Record<string, AttributeDefinition>;
-  private readonly elDefCache: Record<string, ElementDefinition>;
-  private readonly commandCache: Record<string, IBindingCommand>;
+  public isSemanticModel: true = true;
+  private attrDefCache: Record<string, ICustomAttributeSource>;
+  private elDefCache: Record<string, ITemplateSource>;
+  private commandCache: Record<string, IBindingCommand>;
 
   constructor(
-    public readonly syntaxRoot: ElementSyntax,
-    public readonly resources: IResourceDescriptions
+    public syntaxRoot: ElementSyntax,
+    public resources: IResourceDescriptions
   ) {
     this.attrDefCache = {};
     this.elDefCache = {};
     this.commandCache = {};
   }
 
-  public getAttributeDefinition(name: string): AttributeDefinition {
+  public getAttributeDefinition(name: string): ICustomAttributeSource {
     const existing = this.attrDefCache[name];
     if (existing !== undefined) {
       return existing;
     }
-    const definition = this.resources.find(CustomAttributeResource, name) || null;
+    const definition = <ICustomAttributeSource>this.resources.find(CustomAttributeResource, name) || null;
     return this.attrDefCache[name] = definition;
   }
 
-  public getElementDefinition(name: string): ElementDefinition {
+  public getElementDefinition(name: string): ITemplateSource {
     const existing = this.elDefCache[name];
     if (existing !== undefined) {
       return existing;
     }
-    const definition = this.resources.find(CustomElementResource, name) || null;
+    const definition = <ITemplateSource>this.resources.find(CustomElementResource, name) || null;
     return this.elDefCache[name] = definition;
   }
 
@@ -54,37 +54,52 @@ export class SemanticModel {
 
   public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol): ElementSymbol {
     const definition = this.getElementDefinition(syntax.name.toLowerCase());
-    return new ElementSymbol(this, parent, syntax, definition);
+    return new ElementSymbol(this, false, parent.root, parent, syntax, definition);
   }
 
   public getElementSymbolRoot(definition: Required<ITemplateSource>): ElementSymbol {
-    return new ElementSymbol(this, null, this.syntaxRoot, definition);
+    return new ElementSymbol(this, true, null, null, this.syntaxRoot, definition);
   }
 }
 
 export class AttributeSymbol {
   constructor(
-    private readonly semanticModel: SemanticModel,
-    public readonly element: ElementSymbol,
-    public readonly syntax: AttrSyntax,
-    public readonly definition: AttributeDefinition | null,
-    public readonly command: IBindingCommand | null
+    public semanticModel: SemanticModel,
+    public element: ElementSymbol,
+    public syntax: AttrSyntax,
+    public definition: ICustomAttributeSource | null,
+    public command: IBindingCommand | null
   ) { }
 }
 
 export class ElementSymbol {
-  public readonly attributes: Immutable<AttributeSymbol[]>;
-  public readonly children: Immutable<ElementSymbol[]>;
+  public attributes: AttributeSymbol[];
+  public children: ElementSymbol[];
+  public get isTemplate(): boolean {
+    return this.syntax.name === 'TEMPLATE';
+  }
+  public get node(): Node {
+    return this.definition.templateOrNode as Node;
+  }
+  public get contentNode(): Node {
+    return this.isTemplate ? (<HTMLTemplateElement>this.node).content : this.node;
+  }
+  public nextSibling: ElementSymbol;
 
   constructor(
-    private readonly semanticModel: SemanticModel,
-    public readonly parent: ElementSymbol,
-    public readonly syntax: ElementSyntax,
-    public readonly definition: ElementDefinition | null
+    public semanticModel: SemanticModel,
+    public isRoot: boolean,
+    public root: ElementSymbol,
+    public parent: ElementSymbol,
+    public syntax: ElementSyntax,
+    public definition: ITemplateSource | null
   ) {
+    if (isRoot) {
+      this.root = this;
+    }
     const attributes = syntax.attributes;
     const attrLen = attributes.length;
-    const attrSymbols = Array(attrLen);
+    const attrSymbols = Array<AttributeSymbol>(attrLen);
     for (let i = 0, ii = attrLen; i < ii; ++i) {
       attrSymbols[i] = this.semanticModel.getAttributeSymbol(attributes[i], this);
     }
@@ -92,9 +107,12 @@ export class ElementSymbol {
 
     const children = syntax.children;
     const childLen = children.length;
-    const childSymbols = Array(childLen);
+    const childSymbols = Array<ElementSymbol>(childLen);
     for (let i = 0, ii = childLen; i < ii; ++i) {
       childSymbols[i] = this.semanticModel.getElementSymbol(children[i], this);
+      if (i > 0) {
+        childSymbols[i - 1].nextSibling = childSymbols[i];
+      }
     }
     this.children = childSymbols;
   }

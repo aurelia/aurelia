@@ -3,10 +3,10 @@ import { Char } from '../binding/expression-parser';
 
 export class AttrSyntax {
   constructor(
-    public readonly rawName: string,
-    public readonly rawValue: string,
-    public readonly target: string,
-    public readonly command: string | null) { }
+    public rawName: string,
+    public rawValue: string,
+    public target: string,
+    public command: string | null) { }
 }
 
 export interface IAttributeParser {

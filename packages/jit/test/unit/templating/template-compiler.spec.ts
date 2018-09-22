@@ -1,3 +1,5 @@
+import { ElementParser } from './../../../src/templating/element-parser';
+import { AttributeParser } from './../../../src/templating/attribute-parser';
 import { Constructable } from './../../../../kernel/src/interfaces';
 import { ForOfStatement, BindingIdentifier, IExpression, PrimitiveLiteral } from './../../../../runtime/src/binding/ast';
 import { DI, IContainer, IRegistry, PLATFORM } from '../../../../kernel/src/index';
@@ -32,6 +34,9 @@ import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual
 import { spy } from 'sinon';
 
 
+const attrParser = new AttributeParser();
+const elParser = new ElementParser(attrParser);
+
 export function createAttribute(name: string, value: string): Attr {
   const attr = document.createAttribute(name);
   attr.value = value;
@@ -48,7 +53,7 @@ describe('TemplateCompiler', () => {
     container = DI.createContainer();
     container.register(BasicConfiguration);
     expressionParser = container.get(IExpressionParser);
-    sut = new TemplateCompiler(expressionParser as any);
+    sut = new TemplateCompiler(expressionParser as any, attrParser, elParser);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
   });
@@ -59,7 +64,7 @@ describe('TemplateCompiler', () => {
       const container = DI.createContainer();
       container.register(BasicConfiguration);
       const expressionParser = container.get(IExpressionParser);
-      const sut = new TemplateCompiler(expressionParser as any);
+      const sut = new TemplateCompiler(expressionParser as any, attrParser, elParser);
       const resources = new RuntimeCompilationResources(<any>container);
       const definition: any = {
         hasSlots: false,
@@ -228,7 +233,7 @@ describe('TemplateCompiler', () => {
       const container = DI.createContainer();
       container.register(BasicConfiguration);
       const expressionParser = container.get(IExpressionParser);
-      const sut = new TemplateCompiler(expressionParser as any);
+      const sut = new TemplateCompiler(expressionParser as any, attrParser, elParser);
       const resources = new RuntimeCompilationResources(<any>container);
       const definition: any = {
         hasSlots: false,
@@ -919,7 +924,7 @@ describe(`TemplateCompiler - combinations`, () => {
     const container = DI.createContainer();
     container.register(BasicConfiguration, ...globals);
     const expressionParser = container.get<IExpressionParser>(IExpressionParser);
-    const sut = new TemplateCompiler(expressionParser as any);
+    const sut = new TemplateCompiler(expressionParser as any, attrParser, elParser);
     const resources = new RuntimeCompilationResources(<any>container);
     return { container, expressionParser, sut, resources }
   }

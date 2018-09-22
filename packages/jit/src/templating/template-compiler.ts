@@ -37,8 +37,9 @@ import {
   TemplateDefinition,
   ViewCompileFlags,
 } from '@aurelia/runtime';
-import { Char } from '../binding/expression-parser';
+import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
+import { IElementParser } from './element-parser';
 
 // tslint:disable:no-inner-html
 
@@ -132,46 +133,25 @@ const inspected = {
 };
 
 /*@internal*/
-export function inspectAttribute(name: string, resources: IResourceDescriptions): typeof inspected {
-  let targetName = name;
-  let bindingCommand: IBindingCommand = null;
-
-  for (let i = 0, ii = name.length; i < ii; ++i) {
-    if (name.charCodeAt(i) === Char.Dot) {
-      // set the targetName to only the part that comes before the first dot
-      if (name === targetName) {
-        targetName = name.slice(0, i);
-      }
-      const commandName = name.slice(i + 1);
-      bindingCommand = resources.create(BindingCommandResource, commandName);
-      if (bindingCommand !== null) {
-        // keep looping until the part after any dot (doesn't have to be the first/last) is a bindingCommand
-        break;
-      }
-    }
-  }
-
-  inspected.target = targetName;
-  inspected.attribute = resources.find(CustomAttributeResource, PLATFORM.camelCase(targetName));
-  inspected.command = bindingCommand;
+export function inspectAttribute(attribute: AttrSyntax, resources: IResourceDescriptions): typeof inspected {
+  inspected.target = attribute.target;
+  inspected.attribute = resources.find(CustomAttributeResource, PLATFORM.camelCase(attribute.target));
+  inspected.command = attribute.command === null ? null : resources.create(BindingCommandResource, attribute.command);
   return inspected;
 }
 
-@inject(IExpressionParser)
+@inject(IExpressionParser, IAttributeParser, IElementParser)
 export class TemplateCompiler implements ITemplateCompiler {
   public get name(): string {
     return 'default';
   }
 
-  constructor(private parser: IExpressionParser) { }
+  constructor(private exprParser: IExpressionParser, private attrParser: IAttributeParser, private elParser: IElementParser) { }
 
   public compile(definition: Required<ITemplateSource>, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
-    let node = <Node>definition.templateOrNode;
-    if (typeof node === 'string') {
-      domParser.innerHTML = node;
-      node = definition.templateOrNode = domParser.firstElementChild;
-      domParser.removeChild(node);
-    }
+    const el = this.elParser.parse(definition.templateOrNode);
+    let node = <Node>(definition.templateOrNode = el.node);
+
     const rootNode = <Element>node;
     const isTemplate = node.nodeName === 'TEMPLATE';
 
@@ -227,7 +207,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const attr = attributes.item(i);
       const { name, value } = attr;
-      const { target, attribute, command } = inspectAttribute(name, resources);
+      const { target, attribute, command } = inspectAttribute(this.attrParser.parse(name), resources);
       if (attribute && attribute.isTemplateController) {
         throw new Error('Cannot have template controller on surrogate element.');
       }
@@ -289,7 +269,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (name === 'as-element') {
         continue;
       }
-      const { target, attribute, command } = inspectAttribute(name, resources);
+      const { target, attribute, command } = inspectAttribute(this.attrParser.parse(name), resources);
 
       if (attribute !== null) {
         if (attribute.isTemplateController) {
@@ -323,7 +303,7 @@ export class TemplateCompiler implements ITemplateCompiler {
               const binding = bindings[i].trim();
               if (binding.length === 0) continue;
               const parts = binding.split(':');
-              const inspected = inspectAttribute(parts[0].trim(), resources);
+              const inspected = inspectAttribute(this.attrParser.parse(parts[0].trim()), resources);
               childInstructions.push(this.compileAttribute(inspected.target, parts[1].trim(), node, attribute, element, inspected.command, true));
             }
           } else {
@@ -376,12 +356,12 @@ export class TemplateCompiler implements ITemplateCompiler {
       const attr = attributes.item(i);
       const { name, value } = attr;
       // tslint:disable-next-line:prefer-const
-      let { target, command } = inspectAttribute(name, resources);
+      let { target, command } = inspectAttribute(this.attrParser.parse(name), resources);
       target = PLATFORM.camelCase(target);
       let letInstruction: LetBindingInstruction;
 
       if (!command) {
-        const expression = this.parser.parse(value, BindingType.Interpolation);
+        const expression = this.exprParser.parse(value, BindingType.Interpolation);
         if (expression === null) {
           // Should just be a warning, but throw for now
           throw new Error(`Invalid let binding. String liternal given for attribute: ${target}`);
@@ -400,7 +380,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   /*@internal*/
   public compileTextNode(node: Text, instructions: TargetedInstruction[][]): boolean {
-    const expression = this.parser.parse(node.wholeText, BindingType.Interpolation);
+    const expression = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
     if (expression === null) {
       return false;
     }
@@ -428,7 +408,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         return command.compile(target, value, node, attribute, element, isMultiAttrBinding);
       }
       // simple path for ref binding
-      const parser = this.parser;
+      const parser = this.exprParser;
       if (target === 'ref') {
         return new RefBindingInstruction(parser.parse(value, BindingType.IsRef));
       }

@@ -1,6 +1,6 @@
-import { DI, inject } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { DOM, INode } from '@aurelia/runtime';
-import { AttrSyntax, IAttributeParser } from './attribute-parser';
+import { AttrSyntax, parseAttribute } from './attribute-parser';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 
@@ -24,10 +24,9 @@ export const IElementParser = DI.createInterface<IElementParser>()
   .withDefault(x => x.singleton(ElementParser));
 
 /*@internal*/
-@inject(IAttributeParser)
 export class ElementParser implements IElementParser {
   private cache: Record<string, ElementSyntax>;
-  constructor(private attrParser: IAttributeParser) {
+  constructor() {
     this.cache = {};
   }
 
@@ -40,10 +39,6 @@ export class ElementParser implements IElementParser {
     } else {
       markup = <string>markupOrNode;
     }
-    // const existing = this.cache[markup];
-    // if (existing !== undefined) {
-    //   return existing;
-    // }
     if (isParsed) {
       node = <Element>markupOrNode;
     } else {
@@ -65,10 +60,9 @@ export class ElementParser implements IElementParser {
     const attributes: AttrSyntax[] = Array(attrLen);
     for (let i = 0, ii = attrLen; i < ii; ++i) {
       const attr = nodeAttributes[i];
-      attributes[i] = this.attrParser.parse(attr.name, attr.value);
+      attributes[i] = parseAttribute(attr.name, attr.value);
     }
 
-    //return this.cache[markup] = new ElementSyntax(markup, node, node.nodeName, children, attributes);
     return new ElementSyntax(markup, node, node.nodeName, children, attributes);
   }
 }

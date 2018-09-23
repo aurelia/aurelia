@@ -1,7 +1,7 @@
 // tslint:disable:interface-name
 import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
 import { BindingType, IExpressionParser, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
-import { AttributeSymbol } from './semantic-model';
+import { IAttributeSymbol } from './semantic-model';
 import { CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, HydrateTemplateController, OneTimeBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction } from './template-compiler';
 
 export interface IBindingCommandSource {
@@ -9,8 +9,8 @@ export interface IBindingCommandSource {
 }
 
 export interface IBindingCommand {
-  compile($symbol: AttributeSymbol): TargetedInstruction;
-  handles($symbol: AttributeSymbol): boolean;
+  compile($symbol: IAttributeSymbol): TargetedInstruction;
+  handles($symbol: IAttributeSymbol): boolean;
 }
 
 export type IBindingCommandType = IResourceType<IBindingCommandSource, IBindingCommand>;
@@ -50,8 +50,8 @@ export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindi
   }
 };
 
-function defaultHandles(this: IBindingCommand, $symbol: AttributeSymbol): boolean {
-  return !$symbol.isTemplateController && !$symbol.isMultiAttrBinding;
+function defaultHandles(this: IBindingCommand, $symbol: IAttributeSymbol): boolean {
+  return !$symbol.isTemplateController;
 }
 
 export interface OneTimeBindingCommand extends IBindingCommand {}
@@ -60,7 +60,7 @@ export interface OneTimeBindingCommand extends IBindingCommand {}
 export class OneTimeBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
+  public compile($symbol: IAttributeSymbol): TargetedInstruction {
     return new OneTimeBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.OneTimeCommand), $symbol.dest);
   }
 }
@@ -71,7 +71,7 @@ export interface ToViewBindingCommand extends IBindingCommand {}
 export class ToViewBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
+  public compile($symbol: IAttributeSymbol): TargetedInstruction {
     return new ToViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ToViewCommand), $symbol.dest);
   }
 }
@@ -82,7 +82,7 @@ export interface FromViewBindingCommand extends IBindingCommand {}
 export class FromViewBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
+  public compile($symbol: IAttributeSymbol): TargetedInstruction {
     return new FromViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.FromViewCommand), $symbol.dest);
   }
 }
@@ -93,7 +93,7 @@ export interface TwoWayBindingCommand extends IBindingCommand {}
 export class TwoWayBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
+  public compile($symbol: IAttributeSymbol): TargetedInstruction {
     return new TwoWayBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.TwoWayCommand), $symbol.dest);
   }
 }
@@ -114,7 +114,7 @@ export class DefaultBindingCommand implements IBindingCommand {
 
   constructor(private parser: IExpressionParser) {}
 
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
+  public compile($symbol: IAttributeSymbol): TargetedInstruction {
     return this[compileMode[$symbol.mode]]($symbol);
   }
 }
@@ -130,7 +130,7 @@ export interface TriggerBindingCommand extends IBindingCommand {}
 export class TriggerBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
+  public compile($symbol: IAttributeSymbol): TargetedInstruction {
     return new TriggerBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.TriggerCommand), $symbol.dest);
   }
 }
@@ -141,7 +141,7 @@ export interface DelegateBindingCommand extends IBindingCommand {}
 export class DelegateBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
+  public compile($symbol: IAttributeSymbol): TargetedInstruction {
     return new DelegateBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.DelegateCommand), $symbol.dest);
   }
 }
@@ -152,7 +152,7 @@ export interface CaptureBindingCommand extends IBindingCommand {}
 export class CaptureBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
+  public compile($symbol: IAttributeSymbol): TargetedInstruction {
     return new CaptureBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.CaptureCommand), $symbol.dest);
   }
 }
@@ -163,7 +163,7 @@ export interface CallBindingCommand extends IBindingCommand {}
 export class CallBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
+  public compile($symbol: IAttributeSymbol): TargetedInstruction {
     return new CallBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.CallCommand), $symbol.dest);
   }
 }
@@ -172,7 +172,7 @@ export class CallBindingCommand implements IBindingCommand {
 export class ForBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile($symbol: AttributeSymbol): TargetedInstruction {
+  public compile($symbol: IAttributeSymbol): TargetedInstruction {
     const src: ITemplateSource = {
       name: 'repeat',
       templateOrNode: $symbol.element.node,
@@ -185,7 +185,7 @@ export class ForBindingCommand implements IBindingCommand {
     ], false);
   }
 
-  public handles($symbol: AttributeSymbol): boolean {
+  public handles($symbol: IAttributeSymbol): boolean {
     return $symbol.target === 'repeat';
   }
 }

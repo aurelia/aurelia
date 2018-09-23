@@ -1,6 +1,7 @@
-import { Immutable, PLATFORM } from '@aurelia/kernel';
-import { CustomAttributeResource, CustomElementResource, ICustomAttributeSource, IResourceDescriptions, ITemplateSource, BindingMode, IBindableDescription } from '@aurelia/runtime';
-import { AttrSyntax } from './attribute-parser';
+import { PLATFORM } from '@aurelia/kernel';
+import { BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, ICustomAttributeSource, IResourceDescriptions, ITemplateCompiler, ITemplateSource } from '@aurelia/runtime';
+import { Char } from '../binding/expression-parser';
+import { AttrSyntax, parseAttribute } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
 import { ElementSyntax } from './element-parser';
 
@@ -52,6 +53,11 @@ export class SemanticModel {
     return new AttributeSymbol(this, element, syntax, definition, command);
   }
 
+  public getMultiAttrBindingSymbol(syntax: AttrSyntax, parent: AttributeSymbol): MultiAttributeBindingSymbol {
+    const command = this.getBindingCommand(syntax.command);
+    return new MultiAttributeBindingSymbol(this, parent, syntax, command);
+  }
+
   public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol): ElementSymbol {
     const definition = this.getElementDefinition(syntax.name.toLowerCase());
     return new ElementSymbol(this, false, parent.root, parent, syntax, definition);
@@ -62,8 +68,80 @@ export class SemanticModel {
   }
 }
 
-export class AttributeSymbol {
+export interface IAttributeSymbol {
+  isMultiAttrBinding: boolean;
+  target: string;
+  rawName: string;
+  rawValue: string;
+  rawCommand: string;
+  syntax: AttrSyntax;
+  command: IBindingCommand | null;
+  dest: string;
+  mode: BindingMode;
+  bindable: IBindableDescription;
+  hasBindingCommand: boolean;
+  isHandledByBindingCommand: boolean;
+  isTemplateController: boolean;
+  isCustomAttribute: boolean;
+  isAttributeBindable: boolean;
+  isDefaultAttributeBindable: boolean;
+  onCustomElement: boolean;
+  isElementBindable: boolean;
+  element: ElementSymbol;
+}
+
+export class MultiAttributeBindingSymbol implements IAttributeSymbol {
+  public isMultiAttrBinding: boolean = true;
+  public target: string = null;
+  public rawName: string = null;
+  public rawValue: string = null;
+  public rawCommand: string = null;
+  public dest: string = null;
+  public mode: BindingMode = null;
+  public bindable: IBindableDescription = null;
+  public hasBindingCommand: boolean = false;
+  public isHandledByBindingCommand: boolean = false;
+  public isTemplateController: boolean = false;
+  public isCustomAttribute: boolean = true;
+  public isAttributeBindable: boolean = false;
+  public isDefaultAttributeBindable: boolean = false;
+  public onCustomElement: boolean = false;
+  public isElementBindable: boolean = false;
+  public element: ElementSymbol = null;
+
+  constructor(
+    public semanticModel: SemanticModel,
+    public parent: AttributeSymbol,
+    public syntax: AttrSyntax,
+    public command: IBindingCommand | null
+  ) {
+    this.target = syntax.target;
+    this.rawName = syntax.rawName;
+    this.rawValue = syntax.rawValue;
+    this.rawCommand = syntax.command;
+    this.hasBindingCommand = !!command;
+    this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
+    const bindables = parent.definition.bindables;
+    for (const prop in bindables) {
+      const b = bindables[prop];
+      if (b.property === syntax.target) {
+        this.dest = b.property;
+        this.mode =  (b.mode && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
+        this.bindable = b;
+        this.isAttributeBindable = true;
+        break;
+      }
+    }
+    if (!this.isAttributeBindable) {
+      this.dest = syntax.target;
+      this.mode = parent.definition.defaultBindingMode || BindingMode.toView;
+    }
+  }
+}
+
+export class AttributeSymbol implements IAttributeSymbol {
   public isMultiAttrBinding: boolean = false;
+  public multiAttrBindings: MultiAttributeBindingSymbol[];
   public target: string = null;
   public res: string = null;
   public rawName: string = null;
@@ -104,16 +182,30 @@ export class AttributeSymbol {
       this.isTemplateController = !!definition.isTemplateController;
       this.res = definition.name;
       const value = syntax.rawValue;
+      let lastIndex = 0;
       for (let i = 0, ii = value.length; i < ii; ++i) {
-        if (value.charAt(i) === ';') { // WIP
-          this.isMultiAttrBinding = true;
-          break;
+        if (value.charCodeAt(i) === Char.Semicolon) {
+          if (!this.isMultiAttrBinding) {
+            this.multiAttrBindings = [];
+            this.isMultiAttrBinding = true;
+          }
+          const innerAttr = value.slice(lastIndex, i).trim();
+          lastIndex = i + 1;
+          if (innerAttr.length === 0) {
+            continue;
+          }
+          for (let j = 0, jj = innerAttr.length; j < jj; ++j) {
+            if (innerAttr.charCodeAt(j) === Char.Colon) {
+              const innerAttrName = innerAttr.slice(0, j).trim();
+              const innerAttrValue = innerAttr.slice(j + 1).trim();
+              const innerAttrSyntax = parseAttribute(innerAttrName, innerAttrValue);
+              this.multiAttrBindings.push(this.semanticModel.getMultiAttrBindingSymbol(innerAttrSyntax, this));
+            }
+          }
         }
       }
       const bindables = definition.bindables;
-      if (this.isMultiAttrBinding) {
-        // TODO
-      } else {
+      if (!this.isMultiAttrBinding) {
         for (const prop in bindables) {
           const b = bindables[prop];
           this.dest = b.property;

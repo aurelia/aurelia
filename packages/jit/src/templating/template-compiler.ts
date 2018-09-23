@@ -1,15 +1,9 @@
-import { SemanticModel, ElementSymbol, AttributeSymbol } from './semantic-model';
-import { inject, PLATFORM } from '@aurelia/kernel';
+import { inject } from '@aurelia/kernel';
 import {
-  AttributeDefinition,
   BindingMode,
   BindingType,
-  CustomAttributeResource,
-  CustomElementResource,
   DelegationStrategy,
   DOM,
-  ElementDefinition,
-  IBindableDescription,
   ICallBindingInstruction,
   IExpression,
   IExpressionParser,
@@ -38,8 +32,7 @@ import {
   TemplateDefinition,
   ViewCompileFlags,
 } from '@aurelia/runtime';
-import { AttrSyntax, IAttributeParser } from './attribute-parser';
-import { BindingCommandResource, IBindingCommand } from './binding-command';
+import { ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
 import { IElementParser } from './element-parser';
 
 // tslint:disable:no-inner-html
@@ -64,16 +57,13 @@ const enum NodeType {
   Notation = 12
 }
 
-@inject(IExpressionParser, IAttributeParser, IElementParser)
+@inject(IExpressionParser, IElementParser)
 export class TemplateCompiler implements ITemplateCompiler {
   public get name(): string {
     return 'default';
   }
 
-  constructor(
-    private exprParser: IExpressionParser,
-    private attrParser: IAttributeParser,
-    private elParser: IElementParser) { }
+  constructor(public exprParser: IExpressionParser, public elParser: IElementParser) { }
 
   public compile(definition: Required<ITemplateSource>, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
     const $symbol = new SemanticModel(this.elParser.parse(definition.templateOrNode), resources).getElementSymbolRoot(definition);
@@ -215,22 +205,17 @@ export class TemplateCompiler implements ITemplateCompiler {
         } else {
           const childInstructions = [];
           if ($attr.isMultiAttrBinding) {
-            // TODO
-            // const bindings = attr.rawValue.split(';');
-            // for (let i = 0, ii = bindings.length; i < ii; ++i) {
-            //   const binding = bindings[i].trim();
-            //   if (binding.length === 0) continue;
-            //   const parts = binding.split(':');
-            //   const inspected = inspectAttribute(this.attrParser.parse(parts[0].trim(), value));
-            //   childInstructions.push(this.compileAttribute($symbol, inspected.target, parts[1].trim(), node, attribute, element, inspected.command, true));
-            // }
+            const mBindings = $attr.multiAttrBindings;
+            for (let j = 0, jj = mBindings.length; j < jj; ++j) {
+              childInstructions.push(this.compileAttribute(mBindings[j]));
+            }
           } else {
             childInstructions.push(this.compileAttribute($attr));
           }
-          if ($attr.isAttributeBindable) {
-            attributeInstructions.push(new HydrateAttributeInstruction($attr.res, childInstructions));
-          } else {
+          if ($attr.onCustomElement) {
             siblingInstructions.push(new HydrateAttributeInstruction($attr.res, childInstructions));
+          } else {
+            attributeInstructions.push(new HydrateAttributeInstruction($attr.res, childInstructions));
           }
         }
       } else {
@@ -310,7 +295,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /*@internal*/
-  public compileAttribute($attr: AttributeSymbol): TargetedInstruction {
+  public compileAttribute($attr: IAttributeSymbol): TargetedInstruction {
       // binding commands get priority over all; they may override default behaviors
       // it is the responsibility of the implementor to ensure they filter out stuff they shouldn't override
       if ($attr.isHandledByBindingCommand) {
@@ -335,7 +320,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (expression !== null) {
           return new ToViewBindingInstruction(expression, $attr.dest);
         }
-        if (!$attr.hasBindingCommand && $attr.isAttributeBindable && $attr.isMultiAttrBinding) {
+        if (!$attr.hasBindingCommand && $attr.isMultiAttrBinding) {
           return new SetPropertyInstruction($attr.rawValue, $attr.dest);
         }
         expression = parser.parse($attr.rawValue, BindingType.ToViewCommand);

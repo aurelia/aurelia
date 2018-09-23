@@ -1,5 +1,4 @@
 import { ElementParser } from './../../../src/templating/element-parser';
-import { AttributeParser } from './../../../src/templating/attribute-parser';
 import { Constructable } from './../../../../kernel/src/interfaces';
 import { ForOfStatement, BindingIdentifier, IExpression, PrimitiveLiteral } from './../../../../runtime/src/binding/ast';
 import { DI, IContainer, IRegistry, PLATFORM } from '../../../../kernel/src/index';
@@ -31,12 +30,9 @@ import {
 } from '../../../src/index';
 import { expect } from 'chai';
 import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from '../util';
-import { spy } from 'sinon';
-import { SemanticModel } from '../../../src/templating/semantic-model';
 
 
-const attrParser = new AttributeParser();
-const elParser = new ElementParser(attrParser);
+const elParser = new ElementParser();
 
 export function createAttribute(name: string, value: string): Attr {
   const attr = document.createAttribute(name);
@@ -54,7 +50,7 @@ describe('TemplateCompiler', () => {
     container = DI.createContainer();
     container.register(BasicConfiguration);
     expressionParser = container.get(IExpressionParser);
-    sut = new TemplateCompiler(expressionParser as any, attrParser, elParser);
+    sut = new TemplateCompiler(expressionParser as any, elParser);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
   });
@@ -568,8 +564,10 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
       if (!!srcOrExpr) {
         return { type, dest, mode, srcOrExpr, oneTime };
       } else if (isMulti) {
-        srcOrExpr = parseCore(attributeValue, <any>BindingType.BindCommand);
-        return { type, dest, mode, srcOrExpr, oneTime };
+        const type = TT.setProperty;
+        const dest = attr;
+        const value = attributeValue;
+        return { type, dest, value };
       } else {
         return null;
       }
@@ -586,12 +584,12 @@ describe(`TemplateCompiler - combinations`, () => {
     const container = DI.createContainer();
     container.register(BasicConfiguration, ...globals);
     const expressionParser = container.get<IExpressionParser>(IExpressionParser);
-    const sut = new TemplateCompiler(expressionParser as any, attrParser, elParser);
+    const sut = new TemplateCompiler(expressionParser as any, elParser);
     const resources = new RuntimeCompilationResources(<any>container);
     return { container, expressionParser, sut, resources }
   }
 
-  describe.only('plain attributes', () => {
+  describe('plain attributes', () => {
     eachCartesianJoinFactory([
       <(() => [string])[]>[
         () => ['div']
@@ -630,7 +628,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  describe.only('custom attributes', () => {
+  describe('custom attributes', () => {
     eachCartesianJoinFactory([
       // ICustomAttributeSource.bindables
       <(() => [Record<string, IBindableDescription> | undefined, BindingMode | undefined, string])[]>[
@@ -693,16 +691,12 @@ describe(`TemplateCompiler - combinations`, () => {
         (pdName) => pdName,
         (pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
       ],
-      <(($1: string, $2: string) => string)[]>[
-        (pdName, pdProp) => pdProp,
-        (pdName, pdProp) => `${pdProp}Baz` // descriptor.attribute is different from kebab-cased descriptor.property
-      ],
-      <(($1: string, $2: string, $3: string) => Bindables)[]>[
-        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.default  } }),
-        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  } }),
-        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   } }),
-        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView } }),
-        (pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   } })
+      <(($1: string, $2: string) => Bindables)[]>[
+        (pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: PLATFORM.kebabCase(pdProp), mode: BindingMode.default  } }),
+        (pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: PLATFORM.kebabCase(pdProp), mode: BindingMode.oneTime  } }),
+        (pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: PLATFORM.kebabCase(pdProp), mode: BindingMode.toView   } }),
+        (pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: PLATFORM.kebabCase(pdProp), mode: BindingMode.fromView } }),
+        (pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: PLATFORM.kebabCase(pdProp), mode: BindingMode.twoWay   } })
       ],
       <(() => [string, string])[]>[
         () => [``,           `''`],
@@ -713,14 +707,14 @@ describe(`TemplateCompiler - combinations`, () => {
         () => [`.from-view`, `''`],
         () => [`.two-way`,   `''`]
       ],
-      <(($1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [IBindableDescription, string])[]>[
-        (pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
-        (pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}.qux${cmd}`],
-        (pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}Qux${cmd}`]
+      <(($1: string, $2: string, $3: Bindables, $4: [string, string]) => [IBindableDescription, string])[]>[
+        (pdName, pdProp, bindables, [cmd]) => [bindables[pdName], `${pdProp}${cmd}`],
+        (pdName, pdProp, bindables, [cmd]) => [bindables[pdName], `${pdProp}.qux${cmd}`],
+        (pdName, pdProp, bindables, [cmd]) => [null,              `${pdProp}Qux${cmd}`]
         // TODO: test fallback to attribute name when no matching binding exists (or throw if we don't want to support this)
       ]
-    ], (pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindable, attrName]) => {
-      it(`div - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, () => {
+    ], (pdName, pdProp, bindables, [cmd, attrValue], [bindable, attrName]) => {
+      it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, () => {
 
         const { sut, resources } = setup(
           <any>CustomAttributeResource.define({ name: 'asdf', bindables }, class FooBar{})
@@ -741,7 +735,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  describe.only('template controllers', () => {
+  describe('template controllers', () => {
 
     eachCartesianJoinFactory([
       <(() => CTCResult)[]>[
@@ -788,7 +782,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  describe.only('attributes on custom elements', () => {
+  describe('attributes on custom elements', () => {
     eachCartesianJoinFactory([
       <(() => string)[]>[
         () => 'foo',
@@ -851,7 +845,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  describe.only('custom elements', () => {
+  describe('custom elements', () => {
     eachCartesianJoinFactory([
       <(() => CTCResult)[]>[
         () => createCustomElement(`foo`, false, [], [], [], []),

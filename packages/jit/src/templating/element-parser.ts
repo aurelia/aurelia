@@ -5,12 +5,12 @@ import { AttrSyntax, IAttributeParser } from './attribute-parser';
 const domParser = <HTMLDivElement>DOM.createElement('div');
 
 export class ElementSyntax {
-  public get node(): INode {
-    return (<Node>this._node).cloneNode(true);
+  public get node(): Node {
+    return this._node;
   }
   constructor(
     public markup: string,
-    private _node: INode,
+    private _node: Node,
     public name: string,
     public children: ElementSyntax[],
     public attributes: AttrSyntax[]) { }

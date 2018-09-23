@@ -1,14 +1,16 @@
-import { Constructable, IContainer, Immutable, Registration, Writable, PLATFORM } from '@aurelia/kernel';
-import { BindingMode, BindingType, ICustomAttributeSource, IExpressionParser, INode, IResourceDescriptions, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction, AttributeDefinition, ElementDefinition } from '@aurelia/runtime';
-import { CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, HydrateElementInstruction, HydrateTemplateController, OneTimeBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction, resolveTarget } from './template-compiler';
+// tslint:disable:interface-name
+import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
+import { BindingType, IExpressionParser, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
+import { AttributeSymbol } from './semantic-model';
+import { CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, HydrateTemplateController, OneTimeBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction } from './template-compiler';
 
 export interface IBindingCommandSource {
   name: string;
 }
 
 export interface IBindingCommand {
-  compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding?: boolean): TargetedInstruction;
-  handles(attribute: Immutable<Required<ICustomAttributeSource>> | null): boolean;
+  compile($symbol: AttributeSymbol): TargetedInstruction;
+  handles($symbol: AttributeSymbol): boolean;
 }
 
 export type IBindingCommandType = IResourceType<IBindingCommandSource, IBindingCommand>;
@@ -48,18 +50,18 @@ export const BindingCommandResource: IResourceKind<IBindingCommandSource, IBindi
   }
 };
 
-function defaultHandles(this: IBindingCommand, attributeDefinition: Immutable<Required<ICustomAttributeSource>>): boolean {
-  return !attributeDefinition || attributeDefinition.isTemplateController === false;
+function defaultHandles(this: IBindingCommand, $symbol: AttributeSymbol): boolean {
+  return !$symbol.isTemplateController && !$symbol.isMultiAttrBinding;
 }
 
 export interface OneTimeBindingCommand extends IBindingCommand {}
 
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements IBindingCommand {
-  static inject = [IExpressionParser];
+  public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding: boolean): TargetedInstruction {
-    return new OneTimeBindingInstruction(this.parser.parse(value, BindingType.OneTimeCommand), resolveTarget(target, element, attribute, isMultiAttrBinding).target);
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
+    return new OneTimeBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.OneTimeCommand), $symbol.dest);
   }
 }
 
@@ -67,10 +69,10 @@ export interface ToViewBindingCommand extends IBindingCommand {}
 
 @bindingCommand('to-view')
 export class ToViewBindingCommand implements IBindingCommand {
-  static inject = [IExpressionParser];
+  public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding: boolean): TargetedInstruction {
-    return new ToViewBindingInstruction(this.parser.parse(value, BindingType.ToViewCommand), resolveTarget(target, element, attribute, isMultiAttrBinding).target);
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
+    return new ToViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ToViewCommand), $symbol.dest);
   }
 }
 
@@ -78,10 +80,10 @@ export interface FromViewBindingCommand extends IBindingCommand {}
 
 @bindingCommand('from-view')
 export class FromViewBindingCommand implements IBindingCommand {
-  static inject = [IExpressionParser];
+  public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding: boolean): TargetedInstruction {
-    return new FromViewBindingInstruction(this.parser.parse(value, BindingType.FromViewCommand), resolveTarget(target, element, attribute, isMultiAttrBinding).target);
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
+    return new FromViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.FromViewCommand), $symbol.dest);
   }
 }
 
@@ -89,10 +91,10 @@ export interface TwoWayBindingCommand extends IBindingCommand {}
 
 @bindingCommand('two-way')
 export class TwoWayBindingCommand implements IBindingCommand {
-  static inject = [IExpressionParser];
+  public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding: boolean): TargetedInstruction {
-    return new TwoWayBindingInstruction(this.parser.parse(value, BindingType.TwoWayCommand), resolveTarget(target, element, attribute, isMultiAttrBinding).target);
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
+    return new TwoWayBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.TwoWayCommand), $symbol.dest);
   }
 }
 
@@ -104,7 +106,7 @@ export interface DefaultBindingCommand extends IBindingCommand {}
 
 @bindingCommand('bind')
 export class DefaultBindingCommand implements IBindingCommand {
-  static inject = [IExpressionParser];
+  public static inject: Function[] = [IExpressionParser];
   public $1: typeof OneTimeBindingCommand.prototype.compile;
   public $2: typeof ToViewBindingCommand.prototype.compile;
   public $4: typeof FromViewBindingCommand.prototype.compile;
@@ -112,14 +114,8 @@ export class DefaultBindingCommand implements IBindingCommand {
 
   constructor(private parser: IExpressionParser) {}
 
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition, isMultiAttrBinding: boolean): TargetedInstruction {
-    let mode = BindingMode.toView;
-    if (element || attribute) {
-      const resolved = resolveTarget(target, element, attribute, isMultiAttrBinding);
-      target = resolved.target;
-      mode = resolved.mode;
-    }
-    return this[compileMode[mode]](target, value, node, attribute, element, isMultiAttrBinding);
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
+    return this[compileMode[$symbol.mode]]($symbol);
   }
 }
 
@@ -132,10 +128,10 @@ export interface TriggerBindingCommand extends IBindingCommand {}
 
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements IBindingCommand {
-  static inject = [IExpressionParser];
+  public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new TriggerBindingInstruction(this.parser.parse(value, BindingType.TriggerCommand), target);
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
+    return new TriggerBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.TriggerCommand), $symbol.dest);
   }
 }
 
@@ -143,10 +139,10 @@ export interface DelegateBindingCommand extends IBindingCommand {}
 
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements IBindingCommand {
-  static inject = [IExpressionParser];
+  public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new DelegateBindingInstruction(this.parser.parse(value, BindingType.DelegateCommand), target);
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
+    return new DelegateBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.DelegateCommand), $symbol.dest);
   }
 }
 
@@ -154,10 +150,10 @@ export interface CaptureBindingCommand extends IBindingCommand {}
 
 @bindingCommand('capture')
 export class CaptureBindingCommand implements IBindingCommand {
-  static inject = [IExpressionParser];
+  public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new CaptureBindingInstruction(this.parser.parse(value, BindingType.CaptureCommand), target);
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
+    return new CaptureBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.CaptureCommand), $symbol.dest);
   }
 }
 
@@ -165,31 +161,31 @@ export interface CallBindingCommand extends IBindingCommand {}
 
 @bindingCommand('call')
 export class CallBindingCommand implements IBindingCommand {
-  static inject = [IExpressionParser];
+  public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
-    return new CallBindingInstruction(this.parser.parse(value, BindingType.CallCommand), resolveTarget(target, element, attribute, false).target);
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
+    return new CallBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.CallCommand), $symbol.dest);
   }
 }
 
 @bindingCommand('for')
 export class ForBindingCommand implements IBindingCommand {
-  static inject = [IExpressionParser];
+  public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): TargetedInstruction {
+  public compile($symbol: AttributeSymbol): TargetedInstruction {
     const src: ITemplateSource = {
       name: 'repeat',
-      templateOrNode: node,
+      templateOrNode: $symbol.element.node,
       instructions: []
     };
     return new HydrateTemplateController(src, 'repeat', [
-      new ToViewBindingInstruction(this.parser.parse(value, BindingType.ForCommand), 'items'),
+      new ToViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ForCommand), 'items'),
       new SetPropertyInstruction('item', 'local')
     // tslint:disable-next-line:align
     ], false);
   }
 
-  public handles(attributeDefinition: Immutable<Required<ICustomAttributeSource>>): boolean {
-    return !!attributeDefinition && attributeDefinition.name === 'repeat';
+  public handles($symbol: AttributeSymbol): boolean {
+    return $symbol.isTemplateController && $symbol.res === 'repeat';
   }
 }

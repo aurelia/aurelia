@@ -32,6 +32,7 @@ import {
 import { expect } from 'chai';
 import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from '../util';
 import { spy } from 'sinon';
+import { SemanticModel } from '../../../src/templating/semantic-model';
 
 
 const attrParser = new AttributeParser();
@@ -787,7 +788,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  describe('attributes on custom elements', () => {
+  describe.only('attributes on custom elements', () => {
     eachCartesianJoinFactory([
       <(() => string)[]>[
         () => 'foo',
@@ -850,7 +851,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  describe('custom elements', () => {
+  describe.only('custom elements', () => {
     eachCartesianJoinFactory([
       <(() => CTCResult)[]>[
         () => createCustomElement(`foo`, false, [], [], [], []),
@@ -886,4 +887,16 @@ describe(`TemplateCompiler - combinations`, () => {
       });
     });
   });
+
+  // it.only('test', () => {
+  //   const { sut, resources } = setup(
+  //     <any>CustomElementResource.define({ name: 'foo' }, class Foo{}),
+  //     <any>CustomAttributeResource.define({ name: 'bar' }, class Bar{})
+  //   );
+
+  //   const [input, output] = createCustomElement(`foo`, false, [], [], [], []);
+  //   const actual = sut.compile(<any>input, resources)
+
+  //   verifyBindingInstructionsEqual(actual, output);
+  // })
 });

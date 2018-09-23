@@ -184,6 +184,9 @@ export class AttributeSymbol implements IAttributeSymbol {
     this.isCustomAttribute = !!definition;
     this.hasBindingCommand = !!command;
     this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
+    if (this.rawName === 'as-element') {
+      this._isProcessed = true; // as-element is processed by the semantic model and shouldn't be processed by the template compiler
+    }
     if (this.isCustomAttribute) {
       this.isTemplateController = !!definition.isTemplateController;
       this.res = definition.name;

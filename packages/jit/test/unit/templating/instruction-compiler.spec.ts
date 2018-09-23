@@ -4,6 +4,7 @@ import { IExpressionParser, INode, ICustomAttributeSource, TargetedInstructionTy
 import { Immutable, IIndexable, DI, IContainer, IServiceLocator, inject } from "@aurelia/kernel";
 import { expect } from "chai";
 import { spy } from "sinon";
+import { AttributeSymbol } from '../../../src/templating/semantic-model';
 
 
 
@@ -12,16 +13,16 @@ import { spy } from "sinon";
 export class KeyupBindingCommand implements IBindingCommand {
   constructor(private parser: IExpressionParser) {}
 
-  public compile(target: string, value: string, node: INode, attribute: AttributeDefinition, element: ElementDefinition): IRenderStrategyInstruction & IIndexable {
+  public compile($attr: AttributeSymbol): IRenderStrategyInstruction & IIndexable {
     return {
       type: TargetedInstructionType.renderStrategy,
-      expr: this.parser.parse(`${value}`, BindingType.TriggerCommand),
-      keys: target.split('+'),
+      expr: this.parser.parse($attr.rawValue, BindingType.TriggerCommand),
+      keys: $attr.target.split('+'),
       name: 'keyup'
     };
   }
 
-  public handles(attributeDefinition: Immutable<Required<ICustomAttributeSource>> | null): boolean {
+  public handles($attr: AttributeSymbol): boolean {
     return true;
   }
 }

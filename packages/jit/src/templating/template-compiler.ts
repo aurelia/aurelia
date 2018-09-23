@@ -141,18 +141,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     // otherwise they become sibling instructions
     const attributeInstructions: TargetedInstruction[] = [];
     const siblingInstructions: TargetedInstruction[] = [];
-    //const tagResourceKey = (node.getAttribute('as-element') || tagName).toLowerCase();
     const attributes = $el.$attributes;
-    //const element = resources.find(CustomElementResource, tagResourceKey);
-    //const attributes = node.attributes;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const $attr = attributes[i];
-      // const { name, value } = attr;
-      // if (name === 'as-element') {
-      //   continue;
-      // }
-      //const { target, attribute, command } = inspectAttribute(this.attrParser.parse(name, value));
-
       if ($attr.isProcessed) {
         continue;
       }

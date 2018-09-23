@@ -153,6 +153,9 @@ export class AttributeSymbol {
 
   public markAsProcessed(): void {
     this._isProcessed = true;
+    if (this.isTemplateController) {
+      (<Element>this.element.node).removeAttribute(this.rawName);
+    }
   }
 }
 

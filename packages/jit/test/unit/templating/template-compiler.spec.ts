@@ -741,7 +741,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  describe('template controllers', () => {
+  describe.only('template controllers', () => {
 
     eachCartesianJoinFactory([
       <(() => CTCResult)[]>[

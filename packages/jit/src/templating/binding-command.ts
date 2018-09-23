@@ -186,6 +186,6 @@ export class ForBindingCommand implements IBindingCommand {
   }
 
   public handles($symbol: AttributeSymbol): boolean {
-    return $symbol.isTemplateController && $symbol.res === 'repeat';
+    return $symbol.target === 'repeat';
   }
 }

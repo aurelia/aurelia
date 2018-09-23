@@ -2,8 +2,8 @@ import { DI } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
-import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { AttachLifecycle, DetachLifecycle, IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
+import { INode, INodeSequence, IRenderLocation, DOM } from '../dom';
+import { IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
 import { IRenderContext } from './render-context';
 import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
 import { ITemplate } from './template';
@@ -14,7 +14,7 @@ export interface IView extends IBindScope, IRenderable, IAttach {
   readonly factory: IViewFactory;
 
   mount(location: IRenderLocation): void;
-  release(): void;
+  release(): boolean;
 
   lockScope(scope: IScope): void;
 }
@@ -42,25 +42,34 @@ export class View implements IView {
   public $context: IRenderContext;
   private $encapsulationSource: INode;
   private location: IRenderLocation;
-  private requiresMount: boolean = false;
+  private requiresNodeAdd: boolean = false;
   private isFree: boolean = false;
 
   constructor(public factory: ViewFactory, private template: ITemplate) {
-    this.$nodes = this.createNodes();
-  }
-
-  public createNodes(): INodeSequence {
-    return this.template.createFor(this);
+    this.$nodes = this.template.createFor(this);
   }
 
   public mount(location: IRenderLocation): void {
-    this.requiresMount = true;
     this.location = location;
+
+    if (this.$nodes.lastChild.previousSibling !== location) {
+      this.requiresNodeAdd = true;
+    }
   }
 
   public lockScope(scope: IScope): void {
     this.$scope = scope;
     this.$bind = lockedBind;
+  }
+
+  public release(): boolean {
+    this.isFree = true;
+
+    if (this.$isAttached) {
+      return this.factory.canReturnToCache(this);
+    } else {
+      return this.$removeNodes();
+    }
   }
 
   public $bind(flags: BindingFlags, scope: IScope): void {
@@ -83,27 +92,28 @@ export class View implements IView {
   }
 
   public $addNodes(): void {
-    this.requiresMount = false;
+    this.requiresNodeAdd = false;
     this.$nodes.insertBefore(this.location);
   }
 
-  public $removeNodes(): void {
-    this.requiresMount = true;
+  public $removeNodes(): boolean {
+    this.requiresNodeAdd = true;
     this.$nodes.remove();
 
     if (this.isFree) {
       this.isFree = false;
-      this.factory.tryReturnToCache(this);
+      return this.factory.tryReturnToCache(this);
     }
+
+    return false;
   }
 
-  public $attach(encapsulationSource: INode, lifecycle?: IAttachLifecycle): void {
+  public $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
     if (this.$isAttached) {
       return;
     }
 
     this.$encapsulationSource = encapsulationSource;
-    lifecycle = AttachLifecycle.start(this, lifecycle);
 
     const attachables = this.$attachables;
 
@@ -111,17 +121,15 @@ export class View implements IView {
       attachables[i].$attach(encapsulationSource, lifecycle);
     }
 
-    if (this.requiresMount) {
+    if (this.requiresNodeAdd) {
       lifecycle.queueAddNodes(this);
     }
 
     this.$isAttached = true;
-    lifecycle.end(this);
   }
 
-  public $detach(lifecycle?: IDetachLifecycle): void {
+  public $detach(lifecycle: IDetachLifecycle): void {
     if (this.$isAttached) {
-      lifecycle = DetachLifecycle.start(this, lifecycle);
       lifecycle.queueRemoveNodes(this);
 
       const attachables = this.$attachables;
@@ -132,7 +140,6 @@ export class View implements IView {
       }
 
       this.$isAttached = false;
-      lifecycle.end(this);
     }
   }
 
@@ -150,12 +157,11 @@ export class View implements IView {
     }
   }
 
-  public release(): void {
-    if (this.$isAttached) {
-      this.isFree = true;
-    } else {
-      this.isFree = false;
-      this.factory.tryReturnToCache(this);
+  public $cache(): void {
+    const attachables = this.$attachables;
+
+    for (let i = 0, ii = attachables.length; i < ii; ++i) {
+      attachables[i].$cache();
     }
   }
 }
@@ -194,8 +200,13 @@ export class ViewFactory implements IViewFactory {
     this.isCaching = this.cacheSize > 0;
   }
 
+  public canReturnToCache(view: IView): boolean {
+    return this.cache !== null && this.cache.length < this.cacheSize;
+  }
+
   public tryReturnToCache(view: View): boolean {
-    if (this.cache !== null && this.cache.length < this.cacheSize) {
+    if (this.canReturnToCache(view)) {
+      view.$cache();
       this.cache.push(view);
       return true;
     }

@@ -12,7 +12,7 @@ import { getSetObserver } from '../../binding/set-observer';
 import { INode, IRenderLocation } from '../../dom';
 import { IResourceKind, IResourceType } from '../../resource';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeSource } from '../custom-attribute';
-import { AttachLifecycle, DetachLifecycle } from '../lifecycle';
+import { IAttachLifecycle, IDetachLifecycle, LifecycleFlags, Lifecycle } from '../lifecycle';
 import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
 import { IRuntimeBehavior, RuntimeBehavior } from '../runtime-behavior';
@@ -111,14 +111,17 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       this.changeSet.add(this);
     }
   }
-  public $attach(encapsulationSource: INode, lifecycle: AttachLifecycle): void {
+
+  public $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
     this.encapsulationSource = encapsulationSource;
     this.$isAttached = true;
   }
-  public $detach(lifecycle: DetachLifecycle): void {
+
+  public $detach(lifecycle: IDetachLifecycle): void {
     this.$isAttached = false;
     this.encapsulationSource = null;
   }
+
   public $unbind(flags: BindingFlags): void {
     if (this.$isBound) {
       this.$isBound = false;
@@ -133,6 +136,8 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
       }
     }
   }
+
+  public $cache(): void { }
 
   public flushChanges(): void {
     this.handleBatchedChange();
@@ -194,15 +199,15 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     } else if (newLength < oldLength) {
       // remove any surplus views
       i = newLength;
-      const lifecycle = DetachLifecycle.start(this);
+      const lifecycle = Lifecycle.beginDetach(LifecycleFlags.none);
 
       while (i < oldLength) {
         const view = views[i++];
         view.release();
-        view.$detach(lifecycle);
+        lifecycle.detach(view);
       }
 
-      lifecycle.end(this);
+      lifecycle.end();
       views.length = newLength;
     }
 
@@ -212,7 +217,7 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
 
     const factory = this.factory;
     const encapsulationSource = this.encapsulationSource;
-    const lifecycle = AttachLifecycle.start(this);
+    const lifecycle = Lifecycle.beginAttach(encapsulationSource, LifecycleFlags.none);
     i = 0;
     sourceExpression.iterate(items, (arr, i, item) => {
       let view = views[i];
@@ -221,15 +226,17 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
         view = views[i] = factory.create();
         view.$bind(flags, createChildScope(overrideContext, { [local]: item }));
         view.mount(location);
+
         if (isAttached) {
-          view.$attach(encapsulationSource, lifecycle);
+          lifecycle.attach(view);
         }
       } else {
         // TODO: optimize this again (but in a more efficient way and one that works in multiple scenarios)
         view.$bind(flags | BindingFlags.fromBind, createChildScope(overrideContext, { [local]: item }));
       }
     });
-    lifecycle.end(this);
+
+    lifecycle.end();
   }
 
   private removeAllViews(): void {
@@ -237,15 +244,15 @@ export class Repeat<T extends ObservedCollection> implements ICustomAttribute, I
     this.views = [];
     const len = views.length;
     let i = 0;
-    const lifecycle = DetachLifecycle.start(this);
+    const lifecycle = Lifecycle.beginDetach(LifecycleFlags.none);
 
     while (i < len) {
       const view = views[i++];
       view.release();
-      view.$detach(lifecycle);
+      lifecycle.detach(view);
     }
 
-    lifecycle.end(this);
+    lifecycle.end();
   }
 }
 

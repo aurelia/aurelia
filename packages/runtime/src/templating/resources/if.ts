@@ -3,6 +3,7 @@ import { BindingFlags } from '../../binding';
 import { DOM, INode, IRenderLocation } from '../../dom';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { IAttachLifecycle, IDetachLifecycle, Lifecycle, LifecycleFlags } from '../lifecycle';
 import { IView, IViewFactory } from '../view';
 
 export interface If extends ICustomAttribute {}
@@ -10,81 +11,110 @@ export interface If extends ICustomAttribute {}
 @inject(IViewFactory, IRenderLocation)
 export class If {
   @bindable public value: boolean = false;
+
   public elseFactory: IViewFactory;
 
-  private ifView: IView;
-  private elseView: IView;
-
-  private $child: IView;
+  private ifView: IView = null;
+  private elseView: IView = null;
+  private currentView: IView = null;
   private encapsulationSource: INode;
 
   constructor(public ifFactory: IViewFactory, private location: IRenderLocation) {}
 
-  public bound(): void {
-    this.update(this.value, BindingFlags.fromBind);
+  public binding(): void {
+    this.updateView(LifecycleFlags.skipAnimation);
+
+    if (this.currentView !== null) {
+      this.currentView.$bind(BindingFlags.fromBind, this.$scope);
+    }
   }
 
-  public attaching(encapsulationSource: INode): void {
+  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
     this.encapsulationSource = encapsulationSource;
-  }
 
-  public unbound(): void {
-    if (this.$child) {
-      this.$child.$unbind(BindingFlags.fromUnbind);
-      this.$child = null;
+    if (this.currentView !== null) {
+      this.currentView.$attach(encapsulationSource, lifecycle);
     }
   }
 
-  public valueChanged(newValue: any): void {
-    this.update(newValue, BindingFlags.fromBindableHandler);
-  }
-
-  private update(shouldRenderTrueBranch: boolean, flags: BindingFlags): void {
-    if (shouldRenderTrueBranch) {
-      this.activateBranch('if', flags);
-    } else if (this.elseFactory) {
-      this.activateBranch('else', flags);
-    } else if (this.$child) {
-      this.deactivateCurrentBranch(flags);
+  public detaching(lifecycle: IDetachLifecycle): void {
+    if (this.currentView !== null) {
+      this.currentView.$detach(lifecycle);
     }
   }
 
-  private activateBranch(name: 'if' | 'else', flags: BindingFlags): void {
-    const branchView = this.ensureViewCreated(name);
+  public unbinding(): void {
+    if (this.currentView !== null) {
+      this.currentView.$unbind(BindingFlags.fromUnbind);
+    }
+  }
 
-    if (this.$child) {
-      if (this.$child === branchView) {
-        return;
+  public caching(): void {
+    if (this.ifView !== null && this.ifView.release()) {
+      this.ifView = null;
+    }
+
+    if (this.elseView !== null && this.elseView.release()) {
+      this.elseView = null;
+    }
+
+    this.currentView = null;
+  }
+
+  public valueChanged(): void {
+    this.updateView(LifecycleFlags.none);
+  }
+
+  private updateView(detachFlags: LifecycleFlags): void {
+    if (this.value) {
+      if (this.currentView === this.elseView) {
+        this.detachAndUnbindCurrentView(detachFlags);
       }
 
-      this.deactivateCurrentBranch(flags);
-    }
+      this.currentView = this.ifView = this.ensureView(this.ifView, this.ifFactory);
+      this.bindAndAttachCurrentView();
+    } else if (this.elseFactory) {
+      if (this.currentView === this.ifView) {
+        this.detachAndUnbindCurrentView(detachFlags);
+      }
 
-    this.$child = branchView;
-    branchView.$bind(flags, this.$scope);
+      this.currentView = this.elseView  = this.ensureView(this.elseView, this.elseFactory);
+      this.bindAndAttachCurrentView();
+    } else {
+      this.detachAndUnbindCurrentView(detachFlags);
+    }
+  }
+
+  private bindAndAttachCurrentView(): void {
+    if (this.$isBound) {
+      this.currentView.$bind(BindingFlags.fromBindableHandler, this.$scope);
+    }
 
     if (this.$isAttached) {
-      branchView.$attach(this.encapsulationSource);
+      Lifecycle.beginAttach(this.encapsulationSource, LifecycleFlags.none)
+        .attach(this.currentView)
+        .end();
     }
   }
 
-  private ensureViewCreated(name: 'if' | 'else'): IView {
-    const viewPropertyName = `${name}View`;
-    let branchView = this[viewPropertyName] as IView;
+  private detachAndUnbindCurrentView(detachFlags: LifecycleFlags): void {
+    if (this.currentView !== null) {
+      const flags = detachFlags | LifecycleFlags.unbindAfterDetached;
 
-    if (!branchView) {
-      this[viewPropertyName] = branchView
-        = (this[`${name}Factory`] as IViewFactory).create();
-      branchView.mount(this.location);
+      Lifecycle.beginDetach(flags)
+        .detach(this.currentView)
+        .end();
     }
-
-    return branchView;
   }
 
-  private deactivateCurrentBranch(flags: BindingFlags): void {
-    this.$child.$detach();
-    this.$child.$unbind(flags);
-    this.$child = null;
+  private ensureView(view: IView, factory: IViewFactory): IView {
+    if (view === null) {
+      view = factory.create();
+    }
+
+    view.mount(this.location);
+
+    return view;
   }
 }
 

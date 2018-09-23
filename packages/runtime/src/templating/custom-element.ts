@@ -12,7 +12,7 @@ import { BindingFlags } from '../binding/binding-flags';
 import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
-import { AttachLifecycle, DetachLifecycle, IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
+import { IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
 import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
@@ -117,6 +117,7 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$attach = attach;
     proto.$detach = detach;
     proto.$unbind = unbind;
+    proto.$cache = cache;
     (proto.$addNodes as any) = addNodes;
     (proto.$removeNodes as any) = removeNodes;
     (proto.$addChild as any) = addRenderableChild;
@@ -177,6 +178,12 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
     return;
   }
 
+  const behavior = this.$behavior;
+
+  if (behavior.hasBinding) {
+    (this as any).binding(flags | BindingFlags.fromBind);
+  }
+
   const scope = this.$scope;
   const bindables = this.$bindables;
 
@@ -186,13 +193,19 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
 
   this.$isBound = true;
 
-  if (this.$behavior.hasBound) {
+  if (behavior.hasBound) {
     (this as any).bound(flags | BindingFlags.fromBind);
   }
 }
 
 function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags): void {
   if (this.$isBound) {
+    const behavior = this.$behavior;
+
+    if (behavior.hasUnbinding) {
+      (this as any).unbinding(flags | BindingFlags.fromUnbind);
+    }
+
     const bindables = this.$bindables;
     let i = bindables.length;
 
@@ -202,18 +215,16 @@ function unbind(this: IInternalCustomElementImplementation, flags: BindingFlags)
 
     this.$isBound = false;
 
-    if (this.$behavior.hasUnbound) {
+    if (behavior.hasUnbound) {
       (this as any).unbound(flags | BindingFlags.fromUnbind);
     }
   }
 }
 
-function attach(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle?: IAttachLifecycle): void {
+function attach(this: IInternalCustomElementImplementation, encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
   if (this.$isAttached) {
     return;
   }
-
-  lifecycle = AttachLifecycle.start(this, lifecycle);
 
   this.$encapsulationSource = encapsulationSource
     = this.$projector.provideEncapsulationSource(encapsulationSource);
@@ -234,14 +245,10 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   if (this.$behavior.hasAttached) {
     lifecycle.queueAttachedCallback(this as any);
   }
-
-  lifecycle.end(this);
 }
 
-function detach(this: IInternalCustomElementImplementation, lifecycle?: IDetachLifecycle): void {
+function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLifecycle): void {
   if (this.$isAttached) {
-    lifecycle = DetachLifecycle.start(this, lifecycle);
-
     if (this.$behavior.hasDetaching) {
       (this as any).detaching(lifecycle);
     }
@@ -252,7 +259,7 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: IDetachL
     let i = attachables.length;
 
     while (i--) {
-      attachables[i].$detach();
+      attachables[i].$detach(lifecycle);
     }
 
     this.$isAttached = false;
@@ -260,8 +267,19 @@ function detach(this: IInternalCustomElementImplementation, lifecycle?: IDetachL
     if (this.$behavior.hasDetached) {
       lifecycle.queueDetachedCallback(this as any);
     }
+  }
+}
 
-    lifecycle.end(this);
+function cache(this: IInternalCustomElementImplementation): void {
+  if (this.$behavior.hasCaching) {
+    (this as any).caching();
+  }
+
+  const attachables = this.$attachables;
+  let i = attachables.length;
+
+  while (i--) {
+    attachables[i].$cache();
   }
 }
 

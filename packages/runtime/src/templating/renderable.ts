@@ -3,7 +3,7 @@ import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
 import { INodeSequence } from '../dom';
-import { IAttach } from './lifecycle';
+import { IAttach, Lifecycle, LifecycleFlags } from './lifecycle';
 import { IRenderContext } from './render-context';
 
 export const IRenderable = DI.createInterface<IRenderable>().noDefault();
@@ -42,17 +42,24 @@ export function addRenderableChild(this: IRenderable, child: IAttach | IBindScop
     this.$attachables.push(child);
 
     if (this.$isAttached) {
-      child.$attach((this as any).$encapsulationSource);
+      Lifecycle.beginAttach((this as any).$encapsulationSource, LifecycleFlags.none)
+        .attach(child)
+        .end();
     }
   }
 }
 
 /*@internal*/
 export function removeRenderableChild(this: IRenderable, child: IAttach | IBindScope): void {
-  const attachableIndex = this.$attachables.indexOf(child as IAttach);
-  if (attachableIndex !== -1) {
-    this.$attachables.splice(attachableIndex, 1);
-    (child as IAttach).$detach();
+  if ('$detach' in child) {
+    const attachableIndex = this.$attachables.indexOf(child as IAttach);
+    if (attachableIndex !== -1) {
+      this.$attachables.splice(attachableIndex, 1);
+
+      Lifecycle.beginDetach(LifecycleFlags.none)
+        .detach(child)
+        .end();
+    }
   }
 
   const bindableIndex = this.$bindables.indexOf(child as IBindScope);

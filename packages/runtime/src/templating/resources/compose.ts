@@ -56,7 +56,7 @@ export class Compose {
   }
 
   /** @internal */
-  public bound(): void {
+  public binding(): void {
     this.startComposition(this.subject, BindingFlags.fromBind);
   }
 

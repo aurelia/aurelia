@@ -1,5 +1,6 @@
 import { DI, IContainer, IRegistry, PLATFORM } from '@aurelia/kernel';
 import { BindingFlags } from './binding/binding-flags';
+import { Lifecycle, LifecycleFlags } from './templating';
 import { ICustomElement } from './templating/custom-element';
 import { IRenderingEngine } from './templating/rendering-engine';
 
@@ -12,18 +13,19 @@ export class Aurelia {
   private components: ICustomElement[] = [];
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
-  private isStarted = false;
+  private isStarted: boolean = false;
 
   constructor(private container: IContainer = DI.createContainer()) {}
 
-  public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]) {
+  public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this {
     this.container.register(...params);
     return this;
   }
 
-  public app(config: ISinglePageApp) {
-    let component: ICustomElement = config.component;
-    let startTask = () => {
+  public app(config: ISinglePageApp): this {
+    const component: ICustomElement = config.component;
+
+    const startTask = () => {
       if (!this.components.includes(component)) {
         this.components.push(component);
         component.$hydrate(
@@ -33,14 +35,26 @@ export class Aurelia {
       }
 
       component.$bind(BindingFlags.fromStartTask | BindingFlags.fromBind);
-      component.$attach(config.host);
+
+      Lifecycle.beginAttach(config.host, LifecycleFlags.none)
+        .attach(component)
+        .end();
     };
 
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      component.$detach();
-      component.$unbind(BindingFlags.fromStopTask | BindingFlags.fromUnbind);
+      const result = Lifecycle.beginDetach(LifecycleFlags.none)
+        .detach(component)
+        .end();
+
+      const flags = BindingFlags.fromStopTask | BindingFlags.fromUnbind;
+
+      if (result instanceof Promise) {
+        result.then(() => component.$unbind(flags));
+      } else {
+        component.$unbind(flags);
+      }
     });
 
     if (this.isStarted) {
@@ -50,13 +64,13 @@ export class Aurelia {
     return this;
   }
 
-  public start() {
+  public start(): this {
     this.startTasks.forEach(x => x());
     this.isStarted = true;
     return this;
   }
 
-  public stop() {
+  public stop(): this {
     this.isStarted = false;
     this.stopTasks.forEach(x => x());
     return this;

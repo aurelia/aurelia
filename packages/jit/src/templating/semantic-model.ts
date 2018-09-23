@@ -73,6 +73,7 @@ export class AttributeSymbol {
   public mode: BindingMode = null;
   public bindable: IBindableDescription = null;
   public isAttributeBindable: boolean = false;
+  public isDefaultAttributeBindable: boolean = false;
   public isCustomAttribute: boolean = false;
   public isElementBindable: boolean = false;
   public onCustomElement: boolean = false;
@@ -124,6 +125,7 @@ export class AttributeSymbol {
         if (!this.isAttributeBindable) {
           this.dest = 'value';
           this.mode = definition.defaultBindingMode || BindingMode.toView;
+          this.isBindable = this.isAttributeBindable = this.isDefaultAttributeBindable = true;
         }
       }
     } else if (element.isCustomElement) {

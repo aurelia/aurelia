@@ -60,7 +60,7 @@ export class SemanticModel {
 
   public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol): ElementSymbol {
     const definition = this.getElementDefinition(syntax.name.toLowerCase());
-    return new ElementSymbol(this, false, parent.root, parent, syntax, definition);
+    return new ElementSymbol(this, false, parent.$root, parent, syntax, definition);
   }
 
   public getElementSymbolRoot(definition: Required<ITemplateSource>): ElementSymbol {
@@ -87,7 +87,7 @@ export interface IAttributeSymbol {
   isDefaultAttributeBindable: boolean;
   onCustomElement: boolean;
   isElementBindable: boolean;
-  element: ElementSymbol;
+  $element: ElementSymbol;
 }
 
 export class MultiAttributeBindingSymbol implements IAttributeSymbol {
@@ -107,11 +107,11 @@ export class MultiAttributeBindingSymbol implements IAttributeSymbol {
   public isDefaultAttributeBindable: boolean = false;
   public onCustomElement: boolean = false;
   public isElementBindable: boolean = false;
-  public element: ElementSymbol = null;
+  public $element: ElementSymbol = null;
 
   constructor(
     public semanticModel: SemanticModel,
-    public parent: AttributeSymbol,
+    public $parent: AttributeSymbol,
     public syntax: AttrSyntax,
     public command: IBindingCommand | null
   ) {
@@ -121,7 +121,7 @@ export class MultiAttributeBindingSymbol implements IAttributeSymbol {
     this.rawCommand = syntax.command;
     this.hasBindingCommand = !!command;
     this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
-    const bindables = parent.definition.bindables;
+    const bindables = $parent.definition.bindables;
     for (const prop in bindables) {
       const b = bindables[prop];
       if (b.property === syntax.target) {
@@ -134,14 +134,14 @@ export class MultiAttributeBindingSymbol implements IAttributeSymbol {
     }
     if (!this.isAttributeBindable) {
       this.dest = syntax.target;
-      this.mode = parent.definition.defaultBindingMode || BindingMode.toView;
+      this.mode = $parent.definition.defaultBindingMode || BindingMode.toView;
     }
   }
 }
 
 export class AttributeSymbol implements IAttributeSymbol {
   public isMultiAttrBinding: boolean = false;
-  public multiAttrBindings: MultiAttributeBindingSymbol[];
+  public $multiAttrBindings: MultiAttributeBindingSymbol[];
   public target: string = null;
   public res: string = null;
   public rawName: string = null;
@@ -166,7 +166,7 @@ export class AttributeSymbol implements IAttributeSymbol {
 
   constructor(
     public semanticModel: SemanticModel,
-    public element: ElementSymbol,
+    public $element: ElementSymbol,
     public syntax: AttrSyntax,
     public definition: ICustomAttributeSource | null,
     public command: IBindingCommand | null
@@ -186,7 +186,7 @@ export class AttributeSymbol implements IAttributeSymbol {
       for (let i = 0, ii = value.length; i < ii; ++i) {
         if (value.charCodeAt(i) === Char.Semicolon) {
           if (!this.isMultiAttrBinding) {
-            this.multiAttrBindings = [];
+            this.$multiAttrBindings = [];
             this.isMultiAttrBinding = true;
           }
           const innerAttr = value.slice(lastIndex, i).trim();
@@ -199,7 +199,7 @@ export class AttributeSymbol implements IAttributeSymbol {
               const innerAttrName = innerAttr.slice(0, j).trim();
               const innerAttrValue = innerAttr.slice(j + 1).trim();
               const innerAttrSyntax = parseAttribute(innerAttrName, innerAttrValue);
-              this.multiAttrBindings.push(this.semanticModel.getMultiAttrBindingSymbol(innerAttrSyntax, this));
+              this.$multiAttrBindings.push(this.semanticModel.getMultiAttrBindingSymbol(innerAttrSyntax, this));
             }
           }
         }
@@ -220,9 +220,9 @@ export class AttributeSymbol implements IAttributeSymbol {
           this.isBindable = this.isAttributeBindable = this.isDefaultAttributeBindable = true;
         }
       }
-    } else if (element.isCustomElement) {
+    } else if ($element.isCustomElement) {
       this.onCustomElement = true;
-      const bindables = element.definition.bindables;
+      const bindables = $element.definition.bindables;
       for (const prop in bindables) {
         const b = bindables[prop];
         if (b.attribute === syntax.target) {
@@ -246,25 +246,27 @@ export class AttributeSymbol implements IAttributeSymbol {
   public markAsProcessed(): void {
     this._isProcessed = true;
     if (this.isTemplateController) {
-      (<Element>this.element.node).removeAttribute(this.rawName);
+      (<Element>this.$element.node).removeAttribute(this.rawName);
     }
   }
 }
 
 export class ElementSymbol {
-  public attributes: AttributeSymbol[];
-  public children: ElementSymbol[];
+  public $attributes: AttributeSymbol[];
+  public $children: ElementSymbol[];
+  public $content: ElementSymbol;
   public isTemplate: boolean = false;
+  public isSlot: boolean = false;
+  public isLet: boolean = false;
   public node: Node = null;
   public name: string = null;
   public resourceKey: string = null;
-  public contentNode: Node = null;
   public isCustomElement: boolean = false;
   public get nextSibling(): ElementSymbol {
-    if (!this.parent) {
+    if (!this.$parent) {
       return null;
     }
-    const siblings = this.parent.children;
+    const siblings = this.$parent.$children;
     for (let i = 0, ii = siblings.length; i < ii; ++i) {
       if (siblings[i] === this) {
         return siblings[i + 1] || null;
@@ -273,23 +275,32 @@ export class ElementSymbol {
     return null;
   }
   public get firstChild(): ElementSymbol {
-    return this.children[0] || null;
+    return this.$children[0] || null;
   }
 
   constructor(
     public semanticModel: SemanticModel,
     public isRoot: boolean,
-    public root: ElementSymbol,
-    public parent: ElementSymbol,
+    public $root: ElementSymbol,
+    public $parent: ElementSymbol,
     public syntax: ElementSyntax,
     public definition: ITemplateSource | null
   ) {
-    this.root = isRoot ? this : root;
+    this.$root = isRoot ? this : $root;
     this.node = syntax.node;
     this.name = this.node.nodeName;
-    this.isTemplate = this.name === 'TEMPLATE';
+    switch (this.name) {
+      case 'TEMPLATE':
+        this.isTemplate = true;
+        break;
+      case 'SLOT':
+        this.isSlot = true;
+        break;
+      case 'LET':
+        this.isLet = true;
+    }
     this.resourceKey = this.name.toLowerCase();
-    this.contentNode = this.isTemplate ? (<HTMLTemplateElement>this.node).content : this.node;
+    this.$content = this.isTemplate ? this.semanticModel.getElementSymbol(syntax.content, this) : null;
     this.isCustomElement = !isRoot && !!definition;
 
     const attributes = syntax.attributes;
@@ -298,7 +309,7 @@ export class ElementSymbol {
     for (let i = 0, ii = attrLen; i < ii; ++i) {
       attrSymbols[i] = this.semanticModel.getAttributeSymbol(attributes[i], this);
     }
-    this.attributes = attrSymbols;
+    this.$attributes = attrSymbols;
 
     const children = syntax.children;
     const childLen = children.length;
@@ -306,7 +317,7 @@ export class ElementSymbol {
     for (let i = 0, ii = childLen; i < ii; ++i) {
       childSymbols[i] = this.semanticModel.getElementSymbol(children[i], this);
     }
-    this.children = childSymbols;
+    this.$children = childSymbols;
   }
 
   public makeTarget(): void {

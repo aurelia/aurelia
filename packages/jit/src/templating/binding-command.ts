@@ -175,7 +175,7 @@ export class ForBindingCommand implements IBindingCommand {
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
     const src: ITemplateSource = {
       name: 'repeat',
-      templateOrNode: $symbol.element.node,
+      templateOrNode: $symbol.$element.node,
       instructions: []
     };
     return new HydrateTemplateController(src, 'repeat', [

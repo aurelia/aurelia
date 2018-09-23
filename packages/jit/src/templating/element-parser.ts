@@ -5,13 +5,11 @@ import { AttrSyntax, parseAttribute } from './attribute-parser';
 const domParser = <HTMLDivElement>DOM.createElement('div');
 
 export class ElementSyntax {
-  public get node(): Node {
-    return this._node;
-  }
   constructor(
     public markup: string,
-    private _node: Node,
+    public node: Node,
     public name: string,
+    public content: ElementSyntax | null,
     public children: ElementSyntax[],
     public attributes: AttrSyntax[]) { }
 }
@@ -48,21 +46,34 @@ export class ElementParser implements IElementParser {
       domParser.removeChild(node);
     }
 
-    const nodeChildNodes = node.childNodes;
-    const nodeLen = nodeChildNodes.length;
-    const children: ElementSyntax[] = Array(nodeLen);
-    for (let i = 0, ii = nodeLen; i < ii; ++i) {
-      children[i] = this.parse(nodeChildNodes[i]);
+    let children: ElementSyntax[];
+    let content: ElementSyntax;
+    if (node.nodeName === 'TEMPLATE') {
+      content = this.parse((<HTMLTemplateElement>node).content);
+      children = [];
+    } else {
+      content = null;
+      const nodeChildNodes = node.childNodes;
+      const nodeLen = nodeChildNodes.length;
+      children = Array(nodeLen);
+      for (let i = 0, ii = nodeLen; i < ii; ++i) {
+        children[i] = this.parse(nodeChildNodes[i]);
+      }
     }
 
+    let attributes: AttrSyntax[];
     const nodeAttributes = node.attributes;
-    const attrLen = nodeAttributes.length;
-    const attributes: AttrSyntax[] = Array(attrLen);
-    for (let i = 0, ii = attrLen; i < ii; ++i) {
-      const attr = nodeAttributes[i];
-      attributes[i] = parseAttribute(attr.name, attr.value);
+    if (nodeAttributes) {
+      const attrLen = nodeAttributes.length;
+      attributes = Array(attrLen);
+      for (let i = 0, ii = attrLen; i < ii; ++i) {
+        const attr = nodeAttributes[i];
+        attributes[i] = parseAttribute(attr.name, attr.value);
+      }
+    } else {
+      attributes = [];
     }
 
-    return new ElementSyntax(markup, node, node.nodeName, children, attributes);
+    return new ElementSyntax(markup, node, node.nodeName, content, children, attributes);
   }
 }

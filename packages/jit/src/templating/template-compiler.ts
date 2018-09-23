@@ -32,8 +32,8 @@ import {
   TemplateDefinition,
   ViewCompileFlags,
 } from '@aurelia/runtime';
-import { ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
 import { IElementParser } from './element-parser';
+import { ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
 
 // tslint:disable:no-inner-html
 
@@ -66,24 +66,16 @@ export class TemplateCompiler implements ITemplateCompiler {
   constructor(public exprParser: IExpressionParser, public elParser: IElementParser) { }
 
   public compile(definition: Required<ITemplateSource>, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
-    const $symbol = new SemanticModel(this.elParser.parse(definition.templateOrNode), resources).getElementSymbolRoot(definition);
-    definition.templateOrNode = $symbol.node;
-    return this.compileCore($symbol, definition, flags);
+    const $el = new SemanticModel(this.elParser.parse(definition.templateOrNode), resources).getElementSymbolRoot(definition);
+    definition.templateOrNode = $el.node;
+    return this.compileCore($el, definition, flags);
   }
 
-  public compileCore($symbol: ElementSymbol, definition: Required<ITemplateSource>, flags?: ViewCompileFlags): TemplateDefinition {
-    let node = <Node>definition.templateOrNode;
-
-   // const rootNode = <Element>node;
-    const isTemplate = node.nodeName === 'TEMPLATE';
-
-    // Parent node is required for remove / replace operation incase node is the direct child of document fragment
-    const parentNode = node = isTemplate ? (<HTMLTemplateElement>node).content : node;
-
-    while ($symbol = this.compileNode($symbol, definition.instructions));
+  public compileCore($el: ElementSymbol, definition: Required<ITemplateSource>, flags?: ViewCompileFlags): TemplateDefinition {
+    while ($el = this.compileNode($el.$content || $el, definition.instructions));
 
     // // ideally the flag should be passed correctly from rendering engine
-    // if (isTemplate && (flags & ViewCompileFlags.surrogate)) {
+    // if ($symbol.isTemplate && (flags & ViewCompileFlags.surrogate)) {
     //   this.compileSurrogate($symbol, rootNode, definition.surrogates);
     // }
     return definition;
@@ -116,7 +108,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   /*@internal*/
   public compileSurrogate($el: ElementSymbol, surrogateInstructions: TargetedInstruction[]): void {
-    const attributes = $el.attributes;
+    const attributes = $el.$attributes;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const $attr = attributes[i];
       if ($attr.isTemplateController) {
@@ -148,17 +140,16 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   /*@internal*/
   public compileElementNode($el: ElementSymbol, instructions: TargetedInstruction[][]): void {
-
-    // if (tagName === 'SLOT') {
-    //   definition.hasSlots = true;
-    //   return;
-    // } else if (tagName === 'LET') {
-    //   const letElementInstruction = this.compileLetElement($symbol, node);
-    //   instructions.push([letElementInstruction]);
-    //   // theoretically there's no need to replace, but to keep it consistent
-    //   DOM.replaceNode(createMarker(), node);
-    //   return;
-    // }
+    if ($el.isSlot) {
+      $el.definition.hasSlots = true;
+      return;
+    } else if ($el.isLet) {
+      const letElementInstruction = this.compileLetElement($el);
+      instructions.push([letElementInstruction]);
+      // theoretically there's no need to replace, but to keep it consistent
+      DOM.replaceNode(createMarker(), $el.node);
+      return;
+    }
     // if there is a template controller, then all attribute instructions become children of the hydrate instruction
 
     // if there is a custom element, then only the attributes that map to bindables become children of the hydrate instruction,
@@ -166,7 +157,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const attributeInstructions: TargetedInstruction[] = [];
     const siblingInstructions: TargetedInstruction[] = [];
     //const tagResourceKey = (node.getAttribute('as-element') || tagName).toLowerCase();
-    const attributes = $el.attributes;
+    const attributes = $el.$attributes;
     //const element = resources.find(CustomElementResource, tagResourceKey);
     //const attributes = node.attributes;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
@@ -188,15 +179,15 @@ export class TemplateCompiler implements ITemplateCompiler {
           if (instruction.type !== TargetedInstructionType.hydrateTemplateController) {
             const src: ITemplateSource = {
               name: $attr.res,
-              templateOrNode: $attr.element.node,
+              templateOrNode: $attr.$element.node,
               instructions: []
             };
             instruction = new HydrateTemplateController(src, $attr.res, [instruction], $attr.res === 'else');
           }
 
-          ($attr.element.node.parentNode || $attr.element.parent.node).replaceChild(createMarker(), $attr.element.node);
+          ($attr.$element.node.parentNode || $attr.$element.$parent.node).replaceChild(createMarker(), $attr.$element.node);
           const template = DOM.createTemplate() as HTMLTemplateElement;
-          template.content.appendChild($attr.element.node);
+          template.content.appendChild($attr.$element.node);
           instruction.src.templateOrNode = template;
           instruction.instructions.push(...attributeInstructions);
           this.compileCore($el, <Required<ITemplateSource>>instruction.src);
@@ -205,7 +196,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         } else {
           const childInstructions = [];
           if ($attr.isMultiAttrBinding) {
-            const mBindings = $attr.multiAttrBindings;
+            const mBindings = $attr.$multiAttrBindings;
             for (let j = 0, jj = mBindings.length; j < jj; ++j) {
               childInstructions.push(this.compileAttribute(mBindings[j]));
             }
@@ -242,41 +233,28 @@ export class TemplateCompiler implements ITemplateCompiler {
     for (let $child = $el.firstChild; !!$child; $child = this.compileNode($child, instructions));
   }
 
-  // public compileLetElement(
-  //   $symbol: ElementSymbol,
-  //   node: Element
-  //   ): ILetElementInstruction {
-  //   const letInstructions: ILetBindingInstruction[] = [];
-  //   const attributes = node.attributes;
-  //   // ToViewModel flag needs to be determined in advance
-  //   // before compiling any attribute
-  //   const toViewModel = node.hasAttribute('to-view-model');
-  //   node.removeAttribute('to-view-model');
-  //   for (let i = 0, ii = attributes.length; ii > i; ++i) {
-  //     const attr = attributes.item(i);
-  //     const { name, value } = attr;
-  //     // tslint:disable-next-line:prefer-const
-  //     let { target, command } = inspectAttribute(this.attrParser.parse(name, value));
-  //     target = PLATFORM.camelCase(target);
-  //     let letInstruction: LetBindingInstruction;
-
-  //     if (!command) {
-  //       const expression = this.exprParser.parse(value, BindingType.Interpolation);
-  //       if (expression === null) {
-  //         // Should just be a warning, but throw for now
-  //         throw new Error(`Invalid let binding. String liternal given for attribute: ${target}`);
-  //       }
-  //       letInstruction = new LetBindingInstruction(expression, target);
-  //     } else if (command === null) {
-  //       // TODO: this does work well with no built in command spirit
-  //       throw new Error('Only bind command supported for "let" element.');
-  //     } else {
-  //       letInstruction = new LetBindingInstruction(value, target);
-  //     }
-  //     letInstructions.push(letInstruction);
-  //   }
-  //   return new LetElementInstruction(letInstructions, toViewModel);
-  // }
+  public compileLetElement($el: ElementSymbol): ILetElementInstruction {
+    const letInstructions: ILetBindingInstruction[] = [];
+    const attributes = $el.$attributes;
+    let toViewModel = false;
+    for (let i = 0, ii = attributes.length; ii > i; ++i) {
+      const $attr = attributes[i];
+      if ($attr.hasBindingCommand) {
+        letInstructions.push(new LetBindingInstruction($attr.rawValue, $attr.target));
+      } else if ($attr.rawName === 'to-view-model') {
+        toViewModel = true;
+        (<Element>$el.node).removeAttribute('to-view-model');
+      } else {
+        const expr = this.exprParser.parse($attr.rawValue, BindingType.Interpolation);
+        if (expr === null) {
+          // Should just be a warning, but throw for now
+          throw new Error(`Invalid let binding. String liternal given for attribute: ${$attr.target}`);
+        }
+        letInstructions.push(new LetBindingInstruction(expr, $attr.target));
+      }
+    }
+    return new LetElementInstruction(letInstructions, toViewModel);
+  }
 
   /*@internal*/
   public compileTextNode($el: ElementSymbol, instructions: TargetedInstruction[][]): boolean {

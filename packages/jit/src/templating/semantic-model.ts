@@ -127,6 +127,7 @@ export class AttributeSymbol {
         }
       }
     } else if (element.isCustomElement) {
+      this.onCustomElement = true;
       const bindables = element.definition.bindables;
       for (const prop in bindables) {
         const b = bindables[prop];

@@ -24,10 +24,10 @@ export class AttributeParser implements IAttributeParser {
   }
 
   public parse(name: string, value: string): AttrSyntax {
-    const existing = this.cache[name];
-    if (existing !== undefined) {
-      return existing;
-    }
+    // const existing = this.cache[name];
+    // if (existing !== undefined) {
+    //   return existing;
+    // }
     let lastIndex = 0;
     let target = name;
     for (let i = 0, ii = name.length; i < ii; ++i) {
@@ -39,7 +39,8 @@ export class AttributeParser implements IAttributeParser {
         lastIndex = i;
       }
     }
-    const command = name.slice(lastIndex + 1);
-    return this.cache[name] = new AttrSyntax(name, value, target, command.length ? command : null);
+    const command = lastIndex > 0 ? name.slice(lastIndex + 1) : null;
+    //return this.cache[name] = new AttrSyntax(name, value, target, command.length ? command : null);
+    return new AttrSyntax(name, value, target, command && command.length ? command : null);
   }
 }

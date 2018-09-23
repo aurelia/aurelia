@@ -630,7 +630,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  describe('custom attributes', () => {
+  describe.only('custom attributes', () => {
     eachCartesianJoinFactory([
       // ICustomAttributeSource.bindables
       <(() => [Record<string, IBindableDescription> | undefined, BindingMode | undefined, string])[]>[
@@ -669,7 +669,7 @@ describe(`TemplateCompiler - combinations`, () => {
 
       it(`${markup}  CustomAttribute=${JSON.stringify(src)}`, () => {
         const input = { templateOrNode: markup, instructions: [], surrogates: [] };
-        const instruction = { type: TT.hydrateAttribute, res: attr, instructions: [childInstruction] };
+        const instruction = { type: TT.hydrateAttribute, res: src.name, instructions: [childInstruction] };
         const expected = { templateOrNode: createElement(`<div ${name}="${value}" class="au"></div>`), instructions: [[instruction]], surrogates: [] };
 
         const def = CustomAttributeResource.define(src, ctor);

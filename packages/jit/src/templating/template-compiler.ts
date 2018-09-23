@@ -100,10 +100,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /*@internal*/
-  public compileNode(
-    $el: ElementSymbol,
-    instructions: TargetedInstruction[][]
-  ): ElementSymbol {
+  public compileNode($el: ElementSymbol, instructions: TargetedInstruction[][]): ElementSymbol {
     const node = $el.node;
     const nextSibling = $el.nextSibling;
     switch (node.nodeType) {
@@ -127,48 +124,40 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
-  // /*@internal*/
-  // public compileSurrogate(
-  //   $symbol: ElementSymbol,
-  //   node: Element,
-  //   surrogateInstructions: TargetedInstruction[]
-  // ): void {
-  //   const attributes = node.attributes;
-  //   for (let i = 0, ii = attributes.length; i < ii; ++i) {
-  //     const attr = attributes.item(i);
-  //     const { name, value } = attr;
-  //     const { target, attribute, command } = inspectAttribute(this.attrParser.parse(name, value));
-  //     if (attribute && attribute.isTemplateController) {
-  //       throw new Error('Cannot have template controller on surrogate element.');
-  //     }
-  //     const instruction = this.compileAttribute($symbol, target, value, node, attribute, null, command, false);
-  //     if (instruction !== null) {
-  //       surrogateInstructions.push(instruction);
-  //     } else {
-  //       let attrInst: TargetedInstruction;
-  //       // Doesn't make sense for these properties as they need to be unique
-  //       if (name !== 'id' && name !== 'part' && name !== 'replace-part') {
-  //         switch (name) {
-  //           // TODO: handle simple surrogate style attribute
-  //           case 'style':
-  //             attrInst = new SetAttributeInstruction(value, name);
-  //             break;
-  //           default:
-  //             attrInst = new SetAttributeInstruction(value, name);
-  //         }
-  //         surrogateInstructions.push(attrInst);
-  //       } else {
-  //         throw new Error(`Invalid surrogate attribute: ${name}`);
-  //       }
-  //     }
-  //   }
-  // }
+  /*@internal*/
+  public compileSurrogate($el: ElementSymbol, surrogateInstructions: TargetedInstruction[]): void {
+    const attributes = $el.attributes;
+    for (let i = 0, ii = attributes.length; i < ii; ++i) {
+      const $attr = attributes[i];
+      if ($attr.isTemplateController) {
+        throw new Error('Cannot have template controller on surrogate element.');
+      }
+      const instruction = this.compileAttribute($attr);
+      if (instruction !== null) {
+        surrogateInstructions.push(instruction);
+      } else {
+        let attrInst: TargetedInstruction;
+        // Doesn't make sense for these properties as they need to be unique
+        const name = $attr.target;
+        if (name !== 'id' && name !== 'part' && name !== 'replace-part') {
+          switch (name) {
+            // TODO: handle simple surrogate style attribute
+            case 'style':
+              attrInst = new SetAttributeInstruction($attr.rawValue, name);
+              break;
+            default:
+              attrInst = new SetAttributeInstruction($attr.rawValue, name);
+          }
+          surrogateInstructions.push(attrInst);
+        } else {
+          throw new Error(`Invalid surrogate attribute: ${name}`);
+        }
+      }
+    }
+  }
 
   /*@internal*/
-  public compileElementNode(
-    $el: ElementSymbol,
-    instructions: TargetedInstruction[][]
-  ): void {
+  public compileElementNode($el: ElementSymbol, instructions: TargetedInstruction[][]): void {
 
     // if (tagName === 'SLOT') {
     //   definition.hasSlots = true;
@@ -256,7 +245,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
     // no template controller; see if there's a custom element
-    const node = $el.node as Element;
     if ($el.isCustomElement) {
       // custom element takes the attributes as children
       instructions.push([new HydrateElementInstruction($el.resourceKey, attributeInstructions), ...siblingInstructions]);
@@ -267,11 +255,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       $el.makeTarget();
     }
     for (let $child = $el.firstChild; !!$child; $child = this.compileNode($child, instructions));
-    // const current = node;
-    // let currentChild = node.firstChild;
-    // while (currentChild) {
-    //   currentChild = this.compileNode($symbol, currentChild, current, definition, instructions);
-    // }
   }
 
   // public compileLetElement(
@@ -311,10 +294,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   // }
 
   /*@internal*/
-  public compileTextNode(
-    $el: ElementSymbol,
-    instructions: TargetedInstruction[][]
-    ): boolean {
+  public compileTextNode($el: ElementSymbol, instructions: TargetedInstruction[][]): boolean {
     const node = $el.node as Text;
     const expression = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
     if (expression === null) {
@@ -353,35 +333,35 @@ export class TemplateCompiler implements ITemplateCompiler {
       if ($attr.isCustomAttribute) {
         let expression = parser.parse($attr.rawValue, BindingType.Interpolation);
         if (expression !== null) {
-          return new ToViewBindingInstruction(expression, $attr.target);
+          return new ToViewBindingInstruction(expression, $attr.dest);
         }
         if (!$attr.hasBindingCommand && $attr.isAttributeBindable && $attr.isMultiAttrBinding) {
-          return new SetPropertyInstruction($attr.rawValue, $attr.target);
+          return new SetPropertyInstruction($attr.rawValue, $attr.dest);
         }
         expression = parser.parse($attr.rawValue, BindingType.ToViewCommand);
         switch ($attr.mode) {
           case BindingMode.oneTime:
-            return new OneTimeBindingInstruction(expression, $attr.target);
+            return new OneTimeBindingInstruction(expression, $attr.dest);
           case BindingMode.fromView:
-            return new FromViewBindingInstruction(expression, $attr.target);
+            return new FromViewBindingInstruction(expression, $attr.dest);
           case BindingMode.twoWay:
-            return new TwoWayBindingInstruction(expression, $attr.target);
+            return new TwoWayBindingInstruction(expression, $attr.dest);
           case BindingMode.toView:
           default:
-            return new ToViewBindingInstruction(expression, $attr.target);
+            return new ToViewBindingInstruction(expression, $attr.dest);
         }
       }
       // plain attribute on a custom element
       if ($attr.onCustomElement) {
         // bindable attribute
-        if ($attr.isAttributeBindable) {
+        if ($attr.isElementBindable) {
           const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
           if (expression === null) {
             // no interpolation -> make it a setProperty on the component
-            return new SetPropertyInstruction($attr.rawValue, $attr.target);
+            return new SetPropertyInstruction($attr.rawValue, $attr.dest);
           }
           // interpolation -> behave like toView (e.g. foo="${someProp}")
-          return new ToViewBindingInstruction(expression, $attr.target);
+          return new ToViewBindingInstruction(expression, $attr.dest);
         }
       }
       // plain attribute on a normal element
@@ -391,7 +371,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         return null;
       }
       // interpolation -> behave like toView (e.g. id="${someId}")
-      return new ToViewBindingInstruction(expression, $attr.target);
+      return new ToViewBindingInstruction(expression, $attr.dest);
   }
 }
 

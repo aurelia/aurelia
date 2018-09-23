@@ -3,7 +3,7 @@ import { BindingMode, CustomAttributeResource, CustomElementResource, IBindableD
 import { Char } from '../binding/expression-parser';
 import { AttrSyntax, parseAttribute } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
-import { ElementSyntax } from './element-parser';
+import { ElementSyntax, NodeType } from './element-parser';
 
 export class SemanticModel {
   public isSemanticModel: true = true;
@@ -59,7 +59,13 @@ export class SemanticModel {
   }
 
   public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol): ElementSymbol {
-    const definition = this.getElementDefinition(syntax.name.toLowerCase());
+    const node = syntax.node as Element;
+    let definition: ITemplateSource;
+    if (node.nodeType === NodeType.Element) {
+      const resourceKey = (node.getAttribute('as-element') || node.nodeName).toLowerCase();
+      definition = this.getElementDefinition(resourceKey);
+    }
+
     return new ElementSymbol(this, false, parent.$root, parent, syntax, definition);
   }
 
@@ -300,10 +306,10 @@ export class ElementSymbol {
         this.isLet = true;
     }
     this.resourceKey = this.name.toLowerCase();
-    this.$content = this.isTemplate ? this.semanticModel.getElementSymbol(syntax.content, this) : null;
+    this.$content = this.isTemplate ? this.semanticModel.getElementSymbol(syntax.$content, this) : null;
     this.isCustomElement = !isRoot && !!definition;
 
-    const attributes = syntax.attributes;
+    const attributes = syntax.$attributes;
     const attrLen = attributes.length;
     const attrSymbols = Array<AttributeSymbol>(attrLen);
     for (let i = 0, ii = attrLen; i < ii; ++i) {
@@ -311,7 +317,7 @@ export class ElementSymbol {
     }
     this.$attributes = attrSymbols;
 
-    const children = syntax.children;
+    const children = syntax.$children;
     const childLen = children.length;
     const childSymbols = Array<ElementSymbol>(childLen);
     for (let i = 0, ii = childLen; i < ii; ++i) {

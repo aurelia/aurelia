@@ -32,7 +32,7 @@ import {
   TemplateDefinition,
   ViewCompileFlags,
 } from '@aurelia/runtime';
-import { IElementParser } from './element-parser';
+import { IElementParser, NodeType } from './element-parser';
 import { ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
 
 // tslint:disable:no-inner-html
@@ -41,21 +41,6 @@ const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = DOM.createElement('au-marker') as Element;
 marker.classList.add('au');
 const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
-
-const enum NodeType {
-  Element = 1,
-  Attr = 2,
-  Text = 3,
-  CDATASection = 4,
-  EntityReference = 5,
-  Entity = 6,
-  ProcessingInstruction = 7,
-  Comment = 8,
-  Document = 9,
-  DocumentType = 10,
-  DocumentFragment = 11,
-  Notation = 12
-}
 
 @inject(IExpressionParser, IElementParser)
 export class TemplateCompiler implements ITemplateCompiler {

@@ -4,14 +4,30 @@ import { AttrSyntax, parseAttribute } from './attribute-parser';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 
+export const enum NodeType {
+  Element = 1,
+  Attr = 2,
+  Text = 3,
+  CDATASection = 4,
+  EntityReference = 5,
+  Entity = 6,
+  ProcessingInstruction = 7,
+  Comment = 8,
+  Document = 9,
+  DocumentType = 10,
+  DocumentFragment = 11,
+  Notation = 12
+}
+
 export class ElementSyntax {
   constructor(
     public markup: string,
     public node: Node,
     public name: string,
-    public content: ElementSyntax | null,
-    public children: ElementSyntax[],
-    public attributes: AttrSyntax[]) { }
+    public $content: ElementSyntax | null,
+    public $children: ElementSyntax[],
+    public $attributes: AttrSyntax[]) {
+    }
 }
 
 export interface IElementParser {

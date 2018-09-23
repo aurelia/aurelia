@@ -57,12 +57,13 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   public compileCore($el: ElementSymbol, definition: Required<ITemplateSource>, flags?: ViewCompileFlags): TemplateDefinition {
+    const $root = $el;
     while ($el = this.compileNode($el.$content || $el, definition.instructions));
 
-    // // ideally the flag should be passed correctly from rendering engine
-    // if ($symbol.isTemplate && (flags & ViewCompileFlags.surrogate)) {
-    //   this.compileSurrogate($symbol, rootNode, definition.surrogates);
-    // }
+    // ideally the flag should be passed correctly from rendering engine
+    if ($root.isTemplate && (flags & ViewCompileFlags.surrogate)) {
+      this.compileSurrogate($root, definition.surrogates);
+    }
     return definition;
   }
 

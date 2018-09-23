@@ -236,7 +236,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       } else {
         const instruction = this.compileAttribute($attr);
         if (instruction !== null) {
-          if ($attr.isElementBindable) {
+          if ($attr.isElementBindable || !$attr.onCustomElement) {
             attributeInstructions.push(instruction);
           } else {
             siblingInstructions.push(instruction);

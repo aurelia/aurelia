@@ -591,7 +591,7 @@ describe(`TemplateCompiler - combinations`, () => {
     return { container, expressionParser, sut, resources }
   }
 
-  describe('plain attributes', () => {
+  describe.only('plain attributes', () => {
     eachCartesianJoinFactory([
       <(() => [string])[]>[
         () => ['div']

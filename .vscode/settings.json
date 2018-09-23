@@ -29,6 +29,7 @@
     "Constructable",
     "Injectable",
     "Renderable",
+    "Unbindable",
     "attachables",
     "bindables",
     "containerless",

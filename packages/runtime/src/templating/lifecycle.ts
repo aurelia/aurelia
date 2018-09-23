@@ -1,5 +1,5 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { BindingFlags } from '../binding';
+import { BindingFlags, IBindScope } from '../binding';
 import { INode } from '../dom';
 import { IRenderable, isRenderable } from './renderable';
 
@@ -64,6 +64,7 @@ export interface IDetachLifecycle {
   queueDetachedCallback(requestor: LifecycleDetachable): void;
 }
 
+/*@internal*/
 class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleController {
   /*@internal*/
   public $nextAddNodes: LifecycleNodeAddable;
@@ -171,7 +172,8 @@ class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleCon
   }
 }
 
-export class DetachLifecycleController implements IDetachLifecycle {
+/*@internal*/
+export class DetachLifecycleController implements IDetachLifecycle, IDetachLifecycleController {
   /*@internal*/
   public $nextRemoveNodes: LifecycleNodeRemovable;
   /*@internal*/
@@ -299,7 +301,10 @@ export class DetachLifecycleController implements IDetachLifecycle {
       let nextRemoveNodes;
 
       while (currentRemoveNodes) {
-        //currentRemoveNodes.$unbind(BindingFlags.fromUnbind);
+        if (isUnbindable(currentRemoveNodes)) {
+          currentRemoveNodes.$unbind(BindingFlags.fromUnbind);
+        }
+
         nextRemoveNodes = currentRemoveNodes.$nextRemoveNodes;
         currentRemoveNodes.$nextRemoveNodes = null;
         currentRemoveNodes = nextRemoveNodes;
@@ -310,6 +315,10 @@ export class DetachLifecycleController implements IDetachLifecycle {
 
 function isNodeRemovable(requestor: object): requestor is LifecycleNodeRemovable {
   return '$removeNodes' in requestor;
+}
+
+function isUnbindable(requestor: object): requestor is IBindScope {
+  return '$unbind' in requestor;
 }
 
 export const Lifecycle = {

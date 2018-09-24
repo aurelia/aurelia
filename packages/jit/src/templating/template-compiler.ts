@@ -217,7 +217,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     for (let i = 0, ii = attributes.length; ii > i; ++i) {
       const $attr = attributes[i];
       if ($attr.hasBindingCommand) {
-        letInstructions.push(new LetBindingInstruction($attr.rawValue, $attr.target));
+        const expr = this.exprParser.parse($attr.rawValue, BindingType.BindCommand);
+        letInstructions.push(new LetBindingInstruction(expr, $attr.dest));
       } else if ($attr.rawName === 'to-view-model') {
         toViewModel = true;
         (<Element>$el.node).removeAttribute('to-view-model');
@@ -225,9 +226,9 @@ export class TemplateCompiler implements ITemplateCompiler {
         const expr = this.exprParser.parse($attr.rawValue, BindingType.Interpolation);
         if (expr === null) {
           // Should just be a warning, but throw for now
-          throw new Error(`Invalid let binding. String liternal given for attribute: ${$attr.target}`);
+          throw new Error(`Invalid let binding. String liternal given for attribute: ${$attr.dest}`);
         }
-        letInstructions.push(new LetBindingInstruction(expr, $attr.target));
+        letInstructions.push(new LetBindingInstruction(expr, $attr.dest));
       }
     }
     return new LetElementInstruction(letInstructions, toViewModel);

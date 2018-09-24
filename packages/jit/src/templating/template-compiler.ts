@@ -200,7 +200,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // no template controller; see if there's a custom element
     if ($el.isCustomElement) {
       // custom element takes the attributes as children
-      instructions.push([new HydrateElementInstruction($el.resourceKey, attributeInstructions), ...siblingInstructions]);
+      instructions.push([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
       $el.makeTarget();
     } else if (attributeInstructions.length) {
       // no custom element or template controller, add the attributes directly

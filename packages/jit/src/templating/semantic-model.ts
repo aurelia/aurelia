@@ -269,7 +269,6 @@ export class ElementSymbol {
   public isLet: boolean = false;
   public node: Node = null;
   public name: string = null;
-  public resourceKey: string = null;
   public isCustomElement: boolean = false;
   public get nextSibling(): ElementSymbol {
     if (!this.$parent) {
@@ -308,7 +307,6 @@ export class ElementSymbol {
       case 'LET':
         this.isLet = true;
     }
-    this.resourceKey = this.name.toLowerCase();
     this.$content = this.isTemplate ? this.semanticModel.getElementSymbol(syntax.$content, this) : null;
     this.isCustomElement = !isRoot && !!definition;
 

@@ -1,7 +1,6 @@
-import { PLATFORM } from '@aurelia/kernel';
 import { BindingFlags, IBindScope } from '../binding';
 import { INode } from '../dom';
-import { IRenderable, isRenderable } from './renderable';
+import { IRenderable } from './renderable';
 
 export enum LifecycleFlags {
   none                = 0b0_001,

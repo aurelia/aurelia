@@ -88,7 +88,7 @@ describe('The "compose" custom element', () => {
           runAttachLifecycle(element, parent);
 
           expect(location.previousSibling)
-            .to.be.equal(element['currentView'].$nodes.lastChild);
+            .to.be.equal(getCurrentView(element).$nodes.lastChild);
         }, done);
 
         element.subject = value;
@@ -99,7 +99,8 @@ describe('The "compose" custom element', () => {
         const { element } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
-          const child =  getCurrentView(element);
+          const child = getCurrentView(element);
+
           let bindCalled = false;
           child.$bind = function() { bindCalled = true; };
 
@@ -216,7 +217,7 @@ describe('The "compose" custom element', () => {
   }
 
   function getCurrentView(compose: Compose) {
-    return compose['currentView'];
+    return compose['coordinator']['currentView'];
   }
 
   function runAttachLifecycle(item: IAttach, encapsulationSource = null) {
@@ -232,11 +233,12 @@ describe('The "compose" custom element', () => {
   }
 
   function waitForCompositionEnd(element: Compose, callback: () => void, done?: () => void) {
-    const endComposition = element.endComposition;
+    const coordinator = element['coordinator'];
+    const originalSwapComplete = coordinator.onSwapComplete;
 
-    element.endComposition = function(subject, flags) {
-      element.endComposition = endComposition;
-      endComposition.apply(element, [subject, flags]);
+    coordinator.onSwapComplete = () => {
+      originalSwapComplete.call(coordinator);
+      coordinator.onSwapComplete = originalSwapComplete;
 
       callback();
 

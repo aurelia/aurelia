@@ -78,7 +78,7 @@ export class ViewFake implements IView {
     this.$isAttached = true;
   }
 
-  $detach(lifecycle?: IDetachLifecycle): void {
+  $detach(lifecycle: IDetachLifecycle): void {
     lifecycle.queueRemoveNodes(this);
     this.$isAttached = false;
   }

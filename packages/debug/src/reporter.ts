@@ -141,5 +141,13 @@ const codeLookup: Record<string, IMessageInfo> = {
   22: {
     type: MessageType.error,
     message: 'A containerless custom element cannot be the root component of an application.'
+  },
+  30: {
+    type: MessageType.error,
+    message: 'There are more targets than there are target instructions.'
+  },
+  31: {
+    type: MessageType.error,
+    message: 'There are more target instructions than there are targets.'
   }
 };

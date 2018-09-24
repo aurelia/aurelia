@@ -1,9 +1,11 @@
 import { Immutable } from '@aurelia/kernel';
+import { Reporter } from '@aurelia/kernel';
 import { Binding } from '../binding/binding';
 import { BindingMode } from '../binding/binding-mode';
 import { Call } from '../binding/call';
 import { IEventManager } from '../binding/event-manager';
 import { BindingType, IExpressionParser } from '../binding/expression-parser';
+import { LetBinding } from '../binding/let-binding';
 import { Listener } from '../binding/listener';
 import { IObserverLocator } from '../binding/observer-locator';
 import { Ref } from '../binding/ref';
@@ -15,6 +17,8 @@ import {
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
   IHydrateTemplateController,
+  ILetBindingInstruction,
+  ILetElementInstruction,
   IListenerBindingInstruction,
   IPropertyBindingInstruction,
   IRefBindingInstruction,
@@ -23,17 +27,14 @@ import {
   ISetPropertyInstruction,
   IStylePropertyBindingInstruction,
   ITextBindingInstruction,
-  ILetBindingInstruction,
   TargetedInstructionType,
   TemplateDefinition,
-  TemplatePartDefinitions,
-  ILetElementInstruction
+  TemplatePartDefinitions
 } from './instructions';
 import { IRenderContext } from './render-context';
 import { IRenderStrategy, RenderStrategyResource } from './render-strategy';
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
-import { LetBinding } from '../binding/let-binding';
 
 export interface IRenderer {
   render(renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
@@ -56,6 +57,13 @@ export class Renderer implements IRenderer {
   public render(renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
 
+    if (targets.length !== targetInstructions.length) {
+      if (targets.length > targetInstructions.length) {
+        throw Reporter.error(30);
+      } else {
+        throw Reporter.error(31);
+      }
+    }
     for (let i = 0, ii = targets.length; i < ii; ++i) {
       const instructions = targetInstructions[i];
       const target = targets[i];

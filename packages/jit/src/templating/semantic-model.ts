@@ -263,7 +263,7 @@ export class AttributeSymbol implements IAttributeSymbol {
 export class ElementSymbol {
   public $attributes: AttributeSymbol[];
   public $children: ElementSymbol[];
-  public $content: ElementSymbol;
+  public $content: ElementSymbol = null;
   public isTemplate: boolean = false;
   public isSlot: boolean = false;
   public isLet: boolean = false;
@@ -300,6 +300,8 @@ export class ElementSymbol {
     switch (this.name) {
       case 'TEMPLATE':
         this.isTemplate = true;
+        this.$content = this.semanticModel.getElementSymbol(syntax.$content, this);
+        this.$content.definition = definition;
         break;
       case 'SLOT':
         this.isSlot = true;
@@ -307,7 +309,6 @@ export class ElementSymbol {
       case 'LET':
         this.isLet = true;
     }
-    this.$content = this.isTemplate ? this.semanticModel.getElementSymbol(syntax.$content, this) : null;
     this.isCustomElement = !isRoot && !!definition;
 
     const attributes = syntax.$attributes;

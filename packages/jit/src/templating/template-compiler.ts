@@ -127,7 +127,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   /*@internal*/
   public compileElementNode($el: ElementSymbol, instructions: TargetedInstruction[][]): void {
     if ($el.isSlot) {
-      $el.definition.hasSlots = true;
+      $el.$parent.definition.hasSlots = true;
       return;
     } else if ($el.isLet) {
       const letElementInstruction = this.compileLetElement($el);

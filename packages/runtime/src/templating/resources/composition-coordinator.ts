@@ -1,11 +1,9 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { IScope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
-import { IBindScope } from '../../binding/observation';
 import { INode } from '../../dom';
 import {
   AggregateLifecycleTask,
-  IAttach,
   IAttachLifecycle,
   IDetachLifecycle,
   ILifecycleTask,

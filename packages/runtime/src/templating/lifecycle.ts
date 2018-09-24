@@ -4,9 +4,9 @@ import { INode } from '../dom';
 import { IRenderable, isRenderable } from './renderable';
 
 export enum LifecycleFlags {
-  none                  = 0b0_001,
-  skipAnimation         = 0b0_010,
-  unbindAfterDetached   = 0b0_100,
+  none                = 0b0_001,
+  noTasks             = 0b0_010,
+  unbindAfterDetached = 0b0_100,
 }
 
 export interface IAttach {
@@ -16,9 +16,16 @@ export interface IAttach {
   $cache(): void;
 }
 
+export interface ILifecycleTask {
+  readonly done: boolean;
+  canCancel(): boolean;
+  cancel(): void;
+  wait(): Promise<void>;
+}
+
 export interface IAttachLifecycleController {
   attach(requestor: IAttach): IAttachLifecycleController;
-  end(): Promise<unknown> | void;
+  end(): ILifecycleTask;
 }
 
 type LifecycleAttachable = {
@@ -34,7 +41,7 @@ type LifecycleNodeAddable = Pick<IRenderable, '$addNodes'> & {
 
 export interface IAttachLifecycle {
   readonly flags: LifecycleFlags;
-  registerTask(task: Promise<unknown>): void;
+  registerTask(task: ILifecycleTask): void;
   createChild(): IAttachLifecycle;
   queueAddNodes(requestor: LifecycleNodeAddable): void;
   queueAttachedCallback(requestor: LifecycleAttachable): void;
@@ -42,7 +49,7 @@ export interface IAttachLifecycle {
 
 export interface IDetachLifecycleController {
   detach(requestor: IAttach): IDetachLifecycleController;
-  end(): Promise<unknown> | void;
+  end(): ILifecycleTask;
 }
 
 type LifecycleDetachable = {
@@ -56,9 +63,77 @@ type LifecycleNodeRemovable = Pick<IRenderable, '$removeNodes'> & {
   $nextRemoveNodes?: LifecycleNodeRemovable;
 };
 
+export class AggregateLifecycleTask implements ILifecycleTask {
+  public done: boolean = true;
+
+  /*@internal*/
+  public owner: AttachLifecycleController | DetachLifecycleController = null;
+
+  private tasks: ILifecycleTask[] = [];
+  private waiter: Promise<void> = null;
+  private resolve: () => void = null;
+
+  public addTask(task: ILifecycleTask): void {
+    if (!task.done) {
+      this.done = false;
+      this.tasks.push(task);
+      task.wait().then(() => this.tryComplete());
+    }
+  }
+
+  public canCancel(): boolean {
+    if (this.done) {
+      return false;
+    }
+
+    return this.tasks.every(x => x.canCancel());
+  }
+
+  public cancel(): void {
+    if (this.canCancel()) {
+      this.tasks.forEach(x => x.cancel());
+      this.done = false;
+    }
+  }
+
+  public wait(): Promise<void> {
+    if (this.waiter === null) {
+      if (this.done) {
+        this.waiter = Promise.resolve();
+      } else {
+        this.waiter = new Promise((resolve) => this.resolve = resolve);
+      }
+    }
+
+    return this.waiter;
+  }
+
+  private tryComplete(): void {
+    if (this.done) {
+      return;
+    }
+
+    if (this.tasks.every(x => x.done)) {
+      this.complete(true);
+    }
+  }
+
+  private complete(notCancelled: boolean): void {
+    this.done = true;
+
+    if (notCancelled && this.owner !== null) {
+      this.owner.processAll();
+    }
+
+    if (this.resolve !== null) {
+      this.resolve();
+    }
+  }
+}
+
 export interface IDetachLifecycle {
   readonly flags: LifecycleFlags;
-  registerTask(task: Promise<unknown>): void;
+  registerTask(task: ILifecycleTask): void;
   createChild(): IDetachLifecycle;
   queueRemoveNodes(requestor: LifecycleNodeRemovable): void;
   queueDetachedCallback(requestor: LifecycleDetachable): void;
@@ -75,7 +150,7 @@ class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleCon
   private attachedTail: LifecycleAttachable;
   private addNodesHead: LifecycleNodeAddable;
   private addNodesTail: LifecycleNodeAddable;
-  private tasks: Promise<unknown>[] = null;
+  private task: AggregateLifecycleTask = null;
 
   constructor(
     public readonly flags: LifecycleFlags,
@@ -101,17 +176,17 @@ class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleCon
     this.attachedTail = requestor;
   }
 
-  public registerTask(task: Promise<unknown>): void {
+  public registerTask(task: ILifecycleTask): void {
     if (this.parent !== null) {
       this.parent.registerTask(task);
     } else {
-      let tasks = this.tasks;
+      let task = this.task;
 
-      if (tasks === null) {
-        this.tasks = tasks = [];
+      if (task === null) {
+        this.task = task = new AggregateLifecycleTask();
       }
 
-      tasks.push(task);
+      task.addTask(task);
     }
   }
 
@@ -122,13 +197,19 @@ class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleCon
     return lifecycle;
   }
 
-  public end(): Promise<unknown> | void {
-    if (this.tasks !== null) {
-      const tasks = PLATFORM.toArray(this.tasks);
-      this.tasks = null;
-      return Promise.all(tasks).then(() => this.end());
+  public end(): ILifecycleTask {
+    if (this.task !== null && !this.task.done) {
+      this.task.owner = this;
+      return this.task;
     }
 
+    this.processAll();
+
+    return Lifecycle.done;
+  }
+
+  /*@internal*/
+  public processAll(): void {
     this.processAddNodes();
     this.processAttachedCallbacks();
   }
@@ -183,7 +264,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
   private detachedTail: LifecycleDetachable;
   private removeNodesHead: LifecycleNodeRemovable;
   private removeNodesTail: LifecycleNodeRemovable;
-  private tasks: Promise<unknown>[] = null;
+  private task: AggregateLifecycleTask = null;
   private allowNodeRemoves: boolean = true;
 
   constructor(
@@ -219,17 +300,17 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     this.detachedTail = requestor;
   }
 
-  public registerTask(task: Promise<unknown>): void {
+  public registerTask(task: ILifecycleTask): void {
     if (this.parent !== null) {
       this.parent.registerTask(task);
     } else {
-      let tasks = this.tasks;
+      let task = this.task;
 
-      if (tasks === null) {
-        this.tasks = tasks = [];
+      if (task === null) {
+        this.task = task = new AggregateLifecycleTask();
       }
 
-      tasks.push(task);
+      task.addTask(task);
     }
   }
 
@@ -240,15 +321,15 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     return lifecycle;
   }
 
-  public end(): Promise<unknown> | void {
-    if (this.tasks !== null) {
-      const tasks = PLATFORM.toArray(this.tasks);
-      this.tasks = null;
-      return Promise.all(tasks).then(() => this.end());
+  public end(): ILifecycleTask {
+    if (this.task !== null && !this.task.done) {
+      this.task.owner = this;
+      return this.task;
     }
 
-    this.processRemoveNodes();
-    this.processDetachedCallbacks();
+    this.processAll();
+
+    return Lifecycle.done;
   }
 
   /*@internal*/
@@ -263,6 +344,12 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     if (this.parent !== null) {
       this.processDetachedCallbacks();
     }
+  }
+
+  /*@internal*/
+  public processAll(): void {
+    this.processRemoveNodes();
+    this.processDetachedCallbacks();
   }
 
   private processRemoveNodes(): void {
@@ -328,5 +415,12 @@ export const Lifecycle = {
 
   beginDetach(flags: LifecycleFlags): IDetachLifecycleController {
     return new DetachLifecycleController(flags);
+  },
+
+  done: {
+    done: true,
+    canCancel(): boolean { return false; },
+    cancel(): void {},
+    wait(): Promise<void> { return Promise.resolve(); }
   }
 };

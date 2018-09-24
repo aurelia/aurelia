@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { If, Else, IView, BindingFlags } from '../../../../src/index';
+import { If, Else, IView, BindingFlags, IAttach, Lifecycle, LifecycleFlags } from '../../../../src/index';
 import { hydrateCustomAttribute } from '../behavior-assistance';
 import { createScope } from '../scope-assistance';
 import { ViewFake } from '../fakes/view-fake';
@@ -11,7 +11,7 @@ describe('The "if" template controller', () => {
     ifAttr.value = true;
     ifAttr.$bind(BindingFlags.fromBind, createScope());
 
-    const child = ifAttr['$child'] as IView;
+    const child = getCurrentView(ifAttr);
     const ifView = ifAttr['ifView'] as IView;
 
     expect(child).to.not.be.null;
@@ -20,7 +20,7 @@ describe('The "if" template controller', () => {
     expect(ifView.$isBound).to.be.true;
     expect(ifView.$isAttached).to.be.false;
 
-    ifAttr.$attach(null);
+    runAttachLifecycle(ifAttr);
 
     expect(ifView.$isAttached).to.be.true;
     expect(location.previousSibling)
@@ -32,11 +32,11 @@ describe('The "if" template controller', () => {
 
     ifAttr.value = true;
     ifAttr.$bind(BindingFlags.fromBind, createScope());
-    ifAttr.$attach(null);
+    runAttachLifecycle(ifAttr);
 
     ifAttr.value = false;
 
-    const child = ifAttr['$child'] as IView;
+    const child = getCurrentView(ifAttr);
     expect(child).to.be.null;
     expect(location.previousSibling).to.be.null;
 
@@ -55,7 +55,7 @@ describe('The "if" template controller', () => {
     ifAttr.$bind(BindingFlags.fromBind, createScope());
     ifAttr.value = false;
 
-    const child = ifAttr['$child'] as IView;
+    const child = getCurrentView(ifAttr);
     const elseView = ifAttr['elseView'] as IView;
 
     expect(child).to.not.be.null;
@@ -64,7 +64,7 @@ describe('The "if" template controller', () => {
     expect(elseView.$isBound).to.be.true;
     expect(elseView.$isAttached).to.be.false;
 
-    ifAttr.$attach(null);
+    runAttachLifecycle(ifAttr);
 
     expect(elseView.$isAttached).to.be.true;
     expect(location.previousSibling)
@@ -79,8 +79,8 @@ describe('The "if" template controller', () => {
 
     const ifView = ifAttr['ifView'] as IView;
 
-    ifAttr.$attach(null);
-    ifAttr.$detach();
+    runAttachLifecycle(ifAttr);
+    runDetachLifecycle(ifAttr);
 
     expect(ifView.$isAttached).to.be.false;
     expect(ifAttr.$isAttached).to.be.false;
@@ -99,4 +99,20 @@ describe('The "if" template controller', () => {
     expect(ifView.$isBound).to.be.false;
     expect(ifAttr.$isBound).to.be.false;
   });
+
+  function getCurrentView(ifAttr: If) {
+    return ifAttr['coordinator']['currentView'];
+  }
+
+  function runAttachLifecycle(item: IAttach) {
+    const attachLifecycle = Lifecycle.beginAttach(null, LifecycleFlags.none);
+    attachLifecycle.attach(item);
+    attachLifecycle.end();
+  }
+
+  function runDetachLifecycle(item: IAttach) {
+    const detachLifecycle = Lifecycle.beginDetach(LifecycleFlags.none);
+    detachLifecycle.detach(item);
+    detachLifecycle.end();
+  }
 });

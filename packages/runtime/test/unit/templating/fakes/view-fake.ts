@@ -4,8 +4,6 @@ import {
   BindingFlags,
   IScope,
   INode,
-  AttachLifecycle,
-  DetachLifecycle,
   IRenderContext,
   IBindScope,
   IAttach,
@@ -39,13 +37,15 @@ export class ViewFake implements IView {
     this.$nodes.remove();
   }
 
+  $cache() {}
+
   mount(location: IRenderLocation): void {
     this.mountRequired = true;
     this.location = location;
   }
 
   release() {
-    this.isFree = true;
+    return this.isFree = true;
   }
 
   // IView impl
@@ -70,24 +70,17 @@ export class ViewFake implements IView {
   }
 
   // IAttach impl
-  $attach(encapsulationSource: INode, lifecycle?: IAttachLifecycle): void {
-    lifecycle = AttachLifecycle.start(this, lifecycle);
-
+  $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
     if (this.mountRequired) {
       lifecycle.queueAddNodes(this);
     }
 
     this.$isAttached = true;
-    lifecycle.end(this);
   }
 
   $detach(lifecycle?: IDetachLifecycle): void {
-    lifecycle = DetachLifecycle.start(this, lifecycle);
-
     lifecycle.queueRemoveNodes(this);
-
     this.$isAttached = false;
-    lifecycle.end(this);
   }
 
   // IViewOwner impl

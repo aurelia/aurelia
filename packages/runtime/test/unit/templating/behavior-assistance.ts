@@ -33,10 +33,15 @@ interface IAttributeTestOptions {
   target?: INode;
 }
 
-export function hydrateCustomAttribute<T>(
-  Type: Constructable<T>,
+interface ICustomAttributeCreation<T extends Constructable> {
+  attribute: InstanceType<T> & ICustomAttribute,
+  location?: IRenderLocation
+}
+
+export function hydrateCustomAttribute<T extends Constructable>(
+  Type: T,
   options: IAttributeTestOptions = {}
-) {
+) : ICustomAttributeCreation<T> {
   const AttributeType: ICustomAttributeType = Type as any;
   const container = options.container || DI.createContainer();
 
@@ -64,7 +69,7 @@ export function hydrateCustomAttribute<T>(
     );
   }
 
-  const attribute = container.get<T & ICustomAttribute>(
+  const attribute = container.get<InstanceType<T> & ICustomAttribute>(
     CustomAttributeResource.keyFrom(AttributeType.description.name)
   );
 

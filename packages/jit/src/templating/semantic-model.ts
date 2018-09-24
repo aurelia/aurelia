@@ -1,5 +1,5 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, ICustomAttributeSource, IResourceDescriptions, ITemplateCompiler, ITemplateSource } from '@aurelia/runtime';
+import { BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, ICustomAttributeSource, IResourceDescriptions, ITemplateCompiler, ITemplateSource, ITargetedInstruction, TargetedInstruction } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
 import { AttrSyntax, parseAttribute } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
@@ -69,8 +69,10 @@ export class SemanticModel {
     return new ElementSymbol(this, false, parent.$root, parent, syntax, definition);
   }
 
-  public getElementSymbolRoot(definition: Required<ITemplateSource>): ElementSymbol {
-    return new ElementSymbol(this, true, null, null, this.syntaxRoot, definition);
+  public getElementSymbolRoot(definition: ITemplateSource): ElementSymbol {
+    const $el = new ElementSymbol(this, true, null, null, this.syntaxRoot, definition);
+    $el.definition.templateOrNode = $el.node;
+    return $el;
   }
 }
 
@@ -330,5 +332,9 @@ export class ElementSymbol {
 
   public makeTarget(): void {
     (<Element>this.node).classList.add('au');
+  }
+
+  public addInstructions(instructions: TargetedInstruction[]): void {
+    this.$root.definition.instructions.push(instructions);
   }
 }

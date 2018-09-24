@@ -413,7 +413,7 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
   }
 }
 
-function createTemplateController(attr: string, target: string, value: string, markupOpen: string, markupClose: string, finalize: boolean, childInstr?, childTpl?) {
+function createTemplateController(attr: string, target: string, value: string, markupOpen: string, markupClose: string, finalize: boolean, childInstr?, childTpl?): CTCResult {
   // multiple template controllers per element
   if (markupOpen === null && markupClose === null) {
     const instruction = {
@@ -436,7 +436,7 @@ function createTemplateController(attr: string, target: string, value: string, m
       templateOrNode: createElement(`<div><au-marker class="au"></au-marker></div>`),
       instructions: [[instruction]]
     }
-    return [input, output];
+    return [input, <any>output];
   } else {
     let compiledMarkup;
     let instructions;
@@ -464,10 +464,10 @@ function createTemplateController(attr: string, target: string, value: string, m
       instructions: []
     }
     const output = {
-      templateOrNode: createElement(`<div><au-marker class="au"></au-marker></div>`),
+      templateOrNode: createElement(finalize ? `<div><au-marker class="au"></au-marker></div>` : `<au-marker class="au"></au-marker>`),
       instructions: [[instruction]]
     }
-    return [input, output];
+    return [input, <any>output];
   }
 }
 
@@ -728,14 +728,15 @@ describe(`TemplateCompiler - combinations`, () => {
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          console.log(JSON.stringify(output.instructions[0][0], null, 2));
+          console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });
     });
   });
 
-  describe('template controllers', () => {
+  describe('nested template controllers', () => {
 
     eachCartesianJoinFactory([
       <(() => CTCResult)[]>[
@@ -775,7 +776,63 @@ describe(`TemplateCompiler - combinations`, () => {
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          console.log(JSON.stringify(output.instructions[0][0], null, 2));
+          console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          throw err;
+        }
+      });
+    });
+  });
+
+  xdescribe('sibling template controllers', () => {
+
+    eachCartesianJoinFactory([
+      <(() => CTCResult[])[]>[
+        () => []
+      ],
+      <((results: CTCResult[]) => void)[]>[
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)) }
+      ],
+      <((results: CTCResult[]) => void)[]>[
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('else',       'else',   '',              '<div>', '</div>', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('with.bind',  'with',   'foo',           '<div>', '<div>',  false)) }
+      ],
+      <((results: CTCResult[]) => void)[]>[
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)) }
+      ]
+    ], ([[input1, output1], [input2, output2], [input3, output3]]) => {
+      const input = {
+        templateOrNode: `<div>${input1.templateOrNode}${input2.templateOrNode}${input3.templateOrNode}</div>`,
+        instructions: []
+      };
+
+      it(`${input.templateOrNode}`, () => {
+
+        const { sut, resources } = setup(
+          <any>CustomAttributeResource.define({ name: 'foo', isTemplateController: true }, class Foo{}),
+          <any>CustomAttributeResource.define({ name: 'bar', isTemplateController: true }, class Bar{}),
+          <any>CustomAttributeResource.define({ name: 'baz', isTemplateController: true }, class Baz{})
+        );
+
+        const output = {
+          templateOrNode: createElement(`<div>${output1.templateOrNode['outerHTML']}${output2.templateOrNode['outerHTML']}${output3.templateOrNode['outerHTML']}</div>`),
+          instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]]
+        };
+        const actual = sut.compile(<any>input, resources);
+        try {
+          verifyBindingInstructionsEqual(actual, output);
+        } catch(err) {
+          console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });
@@ -838,7 +895,8 @@ describe(`TemplateCompiler - combinations`, () => {
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          console.log(JSON.stringify(output.instructions[0][0], null, 2));
+          console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });
@@ -875,7 +933,8 @@ describe(`TemplateCompiler - combinations`, () => {
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          console.log(JSON.stringify(output.instructions[0][0], null, 2));
+          console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });

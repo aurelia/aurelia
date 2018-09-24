@@ -50,33 +50,29 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   constructor(public exprParser: IExpressionParser, public elParser: IElementParser) { }
 
-  public compile(definition: Required<ITemplateSource>, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
-    const $el = new SemanticModel(this.elParser.parse(definition.templateOrNode), resources).getElementSymbolRoot(definition);
-    definition.templateOrNode = $el.node;
-    return this.compileCore($el, definition, flags);
-  }
-
-  public compileCore($el: ElementSymbol, definition: Required<ITemplateSource>, flags?: ViewCompileFlags): TemplateDefinition {
+  public compile(definition: ITemplateSource, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
+    let $el = new SemanticModel(this.elParser.parse(definition.templateOrNode), resources).getElementSymbolRoot(definition);
     const $root = $el;
-    while ($el = this.compileNode($el.$content || $el, definition.instructions));
+    while ($el = this.compileNode($el.$content || $el));
 
     // ideally the flag should be passed correctly from rendering engine
     if ($root.isTemplate && (flags & ViewCompileFlags.surrogate)) {
-      this.compileSurrogate($root, definition.surrogates);
+      this.compileSurrogate($root);
     }
-    return definition;
+
+    return <TemplateDefinition>definition;
   }
 
   /*@internal*/
-  public compileNode($el: ElementSymbol, instructions: TargetedInstruction[][]): ElementSymbol {
+  public compileNode($el: ElementSymbol): ElementSymbol {
     const node = $el.node;
     const nextSibling = $el.nextSibling;
     switch (node.nodeType) {
       case NodeType.Element:
-        this.compileElementNode($el, instructions);
+        this.compileElementNode($el);
         return nextSibling;
       case NodeType.Text:
-        if (!this.compileTextNode($el, instructions)) {
+        if (!this.compileTextNode($el)) {
           while (($el = $el.nextSibling) && $el.node.nodeType === NodeType.Text);
           return $el;
         }
@@ -93,7 +89,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /*@internal*/
-  public compileSurrogate($el: ElementSymbol, surrogateInstructions: TargetedInstruction[]): void {
+  public compileSurrogate($el: ElementSymbol): void {
     const attributes = $el.$attributes;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const $attr = attributes[i];
@@ -102,7 +98,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
       const instruction = this.compileAttribute($attr);
       if (instruction !== null) {
-        surrogateInstructions.push(instruction);
+        $el.definition.surrogates.push(instruction);
       } else {
         let attrInst: TargetedInstruction;
         // Doesn't make sense for these properties as they need to be unique
@@ -116,7 +112,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             default:
               attrInst = new SetAttributeInstruction($attr.rawValue, name);
           }
-          surrogateInstructions.push(attrInst);
+          $el.definition.surrogates.push(attrInst);
         } else {
           throw new Error(`Invalid surrogate attribute: ${name}`);
         }
@@ -125,15 +121,12 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /*@internal*/
-  public compileElementNode($el: ElementSymbol, instructions: TargetedInstruction[][]): void {
+  public compileElementNode($el: ElementSymbol): void {
     if ($el.isSlot) {
       $el.$parent.definition.hasSlots = true;
       return;
     } else if ($el.isLet) {
-      const letElementInstruction = this.compileLetElement($el);
-      instructions.push([letElementInstruction]);
-      // theoretically there's no need to replace, but to keep it consistent
-      DOM.replaceNode(createMarker(), $el.node);
+      this.compileLetElement($el);
       return;
     }
     // if there is a template controller, then all attribute instructions become children of the hydrate instruction
@@ -167,8 +160,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           template.content.appendChild($attr.$element.node);
           instruction.src.templateOrNode = template;
           instruction.instructions.push(...attributeInstructions);
-          this.compileCore($el, <Required<ITemplateSource>>instruction.src);
-          instructions.push([instruction]);
+          this.compile(<any>instruction.src, $el.semanticModel.resources);
+          $el.addInstructions([instruction]);
           return;
         } else {
           const childInstructions = [];
@@ -200,17 +193,17 @@ export class TemplateCompiler implements ITemplateCompiler {
     // no template controller; see if there's a custom element
     if ($el.isCustomElement) {
       // custom element takes the attributes as children
-      instructions.push([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
+      $el.addInstructions([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
       $el.makeTarget();
     } else if (attributeInstructions.length) {
       // no custom element or template controller, add the attributes directly
-      instructions.push(attributeInstructions);
+      $el.addInstructions(attributeInstructions);
       $el.makeTarget();
     }
-    for (let $child = $el.firstChild; !!$child; $child = this.compileNode($child, instructions));
+    for (let $child = $el.firstChild; !!$child; $child = this.compileNode($child));
   }
 
-  public compileLetElement($el: ElementSymbol): ILetElementInstruction {
+  public compileLetElement($el: ElementSymbol): void {
     const letInstructions: ILetBindingInstruction[] = [];
     const attributes = $el.$attributes;
     let toViewModel = false;
@@ -231,11 +224,13 @@ export class TemplateCompiler implements ITemplateCompiler {
         letInstructions.push(new LetBindingInstruction(expr, $attr.dest));
       }
     }
-    return new LetElementInstruction(letInstructions, toViewModel);
+    $el.addInstructions([new LetElementInstruction(letInstructions, toViewModel)]);
+    // theoretically there's no need to replace, but to keep it consistent
+    DOM.replaceNode(createMarker(), $el.node);
   }
 
   /*@internal*/
-  public compileTextNode($el: ElementSymbol, instructions: TargetedInstruction[][]): boolean {
+  public compileTextNode($el: ElementSymbol): boolean {
     const node = $el.node as Text;
     const expression = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
     if (expression === null) {
@@ -246,7 +241,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     while (node.nextSibling && node.nextSibling.nodeType === NodeType.Text) {
       node.parentNode.removeChild(node.nextSibling);
     }
-    instructions.push([new TextBindingInstruction(expression)]);
+    $el.addInstructions([new TextBindingInstruction(expression)]);
     return true;
   }
 

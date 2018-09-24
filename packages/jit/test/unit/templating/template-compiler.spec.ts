@@ -1,3 +1,4 @@
+import { AttributeParser } from './../../../src/templating/attribute-parser';
 import { ElementParser } from './../../../src/templating/element-parser';
 import { Constructable } from './../../../../kernel/src/interfaces';
 import { ForOfStatement, BindingIdentifier, IExpression, PrimitiveLiteral } from './../../../../runtime/src/binding/ast';
@@ -31,8 +32,8 @@ import {
 import { expect } from 'chai';
 import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from '../util';
 
-
-const elParser = new ElementParser();
+const attrParser = new AttributeParser();
+const elParser = new ElementParser(attrParser);
 
 export function createAttribute(name: string, value: string): Attr {
   const attr = document.createAttribute(name);
@@ -50,7 +51,7 @@ describe('TemplateCompiler', () => {
     container = DI.createContainer();
     container.register(BasicConfiguration);
     expressionParser = container.get(IExpressionParser);
-    sut = new TemplateCompiler(expressionParser as any, elParser);
+    sut = new TemplateCompiler(expressionParser as any, elParser, attrParser);
     container.registerResolver(CustomAttributeResource.keyFrom('foo'), <any>{ getFactory: () => ({ type: { description: {} } }) });
     resources = new RuntimeCompilationResources(<any>container);
   });
@@ -584,7 +585,7 @@ describe(`TemplateCompiler - combinations`, () => {
     const container = DI.createContainer();
     container.register(BasicConfiguration, ...globals);
     const expressionParser = container.get<IExpressionParser>(IExpressionParser);
-    const sut = new TemplateCompiler(expressionParser as any, elParser);
+    const sut = new TemplateCompiler(expressionParser as any, elParser, attrParser);
     const resources = new RuntimeCompilationResources(<any>container);
     return { container, expressionParser, sut, resources }
   }

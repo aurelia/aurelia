@@ -1,7 +1,7 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, ICustomAttributeSource, IResourceDescriptions, ITemplateCompiler, ITemplateSource, ITargetedInstruction, TargetedInstruction } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
-import { AttrSyntax, parseAttribute } from './attribute-parser';
+import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
 import { ElementSyntax, NodeType } from './element-parser';
 
@@ -12,6 +12,7 @@ export class SemanticModel {
   private commandCache: Record<string, IBindingCommand>;
 
   constructor(
+    public attrParser: IAttributeParser,
     public syntaxRoot: ElementSyntax,
     public resources: IResourceDescriptions
   ) {
@@ -210,7 +211,7 @@ export class AttributeSymbol implements IAttributeSymbol {
             if (innerAttr.charCodeAt(j) === Char.Colon) {
               const innerAttrName = innerAttr.slice(0, j).trim();
               const innerAttrValue = innerAttr.slice(j + 1).trim();
-              const innerAttrSyntax = parseAttribute(innerAttrName, innerAttrValue);
+              const innerAttrSyntax = this.semanticModel.attrParser.parse(innerAttrName, innerAttrValue);
               this.$multiAttrBindings.push(this.semanticModel.getMultiAttrBindingSymbol(innerAttrSyntax, this));
             }
           }

@@ -1,6 +1,6 @@
-import { DI, PLATFORM, Immutable } from '@aurelia/kernel';
+import { DI, inject, PLATFORM } from '@aurelia/kernel';
 import { DOM, INode } from '@aurelia/runtime';
-import { AttrSyntax, parseAttribute } from './attribute-parser';
+import { AttrSyntax, IAttributeParser } from './attribute-parser';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 
@@ -37,7 +37,10 @@ export const IElementParser = DI.createInterface<IElementParser>()
   .withDefault(x => x.singleton(ElementParser));
 
 /*@internal*/
+@inject(IAttributeParser)
 export class ElementParser implements IElementParser {
+  constructor(public attrParser: IAttributeParser) {}
+
   public parse(markupOrNode: string | INode): ElementSyntax {
     let node: Element;
     if (typeof markupOrNode === 'string') {
@@ -71,7 +74,7 @@ export class ElementParser implements IElementParser {
       attributes = Array(attrLen);
       for (let i = 0, ii = attrLen; i < ii; ++i) {
         const attr = nodeAttributes[i];
-        attributes[i] = parseAttribute(attr.name, attr.value);
+        attributes[i] = this.attrParser.parse(attr.name, attr.value);
       }
     } else {
       attributes = PLATFORM.emptyArray as AttrSyntax[];

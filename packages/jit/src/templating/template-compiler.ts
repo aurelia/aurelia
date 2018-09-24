@@ -32,26 +32,26 @@ import {
   TemplateDefinition,
   ViewCompileFlags,
 } from '@aurelia/runtime';
+import { IAttributeParser } from './attribute-parser';
 import { IElementParser, NodeType } from './element-parser';
 import { ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
 
 // tslint:disable:no-inner-html
 
-const domParser = <HTMLDivElement>DOM.createElement('div');
 const marker = DOM.createElement('au-marker') as Element;
 marker.classList.add('au');
 const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
 
-@inject(IExpressionParser, IElementParser)
+@inject(IExpressionParser, IElementParser, IAttributeParser)
 export class TemplateCompiler implements ITemplateCompiler {
   public get name(): string {
     return 'default';
   }
 
-  constructor(public exprParser: IExpressionParser, public elParser: IElementParser) { }
+  constructor(public exprParser: IExpressionParser, public elParser: IElementParser, public attrParser: IAttributeParser) { }
 
   public compile(definition: ITemplateSource, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
-    let $el = new SemanticModel(this.elParser.parse(definition.templateOrNode), resources).getElementSymbolRoot(definition);
+    let $el = new SemanticModel(this.attrParser, this.elParser.parse(definition.templateOrNode), resources).getElementSymbolRoot(definition);
     const $root = $el;
     while ($el = this.compileNode($el.$content || $el));
 

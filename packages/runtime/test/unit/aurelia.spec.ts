@@ -63,7 +63,9 @@ describe('Aurelia', () => {
   it('should stop', () => {
     let unbound = false;
     let detached = false;
+
     sut.app({component: {
+      $isAttached: true,
       $unbind() { unbound = true; },
       $detach() { detached = true; }
     }, host: {}});
@@ -71,7 +73,7 @@ describe('Aurelia', () => {
     sut.stop();
 
     expect(sut['isStarted']).to.be.false;
-    expect(unbound).to.be.true;
     expect(detached).to.be.true;
+    expect(unbound).to.be.true;
   });
 });

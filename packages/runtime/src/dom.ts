@@ -263,7 +263,6 @@ export class FragmentNodeSequence implements INodeSequence {
   public childNodes: Node[];
 
   private fragment: DocumentFragment;
-  private connected: boolean = false;
 
   constructor(fragment: DocumentFragment) {
     this.fragment = fragment;
@@ -278,20 +277,19 @@ export class FragmentNodeSequence implements INodeSequence {
 
   public insertBefore(refNode: Node): void {
     refNode.parentNode.insertBefore(this.fragment, refNode);
-    this.connected = true;
   }
 
   public appendTo(parent: Node): void {
     parent.appendChild(this.fragment);
-    this.connected = true;
   }
 
   public remove(): void {
-    if (this.connected) {
-      const fragment = this.fragment;
+    const fragment = this.fragment;
+    let current = this.firstChild;
+
+    if (current.parentNode !== fragment) {
       // this bind is a small perf tweak to minimize member accessors
       const append = fragment.appendChild.bind(fragment);
-      let current = this.firstChild;
       const end = this.lastChild;
       let next: Node;
 
@@ -305,8 +303,6 @@ export class FragmentNodeSequence implements INodeSequence {
 
         current = next;
       }
-
-      this.connected = false;
     }
   }
 }

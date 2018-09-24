@@ -44,16 +44,16 @@ export class Aurelia {
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      const result = Lifecycle.beginDetach(LifecycleFlags.none)
+      const task = Lifecycle.beginDetach(LifecycleFlags.noTasks)
         .detach(component)
         .end();
 
       const flags = BindingFlags.fromStopTask | BindingFlags.fromUnbind;
 
-      if (result instanceof Promise) {
-        result.then(() => component.$unbind(flags));
-      } else {
+      if (task.done) {
         component.$unbind(flags);
+      } else {
+        task.wait().then(() => component.$unbind(flags));
       }
     });
 

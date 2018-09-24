@@ -1,4 +1,4 @@
-import { DI } from '@aurelia/kernel';
+import { DI, PLATFORM, Immutable } from '@aurelia/kernel';
 import { DOM, INode } from '@aurelia/runtime';
 import { AttrSyntax, parseAttribute } from './attribute-parser';
 
@@ -21,12 +21,11 @@ export const enum NodeType {
 
 export class ElementSyntax {
   constructor(
-    public markup: string,
     public node: Node,
     public name: string,
     public $content: ElementSyntax | null,
     public $children: ElementSyntax[],
-    public $attributes: AttrSyntax[]) {
+    public $attributes: ReadonlyArray<AttrSyntax>) {
     }
 }
 
@@ -39,34 +38,22 @@ export const IElementParser = DI.createInterface<IElementParser>()
 
 /*@internal*/
 export class ElementParser implements IElementParser {
-  private cache: Record<string, ElementSyntax>;
-  constructor() {
-    this.cache = {};
-  }
-
   public parse(markupOrNode: string | INode): ElementSyntax {
     let node: Element;
-    let markup: string;
-    const isParsed = DOM.isNodeInstance(markupOrNode);
-    if (isParsed) {
-      markup = (<Element>markupOrNode).outerHTML;
-    } else {
-      markup = <string>markupOrNode;
-    }
-    if (isParsed) {
-      node = <Element>markupOrNode;
-    } else {
+    if (typeof markupOrNode === 'string') {
       // tslint:disable-next-line:no-inner-html
-      domParser.innerHTML = markup;
+      domParser.innerHTML = markupOrNode;
       node = domParser.firstElementChild;
       domParser.removeChild(node);
+    } else {
+      node = markupOrNode as Element;
     }
 
     let children: ElementSyntax[];
     let content: ElementSyntax;
     if (node.nodeName === 'TEMPLATE') {
       content = this.parse((<HTMLTemplateElement>node).content);
-      children = [];
+      children = PLATFORM.emptyArray as ElementSyntax[];
     } else {
       content = null;
       const nodeChildNodes = node.childNodes;
@@ -87,9 +74,9 @@ export class ElementParser implements IElementParser {
         attributes[i] = parseAttribute(attr.name, attr.value);
       }
     } else {
-      attributes = [];
+      attributes = PLATFORM.emptyArray as AttrSyntax[];
     }
 
-    return new ElementSyntax(markup, node, node.nodeName, content, children, attributes);
+    return new ElementSyntax(node, node.nodeName, content, children, attributes);
   }
 }

@@ -184,6 +184,7 @@ export class AttributeSymbol implements IAttributeSymbol {
     this.isCustomAttribute = !!definition;
     this.hasBindingCommand = !!command;
     this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
+    this.onCustomElement = $element.isCustomElement;
     if (this.rawName === 'as-element') {
       this._isProcessed = true; // as-element is processed by the semantic model and shouldn't be processed by the template compiler
     }
@@ -230,7 +231,6 @@ export class AttributeSymbol implements IAttributeSymbol {
         }
       }
     } else if ($element.isCustomElement) {
-      this.onCustomElement = true;
       const bindables = $element.definition.bindables;
       for (const prop in bindables) {
         const b = bindables[prop];

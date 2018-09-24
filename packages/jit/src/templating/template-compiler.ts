@@ -180,16 +180,16 @@ export class TemplateCompiler implements ITemplateCompiler {
           } else {
             childInstructions.push(this.compileAttribute($attr));
           }
-          if ($attr.onCustomElement) {
-            siblingInstructions.push(new HydrateAttributeInstruction($attr.res, childInstructions));
-          } else {
+          if (!$attr.onCustomElement || !$attr.isAttributeBindable) {
             attributeInstructions.push(new HydrateAttributeInstruction($attr.res, childInstructions));
+          } else {
+            siblingInstructions.push(new HydrateAttributeInstruction($attr.res, childInstructions));
           }
         }
       } else {
         const instruction = this.compileAttribute($attr);
         if (instruction !== null) {
-          if ($attr.isElementBindable || !$attr.onCustomElement) {
+          if (!$attr.onCustomElement || $attr.isElementBindable) {
             attributeInstructions.push(instruction);
           } else {
             siblingInstructions.push(instruction);

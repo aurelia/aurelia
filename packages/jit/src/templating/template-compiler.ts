@@ -1,4 +1,4 @@
-import { inject } from '@aurelia/kernel';
+import { inject, PLATFORM } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
@@ -209,9 +209,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     let toViewModel = false;
     for (let i = 0, ii = attributes.length; ii > i; ++i) {
       const $attr = attributes[i];
+      const dest = PLATFORM.camelCase($attr.dest);
       if ($attr.hasBindingCommand) {
         const expr = this.exprParser.parse($attr.rawValue, BindingType.BindCommand);
-        letInstructions.push(new LetBindingInstruction(expr, $attr.dest));
+        letInstructions.push(new LetBindingInstruction(expr, dest));
       } else if ($attr.rawName === 'to-view-model') {
         toViewModel = true;
         (<Element>$el.node).removeAttribute('to-view-model');
@@ -221,7 +222,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           // Should just be a warning, but throw for now
           throw new Error(`Invalid let binding. String liternal given for attribute: ${$attr.dest}`);
         }
-        letInstructions.push(new LetBindingInstruction(expr, $attr.dest));
+        letInstructions.push(new LetBindingInstruction(expr, dest));
       }
     }
     $el.addInstructions([new LetElementInstruction(letInstructions, toViewModel)]);

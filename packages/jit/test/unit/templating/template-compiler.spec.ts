@@ -784,7 +784,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  xdescribe('sibling template controllers', () => {
+  describe('sibling template controllers', () => {
 
     eachCartesianJoinFactory([
       <(() => CTCResult[])[]>[
@@ -802,7 +802,7 @@ describe(`TemplateCompiler - combinations`, () => {
         (results: CTCResult[]) => { results.push(createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false)) },
         (results: CTCResult[]) => { results.push(createTemplateController('else',       'else',   '',              '<div>', '</div>', false)) },
         (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('with.bind',  'with',   'foo',           '<div>', '<div>',  false)) }
+        (results: CTCResult[]) => { results.push(createTemplateController('with.bind',  'with',   'bar',           '<div>', '</div>',  false)) }
       ],
       <((results: CTCResult[]) => void)[]>[
         (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false)) },

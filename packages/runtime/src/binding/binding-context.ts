@@ -12,7 +12,7 @@ export const BindingContext = {
   createScope(bindingContext: any, overrideContext?: IOverrideContext): IScope {
     return {
       bindingContext: bindingContext,
-      overrideContext: overrideContext || BindingContext.createOverride()
+      overrideContext: overrideContext || BindingContext.createOverride(bindingContext)
     };
   },
 

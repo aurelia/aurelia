@@ -1,15 +1,15 @@
-import { PLATFORM } from '@aurelia/kernel';
-import { BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, ICustomAttributeSource, IResourceDescriptions, ITemplateCompiler, ITemplateSource, ITargetedInstruction, TargetedInstruction } from '@aurelia/runtime';
+import { Immutable, PLATFORM } from '@aurelia/kernel';
+import { BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, ICustomAttributeSource, IResourceDescriptions, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
 import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
 import { ElementSyntax, NodeType } from './element-parser';
 
 export class SemanticModel {
-  public isSemanticModel: true = true;
-  private attrDefCache: Record<string, ICustomAttributeSource>;
-  private elDefCache: Record<string, ITemplateSource>;
-  private commandCache: Record<string, IBindingCommand>;
+  public readonly isSemanticModel: true = true;
+  private readonly attrDefCache: Record<string, ICustomAttributeSource>;
+  private readonly elDefCache: Record<string, ITemplateSource>;
+  private readonly commandCache: Record<string, IBindingCommand>;
 
   constructor(
     public attrParser: IAttributeParser,
@@ -59,10 +59,9 @@ export class SemanticModel {
     return new MultiAttributeBindingSymbol(this, parent, syntax, command);
   }
 
-  public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol): ElementSymbol {
+  public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol, definition?: ITemplateSource): ElementSymbol {
     const node = syntax.node as Element;
-    let definition: ITemplateSource;
-    if (node.nodeType === NodeType.Element) {
+    if (definition === undefined && node.nodeType === NodeType.Element) {
       const resourceKey = (node.getAttribute('as-element') || node.nodeName).toLowerCase();
       definition = this.getElementDefinition(resourceKey);
     }
@@ -78,51 +77,51 @@ export class SemanticModel {
 }
 
 export interface IAttributeSymbol {
-  isMultiAttrBinding: boolean;
-  target: string;
-  rawName: string;
-  rawValue: string;
-  rawCommand: string;
-  syntax: AttrSyntax;
-  command: IBindingCommand | null;
-  dest: string;
-  mode: BindingMode;
-  bindable: IBindableDescription;
-  hasBindingCommand: boolean;
-  isHandledByBindingCommand: boolean;
-  isTemplateController: boolean;
-  isCustomAttribute: boolean;
-  isAttributeBindable: boolean;
-  isDefaultAttributeBindable: boolean;
-  onCustomElement: boolean;
-  isElementBindable: boolean;
-  $element: ElementSymbol;
+  readonly isMultiAttrBinding: boolean;
+  readonly target: string;
+  readonly rawName: string;
+  readonly rawValue: string;
+  readonly rawCommand: string;
+  readonly syntax: AttrSyntax;
+  readonly command: IBindingCommand | null;
+  readonly dest: string;
+  readonly mode: BindingMode;
+  readonly bindable: IBindableDescription;
+  readonly hasBindingCommand: boolean;
+  readonly isHandledByBindingCommand: boolean;
+  readonly isTemplateController: boolean;
+  readonly isCustomAttribute: boolean;
+  readonly isAttributeBindable: boolean;
+  readonly isDefaultAttributeBindable: boolean;
+  readonly onCustomElement: boolean;
+  readonly isElementBindable: boolean;
+  readonly $element: ElementSymbol;
 }
 
 export class MultiAttributeBindingSymbol implements IAttributeSymbol {
-  public isMultiAttrBinding: boolean = true;
-  public target: string = null;
-  public rawName: string = null;
-  public rawValue: string = null;
-  public rawCommand: string = null;
-  public dest: string = null;
-  public mode: BindingMode = null;
-  public bindable: IBindableDescription = null;
-  public hasBindingCommand: boolean = false;
-  public isHandledByBindingCommand: boolean = false;
-  public isTemplateController: boolean = false;
-  public isCustomAttribute: boolean = true;
-  public isAttributeBindable: boolean = false;
-  public isDefaultAttributeBindable: boolean = false;
-  public onCustomElement: boolean = false;
-  public isElementBindable: boolean = false;
-  public $element: ElementSymbol = null;
+  public readonly isMultiAttrBinding: boolean = true;
+  public readonly target: string;
+  public readonly rawName: string;
+  public readonly rawValue: string;
+  public readonly rawCommand: string | null;
+  public readonly dest: string;
+  public readonly mode: BindingMode;
+  public readonly bindable: Immutable<Required<IBindableDescription>> | null = null;
+  public readonly hasBindingCommand: boolean;
+  public readonly isHandledByBindingCommand: boolean;
+  public readonly isTemplateController: boolean = false;
+  public readonly isCustomAttribute: boolean = true;
+  public readonly isAttributeBindable: boolean = false;
+  public readonly isDefaultAttributeBindable: boolean = false;
+  public readonly onCustomElement: boolean = false;
+  public readonly isElementBindable: boolean = false;
+  public readonly $element: ElementSymbol = null;
 
   constructor(
-    public semanticModel: SemanticModel,
-    public $parent: AttributeSymbol,
-    public syntax: AttrSyntax,
-    public command: IBindingCommand | null
+    public readonly semanticModel: SemanticModel,
+    public readonly $parent: AttributeSymbol,
+    public readonly syntax: AttrSyntax,
+    public readonly command: IBindingCommand | null
   ) {
     this.target = syntax.target;
     this.rawName = syntax.rawName;
@@ -136,7 +135,7 @@ export class MultiAttributeBindingSymbol implements IAttributeSymbol {
       if (b.property === syntax.target) {
         this.dest = b.property;
         this.mode =  (b.mode && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
-        this.bindable = b;
+        this.bindable = b as Immutable<Required<IBindableDescription>>;
         this.isAttributeBindable = true;
         break;
       }
@@ -149,36 +148,36 @@ export class MultiAttributeBindingSymbol implements IAttributeSymbol {
 }
 
 export class AttributeSymbol implements IAttributeSymbol {
-  public isMultiAttrBinding: boolean = false;
-  public $multiAttrBindings: MultiAttributeBindingSymbol[];
-  public target: string = null;
-  public res: string = null;
-  public rawName: string = null;
-  public rawValue: string = null;
-  public rawCommand: string = null;
-  public dest: string = null;
-  public mode: BindingMode = null;
-  public bindable: IBindableDescription = null;
-  public isAttributeBindable: boolean = false;
-  public isDefaultAttributeBindable: boolean = false;
-  public isCustomAttribute: boolean = false;
-  public isElementBindable: boolean = false;
-  public onCustomElement: boolean = false;
-  public isBindable: boolean = false;
-  public isTemplateController: boolean = false;
-  public hasBindingCommand: boolean = false;
-  public isHandledByBindingCommand: boolean = false;
-  private _isProcessed: boolean = false;
+  public readonly isMultiAttrBinding: boolean = false;
+  public readonly $multiAttrBindings: ReadonlyArray<MultiAttributeBindingSymbol>;
+  public readonly target: string;
+  public readonly res: string | null = null;
+  public readonly rawName: string;
+  public readonly rawValue: string;
+  public readonly rawCommand: string | null;
+  public readonly dest: string;
+  public readonly mode: BindingMode;
+  public readonly bindable: Immutable<Required<IBindableDescription>> | null = null;
+  public readonly isAttributeBindable: boolean = false;
+  public readonly isDefaultAttributeBindable: boolean = false;
+  public readonly isCustomAttribute: boolean;
+  public readonly isElementBindable: boolean = false;
+  public readonly onCustomElement: boolean;
+  public readonly isBindable: boolean = false;
+  public readonly isTemplateController: boolean = false;
+  public readonly hasBindingCommand: boolean;
+  public readonly isHandledByBindingCommand: boolean;
+  private _isProcessed: boolean;
   public get isProcessed(): boolean {
     return this._isProcessed;
   }
 
   constructor(
-    public semanticModel: SemanticModel,
-    public $element: ElementSymbol,
-    public syntax: AttrSyntax,
-    public definition: ICustomAttributeSource | null,
-    public command: IBindingCommand | null
+    public readonly semanticModel: SemanticModel,
+    public readonly $element: ElementSymbol,
+    public readonly syntax: AttrSyntax,
+    public readonly definition: ICustomAttributeSource | null,
+    public readonly command: IBindingCommand | null
   ) {
     this.target = syntax.target;
     this.rawName = syntax.rawName;
@@ -188,18 +187,17 @@ export class AttributeSymbol implements IAttributeSymbol {
     this.hasBindingCommand = !!command;
     this.isHandledByBindingCommand = this.hasBindingCommand && command.handles(this);
     this.onCustomElement = $element.isCustomElement;
-    if (this.rawName === 'as-element') {
-      this._isProcessed = true; // as-element is processed by the semantic model and shouldn't be processed by the template compiler
-    }
+    this._isProcessed = this.rawName === 'as-element'; // as-element is processed by the semantic model and shouldn't be processed by the template compiler
     if (this.isCustomAttribute) {
       this.isTemplateController = !!definition.isTemplateController;
       this.res = definition.name;
       const value = syntax.rawValue;
       let lastIndex = 0;
+      let multiAttrBindings: MultiAttributeBindingSymbol[];
       for (let i = 0, ii = value.length; i < ii; ++i) {
         if (value.charCodeAt(i) === Char.Semicolon) {
           if (!this.isMultiAttrBinding) {
-            this.$multiAttrBindings = [];
+            multiAttrBindings = [];
             this.isMultiAttrBinding = true;
           }
           const innerAttr = value.slice(lastIndex, i).trim();
@@ -212,18 +210,19 @@ export class AttributeSymbol implements IAttributeSymbol {
               const innerAttrName = innerAttr.slice(0, j).trim();
               const innerAttrValue = innerAttr.slice(j + 1).trim();
               const innerAttrSyntax = this.semanticModel.attrParser.parse(innerAttrName, innerAttrValue);
-              this.$multiAttrBindings.push(this.semanticModel.getMultiAttrBindingSymbol(innerAttrSyntax, this));
+              multiAttrBindings.push(this.semanticModel.getMultiAttrBindingSymbol(innerAttrSyntax, this));
             }
           }
         }
       }
+      this.$multiAttrBindings = this.isMultiAttrBinding ? multiAttrBindings : PLATFORM.emptyArray;
       const bindables = definition.bindables;
       if (!this.isMultiAttrBinding) {
         for (const prop in bindables) {
           const b = bindables[prop];
           this.dest = b.property;
           this.mode =  (b.mode && b.mode !== BindingMode.default) ? b.mode : (definition.defaultBindingMode || BindingMode.toView);
-          this.bindable = b;
+          this.bindable = b as Immutable<Required<IBindableDescription>>;
           this.isBindable = this.isAttributeBindable = true;
           break;
         }
@@ -240,7 +239,7 @@ export class AttributeSymbol implements IAttributeSymbol {
         if (b.attribute === syntax.target) {
           this.dest = b.property;
           this.mode = (b.mode && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
-          this.bindable = b;
+          this.bindable = b as Immutable<Required<IBindableDescription>>;
           this.isBindable = this.isElementBindable = true;
           break;
         }
@@ -264,15 +263,15 @@ export class AttributeSymbol implements IAttributeSymbol {
 }
 
 export class ElementSymbol {
-  public $attributes: AttributeSymbol[];
-  public $children: ElementSymbol[];
-  public $content: ElementSymbol = null;
-  public isTemplate: boolean = false;
-  public isSlot: boolean = false;
-  public isLet: boolean = false;
-  public node: Node = null;
-  public name: string = null;
-  public isCustomElement: boolean = false;
+  public readonly $attributes: AttributeSymbol[];
+  public readonly $children: ElementSymbol[];
+  public readonly $content: ElementSymbol = null;
+  public readonly isTemplate: boolean = false;
+  public readonly isSlot: boolean = false;
+  public readonly isLet: boolean = false;
+  public readonly node: Node;
+  public readonly name: string;
+  public readonly isCustomElement: boolean;
   public get nextSibling(): ElementSymbol {
     if (!this.$parent) {
       return null;
@@ -290,12 +289,12 @@ export class ElementSymbol {
   }
 
   constructor(
-    public semanticModel: SemanticModel,
-    public isRoot: boolean,
-    public $root: ElementSymbol,
-    public $parent: ElementSymbol,
-    public syntax: ElementSyntax,
-    public definition: ITemplateSource | null
+    public readonly semanticModel: SemanticModel,
+    public readonly isRoot: boolean,
+    public readonly $root: ElementSymbol,
+    public readonly $parent: ElementSymbol,
+    public readonly syntax: ElementSyntax,
+    public readonly definition: ITemplateSource | null
   ) {
     this.$root = isRoot ? this : $root;
     this.node = syntax.node;
@@ -303,8 +302,7 @@ export class ElementSymbol {
     switch (this.name) {
       case 'TEMPLATE':
         this.isTemplate = true;
-        this.$content = this.semanticModel.getElementSymbol(syntax.$content, this);
-        this.$content.definition = definition;
+        this.$content = this.semanticModel.getElementSymbol(syntax.$content, this, definition);
         break;
       case 'SLOT':
         this.isSlot = true;

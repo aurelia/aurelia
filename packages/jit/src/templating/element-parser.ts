@@ -21,11 +21,11 @@ export const enum NodeType {
 
 export class ElementSyntax {
   constructor(
-    public node: Node,
-    public name: string,
-    public $content: ElementSyntax | null,
-    public $children: ElementSyntax[],
-    public $attributes: ReadonlyArray<AttrSyntax>) {
+    public readonly node: Node,
+    public readonly name: string,
+    public readonly $content: ElementSyntax | null,
+    public readonly $children: ElementSyntax[],
+    public readonly $attributes: ReadonlyArray<AttrSyntax>) {
     }
 }
 

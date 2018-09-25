@@ -314,19 +314,27 @@ export class ElementSymbol {
 
     const attributes = syntax.$attributes;
     const attrLen = attributes.length;
-    const attrSymbols = Array<AttributeSymbol>(attrLen);
-    for (let i = 0, ii = attrLen; i < ii; ++i) {
-      attrSymbols[i] = this.semanticModel.getAttributeSymbol(attributes[i], this);
+    if (attrLen > 0) {
+      const attrSymbols = Array<AttributeSymbol>(attrLen);
+      for (let i = 0, ii = attrLen; i < ii; ++i) {
+        attrSymbols[i] = this.semanticModel.getAttributeSymbol(attributes[i], this);
+      }
+      this.$attributes = attrSymbols;
+    } else {
+      this.$attributes = PLATFORM.emptyArray as AttributeSymbol[];
     }
-    this.$attributes = attrSymbols;
 
     const children = syntax.$children;
     const childLen = children.length;
-    const childSymbols = Array<ElementSymbol>(childLen);
-    for (let i = 0, ii = childLen; i < ii; ++i) {
-      childSymbols[i] = this.semanticModel.getElementSymbol(children[i], this);
+    if (childLen > 0) {
+      const childSymbols = Array<ElementSymbol>(childLen);
+      for (let i = 0, ii = childLen; i < ii; ++i) {
+        childSymbols[i] = this.semanticModel.getElementSymbol(children[i], this);
+      }
+      this.$children = childSymbols;
+    } else {
+      this.$children = PLATFORM.emptyArray as ElementSymbol[];
     }
-    this.$children = childSymbols;
   }
 
   public makeTarget(): void {

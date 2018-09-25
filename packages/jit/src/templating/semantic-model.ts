@@ -263,8 +263,8 @@ export class AttributeSymbol implements IAttributeSymbol {
 }
 
 export class ElementSymbol {
-  public readonly $attributes: AttributeSymbol[];
-  public readonly $children: ElementSymbol[];
+  public readonly $attributes: ReadonlyArray<AttributeSymbol>;
+  public readonly $children: ReadonlyArray<ElementSymbol>;
   public readonly $content: ElementSymbol = null;
   public readonly isTemplate: boolean = false;
   public readonly isSlot: boolean = false;

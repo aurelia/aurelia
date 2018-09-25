@@ -3,6 +3,7 @@ export * from './animator';
 export * from './bindable';
 export * from './custom-attribute';
 export * from './custom-element';
+export * from './create-element';
 export * from './instructions';
 export * from './lifecycle';
 export * from './render-context';

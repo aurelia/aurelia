@@ -61,16 +61,20 @@ export class ElementParser implements IElementParser {
       content = null;
       const nodeChildNodes = node.childNodes;
       const nodeLen = nodeChildNodes.length;
-      children = Array(nodeLen);
-      for (let i = 0, ii = nodeLen; i < ii; ++i) {
-        children[i] = this.parse(nodeChildNodes[i]);
+      if (nodeLen > 0) {
+        children = Array(nodeLen);
+        for (let i = 0, ii = nodeLen; i < ii; ++i) {
+          children[i] = this.parse(nodeChildNodes[i]);
+        }
+      } else {
+        children = PLATFORM.emptyArray as ElementSyntax[];
       }
     }
 
     let attributes: AttrSyntax[];
     const nodeAttributes = node.attributes;
-    if (nodeAttributes) {
-      const attrLen = nodeAttributes.length;
+    const attrLen = nodeAttributes && nodeAttributes.length || 0;
+    if (attrLen > 0) {
       attributes = Array(attrLen);
       for (let i = 0, ii = attrLen; i < ii; ++i) {
         const attr = nodeAttributes[i];

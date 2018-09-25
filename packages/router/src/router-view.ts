@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { bindable, BindingFlags, createElement, customElement, ICustomElement, IHydrateElementInstruction, IRenderable, IRenderingEngine, ITemplateSource, IView, IViewFactory, PotentialRenderable, TargetedInstruction, ITargetedInstruction } from '@aurelia/runtime';
-import { RouteTarget } from './route';
+import { RouteTarget, isTemplateDefinition, isViewFactory, isPotentialRenderable, isView } from './route';
 import { IRouter } from './router';
 
 const routerViewSource: ITemplateSource = {
@@ -95,15 +95,3 @@ export class RouterView {
   }
 }
 
-function isTemplateDefinition(target: RouteTarget): target is ITemplateSource {
-  return 'templateOrNode' in target;
-}
-function isViewFactory(target: RouteTarget): target is IViewFactory {
-  return 'create' in target;
-}
-function isPotentialRenderable(target: RouteTarget): target is PotentialRenderable {
-  return 'createView' in target;
-}
-function isView(target: RouteTarget): target is IView {
-  return 'lockScope' in target;
-}

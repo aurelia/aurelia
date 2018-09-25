@@ -1,1 +1,3 @@
-export const placeholder = null;
+export * from './history';
+export * from './location';
+export * from './router';

@@ -1,14 +1,9 @@
-import { IContainer, DI, Registration } from '../../../../kernel/src/index';
-import { TemplateCompiler, register, BasicConfiguration } from '../../../src/index';
-import {
-  Aurelia, Repeat, If, Else, ITemplateCompiler, IChangeSet, CustomElementResource, valueConverter,
-  OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior,
-  DebounceBindingBehavior, ThrottleBindingBehavior, ResourceDescription, ITemplateSource, customElement,
-  bindable
-} from '../../../../runtime/src/index';
+import { IContainer, DI, PLATFORM } from '../../../../kernel/src/index';
+import { BasicConfiguration } from '../../../src/index';
+import { Aurelia, IChangeSet, CustomElementResource, valueConverter, customElement, bindable } from '../../../../runtime/src/index';
 import { expect } from 'chai';
-import { ExpressionParser } from '../../../../runtime/src/binding/expression-parser';
 import { spy } from 'sinon';
+import { eachCartesianJoinFactory } from '../util';
 
 
 @valueConverter('sort')
@@ -387,52 +382,41 @@ describe('TemplateCompiler (integration)', () => {
     expect(component.doStuff).to.have.been.called;
   });
 
-  it(`repeater - array`, () => {
-    component = createCustomElement(`<template><div repeat.for="item of items">\${item}</div></template>`);
-    au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
-    component.items = ['1', '2', '3'];
-    expect(host.textContent).to.equal('');
-    cs.flushChanges();
-    expect(host.outerHTML).to.equal('<app><div>1</div><div>2</div><div>3</div><!--au-loc--></app>');
-    expect(host.innerText).to.equal('1\n2\n3');
-    expect(host.textContent).to.equal('123');
-  });
-
-  it(`repeater - array literal`, () => {
-    component = createCustomElement(`<template><div repeat.for="item of [1,2,3]">\${item}</div></template>`);
-    au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
-    cs.flushChanges();
-    expect(host.textContent).to.equal('123');
-  });
-
-  it(`repeater - array object literal`, () => {
-    component = createCustomElement(`<template><div repeat.for="item of [{i:1},{i:2},{i:3}]">\${item.i}</div></template>`);
-    au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
-    cs.flushChanges();
-    expect(host.textContent).to.equal('123');
-  });
-
-  it(`repeater - set`, () => {
-    component = createCustomElement(`<template><div repeat.for="item of items">\${item}</div></template>`);
-    au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
-    component.items = new Set(['1', '2', '3']);
-    expect(host.textContent).to.equal('');
-    cs.flushChanges();
-    expect(host.textContent).to.equal('123');
-  });
-
-  it(`repeater - map`, () => {
-    component = createCustomElement(`<template><div repeat.for="item of items">\${item[0]}\${item[1]}</div></template>`);
-    au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
-    component.items = new Map([['1', '1'], ['2', '2'], ['3', '3']]);
-    expect(host.textContent).to.equal('');
-    cs.flushChanges();
-    expect(host.textContent).to.equal('112233');
+  describe(`repeater`, () => {
+    eachCartesianJoinFactory([
+      <(() => [string, string, string, (component: any) => void])[]>[
+        () => [`[a,b,c]`,             `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}],
+        () => [`[c,b,a]|sort`,        `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}],
+        () => [`[1+1,2+1,3+1]`,       `\${item}`,               `234`,    PLATFORM.noop],
+        () => [`[1,2,3]`,             `\${item}`,               `123`,    PLATFORM.noop],
+        () => [`[3,2,1]|sort`,        `\${item}`,               `123`,    PLATFORM.noop],
+        () => [`[{i:1},{i:2},{i:3}]`, `\${item.i}`,             `123`,    PLATFORM.noop],
+        () => [`[[1],[2],[3]]`,       `\${item[0]}`,            `123`,    PLATFORM.noop],
+        () => [`[[a],[b],[c]]`,       `\${item[0]}`,            `123`,    c => {c.a=1;c.b=2;c.c=3}],
+        () => [`3`,                   `\${item}`,               `012`,    PLATFORM.noop],
+        () => [`null`,                `\${item}`,               ``,       PLATFORM.noop],
+        () => [`undefined`,           `\${item}`,               ``,       PLATFORM.noop],
+        () => [`items`,               `\${item}`,               `123`,    c=>c.items=['1','2','3']],
+        () => [`items|sort`,          `\${item}`,               `123`,    c=>c.items=['3','2','1']],
+        () => [`items`,               `\${item.i}`,             `123`,    c=>c.items=[{i:1},{i:2},{i:3}]],
+        () => [`items|sort:'i'`,      `\${item.i}`,             `123`,    c=>c.items=[{i:3},{i:2},{i:1}]],
+        () => [`items`,               `\${item}`,               `123`,    c=>c.items=new Set(['1','2','3'])],
+        () => [`items`,               `\${item[0]}\${item[1]}`, `1a2b3c`, c=>c.items=new Map([['1','a'],['2','b'],['3','c']])]
+      ],
+      <(($1: [string, string, string, (component: any) => void]) => string)[]>[
+        ([iterable, itemTemplate, textContent, initialize]) => `<template><div repeat.for="item of ${iterable}">${itemTemplate}</div></template>`
+      ]
+    ], ([iterable, itemTemplate, textContent, initialize], markup) => {
+      it(markup, () => {
+        component = createCustomElement(markup);
+        au.app({ host, component }).start();
+        expect(host.textContent).to.equal('');
+        initialize(component)
+        expect(host.textContent).to.equal('');
+        cs.flushChanges();
+        expect(host.textContent).to.equal(textContent);
+      });
+    })
   });
 
   it(`nested repeater - array`, () => {
@@ -465,25 +449,6 @@ describe('TemplateCompiler (integration)', () => {
     expect(host.textContent).to.equal('321');
   });
 
-  it(`repeater - sorted object array - asc`, () => {
-    component = createCustomElement(`<template><div repeat.for="item of items | sort:'id'">\${item.id}</div></template>`);
-    au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
-    component.items = [{ id: '3' }, { id: '2' }, { id: '1' }];
-    expect(host.textContent).to.equal('');
-    cs.flushChanges();
-    expect(host.textContent).to.equal('123');
-  });
-
-  it(`repeater - sorted object array - desc`, () => {
-    component = createCustomElement(`<template><div repeat.for="item of items | sort:'id':'desc'">\${item.id}</div></template>`);
-    au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
-    component.items = [{ id: '1' }, { id: '2' }, { id: '3' }];
-    expect(host.textContent).to.equal('');
-    cs.flushChanges();
-    expect(host.textContent).to.equal('321');
-  });
 
   // TODO: implement this in template compiler
   it(`if - shows and hides`, () => {

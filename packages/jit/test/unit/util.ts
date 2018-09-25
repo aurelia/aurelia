@@ -48,6 +48,12 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
   }
   if (typeof expected !== 'object' || expected === null || expected === undefined || typeof actual !== 'object' || actual === null || actual === undefined) {
     if (actual !== expected) {
+      if (typeof expected === 'object' && expected !== null) {
+        expected = JSON.stringify(expected);
+      }
+      if (typeof actual === 'object' && actual !== null) {
+        actual = JSON.stringify(actual);
+      }
       errors.push(`Expected ${path} === ${expected}, but got: ${actual}`)
     }
   } else if (expected instanceof Array) {

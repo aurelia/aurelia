@@ -1,23 +1,22 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, IRegistry } from '@aurelia/kernel';
 import {
   AccessKeyed, AccessMember, AccessScope, AccessThis,
   ArrayBindingPattern, ArrayLiteral, Assign, Binary,
   BindingBehavior, BindingIdentifier, BindingType,
   CallFunction, CallMember, CallScope,
   Conditional, ExpressionKind, ForOfStatement, IExpression, IExpressionParser,
-  IsAssign, IsBinary, IsBindingBehavior, IsConditional, IsLeftHandSide,
-  IsPrimary, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, Interpolation
+  Interpolation, IsAssign, IsBinary, IsBindingBehavior, IsConditional,
+  IsLeftHandSide, IsPrimary, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter
 } from '@aurelia/runtime';
 
-export function register(container: IContainer) {
-  container.registerTransformer(IExpressionParser, parser => {
-    return Object.assign(parser, {
-      parseCore(expression: string, bindingType: BindingType): IExpression {
-        return parse(new ParserState(expression), Access.Reset, Precedence.Variadic, bindingType);
-      }
+export const ParserRegistration: IRegistry = {
+  register(container: IContainer): void {
+    container.registerTransformer(IExpressionParser, parser => {
+      parser['parseCore'] = parseCore;
+      return parser;
     });
-  });
-}
+  }
+};
 
 /*@internal*/
 export class ParserState {
@@ -45,6 +44,11 @@ export class ParserState {
     this.currentChar = input.charCodeAt(0);
     this.assignable = true;
   }
+}
+
+/*@internal*/
+export function parseCore(input: string, bindingType?: BindingType): IExpression {
+  return parse(new ParserState(input), Access.Reset, Precedence.Variadic, bindingType === undefined ? BindingType.BindCommand : bindingType);
 }
 
 /*@internal*/
@@ -879,6 +883,7 @@ export const enum Char {
   Minus          = 0x2D,
   Dot            = 0x2E,
   Slash          = 0x2F,
+  Semicolon      = 0x3B,
   Backtick       = 0x60,
   OpenBracket    = 0x5B,
   Backslash      = 0x5C,

@@ -6,7 +6,7 @@ import { createScopeForTest } from './shared';
 import { expect } from 'chai';
 import { _, massSpy, massReset, massRestore, ensureNotCalled, eachCartesianJoinFactory, verifyEqual } from '../util';
 import sinon from 'sinon';
-import { parse, ParserState, Access, Precedence } from '../../../../jit/src';
+import { parse, ParserState, Access, Precedence, parseCore } from '../../../../jit/src';
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -78,7 +78,7 @@ describe('Binding', () => {
       ctx[prop] = 1;
     }
     rawExpr += args.join('+');
-    const expr = parse(new ParserState(rawExpr), Access.Reset, Precedence.Variadic, 0);
+    const expr = parseCore(rawExpr, 0);
     const container = DI.createContainer();
     const observerLocator = container.get<IObserverLocator>(IObserverLocator);
     const target = {val: 0};

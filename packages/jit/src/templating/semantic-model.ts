@@ -63,21 +63,6 @@ export class SemanticModel {
     return new SemanticModel(definition, resources, attrParser, elParser, exprParser);
   }
 
-  // public static create(
-  //   attrParser: IAttributeParser,
-  //   elParser: IElementParser,
-  //   exprParser: IExpressionParser,
-  //   definition: ITemplateSource,
-  //   resources: IResourceDescriptions): SemanticModel {
-
-  //   const attrParser = locator.get<IAttributeParser>(IAttributeParser);
-  //   const elParser = locator.get<IElementParser>(IElementParser);
-  //   const exprParser = locator.get<IExpressionParser>(IExpressionParser);
-  //   const syntaxRoot = elParser.parse(definition.templateOrNode);
-
-  //   return new SemanticModel(attrParser, elParser, exprParser, syntaxRoot, resources);
-  // }
-
   public getAttributeDefinition(name: string): ICustomAttributeSource {
     const existing = this.attrDefCache[name];
     if (existing !== undefined) {

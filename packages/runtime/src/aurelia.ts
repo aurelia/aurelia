@@ -64,6 +64,10 @@ export class Aurelia {
     return this;
   }
 
+  public root(): ICustomElement | null {
+    return this.components[0] || null;
+  }
+
   public start(): this {
     this.startTasks.forEach(x => x());
     this.isStarted = true;

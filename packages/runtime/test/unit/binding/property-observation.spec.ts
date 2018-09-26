@@ -161,7 +161,7 @@ describe('SetterObserver', () => {
 
 describe('Observer', () => {
 
-  it.only('use identity function as default callback', () => {
+  it('use identity function as default callback', () => {
     const values = createObjectArr();
     values.forEach(value => {
       const observer = new Observer({}, 'a', 'aChanged');

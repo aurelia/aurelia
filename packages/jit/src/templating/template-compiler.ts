@@ -130,8 +130,11 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compileElementNode($el: ElementSymbol): void {
-    const attributeInstructions: TargetedInstruction[] = [];
+    if ($el.$attributes.length === 0) {
+      return;
+    }
     const attributes = $el.$attributes;
+    const attributeInstructions: TargetedInstruction[] = [];
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const $attr = attributes[i];
       if ($attr.isProcessed) continue;
@@ -163,6 +166,11 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compileCustomElement($el: ElementSymbol): void {
+    if ($el.$attributes.length === 0) {
+      $el.addInstructions([new HydrateElementInstruction($el.definition.name, <any>PLATFORM.emptyArray)]);
+      $el.makeTarget();
+      return;
+    }
     const attributeInstructions: TargetedInstruction[] = [];
     // if there is a custom element, then only the attributes that map to bindables become children of the hydrate instruction,
     // otherwise they become sibling instructions; if there is no custom element, then sibling instructions are never appended to

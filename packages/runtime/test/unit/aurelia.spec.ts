@@ -9,6 +9,10 @@ describe('Aurelia', () => {
     sut = new Aurelia();
   });
 
+  it('should initialize container directly', () => {
+    expect(sut['container'].get(Aurelia)).to.equal(sut);
+  });
+
   it('should initialize correctly', () => {
     expect(sut['components'].length).to.equal(0);
     expect(sut['startTasks'].length).to.equal(0);

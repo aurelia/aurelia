@@ -34,13 +34,7 @@ import {
 } from '@aurelia/runtime';
 import { IAttributeParser } from './attribute-parser';
 import { IElementParser, NodeType } from './element-parser';
-import { ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
-
-// tslint:disable:no-inner-html
-
-const marker = DOM.createElement('au-marker') as Element;
-marker.classList.add('au');
-const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
+import { AttributeSymbol, ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
 
 @inject(IExpressionParser, IElementParser, IAttributeParser)
 export class TemplateCompiler implements ITemplateCompiler {
@@ -51,31 +45,47 @@ export class TemplateCompiler implements ITemplateCompiler {
   constructor(public exprParser: IExpressionParser, public elParser: IElementParser, public attrParser: IAttributeParser) { }
 
   public compile(definition: ITemplateSource, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
-    let $el = new SemanticModel(this.attrParser, this.elParser.parse(definition.templateOrNode), resources).getElementSymbolRoot(definition);
-    const $root = $el;
-    while ($el = this.compileNode($el.$content || $el));
+    const model = SemanticModel.create(definition, resources, this.attrParser, this.elParser, this.exprParser);
+    let $el = model.root;
+    while ($el = this.compileNode($el));
 
-    // ideally the flag should be passed correctly from rendering engine
-    if ($root.isTemplate && (flags & ViewCompileFlags.surrogate)) {
-      this.compileSurrogate($root);
+    // the flag should be passed correctly from rendering engine
+    if (model.root.isTemplate && (flags & ViewCompileFlags.surrogate)) {
+      this.compileSurrogate(model.root);
     }
 
     return <TemplateDefinition>definition;
   }
 
-  /*@internal*/
-  public compileNode($el: ElementSymbol): ElementSymbol {
+  private compileNode($el: ElementSymbol): ElementSymbol {
     const node = $el.node;
     const nextSibling = $el.nextSibling;
     switch (node.nodeType) {
       case NodeType.Element:
-        this.compileElementNode($el);
+        if ($el.isSlot) {
+          $el.$parent.definition.hasSlots = true;
+        } else if ($el.isLet) {
+          this.compileLetElement($el);
+        } else if ($el.isCustomElement) {
+          this.compileCustomElement($el);
+        } else {
+          this.compileElementNode($el);
+        }
+        if (!$el.isLifted) {
+          let $child = $el.firstChild || $el.$content;
+          while ($child) {
+            $child = this.compileNode($child);
+          }
+        }
         return nextSibling;
       case NodeType.Text:
-        if (!this.compileTextNode($el)) {
+        const expression = this.exprParser.parse((<Text>$el.node).wholeText, BindingType.Interpolation);
+        if (expression === null) {
           while (($el = $el.nextSibling) && $el.node.nodeType === NodeType.Text);
           return $el;
         }
+        $el.replaceTextNodeWithMarker();
+        $el.addInstructions([new TextBindingInstruction(expression)]);
         return nextSibling;
       case NodeType.Comment:
         return nextSibling;
@@ -88,8 +98,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
-  /*@internal*/
-  public compileSurrogate($el: ElementSymbol): void {
+  private compileSurrogate($el: ElementSymbol): void {
     const attributes = $el.$attributes;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const $attr = attributes[i];
@@ -120,90 +129,95 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
   }
 
-  /*@internal*/
-  public compileElementNode($el: ElementSymbol): void {
-    if ($el.isSlot) {
-      $el.$parent.definition.hasSlots = true;
-      return;
-    } else if ($el.isLet) {
-      this.compileLetElement($el);
-      return;
-    }
-    // if there is a template controller, then all attribute instructions become children of the hydrate instruction
-
-    // if there is a custom element, then only the attributes that map to bindables become children of the hydrate instruction,
-    // otherwise they become sibling instructions
+  private compileElementNode($el: ElementSymbol): void {
     const attributeInstructions: TargetedInstruction[] = [];
+    const attributes = $el.$attributes;
+    for (let i = 0, ii = attributes.length; i < ii; ++i) {
+      const $attr = attributes[i];
+      if ($attr.isProcessed) continue;
+      $attr.markAsProcessed();
+      if ($attr.isTemplateController) {
+        let instruction = this.compileAttribute($attr);
+        // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
+        if (instruction.type !== TargetedInstructionType.hydrateTemplateController) {
+          const name = $attr.res;
+          instruction = new HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
+        }
+        // all attribute instructions preceding the template controller become children of the hydrate instruction
+        instruction.instructions.push(...attributeInstructions);
+        this.compileNode($el.lift(instruction));
+        return;
+      } else if ($attr.isCustomAttribute) {
+        attributeInstructions.push(this.compileCustomAttribute($attr));
+      } else {
+        const instruction = this.compileAttribute($attr);
+        if (instruction !== null) {
+          attributeInstructions.push(instruction);
+        }
+      }
+    }
+    if (attributeInstructions.length) {
+      $el.addInstructions(attributeInstructions);
+      $el.makeTarget();
+    }
+  }
+
+  private compileCustomElement($el: ElementSymbol): void {
+    const attributeInstructions: TargetedInstruction[] = [];
+    // if there is a custom element, then only the attributes that map to bindables become children of the hydrate instruction,
+    // otherwise they become sibling instructions; if there is no custom element, then sibling instructions are never appended to
     const siblingInstructions: TargetedInstruction[] = [];
     const attributes = $el.$attributes;
     for (let i = 0, ii = attributes.length; i < ii; ++i) {
       const $attr = attributes[i];
-      if ($attr.isProcessed) {
-        continue;
-      }
+      if ($attr.isProcessed) continue;
       $attr.markAsProcessed();
-      if ($attr.isCustomAttribute) {
-        if ($attr.isTemplateController) {
-          let instruction = this.compileAttribute($attr);
-          // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
-          if (instruction.type !== TargetedInstructionType.hydrateTemplateController) {
-            const src: ITemplateSource = {
-              name: $attr.res,
-              templateOrNode: $attr.$element.node,
-              instructions: []
-            };
-            instruction = new HydrateTemplateController(src, $attr.res, [instruction], $attr.res === 'else');
-          }
-
-          ($attr.$element.node.parentNode || $attr.$element.$parent.node).replaceChild(createMarker(), $attr.$element.node);
-          const template = DOM.createTemplate() as HTMLTemplateElement;
-          template.content.appendChild($attr.$element.node);
-          instruction.src.templateOrNode = template;
-          instruction.instructions.push(...attributeInstructions);
-          this.compile(<any>instruction.src, $el.semanticModel.resources);
-          $el.addInstructions([instruction]);
-          return;
+      if ($attr.isTemplateController) {
+        let instruction = this.compileAttribute($attr);
+        // compileAttribute will return a HydrateTemplateController if there is a binding command registered that produces one (in our case only "for")
+        if (instruction.type !== TargetedInstructionType.hydrateTemplateController) {
+          const name = $attr.res;
+          instruction = new HydrateTemplateController({ name, instructions: [] }, name, [instruction], name === 'else');
+        }
+        // all attribute instructions preceding the template controller become children of the hydrate instruction
+        instruction.instructions.push(...attributeInstructions);
+        this.compileNode($el.lift(instruction));
+        return;
+      } else if ($attr.isCustomAttribute) {
+        if ($attr.isAttributeBindable) {
+          siblingInstructions.push(this.compileCustomAttribute($attr));
         } else {
-          const childInstructions = [];
-          if ($attr.isMultiAttrBinding) {
-            const mBindings = $attr.$multiAttrBindings;
-            for (let j = 0, jj = mBindings.length; j < jj; ++j) {
-              childInstructions.push(this.compileAttribute(mBindings[j]));
-            }
-          } else {
-            childInstructions.push(this.compileAttribute($attr));
-          }
-          if (!$attr.onCustomElement || !$attr.isAttributeBindable) {
-            attributeInstructions.push(new HydrateAttributeInstruction($attr.res, childInstructions));
-          } else {
-            siblingInstructions.push(new HydrateAttributeInstruction($attr.res, childInstructions));
-          }
+          attributeInstructions.push(this.compileCustomAttribute($attr));
         }
       } else {
         const instruction = this.compileAttribute($attr);
         if (instruction !== null) {
-          if (!$attr.onCustomElement || $attr.isElementBindable) {
-            attributeInstructions.push(instruction);
-          } else {
+          if (!$attr.isElementBindable) {
             siblingInstructions.push(instruction);
+          } else {
+            attributeInstructions.push(instruction);
           }
         }
       }
     }
-    // no template controller; see if there's a custom element
-    if ($el.isCustomElement) {
-      // custom element takes the attributes as children
-      $el.addInstructions([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
-      $el.makeTarget();
-    } else if (attributeInstructions.length) {
-      // no custom element or template controller, add the attributes directly
-      $el.addInstructions(attributeInstructions);
-      $el.makeTarget();
-    }
-    for (let $child = $el.firstChild; !!$child; $child = this.compileNode($child));
+    $el.addInstructions([new HydrateElementInstruction($el.definition.name, attributeInstructions), ...siblingInstructions]);
+    $el.makeTarget();
   }
 
-  public compileLetElement($el: ElementSymbol): void {
+  private compileCustomAttribute($attr: AttributeSymbol): HydrateAttributeInstruction {
+    const childInstructions = [];
+    if ($attr.isMultiAttrBinding) {
+      const mBindings = $attr.$multiAttrBindings;
+      for (let j = 0, jj = mBindings.length; j < jj; ++j) {
+        childInstructions.push(this.compileAttribute(mBindings[j]));
+      }
+    } else {
+      childInstructions.push(this.compileAttribute($attr));
+    }
+    return new HydrateAttributeInstruction($attr.res, childInstructions);
+  }
+
+  private compileLetElement($el: ElementSymbol): void {
     const letInstructions: ILetBindingInstruction[] = [];
     const attributes = $el.$attributes;
     let toViewModel = false;
@@ -227,27 +241,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
     $el.addInstructions([new LetElementInstruction(letInstructions, toViewModel)]);
     // theoretically there's no need to replace, but to keep it consistent
-    DOM.replaceNode(createMarker(), $el.node);
+    $el.replaceNodeWithMarker();
   }
 
-  /*@internal*/
-  public compileTextNode($el: ElementSymbol): boolean {
-    const node = $el.node as Text;
-    const expression = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
-    if (expression === null) {
-      return false;
-    }
-    node.parentNode.insertBefore(createMarker(), node);
-    node.textContent = ' ';
-    while (node.nextSibling && node.nextSibling.nodeType === NodeType.Text) {
-      node.parentNode.removeChild(node.nextSibling);
-    }
-    $el.addInstructions([new TextBindingInstruction(expression)]);
-    return true;
-  }
-
-  /*@internal*/
-  public compileAttribute($attr: IAttributeSymbol): TargetedInstruction {
+  private compileAttribute($attr: IAttributeSymbol): TargetedInstruction {
       // binding commands get priority over all; they may override default behaviors
       // it is the responsibility of the implementor to ensure they filter out stuff they shouldn't override
       if ($attr.isHandledByBindingCommand) {

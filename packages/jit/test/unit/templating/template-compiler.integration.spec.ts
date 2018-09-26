@@ -403,8 +403,9 @@ describe('TemplateCompiler (integration)', () => {
         () => [`items`,               `\${item}`,               `123`,    c=>c.items=new Set(['1','2','3'])],
         () => [`items`,               `\${item[0]}\${item[1]}`, `1a2b3c`, c=>c.items=new Map([['1','a'],['2','b'],['3','c']])]
       ],
-      <(($1: [string, string, string, (component: any) => void]) => string)[]>[
-        ([iterable, itemTemplate, textContent, initialize]) => `<template><div repeat.for="item of ${iterable}">${itemTemplate}</div></template>`
+      <(($2: [string, string, string, (component: any) => void]) => string)[]>[
+        ([iterable, itemTemplate, textContent, initialize]) => `<template><div repeat.for="item of ${iterable}">${itemTemplate}</div></template>`,
+        ([iterable, itemTemplate, textContent, initialize]) => `<template><template repeat.for="item of ${iterable}">${itemTemplate}</template></template>`
       ]
     ], ([iterable, itemTemplate, textContent, initialize], markup) => {
       it(markup, () => {

@@ -2,10 +2,10 @@ import { DI } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
-import { INode, INodeSequence, IRenderLocation, DOM } from '../dom';
+import { INode, INodeSequence, IRenderLocation } from '../dom';
 import { IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
 import { IRenderContext } from './render-context';
-import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
+import { IRenderable } from './renderable';
 import { ITemplate } from './template';
 
 export type RenderCallback = (view: IView) => void;
@@ -165,9 +165,6 @@ export class View implements IView {
     }
   }
 }
-
-View.prototype.$addChild = addRenderableChild;
-View.prototype.$removeChild = removeRenderableChild;
 
 /*@internal*/
 export class ViewFactory implements IViewFactory {

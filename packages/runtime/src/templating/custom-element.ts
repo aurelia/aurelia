@@ -13,7 +13,7 @@ import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
 import { IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
-import { addRenderableChild, IRenderable, removeRenderableChild } from './renderable';
+import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 import { ITemplate } from './template';
@@ -120,8 +120,6 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$cache = cache;
     (proto.$addNodes as any) = addNodes;
     (proto.$removeNodes as any) = removeNodes;
-    (proto.$addChild as any) = addRenderableChild;
-    (proto.$removeChild as any) = removeRenderableChild;
 
     return Type;
   }

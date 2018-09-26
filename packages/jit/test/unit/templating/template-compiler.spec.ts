@@ -414,9 +414,22 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
   }
 }
 
-function createTemplateController(attr: string, target: string, value: string, markupOpen: string, markupClose: string, finalize: boolean, childInstr?, childTpl?): CTCResult {
+function createTemplateController(attr: string, target: string, value: string, tagName: string, finalize: boolean, childInstr?, childTpl?): CTCResult {
   // multiple template controllers per element
-  if (markupOpen === null && markupClose === null) {
+  if (tagName === null) {
+    const node = <Element>createElement(childTpl);
+    const attributes = [];
+    while (node.attributes.length) {
+      attributes.unshift(node.attributes[0]);
+      node.removeAttribute(node.attributes[0].name);
+    }
+    node.setAttribute(attr, value);
+    while (attributes.length) {
+      const attr = attributes.pop();
+      node.setAttribute(attr.name, attr.value);
+    }
+    node.setAttribute(attr, value);
+    const rawMarkup = node.outerHTML;
     const instruction = {
       type: TT.hydrateTemplateController,
       res: target,
@@ -428,7 +441,6 @@ function createTemplateController(attr: string, target: string, value: string, m
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
     };
-    const rawMarkup = childTpl.replace('<div', `<div ${attr}="${value||''}"`);
     const input = {
       templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
       instructions: []
@@ -442,10 +454,10 @@ function createTemplateController(attr: string, target: string, value: string, m
     let compiledMarkup;
     let instructions;
     if (childInstr === undefined) {
-      compiledMarkup = `${markupOpen}${markupClose}`;
+      compiledMarkup = `<${tagName}></${tagName}>`;
       instructions = []
     } else {
-      compiledMarkup = `${markupOpen}<au-marker class="au"></au-marker>${markupClose}`;
+      compiledMarkup = `<${tagName}><au-marker class="au"></au-marker></${tagName}>`;
       instructions = [[childInstr]]
     }
     const instruction = {
@@ -453,13 +465,13 @@ function createTemplateController(attr: string, target: string, value: string, m
       res: target,
       src: {
         name: target,
-        templateOrNode: createElement(`<template>${compiledMarkup}</template>`),
+        templateOrNode: createElement(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
         instructions
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
     };
-    const rawMarkup = `${markupOpen.slice(0, -1)} ${attr}="${value||''}">${childTpl||''}${markupClose}`;
+    const rawMarkup = `<${tagName} ${attr}="${value||''}">${childTpl||''}</${tagName}>`;
     const input = {
       templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
       instructions: []
@@ -729,56 +741,124 @@ describe(`TemplateCompiler - combinations`, () => {
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });
     });
   });
 
-  describe('nested template controllers', () => {
+  describe('nested template controllers (one per element)', () => {
 
     eachCartesianJoinFactory([
       <(() => CTCResult)[]>[
-        () => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false),
-        () => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false),
-        () => createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false),
-        () => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)
+        () => createTemplateController('foo',        'foo',    '',              'div',      false),
+        () => createTemplateController('foo',        'foo',    'bar',           'div',      false),
+        () => createTemplateController('if.bind',    'if',     'show',          'div',      false),
+        () => createTemplateController('if.bind',    'if',     'show',          'template', false),
+        () => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false),
+        () => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false)
       ],
       <(($1: CTCResult) => CTCResult)[]>[
-        ([input, output]) => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('bar',        'bar',    '',              null,     null,    false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('else',       'else',   '',              null,     null,    false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('else',       'else',   '',              '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           '<div>', '<div>',  false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           null,    null,     false, output.instructions[0][0], input.templateOrNode)
+        ([input, output]) => createTemplateController('foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('if.bind',    'if',     'show',          'div',      false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('else',       'else',   '',              'div',      false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('else',       'else',   '',              'template', false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           'div',      false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           'template', false, output.instructions[0][0], input.templateOrNode)
       ],
       <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
-        ($1, [input, output]) => createTemplateController('foo',        'foo',    '',              '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('baz',        'baz',    '',              null,     null,    true, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', true, output.instructions[0][0], input.templateOrNode)
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.templateOrNode)
+      ],
+      <(($1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[]>[
+        ($1, $2, [input, output]) => createTemplateController('bar',        'bar',    '',              'div',      true, output.instructions[0][0], input.templateOrNode),
+        ($1, $2, [input, output]) => createTemplateController('bar',        'bar',    'baz',           'div',      true, output.instructions[0][0], input.templateOrNode),
+        ($1, $2, [input, output]) => createTemplateController('bar',        'bar',    'baz',           'template', true, output.instructions[0][0], input.templateOrNode),
+        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      true, output.instructions[0][0], input.templateOrNode),
+        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', true, output.instructions[0][0], input.templateOrNode)
       ]
-    ], ($1, $2, [input, output]) => {
+    ], ($1, $2, $3, [input, output]) => {
 
       it(`${input.templateOrNode}`, () => {
 
         const { sut, resources } = setup(
           <any>CustomAttributeResource.define({ name: 'foo', isTemplateController: true }, class Foo{}),
           <any>CustomAttributeResource.define({ name: 'bar', isTemplateController: true }, class Bar{}),
-          <any>CustomAttributeResource.define({ name: 'baz', isTemplateController: true }, class Baz{})
+          <any>CustomAttributeResource.define({ name: 'baz', isTemplateController: true }, class Baz{}),
+          <any>CustomAttributeResource.define({ name: 'qux', isTemplateController: true }, class Qux{})
         );
 
         const actual = sut.compile(<any>input, resources);
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          throw err;
+        }
+      });
+    });
+  });
+
+  describe('nested template controllers (multiple per element)', () => {
+
+    eachCartesianJoinFactory([
+      <(() => CTCResult)[]>[
+        () => createTemplateController('foo',        'foo',    '',              'div',      false),
+        () => createTemplateController('foo',        'foo',    'bar',           'div',      false),
+        () => createTemplateController('if.bind',    'if',     'show',          'div',      false),
+        () => createTemplateController('if.bind',    'if',     'show',          'template', false),
+        () => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false),
+        () => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false)
+      ],
+      <(($1: CTCResult) => CTCResult)[]>[
+        ([input, output]) => createTemplateController('bar',        'bar',    '',              null,       false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('else',       'else',   '',              null,       false, output.instructions[0][0], input.templateOrNode),
+        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           null,       false, output.instructions[0][0], input.templateOrNode)
+      ],
+      <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('baz',        'baz',    '',              null,       false, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.templateOrNode),
+        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.templateOrNode)
+      ],
+      <(($1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[]>[
+        ($1, $2, [input, output]) => createTemplateController('qux',        'qux',    '',              null,       false, output.instructions[0][0], input.templateOrNode),
+        ($1, $2, [input, output]) => createTemplateController('if.bind',    'if',     '',              'template', false, output.instructions[0][0], input.templateOrNode),
+        ($1, $2, [input, output]) => createTemplateController('if.bind',    'if',     '',              'div',      false, output.instructions[0][0], input.templateOrNode),
+        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.templateOrNode),
+        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.templateOrNode)
+      ],
+      <(($1: CTCResult, $2: CTCResult, $3: CTCResult, $4: CTCResult) => CTCResult)[]>[
+        ($1, $2, $3, [input, output]) => createTemplateController('quux',       'quux',   '',              null,       true, output.instructions[0][0], input.templateOrNode)
+      ]
+    ], ($1, $2, $3, $4, [input, output]) => {
+
+      it(`${input.templateOrNode}`, () => {
+
+        const { sut, resources } = setup(
+          <any>CustomAttributeResource.define({ name: 'foo',  isTemplateController: true }, class Foo{}),
+          <any>CustomAttributeResource.define({ name: 'bar',  isTemplateController: true }, class Bar{}),
+          <any>CustomAttributeResource.define({ name: 'baz',  isTemplateController: true }, class Baz{}),
+          <any>CustomAttributeResource.define({ name: 'qux',  isTemplateController: true }, class Qux{}),
+          <any>CustomAttributeResource.define({ name: 'quux', isTemplateController: true }, class Quux{})
+        );
+
+        const actual = sut.compile(<any>input, resources);
+        try {
+          verifyBindingInstructionsEqual(actual, output);
+        } catch(err) {
+          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });
@@ -792,23 +872,27 @@ describe(`TemplateCompiler - combinations`, () => {
         () => []
       ],
       <((results: CTCResult[]) => void)[]>[
-        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)) }
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              'template', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    'bar',           'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('if.bind',    'if',     'show',          'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', 'div', false)) }
       ],
       <((results: CTCResult[]) => void)[]>[
-        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('if.bind',    'if',     'show',          '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('else',       'else',   '',              '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('with.bind',  'with',   'bar',           '<div>', '</div>',  false)) }
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    'bar',           'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('if.bind',    'if',     'show',          'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('if.bind',    'if',     'show',          'template', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('else',       'else',   '',              'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', 'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('with.bind',  'with',   'bar',           'div', false)) }
       ],
       <((results: CTCResult[]) => void)[]>[
-        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    'bar',           '<div>', '</div>', false)) },
-        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', '<div>', '</div>', false)) }
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    '',              'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('foo',        'foo',    'bar',           'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', 'div', false)) },
+        (results: CTCResult[]) => { results.push(createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false)) }
       ]
     ], ([[input1, output1], [input2, output2], [input3, output3]]) => {
       const input = {
@@ -832,8 +916,8 @@ describe(`TemplateCompiler - combinations`, () => {
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });
@@ -896,8 +980,8 @@ describe(`TemplateCompiler - combinations`, () => {
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });
@@ -934,8 +1018,8 @@ describe(`TemplateCompiler - combinations`, () => {
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch(err) {
-          console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
-          console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
+          //console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
+          //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
           throw err;
         }
       });

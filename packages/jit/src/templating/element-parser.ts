@@ -19,14 +19,22 @@ export const enum NodeType {
   Notation = 12
 }
 
+const marker = DOM.createElement('au-marker') as Element;
+marker.classList.add('au');
+const createMarker: () => HTMLElement = marker.cloneNode.bind(marker, false);
+
 export class ElementSyntax {
   constructor(
     public readonly node: Node,
     public readonly name: string,
     public readonly $content: ElementSyntax | null,
-    public readonly $children: ElementSyntax[],
+    public readonly $children: ReadonlyArray<ElementSyntax>,
     public readonly $attributes: ReadonlyArray<AttrSyntax>) {
     }
+
+  public static createMarker(): ElementSyntax {
+    return new ElementSyntax(createMarker(), 'au-marker', null, PLATFORM.emptyArray, PLATFORM.emptyArray)
+  }
 }
 
 export interface IElementParser {

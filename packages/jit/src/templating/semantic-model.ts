@@ -1,24 +1,66 @@
-import { Immutable, PLATFORM } from '@aurelia/kernel';
-import { BindingMode, CustomAttributeResource, CustomElementResource, IBindableDescription, ICustomAttributeSource, IResourceDescriptions, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
+import { Immutable, IServiceLocator, PLATFORM } from '@aurelia/kernel';
+import { BindingMode, CustomAttributeResource, CustomElementResource, DOM, IBindableDescription, ICustomAttributeSource, IExpressionParser, IResourceDescriptions, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
 import { Char } from '../binding/expression-parser';
 import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { BindingCommandResource, IBindingCommand } from './binding-command';
-import { ElementSyntax, NodeType } from './element-parser';
+import { ElementSyntax, IElementParser, NodeType } from './element-parser';
+import { HydrateTemplateController } from './template-compiler';
 
 export class SemanticModel {
   public readonly isSemanticModel: true = true;
+  public readonly root: ElementSymbol;
+
   private readonly attrDefCache: Record<string, ICustomAttributeSource>;
   private readonly elDefCache: Record<string, ITemplateSource>;
   private readonly commandCache: Record<string, IBindingCommand>;
 
-  constructor(
+  private constructor(
+    definition: ITemplateSource,
+    public resources: IResourceDescriptions,
     public attrParser: IAttributeParser,
-    public syntaxRoot: ElementSyntax,
-    public resources: IResourceDescriptions
+    public elParser: IElementParser,
+    public exprParser: IExpressionParser
   ) {
     this.attrDefCache = {};
     this.elDefCache = {};
     this.commandCache = {};
+    const syntax = this.elParser.parse(definition.templateOrNode);
+    definition.templateOrNode = syntax.node;
+    this.root = new ElementSymbol(
+      /*   semanticModel*/this,
+      /*isDefinitionRoot*/true,
+      /* $definitionRoot*/null,
+      /*         $parent*/null,
+      /*          syntax*/syntax,
+      /*      definition*/definition
+    );
+  }
+
+  public static create(
+    definition: ITemplateSource,
+    resources: IResourceDescriptions,
+    attrParser: IAttributeParser,
+    elParser: IElementParser,
+    exprParser: IExpressionParser): SemanticModel;
+  public static create(
+    definition: ITemplateSource,
+    resources: IResourceDescriptions,
+    locator: IServiceLocator): SemanticModel;
+  public static create(
+    definition: ITemplateSource,
+    resources: IResourceDescriptions,
+    attrParser: IServiceLocator | IAttributeParser,
+    elParser?: IElementParser,
+    exprParser?: IExpressionParser): SemanticModel {
+
+    if ('get' in attrParser) {
+      const locator = attrParser as IServiceLocator;
+      attrParser = locator.get<IAttributeParser>(IAttributeParser);
+      elParser = locator.get<IElementParser>(IElementParser);
+      exprParser = locator.get<IExpressionParser>(IExpressionParser);
+    }
+
+    return new SemanticModel(definition, resources, attrParser, elParser, exprParser);
   }
 
   public getAttributeDefinition(name: string): ICustomAttributeSource {
@@ -59,26 +101,40 @@ export class SemanticModel {
     return new MultiAttributeBindingSymbol(this, parent, syntax, command);
   }
 
-  public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol, definition?: ITemplateSource): ElementSymbol {
+  public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol): ElementSymbol {
     const node = syntax.node as Element;
-    if (definition === undefined && node.nodeType === NodeType.Element) {
+    let definition: ITemplateSource;
+    if (node.nodeType === NodeType.Element) {
       const resourceKey = (node.getAttribute('as-element') || node.nodeName).toLowerCase();
       definition = this.getElementDefinition(resourceKey);
     }
 
-    return new ElementSymbol(this, false, parent.$root, parent, syntax, definition);
+    return new ElementSymbol(
+      /*   semanticModel*/this,
+      /*isDefinitionRoot*/false,
+      /* $definitionRoot*/parent.$root,
+      /*         $parent*/parent,
+      /*          syntax*/syntax,
+      /*      definition*/definition
+    );
   }
 
-  public getElementSymbolRoot(definition: ITemplateSource): ElementSymbol {
-    const $el = new ElementSymbol(this, true, null, null, this.syntaxRoot, definition);
-    $el.definition.templateOrNode = $el.node;
-    return $el;
+  public getTemplateElementSymbol(syntax: ElementSyntax, parent: ElementSymbol, definition: ITemplateSource, definitionRoot: ElementSymbol): ElementSymbol {
+    return new ElementSymbol(
+      /*   semanticModel*/this,
+      /*isDefinitionRoot*/true,
+      /* $definitionRoot*/definitionRoot,
+      /*         $parent*/parent,
+      /*          syntax*/syntax,
+      /*      definition*/definition
+    );
   }
 }
 
 export interface IAttributeSymbol {
   readonly isMultiAttrBinding: boolean;
   readonly target: string;
+  readonly res: string | null;
   readonly rawName: string;
   readonly rawValue: string;
   readonly rawCommand: string;
@@ -101,6 +157,7 @@ export interface IAttributeSymbol {
 export class MultiAttributeBindingSymbol implements IAttributeSymbol {
   public readonly isMultiAttrBinding: boolean = true;
   public readonly target: string;
+  public readonly res: string = null;
   public readonly rawName: string;
   public readonly rawValue: string;
   public readonly rawCommand: string | null;
@@ -265,13 +322,34 @@ export class AttributeSymbol implements IAttributeSymbol {
 export class ElementSymbol {
   public readonly $attributes: ReadonlyArray<AttributeSymbol>;
   public readonly $children: ReadonlyArray<ElementSymbol>;
-  public readonly $content: ElementSymbol = null;
-  public readonly isTemplate: boolean = false;
-  public readonly isSlot: boolean = false;
-  public readonly isLet: boolean = false;
-  public readonly node: Node;
-  public readonly name: string;
-  public readonly isCustomElement: boolean;
+  public readonly $liftedChildren: ReadonlyArray<ElementSymbol>;
+  public get $content(): ElementSymbol {
+    return this._$content;
+  }
+  public get isMarker(): boolean {
+    return this._isMarker;
+  }
+  public get isTemplate(): boolean {
+    return this._isTemplate;
+  }
+  public get isSlot(): boolean {
+    return this._isSlot;
+  }
+  public get isLet(): boolean {
+    return this._isLet;
+  }
+  public get node(): Node {
+    return this._node;
+  }
+  public get syntax(): ElementSyntax {
+    return this._syntax;
+  }
+  public get name(): string {
+    return this._name;
+  }
+  public get isCustomElement(): boolean {
+    return this._isCustomElement;
+  }
   public get nextSibling(): ElementSymbol {
     if (!this.$parent) {
       return null;
@@ -287,30 +365,47 @@ export class ElementSymbol {
   public get firstChild(): ElementSymbol {
     return this.$children[0] || null;
   }
+  public get componentRoot(): ElementSymbol {
+    return this.semanticModel.root;
+  }
+  public get isLifted(): boolean {
+    return this._isLifted;
+  }
+  private _$content: ElementSymbol = null;
+  private _isMarker: boolean = false;
+  private _isTemplate: boolean = false;
+  private _isSlot: boolean = false;
+  private _isLet: boolean = false;
+  private _node: Node;
+  private _syntax: ElementSyntax;
+  private _name: string;
+  private _isCustomElement: boolean;
+  private _isLifted: boolean = false;
 
   constructor(
     public readonly semanticModel: SemanticModel,
     public readonly isRoot: boolean,
     public readonly $root: ElementSymbol,
     public readonly $parent: ElementSymbol,
-    public readonly syntax: ElementSyntax,
+    syntax: ElementSyntax,
     public readonly definition: ITemplateSource | null
   ) {
     this.$root = isRoot ? this : $root;
-    this.node = syntax.node;
-    this.name = this.node.nodeName;
+    this._node = syntax.node;
+    this._syntax = syntax;
+    this._name = this.node.nodeName;
     switch (this.name) {
       case 'TEMPLATE':
-        this.isTemplate = true;
-        this.$content = this.semanticModel.getElementSymbol(syntax.$content, this, definition);
+        this._isTemplate = true;
+        this._$content = this.semanticModel.getTemplateElementSymbol(syntax.$content, this, definition, this);
         break;
       case 'SLOT':
-        this.isSlot = true;
+        this._isSlot = true;
         break;
       case 'LET':
-        this.isLet = true;
+        this._isLet = true;
     }
-    this.isCustomElement = !isRoot && !!definition;
+    this._isCustomElement = !isRoot && !!definition;
 
     const attributes = syntax.$attributes;
     const attrLen = attributes.length;
@@ -341,7 +436,62 @@ export class ElementSymbol {
     (<Element>this.node).classList.add('au');
   }
 
+  public replaceTextNodeWithMarker(): void {
+    const marker = ElementSyntax.createMarker();
+    const node = this.node;
+    node.parentNode.insertBefore(marker.node, node);
+    node.textContent = ' ';
+    while (node.nextSibling && node.nextSibling.nodeType === NodeType.Text) {
+      node.parentNode.removeChild(node.nextSibling);
+    }
+    this.setToMarker(marker);
+  }
+
+  public replaceNodeWithMarker(): void {
+    const marker = ElementSyntax.createMarker();
+    const node = this.node;
+    if (node.parentNode) {
+      node.parentNode.replaceChild(marker.node, node);
+    } else if (this.isTemplate) {
+      (<HTMLTemplateElement>node).content.appendChild(marker.node);
+    }
+    this.setToMarker(marker);
+  }
+
+  public lift(instruction: HydrateTemplateController): ElementSymbol {
+    const template = instruction.src.templateOrNode = DOM.createTemplate() as HTMLTemplateElement;
+    const node = this.node as HTMLTemplateElement;
+    if (this.isTemplate) {
+      // copy remaining attributes over to the newly created template
+      const attributes = node.attributes;
+      while (attributes.length) {
+        const attr = attributes[0];
+        template.setAttribute(attr.name, attr.value);
+        node.removeAttribute(attr.name);
+      }
+      template.content.appendChild(node.content);
+      this.replaceNodeWithMarker();
+    } else {
+      this.replaceNodeWithMarker();
+      template.content.appendChild(node);
+    }
+    this.addInstructions([instruction]);
+    this._isLifted = true;
+    return this.semanticModel.getTemplateElementSymbol(
+      this.semanticModel.elParser.parse(template), this, instruction.src, null
+    );
+  }
+
   public addInstructions(instructions: TargetedInstruction[]): void {
     this.$root.definition.instructions.push(instructions);
+  }
+
+  private setToMarker(marker: ElementSyntax): void {
+    this._$content = null;
+    this._isCustomElement = this._isLet = this._isSlot = this._isTemplate = false;
+    this._isMarker = true;
+    this._name = 'AU-MARKER';
+    this._node = marker.node;
+    this._syntax = marker;
   }
 }

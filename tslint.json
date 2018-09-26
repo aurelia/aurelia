@@ -70,7 +70,7 @@
     "no-increment-decrement": false,
     "no-invalid-regexp": true,
     "no-invalid-template-strings": true,
-    "no-invalid-this": true,
+    "no-invalid-this": false,
     "no-jquery-raw-elements": true,
     "no-misused-new": true,
     "no-non-null-assertion": true,

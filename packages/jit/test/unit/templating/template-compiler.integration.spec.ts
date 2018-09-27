@@ -1,4 +1,4 @@
-import { PropertyAccessor } from './../../../../runtime/src/binding/target-accessors';
+import { PropertyAccessor, ElementPropertyAccessor } from './../../../../runtime/src/binding/target-accessors';
 import { Observer } from './../../../../runtime/src/binding/property-observation';
 import { IContainer, DI, PLATFORM } from '../../../../kernel/src/index';
 import { BasicConfiguration } from '../../../src/index';
@@ -538,7 +538,7 @@ describe('TemplateCompiler (integration)', () => {
     const build = { required: true, compiler: 'default' };
     let boundCalls = 0;
 
-    @customElement({ name: 'foo1', templateOrNode: `<template><foo2 value.bind="value"></foo2></template>`, instructions: [], build })
+    @customElement({ name: 'foo1', templateOrNode: `<template><foo2 value.bind="value"></foo2>\${value}</template>`, instructions: [], build })
     class Foo1 {
       @bindable() public value: any;
       public bound(): void {
@@ -547,7 +547,7 @@ describe('TemplateCompiler (integration)', () => {
       }
     }
 
-    @customElement({ name: 'foo2', templateOrNode: `<template><foo3 value.bind="value"></foo3></template>`, instructions: [], build })
+    @customElement({ name: 'foo2', templateOrNode: `<template><foo3 value.bind="value"></foo3>\${value}</template>`, instructions: [], build })
     class Foo2 {
       @bindable() public value: any;
       public bound(): void {
@@ -556,7 +556,7 @@ describe('TemplateCompiler (integration)', () => {
       }
     }
 
-    @customElement({ name: 'foo3', templateOrNode: `<template><foo4 value.bind="value"></foo4></template>`, instructions: [], build })
+    @customElement({ name: 'foo3', templateOrNode: `<template><foo4 value.bind="value"></foo4>\${value}</template>`, instructions: [], build })
     class Foo3 {
       @bindable() public value: any;
       public bound(): void {
@@ -565,7 +565,7 @@ describe('TemplateCompiler (integration)', () => {
       }
     }
 
-    @customElement({ name: 'foo4', templateOrNode: `<template><foo5 value.bind="value"></foo5></template>`, instructions: [], build })
+    @customElement({ name: 'foo4', templateOrNode: `<template><foo5 value.bind="value"></foo5>\${value}</template>`, instructions: [], build })
     class Foo4 {
       @bindable() public value: any;
       public bound(): void {
@@ -585,7 +585,7 @@ describe('TemplateCompiler (integration)', () => {
 
     const customElementCtors: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
     container.register(...customElementCtors);
-    component = createCustomElement('<template><foo1 value.bind="value"></foo1></template>');
+    component = createCustomElement('<template><foo1 value.bind="value"></foo1>\${value}</template>');
     component.value = 'w00t';
     au.app({ host, component }).start();
 
@@ -597,7 +597,7 @@ describe('TemplateCompiler (integration)', () => {
       const childCtor = customElementCtors[i];
       expect(current.$attachables.length).to.equal(1);
       expect(current.$attachables[0]).to.be.instanceof(childCtor);
-      expect(current.$bindables.length).to.equal(2);
+      expect(current.$bindables.length).to.equal(3);
 
       const binding = current.$bindables[0];
       expect(binding).to.be.instanceof(Binding);
@@ -610,15 +610,25 @@ describe('TemplateCompiler (integration)', () => {
       expect(binding.targetObserver).to.be.instanceof(PropertyAccessor);
 
       expect(current.$bindables[1]).to.be.instanceof(childCtor);
+      expect(current.$bindables[2]).to.be.instanceof(Binding);
+      expect(current.$bindables[2].target.nodeName).to.equal('#text');
+      expect(current.$bindables[2].targetObserver).to.be.instanceof(ElementPropertyAccessor);
       current = current.$bindables[1];
       i++;
     }
 
     expect(current).to.be.instanceof(Foo5);
     expect(current.value).to.equal('w00t');
-
-    expect(host.textContent).to.equal(' ');
+    expect(host.textContent).to.equal('      ');
+    expect(cs.size).to.equal(6);
+    const changes = cs.toArray();
+    expect(changes[0]).to.be.instanceof(ElementPropertyAccessor);
+    expect(changes[1]).to.be.instanceof(ElementPropertyAccessor);
+    expect(changes[2]).to.be.instanceof(ElementPropertyAccessor);
+    expect(changes[3]).to.be.instanceof(ElementPropertyAccessor);
+    expect(changes[4]).to.be.instanceof(ElementPropertyAccessor);
+    expect(changes[5]).to.be.instanceof(ElementPropertyAccessor);
     cs.flushChanges();
-    expect(host.textContent).to.equal('w00t');
+    expect(host.textContent).to.equal('w00tw00tw00tw00tw00tw00t');
   });
 });

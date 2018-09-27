@@ -161,11 +161,11 @@ describe('SetterObserver', () => {
 
 describe('Observer', () => {
 
-  it('use identity function as default callback', () => {
+  it('use noop function as default callback', () => {
     const values = createObjectArr();
     values.forEach(value => {
       const observer = new Observer({}, 'a', 'aChanged');
-      expect(observer['callback'](value, undefined)).to.equal(value);
+      expect(observer['callback'](value, undefined)).to.be.undefined;
     });
   });
 });

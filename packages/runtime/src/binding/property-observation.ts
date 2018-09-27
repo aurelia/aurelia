@@ -85,8 +85,6 @@ export class SetterObserver implements SetterObserver {
 // tslint:disable-next-line:interface-name
 export interface Observer extends IPropertyObserver<IIndexable, string> {}
 
-function identity(newValue: any): any { return newValue; }
-
 @propertyObserver()
 export class Observer implements Observer {
   public obj: IIndexable;
@@ -105,7 +103,7 @@ export class Observer implements Observer {
       this.currentValue = instance[propertyName];
       this.callback = callbackName in instance
         ? instance[callbackName].bind(instance)
-        : identity;
+        : noop;
   }
 
   public getValue(): IIndexable | Primitive {

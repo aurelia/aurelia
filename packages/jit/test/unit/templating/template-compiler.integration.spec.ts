@@ -536,18 +536,60 @@ describe('TemplateCompiler (integration)', () => {
 
   it('initial values propagate through multiple nested custom elements connected via bindables', () => {
     const build = { required: true, compiler: 'default' };
+    let boundCalls = 0;
 
-    @customElement({ name: 'foo1', templateOrNode: `<template><foo2 value.bind="value"></foo2></template>`, instructions: [], build })class Foo1 { @bindable() public value: any; }
-    @customElement({ name: 'foo2', templateOrNode: `<template><foo3 value.bind="value"></foo3></template>`, instructions: [], build })class Foo2 { @bindable() public value: any; }
-    @customElement({ name: 'foo3', templateOrNode: `<template><foo4 value.bind="value"></foo4></template>`, instructions: [], build })class Foo3 { @bindable() public value: any; }
-    @customElement({ name: 'foo4', templateOrNode: `<template><foo5 value.bind="value"></foo5></template>`, instructions: [], build })class Foo4 { @bindable() public value: any; }
-    @customElement({ name: 'foo5', templateOrNode: `<template>\${value}</template>`, instructions: [], build })class Foo5 { @bindable() public value: any; }
+    @customElement({ name: 'foo1', templateOrNode: `<template><foo2 value.bind="value"></foo2></template>`, instructions: [], build })
+    class Foo1 {
+      @bindable() public value: any;
+      public bound(): void {
+        expect(this.value).to.equal('w00t');
+        boundCalls++;
+      }
+    }
+
+    @customElement({ name: 'foo2', templateOrNode: `<template><foo3 value.bind="value"></foo3></template>`, instructions: [], build })
+    class Foo2 {
+      @bindable() public value: any;
+      public bound(): void {
+        expect(this.value).to.equal('w00t');
+        boundCalls++;
+      }
+    }
+
+    @customElement({ name: 'foo3', templateOrNode: `<template><foo4 value.bind="value"></foo4></template>`, instructions: [], build })
+    class Foo3 {
+      @bindable() public value: any;
+      public bound(): void {
+        expect(this.value).to.equal('w00t');
+        boundCalls++;
+      }
+    }
+
+    @customElement({ name: 'foo4', templateOrNode: `<template><foo5 value.bind="value"></foo5></template>`, instructions: [], build })
+    class Foo4 {
+      @bindable() public value: any;
+      public bound(): void {
+        expect(this.value).to.equal('w00t');
+        boundCalls++;
+      }
+    }
+
+    @customElement({ name: 'foo5', templateOrNode: `<template>\${value}</template>`, instructions: [], build })
+    class Foo5 {
+      @bindable() public value: any;
+      public bound(): void {
+        expect(this.value).to.equal('w00t');
+        boundCalls++;
+      }
+    }
 
     const customElementCtors: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
     container.register(...customElementCtors);
     component = createCustomElement('<template><foo1 value.bind="value"></foo1></template>');
     component.value = 'w00t';
     au.app({ host, component }).start();
+
+    expect(boundCalls).to.equal(5);
 
     let i = 0;
     let current = component;

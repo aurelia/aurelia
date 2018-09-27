@@ -1,4 +1,4 @@
-import { Immutable } from '@aurelia/kernel';
+import { Immutable, Reporter } from '@aurelia/kernel';
 import { Binding } from '../binding/binding';
 import { BindingMode } from '../binding/binding-mode';
 import { Call } from '../binding/call';
@@ -55,6 +55,13 @@ export class Renderer implements IRenderer {
   public render(renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     const targetInstructions = definition.instructions;
 
+    if (targets.length !== targetInstructions.length) {
+      if (targets.length > targetInstructions.length) {
+        throw Reporter.error(30);
+      } else {
+        throw Reporter.error(31);
+      }
+    }
     for (let i = 0, ii = targets.length; i < ii; ++i) {
       const instructions = targetInstructions[i];
       const target = targets[i];

@@ -102,10 +102,6 @@ const codeLookup: Record<string, IMessageInfo> = {
     type: MessageType.error,
     message: 'Signal name is required.'
   },
-  13: {
-    type: MessageType.error,
-    message: 'TaskQueue long stack traces are only available in debug mode.'
-  },
   14: {
     type: MessageType.error,
     message: 'Property cannot be assigned.'
@@ -141,5 +137,13 @@ const codeLookup: Record<string, IMessageInfo> = {
   22: {
     type: MessageType.error,
     message: 'A containerless custom element cannot be the root component of an application.'
+  },
+  30: {
+    type: MessageType.error,
+    message: 'There are more targets than there are target instructions.'
+  },
+  31: {
+    type: MessageType.error,
+    message: 'There are more target instructions than there are targets.'
   }
 };

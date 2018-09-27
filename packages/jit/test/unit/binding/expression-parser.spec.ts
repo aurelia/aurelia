@@ -6,7 +6,7 @@ import { AccessKeyed, AccessMember, AccessScope, AccessThis,
 import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
 import { expect } from 'chai';
 import { DI } from '../../../../kernel/src';
-import { register } from '../../../../jit/src'
+import { ParserRegistration } from '../../../../jit/src'
 import { verifyEqual } from '../util';
 
 /* eslint-disable no-loop-func, no-floating-decimal, key-spacing, new-cap, quotes, comma-spacing */
@@ -51,7 +51,7 @@ describe('ExpressionParser', () => {
 
   beforeEach(() => {
     const container = DI.createContainer();
-    register(container);
+    container.register(ParserRegistration);
     parser = container.get(IExpressionParser);
   });
 

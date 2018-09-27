@@ -1,6 +1,6 @@
 import { IContainer, DI, PLATFORM } from '../../../../kernel/src/index';
 import { BasicConfiguration } from '../../../src/index';
-import { Aurelia, IChangeSet, CustomElementResource, valueConverter, customElement, bindable } from '../../../../runtime/src/index';
+import { Aurelia, IChangeSet, CustomElementResource, valueConverter, customElement, bindable, SetterObserver, Binding } from '../../../../runtime/src/index';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { eachCartesianJoinFactory } from '../util';
@@ -530,5 +530,37 @@ describe('TemplateCompiler (integration)', () => {
     expect(component.fullName).to.equal('bi go');
     cs.flushChanges();
     expect(host.textContent).to.equal('bi go');
+  });
+
+  it('initial values propagate through multiple nested custom elements connected via bindables', () => {
+    const build = { required: true, compiler: 'default' };
+
+    @customElement({ name: 'foo1', templateOrNode: `<template><foo2 value.bind="value"></foo2></template>`, instructions: [], build })class Foo1 { @bindable() public value: any; }
+    @customElement({ name: 'foo2', templateOrNode: `<template><foo3 value.bind="value"></foo3></template>`, instructions: [], build })class Foo2 { @bindable() public value: any; }
+    @customElement({ name: 'foo3', templateOrNode: `<template><foo4 value.bind="value"></foo4></template>`, instructions: [], build })class Foo3 { @bindable() public value: any; }
+    @customElement({ name: 'foo4', templateOrNode: `<template><foo5 value.bind="value"></foo5></template>`, instructions: [], build })class Foo4 { @bindable() public value: any; }
+    @customElement({ name: 'foo5', templateOrNode: `<template>\${value}</template>`, instructions: [], build })class Foo5 { @bindable() public value: any; }
+
+    const customElementCtors: any[] = [Foo1, Foo2, Foo3, Foo4, Foo5];
+    container.register(...customElementCtors);
+    component = createCustomElement('<template><foo1 value.bind="value"></foo1></template>');
+    component.value = 'w00t';
+    au.app({ host, component }).start();
+
+    let i = 0;
+    let current = component;
+    while (i < 5) {
+      const childCtor = customElementCtors[i];
+      expect(current.$attachables.length).to.equal(1);
+      expect(current.$attachables[0]).to.be.instanceof(childCtor);
+      expect(current.$bindables.length).to.equal(2);
+      expect(current.$bindables[0]).to.be.instanceof(Binding);
+      expect(current.$bindables[1]).to.be.instanceof(childCtor);
+      current = current.$bindables[1];
+      i++;
+    }
+
+    expect(current).to.be.instanceof(Foo5);
+    expect(current.value).to.equal('w00t');
   });
 });

@@ -538,47 +538,89 @@ describe('TemplateCompiler (integration)', () => {
     const build = { required: true, compiler: 'default' };
     let boundCalls = 0;
 
-    @customElement({ name: 'foo1', templateOrNode: `<template><foo2 value.bind="value"></foo2>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo1', templateOrNode: `<template><foo2 value.bind="value" value2.bind="value1"></foo2>\${value}</template>`, instructions: [], build })
     class Foo1 {
-      @bindable() public value: any;
+      @bindable()
+      public value: any;
+      public value1: any;
+      private valueChanged(newValue: any): void {
+        this.value1 = newValue+'1';
+      }
       public bound(): void {
         expect(this.value).to.equal('w00t');
+        expect(this.value1).to.equal('w00t1');
         boundCalls++;
       }
     }
 
-    @customElement({ name: 'foo2', templateOrNode: `<template><foo3 value.bind="value"></foo3>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo2', templateOrNode: `<template><foo3 value.bind="value" value2.bind="value2"></foo3>\${value}</template>`, instructions: [], build })
     class Foo2 {
-      @bindable() public value: any;
+      @bindable()
+      public value: any;
+      public value1: any;
+      private valueChanged(newValue: any): void {
+        this.value1 = newValue+'1';
+      }
+      @bindable()
+      public value2: any;
       public bound(): void {
         expect(this.value).to.equal('w00t');
+        expect(this.value1).to.equal('w00t1');
+        expect(this.value2).to.equal('w00t1');
         boundCalls++;
       }
     }
 
-    @customElement({ name: 'foo3', templateOrNode: `<template><foo4 value.bind="value"></foo4>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo3', templateOrNode: `<template><foo4 value.bind="value" value2.bind="value2"></foo4>\${value}</template>`, instructions: [], build })
     class Foo3 {
-      @bindable() public value: any;
+      @bindable()
+      public value: any;
+      public value1: any;
+      @bindable()
+      public value2: any;
+      private valueChanged(newValue: any): void {
+        this.value1 = newValue+'1';
+      }
       public bound(): void {
         expect(this.value).to.equal('w00t');
+        expect(this.value1).to.equal('w00t1');
+        expect(this.value2).to.equal('w00t1');
         boundCalls++;
       }
     }
 
-    @customElement({ name: 'foo4', templateOrNode: `<template><foo5 value.bind="value"></foo5>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo4', templateOrNode: `<template><foo5 value.bind="value" value2.bind="value2"></foo5>\${value}</template>`, instructions: [], build })
     class Foo4 {
-      @bindable() public value: any;
+      @bindable()
+      public value: any;
+      public value1: any;
+      @bindable()
+      public value2: any;
+      private valueChanged(newValue: any): void {
+        this.value1 = newValue+'1';
+      }
       public bound(): void {
         expect(this.value).to.equal('w00t');
+        expect(this.value1).to.equal('w00t1');
+        expect(this.value2).to.equal('w00t1');
         boundCalls++;
       }
     }
 
     @customElement({ name: 'foo5', templateOrNode: `<template>\${value}</template>`, instructions: [], build })
     class Foo5 {
-      @bindable() public value: any;
+      @bindable()
+      public value: any;
+      public value1: any;
+      @bindable()
+      public value2: any;
+      private valueChanged(newValue: any): void {
+        this.value1 = newValue+'1';
+      }
       public bound(): void {
         expect(this.value).to.equal('w00t');
+        expect(this.value1).to.equal('w00t1');
+        expect(this.value2).to.equal('w00t1');
         boundCalls++;
       }
     }
@@ -597,29 +639,65 @@ describe('TemplateCompiler (integration)', () => {
       const childCtor = customElementCtors[i];
       expect(current.$attachables.length).to.equal(1);
       expect(current.$attachables[0]).to.be.instanceof(childCtor);
-      expect(current.$bindables.length).to.equal(3);
 
-      const binding = current.$bindables[0];
-      expect(binding).to.be.instanceof(Binding);
-      if (i === 0) { // root component
-        expect(binding._observer0).be.instanceof(SetterObserver);
-      } else { // foo #
-        expect(binding._observer0).be.instanceof(Observer);
+      switch (i) {
+        case 0: // root component -> foo1
+          expect(current.$bindables.length).to.equal(3);
+          expect(current.$bindables[0]).to.be.instanceof(Binding);
+          expect(current.$bindables[0]._observer0).be.instanceof(SetterObserver);
+          expect(current.$bindables[0]._observer1).to.be.undefined;
+          expect(current.$bindables[0].targetObserver).to.be.instanceof(PropertyAccessor);
+
+          expect(current.$bindables[1]).to.be.instanceof(childCtor);
+
+          expect(current.$bindables[2]).to.be.instanceof(Binding);
+          expect(current.$bindables[2].target.nodeName).to.equal('#text');
+          expect(current.$bindables[2].targetObserver).to.be.instanceof(ElementPropertyAccessor);
+          current = current.$bindables[1];
+          break;
+        case 1: // foo1 -> foo2
+          expect(current.$bindables.length).to.equal(4);
+          expect(current.$bindables[0]).to.be.instanceof(Binding);
+          expect(current.$bindables[0]._observer0).be.instanceof(Observer);
+          expect(current.$bindables[0]._observer1).to.be.undefined;
+          expect(current.$bindables[0].targetObserver).to.be.instanceof(PropertyAccessor);
+
+          expect(current.$bindables[1]).to.be.instanceof(Binding);
+          expect(current.$bindables[1]._observer0).be.instanceof(SetterObserver);
+          expect(current.$bindables[1]._observer1).to.be.undefined;
+          expect(current.$bindables[1].targetObserver).to.be.instanceof(PropertyAccessor);
+
+          expect(current.$bindables[2]).to.be.instanceof(childCtor);
+          expect(current.$bindables[3]).to.be.instanceof(Binding);
+          expect(current.$bindables[3].target.nodeName).to.equal('#text');
+          expect(current.$bindables[3].targetObserver).to.be.instanceof(ElementPropertyAccessor);
+          current = current.$bindables[2];
+          break;
+        case 2:
+        case 3:
+        case 4: // foo2 -> foo3-5
+          expect(current.$bindables.length).to.equal(4);
+          expect(current.$bindables[0]).to.be.instanceof(Binding);
+          expect(current.$bindables[0]._observer0).be.instanceof(Observer);
+          expect(current.$bindables[0]._observer1).to.be.undefined;
+          expect(current.$bindables[0].targetObserver).to.be.instanceof(PropertyAccessor);
+
+          expect(current.$bindables[1]).to.be.instanceof(Binding);
+          expect(current.$bindables[1]._observer0).be.instanceof(Observer);
+          expect(current.$bindables[1]._observer1).to.be.undefined;
+          expect(current.$bindables[1].targetObserver).to.be.instanceof(PropertyAccessor);
+
+          expect(current.$bindables[2]).to.be.instanceof(childCtor);
+          expect(current.$bindables[3]).to.be.instanceof(Binding);
+          expect(current.$bindables[3].target.nodeName).to.equal('#text');
+          expect(current.$bindables[3].targetObserver).to.be.instanceof(ElementPropertyAccessor);
+          current = current.$bindables[2];
       }
-      expect(binding._observer1).to.be.undefined;
-      expect(binding.targetObserver).to.be.instanceof(PropertyAccessor);
 
-      expect(current.$bindables[1]).to.be.instanceof(childCtor);
-      expect(current.$bindables[2]).to.be.instanceof(Binding);
-      expect(current.$bindables[2].target.nodeName).to.equal('#text');
-      expect(current.$bindables[2].targetObserver).to.be.instanceof(ElementPropertyAccessor);
-      current = current.$bindables[1];
       i++;
     }
 
-    expect(current).to.be.instanceof(Foo5);
-    expect(current.value).to.equal('w00t');
-    expect(host.textContent).to.equal('      ');
+    expect(host.textContent).to.equal(' '.repeat(6));
     expect(cs.size).to.equal(6);
     const changes = cs.toArray();
     expect(changes[0]).to.be.instanceof(ElementPropertyAccessor);
@@ -628,7 +706,13 @@ describe('TemplateCompiler (integration)', () => {
     expect(changes[3]).to.be.instanceof(ElementPropertyAccessor);
     expect(changes[4]).to.be.instanceof(ElementPropertyAccessor);
     expect(changes[5]).to.be.instanceof(ElementPropertyAccessor);
+
+    component.value = 'w00t00t';
+    expect(current.value).to.equal('w00t00t');
+    expect(host.textContent).to.equal(' '.repeat(6));
+    expect(cs.size).to.equal(6);
+
     cs.flushChanges();
-    expect(host.textContent).to.equal('w00tw00tw00tw00tw00tw00t');
+    expect(host.textContent).to.equal('w00t00t'.repeat(6));
   });
 });

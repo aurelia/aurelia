@@ -63,7 +63,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     switch (node.nodeType) {
       case NodeType.Element:
         if ($el.isSlot) {
-          $el.$parent.definition.hasSlots = true;
+          $el.$root.definition.hasSlots = true;
         } else if ($el.isLet) {
           this.compileLetElement($el);
         } else if ($el.isCustomElement) {

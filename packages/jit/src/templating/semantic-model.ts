@@ -397,7 +397,7 @@ export class ElementSymbol {
     switch (this.name) {
       case 'TEMPLATE':
         this._isTemplate = true;
-        this._$content = this.semanticModel.getTemplateElementSymbol(syntax.$content, this, definition, this);
+        this._$content = this.semanticModel.getElementSymbol(syntax.$content, this);
         break;
       case 'SLOT':
         this._isSlot = true;

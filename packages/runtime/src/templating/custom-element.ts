@@ -7,7 +7,6 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
-import { ChangeSet } from '../binding';
 import { BindingContext } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { DOM, INode, INodeSequence, IRenderLocation } from '../dom';
@@ -191,10 +190,6 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   }
 
   this.$isBound = true;
-  // On application startup, changes shouldn't be delayed
-  if (flags & BindingFlags.fromStartTask) {
-    (this.$context.get(ChangeSet) as ChangeSet).flushChanges();
-  }
 
   if (behavior.hasBound) {
     (this as any).bound(flags | BindingFlags.fromBind);

@@ -1,3 +1,5 @@
+import { PropertyAccessor } from './../../../../runtime/src/binding/target-accessors';
+import { Observer } from './../../../../runtime/src/binding/property-observation';
 import { IContainer, DI, PLATFORM } from '../../../../kernel/src/index';
 import { BasicConfiguration } from '../../../src/index';
 import { Aurelia, IChangeSet, CustomElementResource, valueConverter, customElement, bindable, SetterObserver, Binding } from '../../../../runtime/src/index';
@@ -554,7 +556,17 @@ describe('TemplateCompiler (integration)', () => {
       expect(current.$attachables.length).to.equal(1);
       expect(current.$attachables[0]).to.be.instanceof(childCtor);
       expect(current.$bindables.length).to.equal(2);
-      expect(current.$bindables[0]).to.be.instanceof(Binding);
+
+      const binding = current.$bindables[0];
+      expect(binding).to.be.instanceof(Binding);
+      if (i === 0) { // root component
+        expect(binding._observer0).be.instanceof(SetterObserver);
+      } else { // foo #
+        expect(binding._observer0).be.instanceof(Observer);
+      }
+      expect(binding._observer1).to.be.undefined;
+      expect(binding.targetObserver).to.be.instanceof(PropertyAccessor);
+
       expect(current.$bindables[1]).to.be.instanceof(childCtor);
       current = current.$bindables[1];
       i++;
@@ -562,5 +574,9 @@ describe('TemplateCompiler (integration)', () => {
 
     expect(current).to.be.instanceof(Foo5);
     expect(current.value).to.equal('w00t');
+
+    expect(host.textContent).to.equal(' ');
+    cs.flushChanges();
+    expect(host.textContent).to.equal('w00t');
   });
 });

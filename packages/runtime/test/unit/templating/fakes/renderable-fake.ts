@@ -4,18 +4,11 @@ import {
   IAttach,
   IScope,
   IRenderable,
-  INodeSequence,
-  BindingFlags
+  INodeSequence
 } from "../../../../src/index";
 
 export class RenderableFake implements IRenderable {
   $isAttached: boolean;
-
-  $addChild(child: IBindScope | IAttach, flags: BindingFlags): void {
-  }
-
-  $removeChild(child: IBindScope | IAttach): void {
-  }
 
   $context: IRenderContext;
   $nodes: INodeSequence;
@@ -24,6 +17,9 @@ export class RenderableFake implements IRenderable {
 
   $bindables: IBindScope[];
   $attachables: IAttach[];
+
+  $addNodes() {}
+  $removeNodes() {}
 
   constructor() {
     this.$bindables = [];

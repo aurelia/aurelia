@@ -14,13 +14,16 @@ import { BindableDefinitions } from './instructions';
 
 export interface IRuntimeBehavior {
   readonly hasCreated: boolean;
+  readonly hasBinding: boolean;
   readonly hasBound: boolean;
   readonly hasAttaching: boolean;
   readonly hasAttached: boolean;
   readonly hasDetaching: boolean;
   readonly hasDetached: boolean;
+  readonly hasUnbinding: boolean;
   readonly hasUnbound: boolean;
   readonly hasRender: boolean;
+  readonly hasCaching: boolean;
 }
 
 /** @internal */
@@ -28,13 +31,16 @@ export class RuntimeBehavior implements IRuntimeBehavior {
   public bindables: BindableDefinitions;
 
   public hasCreated: boolean = false;
+  public hasBinding: boolean = false;
   public hasBound: boolean = false;
   public hasAttaching: boolean = false;
   public hasAttached: boolean = false;
   public hasDetaching: boolean = false;
   public hasDetached: boolean = false;
+  public hasUnbinding: boolean = false;
   public hasUnbound: boolean = false;
   public hasRender: boolean = false;
+  public hasCaching: boolean = false;
 
   private constructor() {}
 
@@ -43,13 +49,16 @@ export class RuntimeBehavior implements IRuntimeBehavior {
 
     behavior.bindables = Component.description.bindables;
     behavior.hasCreated = 'created' in instance;
+    behavior.hasBinding = 'binding' in instance;
     behavior.hasBound = 'bound' in instance;
     behavior.hasAttaching = 'attaching' in instance;
     behavior.hasAttached = 'attached' in instance;
     behavior.hasDetaching = 'detaching' in instance;
     behavior.hasDetached = 'detached' in instance;
+    behavior.hasUnbinding = 'unbinding' in instance;
     behavior.hasUnbound = 'unbound' in instance;
     behavior.hasRender = 'render' in instance;
+    behavior.hasCaching = 'caching' in instance;
 
     return behavior;
   }
@@ -129,7 +138,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   public getValue(): ICustomElement[] {
     if (!this.observing) {
       this.observing = true;
-      this.customElement.$projector.onChildrenChanged(() => this.onChildrenChanged());
+      this.customElement.$projector.subscribeToChildrenChange(() => this.onChildrenChanged());
       this.children = findElements(this.customElement.$projector.children);
     }
 

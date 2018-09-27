@@ -29,8 +29,11 @@
     "Constructable",
     "Injectable",
     "Renderable",
+    "Unbindable",
     "attachables",
     "bindables",
-    "containerless"
+    "containerless",
+    "renderables",
+    "requestor's"
   ]
 }

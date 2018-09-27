@@ -1,11 +1,11 @@
 import {
   Constructable,
   IContainer,
+  Immutable,
   Omit,
   PLATFORM,
   Registration,
-  Writable,
-  Immutable
+  Writable
 } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
@@ -14,7 +14,7 @@ import { IBindScope } from '../binding/observation';
 import { INode } from '../dom';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
-import { AttachLifecycle, DetachLifecycle, IAttach } from './lifecycle';
+import { IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
@@ -38,7 +38,6 @@ export interface ICustomAttribute extends IBindScope, IAttach {
 /*@internal*/
 export interface IInternalCustomAttributeImplementation extends Writable<ICustomAttribute> {
   $behavior: IRuntimeBehavior;
-  $child: IAttach;
 }
 
 
@@ -101,6 +100,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
     proto.$attach = attach;
     proto.$detach = detach;
     proto.$unbind = unbind;
+    proto.$cache = cache;
 
     return Type;
   }
@@ -122,7 +122,6 @@ function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: 
   this.$isAttached = false;
   this.$isBound = false;
   this.$scope = null;
-  this.$child = this.$child || null;
 
   renderingEngine.applyRuntimeBehavior(
     this.constructor as ICustomAttributeType,
@@ -143,16 +142,28 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
     this.$unbind(flags | BindingFlags.fromBind);
   }
 
+  const behavior = this.$behavior;
   this.$scope = scope;
+
+  if (behavior.hasBinding) {
+    (this as any).binding(flags | BindingFlags.fromBind);
+  }
+
   this.$isBound = true;
 
-  if (this.$behavior.hasBound) {
+  if (behavior.hasBound) {
     (this as any).bound(flags | BindingFlags.fromBind, scope);
   }
 }
 
 function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlags): void {
   if (this.$isBound) {
+    const behavior = this.$behavior;
+
+    if (behavior.hasUnbinding) {
+      (this as any).unbinding(flags | BindingFlags.fromUnbind);
+    }
+
     this.$isBound = false;
 
     if (this.$behavior.hasUnbound) {
@@ -161,41 +172,39 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
   }
 }
 
-function attach(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: AttachLifecycle): void {
+function attach(this: IInternalCustomAttributeImplementation, encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
   if (this.$isAttached) {
     return;
   }
 
   if (this.$behavior.hasAttaching) {
-    (this as any).attaching(encapsulationSource);
-  }
-
-  if (this.$child !== null) {
-    this.$child.$attach(encapsulationSource, lifecycle);
+    (this as any).attaching(encapsulationSource, lifecycle);
   }
 
   this.$isAttached = true;
 
   if (this.$behavior.hasAttached) {
-    lifecycle.queueAttachedCallback(this);
+    lifecycle.queueAttachedCallback(this as any);
   }
 }
 
-function detach(this: IInternalCustomAttributeImplementation, lifecycle: DetachLifecycle): void {
+function detach(this: IInternalCustomAttributeImplementation, lifecycle: IDetachLifecycle): void {
   if (this.$isAttached) {
     if (this.$behavior.hasDetaching) {
-      (this as any).detaching();
-    }
-
-    if (this.$child !== null) {
-      this.$child.$detach(lifecycle);
+      (this as any).detaching(lifecycle);
     }
 
     this.$isAttached = false;
 
     if (this.$behavior.hasDetached) {
-      lifecycle.queueDetachedCallback(this);
+      lifecycle.queueDetachedCallback(this as any);
     }
+  }
+}
+
+function cache(this: IInternalCustomAttributeImplementation): void {
+  if (this.$behavior.hasCaching) {
+    (this as any).caching();
   }
 }
 

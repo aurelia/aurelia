@@ -1,90 +1,83 @@
 import { inject } from '@aurelia/kernel';
-import { BindingFlags } from '../../binding';
+import { BindingFlags } from '../../binding/binding-flags';
 import { DOM, INode, IRenderLocation } from '../../dom';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
 import { IView, IViewFactory } from '../view';
+import { CompositionCoordinator } from './composition-coordinator';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')
 @inject(IViewFactory, IRenderLocation)
 export class If {
   @bindable public value: boolean = false;
-  public elseFactory: IViewFactory;
 
-  private ifView: IView;
-  private elseView: IView;
+  public elseFactory: IViewFactory = null;
 
-  private $child: IView;
-  private encapsulationSource: INode;
+  private ifView: IView = null;
+  private elseView: IView = null;
+  private coordinator: CompositionCoordinator;
 
-  constructor(public ifFactory: IViewFactory, private location: IRenderLocation) {}
-
-  public bound(): void {
-    this.update(this.value, BindingFlags.fromBind);
+  constructor(public ifFactory: IViewFactory, private location: IRenderLocation) {
+    this.coordinator = new CompositionCoordinator();
   }
 
-  public attaching(encapsulationSource: INode): void {
-    this.encapsulationSource = encapsulationSource;
+  public binding(flags: BindingFlags): void {
+    this.updateView();
+    this.coordinator.binding(flags, this.$scope);
   }
 
-  public unbound(): void {
-    if (this.$child) {
-      this.$child.$unbind(BindingFlags.fromUnbind);
-      this.$child = null;
-    }
+  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+    this.coordinator.attaching(encapsulationSource, lifecycle);
   }
 
-  public valueChanged(newValue: any): void {
-    this.update(newValue, BindingFlags.fromBindableHandler);
+  public detaching(lifecycle: IDetachLifecycle): void {
+    this.coordinator.detaching(lifecycle);
   }
 
-  private update(shouldRenderTrueBranch: boolean, flags: BindingFlags): void {
-    if (shouldRenderTrueBranch) {
-      this.activateBranch('if', flags);
-    } else if (this.elseFactory) {
-      this.activateBranch('else', flags);
-    } else if (this.$child) {
-      this.deactivateCurrentBranch(flags);
-    }
+  public unbinding(flags: BindingFlags): void {
+    this.coordinator.unbinding(flags);
   }
 
-  private activateBranch(name: 'if' | 'else', flags: BindingFlags): void {
-    const branchView = this.ensureViewCreated(name);
-
-    if (this.$child) {
-      if (this.$child === branchView) {
-        return;
-      }
-
-      this.deactivateCurrentBranch(flags);
+  public caching(): void {
+    if (this.ifView !== null && this.ifView.release()) {
+      this.ifView = null;
     }
 
-    this.$child = branchView;
-    branchView.$bind(flags, this.$scope);
-
-    if (this.$isAttached) {
-      branchView.$attach(this.encapsulationSource);
-    }
-  }
-
-  private ensureViewCreated(name: 'if' | 'else'): IView {
-    const viewPropertyName = `${name}View`;
-    let branchView = this[viewPropertyName] as IView;
-
-    if (!branchView) {
-      this[viewPropertyName] = branchView
-        = (this[`${name}Factory`] as IViewFactory).create();
-      branchView.onRender = view => view.$nodes.insertBefore(this.location);
+    if (this.elseView !== null && this.elseView.release()) {
+      this.elseView = null;
     }
 
-    return branchView;
+    this.coordinator.caching();
   }
 
-  private deactivateCurrentBranch(flags: BindingFlags): void {
-    this.$child.$detach();
-    this.$child.$unbind(flags);
-    this.$child = null;
+  public valueChanged(): void {
+    this.updateView();
+  }
+
+  private updateView(): void {
+    let view: IView;
+
+    if (this.value) {
+      view = this.ifView = this.ensureView(this.ifView, this.ifFactory);
+    } else if (this.elseFactory !== null) {
+      view = this.elseView  = this.ensureView(this.elseView, this.elseFactory);
+    } else {
+      view = null;
+    }
+
+    this.coordinator.compose(view);
+  }
+
+  private ensureView(view: IView, factory: IViewFactory): IView {
+    if (view === null) {
+      view = factory.create();
+    }
+
+    view.mount(this.location);
+
+    return view;
   }
 }
 

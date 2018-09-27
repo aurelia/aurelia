@@ -4,6 +4,7 @@ import { BindingFlags } from '../../binding/binding-flags';
 import { IRenderLocation } from '../../dom';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
+import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
 import { IView, IViewFactory } from '../view';
 
 export interface With extends ICustomAttribute {}
@@ -12,27 +13,35 @@ export interface With extends ICustomAttribute {}
 export class With {
   @bindable public value: any = null;
 
-  private $child: IView = null;
+  private currentView: IView = null;
 
   constructor(private factory: IViewFactory, location: IRenderLocation) {
-    this.$child = this.factory.create();
-    this.$child.onRender = view => view.$nodes.insertBefore(location);
+    this.currentView = this.factory.create();
+    this.currentView.mount(location);
   }
 
   public valueChanged(): void {
     this.bindChild(BindingFlags.fromBindableHandler);
   }
 
-  public bound(flags: BindingFlags): void {
+  public binding(flags: BindingFlags): void {
     this.bindChild(flags);
   }
 
-  public unbound(flags: BindingFlags): void {
-    this.$child.$unbind(flags);
+  public attaching(encapsulationSource: any, lifecycle: IAttachLifecycle): void {
+    this.currentView.$attach(encapsulationSource, lifecycle);
+  }
+
+  public detaching(lifecycle: IDetachLifecycle): void {
+    this.currentView.$detach(lifecycle);
+  }
+
+  public unbinding(flags: BindingFlags): void {
+    this.currentView.$unbind(flags);
   }
 
   private bindChild(flags: BindingFlags): void {
-    this.$child.$bind(
+    this.currentView.$bind(
       flags,
       BindingContext.createScopeFromParent(this.$scope, this.value)
     );

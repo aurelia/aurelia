@@ -1,17 +1,17 @@
 import {
   IView,
   IViewFactory,
-  RenderCallback,
   BindingFlags,
   IScope,
   INode,
-  AttachLifecycle,
-  DetachLifecycle,
   IRenderContext,
   IBindScope,
   IAttach,
   DOM,
-  INodeSequence
+  INodeSequence,
+  IRenderLocation,
+  IDetachLifecycle,
+  IAttachLifecycle
 } from "../../../../src/index";
 
 export class ViewFake implements IView {
@@ -28,12 +28,32 @@ export class ViewFake implements IView {
   $removeChild(child: IBindScope | IAttach): void {
   }
 
+  $addNodes() {
+    this.$nodes.insertBefore(this.location);
+  }
+
+  $removeNodes() {
+    this.mountRequired = true;
+    this.$nodes.remove();
+  }
+
+  $cache() {}
+
+  mount(location: IRenderLocation): void {
+    this.mountRequired = true;
+    this.location = location;
+  }
+
+  release() {
+    return this.isFree = true;
+  }
+
   // IView impl
   factory: IViewFactory;
-
-  onRender: RenderCallback;
-  renderState: any;
   $isAttached: boolean = false;
+  location: IRenderLocation;
+  mountRequired = false;
+  private isFree: boolean = false;
 
   tryReturnToCache(): boolean {
     return true;
@@ -50,13 +70,16 @@ export class ViewFake implements IView {
   }
 
   // IAttach impl
-  $attach(encapsulationSource: INode, lifecycle?: AttachLifecycle): void {
-    this.onRender(this);
+  $attach(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+    if (this.mountRequired) {
+      lifecycle.queueAddNodes(this);
+    }
+
     this.$isAttached = true;
   }
 
-  $detach(lifecycle?: DetachLifecycle): void {
-    this.$nodes.remove();
+  $detach(lifecycle: IDetachLifecycle): void {
+    lifecycle.queueRemoveNodes(this);
     this.$isAttached = false;
   }
 

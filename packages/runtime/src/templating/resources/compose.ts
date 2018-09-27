@@ -1,5 +1,6 @@
 import { Constructable, Immutable, inject } from '@aurelia/kernel';
 import { BindingFlags } from '../../binding/binding-flags';
+import { INode } from '../../dom';
 import { bindable } from '../bindable';
 import { createElement, PotentialRenderable } from '../create-element';
 import { customElement, ICustomElement } from '../custom-element';
@@ -10,9 +11,11 @@ import {
   TargetedInstruction,
   TemplateDefinition
 } from '../instructions';
+import { IAttachLifecycle, IDetachLifecycle } from '../lifecycle';
 import { IRenderable } from '../renderable';
 import { IRenderingEngine } from '../rendering-engine';
 import { IView, IViewFactory } from '../view';
+import { CompositionCoordinator } from './composition-coordinator';
 
 const composeSource: ITemplateSource = {
   name: 'au-compose',
@@ -27,18 +30,23 @@ export interface Compose extends ICustomElement {}
 @customElement(composeSource)
 @inject(IRenderable, ITargetedInstruction, IRenderingEngine)
 export class Compose {
-  @bindable public subject: any = null;
+  @bindable public subject: Subject | Promise<Subject> = null;
   @bindable public composing: boolean = false;
 
-  private task: CompositionTask = null;
-  private currentView: IView = null;
   private properties: Record<string, TargetedInstruction> = null;
+  private coordinator: CompositionCoordinator;
+  private lastSubject: Subject | Promise<Subject> = null;
 
   constructor(
     private renderable: IRenderable,
     instruction: Immutable<IHydrateElementInstruction>,
     private renderingEngine: IRenderingEngine
   ) {
+    this.coordinator = new CompositionCoordinator();
+    this.coordinator.onSwapComplete = () => {
+      this.composing = false;
+    };
+
     this.properties = instruction.instructions
       .filter((x: any) => !composeProps.includes(x.dest))
       .reduce((acc, item: any) => {
@@ -50,31 +58,59 @@ export class Compose {
       }, {});
   }
 
-  /** @internal */
+  public binding(flags: BindingFlags): void {
+    this.startComposition(this.subject);
+    this.coordinator.binding(flags, this.$scope);
+  }
+
+  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+    this.coordinator.attaching(encapsulationSource, lifecycle);
+  }
+
+  public detaching(lifecycle: IDetachLifecycle): void {
+    this.coordinator.detaching(lifecycle);
+  }
+
+  public unbinding(flags: BindingFlags): void {
+    this.lastSubject = null;
+    this.coordinator.unbinding(flags);
+  }
+
+  public caching(): void {
+    this.coordinator.caching();
+  }
+
   public subjectChanged(newValue: any): void {
-    this.startComposition(newValue, BindingFlags.fromBindableHandler);
+    this.startComposition(newValue);
   }
 
-  /** @internal */
-  public bound(): void {
-    this.startComposition(this.subject, BindingFlags.fromBind);
-  }
-
-  /** @internal */
-  public endComposition(subject: Subject, flags: BindingFlags): void {
-    const view = this.provideViewFor(subject);
-
-    this.clear();
-
-    if (view) {
-      view.onRender = () => view.$nodes.insertBefore(this.$projector.host);
-      view.lockScope(this.renderable.$scope);
-
-      this.currentView = view;
-      this.$addChild(view, flags);
+  private startComposition(subject: any): void {
+    if (this.lastSubject === subject) {
+      return;
     }
 
-    this.composing = false;
+    this.lastSubject = subject;
+
+    if (subject instanceof Promise) {
+      subject = subject.then(x => this.resolveView(x));
+    } else {
+      subject = this.resolveView(subject);
+    }
+
+    this.composing = true;
+    this.coordinator.compose(subject);
+  }
+
+  private resolveView(subject: Subject): IView {
+    const view = this.provideViewFor(subject);
+
+    if (view) {
+      view.mount(this.$projector.host);
+      view.lockScope(this.renderable.$scope);
+      return view;
+    }
+
+    return null;
   }
 
   private provideViewFor(subject: Subject): IView | null {
@@ -113,54 +149,5 @@ export class Compose {
       this.renderingEngine,
       this.renderable.$context
     );
-  }
-
-  private startComposition(subject: any, flags: BindingFlags): void {
-    if (this.task) {
-      this.task.cancel();
-    }
-
-    this.task = new CompositionTask(this, flags);
-    this.task.start(subject);
-  }
-
-  private clear(): void {
-    if (this.currentView) {
-      this.$removeChild(this.currentView);
-      this.currentView = null;
-    }
-  }
-}
-
-class CompositionTask {
-  private isCancelled: boolean = false;
-
-  constructor(private compose: Compose, private flags: BindingFlags) {}
-
-  public start(subject: any): void {
-    if (this.isCancelled) {
-      return;
-    }
-
-    this.compose.composing = true;
-
-    if (subject instanceof Promise) {
-      subject.then(x => this.complete(x));
-    } else {
-      this.complete(subject);
-    }
-  }
-
-  public cancel(): void {
-    this.isCancelled = true;
-    this.compose.composing = false;
-  }
-
-  private complete(subject: any): void {
-    if (this.isCancelled) {
-      return;
-    }
-
-    this.compose.endComposition(subject, this.flags);
   }
 }

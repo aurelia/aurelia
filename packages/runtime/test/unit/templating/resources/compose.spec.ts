@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { hydrateCustomElement } from '../behavior-assistance';
 import { Compose } from '../../../../src/templating/resources/compose';
-import { TemplateDefinition, DOM, IViewFactory, customElement, ITemplateSource, BindingFlags } from '../../../../src';
+import { DOM, IViewFactory, customElement, ITemplateSource, BindingFlags, Lifecycle, LifecycleFlags, IAttach } from '../../../../src';
 import { PotentialRenderable } from '../../../../src/templating/create-element';
 import { ViewFactoryFake } from '../fakes/view-factory-fake';
 
@@ -54,7 +54,8 @@ describe('The "compose" custom element', () => {
         const { element } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
-          expect(element['currentView']).to.not.be.undefined.null;
+          const child = getCurrentView(element);
+          expect(child).to.not.be.undefined.null;
         }, done);
 
         element.subject = value;
@@ -65,11 +66,11 @@ describe('The "compose" custom element', () => {
         const { element, parent } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
-          const child = element['currentView'];
+          const child = getCurrentView(element);
           let attachCalled = false;
           child.$attach = function() { attachCalled = true; };
 
-          element.$attach(parent);
+          runAttachLifecycle(element, parent);
 
           expect(attachCalled).to.be.true;
         }, done);
@@ -84,10 +85,10 @@ describe('The "compose" custom element', () => {
         waitForCompositionEnd(element, () => {
           const location = element.$projector.host;
 
-          element.$attach(parent);
+          runAttachLifecycle(element, parent);
 
           expect(location.previousSibling)
-            .to.be.equal(element['currentView'].$nodes.lastChild);
+            .to.be.equal(getCurrentView(element).$nodes.lastChild);
         }, done);
 
         element.subject = value;
@@ -98,7 +99,8 @@ describe('The "compose" custom element', () => {
         const { element } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
-          const child = element['currentView'];
+          const child = getCurrentView(element);
+
           let bindCalled = false;
           child.$bind = function() { bindCalled = true; };
 
@@ -115,12 +117,12 @@ describe('The "compose" custom element', () => {
         const { element, parent } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
-          const child = element['currentView'];
+          const child = getCurrentView(element);
           let detachCalled = false;
           child.$detach = function() { detachCalled = true; };
 
-          element.$attach(parent);
-          element.$detach(null);
+          runAttachLifecycle(element, parent);
+          runDetachLifecycle(element);
 
           expect(detachCalled).to.be.true;
         }, done);
@@ -133,7 +135,7 @@ describe('The "compose" custom element', () => {
         const { element } = hydrateCustomElement(Compose);
 
         waitForCompositionEnd(element, () => {
-          const child = element['currentView'];
+          const child = getCurrentView(element);
           let unbindCalled = false;
           child.$unbind = function() { unbindCalled = true; };
 
@@ -155,13 +157,13 @@ describe('The "compose" custom element', () => {
       const { element } = hydrateCustomElement(Compose);
 
       waitForCompositionEnd(element, () => {
-        expect(element['currentView']).to.equal(view1);
+        expect(getCurrentView(element)).to.equal(view1);
 
         waitForCompositionEnd(element, () => {
-          expect(element['currentView']).to.equal(view2);
+          expect(getCurrentView(element)).to.equal(view2);
 
           waitForCompositionEnd(element, () => {
-            expect(element['currentView']).to.equal(view1);
+            expect(getCurrentView(element)).to.equal(view1);
           }, done);
 
           element.subject = producer.create(view1);
@@ -184,10 +186,10 @@ describe('The "compose" custom element', () => {
         const location = element.$projector.host;
 
         waitForCompositionEnd(element, () => {
-          element.$attach(parent);
+          runAttachLifecycle(element, parent);
 
           expect(location.previousSibling)
-            .to.be.equal(element['currentView'].$nodes.lastChild);
+            .to.be.equal(getCurrentView(element).$nodes.lastChild);
 
           let detachCalled = false;
           const detach = view1.$detach;
@@ -214,12 +216,29 @@ describe('The "compose" custom element', () => {
     }
   }
 
-  function waitForCompositionEnd(element: Compose, callback: () => void, done?: () => void) {
-    const endComposition = element.endComposition;
+  function getCurrentView(compose: Compose) {
+    return compose['coordinator']['currentView'];
+  }
 
-    element.endComposition = function(subject, flags) {
-      element.endComposition = endComposition;
-      endComposition.apply(element, [subject, flags]);
+  function runAttachLifecycle(item: IAttach, encapsulationSource = null) {
+    const attachLifecycle = Lifecycle.beginAttach(encapsulationSource, LifecycleFlags.none);
+    attachLifecycle.attach(item);
+    attachLifecycle.end();
+  }
+
+  function runDetachLifecycle(item: IAttach) {
+    const detachLifecycle = Lifecycle.beginDetach(LifecycleFlags.none);
+    detachLifecycle.detach(item);
+    detachLifecycle.end();
+  }
+
+  function waitForCompositionEnd(element: Compose, callback: () => void, done?: () => void) {
+    const coordinator = element['coordinator'];
+    const originalSwapComplete = coordinator.onSwapComplete;
+
+    coordinator.onSwapComplete = () => {
+      originalSwapComplete.call(coordinator);
+      coordinator.onSwapComplete = originalSwapComplete;
 
       callback();
 

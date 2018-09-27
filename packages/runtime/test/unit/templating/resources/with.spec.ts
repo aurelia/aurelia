@@ -5,11 +5,14 @@ import { createScope } from '../scope-assistance';
 import { ensureSingleChildTemplateControllerBehaviors } from './template-controller-tests';
 
 describe('The "with" template controller', () => {
-  ensureSingleChildTemplateControllerBehaviors(With);
+  ensureSingleChildTemplateControllerBehaviors(
+    With,
+    w => w['currentView']
+  );
 
   it("updates its child's binding context when its value changes", () => {
     const { attribute } = hydrateCustomAttribute(With);
-    const child = attribute['$child'];
+    const child = attribute['currentView'];
 
     attribute.$bind(BindingFlags.fromBind, createScope());
 

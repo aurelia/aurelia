@@ -1,5 +1,4 @@
-import { Immutable } from '@aurelia/kernel';
-import { Reporter } from '@aurelia/kernel';
+import { Immutable, Reporter } from '@aurelia/kernel';
 import { Binding } from '../binding/binding';
 import { BindingMode } from '../binding/binding-mode';
 import { Call } from '../binding/call';
@@ -17,7 +16,6 @@ import {
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
   IHydrateTemplateController,
-  ILetBindingInstruction,
   ILetElementInstruction,
   IListenerBindingInstruction,
   IPropertyBindingInstruction,

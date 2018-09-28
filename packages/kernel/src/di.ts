@@ -129,21 +129,22 @@ export const DI = {
       };
 
       Key.register = function(container: IContainer, key?: Key<T>): IResolver<T> {
+        const trueKey = key || Key;
         return configure({
           instance(value: T): IResolver {
-            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.instance, value));
+            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.instance, value));
           },
           singleton(value: Function): IResolver {
-            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.singleton, value));
+            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.singleton, value));
           },
           transient(value: Function): IResolver {
-            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.transient, value));
+            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.transient, value));
           },
           callback(value: ResolveCallback): IResolver {
-            return container.registerResolver(Key, new Resolver(key || Key, ResolverStrategy.callback, value));
+            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.callback, value));
           },
           aliasTo(destinationKey: T): IResolver {
-            return container.registerResolver(destinationKey, new Resolver(key || Key, ResolverStrategy.alias, Key));
+            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.alias, destinationKey));
           },
         });
       };

@@ -1,10 +1,9 @@
 import { Resolver, Factory, fallbackInvoker } from './../../src/di';
 import { spy } from 'sinon';
-import { DI, Container, PLATFORM, IContainer, InterfaceSymbol, IDefaultableInterfaceSymbol, ResolverStrategy, inject, all, invokeWithDynamicDependencies, lazy, classInvokers, Registration } from "../../src";
+import { DI, Container, PLATFORM, IContainer, IDefaultableInterfaceSymbol, ResolverStrategy, inject, invokeWithDynamicDependencies, classInvokers, Registration } from "../../src";
 import { expect } from "chai";
 import { _ } from "./util";
 import * as sinon from 'sinon';
-import { lazyProduct } from '../../../../scripts/test-lib';
 
 function assertIsMutableArray(arr: any[], length: number): void {
   expect(Array.isArray(arr)).to.be.true;
@@ -457,7 +456,7 @@ describe(`The DI object`, () => {
         const value = {};
         sut.withDefault(builder => builder.instance(value));
         (<any>sut).register(container, 'key');
-        expect(registerResolver).to.have.been.calledWith(sut, matchResolver('key', ResolverStrategy.instance, value));
+        expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.instance, value));
       });
 
       it(`singleton without key`, () => {
@@ -471,7 +470,7 @@ describe(`The DI object`, () => {
         class Foo {}
         sut.withDefault(builder => builder.singleton(Foo));
         (<any>sut).register(container, 'key');
-        expect(registerResolver).to.have.been.calledWith(sut, matchResolver('key', ResolverStrategy.singleton, Foo));
+        expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.singleton, Foo));
       });
 
       it(`transient without key`, () => {
@@ -485,7 +484,7 @@ describe(`The DI object`, () => {
         class Foo {}
         sut.withDefault(builder => builder.transient(Foo));
         (<any>sut).register(container, 'key');
-        expect(registerResolver).to.have.been.calledWith(sut, matchResolver('key', ResolverStrategy.transient, Foo));
+        expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.transient, Foo));
       });
 
       it(`callback without key`, () => {
@@ -499,19 +498,19 @@ describe(`The DI object`, () => {
         const callback = () => {};
         sut.withDefault(builder => builder.callback(callback));
         (<any>sut).register(container, 'key');
-        expect(registerResolver).to.have.been.calledWith(sut, matchResolver('key', ResolverStrategy.callback, callback));
+        expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.callback, callback));
       });
 
       it(`aliasTo without key`, () => {
         sut.withDefault(builder => builder.aliasTo('key2'));
         (<any>sut).register(container);
-        expect(registerResolver).to.have.been.calledWith('key2', matchResolver(sut, ResolverStrategy.alias, sut));
+        expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.alias, 'key2'));
       });
 
       it(`aliasTo with key`, () => {
         sut.withDefault(builder => builder.aliasTo('key2'));
         (<any>sut).register(container, 'key1');
-        expect(registerResolver).to.have.been.calledWith('key2', matchResolver('key1', ResolverStrategy.alias, sut));
+        expect(registerResolver).to.have.been.calledWith('key1', matchResolver('key1', ResolverStrategy.alias, 'key2'));
       });
     });
   });

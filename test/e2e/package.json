@@ -6,6 +6,7 @@
     "build": "run-p build:*",
     "build:todos": "browserify src/todos/startup.ts -p [ tsify ] -t [ stringify --applies-to [ --include-extensions [ '.html' ] ] ] > dist/bundle.todos.js",
     "build:select": "browserify src/select/startup.ts -p [ tsify ] -t [ stringify --applies-to [ --include-extensions [ '.html' ] ] ] > dist/bundle.select.js",
+    "build:router": "browserify src/router/startup.ts -p [ tsify ] -t [ stringify --applies-to [ --include-extensions [ '.html' ] ] ] > dist/bundle.router.js",
     "start": "http-server -c-1 -p 9000 .",
     "e2e": "rimraf allure-results && npm run build && wdio browserstack.conf.js",
     "e2e:compat": "cross-env BS_COMPAT_CHECK=true npm run e2e",
@@ -16,6 +17,7 @@
   "dependencies": {
     "@aurelia/jit": "../../packages/jit",
     "@aurelia/kernel": "../../packages/kernel",
+    "@aurelia/router": "../../packages/router",
     "@aurelia/runtime": "../../packages/runtime"
   },
   "devDependencies": {

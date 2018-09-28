@@ -7,8 +7,6 @@ import {
   Aurelia,
   Repeat,
   IChangeSet,
-  enableArrayObservation,
-  disableArrayObservation,
   DOM,
   INode,
   ICustomElement,
@@ -28,14 +26,6 @@ describe('ArrayRepeater - render html', () => {
 
   let aureliaConfig: ReturnType<typeof createAureliaRepeaterConfig>;
   let component: ICustomElement;
-
-  before(() => {
-    enableArrayObservation();
-  });
-
-  after(() => {
-    disableArrayObservation();
-  });
 
   beforeEach(() => {
     container = DI.createContainer();

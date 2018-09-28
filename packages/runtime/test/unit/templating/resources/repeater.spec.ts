@@ -1,4 +1,5 @@
-import { IContainer, DI, Registration, Writable } from '../../../../../kernel/src/index';
+import { ChangeSet } from './../../../../src/binding/change-set';
+import { IContainer, DI, Registration, Writable, PLATFORM } from '../../../../../kernel/src/index';
 import {
   Repeat,
   IChangeSet,
@@ -6,19 +7,25 @@ import {
   IRenderLocation,
   ForOfStatement,
   BindingIdentifier,
-  enableArrayObservation,
-  disableArrayObservation,
   IRenderable,
   IViewFactory,
   AccessScope,
   Binding,
   IObservedArray,
-  BindingFlags
+  BindingFlags,
+  BindingMode,
+  ViewFactory,
+  ObservedCollection,
+  RuntimeBehavior,
+  ObserverLocator
 } from '../../../../src/index';
 import { expect } from 'chai';
-import { padRight, incrementItems, assertVisualsSynchronized } from '../../util';
+import { padRight, incrementItems, assertVisualsSynchronized, createElement } from '../../util';
 import { RenderableFake } from '../fakes/renderable-fake';
 import { ViewFactoryFake } from '../fakes/view-factory-fake';
+import { MockTextNodeTemplate } from '../../mock';
+import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
+import { createScopeForTest } from '../../binding/shared';
 
 function createRenderLocation() {
   const parent = document.createElement('div');
@@ -26,6 +33,83 @@ function createRenderLocation() {
   parent.appendChild(child);
   return DOM.convertToRenderLocation(child);
 }
+
+const expressions = {
+  item: new AccessScope('item'),
+  items: new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'))
+};
+
+
+function setup<T extends ObservedCollection>() {
+  const cs = new ChangeSet();
+  const host = document.createElement('div');
+  const location = document.createComment('au-loc');
+  host.appendChild(location);
+
+  const observerLocator = new ObserverLocator(cs, null, null, null);
+  const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.item, observerLocator))
+  const renderable = { } as any;
+  const sut = new Repeat<T>(cs, location, renderable, factory);
+  renderable.$bindables = [new Binding(expressions.items, sut, 'items', BindingMode.toView, null, null)];
+  sut.$isAttached = false;
+  sut.$isBound = false;
+  sut.$scope = null;
+  const behavior = RuntimeBehavior.create(<any>Repeat, sut);
+  behavior.applyTo(sut, cs);
+
+
+  return { sut, host, cs };
+}
+
+describe.only(`Repeat`, () => {
+
+  eachCartesianJoinFactory([
+    <(() => [any, number, string, string])[]>[
+      () => [[],                    0, ``     , `[]                   `],
+      () => [null,                  0, ``     , `null                 `],
+      () => [undefined,             0, ``     , `undefined            `],
+      () => [1,                     1, `0`    , `1                    `],
+      () => [5,                     5, `01234`, `5                    `],
+      () => [['a'],                 1, `a`    , `['a']                `],
+      () => [[1],                   1, `1`    , `[1]                  `],
+      () => [['a','a'],             2, `aa`   , `['a','a']            `],
+      () => [['a','b'],             2, `ab`   , `['a','b']            `],
+      () => [[1,2,3],               3, `123`  , `[1,2,3]              `],
+      () => [['a','b','c','d','e'], 5, `abcde`, `['a','b','c','d','e']`]
+    ],
+    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+
+      ([items, count, expected]) => [(sut, host, cs) => {
+        sut.$bind(BindingFlags.fromBind, createScopeForTest({ }));
+        sut.$attach(host, null);
+
+        expect(sut.views.length).to.equal(0);
+        expect(host.textContent).to.equal('');
+
+        cs.flushChanges();
+
+        expect(sut.views.length).to.equal(count);
+        expect(host.textContent).to.equal(expected);
+
+      }, `flags=fromBind        `],
+
+      ([items, count, expected]) => [(sut, host, cs) => {
+        sut.$bind(BindingFlags.fromFlushChanges, createScopeForTest({ }));
+
+        expect(sut.views.length).to.equal(count);
+        expect(host.textContent).to.equal('');
+
+      }, `flags=fromFlushChanges`]
+    ]
+  ], ([items, count, expected, initText], [execute, execText]) => {
+    it(`initialItems=${initText} ${execText}`, () => {
+      const { sut, host, cs } = setup<IObservedArray>();
+      sut.items = items;
+
+      execute(sut, host, cs);
+    });
+  });
+});
 
 describe('ArrayRepeater - synchronize visuals', () => {
   let container: IContainer;
@@ -35,13 +119,16 @@ describe('ArrayRepeater - synchronize visuals', () => {
   let location: IRenderLocation;
   let sut: Repeat<IObservedArray>;
 
-  before(() => {
-    enableArrayObservation();
-  });
-
-  after(() => {
-    disableArrayObservation();
-  });
+  // it.only('test', () => {
+  //   const { component, renderingEngine, host, changeSet } = setup();
+  //   component.$hydrate(renderingEngine, host);
+  //   component.$bind(BindingFlags.fromStartTask | BindingFlags.fromBind);
+  //   Lifecycle.beginAttach(host, LifecycleFlags.none).attach(component).end();
+  //   component['items'] = [1, 2, 3];
+  //   expect(host.innerText).to.equal('');
+  //   changeSet.flushChanges();
+  //   expect(host.innerText).to.equal('123');
+  // })
 
   beforeEach(() => {
     container = DI.createContainer();
@@ -51,7 +138,7 @@ describe('ArrayRepeater - synchronize visuals', () => {
     location = createRenderLocation();
     renderable = container.get(IRenderable);
     factory = container.get(IViewFactory);
-    sut = new Repeat(changeSet, location, renderable, factory, container);
+    sut = new Repeat(changeSet, location, renderable, factory);
     const sourceExpression = new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'));
     const binding = new Binding(sourceExpression, sut, 'items', <any>null, <any>null, <any>null);
     renderable.$bindables = [binding];

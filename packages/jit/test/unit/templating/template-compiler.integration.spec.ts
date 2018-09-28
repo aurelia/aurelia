@@ -384,7 +384,7 @@ describe('TemplateCompiler (integration)', () => {
     expect(component.doStuff).to.have.been.called;
   });
 
-  describe(`repeater`, () => {
+  describe.only(`repeater`, () => {
     eachCartesianJoinFactory([
       <(() => [string, string, string, (component: any) => void])[]>[
         () => [`[a,b,c]`,             `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}],

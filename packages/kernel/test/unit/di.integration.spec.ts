@@ -2,11 +2,6 @@ import { inject, DI, Registration, InterfaceSymbol, IContainer, Container } from
 import { expect } from "chai";
 import { spy } from "sinon";
 
-
-
-
-
-
 describe('DI.createInterface() -> container.get()', () => {
   let container: IContainer;
 
@@ -97,8 +92,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(2);
     });
 
-    // TODO: make test work
-    xit(`InterfaceSymbol alias to transient registration returns a new instance each time`, () => {
+    it(`InterfaceSymbol alias to transient registration returns a new instance each time`, () => {
       interface IAlias{}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(ITransient));
 
@@ -111,8 +105,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual1).not.to.equal(actual2);
     });
 
-    // TODO: make test work
-    xit(`InterfaceSymbol alias to singleton registration returns the same instance each time`, () => {
+    it(`InterfaceSymbol alias to singleton registration returns the same instance each time`, () => {
       interface IAlias{}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(ISingleton));
 
@@ -125,8 +118,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual1).to.equal(actual2);
     });
 
-    // TODO: make test work
-    xit(`InterfaceSymbol alias to instance registration returns the same instance each time`, () => {
+    it(`InterfaceSymbol alias to instance registration returns the same instance each time`, () => {
       interface IAlias{}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(IInstance));
 
@@ -141,7 +133,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
 
     // TODO: make test work
-    xit(`InterfaceSymbol alias to callback registration is invoked each time`, () => {
+    it(`InterfaceSymbol alias to callback registration is invoked each time`, () => {
       interface IAlias{}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(ICallback));
 
@@ -151,7 +143,7 @@ describe('DI.createInterface() -> container.get()', () => {
       const actual2 = container.get(IAlias);
       expect(actual2).to.be.instanceof(Callback);
 
-      expect(callback.getCalls().length).to.equal(3);
+      expect(callback.getCalls().length).to.equal(2);
 
       expect(actual1).not.to.equal(actual2);
     });
@@ -168,9 +160,8 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual1).not.to.equal(actual2);
     });
 
-    // TODO: make test work
-    xit(`string alias to singleton registration returns the same instance each time`, () => {
-      container.register(Registration.alias(ITransient, 'alias'))
+    it(`string alias to singleton registration returns the same instance each time`, () => {
+      container.register(Registration.alias(ISingleton, 'alias'))
 
       const actual1 = container.get('alias');
       expect(actual1).to.be.instanceof(Singleton);
@@ -181,9 +172,8 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual1).to.equal(actual2);
     });
 
-    // TODO: make test work
-    xit(`string alias to instance registration returns the same instance each time`, () => {
-      container.register(Registration.alias(ITransient, 'alias'))
+    it(`string alias to instance registration returns the same instance each time`, () => {
+      container.register(Registration.alias(IInstance, 'alias'))
 
       const actual1 = container.get('alias');
       expect(actual1).to.be.instanceof(Instance);
@@ -195,9 +185,8 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual2).to.equal(instance);
     });
 
-    // TODO: make test work
-    xit(`string alias to callback registration is invoked each time`, () => {
-      container.register(Registration.alias(ITransient, 'alias'))
+    it(`string alias to callback registration is invoked each time`, () => {
+      container.register(Registration.alias(ICallback, 'alias'))
 
       const actual1 = container.get('alias');
       expect(actual1).to.be.instanceof(Callback);
@@ -205,7 +194,7 @@ describe('DI.createInterface() -> container.get()', () => {
       const actual2 = container.get('alias');
       expect(actual2).to.be.instanceof(Callback);
 
-      expect(callback.getCalls().length).to.equal(3);
+      expect(callback.getCalls().length).to.equal(2);
 
       expect(actual1).not.to.equal(actual2);
     });

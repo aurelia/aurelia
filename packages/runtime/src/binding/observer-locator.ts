@@ -7,7 +7,7 @@ import { IDirtyChecker } from './dirty-checker';
 import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from './element-observation';
 import { IEventManager } from './event-manager';
 import { getMapObserver } from './map-observer';
-import { AccessorOrObserver, CollectionKind, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet } from './observation';
+import { AccessorOrObserver, CollectionKind, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet, CollectionObserver } from './observation';
 import { PrimitiveObserver, SetterObserver } from './property-observation';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
@@ -239,4 +239,16 @@ export class ObserverLocator implements IObserverLocator {
     }
     return new SetterObserver(obj, propertyName);
   }
+}
+
+export function getCollectionObserver(changeSet: IChangeSet, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver {
+  switch (toStringTag.call(collection)) {
+    case '[object Array]':
+      return getArrayObserver(changeSet, <IObservedArray>collection);
+    case '[object Map]':
+      return getMapObserver(changeSet, <IObservedMap>collection);
+    case '[object Set]':
+      return getSetObserver(changeSet, <IObservedSet>collection);
+  }
+  return null;
 }

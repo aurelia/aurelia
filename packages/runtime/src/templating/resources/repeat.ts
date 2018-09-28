@@ -1,5 +1,5 @@
 import { inject } from '@aurelia/kernel';
-import { Binding, BindingContext, BindingFlags, CollectionObserver, ForOfStatement, getCollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IScope, ObservedCollection, SetterObserver } from '../../binding';
+import { Binding, BindingContext, BindingFlags, CollectionObserver, ForOfStatement, getCollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IScope, ObservedCollection, SetterObserver, IObservedArray } from '../../binding';
 import { INode, IRenderLocation } from '../../dom';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
@@ -12,7 +12,7 @@ export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, 
 
 @inject(IChangeSet, IRenderLocation, IRenderable, IViewFactory)
 @templateController('repeat')
-export class Repeat<T extends ObservedCollection> {
+export class Repeat<T extends ObservedCollection = IObservedArray> {
   @bindable public items: T;
 
   public $isAttached: boolean;

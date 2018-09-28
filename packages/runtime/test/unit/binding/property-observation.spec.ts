@@ -1,6 +1,6 @@
 import { spy } from 'sinon';
 import { PLATFORM } from '../../../../kernel/src/index';
-import { PrimitiveObserver, SetterObserver, ChangeSet, BindingFlags } from '../../../src/index';
+import { PrimitiveObserver, SetterObserver, ChangeSet, BindingFlags, Observer } from '../../../src/index';
 import { expect } from 'chai';
 import { SpySubscriber } from '../util';
 
@@ -156,6 +156,17 @@ describe('SetterObserver', () => {
         }
       }
     }
+  });
+});
+
+describe('Observer', () => {
+
+  it('use noop function as default callback', () => {
+    const values = createObjectArr();
+    values.forEach(value => {
+      const observer = new Observer({}, 'a', 'aChanged');
+      expect(observer['callback'](value, undefined)).to.be.undefined;
+    });
   });
 });
 

@@ -1,4 +1,4 @@
-import { DI, IContainer, IRegistry, PLATFORM } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
 import { BindingFlags } from './binding/binding-flags';
 import { Lifecycle, LifecycleFlags } from './templating';
 import { ICustomElement } from './templating/custom-element';
@@ -13,9 +13,14 @@ export class Aurelia {
   private components: ICustomElement[] = [];
   private startTasks: (() => void)[] = [];
   private stopTasks: (() => void)[] = [];
-  private isStarted: boolean = false;
+  private isStarted = false;
+  private _root: ICustomElement = null;
 
-  constructor(private container: IContainer = DI.createContainer()) {}
+  constructor(private container: IContainer = DI.createContainer()) {
+    Registration
+      .instance(Aurelia, this)
+      .register(container, Aurelia);
+  }
 
   public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this {
     this.container.register(...params);
@@ -27,6 +32,7 @@ export class Aurelia {
 
     const startTask = () => {
       if (!this.components.includes(component)) {
+        this._root = component;
         this.components.push(component);
         component.$hydrate(
           this.container.get(IRenderingEngine),
@@ -62,6 +68,10 @@ export class Aurelia {
     }
 
     return this;
+  }
+
+  public root(): ICustomElement | null {
+    return this._root;
   }
 
   public start(): this {

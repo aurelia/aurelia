@@ -91,7 +91,7 @@ export class Observer implements Observer {
   public propertyKey: string;
   public currentValue: IIndexable | Primitive;
 
-  private callback: (oldValue: IIndexable | Primitive, newValue: IIndexable | Primitive) => IIndexable | Primitive;
+  private callback: (newValue: IIndexable | Primitive, oldValue: IIndexable | Primitive) => IIndexable | Primitive;
 
   constructor(
     instance: object,

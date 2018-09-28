@@ -90,15 +90,8 @@ export class Renderer implements IRenderer {
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
       const currentType = current.type;
-      let realTarget;
 
-      if (currentType === TargetedInstructionType.stylePropertyBinding || currentType === TargetedInstructionType.listenerBinding) {
-        realTarget = target;
-      } else {
-        realTarget = component;
-      }
-
-      (this as any)[currentType](renderable, realTarget, current);
+      (this as any)[currentType](renderable, component, current);
     }
 
     renderable.$bindables.push(component);

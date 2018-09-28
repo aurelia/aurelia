@@ -200,7 +200,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
 
   public find<TSource>(kind: IResourceKind<TSource>, name: string): ResourceDescription<TSource> | null {
     const key = kind.keyFrom(name);
-    const resolver = this.context.getResolver<TSource>(key);
+    const resolver = this.context.getResolver<TSource>(key, false);
 
     if (resolver !== null && resolver.getFactory) {
       const factory = resolver.getFactory(this.context);

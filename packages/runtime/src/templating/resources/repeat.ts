@@ -1,3 +1,4 @@
+import { IAttachLifecycle, IDetachLifecycle, IDetachLifecycleController, IAttachLifecycleController } from './../lifecycle';
 import { inject } from '@aurelia/kernel';
 import { Binding, BindingContext, BindingFlags, CollectionObserver, ForOfStatement, getCollectionObserver, IBatchedCollectionSubscriber, IChangeSet, IScope, ObservedCollection, SetterObserver, IObservedArray } from '../../binding';
 import { INode, IRenderLocation } from '../../dom';
@@ -10,6 +11,8 @@ import { IView, IViewFactory } from '../view';
 // tslint:disable-next-line:interface-name
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}
 
+const batchedChangesFlags = BindingFlags.fromFlushChanges | BindingFlags.fromBind;
+
 @inject(IChangeSet, IRenderLocation, IRenderable, IViewFactory)
 @templateController('repeat')
 export class Repeat<T extends ObservedCollection = IObservedArray> {
@@ -18,15 +21,15 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
   public $isAttached: boolean;
   public $isBound: boolean;
   public $scope: IScope;
+  public $observers: { items: SetterObserver }
 
-  public local: string;
   public encapsulationSource: INode = null;
   public views: IView[] = [];
   public observer: CollectionObserver = null;
   public hasPendingInstanceMutation: boolean = false;
-  public hasPendingMutation: boolean = false;
-  public sourceExpression: ForOfStatement;
-  public $observers: { items: SetterObserver }
+
+  public forOf: ForOfStatement;
+  public local: string;
 
   constructor(
     public changeSet: IChangeSet,
@@ -35,61 +38,74 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     public factory: IViewFactory) { }
 
   public bound(flags: BindingFlags): void {
-    this.sourceExpression = (<Binding[]>this.renderable.$bindables)
+    const forOf = this.forOf = (<Binding[]>this.renderable.$bindables)
       .find(b => b.target === this).sourceExpression as ForOfStatement;
-
-    this.local = this.sourceExpression.declaration.evaluate(flags, this.$scope, null);
-    if (this.hasPendingMutation) {
-      if (flags & BindingFlags.fromFlushChanges) {
-        this.flushChanges();
+    const local = this.local = forOf.declaration.evaluate(flags, this.$scope, null);
+    const { views, factory, $scope } = this;
+    forOf.iterate(this.items, (arr, i, item) => {
+      let view = views[i];
+      if (view === undefined) {
+        // add view if it doesn't exist yet
+        view = views[i] = this.factory.create();
+        view.$bind(batchedChangesFlags, BindingContext.createScopeFromParent(this.$scope, { [this.local]: item }));
       } else {
-        this.changeSet.add(this);
+
+        view.$bind(batchedChangesFlags, BindingContext.createScopeFromParent(this.$scope, { [this.local]: item }));
       }
+    });
+  }
+
+  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycleController): void {
+    const views = this.views;
+    const location = this.location;
+    for (let i = 0, ii = views.length, view = views[i]; i < ii; view = views[++i]) {
+      view.mount(location);
+      lifecycle.attach(view);
+    }
+  }
+
+  public detaching(lifecycle: IDetachLifecycleController): void {
+    const views = this.views;
+    for (let i = 0, ii = views.length, view = views[i]; i < ii; view = views[++i]) {
+      view.release();
+      lifecycle.detach(view);
     }
   }
 
   public unbound(flags: BindingFlags): void {
-    // if this is a re-bind triggered by some ancestor repeater, then keep the views so we can reuse them
-    // (this flag is passed down from handleInstanceMutation/handleItemsMutation down below at view.$bind)
-    if (!(flags & BindingFlags.fromBind)) {
-      this.removeAllViews();
+    const views = this.views;
+    for (let i = 0, ii = views.length, view = views[i]; i < ii; view = views[++i]) {
+      view.$unbind(flags);
     }
   }
 
   public flushChanges(): void {
-    this.hasPendingMutation = false;
-    if (this.observer) {
-      this.observer.unsubscribeBatched(this);
-    }
-    this.observer = getCollectionObserver(this.changeSet, this.items);
-    if (this.observer) {
-      this.observer.subscribeBatched(this);
-    }
     this.handleBatchedItemsOrInstanceMutation(null);
   }
 
+  // called by SetterObserver (sync)
   public itemsChanged(newValue: T, oldValue: T, flags: BindingFlags): void {
+    this.refreshCollectionObserver();
     if (this.$isBound) {
       if (flags & BindingFlags.fromFlushChanges) {
-        this.flushChanges();
+        this.handleBatchedItemsOrInstanceMutation(null);
       } else {
         this.changeSet.add(this);
       }
     } else {
-      this.hasPendingMutation = this.hasPendingInstanceMutation = true;
+      this.hasPendingInstanceMutation = true;
     }
   }
 
+  // called by a CollectionObserver (async)
   public handleBatchedChange(indexMap: number[] | null): void {
     if (this.$isBound) {
       if (this.hasPendingInstanceMutation) {
         this.hasPendingInstanceMutation = false;
-        this.flushChanges();
+        this.handleBatchedItemsOrInstanceMutation(null);
       } else {
         this.handleBatchedItemsOrInstanceMutation(indexMap);
       }
-    } else {
-      this.hasPendingMutation = true;
     }
   }
 
@@ -99,75 +115,56 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     const views = this.views;
     const items = this.items;
     const oldLength = views.length;
-    const sourceExpression = this.sourceExpression;
-    const newLength = sourceExpression.count(items);
-    if (newLength === 0) {
-      if (oldLength === 0) {
-        // if we had 0 items and still have 0 items, we don't need to do anything
-        return;
-      } else {
-        // if we had >0 items and now have 0 items, just remove all and return
-        this.removeAllViews();
-        return;
-      }
-    }
-
+    const forOf = this.forOf;
+    const newLength = forOf.count(items);
     if (oldLength < newLength) {
       // expand the array (we add the views later)
       views.length = newLength;
     } else if (newLength < oldLength) {
       // remove any surplus views
-      let i = newLength;
-      const lifecycle = Lifecycle.beginDetach(LifecycleFlags.none);
-
-      while (i < oldLength) {
-        const view = views[i++];
+      const lifecycle = Lifecycle.beginDetach(LifecycleFlags.unbindAfterDetached);
+      for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
         view.release();
         lifecycle.detach(view);
       }
-
       lifecycle.end();
       views.length = newLength;
     }
+    if (newLength === 0) {
+      return;
+    }
 
-    const location = this.location;
-    const isAttached = this.$isAttached;
-    const scope = this.$scope;
-    const local = this.local;
-    const factory = this.factory;
-    const encapsulationSource = this.encapsulationSource;
-    const lifecycle = Lifecycle.beginAttach(encapsulationSource, LifecycleFlags.none);
-    sourceExpression.iterate(items, (arr, i, item) => {
+    const lifecycle = Lifecycle.beginAttach(this.encapsulationSource, LifecycleFlags.none);
+    forOf.iterate(items, (arr, i, item) => {
       let view = views[i];
       if (view === undefined) {
         // add view if it doesn't exist yet
-        view = views[i] = factory.create();
-        view.$bind(BindingFlags.fromFlushChanges, BindingContext.createScopeFromParent(scope, { [local]: item }));
-        view.mount(location);
+        view = views[i] = this.factory.create();
+        view.$bind(batchedChangesFlags, BindingContext.createScopeFromParent(this.$scope, { [this.local]: item }));
 
-        if (isAttached) {
+        if (this.$isAttached) {
+          view.mount(this.location);
           lifecycle.attach(view);
         }
       } else {
         // TODO: optimize this again (but in a more efficient way and one that works in multiple scenarios)
-        view.$bind(BindingFlags.fromFlushChanges | BindingFlags.fromBind, BindingContext.createScopeFromParent(scope, { [local]: item }));
+        view.$bind(batchedChangesFlags, BindingContext.createScopeFromParent(this.$scope, { [this.local]: item }));
       }
     });
 
     lifecycle.end();
   }
 
-  private removeAllViews(): void {
-    this.views = [];
-    const lifecycle = Lifecycle.beginDetach(LifecycleFlags.none);
-
-    const views = this.views;
-    for (let i = 0, ii = views.length; i < ii; ++i) {
-      const view = views[i];
-      view.release();
-      lifecycle.detach(view);
+  private refreshCollectionObserver(): void {
+    const oldObserver = this.observer;
+    const newObserver = this.observer = getCollectionObserver(this.changeSet, this.items);
+    if (oldObserver !== newObserver) {
+      if (oldObserver) {
+        oldObserver.unsubscribeBatched(this);
+      }
+      if (newObserver) {
+        newObserver.subscribeBatched(this);
+      }
     }
-
-    lifecycle.end();
   }
 }

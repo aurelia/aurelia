@@ -17,7 +17,9 @@ import {
   ViewFactory,
   ObservedCollection,
   RuntimeBehavior,
-  ObserverLocator
+  ObserverLocator,
+  Lifecycle,
+  LifecycleFlags
 } from '../../../../src/index';
 import { expect } from 'chai';
 import { padRight, incrementItems, assertVisualsSynchronized, createElement } from '../../util';
@@ -81,14 +83,16 @@ describe.only(`Repeat`, () => {
 
       ([items, count, expected]) => [(sut, host, cs) => {
         sut.$bind(BindingFlags.fromBind, createScopeForTest({ }));
-        sut.$attach(host, null);
 
-        expect(sut.views.length).to.equal(0);
+        expect(sut.views.length).to.equal(count);
         expect(host.textContent).to.equal('');
+
+        Lifecycle.beginAttach(host, LifecycleFlags.none).attach(sut).end();
+
+        expect(host.textContent).to.equal(expected);
 
         cs.flushChanges();
 
-        expect(sut.views.length).to.equal(count);
         expect(host.textContent).to.equal(expected);
 
       }, `flags=fromBind        `],
@@ -97,7 +101,10 @@ describe.only(`Repeat`, () => {
         sut.$bind(BindingFlags.fromFlushChanges, createScopeForTest({ }));
 
         expect(sut.views.length).to.equal(count);
-        expect(host.textContent).to.equal('');
+
+        Lifecycle.beginAttach(host, LifecycleFlags.none).attach(sut).end();
+
+        expect(host.textContent).to.equal(expected);
 
       }, `flags=fromFlushChanges`]
     ]

@@ -26,7 +26,17 @@ import {
   IElementProjector,
   InstanceProvider,
   ViewFactoryProvider,
-  IObserverLocator
+  IObserverLocator,
+  ObserverLocator,
+  ViewFactory,
+  If,
+  Else,
+  AccessMember,
+  AccessScope,
+  ForOfStatement,
+  BindingIdentifier,
+  RuntimeBehavior,
+  IChangeSet
 } from '../../src';
 
 export class MockContext {
@@ -192,10 +202,13 @@ export function createMockRenderContext(
 
 const marker = document.createElement('au-marker');
 marker.classList.add('au');
-const createMarker = marker.cloneNode.bind(marker, false);
+export const createMarker = marker.cloneNode.bind(marker, false);
 
 const emptyTextNode = document.createTextNode(' ');
-const createEmptyTextNode = emptyTextNode.cloneNode.bind(emptyTextNode, false);
+export const createEmptyTextNode = emptyTextNode.cloneNode.bind(emptyTextNode, false);
+
+const renderLocation = document.createComment('au-loc');
+export const createRenderLocation = renderLocation.cloneNode.bind(renderLocation, false);
 
 export class MockNodeSequence implements INodeSequence {
   public firstChild: Node;
@@ -245,6 +258,13 @@ export class MockNodeSequence implements INodeSequence {
     const fragment = document.createDocumentFragment();
     const marker = createMarker();
     fragment.appendChild(marker);
+    return new MockNodeSequence(fragment);
+  }
+
+  public static createRenderLocation(): MockNodeSequence {
+    const fragment = document.createDocumentFragment();
+    const location = createRenderLocation();
+    fragment.appendChild(location);
     return new MockNodeSequence(fragment);
   }
 
@@ -334,6 +354,121 @@ export class MockTextNodeTemplate {
     const nodes = new MockTextNodeSequence();
     renderable.$bindables.push(new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, null));
     return nodes;
+  }
+}
+
+
+const expressions = {
+  if: new AccessMember(new AccessScope('item'), 'if'),
+  else: new AccessMember(new AccessScope('item'), 'else')
+};
+
+export class MockIfTextNodeTemplate {
+  constructor(
+    public sourceExpression: IExpression,
+    public observerLocator: IObserverLocator,
+    public changeSet: IChangeSet
+  ) {}
+
+  public createFor(renderable: IView): MockNodeSequence {
+    const nodes = MockNodeSequence.createRenderLocation();
+
+    const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
+    const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator));
+
+    const sut = new If(factory, nodes.firstChild);
+
+    (<any>sut)['$isAttached'] = false;
+    (<any>sut)['$isBound'] = false;
+    (<any>sut)['$scope'] = null;
+
+    const behavior = RuntimeBehavior.create(<any>If, sut);
+    behavior.applyTo(sut, this.changeSet);
+
+    renderable.$attachables.push(sut);
+    renderable.$bindables.push(new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
+    renderable.$bindables.push(sut);
+    return nodes;
+  }
+}
+
+export class MockElseTextNodeTemplate {
+  constructor(
+    public sourceExpression: IExpression,
+    public observerLocator: IObserverLocator,
+    public changeSet: IChangeSet
+  ) {}
+
+  public createFor(renderable: IView): MockNodeSequence {
+    const nodes = MockNodeSequence.createRenderLocation();
+
+    const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
+    const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator));
+
+    const sut = new Else(factory, nodes.firstChild);
+
+    sut.link(<any>renderable.$attachables[renderable.$attachables.length - 1]);
+
+    (<any>sut)['$isAttached'] = false;
+    (<any>sut)['$isBound'] = false;
+    (<any>sut)['$scope'] = null;
+
+    const behavior = RuntimeBehavior.create(<any>Else, <any>sut);
+    behavior.applyTo(<any>sut, this.changeSet);
+
+    renderable.$attachables.push(<any>sut);
+    renderable.$bindables.push(new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, null));
+    renderable.$bindables.push(<any>sut);
+    return nodes;
+  }
+}
+
+export class MockIfElseTextNodeTemplate {
+  constructor(
+    public sourceExpression: IExpression,
+    public observerLocator: IObserverLocator,
+    public changeSet: IChangeSet
+  ) {}
+
+  public createFor(renderable: IView): MockNodeSequence {
+    const ifNodes = MockNodeSequence.createRenderLocation();
+
+    const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
+    const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator));
+
+    const ifSut = new If(ifFactory, ifNodes.firstChild);
+
+    (<any>ifSut)['$isAttached'] = false;
+    (<any>ifSut)['$isBound'] = false;
+    (<any>ifSut)['$scope'] = null;
+
+    const ifBehavior = RuntimeBehavior.create(<any>If, ifSut);
+    ifBehavior.applyTo(ifSut, this.changeSet);
+
+    renderable.$attachables.push(ifSut);
+    renderable.$bindables.push(new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, null));
+    renderable.$bindables.push(ifSut);
+
+    const elseNodes = MockNodeSequence.createRenderLocation();
+
+    const elseFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator));
+
+    const elseSut = new Else(elseFactory, elseNodes.firstChild);
+
+    elseSut.link(<any>renderable.$attachables[renderable.$attachables.length - 1]);
+
+    (<any>elseSut)['$isAttached'] = false;
+    (<any>elseSut)['$isBound'] = false;
+    (<any>elseSut)['$scope'] = null;
+
+    const elseBehavior = RuntimeBehavior.create(<any>Else, <any>elseSut);
+    elseBehavior.applyTo(<any>elseSut, this.changeSet);
+
+    renderable.$attachables.push(<any>elseSut);
+    renderable.$bindables.push(new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, null));
+    renderable.$bindables.push(<any>elseSut);
+
+    return ifNodes;
   }
 }
 

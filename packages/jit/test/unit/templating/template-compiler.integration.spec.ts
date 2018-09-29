@@ -94,7 +94,7 @@ function stringify(o) {
 }
 
 
-describe('TemplateCompiler (integration)', () => {
+describe.only('TemplateCompiler (integration)', () => {
   let container: IContainer;
   let au: Aurelia;
   let host: HTMLElement;
@@ -450,6 +450,45 @@ describe('TemplateCompiler (integration)', () => {
     expect(host.textContent.trim()).to.equal('');
     cs.flushChanges();
     expect(host.textContent).to.equal('321');
+  });
+
+  it(`repeater with nested if`, () => {
+    component = createCustomElement(`<template><div repeat.for="item of items"><div if.bind="$parent.show">\${item}</div></div></template>`);
+    au.app({ host, component }).start();
+    expect(host.textContent.trim()).to.equal('');
+    component.items = [['1'], ['2'], ['3']];
+    component.show = true;
+    expect(host.textContent.trim()).to.equal('');
+    cs.flushChanges();
+    expect(host.textContent).to.equal('123');
+    component.show = false;
+    expect(host.textContent.trim()).to.equal('');
+  });
+
+  it(`repeater with sibling if`, () => {
+    component = createCustomElement(`<template><div repeat.for="item of items" if.bind="$parent.show">\${item}</div></template>`);
+    au.app({ host, component }).start();
+    expect(host.textContent.trim()).to.equal('');
+    component.items = [['1'], ['2'], ['3']];
+    component.show = true;
+    expect(host.textContent.trim()).to.equal('');
+    cs.flushChanges();
+    expect(host.textContent).to.equal('123');
+    component.show = false;
+    expect(host.textContent.trim()).to.equal('');
+  });
+
+  it(`repeater with parent-sibling if`, () => {
+    component = createCustomElement(`<template><div if.bind="show" repeat.for="item of items">\${item}</div></template>`);
+    au.app({ host, component }).start();
+    expect(host.textContent.trim()).to.equal('');
+    component.items = [['1'], ['2'], ['3']];
+    component.show = true;
+    expect(host.textContent.trim()).to.equal('');
+    cs.flushChanges();
+    expect(host.textContent).to.equal('123');
+    component.show = false;
+    expect(host.textContent.trim()).to.equal('');
   });
 
 

@@ -187,7 +187,7 @@ function setup() {
   return { ifSut, elseSut, host, cs };
 }
 
-describe.only(`If/Else`, () => {
+describe(`If/Else`, () => {
 
   eachCartesianJoinFactory([
     // initial input items

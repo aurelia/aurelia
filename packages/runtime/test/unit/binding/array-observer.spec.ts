@@ -25,6 +25,11 @@ function assertArrayEqual(actual: any[], expected: any[]): void {
 describe(`ArrayObserver`, () => {
   let sut: ArrayObserver;
 
+  before(() => {
+    disableArrayObservation();
+    enableArrayObservation();
+  });
+
   afterEach(() => {
     if (sut) {
       sut.dispose();

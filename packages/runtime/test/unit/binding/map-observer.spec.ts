@@ -28,11 +28,8 @@ describe(`MapObserver`, () => {
   let sut: MapObserver;
 
   before(() => {
-    enableMapObservation();
-  });
-
-  after(() => {
     disableMapObservation();
+    enableMapObservation();
   });
 
   afterEach(() => {

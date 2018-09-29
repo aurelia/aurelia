@@ -425,9 +425,9 @@ describe('TemplateCompiler (integration)', () => {
   it(`nested repeater - array`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items"><div repeat.for="child of item">\${child}</div></div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     component.items = [['1'], ['2'], ['3']];
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     cs.flushChanges();
     expect(host.textContent).to.equal('123');
   });
@@ -435,9 +435,9 @@ describe('TemplateCompiler (integration)', () => {
   it(`repeater - sorted primitive array - asc`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items | sort">\${item}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     component.items = ['3', '2', '1'];
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     cs.flushChanges();
     expect(host.textContent).to.equal('123');
   });
@@ -445,9 +445,9 @@ describe('TemplateCompiler (integration)', () => {
   it(`repeater - sorted primitive array - desc`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items | sort:null:'desc'">\${item}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     component.items = ['1', '2', '3'];
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     cs.flushChanges();
     expect(host.textContent).to.equal('321');
   });

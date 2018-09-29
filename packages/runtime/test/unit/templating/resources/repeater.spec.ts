@@ -13,7 +13,8 @@ import {
   ObserverLocator,
   Lifecycle,
   LifecycleFlags,
-  ChangeSet
+  ChangeSet,
+  IView
 } from '../../../../src/index';
 import { expect } from 'chai';
 import { MockTextNodeTemplate } from '../../mock';
@@ -25,6 +26,21 @@ const expressions = {
   item: new AccessScope('item'),
   items: new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'))
 };
+
+function verifyViewBindingContexts(views: IView[], items: any[]): void {
+  if (items === null || items === undefined) {
+    return;
+  }
+  if (typeof items === 'number') {
+    for (let i = 0, ii = views.length; i < ii; ++i) {
+      expect(views[i].$scope.bindingContext['item']).to.equal(i);
+    }
+  } else {
+    for (let i = 0, ii = views.length; i < ii; ++i) {
+      expect(views[i].$scope.bindingContext['item']).to.equal(items[i]);
+    }
+  }
+}
 
 
 function setup<T extends ObservedCollection>() {
@@ -67,14 +83,16 @@ describe(`Repeat`, () => {
     // first operation "execute1" (initial bind + attach)
     <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
 
-      ([, count, expected]) => [(sut, host, cs) => {
+      ([items, count, expected]) => [(sut, host, cs) => {
         sut.$bind(BindingFlags.fromBind, createScopeForTest({ }));
 
         expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
+        verifyViewBindingContexts(sut.views, items);
 
         Lifecycle.beginAttach(host, LifecycleFlags.none).attach(sut).end();
 
+        expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
 
         cs.flushChanges();
@@ -83,8 +101,9 @@ describe(`Repeat`, () => {
 
       }, `$bind(fromBind)  -> $attach(none)`],
 
-      ([, count, expected]) => [(sut, host) => {
+      ([items, count, expected]) => [(sut, host) => {
         sut.$bind(BindingFlags.fromBind | BindingFlags.fromFlushChanges, createScopeForTest({ }));
+        verifyViewBindingContexts(sut.views, items);
 
         expect(sut.views.length).to.equal(count), `execute1, sut.views.length`;
         expect(host.textContent).to.equal('', `execute1, host.textContent`);
@@ -98,16 +117,18 @@ describe(`Repeat`, () => {
     // second operation "execute2" (second bind or noop)
     <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
 
-      ([, count, expected]) => [(sut, host) => {
+      ([items, count, expected]) => [(sut, host) => {
         sut.$bind(BindingFlags.fromBind, sut.$scope);
+        verifyViewBindingContexts(sut.views, items);
 
         expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
         expect(host.textContent).to.equal(expected, `execute2, host.textContent`);
 
       }, `$bind(fromBind), same scope`],
 
-      ([, count, expected]) => [(sut, host, cs) => {
+      ([items, count, expected]) => [(sut, host, cs) => {
         sut.$bind(BindingFlags.fromBind, createScopeForTest({ }));
+        verifyViewBindingContexts(sut.views, items);
 
         expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
         expect(host.textContent).to.equal(expected, `execute2, host.textContent`);
@@ -119,8 +140,9 @@ describe(`Repeat`, () => {
 
       }, `$bind(fromBind), new scope `],
 
-      ([, count, expected]) => [(sut, host) => {
+      ([items, count, expected]) => [(sut, host) => {
         sut.$bind(BindingFlags.fromBind | BindingFlags.fromFlushChanges, createScopeForTest({ }));
+        verifyViewBindingContexts(sut.views, items);
 
         expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
         expect(host.textContent).to.equal(expected, `execute2, host.textContent`);
@@ -144,6 +166,7 @@ describe(`Repeat`, () => {
       ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
         sut.items = newItems;
         sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        verifyViewBindingContexts(sut.views, newItems);
 
         cs.flushChanges();
 
@@ -155,6 +178,7 @@ describe(`Repeat`, () => {
       ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
         sut.items = newItems;
         sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        verifyViewBindingContexts(sut.views, newItems);
 
         cs.flushChanges();
 

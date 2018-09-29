@@ -3,7 +3,7 @@ import { Binding, BindingContext, BindingFlags, CollectionObserver, ForOfStateme
 import { INode, IRenderLocation } from '../../dom';
 import { bindable } from '../bindable';
 import { ICustomAttribute, templateController } from '../custom-attribute';
-import { IAttachLifecycleController, IDetachLifecycleController, Lifecycle, LifecycleFlags } from '../lifecycle';
+import { IAttachLifecycle, IDetachLifecycle, Lifecycle, LifecycleFlags } from '../lifecycle';
 import { IRenderable } from '../renderable';
 import { IView, IViewFactory } from '../view';
 
@@ -45,21 +45,21 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     this.checkCollectionObserver();
   }
 
-  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycleController): void {
+  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
     const { views, location } = this;
     for (let i = 0, ii = views.length; i < ii; ++i) {
       const view = views[i];
       view.mount(location);
-      lifecycle.attach(view);
+      view.$attach(encapsulationSource, lifecycle);
     }
   }
 
-  public detaching(lifecycle: IDetachLifecycleController): void {
+  public detaching(lifecycle: IDetachLifecycle): void {
     const { views } = this;
     for (let i = 0, ii = views.length; i < ii; ++i) {
       const view = views[i];
+      view.$detach(lifecycle);
       view.release();
-      lifecycle.detach(view);
     }
   }
 

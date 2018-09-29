@@ -282,6 +282,55 @@ export function lazyProduct(sets: any[][], f: (...args: any[]) => void, context?
   dive(0);
 }
 
+const returnTrue = () => true;
+const pdCache = new Map<Object, PropertyDescriptorMap>();
+const filterCache = new Map<string, Map<Object, PropertyDescriptorMap>>();
+
+export function getAllPropertyDescriptors(proto: Object, filter: (pd: PropertyDescriptor) => boolean = returnTrue): PropertyDescriptorMap {
+  if (filter === returnTrue) {
+    let pdMap = pdCache.get(proto);
+    if (pdMap === undefined) {
+      pdMap = $getAllPropertyDescriptors(proto, filter);
+      pdCache.set(proto, pdMap);
+    }
+    return pdMap;
+  } else {
+    const filterStr = filter.toString();
+    let pdCache = filterCache.get(filterStr);
+    let pdMap;
+    if (pdCache === undefined) {
+      pdCache = new Map();
+      filterCache.set(filterStr, pdCache);
+      pdMap = $getAllPropertyDescriptors(proto, filter);
+      pdCache.set(proto, pdMap);
+    } else {
+      pdMap = pdCache.get(proto);
+      if (pdMap === undefined) {
+        pdMap = $getAllPropertyDescriptors(proto, filter);
+        pdCache.set(proto, pdMap);
+      }
+    }
+    return pdMap;
+  }
+}
+
+function $getAllPropertyDescriptors(proto: Object, filter: (pd: PropertyDescriptor) => boolean = returnTrue): PropertyDescriptorMap {
+  const allDescriptors: PropertyDescriptorMap = {};
+  while (proto !== Object.prototype) {
+    const descriptors = Object.getOwnPropertyDescriptors(proto);
+    for (const prop in descriptors) {
+      if (allDescriptors.hasOwnProperty(prop)) {
+        continue;
+      }
+      const descriptor = descriptors[prop];
+      if (filter(descriptor)) {
+        allDescriptors[prop] = descriptor;
+      }
+    }
+    proto = Object.getPrototypeOf(proto);
+  }
+  return allDescriptors;
+}
 
 
 export function eachCartesianJoinFactory<T1, U>(

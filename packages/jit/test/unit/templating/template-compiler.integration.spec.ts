@@ -94,7 +94,7 @@ function stringify(o) {
 }
 
 
-describe.only('TemplateCompiler (integration)', () => {
+describe('TemplateCompiler (integration)', () => {
   let container: IContainer;
   let au: Aurelia;
   let host: HTMLElement;

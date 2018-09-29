@@ -40,7 +40,6 @@ export class View implements IView {
   public $isBound: boolean = false;
   public $isAttached: boolean = false;
   public $context: IRenderContext;
-  private $encapsulationSource: INode;
   private location: IRenderLocation;
   private requiresNodeAdd: boolean = false;
   private isFree: boolean = false;
@@ -112,8 +111,6 @@ export class View implements IView {
     if (this.$isAttached) {
       return;
     }
-
-    this.$encapsulationSource = encapsulationSource;
 
     const attachables = this.$attachables;
 

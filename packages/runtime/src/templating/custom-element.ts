@@ -38,7 +38,6 @@ export type ElementDefinition = Immutable<Required<ITemplateSource>> | null;
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
   $behavior: IRuntimeBehavior;
-  $encapsulationSource: INode;
 }
 
 /**
@@ -224,8 +223,7 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
     return;
   }
 
-  this.$encapsulationSource = encapsulationSource
-    = this.$projector.provideEncapsulationSource(encapsulationSource);
+  encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
 
   if (this.$behavior.hasAttaching) {
     (this as any).attaching(encapsulationSource, lifecycle);

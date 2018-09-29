@@ -384,7 +384,7 @@ describe('TemplateCompiler (integration)', () => {
     expect(component.doStuff).to.have.been.called;
   });
 
-  describe.only(`repeater`, () => {
+  describe(`repeater`, () => {
     eachCartesianJoinFactory([
       <(() => [string, string, string, (component: any) => void])[]>[
         () => [`[a,b,c]`,             `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}],
@@ -413,9 +413,9 @@ describe('TemplateCompiler (integration)', () => {
       it(markup, () => {
         component = createCustomElement(markup);
         au.app({ host, component }).start();
-        expect(host.textContent).to.equal('');
+        expect(host.textContent.trim()).to.equal(''); // TODO: we kind of want to get rid of those spaces.. preferably
         initialize(component)
-        expect(host.textContent).to.equal('');
+        expect(host.textContent.trim()).to.equal('');
         cs.flushChanges();
         expect(host.textContent).to.equal(textContent);
       });

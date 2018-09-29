@@ -47,7 +47,8 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
   public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycleController): void {
     const { views, location } = this;
-    for (let i = 0, ii = views.length, view = views[i]; i < ii; view = views[++i]) {
+    for (let i = 0, ii = views.length; i < ii; ++i) {
+      const view = views[i];
       view.mount(location);
       lifecycle.attach(view);
     }
@@ -55,7 +56,8 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
   public detaching(lifecycle: IDetachLifecycleController): void {
     const { views } = this;
-    for (let i = 0, ii = views.length, view = views[i]; i < ii; view = views[++i]) {
+    for (let i = 0, ii = views.length; i < ii; ++i) {
+      const view = views[i];
       view.release();
       lifecycle.detach(view);
     }
@@ -65,7 +67,8 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
     this.checkCollectionObserver();
 
     const { views } = this;
-    for (let i = 0, ii = views.length, view = views[i]; i < ii; view = views[++i]) {
+    for (let i = 0, ii = views.length; i < ii; ++i) {
+      const view = views[i];
       view.$unbind(flags);
     }
   }
@@ -133,13 +136,15 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
       const { location } = this;
       const lifecycle = Lifecycle.beginAttach(this.encapsulationSource, LifecycleFlags.none);
       if (indexMap === null) {
-        for (let i = 0, ii = views.length, view = views[i]; i < ii; view = views[++i]) {
+        for (let i = 0, ii = views.length; i < ii; ++i) {
+          const view = views[i];
           view.mount(location);
           lifecycle.attach(view);
         }
       } else {
-        for (let i = 0, ii = views.length, view = views[i]; i < ii; view = views[++i]) {
+        for (let i = 0, ii = views.length; i < ii; ++i) {
           if (indexMap[i] !== i) {
+            const view = views[i];
             view.mount(location);
             lifecycle.attach(view);
           }

@@ -173,7 +173,7 @@ describe(`Repeat`, () => {
         expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
         expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
 
-      }, `assign       `],
+      }, `assign              `],
 
       ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
         sut.items = newItems;
@@ -210,25 +210,209 @@ describe(`Repeat`, () => {
           expect(host.textContent).to.equal(newExpected + '1', `execute3, host.textContent`);
         }
 
-        let curText = host.textContent;
-
+        let textParts = host.textContent.split('');
+        textParts.reverse();
         sut.items.reverse();
         cs.flushChanges();
 
-        expect(host.textContent).to.equal(curText.split('').reverse().join(''), `execute3, host.textContent`);
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
 
+        textParts.sort();
         sut.items.sort();
         cs.flushChanges();
 
-        expect(host.textContent).to.equal(curText.split('').sort().join(''), `execute3, host.textContent`);
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
 
-        let curText2 = host.textContent.slice(0, -1);
+        textParts.pop();
         sut.items.pop();
         cs.flushChanges();
 
-        expect(host.textContent).to.equal(curText2, `execute3, host.textContent`);
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
 
-      }, `assign+mutate`]
+        textParts.unshift('1', '2', '3');
+        sut.items.unshift(1, 2, 3);
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+        textParts.splice(0, 2);
+        sut.items.splice(0, 2);
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+        textParts.splice(0, 1, '1', '2', '3');
+        sut.items.splice(0, 1, 1, 2, 3);
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+        textParts.shift();
+        sut.items.shift();
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+      }, `mutate       `],
+
+      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
+        sut.items = newItems;
+        sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        verifyViewBindingContexts(sut.views, newItems);
+
+        cs.flushChanges();
+
+        expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+        expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+        if (!(Array.isArray(newItems)) || items === newItems) {
+          const arr = sut.items = [];
+          sut.itemsChanged(arr, items, BindingFlags.updateTargetInstance);
+
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(0, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal('', `execute3, host.textContent`);
+
+          sut.items.push(1);
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(1, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal('1', `execute3, host.textContent`);
+        } else {
+          expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+          sut.items.push(1);
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(newCount + 1, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal(newExpected + '1', `execute3, host.textContent`);
+        }
+
+        const beforeMutations = host.textContent;
+        let textParts = host.textContent.split('');
+        textParts.reverse();
+        sut.items.reverse();
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.sort();
+        sut.items.sort();
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.pop();
+        sut.items.pop();
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.unshift('1', '2', '3');
+        sut.items.unshift(1, 2, 3);
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.splice(0, 2);
+        sut.items.splice(0, 2);
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.splice(0, 1, '1', '2', '3');
+        sut.items.splice(0, 1, 1, 2, 3);
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.shift();
+        sut.items.shift();
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+      }, `mutate(batch)`],
+
+      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
+        sut.items = newItems;
+        sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        verifyViewBindingContexts(sut.views, newItems);
+
+        cs.flushChanges();
+
+        expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+        expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+        if (!(Array.isArray(newItems)) || items === newItems) {
+          const arr = sut.items = [];
+          sut.itemsChanged(arr, items, BindingFlags.updateTargetInstance);
+
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(0, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal('', `execute3, host.textContent`);
+
+          sut.items.push(1);
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(1, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal('1', `execute3, host.textContent`);
+        } else {
+          expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+          sut.items.push(1);
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(newCount + 1, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal(newExpected + '1', `execute3, host.textContent`);
+        }
+
+        const beforeMutations = host.textContent;
+        let textParts = host.textContent.split('');
+        textParts.reverse();
+        sut.items.reverse();
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.sort();
+        sut.items.sort();
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.pop();
+        sut.items.pop();
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.unshift('1', '2', '3');
+        sut.items.unshift(1, 2, 3);
+
+        sut.items = ['a', 'b', 'c', 'd', 'e'];
+        textParts = sut.items.slice();
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.splice(0, 2);
+        sut.items.splice(0, 2);
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.splice(0, 1, '1', '2', '3');
+        sut.items.splice(0, 1, 1, 2, 3);
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        textParts.shift();
+        sut.items.shift();
+
+        expect(host.textContent).to.equal(beforeMutations, `execute3, host.textContent`);
+
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+      }, `assign+mutate(batch)`]
     ],
     // fourth operation "execute4" (detach and unbind)
     <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, cs: ChangeSet) => void, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[

@@ -1,4 +1,4 @@
-import { DOM, INode, INodeSequence } from '../dom';
+import { DOM, INode, INodeSequence, NodeSequence } from '../dom';
 import { TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { createRenderContext, IRenderContext } from './render-context';
 import { IRenderable } from './renderable';
@@ -36,3 +36,12 @@ export class CompiledTemplate implements ITemplate {
     return nodes;
   }
 }
+
+// This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
+/*@internal*/
+export const noViewTemplate: ITemplate = {
+  renderContext: null,
+  createFor(renderable: IRenderable): INodeSequence {
+    return NodeSequence.empty;
+  }
+};

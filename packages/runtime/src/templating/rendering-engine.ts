@@ -3,16 +3,14 @@ import { IChangeSet } from '../binding/change-set';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
 import { IObserverLocator } from '../binding/observer-locator';
-import { INodeSequence, NodeSequence } from '../dom';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
 import { ITemplateSource, TemplateDefinition } from './instructions';
 import { ExposedContext, IRenderContext } from './render-context';
-import { IRenderable } from './renderable';
 import { IRenderer, Renderer } from './renderer';
 import { RuntimeBehavior } from './runtime-behavior';
-import { CompiledTemplate, ITemplate } from './template';
+import { CompiledTemplate, ITemplate, noViewTemplate } from './template';
 import { ITemplateCompiler } from './template-compiler';
 import { IViewFactory, ViewFactory } from './view';
 import { ViewCompileFlags } from './view-compile-flags';
@@ -29,14 +27,6 @@ export interface IRenderingEngine {
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>()
   .withDefault(x => x.singleton(RenderingEngine));
-
-// This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
-const noViewTemplate: ITemplate = {
-  renderContext: null,
-  createFor(renderable: IRenderable): INodeSequence {
-    return NodeSequence.empty;
-  }
-};
 
 const defaultCompilerName = 'default';
 

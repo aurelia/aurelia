@@ -1,3 +1,4 @@
+import { ILifecycleTask } from './../../src/templating/lifecycle';
 import { PLATFORM, IContainer, IDisposable, ImmutableArray } from '../../../kernel/src';
 import {
   INodeSequence,
@@ -472,3 +473,199 @@ export class MockIfElseTextNodeTemplate {
   }
 }
 
+
+export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
+  public $isAttached: boolean = false;
+  public $isBound: boolean = false;
+
+  public parent: LifecycleMock;
+  private _root: LifecycleMock;
+  public get root(): LifecycleMock {
+    if (this._root === undefined) {
+      this._root = this.parent ? this.parent.root : this;
+    }
+    return this._root;
+  }
+  private _depth: number;
+  public get depth(): number {
+    if (this._depth === undefined) {
+      this._depth = this.parent ? this.parent.depth + 1 : 0;
+    }
+    return this._depth;
+  }
+  public index: number;
+  public children: LifecycleMock[];
+
+  public calls: [keyof LifecycleMock, number, number, ...any[]][];
+  constructor(...children: LifecycleMock[]) {
+    this.parent = null;
+    this.index = 0;
+    this.children = children;
+    this.calls = [];
+    for (let i = 0, ii = children.length; i < ii; ++i) {
+      const child = children[i];
+      child.parent = this;
+      child.index = i;
+    }
+  }
+
+  public $attach(encapsulationSource: Node, lifecycle: IAttachLifecycle): void {
+    this.trace('$attach', encapsulationSource, lifecycle);
+    const children = this.children;
+    for (let i = 0, ii = children.length; i < ii; ++i) {
+      children[i].$attach(encapsulationSource, lifecycle);
+    }
+    lifecycle.queueAddNodes(this);
+    this.$isAttached = true;
+    lifecycle.queueAttachedCallback(this);
+  }
+
+  public $addNodes(): void {
+    this.trace('$addNodes');
+  }
+
+  public $detach(lifecycle: IDetachLifecycle): void {
+    this.trace('$detach', lifecycle);
+    lifecycle.queueRemoveNodes(this);
+    const children = this.children;
+    let i = children.length;
+    while (i--) {
+      children[i].$detach(lifecycle);
+    }
+    this.$isAttached = false;
+    lifecycle.queueDetachedCallback(this);
+  }
+
+  public $removeNodes(): void {
+    this.trace('$removeNodes');
+  }
+
+  public $cache(): void {
+    this.trace('$cache');
+    const children = this.children;
+    for (let i = 0, ii = children.length; i < ii; ++i) {
+      children[i].$cache();
+    }
+  }
+
+  public $bind(flags: BindingFlags, scope: IScope): void {
+    this.trace('$bind', flags, scope);
+    const children = this.children;
+    for (let i = 0, ii = children.length; i < ii; ++i) {
+      children[i].$bind(flags, scope);
+    }
+    this.$isBound = true;
+  }
+
+  public $unbind(flags: BindingFlags): void {
+    this.trace('$unbind', flags);
+    const children = this.children;
+    let i = children.length;
+    while (i--) {
+      children[i].$unbind(flags);
+    }
+    this.$isBound = false;
+  }
+
+  public attached(): void {
+    this.trace('attached');
+  }
+
+  public detached(): void {
+    this.trace('detached');
+  }
+
+  public asyncWorkStarted: boolean = false;
+  public asyncWorkCompleted: boolean = false;
+  public asyncWorkCancelled: boolean = false;
+  public promise: Promise<any> = null;
+  public startAsyncWork(): Promise<void> {
+    this.trace('startAsyncWork');
+    this.asyncWorkStarted = true;
+    return this.promise || (this.promise = new Promise((resolve) => {
+      setTimeout(() => {
+        if (!this.asyncWorkCancelled) {
+          this.completeAsyncWork();
+        }
+        this.finalizeAsyncWork();
+        resolve();
+      });
+    }));
+  }
+
+  public cancelAsyncWork(): void {
+    this.trace('cancelAsyncWork');
+    this.asyncWorkCancelled = true;
+  }
+
+  public completeAsyncWork(): void {
+    this.trace('completeAsyncWork');
+    this.asyncWorkCompleted = true;
+  }
+
+  public finalizeAsyncWork(): void {
+    this.trace('finalizeAsyncWork');
+    this.done = true;
+  }
+
+  public done: boolean = false;
+  public canCancel(): boolean {
+    return !this.done;
+  }
+  public cancel(): void {
+    this.cancelAsyncWork();
+  }
+  public wait(): Promise<void> {
+    return this.startAsyncWork();
+  }
+  public registerTo(task: IAttachLifecycle | IDetachLifecycle): void {
+    this.asyncWorkStarted = this.asyncWorkCancelled = this.asyncWorkCompleted = false;
+    this.promise = null;
+    task.registerTask(this);
+    const children = this.children;
+    for (let i = 0, ii = children.length; i < ii; ++i) {
+      children[i].registerTo(task);
+    }
+  }
+
+  public walkTopDown(fn: (mock: LifecycleMock) => void): void {
+    fn(this);
+    let children = this.children;
+    for (let i = 0, ii = children.length; i < ii; ++i) {
+      children[i].walkTopDown(fn);
+    }
+  }
+
+  public walkBottomUp(fn: (mock: LifecycleMock) => void): void {
+    let children = this.children;
+    for (let i = 0, ii = children.length; i < ii; ++i) {
+      children[i].walkBottomUp(fn);
+    }
+    fn(this);
+  }
+
+  public walkTopDownReverse(fn: (mock: LifecycleMock) => void): void {
+    fn(this);
+    let children = this.children;
+    let i = children.length;
+    while (i--) {
+      children[i].walkTopDownReverse(fn);
+    }
+  }
+
+  public walkBottomUpReverse(fn: (mock: LifecycleMock) => void): void {
+    let children = this.children;
+    let i = children.length;
+    while (i--) {
+      children[i].walkBottomUpReverse(fn);
+    }
+    fn(this);
+  }
+
+  public trace(fnName: keyof LifecycleMock, ...args: any[]): void {
+    this.calls.push([fnName, this.depth, this.index, ...args]);
+    if (this.root !== this) {
+      this.root.calls.push([fnName, this.depth, this.index, ...args]);
+    }
+  }
+}

@@ -154,7 +154,7 @@
     "no-relative-imports": false,
     "no-require-imports": true,
     "no-return-await": true,
-    "no-shadowed-variable": false,
+    "no-shadowed-variable": true,
     "no-suspicious-comment": false,
     "no-this-assignment": true,
     "no-typeof-undefined": true,

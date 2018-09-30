@@ -1,4 +1,4 @@
-import { IContainer, IDisposable, Immutable, ImmutableArray, IResolver, IServiceLocator, PLATFORM } from '@aurelia/kernel';
+import { IContainer, IDisposable, Immutable, ImmutableArray, IResolver, IServiceLocator, PLATFORM, Reporter } from '@aurelia/kernel';
 import { DOM, INode, IRenderLocation } from '../dom';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { IRenderable } from './renderable';
@@ -74,6 +74,9 @@ export class InstanceProvider<T> implements IResolver {
   }
 
   public resolve(handler: IContainer, requestor: IContainer): T {
+    if (this.instance === undefined) { // unmet precondition: call prepare
+      throw Reporter.error(50); // TODO: organize error codes
+    }
     return this.instance;
   }
 
@@ -95,8 +98,14 @@ export class ViewFactoryProvider implements IResolver {
   }
 
   public resolve(handler: IContainer, requestor: ExposedContext): IViewFactory {
-    const found = this.replacements[this.factory.name];
-
+    const factory = this.factory;
+    if (factory === undefined) { // unmet precondition: call prepare
+      throw Reporter.error(50); // TODO: organize error codes
+    }
+    if (!factory.name || !factory.name.length) { // unmet invariant: factory must have a name
+      throw Reporter.error(51); // TODO: organize error codes
+    }
+    const found = this.replacements[factory.name];
     if (found) {
       return this.renderingEngine.getViewFactory(found, requestor);
     }

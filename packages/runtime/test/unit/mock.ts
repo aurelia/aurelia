@@ -1,5 +1,5 @@
 import { ILifecycleTask } from './../../src/templating/lifecycle';
-import { PLATFORM, IContainer, IDisposable, ImmutableArray } from '../../../kernel/src';
+import { PLATFORM, IContainer, IDisposable, ImmutableArray, Immutable } from '../../../kernel/src';
 import {
   INodeSequence,
   ITemplate,
@@ -37,7 +37,12 @@ import {
   ForOfStatement,
   BindingIdentifier,
   RuntimeBehavior,
-  IChangeSet
+  IChangeSet,
+  ITemplateSource,
+  IResourceType,
+  ICustomAttributeSource,
+  ICustomAttribute,
+  IRenderer
 } from '../../src';
 
 export class MockContext {
@@ -668,4 +673,45 @@ export class LifecycleMock implements IAttach, IBindScope, ILifecycleTask {
       this.root.calls.push([fnName, this.depth, this.index, ...args]);
     }
   }
+}
+
+export class MockRenderingEngine implements IRenderingEngine {
+  public calls: [keyof MockRenderingEngine, ...any[]][];
+
+  constructor(
+    public elementTemplate: ITemplate,
+    public viewFactory: IViewFactory,
+    public renderer: IRenderer,
+    public runtimeBehaviorApplicator: (type: any, instance: any) => void
+  ) {
+    this.calls = [];
+  }
+
+  public getElementTemplate(definition: Immutable<Required<ITemplateSource>>, componentType?: ICustomElementType): ITemplate {
+    this.trace(`getElementTemplate`, definition, componentType);
+    return this.elementTemplate;
+  }
+
+  public getViewFactory(source: Immutable<ITemplateSource>, parentContext?: IRenderContext): IViewFactory {
+    this.trace(`getViewFactory`, source, parentContext);
+    return this.viewFactory;
+  }
+
+  public createRenderer(context: IRenderContext): IRenderer {
+    this.trace(`createRenderer`, context);
+    return this.renderer;
+  }
+
+  public applyRuntimeBehavior(type: IResourceType<ICustomAttributeSource, ICustomAttribute>, instance: ICustomAttribute): void;
+  public applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement): void;
+  public applyRuntimeBehavior(type: any, instance: any) {
+    this.trace(`applyRuntimeBehavior`, type, instance);
+    this.runtimeBehaviorApplicator(type, instance);
+  }
+
+
+  public trace(fnName: keyof MockRenderingEngine, ...args: any[]): void {
+    this.calls.push([fnName, ...args]);
+  }
+
 }

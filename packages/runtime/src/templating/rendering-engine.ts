@@ -20,7 +20,7 @@ export interface IRenderingEngine {
   getViewFactory(source: Immutable<ITemplateSource>, parentContext?: IRenderContext): IViewFactory;
 
   applyRuntimeBehavior(type: ICustomAttributeType, instance: ICustomAttribute): void;
-  applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement): void
+  applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement): void;
 
   createRenderer(context: IRenderContext): IRenderer;
 }
@@ -33,9 +33,9 @@ const defaultCompilerName = 'default';
 @inject(IContainer, IChangeSet, IObserverLocator, IEventManager, IExpressionParser, all(ITemplateCompiler))
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
-  private templateLookup = new Map<TemplateDefinition, ITemplate>();
-  private factoryLookup = new Map<Immutable<ITemplateSource>, IViewFactory>();
-  private behaviorLookup = new Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>();
+  private templateLookup: Map<TemplateDefinition, ITemplate> = new Map();
+  private factoryLookup: Map<Immutable<ITemplateSource>, IViewFactory> = new Map();
+  private behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior> = new Map();
   private compilers: Record<string, ITemplateCompiler>;
 
   constructor(

@@ -3,16 +3,16 @@ import { IChangeSet } from '../binding/change-set';
 import { IEventManager } from '../binding/event-manager';
 import { IExpressionParser } from '../binding/expression-parser';
 import { IObserverLocator } from '../binding/observer-locator';
-import { DOM, INode, INodeSequence, NodeSequence } from '../dom';
+import { INodeSequence, NodeSequence } from '../dom';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
-import { ITemplateSource, TemplateDefinition, TemplatePartDefinitions } from './instructions';
-import { createRenderContext, ExposedContext, IRenderContext } from './render-context';
+import { ITemplateSource, TemplateDefinition } from './instructions';
+import { ExposedContext, IRenderContext } from './render-context';
 import { IRenderable } from './renderable';
 import { IRenderer, Renderer } from './renderer';
 import { RuntimeBehavior } from './runtime-behavior';
-import { ITemplate } from './template';
+import { CompiledTemplate, ITemplate } from './template';
 import { ITemplateCompiler } from './template-compiler';
 import { IViewFactory, ViewFactory } from './view';
 import { ViewCompileFlags } from './view-compile-flags';
@@ -169,29 +169,6 @@ export function createDefinition(definition: Immutable<ITemplateSource>): Templa
     shadowOptions: definition.shadowOptions || null,
     hasSlots: definition.hasSlots || false
   };
-}
-
-// This is the main implementation of ITemplate.
-// It is used to create instances of IView based on a compiled TemplateDefinition.
-// TemplateDefinitions are hand-coded today, but will ultimately be the output of the
-// TemplateCompiler either through a JIT or AOT process.
-// Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
-// and create instances of it on demand.
-/*@internal*/
-export class CompiledTemplate implements ITemplate {
-  public renderContext: IRenderContext;
-  private createNodeSequence: () => INodeSequence;
-
-  constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
-    this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
-    this.createNodeSequence = DOM.createFactoryFromMarkupOrNode(templateDefinition.templateOrNode);
-  }
-
-  public createFor(renderable: IRenderable, host?: INode, replacements?: TemplatePartDefinitions): INodeSequence {
-    const nodes = this.createNodeSequence();
-    this.renderContext.render(renderable, nodes.findTargets(), this.templateDefinition, host, replacements);
-    return nodes;
-  }
 }
 
 /*@internal*/

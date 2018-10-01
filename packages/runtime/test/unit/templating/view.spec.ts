@@ -297,10 +297,10 @@ describe(`View`, () => {
           lifecycle.attach(sut).end();
 
           expect(sut.$isAttached).to.be.true;
-          expect(sut['$encapsulationSource']).to.equal(source);
+          //expect(sut['$encapsulationSource']).to.equal(source);
           if (sut.$attachables.length) {
             expect(sut.$attachables[0].$isAttached).to.be.true;
-            expect(sut.$attachables[0]['$encapsulationSource']).to.equal(source);
+            //expect(sut.$attachables[0]['$encapsulationSource']).to.equal(source);
           }
 
           if (location.parentNode) {
@@ -318,11 +318,11 @@ describe(`View`, () => {
           }
 
           // verify short-circuit if already attached
-          const src = sut['$encapsulationSource'];
+          //const src = sut['$encapsulationSource'];
           sut['$encapsulationSource'] = null;
           sut.$attach(source, <any>lifecycle);
           expect(sut['$encapsulationSource']).to.be.null;
-          sut['$encapsulationSource'] = src;
+          //sut['$encapsulationSource'] = src;
         }]
       ],
       [
@@ -341,7 +341,7 @@ describe(`View`, () => {
 
           expect(sut.$isAttached).to.be.false;
           if (attach === PLATFORM.noop) {
-            expect(sut['$encapsulationSource']).to.be.undefined;
+            //expect(sut['$encapsulationSource']).to.be.undefined;
 
             // verify short-circuit if already detached
             const s = spy(lifecycle, <any>'queueRemoveNodes');
@@ -349,14 +349,14 @@ describe(`View`, () => {
             expect(s).not.to.have.been.called;
             s.restore();
           } else {
-            expect(sut['$encapsulationSource']).to.equal(source);
+            //expect(sut['$encapsulationSource']).to.equal(source);
           }
           if (sut.$attachables.length) {
             expect(sut.$attachables[0].$isAttached).to.be.false;
             if (attach === PLATFORM.noop) {
-              expect(sut.$attachables[0]['$encapsulationSource']).to.be.undefined;
+              //expect(sut.$attachables[0]['$encapsulationSource']).to.be.undefined;
             } else {
-              expect(sut.$attachables[0]['$encapsulationSource']).to.equal(source);
+              //expect(sut.$attachables[0]['$encapsulationSource']).to.equal(source);
             }
           }
 

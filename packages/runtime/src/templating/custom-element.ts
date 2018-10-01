@@ -388,7 +388,7 @@ export class ContainerlessProjector implements IElementProjector {
 
   constructor(private customElement: ICustomElement, host: INode) {
     if (host.childNodes.length) {
-      this.childNodes = Array.from(host.childNodes);
+      this.childNodes = PLATFORM.toArray(host.childNodes);
     } else {
       this.childNodes = PLATFORM.emptyArray;
     }

@@ -42,7 +42,8 @@ import {
   IResourceType,
   ICustomAttributeSource,
   ICustomAttribute,
-  IRenderer
+  IRenderer,
+  INode
 } from '../../src';
 
 export class MockContext {
@@ -714,4 +715,47 @@ export class MockRenderingEngine implements IRenderingEngine {
     this.calls.push([fnName, ...args]);
   }
 
+}
+
+export class MockCustomElementWithAllLifecycles {
+  public calls: [keyof MockCustomElementWithAllLifecycles, ...any[]][];
+
+  public created(): void {
+    this.trace(`created`);
+  }
+  public binding(flags: BindingFlags): void {
+    this.trace(`binding`, flags);
+  }
+  public bound(flags: BindingFlags): void {
+    this.trace(`bound`, flags);
+  }
+  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+    this.trace(`attaching`, encapsulationSource, lifecycle);
+  }
+  public attached(): void {
+    this.trace(`attached`);
+  }
+  public detaching(lifecycle: IDetachLifecycle): void {
+    this.trace(`detaching`, lifecycle);
+  }
+  public detached(): void {
+    this.trace(`detached`);
+  }
+  public unbinding(flags: BindingFlags): void {
+    this.trace(`unbinding`, flags);
+  }
+  public unbound(flags: BindingFlags): void {
+    this.trace(`unbound`, flags);
+  }
+  public render(host: INode, parts: Record<string, Immutable<ITemplateSource>>): INodeSequence {
+    this.trace(`render`, host, parts);
+    return new MockTextNodeSequence();
+  }
+  public caching(): void {
+    this.trace(`caching`);
+  }
+
+  public trace(fnName: keyof MockCustomElementWithAllLifecycles, ...args: any[]): void {
+    this.calls.push([fnName, ...args]);
+  }
 }

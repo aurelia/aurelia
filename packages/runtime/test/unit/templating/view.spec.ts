@@ -1,3 +1,7 @@
+import { spy } from 'sinon';
+import { PLATFORM } from '@aurelia/kernel';
+import { NodeSequence } from './../../../src/dom';
+import { ObserverLocator } from './../../../src/binding/observer-locator';
 import {
   noViewTemplate,
   ITemplate,
@@ -17,7 +21,11 @@ import {
   Lifecycle,
   IAttachLifecycleController,
   IDetachLifecycleController,
-  IRenderLocation
+  IRenderLocation,
+  INodeSequence,
+  AccessScope,
+  IChangeSet,
+  ChangeSet
 } from '../../../src';
 import { expect } from 'chai';
 import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../../scripts/test-lib';
@@ -135,9 +143,13 @@ describe(`ViewFactory`, () => {
   });
 });
 
+const expressions = {
+  text: new AccessScope('text')
+};
+
 describe(`View`, () => {
   eachCartesianJoinFactory<
-    [string, IView, ITemplate, IViewFactory, boolean],
+    [string, IView, ITemplate, IViewFactory, IChangeSet, boolean],
     [string, BindingFlags, IScope],
     [string, (sut: IView) => void],
     [string, IRenderLocation],
@@ -154,40 +166,122 @@ describe(`View`, () => {
     [
       [
         () => {
+          const cs = new ChangeSet();
           const factory = new ViewFactory('foo', noViewTemplate);
           factory.setCacheSize('*', true);
-          return [`noViewTemplate, viewFactory(cache=true )`, factory.create(), noViewTemplate, factory, true];
+          return [` noViewTemplate, viewFactory(cache=true )`, factory.create(), noViewTemplate, factory, cs, true];
         },
         () => {
+          const cs = new ChangeSet();
           const factory = new ViewFactory('foo', noViewTemplate);
-          return [`noViewTemplate, viewFactory(cache=false)`, factory.create(), noViewTemplate, factory, false];
+          return [` noViewTemplate, viewFactory(cache=false)`, factory.create(), noViewTemplate, factory, cs, false];
+        },
+        () => {
+          const cs = new ChangeSet();
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
+          const factory = new ViewFactory('foo', <any>template);
+          factory.setCacheSize('*', true);
+          return [`textNodeTemplate, viewFactory(cache=true )`, factory.create(), template, factory, cs, true];
+        },
+        () => {
+          const cs = new ChangeSet();
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
+          const factory = new ViewFactory('foo', <any>template);
+          return [`textNodeTemplate, viewFactory(cache=false)`, factory.create(), template, factory, cs, false];
+        },
+        () => {
+          const cs = new ChangeSet();
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
+          const factory = new ViewFactory('foo', <any>template);
+          const child = factory.create();
+          const sut = factory.create();
+          sut.$attachables.push(child);
+          sut.$bindables.push(child);
+          factory.setCacheSize('*', true);
+          return [`textNodeTemplate, viewFactory(cache=true )`, sut, template, factory, cs, true];
+        },
+        () => {
+          const cs = new ChangeSet();
+          const template = new MockTextNodeTemplate(expressions.text, new ObserverLocator(cs, null, null, null)) as any;
+          const factory = new ViewFactory('foo', <any>template);
+          const child = factory.create();
+          const sut = factory.create();
+          sut.$attachables.push(child);
+          sut.$bindables.push(child);
+          return [`textNodeTemplate, viewFactory(cache=false)`, sut, template, factory, cs, false];
         }
       ],
       [
-        () => [`fromBind, {}`, BindingFlags.fromBind, BindingContext.createScope({})]
+        () => [`fromBind, {text:'foo'}`, BindingFlags.fromBind, BindingContext.createScope({text:'foo'})]
       ],
       [
-        ([$11, $12, $13, sut], [$21, flags, scope]) => [`$bind`, (sut) => {
+        () => [`       noop`, PLATFORM.noop],
+        ($1, [$21, flags, scope]) => [`      $bind`, (sut) => {
           sut.$bind(flags, scope);
 
           expect(sut.$scope).to.equal(scope);
           expect(sut.$isBound).to.be.true;
+          if (sut.$nodes.firstChild) {
+            expect(sut.$nodes.firstChild['textContent']).to.equal('');
+          }
+
+          // TODO: verify short-circuit if already bound (now we can only tell by debugging or looking at the coverage report, not very clean)
+          sut.$bind(flags, scope);
+
+          const newScope = BindingContext.createScope({text:'foo'});
+          sut.$bind(flags, newScope);
+
+          expect(sut.$scope).to.equal(newScope);
+          expect(sut.$isBound).to.be.true;
+        }],
+        ([$11, $12, $13, $14, cs], [$21, flags, scope]) => [`$bind+flush`, (sut) => {
+          sut.$bind(flags, scope);
+
+          expect(sut.$scope).to.equal(scope);
+          expect(sut.$isBound).to.be.true;
+          if (sut.$nodes.firstChild) {
+            expect(sut.$nodes.firstChild['textContent']).to.equal('');
+            cs.flushChanges();
+            expect(sut.$nodes.firstChild['textContent']).to.equal('foo');
+            if (sut.$attachables.length) {
+              expect(sut.$attachables[0]['$nodes'].firstChild['textContent']).to.equal('foo');
+            }
+          }
         }]
       ],
       [
         () => {
           const location = document.createElement('div');
           return [`div`, location]
+        },
+        () => {
+          const host = document.createElement('div');
+          const location = document.createElement('div');
+          host.appendChild(location);
+          return [`div`, location]
         }
       ],
       [
-        ([$11, $12, $13, sut], $2, $3, [$41, location]) => [` noop`, (sut) => {
-        }],
-        ([$11, $12, $13, sut], $2, $3, [$41, location]) => [`mount`, (sut) => {
+        () => [` noop`, PLATFORM.noop],
+        ($1, $2, $3, [$41, location]) => [`mount`, (sut) => {
           if (!location.parentNode) {
             expect(() => sut.mount(location)).to.throw(/60/);
           } else {
             sut.mount(location);
+
+            expect(sut['location']).to.equal(location);
+            if (sut.$nodes === NodeSequence.empty) {
+              expect(sut['requiresNodeAdd']).to.be.false;
+            } else {
+              expect(sut['requiresNodeAdd']).to.be.true;
+            }
+            if (sut.$attachables.length) {
+              expect(sut.$attachables[0]['location']).to.be.undefined;
+            }
+
+            expect(location.parentNode['textContent']).to.equal('');
+            expect(location.parentNode.childNodes.length).to.equal(1);
+            expect(location.parentNode.childNodes[0].childNodes.length).to.equal(0);
           }
         }]
       ],
@@ -198,29 +292,99 @@ describe(`View`, () => {
         }
       ],
       [
-        ([$11, $12, $13, sut], $2, $3, $4, $5, [$61, source, lifecycle]) => [`$attach`, (sut) => {
+        () => [`   noop`, PLATFORM.noop],
+        ([$11, $12, template, $14, cs], $2, $3, [$41, location], $5, [$61, source, lifecycle]) => [`$attach`, (sut) => {
           lifecycle.attach(sut).end();
+
+          expect(sut.$isAttached).to.be.true;
+          expect(sut['$encapsulationSource']).to.equal(source);
+          if (sut.$attachables.length) {
+            expect(sut.$attachables[0].$isAttached).to.be.true;
+            expect(sut.$attachables[0]['$encapsulationSource']).to.equal(source);
+          }
+
+          if (location.parentNode) {
+            if (template === noViewTemplate || !sut['location']) {
+              expect(location.parentNode.childNodes.length).to.equal(1);
+              expect(location.parentNode['textContent']).to.equal('');
+            } else {
+              expect(location.parentNode.childNodes.length).to.equal(2);
+              if (cs.size > 0 || !sut.$isBound) {
+                expect(location.parentNode['textContent']).to.equal('');
+              } else {
+                expect(location.parentNode['textContent']).to.equal('foo');
+              }
+            }
+          }
+
+          // verify short-circuit if already attached
+          const src = sut['$encapsulationSource'];
+          sut['$encapsulationSource'] = null;
+          sut.$attach(source, <any>lifecycle);
+          expect(sut['$encapsulationSource']).to.be.null;
+          sut['$encapsulationSource'] = src;
         }]
       ],
       [
-        ([$11, $12, $13, sut], $2, $3, $4, $5, $6, $7) => [`release`, (sut) => {
-          sut.release();
+        () => [`   noop`, PLATFORM.noop],
+        ([$11, $12, $13, $14, $15, cache], $2, $3, $4, $5, $6, $7) => [`release`, (sut) => {
+          expect(sut.release()).to.equal(cache);
         }]
       ],
       [
         () => [`DetachLifecycle(none)`, new DetachLifecycleController(LifecycleFlags.none)]
       ],
       [
-        ([$11, $12, $13, sut], $2, $3, $4, $5, $6, $7, $8, [$91, lifecycle]) => [`$detach`, (sut) => {
+        () => [`   noop`, PLATFORM.noop],
+        ([$11, $12, template, factory, cs, cache], $2, $3, [$41, location], $5, [$61, source], [$71, attach], [$81, release], [$91, lifecycle]) => [`$detach`, (sut) => {
           lifecycle.detach(sut).end();
+
+          expect(sut.$isAttached).to.be.false;
+          if (attach === PLATFORM.noop) {
+            expect(sut['$encapsulationSource']).to.be.undefined;
+
+            // verify short-circuit if already detached
+            const s = spy(lifecycle, <any>'queueRemoveNodes');
+            sut.$detach(<any>lifecycle);
+            expect(s).not.to.have.been.called;
+            s.restore();
+          } else {
+            expect(sut['$encapsulationSource']).to.equal(source);
+          }
+          if (sut.$attachables.length) {
+            expect(sut.$attachables[0].$isAttached).to.be.false;
+            if (attach === PLATFORM.noop) {
+              expect(sut.$attachables[0]['$encapsulationSource']).to.be.undefined;
+            } else {
+              expect(sut.$attachables[0]['$encapsulationSource']).to.equal(source);
+            }
+          }
+
+          if (location.parentNode) {
+            expect(location.parentNode.childNodes.length).to.equal(1);
+            expect(location.parentNode['textContent']).to.equal('');
+          }
+          if (cache && release !== PLATFORM.noop) {
+            expect(factory['cache'][0]).to.equal(sut);
+          } else if (factory['cache'] !== null) {
+            expect(factory['cache'][0]).not.to.equal(sut);
+          }
         }]
       ],
       [
         () => [`fromUnbind`, BindingFlags.fromBind]
       ],
       [
-        ([$11, $12, $13, sut], $2, $3, $4, $5, $6, $7, $8, $9, $10, [$111, flags]) => [`$unbind`, (sut) => {
+        () => [`   noop`, PLATFORM.noop],
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, [$111, flags]) => [`$unbind`, (sut) => {
           sut.$unbind(flags);
+
+          expect(sut.$isBound).to.be.false;
+          expect(sut.$scope).to.be.null;
+          if (sut.$attachables.length) {
+            expect(sut.$attachables[0]['$isBound']).to.be.false;
+            expect(sut.$attachables[0]['$scope']).to.be.null;
+          }
         }]
       ]
     ],

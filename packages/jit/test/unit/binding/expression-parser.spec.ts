@@ -2,14 +2,17 @@ import { AccessKeyed, AccessMember, AccessScope, AccessThis,
   Assign, Binary, BindingBehavior, CallFunction,
   CallMember, CallScope, Conditional,
   ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template,
-  Unary, ValueConverter, TaggedTemplate, IsUnary, IsUnary } from '../../../../runtime/src';
+  Unary, ValueConverter, TaggedTemplate, IsUnary, IsPrimary } from '../../../../runtime/src';
 import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
 import { expect } from 'chai';
 import { parseCore } from '../../../../jit/src'
 import { verifyASTEqual, eachCartesianJoinFactory } from '../util';
+import { IsLeftHandSide } from '@aurelia/runtime';
 
 /* eslint-disable no-loop-func, no-floating-decimal, key-spacing, new-cap, quotes, comma-spacing */
 
+const $this = new AccessThis(0);
+const $parent = new AccessThis(1);
 const $a = new AccessScope('a', 0);
 const $b = new AccessScope('b', 0);
 const $c = new AccessScope('c', 0);
@@ -82,9 +85,9 @@ const literalFactories: (() => [string, PrimitiveLiteral])[] = [
   () => ['0.42',               new PrimitiveLiteral(.42) ]
 ];
 
-const primaryFactories: (() => [string, IsUnary])[] = [
-  () => [`$this`, new AccessThis()],
-  () => [`$parent`, new AccessThis(1)],
+const primaryFactories: (() => [string, IsPrimary])[] = [
+  () => [`$this`, $this],
+  () => [`$parent`, $parent],
   () => [`$parent.$parent`, new AccessThis(2)],
   () => [`foo`, new AccessScope('foo')],
   () => [`$parent.foo`, new AccessScope('foo', 1)],
@@ -133,6 +136,17 @@ const unaryFactories: (() => [string, IsUnary])[] = [
   () => [`+(+a)`,      new Unary(`+`, new Unary(`+`, $a))],
   () => [`-a`,         new Unary(`-`, $a)]
 ];
+
+// const leftHandSideFactories: (() => [string, IsLeftHandSide])[] = [
+//   () => [`${input}()`, new CallFunction(expected, [])],
+//   () => [`${input}(${input})`, new CallFunction(expected, [expected])],
+//   () => [`${input}(${input},${input})`, new CallFunction(expected, [expected,expected])],
+//   () => [`foo(${input})`, new CallScope('foo', [expected])],
+//   () => [`foo(${input},${input})`, new CallScope('foo', [expected,expected])],
+//   () => [`foo.bar(${input})`, new CallMember($foo, 'bar', [expected])],
+//   () => [`foo.bar(${input},${input})`, new CallMember($foo, 'bar', [expected,expected])],
+//   () => [`foo[${input}]`, new AccessKeyed($foo, expected)]
+// ];
 
 describe.only('ExpressionParser', () => {
   describe(`parses PrimitiveLiteral`, () => {
@@ -280,6 +294,38 @@ describe.only('ExpressionParser', () => {
     );
   });
 
+  describe(`parses IsPrimary + AccessMember`, () => {
+    eachCartesianJoinFactory<[string, IsPrimary], [string, AccessMember | AccessScope], void>(
+      [
+        [...literalFactories, ...primaryFactories],
+        [
+          ([input, expected]) => [`${input}.foo`, expected === $this ? new AccessScope('foo') : new AccessMember(expected, 'foo')]
+        ]
+      ],
+      ($1, [input, expected]) => {
+        it(input, () => {
+          verifyASTEqual(parseCore(input), expected);
+        });
+      }
+    );
+  });
+
+  describe(`does NOT parses Unary + AccessMember`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, AccessMember | AccessScope], void>(
+      [
+        unaryFactories,
+        [
+          ([input, expected]) => [`${input}.foo`, expected === $this ? new AccessScope('foo') : new AccessMember(expected, 'foo')]
+        ]
+      ],
+      ($1, [input, expected]) => {
+        it(`THROWS: ${input}`, () => {
+          expect(() => verifyASTEqual(parseCore(input), expected)).to.throw;
+        });
+      }
+    );
+  });
+
   describe(`parses IsUnary + Assign`, () => {
     eachCartesianJoinFactory<[string, IsUnary], [string, Assign], void>(
       [
@@ -291,6 +337,49 @@ describe.only('ExpressionParser', () => {
       ($1, [input, expected]) => {
         it(input, () => {
           verifyASTEqual(parseCore(input), expected);
+        });
+      }
+    );
+  });
+
+  describe(`parses IsPrimary + CallFunction`, () => {
+    eachCartesianJoinFactory<[string, IsPrimary], [string, CallFunction], void>(
+      [
+        [...literalFactories, ...primaryFactories],
+        [
+          ([input, expected]) => [`${input}()`, new CallFunction(expected, [])],
+          ([input, expected]) => [`${input}(${input})`, new CallFunction(expected, [expected])],
+          ([input, expected]) => [`${input}(${input},${input})`, new CallFunction(expected, [expected,expected])]
+        ]
+      ],
+      ($1, [input, expected]) => {
+        it(input, () => {
+          verifyASTEqual(parseCore(input), expected);
+        });
+      }
+    );
+  });
+
+  describe(`does NOT parse IsUnary + CallFunction`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, CallFunction], void>(
+      [
+        [...unaryFactories],
+        [
+          ([input, expected]) => [`${input}()`, new CallFunction(expected, [])],
+          ([input, expected]) => [`${input}(${input})`, new CallFunction(expected, [expected])],
+          ([input, expected]) => [`${input}(${input},${input})`, new CallFunction(expected, [expected,expected])]
+        ]
+      ],
+      ($1, [input, expected]) => {
+        it(`THROWS: ${input}`, () => {
+          if (input.startsWith('(')) {
+            // due to how parenthesized expressions are parsed, you can put almost anything after them;
+            // this is not worth fixing due to the fairly significant overhead that it would incur, and
+            // there would be a pretty descriptive runtime error on evaluation anyway (xxx is not a function)
+            verifyASTEqual(parseCore(input), expected);
+          } else {
+            expect(() => parseCore(input)).to.throw(/token \(/);
+          }
         });
       }
     );
@@ -554,8 +643,8 @@ describe.only('ExpressionParser', () => {
     ];
 
     for (const { ctor: Variadic, op } of variadics) {
-      const $this0 = new AccessThis(0);
-      const $this1 = new AccessThis(1);
+      const $this0 = $this;
+      const $this1 = $parent;
       const $this2 = new AccessThis(2);
 
       describe(Variadic.name, () => {
@@ -702,7 +791,7 @@ describe.only('ExpressionParser', () => {
 
     it('$this', () => {
       const expr = parseCore('$this');
-      verifyASTEqual(expr, new AccessThis(0));
+      verifyASTEqual(expr, $this);
     });
 
     it('$this.member to AccessScope', () => {
@@ -712,7 +801,7 @@ describe.only('ExpressionParser', () => {
 
     it('$this() to CallFunction', () => {
       const expr = parseCore('$this()');
-      verifyASTEqual(expr, new CallFunction(new AccessThis(0), []));
+      verifyASTEqual(expr, new CallFunction($this, []));
     });
 
     it('$this.member() to CallScope', () => {
@@ -783,17 +872,17 @@ describe.only('ExpressionParser', () => {
 
     it('$parent inside CallMember', () => {
       const expr = parseCore('matcher.bind($parent)');
-      verifyASTEqual(expr, new CallMember(new AccessScope('matcher', 0), 'bind', [new AccessThis(1)]));
+      verifyASTEqual(expr, new CallMember(new AccessScope('matcher', 0), 'bind', [$parent]));
     });
 
     it('$parent in LiteralObject', () => {
       const expr = parseCore('{parent: $parent}');
-      verifyASTEqual(expr, new ObjectLiteral(['parent'], [new AccessThis(1)]));
+      verifyASTEqual(expr, new ObjectLiteral(['parent'], [$parent]));
     });
 
     it('$parent and foo in LiteralObject', () => {
       const expr = parseCore('{parent: $parent, foo: bar}');
-      verifyASTEqual(expr, new ObjectLiteral(['parent', 'foo'], [new AccessThis(1), $bar]));
+      verifyASTEqual(expr, new ObjectLiteral(['parent', 'foo'], [$parent, $bar]));
     });
 
     describe('LiteralObject', () => {

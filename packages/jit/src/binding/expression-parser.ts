@@ -650,6 +650,14 @@ function scanNumber(state: ParserState, isFloat: boolean): Token {
     if (!isFloat) {
       nextChar(state);
     }
+    // note: this essentially make member expressions on numeric literals valid;
+    // this makes sense to allow since they're always stored in variables, and they can legally be evaluated
+    // this would be consistent with declaring a literal as a normal variable and performing an operation on that
+    const current = state.currentChar;
+    if (current > Char.Nine || current < Char.Zero) {
+      state.currentChar = state.input.charCodeAt(--state.index);
+      return Token.NumericLiteral;
+    }
     const start = state.index;
     let value = state.currentChar - Char.Zero;
     while (nextChar(state) <= Char.Nine && state.currentChar >= Char.Zero) {

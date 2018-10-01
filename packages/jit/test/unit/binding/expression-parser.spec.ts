@@ -82,7 +82,7 @@ const literalFactories: (() => [string, PrimitiveLiteral])[] = [
   () => ['0.42',               new PrimitiveLiteral(.42) ]
 ];
 
-describe.only('ExpressionParser', () => {
+describe('ExpressionParser', () => {
   describe(`parses PrimitiveLiteral`, () => {
     eachCartesianJoinFactory<[string, PrimitiveLiteral], void>(
       [literalFactories],
@@ -134,6 +134,42 @@ describe.only('ExpressionParser', () => {
           ([input, expected]) => [`[${input},]`,         new ArrayLiteral([expected,$undefined])],
           ([input, expected]) => [`[,,${input}]`,        new ArrayLiteral([$undefined,$undefined,expected])],
           ([input, expected]) => [`[${input},,]`,        new ArrayLiteral([expected,$undefined,$undefined])]
+        ],
+      ],
+      ($1, [input, expected]) => {
+        it(input, () => {
+          verifyASTEqual(parseCore(input), expected);
+        });
+      }
+    );
+  });
+
+  describe(`parses PrimitiveLiteral + ObjectLiteral`, () => {
+    eachCartesianJoinFactory<[string, PrimitiveLiteral], [string, ObjectLiteral], void>(
+      [
+        literalFactories,
+        [
+          ([input, expected]) => [`{a:${input}}`,            new ObjectLiteral(['a'], [expected])],
+          ([input, expected]) => [`{a:${input},b:${input}}`, new ObjectLiteral(['a','b'], [expected,expected])]
+        ],
+      ],
+      ($1, [input, expected]) => {
+        it(input, () => {
+          verifyASTEqual(parseCore(input), expected);
+        });
+      }
+    );
+  });
+
+  describe(`parses PrimitiveLiteral + Conditional`, () => {
+    eachCartesianJoinFactory<[string, PrimitiveLiteral], [string, Conditional], void>(
+      [
+        literalFactories,
+        [
+          ([input, expected]) => [`${input}?${input}:${input}`, new Conditional(expected, expected, expected)],
+          ([input, expected]) => [`${input}?${input}:${input}?${input}:${input}`, new Conditional(expected, expected, new Conditional(expected, expected, expected))],
+          ([input, expected]) => [`${input}?(${input}?${input}:${input}):${input}`, new Conditional(expected, new Conditional(expected, expected, expected), expected)],
+          ([input, expected]) => [`(${input}?${input}:${input})?${input}:${input}`, new Conditional(new Conditional(expected, expected, expected), expected, expected)]
         ],
       ],
       ($1, [input, expected]) => {

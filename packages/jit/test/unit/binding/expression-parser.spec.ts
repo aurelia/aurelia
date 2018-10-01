@@ -238,7 +238,7 @@ describe.only('ExpressionParser', () => {
   describe(`parses IsPrimary + AccessKeyed`, () => {
     eachCartesianJoinFactory<[string, IsPrimary], [string, AccessKeyed], void>(
       [
-        literalFactories,
+        [...literalFactories, ...primaryFactories],
         [
           ([input, expected]) => [`foo[${input}]`, new AccessKeyed(new AccessScope('foo'), expected)]
         ]
@@ -254,7 +254,7 @@ describe.only('ExpressionParser', () => {
   describe(`parses IsPrimary + Assign`, () => {
     eachCartesianJoinFactory<[string, IsPrimary], [string, Assign], void>(
       [
-        literalFactories,
+        [...literalFactories, ...primaryFactories],
         [
           ([input, expected]) => [`foo = ${input}`, new Assign(new AccessScope('foo'), expected)]
         ]
@@ -270,7 +270,7 @@ describe.only('ExpressionParser', () => {
   describe(`parses IsPrimary + CallScope`, () => {
     eachCartesianJoinFactory<[string, IsPrimary], [string, CallScope], void>(
       [
-        literalFactories,
+        [...literalFactories, ...primaryFactories],
         [
           ([input, expected]) => [`foo(${input})`, new CallScope('foo', [expected])],
           ([input, expected]) => [`foo(${input},${input})`, new CallScope('foo', [expected,expected])]
@@ -287,7 +287,7 @@ describe.only('ExpressionParser', () => {
   describe(`parses IsPrimary + CallMember`, () => {
     eachCartesianJoinFactory<[string, IsPrimary], [string, CallMember], void>(
       [
-        literalFactories,
+        [...literalFactories, ...primaryFactories],
         [
           ([input, expected]) => [`foo.bar(${input})`, new CallMember(new AccessScope('foo'), 'bar', [expected])],
           ([input, expected]) => [`foo.bar(${input},${input})`, new CallMember(new AccessScope('foo'), 'bar', [expected,expected])]
@@ -304,7 +304,7 @@ describe.only('ExpressionParser', () => {
   describe(`parses IsPrimary + ValueConverter`, () => {
     eachCartesianJoinFactory<[string, IsPrimary], [string, ValueConverter], void>(
       [
-        literalFactories,
+        [...literalFactories, ...primaryFactories],
         [
           ([input, expected]) => [`${input}|foo`, new ValueConverter(expected, 'foo', [])],
           ([input, expected]) => [`${input}|foo:${input}`, new ValueConverter(expected, 'foo', [expected])],
@@ -322,7 +322,7 @@ describe.only('ExpressionParser', () => {
   describe(`parses IsPrimary + BindingBehavior`, () => {
     eachCartesianJoinFactory<[string, IsPrimary], [string, BindingBehavior], void>(
       [
-        literalFactories,
+        [...literalFactories, ...primaryFactories],
         [
           ([input, expected]) => [`${input}&foo`, new BindingBehavior(expected, 'foo', [])],
           ([input, expected]) => [`${input}&foo:${input}`, new BindingBehavior(expected, 'foo', [expected])],

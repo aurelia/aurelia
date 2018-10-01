@@ -206,7 +206,7 @@ describe.only('ExpressionParser', () => {
   describe(`parses IsPrimary + Binary`, () => {
     eachCartesianJoinFactory<[string, IsPrimary], [string, Binary], void>(
       [
-        literalFactories,
+        [...literalFactories, ...primaryFactories],
         [
           ([input, expected]) => [`${input} && ${input}`,         new Binary('&&', expected, expected)],
           ([input, expected]) => [`${input} || ${input}`,         new Binary('||', expected, expected)],

@@ -2,7 +2,7 @@ import { AccessKeyed, AccessMember, AccessScope, AccessThis,
   Assign, Binary, BindingBehavior, CallFunction,
   CallMember, CallScope, Conditional,
   ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template,
-  Unary, ValueConverter, TaggedTemplate, IsPrimary } from '../../../../runtime/src';
+  Unary, ValueConverter, TaggedTemplate, IsUnary, IsUnary } from '../../../../runtime/src';
 import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
 import { expect } from 'chai';
 import { parseCore } from '../../../../jit/src'
@@ -82,27 +82,56 @@ const literalFactories: (() => [string, PrimitiveLiteral])[] = [
   () => ['0.42',               new PrimitiveLiteral(.42) ]
 ];
 
-const primaryFactories: (() => [string, IsPrimary])[] = [
+const primaryFactories: (() => [string, IsUnary])[] = [
   () => [`$this`, new AccessThis()],
   () => [`$parent`, new AccessThis(1)],
   () => [`$parent.$parent`, new AccessThis(2)],
   () => [`foo`, new AccessScope('foo')],
   () => [`$parent.foo`, new AccessScope('foo', 1)],
-  () => [`[]`, new ArrayLiteral([])],
+  () => [`[]`, $arr],
+  () => [`[{}]`, new ArrayLiteral([$obj])],
   () => [`[,]`, new ArrayLiteral([$undefined,$undefined])],
   () => [`[,,]`, new ArrayLiteral([$undefined,$undefined,$undefined])],
-  () => [`[[]]`, new ArrayLiteral([new ArrayLiteral([])])],
+  () => [`[[]]`, new ArrayLiteral([$arr])],
+  () => [`[[{},{}]]`, new ArrayLiteral([new ArrayLiteral([$obj,$obj])])],
   () => [`[[,,]]`, new ArrayLiteral([new ArrayLiteral([$undefined,$undefined,$undefined])])],
-  () => [`[[],,]`, new ArrayLiteral([new ArrayLiteral([]),$undefined,$undefined])],
-  () => [`[[[]]]`, new ArrayLiteral([new ArrayLiteral([new ArrayLiteral([])])])],
-  () => [`[[],[]]`, new ArrayLiteral([new ArrayLiteral([]),new ArrayLiteral([])])],
-  () => [`{}`, new ObjectLiteral([],[])],
-  () => [`{a}`, new ObjectLiteral(['a'],[new AccessScope('a')])],
-  () => [`{a,b}`, new ObjectLiteral(['a','b'],[new AccessScope('a'),new AccessScope('b')])],
-  () => [`{a:{}}`, new ObjectLiteral(['a'],[new ObjectLiteral([],[])])],
-  () => [`{a:{a,b}}`, new ObjectLiteral(['a'],[new ObjectLiteral(['a','b'],[new AccessScope('a'),new AccessScope('b')])])],
-  () => [`{a:{b:{}}}`, new ObjectLiteral(['a'],[new ObjectLiteral(['b'],[new ObjectLiteral([],[])])])],
-  () => [`{a:{},b:{}}`, new ObjectLiteral(['a','b'],[new ObjectLiteral([],[]),new ObjectLiteral([],[])])]
+  () => [`[[],,]`, new ArrayLiteral([$arr,$undefined,$undefined])],
+  () => [`[[[]]]`, new ArrayLiteral([new ArrayLiteral([$arr])])],
+  () => [`[[],[]]`, new ArrayLiteral([$arr,$arr])],
+  () => [`{}`, $obj],
+  () => [`{a:[]}`, new ObjectLiteral(['a'],[$arr])],
+  () => [`{a}`, new ObjectLiteral(['a'],[$a])],
+  () => [`{a,b}`, new ObjectLiteral(['a','b'],[$a,$b])],
+  () => [`{a,b,c:{}}`, new ObjectLiteral(['a','b','c'],[$a,$b,$obj])],
+  () => [`{a,b,c:[]}`, new ObjectLiteral(['a','b','c'],[$a,$b,$arr])],
+  () => [`{a:{},b,c}`, new ObjectLiteral(['a','b','c'],[$obj,$b,$c])],
+  () => [`{a:[],b,c}`, new ObjectLiteral(['a','b','c'],[$arr,$b,$c])],
+  () => [`{a,b:{},c}`, new ObjectLiteral(['a','b','c'],[$a,$obj,$c])],
+  () => [`{a,b:[],c}`, new ObjectLiteral(['a','b','c'],[$a,$arr,$c])],
+  () => [`{a:{}}`, new ObjectLiteral(['a'],[$obj])],
+  () => [`{a:[{},{}]}`, new ObjectLiteral(['a'],[new ArrayLiteral([$obj,$obj])])],
+  () => [`{a:{a,b}}`, new ObjectLiteral(['a'],[new ObjectLiteral(['a','b'],[$a,$b])])],
+  () => [`{a:{b:{}}}`, new ObjectLiteral(['a'],[new ObjectLiteral(['b'],[$obj])])],
+  () => [`{a:{},b:{}}`, new ObjectLiteral(['a','b'],[$obj,$obj])],
+  () => [`{a:{},b:[]}`, new ObjectLiteral(['a','b'],[$obj,$arr])],
+  () => [`{a:{},b:[[]]}`, new ObjectLiteral(['a','b'],[$obj,new ArrayLiteral([$arr])])],
+  () => [`{a:[[]],b:{}}`, new ObjectLiteral(['a','b'],[new ArrayLiteral([$arr]),$obj])]
+];
+
+const unaryFactories: (() => [string, IsUnary])[] = [
+  () => [`!a`,         new Unary('!', $a)],
+  () => [`typeof a`,   new Unary('typeof', $a)],
+  () => [`void a`,     new Unary('void', $a)],
+  () => [`!(a)`,       new Unary('!', $a)],
+  () => [`typeof (a)`, new Unary('typeof', $a)],
+  () => [`void (a)`,   new Unary('void', $a)],
+  () => [`-a`,         new Unary(`-`, $a)],
+  () => [`(-a)`,       new Unary(`-`, $a)],
+  () => [`-(-a)`,      new Unary(`-`, new Unary(`-`, $a))],
+  () => [`+(-a)`,      new Unary(`+`, new Unary(`-`, $a))],
+  () => [`-(+a)`,      new Unary(`-`, new Unary(`+`, $a))],
+  () => [`+(+a)`,      new Unary(`+`, new Unary(`+`, $a))],
+  () => [`-a`,         new Unary(`-`, $a)]
 ];
 
 describe.only('ExpressionParser', () => {
@@ -117,10 +146,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + Unary`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, Unary], void>(
+  describe(`parses IsUnary + Unary`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, Unary], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
           ([input, expected]) => [`!${input}`,       new Unary('!', expected)],
           ([input, expected]) => [`typeof ${input}`, new Unary('typeof', expected)],
@@ -145,10 +174,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + ArrayLiteral`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, ArrayLiteral], void>(
+  describe(`parses IsUnary + ArrayLiteral`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, ArrayLiteral], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
           ([input, expected]) => [`[${input}]`,          new ArrayLiteral([expected])],
           ([input, expected]) => [`[${input},${input}]`, new ArrayLiteral([expected,expected])],
@@ -167,10 +196,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + ObjectLiteral`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, ObjectLiteral], void>(
+  describe(`parses IsUnary + ObjectLiteral`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, ObjectLiteral], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
           ([input, expected]) => [`{a:${input}}`,            new ObjectLiteral(['a'], [expected])],
           ([input, expected]) => [`{a:${input},b:${input}}`, new ObjectLiteral(['a','b'], [expected,expected])]
@@ -184,10 +213,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + Conditional`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, Conditional], void>(
+  describe(`parses IsUnary + Conditional`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, Conditional], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
           ([input, expected]) => [`${input}?${input}:${input}`, new Conditional(expected, expected, expected)],
           ([input, expected]) => [`${input}?${input}:${input}?${input}:${input}`, new Conditional(expected, expected, new Conditional(expected, expected, expected))],
@@ -203,10 +232,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + Binary`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, Binary], void>(
+  describe(`parses IsUnary + Binary`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, Binary], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
           ([input, expected]) => [`${input} && ${input}`,         new Binary('&&', expected, expected)],
           ([input, expected]) => [`${input} || ${input}`,         new Binary('||', expected, expected)],
@@ -235,12 +264,12 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + AccessKeyed`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, AccessKeyed], void>(
+  describe(`parses IsUnary + AccessKeyed`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, AccessKeyed], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
-          ([input, expected]) => [`foo[${input}]`, new AccessKeyed(new AccessScope('foo'), expected)]
+          ([input, expected]) => [`foo[${input}]`, new AccessKeyed($foo, expected)]
         ]
       ],
       ($1, [input, expected]) => {
@@ -251,12 +280,12 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + Assign`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, Assign], void>(
+  describe(`parses IsUnary + Assign`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, Assign], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
-          ([input, expected]) => [`foo = ${input}`, new Assign(new AccessScope('foo'), expected)]
+          ([input, expected]) => [`foo = ${input}`, new Assign($foo, expected)]
         ]
       ],
       ($1, [input, expected]) => {
@@ -267,10 +296,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + CallScope`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, CallScope], void>(
+  describe(`parses IsUnary + CallScope`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, CallScope], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
           ([input, expected]) => [`foo(${input})`, new CallScope('foo', [expected])],
           ([input, expected]) => [`foo(${input},${input})`, new CallScope('foo', [expected,expected])]
@@ -284,13 +313,13 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + CallMember`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, CallMember], void>(
+  describe(`parses IsUnary + CallMember`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, CallMember], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
-          ([input, expected]) => [`foo.bar(${input})`, new CallMember(new AccessScope('foo'), 'bar', [expected])],
-          ([input, expected]) => [`foo.bar(${input},${input})`, new CallMember(new AccessScope('foo'), 'bar', [expected,expected])]
+          ([input, expected]) => [`foo.bar(${input})`, new CallMember($foo, 'bar', [expected])],
+          ([input, expected]) => [`foo.bar(${input},${input})`, new CallMember($foo, 'bar', [expected,expected])]
         ]
       ],
       ($1, [input, expected]) => {
@@ -301,10 +330,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + ValueConverter`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, ValueConverter], void>(
+  describe(`parses IsUnary + ValueConverter`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, ValueConverter], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
           ([input, expected]) => [`${input}|foo`, new ValueConverter(expected, 'foo', [])],
           ([input, expected]) => [`${input}|foo:${input}`, new ValueConverter(expected, 'foo', [expected])],
@@ -319,10 +348,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + BindingBehavior`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, BindingBehavior], void>(
+  describe(`parses IsUnary + BindingBehavior`, () => {
+    eachCartesianJoinFactory<[string, IsUnary], [string, BindingBehavior], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories],
         [
           ([input, expected]) => [`${input}&foo`, new BindingBehavior(expected, 'foo', [])],
           ([input, expected]) => [`${input}&foo:${input}`, new BindingBehavior(expected, 'foo', [expected])],

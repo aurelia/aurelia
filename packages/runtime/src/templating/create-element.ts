@@ -36,7 +36,10 @@ export class PotentialRenderable {
       name: 'unnamed',
       templateOrNode: this.node,
       cache: 0,
-      build: {
+      build: typeof this.node === 'string' ? {
+        required: true,
+        compiler: 'default'
+      } : {
         required: false
       },
       dependencies: this.dependencies,

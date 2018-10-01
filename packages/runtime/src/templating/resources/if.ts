@@ -15,11 +15,11 @@ export class If {
 
   public elseFactory: IViewFactory = null;
 
-  private ifView: IView = null;
-  private elseView: IView = null;
-  private coordinator: CompositionCoordinator;
+  public ifView: IView = null;
+  public elseView: IView = null;
+  public coordinator: CompositionCoordinator;
 
-  constructor(public ifFactory: IViewFactory, private location: IRenderLocation) {
+  constructor(public ifFactory: IViewFactory, public location: IRenderLocation) {
     this.coordinator = new CompositionCoordinator();
   }
 

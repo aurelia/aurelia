@@ -139,7 +139,7 @@ export interface IDetachLifecycle {
 }
 
 /*@internal*/
-class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleController {
+export class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleController {
   /*@internal*/
   public $nextAddNodes: LifecycleNodeAddable;
   /*@internal*/
@@ -179,13 +179,10 @@ class AttachLifecycleController implements IAttachLifecycle, IAttachLifecycleCon
     if (this.parent !== null) {
       this.parent.registerTask(task);
     } else {
-      let task = this.task;
-
-      if (task === null) {
-        this.task = task = new AggregateLifecycleTask();
+      if (this.task === null) {
+        this.task = new AggregateLifecycleTask();
       }
-
-      task.addTask(task);
+      this.task.addTask(task);
     }
   }
 
@@ -303,13 +300,10 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     if (this.parent !== null) {
       this.parent.registerTask(task);
     } else {
-      let task = this.task;
-
-      if (task === null) {
-        this.task = task = new AggregateLifecycleTask();
+      if (this.task === null) {
+        this.task = new AggregateLifecycleTask();
       }
-
-      task.addTask(task);
+      this.task.addTask(task);
     }
   }
 

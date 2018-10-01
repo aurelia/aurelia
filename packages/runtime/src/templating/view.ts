@@ -1,4 +1,4 @@
-import { DI } from '@aurelia/kernel';
+import { DI, Reporter } from '@aurelia/kernel';
 import { IScope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { IBindScope } from '../binding/observation';
@@ -50,9 +50,12 @@ export class View implements IView {
   }
 
   public mount(location: IRenderLocation): void {
+    if (!location.parentNode) { // unmet invariant: location must be a child of some other node
+      throw Reporter.error(60); // TODO: organize error codes
+    }
     this.location = location;
 
-    if (this.$nodes.lastChild.previousSibling !== location) {
+    if (this.$nodes.lastChild && this.$nodes.lastChild.nextSibling !== location) {
       this.requiresNodeAdd = true;
     }
   }

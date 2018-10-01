@@ -52,7 +52,7 @@ export class View implements IView {
   public mount(location: IRenderLocation): void {
     this.location = location;
 
-    if (this.$nodes.lastChild.previousSibling !== location) {
+    if (this.$nodes.lastChild.nextSibling !== location) {
       this.requiresNodeAdd = true;
     }
   }

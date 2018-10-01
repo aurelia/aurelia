@@ -1,196 +1,115 @@
 import { ViewFactory } from '../../../src';
 import { expect } from 'chai';
+import { eachCartesianJoin } from '../../../../../scripts/test-lib';
+
+class StubView {
+  constructor(public cached = false) {}
+  public $cache() {
+    this.cached = true;
+  }
+}
+
+class StubTemplate {
+  constructor(public nodes = {}) {}
+  public createFor() {
+    return this.nodes;
+  }
+}
 
 describe(`ViewFactory`, () => {
-  describe(`canReturnToCache`, () => {
-    it(`returns false by default`, () => {
-      const sut = new ViewFactory(null, null);
-      expect(sut.canReturnToCache(null)).to.be.false;
-    });
-
-    it(`returns false when cache is null`, () => {
-      const sut = new ViewFactory(null, null);
-      sut['cache'] = null;
-      expect(sut.canReturnToCache(null)).to.be.false;
-    });
-
-    it(`returns false when cache size is zero`, () => {
-      const sut = new ViewFactory(null, null);
-      sut['cache'] = [];
-      expect(sut.canReturnToCache(null)).to.be.false;
-    });
-
-    it(`returns false when cache is full`, () => {
-      const sut = new ViewFactory(null, null);
-      sut['cache'] = Array(10);
-      sut['cacheSize'] = 10;
-      expect(sut.canReturnToCache(null)).to.be.false;
-    });
-
-    it(`returns true when cache has room`, () => {
-      const sut = new ViewFactory(null, null);
-      sut['cache'] = Array(0);
-      sut['cacheSize'] = 10;
-      expect(sut.canReturnToCache(null)).to.be.true;
-    });
-  });
-
-  describe(`setCacheSize`, () => {
-    describe(`doNotOverride=true`, () => {
-      it(`understands star`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize('*', true);
-        expect(sut['cacheSize']).to.equal(Number.MAX_VALUE);
-        expect(sut['cache']).to.deep.equal([]);
-        expect(sut['isCaching']).to.be.true;
-      });
-
-      it(`understands string`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(<any>'10', true);
-        expect(sut['cacheSize']).to.equal(10);
-        expect(sut['cache']).to.deep.equal([]);
-        expect(sut['isCaching']).to.be.true;
-      });
-
-      it(`understands > 0 number`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(10, true);
-        expect(sut['cacheSize']).to.equal(10);
-        expect(sut['cache']).to.deep.equal([]);
-        expect(sut['isCaching']).to.be.true;
-      });
-
-      it(`ignores 0`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(0, true);
-        expect(sut['cacheSize']).to.equal(-1);
-        expect(sut['cache']).to.be.null;
-        expect(sut['isCaching']).to.be.false;
-      });
-
-      it(`ignores -1`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(-1, true);
-        expect(sut['cacheSize']).to.equal(-1);
-        expect(sut['cache']).to.be.null;
-        expect(sut['isCaching']).to.be.false;
-      });
-
-      it(`ignores -2`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(-1, true);
-        expect(sut['cacheSize']).to.equal(-1);
-        expect(sut['cache']).to.be.null;
-        expect(sut['isCaching']).to.be.false;
-      });
-
-      it(`does not override if already set`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(1, true);
-        sut.setCacheSize('*', true);
-        expect(sut['cacheSize']).to.equal(1);
-        expect(sut['cache']).to.deep.equal([]);
-        expect(sut['isCaching']).to.be.true;
-      });
-    });
-
-    describe(`doNotOverride=false`, () => {
-      it(`understands star`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize('*', false);
-        expect(sut['cacheSize']).to.equal(Number.MAX_VALUE);
-        expect(sut['cache']).to.deep.equal([]);
-        expect(sut['isCaching']).to.be.true;
-      });
-
-      it(`understands string`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(<any>'10', false);
-        expect(sut['cacheSize']).to.equal(10);
-        expect(sut['cache']).to.deep.equal([]);
-        expect(sut['isCaching']).to.be.true;
-      });
-
-      it(`understands > 0 number`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(10, false);
-        expect(sut['cacheSize']).to.equal(10);
-        expect(sut['cache']).to.deep.equal([]);
-        expect(sut['isCaching']).to.be.true;
-      });
-
-      it(`ignores 0`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(0, false);
-        expect(sut['cacheSize']).to.equal(-1);
-        expect(sut['cache']).to.be.null;
-        expect(sut['isCaching']).to.be.false;
-      });
-
-      it(`ignores -1`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(-1, false);
-        expect(sut['cacheSize']).to.equal(-1);
-        expect(sut['cache']).to.be.null;
-        expect(sut['isCaching']).to.be.false;
-      });
-
-      it(`ignores -2`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(-1, false);
-        expect(sut['cacheSize']).to.equal(-1);
-        expect(sut['cache']).to.be.null;
-        expect(sut['isCaching']).to.be.false;
-      });
-
-      it(`does not override if already set`, () => {
-        const sut = new ViewFactory(null, null);
-        sut.setCacheSize(1, false);
-        sut.setCacheSize('*', false);
-        expect(sut['cacheSize']).to.equal(Number.MAX_VALUE);
-        expect(sut['cache']).to.deep.equal([]);
-        expect(sut['isCaching']).to.be.true;
-      });
-    });
-  });
-
-  class MockView {
-    constructor(public cached = false) {}
-    public $cache() {
-      this.cached = true;
-    }
-  }
   describe(`tryReturnToCache`, () => {
-    it(`returns false and does not cache when cache is not set`, () => {
-      const sut = new ViewFactory(null, null);
-      const view = new MockView();
-      expect(sut.tryReturnToCache(<any>view)).to.be.false;
-      expect(view.cached).to.be.false;
-    });
-    it(`returns false and does not cache when cache is full`, () => {
-      const sut = new ViewFactory(null, null);
-      sut.setCacheSize(1, true);
-      const view1 = new MockView();
-      sut.tryReturnToCache(<any>view1);
-      const view2 = new MockView();
-      expect(sut.tryReturnToCache(<any>view2)).to.be.false;
-      expect(view2.cached).to.be.false;
-    });
+    eachCartesianJoin<
+      [string, boolean],
+      [string, any, boolean],
+      [string, boolean],
+      [string, any, boolean],
+      void
+    >([
+        [
+          [' true', true],
+          ['false', false]
+        ],
+        [
+          [`  -2`,  -2,  false],
+          [`  -1`,  -1,  false],
+          [`   0`,   0,  false],
+          [`   1`,   1,   true],
+          [`'-2'`, '-2', false],
+          [`'-1'`, '-1', false],
+          [` '0'`,  '0', false],
+          [` '1'`,  '1',  true],
+          [` '*'`,  '*',  true]
+        ],
+        [
+          [' true', true],
+          ['false', false]
+        ],
+        [
+          [`  -2`,  -2,  false],
+          [`  -1`,  -1,  false],
+          [`   0`,   0,  false],
+          [`   1`,   1,   true],
+          [`'-2'`, '-2', false],
+          [`'-1'`, '-1', false],
+          [` '0'`,  '0', false],
+          [` '1'`,  '1',  true],
+          [` '*'`,  '*',  true]
+        ]
+      ],
+      ([text1, doNotOverride1], [text2, size2, isPositive2], [text3, doNotOverride3], [text4, size4, isPositive4]) => {
+        it(`setCacheSize(${text2},${text1}) -> tryReturnToCache -> create x2 -> setCacheSize(${text4},${text3}) -> tryReturnToCache -> create x2`, () => {
+          const template = new StubTemplate()
+          const sut = new ViewFactory(null, template as any);
+          const view1 = new StubView();
+          const view2 = new StubView();
 
-    it(`returns true and caches when can return to cache`, () => {
-      const sut = new ViewFactory(null, null);
-      sut.setCacheSize(10, true);
-      const view1 = new MockView();
-      const view2 = new MockView();
-      expect(sut.tryReturnToCache(<any>view1)).to.be.true;
-      expect(view1.cached).to.be.true;
-      expect(sut.tryReturnToCache(<any>view2)).to.be.true;
-      expect(view2.cached).to.be.true;
+          sut.setCacheSize(size2, doNotOverride1);
 
-      expect(sut.create()).to.equal(view2);
-      expect(sut.create()).to.equal(view1);
-      expect(() => sut.create()).to.throw;
-    });
+          let canCache = isPositive2;
+          expect(sut.tryReturnToCache(<any>view1)).to.equal(canCache, 'sut.tryReturnToCache(view1)');
+          expect(view1.cached).to.equal(canCache, 'view1.cached');
+          if (canCache) {
+            const cached = sut.create();
+            expect(cached).to.equal(view1);
+            const created = sut.create();
+            expect(created.$nodes).to.equal(template.nodes);
+            expect(sut.tryReturnToCache(<any>view1)).to.be.true;
+
+            if (size2 !== '*') {
+              expect(sut.tryReturnToCache(<any>view1)).to.equal(false, 'sut.tryReturnToCache(view1) 2');
+            }
+          } else {
+            const created = sut.create();
+            expect(created.$nodes).to.equal(template.nodes);
+          }
+
+          // note: the difference in behavior between 0 (number) and '0' (string),
+          // and the behavior of values lower than -1 are kind of quirky
+          // probably not important enough for the overhead of an extra check, but at least worth a note
+          if (size4 && ((size2 === -1 || size2 === '-1' || size2 === 0) || !doNotOverride3)) {
+            canCache = isPositive4;
+          }
+          sut.setCacheSize(size4, doNotOverride3);
+
+          expect(sut.tryReturnToCache(<any>view2)).to.equal(canCache, 'sut.tryReturnToCache(view2)');
+          expect(view2.cached).to.equal(canCache, 'view2.cached');
+          if (canCache) {
+            const cached = sut.create();
+            expect(cached).to.equal(view2);
+            const created = sut.create();
+            expect(created.$nodes).to.equal(template.nodes);
+            expect(sut.tryReturnToCache(<any>view2)).to.be.true;
+
+            if (size2 !== '*' && size4 !== '*') {
+              expect(sut.tryReturnToCache(<any>view2)).to.equal(false, 'sut.tryReturnToCache(view2) 2');
+            }
+          } else {
+            const created = sut.create();
+            expect(created.$nodes).to.equal(template.nodes);
+          }
+
+        });
+      }
+    );
   });
 });

@@ -252,7 +252,7 @@ export type PropertyObserver = IPropertyObserver<any, PropertyKey>;
  */
 export type Collection = any[] | Set<any> | Map<any, any>;
 interface IObservedCollection {
-  $observer: CollectionObserver;
+  $observer?: CollectionObserver;
 }
 
 /**
@@ -280,19 +280,19 @@ export const enum CollectionKind {
   set     = 0b0111
 }
 
-type LengthPropertyName<T> =
+export type LengthPropertyName<T> =
   T extends any[] ? 'length' :
   T extends Set<any> ? 'size' :
   T extends Map<any, any> ? 'size' :
   never;
 
-type CollectionTypeToKind<T> =
+export type CollectionTypeToKind<T> =
   T extends any[] ? CollectionKind.array | CollectionKind.indexed :
   T extends Set<any> ? CollectionKind.set | CollectionKind.keyed :
   T extends Map<any, any> ? CollectionKind.map | CollectionKind.keyed :
   never;
 
-type CollectionKindToType<T> =
+export type CollectionKindToType<T> =
   T extends CollectionKind.array ? any[] :
   T extends CollectionKind.indexed ? any[] :
   T extends CollectionKind.map ? Map<any, any> :
@@ -300,7 +300,7 @@ type CollectionKindToType<T> =
   T extends CollectionKind.keyed ? Set<any> | Map<any, any> :
   never;
 
-type ObservedCollectionKindToType<T> =
+export type ObservedCollectionKindToType<T> =
   T extends CollectionKind.array ? IObservedArray :
   T extends CollectionKind.indexed ? IObservedArray :
   T extends CollectionKind.map ? IObservedMap :

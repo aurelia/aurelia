@@ -28,13 +28,9 @@ describe(`SetObserver`, () => {
   let sut: SetObserver;
 
   before(() => {
+    disableSetObservation();
     enableSetObservation();
   });
-
-  after(() => {
-    disableSetObservation();
-  });
-
   afterEach(() => {
     if (sut) {
       sut.dispose();

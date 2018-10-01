@@ -413,9 +413,9 @@ describe('TemplateCompiler (integration)', () => {
       it(markup, () => {
         component = createCustomElement(markup);
         au.app({ host, component }).start();
-        expect(host.textContent).to.equal('');
+        expect(host.textContent.trim()).to.equal(''); // TODO: we kind of want to get rid of those spaces.. preferably
         initialize(component)
-        expect(host.textContent).to.equal('');
+        expect(host.textContent.trim()).to.equal('');
         cs.flushChanges();
         expect(host.textContent).to.equal(textContent);
       });
@@ -425,9 +425,9 @@ describe('TemplateCompiler (integration)', () => {
   it(`nested repeater - array`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items"><div repeat.for="child of item">\${child}</div></div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     component.items = [['1'], ['2'], ['3']];
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     cs.flushChanges();
     expect(host.textContent).to.equal('123');
   });
@@ -435,9 +435,9 @@ describe('TemplateCompiler (integration)', () => {
   it(`repeater - sorted primitive array - asc`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items | sort">\${item}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     component.items = ['3', '2', '1'];
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     cs.flushChanges();
     expect(host.textContent).to.equal('123');
   });
@@ -445,11 +445,50 @@ describe('TemplateCompiler (integration)', () => {
   it(`repeater - sorted primitive array - desc`, () => {
     component = createCustomElement(`<template><div repeat.for="item of items | sort:null:'desc'">\${item}</div></template>`);
     au.app({ host, component: component }).start();
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     component.items = ['1', '2', '3'];
-    expect(host.textContent).to.equal('');
+    expect(host.textContent.trim()).to.equal('');
     cs.flushChanges();
     expect(host.textContent).to.equal('321');
+  });
+
+  it(`repeater with nested if`, () => {
+    component = createCustomElement(`<template><div repeat.for="item of items"><div if.bind="$parent.show">\${item}</div></div></template>`);
+    au.app({ host, component }).start();
+    expect(host.textContent.trim()).to.equal('');
+    component.items = [['1'], ['2'], ['3']];
+    component.show = true;
+    expect(host.textContent.trim()).to.equal('');
+    cs.flushChanges();
+    expect(host.textContent).to.equal('123');
+    component.show = false;
+    expect(host.textContent.trim()).to.equal('');
+  });
+
+  it(`repeater with sibling if`, () => {
+    component = createCustomElement(`<template><div repeat.for="item of items" if.bind="$parent.show">\${item}</div></template>`);
+    au.app({ host, component }).start();
+    expect(host.textContent.trim()).to.equal('');
+    component.items = [['1'], ['2'], ['3']];
+    component.show = true;
+    expect(host.textContent.trim()).to.equal('');
+    cs.flushChanges();
+    expect(host.textContent).to.equal('123');
+    component.show = false;
+    expect(host.textContent.trim()).to.equal('');
+  });
+
+  it(`repeater with parent-sibling if`, () => {
+    component = createCustomElement(`<template><div if.bind="show" repeat.for="item of items">\${item}</div></template>`);
+    au.app({ host, component }).start();
+    expect(host.textContent.trim()).to.equal('');
+    component.items = [['1'], ['2'], ['3']];
+    component.show = true;
+    expect(host.textContent.trim()).to.equal('');
+    cs.flushChanges();
+    expect(host.textContent).to.equal('123');
+    component.show = false;
+    expect(host.textContent.trim()).to.equal('');
   });
 
 

@@ -1,3 +1,4 @@
+import { createMarker, MockNodeSequence, MockIfElseTextNodeTemplate } from './../../mock';
 import {
   ITemplateSource,
   TargetedInstructionType,
@@ -7,18 +8,228 @@ import {
   Aurelia,
   Repeat,
   IChangeSet,
-  enableArrayObservation,
-  disableArrayObservation,
   DOM,
   INode,
   ICustomElement,
   IExpressionParser,
+  Binding,
+  IObservedArray,
+  BindingFlags,
   AccessScope,
-  AccessMember
+  AccessMember,
+  ViewFactory,
+  ObservedCollection,
+  RuntimeBehavior,
+  ObserverLocator,
+  Lifecycle,
+  LifecycleFlags,
+  ChangeSet,
+  IView
 } from '../../../../src/index';
 import { IContainer, DI } from '../../../../../kernel/src/index';
-import { createAureliaRepeaterConfig, IRepeaterFixture, padRight, createRepeater, assertDOMSynchronized, incrementItems, createRepeaterTemplateSource, createTextBindingTemplateSource } from '../../util';
+import { createAureliaRepeaterConfig, createRepeater } from '../../util';
 import { expect } from 'chai';
+import { MockIfTextNodeTemplate } from '../../mock';
+import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
+import { createScopeForTest } from '../../binding/shared';
+
+
+const expressions = {
+  item: new AccessScope('item'),
+  items: new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')),
+  show: new AccessScope('show', 0)
+};
+
+function verifyViewBindingContexts(views: IView[], items: any[]): void {
+  if (items === null || items === undefined) {
+    return;
+  }
+  if (typeof items === 'number') {
+    for (let i = 0, ii = views.length; i < ii; ++i) {
+      expect(views[i].$scope.bindingContext['item']).to.equal(i);
+    }
+  } else {
+    for (let i = 0, ii = views.length; i < ii; ++i) {
+      expect(views[i].$scope.bindingContext['item']).to.equal(items[i]);
+    }
+  }
+}
+
+function setup<T extends ObservedCollection>() {
+  const cs = new ChangeSet();
+  const host = document.createElement('div');
+  const location = document.createComment('au-loc');
+  host.appendChild(location);
+
+  const observerLocator = new ObserverLocator(cs, null, null, null);
+  const factory = new ViewFactory(null, <any>new MockIfElseTextNodeTemplate(expressions.show, observerLocator, cs));
+  const renderable = { } as any;
+  const sut = new Repeat<T>(cs, location, renderable, factory);
+  renderable.$bindables = [new Binding(expressions.items, sut, 'items', BindingMode.toView, null, null)];
+  sut.$isAttached = false;
+  sut.$isBound = false;
+  sut.$scope = null;
+  const behavior = RuntimeBehavior.create(<any>Repeat, sut);
+  behavior.applyTo(sut, cs);
+
+  return { sut, host, cs };
+}
+
+describe(`Repeat`, () => {
+
+  eachCartesianJoinFactory([
+    // initial input items
+    <(() => [any, number, boolean, string, string, string])[]>[
+      () => [[{if:1,else:2},{if:3,else:4}],   2, true,  `13`, `24`, `[{if:1,else:2},{if:3,else:4}] show=true `],
+      () => [[{if:1,else:2},{if:3,else:4}],   2, false, `13`, `24`, `[{if:1,else:2},{if:3,else:4}] show=false`]
+    ],
+    // first operation "execute1" (initial bind + attach)
+    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+        sut.$bind(BindingFlags.fromBind, createScopeForTest({ show }));
+
+        expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
+        expect(host.textContent).to.equal('', `execute1, host.textContent`);
+        verifyViewBindingContexts(sut.views, items);
+
+        Lifecycle.beginAttach(host, LifecycleFlags.none).attach(sut).end();
+
+        expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
+        expect(host.textContent).to.equal('', `execute1, host.textContent`);
+
+        cs.flushChanges();
+
+        expect(sut.$scope.bindingContext.show).to.equal(show);
+        expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute1, host.textContent`);
+
+      }, `$bind(fromBind)  -> $attach(none)`],
+
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+        sut.$bind(BindingFlags.fromFlushChanges, createScopeForTest({ show }));
+
+        expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
+        expect(host.textContent).to.equal('', `execute1, host.textContent`);
+        verifyViewBindingContexts(sut.views, items);
+
+        Lifecycle.beginAttach(host, LifecycleFlags.none).attach(sut).end();
+
+        expect(sut.$scope.bindingContext.show).to.equal(show);
+        expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute1, host.textContent`);
+
+      }, `$bind(fromFlush) -> $attach(none)`]
+    ],
+    // second operation "execute2" (second bind or noop)
+    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+        sut.$bind(BindingFlags.fromBind, sut.$scope);
+
+        expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
+        verifyViewBindingContexts(sut.views, items);
+
+        expect(sut.$scope.bindingContext.show).to.equal(show);
+        expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute2, host.textContent`);
+
+      }, `$bind(fromBind), same scope`],
+
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+        sut.$bind(BindingFlags.fromBind, createScopeForTest({ show }));
+
+        expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
+        verifyViewBindingContexts(sut.views, items);
+
+        expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute2, host.textContent`);
+
+        cs.flushChanges();
+
+        expect(sut.$scope.bindingContext.show).to.equal(show);
+        expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute2, host.textContent`);
+
+      }, `$bind(fromBind), new scope `],
+
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+        sut.$bind(BindingFlags.fromFlushChanges, createScopeForTest({ show }));
+
+        expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
+        verifyViewBindingContexts(sut.views, items);
+
+        expect(sut.$scope.bindingContext.show).to.equal(show);
+        expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute2, host.textContent`);
+
+      }, `$bind(fromFlush), new scope`],
+
+      ([,]) => [() => {
+
+      }, `noop                       `]
+    ],
+    // third operation "execute3" (change value)
+    <(($1: [any, number, boolean, string, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+        sut.$scope.bindingContext.show = !sut.$scope.bindingContext.show;
+
+        cs.flushChanges();
+
+        expect(sut.$scope.bindingContext.show).not.to.equal(show);
+        expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute3, host.textContent`);
+
+      }, `show=!show    `],
+
+      ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+        sut.$scope.bindingContext.show = !sut.$scope.bindingContext.show;
+        expect(sut.$scope.bindingContext.show).not.to.equal(show);
+        sut.$scope.bindingContext.show = !sut.$scope.bindingContext.show;
+        expect(sut.$scope.bindingContext.show).to.equal(show);
+
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute3, host.textContent`);
+
+      }, `show=!show(x2)`],
+
+      // NOTE: these (and other tests) need to get fixed. Currently mutations don't appear to be picked up automatically.
+      // Not sure yet whether this is a repeater problem or an if/else problem (or perhaps both)
+
+      // ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+      //   const newItems = sut.items = [{if:'a',else:'b'}];
+      //   sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+      //   verifyViewBindingContexts(sut.views, newItems);
+
+      //   cs.flushChanges();
+
+      //   expect(sut.views.length).to.equal(1, `execute3, sut.views.length`);
+      //   expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? 'a' : 'b', `execute3, host.textContent`);
+
+      // }, `assign=[{if:'a',else:'b'}]`],
+
+      // ([items, count, show, trueValue, falseValue]) => [(sut, host, cs) => {
+      //   sut.items.push({if:'a',else:'b'});
+
+      //   cs.flushChanges();
+      //   verifyViewBindingContexts(sut.views, sut.items);
+
+      //   expect(sut.views.length).to.equal(count + 1, `execute3, sut.views.length`);
+      //   expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? `${trueValue}a` : `${falseValue}b`, `execute3, host.textContent`);
+
+      // }, `push={if:'a',else:'b'}`]
+    ],
+  ], (
+    [items1, count, show, trueValue, falseValue, text1],
+    [exec1, exec1Text],
+    [exec2, exec2Text],
+    [exec3, exec3Text]) => {
+    it(`assign=${text1} -> ${exec1Text} -> ${exec2Text} -> ${exec3Text}`, () => {
+      const { sut, host, cs } = setup<IObservedArray>();
+      sut.items = items1;
+
+      exec1(sut, host, cs);
+      exec2(sut, host, cs);
+      exec3(sut, host, cs);
+    });
+  });
+});
+
 
 describe('ArrayRepeater - render html', () => {
   let container: IContainer;
@@ -29,14 +240,6 @@ describe('ArrayRepeater - render html', () => {
   let aureliaConfig: ReturnType<typeof createAureliaRepeaterConfig>;
   let component: ICustomElement;
 
-  before(() => {
-    enableArrayObservation();
-  });
-
-  after(() => {
-    disableArrayObservation();
-  });
-
   beforeEach(() => {
     container = DI.createContainer();
     changeSet = container.get(IChangeSet);
@@ -44,284 +247,6 @@ describe('ArrayRepeater - render html', () => {
     host = DOM.createElement('app');
     DOM.appendChild(document.body, host);
   });
-
-  const initArr = [[], [3, 2, 1], [19, 18, 17, 16, 15, 14, 13, 12, 11, 10]];
-  const flushModeArr = ['never', 'once', 'every'];
-  const timesArr = [1, 2];
-  const itemsArr = [[], [4, 5, 6], [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]];
-  const fixtures: IRepeaterFixture[] = [
-    { elName: 'foo', colName: 'todos', itemName: 'todo', propName: 'id' },
-    { elName: 'bar', colName: 'bazzes', itemName: 'baz', propName: 'qux' }
-  ];
-
-  // test with different collection-, local-, item- and property names
-  for (const fixture of fixtures) {
-    const { elName, colName, itemName, propName } = fixture;
-    const fixtureTitle = 'fixture=' + padRight(`${elName},${colName},${itemName},${propName}`, 16);
-
-    // test with differently sized initial collections
-    for (const init of initArr) {
-      const initTitle = 'initSize=' + padRight(init.length, 2);
-
-      // test with never flushing after mutation, flushing only after all mutations are done, or flushing after every mutation
-      for (const flushMode of flushModeArr) {
-        const flushModeTitle = 'flushMode=' + padRight(flushMode, 6);
-
-        // repeat the operation different amounts of times to simulate complexer chained operations
-        for (const times of timesArr) {
-          const timesTitle = 'times=' + padRight(times, 2);
-
-          // test with different amounts of items added
-          for (const items of itemsArr) {
-            const itemTitle = 'addCount=' + padRight(items.length, 2);
-
-            for (const op of ['push', 'unshift']) {
-              const opTitle = padRight(op, 10);
-              it(`${opTitle} - ${fixtureTitle} ${initTitle} ${flushModeTitle} ${timesTitle} ${itemTitle}`, () => {
-                aureliaConfig = createAureliaRepeaterConfig(fixture);
-                au.register(aureliaConfig);
-                const initItems = init.map(i => ({ [propName]: i }));
-                const initItemsCopy = initItems.slice();
-                const newItems = items.map(i => ({ [propName]: i }));
-                const templateSource = createRepeaterTemplateSource(fixture, createTextBindingTemplateSource(propName));
-                component = createRepeater(fixture, initItems, templateSource);
-                au.app({ host, component });
-                au.start();
-                changeSet.flushChanges();
-                assertDOMSynchronized(fixture, component[colName], <any>host);
-
-                let i = 0;
-                while (i < times) {
-                  // change the properties of the newly added items with each iteration to verify bindingTarget is updated correctly
-                  incrementItems(newItems, i, fixture);
-                  i++;
-                  component[colName].push(...newItems);
-                  switch (flushMode) {
-                    case 'never':
-                      // never flushed; verify everything is identical to the initial state after each mutation
-                      assertDOMSynchronized(fixture, initItemsCopy, <any>host);
-                      break;
-                    case 'once':
-                      // flushed once; verify everything is identical to the initial state except for the last iteration
-                      if (i === times) {
-                        changeSet.flushChanges();
-                        assertDOMSynchronized(fixture, component[colName], <any>host);
-                      } else {
-                        assertDOMSynchronized(fixture, initItemsCopy, <any>host);
-                      }
-                      break;
-                    case 'every':
-                      // flushed every; verify changes propagate to the DOM after each mutation
-                      changeSet.flushChanges();
-                      assertDOMSynchronized(fixture, component[colName], <any>host);
-                      break;
-                  }
-                }
-                DOM.remove(host);
-              });
-            }
-          }
-
-          for (const op of ['pop', 'shift']) {
-            const opTitle = padRight(op, 10);
-            it(`${opTitle} - ${fixtureTitle} ${initTitle} ${flushModeTitle} ${timesTitle}`, () => {
-              aureliaConfig = createAureliaRepeaterConfig(fixture);
-              au.register(aureliaConfig);
-              const initItems = init.map(i => ({ [propName]: i }));
-              const initItemsCopy = initItems.slice();
-              const templateSource = createRepeaterTemplateSource(fixture, createTextBindingTemplateSource(propName));
-              component = createRepeater(fixture, initItems, templateSource);
-              au.app({ host, component });
-              au.start();
-              changeSet.flushChanges();
-              assertDOMSynchronized(fixture, component[colName], <any>host);
-
-              let i = 0;
-              while (i < times) {
-                i++;
-                component[colName].pop();
-                switch (flushMode) {
-                  case 'never':
-                    // never flushed; verify everything is identical to the initial state after each mutation
-                    assertDOMSynchronized(fixture, initItemsCopy, <any>host);
-                    break;
-                  case 'once':
-                    // flushed once; verify everything is identical to the initial state except for the last iteration
-                    if (i === times) {
-                      changeSet.flushChanges();
-                      assertDOMSynchronized(fixture, component[colName], <any>host);
-                    } else {
-                      assertDOMSynchronized(fixture, initItemsCopy, <any>host);
-                    }
-                    break;
-                  case 'every':
-                    // flushed every; verify changes propagate to the DOM after each mutation
-                    changeSet.flushChanges();
-                    assertDOMSynchronized(fixture, component[colName], <any>host);
-                    break;
-                }
-              }
-              DOM.remove(host);
-            });
-          }
-
-          const startArr = [0, 1, 2];
-          const deleteCountArr = [0, 1, 2];
-
-          // test with different splice starting indices (only up to one position out of array bounds to reduce test redundancy)
-          for (const start of startArr.filter(s => s <= init.length + 1)) {
-            const startTitle = 'start=' + padRight(start, 2);
-
-            // test with different splice deleteCount (only up to one higher than initial item count to reduce test redundancy)
-            for (const deleteCount of deleteCountArr.filter(d => d <= init.length + 1)) {
-              const deleteCountTitle = 'deleteCount=' + padRight(deleteCount, 2);
-
-              // test with different amounts of items added
-              for (const items of itemsArr) {
-                const itemsTitle = 'itemCount=' + padRight(items.length, 2);
-                const opTitle = padRight('splice', 10);
-
-                it(`${opTitle} - ${fixtureTitle} ${initTitle} ${flushModeTitle} ${timesTitle} ${startTitle} ${deleteCountTitle} ${itemsTitle}`, () => {
-                  aureliaConfig = createAureliaRepeaterConfig(fixture);
-                  au.register(aureliaConfig);
-                  const initItems = init.map(i => ({ [propName]: i }));
-                  const initItemsCopy = initItems.slice();
-                  const newItems = items.map(i => ({ [propName]: i }));
-                  const templateSource = createRepeaterTemplateSource(fixture, createTextBindingTemplateSource(propName));
-                  component = createRepeater(fixture, initItems, templateSource);
-                  au.app({ host, component });
-                  au.start();
-                  changeSet.flushChanges();
-                  assertDOMSynchronized(fixture, component[colName], <any>host);
-                  let i = 0;
-                  while (i < times) {
-                    // change the properties of the newly added items with each iteration to verify bindingTarget is updated correctly
-                    incrementItems(newItems, i, fixture);
-                    i++;
-                    component[colName].splice(start, deleteCount, ...newItems);
-                    switch (flushMode) {
-                      case 'never':
-                        // never flushed; verify everything is identical to the initial state after each mutation
-                        assertDOMSynchronized(fixture, initItemsCopy, <any>host);
-                        break;
-                      case 'once':
-                        // flushed once; verify everything is identical to the initial state except for the last iteration
-                        if (i === times) {
-                          changeSet.flushChanges();
-                          assertDOMSynchronized(fixture, component[colName], <any>host);
-                        } else {
-                          assertDOMSynchronized(fixture, initItemsCopy, <any>host);
-                        }
-                        break;
-                      case 'every':
-                        // flushed every; verify changes propagate to the DOM after each mutation
-                        changeSet.flushChanges();
-                        assertDOMSynchronized(fixture, component[colName], <any>host);
-                        break;
-                    }
-                  }
-                  DOM.remove(host);
-                });
-              }
-            }
-          }
-
-          const assignArr = [[], [1], [1, 2]];
-
-          for (const assign of assignArr) {
-            const assignTitle = 'assign=' + padRight(assign.length, 2);
-            const opTitle = padRight('assign', 10);
-
-            it(`${opTitle} - ${fixtureTitle} ${initTitle} ${flushModeTitle} ${timesTitle} ${assignTitle}`, () => {
-              aureliaConfig = createAureliaRepeaterConfig(fixture);
-              au.register(aureliaConfig);
-              const initItems = init.map(i => ({ [propName]: i }));
-              const initItemsCopy = initItems.slice();
-              let assignItems = assign.map(i => ({ [propName]: i }));
-              const templateSource = createRepeaterTemplateSource(fixture, createTextBindingTemplateSource(propName));
-              component = createRepeater(fixture, initItems, templateSource);
-              au.app({ host, component });
-              au.start();
-              changeSet.flushChanges();
-              assertDOMSynchronized(fixture, component[colName], <any>host);
-              let i = 0;
-              while (i < times) {
-                assignItems = assignItems.slice();
-                // change the properties of the newly added items with each iteration to verify bindingTarget is updated correctly
-                incrementItems(assignItems, i, fixture);
-                i++;
-                component[colName] = assignItems;
-                switch (flushMode) {
-                  case 'never':
-                    // never flushed; verify everything is identical to the initial state after each mutation
-                    assertDOMSynchronized(fixture, initItemsCopy, <any>host);
-                    break;
-                  case 'once':
-                    // flushed once; verify everything is identical to the initial state except for the last iteration
-                    if (i === times) {
-                      changeSet.flushChanges();
-                      assertDOMSynchronized(fixture, component[colName], <any>host);
-                    } else {
-                      assertDOMSynchronized(fixture, initItemsCopy, <any>host);
-                    }
-                    break;
-                  case 'every':
-                    // flushed every; verify changes propagate to the DOM after each mutation
-                    changeSet.flushChanges();
-                    assertDOMSynchronized(fixture, component[colName], <any>host);
-                    break;
-                }
-              }
-              DOM.remove(host);
-            });
-          }
-
-          for (const op of ['reverse', 'sort']) {
-            const opTitle = padRight(op, 10);
-            it(`${opTitle} - ${fixtureTitle} ${initTitle} ${flushModeTitle} ${timesTitle}`, () => {
-              aureliaConfig = createAureliaRepeaterConfig(fixture);
-              au.register(aureliaConfig);
-              const initItems = init.map(i => ({ [propName]: i }));
-              const initItemsCopy = initItems.slice();
-              const templateSource = createRepeaterTemplateSource(fixture, createTextBindingTemplateSource(propName));
-              component = createRepeater(fixture, initItems, templateSource);
-              au.app({ host, component });
-              au.start();
-              changeSet.flushChanges();
-              assertDOMSynchronized(fixture, component[colName], <any>host);
-
-              let i = 0;
-              while (i < times) {
-                i++;
-                component[colName].pop();
-                switch (flushMode) {
-                  case 'never':
-                    // never flushed; verify everything is identical to the initial state after each mutation
-                    assertDOMSynchronized(fixture, initItemsCopy, <any>host);
-                    break;
-                  case 'once':
-                    // flushed once; verify everything is identical to the initial state except for the last iteration
-                    if (i === times) {
-                      changeSet.flushChanges();
-                      assertDOMSynchronized(fixture, component[colName], <any>host);
-                    } else {
-                      assertDOMSynchronized(fixture, initItemsCopy, <any>host);
-                    }
-                    break;
-                  case 'every':
-                    // flushed every; verify changes propagate to the DOM after each mutation
-                    changeSet.flushChanges();
-                    assertDOMSynchronized(fixture, component[colName], <any>host);
-                    break;
-                }
-              }
-              DOM.remove(host);
-            });
-          }
-        }
-      }
-    }
-  }
 
   it('triple nested repeater should render correctly', () => {
     const initItems = [

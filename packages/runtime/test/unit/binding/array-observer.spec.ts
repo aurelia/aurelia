@@ -26,11 +26,8 @@ describe(`ArrayObserver`, () => {
   let sut: ArrayObserver;
 
   before(() => {
-    enableArrayObservation();
-  });
-
-  after(() => {
     disableArrayObservation();
+    enableArrayObservation();
   });
 
   afterEach(() => {

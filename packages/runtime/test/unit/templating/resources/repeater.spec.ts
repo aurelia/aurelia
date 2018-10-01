@@ -1,355 +1,504 @@
-import { IContainer, DI, Registration, Writable } from '../../../../../kernel/src/index';
 import {
   Repeat,
-  IChangeSet,
-  DOM,
-  IRenderLocation,
   ForOfStatement,
   BindingIdentifier,
-  enableArrayObservation,
-  disableArrayObservation,
-  IRenderable,
-  IViewFactory,
   AccessScope,
   Binding,
   IObservedArray,
-  BindingFlags
+  BindingFlags,
+  BindingMode,
+  ViewFactory,
+  ObservedCollection,
+  RuntimeBehavior,
+  ObserverLocator,
+  Lifecycle,
+  LifecycleFlags,
+  ChangeSet,
+  IView
 } from '../../../../src/index';
 import { expect } from 'chai';
-import { padRight, incrementItems, assertVisualsSynchronized } from '../../util';
-import { RenderableFake } from '../fakes/renderable-fake';
-import { ViewFactoryFake } from '../fakes/view-factory-fake';
+import { MockTextNodeTemplate } from '../../mock';
+import { eachCartesianJoinFactory } from '../../../../../../scripts/test-lib';
+import { createScopeForTest } from '../../binding/shared';
 
-function createRenderLocation() {
-  const parent = document.createElement('div');
-  const child = document.createElement('div');
-  parent.appendChild(child);
-  return DOM.convertToRenderLocation(child);
-}
 
-describe('ArrayRepeater - synchronize visuals', () => {
-  let container: IContainer;
-  let changeSet: IChangeSet;
-  let renderable: Writable<IRenderable>;
-  let factory: IViewFactory;
-  let location: IRenderLocation;
-  let sut: Repeat<IObservedArray>;
+const expressions = {
+  item: new AccessScope('item'),
+  items: new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'))
+};
 
-  before(() => {
-    enableArrayObservation();
-  });
-
-  after(() => {
-    disableArrayObservation();
-  });
-
-  beforeEach(() => {
-    container = DI.createContainer();
-    container.register(Registration.singleton(IRenderable, RenderableFake));
-    container.register(Registration.singleton(IViewFactory, ViewFactoryFake));
-    changeSet = container.get(IChangeSet);
-    location = createRenderLocation();
-    renderable = container.get(IRenderable);
-    factory = container.get(IViewFactory);
-    sut = new Repeat(changeSet, location, renderable, factory, container);
-    const sourceExpression = new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'));
-    const binding = new Binding(sourceExpression, sut, 'items', <any>null, <any>null, <any>null);
-    renderable.$bindables = [binding];
-  });
-
-  const initArr = [[], [3, 2, 1], [19, 18, 17, 16, 15, 14, 13, 12, 11, 10]];
-  const flushModeArr = ['never', 'once', 'every'];
-  const timesArr = [1, 2];
-  const itemsArr = [[], [4, 5, 6], [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]];
-  const itemName = 'item';
-
-  // test with differently sized initial collections
-  for (const init of initArr) {
-    const initTitle = 'initSize=' + padRight(init.length, 2);
-
-    // test with never flushing after mutation, flushing only after all mutations are done, or flushing after every mutation
-    for (const flushMode of flushModeArr) {
-      const flushModeTitle = 'flushMode=' + padRight(flushMode, 6);
-
-      // repeat the operation different amounts of times to simulate complexer chained operations
-      for (const times of timesArr) {
-        const timesTitle = 'times=' + padRight(times, 2);
-
-        // test with different amounts of items added
-        for (const items of itemsArr) {
-          const itemTitle = 'addCount=' + padRight(items.length, 2);
-
-          for (const op of ['push', 'unshift']) {
-            const opTitle = padRight(op, 10);
-            it(`${opTitle} - ${initTitle} ${flushModeTitle} ${timesTitle} ${itemTitle}`, () => {
-              const initItems = init.slice();
-              const initItemsCopy = initItems.slice();
-              const newItems = items.slice();
-              sut.items = initItems as any;
-
-              const bindingContext = {}; // normally the items would be in here
-              const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-              sut.$bind(BindingFlags.fromBind, scope);
-              changeSet.flushChanges();
-              let i = 0;
-              while (i < times) {
-                // change the properties of the newly added items with each iteration to verify bindingTarget is updated correctly
-                incrementItems(newItems, i);
-                i++;
-                sut.items[op](...newItems);
-                switch (flushMode) {
-                  case 'never':
-                    // never flushed; verify everything is identical to the initial state after each mutation
-                    assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
-                    break;
-                  case 'once':
-                    // flushed once; verify everything is identical to the initial state except for the last iteration
-                    if (i === times) {
-                      changeSet.flushChanges();
-                      assertVisualsSynchronized(sut.views, sut.items, itemName);
-                    } else {
-                      assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
-                    }
-                    break;
-                  case 'every':
-                    // flushed every; verify changes propagate to the DOM after each mutation
-                    changeSet.flushChanges();
-                    assertVisualsSynchronized(sut.views, sut.items, itemName);
-                    break;
-                }
-              }
-            });
-          }
-        }
-
-        for (const op of ['pop', 'shift']) {
-          const opTitle = padRight(op, 10);
-          it(`${opTitle} - ${initTitle} ${flushModeTitle} ${timesTitle}`, () => {
-            const initItems = init.slice();
-            const initItemsCopy = initItems.slice();
-            sut.items = initItems as any;
-
-            const bindingContext = {}; // normally the items would be in here
-            const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-            sut.$bind(BindingFlags.fromBind, scope);
-            changeSet.flushChanges();
-            let i = 0;
-            while (i < times) {
-              i++;
-              sut.items[op]();
-              switch (flushMode) {
-                case 'never':
-                  // never flushed; verify everything is identical to the initial state after each mutation
-                  assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
-                  break;
-                case 'once':
-                  // flushed once; verify everything is identical to the initial state except for the last iteration
-                  if (i === times) {
-                    changeSet.flushChanges();
-                    assertVisualsSynchronized(sut.views, sut.items, itemName);
-                  } else {
-                    assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
-                  }
-                  break;
-                case 'every':
-                  // flushed every; verify changes propagate to the DOM after each mutation
-                  changeSet.flushChanges();
-                  assertVisualsSynchronized(sut.views, sut.items, itemName);
-                  break;
-              }
-            }
-          });
-        }
-
-        const startArr = [0, 1, 2];
-        const deleteCountArr = [0, 1, 2];
-
-        // test with different splice starting indices (only up to one position out of array bounds to reduce test redundancy)
-        for (const start of startArr.filter(s => s <= init.length + 1)) {
-          const startTitle = 'start=' + padRight(start, 2);
-
-          // test with different splice deleteCount (only up to one higher than initial item count to reduce test redundancy)
-          for (const deleteCount of deleteCountArr.filter(d => d <= init.length + 1)) {
-            const deleteCountTitle = 'deleteCount=' + padRight(deleteCount, 2);
-
-            // test with different amounts of items added
-            for (const items of itemsArr) {
-              const itemsTitle = 'itemCount=' + padRight(items.length, 2);
-              const opTitle = padRight('splice', 10);
-
-              it(`${opTitle} - ${initTitle} ${flushModeTitle} ${timesTitle} ${startTitle} ${deleteCountTitle} ${itemsTitle}`, () => {
-                const initItems = init.slice();
-                const initItemsCopy = initItems.slice();
-                const newItems = items.slice();
-                sut.items = initItems as any;
-
-                const bindingContext = {}; // normally the items would be in here
-                const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-                sut.$bind(BindingFlags.fromBind, scope);
-                changeSet.flushChanges();
-                let i = 0;
-                while (i < times) {
-                  // change the properties of the newly added items with each iteration to verify bindingTarget is updated correctly
-                  incrementItems(newItems, i);
-                  i++;
-                  sut.items.splice(start, deleteCount, ...newItems);
-                  switch (flushMode) {
-                    case 'never':
-                      // never flushed; verify everything is identical to the initial state after each mutation
-                      assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
-                      break;
-                    case 'once':
-                      // flushed once; verify everything is identical to the initial state except for the last iteration
-                      if (i === times) {
-                        changeSet.flushChanges();
-                        assertVisualsSynchronized(sut.views, sut.items, itemName);
-                      } else {
-                        assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
-                      }
-                      break;
-                    case 'every':
-                      // flushed every; verify changes propagate to the DOM after each mutation
-                      changeSet.flushChanges();
-                      assertVisualsSynchronized(sut.views, sut.items, itemName);
-                      break;
-                  }
-                }
-              });
-            }
-          }
-        }
-
-        const assignArr = [[], [1], [1, 2]];
-
-        for (const assign of assignArr) {
-          const assignTitle = 'assign=' + padRight(assign.length, 2);
-          const opTitle = padRight('assign', 10);
-
-          it(`${opTitle} - ${initTitle} ${flushModeTitle} ${timesTitle} ${assignTitle}`, () => {
-            const initItems = init.slice();
-            let assignItems = assign.slice();
-            sut.items = initItems as any;
-
-            const bindingContext = {}; // normally the items would be in here
-            const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-            sut.$bind(BindingFlags.fromBind, scope);
-            changeSet.flushChanges();
-            let i = 0;
-            while (i < times) {
-              assignItems = assignItems.slice();
-              incrementItems(assignItems, i);
-              i++;
-              sut.items = <any>assignItems;
-              switch (flushMode) {
-                case 'never':
-                  assertVisualsSynchronized(sut.views, init, itemName);
-                  break;
-                case 'once':
-                  if (i === times) {
-                    changeSet.flushChanges();
-                    assertVisualsSynchronized(sut.views, sut.items, itemName);
-                  } else {
-                    assertVisualsSynchronized(sut.views, init, itemName);
-                  }
-                  break;
-                case 'every':
-                  changeSet.flushChanges();
-                  assertVisualsSynchronized(sut.views, sut.items, itemName);
-                  break;
-              }
-            }
-          });
-        }
-
-        for (const op of ['reverse', 'sort']) {
-          const opTitle = padRight(op, 10);
-          it(`${opTitle} - ${initTitle} ${flushModeTitle} ${timesTitle}`, () => {
-            const initItems = init.slice();
-            const initItemsCopy = initItems.slice();
-            sut.local = itemName;
-            sut.items = initItems as any;
-
-            const bindingContext = {}; // normally the items would be in here
-            const scope = { bindingContext, overrideContext: { bindingContext, parentOverrideContext: null } };
-            sut.$bind(BindingFlags.fromBind, scope);
-            changeSet.flushChanges();
-            let i = 0;
-            while (i < times) {
-              i++;
-              sut.items[op]();
-              switch (flushMode) {
-                case 'never':
-                  // never flushed; verify everything is identical to the initial state after each mutation
-                  assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
-                  break;
-                case 'once':
-                  // flushed once; verify everything is identical to the initial state except for the last iteration
-                  if (i === times) {
-                    changeSet.flushChanges();
-                    assertVisualsSynchronized(sut.views, sut.items, itemName);
-                  } else {
-                    assertVisualsSynchronized(sut.views, initItemsCopy, itemName);
-                  }
-                  break;
-                case 'every':
-                  // flushed every; verify changes propagate to the DOM after each mutation
-                  changeSet.flushChanges();
-                  assertVisualsSynchronized(sut.views, sut.items, itemName);
-                  break;
-              }
-            }
-          });
-        }
-      }
+function verifyViewBindingContexts(views: IView[], items: any[]): void {
+  if (items === null || items === undefined) {
+    return;
+  }
+  if (typeof items === 'number') {
+    for (let i = 0, ii = views.length; i < ii; ++i) {
+      expect(views[i].$scope.bindingContext['item']).to.equal(i);
+    }
+  } else {
+    for (let i = 0, ii = views.length; i < ii; ++i) {
+      expect(views[i].$scope.bindingContext['item']).to.equal(items[i]);
     }
   }
+}
 
 
-  describe('assign - instance mutation', () => {
-    it('should not trigger instance mutation when assigning the same instance', () => {
-      const arr: any = [];
-      (<any>sut)._items = arr;
+function setup<T extends ObservedCollection>() {
+  const cs = new ChangeSet();
+  const host = document.createElement('div');
+  const location = document.createComment('au-loc');
+  host.appendChild(location);
 
-      sut.items = arr;
-      expect(sut.hasPendingInstanceMutation).to.be.false;
-    });
+  const observerLocator = new ObserverLocator(cs, null, null, null);
+  const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.item, observerLocator))
+  const renderable = { } as any;
+  const sut = new Repeat<T>(cs, location, renderable, factory);
+  renderable.$bindables = [new Binding(expressions.items, sut, 'items', BindingMode.toView, null, null)];
+  sut.$isAttached = false;
+  sut.$isBound = false;
+  sut.$scope = null;
+  const behavior = RuntimeBehavior.create(<any>Repeat, sut);
+  behavior.applyTo(sut, cs);
 
-    it('should trigger instance mutation when assigning a different instance', () => {
-      (<any>sut)._items = [];
 
-      sut.items = <any>[];
-      expect(sut.hasPendingInstanceMutation).to.be.true;
-    });
+  return { sut, host, cs };
+}
 
-    it('should ignore pending changes from previous instance when assigning a new instance', () => {
-      (<any>sut)._items = [];
-      renderable.$bindables = [new Binding(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), sut, 'items', <any>null, <any>null, <any>null)];
-      sut.$bind(BindingFlags.fromBind, <any>{ });
+describe(`Repeat`, () => {
 
-      sut.items.push(1);
-      expect(sut.items.length).to.equal(1);
-      expect(sut.views.length).to.equal(0);
-      const items: any = [];
-      sut.items = items;
-      changeSet.flushChanges();
-      expect(sut.items.length).to.equal(0);
-      expect(sut.views.length).to.equal(0);
-    });
+  eachCartesianJoinFactory([
+    // initial input items
+    <(() => [any, number, string, string])[]>[
+      () => [[],        0, ``     , `[]       `],
+      () => [null,      0, ``     , `null     `],
+      () => [undefined, 0, ``     , `undefined`],
+      () => [1,         1, `0`    , `1        `],
+      () => [5,         5, `01234`, `5        `],
+      () => [['a'],     1, `a`    , `['a']    `],
+      () => [[1],       1, `1`    , `[1]      `],
+      () => [['a','a'], 2, `aa`   , `['a','a']`],
+      () => [['a','b'], 2, `ab`   , `['a','b']`],
+      () => [[1,2,3],   3, `123`  , `[1,2,3]  `]
+    ],
+    // first operation "execute1" (initial bind + attach)
+    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
 
-    it('should include pending changes from new instance when assigning a new instance', () => {
-      (<any>sut)._items = [];
-      renderable.$bindables = [new Binding(new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items')), sut, 'items', <any>null, <any>null, <any>null)];
-      sut.$bind(BindingFlags.fromBind, <any>{ });
+      ([items, count, expected]) => [(sut, host, cs) => {
+        sut.$bind(BindingFlags.fromBind, createScopeForTest({ }));
 
-      expect(sut.items.length).to.equal(0);
-      expect(sut.views.length).to.equal(0);
-      const items: any = [];
-      sut.items = items;
-      sut.items.push(1);
-      changeSet.flushChanges();
-      expect(sut.items.length).to.equal(1);
-      expect(sut.views.length).to.equal(1);
+        expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
+        expect(host.textContent).to.equal('', `execute1, host.textContent`);
+        verifyViewBindingContexts(sut.views, items);
+
+        Lifecycle.beginAttach(host, LifecycleFlags.none).attach(sut).end();
+
+        expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
+        expect(host.textContent).to.equal('', `execute1, host.textContent`);
+
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(expected, `execute1, host.textContent`);
+
+      }, `$bind(fromBind)  -> $attach(none)`],
+
+      ([items, count, expected]) => [(sut, host) => {
+        sut.$bind(BindingFlags.fromBind | BindingFlags.fromFlushChanges, createScopeForTest({ }));
+        verifyViewBindingContexts(sut.views, items);
+
+        expect(sut.views.length).to.equal(count), `execute1, sut.views.length`;
+        expect(host.textContent).to.equal('', `execute1, host.textContent`);
+
+        Lifecycle.beginAttach(host, LifecycleFlags.none).attach(sut).end();
+
+        expect(host.textContent).to.equal(expected, `execute1, host.textContent`);
+
+      }, `$bind(fromFlush) -> $attach(none)`]
+    ],
+    // second operation "execute2" (second bind or noop)
+    <(($1: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+
+      ([items, count, expected]) => [(sut, host) => {
+        sut.$bind(BindingFlags.fromBind, sut.$scope);
+        verifyViewBindingContexts(sut.views, items);
+
+        expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
+        expect(host.textContent).to.equal(expected, `execute2, host.textContent`);
+
+      }, `$bind(fromBind), same scope`],
+
+      ([items, count, expected]) => [(sut, host, cs) => {
+        sut.$bind(BindingFlags.fromBind, createScopeForTest({ }));
+        verifyViewBindingContexts(sut.views, items);
+
+        expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
+        expect(host.textContent).to.equal(expected, `execute2, host.textContent`);
+
+        cs.flushChanges();
+
+        expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
+        expect(host.textContent).to.equal(expected, `execute2, host.textContent`);
+
+      }, `$bind(fromBind), new scope `],
+
+      ([items, count, expected]) => [(sut, host) => {
+        sut.$bind(BindingFlags.fromBind | BindingFlags.fromFlushChanges, createScopeForTest({ }));
+        verifyViewBindingContexts(sut.views, items);
+
+        expect(sut.views.length).to.equal(count, `execute2, sut.views.length`);
+        expect(host.textContent).to.equal(expected, `execute2, host.textContent`);
+
+      }, `$bind(fromFlush), new scope`],
+
+      ([,]) => [() => {
+
+      }, `noop                       `]
+    ],
+    // assign items
+    <(($1: [any, number, string, string]) => [any, number, string, string])[]>[
+      ([,,]) => [[],      0,     ``   ,    `[]       `],
+      ([,,]) => [[1],     1,     `1`  ,    `[1]      `],
+      ([,,]) => [[1,2,3], 3,     `123`,    `[1,2,3]  `],
+      ([items, count, expected, text]) => [items,   count, expected, text]
+    ],
+    // third operation "execute3" (assignment and/or mutation)
+    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+
+      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
+        sut.items = newItems;
+        sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        verifyViewBindingContexts(sut.views, newItems);
+
+        cs.flushChanges();
+
+        expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+        expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+      }, `assign              `],
+
+      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
+        sut.items = newItems;
+        sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        verifyViewBindingContexts(sut.views, newItems);
+
+        cs.flushChanges();
+
+        expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+        expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+        if (!(Array.isArray(newItems)) || items === newItems) {
+          const arr = sut.items = [];
+          sut.itemsChanged(arr, items, BindingFlags.updateTargetInstance);
+
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(0, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal('', `execute3, host.textContent`);
+
+          sut.items.push(1);
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(1, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal('1', `execute3, host.textContent`);
+        } else {
+          expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+          sut.items.push(1);
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(newCount + 1, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal(newExpected + '1', `execute3, host.textContent`);
+        }
+
+        let textParts = host.textContent.split('');
+        textParts.reverse();
+        sut.items.reverse();
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+        textParts.sort();
+        sut.items.sort();
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+        textParts.pop();
+        sut.items.pop();
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+        textParts.unshift('1', '2', '3');
+        sut.items.unshift(1, 2, 3);
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+        textParts.splice(0, 2);
+        sut.items.splice(0, 2);
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+        textParts.splice(0, 1, '1', '2', '3');
+        sut.items.splice(0, 1, 1, 2, 3);
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+        textParts.shift();
+        sut.items.shift();
+        cs.flushChanges();
+
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+      }, `mutate       `],
+
+      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
+        sut.items = newItems;
+        sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        verifyViewBindingContexts(sut.views, newItems);
+
+        cs.flushChanges();
+
+        expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+        expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+        if (!(Array.isArray(newItems)) || items === newItems) {
+          const arr = sut.items = [];
+          sut.itemsChanged(arr, items, BindingFlags.updateTargetInstance);
+
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(0, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal('', `execute3, host.textContent`);
+
+          sut.items.push(1);
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(1, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal('1', `execute3, host.textContent`);
+        } else {
+          expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+          sut.items.push(1);
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(newCount + 1, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal(newExpected + '1', `execute3, host.textContent`);
+        }
+
+        let itemsBeforeMutations = sut.items.slice();
+        const textBeforeMutations = host.textContent;
+        let textParts = host.textContent.split('');
+        textParts.reverse();
+        sut.items.reverse();
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutations, `execute3, host.textContent`);
+
+        textParts.sort();
+        sut.items.sort();
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutations, `execute3, host.textContent`);
+
+        textParts.pop();
+        sut.items.pop();
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutations, `execute3, host.textContent`);
+
+        textParts.unshift('1', '2', '3');
+        sut.items.unshift(1, 2, 3);
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutations, `execute3, host.textContent`);
+
+        textParts.splice(0, 2);
+        sut.items.splice(0, 2);
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutations, `execute3, host.textContent`);
+
+        textParts.splice(0, 1, '1', '2', '3');
+        sut.items.splice(0, 1, 1, 2, 3);
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutations, `execute3, host.textContent`);
+
+        textParts.shift();
+        sut.items.shift();
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutations, `execute3, host.textContent`);
+
+        cs.flushChanges();
+
+        verifyViewBindingContexts(sut.views, sut.items);
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+      }, `mutate(batch)`],
+
+      ([items,], $2, $3, [newItems, newCount, newExpected]) => [(sut, host, cs) => {
+        sut.items = newItems;
+        sut.itemsChanged(newItems, items, BindingFlags.updateTargetInstance);
+        verifyViewBindingContexts(sut.views, newItems);
+
+        cs.flushChanges();
+
+        expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+        expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+        if (!(Array.isArray(newItems)) || items === newItems) {
+          const arr = sut.items = [];
+          sut.itemsChanged(arr, items, BindingFlags.updateTargetInstance);
+
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(0, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal('', `execute3, host.textContent`);
+
+          sut.items.push(1);
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(1, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal('1', `execute3, host.textContent`);
+        } else {
+          expect(sut.views.length).to.equal(newCount, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal(newExpected, `execute3, host.textContent`);
+
+          sut.items.push(1);
+          cs.flushChanges();
+
+          expect(sut.views.length).to.equal(newCount + 1, `execute3, sut.views.length`);
+          expect(host.textContent).to.equal(newExpected + '1', `execute3, host.textContent`);
+        }
+
+        let itemsBeforeMutations = sut.items.slice();
+        const textBeforeMutation = host.textContent;
+        let textParts = host.textContent.split('');
+        textParts.reverse();
+        sut.items.reverse();
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutation, `execute3, host.textContent`);
+
+        textParts.sort();
+        sut.items.sort();
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutation, `execute3, host.textContent`);
+
+        textParts.pop();
+        sut.items.pop();
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutation, `execute3, host.textContent`);
+
+        textParts.unshift('1', '2', '3');
+        sut.items.unshift(1, 2, 3);
+
+        sut.items = ['a', 'b', 'c', 'd', 'e'];
+        // assignment will immediately update the bindings (not the DOM)
+        // any item mutations that came before are effectively ignored
+        // any item mutations afterwards are batched again
+        itemsBeforeMutations = sut.items.slice();
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        textParts = sut.items.slice();
+
+        expect(host.textContent).to.equal(textBeforeMutation, `execute3, host.textContent`);
+
+        textParts.splice(0, 2);
+        sut.items.splice(0, 2);
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutation, `execute3, host.textContent`);
+
+        textParts.splice(0, 1, '1', '2', '3');
+        sut.items.splice(0, 1, 1, 2, 3);
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutation, `execute3, host.textContent`);
+
+        textParts.shift();
+        sut.items.shift();
+
+        verifyViewBindingContexts(sut.views, itemsBeforeMutations);
+        expect(host.textContent).to.equal(textBeforeMutation, `execute3, host.textContent`);
+
+        cs.flushChanges();
+
+        verifyViewBindingContexts(sut.views, sut.items);
+        expect(host.textContent).to.equal(textParts.join(''), `execute3, host.textContent`);
+
+      }, `assign+mutate(batch)`]
+    ],
+    // fourth operation "execute4" (detach and unbind)
+    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, cs: ChangeSet) => void, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+
+      ([items, count], $2, $3, [newItems, newCount]) => [(sut, host) => {
+        Lifecycle.beginDetach(LifecycleFlags.none).detach(sut).end();
+
+        const currentCount = sut.items && sut.items.length ? sut.items.length : sut.items === items ? count : sut.items === newItems ? newCount : 0;
+
+        expect(sut.views.length).to.equal(currentCount, `execute4, sut.views.length`);
+        expect(host.textContent).to.equal('', `execute4, host.textContent`);
+
+        sut.$unbind(BindingFlags.fromUnbind);
+
+        expect(sut.views.length).to.equal(currentCount, `execute4, sut.views.length`);
+        expect(host.textContent).to.equal('', `execute4, host.textContent`);
+
+      }, `$detach(none)   -> $unbind(fromUnbind)`],
+
+      ([items, count], $2, $3, [newItems, newCount]) => [(sut, host) => {
+        Lifecycle.beginDetach(LifecycleFlags.unbindAfterDetached).detach(sut).end();
+
+        const currentCount = sut.items && sut.items.length ? sut.items.length : sut.items === items ? count : sut.items === newItems ? newCount : 0;
+
+        expect(sut.views.length).to.equal(currentCount, `execute4, sut.views.length`);
+        expect(host.textContent).to.equal('', `execute4, host.textContent`);
+
+        sut.$unbind(BindingFlags.fromUnbind);
+
+        expect(sut.views.length).to.equal(currentCount, `execute4, sut.views.length`);
+        expect(host.textContent).to.equal('', `execute4, host.textContent`);
+
+      }, `$detach(unbind) -> $unbind(fromUnbind)`],
+    ],
+    // fifth operation "execute5" (second unbind)
+    <(($1: [any, number, string, string], $2, $3, $4: [any, number, string, string], $5: [(sut: Repeat, host: Node, cs: ChangeSet) => void, string]) => [(sut: Repeat, host: Node, cs: ChangeSet) => void, string])[]>[
+
+      ([items, count], $2, $3, [newItems, newCount]) => [(sut, host) => {
+        sut.$unbind(BindingFlags.fromUnbind);
+
+        const currentCount = sut.items && sut.items.length ? sut.items.length : sut.items === items ? count : sut.items === newItems ? newCount : 0;
+
+        expect(sut.views.length).to.equal(currentCount, `execute5, sut.views.length`);
+        expect(host.textContent).to.equal('', `execute5, host.textContent`);
+
+      }, `$unbind(fromUnbind)`]
+    ]
+  ], (
+    [items1,,, text1],
+    [exec1, exec1Text],
+    [exec2, exec2Text],
+    [,,, text2],
+    [exec3, exec3Text],
+    [exec4, exec4Text],
+    [exec5, exec5Text]) => {
+    it(`assign=${text1} -> ${exec1Text} -> ${exec2Text} -> assign=${text2} -> ${exec3Text} -> ${exec4Text} -> ${exec5Text}`, () => {
+      const { sut, host, cs } = setup<IObservedArray>();
+      sut.items = items1;
+
+      exec1(sut, host, cs);
+      exec2(sut, host, cs);
+      exec3(sut, host, cs);
+      exec4(sut, host, cs);
+      exec5(sut, host, cs);
     });
   });
 });
-

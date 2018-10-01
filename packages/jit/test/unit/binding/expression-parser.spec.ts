@@ -170,7 +170,7 @@ describe.only('ExpressionParser', () => {
   describe(`parses IsPrimary + ObjectLiteral`, () => {
     eachCartesianJoinFactory<[string, IsPrimary], [string, ObjectLiteral], void>(
       [
-        literalFactories,
+        [...literalFactories, ...primaryFactories],
         [
           ([input, expected]) => [`{a:${input}}`,            new ObjectLiteral(['a'], [expected])],
           ([input, expected]) => [`{a:${input},b:${input}}`, new ObjectLiteral(['a','b'], [expected,expected])]
@@ -187,7 +187,7 @@ describe.only('ExpressionParser', () => {
   describe(`parses IsPrimary + Conditional`, () => {
     eachCartesianJoinFactory<[string, IsPrimary], [string, Conditional], void>(
       [
-        literalFactories,
+        [...literalFactories, ...primaryFactories],
         [
           ([input, expected]) => [`${input}?${input}:${input}`, new Conditional(expected, expected, expected)],
           ([input, expected]) => [`${input}?${input}:${input}?${input}:${input}`, new Conditional(expected, expected, new Conditional(expected, expected, expected))],

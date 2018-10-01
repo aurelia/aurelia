@@ -2,12 +2,11 @@ import { AccessKeyed, AccessMember, AccessScope, AccessThis,
   Assign, Binary, BindingBehavior, CallFunction,
   CallMember, CallScope, Conditional,
   ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template,
-  Unary, ValueConverter, TaggedTemplate, BindingType, IExpressionParser } from '../../../../runtime/src';
+  Unary, ValueConverter, TaggedTemplate } from '../../../../runtime/src';
 import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
 import { expect } from 'chai';
-import { DI } from '../../../../kernel/src';
-import { ParserRegistration } from '../../../../jit/src'
-import { verifyEqual } from '../util';
+import { parseCore } from '../../../../jit/src'
+import { verifyASTEqual, eachCartesianJoinFactory } from '../util';
 
 /* eslint-disable no-loop-func, no-floating-decimal, key-spacing, new-cap, quotes, comma-spacing */
 
@@ -46,39 +45,106 @@ const unaryOps = [
   'void'
 ];
 
-describe('ExpressionParser', () => {
-  let parser: IExpressionParser;
+const literalFactories: (() => [string, PrimitiveLiteral])[] = [
+  () => ['\'foo\'',            new PrimitiveLiteral('foo') ],
+  () => ['\'äöüÄÖÜß\'',        new PrimitiveLiteral('äöüÄÖÜß') ],
+  () => ['\'ಠ_ಠ\'',           new PrimitiveLiteral('ಠ_ಠ') ],
+  () => ['\'\\\\\'',           new PrimitiveLiteral('\\') ],
+  () => ['\'\\\'\'',           new PrimitiveLiteral('\'') ],
+  () => ['\'"\'',              new PrimitiveLiteral('"') ],
+  () => ['\'\\f\'',            new PrimitiveLiteral('\f') ],
+  () => ['\'\\n\'',            new PrimitiveLiteral('\n') ],
+  () => ['\'\\r\'',            new PrimitiveLiteral('\r') ],
+  () => ['\'\\t\'',            new PrimitiveLiteral('\t') ],
+  () => ['\'\\b\'',            new PrimitiveLiteral('\b') ],
+  () => ['\'\\v\'',            new PrimitiveLiteral('\v')],
+  () => ['\'x\\f\'',           new PrimitiveLiteral('x\f') ],
+  () => ['\'x\\n\'',           new PrimitiveLiteral('x\n') ],
+  () => ['\'x\\r\'',           new PrimitiveLiteral('x\r') ],
+  () => ['\'x\\t\'',           new PrimitiveLiteral('x\t') ],
+  () => ['\'x\\b\'',           new PrimitiveLiteral('x\b') ],
+  () => ['\'x\\v\'',           new PrimitiveLiteral('x\v')],
+  () => ['\'\\fx\'',           new PrimitiveLiteral('\fx') ],
+  () => ['\'\\nx\'',           new PrimitiveLiteral('\nx') ],
+  () => ['\'\\rx\'',           new PrimitiveLiteral('\rx') ],
+  () => ['\'\\tx\'',           new PrimitiveLiteral('\tx') ],
+  () => ['\'\\bx\'',           new PrimitiveLiteral('\bx') ],
+  () => ['\'\\vx\'',           new PrimitiveLiteral('\vx')],
+  () => ['true',               $true ],
+  () => ['false',              $false ],
+  () => ['null',               $null ],
+  () => ['undefined',          $undefined ],
+  () => ['0',                  $num0 ],
+  () => ['1',                  $num1 ],
+  () => ['9007199254740992',   new PrimitiveLiteral(9007199254740992) ], // Number.MAX_SAFE_INTEGER + 1
+  () => ['2.2',                new PrimitiveLiteral(2.2) ],
+  () => ['.42',                new PrimitiveLiteral(.42) ],
+  () => ['0.42',               new PrimitiveLiteral(.42) ]
+];
 
-  beforeEach(() => {
-    const container = DI.createContainer();
-    container.register(ParserRegistration);
-    parser = container.get(IExpressionParser);
+describe.only('ExpressionParser', () => {
+  describe(`parses PrimitiveLiteral`, () => {
+    eachCartesianJoinFactory<[string, PrimitiveLiteral], void>(
+      [literalFactories],
+      ([input, expected]) => {
+        it(input, () => {
+          verifyASTEqual(parseCore(input), expected);
+        });
+      }
+    );
+  });
+
+  describe(`parses PrimitiveLiteral + Unary`, () => {
+    eachCartesianJoinFactory<[string, PrimitiveLiteral], [string, Unary], void>(
+      [
+        literalFactories,
+        [
+          ([input, expected]) => [`!${input}`,       new Unary('!', expected)],
+          ([input, expected]) => [`typeof ${input}`, new Unary('typeof', expected)],
+          ([input, expected]) => [`void ${input}`,   new Unary('void', expected)],
+          ([input, expected]) => [`!(${input})`,       new Unary('!', expected)],
+          ([input, expected]) => [`typeof (${input})`, new Unary('typeof', expected)],
+          ([input, expected]) => [`void (${input})`,   new Unary('void', expected)],
+          ([input, expected]) => [`-${input}`,       new Unary(`-`, expected) ],
+          ([input, expected]) => [`(-${input})`,     new Unary(`-`, expected) ],
+          ([input, expected]) => [`-(-${input})`,    new Unary(`-`, new Unary(`-`, expected)) ],
+          ([input, expected]) => [`+(-${input})`,    new Unary(`+`, new Unary(`-`, expected)) ],
+          ([input, expected]) => [`-(+${input})`,    new Unary(`-`, new Unary(`+`, expected)) ],
+          ([input, expected]) => [`+(+${input})`,    new Unary(`+`, new Unary(`+`, expected)) ],
+          ([input, expected]) => [`-${input}`,       new Unary(`-`, expected) ],
+        ],
+      ],
+      ($1, [input, expected]) => {
+        it(input, () => {
+          verifyASTEqual(parseCore(input), expected);
+        });
+      }
+    );
+  });
+
+  describe(`parses PrimitiveLiteral + ArrayLiteral`, () => {
+    eachCartesianJoinFactory<[string, PrimitiveLiteral], [string, ArrayLiteral], void>(
+      [
+        literalFactories,
+        [
+          ([input, expected]) => [`[${input}]`,          new ArrayLiteral([expected])],
+          ([input, expected]) => [`[${input},${input}]`, new ArrayLiteral([expected,expected])],
+          ([input, expected]) => [`[,${input}]`,         new ArrayLiteral([$undefined,expected])],
+          ([input, expected]) => [`[,${input},]`,        new ArrayLiteral([$undefined,expected,$undefined])],
+          ([input, expected]) => [`[${input},]`,         new ArrayLiteral([expected,$undefined])],
+          ([input, expected]) => [`[,,${input}]`,        new ArrayLiteral([$undefined,$undefined,expected])],
+          ([input, expected]) => [`[${input},,]`,        new ArrayLiteral([expected,$undefined,$undefined])]
+        ],
+      ],
+      ($1, [input, expected]) => {
+        it(input, () => {
+          verifyASTEqual(parseCore(input), expected);
+        });
+      }
+    );
   });
 
   describe('should parse', () => {
-    describe('LiteralString', () => {
-      // http://es5.github.io/x7.html#x7.8.4
-      const tests = [
-        { expr: '\'foo\'', expected: new PrimitiveLiteral('foo') },
-        { expr: '\'äöüÄÖÜß\'', expected: new PrimitiveLiteral('äöüÄÖÜß') },
-        { expr: '\'ಠ_ಠ\'', expected: new PrimitiveLiteral('ಠ_ಠ') },
-        { expr: '\'\\\\\'', expected: new PrimitiveLiteral('\\') },
-        { expr: '\'\\\'\'', expected: new PrimitiveLiteral('\'') },
-        { expr: '\'"\'', expected: new PrimitiveLiteral('"') },
-        { expr: '\'\\f\'', expected: new PrimitiveLiteral('\f') },
-        { expr: '\'\\n\'', expected: new PrimitiveLiteral('\n') },
-        { expr: '\'\\r\'', expected: new PrimitiveLiteral('\r') },
-        { expr: '\'\\t\'', expected: new PrimitiveLiteral('\t') },
-        { expr: '\'\\v\'', expected: new PrimitiveLiteral('\v') },
-        { expr: '\'\\v\'', expected: new PrimitiveLiteral('\v') }
-      ];
-
-      for (const { expr, expected } of tests) {
-        it(expr, () => {
-          verifyEqual(parser.parse(expr, BindingType.None), expected);
-        });
-      }
-    });
 
     describe('Template', () => {
       const tests = [
@@ -100,36 +166,7 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr, BindingType.None), expected);
-        });
-      }
-    });
-
-    describe('LiteralPrimitive', () => {
-      // http://es5.github.io/x7.html#x7.8.4
-      const tests = [
-        { expr: 'true', expected: $true },
-        { expr: 'false', expected: $false },
-        { expr: 'null', expected: $null },
-        { expr: 'undefined', expected: $undefined },
-        { expr: '0', expected: $num0 },
-        { expr: '1', expected: $num1 },
-        { expr: '-1', expected: new Unary('-', $num1) },
-        { expr: '(-1)', expected: new Unary('-', $num1) },
-        { expr: '-(-1)', expected: new Unary('-', new Unary('-', $num1)) },
-        { expr: '+(-1)', expected: new Unary('+', new Unary('-', $num1)) },
-        { expr: '-(+1)', expected: new Unary('-', new Unary('+', $num1)) },
-        { expr: '+(+1)', expected: new Unary('+', new Unary('+', $num1)) },
-        { expr: '9007199254740992', expected: new PrimitiveLiteral(9007199254740992) }, // Number.MAX_SAFE_INTEGER + 1
-        { expr: '-9007199254740992', expected: new Unary('-', new PrimitiveLiteral(9007199254740992)) }, // Number.MIN_SAFE_INTEGER - 1
-        { expr: '2.2', expected: new PrimitiveLiteral(2.2) },
-        { expr: '.42', expected: new PrimitiveLiteral(.42) },
-        { expr: '0.42', expected: new PrimitiveLiteral(.42) }
-      ];
-
-      for (const { expr, expected } of tests) {
-        it(expr, () => {
-          verifyEqual(parser.parse(expr, BindingType.None), expected);
+          verifyASTEqual(parseCore(expr), expected);
         });
       }
     });
@@ -152,7 +189,7 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr, BindingType.None), expected);
+          verifyASTEqual(parseCore(expr), expected);
         });
       }
     });
@@ -174,7 +211,7 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected, paren } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr, BindingType.None), expected);
+          verifyASTEqual(parseCore(expr), expected);
         });
 
         const nestedTests = [
@@ -185,7 +222,7 @@ describe('ExpressionParser', () => {
 
         for (const { expr: nExpr, expected: nExpected } of nestedTests) {
           it(nExpr, () => {
-            verifyEqual(parser.parse(nExpr, BindingType.None), nExpected);
+            verifyASTEqual(parseCore(nExpr), nExpected);
           });
         }
       }
@@ -194,7 +231,7 @@ describe('ExpressionParser', () => {
     describe('Binary', () => {
       for (const op of binaryOps) {
         it(`\"${op}\"`, () => {
-          verifyEqual(parser.parse(`x ${op} y`, BindingType.None), new Binary(op, $x, $y));
+          verifyASTEqual(parseCore(`x ${op} y`), new Binary(op, $x, $y));
         });
       }
     });
@@ -239,9 +276,9 @@ describe('ExpressionParser', () => {
 
                   for (const { expr, expected } of tests) {
                     it(expr, () => {
-                      const actual = parser.parse(expr, BindingType.None);
+                      const actual = parseCore(expr);
                       expect(actual.toString()).to.equal(expected.toString());
-                      verifyEqual(actual, expected);
+                      verifyASTEqual(actual, expected);
                     });
                   }
                 }
@@ -280,9 +317,9 @@ describe('ExpressionParser', () => {
 
           for (const { expr, expected } of tests) {
             it(expr, () => {
-              const actual = parser.parse(expr, BindingType.None);
+              const actual = parseCore(expr);
               expect(actual.toString()).to.equal(expected.toString());
-              verifyEqual(actual, expected);
+              verifyASTEqual(actual, expected);
             });
           }
         }
@@ -316,30 +353,30 @@ describe('ExpressionParser', () => {
 
         for (const { expr, expected } of tests) {
           it(expr, () => {
-            verifyEqual(parser.parse(expr, BindingType.None), expected);
+            verifyASTEqual(parseCore(expr), expected);
           });
         }
       });
     }
 
     it('chained BindingBehaviors', () => {
-      const expr = parser.parse('foo & bar:x:y:z & baz:a:b:c', BindingType.None);
-      verifyEqual(expr, new BindingBehavior(new BindingBehavior($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
+      const expr = parseCore('foo & bar:x:y:z & baz:a:b:c');
+      verifyASTEqual(expr, new BindingBehavior(new BindingBehavior($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
     });
 
     it('chained ValueConverters', () => {
-      const expr = parser.parse('foo | bar:x:y:z | baz:a:b:c', BindingType.None);
-      verifyEqual(expr, new ValueConverter(new ValueConverter($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
+      const expr = parseCore('foo | bar:x:y:z | baz:a:b:c');
+      verifyASTEqual(expr, new ValueConverter(new ValueConverter($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
     });
 
     it('chained ValueConverters and BindingBehaviors', () => {
-      const expr = parser.parse('foo | bar:x:y:z & baz:a:b:c', BindingType.None);
-      verifyEqual(expr, new BindingBehavior(new ValueConverter($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
+      const expr = parseCore('foo | bar:x:y:z & baz:a:b:c');
+      verifyASTEqual(expr, new BindingBehavior(new ValueConverter($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
     });
 
     it('AccessScope', () => {
-      const expr = parser.parse('foo', BindingType.None);
-      verifyEqual(expr, $foo);
+      const expr = parseCore('foo');
+      verifyASTEqual(expr, $foo);
     });
 
     describe('AccessKeyed', () => {
@@ -358,11 +395,11 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr, BindingType.None), expected);
+          verifyASTEqual(parseCore(expr), expected);
         });
 
         it(`(${expr})`, () => {
-          verifyEqual(parser.parse(`(${expr})`, BindingType.None), expected);
+          verifyASTEqual(parseCore(`(${expr})`), expected);
         });
       }
     });
@@ -385,19 +422,19 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr, BindingType.None), expected);
+          verifyASTEqual(parseCore(expr), expected);
         });
       }
     });
 
     it('Assign', () => {
-      const expr = parser.parse('foo = bar', BindingType.None);
-      verifyEqual(expr, new Assign($foo, $bar));
+      const expr = parseCore('foo = bar');
+      verifyASTEqual(expr, new Assign($foo, $bar));
     });
 
     it('chained Assign', () => {
-      const expr = parser.parse('foo = bar = baz', BindingType.None);
-      verifyEqual(expr, new Assign($foo, new Assign($bar, $baz)));
+      const expr = parseCore('foo = bar = baz');
+      verifyASTEqual(expr, new Assign($foo, new Assign($bar, $baz)));
     });
 
     describe('Call', () => {
@@ -412,53 +449,53 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(expr, () => {
-          verifyEqual(parser.parse(expr, BindingType.None), expected);
+          verifyASTEqual(parseCore(expr), expected);
         });
 
         it(`(${expr})`, () => {
-          verifyEqual(parser.parse(`(${expr})`, BindingType.None), expected);
+          verifyASTEqual(parseCore(`(${expr})`), expected);
         });
       }
     });
 
     it('CallScope', () => {
-      const expr = parser.parse('foo(x)', BindingType.None);
-      verifyEqual(expr, new CallScope('foo', [$x], 0));
+      const expr = parseCore('foo(x)');
+      verifyASTEqual(expr, new CallScope('foo', [$x], 0));
     });
 
     it('nested CallScope', () => {
-      const expr = parser.parse('foo(bar(x, y))', BindingType.None);
-      verifyEqual(expr, new CallScope('foo', [new CallScope('bar', [$x], 0), $y], 0));
+      const expr = parseCore('foo(bar(x, y))');
+      verifyASTEqual(expr, new CallScope('foo', [new CallScope('bar', [$x], 0), $y], 0));
     });
 
     it('CallMember', () => {
-      const expr = parser.parse('foo.bar(x)', BindingType.None);
-      verifyEqual(expr, new CallMember($foo, 'bar', [$x]));
+      const expr = parseCore('foo.bar(x)');
+      verifyASTEqual(expr, new CallMember($foo, 'bar', [$x]));
     });
 
     it('nested CallMember', () => {
-      const expr = parser.parse('foo.bar.baz(x)', BindingType.None);
-      verifyEqual(expr, new CallMember(new AccessMember($foo, 'bar'), 'baz', [$x]));
+      const expr = parseCore('foo.bar.baz(x)');
+      verifyASTEqual(expr, new CallMember(new AccessMember($foo, 'bar'), 'baz', [$x]));
     });
 
     it('$this', () => {
-      const expr = parser.parse('$this', BindingType.None);
-      verifyEqual(expr, new AccessThis(0));
+      const expr = parseCore('$this');
+      verifyASTEqual(expr, new AccessThis(0));
     });
 
     it('$this.member to AccessScope', () => {
-      const expr = parser.parse('$this.foo', BindingType.None);
-      verifyEqual(expr, $foo);
+      const expr = parseCore('$this.foo');
+      verifyASTEqual(expr, $foo);
     });
 
     it('$this() to CallFunction', () => {
-      const expr = parser.parse('$this()', BindingType.None);
-      verifyEqual(expr, new CallFunction(new AccessThis(0), []));
+      const expr = parseCore('$this()');
+      verifyASTEqual(expr, new CallFunction(new AccessThis(0), []));
     });
 
     it('$this.member() to CallScope', () => {
-      const expr = parser.parse('$this.foo(x)', BindingType.None);
-      verifyEqual(expr, new CallScope('foo', [$x], 0));
+      const expr = parseCore('$this.foo(x)');
+      verifyASTEqual(expr, new CallScope('foo', [$x], 0));
     });
 
     const parents = [
@@ -476,65 +513,65 @@ describe('ExpressionParser', () => {
     describe('$parent', () => {
       for (const { i, name } of parents) {
         it(name, () => {
-          const expr = parser.parse(name, BindingType.None);
-          verifyEqual(expr, new AccessThis(i));
+          const expr = parseCore(name);
+          verifyASTEqual(expr, new AccessThis(i));
         });
 
         it(`${name} before ValueConverter`, () => {
-          const expr = parser.parse(`${name} | foo`, BindingType.None);
-          verifyEqual(expr, new ValueConverter(new AccessThis(i), 'foo', []));
+          const expr = parseCore(`${name} | foo`);
+          verifyASTEqual(expr, new ValueConverter(new AccessThis(i), 'foo', []));
         });
 
         it(`${name}.bar before ValueConverter`, () => {
-          const expr = parser.parse(`${name}.bar | foo`, BindingType.None);
-          verifyEqual(expr, new ValueConverter(new AccessScope('bar', i), 'foo', []));
+          const expr = parseCore(`${name}.bar | foo`);
+          verifyASTEqual(expr, new ValueConverter(new AccessScope('bar', i), 'foo', []));
         });
 
         it(`${name} before binding behavior`, () => {
-          const expr = parser.parse(`${name} & foo`, BindingType.None);
-          verifyEqual(expr, new BindingBehavior(new AccessThis(i), 'foo', []));
+          const expr = parseCore(`${name} & foo`);
+          verifyASTEqual(expr, new BindingBehavior(new AccessThis(i), 'foo', []));
         });
 
         it(`${name}.bar before binding behavior`, () => {
-          const expr = parser.parse(`${name}.bar & foo`, BindingType.None);
-          verifyEqual(expr, new BindingBehavior(new AccessScope('bar', i), 'foo', []));
+          const expr = parseCore(`${name}.bar & foo`);
+          verifyASTEqual(expr, new BindingBehavior(new AccessScope('bar', i), 'foo', []));
         });
 
         it(`${name}.foo to AccessScope`, () => {
-          const expr = parser.parse(`${name}.foo`, BindingType.None);
-          verifyEqual(expr, new AccessScope(`foo`, i));
+          const expr = parseCore(`${name}.foo`);
+          verifyASTEqual(expr, new AccessScope(`foo`, i));
         });
 
         it(`${name}.foo() to CallScope`, () => {
-          const expr = parser.parse(`${name}.foo()`, BindingType.None);
-          verifyEqual(expr, new CallScope(`foo`, [], i));
+          const expr = parseCore(`${name}.foo()`);
+          verifyASTEqual(expr, new CallScope(`foo`, [], i));
         });
 
         it(`${name}() to CallFunction`, () => {
-          const expr = parser.parse(`${name}()`, BindingType.None);
-          verifyEqual(expr, new CallFunction(new AccessThis(i), []));
+          const expr = parseCore(`${name}()`);
+          verifyASTEqual(expr, new CallFunction(new AccessThis(i), []));
         });
 
         it(`${name}[0] to AccessKeyed`, () => {
-          const expr = parser.parse(`${name}[0]`, BindingType.None);
-          verifyEqual(expr, new AccessKeyed(new AccessThis(i), $num0));
+          const expr = parseCore(`${name}[0]`);
+          verifyASTEqual(expr, new AccessKeyed(new AccessThis(i), $num0));
         });
       }
     });
 
     it('$parent inside CallMember', () => {
-      const expr = parser.parse('matcher.bind($parent)', BindingType.None);
-      verifyEqual(expr, new CallMember(new AccessScope('matcher', 0), 'bind', [new AccessThis(1)]));
+      const expr = parseCore('matcher.bind($parent)');
+      verifyASTEqual(expr, new CallMember(new AccessScope('matcher', 0), 'bind', [new AccessThis(1)]));
     });
 
     it('$parent in LiteralObject', () => {
-      const expr = parser.parse('{parent: $parent}', BindingType.None);
-      verifyEqual(expr, new ObjectLiteral(['parent'], [new AccessThis(1)]));
+      const expr = parseCore('{parent: $parent}');
+      verifyASTEqual(expr, new ObjectLiteral(['parent'], [new AccessThis(1)]));
     });
 
     it('$parent and foo in LiteralObject', () => {
-      const expr = parser.parse('{parent: $parent, foo: bar}', BindingType.None);
-      verifyEqual(expr, new ObjectLiteral(['parent', 'foo'], [new AccessThis(1), $bar]));
+      const expr = parseCore('{parent: $parent, foo: bar}');
+      verifyASTEqual(expr, new ObjectLiteral(['parent', 'foo'], [new AccessThis(1), $bar]));
     });
 
     describe('LiteralObject', () => {
@@ -559,11 +596,11 @@ describe('ExpressionParser', () => {
 
       for (const { expr, expected } of tests) {
         it(`{${expr}}`, () => {
-          verifyEqual(parser.parse(`{${expr}}`, BindingType.None), expected);
+          verifyASTEqual(parseCore(`{${expr}}`), expected);
         });
 
         it(`({${expr}})`, () => {
-          verifyEqual(parser.parse(`({${expr}})`, BindingType.None), expected);
+          verifyASTEqual(parseCore(`({${expr}})`), expected);
         });
       }
     });
@@ -571,8 +608,8 @@ describe('ExpressionParser', () => {
     describe('unicode IdentifierStart', () => {
       for (const char of latin1IdentifierStartChars) {
         it(char, () => {
-          const expr = parser.parse(char, BindingType.None);
-          verifyEqual(expr, new AccessScope(char, 0));
+          const expr = parseCore(char);
+          verifyASTEqual(expr, new AccessScope(char, 0));
         });
       }
     });
@@ -581,8 +618,8 @@ describe('ExpressionParser', () => {
       for (const char of latin1IdentifierPartChars) {
         it(char, () => {
           const identifier = `$${char}`;
-          const expr = parser.parse(identifier, BindingType.None);
-          verifyEqual(expr, new AccessScope(identifier, 0));
+          const expr = parseCore(identifier);
+          verifyASTEqual(expr, new AccessScope(identifier, 0));
         });
       }
     });
@@ -747,14 +784,14 @@ describe('ExpressionParser', () => {
   });
 
     function _verifyError(expr: any, errorMessage: any = ''): any {
-    verifyError(parser, expr, errorMessage);
+    verifyError(expr, errorMessage);
   }
 });
 
-function verifyError(parser: any, expr: any, errorMessage: any = ''): any {
+function verifyError(expr: any, errorMessage: any = ''): any {
   let error = null;
   try {
-    parser.parse(expr, BindingType.None);
+    parseCore(expr);
   } catch (e) {
     error = e;
   }

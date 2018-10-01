@@ -427,7 +427,12 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
       }
     } else {
       elements.push(parse(state, access, Precedence.Assign, bindingType & ~BindingType.IsIterator));
-      if (!consumeOpt(state, Token.Comma)) {
+      if (consumeOpt(state, Token.Comma)) {
+        if (state.currentToken === <any>Token.CloseBracket) {
+          elements.push($undefined);
+          break;
+        }
+      } else {
         break;
       }
     }

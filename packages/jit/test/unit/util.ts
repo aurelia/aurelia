@@ -1,4 +1,6 @@
+import { Unparser } from './../../../debug/src/binding/unparser';
 import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
+import { expect } from 'chai';
 
 const emptyArray = [];
 
@@ -86,5 +88,13 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
     throw new Error('Failed assertion: binding instruction mismatch\n  - '+errors.join('\n  - '));
   }
 }
+export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
+  actual = Unparser.unparse(actual);
+  expected = Unparser.unparse(expected);
+  if (actual !== expected) {
+    expect(actual).to.equal(expected);
+  }
+}
+
 
 export { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };

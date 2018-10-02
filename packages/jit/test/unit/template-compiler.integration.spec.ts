@@ -1,11 +1,13 @@
-import { PropertyAccessor, ElementPropertyAccessor } from './../../../../runtime/src/binding/target-accessors';
-import { Observer } from './../../../../runtime/src/binding/property-observation';
-import { IContainer, DI, PLATFORM } from '../../../../kernel/src/index';
-import { BasicConfiguration } from '../../../src/index';
-import { Aurelia, IChangeSet, CustomElementResource, valueConverter, customElement, bindable, SetterObserver, Binding } from '../../../../runtime/src/index';
+import { IContainer, DI, PLATFORM } from '../../../kernel/src';
+import { BasicConfiguration } from '../../src';
+import {
+  Aurelia, IChangeSet, CustomElementResource, valueConverter,
+  customElement, bindable, SetterObserver, Binding,
+  PropertyAccessor, ElementPropertyAccessor, Observer
+} from '../../../runtime/src';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { eachCartesianJoinFactory } from '../util';
+import { eachCartesianJoinFactory } from './util';
 
 
 @valueConverter('sort')

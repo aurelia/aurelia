@@ -1,6 +1,6 @@
 import { DI, inject, PLATFORM } from '@aurelia/kernel';
 import { DOM, INode } from '@aurelia/runtime';
-import { AttrSyntax, IAttributeParser } from './attribute-parser';
+import { AttrSyntax, IAttributeParser } from '.';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 

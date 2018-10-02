@@ -1,10 +1,13 @@
-import { ParserRegistration } from './../../../src/binding/expression-parser';
-import { bindingCommand, IBindingCommand, BasicConfiguration } from "../../../src";
-import { IExpressionParser, INode, ICustomAttributeSource, TargetedInstructionType, BindingType, IRenderable, IRenderStrategyInstruction, renderStrategy, IRenderStrategy, Aurelia, IChangeSet, CustomElementResource, IEventManager, Listener, IExpression, DelegationStrategy, AttributeDefinition, ElementDefinition } from "@aurelia/runtime";
-import { Immutable, IIndexable, DI, IContainer, IServiceLocator, inject } from "@aurelia/kernel";
+import { ParserRegistration, AttributeSymbol, bindingCommand, IBindingCommand, BasicConfiguration } from "../../src";
+import {
+  IExpressionParser, INode, TargetedInstructionType, BindingType, IRenderable,
+  IRenderStrategyInstruction, renderStrategy, IRenderStrategy, Aurelia,
+  IChangeSet, CustomElementResource, IEventManager, Listener, IExpression,
+  DelegationStrategy, AttributeDefinition, ElementDefinition, TargetedInstruction
+} from "../../../runtime/src";
+import { IIndexable, DI, IContainer, IServiceLocator, inject } from "../../../kernel/src";
 import { expect } from "chai";
 import { spy } from "sinon";
-import { AttributeSymbol } from '../../../src/templating/semantic-model';
 
 
 
@@ -13,7 +16,7 @@ import { AttributeSymbol } from '../../../src/templating/semantic-model';
 export class KeyupBindingCommand implements IBindingCommand {
   constructor(private parser: IExpressionParser) {}
 
-  public compile($attr: AttributeSymbol): IRenderStrategyInstruction & IIndexable {
+  public compile($attr: AttributeSymbol): any {
     return {
       type: TargetedInstructionType.renderStrategy,
       expr: this.parser.parse($attr.rawValue, BindingType.TriggerCommand),

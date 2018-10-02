@@ -1,4 +1,4 @@
-import { HydrateElementInstruction } from './../../../../jit/src/templating/template-compiler';
+import { HydrateElementInstruction } from '../../../../jit/src';
 import { expect } from 'chai';
 import { createElement as sut, PotentialRenderable } from "../../../src/templating/create-element";
 import { eachCartesianJoinFactory, eachCartesianJoin, createElement, _ } from '../util';

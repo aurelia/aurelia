@@ -2,12 +2,11 @@ import { AccessKeyed, AccessMember, AccessScope, AccessThis,
   Assign, Binary, BindingBehavior, CallFunction,
   CallMember, CallScope, Conditional,
   ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template,
-  Unary, ValueConverter, TaggedTemplate, IsUnary, IsPrimary } from '../../../../runtime/src';
+  Unary, ValueConverter, TaggedTemplate, IsUnary, IsPrimary, BinaryOperator, UnaryOperator } from '../../../runtime/src';
 import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
 import { expect } from 'chai';
-import { parseCore } from '../../../../jit/src'
-import { verifyASTEqual, eachCartesianJoinFactory } from '../util';
-import { IsLeftHandSide } from '@aurelia/runtime';
+import { parseCore } from '../../../jit/src'
+import { verifyASTEqual, eachCartesianJoinFactory } from './util';
 
 /* eslint-disable no-loop-func, no-floating-decimal, key-spacing, new-cap, quotes, comma-spacing */
 
@@ -34,7 +33,7 @@ const $num2 = new PrimitiveLiteral(2);
 const $arr = new ArrayLiteral([]);
 const $obj = new ObjectLiteral([], []);
 
-const binaryOps = [
+const binaryOps: BinaryOperator[] = [
   '&&', '||',
   '==', '!=', '===', '!==',
   '<', '>', '<=', '>=',
@@ -42,7 +41,7 @@ const binaryOps = [
   '*', '%', '/',
   'in', 'instanceof'
 ];
-const unaryOps = [
+const unaryOps: UnaryOperator[] = [
   '!',
   'typeof',
   'void'

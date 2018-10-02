@@ -1,8 +1,4 @@
-import { AttributeParser } from './../../../src/templating/attribute-parser';
-import { ElementParser } from './../../../src/templating/element-parser';
-import { Constructable } from './../../../../kernel/src/interfaces';
-import { ForOfStatement, BindingIdentifier, IExpression, PrimitiveLiteral } from './../../../../runtime/src/binding/ast';
-import { DI, IContainer, IRegistry, PLATFORM } from '../../../../kernel/src/index';
+import { DI, IContainer, IRegistry, PLATFORM, Constructable } from '../../../kernel/src';
 import {
   IExpressionParser,
   IResourceDescriptions,
@@ -22,15 +18,22 @@ import {
   TargetedInstructionType,
   IBindableDescription,
   DelegationStrategy,
-  CustomElementResource} from '../../../../runtime/src/index';
+  CustomElementResource,
+  ForOfStatement,
+  BindingIdentifier,
+  IExpression,
+  PrimitiveLiteral
+} from '../../../runtime/src';
 import {
   TemplateCompiler,
   HydrateTemplateController,
   BasicConfiguration,
-  parseCore
-} from '../../../src/index';
+  parseCore,
+  AttributeParser,
+  ElementParser
+} from '../../src';
 import { expect } from 'chai';
-import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from '../util';
+import { createElement, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from './util';
 
 const attrParser = new AttributeParser();
 const elParser = new ElementParser(attrParser);

@@ -1,8 +1,19 @@
 // tslint:disable:interface-name
 import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
 import { BindingType, IExpressionParser, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
-import { IAttributeSymbol } from './semantic-model';
-import { CallBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, FromViewBindingInstruction, HydrateTemplateController, OneTimeBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TriggerBindingInstruction, TwoWayBindingInstruction } from './template-compiler';
+import {
+  CallBindingInstruction,
+  CaptureBindingInstruction,
+  DelegateBindingInstruction,
+  FromViewBindingInstruction,
+  HydrateTemplateController,
+  IAttributeSymbol,
+  OneTimeBindingInstruction,
+  SetPropertyInstruction,
+  ToViewBindingInstruction,
+  TriggerBindingInstruction,
+  TwoWayBindingInstruction
+} from '.';
 
 export interface IBindingCommandSource {
   name: string;

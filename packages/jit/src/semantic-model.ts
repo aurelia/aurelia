@@ -1,10 +1,6 @@
 import { Immutable, IServiceLocator, PLATFORM } from '@aurelia/kernel';
 import { BindingMode, CustomAttributeResource, CustomElementResource, DOM, IBindableDescription, ICustomAttributeSource, IExpressionParser, IResourceDescriptions, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
-import { Char } from '../binding/expression-parser';
-import { AttrSyntax, IAttributeParser } from './attribute-parser';
-import { BindingCommandResource, IBindingCommand } from './binding-command';
-import { ElementSyntax, IElementParser, NodeType } from './element-parser';
-import { HydrateTemplateController } from './template-compiler';
+import { AttrSyntax, BindingCommandResource, Char, ElementSyntax, HydrateTemplateController, IAttributeParser, IBindingCommand, IElementParser, NodeType } from '.';
 
 export class SemanticModel {
   public readonly isSemanticModel: true = true;

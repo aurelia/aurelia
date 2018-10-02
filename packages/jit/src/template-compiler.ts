@@ -3,7 +3,6 @@ import {
   BindingMode,
   BindingType,
   DelegationStrategy,
-  DOM,
   ICallBindingInstruction,
   IExpression,
   IExpressionParser,
@@ -32,9 +31,7 @@ import {
   TemplateDefinition,
   ViewCompileFlags,
 } from '@aurelia/runtime';
-import { IAttributeParser } from './attribute-parser';
-import { IElementParser, NodeType } from './element-parser';
-import { AttributeSymbol, ElementSymbol, IAttributeSymbol, SemanticModel } from './semantic-model';
+import { AttributeSymbol, ElementSymbol, IAttributeParser, IAttributeSymbol, IElementParser, NodeType, SemanticModel } from '.';
 
 @inject(IExpressionParser, IElementParser, IAttributeParser)
 export class TemplateCompiler implements ITemplateCompiler {

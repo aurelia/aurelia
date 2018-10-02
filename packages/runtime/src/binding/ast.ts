@@ -19,6 +19,8 @@ export type IsAssign = IsConditional | Assign;
 export type IsValueConverter = IsAssign | ValueConverter;
 export type IsBindingBehavior = IsValueConverter | BindingBehavior;
 export type IsAssignable = AccessScope | AccessKeyed | AccessMember;
+export type IsExpression = IsBindingBehavior | Interpolation;
+export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern;
 
 export interface IVisitor<T = any> {
   visitAccessKeyed(expr: AccessKeyed): T;
@@ -508,11 +510,13 @@ export class CallFunction implements IExpression {
   }
 }
 
+export type BinaryOperator = '&&' | '||' |  '==' |  '===' |  '!=' |  '!==' |  'instanceof' |  'in' |  '+' |  '-' |  '*' |  '/' |  '%' |  '<' |  '>' |  '<=' |  '>=';
+
 export class Binary implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
   constructor(
-    public readonly operation: string,
+    public readonly operation: BinaryOperator,
     public readonly left: IExpression,
     public readonly right: IExpression) {
     // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
@@ -604,10 +608,12 @@ export class Binary implements IExpression {
   }
 }
 
+export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
+
 export class Unary implements IExpression {
   public $kind: ExpressionKind;
   constructor(
-    public readonly operation: 'void' | 'typeof' | '!' | '-' | '+',
+    public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide) {
     // see Binary (we're doing the same thing here)
     this.evaluate = this[operation];

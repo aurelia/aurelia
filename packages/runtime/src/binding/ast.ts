@@ -95,10 +95,13 @@ export const enum ExpressionKind {
 
 export class BindingBehavior implements IExpression {
   public $kind: ExpressionKind;
-  private behaviorKey: string;
-  private expressionHasBind: boolean;
-  private expressionHasUnbind: boolean;
-  constructor(public expression: IsBindingBehavior, public name: string, public args: IsAssign[]) {
+  public readonly behaviorKey: string;
+  private readonly expressionHasBind: boolean;
+  private readonly expressionHasUnbind: boolean;
+  constructor(
+    public readonly expression: IsBindingBehavior,
+    public readonly name: string,
+    public readonly args: ReadonlyArray<IsAssign>) {
     this.behaviorKey = BindingBehaviorResource.keyFrom(this.name);
     if ((<any>expression).expression) {
       this.expressionHasBind = !!(<any>expression).bind;
@@ -154,8 +157,11 @@ export class BindingBehavior implements IExpression {
 
 export class ValueConverter implements IExpression {
   public $kind: ExpressionKind;
-  private converterKey: string;
-  constructor(public expression: IsValueConverter, public name: string, public args: IsAssign[]) {
+  public readonly converterKey: string;
+  constructor(
+    public readonly expression: IsValueConverter,
+    public readonly name: string,
+    public readonly args: ReadonlyArray<IsAssign>) {
     this.converterKey = ValueConverterResource.keyFrom(this.name);
   }
 
@@ -229,7 +235,9 @@ export class ValueConverter implements IExpression {
 
 export class Assign implements IExpression {
   public $kind: ExpressionKind;
-  constructor(public target: IsAssignable, public value: IsAssign) { }
+  constructor(
+    public readonly target: IsAssignable,
+    public readonly value: IsAssign) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator));
@@ -250,7 +258,10 @@ export class Assign implements IExpression {
 export class Conditional implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
-  constructor(public condition: IExpression, public yes: IExpression, public no: IExpression) { }
+  constructor(
+    public readonly condition: IExpression,
+    public readonly yes: IExpression,
+    public readonly no: IExpression) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     return (!!this.condition.evaluate(flags, scope, locator))
@@ -278,7 +289,8 @@ export class AccessThis implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
   public connect: IExpression['connect'];
-  constructor(public ancestor: number = 0) { }
+  constructor(
+    public readonly ancestor: number = 0) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     let oc = scope.overrideContext;
@@ -296,7 +308,9 @@ export class AccessThis implements IExpression {
 
 export class AccessScope implements IExpression {
   public $kind: ExpressionKind;
-  constructor(public name: string, public ancestor: number = 0) { }
+  constructor(
+    public readonly name: string,
+    public readonly ancestor: number = 0) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     const name = this.name;
@@ -322,7 +336,9 @@ export class AccessScope implements IExpression {
 
 export class AccessMember implements IExpression {
   public $kind: ExpressionKind;
-  constructor(public object: IExpression, public name: string) { }
+  constructor(
+    public readonly object: IExpression,
+    public readonly name: string) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     const instance = this.object.evaluate(flags, scope, locator);
@@ -354,7 +370,9 @@ export class AccessMember implements IExpression {
 
 export class AccessKeyed implements IExpression {
   public $kind: ExpressionKind;
-  constructor(public object: IExpression, public key: IExpression) { }
+  constructor(
+    public readonly object: IExpression,
+    public readonly key: IExpression) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     const instance = this.object.evaluate(flags, scope, locator);
@@ -395,7 +413,10 @@ export class AccessKeyed implements IExpression {
 export class CallScope implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
-  constructor(public name: string, public args: ReadonlyArray<IExpression>, public ancestor: number = 0) { }
+  constructor(
+    public readonly name: string,
+    public readonly args: ReadonlyArray<IExpression>,
+    public readonly ancestor: number = 0) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null): any {
     const args = evalList(flags, scope, locator, this.args);
@@ -422,7 +443,10 @@ export class CallScope implements IExpression {
 export class CallMember implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
-  constructor(public object: IExpression, public name: string, public args: ReadonlyArray<IExpression>) { }
+  constructor(
+    public readonly object: IExpression,
+    public readonly name: string,
+    public readonly args: ReadonlyArray<IExpression>) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     const instance = this.object.evaluate(flags, scope, locator);
@@ -453,7 +477,9 @@ export class CallMember implements IExpression {
 export class CallFunction implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
-  constructor(public func: IExpression, public args: IExpression[]) { }
+  constructor(
+    public readonly func: IExpression,
+    public readonly args: IExpression[]) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     const func = this.func.evaluate(flags, scope, locator);
@@ -485,7 +511,10 @@ export class CallFunction implements IExpression {
 export class Binary implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
-  constructor(public operation: string, public left: IExpression, public right: IExpression) {
+  constructor(
+    public readonly operation: string,
+    public readonly left: IExpression,
+    public readonly right: IExpression) {
     // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
     // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less
     // work to do; we can do this because the operation can't change after it's parsed
@@ -577,7 +606,9 @@ export class Binary implements IExpression {
 
 export class Unary {
   public $kind: ExpressionKind;
-  constructor(public operation: 'void' | 'typeof' | '!' | '-' | '+', public expression: IsLeftHandSide) {
+  constructor(
+    public readonly operation: 'void' | 'typeof' | '!' | '-' | '+',
+    public readonly expression: IsLeftHandSide) {
     // see Binary (we're doing the same thing here)
     this.evaluate = this[operation];
   }
@@ -618,7 +649,7 @@ export class PrimitiveLiteral implements IExpression {
   public $kind: ExpressionKind;
   public connect: IExpression['connect'];
   public assign: IExpression['assign'];
-  constructor(public value: any) { }
+  constructor(public readonly value: any) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     return this.value;
@@ -632,7 +663,7 @@ export class PrimitiveLiteral implements IExpression {
 export class HtmlLiteral implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
-  constructor(public parts: IExpression[]) { }
+  constructor(public readonly parts: ReadonlyArray<IExpression>) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     const elements = this.parts;
@@ -661,7 +692,7 @@ export class HtmlLiteral implements IExpression {
 export class ArrayLiteral implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
-  constructor(public elements: IExpression[]) { }
+  constructor(public readonly elements: ReadonlyArray<IExpression>) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any[] {
     const elements = this.elements;
@@ -688,7 +719,9 @@ export class ArrayLiteral implements IExpression {
 export class ObjectLiteral implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
-  constructor(public keys: (number | string)[], public values: IExpression[]) { }
+  constructor(
+    public readonly keys: ReadonlyArray<number | string>,
+    public readonly values: ReadonlyArray<IExpression>) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     const instance: Record<string, any> = {};
@@ -716,8 +749,10 @@ export class ObjectLiteral implements IExpression {
 export class Template implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
-  constructor(public cooked: string[], public expressions?: IsAssign[]) {
-    this.expressions = expressions || [];
+  constructor(
+    public readonly cooked: ReadonlyArray<string>,
+    public readonly expressions?: ReadonlyArray<IsAssign>) {
+    this.expressions = expressions || PLATFORM.emptyArray;
   }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
@@ -748,12 +783,12 @@ export class TaggedTemplate implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
   constructor(
-    public cooked: string[] & { raw?: string[] },
-    raw: string[],
-    public func: IsLeftHandSide,
-    public expressions?: IsAssign[]) {
+    public readonly cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> },
+    raw: ReadonlyArray<string>,
+    public readonly func: IsLeftHandSide,
+    public readonly expressions?: ReadonlyArray<IsAssign>) {
     cooked.raw = raw;
-    this.expressions = expressions || [];
+    this.expressions = expressions || PLATFORM.emptyArray;
   }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
@@ -787,7 +822,7 @@ export class ArrayBindingPattern implements IExpression {
   public $kind: ExpressionKind;
   // We'll either have elements, or keys+values, but never all 3
   constructor(
-    public elements: IsAssign[]
+    public readonly elements: ReadonlyArray<IsAssign>
   ) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
@@ -809,8 +844,8 @@ export class ObjectBindingPattern implements IExpression {
   public $kind: ExpressionKind;
   // We'll either have elements, or keys+values, but never all 3
   constructor(
-    public keys: (string | number)[],
-    public values: IsAssign[]
+    public readonly keys: ReadonlyArray<string | number>,
+    public readonly values: ReadonlyArray<IsAssign>
   ) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
@@ -830,10 +865,7 @@ export class ObjectBindingPattern implements IExpression {
 
 export class BindingIdentifier implements IExpression {
   public $kind: ExpressionKind;
-  public name: string;
-  constructor(name: string) {
-    this.name = name;
-  }
+  constructor(public readonly name: string) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     return this.name;
@@ -853,12 +885,9 @@ const toStringTag = Object.prototype.toString;
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
 export class ForOfStatement implements IExpression {
   public $kind: ExpressionKind;
-  public declaration: BindingIdentifierOrPattern;
-  public iterable: IsBindingBehavior;
-  constructor(declaration: BindingIdentifierOrPattern, iterable: IsBindingBehavior) {
-    this.declaration = declaration;
-    this.iterable = iterable;
-  }
+  constructor(
+    public readonly declaration: BindingIdentifierOrPattern,
+    public readonly iterable: IsBindingBehavior) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     return this.iterable.evaluate(flags, scope, locator);
@@ -890,7 +919,9 @@ export class ForOfStatement implements IExpression {
 export class Interpolation implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
-  constructor(public parts: string[], public expressions: IExpression[]) { }
+  constructor(
+    public readonly parts: ReadonlyArray<string>,
+    public readonly expressions: ReadonlyArray<IExpression>) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
     const expressions = this.expressions;

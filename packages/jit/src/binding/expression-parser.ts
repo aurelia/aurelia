@@ -160,26 +160,32 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       nextToken(state);
       result = parse(state, Access.Reset, Precedence.Conditional, bindingType);
       consume(state, Token.CloseParen);
+      access = Access.Reset;
       break;
     case Token.OpenBracket:
       result = parseArrayLiteralExpression(state, access, bindingType);
+      access = Access.Reset;
       break;
     case Token.OpenBrace:
       result = parseObjectLiteralExpression(state, bindingType);
+      access = Access.Reset;
       break;
     case Token.TemplateTail:
       result = new Template([<string>state.tokenValue]);
       state.assignable = false;
       nextToken(state);
+      access = Access.Reset;
       break;
     case Token.TemplateContinuation:
       result = parseTemplate(state, access, bindingType, result, false);
+      access = Access.Reset;
       break;
     case Token.StringLiteral:
     case Token.NumericLiteral:
       result = new PrimitiveLiteral(<any>state.tokenValue);
       state.assignable = false;
       nextToken(state);
+      access = Access.Reset;
       break;
     case Token.NullKeyword:
     case Token.UndefinedKeyword:
@@ -188,6 +194,7 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       result = TokenValues[state.currentToken & Token.Type];
       state.assignable = false;
       nextToken(state);
+      access = Access.Reset;
       break;
     default:
       if (state.index >= state.length) {

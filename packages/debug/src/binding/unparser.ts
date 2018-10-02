@@ -38,7 +38,7 @@ export function adoptDebugMethods($type: Unwrap<typeof astTypeMap>['type'], name
 }
 
 /*@internal*/
-export class Unparser implements AST.IVisitor {
+export class Unparser implements AST.IVisitor<void> {
   public text: string = '';
 
   public static unparse(expr: AST.IExpression): string {
@@ -47,19 +47,19 @@ export class Unparser implements AST.IVisitor {
     return visitor.text;
   }
 
-  public visitAccessMember(expr: AST.AccessMember): boolean {
+  public visitAccessMember(expr: AST.AccessMember): void {
     expr.object.accept(this);
     this.text += `.${expr.name}`;
-    return true;
   }
-  public visitAccessKeyed(expr: AST.AccessKeyed): boolean {
+
+  public visitAccessKeyed(expr: AST.AccessKeyed): void {
     expr.object.accept(this);
     this.text += '[';
     expr.key.accept(this);
     this.text += ']';
-    return true;
   }
-  public visitAccessThis(expr: AST.AccessThis): boolean {
+
+  public visitAccessThis(expr: AST.AccessThis): void {
     if (expr.ancestor === 0) {
       this.text += '$this';
       return;
@@ -69,17 +69,17 @@ export class Unparser implements AST.IVisitor {
     while (i--) {
       this.text += '.$parent';
     }
-    return true;
   }
-  public visitAccessScope(expr: AST.AccessScope): boolean {
+
+  public visitAccessScope(expr: AST.AccessScope): void {
     let i = expr.ancestor;
     while (i--) {
       this.text += '$parent.';
     }
     this.text += expr.name;
-    return true;
   }
-  public visitArrayLiteral(expr: AST.ArrayLiteral): boolean {
+
+  public visitArrayLiteral(expr: AST.ArrayLiteral): void {
     const elements = expr.elements;
     this.text += '[';
     for (let i = 0, length = elements.length; i < length; ++i) {
@@ -89,9 +89,9 @@ export class Unparser implements AST.IVisitor {
       elements[i].accept(this);
     }
     this.text += ']';
-    return true;
   }
-  public visitObjectLiteral(expr: AST.ObjectLiteral): boolean {
+
+  public visitObjectLiteral(expr: AST.ObjectLiteral): void {
     const keys = expr.keys;
     const values = expr.values;
     this.text += '{';
@@ -103,9 +103,9 @@ export class Unparser implements AST.IVisitor {
       values[i].accept(this);
     }
     this.text += '}';
-    return true;
   }
-  public visitPrimitiveLiteral(expr: AST.PrimitiveLiteral): boolean {
+
+  public visitPrimitiveLiteral(expr: AST.PrimitiveLiteral): void {
     this.text += '(';
     if (typeof expr.value === 'string') {
       const escaped = expr.value.replace(/'/g, '\'');
@@ -114,24 +114,24 @@ export class Unparser implements AST.IVisitor {
       this.text += `${expr.value}`;
     }
     this.text += ')';
-    return true;
   }
-  public visitCallFunction(expr: AST.CallFunction): boolean {
+
+  public visitCallFunction(expr: AST.CallFunction): void {
     this.text += '(';
     expr.func.accept(this);
     this.writeArgs(expr.args);
     this.text += ')';
-    return true;
   }
-  public visitCallMember(expr: AST.CallMember): boolean {
+
+  public visitCallMember(expr: AST.CallMember): void {
     this.text += '(';
     expr.object.accept(this);
     this.text += `.${expr.name}`;
     this.writeArgs(<AST.IExpression[]>expr.args);
     this.text += ')';
-    return true;
   }
-  public visitCallScope(expr: AST.CallScope): boolean {
+
+  public visitCallScope(expr: AST.CallScope): void {
     this.text += '(';
     let i = expr.ancestor;
     while (i--) {
@@ -140,9 +140,9 @@ export class Unparser implements AST.IVisitor {
     this.text += expr.name;
     this.writeArgs(<AST.IExpression[]>expr.args);
     this.text += ')';
-    return true;
   }
-  public visitTemplate(expr: AST.Template): boolean {
+
+  public visitTemplate(expr: AST.Template): void {
     const { cooked, expressions } = expr;
     const length = expressions.length;
     this.text += '`';
@@ -152,9 +152,9 @@ export class Unparser implements AST.IVisitor {
       this.text += cooked[i + 1];
     }
     this.text += '`';
-    return true;
   }
-  public visitTaggedTemplate(expr: AST.TaggedTemplate): boolean {
+
+  public visitTaggedTemplate(expr: AST.TaggedTemplate): void {
     const { cooked, expressions } = expr;
     const length = expressions.length;
     expr.func.accept(this);
@@ -165,18 +165,18 @@ export class Unparser implements AST.IVisitor {
       this.text += cooked[i + 1];
     }
     this.text += '`';
-    return true;
   }
-  public visitUnary(expr: AST.Unary): boolean {
+
+  public visitUnary(expr: AST.Unary): void {
     this.text += `(${expr.operation}`;
     if (expr.operation.charCodeAt(0) >= /*a*/97) {
       this.text += ' ';
     }
     expr.expression.accept(this);
     this.text += ')';
-    return true;
   }
-  public visitBinary(expr: AST.Binary): boolean {
+
+  public visitBinary(expr: AST.Binary): void {
     this.text += '(';
     expr.left.accept(this);
     if (expr.operation.charCodeAt(0) === /*i*/105) {
@@ -186,9 +186,9 @@ export class Unparser implements AST.IVisitor {
     }
     expr.right.accept(this);
     this.text += ')';
-    return true;
   }
-  public visitConditional(expr: AST.Conditional): boolean {
+
+  public visitConditional(expr: AST.Conditional): void {
     this.text += '(';
     expr.condition.accept(this);
     this.text += '?';
@@ -196,17 +196,17 @@ export class Unparser implements AST.IVisitor {
     this.text += ':';
     expr.no.accept(this);
     this.text += ')';
-    return true;
   }
-  public visitAssign(expr: AST.Assign): boolean {
+
+  public visitAssign(expr: AST.Assign): void {
     this.text += '(';
     expr.target.accept(this);
     this.text += '=';
     expr.value.accept(this);
     this.text += ')';
-    return true;
   }
-  public visitValueConverter(expr: AST.ValueConverter): boolean {
+
+  public visitValueConverter(expr: AST.ValueConverter): void {
     const args = expr.args;
     expr.expression.accept(this);
     this.text += `|${expr.name}`;
@@ -214,9 +214,9 @@ export class Unparser implements AST.IVisitor {
       this.text += ':';
       args[i].accept(this);
     }
-    return true;
   }
-  public visitBindingBehavior(expr: AST.BindingBehavior): boolean {
+
+  public visitBindingBehavior(expr: AST.BindingBehavior): void {
     const args = expr.args;
     expr.expression.accept(this);
     this.text += `&${expr.name}`;
@@ -224,26 +224,19 @@ export class Unparser implements AST.IVisitor {
       this.text += ':';
       args[i].accept(this);
     }
-    return true;
   }
-  public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): boolean {
-    return true;
-  }
-  public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): boolean {
-    return true;
-  }
-  public visitBindingIdentifier(expr: AST.BindingIdentifier): boolean {
-    return true;
-  }
-  public visitHtmlLiteral(expr: AST.HtmlLiteral): boolean {
-    return true;
-  }
-  public visitForOfStatement(expr: AST.ForOfStatement): boolean {
-    return true;
-  }
-  public visitInterpolation(expr: AST.Interpolation): boolean {
-    return true;
-  }
+
+  public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): void { }
+
+  public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): void { }
+
+  public visitBindingIdentifier(expr: AST.BindingIdentifier): void { }
+
+  public visitHtmlLiteral(expr: AST.HtmlLiteral): void { }
+
+  public visitForOfStatement(expr: AST.ForOfStatement): void { }
+
+  public visitInterpolation(expr: AST.Interpolation): void { }
 
   private writeArgs(args: AST.IExpression[]): void {
     this.text += '(';

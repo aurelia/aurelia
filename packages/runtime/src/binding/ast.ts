@@ -20,38 +20,38 @@ export type IsValueConverter = IsAssign | ValueConverter;
 export type IsBindingBehavior = IsValueConverter | BindingBehavior;
 export type IsAssignable = AccessScope | AccessKeyed | AccessMember;
 
-export interface IVisitor {
-  visitAccessKeyed(expr: AccessKeyed): boolean;
-  visitAccessMember(expr: AccessMember): boolean;
-  visitAccessScope(expr: AccessScope): boolean;
-  visitAccessThis(expr: AccessThis): boolean;
-  visitArrayBindingPattern(expr: ArrayBindingPattern): boolean;
-  visitArrayLiteral(expr: ArrayLiteral): boolean;
-  visitAssign(expr: Assign): boolean;
-  visitBinary(expr: Binary): boolean;
-  visitBindingBehavior(expr: BindingBehavior): boolean;
-  visitBindingIdentifier(expr: BindingIdentifier): boolean;
-  visitCallFunction(expr: CallFunction): boolean;
-  visitCallMember(expr: CallMember): boolean;
-  visitCallScope(expr: CallScope): boolean;
-  visitConditional(expr: Conditional): boolean;
-  visitForOfStatement(expr: ForOfStatement): boolean;
-  visitHtmlLiteral(expr: HtmlLiteral): boolean;
-  visitInterpolation(expr: Interpolation): boolean;
-  visitObjectBindingPattern(expr: ObjectBindingPattern): boolean;
-  visitObjectLiteral(expr: ObjectLiteral): boolean;
-  visitPrimitiveLiteral(expr: PrimitiveLiteral): boolean;
-  visitTaggedTemplate(expr: TaggedTemplate): boolean;
-  visitTemplate(expr: Template): boolean;
-  visitUnary(expr: Unary): boolean;
-  visitValueConverter(expr: ValueConverter): boolean;
+export interface IVisitor<T = any> {
+  visitAccessKeyed(expr: AccessKeyed): T;
+  visitAccessMember(expr: AccessMember): T;
+  visitAccessScope(expr: AccessScope): T;
+  visitAccessThis(expr: AccessThis): T;
+  visitArrayBindingPattern(expr: ArrayBindingPattern): T;
+  visitArrayLiteral(expr: ArrayLiteral): T;
+  visitAssign(expr: Assign): T;
+  visitBinary(expr: Binary): T;
+  visitBindingBehavior(expr: BindingBehavior): T;
+  visitBindingIdentifier(expr: BindingIdentifier): T;
+  visitCallFunction(expr: CallFunction): T;
+  visitCallMember(expr: CallMember): T;
+  visitCallScope(expr: CallScope): T;
+  visitConditional(expr: Conditional): T;
+  visitForOfStatement(expr: ForOfStatement): T;
+  visitHtmlLiteral(expr: HtmlLiteral): T;
+  visitInterpolation(expr: Interpolation): T;
+  visitObjectBindingPattern(expr: ObjectBindingPattern): T;
+  visitObjectLiteral(expr: ObjectLiteral): T;
+  visitPrimitiveLiteral(expr: PrimitiveLiteral): T;
+  visitTaggedTemplate(expr: TaggedTemplate): T;
+  visitTemplate(expr: Template): T;
+  visitUnary(expr: Unary): T;
+  visitValueConverter(expr: ValueConverter): T;
 }
 
 export interface IExpression {
   readonly $kind: ExpressionKind;
   evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null): any;
   connect(flags: BindingFlags, scope: IScope, binding: IBinding): any;
-  accept(visitor: IVisitor): boolean;
+  accept<T>(visitor: IVisitor<T>): T;
   assign?(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null, value: any): any;
   bind?(flags: BindingFlags, scope: IScope, binding: IBinding): void;
   unbind?(flags: BindingFlags, scope: IScope, binding: IBinding): void;
@@ -147,7 +147,7 @@ export class BindingBehavior implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingBehavior(this);
   }
 }
@@ -222,7 +222,7 @@ export class ValueConverter implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitValueConverter(this);
   }
 }
@@ -242,7 +242,7 @@ export class Assign implements IExpression {
     this.target.assign(flags, scope, locator, value);
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAssign(this);
   }
 }
@@ -269,7 +269,7 @@ export class Conditional implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitConditional(this);
   }
 }
@@ -289,7 +289,7 @@ export class AccessThis implements IExpression {
     return i < 1 && oc ? oc.bindingContext : undefined;
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessThis(this);
   }
 }
@@ -315,7 +315,7 @@ export class AccessScope implements IExpression {
     binding.observeProperty(context, name);
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessScope(this);
   }
 }
@@ -347,7 +347,7 @@ export class AccessMember implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessMember(this);
   }
 }
@@ -387,7 +387,7 @@ export class AccessKeyed implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessKeyed(this);
   }
 }
@@ -414,7 +414,7 @@ export class CallScope implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallScope(this);
   }
 }
@@ -445,7 +445,7 @@ export class CallMember implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallMember(this);
   }
 }
@@ -477,7 +477,7 @@ export class CallFunction implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallFunction(this);
   }
 }
@@ -570,7 +570,7 @@ export class Binary implements IExpression {
   }
 
   // tslint:disable-next-line:member-ordering
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBinary(this);
   }
 }
@@ -609,7 +609,7 @@ export class Unary {
   }
 
   // tslint:disable-next-line:member-ordering
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitUnary(this);
   }
 }
@@ -624,7 +624,7 @@ export class PrimitiveLiteral implements IExpression {
     return this.value;
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitPrimitiveLiteral(this);
   }
 }
@@ -653,7 +653,7 @@ export class HtmlLiteral implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitHtmlLiteral(this);
   }
 }
@@ -680,7 +680,7 @@ export class ArrayLiteral implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayLiteral(this);
   }
 }
@@ -708,7 +708,7 @@ export class ObjectLiteral implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectLiteral(this);
   }
 }
@@ -739,7 +739,7 @@ export class Template implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitTemplate(this);
   }
 }
@@ -778,7 +778,7 @@ export class TaggedTemplate implements IExpression {
     this.func.connect(flags, scope, binding);
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitTaggedTemplate(this);
   }
 }
@@ -800,7 +800,7 @@ export class ArrayBindingPattern implements IExpression {
 
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayBindingPattern(this);
   }
 }
@@ -823,7 +823,7 @@ export class ObjectBindingPattern implements IExpression {
 
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectBindingPattern(this);
   }
 }
@@ -840,7 +840,7 @@ export class BindingIdentifier implements IExpression {
   }
   public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingIdentifier(this);
   }
 }
@@ -877,7 +877,7 @@ export class ForOfStatement implements IExpression {
     this.iterable.connect(flags, scope, binding);
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitForOfStatement(this);
   }
 }
@@ -910,12 +910,10 @@ export class Interpolation implements IExpression {
     }
   }
 
-  public accept(visitor: IVisitor): boolean {
+  public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitInterpolation(this);
   }
 }
-
-
 
 /*
 * Note: for a property that is always the same, directly assigning it to the prototype is more efficient CPU wise

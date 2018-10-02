@@ -174,11 +174,9 @@ export function parse<T extends Precedence>(state: ParserState, access: Access, 
       result = new Template([<string>state.tokenValue]);
       state.assignable = false;
       nextToken(state);
-      access = Access.Reset;
       break;
     case Token.TemplateContinuation:
       result = parseTemplate(state, access, bindingType, result, false);
-      access = Access.Reset;
       break;
     case Token.StringLiteral:
     case Token.NumericLiteral:

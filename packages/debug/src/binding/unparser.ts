@@ -106,32 +106,40 @@ export class Unparser implements AST.IVisitor {
     return true;
   }
   public visitPrimitiveLiteral(expr: AST.PrimitiveLiteral): boolean {
+    this.text += '(';
     if (typeof expr.value === 'string') {
       const escaped = expr.value.replace(/'/g, '\'');
       this.text += `'${escaped}'`;
     } else {
       this.text += `${expr.value}`;
     }
+    this.text += ')';
     return true;
   }
   public visitCallFunction(expr: AST.CallFunction): boolean {
+    this.text += '(';
     expr.func.accept(this);
     this.writeArgs(expr.args);
+    this.text += ')';
     return true;
   }
   public visitCallMember(expr: AST.CallMember): boolean {
+    this.text += '(';
     expr.object.accept(this);
     this.text += `.${expr.name}`;
     this.writeArgs(<AST.IExpression[]>expr.args);
+    this.text += ')';
     return true;
   }
   public visitCallScope(expr: AST.CallScope): boolean {
+    this.text += '(';
     let i = expr.ancestor;
     while (i--) {
       this.text += '$parent.';
     }
     this.text += expr.name;
     this.writeArgs(<AST.IExpression[]>expr.args);
+    this.text += ')';
     return true;
   }
   public visitTemplate(expr: AST.Template): boolean {
@@ -147,6 +155,16 @@ export class Unparser implements AST.IVisitor {
     return true;
   }
   public visitTaggedTemplate(expr: AST.TaggedTemplate): boolean {
+    const { cooked, expressions } = expr;
+    const length = expressions.length;
+    expr.func.accept(this);
+    this.text += '`';
+    this.text += cooked[0];
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+      this.text += cooked[i + 1];
+    }
+    this.text += '`';
     return true;
   }
   public visitUnary(expr: AST.Unary): boolean {
@@ -159,6 +177,7 @@ export class Unparser implements AST.IVisitor {
     return true;
   }
   public visitBinary(expr: AST.Binary): boolean {
+    this.text += '(';
     expr.left.accept(this);
     if (expr.operation.charCodeAt(0) === /*i*/105) {
       this.text += ` ${expr.operation} `;
@@ -166,20 +185,25 @@ export class Unparser implements AST.IVisitor {
       this.text += expr.operation;
     }
     expr.right.accept(this);
+    this.text += ')';
     return true;
   }
   public visitConditional(expr: AST.Conditional): boolean {
+    this.text += '(';
     expr.condition.accept(this);
     this.text += '?';
     expr.yes.accept(this);
     this.text += ':';
     expr.no.accept(this);
+    this.text += ')';
     return true;
   }
   public visitAssign(expr: AST.Assign): boolean {
+    this.text += '(';
     expr.target.accept(this);
     this.text += '=';
     expr.value.accept(this);
+    this.text += ')';
     return true;
   }
   public visitValueConverter(expr: AST.ValueConverter): boolean {

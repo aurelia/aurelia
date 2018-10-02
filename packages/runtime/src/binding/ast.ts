@@ -604,7 +604,7 @@ export class Binary implements IExpression {
   }
 }
 
-export class Unary {
+export class Unary implements IExpression {
   public $kind: ExpressionKind;
   constructor(
     public readonly operation: 'void' | 'typeof' | '!' | '-' | '+',

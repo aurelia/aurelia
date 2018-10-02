@@ -118,7 +118,11 @@ const primaryFactories: (() => [string, IsPrimary])[] = [
   () => [`{a:{},b:{}}`, new ObjectLiteral(['a','b'],[$obj,$obj])],
   () => [`{a:{},b:[]}`, new ObjectLiteral(['a','b'],[$obj,$arr])],
   () => [`{a:{},b:[[]]}`, new ObjectLiteral(['a','b'],[$obj,new ArrayLiteral([$arr])])],
-  () => [`{a:[[]],b:{}}`, new ObjectLiteral(['a','b'],[new ArrayLiteral([$arr]),$obj])]
+  () => [`{a:[[]],b:{}}`, new ObjectLiteral(['a','b'],[new ArrayLiteral([$arr]),$obj])],
+  () => ['``', new Template([''])],
+  () => ['`a`', new Template(['a'])],
+  () => ['`${a}`', new Template(['',''], [$a])],
+  () => ['`${a}${b}`', new Template(['','',''], [$a, $b])]
 ];
 
 const unaryFactories: (() => [string, IsUnary])[] = [
@@ -139,6 +143,11 @@ const unaryFactories: (() => [string, IsUnary])[] = [
 
 const leftHandSideFactories: (() => [string, any])[] = [
   () => [`[]()`, new CallFunction($arr, [])],
+  () => [`[]()()`, new CallFunction(new CallFunction($arr, []), [])],
+  () => [`[{}]()`, new CallFunction(new ArrayLiteral([$obj]), [])],
+  () => [`[{}()]()`, new CallFunction(new ArrayLiteral([new CallFunction($obj, [])]), [])],
+  () => [`[]([]())`, new CallFunction($arr, [new CallFunction($arr, [])])],
+  () => [`[{}()]()()`, new CallFunction(new CallFunction(new ArrayLiteral([new CallFunction($obj, [])]), []),[])],
   () => [`{}()`, new CallFunction($obj, [])],
   () => [`[](a)`, new CallFunction($arr, [$a])],
   () => [`{}(a)`, new CallFunction($obj, [$a])],
@@ -194,6 +203,42 @@ describe.only('ExpressionParser', () => {
     eachCartesianJoinFactory<[string, PrimitiveLiteral], void>(
       [literalFactories],
       ([input, expected]) => {
+        it(input, () => {
+          verifyASTEqual(parseCore(input), expected);
+        });
+      }
+    );
+  });
+
+  describe(`parses IsLeftHandSide + Template`, () => {
+    eachCartesianJoinFactory<[string, any], [string, Template], void>(
+      [
+        [...literalFactories, ...primaryFactories, ...unaryFactories, ...parenthesizedLeftHandSideFactories],
+        [
+          ([input, expected]) => [`\`\${${input}}\``,             new Template(['', ''], [expected])],
+          ([input, expected]) => [`\`\${${input}}\${${input}}\``, new Template(['', '', ''], [expected,expected])],
+          ([input, expected]) => [`\`a\${${input}}b\``, new Template(['a', 'b'], [expected])]
+        ],
+      ],
+      ($1, [input, expected]) => {
+        it(input, () => {
+          verifyASTEqual(parseCore(input), expected);
+        });
+      }
+    );
+  });
+
+  describe(`parses IsLeftHandSide + TaggedTemplate`, () => {
+    eachCartesianJoinFactory<[string, any], [string, Template], void>(
+      [
+        [...literalFactories, ...primaryFactories, ...unaryFactories, ...parenthesizedLeftHandSideFactories],
+        [
+          ([input, expected]) => [`a\`\${${input}}\``,             new TaggedTemplate(['', ''], ['', ''], $a, [expected])],
+          ([input, expected]) => [`a\`\${${input}}\${${input}}\``, new TaggedTemplate(['', '', ''], ['', '', ''], $a, [expected,expected])],
+          ([input, expected]) => [`a\`a\${${input}}b\``, new TaggedTemplate(['a', 'b'], ['a', 'b'], $a, [expected])]
+        ],
+      ],
+      ($1, [input, expected]) => {
         it(input, () => {
           verifyASTEqual(parseCore(input), expected);
         });
@@ -383,10 +428,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsPrimary + CallFunction`, () => {
-    eachCartesianJoinFactory<[string, IsPrimary], [string, CallFunction], void>(
+  describe(`parses IsLeftHandSide + CallFunction`, () => {
+    eachCartesianJoinFactory<[string, any], [string, CallFunction], void>(
       [
-        [...literalFactories, ...primaryFactories],
+        [...literalFactories, ...primaryFactories, ...leftHandSideFactories],
         [
           ([input, expected]) => [`${input}()`, new CallFunction(expected, [])],
           ([input, expected]) => [`${input}(${input})`, new CallFunction(expected, [expected])],
@@ -426,10 +471,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsUnary + CallScope`, () => {
-    eachCartesianJoinFactory<[string, IsUnary], [string, CallScope], void>(
+  describe(`parses IsLeftHandSide + CallScope`, () => {
+    eachCartesianJoinFactory<[string, any], [string, CallScope], void>(
       [
-        [...literalFactories, ...primaryFactories, ...unaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories, ...leftHandSideFactories],
         [
           ([input, expected]) => [`foo(${input})`, new CallScope('foo', [expected])],
           ([input, expected]) => [`foo(${input},${input})`, new CallScope('foo', [expected,expected])]
@@ -443,10 +488,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsUnary + CallMember`, () => {
-    eachCartesianJoinFactory<[string, IsUnary], [string, CallMember], void>(
+  describe(`parses IsLeftHandSide + CallMember`, () => {
+    eachCartesianJoinFactory<[string, any], [string, CallMember], void>(
       [
-        [...literalFactories, ...primaryFactories, ...unaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories, ...leftHandSideFactories],
         [
           ([input, expected]) => [`foo.bar(${input})`, new CallMember($foo, 'bar', [expected])],
           ([input, expected]) => [`foo.bar(${input},${input})`, new CallMember($foo, 'bar', [expected,expected])]
@@ -460,10 +505,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsUnary + ValueConverter`, () => {
-    eachCartesianJoinFactory<[string, IsUnary], [string, ValueConverter], void>(
+  describe(`parses IsLeftHandSide + ValueConverter`, () => {
+    eachCartesianJoinFactory<[string, any], [string, ValueConverter], void>(
       [
-        [...literalFactories, ...primaryFactories, ...unaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories, ...leftHandSideFactories],
         [
           ([input, expected]) => [`${input}|foo`, new ValueConverter(expected, 'foo', [])],
           ([input, expected]) => [`${input}|foo:${input}`, new ValueConverter(expected, 'foo', [expected])],
@@ -478,10 +523,10 @@ describe.only('ExpressionParser', () => {
     );
   });
 
-  describe(`parses IsUnary + BindingBehavior`, () => {
-    eachCartesianJoinFactory<[string, IsUnary], [string, BindingBehavior], void>(
+  describe(`parses IsLeftHandSide + BindingBehavior`, () => {
+    eachCartesianJoinFactory<[string, any], [string, BindingBehavior], void>(
       [
-        [...literalFactories, ...primaryFactories, ...unaryFactories],
+        [...literalFactories, ...primaryFactories, ...unaryFactories, ...leftHandSideFactories],
         [
           ([input, expected]) => [`${input}&foo`, new BindingBehavior(expected, 'foo', [])],
           ([input, expected]) => [`${input}&foo:${input}`, new BindingBehavior(expected, 'foo', [expected])],
@@ -520,63 +565,6 @@ describe.only('ExpressionParser', () => {
         it(expr, () => {
           verifyASTEqual(parseCore(expr), expected);
         });
-      }
-    });
-
-    describe('LiteralArray', () => {
-      const tests = [
-        { expr: '[1 <= 0]', expected: new ArrayLiteral([new Binary('<=', $num1, $num0)]) },
-        { expr: '[0]', expected: new ArrayLiteral([$num0])},
-        { expr: '[,]', expected: new ArrayLiteral([$undefined, $undefined])},
-        { expr: '[,,]', expected: new ArrayLiteral([$undefined, $undefined, $undefined])},
-        { expr: '[0,,]', expected: new ArrayLiteral([$num0, $undefined, $undefined])},
-        { expr: '[,0,]', expected: new ArrayLiteral([$undefined, $num0, $undefined])},
-        { expr: '[,,0]', expected: new ArrayLiteral([$undefined, $undefined, $num0])},
-        { expr: '[]', expected: $arr},
-        { expr: '[[[]]]', expected: new ArrayLiteral([new ArrayLiteral([$arr])])},
-        { expr: '[[],[[]]]', expected: new ArrayLiteral([$arr, new ArrayLiteral([$arr])])},
-        { expr: '[x()]', expected: new ArrayLiteral([new CallScope('x', [], 0)]) },
-        { expr: '[1, "z", "a", null]', expected: new ArrayLiteral([$num1, new PrimitiveLiteral('z'), new PrimitiveLiteral('a'), $null]) }
-      ];
-
-      for (const { expr, expected } of tests) {
-        it(expr, () => {
-          verifyASTEqual(parseCore(expr), expected);
-        });
-      }
-    });
-
-    describe('Conditional', () => {
-      const tests = [
-        { expr: '(false ? true : undefined)', paren: true, expected: new Conditional($false, $true, $undefined) },
-        { expr: '("1" ? "" : "1")', paren: true, expected: new Conditional($str1, $str, $str1) },
-        { expr: '("1" ? foo : "")', paren: true, expected: new Conditional($str1, $foo, $str) },
-        { expr: '(false ? false : true)', paren: true, expected: new Conditional($false, $false, $true) },
-        { expr: '(foo ? foo : true)', paren: true, expected: new Conditional($foo, $foo, $true) },
-        { expr: 'foo() ? 1 : 2', expected: new Conditional(new CallScope('foo', [], 0), $num1, $num2) },
-        { expr: 'true ? foo : false', expected: new Conditional($true, $foo, $false) },
-        { expr: '"1" ? "" : "1"', expected: new Conditional($str1, $str, $str1) },
-        { expr: '"1" ? foo : ""', expected: new Conditional($str1, $foo, $str) },
-        { expr: 'foo ? foo : "1"', expected: new Conditional($foo, $foo, $str1) },
-        { expr: 'true ? foo : bar', expected: new Conditional($true, $foo, $bar) }
-      ];
-
-      for (const { expr, expected, paren } of tests) {
-        it(expr, () => {
-          verifyASTEqual(parseCore(expr), expected);
-        });
-
-        const nestedTests = [
-          { expr: `${expr} ? a : b`, expected: paren ? new Conditional(expected as any, $a, $b) : new Conditional(expected.condition, expected.yes, new Conditional(<any>expected.no, $a, $b)) },
-          { expr: `a[b] ? ${expr} : a=((b))`, expected: new Conditional(new AccessKeyed($a, $b), expected, new Assign($a, $b)) },
-          { expr: `a ? !b===!a : ${expr}`, expected: new Conditional($a, new Binary('===', new Unary('!', $b), new Unary('!', $a)), expected) }
-        ];
-
-        for (const { expr: nExpr, expected: nExpected } of nestedTests) {
-          it(nExpr, () => {
-            verifyASTEqual(parseCore(nExpr), nExpected);
-          });
-        }
       }
     });
 
@@ -731,125 +719,6 @@ describe.only('ExpressionParser', () => {
       verifyASTEqual(expr, $foo);
     });
 
-    describe('AccessKeyed', () => {
-      const tests = [
-        { expr: 'foo[bar]', expected: new AccessKeyed($foo, $bar) },
-        { expr: 'foo[\'bar\']', expected: new AccessKeyed($foo, new PrimitiveLiteral('bar')) },
-        { expr: 'foo[0]', expected: new AccessKeyed($foo, $num0) },
-        { expr: 'foo[(0)]', expected: new AccessKeyed($foo, $num0) },
-        { expr: '(foo)[0]', expected: new AccessKeyed($foo, $num0) },
-        { expr: 'foo[null]', expected: new AccessKeyed($foo, $null) },
-        { expr: '\'foo\'[0]', expected: new AccessKeyed(new PrimitiveLiteral('foo'), $num0) },
-        { expr: 'foo()[bar]', expected: new AccessKeyed(new CallScope('foo', [], 0), $bar) },
-        { expr: 'a[b[c]]', expected: new AccessKeyed($a, new AccessKeyed($b, $c)) },
-        { expr: 'a[b][c]', expected: new AccessKeyed(new AccessKeyed($a, $b), $c) }
-      ];
-
-      for (const { expr, expected } of tests) {
-        it(expr, () => {
-          verifyASTEqual(parseCore(expr), expected);
-        });
-
-        it(`(${expr})`, () => {
-          verifyASTEqual(parseCore(`(${expr})`), expected);
-        });
-      }
-    });
-
-    describe('AccessMember', () => {
-      const tests = [
-        { expr: 'foo.bar', expected: new AccessMember($foo, 'bar') },
-        { expr: 'foo.bar.baz.qux', expected: new AccessMember(new AccessMember(new AccessMember($foo, 'bar'), 'baz'), 'qux') },
-        { expr: 'foo["bar"].baz', expected: new AccessMember(new AccessKeyed($foo, new PrimitiveLiteral('bar')), 'baz') },
-        { expr: 'foo[""].baz', expected: new AccessMember(new AccessKeyed($foo, $str), 'baz') },
-        { expr: 'foo[null].baz', expected: new AccessMember(new AccessKeyed($foo, $null), 'baz') },
-        { expr: 'foo[42].baz', expected: new AccessMember(new AccessKeyed($foo, new PrimitiveLiteral(42)), 'baz') },
-        { expr: '{}.foo', expected: new AccessMember($obj, 'foo') },
-        { expr: '[].foo', expected: new AccessMember($arr, 'foo') },
-        { expr: 'null.foo', expected: new AccessMember($null, 'foo') },
-        { expr: 'undefined.foo', expected: new AccessMember($undefined, 'foo') },
-        { expr: 'true.foo', expected: new AccessMember($true, 'foo') },
-        { expr: 'false.foo', expected: new AccessMember($false, 'foo') }
-      ];
-
-      for (const { expr, expected } of tests) {
-        it(expr, () => {
-          verifyASTEqual(parseCore(expr), expected);
-        });
-      }
-    });
-
-    it('Assign', () => {
-      const expr = parseCore('foo = bar');
-      verifyASTEqual(expr, new Assign($foo, $bar));
-    });
-
-    it('chained Assign', () => {
-      const expr = parseCore('foo = bar = baz');
-      verifyASTEqual(expr, new Assign($foo, new Assign($bar, $baz)));
-    });
-
-    describe('Call', () => {
-      const tests = [
-        { expr: 'a()()()', expected: new CallFunction(new CallFunction(new CallScope('a', [], 0), []), []) },
-        { expr: 'a(b(c()))', expected: new CallScope('a', [new CallScope('b', [new CallScope('c', [], 0)], 0)], 0) },
-        { expr: 'a(b(),c())', expected: new CallScope('a', [new CallScope('b', [], 0), new CallScope('c', [], 0)], 0) },
-        { expr: 'a()[b]()', expected: new CallFunction(new AccessKeyed(new CallScope('a', [], 0), $b), []) },
-        { expr: '{foo}[\'foo\']()', expected: new CallFunction(new AccessKeyed(new ObjectLiteral(['foo'], [$foo]), new PrimitiveLiteral('foo')), []) },
-        { expr: 'a(b({})[c()[d()]])', expected: new CallScope('a', [new AccessKeyed(new CallScope('b', [$obj], 0), new AccessKeyed(new CallScope('c', [], 0), new CallScope('d', [], 0)))], 0) }
-      ];
-
-      for (const { expr, expected } of tests) {
-        it(expr, () => {
-          verifyASTEqual(parseCore(expr), expected);
-        });
-
-        it(`(${expr})`, () => {
-          verifyASTEqual(parseCore(`(${expr})`), expected);
-        });
-      }
-    });
-
-    it('CallScope', () => {
-      const expr = parseCore('foo(x)');
-      verifyASTEqual(expr, new CallScope('foo', [$x], 0));
-    });
-
-    it('nested CallScope', () => {
-      const expr = parseCore('foo(bar(x, y))');
-      verifyASTEqual(expr, new CallScope('foo', [new CallScope('bar', [$x], 0), $y], 0));
-    });
-
-    it('CallMember', () => {
-      const expr = parseCore('foo.bar(x)');
-      verifyASTEqual(expr, new CallMember($foo, 'bar', [$x]));
-    });
-
-    it('nested CallMember', () => {
-      const expr = parseCore('foo.bar.baz(x)');
-      verifyASTEqual(expr, new CallMember(new AccessMember($foo, 'bar'), 'baz', [$x]));
-    });
-
-    it('$this', () => {
-      const expr = parseCore('$this');
-      verifyASTEqual(expr, $this);
-    });
-
-    it('$this.member to AccessScope', () => {
-      const expr = parseCore('$this.foo');
-      verifyASTEqual(expr, $foo);
-    });
-
-    it('$this() to CallFunction', () => {
-      const expr = parseCore('$this()');
-      verifyASTEqual(expr, new CallFunction($this, []));
-    });
-
-    it('$this.member() to CallScope', () => {
-      const expr = parseCore('$this.foo(x)');
-      verifyASTEqual(expr, new CallScope('foo', [$x], 0));
-    });
-
     const parents = [
       { i: 1, name: '$parent' },
       { i: 2, name: '$parent.$parent' },
@@ -907,52 +776,6 @@ describe.only('ExpressionParser', () => {
         it(`${name}[0] to AccessKeyed`, () => {
           const expr = parseCore(`${name}[0]`);
           verifyASTEqual(expr, new AccessKeyed(new AccessThis(i), $num0));
-        });
-      }
-    });
-
-    it('$parent inside CallMember', () => {
-      const expr = parseCore('matcher.bind($parent)');
-      verifyASTEqual(expr, new CallMember(new AccessScope('matcher', 0), 'bind', [$parent]));
-    });
-
-    it('$parent in LiteralObject', () => {
-      const expr = parseCore('{parent: $parent}');
-      verifyASTEqual(expr, new ObjectLiteral(['parent'], [$parent]));
-    });
-
-    it('$parent and foo in LiteralObject', () => {
-      const expr = parseCore('{parent: $parent, foo: bar}');
-      verifyASTEqual(expr, new ObjectLiteral(['parent', 'foo'], [$parent, $bar]));
-    });
-
-    describe('LiteralObject', () => {
-      const tests = [
-        { expr: '', expected: $obj },
-        { expr: 'foo', expected: new ObjectLiteral(['foo'], [$foo]) },
-        { expr: 'foo,bar', expected: new ObjectLiteral(['foo', 'bar'], [$foo, $bar]) },
-        { expr: 'foo:bar', expected: new ObjectLiteral(['foo'], [$bar]) },
-        { expr: 'foo:bar()', expected: new ObjectLiteral(['foo'], [new CallScope('bar', [], 0)]) },
-        { expr: 'foo:a?b:c', expected: new ObjectLiteral(['foo'], [new Conditional($a, $b, $c)]) },
-        { expr: 'foo:bar=((baz))', expected: new ObjectLiteral(['foo'], [new Assign($bar, $baz)]) },
-        { expr: 'foo:(bar)===baz', expected: new ObjectLiteral(['foo'], [new Binary('===', $bar, $baz)]) },
-        { expr: 'foo:[bar]', expected: new ObjectLiteral(['foo'], [new ArrayLiteral([$bar])]) },
-        { expr: 'foo:bar[baz]', expected: new ObjectLiteral(['foo'], [new AccessKeyed($bar, $baz)]) },
-        { expr: '\'foo\':1', expected: new ObjectLiteral(['foo'], [$num1]) },
-        { expr: '1:1', expected: new ObjectLiteral([1], [$num1]) },
-        { expr: '1:\'foo\'', expected: new ObjectLiteral([1], [new PrimitiveLiteral('foo')]) },
-        { expr: 'null:1', expected: new ObjectLiteral(['null'], [$num1]) },
-        { expr: 'foo:{}', expected: new ObjectLiteral(['foo'], [$obj]) },
-        { expr: 'foo:{bar}[baz]', expected: new ObjectLiteral(['foo'], [new AccessKeyed(new ObjectLiteral(['bar'], [$bar]), $baz)]) }
-      ];
-
-      for (const { expr, expected } of tests) {
-        it(`{${expr}}`, () => {
-          verifyASTEqual(parseCore(`{${expr}}`), expected);
-        });
-
-        it(`({${expr}})`, () => {
-          verifyASTEqual(parseCore(`({${expr}})`), expected);
         });
       }
     });

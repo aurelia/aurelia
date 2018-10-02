@@ -1,3 +1,4 @@
+// tslint:disable:no-non-null-assertion
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import {
   AccessKeyed, AccessMember, AccessScope, AccessThis,
@@ -124,7 +125,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         nextToken(state);
         access++; // ancestor
         if (consumeOpt(state, Token.Dot)) {
-          if (state.currentToken === Token.Dot) {
+          if (state!.currentToken === Token.Dot) {
             error(state);
           }
           continue;
@@ -240,7 +241,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         nextToken(state);
         // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
         access = ((access & (Access.This | Access.Scope)) << 1) | (access & Access.Member) | ((access & Access.Keyed) >> 1);
-        if (state.currentToken === Token.OpenParen) {
+        if (state!.currentToken === Token.OpenParen) {
           continue;
         }
         if ((access & Access.Scope) > 0) {
@@ -260,7 +261,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         state.assignable = false;
         nextToken(state);
         const args = new Array<IsAssign>();
-        while (state.currentToken !== Token.CloseParen) {
+        while (state!.currentToken !== Token.CloseParen) {
           args.push(parse(state, Access.Reset, Precedence.Conditional, bindingType) as IsAssign);
           if (!consumeOpt(state, Token.Comma)) {
             break;
@@ -422,14 +423,14 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
   while (state.currentToken !== Token.CloseBracket) {
     if (consumeOpt(state, Token.Comma)) {
       elements.push($undefined);
-      if (state.currentToken === Token.CloseBracket) {
+      if (state!.currentToken === Token.CloseBracket) {
         elements.push($undefined);
         break;
       }
     } else {
       elements.push(parse(state, access, Precedence.Assign, bindingType & ~BindingType.IsIterator) as IsAssign);
       if (consumeOpt(state, Token.Comma)) {
-        if (state.currentToken === Token.CloseBracket) {
+        if (state!.currentToken === Token.CloseBracket) {
           elements.push($undefined);
           break;
         }
@@ -505,7 +506,7 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
     } else {
       error(state);
     }
-    if (state.currentToken !== Token.CloseBrace) {
+    if (state!.currentToken !== Token.CloseBrace) {
       consume(state, Token.Comma);
     }
   }
@@ -815,65 +816,65 @@ export const enum Precedence {
   Unary                   = 0b111000010,
 }
 const enum Token {
-  EOF                     = 0b110000000000 << 9,
-  ExpressionTerminal      = 0b100000000000 << 9,
-  AccessScopeTerminal     = 0b010000000000 << 9,
-  ClosingToken            = 0b001000000000 << 9,
-  OpeningToken            = 0b000100000000 << 9,
-  BinaryOp                = 0b000010000000 << 9,
-  UnaryOp                 = 0b000001000000 << 9,
-  LeftHandSide            = 0b000000100000 << 9,
-  StringOrNumericLiteral  = 0b000000011000 << 9,
-  NumericLiteral          = 0b000000010000 << 9,
-  StringLiteral           = 0b000000001000 << 9,
-  IdentifierName          = 0b000000000110 << 9,
-  Keyword                 = 0b000000000100 << 9,
-  Identifier              = 0b000000000010 << 9,
-  Contextual              = 0b000000000001 << 9,
-  Precedence              = 0b000000000000 << 9 | 0b111 << 6,
-  Type                    = 0b000000000000 << 9 | 0b000 << 6 | 0b111111,
-  FalseKeyword            = 0b000000000100 << 9 | 0b000 << 6 | 0b000000,
-  TrueKeyword             = 0b000000000100 << 9 | 0b000 << 6 | 0b000001,
-  NullKeyword             = 0b000000000100 << 9 | 0b000 << 6 | 0b000010,
-  UndefinedKeyword        = 0b000000000100 << 9 | 0b000 << 6 | 0b000011,
-  ThisScope               = 0b000000000110 << 9 | 0b000 << 6 | 0b000100,
-  ParentScope             = 0b000000000110 << 9 | 0b000 << 6 | 0b000101,
-  OpenParen               = 0b010100100000 << 9 | 0b000 << 6 | 0b000110,
-  OpenBrace               = 0b000100000000 << 9 | 0b000 << 6 | 0b000111,
-  Dot                     = 0b000000100000 << 9 | 0b000 << 6 | 0b001000,
-  CloseBrace              = 0b111000000000 << 9 | 0b000 << 6 | 0b001001,
-  CloseParen              = 0b111000000000 << 9 | 0b000 << 6 | 0b001010,
-  Comma                   = 0b010000000000 << 9 | 0b000 << 6 | 0b001011,
-  OpenBracket             = 0b010100100000 << 9 | 0b000 << 6 | 0b001100,
-  CloseBracket            = 0b111000000000 << 9 | 0b000 << 6 | 0b001101,
-  Colon                   = 0b010000000000 << 9 | 0b000 << 6 | 0b001110,
-  Question                = 0b010000000000 << 9 | 0b000 << 6 | 0b001111,
-  Ampersand               = 0b010000000000 << 9 | 0b000 << 6 | 0b010000,
-  Bar                     = 0b010000000000 << 9 | 0b000 << 6 | 0b010011,
-  BarBar                  = 0b010010000000 << 9 | 0b010 << 6 | 0b010100,
-  AmpersandAmpersand      = 0b010010000000 << 9 | 0b011 << 6 | 0b010101,
-  EqualsEquals            = 0b010010000000 << 9 | 0b100 << 6 | 0b010110,
-  ExclamationEquals       = 0b010010000000 << 9 | 0b100 << 6 | 0b010111,
-  EqualsEqualsEquals      = 0b010010000000 << 9 | 0b100 << 6 | 0b011000,
-  ExclamationEqualsEquals = 0b010010000000 << 9 | 0b100 << 6 | 0b011001,
-  LessThan                = 0b010010000000 << 9 | 0b101 << 6 | 0b011010,
-  GreaterThan             = 0b010010000000 << 9 | 0b101 << 6 | 0b011011,
-  LessThanEquals          = 0b010010000000 << 9 | 0b101 << 6 | 0b011100,
-  GreaterThanEquals       = 0b010010000000 << 9 | 0b101 << 6 | 0b011101,
-  InKeyword               = 0b010010000100 << 9 | 0b101 << 6 | 0b011110,
-  InstanceOfKeyword       = 0b010010000100 << 9 | 0b101 << 6 | 0b011111,
-  Plus                    = 0b010011000000 << 9 | 0b110 << 6 | 0b100000,
-  Minus                   = 0b010011000000 << 9 | 0b110 << 6 | 0b100001,
-  TypeofKeyword           = 0b000001000100 << 9 | 0b000 << 6 | 0b100010,
-  VoidKeyword             = 0b000001000100 << 9 | 0b000 << 6 | 0b100011,
-  Asterisk                = 0b010010000000 << 9 | 0b111 << 6 | 0b100100,
-  Percent                 = 0b010010000000 << 9 | 0b111 << 6 | 0b100101,
-  Slash                   = 0b010010000000 << 9 | 0b111 << 6 | 0b100110,
-  Equals                  = 0b000000000000 << 9 | 0b000 << 6 | 0b100111,
-  Exclamation             = 0b000001000000 << 9 | 0b000 << 6 | 0b101000,
-  TemplateTail            = 0b000000100000 << 9 | 0b000 << 6 | 0b101001,
-  TemplateContinuation    = 0b000000100000 << 9 | 0b000 << 6 | 0b101010,
-  OfKeyword               = 0b000000000101 << 9 | 0b000 << 6 | 0b101011,
+  EOF                     = 0b110000000000_000_000000,
+  ExpressionTerminal      = 0b100000000000_000_000000,
+  AccessScopeTerminal     = 0b010000000000_000_000000,
+  ClosingToken            = 0b001000000000_000_000000,
+  OpeningToken            = 0b000100000000_000_000000,
+  BinaryOp                = 0b000010000000_000_000000,
+  UnaryOp                 = 0b000001000000_000_000000,
+  LeftHandSide            = 0b000000100000_000_000000,
+  StringOrNumericLiteral  = 0b000000011000_000_000000,
+  NumericLiteral          = 0b000000010000_000_000000,
+  StringLiteral           = 0b000000001000_000_000000,
+  IdentifierName          = 0b000000000110_000_000000,
+  Keyword                 = 0b000000000100_000_000000,
+  Identifier              = 0b000000000010_000_000000,
+  Contextual              = 0b000000000001_000_000000,
+  Precedence              = 0b000000000000_111_000000,
+  Type                    = 0b000000000000_000_111111,
+  FalseKeyword            = 0b000000000100_000_000000,
+  TrueKeyword             = 0b000000000100_000_000001,
+  NullKeyword             = 0b000000000100_000_000010,
+  UndefinedKeyword        = 0b000000000100_000_000011,
+  ThisScope               = 0b000000000110_000_000100,
+  ParentScope             = 0b000000000110_000_000101,
+  OpenParen               = 0b010100100000_000_000110,
+  OpenBrace               = 0b000100000000_000_000111,
+  Dot                     = 0b000000100000_000_001000,
+  CloseBrace              = 0b111000000000_000_001001,
+  CloseParen              = 0b111000000000_000_001010,
+  Comma                   = 0b010000000000_000_001011,
+  OpenBracket             = 0b010100100000_000_001100,
+  CloseBracket            = 0b111000000000_000_001101,
+  Colon                   = 0b010000000000_000_001110,
+  Question                = 0b010000000000_000_001111,
+  Ampersand               = 0b010000000000_000_010000,
+  Bar                     = 0b010000000000_000_010011,
+  BarBar                  = 0b010010000000_010_010100,
+  AmpersandAmpersand      = 0b010010000000_011_010101,
+  EqualsEquals            = 0b010010000000_100_010110,
+  ExclamationEquals       = 0b010010000000_100_010111,
+  EqualsEqualsEquals      = 0b010010000000_100_011000,
+  ExclamationEqualsEquals = 0b010010000000_100_011001,
+  LessThan                = 0b010010000000_101_011010,
+  GreaterThan             = 0b010010000000_101_011011,
+  LessThanEquals          = 0b010010000000_101_011100,
+  GreaterThanEquals       = 0b010010000000_101_011101,
+  InKeyword               = 0b010010000100_101_011110,
+  InstanceOfKeyword       = 0b010010000100_101_011111,
+  Plus                    = 0b010011000000_110_100000,
+  Minus                   = 0b010011000000_110_100001,
+  TypeofKeyword           = 0b000001000100_000_100010,
+  VoidKeyword             = 0b000001000100_000_100011,
+  Asterisk                = 0b010010000000_111_100100,
+  Percent                 = 0b010010000000_111_100101,
+  Slash                   = 0b010010000000_111_100110,
+  Equals                  = 0b000000000000_000_100111,
+  Exclamation             = 0b000001000000_000_101000,
+  TemplateTail            = 0b000000100000_000_101001,
+  TemplateContinuation    = 0b000000100000_000_101010,
+  OfKeyword               = 0b000000000101_000_101011
 }
 
 /*@internal*/

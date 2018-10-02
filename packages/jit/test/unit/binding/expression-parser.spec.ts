@@ -230,7 +230,7 @@ const parenthesizedAssignFactories: (() => [string, Assign])[] = [
   () => [`(a=(b=c))`, new Assign($a, new Assign($b, $c))],
 ];
 
-describe.only('ExpressionParser', () => {
+describe('ExpressionParser', () => {
   describe(`parses PrimitiveLiteral`, () => {
     eachCartesianJoinFactory<[string, PrimitiveLiteral], void>(
       [literalFactories],

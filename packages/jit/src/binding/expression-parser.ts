@@ -57,11 +57,11 @@ export function parseCore(input: string, bindingType?: BindingType): IExpression
 export function parse<TPrec extends Precedence, TType extends BindingType>(state: ParserState, access: Access, minPrecedence: TPrec, bindingType: TType): IsExpressionOrStatement {
 
   if (state.index === 0) {
-    if (bindingType & BindingType.Interpolation) {
+    if ((bindingType & BindingType.Interpolation) > 0) {
       return parseInterpolation(state);
     }
     nextToken(state);
-    if (state.currentToken & Token.ExpressionTerminal) {
+    if ((state.currentToken & Token.ExpressionTerminal) > 0) {
       error(state, 'Invalid start of expression');
     }
   }
@@ -70,7 +70,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   state.assignable = Precedence.Binary > minPrecedence;
   let result = undefined as IsExpressionOrStatement;
 
-  if (state.currentToken & Token.UnaryOp) {
+  if ((state.currentToken & Token.UnaryOp) > 0) {
     /** parseUnaryExpression
      * https://tc39.github.io/ecma262/#sec-unary-operators
      *
@@ -128,7 +128,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
             error(state);
           }
           continue;
-        } else if (state.currentToken & Token.AccessScopeTerminal) {
+        } else if ((state.currentToken & Token.AccessScopeTerminal) > 0) {
           result = new AccessThis(access & Access.Ancestor);
           access = Access.This;
           break primary;
@@ -138,7 +138,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       } while (state.currentToken === Token.ParentScope);
     // falls through
     case Token.Identifier: // identifier
-      if (bindingType & BindingType.IsIterator) {
+      if ((bindingType & BindingType.IsIterator) > 0) {
         result = new BindingIdentifier(<string>state.tokenValue);
       } else {
         result = new AccessScope(<string>state.tokenValue, access & Access.Ancestor);
@@ -198,7 +198,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       }
     }
 
-    if (bindingType & BindingType.IsIterator) {
+    if ((bindingType & BindingType.IsIterator) > 0) {
       return parseForOfStatement(state, result as BindingIdentifierOrPattern);
     }
     if (Precedence.LeftHandSide < minPrecedence) return result;
@@ -228,12 +228,12 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
      *   3,4 = true
      */
     let name = state.tokenValue as string;
-    while (state.currentToken & Token.LeftHandSide) {
+    while ((state.currentToken & Token.LeftHandSide) > 0) {
       switch (state.currentToken) {
       case Token.Dot:
         state.assignable = true;
         nextToken(state);
-        if (!(state.currentToken & Token.IdentifierName)) {
+        if ((state.currentToken & Token.IdentifierName) === 0) {
           error(state);
         }
         name = state.tokenValue as string;
@@ -243,7 +243,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         if (state.currentToken === Token.OpenParen) {
           continue;
         }
-        if (access & Access.Scope) {
+        if ((access & Access.Scope) > 0) {
           result = new AccessScope(name, (result as AccessScope | AccessThis).ancestor);
         } else { // if it's not $Scope, it's $Member
           result = new AccessMember(result, name);
@@ -267,9 +267,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           }
         }
         consume(state, Token.CloseParen);
-        if (access & Access.Scope) {
+        if ((access & Access.Scope) > 0) {
           result = new CallScope(name, args, (result as AccessScope | AccessThis).ancestor);
-        } else if (access & Access.Member) {
+        } else if ((access & Access.Member) > 0) {
           result = new CallMember(result, name, args);
         } else {
           result = new CallFunction(result, args);
@@ -317,7 +317,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
    *   LogicalANDExpression
    *   LogicalORExpression || LogicalANDExpression
    */
-  while (state.currentToken & Token.BinaryOp) {
+  while ((state.currentToken & Token.BinaryOp) > 0) {
     const opToken = state.currentToken;
     if ((opToken & Token.Precedence) < minPrecedence) {
       break;
@@ -391,7 +391,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     result = new BindingBehavior(result as IsBindingBehavior, name, args);
   }
   if (state.currentToken !== Token.EOF) {
-    if (bindingType & BindingType.Interpolation) {
+    if ((bindingType & BindingType.Interpolation) > 0) {
       return result;
     }
     error(state, `Unconsumed token ${state.tokenRaw}`);
@@ -439,7 +439,7 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
     }
   }
   consume(state, Token.CloseBracket);
-  if (bindingType & BindingType.IsIterator) {
+  if ((bindingType & BindingType.IsIterator) > 0) {
     return new ArrayBindingPattern(elements);
   } else {
     state.assignable = false;
@@ -448,7 +448,7 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
 }
 
 function parseForOfStatement(state: ParserState, result: BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern): ForOfStatement {
-  if (!(result.$kind & ExpressionKind.IsForDeclaration)) {
+  if ((result.$kind & ExpressionKind.IsForDeclaration) === 0) {
     error(state, 'Invalid ForDeclaration');
   }
   consume(state, Token.OfKeyword);
@@ -485,11 +485,11 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
   while (state.currentToken !== Token.CloseBrace) {
     keys.push(state.tokenValue);
     // Literal = mandatory colon
-    if (state.currentToken & Token.StringOrNumericLiteral) {
+    if ((state.currentToken & Token.StringOrNumericLiteral) > 0) {
       nextToken(state);
       consume(state, Token.Colon);
       values.push(parse(state, Access.Reset, Precedence.Assign, bindingType & ~BindingType.IsIterator) as IsAssign);
-    } else if (state.currentToken & Token.IdentifierName) {
+    } else if ((state.currentToken & Token.IdentifierName) > 0) {
       // IdentifierName = optional colon
       const { currentChar, currentToken, index } = state;
       nextToken(state);
@@ -510,7 +510,7 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
     }
   }
   consume(state, Token.CloseBrace);
-  if (bindingType & BindingType.IsIterator) {
+  if ((bindingType & BindingType.IsIterator) > 0) {
     return new ObjectBindingPattern(keys, values);
   } else {
     state.assignable = false;
@@ -776,16 +776,16 @@ function expect(state: ParserState, token: Token): void {
 
 function unescape(code: number): number {
   switch (code) {
-  case Char.LowerB: return Char.Backspace;
-  case Char.LowerT: return Char.Tab;
-  case Char.LowerN: return Char.LineFeed;
-  case Char.LowerV: return Char.VerticalTab;
-  case Char.LowerF: return Char.FormFeed;
-  case Char.LowerR: return Char.CarriageReturn;
-  case Char.DoubleQuote: return Char.DoubleQuote;
-  case Char.SingleQuote: return Char.SingleQuote;
-  case Char.Backslash: return Char.Backslash;
-  default: return code;
+    case Char.LowerB: return Char.Backspace;
+    case Char.LowerT: return Char.Tab;
+    case Char.LowerN: return Char.LineFeed;
+    case Char.LowerV: return Char.VerticalTab;
+    case Char.LowerF: return Char.FormFeed;
+    case Char.LowerR: return Char.CarriageReturn;
+    case Char.DoubleQuote: return Char.DoubleQuote;
+    case Char.SingleQuote: return Char.SingleQuote;
+    case Char.Backslash: return Char.Backslash;
+    default: return code;
   }
 }
 

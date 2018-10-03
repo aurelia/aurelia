@@ -1,4 +1,5 @@
 import { DI, IContainer, IResolver, PLATFORM } from '@aurelia/kernel';
+import { ICustomElement } from '.';
 
 export interface INodeLike {
   readonly firstChild: INode | null;
@@ -12,9 +13,13 @@ export interface INode extends INodeLike {
   readonly previousSibling: INode | null;
 }
 
+export interface ICustomElementHost extends INode {
+  $customElement?: ICustomElement;
+}
+
 export const INode = DI.createInterface<INode>().noDefault();
 
-export interface IRenderLocation extends INode { }
+export interface IRenderLocation extends ICustomElementHost { }
 
 
 export const IRenderLocation = DI.createInterface<IRenderLocation>().noDefault();

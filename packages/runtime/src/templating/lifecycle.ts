@@ -1,9 +1,7 @@
 import { Immutable, Omit } from '@aurelia/kernel';
-import { IHydrateElementInstruction, ITemplate, ICustomElementType } from '.';
+import { ICustomElementType, IHydrateElementInstruction, IRenderable, IRenderingEngine, ITemplate } from '.';
 import { BindingFlags, IBindScope } from '../binding';
 import { INode, INodeSequence } from '../dom';
-import { IRenderable } from './renderable';
-import { IRenderingEngine } from './rendering-engine';
 
 export enum LifecycleFlags {
   none                = 0b0_001,
@@ -308,6 +306,7 @@ export class AggregateLifecycleTask implements ILifecycleTask {
       if (this.done) {
         this.waiter = Promise.resolve();
       } else {
+        // tslint:disable-next-line:promise-must-complete
         this.waiter = new Promise((resolve) => this.resolve = resolve);
       }
     }
@@ -621,6 +620,7 @@ export const Lifecycle = {
   done: {
     done: true,
     canCancel(): boolean { return false; },
+    // tslint:disable-next-line:no-empty
     cancel(): void {},
     wait(): Promise<void> { return Promise.resolve(); }
   }

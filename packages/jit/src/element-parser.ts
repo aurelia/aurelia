@@ -52,7 +52,6 @@ export class ElementParser implements IElementParser {
   public parse(markupOrNode: string | INode): ElementSyntax {
     let node: Element;
     if (typeof markupOrNode === 'string') {
-      // tslint:disable-next-line:no-inner-html
       domParser.innerHTML = markupOrNode;
       node = domParser.firstElementChild;
       domParser.removeChild(node);

@@ -89,10 +89,19 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
   }
 }
 export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
-  actual = Unparser.unparse(actual);
-  expected = Unparser.unparse(expected);
-  if (actual !== expected) {
+  if (expected === null) {
+    if (actual !== null) {
+      expect(actual).to.be.null;
+    }
+  } else if (actual === null) {
+    expected = Unparser.unparse(expected);
     expect(actual).to.equal(expected);
+  } else {
+    actual = Unparser.unparse(actual);
+    expected = Unparser.unparse(expected);
+    if (actual !== expected) {
+      expect(actual).to.equal(expected);
+    }
   }
 }
 

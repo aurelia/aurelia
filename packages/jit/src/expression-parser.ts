@@ -1,5 +1,5 @@
 // tslint:disable:no-non-null-assertion
-import { IContainer, IRegistry } from '@aurelia/kernel';
+import { IContainer, IRegistry, Reporter } from '@aurelia/kernel';
 import {
   AccessKeyed, AccessMember, AccessScope, AccessThis,
   ArrayBindingPattern, ArrayLiteral, Assign, Binary,
@@ -49,6 +49,26 @@ export class ParserState {
   }
 }
 
+const enum SyntaxError {
+  InvalidExpressionStart = 100,
+  UnconsumedToken = 101,
+  DoubleDot = 102,
+  InvalidMemberExpression = 103,
+  UnexpectedEndOfExpression = 104,
+  ExpectedIdentifier = 105,
+  InvalidForDeclaration = 106,
+  InvalidObjectLiteralPropertyDefinition = 107,
+  UnterminatedQuote = 108,
+  UnterminatedTemplate = 109,
+  MissingExpectedToken = 110,
+  UnexpectedCharacter = 111
+}
+
+const enum SemanticError {
+  NotAssignable = 150,
+  UnexpectedForOf = 151
+}
+
 /*@internal*/
 export function parseCore(input: string, bindingType?: BindingType): IExpression {
   return parse(new ParserState(input), Access.Reset, Precedence.Variadic, bindingType === undefined ? BindingType.BindCommand : bindingType);
@@ -63,11 +83,10 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     }
     nextToken(state);
     if ((state.currentToken & Token.ExpressionTerminal) > 0) {
-      error(state, 'Invalid start of expression');
+      throw Reporter.error(SyntaxError.InvalidExpressionStart, { state });
     }
   }
 
-  let exprStart = state.index;
   state.assignable = Precedence.Binary > minPrecedence;
   let result = undefined as IsExpressionOrStatement;
 
@@ -126,7 +145,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         access++; // ancestor
         if (consumeOpt(state, Token.Dot)) {
           if (state!.currentToken === Token.Dot) {
-            error(state);
+            throw Reporter.error(SyntaxError.DoubleDot, { state });
           }
           continue;
         } else if ((state.currentToken & Token.AccessScopeTerminal) > 0) {
@@ -134,7 +153,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           access = Access.This;
           break primary;
         } else {
-          error(state);
+          throw Reporter.error(SyntaxError.InvalidMemberExpression, { state });
         }
       } while (state.currentToken === Token.ParentScope);
     // falls through
@@ -193,9 +212,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       break;
     default:
       if (state.index >= state.length) {
-        error(state, 'Unexpected end of expression');
+        throw Reporter.error(SyntaxError.UnexpectedEndOfExpression, { state });
       } else {
-        error(state);
+        throw Reporter.error(SyntaxError.UnconsumedToken, { state });
       }
     }
 
@@ -230,61 +249,61 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
      */
     let name = state.tokenValue as string;
     while ((state.currentToken & Token.LeftHandSide) > 0) {
-      switch (state.currentToken) {
-      case Token.Dot:
-        state.assignable = true;
-        nextToken(state);
-        if ((state.currentToken & Token.IdentifierName) === 0) {
-          error(state);
-        }
-        name = state.tokenValue as string;
-        nextToken(state);
-        // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
-        access = ((access & (Access.This | Access.Scope)) << 1) | (access & Access.Member) | ((access & Access.Keyed) >> 1);
-        if (state!.currentToken === Token.OpenParen) {
-          continue;
-        }
-        if ((access & Access.Scope) > 0) {
-          result = new AccessScope(name, (result as AccessScope | AccessThis).ancestor);
-        } else { // if it's not $Scope, it's $Member
-          result = new AccessMember(result, name);
-        }
-        continue;
-      case Token.OpenBracket:
-        state.assignable = true;
-        nextToken(state);
-        access = Access.Keyed;
-        result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Conditional, bindingType));
-        consume(state, Token.CloseBracket);
-        break;
-      case Token.OpenParen:
-        state.assignable = false;
-        nextToken(state);
-        const args = new Array<IsAssign>();
-        while (state!.currentToken !== Token.CloseParen) {
-          args.push(parse(state, Access.Reset, Precedence.Conditional, bindingType) as IsAssign);
-          if (!consumeOpt(state, Token.Comma)) {
-            break;
+      switch (state!.currentToken) {
+        case Token.Dot:
+          state.assignable = true;
+          nextToken(state);
+          if ((state.currentToken & Token.IdentifierName) === 0) {
+            throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
           }
-        }
-        consume(state, Token.CloseParen);
-        if ((access & Access.Scope) > 0) {
-          result = new CallScope(name, args, (result as AccessScope | AccessThis).ancestor);
-        } else if ((access & Access.Member) > 0) {
-          result = new CallMember(result, name, args);
-        } else {
-          result = new CallFunction(result, args);
-        }
-        access = 0;
-        break;
-      case Token.TemplateTail:
-        state.assignable = false;
-        result = new TaggedTemplate([<string>state.tokenValue], [state.tokenRaw], result as IsLeftHandSide);
-        nextToken(state);
-        break;
-      case Token.TemplateContinuation:
-        result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, true);
-      default:
+          name = state.tokenValue as string;
+          nextToken(state);
+          // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
+          access = ((access & (Access.This | Access.Scope)) << 1) | (access & Access.Member) | ((access & Access.Keyed) >> 1);
+          if (state!.currentToken === Token.OpenParen) {
+            continue;
+          }
+          if ((access & Access.Scope) > 0) {
+            result = new AccessScope(name, (result as AccessScope | AccessThis).ancestor);
+          } else { // if it's not $Scope, it's $Member
+            result = new AccessMember(result, name);
+          }
+          continue;
+        case Token.OpenBracket:
+          state.assignable = true;
+          nextToken(state);
+          access = Access.Keyed;
+          result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Conditional, bindingType));
+          consume(state, Token.CloseBracket);
+          break;
+        case Token.OpenParen:
+          state.assignable = false;
+          nextToken(state);
+          const args = new Array<IsAssign>();
+          while (state!.currentToken !== Token.CloseParen) {
+            args.push(parse(state, Access.Reset, Precedence.Conditional, bindingType) as IsAssign);
+            if (!consumeOpt(state, Token.Comma)) {
+              break;
+            }
+          }
+          consume(state, Token.CloseParen);
+          if ((access & Access.Scope) > 0) {
+            result = new CallScope(name, args, (result as AccessScope | AccessThis).ancestor);
+          } else if ((access & Access.Member) > 0) {
+            result = new CallMember(result, name, args);
+          } else {
+            result = new CallFunction(result, args);
+          }
+          access = 0;
+          break;
+        case Token.TemplateTail:
+          state.assignable = false;
+          result = new TaggedTemplate([<string>state.tokenValue], [state.tokenRaw], result as IsLeftHandSide);
+          nextToken(state);
+          break;
+        case Token.TemplateContinuation:
+          result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, true);
+        default:
       }
     }
   }
@@ -361,9 +380,8 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
    */
   if (consumeOpt(state, Token.Equals)) {
     if (!state.assignable) {
-      error(state, `Expression ${state.input.slice(exprStart, state.startIndex)} is not assignable`);
+      throw Reporter.error(SemanticError.NotAssignable, { state });
     }
-    exprStart = state.index;
     result = new Assign(result as IsAssignable, parse(state, access, Precedence.Assign, bindingType) as IsAssign);
   }
   if (Precedence.Variadic < minPrecedence) return result;
@@ -395,7 +413,10 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     if ((bindingType & BindingType.Interpolation) > 0) {
       return result;
     }
-    error(state, `Unconsumed token ${state.tokenRaw}`);
+    if (state.tokenRaw === 'of') {
+      throw Reporter.error(SemanticError.UnexpectedForOf, { state });
+    }
+    throw Reporter.error(SyntaxError.UnconsumedToken, { state });
   }
   return result;
 }
@@ -450,9 +471,12 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
 
 function parseForOfStatement(state: ParserState, result: BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern): ForOfStatement {
   if ((result.$kind & ExpressionKind.IsForDeclaration) === 0) {
-    error(state, 'Invalid ForDeclaration');
+    throw Reporter.error(SyntaxError.InvalidForDeclaration, { state });
   }
-  consume(state, Token.OfKeyword);
+  if (state.currentToken !== Token.OfKeyword) {
+    throw Reporter.error(SyntaxError.InvalidForDeclaration, { state });
+  }
+  nextToken(state);
   const declaration = result;
   const statement = parse(state, Access.Reset, Precedence.Variadic, BindingType.None);
   return new ForOfStatement(declaration, statement as IsBindingBehavior);
@@ -504,7 +528,7 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
         values.push(parse(state, Access.Reset, Precedence.Primary, bindingType & ~BindingType.IsIterator) as IsAssign);
       }
     } else {
-      error(state);
+      throw Reporter.error(SyntaxError.InvalidObjectLiteralPropertyDefinition, { state });
     }
     if (state!.currentToken !== Token.CloseBrace) {
       consume(state, Token.Comma);
@@ -688,7 +712,7 @@ function scanString(state: ParserState): Token {
       buffer.push(String.fromCharCode(unescaped));
       marker = state.index;
     } else if (state.currentChar === /*EOF*/0) {
-      error(state, 'Unterminated quote');
+      throw Reporter.error(SyntaxError.UnterminatedQuote, { state });
     } else {
       nextChar(state);
     }
@@ -739,14 +763,10 @@ function scanTemplate(state: ParserState): Token {
 
 function scanTemplateTail(state: ParserState): Token {
   if (state.index >= state.length) {
-    error(state, 'Unterminated template');
+    throw Reporter.error(SyntaxError.UnterminatedTemplate, { state });
   }
   state.index--;
   return scanTemplate(state);
-}
-
-function error(state: ParserState, message: string = `Unexpected token ${state.tokenRaw}`, column: number = state.startIndex): void {
-  throw new Error(`Parser Error: ${message} at column ${column} in expression [${state.input}]`);
 }
 
 function consumeOpt(state: ParserState, token: Token): boolean {
@@ -764,14 +784,7 @@ function consume(state: ParserState, token: Token): void {
   if (state.currentToken === token) {
     nextToken(state);
   } else {
-    error(state, `Missing expected token ${TokenValues[token & Token.Type]}`, state.index);
-  }
-}
-
-function expect(state: ParserState, token: Token): void {
-  // tslint:disable-next-line:possible-timing-attack
-  if (state.currentToken !== token) {
-    error(state, `Missing expected token ${TokenValues[token & Token.Type]}`, state.index);
+    throw Reporter.error(SyntaxError.MissingExpectedToken, { state, expected: token });
   }
 }
 
@@ -1065,8 +1078,7 @@ function returnToken(token: Token): (s: ParserState) => Token {
   };
 }
 const unexpectedCharacter: CharScanner = s => {
-  error(s, `Unexpected character [${String.fromCharCode(s.currentChar)}]`);
-  return null;
+  throw Reporter.error(SyntaxError.UnexpectedCharacter, { state: s });
 };
 unexpectedCharacter.notMapped = true;
 

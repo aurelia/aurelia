@@ -190,9 +190,11 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       result = new Template([<string>state.tokenValue]);
       state.assignable = false;
       nextToken(state);
+      access = Access.Reset;
       break;
     case Token.TemplateContinuation:
       result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, false);
+      access = Access.Reset;
       break;
     case Token.StringLiteral:
     case Token.NumericLiteral:
@@ -261,6 +263,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
           access = ((access & (Access.This | Access.Scope)) << 1) | (access & Access.Member) | ((access & Access.Keyed) >> 1);
           if (state!.currentToken === Token.OpenParen) {
+            if (access === Access.Reset) { // if the left hand side is a literal, make sure we parse a CallMember
+              access = Access.Member;
+            }
             continue;
           }
           if ((access & Access.Scope) > 0) {

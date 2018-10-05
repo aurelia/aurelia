@@ -1,4 +1,4 @@
-import { Unparser } from './../../../debug/src/binding/unparser';
+import { Unparser, Serializer } from './../../../debug/src/binding/unparser';
 import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory } from '../../../../scripts/test-lib';
 import { expect } from 'chai';
 
@@ -94,11 +94,11 @@ export function verifyASTEqual(actual: any, expected: any, errors?: string[], pa
       expect(actual).to.be.null;
     }
   } else if (actual === null) {
-    expected = Unparser.unparse(expected);
+    expected = Serializer.serialize(expected);
     expect(actual).to.equal(expected);
   } else {
-    actual = Unparser.unparse(actual);
-    expected = Unparser.unparse(expected);
+    actual = Serializer.serialize(actual);
+    expected = Serializer.serialize(expected);
     if (actual !== expected) {
       expect(actual).to.equal(expected);
     }

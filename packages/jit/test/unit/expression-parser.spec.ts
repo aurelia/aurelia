@@ -674,6 +674,8 @@ describe.only('ExpressionParser', () => {
   // Also combine this with the full list of SimpleIsAssign (once and twice) to validate parsing precedence of arguments
   const ComplexTemplateLiteralList: [string, any][] = [
     [`\`a\``,                       new Template(['a'], [])],
+    [`\`\\\${a}\``,                 new Template(['${a}'], [])],
+    [`\`$a\``,                      new Template(['$a'], [])],
     [`\`\${a}\${b}\``,              new Template(['', '', ''],                       [$a, $b])],
     [`\`a\${a}\${b}\``,             new Template(['a', '', ''],                      [$a, $b])],
     [`\`\${a}a\${b}\``,             new Template(['', 'a', ''],                      [$a, $b])],
@@ -818,6 +820,8 @@ describe.only('ExpressionParser', () => {
 
   const ComplexTaggedTemplateList: [string, any][] = [
     [`a\`a\``,                       new TaggedTemplate(['a'],           ['a'],             $a, [])],
+    [`a\`\\\${a}\``,                 new TaggedTemplate(['${a}'],        ['${a}'],          $a, [])],
+    [`a\`$a\``,                      new TaggedTemplate(['$a'],          ['$a'],            $a, [])],
     [`a\`\${b}\${c}\``,              new TaggedTemplate(['', '', ''],    ['', '', ''],      $a, [$b, $c])],
     [`a\`a\${b}\${c}\``,             new TaggedTemplate(['a', '', ''],   ['a', '', ''],     $a, [$b, $c])],
     [`a\`\${b}a\${c}\``,             new TaggedTemplate(['', 'a', ''],   ['', 'a', ''],     $a, [$b, $c])],
@@ -1132,10 +1136,23 @@ describe.only('ExpressionParser', () => {
     }
   });
 
+  const unknownChars = ['#', ';', '@', '^', '~', '\\'];
+  const expressionTerminals = [')', '}', ']'];
+  const unaryOps = ['!', '+', '-'];
+  const binaryOps = ['*', '/', '%', '+', '-', '<', '>', '='];
+  const ternaryOps = ['?'];
+  const separators = [':', ','];
+  const scopeTerminals = ['(', '}', ')', ',', '[', ']', ':', '?', '&', '|',  '*', '%', '+', '-', '<', '>', '`', '${']
+
+
   const unconsumableTokens = ['?', ':'];
 
-  describe.only('Errors', () => {
-    for (const input of [')', '}', ']', ' ']) {
+  describe('Errors', () => {
+    for (const input of [
+      ')', '}', ']', '%', '*',
+      ',', '/', ':', '>', '<',
+      '=', '?', 'of','instanceof', 'in', ' '
+    ]) {
       it(`throw Code 100 (InvalidExpressionStart) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 100');
       });
@@ -1146,22 +1163,25 @@ describe.only('ExpressionParser', () => {
         verifyResultOrError(input, null, 'Code 101');
       });
     }
+    it(`throw Code 101 (UnconsumedToken) on "$this!"`, () => {
+      verifyResultOrError(`$this!`, null, 'Code 101');
+    });
 
-    for (const input of []) {
-      it(`throw Code 102 (DoubleDot) on "${input}"`, () => {
-        verifyResultOrError(input, null, 'Code 102');
+
+    it(`throw Code 102 (ExpectedIdentifier) on "$parent.."`, () => {
+      verifyResultOrError(`$parent..`, null, 'Code 102');
+    });
+
+    for (const nonTerminal of ['!', ' of', ' typeof', '=']) {
+      it(`throw Code 103 (InvalidMemberExpression) on "$parent${nonTerminal}"`, () => {
+        verifyResultOrError(`$parent${nonTerminal}`, null, 'Code 103');
       });
     }
 
-    for (const input of []) {
-      it(`throw Code 103 (InvalidMemberExpression) on "${input}"`, () => {
-        verifyResultOrError(input, null, 'Code 103');
-      });
-    }
 
-    for (const input of ['!', '%', '&', '(', '*', '+', ',', '-', '.', '/', ':', '>', '<', '=', '?', '[', '|']) {
-      it(`throw Code 104 (UnexpectedEndOfExpression) on "${input}"`, () => {
-        verifyResultOrError(input, null, 'Code 104');
+    for (const op of ['!', '(', '+', '-', '.', '[', 'typeof']) {
+      it(`throw Code 104 (UnexpectedEndOfExpression) on "${op}"`, () => {
+        verifyResultOrError(op, null, 'Code 104');
       });
     }
 
@@ -1211,9 +1231,31 @@ describe.only('ExpressionParser', () => {
       });
     }
 
-    for (const input of []) {
-      it(`throw Code 150 (NotAssignable) on "${input}"`, () => {
-        verifyResultOrError(input, null, 'Code 150');
+    for (const input of ['#', ';', '@', '^', '~', '\\']) {
+      it(`throw Code 111 (UnexpectedCharacter) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 111');
+      });
+    }
+
+    for (const [input] of SimpleIsAssignList) {
+      it(`throw Code 112 (MissingValueConverter) on "${input}|"`, () => {
+        verifyResultOrError(`${input}|`, null, 'Code 112');
+      });
+    }
+
+    for (const [input] of SimpleIsAssignList) {
+      it(`throw Code 113 (MissingBindingBehavior) on "${input}&"`, () => {
+        verifyResultOrError(`${input}&`, null, 'Code 113');
+      });
+    }
+
+    for (const [input] of [
+      [`$this`, $this],
+      ...SimpleLiteralList,
+      ...SimpleUnaryList
+    ]) {
+      it(`throw Code 150 (NotAssignable) on "${input}=a"`, () => {
+        verifyResultOrError(`${input}=a`, null, 'Code 150');
       });
     }
 

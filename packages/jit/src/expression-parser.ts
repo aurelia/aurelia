@@ -64,7 +64,9 @@ const enum SyntaxError {
   UnterminatedQuote = 108,
   UnterminatedTemplate = 109,
   MissingExpectedToken = 110,
-  UnexpectedCharacter = 111
+  UnexpectedCharacter = 111,
+  MissingValueConverter = 112,
+  MissingBindingBehavior = 113
 }
 
 const enum SemanticError {
@@ -118,6 +120,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     const op = TokenValues[state.currentToken & Token.Type] as UnaryOperator;
     nextToken(state);
     result = new Unary(op, parse(state, access, Precedence.LeftHandSide, bindingType) as IsLeftHandSide);
+    state.assignable = false;
   } else {
     /** parsePrimaryExpression
      * https://tc39.github.io/ecma262/#sec-primary-expression
@@ -406,6 +409,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   /** parseValueConverter
    */
   while (consumeOpt(state, Token.Bar)) {
+    if (state.currentToken === Token.EOF) {
+      throw Reporter.error(112)
+    }
     const name = state.tokenValue as string;
     nextToken(state);
     const args = new Array<IsAssign>();
@@ -418,6 +424,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   /** parseBindingBehavior
    */
   while (consumeOpt(state, Token.Ampersand)) {
+    if (state.currentToken === Token.EOF) {
+      throw Reporter.error(113)
+    }
     const name = state.tokenValue as string;
     nextToken(state);
     const args = new Array<IsAssign>();
@@ -754,12 +763,8 @@ function scanString(state: ParserState): Token {
   nextChar(state); // Skip terminating quote.
 
   // Compute the unescaped string value.
-  let unescapedStr = last;
-
-  if (buffer !== null && buffer !== undefined) {
-    buffer.push(last);
-    unescapedStr = buffer.join('');
-  }
+  buffer.push(last);
+  const unescapedStr = buffer.join('');
 
   state.tokenValue = unescapedStr;
   return Token.StringLiteral;

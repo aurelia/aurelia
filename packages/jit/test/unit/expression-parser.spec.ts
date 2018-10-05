@@ -5,7 +5,7 @@ import { AccessKeyed, AccessMember, AccessScope, AccessThis,
   Unary, ValueConverter, TaggedTemplate, IsUnary, IsPrimary, BinaryOperator, UnaryOperator, BindingType, Interpolation } from '../../../runtime/src';
 import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
 import { expect } from 'chai';
-import { parseCore, parse, Access, Precedence, ParserState } from '../../../jit/src'
+import { parseCore, parse,  ParserState } from '../../../jit/src'
 import { verifyASTEqual, eachCartesianJoinFactory } from './util';
 import { eachCartesianJoin } from '../../../../scripts/test-lib';
 
@@ -120,7 +120,7 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
 
 // Note: we could loop through all generated tests by picking SimpleIsBindingBehaviorList and ComplexIsBindingBehaviorList,
 // but we're separating them out to make the test suites more granular for debugging and reporting purposes
-describe('ExpressionParser', () => {
+describe.only('ExpressionParser', () => {
 
   // #region Simple lists
 

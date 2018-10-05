@@ -385,213 +385,228 @@ describe('ExpressionParser', () => {
     ...SimpleIsValueConverterList,
     ...SimpleBindingBehaviorList
   ];
-  describe('parse AccessThisList', () => {
-    for (const [input, expected] of AccessThisList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
 
-  describe('parse AccessScopeList', () => {
-    for (const [input, expected] of AccessScopeList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+  for (const bindingType of <any[]>[
+    undefined,
+    BindingType.BindCommand,
+    BindingType.ToViewCommand,
+    BindingType.FromViewCommand,
+    BindingType.TwoWayCommand,
+    BindingType.TriggerCommand,
+    BindingType.DelegateCommand,
+    BindingType.CaptureCommand,
+    BindingType.CallCommand
+  ]) {
+    describe(bindingTypeToString(bindingType), () => {
+      describe('parse AccessThisList', () => {
+        for (const [input, expected] of AccessThisList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleStringLiteralList', () => {
-    for (const [input, expected] of SimpleStringLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse AccessScopeList', () => {
+        for (const [input, expected] of AccessScopeList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleNumberLiteralList', () => {
-    for (const [input, expected] of SimpleNumberLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleStringLiteralList', () => {
+        for (const [input, expected] of SimpleStringLiteralList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse KeywordPrimitiveLiteralList', () => {
-    for (const [input, expected] of KeywordPrimitiveLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleNumberLiteralList', () => {
+        for (const [input, expected] of SimpleNumberLiteralList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleArrayLiteralList', () => {
-    for (const [input, expected] of SimpleArrayLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse KeywordPrimitiveLiteralList', () => {
+        for (const [input, expected] of KeywordPrimitiveLiteralList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleObjectLiteralList', () => {
-    for (const [input, expected] of SimpleObjectLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleArrayLiteralList', () => {
+        for (const [input, expected] of SimpleArrayLiteralList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleTemplateLiteralList', () => {
-    for (const [input, expected] of SimpleTemplateLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleObjectLiteralList', () => {
+        for (const [input, expected] of SimpleObjectLiteralList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleParenthesizedList', () => {
-    for (const [input, expected] of SimpleParenthesizedList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleTemplateLiteralList', () => {
+        for (const [input, expected] of SimpleTemplateLiteralList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleAccessKeyedList', () => {
-    for (const [input, expected] of SimpleAccessKeyedList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleParenthesizedList', () => {
+        for (const [input, expected] of SimpleParenthesizedList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleAccessMemberList', () => {
-    for (const [input, expected] of SimpleAccessMemberList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleAccessKeyedList', () => {
+        for (const [input, expected] of SimpleAccessKeyedList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleTaggedTemplateList', () => {
-    for (const [input, expected] of SimpleTaggedTemplateList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleAccessMemberList', () => {
+        for (const [input, expected] of SimpleAccessMemberList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleCallFunctionList', () => {
-    for (const [input, expected] of SimpleCallFunctionList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleTaggedTemplateList', () => {
+        for (const [input, expected] of SimpleTaggedTemplateList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleCallScopeList', () => {
-    for (const [input, expected] of SimpleCallScopeList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleCallFunctionList', () => {
+        for (const [input, expected] of SimpleCallFunctionList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleCallMemberList', () => {
-    for (const [input, expected] of SimpleCallMemberList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleCallScopeList', () => {
+        for (const [input, expected] of SimpleCallScopeList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleUnaryList', () => {
-    for (const [input, expected] of SimpleUnaryList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleCallMemberList', () => {
+        for (const [input, expected] of SimpleCallMemberList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleMultiplicativeList', () => {
-    for (const [input, expected] of SimpleMultiplicativeList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleUnaryList', () => {
+        for (const [input, expected] of SimpleUnaryList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleAdditiveList', () => {
-    for (const [input, expected] of SimpleAdditiveList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleMultiplicativeList', () => {
+        for (const [input, expected] of SimpleMultiplicativeList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleRelationalList', () => {
-    for (const [input, expected] of SimpleRelationalList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleAdditiveList', () => {
+        for (const [input, expected] of SimpleAdditiveList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleEqualityList', () => {
-    for (const [input, expected] of SimpleEqualityList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleRelationalList', () => {
+        for (const [input, expected] of SimpleRelationalList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleLogicalANDList', () => {
-    for (const [input, expected] of SimpleLogicalANDList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleEqualityList', () => {
+        for (const [input, expected] of SimpleEqualityList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleLogicalORList', () => {
-    for (const [input, expected] of SimpleLogicalORList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleLogicalANDList', () => {
+        for (const [input, expected] of SimpleLogicalANDList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleConditionalList', () => {
-    for (const [input, expected] of SimpleConditionalList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleLogicalORList', () => {
+        for (const [input, expected] of SimpleLogicalORList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleAssignList', () => {
-    for (const [input, expected] of SimpleAssignList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleConditionalList', () => {
+        for (const [input, expected] of SimpleConditionalList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleValueConverterList', () => {
-    for (const [input, expected] of SimpleValueConverterList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleAssignList', () => {
+        for (const [input, expected] of SimpleAssignList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
 
-  describe('parse SimpleBindingBehaviorList', () => {
-    for (const [input, expected] of SimpleBindingBehaviorList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
+      describe('parse SimpleValueConverterList', () => {
+        for (const [input, expected] of SimpleValueConverterList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
       });
-    }
-  });
+
+      describe('parse SimpleBindingBehaviorList', () => {
+        for (const [input, expected] of SimpleBindingBehaviorList) {
+          it(input, () => {
+            verifyResultOrError(input, expected, null, bindingType);
+          });
+        }
+      });
+    });
+  }
 
   // #endregion
 

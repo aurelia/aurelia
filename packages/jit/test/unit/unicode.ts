@@ -11,17 +11,19 @@ const otherBMPIdentifierPartCodes = [
   65500 /*ￜ*/
 ];
 
-function toChars(list: number[]): string[] {
-  return list.map((val, idx, arr) => {
-    if (idx % 2 === 0) {
-      const chars = [String.fromCharCode(arr[idx])];
-      if (arr[idx + 1] > 0) {
-        chars.push(String.fromCharCode(arr[idx + 1] - 1));
-      }
-      return chars;
+
+function toChars(compressed: number[]): string[] {
+  const chars = [];
+  const rangeCount = compressed.length;
+  for (let i = 0; i < rangeCount; i += 2) {
+    const start = compressed[i];
+    let end = compressed[i + 1];
+    end = end > 0 ? end : start + 1;
+    for (let j = start; j < end; ++j) {
+      chars.push(String.fromCharCode(j));
     }
-    return [];
-  }).reduce((prev, cur) => prev.concat(...cur), []);
+  }
+  return chars;
 }
 
 const latin1IdentifierPartChars = toChars(latin1IdentifierPartCodes);

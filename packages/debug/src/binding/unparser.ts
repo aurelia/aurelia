@@ -127,7 +127,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += '(';
     expr.object.accept(this);
     this.text += `.${expr.name}`;
-    this.writeArgs(<AST.IExpression[]>expr.args);
+    this.writeArgs(expr.args);
     this.text += ')';
   }
 
@@ -138,7 +138,7 @@ export class Unparser implements AST.IVisitor<void> {
       this.text += '$parent.';
     }
     this.text += expr.name;
-    this.writeArgs(<AST.IExpression[]>expr.args);
+    this.writeArgs(expr.args);
     this.text += ')';
   }
 
@@ -226,19 +226,19 @@ export class Unparser implements AST.IVisitor<void> {
     }
   }
 
-  public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): void { }
+  public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): string { throw new Error('visitArrayBindingPattern'); }
 
-  public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): void { }
+  public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): string { throw new Error('visitObjectBindingPattern'); }
 
-  public visitBindingIdentifier(expr: AST.BindingIdentifier): void { }
+  public visitBindingIdentifier(expr: AST.BindingIdentifier): string { throw new Error('visitBindingIdentifier'); }
 
-  public visitHtmlLiteral(expr: AST.HtmlLiteral): void { }
+  public visitHtmlLiteral(expr: AST.HtmlLiteral): string { throw new Error('visitHtmlLiteral'); }
 
-  public visitForOfStatement(expr: AST.ForOfStatement): void { }
+  public visitForOfStatement(expr: AST.ForOfStatement): string { throw new Error('visitForOfStatement'); }
 
-  public visitInterpolation(expr: AST.Interpolation): void { }
+  public visitInterpolation(expr: AST.Interpolation): string { throw new Error('visitInterpolation'); }
 
-  private writeArgs(args: AST.IExpression[]): void {
+  private writeArgs(args: ReadonlyArray<AST.IExpression>): void {
     this.text += '(';
     for (let i = 0, length = args.length; i < length; ++i) {
       if (i !== 0) {
@@ -247,5 +247,160 @@ export class Unparser implements AST.IVisitor<void> {
       args[i].accept(this);
     }
     this.text += ')';
+  }
+}
+
+/*@internal*/
+export class Serializer implements AST.IVisitor<string> {
+  public static serialize(expr: AST.IExpression): string {
+    const visitor = new Serializer();
+    if (expr === null || expr === undefined || typeof expr.accept !== 'function') {
+      return `${expr}`;
+    }
+    return expr.accept(visitor);
+  }
+
+  public visitAccessMember(expr: AST.AccessMember): string {
+    return `{"type":"AccessMember","name":${expr.name},"object":${expr.object.accept(this)}}`;
+  }
+
+  public visitAccessKeyed(expr: AST.AccessKeyed): string {
+    return `{"type":"AccessKeyed","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
+  }
+
+  public visitAccessThis(expr: AST.AccessThis): string {
+    return `{"type":"AccessThis","ancestor":${expr.ancestor}}`;
+  }
+
+  public visitAccessScope(expr: AST.AccessScope): string {
+    return `{"type":"AccessScope","name":"${expr.name}","ancestor":${expr.ancestor}}`;
+  }
+
+  public visitArrayLiteral(expr: AST.ArrayLiteral): string {
+    return `{"type":"ArrayLiteral","elements":${this.serializeExpressions(expr.elements)}}`;
+  }
+
+  public visitObjectLiteral(expr: AST.ObjectLiteral): string {
+    return `{"type":"ObjectLiteral","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
+  }
+
+  public visitPrimitiveLiteral(expr: AST.PrimitiveLiteral): string {
+    return `{"type":"PrimitiveLiteral","value":${serializePrimitive(expr.value)}}`;
+  }
+
+  public visitCallFunction(expr: AST.CallFunction): string {
+    return `{"type":"CallFunction","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+  }
+
+  public visitCallMember(expr: AST.CallMember): string {
+    return `{"type":"CallMember","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+  }
+
+  public visitCallScope(expr: AST.CallScope): string {
+    return `{"type":"CallScope","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
+  }
+
+  public visitTemplate(expr: AST.Template): string {
+    return `{"type":"Template","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+  }
+
+  public visitTaggedTemplate(expr: AST.TaggedTemplate): string {
+    return `{"type":"TaggedTemplate","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+  }
+
+  public visitUnary(expr: AST.Unary): string {
+    return `{"type":"Unary","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
+  }
+
+  public visitBinary(expr: AST.Binary): string {
+    return `{"type":"Binary","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
+  }
+
+  public visitConditional(expr: AST.Conditional): string {
+    return `{"type":"Conditional","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
+  }
+
+  public visitAssign(expr: AST.Assign): string {
+    return `{"type":"Assign","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
+  }
+
+  public visitValueConverter(expr: AST.ValueConverter): string {
+    return `{"type":"ValueConverter","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+  }
+
+  public visitBindingBehavior(expr: AST.BindingBehavior): string {
+    return `{"type":"BindingBehavior","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+  }
+
+  public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): string { throw new Error('visitArrayBindingPattern'); }
+
+  public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): string { throw new Error('visitObjectBindingPattern'); }
+
+  public visitBindingIdentifier(expr: AST.BindingIdentifier): string { throw new Error('visitBindingIdentifier'); }
+
+  public visitHtmlLiteral(expr: AST.HtmlLiteral): string { throw new Error('visitHtmlLiteral'); }
+
+  public visitForOfStatement(expr: AST.ForOfStatement): string { throw new Error('visitForOfStatement'); }
+
+  public visitInterpolation(expr: AST.Interpolation): string { throw new Error('visitInterpolation'); }
+
+  // tslint:disable-next-line:no-any
+  private serializeExpressions(args: ReadonlyArray<AST.IExpression>): string {
+    let text = '[';
+    for (let i = 0, ii = args.length; i < ii; ++i) {
+      if (i !== 0) {
+        text += ',';
+      }
+      text += args[i].accept(this);
+    }
+    text += ']';
+    return text;
+  }
+}
+
+  // tslint:disable-next-line:no-any
+function serializePrimitives(values: ReadonlyArray<any>): string {
+  let text = '[';
+  for (let i = 0, ii = values.length; i < ii; ++i) {
+    if (i !== 0) {
+      text += ',';
+    }
+    text += serializePrimitive(values[i]);
+  }
+  text += ']';
+  return text;
+}
+
+  // tslint:disable-next-line:no-any
+function serializePrimitive(value: any): string {
+  if (typeof value === 'string') {
+    return `"\\"${escapeString(value)}\\""`;
+  } else if (value === null || value === undefined) {
+    return `"${value}"`;
+  } else {
+    return `${value}`;
+  }
+}
+
+function escapeString(str: string): string {
+  let ret = '';
+  for (let i = 0, ii = str.length; i < ii; ++i) {
+    ret += escape(str.charAt(i));
+  }
+  return ret;
+}
+
+function escape(ch: string): string {
+  switch (ch) {
+    case '\b': return '\\b';
+    case '\t': return '\\t';
+    case '\n': return '\\n';
+    case '\v': return '\\v';
+    case '\f': return '\\f';
+    case '\r': return '\\r';
+    case '\"': return '\\"';
+    case '\'': return '\\\'';
+    case '\\': return '\\\\';
+    default: return ch;
   }
 }

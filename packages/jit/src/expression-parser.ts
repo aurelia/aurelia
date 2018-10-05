@@ -1,5 +1,5 @@
 // tslint:disable:no-non-null-assertion
-import { IContainer, IRegistry } from '@aurelia/kernel';
+import { IContainer, IRegistry, Reporter } from '@aurelia/kernel';
 import {
   AccessKeyed, AccessMember, AccessScope, AccessThis,
   ArrayBindingPattern, ArrayLiteral, Assign, Binary,
@@ -11,6 +11,7 @@ import {
   IsValueConverter, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral,
   TaggedTemplate, Template, Unary, UnaryOperator, ValueConverter
 } from '@aurelia/runtime';
+import { Access, Char, Precedence, Token, unescapeCode } from './common';
 
 export const ParserRegistration: IRegistry = {
   register(container: IContainer): void {
@@ -49,9 +50,37 @@ export class ParserState {
   }
 }
 
+const $state = new ParserState('');
+
+const enum SyntaxError {
+  InvalidExpressionStart = 100,
+  UnconsumedToken = 101,
+  DoubleDot = 102,
+  InvalidMemberExpression = 103,
+  UnexpectedEndOfExpression = 104,
+  ExpectedIdentifier = 105,
+  InvalidForDeclaration = 106,
+  InvalidObjectLiteralPropertyDefinition = 107,
+  UnterminatedQuote = 108,
+  UnterminatedTemplate = 109,
+  MissingExpectedToken = 110,
+  UnexpectedCharacter = 111,
+  MissingValueConverter = 112,
+  MissingBindingBehavior = 113
+}
+
+const enum SemanticError {
+  NotAssignable = 150,
+  UnexpectedForOf = 151
+}
+
 /*@internal*/
 export function parseCore(input: string, bindingType?: BindingType): IExpression {
-  return parse(new ParserState(input), Access.Reset, Precedence.Variadic, bindingType === undefined ? BindingType.BindCommand : bindingType);
+  $state.input = input;
+  $state.length = input.length;
+  $state.index = 0;
+  $state.currentChar = input.charCodeAt(0);
+  return parse($state, Access.Reset, Precedence.Variadic, bindingType === undefined ? BindingType.BindCommand : bindingType);
 }
 
 /*@internal*/
@@ -63,11 +92,10 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     }
     nextToken(state);
     if ((state.currentToken & Token.ExpressionTerminal) > 0) {
-      error(state, 'Invalid start of expression');
+      throw Reporter.error(SyntaxError.InvalidExpressionStart, { state });
     }
   }
 
-  let exprStart = state.index;
   state.assignable = Precedence.Binary > minPrecedence;
   let result = undefined as IsExpressionOrStatement;
 
@@ -91,7 +119,8 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
      */
     const op = TokenValues[state.currentToken & Token.Type] as UnaryOperator;
     nextToken(state);
-    result = new Unary(op, parse(state, access, Precedence.Primary, bindingType) as IsLeftHandSide);
+    result = new Unary(op, parse(state, access, Precedence.LeftHandSide, bindingType) as IsLeftHandSide);
+    state.assignable = false;
   } else {
     /** parsePrimaryExpression
      * https://tc39.github.io/ecma262/#sec-primary-expression
@@ -126,7 +155,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         access++; // ancestor
         if (consumeOpt(state, Token.Dot)) {
           if (state!.currentToken === Token.Dot) {
-            error(state);
+            throw Reporter.error(SyntaxError.DoubleDot, { state });
+          } else if (state!.currentToken === Token.EOF) {
+            throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
           }
           continue;
         } else if ((state.currentToken & Token.AccessScopeTerminal) > 0) {
@@ -134,7 +165,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           access = Access.This;
           break primary;
         } else {
-          error(state);
+          throw Reporter.error(SyntaxError.InvalidMemberExpression, { state });
         }
       } while (state.currentToken === Token.ParentScope);
     // falls through
@@ -145,6 +176,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         result = new AccessScope(<string>state.tokenValue, access & Access.Ancestor);
         access = Access.Scope;
       }
+      state.assignable = true;
       nextToken(state);
       break;
     case Token.ThisScope: // $this
@@ -155,7 +187,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       break;
     case Token.OpenParen: // parenthesized expression
       nextToken(state);
-      result = parse(state, Access.Reset, Precedence.Conditional, bindingType);
+      result = parse(state, Access.Reset, Precedence.Assign, bindingType);
       consume(state, Token.CloseParen);
       access = Access.Reset;
       break;
@@ -171,9 +203,11 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       result = new Template([<string>state.tokenValue]);
       state.assignable = false;
       nextToken(state);
+      access = Access.Reset;
       break;
     case Token.TemplateContinuation:
       result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, false);
+      access = Access.Reset;
       break;
     case Token.StringLiteral:
     case Token.NumericLiteral:
@@ -193,9 +227,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       break;
     default:
       if (state.index >= state.length) {
-        error(state, 'Unexpected end of expression');
+        throw Reporter.error(SyntaxError.UnexpectedEndOfExpression, { state });
       } else {
-        error(state);
+        throw Reporter.error(SyntaxError.UnconsumedToken, { state });
       }
     }
 
@@ -230,61 +264,65 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
      */
     let name = state.tokenValue as string;
     while ((state.currentToken & Token.LeftHandSide) > 0) {
-      switch (state.currentToken) {
-      case Token.Dot:
-        state.assignable = true;
-        nextToken(state);
-        if ((state.currentToken & Token.IdentifierName) === 0) {
-          error(state);
-        }
-        name = state.tokenValue as string;
-        nextToken(state);
-        // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
-        access = ((access & (Access.This | Access.Scope)) << 1) | (access & Access.Member) | ((access & Access.Keyed) >> 1);
-        if (state!.currentToken === Token.OpenParen) {
-          continue;
-        }
-        if ((access & Access.Scope) > 0) {
-          result = new AccessScope(name, (result as AccessScope | AccessThis).ancestor);
-        } else { // if it's not $Scope, it's $Member
-          result = new AccessMember(result, name);
-        }
-        continue;
-      case Token.OpenBracket:
-        state.assignable = true;
-        nextToken(state);
-        access = Access.Keyed;
-        result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Conditional, bindingType));
-        consume(state, Token.CloseBracket);
-        break;
-      case Token.OpenParen:
-        state.assignable = false;
-        nextToken(state);
-        const args = new Array<IsAssign>();
-        while (state!.currentToken !== Token.CloseParen) {
-          args.push(parse(state, Access.Reset, Precedence.Conditional, bindingType) as IsAssign);
-          if (!consumeOpt(state, Token.Comma)) {
-            break;
+      switch (state!.currentToken) {
+        case Token.Dot:
+          state.assignable = true;
+          nextToken(state);
+          if ((state.currentToken & Token.IdentifierName) === 0) {
+            throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
           }
-        }
-        consume(state, Token.CloseParen);
-        if ((access & Access.Scope) > 0) {
-          result = new CallScope(name, args, (result as AccessScope | AccessThis).ancestor);
-        } else if ((access & Access.Member) > 0) {
-          result = new CallMember(result, name, args);
-        } else {
-          result = new CallFunction(result, args);
-        }
-        access = 0;
-        break;
-      case Token.TemplateTail:
-        state.assignable = false;
-        result = new TaggedTemplate([<string>state.tokenValue], [state.tokenRaw], result as IsLeftHandSide);
-        nextToken(state);
-        break;
-      case Token.TemplateContinuation:
-        result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, true);
-      default:
+          name = state.tokenValue as string;
+          nextToken(state);
+          // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
+          access = ((access & (Access.This | Access.Scope)) << 1) | (access & Access.Member) | ((access & Access.Keyed) >> 1);
+          if (state!.currentToken === Token.OpenParen) {
+            if (access === Access.Reset) { // if the left hand side is a literal, make sure we parse a CallMember
+              access = Access.Member;
+            }
+            continue;
+          }
+          if ((access & Access.Scope) > 0) {
+            result = new AccessScope(name, (result as AccessScope | AccessThis).ancestor);
+          } else { // if it's not $Scope, it's $Member
+            result = new AccessMember(result, name);
+          }
+          continue;
+        case Token.OpenBracket:
+          state.assignable = true;
+          nextToken(state);
+          access = Access.Keyed;
+          result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Assign, bindingType));
+          consume(state, Token.CloseBracket);
+          break;
+        case Token.OpenParen:
+          state.assignable = false;
+          nextToken(state);
+          const args = new Array<IsAssign>();
+          while (state!.currentToken !== Token.CloseParen) {
+            args.push(parse(state, Access.Reset, Precedence.Assign, bindingType) as IsAssign);
+            if (!consumeOpt(state, Token.Comma)) {
+              break;
+            }
+          }
+          consume(state, Token.CloseParen);
+          if ((access & Access.Scope) > 0) {
+            result = new CallScope(name, args, (result as AccessScope | AccessThis).ancestor);
+          } else if ((access & Access.Member) > 0) {
+            result = new CallMember(result, name, args);
+          } else {
+            result = new CallFunction(result, args);
+          }
+          access = 0;
+          break;
+        case Token.TemplateTail:
+          state.assignable = false;
+          const strings = [<string>state.tokenValue];
+          result = new TaggedTemplate(strings, strings, result as IsLeftHandSide);
+          nextToken(state);
+          break;
+        case Token.TemplateContinuation:
+          result = parseTemplate(state, access, bindingType, result as IsLeftHandSide, true);
+        default:
       }
     }
   }
@@ -320,7 +358,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
    */
   while ((state.currentToken & Token.BinaryOp) > 0) {
     const opToken = state.currentToken;
-    if ((opToken & Token.Precedence) < minPrecedence) {
+    if ((opToken & Token.Precedence) <= minPrecedence) {
       break;
     }
     nextToken(state);
@@ -347,6 +385,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     result = new Conditional(result, yes, parse(state, access, Precedence.Assign, bindingType));
     state.assignable = false;
   }
+  if (Precedence.Assign < minPrecedence) return result;
 
   /** parseAssignmentExpression
    * https://tc39.github.io/ecma262/#prod-AssignmentExpression
@@ -361,9 +400,8 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
    */
   if (consumeOpt(state, Token.Equals)) {
     if (!state.assignable) {
-      error(state, `Expression ${state.input.slice(exprStart, state.startIndex)} is not assignable`);
+      throw Reporter.error(SemanticError.NotAssignable, { state });
     }
-    exprStart = state.index;
     result = new Assign(result as IsAssignable, parse(state, access, Precedence.Assign, bindingType) as IsAssign);
   }
   if (Precedence.Variadic < minPrecedence) return result;
@@ -371,6 +409,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   /** parseValueConverter
    */
   while (consumeOpt(state, Token.Bar)) {
+    if (state.currentToken === Token.EOF) {
+      throw Reporter.error(112);
+    }
     const name = state.tokenValue as string;
     nextToken(state);
     const args = new Array<IsAssign>();
@@ -383,6 +424,9 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   /** parseBindingBehavior
    */
   while (consumeOpt(state, Token.Ampersand)) {
+    if (state.currentToken === Token.EOF) {
+      throw Reporter.error(113);
+    }
     const name = state.tokenValue as string;
     nextToken(state);
     const args = new Array<IsAssign>();
@@ -395,7 +439,10 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     if ((bindingType & BindingType.Interpolation) > 0) {
       return result;
     }
-    error(state, `Unconsumed token ${state.tokenRaw}`);
+    if (state.tokenRaw === 'of') {
+      throw Reporter.error(SemanticError.UnexpectedForOf, { state });
+    }
+    throw Reporter.error(SyntaxError.UnconsumedToken, { state });
   }
   return result;
 }
@@ -450,9 +497,12 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
 
 function parseForOfStatement(state: ParserState, result: BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern): ForOfStatement {
   if ((result.$kind & ExpressionKind.IsForDeclaration) === 0) {
-    error(state, 'Invalid ForDeclaration');
+    throw Reporter.error(SyntaxError.InvalidForDeclaration, { state });
   }
-  consume(state, Token.OfKeyword);
+  if (state.currentToken !== Token.OfKeyword) {
+    throw Reporter.error(SyntaxError.InvalidForDeclaration, { state });
+  }
+  nextToken(state);
   const declaration = result;
   const statement = parse(state, Access.Reset, Precedence.Variadic, BindingType.None);
   return new ForOfStatement(declaration, statement as IsBindingBehavior);
@@ -504,7 +554,7 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
         values.push(parse(state, Access.Reset, Precedence.Primary, bindingType & ~BindingType.IsIterator) as IsAssign);
       }
     } else {
-      error(state);
+      throw Reporter.error(SyntaxError.InvalidObjectLiteralPropertyDefinition, { state });
     }
     if (state!.currentToken !== Token.CloseBrace) {
       consume(state, Token.Comma);
@@ -542,7 +592,7 @@ function parseInterpolation(state: ParserState): Interpolation {
         }
         break;
       case Char.Backslash:
-        result += String.fromCharCode(unescape(nextChar(state)));
+        result += String.fromCharCode(unescapeCode(nextChar(state)));
         break;
       default:
         result += String.fromCharCode(state.currentChar);
@@ -593,23 +643,23 @@ function parseInterpolation(state: ParserState): Interpolation {
  */
 function parseTemplate(state: ParserState, access: Access, bindingType: BindingType, result: IsLeftHandSide, tagged: boolean): TaggedTemplate | Template {
   const cooked = [state.tokenValue as string];
-  const raw = [state.tokenRaw];
+  //const raw = [state.tokenRaw];
   consume(state, Token.TemplateContinuation);
   const expressions = [parse(state, access, Precedence.Assign, bindingType) as IsAssign];
   while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
     cooked.push(state.tokenValue as string);
-    if (tagged) {
-      raw.push(state.tokenRaw);
-    }
+    // if (tagged) {
+    //   raw.push(state.tokenRaw);
+    // }
     consume(state, Token.TemplateContinuation);
     expressions.push(parse(state, access, Precedence.Assign, bindingType) as IsAssign);
   }
   cooked.push(state.tokenValue as string);
   state.assignable = false;
   if (tagged) {
-    raw.push(state.tokenRaw);
+    //raw.push(state.tokenRaw);
     nextToken(state);
-    return new TaggedTemplate(cooked, raw, result, expressions);
+    return new TaggedTemplate(cooked, cooked, result, expressions);
   } else {
     nextToken(state);
     return new Template(cooked, expressions);
@@ -650,7 +700,12 @@ function scanNumber(state: ParserState, isFloat: boolean): Token {
   if (isFloat || state.currentChar === Char.Dot) {
     // isFloat (coming from the period scanner) means the period was already skipped
     if (!isFloat) {
+      isFloat = true;
       nextChar(state);
+      if (state.index >= state.length) {
+        // a trailing period is valid javascript, so return here to prevent creating a NaN down below
+        return Token.NumericLiteral;
+      }
     }
     // note: this essentially make member expressions on numeric literals valid;
     // this makes sense to allow since they're always stored in variables, and they can legally be evaluated
@@ -668,6 +723,16 @@ function scanNumber(state: ParserState, isFloat: boolean): Token {
     state.tokenValue = state.tokenValue + value / 10 ** (state.index - start);
   }
 
+  // in the rare case that we go over this number, re-parse the number with the (slower) native number parsing,
+  // to ensure consistency with the spec
+  if (state.tokenValue > Number.MAX_SAFE_INTEGER) {
+    if (isFloat) {
+      state.tokenValue = parseFloat(state.tokenRaw);
+    } else {
+      state.tokenValue = parseInt(state.tokenRaw, 10);
+    }
+  }
+
   return Token.NumericLiteral;
 }
 
@@ -683,12 +748,12 @@ function scanString(state: ParserState): Token {
     if (state.currentChar === Char.Backslash) {
       buffer.push(state.input.slice(marker, state.index));
       nextChar(state);
-      unescaped = unescape(state.currentChar);
+      unescaped = unescapeCode(state.currentChar);
       nextChar(state);
       buffer.push(String.fromCharCode(unescaped));
       marker = state.index;
-    } else if (state.currentChar === /*EOF*/0) {
-      error(state, 'Unterminated quote');
+    } else if (state.index >= state.length) {
+      throw Reporter.error(SyntaxError.UnterminatedQuote, { state });
     } else {
       nextChar(state);
     }
@@ -698,12 +763,8 @@ function scanString(state: ParserState): Token {
   nextChar(state); // Skip terminating quote.
 
   // Compute the unescaped string value.
-  let unescapedStr = last;
-
-  if (buffer !== null && buffer !== undefined) {
-    buffer.push(last);
-    unescapedStr = buffer.join('');
-  }
+  buffer.push(last);
+  const unescapedStr = buffer.join('');
 
   state.tokenValue = unescapedStr;
   return Token.StringLiteral;
@@ -723,8 +784,11 @@ function scanTemplate(state: ParserState): Token {
         result += '$';
       }
     } else if (state.currentChar === Char.Backslash) {
-      result += String.fromCharCode(unescape(nextChar(state)));
+      result += String.fromCharCode(unescapeCode(nextChar(state)));
     } else {
+      if (state.index >= state.length) {
+        throw Reporter.error(SyntaxError.UnterminatedTemplate, { state });
+      }
       result += String.fromCharCode(state.currentChar);
     }
   }
@@ -739,14 +803,10 @@ function scanTemplate(state: ParserState): Token {
 
 function scanTemplateTail(state: ParserState): Token {
   if (state.index >= state.length) {
-    error(state, 'Unterminated template');
+    throw Reporter.error(SyntaxError.UnterminatedTemplate, { state });
   }
   state.index--;
   return scanTemplate(state);
-}
-
-function error(state: ParserState, message: string = `Unexpected token ${state.tokenRaw}`, column: number = state.startIndex): void {
-  throw new Error(`Parser Error: ${message} at column ${column} in expression [${state.input}]`);
 }
 
 function consumeOpt(state: ParserState, token: Token): boolean {
@@ -764,223 +824,8 @@ function consume(state: ParserState, token: Token): void {
   if (state.currentToken === token) {
     nextToken(state);
   } else {
-    error(state, `Missing expected token ${TokenValues[token & Token.Type]}`, state.index);
+    throw Reporter.error(SyntaxError.MissingExpectedToken, { state, expected: token });
   }
-}
-
-function expect(state: ParserState, token: Token): void {
-  // tslint:disable-next-line:possible-timing-attack
-  if (state.currentToken !== token) {
-    error(state, `Missing expected token ${TokenValues[token & Token.Type]}`, state.index);
-  }
-}
-
-function unescape(code: number): number {
-  switch (code) {
-    case Char.LowerB: return Char.Backspace;
-    case Char.LowerT: return Char.Tab;
-    case Char.LowerN: return Char.LineFeed;
-    case Char.LowerV: return Char.VerticalTab;
-    case Char.LowerF: return Char.FormFeed;
-    case Char.LowerR: return Char.CarriageReturn;
-    case Char.DoubleQuote: return Char.DoubleQuote;
-    case Char.SingleQuote: return Char.SingleQuote;
-    case Char.Backslash: return Char.Backslash;
-    default: return code;
-  }
-}
-
-/*@internal*/
-export const enum Access {
-  Reset                   = 0b0000000000000,
-  Ancestor                = 0b0000111111111,
-  This                    = 0b0001000000000,
-  Scope                   = 0b0010000000000,
-  Member                  = 0b0100000000000,
-  Keyed                   = 0b1000000000000
-}
-/*@internal*/
-export const enum Precedence {
-  Variadic                = 0b000111101,
-  Assign                  = 0b000111110,
-  Conditional             = 0b000111111,
-  LogicalOR               = 0b001000000,
-  LogicalAND              = 0b010000000,
-  Equality                = 0b011000000,
-  Relational              = 0b100000000,
-  Additive                = 0b101000000,
-  Multiplicative          = 0b110000000,
-  Binary                  = 0b111000000,
-  LeftHandSide            = 0b111000000,
-  Primary                 = 0b111000001,
-  Unary                   = 0b111000010,
-}
-const enum Token {
-  EOF                     = 0b110000000000_000_000000,
-  ExpressionTerminal      = 0b100000000000_000_000000,
-  AccessScopeTerminal     = 0b010000000000_000_000000,
-  ClosingToken            = 0b001000000000_000_000000,
-  OpeningToken            = 0b000100000000_000_000000,
-  BinaryOp                = 0b000010000000_000_000000,
-  UnaryOp                 = 0b000001000000_000_000000,
-  LeftHandSide            = 0b000000100000_000_000000,
-  StringOrNumericLiteral  = 0b000000011000_000_000000,
-  NumericLiteral          = 0b000000010000_000_000000,
-  StringLiteral           = 0b000000001000_000_000000,
-  IdentifierName          = 0b000000000110_000_000000,
-  Keyword                 = 0b000000000100_000_000000,
-  Identifier              = 0b000000000010_000_000000,
-  Contextual              = 0b000000000001_000_000000,
-  Precedence              = 0b000000000000_111_000000,
-  Type                    = 0b000000000000_000_111111,
-  FalseKeyword            = 0b000000000100_000_000000,
-  TrueKeyword             = 0b000000000100_000_000001,
-  NullKeyword             = 0b000000000100_000_000010,
-  UndefinedKeyword        = 0b000000000100_000_000011,
-  ThisScope               = 0b000000000110_000_000100,
-  ParentScope             = 0b000000000110_000_000101,
-  OpenParen               = 0b010100100000_000_000110,
-  OpenBrace               = 0b000100000000_000_000111,
-  Dot                     = 0b000000100000_000_001000,
-  CloseBrace              = 0b111000000000_000_001001,
-  CloseParen              = 0b111000000000_000_001010,
-  Comma                   = 0b010000000000_000_001011,
-  OpenBracket             = 0b010100100000_000_001100,
-  CloseBracket            = 0b111000000000_000_001101,
-  Colon                   = 0b010000000000_000_001110,
-  Question                = 0b010000000000_000_001111,
-  Ampersand               = 0b010000000000_000_010000,
-  Bar                     = 0b010000000000_000_010011,
-  BarBar                  = 0b010010000000_010_010100,
-  AmpersandAmpersand      = 0b010010000000_011_010101,
-  EqualsEquals            = 0b010010000000_100_010110,
-  ExclamationEquals       = 0b010010000000_100_010111,
-  EqualsEqualsEquals      = 0b010010000000_100_011000,
-  ExclamationEqualsEquals = 0b010010000000_100_011001,
-  LessThan                = 0b010010000000_101_011010,
-  GreaterThan             = 0b010010000000_101_011011,
-  LessThanEquals          = 0b010010000000_101_011100,
-  GreaterThanEquals       = 0b010010000000_101_011101,
-  InKeyword               = 0b010010000100_101_011110,
-  InstanceOfKeyword       = 0b010010000100_101_011111,
-  Plus                    = 0b010011000000_110_100000,
-  Minus                   = 0b010011000000_110_100001,
-  TypeofKeyword           = 0b000001000100_000_100010,
-  VoidKeyword             = 0b000001000100_000_100011,
-  Asterisk                = 0b010010000000_111_100100,
-  Percent                 = 0b010010000000_111_100101,
-  Slash                   = 0b010010000000_111_100110,
-  Equals                  = 0b000000000000_000_100111,
-  Exclamation             = 0b000001000000_000_101000,
-  TemplateTail            = 0b000000100000_000_101001,
-  TemplateContinuation    = 0b000000100000_000_101010,
-  OfKeyword               = 0b000000000101_000_101011
-}
-
-/*@internal*/
-export const enum Char {
-  Null           = 0x00,
-  Backspace      = 0x08,
-  Tab            = 0x09,
-  LineFeed       = 0x0A,
-  VerticalTab    = 0x0B,
-  FormFeed       = 0x0C,
-  CarriageReturn = 0x0D,
-  Space          = 0x20,
-  Exclamation    = 0x21,
-  DoubleQuote    = 0x22,
-  Dollar         = 0x24,
-  Percent        = 0x25,
-  Ampersand      = 0x26,
-  SingleQuote    = 0x27,
-  OpenParen      = 0x28,
-  CloseParen     = 0x29,
-  Asterisk       = 0x2A,
-  Plus           = 0x2B,
-  Comma          = 0x2C,
-  Minus          = 0x2D,
-  Dot            = 0x2E,
-  Slash          = 0x2F,
-  Semicolon      = 0x3B,
-  Backtick       = 0x60,
-  OpenBracket    = 0x5B,
-  Backslash      = 0x5C,
-  CloseBracket   = 0x5D,
-  Caret          = 0x5E,
-  Underscore     = 0x5F,
-  OpenBrace      = 0x7B,
-  Bar            = 0x7C,
-  CloseBrace     = 0x7D,
-  Colon          = 0x3A,
-  LessThan       = 0x3C,
-  Equals         = 0x3D,
-  GreaterThan    = 0x3E,
-  Question       = 0x3F,
-
-  Zero   = 0x30,
-  One    = 0x31,
-  Two    = 0x32,
-  Three  = 0x33,
-  Four   = 0x34,
-  Five   = 0x35,
-  Six    = 0x36,
-  Seven  = 0x37,
-  Eight  = 0x38,
-  Nine   = 0x39,
-
-  UpperA = 0x41,
-  UpperB = 0x42,
-  UpperC = 0x43,
-  UpperD = 0x44,
-  UpperE = 0x45,
-  UpperF = 0x46,
-  UpperG = 0x47,
-  UpperH = 0x48,
-  UpperI = 0x49,
-  UpperJ = 0x4A,
-  UpperK = 0x4B,
-  UpperL = 0x4C,
-  UpperM = 0x4D,
-  UpperN = 0x4E,
-  UpperO = 0x4F,
-  UpperP = 0x50,
-  UpperQ = 0x51,
-  UpperR = 0x52,
-  UpperS = 0x53,
-  UpperT = 0x54,
-  UpperU = 0x55,
-  UpperV = 0x56,
-  UpperW = 0x57,
-  UpperX = 0x58,
-  UpperY = 0x59,
-  UpperZ = 0x5A,
-
-  LowerA  = 0x61,
-  LowerB  = 0x62,
-  LowerC  = 0x63,
-  LowerD  = 0x64,
-  LowerE  = 0x65,
-  LowerF  = 0x66,
-  LowerG  = 0x67,
-  LowerH  = 0x68,
-  LowerI  = 0x69,
-  LowerJ  = 0x6A,
-  LowerK  = 0x6B,
-  LowerL  = 0x6C,
-  LowerM  = 0x6D,
-  LowerN  = 0x6E,
-  LowerO  = 0x6F,
-  LowerP  = 0x70,
-  LowerQ  = 0x71,
-  LowerR  = 0x72,
-  LowerS  = 0x73,
-  LowerT  = 0x74,
-  LowerU  = 0x75,
-  LowerV  = 0x76,
-  LowerW  = 0x77,
-  LowerX  = 0x78,
-  LowerY  = 0x79,
-  LowerZ  = 0x7A
 }
 
 const $false = new PrimitiveLiteral(false);
@@ -1065,8 +910,7 @@ function returnToken(token: Token): (s: ParserState) => Token {
   };
 }
 const unexpectedCharacter: CharScanner = s => {
-  error(s, `Unexpected character [${String.fromCharCode(s.currentChar)}]`);
-  return null;
+  throw Reporter.error(SyntaxError.UnexpectedCharacter, { state: s });
 };
 unexpectedCharacter.notMapped = true;
 

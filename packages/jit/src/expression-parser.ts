@@ -410,7 +410,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
    */
   while (consumeOpt(state, Token.Bar)) {
     if (state.currentToken === Token.EOF) {
-      throw Reporter.error(112)
+      throw Reporter.error(112);
     }
     const name = state.tokenValue as string;
     nextToken(state);
@@ -425,7 +425,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
    */
   while (consumeOpt(state, Token.Ampersand)) {
     if (state.currentToken === Token.EOF) {
-      throw Reporter.error(113)
+      throw Reporter.error(113);
     }
     const name = state.tokenValue as string;
     nextToken(state);

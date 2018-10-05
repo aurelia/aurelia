@@ -1136,17 +1136,6 @@ describe('ExpressionParser', () => {
     }
   });
 
-  const unknownChars = ['#', ';', '@', '^', '~', '\\'];
-  const expressionTerminals = [')', '}', ']'];
-  const unaryOps = ['!', '+', '-'];
-  const binaryOps = ['*', '/', '%', '+', '-', '<', '>', '='];
-  const ternaryOps = ['?'];
-  const separators = [':', ','];
-  const scopeTerminals = ['(', '}', ')', ',', '[', ']', ':', '?', '&', '|',  '*', '%', '+', '-', '<', '>', '`', '${']
-
-
-  const unconsumableTokens = ['?', ':'];
-
   describe('Errors', () => {
     for (const input of [
       ')', '}', ']', '%', '*',
@@ -1166,10 +1155,17 @@ describe('ExpressionParser', () => {
     it(`throw Code 101 (UnconsumedToken) on "$this!"`, () => {
       verifyResultOrError(`$this!`, null, 'Code 101');
     });
+    for (const [input] of SimpleIsAssignList) {
+      for (const op of [')', ']', '}']) {
+        it(`throw Code 110 (MissingExpectedToken) on "${input}${op}"`, () => {
+          verifyResultOrError(`${input}${op}`, null, 'Code 101');
+        });
+      }
+    }
 
 
-    it(`throw Code 102 (ExpectedIdentifier) on "$parent.."`, () => {
-      verifyResultOrError(`$parent..`, null, 'Code 102');
+    it(`throw Code 102 (DoubleDot) on "$parent..bar"`, () => {
+      verifyResultOrError(`$parent..bar`, null, 'Code 102');
     });
 
     for (const nonTerminal of ['!', ' of', ' typeof', '=']) {
@@ -1201,7 +1197,7 @@ describe('ExpressionParser', () => {
       });
     }
 
-    for (const input of ['{']) {
+    for (const input of ['{', '{[]}', '{[}', '{[a]}', '{[a}', '{{', '{(']) {
       it(`throw Code 107 (InvalidObjectLiteralPropertyDefinition) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 107');
       });
@@ -1231,8 +1227,23 @@ describe('ExpressionParser', () => {
         verifyResultOrError(`${input}?${input}`, null, 'Code 110');
       });
     }
+    for (const [input] of AccessScopeList) {
+      it(`throw Code 110 (MissingExpectedToken) on "{${input}"`, () => {
+        verifyResultOrError(`{${input}`, null, 'Code 110');
+      });
+    }
+    for (const [input] of SimpleStringLiteralList) {
+      it(`throw Code 110 (MissingExpectedToken) on "{${input}}"`, () => {
+        verifyResultOrError(`{${input}}`, null, 'Code 110');
+      });
+    }
+    for (const input of ['{24}', '{24, 24}', '{\'\'}', '{a.b}', '{a[b]}', '{a()}']) {
+      it(`throw Code 110 (MissingExpectedToken) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 110');
+      });
+    }
 
-    for (const input of ['#', ';', '@', '^', '~', '\\']) {
+    for (const input of ['#', ';', '@', '^', '~', '\\', 'foo;']) {
       it(`throw Code 111 (UnexpectedCharacter) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 111');
       });
@@ -1267,163 +1278,13 @@ describe('ExpressionParser', () => {
     }
   });
 
-
-  describe('should not parse', () => {
-    // it('Assign to Unary plus', () => {
-    //   verifyResultOrError('+foo = bar', null, codes.NotAssignable);
-    // });
-
-    // describe('LiteralObject with computed property', () => {
-    //   const expressions = [
-    //     '{ []: "foo" }',
-    //     '{ [42]: "foo" }',
-    //     '{ ["foo"]: "bar" }',
-    //     '{ [foo]: "bar" }'
-    //   ];
-
-    //   for (const expr of expressions) {
-    //     it(expr, () => {
-    //       verifyResultOrError(expr, null, codes.InvalidObjectLiteralPropertyDefinition);
-    //     });
-    //   }
-    // });
-
-    // describe('invalid shorthand properties', () => {
-    //   const expressions = [
-    //     '{ foo.bar }',
-    //     '{ foo.bar, bar.baz }',
-    //     '{ "foo" }',
-    //     '{ "foo.bar" }',
-    //     '{ 42 }',
-    //     '{ 42, 42 }',
-    //     '{ [foo] }',
-    //     '{ ["foo"] }',
-    //     '{ [42] }'
-    //   ];
-
-    //   for (const expr of expressions) {
-    //     it(expr, () => {
-    //       verifyResultOrError(expr, null, codes.InvalidObjectLiteralPropertyDefinition);
-    //     });
-    //   }
-    // });
-
-    // describe('semicolon', () => {
-    //   const expressions = [
-    //     ';',
-    //     'foo;',
-    //     ';foo',
-    //     'foo&bar;baz|qux'
-    //   ];
-
-    //   for (const expr of expressions) {
-    //     it(expr, () => {
-    //       verifyResultOrError(expr, null, codes.UnexpectedCharacter);
-    //     });
-    //   }
-    // });
-
-    // describe('extra closing token', () => {
-    //   const tests = [
-    //     { expr: 'foo())', token: ')' },
-    //     { expr: 'foo[x]]', token: ']' },
-    //     { expr: '{foo}}', token: '}' }
-    //   ];
-
-    //   for (const { expr, token } of tests) {
-    //     it(expr, () => {
-    //       verifyResultOrError(expr, null, codes.UnconsumedToken);
-    //     });
-    //   }
-    // });
-
-    // describe('invalid start of expression', () => {
-    //   const tests = [')', ']', '}', ''];
-
-    //   for (const expr of tests) {
-    //     it(expr, () => {
-    //       verifyResultOrError(expr, null, codes.InvalidExpressionStart);
-    //     });
-    //   }
-    // });
-
-    // describe('missing expected token', () => {
-    //   const tests = [
-    //     { expr: '(foo', token: ')' },
-    //     { expr: '[foo', token: ']' },
-    //     { expr: '{foo', token: ',' },
-    //     { expr: 'foo(bar', token: ')' },
-    //     { expr: 'foo[bar', token: ']' },
-    //     { expr: 'foo.bar(baz', token: ')' },
-    //     { expr: 'foo.bar[baz', token: ']' }
-    //   ];
-
-    //   for (const { expr, token } of tests) {
-    //     it(expr, () => {
-    //       verifyResultOrError(expr, null, codes.MissingExpectedToken);
-    //     });
-    //   }
-    // });
-
-    // describe('assigning unassignable', () => {
-    //   const expressions = [
-    //     '(foo ? bar : baz) = qux',
-    //     '$this = foo',
-    //     'foo() = bar',
-    //     'foo.bar() = baz',
-    //     '!foo = bar',
-    //     '-foo = bar',
-    //     '\'foo\' = bar',
-    //     '42 = foo',
-    //     '[] = foo',
-    //     '{} = foo'
-    //   ].concat(binaryOps.map(op => `foo ${op} bar = baz`));
-
-    //   for (const expr of expressions) {
-    //     it(expr, () => {
-    //       verifyResultOrError(expr, null, codes.NotAssignable);
-    //     });
-    //   }
-    // });
-
-    // it('incomplete conditional', () => {
-    //   verifyResultOrError('foo ? bar', null, codes.MissingExpectedToken);
-    // });
-
-    // describe('invalid primary expression', () => {
-    //   const expressions = ['.', ',', '&', '|', '=', '<', '>', '*', '%', '/'];
-    //   expressions.push(...expressions.map(e => `${e} `));
-    //   for (const expr of expressions) {
-    //     it(expr, () => {
-    //       if (expr.length === 1) {
-    //         verifyResultOrError(expr, null, codes.UnexpectedEndOfExpression);
-    //       } else {
-    //         verifyResultOrError(expr, null, codes.UnconsumedToken);
-    //       }
-    //     });
-    //   }
-    // });
-
-    // describe('unknown unicode IdentifierPart', () => {
-    //   for (const char of otherBMPIdentifierPartChars) {
-    //     it(char, () => {
-    //       const identifier = `$${char}`;
-    //       verifyResultOrError(identifier, null, codes.UnexpectedCharacter);
-    //     });
-    //   }
-    // });
-
-    // it('double dot (AccessScope)', () => {
-    //   verifyResultOrError('foo..bar', null, codes.DoubleDot);
-    // });
-
-    // it('double dot (AccessMember)', () => {
-    //   verifyResultOrError('foo.bar..baz', null, codes.DoubleDot);
-    // });
-
-    // it('double dot (AccessThis)', () => {
-    //   verifyResultOrError('$parent..bar', null, codes.DoubleDot);
-    // });
+  describe('unknown unicode IdentifierPart', () => {
+    for (const char of otherBMPIdentifierPartChars) {
+      it(char, () => {
+        const identifier = `$${char}`;
+        verifyResultOrError(identifier, null, codes.UnexpectedCharacter);
+      });
+    }
   });
 });
 

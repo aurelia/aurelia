@@ -174,7 +174,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       break;
     case Token.OpenParen: // parenthesized expression
       nextToken(state);
-      result = parse(state, Access.Reset, Precedence.Conditional, bindingType);
+      result = parse(state, Access.Reset, Precedence.Assign, bindingType);
       consume(state, Token.CloseParen);
       access = Access.Reset;
       break;
@@ -278,7 +278,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           state.assignable = true;
           nextToken(state);
           access = Access.Keyed;
-          result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Conditional, bindingType));
+          result = new AccessKeyed(result, parse(state, Access.Reset, Precedence.Assign, bindingType));
           consume(state, Token.CloseBracket);
           break;
         case Token.OpenParen:
@@ -286,7 +286,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           nextToken(state);
           const args = new Array<IsAssign>();
           while (state!.currentToken !== Token.CloseParen) {
-            args.push(parse(state, Access.Reset, Precedence.Conditional, bindingType) as IsAssign);
+            args.push(parse(state, Access.Reset, Precedence.Assign, bindingType) as IsAssign);
             if (!consumeOpt(state, Token.Comma)) {
               break;
             }
@@ -372,6 +372,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     result = new Conditional(result, yes, parse(state, access, Precedence.Assign, bindingType));
     state.assignable = false;
   }
+  if (Precedence.Assign < minPrecedence) return result;
 
   /** parseAssignmentExpression
    * https://tc39.github.io/ecma262/#prod-AssignmentExpression
@@ -842,9 +843,9 @@ export const enum Precedence {
   Additive                = 0b101000000,
   Multiplicative          = 0b110000000,
   Binary                  = 0b111000000,
-  LeftHandSide            = 0b111000000,
-  Primary                 = 0b111000001,
-  Unary                   = 0b111000010,
+  LeftHandSide            = 0b111000001,
+  Primary                 = 0b111000010,
+  Unary                   = 0b111000011,
 }
 const enum Token {
   EOF                     = 0b110000000000_000_000000,

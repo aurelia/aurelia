@@ -1213,21 +1213,22 @@ describe('ExpressionParser', () => {
       });
     }
 
-    for (const input of ['`']) {
+    for (const input of ['`', '` ', '`${a}']) {
       it(`throw Code 109 (UnterminatedTemplate) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 109');
       });
     }
 
-    for (const input of []) {
-      it(`throw Code 110 (MissingExpectedToken) on "${input}"`, () => {
-        verifyResultOrError(input, null, 'Code 110');
-      });
+    for (const [input] of SimpleIsAssignList) {
+      for (const op of ['(', '[']) {
+        it(`throw Code 110 (MissingExpectedToken) on "${op}${input}"`, () => {
+          verifyResultOrError(`${op}${input}`, null, 'Code 110');
+        });
+      }
     }
-
-    for (const input of ['#', ';', '@', '^', '~', '\\']) {
-      it(`throw Code 111 (UnexpectedCharacter) on "${input}"`, () => {
-        verifyResultOrError(input, null, 'Code 111');
+    for (const [input] of SimpleIsConditionalList) {
+      it(`throw Code 110 (MissingExpectedToken) on "${input}?${input}"`, () => {
+        verifyResultOrError(`${input}?${input}`, null, 'Code 110');
       });
     }
 

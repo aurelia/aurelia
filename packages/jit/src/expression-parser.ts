@@ -110,7 +110,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
      */
     const op = TokenValues[state.currentToken & Token.Type] as UnaryOperator;
     nextToken(state);
-    result = new Unary(op, parse(state, access, Precedence.Primary, bindingType) as IsLeftHandSide);
+    result = new Unary(op, parse(state, access, Precedence.LeftHandSide, bindingType) as IsLeftHandSide);
   } else {
     /** parsePrimaryExpression
      * https://tc39.github.io/ecma262/#sec-primary-expression

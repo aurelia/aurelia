@@ -94,13 +94,18 @@ export function verifyASTEqual(actual: any, expected: any, errors?: string[], pa
       expect(actual).to.be.null;
     }
   } else if (actual === null) {
-    expected = Serializer.serialize(expected);
-    expect(actual).to.equal(expected);
+    const expectedDeserialized = Serializer.serialize(expected);
+    expect(actual).to.equal(expectedDeserialized);
   } else {
-    actual = Serializer.serialize(actual);
-    expected = Serializer.serialize(expected);
-    if (actual !== expected) {
-      expect(actual).to.equal(expected);
+    const expectedDeserialized = Serializer.serialize(expected);
+    const expectedUnparsed = Unparser.unparse(expected);
+    const actualDeserialized = Serializer.serialize(actual);
+    const actualUnparsed = Unparser.unparse(actual);
+    if (actualDeserialized !== expectedDeserialized) {
+      expect(actualDeserialized).to.equal(expectedDeserialized);
+    }
+    if (actualUnparsed !== expectedUnparsed) {
+      expect(actualUnparsed).to.equal(expectedUnparsed);
     }
   }
 }

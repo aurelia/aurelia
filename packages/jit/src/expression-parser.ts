@@ -153,6 +153,8 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         if (consumeOpt(state, Token.Dot)) {
           if (state!.currentToken === Token.Dot) {
             throw Reporter.error(SyntaxError.DoubleDot, { state });
+          } else if (state!.currentToken === Token.EOF) {
+            throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
           }
           continue;
         } else if ((state.currentToken & Token.AccessScopeTerminal) > 0) {
@@ -775,6 +777,9 @@ function scanTemplate(state: ParserState): Token {
     } else if (state.currentChar === Char.Backslash) {
       result += String.fromCharCode(unescapeCode(nextChar(state)));
     } else {
+      if (state.index >= state.length) {
+        throw Reporter.error(SyntaxError.UnterminatedTemplate, { state });
+      }
       result += String.fromCharCode(state.currentChar);
     }
   }

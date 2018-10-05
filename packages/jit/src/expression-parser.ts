@@ -674,6 +674,7 @@ function scanNumber(state: ParserState, isFloat: boolean): Token {
   if (isFloat || state.currentChar === Char.Dot) {
     // isFloat (coming from the period scanner) means the period was already skipped
     if (!isFloat) {
+      isFloat = true;
       nextChar(state);
     }
     // note: this essentially make member expressions on numeric literals valid;
@@ -691,6 +692,17 @@ function scanNumber(state: ParserState, isFloat: boolean): Token {
     }
     state.tokenValue = state.tokenValue + value / 10 ** (state.index - start);
   }
+
+  // in the rare case that we go over this number, re-parse the number with the (slower) native number parsing,
+  // to ensure consistency with the spec
+  if (state.tokenValue > Number.MAX_SAFE_INTEGER) {
+    if (isFloat) {
+      state.tokenValue = parseFloat(state.tokenRaw);
+    } else {
+      state.tokenValue = parseInt(state.tokenRaw, 10);
+    }
+  }
+
 
   return Token.NumericLiteral;
 }

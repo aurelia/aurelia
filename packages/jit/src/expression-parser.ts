@@ -345,7 +345,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
    */
   while ((state.currentToken & Token.BinaryOp) > 0) {
     const opToken = state.currentToken;
-    if ((opToken & Token.Precedence) < minPrecedence) {
+    if ((opToken & Token.Precedence) <= minPrecedence) {
       break;
     }
     nextToken(state);

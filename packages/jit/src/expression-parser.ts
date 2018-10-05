@@ -298,7 +298,8 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           break;
         case Token.TemplateTail:
           state.assignable = false;
-          result = new TaggedTemplate([<string>state.tokenValue], [state.tokenRaw], result as IsLeftHandSide);
+          const strings = [<string>state.tokenValue];
+          result = new TaggedTemplate(strings, strings, result as IsLeftHandSide);
           nextToken(state);
           break;
         case Token.TemplateContinuation:
@@ -617,23 +618,23 @@ function parseInterpolation(state: ParserState): Interpolation {
  */
 function parseTemplate(state: ParserState, access: Access, bindingType: BindingType, result: IsLeftHandSide, tagged: boolean): TaggedTemplate | Template {
   const cooked = [state.tokenValue as string];
-  const raw = [state.tokenRaw];
+  //const raw = [state.tokenRaw];
   consume(state, Token.TemplateContinuation);
   const expressions = [parse(state, access, Precedence.Assign, bindingType) as IsAssign];
   while ((state.currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
     cooked.push(state.tokenValue as string);
-    if (tagged) {
-      raw.push(state.tokenRaw);
-    }
+    // if (tagged) {
+    //   raw.push(state.tokenRaw);
+    // }
     consume(state, Token.TemplateContinuation);
     expressions.push(parse(state, access, Precedence.Assign, bindingType) as IsAssign);
   }
   cooked.push(state.tokenValue as string);
   state.assignable = false;
   if (tagged) {
-    raw.push(state.tokenRaw);
+    //raw.push(state.tokenRaw);
     nextToken(state);
-    return new TaggedTemplate(cooked, raw, result, expressions);
+    return new TaggedTemplate(cooked, cooked, result, expressions);
   } else {
     nextToken(state);
     return new Template(cooked, expressions);

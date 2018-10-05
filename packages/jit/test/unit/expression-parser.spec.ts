@@ -1284,9 +1284,9 @@ describe('ExpressionParser', () => {
       });
     }
 
-    for (const input of []) {
-      it(`throw Code 151 (UnexpectedForOf) on "${input}"`, () => {
-        verifyResultOrError(input, null, 'Code 151');
+    for (const [input] of SimpleIsBindingBehaviorList.filter(([i, e]) => !e.ancestor)) {
+      it(`throw Code 151 (UnexpectedForOf) on "${input} of"`, () => {
+        verifyResultOrError(`${input} of`, null, 'Code 151');
       });
     }
   });

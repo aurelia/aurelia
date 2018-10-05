@@ -693,6 +693,10 @@ function scanNumber(state: ParserState, isFloat: boolean): Token {
     if (!isFloat) {
       isFloat = true;
       nextChar(state);
+      if (state.index >= state.length) {
+        // a trailing period is valid javascript, so return here to prevent creating a NaN down below
+        return Token.NumericLiteral;
+      }
     }
     // note: this essentially make member expressions on numeric literals valid;
     // this makes sense to allow since they're always stored in variables, and they can legally be evaluated

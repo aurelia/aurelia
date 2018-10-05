@@ -1141,7 +1141,7 @@ describe.only('ExpressionParser', () => {
       });
     }
 
-    for (const input of []) {
+    for (const input of ['..', '...']) {
       it(`throw Code 101 (UnconsumedToken) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 101');
       });
@@ -1159,15 +1159,19 @@ describe.only('ExpressionParser', () => {
       });
     }
 
-    for (const input of ['!']) {
+    for (const input of ['!', '%', '&', '(', '*', '+', ',', '-', '.', '/', ':', '>', '<', '=', '?', '[', '|']) {
       it(`throw Code 104 (UnexpectedEndOfExpression) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 104');
       });
     }
 
-    for (const input of []) {
-      it(`throw Code 105 (ExpectedIdentifier) on "${input}"`, () => {
-        verifyResultOrError(input, null, 'Code 105');
+    for (const [input, expr] of SimpleIsLeftHandSideList) {
+      it(`throw Code 105 (ExpectedIdentifier) on "${input}."`, () => {
+        if (typeof expr['value'] !== 'number' || input.includes('.')) { // only non-float numbers are allowed to end on a dot
+          verifyResultOrError(`${input}.`, null, 'Code 105');
+        } else {
+          verifyResultOrError(`${input}.`, expr, null);
+        }
       });
     }
 
@@ -1177,7 +1181,7 @@ describe.only('ExpressionParser', () => {
       });
     }
 
-    for (const input of []) {
+    for (const input of ['{']) {
       it(`throw Code 107 (InvalidObjectLiteralPropertyDefinition) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 107');
       });
@@ -1189,7 +1193,7 @@ describe.only('ExpressionParser', () => {
       });
     }
 
-    for (const input of []) {
+    for (const input of ['`']) {
       it(`throw Code 109 (UnterminatedTemplate) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 109');
       });
@@ -1201,13 +1205,7 @@ describe.only('ExpressionParser', () => {
       });
     }
 
-    for (const input of ['#']) {
-      it(`throw Code 111 (UnexpectedCharacter) on "${input}"`, () => {
-        verifyResultOrError(input, null, 'Code 111');
-      });
-    }
-
-    for (const input of []) {
+    for (const input of ['#', ';', '@', '^', '~', '\\']) {
       it(`throw Code 111 (UnexpectedCharacter) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 111');
       });
@@ -1222,13 +1220,6 @@ describe.only('ExpressionParser', () => {
     for (const input of []) {
       it(`throw Code 151 (UnexpectedForOf) on "${input}"`, () => {
         verifyResultOrError(input, null, 'Code 151');
-      });
-    }
-
-    const chars = ['%','&','(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[','\\',']','^','_','`','{','|','}','~'];
-    for (const ch of chars) {
-      it(`throw Code xx () on char code ${'\''+ch}`, () => {
-        verifyResultOrError(ch, null, 'Code 101');
       });
     }
   });

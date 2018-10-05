@@ -737,7 +737,7 @@ function scanString(state: ParserState): Token {
       nextChar(state);
       buffer.push(String.fromCharCode(unescaped));
       marker = state.index;
-    } else if (state.currentChar === /*EOF*/0) {
+    } else if (state.index >= state.length) {
       throw Reporter.error(SyntaxError.UnterminatedQuote, { state });
     } else {
       nextChar(state);

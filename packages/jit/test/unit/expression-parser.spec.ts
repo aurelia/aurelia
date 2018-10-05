@@ -1115,25 +1115,124 @@ describe.only('ExpressionParser', () => {
 
   // #endregion
 
-    describe('unicode IdentifierStart', () => {
-      for (const char of latin1IdentifierStartChars) {
-        it(char, () => {
-          const expr = parseCore(char);
-          verifyASTEqual(expr, new AccessScope(char, 0));
-        });
-      }
-    });
+  describe('parse unicode IdentifierStart', () => {
+    for (const char of latin1IdentifierStartChars) {
+      it(char, () => {
+        verifyASTEqual(parseCore(char), new AccessScope(char, 0));
+      });
+    }
+  });
 
-    describe('unicode IdentifierPart', () => {
-      for (const char of latin1IdentifierPartChars) {
-        it(char, () => {
-          const identifier = `$${char}`;
-          const expr = parseCore(identifier);
-          verifyASTEqual(expr, new AccessScope(identifier, 0));
-        });
-      }
-    });
-  // });
+  describe('parse unicode IdentifierPart', () => {
+    for (const char of latin1IdentifierPartChars) {
+      it(char, () => {
+        const identifier = `$${char}`;
+        verifyASTEqual(parseCore(identifier), new AccessScope(identifier, 0));
+      });
+    }
+  });
+
+  const unconsumableTokens = ['?', ':'];
+
+  describe.only('Errors', () => {
+    for (const input of [')', '}', ']', ' ']) {
+      it(`throw Code 100 (InvalidExpressionStart) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 100');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 101 (UnconsumedToken) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 101');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 102 (DoubleDot) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 102');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 103 (InvalidMemberExpression) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 103');
+      });
+    }
+
+    for (const input of ['!']) {
+      it(`throw Code 104 (UnexpectedEndOfExpression) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 104');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 105 (ExpectedIdentifier) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 105');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 106 (InvalidForDeclaration) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 106');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 107 (InvalidObjectLiteralPropertyDefinition) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 107');
+      });
+    }
+
+    for (const input of ['"', '\'']) {
+      it(`throw Code 108 (UnterminatedQuote) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 108');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 109 (UnterminatedTemplate) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 109');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 110 (MissingExpectedToken) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 110');
+      });
+    }
+
+    for (const input of ['#']) {
+      it(`throw Code 111 (UnexpectedCharacter) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 111');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 111 (UnexpectedCharacter) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 111');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 150 (NotAssignable) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 150');
+      });
+    }
+
+    for (const input of []) {
+      it(`throw Code 151 (UnexpectedForOf) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 151');
+      });
+    }
+
+    const chars = ['%','&','(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[','\\',']','^','_','`','{','|','}','~'];
+    for (const ch of chars) {
+      it(`throw Code xx () on char code ${'\''+ch}`, () => {
+        verifyResultOrError(ch, null, 'Code 101');
+      });
+    }
+  });
+
 
   describe('should not parse', () => {
     // it('Assign to Unary plus', () => {

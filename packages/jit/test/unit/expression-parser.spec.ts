@@ -1059,7 +1059,12 @@ describe('ExpressionParser', () => {
 
 
   const ComplexAssignList: [string, any][] = [
-
+    ...SimpleIsAssignList.map(([i1, e1]) => <[string, any]>[`a=${i1}`, new Assign($a, e1)]),
+    ...SimpleIsAssignList.map(([i1, e1]) => <[string, any]>[`a=b=${i1}`, new Assign($a, new Assign($b, e1))]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}=a`, new Assign(e1, $a)]),
+    ...SimpleAccessMemberList.map(([i1, e1]) => <[string, any]>[`${i1}=a`, new Assign(e1, $a)]),
+    ...SimpleAccessKeyedList.map(([i1, e1]) => <[string, any]>[`${i1}=a`, new Assign(e1, $a)]),
+    ...SimpleAssignList.map(([i1, e1]) => <[string, any]>[`${i1}=c`, new Assign(e1.target, new Assign(e1.value, $c))])
   ];
   describe('parse ComplexAssignList', () => {
     for (const [input, expected] of ComplexAssignList) {
@@ -1071,7 +1076,15 @@ describe('ExpressionParser', () => {
 
 
   const ComplexValueConverterList: [string, any][] = [
-
+    ...SimpleIsAssignList.map(([i1, e1]) => <[string, any]>[`${i1}|a`, new ValueConverter(e1, 'a', [])]),
+    ...SimpleIsAssignList.map(([i1, e1]) => <[string, any]>[`${i1}|a:${i1}`, new ValueConverter(e1, 'a', [e1])]),
+    ...SimpleIsAssignList.map(([i1, e1]) => <[string, any]>[`${i1}|a:${i1}:${i1}`, new ValueConverter(e1, 'a', [e1, e1])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}|a|b`, new ValueConverter(new ValueConverter(e1, 'a', []), 'b', [])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}|a|b|c`, new ValueConverter(new ValueConverter(new ValueConverter(e1, 'a', []), 'b', []), 'c', [])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}|a:${i1}:${i1}`, new ValueConverter(e1, 'a', [e1, e1])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}|a:${i1}:${i1}:${i1}`, new ValueConverter(e1, 'a', [e1, e1, e1])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}|a:${i1}:${i1}:${i1}|b|c:${i1}:${i1}:${i1}`, new ValueConverter(new ValueConverter(new ValueConverter(e1, 'a', [e1, e1, e1]), 'b', []), 'c', [e1, e1, e1])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}|a:${i1}:${i1}:${i1}|b:${i1}:${i1}:${i1}|c`, new ValueConverter(new ValueConverter(new ValueConverter(e1, 'a', [e1, e1, e1]), 'b', [e1, e1, e1]), 'c', [])])
   ];
   describe('parse ComplexValueConverterList', () => {
     for (const [input, expected] of ComplexValueConverterList) {
@@ -1082,7 +1095,15 @@ describe('ExpressionParser', () => {
   });
 
   const ComplexBindingBehaviorList: [string, any][] = [
-
+    ...SimpleIsValueConverterList.map(([i1, e1]) => <[string, any]>[`${i1}&a`, new BindingBehavior(e1, 'a', [])]),
+    ...SimpleIsAssignList.map(([i1, e1]) => <[string, any]>[`${i1}&a:${i1}`, new BindingBehavior(e1, 'a', [e1])]),
+    ...SimpleIsAssignList.map(([i1, e1]) => <[string, any]>[`${i1}&a:${i1}:${i1}`, new BindingBehavior(e1, 'a', [e1, e1])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}&a&b`, new BindingBehavior(new BindingBehavior(e1, 'a', []), 'b', [])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}&a&b&c`, new BindingBehavior(new BindingBehavior(new BindingBehavior(e1, 'a', []), 'b', []), 'c', [])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}&a:${i1}:${i1}`, new BindingBehavior(e1, 'a', [e1, e1])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}&a:${i1}:${i1}:${i1}`, new BindingBehavior(e1, 'a', [e1, e1, e1])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}&a:${i1}:${i1}:${i1}&b&c:${i1}:${i1}:${i1}`, new BindingBehavior(new BindingBehavior(new BindingBehavior(e1, 'a', [e1, e1, e1]), 'b', []), 'c', [e1, e1, e1])]),
+    ...AccessScopeList.map(([i1, e1]) => <[string, any]>[`${i1}&a:${i1}:${i1}:${i1}&b:${i1}:${i1}:${i1}&c`, new BindingBehavior(new BindingBehavior(new BindingBehavior(e1, 'a', [e1, e1, e1]), 'b', [e1, e1, e1]), 'c', [])])
   ];
   describe('parse ComplexBindingBehaviorList', () => {
     for (const [input, expected] of ComplexBindingBehaviorList) {
@@ -1093,120 +1114,6 @@ describe('ExpressionParser', () => {
   });
 
   // #endregion
-
-  //   const variadics = [
-  //     { ctor: BindingBehavior, op: '&' },
-  //     { ctor: ValueConverter, op: '|' }
-  //   ];
-
-  //   for (const { ctor: Variadic, op } of variadics) {
-  //     const $this0 = $this;
-  //     const $this1 = $parent;
-  //     const $this2 = new AccessThis(2);
-
-  //     describe(Variadic.name, () => {
-  //       const tests = [
-  //         { expr: `foo${op}bar:$this:$this`, expected: new (<any>Variadic)($foo, 'bar', [$this0, $this0]) },
-  //         { expr: `foo${op}bar:$this:$parent`, expected: new (<any>Variadic)($foo, 'bar', [$this0, $this1]) },
-  //         { expr: `foo${op}bar:$parent:$this`, expected: new (<any>Variadic)($foo, 'bar', [$this1, $this0]) },
-  //         { expr: `foo${op}bar:$parent.$parent:$parent.$parent`, expected: new (<any>Variadic)($foo, 'bar', [$this2, $this2]) },
-  //         { expr: `foo${op}bar:"1"?"":"1":true?foo:bar`, expected: new (<any>Variadic)($foo, 'bar', [new Conditional($str1, $str, $str1), new Conditional($true, $foo, $bar)]) },
-  //         { expr: `foo${op}bar:[1<=0]:[[],[[]]]`, expected: new (<any>Variadic)($foo, 'bar', [new ArrayLiteral([new Binary('<=', $num1, $num0)]), new ArrayLiteral([$arr, new ArrayLiteral([$arr])])]) },
-  //         { expr: `foo${op}bar:{foo:a?b:c}:{1:1}`, expected: new (<any>Variadic)($foo, 'bar', [new ObjectLiteral(['foo'], [new Conditional($a, $b, $c)]), new ObjectLiteral([1], [$num1])]) },
-  //         { expr: `foo${op}bar:a(b({})[c()[d()]])`, expected: new (<any>Variadic)($foo, 'bar', [new CallScope('a', [new AccessKeyed(new CallScope('b', [$obj], 0), new AccessKeyed(new CallScope('c', [], 0), new CallScope('d', [], 0)))], 0)]) },
-  //         { expr: `a(b({})[c()[d()]])${op}bar`, expected: new (<any>Variadic)(new CallScope('a', [new AccessKeyed(new CallScope('b', [$obj], 0), new AccessKeyed(new CallScope('c', [], 0), new CallScope('d', [], 0)))], 0), 'bar', []) },
-  //         { expr: `true?foo:bar${op}bar`, expected: new (<any>Variadic)(new Conditional($true, $foo, $bar), 'bar', []) },
-  //         { expr: `$parent.$parent${op}bar`, expected: new (<any>Variadic)($this2, 'bar', []) }
-  //       ];
-
-  //       for (const { expr, expected } of tests) {
-  //         it(expr, () => {
-  //           verifyASTEqual(parseCore(expr), expected);
-  //         });
-  //       }
-  //     });
-  //   }
-
-  //   it('chained BindingBehaviors', () => {
-  //     const expr = parseCore('foo & bar:x:y:z & baz:a:b:c');
-  //     verifyASTEqual(expr, new BindingBehavior(new BindingBehavior($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
-  //   });
-
-  //   it('chained ValueConverters', () => {
-  //     const expr = parseCore('foo | bar:x:y:z | baz:a:b:c');
-  //     verifyASTEqual(expr, new ValueConverter(new ValueConverter($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
-  //   });
-
-  //   it('chained ValueConverters and BindingBehaviors', () => {
-  //     const expr = parseCore('foo | bar:x:y:z & baz:a:b:c');
-  //     verifyASTEqual(expr, new BindingBehavior(new ValueConverter($foo, 'bar', [$x, $y, $z]), 'baz', [$a, $b, $c]));
-  //   });
-
-  //   it('AccessScope', () => {
-  //     const expr = parseCore('foo');
-  //     verifyASTEqual(expr, $foo);
-  //   });
-
-  //   const parents = [
-  //     { i: 1, name: '$parent' },
-  //     { i: 2, name: '$parent.$parent' },
-  //     { i: 3, name: '$parent.$parent.$parent' },
-  //     { i: 4, name: '$parent.$parent.$parent.$parent' },
-  //     { i: 5, name: '$parent.$parent.$parent.$parent.$parent' },
-  //     { i: 6, name: '$parent.$parent.$parent.$parent.$parent.$parent' },
-  //     { i: 7, name: '$parent.$parent.$parent.$parent.$parent.$parent.$parent' },
-  //     { i: 8, name: '$parent.$parent.$parent.$parent.$parent.$parent.$parent.$parent' },
-  //     { i: 9, name: '$parent.$parent.$parent.$parent.$parent.$parent.$parent.$parent.$parent' },
-  //     { i: 10, name: '$parent.$parent.$parent.$parent.$parent.$parent.$parent.$parent.$parent.$parent'  }
-  //   ];
-  //   describe('$parent', () => {
-  //     for (const { i, name } of parents) {
-  //       it(name, () => {
-  //         const expr = parseCore(name);
-  //         verifyASTEqual(expr, new AccessThis(i));
-  //       });
-
-  //       it(`${name} before ValueConverter`, () => {
-  //         const expr = parseCore(`${name} | foo`);
-  //         verifyASTEqual(expr, new ValueConverter(new AccessThis(i), 'foo', []));
-  //       });
-
-  //       it(`${name}.bar before ValueConverter`, () => {
-  //         const expr = parseCore(`${name}.bar | foo`);
-  //         verifyASTEqual(expr, new ValueConverter(new AccessScope('bar', i), 'foo', []));
-  //       });
-
-  //       it(`${name} before binding behavior`, () => {
-  //         const expr = parseCore(`${name} & foo`);
-  //         verifyASTEqual(expr, new BindingBehavior(new AccessThis(i), 'foo', []));
-  //       });
-
-  //       it(`${name}.bar before binding behavior`, () => {
-  //         const expr = parseCore(`${name}.bar & foo`);
-  //         verifyASTEqual(expr, new BindingBehavior(new AccessScope('bar', i), 'foo', []));
-  //       });
-
-  //       it(`${name}.foo to AccessScope`, () => {
-  //         const expr = parseCore(`${name}.foo`);
-  //         verifyASTEqual(expr, new AccessScope(`foo`, i));
-  //       });
-
-  //       it(`${name}.foo() to CallScope`, () => {
-  //         const expr = parseCore(`${name}.foo()`);
-  //         verifyASTEqual(expr, new CallScope(`foo`, [], i));
-  //       });
-
-  //       it(`${name}() to CallFunction`, () => {
-  //         const expr = parseCore(`${name}()`);
-  //         verifyASTEqual(expr, new CallFunction(new AccessThis(i), []));
-  //       });
-
-  //       it(`${name}[0] to AccessKeyed`, () => {
-  //         const expr = parseCore(`${name}[0]`);
-  //         verifyASTEqual(expr, new AccessKeyed(new AccessThis(i), $num0));
-  //       });
-  //     }
-  //   });
 
     describe('unicode IdentifierStart', () => {
       for (const char of latin1IdentifierStartChars) {

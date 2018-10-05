@@ -164,6 +164,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         result = new AccessScope(<string>state.tokenValue, access & Access.Ancestor);
         access = Access.Scope;
       }
+      state.assignable = true;
       nextToken(state);
       break;
     case Token.ThisScope: // $this

@@ -50,6 +50,8 @@ export class ParserState {
   }
 }
 
+const $state = new ParserState('');
+
 const enum SyntaxError {
   InvalidExpressionStart = 100,
   UnconsumedToken = 101,
@@ -72,7 +74,11 @@ const enum SemanticError {
 
 /*@internal*/
 export function parseCore(input: string, bindingType?: BindingType): IExpression {
-  return parse(new ParserState(input), Access.Reset, Precedence.Variadic, bindingType === undefined ? BindingType.BindCommand : bindingType);
+  $state.input = input;
+  $state.length = input.length;
+  $state.index = 0;
+  $state.currentChar = input.charCodeAt(0);
+  return parse($state, Access.Reset, Precedence.Variadic, bindingType === undefined ? BindingType.BindCommand : bindingType);
 }
 
 /*@internal*/

@@ -764,7 +764,7 @@ const ComplexIsBindingBehaviorList: [string, any][] = [
   ...ComplexBindingBehaviorList
 ];
 
-describe.only('ExpressionParser', () => {
+describe('ExpressionParser', () => {
   describe('should parse valid property binding expressions', () => {
     for (const [input, expected] of [
       ...SimpleIsBindingBehaviorList,
@@ -891,24 +891,24 @@ describe.only('ExpressionParser', () => {
   //     }
   //   });
 
-  //   describe('unicode IdentifierStart', () => {
-  //     for (const char of latin1IdentifierStartChars) {
-  //       it(char, () => {
-  //         const expr = parseCore(char);
-  //         verifyASTEqual(expr, new AccessScope(char, 0));
-  //       });
-  //     }
-  //   });
+    describe('unicode IdentifierStart', () => {
+      for (const char of latin1IdentifierStartChars) {
+        it(char, () => {
+          const expr = parseCore(char);
+          verifyASTEqual(expr, new AccessScope(char, 0));
+        });
+      }
+    });
 
-  //   describe('unicode IdentifierPart', () => {
-  //     for (const char of latin1IdentifierPartChars) {
-  //       it(char, () => {
-  //         const identifier = `$${char}`;
-  //         const expr = parseCore(identifier);
-  //         verifyASTEqual(expr, new AccessScope(identifier, 0));
-  //       });
-  //     }
-  //   });
+    describe('unicode IdentifierPart', () => {
+      for (const char of latin1IdentifierPartChars) {
+        it(char, () => {
+          const identifier = `$${char}`;
+          const expr = parseCore(identifier);
+          verifyASTEqual(expr, new AccessScope(identifier, 0));
+        });
+      }
+    });
   // });
 
   describe('should not parse', () => {

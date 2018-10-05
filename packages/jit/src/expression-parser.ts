@@ -903,8 +903,8 @@ const enum Token {
   Slash                   = 0b010010000000_111_100110,
   Equals                  = 0b000000000000_000_100111,
   Exclamation             = 0b000001000000_000_101000,
-  TemplateTail            = 0b000000100000_000_101001,
-  TemplateContinuation    = 0b000000100000_000_101010,
+  TemplateTail            = 0b010000100000_000_101001,
+  TemplateContinuation    = 0b010000100000_000_101010,
   OfKeyword               = 0b000000000101_000_101011
 }
 

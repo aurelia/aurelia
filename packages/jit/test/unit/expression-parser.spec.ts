@@ -142,14 +142,6 @@ describe('ExpressionParser', () => {
     [`$parent`,           $parent],
     [`$parent.$parent`,   new AccessThis(2)]
   ];
-  describe('parse AccessThisList', () => {
-    for (const [input, expected] of AccessThisList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // 2. parsePrimaryExpression.IdentifierName
   const AccessScopeList: [string, any][] = [
     ...AccessThisList.map(([input, expr]) => <[string, any]>[`${input}.a`, new AccessScope('a', expr.ancestor)]),
@@ -157,55 +149,23 @@ describe('ExpressionParser', () => {
     [`$parent.$this`,     new AccessScope('$this', 1)],
     [`a`,                 $a]
   ];
-  describe('parse AccessScopeList', () => {
-    for (const [input, expected] of AccessScopeList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // 3. parsePrimaryExpression.Literal
   const SimpleStringLiteralList: [string, any][] = [
     [`''`,                $str],
     [`""`,                $str]
   ];
-  describe('parse SimpleStringLiteralList', () => {
-    for (const [input, expected] of SimpleStringLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const SimpleNumberLiteralList: [string, any][] = [
     [`1`,                 $num1],
     [`1.1`,               new PrimitiveLiteral(1.1)],
     [`.1`,                new PrimitiveLiteral(.1)],
     [`0.1`,               new PrimitiveLiteral(.1)]
   ];
-  describe('parse SimpleNumberLiteralList', () => {
-    for (const [input, expected] of SimpleNumberLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const KeywordPrimitiveLiteralList: [string, any][] = [
     [`undefined`,         new PrimitiveLiteral(undefined)],
     [`null`,              new PrimitiveLiteral(null)],
     [`true`,              new PrimitiveLiteral(true)],
     [`false`,             new PrimitiveLiteral(false)]
   ];
-  describe('parse KeywordPrimitiveLiteralList', () => {
-    for (const [input, expected] of KeywordPrimitiveLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // concatenation of 3.
   const SimplePrimitiveLiteralList: [string, any][] = [
     ...SimpleStringLiteralList,
@@ -217,39 +177,15 @@ describe('ExpressionParser', () => {
   const SimpleArrayLiteralList: [string, any][] = [
     [`[]`,                $arr]
   ];
-  describe('parse SimpleArrayLiteralList', () => {
-    for (const [input, expected] of SimpleArrayLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // 5. parsePrimaryExpression.ObjectLiteral
   const SimpleObjectLiteralList: [string, any][] = [
     [`{}`,                $obj]
   ];
-  describe('parse SimpleObjectLiteralList', () => {
-    for (const [input, expected] of SimpleObjectLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // 6. parsePrimaryExpression.TemplateLiteral
   const SimpleTemplateLiteralList: [string, any][] = [
     [`\`\``,              new Template([''], [])],
     [`\`\${a}\``,         new Template(['', ''], [$a])]
   ];
-  describe('parse SimpleTemplateLiteralList', () => {
-    for (const [input, expected] of SimpleTemplateLiteralList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // concatenation of 3., 4., 5., 6.
   const SimpleLiteralList: [string, any][] = [
     ...SimplePrimitiveLiteralList,
@@ -257,7 +193,6 @@ describe('ExpressionParser', () => {
     ...SimpleArrayLiteralList,
     ...SimpleObjectLiteralList
   ];
-
   // 7. parsePrimaryExpression.ParenthesizedExpression
   // Note: this is simply one of each precedence group, except for Primary because
   // parenthesized and primary are already from the same precedence group
@@ -272,14 +207,6 @@ describe('ExpressionParser', () => {
     [`(a?b:c)`,           new Conditional($a, $b, new AccessScope('c'))],
     [`(a=b)`,             new Assign($a, $b)]
   ];
-  describe('parse SimpleParenthesizedList', () => {
-    for (const [input, expected] of SimpleParenthesizedList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // concatenation of 1 through 7 (all Primary expressions)
   // This forms the group Precedence.Primary
   const SimplePrimaryList: [string, any][] = [
@@ -288,33 +215,16 @@ describe('ExpressionParser', () => {
     ...SimpleLiteralList,
     ...SimpleParenthesizedList
   ];
-
   // 2. parseMemberExpression.MemberExpression [ AssignmentExpression ]
   const SimpleAccessKeyedList: [string, any][] = [
     ...SimplePrimaryList
       .map(([input, expr]) => <[string, any]>[`${input}[b]`, new AccessKeyed(expr, $b)])
   ];
-  describe('parse SimpleAccessKeyedList', () => {
-    for (const [input, expected] of SimpleAccessKeyedList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // 3. parseMemberExpression.MemberExpression . IdentifierName
   const SimpleAccessMemberList: [string, any][] = [
     ...[...AccessScopeList, ...SimpleLiteralList]
       .map(([input, expr]) => <[string, any]>[`${input}.b`, new AccessMember(expr, 'b')])
   ];
-  describe('parse SimpleAccessMemberList', () => {
-    for (const [input, expected] of SimpleAccessMemberList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // 4. parseMemberExpression.MemberExpression TemplateLiteral
   const SimpleTaggedTemplateList: [string, any][] = [
     ...SimplePrimaryList
@@ -323,53 +233,21 @@ describe('ExpressionParser', () => {
     ...SimplePrimaryList
       .map(([input, expr]) => <[string, any]>[`${input}\`\${a}\``, new TaggedTemplate(['', ''], ['', ''], expr, [$a])])
   ];
-  describe('parse SimpleTaggedTemplateList', () => {
-    for (const [input, expected] of SimpleTaggedTemplateList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // 1. parseCallExpression.MemberExpression Arguments (this one doesn't technically fit the spec here)
   const SimpleCallFunctionList: [string, any][] = [
     ...[...AccessThisList, ...SimpleLiteralList]
       .map(([input, expr]) => <[string, any]>[`${input}()`, new CallFunction(expr, [])])
   ];
-  describe('parse SimpleCallFunctionList', () => {
-    for (const [input, expected] of SimpleCallFunctionList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // 2. parseCallExpression.MemberExpression Arguments
   const SimpleCallScopeList: [string, any][] = [
     ...[...AccessScopeList]
       .map(([input, expr]) => <[string, any]>[`${input}()`, new CallScope(expr.name, [], expr.ancestor)])
   ];
-  describe('parse SimpleCallScopeList', () => {
-    for (const [input, expected] of SimpleCallScopeList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // 3. parseCallExpression.MemberExpression Arguments
   const SimpleCallMemberList: [string, any][] = [
     ...[...AccessScopeList, ...SimpleLiteralList]
       .map(([input, expr]) => <[string, any]>[`${input}.b()`, new CallMember(expr, 'b', [])])
   ];
-  describe('parse SimpleCallMemberList', () => {
-    for (const [input, expected] of SimpleCallMemberList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // concatenation of 1-3 of MemberExpression and 1-3 of CallExpression
   const SimpleLeftHandSideList: [string, any][] = [
     ...SimpleAccessKeyedList,
@@ -396,14 +274,6 @@ describe('ExpressionParser', () => {
     [`void $4`, new Unary('void', new AccessScope('$4'))],
     [`typeof $5`, new Unary('typeof', new AccessScope('$5'))]
   ];
-  describe('parse SimpleUnaryList', () => {
-    for (const [input, expected] of SimpleUnaryList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   // concatenation of Unary + LeftHandSide
   // This forms the group Precedence.LeftHandSide and includes Precedence.Unary
   const SimpleIsUnaryList: [string, any][] = [
@@ -417,14 +287,6 @@ describe('ExpressionParser', () => {
     [`$8%$9`, new Binary('%', new AccessScope('$8'), new AccessScope('$9'))],
     [`$10/$11`, new Binary('/', new AccessScope('$10'), new AccessScope('$11'))]
   ];
-  describe('parse SimpleMultiplicativeList', () => {
-    for (const [input, expected] of SimpleMultiplicativeList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const SimpleIsMultiplicativeList: [string, any][] = [
     ...SimpleIsUnaryList,
     ...SimpleMultiplicativeList
@@ -435,14 +297,6 @@ describe('ExpressionParser', () => {
     [`$12+$13`, new Binary('+', new AccessScope('$12'), new AccessScope('$13'))],
     [`$14-$15`, new Binary('-', new AccessScope('$14'), new AccessScope('$15'))]
   ];
-  describe('parse SimpleAdditiveList', () => {
-    for (const [input, expected] of SimpleAdditiveList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const SimpleIsAdditiveList: [string, any][] = [
     ...SimpleIsMultiplicativeList,
     ...SimpleAdditiveList
@@ -457,14 +311,6 @@ describe('ExpressionParser', () => {
     [`$24 in $25`, new Binary('in', new AccessScope('$24'), new AccessScope('$25'))],
     [`$26 instanceof $27`, new Binary('instanceof', new AccessScope('$26'), new AccessScope('$27'))]
   ];
-  describe('parse SimpleRelationalList', () => {
-    for (const [input, expected] of SimpleRelationalList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const SimpleIsRelationalList: [string, any][] = [
     ...SimpleIsAdditiveList,
     ...SimpleRelationalList
@@ -477,14 +323,6 @@ describe('ExpressionParser', () => {
     [`$32===$33`, new Binary('===', new AccessScope('$32'), new AccessScope('$33'))],
     [`$34!==$35`, new Binary('!==', new AccessScope('$34'), new AccessScope('$35'))]
   ];
-  describe('parse SimpleEqualityList', () => {
-    for (const [input, expected] of SimpleEqualityList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const SimpleIsEqualityList: [string, any][] = [
     ...SimpleIsRelationalList,
     ...SimpleEqualityList
@@ -494,14 +332,6 @@ describe('ExpressionParser', () => {
   const SimpleLogicalANDList: [string, any][] = [
     [`$36&&$37`, new Binary('&&', new AccessScope('$36'), new AccessScope('$37'))]
   ];
-  describe('parse SimpleLogicalANDList', () => {
-    for (const [input, expected] of SimpleLogicalANDList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const SimpleIsLogicalANDList: [string, any][] = [
     ...SimpleIsEqualityList,
     ...SimpleLogicalANDList
@@ -511,14 +341,6 @@ describe('ExpressionParser', () => {
   const SimpleLogicalORList: [string, any][] = [
     [`$38||$39`, new Binary('||', new AccessScope('$38'), new AccessScope('$39'))]
   ];
-  describe('parse SimpleLogicalORList', () => {
-    for (const [input, expected] of SimpleLogicalORList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const SimpleIsLogicalORList: [string, any][] = [
     ...SimpleIsLogicalANDList,
     ...SimpleLogicalORList
@@ -528,14 +350,6 @@ describe('ExpressionParser', () => {
   const SimpleConditionalList: [string, any][] = [
     [`a?b:c`, new Conditional($a, $b, new AccessScope('c'))]
   ];
-  describe('parse SimpleConditionalList', () => {
-    for (const [input, expected] of SimpleConditionalList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const SimpleIsConditionalList: [string, any][] = [
     ...SimpleIsLogicalORList,
     ...SimpleConditionalList
@@ -545,14 +359,6 @@ describe('ExpressionParser', () => {
   const SimpleAssignList: [string, any][] = [
     [`a=b`, new Assign($a, $b)]
   ];
-  describe('parse SimpleAssignList', () => {
-    for (const [input, expected] of SimpleAssignList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const SimpleIsAssignList: [string, any][] = [
     ...SimpleIsConditionalList,
     ...SimpleAssignList
@@ -564,14 +370,6 @@ describe('ExpressionParser', () => {
     [`a|b:c`, new ValueConverter($a, 'b', [new AccessScope('c')])],
     [`a|b:c:d`, new ValueConverter($a, 'b', [new AccessScope('c'), new AccessScope('d')])]
   ];
-  describe('parse SimpleValueConverterList', () => {
-    for (const [input, expected] of SimpleValueConverterList) {
-      it(input, () => {
-        verifyASTEqual(parseCore(input), expected);
-      });
-    }
-  });
-
   const SimpleIsValueConverterList: [string, any][] = [
     ...SimpleIsAssignList,
     ...SimpleValueConverterList
@@ -582,6 +380,211 @@ describe('ExpressionParser', () => {
     [`a&b:c`, new BindingBehavior($a, 'b', [new AccessScope('c')])],
     [`a&b:c:d`, new BindingBehavior($a, 'b', [new AccessScope('c'), new AccessScope('d')])]
   ];
+
+  const SimpleIsBindingBehaviorList: [string, any][] = [
+    ...SimpleIsValueConverterList,
+    ...SimpleBindingBehaviorList
+  ];
+  describe('parse AccessThisList', () => {
+    for (const [input, expected] of AccessThisList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse AccessScopeList', () => {
+    for (const [input, expected] of AccessScopeList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleStringLiteralList', () => {
+    for (const [input, expected] of SimpleStringLiteralList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleNumberLiteralList', () => {
+    for (const [input, expected] of SimpleNumberLiteralList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse KeywordPrimitiveLiteralList', () => {
+    for (const [input, expected] of KeywordPrimitiveLiteralList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleArrayLiteralList', () => {
+    for (const [input, expected] of SimpleArrayLiteralList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleObjectLiteralList', () => {
+    for (const [input, expected] of SimpleObjectLiteralList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleTemplateLiteralList', () => {
+    for (const [input, expected] of SimpleTemplateLiteralList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleParenthesizedList', () => {
+    for (const [input, expected] of SimpleParenthesizedList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleAccessKeyedList', () => {
+    for (const [input, expected] of SimpleAccessKeyedList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleAccessMemberList', () => {
+    for (const [input, expected] of SimpleAccessMemberList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleTaggedTemplateList', () => {
+    for (const [input, expected] of SimpleTaggedTemplateList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleCallFunctionList', () => {
+    for (const [input, expected] of SimpleCallFunctionList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleCallScopeList', () => {
+    for (const [input, expected] of SimpleCallScopeList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleCallMemberList', () => {
+    for (const [input, expected] of SimpleCallMemberList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleUnaryList', () => {
+    for (const [input, expected] of SimpleUnaryList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleMultiplicativeList', () => {
+    for (const [input, expected] of SimpleMultiplicativeList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleAdditiveList', () => {
+    for (const [input, expected] of SimpleAdditiveList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleRelationalList', () => {
+    for (const [input, expected] of SimpleRelationalList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleEqualityList', () => {
+    for (const [input, expected] of SimpleEqualityList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleLogicalANDList', () => {
+    for (const [input, expected] of SimpleLogicalANDList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleLogicalORList', () => {
+    for (const [input, expected] of SimpleLogicalORList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleConditionalList', () => {
+    for (const [input, expected] of SimpleConditionalList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleAssignList', () => {
+    for (const [input, expected] of SimpleAssignList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
+  describe('parse SimpleValueConverterList', () => {
+    for (const [input, expected] of SimpleValueConverterList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input), expected);
+      });
+    }
+  });
+
   describe('parse SimpleBindingBehaviorList', () => {
     for (const [input, expected] of SimpleBindingBehaviorList) {
       it(input, () => {
@@ -589,11 +592,6 @@ describe('ExpressionParser', () => {
       });
     }
   });
-
-  const SimpleIsBindingBehaviorList: [string, any][] = [
-    ...SimpleIsValueConverterList,
-    ...SimpleBindingBehaviorList
-  ];
 
   // #endregion
 

@@ -1,8 +1,16 @@
-import { ValueAttributeObserver, EventSubscriber, ChangeSet, CheckedObserver, IObserverLocator, IChangeSet, SelectValueObserver, BindingFlags, Binding, IBindingTargetObserver, IPropertySubscriber, enableArrayObservation } from '../../../src/index';
-import { createElement, _ } from '../util';
+import {
+  ValueAttributeObserver,
+  IObserverLocator,
+  IChangeSet,
+  BindingFlags,
+  Binding,
+  IBindingTargetObserver,
+  IPropertySubscriber,
+} from '../../../../src/index';
+import { createElement, _ } from '../../util';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
-import { DI } from '../../../../kernel/src/index';
+import { DI } from '../../../../../kernel/src/index';
 
 describe('ValueAttributeObserver', () => {
   const eventDefaults = { bubbles: true };

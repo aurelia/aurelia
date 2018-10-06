@@ -190,7 +190,7 @@ export class CheckedObserver implements CheckedObserver {
       element.checked = !!matcher(value, elementValue);
     } else if (value === true) {
       element.checked = true;
-    } else if (Array.isArray(value)){
+    } else if (Array.isArray(value)) {
       element.checked = value.findIndex(item => !!matcher(item, elementValue)) !== -1;
     } else {
       element.checked = false;
@@ -280,15 +280,15 @@ function defaultMatcher(a: Primitive | IIndexable, b: Primitive | IIndexable): b
 
 // tslint:disable-next-line:interface-name
 export interface SelectValueObserver extends
-  IBindingTargetObserver<HTMLSelectElement & { matcher?: typeof defaultMatcher }, string, Primitive | UntypedArray>,
+  IBindingTargetObserver<HTMLSelectElement & { matcher?: typeof defaultMatcher }, string, Primitive | IIndexable | UntypedArray>,
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
 @targetObserver()
 export class SelectValueObserver implements SelectValueObserver {
-  public currentValue: Primitive | UntypedArray;
+  public currentValue: Primitive | IIndexable | UntypedArray;
   public currentFlags: BindingFlags;
-  public oldValue: Primitive | UntypedArray;
+  public oldValue: Primitive | IIndexable | UntypedArray;
   public defaultValue: Primitive | UntypedArray;
 
   public flushChanges: () => void;
@@ -303,7 +303,7 @@ export class SelectValueObserver implements SelectValueObserver {
     public observerLocator: IObserverLocator
   ) { }
 
-  public getValue(): Primitive | UntypedArray {
+  public getValue(): Primitive | IIndexable | UntypedArray {
     return this.currentValue;
   }
 
@@ -435,19 +435,28 @@ export class SelectValueObserver implements SelectValueObserver {
         // A.1.b.iv
         return false;
       }
+      // A.1.a
       return true;
     } else {
       // single select
       let i = 0;
+      // B.1
+      let value: Primitive | IIndexable | UntypedArray;
       while (i < len) {
         const option = options.item(i) as HTMLOptionElementWithModel;
         if (option.selected) {
-          const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
-          this.currentValue = optionValue as Primitive | UntypedArray;
-          return;
+          value = option.hasOwnProperty('model')
+            ? option.model
+            : option.value;
+          break;
         }
         i++;
       }
+      // B.2
+      this.oldValue = this.currentValue;
+      // B.3
+      this.currentValue = value;
+      // B.4
       return true;
     }
   }
@@ -466,10 +475,11 @@ export class SelectValueObserver implements SelectValueObserver {
   }
 
   public bind(): void {
-    this.nodeObserver = DOM.createNodeObserver(this.obj, () => {
-      this.synchronizeOptions();
-      this.synchronizeValue();
-    }, childObserverOptions);
+    this.nodeObserver = DOM.createNodeObserver(
+      this.obj,
+      this.handleNodeChange.bind(this),
+      childObserverOptions
+    );
   }
 
   public unbind(): void {
@@ -479,6 +489,15 @@ export class SelectValueObserver implements SelectValueObserver {
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribeBatched(this);
       this.arrayObserver = null;
+    }
+  }
+
+  /*@internal */
+  private handleNodeChange(): void {
+    this.synchronizeOptions();
+    const shouldNotify = this.synchronizeValue();
+    if (shouldNotify) {
+      this.notify(handleEventFlags);
     }
   }
 }

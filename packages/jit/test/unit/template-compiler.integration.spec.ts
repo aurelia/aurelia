@@ -7,7 +7,7 @@ import {
 } from '../../../runtime/src';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { eachCartesianJoinFactory } from './util';
+import { eachCartesianJoinFactory, h } from './util';
 
 
 @valueConverter('sort')
@@ -62,7 +62,7 @@ const TestConfiguration = {
   }
 }
 
-function createCustomElement(markup: string, ...dependencies: Function[]): { [key: string]: any } {
+function createCustomElement(markup: string | Element, ...dependencies: Function[]): { [key: string]: any } {
   return new (CustomElementResource.define({
     name: 'app',
     dependencies: [...dependencies],
@@ -96,7 +96,7 @@ function stringify(o) {
 }
 
 
-describe('TemplateCompiler (integration)', () => {
+describe.only('TemplateCompiler (integration)', () => {
   let container: IContainer;
   let au: Aurelia;
   let host: HTMLElement;
@@ -341,23 +341,47 @@ describe('TemplateCompiler (integration)', () => {
     expect(component.checked).to.be.true;
   });
 
-  it(`toViewBinding - select single`, () => {
-    component = createCustomElement(`<template><select value.to-view="selectedValue"><option value="1"></option><option value="2"></option></select></template>`);
+  it.only(`toViewBinding - select single`, () => {
+    component = createCustomElement(
+      // `<template>
+      //   <select value.to-view="selectedValue">
+      //     ${[1,2].map(v => `<option value="${v}"></option>`).join('')}
+      //   </select>
+      // </template>`
+      h('template',
+        null,
+        h('select',
+          { 'value.to-view': 'selectedValue' },
+          ...[1,2].map(v => h('option', { value: v }))
+        )
+      )
+    );
+    // component = createCustomElement(`<template><select value.to-view="selectedValue"><option value="1"></option><option value="2"></option></select></template>`);
     au.app({ host, component }).start();
-    expect(host.firstChild['value']).to.equal('1');
+    expect(host.firstElementChild['value']).to.equal('1');
     component.selectedValue = '2';
-    expect(host.firstChild['value']).to.equal('1');
+    expect(host.firstElementChild['value']).to.equal('1');
     cs.flushChanges();
-    expect(host.firstChild['value']).to.equal('2');
-    expect(host.firstChild.childNodes.item(1)['selected']).to.be.true;
+    expect(host.firstElementChild['value']).to.equal('2');
+    expect(host.firstElementChild.childNodes.item(1)['selected']).to.be.true;
   });
 
-  it(`twoWayBinding - select single`, () => {
-    component = createCustomElement(`<template><select value.two-way="selectedValue"><option value="1"></option><option value="2"></option></select></template>`);
+  it.only(`twoWayBinding - select single`, () => {
+    component = createCustomElement(
+      h('template',
+        null,
+        h('select',
+          { 'value.two-way': 'selectedValue' },
+          ...[1,2].map(v => h('option', { value: v }))
+        )
+      )
+    );
+    // component = createCustomElement(`<template><select value.two-way="selectedValue"><option value="1"></option><option value="2"></option></select></template>`);
     au.app({ host, component }).start();
     expect(component.selectedValue).to.be.undefined;
     host.firstChild.childNodes.item(1)['selected'] = true;
     expect(component.selectedValue).to.be.undefined;
+    debugger;
     host.firstChild.dispatchEvent(new CustomEvent('change'));
     expect(component.selectedValue).to.equal('2');
   });
@@ -365,15 +389,15 @@ describe('TemplateCompiler (integration)', () => {
   it(`trigger - button`, () => {
     component = createCustomElement(`<template><button click.trigger="doStuff()"></button></template>`);
     au.app({ host, component }).start();
-    component.doStuff = spy()
-    host.firstChild.dispatchEvent(new CustomEvent('click'))
+    component.doStuff = spy();
+    host.firstChild.dispatchEvent(new CustomEvent('click'));
     expect(component.doStuff).to.have.been.called;
   });
 
   it(`delegate - button`, () => {
     component = createCustomElement(`<template><button click.delegate="doStuff()"></button></template>`);
     au.app({ host, component }).start();
-    component.doStuff = spy()
+    component.doStuff = spy();
     host.firstChild.dispatchEvent(new CustomEvent('click', { bubbles: true }));
     expect(component.doStuff).to.have.been.called;
   });

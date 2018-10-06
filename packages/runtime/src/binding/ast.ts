@@ -6,6 +6,7 @@ import { IBinding } from './binding';
 import { BindingBehaviorResource } from './binding-behavior';
 import { BindingContext, IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
+import { IConnectableBinding } from './connectable';
 import { Collection } from './observation';
 import { ISignaler } from './signaler';
 import { ValueConverterResource } from './value-converter';
@@ -52,7 +53,7 @@ export interface IVisitor<T = any> {
 export interface IExpression {
   readonly $kind: ExpressionKind;
   evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null): any;
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding): any;
+  connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): any;
   accept<T>(visitor: IVisitor<T>): T;
   assign?(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null, value: any): any;
   bind?(flags: BindingFlags, scope: IScope, binding: IBinding): void;
@@ -122,7 +123,7 @@ export class BindingBehavior implements IExpression {
     return (<any>this.expression).assign(flags, scope, locator, value);
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.expression.connect(flags, scope, binding);
   }
 
@@ -196,7 +197,7 @@ export class ValueConverter implements IExpression {
     return (<any>this.expression).assign(flags, scope, locator, value);
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.expression.connect(flags, scope, binding);
     const args = this.args;
     for (let i = 0, ii = args.length; i < ii; ++i) {
@@ -245,7 +246,7 @@ export class Assign implements IExpression {
     return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator));
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
   public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
     (<any>this.value).assign(flags, scope, locator, value);
@@ -271,7 +272,7 @@ export class Conditional implements IExpression {
       : this.no.evaluate(flags, scope, locator);
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const condition = this.condition;
     if (condition.evaluate(flags, scope, null)) {
       this.condition.connect(flags, scope, binding);
@@ -325,7 +326,7 @@ export class AccessScope implements IExpression {
     return context ? (context[name] = value) : undefined;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const name = this.name;
     const context = BindingContext.get(scope, name, this.ancestor);
     binding.observeProperty(context, name);
@@ -357,7 +358,7 @@ export class AccessMember implements IExpression {
     return value;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const obj = this.object.evaluate(flags, scope, null);
     this.object.connect(flags, scope, binding);
     if (obj) {
@@ -393,7 +394,7 @@ export class AccessKeyed implements IExpression {
     return instance[key] = value;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const obj = this.object.evaluate(flags, scope, null);
     this.object.connect(flags, scope, binding);
     if (typeof obj === 'object' && obj !== null) {
@@ -430,7 +431,7 @@ export class CallScope implements IExpression {
     return undefined;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const args = this.args;
     for (let i = 0, ii = args.length; i < ii; ++i) {
       args[i].connect(flags, scope, binding);
@@ -460,7 +461,7 @@ export class CallMember implements IExpression {
     return undefined;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const obj = this.object.evaluate(flags, scope, null);
     this.object.connect(flags, scope, binding);
     if (getFunction(flags & ~BindingFlags.mustEvaluate, obj, this.name)) {
@@ -494,7 +495,7 @@ export class CallFunction implements IExpression {
     throw new Error(`${this.func} is not a function`);
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const func = this.func.evaluate(flags, scope, null);
     this.func.connect(flags, scope, binding);
     if (typeof func === 'function') {
@@ -527,7 +528,7 @@ export class Binary implements IExpression {
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {}
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const left = this.left.evaluate(flags, scope, null);
     this.left.connect(flags, scope, binding);
     if (this.operation === '&&' && !left || this.operation === '||' && left) {
@@ -621,7 +622,7 @@ export class Unary implements IExpression {
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {}
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.expression.connect(flags, scope, binding);
   }
 
@@ -684,7 +685,7 @@ export class HtmlLiteral implements IExpression {
     return result;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     for (let i = 0, ii = this.parts.length; i < ii; ++i) {
       this.parts[i].connect(flags, scope, binding);
     }
@@ -710,7 +711,7 @@ export class ArrayLiteral implements IExpression {
     return result;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const elements = this.elements;
     for (let i = 0, ii = elements.length; i < ii; ++i) {
       elements[i].connect(flags, scope, binding);
@@ -739,7 +740,7 @@ export class ObjectLiteral implements IExpression {
     return instance;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const keys = this.keys;
     const values = this.values;
     for (let i = 0, ii = keys.length; i < ii; ++i) {
@@ -772,7 +773,7 @@ export class Template implements IExpression {
     return result;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const expressions = this.expressions;
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
       expressions[i].connect(flags, scope, binding);
@@ -811,7 +812,7 @@ export class TaggedTemplate implements IExpression {
     return func.apply(null, [this.cooked].concat(results));
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const expressions = this.expressions;
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
       expressions[i].connect(flags, scope, binding);
@@ -839,7 +840,7 @@ export class ArrayBindingPattern implements IExpression {
     // TODO
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayBindingPattern(this);
@@ -862,7 +863,7 @@ export class ObjectBindingPattern implements IExpression {
     // TODO
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectBindingPattern(this);
@@ -876,7 +877,7 @@ export class BindingIdentifier implements IExpression {
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     return this.name;
   }
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingIdentifier(this);
@@ -907,7 +908,7 @@ export class ForOfStatement implements IExpression {
     IterateForOfStatement[toStringTag.call(result)](result, func);
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.declaration.connect(flags, scope, binding);
     this.iterable.connect(flags, scope, binding);
   }
@@ -940,7 +941,7 @@ export class Interpolation implements IExpression {
     return result;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const expressions = this.expressions;
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
       expressions[i].connect(flags, scope, binding);

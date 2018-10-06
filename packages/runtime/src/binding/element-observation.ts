@@ -214,7 +214,7 @@ export class CheckedObserver implements CheckedObserver {
     const element = this.obj;
     const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     let index;
-    const matcher = element['matcher'] || ((a: Primitive | IIndexable, b: Primitive | IIndexable) => a === b);
+    const matcher = element['matcher'] || defaultMatcher;
 
     if (element.type === 'checkbox') {
       if (Array.isArray(value)) {
@@ -224,6 +224,7 @@ export class CheckedObserver implements CheckedObserver {
         } else if (!element.checked && index !== -1) {
           value.splice(index, 1);
         }
+        // when existing value is array, do not invoke callback as only the array element has changed
         return;
       }
       value = element.checked;
@@ -349,9 +350,12 @@ export class SelectValueObserver implements SelectValueObserver {
 
   public handleEvent(): void {
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
-    this.synchronizeValue();
-    // TODO: need to clean up / improve the way collection changes are handled here (we currently just create and assign a new array to the source each change)
-    this.notify(handleEventFlags);
+    const shouldNotify = this.synchronizeValue();
+    // TODO: need to clean up / improve the way collection changes are handled here
+    // (we currently just create and assign a new array to the source each change)
+    if (shouldNotify) {
+      this.notify(handleEventFlags);
+    }
   }
 
   public synchronizeOptions(indexMap?: IndexMap): void {
@@ -373,25 +377,65 @@ export class SelectValueObserver implements SelectValueObserver {
     }
   }
 
-  public synchronizeValue(): void {
+  public synchronizeValue(): boolean {
+    // Spec for synchronizing value between <select/> and select observer
+    // When synchronizing value with observed <select/> element, do the following steps:
+    // A. If the select is multiple
+    //    1. Check if current value, called currentValues is an array
+    //      a. If not an array, return true to signal value has changed
+    //      b. If is an array:
+    //        i. gather all current selected <option/>, in to array called values
+    //        ii. loop through the currentValues array and remove items that are nolonger selected based on matcher
+    //        iii. loop through the values array and add items that are selected based on matcher
+    //        iv. Return false to signal value hasn't changed
+    // B. If the select is single
+    //    1. Let value equal the first selected option, if no option selected, then value is null
+    //    2. assign currentValue to oldValue
+    //    3. assign value to currentValue
+    //    4. return true to signal value has changed
     const obj = this.obj;
     const options = obj.options;
     const len = options.length;
-    this.oldValue = this.currentValue;
+    const currentValue = this.currentValue;
+    // this.oldValue = this.currentValue;
 
     if (obj.multiple) {
-      // multi select
-      let i = 0;
-      const newValue: UntypedArray = [];
-      while (i < len) {
-        const option = options.item(i) as HTMLOptionElementWithModel;
-        if (option.selected) {
-          const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
-          newValue.push(optionValue);
+      if (Array.isArray(currentValue)) {
+        // multi select
+        let i = 0;
+        let option: HTMLOptionElementWithModel;
+        const matcher = obj.matcher || defaultMatcher;
+        // A.1.b.i
+        const values: UntypedArray = [];
+        while (i < len) {
+          option = options.item(i);
+          if (option.selected) {
+            values.push(option.hasOwnProperty('model') ? option.model : option.value);
+          }
         }
-        i++;
+        // A.1.b.ii
+        i = 0;
+        while (i < currentValue.length) {
+          const a = currentValue[i];
+          if (values.findIndex(b => !!matcher(a, b)) === -1) {
+            currentValue.splice(i, 1);
+          } else {
+            i++;
+          }
+        }
+        // A.1.b.iii
+        i = 0;
+        while (i < values.length) {
+          const a = values[i];
+          if (currentValue.findIndex(b => !!matcher(a, b)) === -1) {
+            currentValue.push(a);
+          }
+          i++;
+        }
+        // A.1.b.iv
+        return false;
       }
-      this.currentValue = newValue;
+      return true;
     } else {
       // single select
       let i = 0;
@@ -404,6 +448,7 @@ export class SelectValueObserver implements SelectValueObserver {
         }
         i++;
       }
+      return true;
     }
   }
 

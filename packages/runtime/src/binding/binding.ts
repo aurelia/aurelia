@@ -3,30 +3,16 @@ import { IExpression } from './ast';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
-import { AccessorOrObserver, IBindingTargetObserver, IBindScope, IPropertySubscriber, ISubscribable, MutationKind } from './observation';
+import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
+import { AccessorOrObserver, IBindingTargetObserver, IBindScope } from './observation';
 import { IObserverLocator } from './observer-locator';
 
-const slotNames: string[] = [];
-const versionSlotNames: string[] = [];
-let lastSlot = -1;
-function ensureEnoughSlotNames(currentSlot: number): void {
-  if (currentSlot === lastSlot) {
-    lastSlot += 5;
-    const ii = slotNames.length = versionSlotNames.length = lastSlot + 1;
-    for (let i = currentSlot + 1; i < ii; ++i) {
-      slotNames[i] = `_observer${i}`;
-      versionSlotNames[i] = `_observerVersion${i}`;
-    }
-  }
-}
-ensureEnoughSlotNames(-1);
+// tslint:disable:no-any
 
 export interface IBinding extends IBindScope {
-  locator: IServiceLocator;
-  observeProperty(obj: any, name: string): void;
+  readonly locator: IServiceLocator;
+  readonly $scope: IScope;
 }
-
-// TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 
 export type IBindingTarget = any; // Node | CSSStyleDeclaration | IObservable;
 
@@ -36,23 +22,22 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
-// tslint:disable:no-any
-export class Binding implements IBinding, IPropertySubscriber {
+export interface Binding extends IConnectableBinding {}
+
+@connectable()
+export class Binding implements IPartialConnectableBinding {
   public $isBound: boolean = false;
+  public $scope: IScope = null;
 
   public targetObserver: AccessorOrObserver;
-  protected observerSlots: number;
-  protected version: number;
-  protected $scope: IScope;
 
   constructor(
     public sourceExpression: IExpression,
     public target: IBindingTarget,
     public targetProperty: string,
     public mode: BindingMode,
-    protected observerLocator: IObserverLocator,
-    public locator: IServiceLocator) {
-  }
+    public observerLocator: IObserverLocator,
+    public locator: IServiceLocator) { }
 
   public updateTarget(value: any): void {
     this.targetObserver.setValue(value, BindingFlags.updateTargetInstance);
@@ -80,7 +65,7 @@ export class Binding implements IBinding, IPropertySubscriber {
       if (newValue !== previousValue) {
         targetObserver.setValue(newValue, flags);
       }
-      if (!(mode & oneTime)) {
+      if ((mode & oneTime) === 0) {
         this.version++;
         sourceExpression.connect(flags, $scope, this);
         this.unobserve(false);
@@ -161,93 +146,4 @@ export class Binding implements IBinding, IPropertySubscriber {
     }
     this.unobserve(true);
   }
-
-  public connect(flags: BindingFlags): void {
-    if (!this.$isBound) {
-      return;
-    }
-
-    const sourceExpression = this.sourceExpression;
-    const $scope = this.$scope;
-
-    if (flags & BindingFlags.mustEvaluate) {
-      const value = sourceExpression.evaluate(flags, $scope, this.locator);
-      this.targetObserver.setValue(value, flags);
-    }
-
-    sourceExpression.connect(flags, $scope, this);
-  }
-
-  //#region ConnectableBinding
-  public addObserver(observer: IBindingTargetObserver): void {
-    // find the observer.
-    const observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
-    let i = observerSlots;
-
-    while (i-- && this[slotNames[i]] !== observer);
-
-    // if we are not already observing, put the observer in an open slot and subscribe.
-    if (i === -1) {
-      i = 0;
-      while (this[slotNames[i]]) {
-        i++;
-      }
-      this[slotNames[i]] = observer;
-      observer.subscribe(this);
-      // increment the slot count.
-      if (i === observerSlots) {
-        this.observerSlots = i + 1;
-      }
-    }
-    // set the "version" when the observer was used.
-    if (this.version === undefined) {
-      this.version = 0;
-    }
-    this[versionSlotNames[i]] = this.version;
-    ensureEnoughSlotNames(i);
-  }
-
-  public observeProperty(obj: any, propertyName: string): void {
-    const observer = this.observerLocator.getObserver(obj, propertyName) as IBindingTargetObserver;
-    /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
-     *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
-     *  1. Fail earlier: only let the locator resolve observers from .getObserver, and throw if no branches are left (e.g. it would otherwise return an accessor)
-     *  2. Fail silently (without throwing): give all accessors a no-op subscribe method
-     *
-     * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
-     */
-    this.addObserver(observer);
-  }
-
-  public unobserve(all?: boolean): void {
-    const slots = this.observerSlots;
-    let i = 0;
-    let slotName;
-    let observer;
-    if (all) {
-      // forward array processing is easier on the cpu than backwards (unlike a loop without array processing)
-      while (i < slots) {
-        slotName = slotNames[i];
-        if (observer = this[slotName]) {
-          this[slotName] = null;
-          observer.unsubscribe(this);
-        }
-        i++;
-      }
-    } else {
-      const version = this.version;
-      while (i < slots) {
-        if (this[versionSlotNames[i]] !== version) {
-          slotName = slotNames[i];
-          if (observer = this[slotName]) {
-            this[slotName] = null;
-            observer.unsubscribe(this);
-          }
-        }
-        i++;
-      }
-    }
-  }
-  //#endregion
 }
-// tslint:enable:no-any

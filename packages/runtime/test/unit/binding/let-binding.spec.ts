@@ -3,6 +3,7 @@ import { spy } from 'sinon';
 import { DI, IContainer } from '../../../../kernel/src/index';
 import { LetBinding } from '../../../src/binding/let-binding';
 import { BindingContext, BindingFlags, BindingMode, ExpressionKind, IBindingTarget, IExpression, IObserverLocator, IScope } from '../../../src/index';
+import { MockExpression } from '../mock';
 
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
@@ -35,18 +36,6 @@ describe('LetBinding', () => {
     }
   });
 
-  describe('updateTarget()', () => {
-    it('throws when called', () => {
-      expect(() => sut.updateTarget(null)).to.throw();
-    });
-  });
-
-  describe('updateSource()', () => {
-    it('throws when called', () => {
-      expect(() => sut.updateSource(null)).to.throw();
-    });
-  });
-
   describe('$bind()', () => {
     it('does not change target if scope was not changed', () => {
       const vm = {};
@@ -57,17 +46,6 @@ describe('LetBinding', () => {
       const target = sut.target;
       sut.$bind(BindingFlags.none, scope);
       expect(sut.target).to.equal(target, 'It should have not recreated target');
-    });
-
-    it('throws when binding mode is not [toView]', () => {
-      const vm = {};
-      const sourceExpression = new MockExpression();
-      sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container);
-      sut['mode'] = BindingMode.fromView;
-      expect(() => sut.$bind(BindingFlags.none, BindingContext.createScope(vm))).to.throw();
-      sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container);
-      sut['mode'] = BindingMode.toView;
-      expect(() => sut.$bind(BindingFlags.none, BindingContext.createScope(vm))).not.to.throw();
     });
 
     it('creates right target with toViewModel === true', () => {
@@ -124,46 +102,4 @@ describe('LetBinding', () => {
       expect(unbindSpy).to.have.been.calledWith(BindingFlags.fromUnbind, scope, sut);
     });
   });
-
-  describe('connect()', () => {
-    it(`does not connect if it is not bound`, () => {
-      const sourceExpression = new MockExpression();
-      sut = new LetBinding(<any>sourceExpression, dummyTargetProperty, observerLocator, container);
-
-      sut.connect(BindingFlags.mustEvaluate);
-
-      expect(sourceExpression.connect).not.to.have.been.called;
-      expect(sourceExpression.evaluate).not.to.have.been.called;
-    });
-
-    it(`connects the sourceExpression`, () => {
-      const sourceExpression = new MockExpression();
-      sut = new LetBinding(<any>sourceExpression, dummyTargetProperty, observerLocator, container);
-      const target = {};
-      const scope: any = {};
-      sut['target'] = target;
-      sut['$scope'] = scope;
-      sut['$isBound'] = true;
-      const flags = BindingFlags.none;
-
-      sut.connect(flags);
-
-      expect(sourceExpression.connect).to.have.been.calledWith(flags, scope, sut);
-      expect(sourceExpression.evaluate).to.have.been.called;
-    });
-  });
 });
-
-class MockExpression implements IExpression {
-  public $kind = ExpressionKind.AccessScope;
-  constructor(public value?: any) {
-    this.evaluate = spy(this, 'evaluate');
-  }
-  evaluate() {
-    return this.value;
-  }
-  connect = spy();
-  assign = spy();
-  bind = spy();
-  unbind = spy();
-}

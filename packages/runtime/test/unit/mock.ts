@@ -43,8 +43,10 @@ import {
   ICustomAttributeSource,
   ICustomAttribute,
   IRenderer,
-  INode
+  INode,
+  ExpressionKind
 } from '../../src';
+import { spy } from 'sinon';
 
 export class MockContext {
   public log: any[] = [];
@@ -758,4 +760,20 @@ export class MockCustomElementWithAllLifecycles {
   public trace(fnName: keyof MockCustomElementWithAllLifecycles, ...args: any[]): void {
     this.calls.push([fnName, ...args]);
   }
+}
+
+
+export class MockExpression implements IExpression {
+  public $kind = ExpressionKind.AccessScope;
+  constructor(public value?: any) {
+    this.evaluate = spy(this, 'evaluate');
+  }
+  evaluate() {
+    return this.value;
+  }
+  connect = spy();
+  assign = spy();
+  bind = spy();
+  unbind = spy();
+  accept = spy();
 }

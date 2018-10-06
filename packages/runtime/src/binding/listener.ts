@@ -10,7 +10,8 @@ import { DelegationStrategy, IEventManager } from './event-manager';
 
 export class Listener implements IBinding {
   public $isBound: boolean = false;
-  private source: IScope;
+  public $scope: IScope;
+
   private handler: IDisposable;
 
   constructor(
@@ -24,10 +25,10 @@ export class Listener implements IBinding {
   ) { }
 
   public callSource(event: Event): any {
-    const overrideContext = this.source.overrideContext as any;
+    const overrideContext = this.$scope.overrideContext as any;
     overrideContext['$event'] = event;
 
-    const result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.source, this.locator);
+    const result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.$scope, this.locator);
 
     delete overrideContext['$event'];
 
@@ -44,7 +45,7 @@ export class Listener implements IBinding {
 
   public $bind(flags: BindingFlags, source: IScope): void {
     if (this.$isBound) {
-      if (this.source === source) {
+      if (this.$scope === source) {
         return;
       }
 
@@ -52,7 +53,7 @@ export class Listener implements IBinding {
     }
 
     this.$isBound = true;
-    this.source = source;
+    this.$scope = source;
 
     if (this.sourceExpression.bind) {
       this.sourceExpression.bind(flags, source, this);
@@ -74,14 +75,11 @@ export class Listener implements IBinding {
     this.$isBound = false;
 
     if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(flags, this.source, this);
+      this.sourceExpression.unbind(flags, this.$scope, this);
     }
 
-    this.source = null;
+    this.$scope = null;
     this.handler.dispose();
     this.handler = null;
   }
-
-  // tslint:disable-next-line:no-empty
-  public observeProperty(): void { }
 }

@@ -19,7 +19,7 @@ export type Decoratable<TOptional, TRequired> = Function & {
 export type Decorated<TOptional, TRequired> = Function & {
   readonly prototype: Required<TOptional> & Required<TRequired>;
   // tslint:disable-next-line:no-any
-  new(...args: any[]): Required<TOptional> & Required<TRequired>;
+  new(...args: any[]): any;
 };
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: any[] };

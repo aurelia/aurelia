@@ -1,4 +1,3 @@
-// tslint:disable:interface-name
 import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
 import { BindingType, IExpressionParser, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
 import {

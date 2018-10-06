@@ -62,7 +62,6 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
   };
 }
 
-// tslint:disable-next-line:interface-name
 export interface CollectionLengthObserver extends IBindingTargetObserver<any, string> {}
 
 @targetObserver()

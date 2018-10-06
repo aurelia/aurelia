@@ -6,7 +6,6 @@ import { IBindingTargetAccessor, IBindingTargetObserver, IObservable, IPropertyS
 import { IObserverLocator } from './observer-locator';
 import { subscriberCollection } from './subscriber-collection';
 
-// tslint:disable-next-line:interface-name
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
   // tslint:disable-next-line:no-reserved-keywords
@@ -65,7 +64,6 @@ export function createComputedObserver(
   throw Reporter.error(18, propertyName);
 }
 
-// tslint:disable-next-line:interface-name
 export interface CustomSetterObserver extends IBindingTargetObserver { }
 
 // Used when the getter is dependent solely on changes that happen within the setter.
@@ -106,7 +104,6 @@ export class CustomSetterObserver implements CustomSetterObserver {
 
   public convertProperty(): void {
     const setter = this.descriptor.set;
-    // tslint:disable-next-line:no-this-assignment
     const that = this;
 
     this.observing = true;
@@ -131,7 +128,6 @@ export class CustomSetterObserver implements CustomSetterObserver {
 
 CustomSetterObserver.prototype.dispose = PLATFORM.noop;
 
-// tslint:disable-next-line:interface-name
 export interface GetterObserver extends IBindingTargetObserver { }
 
 // Used when there is no setter, and the getter is dependent on other properties of the object;
@@ -202,7 +198,6 @@ export class GetterController {
   ) {
     const proxy = new Proxy(instance, createGetterTraps(observerLocator, this));
     const getter = descriptor.get;
-    // tslint:disable-next-line:no-this-assignment
     const ctrl = this;
 
     Reflect.defineProperty(instance, propertyName, {

@@ -129,7 +129,7 @@
     "export-name": false,
     "function-name": false,
     "import-name": true,
-    "interface-name": [true, "always-prefix"],
+    "interface-name": false,
     "jsdoc-format": true,
     "max-classes-per-file": false,  // we generally recommend making one public class per file
     "max-file-line-count": false,
@@ -156,7 +156,7 @@
     "no-return-await": true,
     "no-shadowed-variable": true,
     "no-suspicious-comment": false,
-    "no-this-assignment": true,
+    "no-this-assignment": false,
     "no-typeof-undefined": true,
     "no-unnecessary-class": false,
     "no-unnecessary-field-initialization": true,

@@ -7,8 +7,6 @@ import { IAttachLifecycle, IDetachLifecycle, Lifecycle, LifecycleFlags } from '.
 import { IRenderable } from '../renderable';
 import { IView, IViewFactory } from '../view';
 
-// tslint:disable:no-this-assignment
-// tslint:disable-next-line:interface-name
 export interface Repeat<T extends ObservedCollection> extends ICustomAttribute, IBatchedCollectionSubscriber {}
 
 const batchedChangesFlags = BindingFlags.fromFlushChanges | BindingFlags.fromBind;

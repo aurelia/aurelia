@@ -44,7 +44,6 @@ PrimitiveObserver.prototype.subscribe = noop;
 PrimitiveObserver.prototype.unsubscribe = noop;
 PrimitiveObserver.prototype.dispose = noop;
 
-// tslint:disable-next-line:interface-name
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
 @propertyObserver()
@@ -82,7 +81,6 @@ export class SetterObserver implements SetterObserver {
   }
 }
 
-// tslint:disable-next-line:interface-name
 export interface Observer extends IPropertyObserver<IIndexable, string> {}
 
 @propertyObserver()

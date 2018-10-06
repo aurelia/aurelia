@@ -56,7 +56,6 @@ export class DirtyChecker {
   }
 }
 
-// tslint:disable-next-line:interface-name
 export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
 /*@internal*/

@@ -17,7 +17,6 @@ const observedPropertyDescriptor: PropertyDescriptor = {
 function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
   if (this.observing === false) {
     this.observing = true;
-    // tslint:disable-next-line:no-this-assignment
     const { obj, propertyKey } = this;
     this.currentValue = obj[propertyKey];
     observedPropertyDescriptor.get = () => this.getValue();

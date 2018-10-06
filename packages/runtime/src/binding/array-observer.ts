@@ -322,7 +322,6 @@ export function disableArrayObservation(): void {
   if (proto.sort['observing'] === true) proto.sort = nativeSort;
 }
 
-// tslint:disable-next-line:interface-name
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
 
 @collectionObserver(CollectionKind.array)

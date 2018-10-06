@@ -1,8 +1,9 @@
+import { BindingIdentifier, ArrayBindingPattern, ObjectBindingPattern } from './../../../runtime/src/binding/ast';
 import { AccessKeyed, AccessMember, AccessScope, AccessThis,
   Assign, Binary, BindingBehavior, CallFunction,
   CallMember, CallScope, Conditional,
   ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template,
-  Unary, ValueConverter, TaggedTemplate, IsUnary, IsPrimary, BinaryOperator, UnaryOperator, BindingType, Interpolation } from '../../../runtime/src';
+  Unary, ValueConverter, TaggedTemplate, IsUnary, IsPrimary, BinaryOperator, UnaryOperator, BindingType, Interpolation, ForOfStatement } from '../../../runtime/src';
 import { latin1IdentifierStartChars, latin1IdentifierPartChars, otherBMPIdentifierPartChars } from './unicode';
 import { expect } from 'chai';
 import { parseCore, parse,  ParserState } from '../../../jit/src'
@@ -1132,6 +1133,61 @@ describe('ExpressionParser', () => {
 
   // #endregion
 
+  // https://tc39.github.io/ecma262/#sec-runtime-semantics-iteratordestructuringassignmentevaluation
+  describe('parse ForOfStatement', () => {
+    const SimpleForDeclarations: [string, any][] = [
+      [`a`,           new BindingIdentifier('a')],
+      [`{}`,          new ObjectBindingPattern([], [])],
+      [`[]`,          new ArrayBindingPattern([])],
+    ];
+
+    const ForDeclarations: [string, any][] = [
+      [`{a}`,         new ObjectBindingPattern(['a'], [$a])],
+      [`{a:a}`,       new ObjectBindingPattern(['a'], [$a])],
+      [`{a,b}`,       new ObjectBindingPattern(['a', 'b'], [$a, $b])],
+      [`{a:a,b}`,     new ObjectBindingPattern(['a', 'b'], [$a, $b])],
+      [`{a,b:b}`,     new ObjectBindingPattern(['a', 'b'], [$a, $b])],
+      [`{a:a,b,c}`,   new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
+      [`{a,b:b,c}`,   new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
+      [`{a,b,c:c}`,   new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
+      [`{a:a,b:b,c}`, new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
+      [`{a:a,b,c:c}`, new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
+      [`{a,b:b,c:c}`, new ObjectBindingPattern(['a', 'b', 'c'], [$a, $b, $c])],
+      [`[,]`,         new ArrayBindingPattern([$undefined, $undefined])],
+      [`[,,]`,        new ArrayBindingPattern([$undefined, $undefined, $undefined])],
+      [`[,,,]`,       new ArrayBindingPattern([$undefined, $undefined, $undefined, $undefined])],
+      [`[a,]`,        new ArrayBindingPattern([$a, $undefined])],
+      [`[a,,]`,       new ArrayBindingPattern([$a, $undefined, $undefined])],
+      [`[a,a,]`,      new ArrayBindingPattern([$a, $a, $undefined])],
+      [`[a,,,]`,      new ArrayBindingPattern([$a, $undefined, $undefined, $undefined])],
+      [`[a,a,,]`,     new ArrayBindingPattern([$a, $a, $undefined, $undefined])],
+      [`[,a]`,        new ArrayBindingPattern([$undefined, $a])],
+      [`[,a,]`,       new ArrayBindingPattern([$undefined, $a, $undefined])],
+      [`[,a,,]`,      new ArrayBindingPattern([$undefined, $a, $undefined, $undefined])],
+      [`[,a,a,]`,     new ArrayBindingPattern([$undefined, $a, $a, $undefined])],
+      [`[,,a]`,       new ArrayBindingPattern([$undefined, $undefined, $a])],
+      [`[,a,a]`,      new ArrayBindingPattern([$undefined, $a, $a])],
+      [`[,,a,]`,      new ArrayBindingPattern([$undefined, $undefined, $a, $undefined])],
+      [`[,,,a]`,      new ArrayBindingPattern([$undefined, $undefined, $undefined, $a])],
+      [`[,,a,a]`,     new ArrayBindingPattern([$undefined, $undefined, $a, $a])]
+    ];
+
+    const ForOfStatements: [string, any][] = [
+      ...SimpleForDeclarations.map(([decInput, decExpr]) => <[string, any][]>[
+        ...SimpleIsBindingBehaviorList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, new ForOfStatement(decExpr, forExpr)])
+      ]).reduce((a, c) => a.concat(c)),
+      ...ForDeclarations.map(([decInput, decExpr]) => <[string, any][]>[
+        ...AccessScopeList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, new ForOfStatement(decExpr, forExpr)])
+      ]).reduce((a, c) => a.concat(c))
+    ];
+
+    for (const [input, expected] of ForOfStatements) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input, <any>BindingType.ForCommand), expected);
+      });
+    }
+  });
+
   describe('parse unicode IdentifierStart', () => {
     for (const char of latin1IdentifierStartChars) {
       it(char, () => {
@@ -1204,9 +1260,16 @@ describe('ExpressionParser', () => {
       });
     }
 
-    for (const input of []) {
+    for (const [input] of SimpleIsBindingBehaviorList) {
       it(`throw Code 106 (InvalidForDeclaration) on "${input}"`, () => {
-        verifyResultOrError(input, null, 'Code 106');
+        verifyResultOrError(input, null, 'Code 106', BindingType.ForCommand);
+      });
+    }
+    for (const [input] of <[string, any][]>[
+      [`a`, new BindingIdentifier('a')]
+    ]) {
+      it(`throw Code 106 (InvalidForDeclaration) on "${input}"`, () => {
+        verifyResultOrError(input, null, 'Code 106', BindingType.ForCommand);
       });
     }
 

@@ -178,7 +178,7 @@ export class ViewFactory implements IViewFactory {
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {
       if (size === '*') {
-        size = Number.MAX_VALUE;
+        size = 0xFFFF;
       } else if (typeof size === 'string') {
         size = parseInt(size, 10);
       }

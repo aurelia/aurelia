@@ -168,6 +168,7 @@ export class View implements IView {
 
 /*@internal*/
 export class ViewFactory implements IViewFactory {
+  public static maxCacheSize: number = 0xFFFF;
   public isCaching: boolean = false;
 
   private cacheSize: number = -1;
@@ -178,7 +179,7 @@ export class ViewFactory implements IViewFactory {
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
     if (size) {
       if (size === '*') {
-        size = 0xFFFF;
+        size = ViewFactory.maxCacheSize;
       } else if (typeof size === 'string') {
         size = parseInt(size, 10);
       }

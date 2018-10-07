@@ -1,5 +1,5 @@
 import { IObserverLocator, IChangeSet, SelectValueObserver, BindingFlags, DOM } from '../../../../src/index';
-import { createElement, _, eachCartesianJoin, eachCartesianJoinFactory, h } from '../../util';
+import { createElement, _, eachCartesianJoin, eachCartesianJoinFactory, h, verifyEqual } from '../../util';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
 import { DI, Primitive } from '../../../../../kernel/src/index';
@@ -9,7 +9,7 @@ const eventDefaults = { bubbles: true };
 type Anything = any;
 
 // TODO: need many more tests here, this is just preliminary
-describe('SelectValueObserver', () => {
+describe.only('SelectValueObserver', () => {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
     const container = DI.createContainer();
     const observerLocator = <IObserverLocator>container.get(IObserverLocator);
@@ -107,39 +107,101 @@ describe('SelectValueObserver', () => {
   });
 
   describe('synchronizeValue()', () => {
-
+    // There is subtle difference in behavior of synchronization for SelectObserver
+    // When synchronzing value without synchronizing Options prior
+    // the behavior is different, as such, if currentValue is an array
+    //    1. With synchronizeOptions: source => target => source. Or selected <option/> are based on value array
+    //    2. Without synchronizeOptions: target => source. Or selected values are based on selected <option/>
     describe('<select multiple="true" />', () => {
-      it('synchronizes', () => {
-        const { el, sut } = createSut([], []);
-        // sut.bind();
-        let currentValue = sut.currentValue as any[];
-        expect(currentValue).to.be.instanceOf(Array);
-        expect(currentValue['length']).to.equal(0);
-        el.append(...[
+      it('synchronizes with array', () => {
+        const { sut } = createMutiSelectSut([], [
           option({ text: 'A', selected: true }),
           option({ text: 'B', selected: true }),
           option({ text: 'C' })
         ]);
-        currentValue.push('A');
-        sut.handleNodeChange();
+        const currentValue = sut.currentValue as any[];
+        expect(currentValue).to.be.instanceOf(Array);
+        expect(currentValue['length']).to.equal(0);
+        sut.synchronizeValue();
         expect(currentValue).to.equal(sut.currentValue);
-        expect(currentValue['length']).to.equal(1);
+        expect(currentValue['length']).to.equal(2);
+      });
+
+      it('synchronizes with null', () => {
+        const { el, sut } = createMutiSelectSut(null, [
+          option({ text: 'A', selected: true }),
+          option({ text: 'B', selected: true }),
+          option({ text: 'C' })
+        ]);
+        const currentValue = sut.currentValue as any;
+        expect(currentValue).to.be.null;
+        sut.synchronizeValue();
+        expect(currentValue).to.equal(sut.currentValue);
+      });
+
+      it('synchronizes with undefined', () => {
+        const { el, sut } = createMutiSelectSut(undefined, [
+          option({ text: 'A', selected: true }),
+          option({ text: 'B', selected: true }),
+          option({ text: 'C' })
+        ]);
+        const currentValue = sut.currentValue as any;
+        expect(currentValue).to.be.undefined;
+        sut.synchronizeValue();
+        expect(currentValue).to.equal(sut.currentValue);
+      });
+
+      it('synchronizes with array (2)', () => {
+        const { sut } = createMutiSelectSut([], [
+          option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
+          option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
+          option({ text: 'C' })
+        ]);
+        const currentValue = sut.currentValue as any[];
+        sut.synchronizeValue();
+        expect(currentValue).to.equal(sut.currentValue);
+        expect(currentValue['length']).to.equal(2);
+        verifyEqual(
+          currentValue,
+          [
+            { id: 1, name: 'select 1' },
+            { id: 2, name: 'select 2' }
+          ]
+        );
+      });
+
+      it('synchronizes with array (3)', () => {
+        const { sut } = createMutiSelectSut([], [
+          option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
+          option({ text: 'B', value: 'BB",', _model: { id: 2, name: 'select 2' }, selected: true }),
+          option({ text: 'C', value: 'CC' })
+        ]);
+        const currentValue = sut.currentValue as any[];
+        sut.synchronizeValue();
+        expect(currentValue).to.equal(sut.currentValue);
+        expect(currentValue['length']).to.equal(2);
+        verifyEqual(
+          currentValue,
+          [
+            { id: 1, name: 'select 1' },
+            { id: 2, name: 'select 2' }
+          ]
+        );
       });
 
       type SelectValidChild = HTMLOptionElement | HTMLOptGroupElement;
 
-      function createSut(initialValue: Anything[], options: SelectValidChild[]) {
+      function createMutiSelectSut(initialValue: Anything[], options: SelectValidChild[]) {
         const container = DI.createContainer();
         const observerLocator = <IObserverLocator>container.get(IObserverLocator);
-        const changeSet = <IChangeSet>container.get(IChangeSet);
-        const el = createSelectElement(...options);
+        // const changeSet = <IChangeSet>container.get(IChangeSet);
+        const el = select(...options);
         const sut = <SelectValueObserver>observerLocator.getObserver(el, 'value');
-        sut.setValue(initialValue, BindingFlags.none);
-        changeSet.flushChanges();
+        sut.oldValue = sut.currentValue = initialValue;
         return { el, sut }
       }
 
-      function createSelectElement(...options: SelectValidChild[]): HTMLSelectElement {
+      function select(...options: SelectValidChild[]): HTMLSelectElement {
         return h('select',
           { multiple: true },
           ...options

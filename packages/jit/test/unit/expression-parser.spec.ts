@@ -1188,8 +1188,45 @@ describe('ExpressionParser', () => {
     }
   });
 
+  const InterpolationList: [string, any][] = [
+    [`a`,                       null],
+    [`\\\${a`,                  null],
+    [`\\\${a}`,                 null],
+    [`\\\${a}\\\${a}`,          null],
+    [`$a`,                      null],
+    [`$a$a`,                    null],
+    [`$\\{a`,                   null],
+    [`\${a}\${b}`,              new Interpolation(['', '', ''],                       [$a, $b])],
+    [`a\${a}\${b}`,             new Interpolation(['a', '', ''],                      [$a, $b])],
+    [`\${a}a\${b}`,             new Interpolation(['', 'a', ''],                      [$a, $b])],
+    [`a\${a}a\${b}`,            new Interpolation(['a', 'a', ''],                     [$a, $b])],
+    [`\${a}\${b}a`,             new Interpolation(['', '', 'a'],                      [$a, $b])],
+    [`\${a}a\${b}a`,            new Interpolation(['', 'a', 'a'],                     [$a, $b])],
+    [`a\${a}a\${b}a`,           new Interpolation(['a', 'a', 'a'],                    [$a, $b])],
+    [`\${\`\${a}\`}`,           new Interpolation(['', ''], [new Template(['', ''],   [$a])])],
+    [`\${\`a\${a}\`}`,          new Interpolation(['', ''], [new Template(['a', ''],  [$a])])],
+    [`\${\`\${a}a\`}`,          new Interpolation(['', ''], [new Template(['', 'a'],  [$a])])],
+    [`\${\`a\${a}a\`}`,         new Interpolation(['', ''], [new Template(['a', 'a'], [$a])])],
+    [`\${\`\${\`\${a}\`}\`}`,   new Interpolation(['', ''], [new Template(['', ''], [new Template(['', ''],   [$a])])])],
+    ...stringEscapables.map(([raw, cooked]) => <[string, any][]>[
+      [`${raw}`,                null],
+      [`\${a}${raw}`,           new Interpolation(['', cooked],        [$a])],
+      [`${raw}\${a}`,           new Interpolation([cooked, ''],        [$a])],
+      [`${raw}\${a}${raw}`,     new Interpolation([cooked, cooked],    [$a])],
+      [`\${a}${raw}\${a}`,      new Interpolation(['', cooked, ''],    [$a, $a])],
+    ])
+    .reduce((acc, cur) => acc.concat(cur)),
+    ...SimpleIsAssignList
+      .map(([input, expr]) => <[string, any]>[`\${${input}}`, new Interpolation(['', ''], [expr])]),
+    ...SimpleIsAssignList
+      .map(([input, expr]) => <[string, any]>[`\${${input}}\${${input}}`, new Interpolation(['', '', ''], [expr, expr])])
+  ];
   describe('parse Interpolation', () => {
-
+    for (const [input, expected] of InterpolationList) {
+      it(input, () => {
+        verifyASTEqual(parseCore(input, <any>BindingType.Interpolation), expected);
+      });
+    }
   });
 
   describe('parse unicode IdentifierStart', () => {

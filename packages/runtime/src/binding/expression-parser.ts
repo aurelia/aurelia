@@ -12,7 +12,7 @@ export interface IExpressionParser {
 export const IExpressionParser = DI.createInterface<IExpressionParser>()
   .withDefault(x => x.singleton(ExpressionParser));
 
-const emptyString = new PrimitiveLiteral('');
+const emptyString: any = new PrimitiveLiteral('');
 
 /*@internal*/
 export class ExpressionParser implements IExpressionParser {

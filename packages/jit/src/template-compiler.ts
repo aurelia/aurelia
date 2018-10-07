@@ -29,6 +29,7 @@ import {
   IStylePropertyBindingInstruction,
   ITargetedInstruction,
   ITemplateCompiler,
+
   ITemplateSource,
   ITextBindingInstruction,
   TargetedInstruction,
@@ -336,6 +337,15 @@ export class TextBindingInstruction implements ITextBindingInstruction {
 export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation = TargetedInstructionType.interpolation;
   constructor(public srcOrExpr: string | Interpolation, public dest: string) {}
+}
+export class InterpolationInstruction implements IInterpolationInstruction {
+  public type: TargetedInstructionType.interpolation;
+  public srcOrExpr: string | Interpolation;
+  public dest: string;
+  constructor(srcOrExpr: string | Interpolation, dest: string) {
+    this.srcOrExpr = srcOrExpr;
+    this.dest = dest;
+  }
 }
 export class OneTimeBindingInstruction implements IPropertyBindingInstruction {
   public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;

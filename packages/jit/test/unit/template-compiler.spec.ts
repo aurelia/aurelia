@@ -863,7 +863,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  describe('sibling template controllers', () => {
+  describe.only('sibling template controllers', () => {
 
     eachCartesianJoinFactory([
       <(() => CTCResult[])[]>[

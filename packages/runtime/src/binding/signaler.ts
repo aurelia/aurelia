@@ -1,10 +1,11 @@
-import { DI } from '@aurelia/kernel';
+import { DI, Immutable } from '@aurelia/kernel';
 import { BindingFlags } from './binding-flags';
 import { IPropertySubscriber } from './observation';
 
 type Signal = string;
 
 export interface ISignaler {
+  signals: Immutable<Record<string, Set<IPropertySubscriber>>>;
   dispatchSignal(name: Signal, flags?: BindingFlags): void;
   addSignalListener(name: Signal, listener: IPropertySubscriber): void;
   removeSignalListener(name: Signal, listener: IPropertySubscriber): void;
@@ -14,7 +15,7 @@ export const ISignaler = DI.createInterface<ISignaler>().withDefault(x => x.sing
 
 /*@internal*/
 export class Signaler implements ISignaler {
-  private signals: Record<string, Set<IPropertySubscriber>>;
+  public signals: Record<string, Set<IPropertySubscriber>>;
 
   constructor() {
     this.signals = Object.create(null);

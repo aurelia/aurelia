@@ -140,7 +140,7 @@ export class CheckedObserver implements CheckedObserver {
 
   constructor(
     public changeSet: IChangeSet,
-    public obj: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
+    public obj: HTMLInputElement & { $observers?: any; matcher?: any; model?: any },
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
   ) { }
@@ -190,7 +190,7 @@ export class CheckedObserver implements CheckedObserver {
       element.checked = !!matcher(value, elementValue);
     } else if (value === true) {
       element.checked = true;
-    } else if (Array.isArray(value)){
+    } else if (Array.isArray(value)) {
       element.checked = value.findIndex(item => !!matcher(item, elementValue)) !== -1;
     } else {
       element.checked = false;
@@ -214,7 +214,7 @@ export class CheckedObserver implements CheckedObserver {
     const element = this.obj;
     const elementValue = element.hasOwnProperty('model') ? element['model'] : element.value;
     let index;
-    const matcher = element['matcher'] || ((a: Primitive | IIndexable, b: Primitive | IIndexable) => a === b);
+    const matcher = element['matcher'] || defaultMatcher;
 
     if (element.type === 'checkbox') {
       if (Array.isArray(value)) {
@@ -224,6 +224,7 @@ export class CheckedObserver implements CheckedObserver {
         } else if (!element.checked && index !== -1) {
           value.splice(index, 1);
         }
+        // when existing value is array, do not invoke callback as only the array element has changed
         return;
       }
       value = element.checked;
@@ -279,15 +280,15 @@ function defaultMatcher(a: Primitive | IIndexable, b: Primitive | IIndexable): b
 
 // tslint:disable-next-line:interface-name
 export interface SelectValueObserver extends
-  IBindingTargetObserver<HTMLSelectElement & { matcher?: typeof defaultMatcher }, string, Primitive | UntypedArray>,
+  IBindingTargetObserver<HTMLSelectElement & { matcher?: typeof defaultMatcher }, string, Primitive | IIndexable | UntypedArray>,
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
 @targetObserver()
 export class SelectValueObserver implements SelectValueObserver {
-  public currentValue: Primitive | UntypedArray;
+  public currentValue: Primitive | IIndexable | UntypedArray;
   public currentFlags: BindingFlags;
-  public oldValue: Primitive | UntypedArray;
+  public oldValue: Primitive | IIndexable | UntypedArray;
   public defaultValue: Primitive | UntypedArray;
 
   public flushChanges: () => void;
@@ -302,7 +303,7 @@ export class SelectValueObserver implements SelectValueObserver {
     public observerLocator: IObserverLocator
   ) { }
 
-  public getValue(): Primitive | UntypedArray {
+  public getValue(): Primitive | IIndexable | UntypedArray {
     return this.currentValue;
   }
 
@@ -349,9 +350,10 @@ export class SelectValueObserver implements SelectValueObserver {
 
   public handleEvent(): void {
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
-    this.synchronizeValue();
-    // TODO: need to clean up / improve the way collection changes are handled here (we currently just create and assign a new array to the source each change)
-    this.notify(handleEventFlags);
+    const shouldNotify = this.synchronizeValue();
+    if (shouldNotify) {
+      this.notify(handleEventFlags);
+    }
   }
 
   public synchronizeOptions(indexMap?: IndexMap): void {
@@ -373,38 +375,93 @@ export class SelectValueObserver implements SelectValueObserver {
     }
   }
 
-  public synchronizeValue(): void {
+  public synchronizeValue(): boolean {
+    // Spec for synchronizing value from `SelectObserver` to `<select/>`
+    // When synchronizing value to observed <select/> element, do the following steps:
+    // A. If `<select/>` is multiple
+    //    1. Check if current value, called `currentValue` is an array
+    //      a. If not an array, return true to signal value has changed
+    //      b. If is an array:
+    //        i. gather all current selected <option/>, in to array called `values`
+    //        ii. loop through the `currentValue` array and remove items that are nolonger selected based on matcher
+    //        iii. loop through the `values` array and add items that are selected based on matcher
+    //        iv. Return false to signal value hasn't changed
+    // B. If the select is single
+    //    1. Let `value` equal the first selected option, if no option selected, then `value` is `null`
+    //    2. assign `this.currentValue` to `this.oldValue`
+    //    3. assign `value` to `this.currentValue`
+    //    4. return `true` to signal value has changed
     const obj = this.obj;
     const options = obj.options;
     const len = options.length;
-    this.oldValue = this.currentValue;
+    const currentValue = this.currentValue;
+    let i = 0;
 
     if (obj.multiple) {
+      // A.
+      if (!Array.isArray(currentValue)) {
+        // A.1.a
+        return true;
+      }
+      // A.1.b
       // multi select
-      let i = 0;
-      const newValue: UntypedArray = [];
+      let option: HTMLOptionElementWithModel;
+      const matcher = obj.matcher || defaultMatcher;
+      // A.1.b.i
+      const values: UntypedArray = [];
       while (i < len) {
-        const option = options.item(i) as HTMLOptionElementWithModel;
+        option = options.item(i);
         if (option.selected) {
-          const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
-          newValue.push(optionValue);
+          values.push(option.hasOwnProperty('model')
+            ? option.model
+            : option.value
+          );
         }
-        i++;
+        ++i;
       }
-      this.currentValue = newValue;
-    } else {
-      // single select
-      let i = 0;
-      while (i < len) {
-        const option = options.item(i) as HTMLOptionElementWithModel;
-        if (option.selected) {
-          const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
-          this.currentValue = optionValue as Primitive | UntypedArray;
-          return;
+      // A.1.b.ii
+      i = 0;
+      while (i < currentValue.length) {
+        const a = currentValue[i];
+        // Todo: remove arrow fn
+        if (values.findIndex(b => !!matcher(a, b)) === -1) {
+          currentValue.splice(i, 1);
+        } else {
+          ++i;
         }
-        i++;
       }
+      // A.1.b.iii
+      i = 0;
+      while (i < values.length) {
+        const a = values[i];
+        // Todo: remove arrow fn
+        if (currentValue.findIndex(b => !!matcher(a, b)) === -1) {
+          currentValue.push(a);
+        }
+        ++i;
+      }
+      // A.1.b.iv
+      return false;
     }
+    // B. single select
+    // B.1
+    let value: Primitive | IIndexable | UntypedArray = null;
+    while (i < len) {
+      const option = options.item(i) as HTMLOptionElementWithModel;
+      if (option.selected) {
+        value = option.hasOwnProperty('model')
+          ? option.model
+          : option.value;
+        break;
+      }
+      ++i;
+    }
+    // B.2
+    this.oldValue = this.currentValue;
+    // B.3
+    this.currentValue = value;
+    // B.4
+    return true;
   }
 
   public subscribe(subscriber: IPropertySubscriber): void {
@@ -421,10 +478,11 @@ export class SelectValueObserver implements SelectValueObserver {
   }
 
   public bind(): void {
-    this.nodeObserver = DOM.createNodeObserver(this.obj, () => {
-      this.synchronizeOptions();
-      this.synchronizeValue();
-    }, childObserverOptions);
+    this.nodeObserver = DOM.createNodeObserver(
+      this.obj,
+      this.handleNodeChange.bind(this),
+      childObserverOptions
+    );
   }
 
   public unbind(): void {
@@ -434,6 +492,14 @@ export class SelectValueObserver implements SelectValueObserver {
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribeBatched(this);
       this.arrayObserver = null;
+    }
+  }
+
+  public handleNodeChange(): void {
+    this.synchronizeOptions();
+    const shouldNotify = this.synchronizeValue();
+    if (shouldNotify) {
+      this.notify(handleEventFlags);
     }
   }
 }

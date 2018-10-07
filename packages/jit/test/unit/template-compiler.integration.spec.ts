@@ -7,7 +7,7 @@ import {
 } from '../../../runtime/src';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { eachCartesianJoinFactory } from './util';
+import { eachCartesianJoinFactory, h } from './util';
 
 
 @valueConverter('sort')
@@ -62,7 +62,7 @@ const TestConfiguration = {
   }
 }
 
-function createCustomElement(markup: string, ...dependencies: Function[]): { [key: string]: any } {
+function createCustomElement(markup: string | Element, ...dependencies: Function[]): { [key: string]: any } {
   return new (CustomElementResource.define({
     name: 'app',
     dependencies: [...dependencies],
@@ -342,18 +342,35 @@ describe('TemplateCompiler (integration)', () => {
   });
 
   it(`toViewBinding - select single`, () => {
-    component = createCustomElement(`<template><select value.to-view="selectedValue"><option value="1"></option><option value="2"></option></select></template>`);
+    component = createCustomElement(
+      template(null,
+        select(
+          { 'value.to-view': 'selectedValue' },
+          ...[1,2].map(v => option({ value: v }))
+        )
+      )
+    );
+    // component = createCustomElement(`<template><select value.to-view="selectedValue"><option value="1"></option><option value="2"></option></select></template>`);
     au.app({ host, component }).start();
-    expect(host.firstChild['value']).to.equal('1');
+    expect(host.firstElementChild['value']).to.equal('1');
     component.selectedValue = '2';
-    expect(host.firstChild['value']).to.equal('1');
+    expect(host.firstElementChild['value']).to.equal('1');
     cs.flushChanges();
-    expect(host.firstChild['value']).to.equal('2');
-    expect(host.firstChild.childNodes.item(1)['selected']).to.be.true;
+    expect(host.firstElementChild['value']).to.equal('2');
+    expect(host.firstElementChild.childNodes.item(1)['selected']).to.be.true;
   });
 
   it(`twoWayBinding - select single`, () => {
-    component = createCustomElement(`<template><select value.two-way="selectedValue"><option value="1"></option><option value="2"></option></select></template>`);
+    component = createCustomElement(
+      h('template',
+        null,
+        h('select',
+          { 'value.two-way': 'selectedValue' },
+          ...[1,2].map(v => h('option', { value: v }))
+        )
+      )
+    );
+    // component = createCustomElement(`<template><select value.two-way="selectedValue"><option value="1"></option><option value="2"></option></select></template>`);
     au.app({ host, component }).start();
     expect(component.selectedValue).to.be.undefined;
     host.firstChild.childNodes.item(1)['selected'] = true;
@@ -365,15 +382,15 @@ describe('TemplateCompiler (integration)', () => {
   it(`trigger - button`, () => {
     component = createCustomElement(`<template><button click.trigger="doStuff()"></button></template>`);
     au.app({ host, component }).start();
-    component.doStuff = spy()
-    host.firstChild.dispatchEvent(new CustomEvent('click'))
+    component.doStuff = spy();
+    host.firstChild.dispatchEvent(new CustomEvent('click'));
     expect(component.doStuff).to.have.been.called;
   });
 
   it(`delegate - button`, () => {
     component = createCustomElement(`<template><button click.delegate="doStuff()"></button></template>`);
     au.app({ host, component }).start();
-    component.doStuff = spy()
+    component.doStuff = spy();
     host.firstChild.dispatchEvent(new CustomEvent('click', { bubbles: true }));
     expect(component.doStuff).to.have.been.called;
   });
@@ -756,4 +773,16 @@ describe('TemplateCompiler (integration)', () => {
     cs.flushChanges();
     expect(host.textContent).to.equal('w00t00t'.repeat(6));
   });
+
+  function template(attrs: Record<string, any> | null, ...children: Element[]) {
+    return h('template', attrs, ...children);
+  }
+
+  function select(attrs: Record<string, any> | null, ...children: (HTMLOptionElement | HTMLOptGroupElement)[]) {
+    return h('select', attrs, ...children);
+  }
+
+  function option(attrs: Record<string, any> | null) {
+    return h('option', attrs);
+  }
 });

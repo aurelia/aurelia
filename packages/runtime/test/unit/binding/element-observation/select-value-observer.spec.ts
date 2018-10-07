@@ -9,7 +9,7 @@ const eventDefaults = { bubbles: true };
 type Anything = any;
 
 // TODO: need many more tests here, this is just preliminary
-describe.only('SelectValueObserver', () => {
+describe('SelectValueObserver', () => {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
     const container = DI.createContainer();
     const observerLocator = <IObserverLocator>container.get(IObserverLocator);

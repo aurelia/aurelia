@@ -763,6 +763,18 @@ export class MockCustomElementWithAllLifecycles {
 }
 
 
+export class MockPropertySubscriber {
+  public calls: [keyof MockPropertySubscriber, ...any[]][] = [];
+
+  public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void {
+    this.trace(`handleChange`, newValue, previousValue, flags);
+  }
+
+  public trace(fnName: keyof MockPropertySubscriber, ...args: any[]): void {
+    this.calls.push([fnName, ...args]);
+  }
+}
+
 export class MockExpression implements IExpression {
   public $kind = ExpressionKind.AccessScope;
   constructor(public value?: any) {

@@ -34,7 +34,6 @@ const inputValueDefaults = {
 
 const handleEventFlags = BindingFlags.fromDOMEvent | BindingFlags.updateSourceExpression;
 
-// tslint:disable-next-line:interface-name
 export interface ValueAttributeObserver extends
   IBindingTargetObserver<INode, string, Primitive | IIndexable> { }
 
@@ -120,7 +119,6 @@ ValueAttributeObserver.prototype.handler = null;
 
 const defaultHandleBatchedChangeFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
 
-// tslint:disable-next-line:interface-name
 export interface CheckedObserver extends
   IBindingTargetObserver<HTMLInputElement, string, Primitive | IIndexable>,
   IBatchedCollectionSubscriber,
@@ -278,7 +276,6 @@ function defaultMatcher(a: Primitive | IIndexable, b: Primitive | IIndexable): b
   return a === b;
 }
 
-// tslint:disable-next-line:interface-name
 export interface SelectValueObserver extends
   IBindingTargetObserver<HTMLSelectElement & { matcher?: typeof defaultMatcher }, string, Primitive | IIndexable | UntypedArray>,
   IBatchedCollectionSubscriber,

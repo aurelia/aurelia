@@ -108,7 +108,6 @@ export function disableMapObservation(): void {
   if (proto.delete['observing'] === true) proto.delete = nativeDelete;
 }
 
-// tslint:disable-next-line:interface-name
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
 @collectionObserver(CollectionKind.map)

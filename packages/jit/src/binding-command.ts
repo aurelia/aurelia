@@ -1,4 +1,3 @@
-// tslint:disable:interface-name
 import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
 import { BindingType, IExpressionParser, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
 import {
@@ -12,7 +11,8 @@ import {
   SetPropertyInstruction,
   ToViewBindingInstruction,
   TriggerBindingInstruction,
-  TwoWayBindingInstruction
+  TwoWayBindingInstruction,
+  IteratorBindingInstruction
 } from '.';
 
 export interface IBindingCommandSource {
@@ -190,7 +190,7 @@ export class ForBindingCommand implements IBindingCommand {
       instructions: []
     };
     return new HydrateTemplateController(src, 'repeat', [
-      new ToViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ForCommand), 'items'),
+      new IteratorBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ForCommand), 'items'),
       new SetPropertyInstruction('item', 'local')
     // tslint:disable-next-line:align
     ], false);

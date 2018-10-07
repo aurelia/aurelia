@@ -1,9 +1,11 @@
 import { Immutable, Reporter } from '@aurelia/kernel';
+import { Interpolation } from '../binding';
 import { Binding } from '../binding/binding';
 import { BindingMode } from '../binding/binding-mode';
 import { Call } from '../binding/call';
 import { IEventManager } from '../binding/event-manager';
 import { BindingType, IExpressionParser } from '../binding/expression-parser';
+import { InterpolationBinding, MultiInterpolationBinding } from '../binding/interpolation-binding';
 import { LetBinding } from '../binding/let-binding';
 import { Listener } from '../binding/listener';
 import { IObserverLocator } from '../binding/observer-locator';
@@ -16,6 +18,8 @@ import {
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
   IHydrateTemplateController,
+  IInterpolationInstruction,
+  IIteratorBindingInstruction,
   ILetElementInstruction,
   IListenerBindingInstruction,
   IPropertyBindingInstruction,
@@ -103,12 +107,32 @@ export class Renderer implements IRenderer {
     DOM.treatAsNonWhitespace(next);
     DOM.remove(target);
     const srcOrExpr = instruction.srcOrExpr as any;
-    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.Interpolation), next, 'textContent', BindingMode.toView, this.observerLocator, this.context));
+    const expr = (srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.Interpolation)) as Interpolation;
+    if (expr.isMulti) {
+      renderable.$bindables.push(new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, this.context));
+    } else {
+      renderable.$bindables.push(new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, this.context, true));
+    }
+  }
+
+  public [TargetedInstructionType.interpolation](renderable: IRenderable, target: any, instruction: Immutable<IInterpolationInstruction>): void {
+    const srcOrExpr = instruction.srcOrExpr as any;
+    const expr = (srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.Interpolation)) as Interpolation;
+    if (expr.isMulti) {
+      renderable.$bindables.push(new MultiInterpolationBinding(this.observerLocator, expr, target, instruction.dest, BindingMode.toView, this.context));
+    } else {
+      renderable.$bindables.push(new InterpolationBinding(expr.firstExpression, expr, target, instruction.dest, BindingMode.toView, this.observerLocator, this.context, true));
+    }
   }
 
   public [TargetedInstructionType.propertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IPropertyBindingInstruction>): void {
     const srcOrExpr = instruction.srcOrExpr as any;
     renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand | instruction.mode), target, instruction.dest, instruction.mode, this.observerLocator, this.context));
+  }
+
+  public [TargetedInstructionType.iteratorBinding](renderable: IRenderable, target: any, instruction: Immutable<IIteratorBindingInstruction>): void {
+    const srcOrExpr = instruction.srcOrExpr as any;
+    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.ForCommand), target, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.listenerBinding](renderable: IRenderable, target: any, instruction: Immutable<IListenerBindingInstruction>): void {

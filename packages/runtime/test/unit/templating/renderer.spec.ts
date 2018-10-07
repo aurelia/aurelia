@@ -48,9 +48,10 @@ import {
 } from '../../../../jit/src/index';
 import { DI } from '../../../../kernel/src/index';
 import { spy, SinonSpy } from 'sinon';
+import { InterpolationBinding } from '../../../src/binding/interpolation-binding';
 
 describe('Renderer', () => {
-  function setup<T extends ITargetedInstruction>(instruction: T) {
+  function setup() {
     const container = DI.createContainer();
     ParserRegistration.register(container);
     const parser = <IExpressionParser>container.get(IExpressionParser);
@@ -86,20 +87,20 @@ describe('Renderer', () => {
   }
 
   describe('handles ITextBindingInstruction', () => {
-    for (const srcOrExpr of ['${foo}', new Interpolation(['', ''], [new AccessScope('foo')])]) {
-      const instruction = new TextBindingInstruction(srcOrExpr);
+    for (const srcOrExpr of ['${foo}', new Interpolation(['', ''], [new AccessScope('foo')])] as any[]) {
+      const instruction = new TextBindingInstruction(srcOrExpr) as any;
       it(_`instruction=${instruction}`, () => {
-        const { sut, renderable, target, placeholder, wrapper } = setup(instruction);
+        const { sut, renderable, target, placeholder, wrapper } = setup();
 
         sut[instruction.type](renderable, target, instruction);
 
         expect(placeholder['auInterpolationTarget']).to.be.true;
         expect(renderable.$bindables.length).to.equal(1);
-        const bindable = <Binding>renderable.$bindables[0];
+        const bindable = <InterpolationBinding>renderable.$bindables[0];
         expect(bindable.target).to.equal(placeholder);
-        expect(bindable.sourceExpression['expressions'][0]['name']).to.equal('foo');
-        expect(bindable.sourceExpression['parts'][0]).to.equal('');
-        expect(bindable.sourceExpression['parts'][1]).to.equal('');
+        expect(bindable.interpolation['expressions'][0]['name']).to.equal('foo');
+        expect(bindable.interpolation['parts'][0]).to.equal('');
+        expect(bindable.interpolation['parts'][1]).to.equal('');
         expect(bindable.mode).to.equal(BindingMode.toView);
         expect(target.isConnected).to.be.false;
 
@@ -109,12 +110,12 @@ describe('Renderer', () => {
   });
 
   describe('handles IPropertyBindingInstruction', () => {
-    for (const Instruction of [OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction]) {
+    for (const Instruction of [OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction] as any[]) {
       for (const dest of ['foo', 'bar']) {
         for (const srcOrExpr of ['foo', new AccessScope('foo')]) {
           const instruction = <IPropertyBindingInstruction>new (<any>Instruction)(srcOrExpr, dest);
           it(_`instruction=${instruction}`, () => {
-            const { sut, renderable, target, wrapper } = setup(instruction);
+            const { sut, renderable, target, wrapper } = setup();
 
             sut[instruction.type](renderable, target, instruction);
 
@@ -133,12 +134,12 @@ describe('Renderer', () => {
   });
 
   describe('handles IListenerBindingInstruction', () => {
-    for (const Instruction of [TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction]) {
+    for (const Instruction of [TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction] as any[]) {
       for (const dest of ['foo', 'bar']) {
         for (const srcOrExpr of ['foo', new AccessScope('foo')]) {
           const instruction = <IListenerBindingInstruction>new (<any>Instruction)(srcOrExpr, dest);
           it(_`instruction=${instruction}`, () => {
-            const { sut, renderable, target, wrapper } = setup(instruction);
+            const { sut, renderable, target, wrapper } = setup();
 
             sut[instruction.type](renderable, target, instruction);
 
@@ -159,10 +160,10 @@ describe('Renderer', () => {
 
   describe('handles ICallBindingInstruction', () => {
     for (const dest of ['foo', 'bar']) {
-      for (const srcOrExpr of ['foo()', new CallScope('foo', [])]) {
-        const instruction = new CallBindingInstruction(srcOrExpr, dest);
+      for (const srcOrExpr of ['foo()', new CallScope('foo', [])] as any[]) {
+        const instruction = new CallBindingInstruction(srcOrExpr, dest) as any;
         it(_`instruction=${instruction}`, () => {
-          const { sut, renderable, target, wrapper } = setup(instruction);
+          const { sut, renderable, target, wrapper } = setup();
 
           sut[instruction.type](renderable, target, instruction);
 
@@ -179,10 +180,10 @@ describe('Renderer', () => {
   });
 
   describe('handles IRefBindingInstruction', () => {
-    for (const srcOrExpr of ['foo', new AccessScope('foo')]) {
-      const instruction = new RefBindingInstruction(srcOrExpr);
+    for (const srcOrExpr of ['foo', new AccessScope('foo')] as any[]) {
+      const instruction = new RefBindingInstruction(srcOrExpr) as any;
       it(_`instruction=${instruction}`, () => {
-        const { sut, renderable, target, wrapper } = setup(instruction);
+        const { sut, renderable, target, wrapper } = setup();
 
         sut[instruction.type](renderable, target, instruction);
 
@@ -198,10 +199,10 @@ describe('Renderer', () => {
 
   describe('handles IStyleBindingInstruction', () => {
     for (const dest of ['foo', 'bar']) {
-      for (const srcOrExpr of ['foo', new AccessScope('foo')]) {
-        const instruction = new StylePropertyBindingInstruction(srcOrExpr, dest);
+      for (const srcOrExpr of ['foo', new AccessScope('foo')] as any[]) {
+        const instruction = new StylePropertyBindingInstruction(srcOrExpr, dest) as any;
         it(_`instruction=${instruction}`, () => {
-          const { sut, renderable, target, wrapper } = setup(instruction);
+          const { sut, renderable, target, wrapper } = setup();
 
           sut[instruction.type](renderable, target, instruction);
 
@@ -220,10 +221,10 @@ describe('Renderer', () => {
 
   describe('handles ISetPropertyInstruction', () => {
     for (const dest of ['foo', 'bar']) {
-      for (const value of ['foo', 42, {}]) {
-        const instruction = new SetPropertyInstruction(value, dest);
+      for (const value of ['foo', 42, {}] as any[]) {
+        const instruction = new SetPropertyInstruction(value, dest) as any;
         it(_`instruction=${instruction}`, () => {
-          const { sut, renderable, target, wrapper } = setup(instruction);
+          const { sut, renderable, target, wrapper } = setup();
 
           sut[instruction.type](renderable, target, instruction);
 
@@ -238,10 +239,10 @@ describe('Renderer', () => {
 
   describe('handles ISetAttributeInstruction', () => {
     for (const dest of ['id', 'accesskey', 'slot', 'tabindex']) {
-      for (const value of ['foo', 42, null]) {
-        const instruction = new SetAttributeInstruction(value, dest);
+      for (const value of ['foo', 42, null] as any[]) {
+        const instruction = new SetAttributeInstruction(value, dest) as any;
         it(_`instruction=${instruction}`, () => {
-          const { sut, renderable, target, wrapper } = setup(instruction);
+          const { sut, renderable, target, wrapper } = setup();
 
           sut[instruction.type](renderable, target, instruction);
 
@@ -256,10 +257,10 @@ describe('Renderer', () => {
 
   describe('handles IHydrateElementInstruction', () => {
     for (const res of ['foo', 'bar']) {
-      for (const instructions of [[], [,]]) {
-        const instruction = new HydrateElementInstruction(res, instructions);
+      for (const instructions of [[], [,]] as any[]) {
+        const instruction = new HydrateElementInstruction(res, instructions) as any;
         it(_`instruction=${instruction}`, () => {
-          const { sut, renderable, target, wrapper, renderContext } = setup(instruction);
+          const { sut, renderable, target, wrapper, renderContext } = setup();
           sut.hydrateElementInstance = spy();
 
           sut[instruction.type](renderable, target, instruction);
@@ -279,10 +280,10 @@ describe('Renderer', () => {
 
   describe('handles IHydrateAttributeInstruction', () => {
     for (const res of ['if', 'else', 'repeat']) {
-      for (const instructions of [[], [new SetPropertyInstruction('bar', 'foo')]]) {
-        const instruction = new HydrateAttributeInstruction(res, instructions);
+      for (const instructions of [[], [new SetPropertyInstruction('bar', 'foo')]] as any[]) {
+        const instruction = new HydrateAttributeInstruction(res, instructions) as any;
         it(_`instruction=${instruction}`, () => {
-          const { sut, renderable, target, wrapper, renderContext, renderingEngine } = setup(instruction);
+          const { sut, renderable, target, wrapper, renderContext, renderingEngine } = setup();
 
           sut[instruction.type](renderable, target, instruction);
 
@@ -308,13 +309,13 @@ describe('Renderer', () => {
 
     describe('ILetElementInstruction', () => {
       for (const dest of ['processedFoo', 'processedPoo']) {
-        for (const value of ['foo', new AccessScope('foo')]) {
+        for (const value of ['foo', new AccessScope('foo')] as any[]) {
           const instruction = new LetElementInstruction(
             [new LetBindingInstruction(value, dest)],
             Math.random() > .4
-          );
+          ) as any;
           it(_`instruction=${instruction}`, () => {
-            const { sut, renderable, target, wrapper } = setup(instruction);
+            const { sut, renderable, target, wrapper } = setup();
 
             sut[instruction.type](renderable, target, instruction);
 

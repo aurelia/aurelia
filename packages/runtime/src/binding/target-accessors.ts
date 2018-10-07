@@ -8,7 +8,6 @@ import { subscriberCollection } from './subscriber-collection';
 // tslint:disable-next-line:no-http-string
 const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
 
-// tslint:disable-next-line:interface-name
 export interface XLinkAttributeAccessor extends IBindingTargetAccessor<Element, string, string> {}
 
 @targetObserver('')
@@ -44,7 +43,6 @@ export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
 
 XLinkAttributeAccessor.prototype.attributeName = '';
 
-// tslint:disable-next-line:interface-name
 export interface DataAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {}
 
 @targetObserver()
@@ -74,7 +72,6 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   }
 }
 
-// tslint:disable-next-line:interface-name
 export interface StyleAttributeAccessor extends IBindingTargetAccessor<HTMLElement, 'style', string | IIndexable> {}
 
 @targetObserver()
@@ -160,7 +157,6 @@ StyleAttributeAccessor.prototype.styles = null;
 StyleAttributeAccessor.prototype.version = 0;
 StyleAttributeAccessor.prototype.propertyKey = 'style';
 
-// tslint:disable-next-line:interface-name
 export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {}
 
 @targetObserver('')
@@ -230,7 +226,6 @@ ClassAttributeAccessor.prototype.doNotCache = true;
 ClassAttributeAccessor.prototype.version = 0;
 ClassAttributeAccessor.prototype.nameIndex = null;
 
-// tslint:disable-next-line:interface-name
 export interface ElementPropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
 
 @targetObserver('')
@@ -246,7 +241,6 @@ export class ElementPropertyAccessor implements ElementPropertyAccessor {
   }
 }
 
-// tslint:disable-next-line:interface-name
 export interface PropertyAccessor extends IBindingTargetAccessor<IIndexable, string, Primitive | IIndexable> {}
 
 export class PropertyAccessor implements PropertyAccessor {

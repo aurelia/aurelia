@@ -226,17 +226,55 @@ export class Unparser implements AST.IVisitor<void> {
     }
   }
 
-  public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): string { throw new Error('visitArrayBindingPattern'); }
+  public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): void {
+    const elements = expr.elements;
+    this.text += '[';
+    for (let i = 0, length = elements.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      elements[i].accept(this);
+    }
+    this.text += ']';
+  }
 
-  public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): string { throw new Error('visitObjectBindingPattern'); }
+  public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): void {
+    const keys = expr.keys;
+    const values = expr.values;
+    this.text += '{';
+    for (let i = 0, length = keys.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      this.text += `'${keys[i]}':`;
+      values[i].accept(this);
+    }
+    this.text += '}';
+  }
 
-  public visitBindingIdentifier(expr: AST.BindingIdentifier): string { throw new Error('visitBindingIdentifier'); }
+  public visitBindingIdentifier(expr: AST.BindingIdentifier): void {
+    this.text += expr.name;
+  }
 
-  public visitHtmlLiteral(expr: AST.HtmlLiteral): string { throw new Error('visitHtmlLiteral'); }
+  public visitHtmlLiteral(expr: AST.HtmlLiteral): void { throw new Error('visitHtmlLiteral'); }
 
-  public visitForOfStatement(expr: AST.ForOfStatement): string { throw new Error('visitForOfStatement'); }
+  public visitForOfStatement(expr: AST.ForOfStatement): void {
+    expr.declaration.accept(this);
+    this.text += ' of ';
+    expr.iterable.accept(this);
+  }
 
-  public visitInterpolation(expr: AST.Interpolation): string { throw new Error('visitInterpolation'); }
+  public visitInterpolation(expr: AST.Interpolation): void {
+    const { parts, expressions } = expr;
+    const length = expressions.length;
+    this.text += '${';
+    this.text += parts[0];
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+      this.text += parts[i + 1];
+    }
+    this.text += '}';
+  }
 
   private writeArgs(args: ReadonlyArray<AST.IExpression>): void {
     this.text += '(';
@@ -332,17 +370,27 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"type":"BindingBehavior","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
-  public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): string { throw new Error('visitArrayBindingPattern'); }
+  public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): string {
+    return `{"type":"ArrayBindingPattern","elements":${this.serializeExpressions(expr.elements)}}`;
+  }
 
-  public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): string { throw new Error('visitObjectBindingPattern'); }
+  public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): string {
+    return `{"type":"ObjectBindingPattern","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
+  }
 
-  public visitBindingIdentifier(expr: AST.BindingIdentifier): string { throw new Error('visitBindingIdentifier'); }
+  public visitBindingIdentifier(expr: AST.BindingIdentifier): string {
+    return `{"type":"BindingIdentifier","name":"${expr.name}"}`;
+  }
 
   public visitHtmlLiteral(expr: AST.HtmlLiteral): string { throw new Error('visitHtmlLiteral'); }
 
-  public visitForOfStatement(expr: AST.ForOfStatement): string { throw new Error('visitForOfStatement'); }
+  public visitForOfStatement(expr: AST.ForOfStatement): string {
+    return `{"type":"ForOfStatement","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
+  }
 
-  public visitInterpolation(expr: AST.Interpolation): string { throw new Error('visitInterpolation'); }
+  public visitInterpolation(expr: AST.Interpolation): string {
+    return `{"type":"Interpolation","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+  }
 
   // tslint:disable-next-line:no-any
   private serializeExpressions(args: ReadonlyArray<AST.IExpression>): string {

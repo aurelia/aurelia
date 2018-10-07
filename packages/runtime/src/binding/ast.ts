@@ -6,6 +6,7 @@ import { IBinding } from './binding';
 import { BindingBehaviorResource } from './binding-behavior';
 import { BindingContext, IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
+import { IConnectableBinding } from './connectable';
 import { Collection } from './observation';
 import { ISignaler } from './signaler';
 import { ValueConverterResource } from './value-converter';
@@ -52,7 +53,7 @@ export interface IVisitor<T = any> {
 export interface IExpression {
   readonly $kind: ExpressionKind;
   evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null): any;
-  connect(flags: BindingFlags, scope: IScope, binding: IBinding): any;
+  connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): any;
   accept<T>(visitor: IVisitor<T>): T;
   assign?(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null, value: any): any;
   bind?(flags: BindingFlags, scope: IScope, binding: IBinding): void;
@@ -96,7 +97,7 @@ export const enum ExpressionKind {
 }
 
 export class BindingBehavior implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.BindingBehavior;
   public readonly behaviorKey: string;
   private readonly expressionHasBind: boolean;
   private readonly expressionHasUnbind: boolean;
@@ -122,7 +123,7 @@ export class BindingBehavior implements IExpression {
     return (<any>this.expression).assign(flags, scope, locator, value);
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.expression.connect(flags, scope, binding);
   }
 
@@ -158,7 +159,7 @@ export class BindingBehavior implements IExpression {
 }
 
 export class ValueConverter implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ValueConverter;
   public readonly converterKey: string;
   constructor(
     public readonly expression: IsValueConverter,
@@ -196,7 +197,7 @@ export class ValueConverter implements IExpression {
     return (<any>this.expression).assign(flags, scope, locator, value);
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.expression.connect(flags, scope, binding);
     const args = this.args;
     for (let i = 0, ii = args.length; i < ii; ++i) {
@@ -236,7 +237,7 @@ export class ValueConverter implements IExpression {
 }
 
 export class Assign implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Assign;
   constructor(
     public readonly target: IsAssignable,
     public readonly value: IsAssign) { }
@@ -245,7 +246,7 @@ export class Assign implements IExpression {
     return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator));
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
   public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
     (<any>this.value).assign(flags, scope, locator, value);
@@ -258,7 +259,7 @@ export class Assign implements IExpression {
 }
 
 export class Conditional implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Conditional;
   public assign: IExpression['assign'];
   constructor(
     public readonly condition: IExpression,
@@ -271,7 +272,7 @@ export class Conditional implements IExpression {
       : this.no.evaluate(flags, scope, locator);
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const condition = this.condition;
     if (condition.evaluate(flags, scope, null)) {
       this.condition.connect(flags, scope, binding);
@@ -288,7 +289,7 @@ export class Conditional implements IExpression {
 }
 
 export class AccessThis implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.AccessThis;
   public assign: IExpression['assign'];
   public connect: IExpression['connect'];
   constructor(
@@ -309,7 +310,7 @@ export class AccessThis implements IExpression {
 }
 
 export class AccessScope implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.AccessScope;
   constructor(
     public readonly name: string,
     public readonly ancestor: number = 0) { }
@@ -325,7 +326,7 @@ export class AccessScope implements IExpression {
     return context ? (context[name] = value) : undefined;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const name = this.name;
     const context = BindingContext.get(scope, name, this.ancestor);
     binding.observeProperty(context, name);
@@ -337,7 +338,7 @@ export class AccessScope implements IExpression {
 }
 
 export class AccessMember implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.AccessMember;
   constructor(
     public readonly object: IExpression,
     public readonly name: string) { }
@@ -357,7 +358,7 @@ export class AccessMember implements IExpression {
     return value;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const obj = this.object.evaluate(flags, scope, null);
     this.object.connect(flags, scope, binding);
     if (obj) {
@@ -371,7 +372,7 @@ export class AccessMember implements IExpression {
 }
 
 export class AccessKeyed implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.AccessKeyed;
   constructor(
     public readonly object: IExpression,
     public readonly key: IExpression) { }
@@ -393,7 +394,7 @@ export class AccessKeyed implements IExpression {
     return instance[key] = value;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const obj = this.object.evaluate(flags, scope, null);
     this.object.connect(flags, scope, binding);
     if (typeof obj === 'object' && obj !== null) {
@@ -413,7 +414,7 @@ export class AccessKeyed implements IExpression {
 }
 
 export class CallScope implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.CallScope;
   public assign: IExpression['assign'];
   constructor(
     public readonly name: string,
@@ -430,7 +431,7 @@ export class CallScope implements IExpression {
     return undefined;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const args = this.args;
     for (let i = 0, ii = args.length; i < ii; ++i) {
       args[i].connect(flags, scope, binding);
@@ -443,7 +444,7 @@ export class CallScope implements IExpression {
 }
 
 export class CallMember implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.CallMember;
   public assign: IExpression['assign'];
   constructor(
     public readonly object: IExpression,
@@ -460,7 +461,7 @@ export class CallMember implements IExpression {
     return undefined;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const obj = this.object.evaluate(flags, scope, null);
     this.object.connect(flags, scope, binding);
     if (getFunction(flags & ~BindingFlags.mustEvaluate, obj, this.name)) {
@@ -477,7 +478,7 @@ export class CallMember implements IExpression {
 }
 
 export class CallFunction implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.CallFunction;
   public assign: IExpression['assign'];
   constructor(
     public readonly func: IExpression,
@@ -494,7 +495,7 @@ export class CallFunction implements IExpression {
     throw new Error(`${this.func} is not a function`);
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const func = this.func.evaluate(flags, scope, null);
     this.func.connect(flags, scope, binding);
     if (typeof func === 'function') {
@@ -513,7 +514,7 @@ export class CallFunction implements IExpression {
 export type BinaryOperator = '&&' | '||' |  '==' |  '===' |  '!=' |  '!==' |  'instanceof' |  'in' |  '+' |  '-' |  '*' |  '/' |  '%' |  '<' |  '>' |  '<=' |  '>=';
 
 export class Binary implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Binary;
   public assign: IExpression['assign'];
   constructor(
     public readonly operation: BinaryOperator,
@@ -527,7 +528,7 @@ export class Binary implements IExpression {
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {}
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const left = this.left.evaluate(flags, scope, null);
     this.left.connect(flags, scope, binding);
     if (this.operation === '&&' && !left || this.operation === '||' && left) {
@@ -611,7 +612,7 @@ export class Binary implements IExpression {
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
 export class Unary implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Unary;
   constructor(
     public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide) {
@@ -621,7 +622,7 @@ export class Unary implements IExpression {
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {}
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.expression.connect(flags, scope, binding);
   }
 
@@ -652,7 +653,7 @@ export class Unary implements IExpression {
 }
 
 export class PrimitiveLiteral implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.PrimitiveLiteral;
   public connect: IExpression['connect'];
   public assign: IExpression['assign'];
   constructor(public readonly value: any) { }
@@ -667,7 +668,7 @@ export class PrimitiveLiteral implements IExpression {
 }
 
 export class HtmlLiteral implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.HtmlLiteral;
   public assign: IExpression['assign'];
   constructor(public readonly parts: ReadonlyArray<IExpression>) { }
 
@@ -684,7 +685,7 @@ export class HtmlLiteral implements IExpression {
     return result;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     for (let i = 0, ii = this.parts.length; i < ii; ++i) {
       this.parts[i].connect(flags, scope, binding);
     }
@@ -696,7 +697,7 @@ export class HtmlLiteral implements IExpression {
 }
 
 export class ArrayLiteral implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
   constructor(public readonly elements: ReadonlyArray<IExpression>) { }
 
@@ -710,7 +711,7 @@ export class ArrayLiteral implements IExpression {
     return result;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const elements = this.elements;
     for (let i = 0, ii = elements.length; i < ii; ++i) {
       elements[i].connect(flags, scope, binding);
@@ -723,7 +724,7 @@ export class ArrayLiteral implements IExpression {
 }
 
 export class ObjectLiteral implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
   constructor(
     public readonly keys: ReadonlyArray<number | string>,
@@ -739,7 +740,7 @@ export class ObjectLiteral implements IExpression {
     return instance;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const keys = this.keys;
     const values = this.values;
     for (let i = 0, ii = keys.length; i < ii; ++i) {
@@ -753,7 +754,7 @@ export class ObjectLiteral implements IExpression {
 }
 
 export class Template implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
   constructor(
     public readonly cooked: ReadonlyArray<string>,
@@ -772,7 +773,7 @@ export class Template implements IExpression {
     return result;
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const expressions = this.expressions;
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
       expressions[i].connect(flags, scope, binding);
@@ -786,7 +787,7 @@ export class Template implements IExpression {
 }
 
 export class TaggedTemplate implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.TaggedTemplate;
   public assign: IExpression['assign'];
   constructor(
     public readonly cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> },
@@ -811,7 +812,7 @@ export class TaggedTemplate implements IExpression {
     return func.apply(null, [this.cooked].concat(results));
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const expressions = this.expressions;
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
       expressions[i].connect(flags, scope, binding);
@@ -825,7 +826,7 @@ export class TaggedTemplate implements IExpression {
 }
 
 export class ArrayBindingPattern implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ArrayBindingPattern;
   // We'll either have elements, or keys+values, but never all 3
   constructor(
     public readonly elements: ReadonlyArray<IsAssign>
@@ -839,7 +840,7 @@ export class ArrayBindingPattern implements IExpression {
     // TODO
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayBindingPattern(this);
@@ -847,7 +848,7 @@ export class ArrayBindingPattern implements IExpression {
 }
 
 export class ObjectBindingPattern implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ObjectBindingPattern;
   // We'll either have elements, or keys+values, but never all 3
   constructor(
     public readonly keys: ReadonlyArray<string | number>,
@@ -862,7 +863,7 @@ export class ObjectBindingPattern implements IExpression {
     // TODO
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectBindingPattern(this);
@@ -870,13 +871,13 @@ export class ObjectBindingPattern implements IExpression {
 }
 
 export class BindingIdentifier implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.BindingIdentifier;
   constructor(public readonly name: string) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     return this.name;
   }
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void { }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingIdentifier(this);
@@ -890,7 +891,7 @@ const toStringTag = Object.prototype.toString;
 // https://tc39.github.io/ecma262/#sec-iteration-statements
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
 export class ForOfStatement implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ForOfStatement;
   constructor(
     public readonly declaration: BindingIdentifierOrPattern,
     public readonly iterable: IsBindingBehavior) { }
@@ -907,7 +908,7 @@ export class ForOfStatement implements IExpression {
     IterateForOfStatement[toStringTag.call(result)](result, func);
   }
 
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.declaration.connect(flags, scope, binding);
     this.iterable.connect(flags, scope, binding);
   }
@@ -923,29 +924,33 @@ export class ForOfStatement implements IExpression {
 * but this class might be a candidate for removal if it turns out it does provide all we need
 */
 export class Interpolation implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Interpolation;
   public assign: IExpression['assign'];
+  public readonly isMulti: boolean;
+  public readonly firstExpression: IExpression;
   constructor(
     public readonly parts: ReadonlyArray<string>,
-    public readonly expressions: ReadonlyArray<IExpression>) { }
+    public readonly expressions: ReadonlyArray<IExpression>) {
+      this.isMulti = expressions.length > 1;
+      this.firstExpression = expressions[0];
+    }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
-    const expressions = this.expressions;
-    const parts = this.parts;
-    let result = parts[0];
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      result += expressions[i].evaluate(flags, scope, locator);
-      result += parts[i + 1];
-    }
-    return result;
-  }
-
-  public connect(flags: BindingFlags, scope: IScope, binding: IBinding): void {
-    const expressions = this.expressions;
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      expressions[i].connect(flags, scope, binding);
+    if (this.isMulti) {
+      const expressions = this.expressions;
+      const parts = this.parts;
+      let result = parts[0];
+      for (let i = 0, ii = expressions.length; i < ii; ++i) {
+        result += expressions[i].evaluate(flags, scope, locator);
+        result += parts[i + 1];
+      }
+      return result;
+    } else {
+      const parts = this.parts;
+      return parts[0] + this.firstExpression.evaluate(flags, scope, locator) + parts[1];
     }
   }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitInterpolation(this);

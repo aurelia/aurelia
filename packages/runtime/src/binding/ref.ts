@@ -6,7 +6,7 @@ import { BindingFlags } from './binding-flags';
 
 export class Ref implements IBinding {
   public $isBound: boolean = false;
-  private $scope: IScope;
+  public $scope: IScope;
 
   constructor(
     public sourceExpression: IExpression,
@@ -14,7 +14,7 @@ export class Ref implements IBinding {
     public locator: IServiceLocator) {
   }
 
-  public $bind(flags: BindingFlags, scope: IScope) {
+  public $bind(flags: BindingFlags, scope: IScope): void {
     if (this.$isBound) {
       if (this.$scope === scope) {
         return;
@@ -33,7 +33,7 @@ export class Ref implements IBinding {
     this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
   }
 
-  public $unbind(flags: BindingFlags) {
+  public $unbind(flags: BindingFlags): void {
     if (!this.$isBound) {
       return;
     }
@@ -50,6 +50,4 @@ export class Ref implements IBinding {
 
     this.$scope = null;
   }
-
-  public observeProperty(context: any, name: any) { }
 }

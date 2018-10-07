@@ -7,7 +7,19 @@ export interface IDisposable {
 }
 
 export type Constructable<T = {}> = {
+  // tslint:disable-next-line:no-any
   new(...args: any[]): T;
+};
+
+export type Decoratable<TOptional, TRequired> = Function & {
+  readonly prototype: Partial<TOptional> & Required<TRequired>;
+  // tslint:disable-next-line:no-any
+  new(...args: any[]): Partial<TOptional> & Required<TRequired>;
+};
+export type Decorated<TOptional, TRequired> = Function & {
+  readonly prototype: Required<TOptional> & Required<TRequired>;
+  // tslint:disable-next-line:no-any
+  new(...args: any[]): any;
 };
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: any[] };

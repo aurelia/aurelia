@@ -24,7 +24,8 @@ import {
   Lifecycle,
   LifecycleFlags,
   ChangeSet,
-  IView
+  IView,
+  Interpolation
 } from '../../../../src/index';
 import { IContainer, DI } from '../../../../../kernel/src/index';
 import { createAureliaRepeaterConfig, createRepeater } from '../../util';
@@ -275,13 +276,13 @@ describe('ArrayRepeater - render html', () => {
     ];
     const expressionCache = {
       todos: new ForOfStatement(new BindingIdentifier('todo'), new AccessScope('todos')),
-      id: new AccessMember(new AccessScope('todo'), 'id'),
-      length: new AccessMember(new AccessMember(new AccessScope('todo'), 'innerTodos'), 'length'),
+      id: new Interpolation(['', ''], [new AccessMember(new AccessScope('todo'), 'id')]),
+      length: new Interpolation(['', ''], [new AccessMember(new AccessMember(new AccessScope('todo'), 'innerTodos'), 'length')]),
       innerTodos: new ForOfStatement(new BindingIdentifier('innerTodo'), new AccessMember(new AccessScope('todo'), 'innerTodos')),
-      innerId: new AccessMember(new AccessScope('innerTodo'), 'innerId'),
-      innerLength: new AccessMember(new AccessMember(new AccessScope('innerTodo'), 'innerInnerTodos'), 'length'),
+      innerId: new Interpolation(['', ''], [new AccessMember(new AccessScope('innerTodo'), 'innerId')]),
+      innerLength: new Interpolation(['', ''], [new AccessMember(new AccessMember(new AccessScope('innerTodo'), 'innerInnerTodos'), 'length')]),
       innerInnerTodos: new ForOfStatement(new BindingIdentifier('innerInnerTodo'), new AccessMember(new AccessScope('innerTodo'), 'innerInnerTodos')),
-      innerInnerId: new AccessMember(new AccessScope('innerInnerTodo'), 'innerInnerId')
+      innerInnerId: new Interpolation(['', ''], [new AccessMember(new AccessScope('innerInnerTodo'), 'innerInnerId')])
     };
     aureliaConfig = {
       register(container: IContainer) {
@@ -327,7 +328,7 @@ describe('ArrayRepeater - render html', () => {
                               ]
                             },
                             instructions: [
-                              { type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, srcOrExpr: 'innerInnerTodos', dest: 'items' },
+                              { type: TargetedInstructionType.iteratorBinding, srcOrExpr: 'innerInnerTodos', dest: 'items' },
                               { type: TargetedInstructionType.setProperty, value: 'innerInnerTodo', dest: 'local' },
                               { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
                             ]
@@ -336,7 +337,7 @@ describe('ArrayRepeater - render html', () => {
                       ]
                     },
                     instructions: [
-                      { type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, srcOrExpr: 'innerTodos', dest: 'items' },
+                      { type: TargetedInstructionType.iteratorBinding, srcOrExpr: 'innerTodos', dest: 'items' },
                       { type: TargetedInstructionType.setProperty, value: 'innerTodo', dest: 'local' },
                       { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
                     ]
@@ -345,7 +346,7 @@ describe('ArrayRepeater - render html', () => {
               ]
             },
             instructions: [
-              { type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, srcOrExpr: 'todos', dest: 'items' },
+              { type: TargetedInstructionType.iteratorBinding, srcOrExpr: 'todos', dest: 'items' },
               { type: TargetedInstructionType.setProperty, value: 'todo', dest: 'local' },
               { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
             ]

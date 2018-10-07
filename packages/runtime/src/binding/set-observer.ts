@@ -98,7 +98,6 @@ export function disableSetObservation(): void {
   if (proto.delete['observing'] === true) proto.delete = nativeDelete;
 }
 
-// tslint:disable-next-line:interface-name
 export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
 @collectionObserver(CollectionKind.set)

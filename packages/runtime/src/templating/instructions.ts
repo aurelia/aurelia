@@ -1,6 +1,6 @@
 // tslint:disable:no-reserved-keywords
-import { DI, Immutable, IIndexable, Writable } from '@aurelia/kernel';
-import { IExpression } from '../binding/ast';
+import { DI, Immutable } from '@aurelia/kernel';
+import { ForOfStatement, Interpolation, IsBindingBehavior } from '../binding/ast';
 import { BindingMode } from '../binding/binding-mode';
 import { DelegationStrategy } from '../binding/event-manager';
 import { INode } from '../dom';
@@ -9,22 +9,24 @@ import { IBindableDescription } from './bindable';
 
 export const enum TargetedInstructionType {
   textBinding = 'a',
-  propertyBinding = 'b',
-  listenerBinding = 'c',
-  callBinding = 'd',
-  refBinding = 'e',
-  stylePropertyBinding = 'f',
-  setProperty = 'g',
-  setAttribute = 'h',
-  hydrateElement = 'i',
-  hydrateAttribute = 'j',
-  hydrateTemplateController = 'k',
-  letElement = 'l',
-  letBinding = 'm',
-  renderStrategy = 'n',
+  interpolation = 'b',
+  propertyBinding = 'c',
+  iteratorBinding = 'd',
+  listenerBinding = 'e',
+  callBinding = 'f',
+  refBinding = 'g',
+  stylePropertyBinding = 'h',
+  setProperty = 'i',
+  setAttribute = 'j',
+  hydrateElement = 'k',
+  hydrateAttribute = 'l',
+  hydrateTemplateController = 'm',
+  letElement = 'n',
+  letBinding = 'o',
+  renderStrategy = 'z',
 }
 
-const instructionTypeValues = 'abcdefghij';
+const instructionTypeValues = 'abcdefghijkl';
 
 export interface IBuildInstruction {
   required: boolean;
@@ -56,7 +58,9 @@ export interface ITargetedInstruction {
 
 export type TargetedInstruction =
   ITextBindingInstruction |
+  IInterpolationInstruction |
   IPropertyBindingInstruction |
+  IIteratorBindingInstruction |
   IListenerBindingInstruction |
   ICallBindingInstruction |
   IRefBindingInstruction |
@@ -76,20 +80,32 @@ export function isTargetedInstruction(value: any): value is TargetedInstruction 
 
 export interface ITextBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.textBinding;
-  srcOrExpr: string | IExpression;
+  srcOrExpr: string | Interpolation;
+}
+
+export interface IInterpolationInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.interpolation;
+  srcOrExpr: string | Interpolation;
+  dest: string;
 }
 
 export interface IPropertyBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.propertyBinding;
   mode: BindingMode;
-  srcOrExpr: string | IExpression;
+  srcOrExpr: string | IsBindingBehavior;
   dest: string;
   oneTime?: boolean;
 }
 
+export interface IIteratorBindingInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.iteratorBinding;
+  srcOrExpr: string | ForOfStatement;
+  dest: string;
+}
+
 export interface IListenerBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.listenerBinding;
-  srcOrExpr: string | IExpression;
+  srcOrExpr: string | IsBindingBehavior;
   dest: string;
   strategy: DelegationStrategy;
   preventDefault: boolean;
@@ -97,18 +113,18 @@ export interface IListenerBindingInstruction extends ITargetedInstruction {
 
 export interface ICallBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.callBinding,
-  srcOrExpr: string | IExpression;
+  srcOrExpr: string | IsBindingBehavior;
   dest: string;
 }
 
 export interface IRefBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.refBinding;
-  srcOrExpr: string | IExpression;
+  srcOrExpr: string | IsBindingBehavior;
 }
 
 export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.stylePropertyBinding;
-  srcOrExpr: string | IExpression;
+  srcOrExpr: string | IsBindingBehavior;
   dest: string;
 }
 
@@ -158,6 +174,6 @@ export interface ILetElementInstruction extends ITargetedInstruction {
 
 export interface ILetBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.letBinding;
-  srcOrExpr: string | IExpression;
+  srcOrExpr: string | IsBindingBehavior | Interpolation;
   dest: string;
 }

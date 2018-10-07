@@ -788,55 +788,6 @@ describe('Binding', () => {
     });
   });
 
-  describe('connect()', () => {
-    it(`does not connect if it is not bound`, () => {
-      const sourceExpression = new MockExpression();
-      const targetObserver = new MockObserver();
-      const { sut } = setup(<any>sourceExpression);
-      sut['targetObserver'] = targetObserver;
-
-      sut.connect(BindingFlags.mustEvaluate);
-
-      expect(sourceExpression.connect).not.to.have.been.called;
-      expect(sourceExpression.evaluate).not.to.have.been.called;
-      expect(targetObserver.setValue).not.to.have.been.called;
-    });
-
-    it(`connects the sourceExpression`, () => {
-      const sourceExpression = new MockExpression();
-      const targetObserver = new MockObserver();
-      const { sut } = setup(<any>sourceExpression);
-      sut['targetObserver'] = targetObserver;
-      const scope: any = {};
-      sut['$scope'] = scope;
-      sut['$isBound'] = true;
-      const flags = BindingFlags.none;
-
-      sut.connect(flags);
-
-      expect(sourceExpression.connect).to.have.been.calledWith(flags, scope, sut);
-      expect(sourceExpression.evaluate).not.to.have.been.called;
-      expect(targetObserver.setValue).not.to.have.been.called;
-    });
-
-    it(`evaluates the sourceExpression and updates the target with the retrieved value if mustEvaluate is on`, () => {
-      const value: any = {};
-      const sourceExpression = new MockExpression(value);
-      const targetObserver = new MockObserver();
-      const { sut, container } = setup(<any>sourceExpression);
-      sut['targetObserver'] = targetObserver;
-      const scope: any = {};
-      sut['$scope'] = scope;
-      sut['$isBound'] = true;
-
-      sut.connect(BindingFlags.mustEvaluate);
-
-      expect(sourceExpression.connect).to.have.been.calledWith(BindingFlags.mustEvaluate, scope, sut);
-      expect(sourceExpression.evaluate).to.have.been.calledWith(BindingFlags.mustEvaluate, scope, container);
-      expect(targetObserver.setValue).to.have.been.calledWith(value);
-    });
-  });
-
   describe('addObserver()', () => {
     const countArr = [1, 5, 100];
 
@@ -970,18 +921,4 @@ class MockObserver implements IBindingTargetObserver {
   setValue = spy();
   subscribe = spy();
   unsubscribe = spy();
-}
-
-class MockExpression implements IExpression {
-  public $kind = ExpressionKind.AccessScope;
-  constructor(public value?: any) {
-    this.evaluate = spy(this, 'evaluate');
-  }
-  evaluate() {
-    return this.value;
-  }
-  connect = spy();
-  assign = spy();
-  bind = spy();
-  unbind = spy();
 }

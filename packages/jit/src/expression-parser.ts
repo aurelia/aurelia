@@ -597,9 +597,6 @@ function parseInterpolation(state: ParserState): Interpolation {
       default:
         result += String.fromCharCode(state.currentChar);
     }
-    if (state.index >= length) {
-      break;
-    }
     nextChar(state);
   }
   if (expressions.length) {

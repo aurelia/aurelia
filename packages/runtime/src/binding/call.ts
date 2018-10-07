@@ -9,8 +9,9 @@ import { IObserverLocator } from './observer-locator';
 
 export class Call implements IBinding {
   public $isBound: boolean = false;
+  public $scope: IScope;
+
   public targetObserver: IAccessor;
-  private $scope: IScope;
 
   constructor(
     public sourceExpression: IExpression,
@@ -66,7 +67,4 @@ export class Call implements IBinding {
     this.$scope = null;
     this.targetObserver.setValue(null, flags);
   }
-
-  // tslint:disable-next-line:no-empty
-  public observeProperty(): void { }
 }

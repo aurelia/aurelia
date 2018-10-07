@@ -419,7 +419,6 @@ export class Container implements IContainer {
       return key;
     }
 
-    /* tslint:disable-next-line:no-this-assignment */
     let current: Container = this;
 
     while (current !== null) {
@@ -454,7 +453,6 @@ export class Container implements IContainer {
       return key.resolve(this, this);
     }
 
-    /* tslint:disable-next-line:no-this-assignment */
     let current: Container = this;
 
     while (current !== null) {
@@ -475,7 +473,6 @@ export class Container implements IContainer {
   public getAll(key: any): ReadonlyArray<any> {
     validateKey(key);
 
-    /* tslint:disable-next-line:no-this-assignment */
     let current: Container | null = this;
 
     while (current !== null) {

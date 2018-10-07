@@ -9,7 +9,7 @@ const eventDefaults = { bubbles: true };
 type Anything = any;
 
 // TODO: need many more tests here, this is just preliminary
-describe.only('SelectValueObserver', () => {
+describe('SelectValueObserver', () => {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
     const container = DI.createContainer();
     const observerLocator = <IObserverLocator>container.get(IObserverLocator);
@@ -61,68 +61,55 @@ describe.only('SelectValueObserver', () => {
         );
       }
     });
+
+    it('uses private method handleNodeChange as callback', (done) => {
+      for (const isMultiple of [true, false]) {
+        const { el, sut } = createFixture([], [], isMultiple);
+        const callbackSpy = spy(sut, 'handleNodeChange');
+        sut.bind();
+        expect(callbackSpy.calledOnce).to.be.false;
+        el.appendChild(document.createElement('option'));
+        Promise.resolve()
+          .then(() => expect(callbackSpy.calledOnce).to.be.true)
+          .catch(ex => expect(ex).to.be.undefined)
+          .then(() => done());
+      }
+    });
+  });
+
+  describe('unbind()', () => {
+    it('disconnect node observer', () => {
+      for (const isMultiple of [true, false]) {
+        const { el, sut } = createFixture([], [], isMultiple);
+        let count = 0;
+        sut['nodeObserver'] = { disconnect() { count++; } } as Anything;
+        sut.unbind();
+        expect(count).to.equal(1);
+        expect(sut['nodeObserver']).to.be.null;
+      }
+    });
+    it('unsubscribes array observer', () => {
+      for (const isMultiple of [true, false]) {
+        const { el, sut } = createFixture([], [], isMultiple);
+        let count = 0;
+        sut['nodeObserver'] = { disconnect() { } } as Anything;
+        sut['arrayObserver'] = {
+          unsubscribeBatched(observer: Anything) {
+            expect(observer).to.equal(sut, 'It should have unsubscribe with right observer.');
+            count++;
+          }
+        } as Anything;
+        sut.unbind();
+        expect(count).to.equal(1);
+        expect(sut['arrayObserver']).to.be.null;
+      }
+    });
   });
 
   describe('synchronizeValue()', () => {
 
     describe('<select multiple="true" />', () => {
-      // eachCartesianJoin<
-      //   [string, string, boolean],
-      //   [string, any, boolean],
-      //   [string, boolean],
-      //   [string, any, boolean],
-      //   void
-      // >([
-      //     [
-      //       [' true', 'true', true],
-      //       ['false', 'false', false]
-      //     ],
-      //     [
-      //       [`  -2`,  -2,  false],
-      //       [`  -1`,  -1,  false],
-      //       [`   0`,   0,  false],
-      //       [`   1`,   1,   true],
-      //       [`'-2'`, '-2', false],
-      //       [`'-1'`, '-1', false],
-      //       [` '0'`,  '0', false],
-      //       [` '1'`,  '1',  true],
-      //       [` '*'`,  '*',  true]
-      //     ],
-      //     [
-      //       [' true', true],
-      //       ['false', false]
-      //     ],
-      //     [
-      //       [`  -2`,  -2,  false],
-      //       [`  -1`,  -1,  false],
-      //       [`   0`,   0,  false],
-      //       [`   1`,   1,   true],
-      //       [`'-2'`, '-2', false],
-      //       [`'-1'`, '-1', false],
-      //       [` '0'`,  '0', false],
-      //       [` '1'`,  '1',  true],
-      //       [` '*'`,  '*',  true]
-      //     ]
-      //   ],
-      //   ([optionModel, optionText, selected]) => {
 
-      //   }
-      // );
-      // eachCartesianJoin(
-      //   [
-      //     ['', 'foo', 'bar'],
-      //     [
-      //       ['', 'foo', 'bar']
-      //     ],
-      //   ],
-      //   (initialValue, optionsValues) => {
-      //     it('synchronizes values', () => {
-      //       const { changeSet, el, sut } = createFixture(initialValue, optionsValues, true);
-
-      //       sut.synchronizeValue();
-      //     });
-      //   }
-      // );
     });
   });
 });

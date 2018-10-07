@@ -1,3 +1,5 @@
+import { Reporter } from "@aurelia/kernel";
+
 export interface IOverrideContext {
   parentOverrideContext: IOverrideContext;
   bindingContext: any;
@@ -6,6 +8,11 @@ export interface IOverrideContext {
 export interface IScope {
   bindingContext: any;
   overrideContext: IOverrideContext;
+}
+
+const enum RuntimeError {
+  UndefinedScope = 200, // trying to evaluate on something that's not a valid binding
+  NullScope = 201, // trying to evaluate on an unbound binding
 }
 
 export const BindingContext = {
@@ -41,6 +48,12 @@ export const BindingContext = {
   },
 
   get(scope: IScope, name: string, ancestor: number): any {
+    if (scope === undefined) {
+      throw Reporter.error(RuntimeError.UndefinedScope);
+    }
+    if (scope === null) {
+      throw Reporter.error(RuntimeError.NullScope);
+    }
     let overrideContext = scope.overrideContext;
 
     if (ancestor) {

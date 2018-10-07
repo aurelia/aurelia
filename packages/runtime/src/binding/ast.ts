@@ -1,7 +1,7 @@
 // tslint:disable:no-any
 // tslint:disable:function-name
 // tslint:disable:no-empty
-import { IServiceLocator, PLATFORM } from '@aurelia/kernel';
+import { IServiceLocator, PLATFORM, Reporter } from '@aurelia/kernel';
 import { IBinding } from './binding';
 import { BindingBehaviorResource } from './binding-behavior';
 import { BindingContext, IScope } from './binding-context';
@@ -12,9 +12,9 @@ import { ISignaler } from './signaler';
 import { ValueConverterResource } from './value-converter';
 
 export type IsPrimary = AccessThis | AccessScope | ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;
-export type IsUnary = IsPrimary | Unary;
-export type IsLeftHandSide = IsUnary | CallFunction | CallMember | CallScope | AccessMember | AccessKeyed | TaggedTemplate;
-export type IsBinary = IsLeftHandSide | Binary;
+export type IsLeftHandSide = IsPrimary | CallFunction | CallMember | CallScope | AccessMember | AccessKeyed | TaggedTemplate;
+export type IsUnary = IsLeftHandSide | Unary;
+export type IsBinary = IsUnary | Binary;
 export type IsConditional = IsBinary | Conditional;
 export type IsAssign = IsConditional | Assign;
 export type IsValueConverter = IsAssign | ValueConverter;
@@ -96,6 +96,17 @@ export const enum ExpressionKind {
   Interpolation        = 0b00001000_11000
 }
 
+const enum RuntimeError {
+  UndefinedScope = 200, // trying to evaluate on something that's not a valid binding
+  NullScope = 201, // trying to evaluate on an unbound binding
+  NoLocator = 202,
+  NoBehaviorFound = 203,
+  BehaviorAlreadyApplied = 204,
+  NoConverterFound = 205,
+  NoBinding = 206,
+  NotAFunction = 207
+}
+
 export class BindingBehavior implements IExpression {
   public $kind: ExpressionKind.BindingBehavior;
   public readonly behaviorKey: string;
@@ -128,17 +139,29 @@ export class BindingBehavior implements IExpression {
   }
 
   public bind(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+    if (scope === undefined) {
+      throw Reporter.error(RuntimeError.UndefinedScope, this);
+    }
+    if (scope === null) {
+      throw Reporter.error(RuntimeError.NullScope, this);
+    }
+    if (!binding) {
+      throw Reporter.error(RuntimeError.NoBinding, this);
+    }
+    const locator = binding.locator;
+    if (!locator) {
+      throw Reporter.error(RuntimeError.NoLocator, this);
+    }
     if (this.expressionHasBind) {
       (<any>this.expression).bind(flags, scope, binding);
     }
     const behaviorKey = this.behaviorKey;
-    const locator = binding.locator;
     const behavior = locator.get(behaviorKey) as BindingBehavior;
     if (!behavior) {
-      throw new Error(`No BindingBehavior named "${this.name}" was found!`);
+      throw Reporter.error(RuntimeError.NoBehaviorFound, this);
     }
     if ((binding as any)[behaviorKey]) {
-      throw new Error(`A binding behavior named "${this.name}" has already been applied to "${this.expression}"`);
+      throw Reporter.error(RuntimeError.BehaviorAlreadyApplied, this);
     }
     binding[behaviorKey] = behavior;
     behavior.bind.apply(behavior, [flags, scope, binding].concat(evalList(flags, scope, locator, this.args)));
@@ -169,9 +192,12 @@ export class ValueConverter implements IExpression {
   }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+    if (!locator) {
+      throw Reporter.error(RuntimeError.NoLocator, this);
+    }
     const converter = locator.get(this.converterKey);
     if (!converter) {
-      throw new Error(`No ValueConverter named "${this.name}" was found!`);
+      throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
     if ('toView' in converter) {
       const args = this.args;
@@ -187,9 +213,12 @@ export class ValueConverter implements IExpression {
   }
 
   public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
+    if (!locator) {
+      throw Reporter.error(RuntimeError.NoLocator, this);
+    }
     const converter = locator.get(this.converterKey);
     if (!converter) {
-      throw new Error(`No ValueConverter named "${this.name}" was found!`);
+      throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
     if ('fromView' in converter) {
       value = (<any>converter).fromView.apply(converter, [value].concat(evalList(flags, scope, locator, this.args)));
@@ -198,15 +227,27 @@ export class ValueConverter implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    if (scope === undefined) {
+      throw Reporter.error(RuntimeError.UndefinedScope, this);
+    }
+    if (scope === null) {
+      throw Reporter.error(RuntimeError.NullScope, this);
+    }
+    if (!binding) {
+      throw Reporter.error(RuntimeError.NoBinding, this);
+    }
+    const locator = binding.locator;
+    if (!locator) {
+      throw Reporter.error(RuntimeError.NoLocator, this);
+    }
     this.expression.connect(flags, scope, binding);
     const args = this.args;
     for (let i = 0, ii = args.length; i < ii; ++i) {
       args[i].connect(flags, scope, binding);
     }
-    const locator = binding.locator;
     const converter = locator.get(this.converterKey) as ISignaler;
     if (!converter) {
-      throw new Error(`No ValueConverter named "${this.name}" was found!`);
+      throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
     const signals = (converter as any).signals;
     if (signals === undefined) {
@@ -296,6 +337,12 @@ export class AccessThis implements IExpression {
     public readonly ancestor: number = 0) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+    if (scope === undefined) {
+      throw Reporter.error(RuntimeError.UndefinedScope, this);
+    }
+    if (scope === null) {
+      throw Reporter.error(RuntimeError.NullScope, this);
+    }
     let oc = scope.overrideContext;
     let i = this.ancestor;
     while (i-- && oc) {
@@ -492,7 +539,7 @@ export class CallFunction implements IExpression {
     if (!(flags & BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
       return undefined;
     }
-    throw new Error(`${this.func} is not a function`);
+    throw Reporter.error(RuntimeError.NotAFunction, this);
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -613,6 +660,7 @@ export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
 export class Unary implements IExpression {
   public $kind: ExpressionKind.Unary;
+  public assign: IExpression['assign'];
   constructor(
     public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide) {
@@ -624,10 +672,6 @@ export class Unary implements IExpression {
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.expression.connect(flags, scope, binding);
-  }
-
-  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
-    throw new Error(`Binding expression "${this}" cannot be assigned to.`);
   }
 
   private ['void'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
@@ -807,7 +851,7 @@ export class TaggedTemplate implements IExpression {
     }
     const func = this.func.evaluate(flags, scope, locator);
     if (typeof func !== 'function') {
-      throw new Error(`${this.func} is not a function`);
+      throw Reporter.error(RuntimeError.NotAFunction, this);
     }
     return func.apply(null, [this.cooked].concat(results));
   }
@@ -1006,7 +1050,7 @@ function getFunction(flags: BindingFlags, obj: any, name: string): any {
   if (!(flags & BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
     return null;
   }
-  throw new Error(`${name} is not a function`);
+  throw Reporter.error(RuntimeError.NotAFunction, obj, name, func);
 }
 
 function isNumeric(value: string): boolean {
@@ -1079,4 +1123,13 @@ for (let i = 0, ii = ast.length; i < ii; ++i) {
   const proto = ast[i].prototype;
   proto.assign = proto.assign || PLATFORM.noop;
   proto.connect = proto.connect || PLATFORM.noop;
+}
+
+function validateScope(scope: IScope): void {
+  if (scope === undefined) {
+    throw Reporter.error(RuntimeError.UndefinedScope, this);
+  }
+  if (scope === null) {
+    throw Reporter.error(RuntimeError.NullScope, this);
+  }
 }

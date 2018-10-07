@@ -97,7 +97,7 @@ export const enum ExpressionKind {
 }
 
 export class BindingBehavior implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.BindingBehavior;
   public readonly behaviorKey: string;
   private readonly expressionHasBind: boolean;
   private readonly expressionHasUnbind: boolean;
@@ -159,7 +159,7 @@ export class BindingBehavior implements IExpression {
 }
 
 export class ValueConverter implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ValueConverter;
   public readonly converterKey: string;
   constructor(
     public readonly expression: IsValueConverter,
@@ -237,7 +237,7 @@ export class ValueConverter implements IExpression {
 }
 
 export class Assign implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Assign;
   constructor(
     public readonly target: IsAssignable,
     public readonly value: IsAssign) { }
@@ -259,7 +259,7 @@ export class Assign implements IExpression {
 }
 
 export class Conditional implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Conditional;
   public assign: IExpression['assign'];
   constructor(
     public readonly condition: IExpression,
@@ -289,7 +289,7 @@ export class Conditional implements IExpression {
 }
 
 export class AccessThis implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.AccessThis;
   public assign: IExpression['assign'];
   public connect: IExpression['connect'];
   constructor(
@@ -310,7 +310,7 @@ export class AccessThis implements IExpression {
 }
 
 export class AccessScope implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.AccessScope;
   constructor(
     public readonly name: string,
     public readonly ancestor: number = 0) { }
@@ -338,7 +338,7 @@ export class AccessScope implements IExpression {
 }
 
 export class AccessMember implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.AccessMember;
   constructor(
     public readonly object: IExpression,
     public readonly name: string) { }
@@ -372,7 +372,7 @@ export class AccessMember implements IExpression {
 }
 
 export class AccessKeyed implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.AccessKeyed;
   constructor(
     public readonly object: IExpression,
     public readonly key: IExpression) { }
@@ -414,7 +414,7 @@ export class AccessKeyed implements IExpression {
 }
 
 export class CallScope implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.CallScope;
   public assign: IExpression['assign'];
   constructor(
     public readonly name: string,
@@ -444,7 +444,7 @@ export class CallScope implements IExpression {
 }
 
 export class CallMember implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.CallMember;
   public assign: IExpression['assign'];
   constructor(
     public readonly object: IExpression,
@@ -478,7 +478,7 @@ export class CallMember implements IExpression {
 }
 
 export class CallFunction implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.CallFunction;
   public assign: IExpression['assign'];
   constructor(
     public readonly func: IExpression,
@@ -514,7 +514,7 @@ export class CallFunction implements IExpression {
 export type BinaryOperator = '&&' | '||' |  '==' |  '===' |  '!=' |  '!==' |  'instanceof' |  'in' |  '+' |  '-' |  '*' |  '/' |  '%' |  '<' |  '>' |  '<=' |  '>=';
 
 export class Binary implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Binary;
   public assign: IExpression['assign'];
   constructor(
     public readonly operation: BinaryOperator,
@@ -612,7 +612,7 @@ export class Binary implements IExpression {
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
 export class Unary implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Unary;
   constructor(
     public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide) {
@@ -653,7 +653,7 @@ export class Unary implements IExpression {
 }
 
 export class PrimitiveLiteral implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.PrimitiveLiteral;
   public connect: IExpression['connect'];
   public assign: IExpression['assign'];
   constructor(public readonly value: any) { }
@@ -668,7 +668,7 @@ export class PrimitiveLiteral implements IExpression {
 }
 
 export class HtmlLiteral implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.HtmlLiteral;
   public assign: IExpression['assign'];
   constructor(public readonly parts: ReadonlyArray<IExpression>) { }
 
@@ -697,7 +697,7 @@ export class HtmlLiteral implements IExpression {
 }
 
 export class ArrayLiteral implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
   constructor(public readonly elements: ReadonlyArray<IExpression>) { }
 
@@ -724,7 +724,7 @@ export class ArrayLiteral implements IExpression {
 }
 
 export class ObjectLiteral implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
   constructor(
     public readonly keys: ReadonlyArray<number | string>,
@@ -754,7 +754,7 @@ export class ObjectLiteral implements IExpression {
 }
 
 export class Template implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
   constructor(
     public readonly cooked: ReadonlyArray<string>,
@@ -787,7 +787,7 @@ export class Template implements IExpression {
 }
 
 export class TaggedTemplate implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.TaggedTemplate;
   public assign: IExpression['assign'];
   constructor(
     public readonly cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> },
@@ -826,7 +826,7 @@ export class TaggedTemplate implements IExpression {
 }
 
 export class ArrayBindingPattern implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ArrayBindingPattern;
   // We'll either have elements, or keys+values, but never all 3
   constructor(
     public readonly elements: ReadonlyArray<IsAssign>
@@ -848,7 +848,7 @@ export class ArrayBindingPattern implements IExpression {
 }
 
 export class ObjectBindingPattern implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ObjectBindingPattern;
   // We'll either have elements, or keys+values, but never all 3
   constructor(
     public readonly keys: ReadonlyArray<string | number>,
@@ -871,7 +871,7 @@ export class ObjectBindingPattern implements IExpression {
 }
 
 export class BindingIdentifier implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.BindingIdentifier;
   constructor(public readonly name: string) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
@@ -891,7 +891,7 @@ const toStringTag = Object.prototype.toString;
 // https://tc39.github.io/ecma262/#sec-iteration-statements
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
 export class ForOfStatement implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.ForOfStatement;
   constructor(
     public readonly declaration: BindingIdentifierOrPattern,
     public readonly iterable: IsBindingBehavior) { }
@@ -924,7 +924,7 @@ export class ForOfStatement implements IExpression {
 * but this class might be a candidate for removal if it turns out it does provide all we need
 */
 export class Interpolation implements IExpression {
-  public $kind: ExpressionKind;
+  public $kind: ExpressionKind.Interpolation;
   public assign: IExpression['assign'];
   public readonly isMulti: boolean;
   public readonly firstExpression: IExpression;

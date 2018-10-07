@@ -11,25 +11,27 @@ import {
   IHydrateElementInstruction,
 
   IHydrateTemplateController,
+  IInterpolationInstruction,
   ILetBindingInstruction,
   ILetElementInstruction,
   IListenerBindingInstruction,
   INode,
+  Interpolation,
   IPropertyBindingInstruction,
   IRefBindingInstruction,
   IResourceDescriptions,
   ISetPropertyInstruction,
+
   IStylePropertyBindingInstruction,
   ITargetedInstruction,
-
   ITemplateCompiler,
+
   ITemplateSource,
   ITextBindingInstruction,
-
   TargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition,
-  ViewCompileFlags,
+  ViewCompileFlags
 } from '@aurelia/runtime';
 import { AttributeSymbol, ElementSymbol, IAttributeParser, IAttributeSymbol, IElementParser, NodeType, SemanticModel } from '.';
 
@@ -270,24 +272,30 @@ export class TemplateCompiler implements ITemplateCompiler {
       // }
       // plain custom attribute on any kind of element
       if ($attr.isCustomAttribute) {
-        let expression = parser.parse($attr.rawValue, BindingType.Interpolation);
-        if (expression !== null) {
-          return new ToViewBindingInstruction(expression, $attr.dest);
+        if (!$attr.hasBindingCommand) {
+          const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
+          if (expression !== null) {
+            return new InterpolationInstruction(expression, $attr.dest);
+          }
+          if ($attr.isMultiAttrBinding) {
+            return new SetPropertyInstruction($attr.rawValue, $attr.dest);
+          }
         }
-        if (!$attr.hasBindingCommand && $attr.isMultiAttrBinding) {
-          return new SetPropertyInstruction($attr.rawValue, $attr.dest);
-        }
-        expression = parser.parse($attr.rawValue, BindingType.ToViewCommand);
-        switch ($attr.mode) {
-          case BindingMode.oneTime:
-            return new OneTimeBindingInstruction(expression, $attr.dest);
-          case BindingMode.fromView:
-            return new FromViewBindingInstruction(expression, $attr.dest);
-          case BindingMode.twoWay:
-            return new TwoWayBindingInstruction(expression, $attr.dest);
-          case BindingMode.toView:
-          default:
-            return new ToViewBindingInstruction(expression, $attr.dest);
+        // intentional nested block without a statement to ensure the expression variable isn't shadowed
+        // (we're not declaring it at the outer block for better typing without explicit casting)
+        {
+          const expression = parser.parse($attr.rawValue, BindingType.ToViewCommand);
+          switch ($attr.mode) {
+            case BindingMode.oneTime:
+              return new OneTimeBindingInstruction(expression, $attr.dest);
+            case BindingMode.fromView:
+              return new FromViewBindingInstruction(expression, $attr.dest);
+            case BindingMode.twoWay:
+              return new TwoWayBindingInstruction(expression, $attr.dest);
+            case BindingMode.toView:
+            default:
+              return new ToViewBindingInstruction(expression, $attr.dest);
+          }
         }
       }
       // plain attribute on a custom element
@@ -300,17 +308,19 @@ export class TemplateCompiler implements ITemplateCompiler {
             return new SetPropertyInstruction($attr.rawValue, $attr.dest);
           }
           // interpolation -> behave like toView (e.g. foo="${someProp}")
-          return new ToViewBindingInstruction(expression, $attr.dest);
+          return new InterpolationInstruction(expression, $attr.dest);
         }
       }
-      // plain attribute on a normal element
-      const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
-      if (expression === null) {
-        // no interpolation -> do not return an instruction
-        return null;
+      {
+        // plain attribute on a normal element
+        const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
+        if (expression === null) {
+          // no interpolation -> do not return an instruction
+          return null;
+        }
+        // interpolation -> behave like toView (e.g. id="${someId}")
+        return new InterpolationInstruction(expression, $attr.dest);
       }
-      // interpolation -> behave like toView (e.g. id="${someId}")
-      return new ToViewBindingInstruction(expression, $attr.dest);
   }
 }
 
@@ -321,6 +331,15 @@ export class TextBindingInstruction implements ITextBindingInstruction {
   public srcOrExpr: string | IExpression;
   constructor(srcOrExpr: string | IExpression) {
     this.srcOrExpr = srcOrExpr;
+  }
+}
+export class InterpolationInstruction implements IInterpolationInstruction {
+  public type: TargetedInstructionType.interpolation;
+  public srcOrExpr: string | Interpolation;
+  public dest: string;
+  constructor(srcOrExpr: string | Interpolation, dest: string) {
+    this.srcOrExpr = srcOrExpr;
+    this.dest = dest;
   }
 }
 export class OneTimeBindingInstruction implements IPropertyBindingInstruction {
@@ -500,6 +519,7 @@ export class LetBindingInstruction implements ILetBindingInstruction {
 
 // See ast.ts (at the bottom) for an explanation of what/why
 TextBindingInstruction.prototype.type = TargetedInstructionType.textBinding;
+InterpolationInstruction.prototype.type = TargetedInstructionType.interpolation;
 OneTimeBindingInstruction.prototype.type = TargetedInstructionType.propertyBinding;
 OneTimeBindingInstruction.prototype.mode = BindingMode.oneTime;
 OneTimeBindingInstruction.prototype.oneTime = true;

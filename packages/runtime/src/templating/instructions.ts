@@ -1,6 +1,6 @@
 // tslint:disable:no-reserved-keywords
 import { DI, Immutable, IIndexable, Writable } from '@aurelia/kernel';
-import { IExpression } from '../binding/ast';
+import { IExpression, Interpolation } from '../binding/ast';
 import { BindingMode } from '../binding/binding-mode';
 import { DelegationStrategy } from '../binding/event-manager';
 import { INode } from '../dom';
@@ -9,22 +9,23 @@ import { IBindableDescription } from './bindable';
 
 export const enum TargetedInstructionType {
   textBinding = 'a',
-  propertyBinding = 'b',
-  listenerBinding = 'c',
-  callBinding = 'd',
-  refBinding = 'e',
-  stylePropertyBinding = 'f',
-  setProperty = 'g',
-  setAttribute = 'h',
-  hydrateElement = 'i',
-  hydrateAttribute = 'j',
-  hydrateTemplateController = 'k',
-  letElement = 'l',
-  letBinding = 'm',
-  renderStrategy = 'n',
+  interpolation = 'b',
+  propertyBinding = 'c',
+  listenerBinding = 'd',
+  callBinding = 'e',
+  refBinding = 'f',
+  stylePropertyBinding = 'g',
+  setProperty = 'h',
+  setAttribute = 'i',
+  hydrateElement = 'j',
+  hydrateAttribute = 'k',
+  hydrateTemplateController = 'l',
+  letElement = 'm',
+  letBinding = 'n',
+  renderStrategy = 'z',
 }
 
-const instructionTypeValues = 'abcdefghij';
+const instructionTypeValues = 'abcdefghijk';
 
 export interface IBuildInstruction {
   required: boolean;
@@ -56,6 +57,7 @@ export interface ITargetedInstruction {
 
 export type TargetedInstruction =
   ITextBindingInstruction |
+  IInterpolationInstruction |
   IPropertyBindingInstruction |
   IListenerBindingInstruction |
   ICallBindingInstruction |
@@ -77,6 +79,12 @@ export function isTargetedInstruction(value: any): value is TargetedInstruction 
 export interface ITextBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.textBinding;
   srcOrExpr: string | IExpression;
+}
+
+export interface IInterpolationInstruction extends ITargetedInstruction {
+  dest: string;
+  type: TargetedInstructionType.interpolation;
+  srcOrExpr: string | Interpolation;
 }
 
 export interface IPropertyBindingInstruction extends ITargetedInstruction {

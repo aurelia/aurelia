@@ -1,3 +1,4 @@
+import { InterpolationBinding } from './../../../runtime/src/binding/interpolation-binding';
 import { IContainer, DI, PLATFORM } from '../../../kernel/src';
 import { BasicConfiguration } from '../../src';
 import {
@@ -691,7 +692,7 @@ describe('TemplateCompiler (integration)', () => {
 
           expect(current.$bindables[1]).to.be.instanceof(childCtor);
 
-          expect(current.$bindables[2]).to.be.instanceof(Binding);
+          expect(current.$bindables[2]).to.be.instanceof(InterpolationBinding);
           expect(current.$bindables[2].target.nodeName).to.equal('#text');
           expect(current.$bindables[2].targetObserver).to.be.instanceof(ElementPropertyAccessor);
           current = current.$bindables[1];
@@ -709,7 +710,7 @@ describe('TemplateCompiler (integration)', () => {
           expect(current.$bindables[1].targetObserver).to.be.instanceof(PropertyAccessor);
 
           expect(current.$bindables[2]).to.be.instanceof(childCtor);
-          expect(current.$bindables[3]).to.be.instanceof(Binding);
+          expect(current.$bindables[3]).to.be.instanceof(InterpolationBinding);
           expect(current.$bindables[3].target.nodeName).to.equal('#text');
           expect(current.$bindables[3].targetObserver).to.be.instanceof(ElementPropertyAccessor);
           current = current.$bindables[2];
@@ -729,7 +730,7 @@ describe('TemplateCompiler (integration)', () => {
           expect(current.$bindables[1].targetObserver).to.be.instanceof(PropertyAccessor);
 
           expect(current.$bindables[2]).to.be.instanceof(childCtor);
-          expect(current.$bindables[3]).to.be.instanceof(Binding);
+          expect(current.$bindables[3]).to.be.instanceof(InterpolationBinding);
           expect(current.$bindables[3].target.nodeName).to.equal('#text');
           expect(current.$bindables[3].targetObserver).to.be.instanceof(ElementPropertyAccessor);
           current = current.$bindables[2];

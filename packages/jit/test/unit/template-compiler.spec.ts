@@ -555,11 +555,9 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
     } else {
       const srcOrExpr = parseCore(attributeValue, <any>BindingType.Interpolation);
       if (!!srcOrExpr) {
-        const mode = BindingMode.toView;
-        const type = TT.propertyBinding;
+        const type = TT.interpolation;
         const dest = bindable.property;
-        const oneTime = false;
-        return { type, dest, mode, srcOrExpr, oneTime };
+        return { type, dest, srcOrExpr };
       } else {
         const type = TT.setProperty;
         const dest = bindable.property;
@@ -574,11 +572,10 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
       const srcOrExpr = parseCore(attributeValue);
       return { type, dest, mode, srcOrExpr, oneTime };
     } else {
-      const mode = BindingMode.toView;
-      const oneTime = false;
       let srcOrExpr = parseCore(attributeValue, <any>BindingType.Interpolation);
       if (!!srcOrExpr) {
-        return { type, dest, mode, srcOrExpr, oneTime };
+        const type = TT.interpolation;
+        return { type, dest, srcOrExpr };
       } else if (isMulti) {
         const type = TT.setProperty;
         const dest = attr;
@@ -868,7 +865,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  describe('sibling template controllers', () => {
+  describe.only('sibling template controllers', () => {
 
     eachCartesianJoinFactory([
       <(() => CTCResult[])[]>[

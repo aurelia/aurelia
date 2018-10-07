@@ -1,20 +1,23 @@
 import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
-import { AccessMember, AccessScope, CallMember, CallScope, IExpression, PrimitiveLiteral } from './ast';
+import { AccessMember, AccessScope, CallMember, CallScope, ForOfStatement, IExpression, Interpolation, IsBindingBehavior, PrimitiveLiteral } from './ast';
 
 export interface IExpressionParser {
-  cache(expressions: Record<string, IExpression>): void;
-  parse(expression: string, bindingType: BindingType): IExpression;
+  cache(expressions: Record<string, Interpolation | ForOfStatement | IsBindingBehavior>): void;
+  parse<TType extends BindingType>(expression: string, bindingType: TType):
+    TType extends BindingType.Interpolation ? Interpolation :
+    TType extends BindingType.ForCommand ? ForOfStatement :
+    IsBindingBehavior;
 }
 
 export const IExpressionParser = DI.createInterface<IExpressionParser>()
   .withDefault(x => x.singleton(ExpressionParser));
 
-const emptyString = new PrimitiveLiteral('');
+const emptyString: any = new PrimitiveLiteral('');
 
 /*@internal*/
 export class ExpressionParser implements IExpressionParser {
-  private lookup: Record<string, IExpression>;
-  private nonInterpolationLookup: Record<string, IExpression>;
+  private lookup: Record<string, any>;
+  private nonInterpolationLookup: Record<string, any>;
   constructor() {
     this.lookup = Object.create(null);
     // we use a separate cache for storing plain attribute values (attributes without a binding command)
@@ -23,7 +26,11 @@ export class ExpressionParser implements IExpressionParser {
     this.nonInterpolationLookup = Object.create(null);
   }
 
-  public parse(expression: string, bindingType: BindingType): IExpression {
+  // TODO: fix this cache stuff
+  public parse<TType extends BindingType>(expression: string, bindingType: TType):
+    TType extends BindingType.Interpolation ? Interpolation :
+    TType extends BindingType.ForCommand ? ForOfStatement :
+    IsBindingBehavior {
     if (bindingType & BindingType.Interpolation) {
       if (this.nonInterpolationLookup[expression] === null) {
         return null;
@@ -59,11 +66,11 @@ export class ExpressionParser implements IExpressionParser {
     Object.assign(this.lookup, expressions);
   }
 
-  private parseCore(expression: string, bindingType: BindingType): IExpression {
+  private parseCore(expression: string, bindingType: BindingType): Interpolation | ForOfStatement | IsBindingBehavior {
     try {
       const parts = expression.split('.');
       const firstPart = parts[0];
-      let current: IExpression;
+      let current: Interpolation | ForOfStatement | IsBindingBehavior;
 
       if (firstPart.endsWith('()')) {
         current = new CallScope(firstPart.replace('()', ''), PLATFORM.emptyArray);
@@ -94,28 +101,28 @@ export class ExpressionParser implements IExpressionParser {
 
 export const enum BindingType {
               None = 0,
-     Interpolation = 0b10000000 << 4,
-        IsRef      = 0b01010000 << 4,
-        IsIterator = 0b00100000 << 4,
-        IsCustom   = 0b00010000 << 4,
-        IsFunction = 0b00001000 << 4,
-        IsEvent    = 0b00000100 << 4,
-        IsProperty = 0b00000010 << 4,
-        IsCommand  = 0b00000001 << 4,
-IsPropertyCommand  = 0b00000011 << 4,
-   IsEventCommand  = 0b00000101 << 4,
+     Interpolation = 0b10000000_0000,
+        IsRef      = 0b01010000_0000,
+        IsIterator = 0b00100000_0000,
+        IsCustom   = 0b00010000_0000,
+        IsFunction = 0b00001000_0000,
+        IsEvent    = 0b00000100_0000,
+        IsProperty = 0b00000010_0000,
+        IsCommand  = 0b00000001_0000,
+IsPropertyCommand  = 0b00000011_0000,
+   IsEventCommand  = 0b00000101_0000,
 DelegationStrategyDelta =              0b0110,
            Command =                   0b1111,
-    OneTimeCommand = 0b00000011 << 4 | 0b0001,
-     ToViewCommand = 0b00000011 << 4 | 0b0010,
-   FromViewCommand = 0b00000011 << 4 | 0b0011,
-     TwoWayCommand = 0b00000011 << 4 | 0b0100,
-       BindCommand = 0b00000011 << 4 | 0b0101,
-    TriggerCommand = 0b00000101 << 4 | 0b0110,
-    CaptureCommand = 0b00000101 << 4 | 0b0111,
-   DelegateCommand = 0b00000101 << 4 | 0b1000,
-       CallCommand = 0b00001001 << 4 | 0b1001,
-    OptionsCommand = 0b00000001 << 4 | 0b1010,
-        ForCommand = 0b00100001 << 4 | 0b1011,
-     CustomCommand = 0b00010001 << 4 | 0b1100
+    OneTimeCommand = 0b00000011_0001,
+     ToViewCommand = 0b00000011_0010,
+   FromViewCommand = 0b00000011_0011,
+     TwoWayCommand = 0b00000011_0100,
+       BindCommand = 0b00000011_0101,
+    TriggerCommand = 0b00000101_0110,
+    CaptureCommand = 0b00000101_0111,
+   DelegateCommand = 0b00000101_1000,
+       CallCommand = 0b00001001_1001,
+    OptionsCommand = 0b00000001_1010,
+        ForCommand = 0b00100001_1011,
+     CustomCommand = 0b00010001_1100
 }

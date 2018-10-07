@@ -1188,6 +1188,10 @@ describe('ExpressionParser', () => {
     }
   });
 
+  describe('parse Interpolation', () => {
+
+  });
+
   describe('parse unicode IdentifierStart', () => {
     for (const char of latin1IdentifierStartChars) {
       it(char, () => {

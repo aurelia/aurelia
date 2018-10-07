@@ -926,27 +926,31 @@ export class ForOfStatement implements IExpression {
 export class Interpolation implements IExpression {
   public $kind: ExpressionKind;
   public assign: IExpression['assign'];
+  public readonly isMulti: boolean;
+  public readonly firstExpression: IExpression;
   constructor(
     public readonly parts: ReadonlyArray<string>,
-    public readonly expressions: ReadonlyArray<IExpression>) { }
+    public readonly expressions: ReadonlyArray<IExpression>) {
+      this.isMulti = expressions.length > 1;
+      this.firstExpression = expressions[0];
+    }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
-    const expressions = this.expressions;
-    const parts = this.parts;
-    let result = parts[0];
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      result += expressions[i].evaluate(flags, scope, locator);
-      result += parts[i + 1];
-    }
-    return result;
-  }
-
-  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
-    const expressions = this.expressions;
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      expressions[i].connect(flags, scope, binding);
+    if (this.isMulti) {
+      const expressions = this.expressions;
+      const parts = this.parts;
+      let result = parts[0];
+      for (let i = 0, ii = expressions.length; i < ii; ++i) {
+        result += expressions[i].evaluate(flags, scope, locator);
+        result += parts[i + 1];
+      }
+      return result;
+    } else {
+      const parts = this.parts;
+      return parts[0] + this.firstExpression.evaluate(flags, scope, locator) + parts[1];
     }
   }
+  public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitInterpolation(this);

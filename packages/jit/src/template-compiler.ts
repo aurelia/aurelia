@@ -3,15 +3,17 @@ import {
   BindingMode,
   BindingType,
   DelegationStrategy,
+  ForOfStatement,
   ICallBindingInstruction,
   IExpression,
+
   IExpressionParser,
-
   IHydrateAttributeInstruction,
-  IHydrateElementInstruction,
 
+  IHydrateElementInstruction,
   IHydrateTemplateController,
   IInterpolationInstruction,
+  IIteratorBindingInstruction,
   ILetBindingInstruction,
   ILetElementInstruction,
   IListenerBindingInstruction,
@@ -19,13 +21,14 @@ import {
   Interpolation,
   IPropertyBindingInstruction,
   IRefBindingInstruction,
+
   IResourceDescriptions,
+  IsBindingBehavior,
   ISetPropertyInstruction,
 
   IStylePropertyBindingInstruction,
   ITargetedInstruction,
   ITemplateCompiler,
-
   ITemplateSource,
   ITextBindingInstruction,
   TargetedInstruction,
@@ -327,230 +330,96 @@ export class TemplateCompiler implements ITemplateCompiler {
 // tslint:disable:no-reserved-keywords
 // tslint:disable:no-any
 export class TextBindingInstruction implements ITextBindingInstruction {
-  public type: TargetedInstructionType.textBinding;
-  public srcOrExpr: string | IExpression;
-  constructor(srcOrExpr: string | IExpression) {
-    this.srcOrExpr = srcOrExpr;
-  }
+  public type: TargetedInstructionType.textBinding = TargetedInstructionType.textBinding;
+  constructor(public srcOrExpr: string | Interpolation) {}
 }
 export class InterpolationInstruction implements IInterpolationInstruction {
-  public type: TargetedInstructionType.interpolation;
-  public srcOrExpr: string | Interpolation;
-  public dest: string;
-  constructor(srcOrExpr: string | Interpolation, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.interpolation = TargetedInstructionType.interpolation;
+  constructor(public srcOrExpr: string | Interpolation, public dest: string) {}
 }
 export class OneTimeBindingInstruction implements IPropertyBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding;
-  public oneTime: true;
-  public mode: BindingMode.oneTime;
-  public srcOrExpr: string | IExpression;
-  public dest: string;
-  constructor(srcOrExpr: string | IExpression, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public oneTime: true = true;
+  public mode: BindingMode.oneTime = BindingMode.oneTime;
+  constructor(public srcOrExpr: string | IsBindingBehavior, public dest: string) {}
 }
 export class ToViewBindingInstruction implements IPropertyBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding;
-  public oneTime: false;
-  public mode: BindingMode.toView;
-  public srcOrExpr: string | IExpression;
-  public dest: string;
-  constructor(srcOrExpr: string | IExpression, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public oneTime: false = false;
+  public mode: BindingMode.toView = BindingMode.toView;
+  constructor(public srcOrExpr: string | IsBindingBehavior, public dest: string) {}
 }
 export class FromViewBindingInstruction implements IPropertyBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding;
-  public oneTime: false;
-  public mode: BindingMode.fromView;
-  public srcOrExpr: string | IExpression;
-  public dest: string;
-  constructor(srcOrExpr: string | IExpression, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public oneTime: false = false;
+  public mode: BindingMode.fromView = BindingMode.fromView;
+  constructor(public srcOrExpr: string | IsBindingBehavior, public dest: string) {}
 }
 export class TwoWayBindingInstruction implements IPropertyBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding;
-  public oneTime: false;
-  public mode: BindingMode.twoWay;
-  public srcOrExpr: string | IExpression;
-  public dest: string;
-  constructor(srcOrExpr: string | IExpression, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public oneTime: false = false;
+  public mode: BindingMode.twoWay = BindingMode.twoWay;
+  constructor(public srcOrExpr: string | IsBindingBehavior, public dest: string) {}
+}
+export class IteratorBindingInstruction implements IIteratorBindingInstruction {
+  public type: TargetedInstructionType.iteratorBinding = TargetedInstructionType.iteratorBinding;
+  constructor(public srcOrExpr: string | ForOfStatement, public dest: string) {}
 }
 export class TriggerBindingInstruction implements IListenerBindingInstruction {
-  public type: TargetedInstructionType.listenerBinding;
-  public strategy: DelegationStrategy.none;
-  public preventDefault: true;
-  public srcOrExpr: string | IExpression;
-  public dest: string;
-  constructor(srcOrExpr: string | IExpression, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.listenerBinding = TargetedInstructionType.listenerBinding;
+  public strategy: DelegationStrategy.none = DelegationStrategy.none;
+  public preventDefault: true = true;
+  constructor(public srcOrExpr: string | IsBindingBehavior, public dest: string) {}
 }
 export class DelegateBindingInstruction implements IListenerBindingInstruction {
-  public type: TargetedInstructionType.listenerBinding;
-  public strategy: DelegationStrategy.bubbling;
-  public preventDefault: false;
-  public srcOrExpr: string | IExpression;
-  public dest: string;
-  constructor(srcOrExpr: string | IExpression, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.listenerBinding = TargetedInstructionType.listenerBinding;
+  public strategy: DelegationStrategy.bubbling = DelegationStrategy.bubbling;
+  public preventDefault: false = false;
+  constructor(public srcOrExpr: string | IsBindingBehavior, public dest: string) {}
 }
 export class CaptureBindingInstruction implements IListenerBindingInstruction {
-  public type: TargetedInstructionType.listenerBinding;
-  public strategy: DelegationStrategy.capturing;
-  public preventDefault: false;
-  public srcOrExpr: string | IExpression;
-  public dest: string;
-  constructor(srcOrExpr: string | IExpression, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.listenerBinding = TargetedInstructionType.listenerBinding;
+  public strategy: DelegationStrategy.capturing = DelegationStrategy.capturing;
+  public preventDefault: false = false;
+  constructor(public srcOrExpr: string | IsBindingBehavior, public dest: string) {}
 }
 export class CallBindingInstruction implements ICallBindingInstruction {
-  public type: TargetedInstructionType.callBinding;
-  public srcOrExpr: string | IExpression;
-  public dest: string;
-  constructor(srcOrExpr: string | IExpression, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.callBinding = TargetedInstructionType.callBinding;
+  constructor(public srcOrExpr: string | IsBindingBehavior, public dest: string) {}
 }
 export class RefBindingInstruction implements IRefBindingInstruction {
-  public type: TargetedInstructionType.refBinding;
-  public srcOrExpr: string | IExpression;
-  constructor(srcOrExpr: string | IExpression) {
-    this.srcOrExpr = srcOrExpr;
-  }
+  public type: TargetedInstructionType.refBinding = TargetedInstructionType.refBinding;
+  constructor(public srcOrExpr: string | IsBindingBehavior) {}
 }
 export class StylePropertyBindingInstruction implements IStylePropertyBindingInstruction {
-  public type: TargetedInstructionType.stylePropertyBinding;
-  public srcOrExpr: string | IExpression;
-  public dest: string;
-  constructor(srcOrExpr: string | IExpression, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.stylePropertyBinding = TargetedInstructionType.stylePropertyBinding;
+  constructor(public srcOrExpr: string | IsBindingBehavior, public dest: string) {}
 }
 export class SetPropertyInstruction implements ISetPropertyInstruction {
-  public type: TargetedInstructionType.setProperty;
-  public value: any;
-  public dest: string;
-  constructor(value: any, dest: string) {
-    this.value = value;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.setProperty = TargetedInstructionType.setProperty;
+  constructor(public value: any, public dest: string) {}
 }
 export class SetAttributeInstruction implements ITargetedInstruction {
-  public type: TargetedInstructionType.setAttribute;
-  public value: any;
-  public dest: string;
-  constructor(value: any, dest: string) {
-    this.value = value;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.setAttribute = TargetedInstructionType.setAttribute;
+  constructor(public value: any, public dest: string) {}
 }
 export class HydrateElementInstruction implements IHydrateElementInstruction {
-  public type: TargetedInstructionType.hydrateElement;
-  public res: any;
-  public instructions: TargetedInstruction[];
-  public parts?: Record<string, ITemplateSource>;
-  public contentOverride?: INode;
-  constructor(res: any, instructions: TargetedInstruction[], parts?: Record<string, ITemplateSource>, contentOverride?: INode) {
-    this.res = res;
-    this.instructions = instructions;
-    this.parts = parts;
-    this.contentOverride = contentOverride;
-  }
+  public type: TargetedInstructionType.hydrateElement = TargetedInstructionType.hydrateElement;
+  constructor(public res: any, public instructions: TargetedInstruction[], public parts?: Record<string, ITemplateSource>, public contentOverride?: INode) {}
 }
 export class HydrateAttributeInstruction implements IHydrateAttributeInstruction {
-  public type: TargetedInstructionType.hydrateAttribute;
-  public res: any;
-  public instructions: TargetedInstruction[];
-  constructor(res: any, instructions: TargetedInstruction[]) {
-    this.res = res;
-    this.instructions = instructions;
-  }
+  public type: TargetedInstructionType.hydrateAttribute = TargetedInstructionType.hydrateAttribute;
+  constructor(public res: any, public instructions: TargetedInstruction[]) {}
 }
 export class HydrateTemplateController implements IHydrateTemplateController {
-  public type: TargetedInstructionType.hydrateTemplateController;
-  public src: ITemplateSource;
-  public res: any;
-  public instructions: TargetedInstruction[];
-  public link?: boolean;
-  constructor(src: ITemplateSource, res: any, instructions: TargetedInstruction[], link?: boolean) {
-    this.src = src;
-    this.res = res;
-    this.instructions = instructions;
-    this.link = link;
-  }
+  public type: TargetedInstructionType.hydrateTemplateController = TargetedInstructionType.hydrateTemplateController;
+  constructor(public src: ITemplateSource, public res: any, public instructions: TargetedInstruction[], public link?: boolean) {}
 }
 export class LetElementInstruction implements ILetElementInstruction {
-  public type: TargetedInstructionType.letElement;
-  public instructions: ILetBindingInstruction[];
-  public toViewModel: boolean;
-  constructor(instructions: ILetBindingInstruction[], toViewModel: boolean) {
-    this.instructions = instructions;
-    this.toViewModel = toViewModel;
-  }
+  public type: TargetedInstructionType.letElement = TargetedInstructionType.letElement;
+  constructor(public instructions: ILetBindingInstruction[], public toViewModel: boolean) {}
 }
 export class LetBindingInstruction implements ILetBindingInstruction {
-  public type: TargetedInstructionType.letBinding;
-  public srcOrExpr: string | IExpression;
-  public dest: string;
-  constructor(srcOrExpr: string | IExpression, dest: string) {
-    this.srcOrExpr = srcOrExpr;
-    this.dest = dest;
-  }
+  public type: TargetedInstructionType.letBinding = TargetedInstructionType.letBinding;
+  constructor(public srcOrExpr: string | IsBindingBehavior | Interpolation, public dest: string) {}
 }
-// tslint:enable:no-reserved-keywords
-
-// See ast.ts (at the bottom) for an explanation of what/why
-TextBindingInstruction.prototype.type = TargetedInstructionType.textBinding;
-InterpolationInstruction.prototype.type = TargetedInstructionType.interpolation;
-OneTimeBindingInstruction.prototype.type = TargetedInstructionType.propertyBinding;
-OneTimeBindingInstruction.prototype.mode = BindingMode.oneTime;
-OneTimeBindingInstruction.prototype.oneTime = true;
-ToViewBindingInstruction.prototype.type = TargetedInstructionType.propertyBinding;
-ToViewBindingInstruction.prototype.mode = BindingMode.toView;
-ToViewBindingInstruction.prototype.oneTime = false;
-FromViewBindingInstruction.prototype.type = TargetedInstructionType.propertyBinding;
-FromViewBindingInstruction.prototype.mode = BindingMode.fromView;
-FromViewBindingInstruction.prototype.oneTime = false;
-TwoWayBindingInstruction.prototype.type = TargetedInstructionType.propertyBinding;
-TwoWayBindingInstruction.prototype.mode = BindingMode.twoWay;
-TwoWayBindingInstruction.prototype.oneTime = false;
-TriggerBindingInstruction.prototype.type = TargetedInstructionType.listenerBinding;
-TriggerBindingInstruction.prototype.strategy = DelegationStrategy.none;
-TriggerBindingInstruction.prototype.preventDefault = true;
-CaptureBindingInstruction.prototype.type = TargetedInstructionType.listenerBinding;
-CaptureBindingInstruction.prototype.strategy = DelegationStrategy.capturing;
-CaptureBindingInstruction.prototype.preventDefault = false;
-DelegateBindingInstruction.prototype.type = TargetedInstructionType.listenerBinding;
-DelegateBindingInstruction.prototype.strategy = DelegationStrategy.bubbling;
-DelegateBindingInstruction.prototype.preventDefault = false;
-CallBindingInstruction.prototype.type = TargetedInstructionType.callBinding;
-RefBindingInstruction.prototype.type = TargetedInstructionType.refBinding;
-StylePropertyBindingInstruction.prototype.type = TargetedInstructionType.stylePropertyBinding;
-SetPropertyInstruction.prototype.type = TargetedInstructionType.setProperty;
-SetAttributeInstruction.prototype.type = TargetedInstructionType.setAttribute;
-HydrateElementInstruction.prototype.type = TargetedInstructionType.hydrateElement;
-HydrateAttributeInstruction.prototype.type = TargetedInstructionType.hydrateAttribute;
-HydrateTemplateController.prototype.type = TargetedInstructionType.hydrateTemplateController;
-LetElementInstruction.prototype.type = TargetedInstructionType.letElement;
-LetBindingInstruction.prototype.type = TargetedInstructionType.letBinding;
-
-// tslint:enable:no-reserved-keywords
-// tslint:enable:no-any

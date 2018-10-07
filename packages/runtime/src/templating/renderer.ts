@@ -19,6 +19,7 @@ import {
   IHydrateElementInstruction,
   IHydrateTemplateController,
   IInterpolationInstruction,
+  IIteratorBindingInstruction,
   ILetElementInstruction,
   IListenerBindingInstruction,
   IPropertyBindingInstruction,
@@ -127,6 +128,11 @@ export class Renderer implements IRenderer {
   public [TargetedInstructionType.propertyBinding](renderable: IRenderable, target: any, instruction: Immutable<IPropertyBindingInstruction>): void {
     const srcOrExpr = instruction.srcOrExpr as any;
     renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.IsPropertyCommand | instruction.mode), target, instruction.dest, instruction.mode, this.observerLocator, this.context));
+  }
+
+  public [TargetedInstructionType.iteratorBinding](renderable: IRenderable, target: any, instruction: Immutable<IIteratorBindingInstruction>): void {
+    const srcOrExpr = instruction.srcOrExpr as any;
+    renderable.$bindables.push(new Binding(srcOrExpr.$kind ? srcOrExpr : this.parser.parse(srcOrExpr, BindingType.ForCommand), target, instruction.dest, BindingMode.toView, this.observerLocator, this.context));
   }
 
   public [TargetedInstructionType.listenerBinding](renderable: IRenderable, target: any, instruction: Immutable<IListenerBindingInstruction>): void {

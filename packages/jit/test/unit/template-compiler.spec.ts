@@ -394,13 +394,11 @@ describe('TemplateCompiler', () => {
 function createTplCtrlAttributeInstruction(attr: string, value: string) {
   if (attr === 'repeat.for') {
     return [{
-      type: TT.propertyBinding,
+      type: TT.iteratorBinding,
       srcOrExpr: new ForOfStatement(
         new BindingIdentifier(value.split(' of ')[0]),
         new AccessScope(value.split(' of ')[1])),
-      dest: 'items',
-      mode: BindingMode.toView,
-      oneTime: false
+      dest: 'items'
     }, {
       type: TT.setProperty,
       value: 'item',

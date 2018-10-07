@@ -39,12 +39,12 @@ export class Binding implements IPartialConnectableBinding {
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator) { }
 
-  public updateTarget(value: any): void {
-    this.targetObserver.setValue(value, BindingFlags.updateTargetInstance);
+  public updateTarget(value: any, flags: BindingFlags): void {
+    this.targetObserver.setValue(value, flags | BindingFlags.updateTargetInstance);
   }
 
-  public updateSource(value: any): void {
-    this.sourceExpression.assign(BindingFlags.updateSourceExpression, this.$scope, this.locator, value);
+  public updateSource(value: any, flags: BindingFlags): void {
+    this.sourceExpression.assign(flags | BindingFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
   public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void {
@@ -63,7 +63,7 @@ export class Binding implements IPartialConnectableBinding {
       previousValue = targetObserver.getValue();
       newValue = sourceExpression.evaluate(flags, $scope, locator);
       if (newValue !== previousValue) {
-        targetObserver.setValue(newValue, flags);
+        this.updateTarget(newValue, flags);
       }
       if ((mode & oneTime) === 0) {
         this.version++;
@@ -75,7 +75,7 @@ export class Binding implements IPartialConnectableBinding {
 
     if (flags & BindingFlags.updateSourceExpression) {
       if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
-        sourceExpression.assign(flags, $scope, locator, newValue);
+        this.updateSource(newValue, flags);
       }
       return;
     }

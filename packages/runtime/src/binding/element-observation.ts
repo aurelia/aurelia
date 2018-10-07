@@ -351,8 +351,6 @@ export class SelectValueObserver implements SelectValueObserver {
   public handleEvent(): void {
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
     const shouldNotify = this.synchronizeValue();
-    // TODO: need to clean up / improve the way collection changes are handled here
-    // (we currently just create and assign a new array to the source each change)
     if (shouldNotify) {
       this.notify(handleEventFlags);
     }
@@ -378,8 +376,8 @@ export class SelectValueObserver implements SelectValueObserver {
   }
 
   public synchronizeValue(): boolean {
-    // Spec for synchronizing value between <select/> and select observer
-    // When synchronizing value with observed <select/> element, do the following steps:
+    // Spec for synchronizing value from `SelectObserver` to `<select/>`
+    // When synchronizing value to observed <select/> element, do the following steps:
     // A. If `<select/>` is multiple
     //    1. Check if current value, called `currentValue` is an array
     //      a. If not an array, return true to signal value has changed

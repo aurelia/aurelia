@@ -7,5 +7,7 @@ chai.use(sinonChai);
 
 Error.stackTraceLimit = Infinity;
 
-const testContext: any = (require as any).context('./unit', true, /\.spec/);
-testContext.keys().forEach(testContext);
+const unitTestContext: any = (require as any).context('./unit', true, /\.spec\.ts$/);
+unitTestContext.keys().forEach(unitTestContext);
+const integrationTestContext = require.context('./integration', true, /\.spec\.ts$/);
+integrationTestContext.keys().forEach(integrationTestContext);

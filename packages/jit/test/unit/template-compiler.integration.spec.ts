@@ -343,11 +343,10 @@ describe('TemplateCompiler (integration)', () => {
 
   it(`toViewBinding - select single`, () => {
     component = createCustomElement(
-      h('template',
-        null,
-        h('select',
+      template(null,
+        select(
           { 'value.to-view': 'selectedValue' },
-          ...[1,2].map(v => h('option', { value: v }))
+          ...[1,2].map(v => option({ value: v }))
         )
       )
     );
@@ -774,4 +773,16 @@ describe('TemplateCompiler (integration)', () => {
     cs.flushChanges();
     expect(host.textContent).to.equal('w00t00t'.repeat(6));
   });
+
+  function template(attrs: Record<string, any> | null, ...children: Element[]) {
+    return h('template', attrs, ...children);
+  }
+
+  function select(attrs: Record<string, any> | null, ...children: (HTMLOptionElement | HTMLOptGroupElement)[]) {
+    return h('select', attrs, ...children);
+  }
+
+  function option(attrs: Record<string, any> | null) {
+    return h('option', attrs);
+  }
 });

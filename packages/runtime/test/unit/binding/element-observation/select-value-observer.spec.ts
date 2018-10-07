@@ -106,7 +106,14 @@ describe.only('SelectValueObserver', () => {
     });
   });
 
+  describe('synchronizeOptions', () => {
+
+  });
+
   describe('synchronizeValue()', () => {
+    describe('<select />', () => {
+
+    });
     // There is subtle difference in behavior of synchronization for SelectObserver
     // When synchronzing value without synchronizing Options prior
     // the behavior is different, as such, if currentValue is an array
@@ -128,7 +135,7 @@ describe.only('SelectValueObserver', () => {
       });
 
       it('synchronizes with null', () => {
-        const { el, sut } = createMutiSelectSut(null, [
+        const { sut } = createMutiSelectSut(null, [
           option({ text: 'A', selected: true }),
           option({ text: 'B', selected: true }),
           option({ text: 'C' })
@@ -140,7 +147,7 @@ describe.only('SelectValueObserver', () => {
       });
 
       it('synchronizes with undefined', () => {
-        const { el, sut } = createMutiSelectSut(undefined, [
+        const { sut } = createMutiSelectSut(undefined, [
           option({ text: 'A', selected: true }),
           option({ text: 'B', selected: true }),
           option({ text: 'C' })
@@ -170,10 +177,10 @@ describe.only('SelectValueObserver', () => {
         );
       });
 
-      it('synchronizes with array (3)', () => {
+      it('synchronizes with array (3): disregard "value" when there is model', () => {
         const { sut } = createMutiSelectSut([], [
           option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
-          option({ text: 'B', value: 'BB",', _model: { id: 2, name: 'select 2' }, selected: true }),
+          option({ text: 'B', value: 'BB', _model: { id: 2, name: 'select 2' }, selected: true }),
           option({ text: 'C', value: 'CC' })
         ]);
         const currentValue = sut.currentValue as any[];
@@ -187,6 +194,49 @@ describe.only('SelectValueObserver', () => {
             { id: 2, name: 'select 2' }
           ]
         );
+      });
+
+      it('synchronize regardless disabled state of <option/>', () => {
+        const { sut } = createMutiSelectSut([], [
+          option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
+          option({ text: 'B', value: 'BB', disabled: true, _model: { id: 2, name: 'select 2' }, selected: true }),
+          option({ text: 'C', value: 'CC', disabled: true, selected: true })
+        ]);
+        const currentValue = sut.currentValue as any[];
+        sut.synchronizeValue();
+        expect(currentValue).to.equal(sut.currentValue);
+        verifyEqual(
+          currentValue,
+          [
+            { id: 1, name: 'select 1' },
+            { id: 2, name: 'select 2' },
+            'CC'
+          ]
+        );
+      });
+
+      describe('with <optgroup>', () => {
+        it('synchronizes with array', () => {
+          const { sut } = createMutiSelectSut([], [
+            optgroup({},
+              option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
+              option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
+            ),
+            option({ text: 'C', value: 'CC' })
+          ]);
+          const currentValue = sut.currentValue as any[];
+          sut.synchronizeValue();
+          expect(currentValue).to.equal(sut.currentValue);
+          expect(currentValue['length']).to.equal(2);
+          verifyEqual(
+            currentValue,
+            [
+              { id: 1, name: 'select 1' },
+              { id: 2, name: 'select 2' }
+            ]
+          );
+        });
+
       });
 
       type SelectValidChild = HTMLOptionElement | HTMLOptGroupElement;
@@ -207,10 +257,14 @@ describe.only('SelectValueObserver', () => {
           ...options
         );
       }
-
-      function option(attributes: Record<string, any>) {
-        return h('option', attributes);
-      }
     });
   });
+
+  function option(attributes: Record<string, any>) {
+    return h('option', attributes);
+  }
+
+  function optgroup(attributes: Record<string, any>, ...options: HTMLOptionElement[]) {
+    return h('optgroup', attributes, ...options);
+  }
 });

@@ -264,7 +264,17 @@ export class Unparser implements AST.IVisitor<void> {
     expr.iterable.accept(this);
   }
 
-  public visitInterpolation(expr: AST.Interpolation): void { throw new Error('visitInterpolation'); }
+  public visitInterpolation(expr: AST.Interpolation): void {
+    const { parts, expressions } = expr;
+    const length = expressions.length;
+    this.text += '${';
+    this.text += parts[0];
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+      this.text += parts[i + 1];
+    }
+    this.text += '}';
+  }
 
   private writeArgs(args: ReadonlyArray<AST.IExpression>): void {
     this.text += '(';
@@ -378,7 +388,9 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"type":"ForOfStatement","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
   }
 
-  public visitInterpolation(expr: AST.Interpolation): string { throw new Error('visitInterpolation'); }
+  public visitInterpolation(expr: AST.Interpolation): string {
+    return `{"type":"Interpolation","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+  }
 
   // tslint:disable-next-line:no-any
   private serializeExpressions(args: ReadonlyArray<AST.IExpression>): string {

@@ -1,5 +1,5 @@
 import { IObserverLocator, IChangeSet, SelectValueObserver, BindingFlags, DOM } from '../../../../src/index';
-import { createElement, _, eachCartesianJoin, eachCartesianJoinFactory } from '../../util';
+import { createElement, _, eachCartesianJoin, eachCartesianJoinFactory, h } from '../../util';
 import { expect } from 'chai';
 import { spy, SinonSpy } from 'sinon';
 import { DI, Primitive } from '../../../../../kernel/src/index';
@@ -109,7 +109,46 @@ describe('SelectValueObserver', () => {
   describe('synchronizeValue()', () => {
 
     describe('<select multiple="true" />', () => {
+      it('synchronizes', () => {
+        const { el, sut } = createSut([], []);
+        // sut.bind();
+        let currentValue = sut.currentValue as any[];
+        expect(currentValue).to.be.instanceOf(Array);
+        expect(currentValue['length']).to.equal(0);
+        el.append(...[
+          option({ text: 'A', selected: true }),
+          option({ text: 'B', selected: true }),
+          option({ text: 'C' })
+        ]);
+        currentValue.push('A');
+        sut.handleNodeChange();
+        expect(currentValue).to.equal(sut.currentValue);
+        expect(currentValue['length']).to.equal(1);
+      });
 
+      type SelectValidChild = HTMLOptionElement | HTMLOptGroupElement;
+
+      function createSut(initialValue: Anything[], options: SelectValidChild[]) {
+        const container = DI.createContainer();
+        const observerLocator = <IObserverLocator>container.get(IObserverLocator);
+        const changeSet = <IChangeSet>container.get(IChangeSet);
+        const el = createSelectElement(...options);
+        const sut = <SelectValueObserver>observerLocator.getObserver(el, 'value');
+        sut.setValue(initialValue, BindingFlags.none);
+        changeSet.flushChanges();
+        return { el, sut }
+      }
+
+      function createSelectElement(...options: SelectValidChild[]): HTMLSelectElement {
+        return h('select',
+          { multiple: true },
+          ...options
+        );
+      }
+
+      function option(attributes: Record<string, any>) {
+        return h('option', attributes);
+      }
     });
   });
 });

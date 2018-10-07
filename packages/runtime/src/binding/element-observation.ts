@@ -380,7 +380,7 @@ export class SelectValueObserver implements SelectValueObserver {
   public synchronizeValue(): boolean {
     // Spec for synchronizing value between <select/> and select observer
     // When synchronizing value with observed <select/> element, do the following steps:
-    // A. If the `<select/>` is multiple
+    // A. If `<select/>` is multiple
     //    1. Check if current value, called `currentValue` is an array
     //      a. If not an array, return true to signal value has changed
     //      b. If is an array:

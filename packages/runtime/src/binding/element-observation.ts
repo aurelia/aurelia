@@ -140,7 +140,7 @@ export class CheckedObserver implements CheckedObserver {
 
   constructor(
     public changeSet: IChangeSet,
-    public obj: HTMLInputElement & { $observers?: any; matcher?: any; model?: any; },
+    public obj: HTMLInputElement & { $observers?: any; matcher?: any; model?: any },
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
   ) { }
@@ -381,84 +381,89 @@ export class SelectValueObserver implements SelectValueObserver {
     // Spec for synchronizing value between <select/> and select observer
     // When synchronizing value with observed <select/> element, do the following steps:
     // A. If the select is multiple
-    //    1. Check if current value, called currentValues is an array
+    //    1. Check if current value, called `currentValue` is an array
     //      a. If not an array, return true to signal value has changed
     //      b. If is an array:
-    //        i. gather all current selected <option/>, in to array called values
-    //        ii. loop through the currentValues array and remove items that are nolonger selected based on matcher
-    //        iii. loop through the values array and add items that are selected based on matcher
+    //        i. gather all current selected <option/>, in to array called `values`
+    //        ii. loop through the `currentValue` array and remove items that are nolonger selected based on matcher
+    //        iii. loop through the `values` array and add items that are selected based on matcher
     //        iv. Return false to signal value hasn't changed
     // B. If the select is single
-    //    1. Let value equal the first selected option, if no option selected, then value is null
-    //    2. assign currentValue to oldValue
-    //    3. assign value to currentValue
-    //    4. return true to signal value has changed
+    //    1. Let `value` equal the first selected option, if no option selected, then `value` is `null`
+    //    2. assign `this.currentValue` to `this.oldValue`
+    //    3. assign `value` to `this.currentValue`
+    //    4. return `true` to signal value has changed
     const obj = this.obj;
     const options = obj.options;
     const len = options.length;
     const currentValue = this.currentValue;
-    // this.oldValue = this.currentValue;
+    let i = 0;
 
     if (obj.multiple) {
-      if (Array.isArray(currentValue)) {
-        // multi select
-        let i = 0;
-        let option: HTMLOptionElementWithModel;
-        const matcher = obj.matcher || defaultMatcher;
-        // A.1.b.i
-        const values: UntypedArray = [];
-        while (i < len) {
-          option = options.item(i);
-          if (option.selected) {
-            values.push(option.hasOwnProperty('model') ? option.model : option.value);
-          }
-        }
-        // A.1.b.ii
-        i = 0;
-        while (i < currentValue.length) {
-          const a = currentValue[i];
-          if (values.findIndex(b => !!matcher(a, b)) === -1) {
-            currentValue.splice(i, 1);
-          } else {
-            i++;
-          }
-        }
-        // A.1.b.iii
-        i = 0;
-        while (i < values.length) {
-          const a = values[i];
-          if (currentValue.findIndex(b => !!matcher(a, b)) === -1) {
-            currentValue.push(a);
-          }
-          i++;
-        }
-        // A.1.b.iv
-        return false;
+      // A.
+      if (!Array.isArray(currentValue)) {
+        // A.1.a
+        return true;
       }
-      // A.1.a
-      return true;
-    } else {
-      // single select
-      let i = 0;
-      // B.1
-      let value: Primitive | IIndexable | UntypedArray;
+      // A.1.b
+      // multi select
+      let option: HTMLOptionElementWithModel;
+      const matcher = obj.matcher || defaultMatcher;
+      // A.1.b.i
+      const values: UntypedArray = [];
       while (i < len) {
-        const option = options.item(i) as HTMLOptionElementWithModel;
+        option = options.item(i);
         if (option.selected) {
-          value = option.hasOwnProperty('model')
+          values.push(option.hasOwnProperty('model')
             ? option.model
-            : option.value;
-          break;
+            : option.value
+          );
         }
-        i++;
+        ++i;
       }
-      // B.2
-      this.oldValue = this.currentValue;
-      // B.3
-      this.currentValue = value;
-      // B.4
-      return true;
+      // A.1.b.ii
+      i = 0;
+      while (i < currentValue.length) {
+        const a = currentValue[i];
+        // Todo: remove arrow fn
+        if (values.findIndex(b => !!matcher(a, b)) === -1) {
+          currentValue.splice(i, 1);
+        } else {
+          ++i;
+        }
+      }
+      // A.1.b.iii
+      i = 0;
+      while (i < values.length) {
+        const a = values[i];
+        // Todo: remove arrow fn
+        if (currentValue.findIndex(b => !!matcher(a, b)) === -1) {
+          currentValue.push(a);
+        }
+        ++i;
+      }
+      // A.1.b.iv
+      return false;
     }
+    // B. single select
+    // B.1
+    let value: Primitive | IIndexable | UntypedArray = null;
+    while (i < len) {
+      const option = options.item(i) as HTMLOptionElementWithModel;
+      if (option.selected) {
+        value = option.hasOwnProperty('model')
+          ? option.model
+          : option.value;
+        break;
+      }
+      ++i;
+    }
+    // B.2
+    this.oldValue = this.currentValue;
+    // B.3
+    this.currentValue = value;
+    // B.4
+    return true;
   }
 
   public subscribe(subscriber: IPropertySubscriber): void {

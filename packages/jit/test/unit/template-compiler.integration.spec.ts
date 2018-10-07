@@ -96,7 +96,7 @@ function stringify(o) {
 }
 
 
-describe.only('TemplateCompiler (integration)', () => {
+describe('TemplateCompiler (integration)', () => {
   let container: IContainer;
   let au: Aurelia;
   let host: HTMLElement;
@@ -341,13 +341,8 @@ describe.only('TemplateCompiler (integration)', () => {
     expect(component.checked).to.be.true;
   });
 
-  it.only(`toViewBinding - select single`, () => {
+  it(`toViewBinding - select single`, () => {
     component = createCustomElement(
-      // `<template>
-      //   <select value.to-view="selectedValue">
-      //     ${[1,2].map(v => `<option value="${v}"></option>`).join('')}
-      //   </select>
-      // </template>`
       h('template',
         null,
         h('select',
@@ -366,7 +361,7 @@ describe.only('TemplateCompiler (integration)', () => {
     expect(host.firstElementChild.childNodes.item(1)['selected']).to.be.true;
   });
 
-  it.only(`twoWayBinding - select single`, () => {
+  it(`twoWayBinding - select single`, () => {
     component = createCustomElement(
       h('template',
         null,
@@ -381,7 +376,6 @@ describe.only('TemplateCompiler (integration)', () => {
     expect(component.selectedValue).to.be.undefined;
     host.firstChild.childNodes.item(1)['selected'] = true;
     expect(component.selectedValue).to.be.undefined;
-    debugger;
     host.firstChild.dispatchEvent(new CustomEvent('change'));
     expect(component.selectedValue).to.equal('2');
   });

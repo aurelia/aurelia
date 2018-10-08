@@ -1,5 +1,5 @@
 import { Decoratable, Decorated, IIndexable, Writable } from '@aurelia/kernel';
-import { IBinding, IBindingTargetObserver, IObserverLocator, IPropertySubscriber } from '.';
+import { IBinding, IBindingTargetObserver, IObserverLocator, IPropertySubscriber, StrictAny } from '.';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 
@@ -25,7 +25,7 @@ export interface IPartialConnectableBinding extends IBinding, IPropertySubscribe
 export interface IConnectableBinding extends IPartialConnectableBinding {
   observerSlots: number;
   version: number;
-  observeProperty(obj: IIndexable, propertyName: string): void;
+  observeProperty(obj: StrictAny, propertyName: StrictAny): void;
   addObserver(observer: IBindingTargetObserver): void;
   unobserve(all?: boolean): void;
 }

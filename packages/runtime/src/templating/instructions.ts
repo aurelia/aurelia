@@ -89,6 +89,12 @@ export interface IInterpolationInstruction extends ITargetedInstruction {
   dest: string;
 }
 
+export interface IInterpolationInstruction extends ITargetedInstruction {
+  type: TargetedInstructionType.interpolation;
+  srcOrExpr: string | Interpolation;
+  dest: string;
+}
+
 export interface IPropertyBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.propertyBinding;
   mode: BindingMode;

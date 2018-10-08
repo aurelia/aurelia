@@ -1,20 +1,32 @@
-// tslint:disable:no-any
-// tslint:disable:function-name
-// tslint:disable:no-empty
-import { IServiceLocator, PLATFORM } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator, PLATFORM, Reporter } from '@aurelia/kernel';
 import { IBinding } from './binding';
 import { BindingBehaviorResource } from './binding-behavior';
 import { BindingContext, IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { IConnectableBinding } from './connectable';
-import { Collection } from './observation';
+import { Collection, ObservedCollection } from './observation';
 import { ISignaler } from './signaler';
 import { ValueConverterResource } from './value-converter';
 
+// tslint:disable:no-empty
+
+export type StrictPrimitive = string | number | boolean | null | undefined;
+/**
+ * StrictAny is a somewhat strongly typed alternative to 'any', in an effort to try to get rid of all 'any''s
+ * It's not even remotely foolproof however, and this can largely be attributed to the fact that TypeScript imposes
+ * far more constraints on what arithmic is allowed than vanilla JS does.
+ * We don't necessarily want to impose the same constraints on users (e.g. by performing auto conversions or throwing),
+ * because even though that behavior would technically be "better", it could also be experienced as unpredictable.
+ * We'd generally not want to ask more of users than to simply understand how vanilla JS works, and let them account for its quirks themselves.
+ * This gives end users less framework-specific things to learn.
+ * Consequently, it's impossible to achieve any kind of strict type checking in the AST and generally in the observers.
+ * We're trying to achieve some middle ground by applying some explicit type casts where TypeScript would otherwise not allow compilation.
+ */
+export type StrictAny = StrictPrimitive | IIndexable | Function;
 export type IsPrimary = AccessThis | AccessScope | ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;
-export type IsUnary = IsPrimary | Unary;
-export type IsLeftHandSide = IsUnary | CallFunction | CallMember | CallScope | AccessMember | AccessKeyed | TaggedTemplate;
-export type IsBinary = IsLeftHandSide | Binary;
+export type IsLeftHandSide = IsPrimary | CallFunction | CallMember | CallScope | AccessMember | AccessKeyed | TaggedTemplate;
+export type IsUnary = IsLeftHandSide | Unary;
+export type IsBinary = IsUnary | Binary;
 export type IsConditional = IsBinary | Conditional;
 export type IsAssign = IsConditional | Assign;
 export type IsValueConverter = IsAssign | ValueConverter;
@@ -23,6 +35,7 @@ export type IsAssignable = AccessScope | AccessKeyed | AccessMember;
 export type IsExpression = IsBindingBehavior | Interpolation;
 export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern;
 
+// tslint:disable-next-line:no-any
 export interface IVisitor<T = any> {
   visitAccessKeyed(expr: AccessKeyed): T;
   visitAccessMember(expr: AccessMember): T;
@@ -52,48 +65,62 @@ export interface IVisitor<T = any> {
 
 export interface IExpression {
   readonly $kind: ExpressionKind;
-  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null): any;
-  connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): any;
+  evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null): StrictAny;
+  connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void;
   accept<T>(visitor: IVisitor<T>): T;
-  assign?(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null, value: any): any;
+  assign?(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null, value: StrictAny): StrictAny;
   bind?(flags: BindingFlags, scope: IScope, binding: IBinding): void;
   unbind?(flags: BindingFlags, scope: IScope, binding: IBinding): void;
 }
 
 export const enum ExpressionKind {
-  IsPrimary            = 0b00000001_00000,
-  IsLeftHandSide       = 0b00000010_00000,
-  IsAssignable         = 0b00000100_00000,
-  IsExpression         = 0b00001000_00000,
-  IsResource           = 0b00010000_00000,
-  IsStatement          = 0b00100000_00000,
-  IsDestructuring      = 0b01000000_00000,
-  IsForDeclaration     = 0b10000000_00000,
-  Type                 = 0b00000000_11111,
-  AccessThis           = 0b00001001_00001,
-  AccessScope          = 0b00001101_00010,
-  ArrayLiteral         = 0b00001001_00011,
-  ObjectLiteral        = 0b00001001_00100,
-  PrimitiveLiteral     = 0b00001001_00101,
-  Template             = 0b00001001_00110,
-  Unary                = 0b00001000_00111,
-  CallScope            = 0b00001010_01000,
-  CallMember           = 0b00001010_01001,
-  CallFunction         = 0b00001010_01010,
-  AccessMember         = 0b00001110_01011,
-  AccessKeyed          = 0b00001110_01100,
-  TaggedTemplate       = 0b00001010_01101,
-  Binary               = 0b00001000_01110,
-  Conditional          = 0b00001000_11111,
-  Assign               = 0b00001000_10000,
-  ValueConverter       = 0b00010000_10001,
-  BindingBehavior      = 0b00010000_10010,
-  HtmlLiteral          = 0b00000000_10011,
-  ArrayBindingPattern  = 0b11000000_10100,
-  ObjectBindingPattern = 0b11000000_10101,
-  BindingIdentifier    = 0b10000000_10110,
-  ForOfStatement       = 0b00100000_10111,
-  Interpolation        = 0b00001000_11000
+  IsPrimary            = 0b0000000001_00000,
+  IsLeftHandSide       = 0b0000000010_00000,
+  IsAssignable         = 0b0000000100_00000,
+  IsExpression         = 0b0000001000_00000,
+  IsResource           = 0b0000010000_00000,
+  IsStatement          = 0b0000100000_00000,
+  IsDestructuring      = 0b0001000000_00000,
+  IsForDeclaration     = 0b0010000000_00000,
+  HasBind              = 0b0100000000_00000,
+  HasUnbind            = 0b1000000000_00000,
+  Type                 = 0b0000000000_11111,
+  AccessThis           = 0b0000001001_00001,
+  AccessScope          = 0b0000001101_00010,
+  ArrayLiteral         = 0b0000001001_00011,
+  ObjectLiteral        = 0b0000001001_00100,
+  PrimitiveLiteral     = 0b0000001001_00101,
+  Template             = 0b0000001001_00110,
+  Unary                = 0b0000001000_00111,
+  CallScope            = 0b0000001010_01000,
+  CallMember           = 0b0000001010_01001,
+  CallFunction         = 0b0000001010_01010,
+  AccessMember         = 0b0000001110_01011,
+  AccessKeyed          = 0b0000001110_01100,
+  TaggedTemplate       = 0b0000001010_01101,
+  Binary               = 0b0000001000_01110,
+  Conditional          = 0b0000001000_11111,
+  Assign               = 0b0000001000_10000,
+  ValueConverter       = 0b0000010000_10001,
+  BindingBehavior      = 0b0000010000_10010,
+  HtmlLiteral          = 0b0000000000_10011,
+  ArrayBindingPattern  = 0b0011000000_10100,
+  ObjectBindingPattern = 0b0011000000_10101,
+  BindingIdentifier    = 0b0010000000_10110,
+  ForOfStatement       = 0b0000100000_10111,
+  Interpolation        = 0b0000001000_11000
+}
+
+const enum RuntimeError {
+  NoLocator = 202,
+  NoBehaviorFound = 203,
+  BehaviorAlreadyApplied = 204,
+  NoConverterFound = 205,
+  NoBinding = 206,
+  NotAFunction = 207,
+  UnknownOperator = 208,
+  UndefinedScope = 250, // trying to evaluate on something that's not a valid binding
+  NullScope = 251, // trying to evaluate on an unbound binding
 }
 
 export class BindingBehavior implements IExpression {
@@ -106,50 +133,58 @@ export class BindingBehavior implements IExpression {
     public readonly name: string,
     public readonly args: ReadonlyArray<IsAssign>) {
     this.behaviorKey = BindingBehaviorResource.keyFrom(this.name);
-    if ((<any>expression).expression) {
-      this.expressionHasBind = !!(<any>expression).bind;
-      this.expressionHasUnbind = !!(<any>expression).unbind;
-    } else {
-      this.expressionHasBind = false;
-      this.expressionHasUnbind = false;
-    }
+    const kind = expression.$kind;
+    this.expressionHasBind = (kind & ExpressionKind.HasBind) > 0;
+    this.expressionHasUnbind = (kind & ExpressionKind.HasUnbind) > 0;
   }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return this.expression.evaluate(flags, scope, locator);
   }
 
-  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
-    return (<any>this.expression).assign(flags, scope, locator, value);
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
+    return this.expression.assign(flags, scope, locator, value);
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.expression.connect(flags, scope, binding);
   }
 
-  public bind(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public bind(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    if (scope === undefined) {
+      throw Reporter.error(RuntimeError.UndefinedScope, this);
+    }
+    if (scope === null) {
+      throw Reporter.error(RuntimeError.NullScope, this);
+    }
+    if (!binding) {
+      throw Reporter.error(RuntimeError.NoBinding, this);
+    }
+    const locator = binding.locator;
+    if (!locator) {
+      throw Reporter.error(RuntimeError.NoLocator, this);
+    }
     if (this.expressionHasBind) {
-      (<any>this.expression).bind(flags, scope, binding);
+      (this.expression as BindingBehavior).bind(flags, scope, binding);
     }
     const behaviorKey = this.behaviorKey;
-    const locator = binding.locator;
-    const behavior = locator.get(behaviorKey) as BindingBehavior;
+    const behavior = locator.get<BindingBehavior>(behaviorKey);
     if (!behavior) {
-      throw new Error(`No BindingBehavior named "${this.name}" was found!`);
+      throw Reporter.error(RuntimeError.NoBehaviorFound, this);
     }
-    if ((binding as any)[behaviorKey]) {
-      throw new Error(`A binding behavior named "${this.name}" has already been applied to "${this.expression}"`);
+    if (binding[behaviorKey] !== undefined) {
+      throw Reporter.error(RuntimeError.BehaviorAlreadyApplied, this);
     }
     binding[behaviorKey] = behavior;
-    behavior.bind.apply(behavior, [flags, scope, binding].concat(evalList(flags, scope, locator, this.args)));
+    behavior.bind.apply(behavior, (<StrictAny[]>[flags, scope, binding]).concat(evalList(flags, scope, locator, this.args)));
   }
 
-  public unbind(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public unbind(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const behaviorKey = this.behaviorKey;
     binding[behaviorKey].unbind(flags, scope, binding);
     binding[behaviorKey] = null;
     if (this.expressionHasUnbind) {
-      (<any>this.expression).unbind(flags, scope, binding);
+      (this.expression as BindingBehavior | ValueConverter).unbind(flags, scope, binding);
     }
   }
 
@@ -168,10 +203,13 @@ export class ValueConverter implements IExpression {
     this.converterKey = ValueConverterResource.keyFrom(this.name);
   }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
-    const converter = locator.get(this.converterKey);
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
+    if (!locator) {
+      throw Reporter.error(RuntimeError.NoLocator, this);
+    }
+    const converter = locator.get<ValueConverter & { toView(...args: (StrictAny)[]): StrictAny }>(this.converterKey);
     if (!converter) {
-      throw new Error(`No ValueConverter named "${this.name}" was found!`);
+      throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
     if ('toView' in converter) {
       const args = this.args;
@@ -181,53 +219,68 @@ export class ValueConverter implements IExpression {
       for (let i = 0; i < len; ++i) {
         result[i + 1] = args[i].evaluate(flags, scope, locator);
       }
-      return (<any>converter).toView.apply(converter, result);
+      return converter.toView.apply(converter, result);
     }
     return this.expression.evaluate(flags, scope, locator);
   }
 
-  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
-    const converter = locator.get(this.converterKey);
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
+    if (!locator) {
+      throw Reporter.error(RuntimeError.NoLocator, this);
+    }
+    const converter = locator.get<ValueConverter & { fromView(...args: (StrictAny)[]): StrictAny }>(this.converterKey);
     if (!converter) {
-      throw new Error(`No ValueConverter named "${this.name}" was found!`);
+      throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
     if ('fromView' in converter) {
-      value = (<any>converter).fromView.apply(converter, [value].concat(evalList(flags, scope, locator, this.args)));
+      value = converter.fromView.apply(converter, [value].concat(evalList(flags, scope, locator, this.args)));
     }
-    return (<any>this.expression).assign(flags, scope, locator, value);
+    return this.expression.assign(flags, scope, locator, value);
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    if (scope === undefined) {
+      throw Reporter.error(RuntimeError.UndefinedScope, this);
+    }
+    if (scope === null) {
+      throw Reporter.error(RuntimeError.NullScope, this);
+    }
+    if (!binding) {
+      throw Reporter.error(RuntimeError.NoBinding, this);
+    }
+    const locator = binding.locator;
+    if (!locator) {
+      throw Reporter.error(RuntimeError.NoLocator, this);
+    }
     this.expression.connect(flags, scope, binding);
     const args = this.args;
     for (let i = 0, ii = args.length; i < ii; ++i) {
       args[i].connect(flags, scope, binding);
     }
-    const locator = binding.locator;
-    const converter = locator.get(this.converterKey) as ISignaler;
+    const converter = locator.get(this.converterKey) as { signals?: string[] };
     if (!converter) {
-      throw new Error(`No ValueConverter named "${this.name}" was found!`);
+      throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
-    const signals = (converter as any).signals;
+    const signals = converter.signals;
     if (signals === undefined) {
       return;
     }
     const signaler = locator.get(ISignaler) as ISignaler;
     for (let i = 0, ii = signals.length; i < ii; ++i) {
-      signaler.addSignalListener(signals[i], binding as any);
+      signaler.addSignalListener(signals[i], binding);
     }
   }
 
-  public unbind(flags: BindingFlags, scope: IScope, binding: IBinding): void {
+  public unbind(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const locator = binding.locator;
-    const converter = locator.get(this.converterKey);
-    const signals = (converter as any).signals;
+    const converter = locator.get(this.converterKey) as { signals?: string[] };
+    const signals = converter.signals;
     if (signals === undefined) {
       return;
     }
     const signaler = locator.get(ISignaler) as ISignaler;
     for (let i = 0, ii = signals.length; i < ii; ++i) {
-      signaler.removeSignalListener(signals[i], binding as any);
+      signaler.removeSignalListener(signals[i], binding);
     }
   }
 
@@ -242,15 +295,15 @@ export class Assign implements IExpression {
     public readonly target: IsAssignable,
     public readonly value: IsAssign) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator));
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
 
-  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
-    (<any>this.value).assign(flags, scope, locator, value);
-    this.target.assign(flags, scope, locator, value);
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
+    this.value.assign(flags, scope, locator, value);
+    return this.target.assign(flags, scope, locator, value);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -262,11 +315,11 @@ export class Conditional implements IExpression {
   public $kind: ExpressionKind.Conditional;
   public assign: IExpression['assign'];
   constructor(
-    public readonly condition: IExpression,
-    public readonly yes: IExpression,
-    public readonly no: IExpression) { }
+    public readonly condition: IsBinary,
+    public readonly yes: IsAssign,
+    public readonly no: IsAssign) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return (!!this.condition.evaluate(flags, scope, locator))
       ? this.yes.evaluate(flags, scope, locator)
       : this.no.evaluate(flags, scope, locator);
@@ -295,7 +348,13 @@ export class AccessThis implements IExpression {
   constructor(
     public readonly ancestor: number = 0) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
+    if (scope === undefined) {
+      throw Reporter.error(RuntimeError.UndefinedScope, this);
+    }
+    if (scope === null) {
+      throw Reporter.error(RuntimeError.NullScope, this);
+    }
     let oc = scope.overrideContext;
     let i = this.ancestor;
     while (i-- && oc) {
@@ -315,12 +374,12 @@ export class AccessScope implements IExpression {
     public readonly name: string,
     public readonly ancestor: number = 0) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     const name = this.name;
     return BindingContext.get(scope, name, this.ancestor)[name];
   }
 
-  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
     const name = this.name;
     const context = BindingContext.get(scope, name, this.ancestor);
     return context ? (context[name] = value) : undefined;
@@ -340,15 +399,15 @@ export class AccessScope implements IExpression {
 export class AccessMember implements IExpression {
   public $kind: ExpressionKind.AccessMember;
   constructor(
-    public readonly object: IExpression,
+    public readonly object: IsLeftHandSide,
     public readonly name: string) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     const instance = this.object.evaluate(flags, scope, locator);
     return instance === null || instance === undefined ? instance : instance[this.name];
   }
 
-  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
     let instance = this.object.evaluate(flags, scope, locator);
     if (instance === null || typeof instance !== 'object') {
       instance = {};
@@ -374,10 +433,10 @@ export class AccessMember implements IExpression {
 export class AccessKeyed implements IExpression {
   public $kind: ExpressionKind.AccessKeyed;
   constructor(
-    public readonly object: IExpression,
-    public readonly key: IExpression) { }
+    public readonly object: IsLeftHandSide,
+    public readonly key: IsAssign) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     const instance = this.object.evaluate(flags, scope, locator);
     if (instance === null || instance === undefined) {
       return undefined;
@@ -385,13 +444,15 @@ export class AccessKeyed implements IExpression {
     const key = this.key.evaluate(flags, scope, locator);
     // note: getKeyed and setKeyed are removed because they are identical to the default spec behavior
     // and the runtime does this this faster
-    return instance[key];
+    // tslint:disable-next-line:no-any
+    return instance[<any>key];
   }
 
-  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any | null): any {
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: StrictAny): StrictAny {
     const instance = this.object.evaluate(flags, scope, locator);
     const key = this.key.evaluate(flags, scope, locator);
-    return instance[key] = value;
+    // tslint:disable-next-line:no-any
+    return instance[<any>key] = value;
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -418,10 +479,10 @@ export class CallScope implements IExpression {
   public assign: IExpression['assign'];
   constructor(
     public readonly name: string,
-    public readonly args: ReadonlyArray<IExpression>,
+    public readonly args: ReadonlyArray<IsAssign>,
     public readonly ancestor: number = 0) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator | null): StrictAny {
     const args = evalList(flags, scope, locator, this.args);
     const context = BindingContext.get(scope, this.name, this.ancestor);
     const func = getFunction(flags, context, this.name);
@@ -447,11 +508,11 @@ export class CallMember implements IExpression {
   public $kind: ExpressionKind.CallMember;
   public assign: IExpression['assign'];
   constructor(
-    public readonly object: IExpression,
+    public readonly object: IsLeftHandSide,
     public readonly name: string,
-    public readonly args: ReadonlyArray<IExpression>) { }
+    public readonly args: ReadonlyArray<IsAssign>) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     const instance = this.object.evaluate(flags, scope, locator);
     const args = evalList(flags, scope, locator, this.args);
     const func = getFunction(flags, instance, this.name);
@@ -481,18 +542,18 @@ export class CallFunction implements IExpression {
   public $kind: ExpressionKind.CallFunction;
   public assign: IExpression['assign'];
   constructor(
-    public readonly func: IExpression,
-    public readonly args: IExpression[]) { }
+    public readonly func: IsLeftHandSide,
+    public readonly args: ReadonlyArray<IsAssign>) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
-    const func = this.func.evaluate(flags, scope, locator);
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
+    const func = this.func.evaluate(flags, scope, locator) as StrictAny; // not sure why this cast is needed..
     if (typeof func === 'function') {
       return func.apply(null, evalList(flags, scope, locator, this.args));
     }
     if (!(flags & BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
       return undefined;
     }
-    throw new Error(`${this.func} is not a function`);
+    throw Reporter.error(RuntimeError.NotAFunction, this);
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -518,15 +579,17 @@ export class Binary implements IExpression {
   public assign: IExpression['assign'];
   constructor(
     public readonly operation: BinaryOperator,
-    public readonly left: IExpression,
-    public readonly right: IExpression) {
+    public readonly left: IsBinary,
+    public readonly right: IsBinary) {
     // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
     // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less
     // work to do; we can do this because the operation can't change after it's parsed
     this.evaluate = this[operation];
   }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {}
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
+    throw Reporter.error(RuntimeError.UnknownOperator, this);
+  }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     const left = this.left.evaluate(flags, scope, null);
@@ -537,34 +600,34 @@ export class Binary implements IExpression {
     this.right.connect(flags, scope, binding);
   }
 
-  private ['&&'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['&&'](f: BindingFlags, s: IScope, l: IServiceLocator): StrictAny {
     return this.left.evaluate(f, s, l) && this.right.evaluate(f, s, l);
   }
-  private ['||'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['||'](f: BindingFlags, s: IScope, l: IServiceLocator): StrictAny {
     return this.left.evaluate(f, s, l) || this.right.evaluate(f, s, l);
   }
-  private ['=='](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['=='](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     // tslint:disable-next-line:triple-equals
     return this.left.evaluate(f, s, l) == this.right.evaluate(f, s, l);
   }
-  private ['==='](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['==='](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     return this.left.evaluate(f, s, l) === this.right.evaluate(f, s, l);
   }
-  private ['!='](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['!='](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     // tslint:disable-next-line:triple-equals
     return this.left.evaluate(f, s, l) != this.right.evaluate(f, s, l);
   }
-  private ['!=='](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['!=='](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     return this.left.evaluate(f, s, l) !== this.right.evaluate(f, s, l);
   }
-  private ['instanceof'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['instanceof'](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     const right = this.right.evaluate(f, s, l);
     if (typeof right === 'function') {
       return this.left.evaluate(f, s, l) instanceof right;
     }
     return false;
   }
-  private ['in'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['in'](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     const right = this.right.evaluate(f, s, l);
     if (right !== null && typeof right === 'object') {
       return this.left.evaluate(f, s, l) in right;
@@ -575,31 +638,36 @@ export class Binary implements IExpression {
   // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
   // this makes bugs in user code easier to track down for end users
   // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
-  private ['+'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
-    return this.left.evaluate(f, s, l) + this.right.evaluate(f, s, l);
+  private ['+'](f: BindingFlags, s: IScope, l: IServiceLocator): StrictAny {
+    // tslint:disable-next-line:no-any
+    return (<any>this.left.evaluate(f, s, l)) + (<any>this.right.evaluate(f, s, l));
   }
-  private ['-'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
-    return this.left.evaluate(f, s, l) - this.right.evaluate(f, s, l);
+  private ['-'](f: BindingFlags, s: IScope, l: IServiceLocator): StrictAny {
+    // tslint:disable-next-line:no-any
+    return (<any>this.left.evaluate(f, s, l)) - (<any>this.right.evaluate(f, s, l));
   }
-  private ['*'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
-    return this.left.evaluate(f, s, l) * this.right.evaluate(f, s, l);
+  private ['*'](f: BindingFlags, s: IScope, l: IServiceLocator): StrictAny {
+    // tslint:disable-next-line:no-any
+    return (<any>this.left.evaluate(f, s, l)) * (<any>this.right.evaluate(f, s, l));
   }
-  private ['/'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
-    return this.left.evaluate(f, s, l) / this.right.evaluate(f, s, l);
+  private ['/'](f: BindingFlags, s: IScope, l: IServiceLocator): StrictAny {
+    // tslint:disable-next-line:no-any
+    return (<any>this.left.evaluate(f, s, l)) / (<any>this.right.evaluate(f, s, l));
   }
-  private ['%'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
-    return this.left.evaluate(f, s, l) % this.right.evaluate(f, s, l);
+  private ['%'](f: BindingFlags, s: IScope, l: IServiceLocator): StrictAny {
+    // tslint:disable-next-line:no-any
+    return (<any>this.left.evaluate(f, s, l)) % (<any>this.right.evaluate(f, s, l));
   }
-  private ['<'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['<'](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     return this.left.evaluate(f, s, l) < this.right.evaluate(f, s, l);
   }
-  private ['>'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['>'](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     return this.left.evaluate(f, s, l) > this.right.evaluate(f, s, l);
   }
-  private ['<='](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['<='](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     return this.left.evaluate(f, s, l) <= this.right.evaluate(f, s, l);
   }
-  private ['>='](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  private ['>='](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     return this.left.evaluate(f, s, l) >= this.right.evaluate(f, s, l);
   }
 
@@ -613,36 +681,36 @@ export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
 export class Unary implements IExpression {
   public $kind: ExpressionKind.Unary;
+  public assign: IExpression['assign'];
   constructor(
     public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide) {
     // see Binary (we're doing the same thing here)
+    // tslint:disable-next-line:no-any
     this.evaluate = this[operation];
   }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {}
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
+    throw Reporter.error(RuntimeError.UnknownOperator, this);
+  }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
     this.expression.connect(flags, scope, binding);
   }
 
-  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, value: any): any {
-    throw new Error(`Binding expression "${this}" cannot be assigned to.`);
-  }
-
-  private ['void'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  public ['void'](f: BindingFlags, s: IScope, l: IServiceLocator): undefined {
     return void this.expression.evaluate(f, s, l);
   }
-  private ['typeof'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  public ['typeof'](f: BindingFlags, s: IScope, l: IServiceLocator): string {
     return typeof this.expression.evaluate(f, s, l);
   }
-  private ['!'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  public ['!'](f: BindingFlags, s: IScope, l: IServiceLocator): boolean {
     return !this.expression.evaluate(f, s, l);
   }
-  private ['-'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  public ['-'](f: BindingFlags, s: IScope, l: IServiceLocator): number {
     return -this.expression.evaluate(f, s, l);
   }
-  private ['+'](f: BindingFlags, s: IScope, l: IServiceLocator): any {
+  public ['+'](f: BindingFlags, s: IScope, l: IServiceLocator): number {
     return +this.expression.evaluate(f, s, l);
   }
 
@@ -656,9 +724,9 @@ export class PrimitiveLiteral implements IExpression {
   public $kind: ExpressionKind.PrimitiveLiteral;
   public connect: IExpression['connect'];
   public assign: IExpression['assign'];
-  constructor(public readonly value: any) { }
+  constructor(public readonly value: StrictPrimitive) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictPrimitive {
     return this.value;
   }
 
@@ -670,9 +738,9 @@ export class PrimitiveLiteral implements IExpression {
 export class HtmlLiteral implements IExpression {
   public $kind: ExpressionKind.HtmlLiteral;
   public assign: IExpression['assign'];
-  constructor(public readonly parts: ReadonlyArray<IExpression>) { }
+  constructor(public readonly parts: ReadonlyArray<HtmlLiteral>) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
     const elements = this.parts;
     let result = '';
     for (let i = 0, ii = elements.length; i < ii; ++i) {
@@ -699,9 +767,9 @@ export class HtmlLiteral implements IExpression {
 export class ArrayLiteral implements IExpression {
   public $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
-  constructor(public readonly elements: ReadonlyArray<IExpression>) { }
+  constructor(public readonly elements: ReadonlyArray<IsAssign>) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any[] {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): (StrictAny)[] {
     const elements = this.elements;
     const length = elements.length;
     const result = Array(length);
@@ -728,10 +796,10 @@ export class ObjectLiteral implements IExpression {
   public assign: IExpression['assign'];
   constructor(
     public readonly keys: ReadonlyArray<number | string>,
-    public readonly values: ReadonlyArray<IExpression>) { }
+    public readonly values: ReadonlyArray<IsAssign>) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
-    const instance: Record<string, any> = {};
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): Record<string, StrictAny> {
+    const instance: Record<string, StrictAny> = {};
     const keys = this.keys;
     const values = this.values;
     for (let i = 0, ii = keys.length; i < ii; ++i) {
@@ -805,9 +873,9 @@ export class TaggedTemplate implements IExpression {
     for (let i = 0, ii = len; i < ii; ++i) {
       results[i] = expressions[i].evaluate(flags, scope, locator);
     }
-    const func = this.func.evaluate(flags, scope, locator);
+    const func = this.func.evaluate(flags, scope, locator) as StrictAny; // not sure why this cast is needed..
     if (typeof func !== 'function') {
-      throw new Error(`${this.func} is not a function`);
+      throw Reporter.error(RuntimeError.NotAFunction, this);
     }
     return func.apply(null, [this.cooked].concat(results));
   }
@@ -832,11 +900,13 @@ export class ArrayBindingPattern implements IExpression {
     public readonly elements: ReadonlyArray<IsAssign>
   ) { }
 
+  // tslint:disable-next-line:no-any
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     // TODO
   }
 
-  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, obj: any): any {
+  // tslint:disable-next-line:no-any
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable): any {
     // TODO
   }
 
@@ -855,11 +925,13 @@ export class ObjectBindingPattern implements IExpression {
     public readonly values: ReadonlyArray<IsAssign>
   ) { }
 
+  // tslint:disable-next-line:no-any
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
     // TODO
   }
 
-  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, obj: any): any {
+  // tslint:disable-next-line:no-any
+  public assign(flags: BindingFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable): any {
     // TODO
   }
 
@@ -874,7 +946,7 @@ export class BindingIdentifier implements IExpression {
   public $kind: ExpressionKind.BindingIdentifier;
   constructor(public readonly name: string) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return this.name;
   }
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void { }
@@ -896,15 +968,16 @@ export class ForOfStatement implements IExpression {
     public readonly declaration: BindingIdentifierOrPattern,
     public readonly iterable: IsBindingBehavior) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): any {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
     return this.iterable.evaluate(flags, scope, locator);
   }
 
-  public count(result: any): number {
+  public count(result: ObservedCollection | number | null | undefined): number {
     return CountForOfStatement[toStringTag.call(result)](result);
   }
 
-  public iterate(result: any, func: (arr: Collection, index: number, item: any) => void): void {
+  // tslint:disable-next-line:no-any
+  public iterate(result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: any) => void): void {
     IterateForOfStatement[toStringTag.call(result)](result, func);
   }
 
@@ -927,10 +1000,10 @@ export class Interpolation implements IExpression {
   public $kind: ExpressionKind.Interpolation;
   public assign: IExpression['assign'];
   public readonly isMulti: boolean;
-  public readonly firstExpression: IExpression;
+  public readonly firstExpression: IsBindingBehavior;
   constructor(
     public readonly parts: ReadonlyArray<string>,
-    public readonly expressions: ReadonlyArray<IExpression>) {
+    public readonly expressions: ReadonlyArray<IsBindingBehavior>) {
       this.isMulti = expressions.length > 1;
       this.firstExpression = expressions[0];
     }
@@ -989,7 +1062,7 @@ ForOfStatement.prototype.$kind = ExpressionKind.ForOfStatement;
 Interpolation.prototype.$kind = ExpressionKind.Interpolation;
 
 /// Evaluate the [list] in context of the [scope].
-function evalList(flags: BindingFlags, scope: IScope, locator: IServiceLocator, list: ReadonlyArray<IExpression>): any[] {
+function evalList(flags: BindingFlags, scope: IScope, locator: IServiceLocator, list: ReadonlyArray<IExpression>): StrictAny[] {
   const len = list.length;
   const result = Array(len);
   for (let i = 0; i < len; ++i) {
@@ -998,7 +1071,7 @@ function evalList(flags: BindingFlags, scope: IScope, locator: IServiceLocator, 
   return result;
 }
 
-function getFunction(flags: BindingFlags, obj: any, name: string): any {
+function getFunction(flags: BindingFlags, obj: StrictAny, name: string): Function | null {
   const func = obj === null || obj === undefined ? null : obj[name];
   if (typeof func === 'function') {
     return func;
@@ -1006,18 +1079,18 @@ function getFunction(flags: BindingFlags, obj: any, name: string): any {
   if (!(flags & BindingFlags.mustEvaluate) && (func === null || func === undefined)) {
     return null;
   }
-  throw new Error(`${name} is not a function`);
+  throw Reporter.error(RuntimeError.NotAFunction, obj, name, func);
 }
 
-function isNumeric(value: string): boolean {
+function isNumeric(value: StrictAny): value is number {
   // tslint:disable-next-line:no-reserved-keywords
   const type = typeof value;
   if (type === 'number') return true;
   if (type !== 'string') return false;
-  const len = value.length;
+  const len = (<string>value).length;
   if (len === 0) return false;
   for (let i = 0; i < len; ++i) {
-    const char = value.charCodeAt(i);
+    const char = (<string>value).charCodeAt(i);
     if (char < 0x30 /*0*/ || char > 0x39/*9*/) {
       return false;
     }
@@ -1027,12 +1100,12 @@ function isNumeric(value: string): boolean {
 
 /*@internal*/
 export const IterateForOfStatement = {
-  ['[object Array]'](result: any[], func: (arr: Collection, index: number, item: any) => void): void {
+  ['[object Array]'](result: StrictAny[], func: (arr: Collection, index: number, item: StrictAny) => void): void {
     for (let i = 0, ii = result.length; i < ii; ++i) {
       func(result, i, result[i]);
     }
   },
-  ['[object Map]'](result: Map<any, any>, func: (arr: Collection, index: number, item: any) => void): void {
+  ['[object Map]'](result: Map<StrictAny, StrictAny>, func: (arr: Collection, index: number, item: StrictAny) => void): void {
     const arr = Array(result.size);
     let i = -1;
     for (const entry of result.entries()) {
@@ -1040,7 +1113,7 @@ export const IterateForOfStatement = {
     }
     IterateForOfStatement['[object Array]'](arr, func);
   },
-  ['[object Set]'](result: Set<any>, func: (arr: Collection, index: number, item: any) => void): void {
+  ['[object Set]'](result: Set<StrictAny>, func: (arr: Collection, index: number, item: StrictAny) => void): void {
     const arr = Array(result.size);
     let i = -1;
     for (const key of result.keys()) {
@@ -1048,22 +1121,22 @@ export const IterateForOfStatement = {
     }
     IterateForOfStatement['[object Array]'](arr, func);
   },
-  ['[object Number]'](result: number, func: (arr: Collection, index: number, item: any) => void): void {
+  ['[object Number]'](result: number, func: (arr: Collection, index: number, item: StrictAny) => void): void {
     const arr = Array(result);
     for (let i = 0; i < result; ++i) {
       arr[i] = i;
     }
     IterateForOfStatement['[object Array]'](arr, func);
   },
-  ['[object Null]'](result: null, func: (arr: Collection, index: number, item: any) => void): void { },
-  ['[object Undefined]'](result: null, func: (arr: Collection, index: number, item: any) => void): void { }
+  ['[object Null]'](result: null, func: (arr: Collection, index: number, item: StrictAny) => void): void { },
+  ['[object Undefined]'](result: null, func: (arr: Collection, index: number, item: StrictAny) => void): void { }
 };
 
 /*@internal*/
 export const CountForOfStatement = {
-  ['[object Array]'](result: any[]): number { return result.length; },
-  ['[object Map]'](result: Map<any, any>): number { return result.size; },
-  ['[object Set]'](result: Set<any>): number { return result.size; },
+  ['[object Array]'](result: StrictAny[]): number { return result.length; },
+  ['[object Map]'](result: Map<StrictAny, StrictAny>): number { return result.size; },
+  ['[object Set]'](result: Set<StrictAny>): number { return result.size; },
   ['[object Number]'](result: number): number { return result; },
   ['[object Null]'](result: null): number { return 0; },
   ['[object Undefined]'](result: null): number { return 0; }
@@ -1075,8 +1148,19 @@ export const CountForOfStatement = {
 //   2) no runtime error due to a bad binding such as two-way on a literal (no need, since it doesn't threaten the integrity of the app's state)
 //   3) should we decide something else, we can easily change the global behavior of 1) and 2) by simply assigning a different method here (either in the source or via AOT)
 const ast = [AccessThis, AccessScope, ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template, Unary, CallFunction, CallMember, CallScope, AccessMember, AccessKeyed, TaggedTemplate, Binary, Conditional, Assign];
+// tslint:disable-next-line:no-any
+const passThrough = (value: any): any => value;
 for (let i = 0, ii = ast.length; i < ii; ++i) {
   const proto = ast[i].prototype;
-  proto.assign = proto.assign || PLATFORM.noop;
+  proto.assign = proto.assign || <any>PLATFORM.noop;
   proto.connect = proto.connect || PLATFORM.noop;
+}
+
+function validateScope(scope: IScope): void {
+  if (scope === undefined) {
+    throw Reporter.error(RuntimeError.UndefinedScope, this);
+  }
+  if (scope === null) {
+    throw Reporter.error(RuntimeError.NullScope, this);
+  }
 }

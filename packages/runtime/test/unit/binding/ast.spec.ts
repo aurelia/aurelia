@@ -334,10 +334,10 @@ describe('AST', () => {
     describe('evaluate() throws when scope is nil', () => {
       for (const [text, expr] of AccessThisList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'evaluate', 'Code 200', null, undefined);
+          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'evaluate', 'Code 201', null, null);
+          throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
@@ -375,10 +375,10 @@ describe('AST', () => {
         ...SimpleTaggedTemplateList
       ]) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'evaluate', 'Code 200', null, undefined);
+          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'evaluate', 'Code 201', null, null);
+          throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
@@ -390,10 +390,10 @@ describe('AST', () => {
         ...SimpleAccessMemberList
       ]) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'assign', 'Code 200', null, undefined);
+          throwsOn(expr, 'assign', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'assign', 'Code 201', null, null);
+          throwsOn(expr, 'assign', 'Code 251', null, null);
         });
       }
     });
@@ -421,10 +421,10 @@ describe('AST', () => {
         ...SimpleTaggedTemplateList
       ]) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'connect', 'Code 200', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'connect', 'Code 201', null, null);
+          throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
@@ -438,10 +438,10 @@ describe('AST', () => {
         ...SimpleCallMemberList
       ]) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'evaluate', 'Code 200', null, undefined);
+          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'evaluate', 'Code 201', null, null);
+          throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
@@ -467,10 +467,10 @@ describe('AST', () => {
         ...SimpleCallFunctionList
       ]) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'connect', 'Code 200', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'connect', 'Code 201', null, null);
+          throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
@@ -493,10 +493,10 @@ describe('AST', () => {
     describe('evaluate() throws when scope is nil', () => {
       for (const [text, expr] of SimpleUnaryList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'evaluate', 'Code 200', null, undefined);
+          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'evaluate', 'Code 201', null, null);
+          throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
@@ -515,10 +515,10 @@ describe('AST', () => {
     describe('connect() throws when scope is nil', () => {
       for (const [text, expr] of SimpleUnaryList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'connect', 'Code 200', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'connect', 'Code 201', null, null);
+          throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
@@ -535,10 +535,10 @@ describe('AST', () => {
         ...SimpleLogicalORList
       ]) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'evaluate', 'Code 200', null, undefined);
+          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'evaluate', 'Code 201', null, null);
+          throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
@@ -571,10 +571,10 @@ describe('AST', () => {
         ...SimpleLogicalORList
       ]) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'connect', 'Code 200', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'connect', 'Code 201', null, null);
+          throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
@@ -584,10 +584,10 @@ describe('AST', () => {
     describe('evaluate() throws when scope is nil', () => {
       for (const [text, expr] of SimpleConditionalList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'evaluate', 'Code 200', null, undefined);
+          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'evaluate', 'Code 201', null, null);
+          throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
@@ -606,10 +606,10 @@ describe('AST', () => {
     describe('connect() throws when scope is nil', () => {
       for (const [text, expr] of SimpleConditionalList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'connect', 'Code 200', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'connect', 'Code 201', null, null);
+          throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
@@ -620,10 +620,10 @@ describe('AST', () => {
     describe('evaluate() throws when scope is nil', () => {
       for (const [text, expr] of SimpleAssignList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'evaluate', 'Code 200', null, undefined);
+          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'evaluate', 'Code 201', null, null);
+          throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
@@ -631,10 +631,10 @@ describe('AST', () => {
     describe('assign() throws when scope is nil', () => {
       for (const [text, expr] of SimpleAssignList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'assign', 'Code 200', null, undefined);
+          throwsOn(expr, 'assign', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'assign', 'Code 201', null, null);
+          throwsOn(expr, 'assign', 'Code 251', null, null);
         });
       }
     });
@@ -693,10 +693,10 @@ describe('AST', () => {
     describe('connect() throws when scope is nil', () => {
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'connect', 'Code 200', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'connect', 'Code 201', null, null);
+          throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
@@ -731,10 +731,10 @@ describe('AST', () => {
     describe('evaluate() throws when locator is nil', () => {
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'evaluate', 'Code 200', null, undefined);
+          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'evaluate', 'Code 201', null, null);
+          throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
@@ -742,10 +742,10 @@ describe('AST', () => {
     describe('assign() throws when locator is nil', () => {
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'assign', 'Code 200', null, undefined);
+          throwsOn(expr, 'assign', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'assign', 'Code 201', null, null);
+          throwsOn(expr, 'assign', 'Code 251', null, null);
         });
       }
     });
@@ -753,10 +753,10 @@ describe('AST', () => {
     describe('connect() throws when scope is nil', () => {
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'connect', 'Code 200', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'connect', 'Code 201', null, null);
+          throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
@@ -764,10 +764,10 @@ describe('AST', () => {
     describe('bind() throws when scope is nil', () => {
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, () => {
-          throwsOn(expr, 'bind', 'Code 200', null, undefined);
+          throwsOn(expr, 'bind', 'Code 250', null, undefined);
         });
         it(`${text}, null`, () => {
-          throwsOn(expr, 'bind', 'Code 201', null, null);
+          throwsOn(expr, 'bind', 'Code 251', null, null);
         });
       }
     });

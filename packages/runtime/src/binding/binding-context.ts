@@ -11,8 +11,10 @@ export interface IScope {
 }
 
 const enum RuntimeError {
-  UndefinedScope = 200, // trying to evaluate on something that's not a valid binding
-  NullScope = 201, // trying to evaluate on an unbound binding
+  UndefinedScope = 250, // trying to evaluate on something that's not a valid binding
+  NullScope = 251, // trying to evaluate on an unbound binding
+  NilOverrideContext = 252,
+  NilParentScope = 253
 }
 
 export const BindingContext = {
@@ -24,6 +26,9 @@ export const BindingContext = {
   },
 
   createScopeFromOverride(overrideContext: IOverrideContext): IScope {
+    if (overrideContext === null || overrideContext === undefined) {
+      throw Reporter.error(RuntimeError.NilOverrideContext);
+    }
     return {
       bindingContext: overrideContext.bindingContext,
       overrideContext
@@ -31,6 +36,9 @@ export const BindingContext = {
   },
 
   createScopeFromParent(parentScope: IScope, bindingContext: any): IScope {
+    if (parentScope === null || parentScope === undefined) {
+      throw Reporter.error(RuntimeError.NilParentScope);
+    }
     return {
       bindingContext: bindingContext,
       overrideContext: BindingContext.createOverride(
@@ -47,6 +55,7 @@ export const BindingContext = {
     };
   },
 
+  // tslint:disable-next-line:no-reserved-keywords
   get(scope: IScope, name: string, ancestor: number): any {
     if (scope === undefined) {
       throw Reporter.error(RuntimeError.UndefinedScope);

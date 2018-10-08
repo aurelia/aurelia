@@ -112,15 +112,15 @@ export const enum ExpressionKind {
 }
 
 const enum RuntimeError {
-  UndefinedScope = 200, // trying to evaluate on something that's not a valid binding
-  NullScope = 201, // trying to evaluate on an unbound binding
   NoLocator = 202,
   NoBehaviorFound = 203,
   BehaviorAlreadyApplied = 204,
   NoConverterFound = 205,
   NoBinding = 206,
   NotAFunction = 207,
-  UnknownOperator = 208
+  UnknownOperator = 208,
+  UndefinedScope = 250, // trying to evaluate on something that's not a valid binding
+  NullScope = 251, // trying to evaluate on an unbound binding
 }
 
 export class BindingBehavior implements IExpression {
@@ -1152,7 +1152,7 @@ const ast = [AccessThis, AccessScope, ArrayLiteral, ObjectLiteral, PrimitiveLite
 const passThrough = (value: any): any => value;
 for (let i = 0, ii = ast.length; i < ii; ++i) {
   const proto = ast[i].prototype;
-  proto.assign = proto.assign || passThrough;
+  proto.assign = proto.assign || <any>PLATFORM.noop;
   proto.connect = proto.connect || PLATFORM.noop;
 }
 

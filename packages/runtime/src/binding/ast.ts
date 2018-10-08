@@ -24,6 +24,7 @@ export type StrictPrimitive = string | number | boolean | null | undefined;
  */
 export type StrictAny = StrictPrimitive | IIndexable | Function;
 export type IsPrimary = AccessThis | AccessScope | ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;
+export type IsLiteral = ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;
 export type IsLeftHandSide = IsPrimary | CallFunction | CallMember | CallScope | AccessMember | AccessKeyed | TaggedTemplate;
 export type IsUnary = IsLeftHandSide | Unary;
 export type IsBinary = IsUnary | Binary;
@@ -31,9 +32,16 @@ export type IsConditional = IsBinary | Conditional;
 export type IsAssign = IsConditional | Assign;
 export type IsValueConverter = IsAssign | ValueConverter;
 export type IsBindingBehavior = IsValueConverter | BindingBehavior;
-export type IsAssignable = AccessScope | AccessKeyed | AccessMember;
+export type IsAssignable = AccessScope | AccessKeyed | AccessMember | Assign;
 export type IsExpression = IsBindingBehavior | Interpolation;
 export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern;
+export type Connects = AccessScope | ArrayLiteral | ObjectLiteral | Template | Unary | CallScope | AccessMember | AccessKeyed | TaggedTemplate | Binary | Conditional | ValueConverter | BindingBehavior | ForOfStatement;
+export type Observes = AccessScope | AccessKeyed | AccessMember;
+export type CallsFunction = CallFunction | CallScope | CallMember | TaggedTemplate;
+export type IsResource = ValueConverter | BindingBehavior;
+export type HasBind = BindingBehavior;
+export type HasUnbind = ValueConverter | BindingBehavior;
+export type HasAncestor = AccessThis | AccessScope | CallScope;
 
 // tslint:disable-next-line:no-any
 export interface IVisitor<T = any> {
@@ -74,41 +82,105 @@ export interface IExpression {
 }
 
 export const enum ExpressionKind {
-  IsPrimary            = 0b0000000001_00000,
-  IsLeftHandSide       = 0b0000000010_00000,
-  IsAssignable         = 0b0000000100_00000,
-  IsExpression         = 0b0000001000_00000,
-  IsResource           = 0b0000010000_00000,
-  IsStatement          = 0b0000100000_00000,
-  IsDestructuring      = 0b0001000000_00000,
-  IsForDeclaration     = 0b0010000000_00000,
-  HasBind              = 0b0100000000_00000,
-  HasUnbind            = 0b1000000000_00000,
-  Type                 = 0b0000000000_11111,
-  AccessThis           = 0b0000001001_00001,
-  AccessScope          = 0b0000001101_00010,
-  ArrayLiteral         = 0b0000001001_00011,
-  ObjectLiteral        = 0b0000001001_00100,
-  PrimitiveLiteral     = 0b0000001001_00101,
-  Template             = 0b0000001001_00110,
-  Unary                = 0b0000001000_00111,
-  CallScope            = 0b0000001010_01000,
-  CallMember           = 0b0000001010_01001,
-  CallFunction         = 0b0000001010_01010,
-  AccessMember         = 0b0000001110_01011,
-  AccessKeyed          = 0b0000001110_01100,
-  TaggedTemplate       = 0b0000001010_01101,
-  Binary               = 0b0000001000_01110,
-  Conditional          = 0b0000001000_11111,
-  Assign               = 0b0000001000_10000,
-  ValueConverter       = 0b0000010000_10001,
-  BindingBehavior      = 0b0000010000_10010,
-  HtmlLiteral          = 0b0000000000_10011,
-  ArrayBindingPattern  = 0b0011000000_10100,
-  ObjectBindingPattern = 0b0011000000_10101,
-  BindingIdentifier    = 0b0010000000_10110,
-  ForOfStatement       = 0b0000100000_10111,
-  Interpolation        = 0b0000001000_11000
+  Connects             = 0b000000000001_00000, // The expression's connect() function is not a no-op
+  Observes             = 0b000000000010_00000, // The expression's connect() function calls observeProperty (only AccessScope, AccessMember and AccessKeyed do this)
+  CallsFunction        = 0b000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
+  HasAncestor          = 0b000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context
+  IsPrimary            = 0b000000010000_00000, // Is a primary expression according to ES parsing rules
+  IsLeftHandSide       = 0b000000100000_00000, // Is a left-hand side expression according to ES parsing rules
+  HasBind              = 0b000001000000_00000, // Has a bind() method (currently only BindingBehavior)
+  HasUnbind            = 0b000010000000_00000, // Has an unbind() method (currentl only BindingBehavior and ValueConverter)
+  IsAssignable         = 0b000100000000_00000, // Is an assignable expression according to ES parsing rules
+  IsLiteral            = 0b001000000000_00000, // Is an Aurelia resource (ValueConverter or BindingBehavior)
+  IsResource           = 0b010000000000_00000, // Is literal expression (Primitive, Array, Object or Template)
+  IsForDeclaration     = 0b100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)
+  Type                 = 0b000000000000_11111, // Type mask to uniquely identify each AST class (concrete types start below)
+  // ---------------------------------------------------------------------------------------------------------------------------
+  AccessThis           = 0b000000011000_00001, //               HasAncestor
+  AccessScope          = 0b000100011011_00010, // IsAssignable  HasAncestor       Observes  Connects
+  ArrayLiteral         = 0b001000010001_00011, //                                           Connects
+  ObjectLiteral        = 0b001000010001_00100, //                                           Connects
+  PrimitiveLiteral     = 0b001000010000_00101, //
+  Template             = 0b001000010001_00110, //                                           Connects
+  Unary                = 0b000000000001_00111, //                                           Connects
+  CallScope            = 0b000000101101_01000, //               HasAncestor  CallsFunction  Connects
+  CallMember           = 0b000000100100_01001, //                            CallsFunction
+  CallFunction         = 0b000000100100_01010, //                            CallsFunction
+  AccessMember         = 0b000100100011_01011, // IsAssignable                    Observes  Connects
+  AccessKeyed          = 0b000100100011_01100, // IsAssignable                    Observes  Connects
+  TaggedTemplate       = 0b000000100101_01101, //                            CallsFunction  Connects
+  Binary               = 0b000000000001_01110, //                                           Connects
+  Conditional          = 0b000000000001_11111, //                                           Connects
+  Assign               = 0b000100000000_10000, // IsAssignable
+  ValueConverter       = 0b010000000001_10001, //                                           Connects
+  BindingBehavior      = 0b010000000001_10010, //                                           Connects
+  HtmlLiteral          = 0b000000000001_10011, //                                           Connects
+  ArrayBindingPattern  = 0b100000000000_10100, //
+  ObjectBindingPattern = 0b100000000000_10101, //
+  BindingIdentifier    = 0b100000000000_10110, //
+  ForOfStatement       = 0b000000000001_10111, //                                           Connects
+  Interpolation        = 0b000000000000_11000  //
+}
+
+export function connects(expr: IsExpressionOrStatement): expr is Connects {
+  return (expr.$kind & ExpressionKind.Connects) === ExpressionKind.Connects;
+}
+export function observes(expr: IsExpressionOrStatement): expr is Observes {
+  return (expr.$kind & ExpressionKind.Observes) === ExpressionKind.Observes;
+}
+export function callsFunction(expr: IsExpressionOrStatement): expr is CallsFunction {
+  return (expr.$kind & ExpressionKind.CallsFunction) === ExpressionKind.CallsFunction;
+}
+export function hasAncestor(expr: IsExpressionOrStatement): expr is HasAncestor {
+  return (expr.$kind & ExpressionKind.HasAncestor) === ExpressionKind.HasAncestor;
+}
+export function isAssignable(expr: IsExpressionOrStatement): expr is IsAssignable {
+  return (expr.$kind & ExpressionKind.IsAssignable) === ExpressionKind.IsAssignable;
+}
+export function isLeftHandSide(expr: IsExpressionOrStatement): expr is IsLeftHandSide {
+  return (expr.$kind & ExpressionKind.IsLeftHandSide) === ExpressionKind.IsLeftHandSide;
+}
+export function isPrimary(expr: IsExpressionOrStatement): expr is IsPrimary {
+  return (expr.$kind & ExpressionKind.IsPrimary) === ExpressionKind.IsPrimary;
+}
+export function isResource(expr: IsExpressionOrStatement): expr is IsResource {
+  return (expr.$kind & ExpressionKind.IsResource) === ExpressionKind.IsResource;
+}
+export function hasBind(expr: IsExpressionOrStatement): expr is HasBind {
+  return (expr.$kind & ExpressionKind.HasBind) === ExpressionKind.HasBind;
+}
+export function hasUnbind(expr: IsExpressionOrStatement): expr is HasUnbind {
+  return (expr.$kind & ExpressionKind.HasUnbind) === ExpressionKind.HasUnbind;
+}
+export function isLiteral(expr: IsExpressionOrStatement): expr is IsLiteral {
+  return (expr.$kind & ExpressionKind.IsLiteral) === ExpressionKind.IsLiteral;
+}
+export function arePureLiterals(expressions: ReadonlyArray<IsExpressionOrStatement>): expressions is IsLiteral[] {
+  const len = expressions && expressions.length || 0;
+  if (len === 0) {
+    return true;
+  }
+  for (let i = 0; i < len; ++i) {
+    if (!isPureLiteral(expressions[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+export function isPureLiteral(expr: IsExpressionOrStatement): expr is IsLiteral {
+  if (isLiteral(expr)) {
+    switch (expr.$kind) {
+      case ExpressionKind.ArrayLiteral:
+        return arePureLiterals(expr.elements);
+      case ExpressionKind.ObjectLiteral:
+        return arePureLiterals(expr.values);
+      case ExpressionKind.Template:
+        return arePureLiterals(expr.expressions);
+      case ExpressionKind.PrimitiveLiteral:
+        return true;
+    }
+  }
+  return false;
 }
 
 const enum RuntimeError {
@@ -133,9 +205,8 @@ export class BindingBehavior implements IExpression {
     public readonly name: string,
     public readonly args: ReadonlyArray<IsAssign>) {
     this.behaviorKey = BindingBehaviorResource.keyFrom(this.name);
-    const kind = expression.$kind;
-    this.expressionHasBind = (kind & ExpressionKind.HasBind) > 0;
-    this.expressionHasUnbind = (kind & ExpressionKind.HasUnbind) > 0;
+    this.expressionHasBind = hasBind(expression);
+    this.expressionHasUnbind = hasUnbind(expression);
   }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictAny {
@@ -767,9 +838,15 @@ export class HtmlLiteral implements IExpression {
 export class ArrayLiteral implements IExpression {
   public $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
-  constructor(public readonly elements: ReadonlyArray<IsAssign>) { }
+  private readonly value: StrictAny[] | null;
+  constructor(public readonly elements: ReadonlyArray<IsAssign>) {
+    this.value = arePureLiterals(elements) ? this.evaluate(null, null, null) : null;
+  }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): (StrictAny)[] {
+    if (this.value !== null) {
+      return this.value;
+    }
     const elements = this.elements;
     const length = elements.length;
     const result = Array(length);
@@ -780,6 +857,9 @@ export class ArrayLiteral implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    if (this.value !== null) {
+      return;
+    }
     const elements = this.elements;
     for (let i = 0, ii = elements.length; i < ii; ++i) {
       elements[i].connect(flags, scope, binding);
@@ -794,11 +874,17 @@ export class ArrayLiteral implements IExpression {
 export class ObjectLiteral implements IExpression {
   public $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
+  private readonly value: Record<string, StrictAny> | null;
   constructor(
     public readonly keys: ReadonlyArray<number | string>,
-    public readonly values: ReadonlyArray<IsAssign>) { }
+    public readonly values: ReadonlyArray<IsAssign>) {
+    this.value = arePureLiterals(values) ? this.evaluate(null, null, null) : null;
+  }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): Record<string, StrictAny> {
+    if (this.value !== null) {
+      return this.value;
+    }
     const instance: Record<string, StrictAny> = {};
     const keys = this.keys;
     const values = this.values;
@@ -809,6 +895,9 @@ export class ObjectLiteral implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    if (this.value !== null) {
+      return;
+    }
     const keys = this.keys;
     const values = this.values;
     for (let i = 0, ii = keys.length; i < ii; ++i) {
@@ -824,13 +913,18 @@ export class ObjectLiteral implements IExpression {
 export class Template implements IExpression {
   public $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
+  private readonly value: string | null;
   constructor(
     public readonly cooked: ReadonlyArray<string>,
     public readonly expressions?: ReadonlyArray<IsAssign>) {
     this.expressions = expressions || PLATFORM.emptyArray;
+    this.value = arePureLiterals(expressions) ? this.evaluate(null, null, null) : null;
   }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
+    if (this.value !== null) {
+      return this.value;
+    }
     const expressions = this.expressions;
     const cooked = this.cooked;
     let result = cooked[0];
@@ -842,6 +936,9 @@ export class Template implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
+    if (this.value !== null) {
+      return;
+    }
     const expressions = this.expressions;
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
       expressions[i].connect(flags, scope, binding);

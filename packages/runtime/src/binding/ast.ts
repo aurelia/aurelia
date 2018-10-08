@@ -845,15 +845,9 @@ export class ArrayLiteral implements IExpression {
   public static readonly $empty: ArrayLiteral = new ArrayLiteral(PLATFORM.emptyArray);
   public $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
-  private readonly value: StrictAny[] | null;
-  constructor(public readonly elements: ReadonlyArray<IsAssign>) {
-    this.value = arePureLiterals(elements) ? this.evaluate(null, null, null) : null;
-  }
+  constructor(public readonly elements: ReadonlyArray<IsAssign>) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): (StrictAny)[] {
-    if (this.value !== null) {
-      return this.value;
-    }
     const elements = this.elements;
     const length = elements.length;
     const result = Array(length);
@@ -864,9 +858,6 @@ export class ArrayLiteral implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
-    if (this.value !== null) {
-      return;
-    }
     const elements = this.elements;
     for (let i = 0, ii = elements.length; i < ii; ++i) {
       elements[i].connect(flags, scope, binding);
@@ -882,17 +873,11 @@ export class ObjectLiteral implements IExpression {
   public static readonly $empty: ObjectLiteral = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
   public $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
-  private readonly value: Record<string, StrictAny> | null;
   constructor(
     public readonly keys: ReadonlyArray<number | string>,
-    public readonly values: ReadonlyArray<IsAssign>) {
-    this.value = arePureLiterals(values) ? this.evaluate(null, null, null) : null;
-  }
+    public readonly values: ReadonlyArray<IsAssign>) { }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): Record<string, StrictAny> {
-    if (this.value !== null) {
-      return this.value;
-    }
     const instance: Record<string, StrictAny> = {};
     const keys = this.keys;
     const values = this.values;
@@ -903,9 +888,6 @@ export class ObjectLiteral implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
-    if (this.value !== null) {
-      return;
-    }
     const keys = this.keys;
     const values = this.values;
     for (let i = 0, ii = keys.length; i < ii; ++i) {
@@ -922,18 +904,13 @@ export class Template implements IExpression {
   public static readonly $empty: Template = new Template(['']);
   public $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
-  private readonly value: string | null;
   constructor(
     public readonly cooked: ReadonlyArray<string>,
     public readonly expressions?: ReadonlyArray<IsAssign>) {
     this.expressions = expressions || PLATFORM.emptyArray;
-    this.value = arePureLiterals(expressions) ? this.evaluate(null, null, null) : null;
   }
 
   public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): string {
-    if (this.value !== null) {
-      return this.value;
-    }
     const expressions = this.expressions;
     const cooked = this.cooked;
     let result = cooked[0];
@@ -945,9 +922,6 @@ export class Template implements IExpression {
   }
 
   public connect(flags: BindingFlags, scope: IScope, binding: IConnectableBinding): void {
-    if (this.value !== null) {
-      return;
-    }
     const expressions = this.expressions;
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
       expressions[i].connect(flags, scope, binding);

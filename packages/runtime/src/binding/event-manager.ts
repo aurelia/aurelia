@@ -7,6 +7,7 @@ export interface IEventWithStandardPropagation extends Event {
 }
 
 //Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
+// tslint:disable-next-line:no-any
 function findOriginalEventTarget(event: any): IEventTargetWithLookups {
   return (event.composedPath && event.composedPath()[0]) || (event.path && event.path[0]) || (event.deepPath && event.deepPath[0]) || event.target;
 }

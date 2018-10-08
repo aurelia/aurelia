@@ -138,6 +138,7 @@ export class CheckedObserver implements CheckedObserver {
 
   constructor(
     public changeSet: IChangeSet,
+    // tslint:disable-next-line:no-any
     public obj: HTMLInputElement & { $observers?: any; matcher?: any; model?: any },
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator

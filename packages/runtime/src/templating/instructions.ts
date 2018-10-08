@@ -1,4 +1,4 @@
-// tslint:disable:no-reserved-keywords
+// tslint:disable:no-reserved-keywords , no-any
 import { DI, Immutable } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from '../binding/ast';
 import { BindingMode } from '../binding/binding-mode';
@@ -112,7 +112,7 @@ export interface IListenerBindingInstruction extends ITargetedInstruction {
 }
 
 export interface ICallBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.callBinding,
+  type: TargetedInstructionType.callBinding;
   srcOrExpr: string | IsBindingBehavior;
   dest: string;
 }

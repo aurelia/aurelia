@@ -1,14 +1,17 @@
 export interface IOverrideContext {
   parentOverrideContext: IOverrideContext;
+  // tslint:disable-next-line:no-any
   bindingContext: any;
 }
 
 export interface IScope {
+  // tslint:disable-next-line:no-any
   bindingContext: any;
   overrideContext: IOverrideContext;
 }
 
 export const BindingContext = {
+  // tslint:disable-next-line:no-any
   createScope(bindingContext: any, overrideContext?: IOverrideContext): IScope {
     return {
       bindingContext: bindingContext,
@@ -23,6 +26,7 @@ export const BindingContext = {
     };
   },
 
+  // tslint:disable-next-line:no-any
   createScopeFromParent(parentScope: IScope, bindingContext: any): IScope {
     return {
       bindingContext: bindingContext,
@@ -33,6 +37,7 @@ export const BindingContext = {
     };
   },
 
+  // tslint:disable-next-line:no-any
   createOverride(bindingContext?: any, parentOverrideContext?: IOverrideContext): IOverrideContext {
     return {
       bindingContext: bindingContext,
@@ -40,6 +45,7 @@ export const BindingContext = {
     };
   },
 
+  // tslint:disable-next-line:no-reserved-keywords , no-any
   get(scope: IScope, name: string, ancestor: number): any {
     let overrideContext = scope.overrideContext;
 

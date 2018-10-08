@@ -337,10 +337,6 @@ export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation = TargetedInstructionType.interpolation;
   constructor(public srcOrExpr: string | Interpolation, public dest: string) {}
 }
-export class InterpolationInstruction implements IInterpolationInstruction {
-  public type: TargetedInstructionType.interpolation = TargetedInstructionType.interpolation;
-  constructor(public srcOrExpr: string | Interpolation, public dest: string) {}
-}
 export class OneTimeBindingInstruction implements IPropertyBindingInstruction {
   public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
   public oneTime: true = true;

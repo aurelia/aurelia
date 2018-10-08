@@ -1,12 +1,19 @@
 import { BindingContext } from './../../../src/binding/binding-context';
 import { spy, SinonSpy } from 'sinon';
-import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType } from '../../../src/index';
+import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType, AccessThis } from '../../../src/index';
 import { DI } from '../../../../kernel/src/index';
 import { createScopeForTest } from './shared';
 import { expect } from 'chai';
 import { _, massSpy, massReset, massRestore, ensureNotCalled, eachCartesianJoinFactory, verifyEqual } from '../util';
 import sinon from 'sinon';
 import { parse, ParserState, Access, Precedence, parseCore } from '../../../../jit/src';
+
+const $false = PrimitiveLiteral.$false;
+const $true = PrimitiveLiteral.$true;
+const $null = PrimitiveLiteral.$null;
+const $undefined = PrimitiveLiteral.$undefined;
+const $this = AccessThis.$this;
+const $parent = AccessThis.$parent;
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -118,11 +125,11 @@ describe('Binding', () => {
           () => ['barz', `'bar' `]
         ],
         <(() => [IExpression, string])[]>[
-          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
+          () => [new ObjectLiteral(['foo'], [$null]), `{foo:null} `],
           () => [new AccessScope('foo'),                                   `foo        `],
           () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-          () => [new PrimitiveLiteral(null),                               `null       `],
-          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+          () => [$null,                               `null       `],
+          () => [$undefined,                          `undefined  `]
         ],
         <(() => [BindingFlags, string])[]>[
           () => [BindingFlags.fromBind,                                            `fromBind               `],
@@ -185,11 +192,11 @@ describe('Binding', () => {
           () => ['barz', `'barz' `]
         ],
         <(() => [IExpression, string])[]>[
-          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
+          () => [new ObjectLiteral(['foo'], [$null]), `{foo:null} `],
           () => [new AccessScope('foo'),                                   `foo        `],
           () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-          () => [new PrimitiveLiteral(null),                               `null       `],
-          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+          () => [$null,                               `null       `],
+          () => [$undefined,                          `undefined  `]
         ],
         <(() => [BindingFlags, string])[]>[
           () => [BindingFlags.fromBind,                                            `fromBind               `],
@@ -499,11 +506,11 @@ describe('Binding', () => {
           () => [[41, 43],      `41, 43 `]
         ],
         <(() => [IExpression, string])[]>[
-          () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
+          () => [new ObjectLiteral(['foo'], [$null]), `{foo:null} `],
           () => [new AccessScope('foo'),                                   `foo        `],
           () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-          () => [new PrimitiveLiteral(null),                               `null       `],
-          () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+          () => [$null,                               `null       `],
+          () => [$undefined,                          `undefined  `]
         ],
         <(() => [BindingFlags, string])[]>[
           () => [BindingFlags.fromBind,             `fromBind     `],

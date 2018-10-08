@@ -25,21 +25,23 @@ const binaryRelational: [BinaryOperator, string][] = [
 const binaryEquality: BinaryOperator[] = ['==', '!=', '===', '!=='];
 
 
-const $this = new AccessThis(0);
-const $parent = new AccessThis(1);
+const $false = PrimitiveLiteral.$false;
+const $true = PrimitiveLiteral.$true;
+const $null = PrimitiveLiteral.$null;
+const $undefined = PrimitiveLiteral.$undefined;
+const $str = PrimitiveLiteral.$empty;
+const $tpl = Template.$empty;
+const $arr = ArrayLiteral.$empty;
+const $obj = ObjectLiteral.$empty;
+const $this = AccessThis.$this;
+const $parent = AccessThis.$parent;
+
 const $a = new AccessScope('a');
 const $b = new AccessScope('b');
 const $c = new AccessScope('c');
-const $true = new PrimitiveLiteral(true);
-const $false = new PrimitiveLiteral(false);
-const $null = new PrimitiveLiteral(null);
-const $undefined = new PrimitiveLiteral(undefined);
-const $str = new PrimitiveLiteral('');
 const $str1 = new PrimitiveLiteral('1');
 const $num0 = new PrimitiveLiteral(0);
 const $num1 = new PrimitiveLiteral(1);
-const $arr = new ArrayLiteral([]);
-const $obj = new ObjectLiteral([], []);
 
 const codes = {
   //SyntaxError
@@ -163,10 +165,10 @@ describe('ExpressionParser', () => {
     [`0.1`,               new PrimitiveLiteral(.1)]
   ];
   const KeywordPrimitiveLiteralList: [string, any][] = [
-    [`undefined`,         new PrimitiveLiteral(undefined)],
-    [`null`,              new PrimitiveLiteral(null)],
-    [`true`,              new PrimitiveLiteral(true)],
-    [`false`,             new PrimitiveLiteral(false)]
+    [`undefined`,         $undefined],
+    [`null`,              $null],
+    [`true`,              $true],
+    [`false`,             $false]
   ];
   // concatenation of 3.
   const SimplePrimitiveLiteralList: [string, any][] = [
@@ -185,7 +187,7 @@ describe('ExpressionParser', () => {
   ];
   // 6. parsePrimaryExpression.TemplateLiteral
   const SimpleTemplateLiteralList: [string, any][] = [
-    [`\`\``,              new Template([''], [])],
+    [`\`\``,              $tpl],
     [`\`\${a}\``,         new Template(['', ''], [$a])]
   ];
   // concatenation of 3., 4., 5., 6.

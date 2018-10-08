@@ -413,6 +413,8 @@ export class Conditional implements IExpression {
 }
 
 export class AccessThis implements IExpression {
+  public static readonly $this: AccessThis = new AccessThis(0);
+  public static readonly $parent: AccessThis = new AccessThis(1);
   public $kind: ExpressionKind.AccessThis;
   public assign: IExpression['assign'];
   public connect: IExpression['connect'];
@@ -790,14 +792,18 @@ export class Unary implements IExpression {
     return visitor.visitUnary(this);
   }
 }
-
-export class PrimitiveLiteral implements IExpression {
+export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> implements IExpression {
+  public static readonly $undefined: PrimitiveLiteral<undefined> = new PrimitiveLiteral(undefined);
+  public static readonly $null: PrimitiveLiteral<null> = new PrimitiveLiteral(null);
+  public static readonly $true: PrimitiveLiteral<true> = new PrimitiveLiteral(true);
+  public static readonly $false: PrimitiveLiteral<false> = new PrimitiveLiteral(false);
+  public static readonly $empty: PrimitiveLiteral<string> = new PrimitiveLiteral('');
   public $kind: ExpressionKind.PrimitiveLiteral;
   public connect: IExpression['connect'];
   public assign: IExpression['assign'];
-  constructor(public readonly value: StrictPrimitive) { }
+  constructor(public readonly value: TValue) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): StrictPrimitive {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): TValue {
     return this.value;
   }
 
@@ -836,6 +842,7 @@ export class HtmlLiteral implements IExpression {
 }
 
 export class ArrayLiteral implements IExpression {
+  public static readonly $empty: ArrayLiteral = new ArrayLiteral(PLATFORM.emptyArray);
   public $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
   private readonly value: StrictAny[] | null;
@@ -872,6 +879,7 @@ export class ArrayLiteral implements IExpression {
 }
 
 export class ObjectLiteral implements IExpression {
+  public static readonly $empty: ObjectLiteral = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
   public $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
   private readonly value: Record<string, StrictAny> | null;
@@ -911,6 +919,7 @@ export class ObjectLiteral implements IExpression {
 }
 
 export class Template implements IExpression {
+  public static readonly $empty: Template = new Template(['']);
   public $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
   private readonly value: string | null;
@@ -1245,19 +1254,9 @@ export const CountForOfStatement = {
 //   2) no runtime error due to a bad binding such as two-way on a literal (no need, since it doesn't threaten the integrity of the app's state)
 //   3) should we decide something else, we can easily change the global behavior of 1) and 2) by simply assigning a different method here (either in the source or via AOT)
 const ast = [AccessThis, AccessScope, ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template, Unary, CallFunction, CallMember, CallScope, AccessMember, AccessKeyed, TaggedTemplate, Binary, Conditional, Assign];
-// tslint:disable-next-line:no-any
-const passThrough = (value: any): any => value;
 for (let i = 0, ii = ast.length; i < ii; ++i) {
   const proto = ast[i].prototype;
+  // tslint:disable-next-line:no-any
   proto.assign = proto.assign || <any>PLATFORM.noop;
   proto.connect = proto.connect || PLATFORM.noop;
-}
-
-function validateScope(scope: IScope): void {
-  if (scope === undefined) {
-    throw Reporter.error(RuntimeError.UndefinedScope, this);
-  }
-  if (scope === null) {
-    throw Reporter.error(RuntimeError.NullScope, this);
-  }
 }

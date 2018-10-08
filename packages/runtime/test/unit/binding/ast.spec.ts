@@ -10,6 +10,17 @@ import { spy, SinonSpy } from 'sinon';
 import { createScopeForTest } from './shared';
 import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../../scripts/test-lib';
 
+const $false = PrimitiveLiteral.$false;
+const $true = PrimitiveLiteral.$true;
+const $null = PrimitiveLiteral.$null;
+const $undefined = PrimitiveLiteral.$undefined;
+const $str = PrimitiveLiteral.$empty;
+const $arr = ArrayLiteral.$empty;
+const $obj = ObjectLiteral.$empty;
+const $tpl = Template.$empty;
+const $this = AccessThis.$this;
+const $parent = AccessThis.$parent;
+
 function throwsOn<TExpr extends IsBindingBehavior>(expr: TExpr, method: keyof TExpr, msg: string, ...args: any[]): void {
   let err = null;
   try {
@@ -25,70 +36,60 @@ function throwsOn<TExpr extends IsBindingBehavior>(expr: TExpr, method: keyof TE
 
 describe('AST', () => {
 
-  // 1. parsePrimaryExpression.this
   const AccessThisList: [string, AccessThis][] = [
-    [`$this`,             new AccessThis(0)],
-    [`$parent`,           new AccessThis(1)],
+    [`$this`,             $this],
+    [`$parent`,           $parent],
     [`$parent.$parent`,   new AccessThis(2)]
   ];
-  // 2. parsePrimaryExpression.IdentifierName
   const AccessScopeList: [string, AccessScope][] = [
     ...AccessThisList.map(([input, expr]) => <[string, any]>[`${input}.a`, new AccessScope('a', expr.ancestor)]),
     [`$this.$parent`,     new AccessScope('$parent')],
     [`$parent.$this`,     new AccessScope('$this', 1)],
     [`a`,                 new AccessScope('a')]
   ];
-  // 3. parsePrimaryExpression.Literal
-  const SimpleStringLiteralList: [string, PrimitiveLiteral][] = [
-    [`''`,                new PrimitiveLiteral('')]
+  const StringLiteralList: [string, PrimitiveLiteral][] = [
+    [`''`,                PrimitiveLiteral.$empty]
   ];
-  const SimpleNumberLiteralList: [string, PrimitiveLiteral][] = [
+  const NumberLiteralList: [string, PrimitiveLiteral][] = [
     [`1`,                 new PrimitiveLiteral(1)],
     [`1.1`,               new PrimitiveLiteral(1.1)],
     [`.1`,                new PrimitiveLiteral(.1)],
     [`0.1`,               new PrimitiveLiteral(.1)]
   ];
-  const KeywordPrimitiveLiteralList: [string, PrimitiveLiteral][] = [
-    [`undefined`,         new PrimitiveLiteral(undefined)],
-    [`null`,              new PrimitiveLiteral(null)],
-    [`true`,              new PrimitiveLiteral(true)],
-    [`false`,             new PrimitiveLiteral(false)]
+  const KeywordLiteralList: [string, PrimitiveLiteral][] = [
+    [`undefined`,         $undefined],
+    [`null`,              $null],
+    [`true`,              $true],
+    [`false`,             $false]
   ];
-  // concatenation of 3.
-  const SimplePrimitiveLiteralList: [string, PrimitiveLiteral][] = [
-    ...SimpleStringLiteralList,
-    ...SimpleNumberLiteralList,
-    ...KeywordPrimitiveLiteralList
+  const PrimitiveLiteralList: [string, PrimitiveLiteral][] = [
+    ...StringLiteralList,
+    ...NumberLiteralList,
+    ...KeywordLiteralList
   ];
 
-  // 4. parsePrimaryExpression.ArrayLiteral
-  const SimpleArrayLiteralList: [string, ArrayLiteral][] = [
-    [`[]`,                new ArrayLiteral([])]
+  const ArrayLiteralList: [string, ArrayLiteral][] = [
+    [`[]`,                $arr]
   ];
-  // 5. parsePrimaryExpression.ObjectLiteral
-  const SimpleObjectLiteralList: [string, ObjectLiteral][] = [
-    [`{}`,                new ObjectLiteral([], [])]
+  const ObjectLiteralList: [string, ObjectLiteral][] = [
+    [`{}`,                $obj]
   ];
-  // 6. parsePrimaryExpression.TemplateLiteral
-  const SimpleTemplateLiteralList: [string, Template][] = [
-    [`\`\``,              new Template([''], [])]
+  const TemplateLiteralList: [string, Template][] = [
+    [`\`\``,              $tpl]
   ];
-  const SimpleTemplateInterpolationList: [string, Template][] = [
+  const LiteralList: [string, IsPrimary][] = [
+    ...PrimitiveLiteralList,
+    ...TemplateLiteralList,
+    ...ArrayLiteralList,
+    ...ObjectLiteralList
+  ];
+  const TemplateInterpolationList: [string, Template][] = [
     [`\`\${a}\``,         new Template(['', ''], [new AccessScope('a')])]
   ];
-  // concatenation of 3., 4., 5., 6.
-  const SimpleLiteralList: [string, IsPrimary][] = [
-    ...SimplePrimitiveLiteralList,
-    ...SimpleTemplateLiteralList,
-    ...SimpleArrayLiteralList,
-    ...SimpleObjectLiteralList
-  ];
-  // concatenation of 1 through 7 (all Primary expressions)
-  // This forms the group Precedence.Primary
-  const SimplePrimaryList: [string, IsPrimary][] = [
+  const PrimaryList: [string, IsPrimary][] = [
     ...AccessThisList,
     ...AccessScopeList,
-    ...SimpleLiteralList
+    ...LiteralList
   ];
   const SimpleAccessList: [string, AccessThis | AccessScope][] = [
     ...AccessThisList,
@@ -141,7 +142,7 @@ describe('AST', () => {
   // This forms the group Precedence.LeftHandSide
   // used only for testing complex Unary expressions
   const SimpleIsLeftHandSideList: [string, IsLeftHandSide][] = [
-    ...SimplePrimaryList,
+    ...PrimaryList,
     ...SimpleLeftHandSideList
   ];
 
@@ -268,25 +269,25 @@ describe('AST', () => {
   describe('Literals', () => {
     describe('evaluate() works without any input', () => {
       for (const [text, expr] of [
-        ...SimpleStringLiteralList,
-        ...SimpleNumberLiteralList,
-        ...KeywordPrimitiveLiteralList
+        ...StringLiteralList,
+        ...NumberLiteralList,
+        ...KeywordLiteralList
       ]) {
         it(text, () => {
           expect(expr.evaluate(undefined, undefined, undefined)).to.equal(expr.value);
         });
       }
-      for (const [text, expr] of SimpleTemplateLiteralList) {
+      for (const [text, expr] of TemplateLiteralList) {
         it(text, () => {
           expect(expr.evaluate(undefined, undefined, undefined)).to.equal('');
         });
       }
-      for (const [text, expr] of SimpleArrayLiteralList) {
+      for (const [text, expr] of ArrayLiteralList) {
         it(text, () => {
           expect(expr.evaluate(undefined, undefined, undefined)).to.be.instanceof(Array);
         });
       }
-      for (const [text, expr] of SimpleObjectLiteralList) {
+      for (const [text, expr] of ObjectLiteralList) {
         it(text, () => {
           expect(expr.evaluate(undefined, undefined, undefined)).to.be.instanceof(Object);
         });
@@ -295,12 +296,12 @@ describe('AST', () => {
 
     describe('connect() does not throw / is a no-op', () => {
       for (const [text, expr] of [
-        ...SimpleStringLiteralList,
-        ...SimpleNumberLiteralList,
-        ...KeywordPrimitiveLiteralList,
-        ...SimpleTemplateLiteralList,
-        ...SimpleArrayLiteralList,
-        ...SimpleObjectLiteralList
+        ...StringLiteralList,
+        ...NumberLiteralList,
+        ...KeywordLiteralList,
+        ...TemplateLiteralList,
+        ...ArrayLiteralList,
+        ...ObjectLiteralList
       ]) {
         it(`${text}, undefined`, () => {
           expect(expr.connect(null, undefined, null)).to.be.undefined;
@@ -313,12 +314,12 @@ describe('AST', () => {
 
     describe('assign() does not throw / is a no-op', () => {
       for (const [text, expr] of [
-        ...SimpleStringLiteralList,
-        ...SimpleNumberLiteralList,
-        ...KeywordPrimitiveLiteralList,
-        ...SimpleTemplateLiteralList,
-        ...SimpleArrayLiteralList,
-        ...SimpleObjectLiteralList
+        ...StringLiteralList,
+        ...NumberLiteralList,
+        ...KeywordLiteralList,
+        ...TemplateLiteralList,
+        ...ArrayLiteralList,
+        ...ObjectLiteralList
       ]) {
         it(`${text}, undefined`, () => {
           expect(expr.assign(null, undefined, null, undefined)).to.be.undefined;
@@ -371,7 +372,7 @@ describe('AST', () => {
         ...AccessScopeList,
         ...SimpleAccessKeyedList,
         ...SimpleAccessMemberList,
-        ...SimpleTemplateInterpolationList,
+        ...TemplateInterpolationList,
         ...SimpleTaggedTemplateList
       ]) {
         it(`${text}, undefined`, () => {
@@ -400,7 +401,7 @@ describe('AST', () => {
 
     describe('assign() does not throw / is a no-op', () => {
       for (const [text, expr] of [
-        ...SimpleTemplateInterpolationList,
+        ...TemplateInterpolationList,
         ...SimpleTaggedTemplateList
       ]) {
         it(`${text}, undefined`, () => {
@@ -417,7 +418,7 @@ describe('AST', () => {
         ...AccessScopeList,
         ...SimpleAccessKeyedList,
         ...SimpleAccessMemberList,
-        ...SimpleTemplateInterpolationList,
+        ...TemplateInterpolationList,
         ...SimpleTaggedTemplateList
       ]) {
         it(`${text}, undefined`, () => {
@@ -1281,7 +1282,7 @@ describe('AccessThis', () => {
   let $parent: AccessThis, $parent$parent: AccessThis, $parent$parent$parent: AccessThis;
 
   before(() => {
-    $parent = new AccessThis(1);
+    $parent = $parent;
     $parent$parent = new AccessThis(2);
     $parent$parent$parent = new AccessThis(3);
   });
@@ -1378,19 +1379,19 @@ describe('Binary', () => {
     let scope: any = createScopeForTest({});
     expect(expression.evaluate(0, scope, null)).to.equal('ab');
 
-    expression = new Binary('+', new PrimitiveLiteral('a'), new PrimitiveLiteral(null));
+    expression = new Binary('+', new PrimitiveLiteral('a'), $null);
     scope = createScopeForTest({});
     expect(expression.evaluate(0, scope, null)).to.equal('anull');
 
-    expression = new Binary('+', new PrimitiveLiteral(null), new PrimitiveLiteral('b'));
+    expression = new Binary('+', $null, new PrimitiveLiteral('b'));
     scope = createScopeForTest({});
     expect(expression.evaluate(0, scope, null)).to.equal('nullb');
 
-    expression = new Binary('+', new PrimitiveLiteral('a'), new PrimitiveLiteral(undefined));
+    expression = new Binary('+', new PrimitiveLiteral('a'), $undefined);
     scope = createScopeForTest({});
     expect(expression.evaluate(0, scope, null)).to.equal('aundefined');
 
-    expression = new Binary('+', new PrimitiveLiteral(undefined), new PrimitiveLiteral('b'));
+    expression = new Binary('+', $undefined, new PrimitiveLiteral('b'));
     scope = createScopeForTest({});
     expect(expression.evaluate(0, scope, null)).to.equal('undefinedb');
   });
@@ -1400,36 +1401,36 @@ describe('Binary', () => {
     let scope: any = createScopeForTest({});
     expect(expression.evaluate(0, scope, null)).to.equal(3);
 
-    expression = new Binary('+', new PrimitiveLiteral(1), new PrimitiveLiteral(null));
+    expression = new Binary('+', new PrimitiveLiteral(1), $null);
     scope = createScopeForTest({});
     expect(expression.evaluate(0, scope, null)).to.equal(1);
 
-    expression = new Binary('+', new PrimitiveLiteral(null), new PrimitiveLiteral(2));
+    expression = new Binary('+', $null, new PrimitiveLiteral(2));
     scope = createScopeForTest({});
     expect(expression.evaluate(0, scope, null)).to.equal(2);
 
-    expression = new Binary('+', new PrimitiveLiteral(1), new PrimitiveLiteral(undefined));
+    expression = new Binary('+', new PrimitiveLiteral(1), $undefined);
     scope = createScopeForTest({});
     expect(expression.evaluate(0, scope, null)).to.be.NaN;
 
-    expression = new Binary('+', new PrimitiveLiteral(undefined), new PrimitiveLiteral(2));
+    expression = new Binary('+', $undefined, new PrimitiveLiteral(2));
     scope = createScopeForTest({});
     expect(expression.evaluate(0, scope, null)).to.be.NaN;
   });
 
   describe('performs \'in\'', () => {
     const tests = [
-      { expr: new Binary('in', new PrimitiveLiteral('foo'), new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)])), expected: true },
-      { expr: new Binary('in', new PrimitiveLiteral('foo'), new ObjectLiteral(['bar'], [new PrimitiveLiteral(null)])), expected: false },
-      { expr: new Binary('in', new PrimitiveLiteral(1), new ObjectLiteral(['1'], [new PrimitiveLiteral(null)])), expected: true },
-      { expr: new Binary('in', new PrimitiveLiteral('1'), new ObjectLiteral(['1'], [new PrimitiveLiteral(null)])), expected: true },
-      { expr: new Binary('in', new PrimitiveLiteral('foo'), new PrimitiveLiteral(null)), expected: false },
-      { expr: new Binary('in', new PrimitiveLiteral('foo'), new PrimitiveLiteral(undefined)), expected: false },
-      { expr: new Binary('in', new PrimitiveLiteral('foo'), new PrimitiveLiteral(true)), expected: false },
-      { expr: new Binary('in', new PrimitiveLiteral('foo'), new AccessThis(0)), expected: true },
-      { expr: new Binary('in', new PrimitiveLiteral('bar'), new AccessThis(0)), expected: true },
-      { expr: new Binary('in', new PrimitiveLiteral('foo'), new AccessThis(1)), expected: false },
-      { expr: new Binary('in', new PrimitiveLiteral('bar'), new AccessThis(1)), expected: false },
+      { expr: new Binary('in', new PrimitiveLiteral('foo'), new ObjectLiteral(['foo'], [$null])), expected: true },
+      { expr: new Binary('in', new PrimitiveLiteral('foo'), new ObjectLiteral(['bar'], [$null])), expected: false },
+      { expr: new Binary('in', new PrimitiveLiteral(1), new ObjectLiteral(['1'], [$null])), expected: true },
+      { expr: new Binary('in', new PrimitiveLiteral('1'), new ObjectLiteral(['1'], [$null])), expected: true },
+      { expr: new Binary('in', new PrimitiveLiteral('foo'), $null), expected: false },
+      { expr: new Binary('in', new PrimitiveLiteral('foo'), $undefined), expected: false },
+      { expr: new Binary('in', new PrimitiveLiteral('foo'), $true), expected: false },
+      { expr: new Binary('in', new PrimitiveLiteral('foo'), $this), expected: true },
+      { expr: new Binary('in', new PrimitiveLiteral('bar'), $this), expected: true },
+      { expr: new Binary('in', new PrimitiveLiteral('foo'), $parent), expected: false },
+      { expr: new Binary('in', new PrimitiveLiteral('bar'), $parent), expected: false },
       { expr: new Binary('in', new PrimitiveLiteral('foo'), new AccessScope('foo', 0)), expected: false },
       { expr: new Binary('in', new PrimitiveLiteral('bar'), new AccessScope('bar', 0)), expected: false },
       { expr: new Binary('in', new PrimitiveLiteral('bar'), new AccessScope('foo', 0)), expected: true }
@@ -1488,10 +1489,10 @@ describe('Binary', () => {
         expected: false
       },
       { expr: new Binary('instanceof', new AccessScope('foo', 0), new AccessScope('foo', 0)), expected: false },
-      { expr: new Binary('instanceof', new AccessScope('foo', 0), new PrimitiveLiteral(null)), expected: false },
-      { expr: new Binary('instanceof', new AccessScope('foo', 0), new PrimitiveLiteral(undefined)), expected: false },
-      { expr: new Binary('instanceof', new PrimitiveLiteral(null), new AccessScope('foo', 0)), expected: false },
-      { expr: new Binary('instanceof', new PrimitiveLiteral(undefined), new AccessScope('foo', 0)), expected: false }
+      { expr: new Binary('instanceof', new AccessScope('foo', 0), $null), expected: false },
+      { expr: new Binary('instanceof', new AccessScope('foo', 0), $undefined), expected: false },
+      { expr: new Binary('instanceof', $null, new AccessScope('foo', 0)), expected: false },
+      { expr: new Binary('instanceof', $undefined, new AccessScope('foo', 0)), expected: false }
     ];
     const scope: any = createScopeForTest({ foo: new Foo(), bar: new Bar() });
 
@@ -1680,7 +1681,7 @@ class Test {
 
 describe('LiteralTemplate', () => {
   const tests = [
-    { expr: new Template(['']), expected: '', ctx: {} },
+    { expr: $tpl, expected: '', ctx: {} },
     { expr: new Template(['foo']), expected: 'foo', ctx: {} },
     { expr: new Template(['foo', 'baz'], [new PrimitiveLiteral('bar')]), expected: 'foobarbaz', ctx: {} },
     {
@@ -1765,14 +1766,14 @@ describe('Unary', () => {
     const tests = [
       { expr: new Unary('typeof', new PrimitiveLiteral('foo')), expected: 'string' },
       { expr: new Unary('typeof', new PrimitiveLiteral(1)), expected: 'number' },
-      { expr: new Unary('typeof', new PrimitiveLiteral(null)), expected: 'object' },
-      { expr: new Unary('typeof', new PrimitiveLiteral(undefined)), expected: 'undefined' },
-      { expr: new Unary('typeof', new PrimitiveLiteral(true)), expected: 'boolean' },
-      { expr: new Unary('typeof', new PrimitiveLiteral(false)), expected: 'boolean' },
-      { expr: new Unary('typeof', new ArrayLiteral([])), expected: 'object' },
-      { expr: new Unary('typeof', new ObjectLiteral([], [])), expected: 'object' },
-      { expr: new Unary('typeof', new AccessThis(0)), expected: 'object' },
-      { expr: new Unary('typeof', new AccessThis(1)), expected: 'undefined' },
+      { expr: new Unary('typeof', $null), expected: 'object' },
+      { expr: new Unary('typeof', $undefined), expected: 'undefined' },
+      { expr: new Unary('typeof', $true), expected: 'boolean' },
+      { expr: new Unary('typeof', $false), expected: 'boolean' },
+      { expr: new Unary('typeof', $arr), expected: 'object' },
+      { expr: new Unary('typeof', $obj), expected: 'object' },
+      { expr: new Unary('typeof', $this), expected: 'object' },
+      { expr: new Unary('typeof', $parent), expected: 'undefined' },
       { expr: new Unary('typeof', new AccessScope('foo', 0)), expected: 'undefined' }
     ];
     const scope: any = createScopeForTest({});
@@ -1788,14 +1789,14 @@ describe('Unary', () => {
     const tests = [
       { expr: new Unary('void', new PrimitiveLiteral('foo')) },
       { expr: new Unary('void', new PrimitiveLiteral(1)) },
-      { expr: new Unary('void', new PrimitiveLiteral(null)) },
-      { expr: new Unary('void', new PrimitiveLiteral(undefined)) },
-      { expr: new Unary('void', new PrimitiveLiteral(true)) },
-      { expr: new Unary('void', new PrimitiveLiteral(false)) },
-      { expr: new Unary('void', new ArrayLiteral([])) },
-      { expr: new Unary('void', new ObjectLiteral([], [])) },
-      { expr: new Unary('void', new AccessThis(0)) },
-      { expr: new Unary('void', new AccessThis(1)) },
+      { expr: new Unary('void', $null) },
+      { expr: new Unary('void', $undefined) },
+      { expr: new Unary('void', $true) },
+      { expr: new Unary('void', $false) },
+      { expr: new Unary('void', $arr) },
+      { expr: new Unary('void', $obj) },
+      { expr: new Unary('void', $this) },
+      { expr: new Unary('void', $parent) },
       { expr: new Unary('void', new AccessScope('foo', 0)) }
     ];
     let scope: any = createScopeForTest({});

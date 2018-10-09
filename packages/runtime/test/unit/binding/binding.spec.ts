@@ -780,6 +780,7 @@ describe('Binding', () => {
       sut['targetObserver'] = <any>{};
       const unobserveSpy = spy(sut, 'unobserve');
       const unbindSpy = dummySourceExpression.unbind = spy();
+      (<any>dummySourceExpression).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(BindingFlags.fromUnbind);
       expect(sut['$scope']).to.be.null;
       expect(sut['$isBound']).to.be.false;

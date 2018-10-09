@@ -1,4 +1,4 @@
-import { CallScope, BindingBehavior } from './../../../src/binding/ast';
+import { CallScope, BindingBehavior, ExpressionKind } from './../../../src/binding/ast';
 import { spy, SinonSpy } from 'sinon';
 import { IExpression, IObserverLocator, AccessScope, BindingFlags, IScope, IChangeSet, SetterObserver, Call } from '../../../src/index';
 import { DI } from '../../../../kernel/src/index';
@@ -51,6 +51,7 @@ describe('Call', () => {
           massSpy(sut, 'callSource');
           massSpy(targetObserver, 'setValue', 'getValue');
           massSpy(expr, 'evaluate', 'assign', 'connect');
+          (<any>expr).$kind |= ExpressionKind.HasBind | ExpressionKind.HasUnbind;
           expr['bind'] = spy();
           expr['unbind'] = spy();
 
@@ -130,6 +131,7 @@ describe('Call', () => {
           massSpy(sut, 'callSource');
           massSpy(targetObserver, 'setValue', 'getValue');
           massSpy(expr, 'evaluate', 'assign', 'connect');
+          (<any>expr).$kind |= ExpressionKind.HasBind | ExpressionKind.HasUnbind;
           expr['bind'] = spy();
           expr['unbind'] = spy();
 

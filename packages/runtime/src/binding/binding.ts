@@ -1,5 +1,5 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
-import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
+import { ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
@@ -32,7 +32,7 @@ export class Binding implements IPartialConnectableBinding {
   public targetObserver: AccessorOrObserver;
 
   constructor(
-    public sourceExpression: IsBindingBehavior,
+    public sourceExpression: IsBindingBehavior | ForOfStatement,
     public target: IBindingTarget,
     public targetProperty: string,
     public mode: BindingMode,

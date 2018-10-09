@@ -1044,6 +1044,7 @@ const toStringTag = Object.prototype.toString;
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
 export class ForOfStatement implements IExpression {
   public $kind: ExpressionKind.ForOfStatement;
+  public assign: IExpression['assign'];
   constructor(
     public readonly declaration: BindingIdentifierOrPattern,
     public readonly iterable: IsBindingBehavior) { }
@@ -1227,7 +1228,7 @@ export const CountForOfStatement = {
 //   1) no runtime error due to bad AST structure (it's the parser's job to guard against that)
 //   2) no runtime error due to a bad binding such as two-way on a literal (no need, since it doesn't threaten the integrity of the app's state)
 //   3) should we decide something else, we can easily change the global behavior of 1) and 2) by simply assigning a different method here (either in the source or via AOT)
-const ast = [AccessThis, AccessScope, ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template, Unary, CallFunction, CallMember, CallScope, AccessMember, AccessKeyed, TaggedTemplate, Binary, Conditional, Assign];
+const ast = [AccessThis, AccessScope, ArrayLiteral, ObjectLiteral, PrimitiveLiteral, Template, Unary, CallFunction, CallMember, CallScope, AccessMember, AccessKeyed, TaggedTemplate, Binary, Conditional, Assign, ForOfStatement];
 for (let i = 0, ii = ast.length; i < ii; ++i) {
   const proto = ast[i].prototype;
   // tslint:disable-next-line:no-any

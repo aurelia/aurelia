@@ -1,3 +1,5 @@
+import { Reporter } from "@aurelia/kernel";
+
 export interface IOverrideContext {
   parentOverrideContext: IOverrideContext;
   // tslint:disable-next-line:no-any
@@ -10,6 +12,13 @@ export interface IScope {
   overrideContext: IOverrideContext;
 }
 
+const enum RuntimeError {
+  UndefinedScope = 250, // trying to evaluate on something that's not a valid binding
+  NullScope = 251, // trying to evaluate on an unbound binding
+  NilOverrideContext = 252,
+  NilParentScope = 253
+}
+
 export const BindingContext = {
   // tslint:disable-next-line:no-any
   createScope(bindingContext: any, overrideContext?: IOverrideContext): IScope {
@@ -20,6 +29,9 @@ export const BindingContext = {
   },
 
   createScopeFromOverride(overrideContext: IOverrideContext): IScope {
+    if (overrideContext === null || overrideContext === undefined) {
+      throw Reporter.error(RuntimeError.NilOverrideContext);
+    }
     return {
       bindingContext: overrideContext.bindingContext,
       overrideContext
@@ -28,6 +40,9 @@ export const BindingContext = {
 
   // tslint:disable-next-line:no-any
   createScopeFromParent(parentScope: IScope, bindingContext: any): IScope {
+    if (parentScope === null || parentScope === undefined) {
+      throw Reporter.error(RuntimeError.NilParentScope);
+    }
     return {
       bindingContext: bindingContext,
       overrideContext: BindingContext.createOverride(
@@ -47,6 +62,12 @@ export const BindingContext = {
 
   // tslint:disable-next-line:no-reserved-keywords , no-any
   get(scope: IScope, name: string, ancestor: number): any {
+    if (scope === undefined) {
+      throw Reporter.error(RuntimeError.UndefinedScope);
+    }
+    if (scope === null) {
+      throw Reporter.error(RuntimeError.NullScope);
+    }
     let overrideContext = scope.overrideContext;
 
     if (ancestor) {

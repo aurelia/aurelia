@@ -1,43 +1,50 @@
-import { DI, ICallable } from '@aurelia/kernel';
+import { DI, Immutable } from '@aurelia/kernel';
 import { BindingFlags } from './binding-flags';
 import { IPropertySubscriber } from './observation';
 
 type Signal = string;
 
 export interface ISignaler {
-  dispatchSignal(name: Signal): void;
+  signals: Immutable<Record<string, Set<IPropertySubscriber>>>;
+  dispatchSignal(name: Signal, flags?: BindingFlags): void;
   addSignalListener(name: Signal, listener: IPropertySubscriber): void;
   removeSignalListener(name: Signal, listener: IPropertySubscriber): void;
 }
 
-export const ISignaler = DI.createInterface<ISignaler>()
-  .withDefault(x => x.singleton(class {
-    private signals: Record<string, IPropertySubscriber[]>;
+export const ISignaler = DI.createInterface<ISignaler>().withDefault(x => x.singleton(Signaler));
 
-    dispatchSignal(name: Signal): void {
-      let bindings = this.signals[name];
+/*@internal*/
+export class Signaler implements ISignaler {
+  public signals: Record<string, Set<IPropertySubscriber>>;
 
-      if (!bindings) {
-        return;
-      }
+  constructor() {
+    this.signals = Object.create(null);
+  }
 
-      let i = bindings.length;
-
-      while (i--) {
-        bindings[i].handleChange(undefined, undefined, BindingFlags.updateTargetInstance);
-      }
+  public dispatchSignal(name: Signal, flags?: BindingFlags): void {
+    const listeners = this.signals[name];
+    if (listeners === undefined) {
+      return;
     }
-
-    addSignalListener(name: Signal, listener: IPropertySubscriber) {
-      (this.signals[name] || (this.signals[name] = [])).push(listener);
+    for (const listener of listeners.keys()) {
+      listener.handleChange(undefined, undefined, flags | BindingFlags.updateTargetInstance);
     }
+  }
 
-    removeSignalListener(name: Signal, listener: IPropertySubscriber) {
-      let listeners = this.signals[name];
-
-      if (listeners) {
-        listeners.splice(listeners.indexOf(listener), 1);
-      }
+  public addSignalListener(name: Signal, listener: IPropertySubscriber): void {
+    const signals = this.signals;
+    const listeners = signals[name];
+    if (listeners === undefined) {
+      signals[name] = new Set([listener])
+    } else {
+      listeners.add(listener);
     }
-  })
-);
+  }
+
+  public removeSignalListener(name: Signal, listener: IPropertySubscriber): void {
+    const listeners = this.signals[name];
+    if (listeners) {
+      listeners.delete(listener);
+    }
+  }
+}

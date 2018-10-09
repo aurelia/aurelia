@@ -1,6 +1,7 @@
 import { IIndexable, Reporter } from '@aurelia/kernel';
 import { StrictPrimitive } from './ast';
-import { BindingSourceObserver, IBindScope, ObservedCollection } from './observation';
+import { IBindScope, ObservedCollection, PropertyObserver } from './observation';
+import { SetterObserver } from './property-observation';
 
 const enum RuntimeError {
   UndefinedScope = 250, // trying to evaluate on something that's not a valid binding
@@ -9,33 +10,42 @@ const enum RuntimeError {
   NilParentScope = 253
 }
 
+export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
+Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> {
+
+}
+
 export type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
-  Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> = Record<TKey, BindingSourceObserver> &
-  { has(key: TKey): boolean };
+  Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> =
+  { [P in TKey]: PropertyObserver; } & { getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver };
 
 /*@internal*/
 export class InternalObserversLookup {
-  public has(key: string | number): boolean {
-    return this[key] !== undefined;
+  public getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver {
+    let observer = this[key];
+    if (observer === undefined) {
+      observer = this[key] = new SetterObserver(obj, key);
+    }
+    return observer;
   }
 }
 
 export interface IBindingContext {
   [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
-  [key: number]: ObservedCollection | StrictPrimitive | IIndexable;
 
   readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup<this>;
+  readonly $observers?: ObserversLookup<IOverrideContext>;
+  getObservers(): ObserversLookup<IOverrideContext>;
 }
 
 export interface IOverrideContext {
   [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
-  [key: number]: ObservedCollection | StrictPrimitive | IIndexable;
 
   readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup<this>;
+  readonly $observers?: ObserversLookup<IOverrideContext>;
   readonly bindingContext: IBindingContext | IBindScope;
   readonly parentOverrideContext: IOverrideContext | null;
+  getObservers(): ObserversLookup<IOverrideContext>;
 }
 
 export interface IScope {
@@ -45,11 +55,10 @@ export interface IScope {
 
 export class BindingContext implements IBindingContext {
   [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
-  [key: number]: ObservedCollection | StrictPrimitive | IIndexable;
 
   public readonly $synthetic: true = true;
 
-  public $observers: ObserversLookup<this>;
+  public $observers: ObserversLookup<IOverrideContext>;
 
   private constructor(keyOrObj?: string | IIndexable, value?: ObservedCollection | StrictPrimitive | IIndexable) {
     if (keyOrObj !== undefined) {
@@ -111,7 +120,7 @@ export class BindingContext implements IBindingContext {
     return scope.bindingContext || scope.overrideContext;
   }
 
-  public getObservers(): this['$observers'] {
+  public getObservers(): ObserversLookup<IOverrideContext> {
     let observers = this.$observers;
     if (observers === undefined) {
       this.$observers = observers = new InternalObserversLookup() as ObserversLookup<this>;
@@ -147,7 +156,6 @@ export class Scope implements IScope {
 
 export class OverrideContext implements IOverrideContext {
   [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
-  [key: number]: ObservedCollection | StrictPrimitive | IIndexable;
 
   public readonly $synthetic: true = true;
 
@@ -160,11 +168,11 @@ export class OverrideContext implements IOverrideContext {
     return new OverrideContext(bc, poc === undefined ? null : poc);
   }
 
-  public getObservers(): this['$observers'] {
+  public getObservers(): ObserversLookup<IOverrideContext> {
     let observers = this.$observers;
     if (observers === undefined) {
-      this.$observers = observers = new InternalObserversLookup() as ObserversLookup<this>;
+      this.$observers = observers = new InternalObserversLookup();
     }
-    return observers;
+    return observers as ObserversLookup<IOverrideContext>;
   }
 }

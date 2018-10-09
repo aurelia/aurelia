@@ -7,7 +7,11 @@
     "serve": "http-server -c-1 -p 9000 dist"
   },
   "dependencies": {
-    "@aurelia/jit": "dev"
+    "@aurelia/debug": "dev",
+    "@aurelia/jit": "dev",
+    "@aurelia/kernel": "dev",
+    "@aurelia/plugin-svg": "dev",
+    "@aurelia/runtime": "dev"
   },
   "devDependencies": {
     "@types/node": "^8.10.22",

@@ -37,17 +37,12 @@ export class Pythagoras {
 
   fill: string;
 
-  constructor(public state: State) {
-    if (++count > 2 ** (MAX_LEVEL + 1) - 1) {
-      throw new Error('Invalid recursion');
-    }
+  constructor(
+    public state: State
+  ) {
   }
 
   bound() {
-    if (this.level === undefined) {
-      debugger;
-    }
-    console.log(this.level);
     this.renderLeft = this.renderRight = this.level < MAX_LEVEL;
     this.fill = memoizedViridis(this.level, MAX_LEVEL);
   }

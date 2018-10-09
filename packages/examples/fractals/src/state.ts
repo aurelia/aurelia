@@ -7,11 +7,6 @@ export class State {
 
   baseSize = BASE_SIZE;
 
-  constructor() {
-    console.log('State created');
-    window['state'] = this;
-  }
-
   mouseMoved(x: number, y: number) {
     let height = window.innerHeight;
     let width = window.innerWidth;

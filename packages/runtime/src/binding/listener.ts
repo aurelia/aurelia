@@ -1,13 +1,13 @@
-// tslint:disable:no-any
-// tslint:disable:function-name
 import { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { INode } from '../dom';
-import { IExpression } from './ast';
+import { hasBind, hasUnbind, IsBindingBehavior, StrictAny } from './ast';
 import { IBinding } from './binding';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
+import { IConnectableBinding } from './connectable';
 import { DelegationStrategy, IEventManager } from './event-manager';
 
+export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
   public $isBound: boolean = false;
   public $scope: IScope;
@@ -17,15 +17,15 @@ export class Listener implements IBinding {
   constructor(
     public targetEvent: string,
     public delegationStrategy: DelegationStrategy,
-    public sourceExpression: IExpression,
+    public sourceExpression: IsBindingBehavior,
     public target: INode,
     public preventDefault: boolean,
     private eventManager: IEventManager,
     public locator: IServiceLocator
   ) { }
 
-  public callSource(event: Event): any {
-    const overrideContext = this.$scope.overrideContext as any;
+  public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
+    const overrideContext = this.$scope.overrideContext;
     overrideContext['$event'] = event;
 
     const result = this.sourceExpression.evaluate(BindingFlags.mustEvaluate, this.$scope, this.locator);
@@ -43,9 +43,9 @@ export class Listener implements IBinding {
     this.callSource(event);
   }
 
-  public $bind(flags: BindingFlags, source: IScope): void {
+  public $bind(flags: BindingFlags, scope: IScope): void {
     if (this.$isBound) {
-      if (this.$scope === source) {
+      if (this.$scope === scope) {
         return;
       }
 
@@ -53,10 +53,11 @@ export class Listener implements IBinding {
     }
 
     this.$isBound = true;
-    this.$scope = source;
+    this.$scope = scope;
 
-    if (this.sourceExpression.bind) {
-      this.sourceExpression.bind(flags, source, this);
+    const sourceExpression = this.sourceExpression;
+    if (hasBind(sourceExpression)) {
+      sourceExpression.bind(flags, scope, this);
     }
 
     this.handler = this.eventManager.addEventListener(
@@ -74,12 +75,17 @@ export class Listener implements IBinding {
 
     this.$isBound = false;
 
-    if (this.sourceExpression.unbind) {
-      this.sourceExpression.unbind(flags, this.$scope, this);
+    const sourceExpression = this.sourceExpression;
+    if (hasUnbind(sourceExpression)) {
+      sourceExpression.unbind(flags, this.$scope, this);
     }
 
     this.$scope = null;
     this.handler.dispose();
     this.handler = null;
   }
+  // tslint:disable:no-empty no-any
+  public observeProperty(obj: StrictAny, propertyName: StrictAny): void { }
+  public handleChange(newValue: any, previousValue: any, flags: BindingFlags): void { }
+  // tslint:enable:no-empty no-any
 }

@@ -1,5 +1,5 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
-import { IExpression } from './ast';
+import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
@@ -32,7 +32,7 @@ export class Binding implements IPartialConnectableBinding {
   public targetObserver: AccessorOrObserver;
 
   constructor(
-    public sourceExpression: IExpression,
+    public sourceExpression: IsBindingBehavior,
     public target: IBindingTarget,
     public targetProperty: string,
     public mode: BindingMode,
@@ -95,7 +95,7 @@ export class Binding implements IPartialConnectableBinding {
     this.$scope = scope;
 
     let sourceExpression = this.sourceExpression;
-    if (sourceExpression.bind) {
+    if (hasBind(sourceExpression)) {
       sourceExpression.bind(flags, scope, this);
     }
 
@@ -132,7 +132,7 @@ export class Binding implements IPartialConnectableBinding {
     this.$isBound = false;
 
     const sourceExpression = this.sourceExpression;
-    if (sourceExpression.unbind) {
+    if (hasUnbind(sourceExpression)) {
       sourceExpression.unbind(flags, this.$scope, this);
     }
     this.$scope = null;

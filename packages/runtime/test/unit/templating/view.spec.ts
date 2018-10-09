@@ -25,7 +25,8 @@ import {
   INodeSequence,
   AccessScope,
   IChangeSet,
-  ChangeSet
+  ChangeSet,
+  Scope
 } from '../../../src';
 import { expect } from 'chai';
 import { eachCartesianJoin, eachCartesianJoinFactory } from '../../../../../scripts/test-lib';
@@ -212,7 +213,7 @@ describe(`View`, () => {
         }
       ],
       [
-        () => [`fromBind, {text:'foo'}`, BindingFlags.fromBind, BindingContext.createScope({text:'foo'})]
+        () => [`fromBind, {text:'foo'}`, BindingFlags.fromBind, Scope.create({text:'foo'}, null)]
       ],
       [
         () => [`       noop`, PLATFORM.noop],
@@ -228,7 +229,7 @@ describe(`View`, () => {
           // TODO: verify short-circuit if already bound (now we can only tell by debugging or looking at the coverage report, not very clean)
           sut.$bind(flags, scope);
 
-          const newScope = BindingContext.createScope({text:'foo'});
+          const newScope = Scope.create({text:'foo'}, null);
           sut.$bind(flags, newScope);
 
           expect(sut.$scope).to.equal(newScope);

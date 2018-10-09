@@ -1,4 +1,4 @@
-import { BindingContext } from './../../../src/binding/binding-context';
+import { BindingContext, Scope } from './../../../src/binding/binding-context';
 import { spy, SinonSpy } from 'sinon';
 import { AccessMember, PrimitiveLiteral, IExpression, ExpressionKind, IBindingTargetObserver, Binding, IBindingTarget, IObserverLocator, AccessScope, BindingMode, BindingFlags, IScope, IChangeSet, SubscriberFlags, IPropertySubscriber, IPropertyChangeNotifier, SetterObserver, ObjectLiteral, PropertyAccessor, BindingType } from '../../../src/index';
 import { DI } from '../../../../kernel/src/index';
@@ -29,7 +29,7 @@ describe('Binding', () => {
   let dummyTargetProperty: string;
   let dummyMode: BindingMode;
 
-  function setup(sourceExpression: IExpression = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
+  function setup(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
     const container = DI.createContainer();
     const changeSet = container.get<IChangeSet>(IChangeSet);
     const observerLocator = container.get<IObserverLocator>(IObserverLocator);
@@ -83,7 +83,7 @@ describe('Binding', () => {
     const observerLocator = container.get<IObserverLocator>(IObserverLocator);
     const target = {val: 0};
     const sut = new Binding(<any>expr, target, 'val', BindingMode.toView, observerLocator, container);
-    const scope = BindingContext.createScope(ctx);
+    const scope = Scope.create(ctx, null);
 
     sut.$bind(BindingFlags.fromBind, scope);
 
@@ -99,7 +99,7 @@ describe('Binding', () => {
     for (let i = 0; i < count; ++i) {
       ctx2[args[i]] = 3;
     }
-    const scope2 = BindingContext.createScope(ctx2);
+    const scope2 = Scope.create(ctx2, null);
 
     sut.$bind(BindingFlags.fromBind, scope2);
 

@@ -46,7 +46,8 @@ import {
   INode,
   ExpressionKind,
   IBinding,
-  ISignaler
+  ISignaler,
+  Scope
 } from '../../src';
 import { spy } from 'sinon';
 
@@ -75,7 +76,7 @@ export class MockCustomElement implements ICustomElement {
     this.$attachables = [];
     this.$isAttached = false;
     this.$isBound = false;
-    this.$scope = BindingContext.createScope(this);
+    this.$scope = Scope.create(this, null);
 
     this.$context = createMockRenderContext(renderingEngine, <ExposedContext>renderingEngine['container'], PLATFORM.emptyArray);
     const template = new MockTemplate(renderingEngine, <ExposedContext>renderingEngine['container'], description)
@@ -357,8 +358,8 @@ export class MockTemplate implements ITemplate {
 
 export class MockTextNodeTemplate {
   constructor(
-    public sourceExpression: IExpression,
-    public observerLocator: IObserverLocator
+    public sourceExpression: any,
+    public observerLocator: any
   ) {}
 
   public createFor(renderable: { $bindables: IBindScope[] }): MockTextNodeSequence {
@@ -376,9 +377,9 @@ const expressions = {
 
 export class MockIfTextNodeTemplate {
   constructor(
-    public sourceExpression: IExpression,
-    public observerLocator: IObserverLocator,
-    public changeSet: IChangeSet
+    public sourceExpression: any,
+    public observerLocator: any,
+    public changeSet: any
   ) {}
 
   public createFor(renderable: IView): MockNodeSequence {
@@ -405,9 +406,9 @@ export class MockIfTextNodeTemplate {
 
 export class MockElseTextNodeTemplate {
   constructor(
-    public sourceExpression: IExpression,
-    public observerLocator: IObserverLocator,
-    public changeSet: IChangeSet
+    public sourceExpression: any,
+    public observerLocator: any,
+    public changeSet: any
   ) {}
 
   public createFor(renderable: IView): MockNodeSequence {
@@ -436,9 +437,9 @@ export class MockElseTextNodeTemplate {
 
 export class MockIfElseTextNodeTemplate {
   constructor(
-    public sourceExpression: IExpression,
-    public observerLocator: IObserverLocator,
-    public changeSet: IChangeSet
+    public sourceExpression: any,
+    public observerLocator: any,
+    public changeSet: any
   ) {}
 
   public createFor(renderable: IView): MockNodeSequence {

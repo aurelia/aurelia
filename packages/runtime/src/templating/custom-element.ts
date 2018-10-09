@@ -8,7 +8,7 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
-import { BindingContext } from '../binding/binding-context';
+import { BindingContext, Scope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
@@ -145,7 +145,7 @@ function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IR
   this.$attachables = [];
   this.$isAttached = false;
   this.$isBound = false;
-  this.$scope = BindingContext.createScope(this);
+  this.$scope = Scope.create(this, null); // TODO: get the parent from somewhere?
   this.$projector = determineProjector(this, host, description);
 
   renderingEngine.applyRuntimeBehavior(Type, this);

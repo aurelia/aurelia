@@ -45,6 +45,8 @@ export interface IBindingTargetObserver<
   unbind?(flags: BindingFlags): void;
 }
 
+export type BindingSourceObserver = PropertyObserver | CollectionObserver;
+
 export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
 
 export type IObservable = (IIndexable | string | Node | INode | Collection) & {

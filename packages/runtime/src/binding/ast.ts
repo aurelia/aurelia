@@ -34,7 +34,7 @@ export type IsValueConverter = IsAssign | ValueConverter;
 export type IsBindingBehavior = IsValueConverter | BindingBehavior;
 export type IsAssignable = AccessScope | AccessKeyed | AccessMember | Assign;
 export type IsExpression = IsBindingBehavior | Interpolation;
-export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern;
+export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | HtmlLiteral;
 export type Connects = AccessScope | ArrayLiteral | ObjectLiteral | Template | Unary | CallScope | AccessMember | AccessKeyed | TaggedTemplate | Binary | Conditional | ValueConverter | BindingBehavior | ForOfStatement;
 export type Observes = AccessScope | AccessKeyed | AccessMember;
 export type CallsFunction = CallFunction | CallScope | CallMember | TaggedTemplate;
@@ -96,12 +96,12 @@ export const enum ExpressionKind {
   IsForDeclaration     = 0b100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)
   Type                 = 0b000000000000_11111, // Type mask to uniquely identify each AST class (concrete types start below)
   // ---------------------------------------------------------------------------------------------------------------------------
-  AccessThis           = 0b000000011000_00001, //               HasAncestor
-  AccessScope          = 0b000100011011_00010, // IsAssignable  HasAncestor       Observes  Connects
-  ArrayLiteral         = 0b001000010001_00011, //                                           Connects
-  ObjectLiteral        = 0b001000010001_00100, //                                           Connects
-  PrimitiveLiteral     = 0b001000010000_00101, //
-  Template             = 0b001000010001_00110, //                                           Connects
+  AccessThis           = 0b000000111000_00001, //               HasAncestor
+  AccessScope          = 0b000100111011_00010, // IsAssignable  HasAncestor       Observes  Connects
+  ArrayLiteral         = 0b001000110001_00011, //                                           Connects
+  ObjectLiteral        = 0b001000110001_00100, //                                           Connects
+  PrimitiveLiteral     = 0b001000110000_00101, //
+  Template             = 0b001000110001_00110, //                                           Connects
   Unary                = 0b000000000001_00111, //                                           Connects
   CallScope            = 0b000000101101_01000, //               HasAncestor  CallsFunction  Connects
   CallMember           = 0b000000100100_01001, //                            CallsFunction
@@ -112,8 +112,8 @@ export const enum ExpressionKind {
   Binary               = 0b000000000001_01110, //                                           Connects
   Conditional          = 0b000000000001_11111, //                                           Connects
   Assign               = 0b000100000000_10000, // IsAssignable
-  ValueConverter       = 0b010000000001_10001, //                                           Connects
-  BindingBehavior      = 0b010000000001_10010, //                                           Connects
+  ValueConverter       = 0b010010000001_10001, //                                           Connects
+  BindingBehavior      = 0b010011000001_10010, //                                           Connects
   HtmlLiteral          = 0b000000000001_10011, //                                           Connects
   ArrayBindingPattern  = 0b100000000000_10100, //
   ObjectBindingPattern = 0b100000000000_10101, //
@@ -413,8 +413,8 @@ export class Conditional implements IExpression {
 }
 
 export class AccessThis implements IExpression {
-  public static readonly $this: AccessThis = new AccessThis(0);
-  public static readonly $parent: AccessThis = new AccessThis(1);
+  public static readonly $this: AccessThis;
+  public static readonly $parent: AccessThis;
   public $kind: ExpressionKind.AccessThis;
   public assign: IExpression['assign'];
   public connect: IExpression['connect'];
@@ -793,11 +793,11 @@ export class Unary implements IExpression {
   }
 }
 export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> implements IExpression {
-  public static readonly $undefined: PrimitiveLiteral<undefined> = new PrimitiveLiteral(undefined);
-  public static readonly $null: PrimitiveLiteral<null> = new PrimitiveLiteral(null);
-  public static readonly $true: PrimitiveLiteral<true> = new PrimitiveLiteral(true);
-  public static readonly $false: PrimitiveLiteral<false> = new PrimitiveLiteral(false);
-  public static readonly $empty: PrimitiveLiteral<string> = new PrimitiveLiteral('');
+  public static readonly $undefined: PrimitiveLiteral<undefined>;
+  public static readonly $null: PrimitiveLiteral<null>;
+  public static readonly $true: PrimitiveLiteral<true>;
+  public static readonly $false: PrimitiveLiteral<false>;
+  public static readonly $empty: PrimitiveLiteral<string>;
   public $kind: ExpressionKind.PrimitiveLiteral;
   public connect: IExpression['connect'];
   public assign: IExpression['assign'];
@@ -842,12 +842,12 @@ export class HtmlLiteral implements IExpression {
 }
 
 export class ArrayLiteral implements IExpression {
-  public static readonly $empty: ArrayLiteral = new ArrayLiteral(PLATFORM.emptyArray);
+  public static readonly $empty: ArrayLiteral;
   public $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
   constructor(public readonly elements: ReadonlyArray<IsAssign>) { }
 
-  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): (StrictAny)[] {
+  public evaluate(flags: BindingFlags, scope: IScope, locator: IServiceLocator): ReadonlyArray<StrictAny> {
     const elements = this.elements;
     const length = elements.length;
     const result = Array(length);
@@ -870,7 +870,7 @@ export class ArrayLiteral implements IExpression {
 }
 
 export class ObjectLiteral implements IExpression {
-  public static readonly $empty: ObjectLiteral = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
+  public static readonly $empty: ObjectLiteral;
   public $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
   constructor(
@@ -901,7 +901,7 @@ export class ObjectLiteral implements IExpression {
 }
 
 export class Template implements IExpression {
-  public static readonly $empty: Template = new Template(['']);
+  public static readonly $empty: Template;
   public $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
   constructor(
@@ -1234,3 +1234,25 @@ for (let i = 0, ii = ast.length; i < ii; ++i) {
   proto.assign = proto.assign || <any>PLATFORM.noop;
   proto.connect = proto.connect || PLATFORM.noop;
 }
+
+const $this = new AccessThis(0);
+const $parent = new AccessThis(1);
+const $undefined = new PrimitiveLiteral<undefined>(undefined);
+const $null = new PrimitiveLiteral<null>(null);
+const $true = new PrimitiveLiteral<true>(true);
+const $false = new PrimitiveLiteral<false>(false);
+const $emptyString = new PrimitiveLiteral<''>('');
+const $emptyArray = new ArrayLiteral(PLATFORM.emptyArray);
+const $emptyObject = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
+const $emptyTemplate = new Template(['']);
+
+Object.defineProperty(AccessThis, '$this', { value: $this, writable: false, enumerable: true, configurable: false });
+Object.defineProperty(AccessThis, '$parent', { value: $parent, writable: false, enumerable: true, configurable: false });
+Object.defineProperty(PrimitiveLiteral, '$undefined', { value: $undefined, writable: false, enumerable: true, configurable: false });
+Object.defineProperty(PrimitiveLiteral, '$null', { value: $null, writable: false, enumerable: true, configurable: false });
+Object.defineProperty(PrimitiveLiteral, '$true', { value: $true, writable: false, enumerable: true, configurable: false });
+Object.defineProperty(PrimitiveLiteral, '$false', { value: $false, writable: false, enumerable: true, configurable: false });
+Object.defineProperty(PrimitiveLiteral, '$empty', { value: $emptyString, writable: false, enumerable: true, configurable: false });
+Object.defineProperty(ArrayLiteral, '$empty', { value: $emptyArray, writable: false, enumerable: true, configurable: false });
+Object.defineProperty(ObjectLiteral, '$empty', { value: $emptyObject, writable: false, enumerable: true, configurable: false });
+Object.defineProperty(Template, '$empty', { value: $emptyTemplate, writable: false, enumerable: true, configurable: false });

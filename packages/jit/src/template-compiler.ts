@@ -48,12 +48,13 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   public compile(definition: ITemplateSource, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
     const model = SemanticModel.create(definition, resources, this.attrParser, this.elParser, this.exprParser);
-    let $el = model.root;
+    const root = model.root;
+    let $el = root.isTemplate ? root.$content : root;
     while ($el = this.compileNode($el));
 
     // the flag should be passed correctly from rendering engine
-    if (model.root.isTemplate && (flags & ViewCompileFlags.surrogate)) {
-      this.compileSurrogate(model.root);
+    if (root.isTemplate && (flags & ViewCompileFlags.surrogate)) {
+      this.compileSurrogate(root);
     }
 
     return <TemplateDefinition>definition;

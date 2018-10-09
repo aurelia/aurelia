@@ -1,4 +1,4 @@
-// tslint:disable:no-reserved-keywords , no-any
+// tslint:disable:no-reserved-keywords
 import { DI, Immutable } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from '../binding/ast';
 import { BindingMode } from '../binding/binding-mode';

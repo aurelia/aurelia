@@ -85,6 +85,30 @@ describe('TemplateCompiler', () => {
           ]);
         });
 
+        it('compiles surrogate with binding expression', () => {
+          const { instructions, surrogates } = compileWith(
+            `<template class.bind="base"></template>`,
+            [],
+            ViewCompileFlags.surrogate
+          );
+          verifyInstructions(instructions as any, [], 'normal');
+          verifyInstructions(surrogates as any, [
+            { toVerify: ['type', 'dest'], type: TT.propertyBinding, dest: 'class' }
+          ], 'surrogate');
+        });
+
+        it('compiles surrogate with interpolation expression', () => {
+          const { instructions, surrogates } = compileWith(
+            `<template class="h-100 \${base}"></template>`,
+            [],
+            ViewCompileFlags.surrogate
+          );
+          verifyInstructions(instructions as any, [], 'normal');
+          verifyInstructions(surrogates as any, [
+            { toVerify: ['type', 'dest'], type: TT.interpolation, dest: 'class' }
+          ], 'surrogate');
+        });
+
         it('throws on attributes that require to be unique', () => {
           const attrs = ['id', 'part', 'replace-part'];
           attrs.forEach(attr => {
@@ -366,8 +390,8 @@ describe('TemplateCompiler', () => {
       return sut.compile(<any>{ templateOrNode: markup, instructions: [], surrogates: [] }, resources, viewCompileFlags);
     }
 
-    function verifyInstructions(actual: any[], expectation: IExpectedInstruction[]) {
-      expect(actual.length).to.equal(expectation.length, `Expected to have ${expectation.length} instructions. Received: ${actual.length}`);
+    function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
+      expect(actual.length).to.equal(expectation.length, `Expected to have ${expectation.length} ${type ? `${type} ` : ''} instructions. Received: ${actual.length}`);
       for (let i = 0, ii = actual.length; i < ii; ++i) {
         const actualInst = actual[i];
         const expectedInst = expectation[i];
@@ -375,12 +399,12 @@ describe('TemplateCompiler', () => {
           if (expectedInst[prop] instanceof Object) {
             expect(
               actualInst[prop]).to.deep.equal(expectedInst[prop],
-              `Expected actual instruction to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
+              `Expected actual instruction ${type ? `of ${type}` : ''} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
             );
           } else {
             expect(
               actualInst[prop]).to.equal(expectedInst[prop],
-              `Expected actual instruction to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
+              `Expected actual instruction ${type ? `of ${type}` : ''} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
             );
           }
         }

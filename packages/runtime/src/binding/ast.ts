@@ -82,15 +82,15 @@ export interface IExpression {
 }
 
 export const enum ExpressionKind {
-  Connects             = 0b000000000001_00000, // The expression's connect() function is not a no-op
+  Connects             = 0b000000000001_00000, // The expression's connect() function calls observeProperty and/or calls connect() on another expression that it wraps (all expressions except for AccessThis, PrimitiveLiteral, CallMember/Function and Assign)
   Observes             = 0b000000000010_00000, // The expression's connect() function calls observeProperty (only AccessScope, AccessMember and AccessKeyed do this)
   CallsFunction        = 0b000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
-  HasAncestor          = 0b000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context
+  HasAncestor          = 0b000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context (only AccessThis, AccessScope and CallScope)
   IsPrimary            = 0b000000010000_00000, // Is a primary expression according to ES parsing rules
-  IsLeftHandSide       = 0b000000100000_00000, // Is a left-hand side expression according to ES parsing rules
+  IsLeftHandSide       = 0b000000100000_00000, // Is a left-hand side expression according to ES parsing rules, includes IsPrimary
   HasBind              = 0b000001000000_00000, // Has a bind() method (currently only BindingBehavior)
   HasUnbind            = 0b000010000000_00000, // Has an unbind() method (currentl only BindingBehavior and ValueConverter)
-  IsAssignable         = 0b000100000000_00000, // Is an assignable expression according to ES parsing rules
+  IsAssignable         = 0b000100000000_00000, // Is an assignable expression according to ES parsing rules (only AccessScope, AccessMember, AccessKeyed ans Assign)
   IsLiteral            = 0b001000000000_00000, // Is an Aurelia resource (ValueConverter or BindingBehavior)
   IsResource           = 0b010000000000_00000, // Is literal expression (Primitive, Array, Object or Template)
   IsForDeclaration     = 0b100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)

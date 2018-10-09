@@ -22,6 +22,13 @@ export const ParserRegistration: IRegistry = {
   }
 };
 
+const $false = PrimitiveLiteral.$false;
+const $true = PrimitiveLiteral.$true;
+const $null = PrimitiveLiteral.$null;
+const $undefined = PrimitiveLiteral.$undefined;
+const $this = AccessThis.$this;
+const $parent = AccessThis.$parent;
+
 /*@internal*/
 export class ParserState {
   public index: number;
@@ -178,7 +185,8 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           }
           continue;
         } else if ((state.currentToken & Token.AccessScopeTerminal) > 0) {
-          result = new AccessThis(access & Access.Ancestor);
+          const ancestor = access & Access.Ancestor;
+          result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThis(ancestor);
           access = Access.This;
           break primary;
         } else {
@@ -199,7 +207,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     case Token.ThisScope: // $this
       state.assignable = false;
       nextToken(state);
-      result = new AccessThis(0);
+      result = $this;
       access = Access.This;
       break;
     case Token.OpenParen: // parenthesized expression
@@ -850,10 +858,6 @@ function consume(state: ParserState, token: Token): void {
   }
 }
 
-const $false = new PrimitiveLiteral(false);
-const $true = new PrimitiveLiteral(true);
-const $null = new PrimitiveLiteral(null);
-const $undefined = new PrimitiveLiteral(undefined);
 /**
  * Array for mapping tokens to token values. The indices of the values
  * correspond to the token bits 0-38.

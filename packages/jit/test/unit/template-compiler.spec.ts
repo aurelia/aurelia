@@ -431,7 +431,7 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
   } else {
     return [{
       type: TT.propertyBinding,
-      srcOrExpr: value.length === 0 ? new PrimitiveLiteral('') : new AccessScope(value),
+      srcOrExpr: value.length === 0 ? PrimitiveLiteral.$empty : new AccessScope(value),
       dest: 'value',
       mode: BindingMode.toView,
       oneTime: false
@@ -675,8 +675,8 @@ describe(`TemplateCompiler - combinations`, () => {
         () => [{ asdf: { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default } }, BindingMode.default, 'bazBaz']
       ],
       <(() => [string, string, IExpression, Constructable])[]>[
-        () => ['foo',     '', new PrimitiveLiteral(''), class Foo{}],
-        () => ['foo-foo', '', new PrimitiveLiteral(''), class FooFoo{}],
+        () => ['foo',     '', PrimitiveLiteral.$empty, class Foo{}],
+        () => ['foo-foo', '', PrimitiveLiteral.$empty, class FooFoo{}],
         () => ['foo',     'bar', new AccessScope('bar'), class Foo{}]
       ],
       // ICustomAttributeSource.defaultBindingMode

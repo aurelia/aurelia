@@ -44,7 +44,9 @@ import {
   ICustomAttribute,
   IRenderer,
   INode,
-  ExpressionKind
+  ExpressionKind,
+  IBinding,
+  ISignaler
 } from '../../src';
 import { spy } from 'sinon';
 
@@ -788,4 +790,124 @@ export class MockExpression implements IExpression {
   bind = spy();
   unbind = spy();
   accept = spy();
+}
+
+export class MockBindingBehavior {
+  public calls: [keyof MockBindingBehavior, ...any[]][] = [];
+
+  public bind(flags: BindingFlags, scope: IScope, binding: IBinding, ...rest: any[]): void {
+    this.trace('bind', flags, scope, binding, ...rest);
+  }
+
+  public unbind(flags: BindingFlags, scope: IScope, binding: IBinding, ...rest: any[]): void {
+    this.trace('unbind', flags, scope, binding, ...rest);
+  }
+
+  public trace(fnName: keyof MockBindingBehavior, ...args: any[]): void {
+    this.calls.push([fnName, ...args]);
+  }
+}
+
+export class MockValueConverter {
+  public calls: [keyof MockValueConverter, ...any[]][] = [];
+  public fromView: MockValueConverter['$fromView'];
+  public toView: MockValueConverter['$toView'];
+
+  constructor(methods: string[]) {
+    for (const method of methods) {
+      this[method] = this[`$${method}`];
+    }
+  }
+
+  public $fromView(value: any, ...args: any[]): any {
+    this.trace('fromView', value, ...args);
+    return value;
+  }
+
+  public $toView(value: any, ...args: any[]): any {
+    this.trace('toView', value, ...args);
+    return value;
+  }
+
+  public trace(fnName: keyof MockValueConverter, ...args: any[]): void {
+    this.calls.push([fnName, ...args]);
+  }
+}
+
+export interface MockServiceLocator extends IContainer {}
+export class MockServiceLocator {
+  public calls: [keyof MockServiceLocator, ...any[]][] = [];
+
+  constructor(public registrations: Map<any, any>) {}
+
+  public get(key: any): any {
+    this.trace('get', key);
+    return this.registrations.get(key);
+  }
+
+  public trace(fnName: keyof MockServiceLocator, ...args: any[]): void {
+    this.calls.push([fnName, ...args]);
+  }
+}
+
+export class MockTracingExpression {
+  public $kind: ExpressionKind = ExpressionKind.HasBind | ExpressionKind.HasUnbind;
+  public calls: [keyof MockTracingExpression, ...any[]][] = [];
+
+  constructor(public inner: any) {}
+
+  public evaluate(...args: any[]): any {
+    this.trace('evaluate', ...args);
+    return this.inner.evaluate(...args);
+  }
+
+  public assign(...args: any[]): any {
+    this.trace('assign', ...args);
+    return this.inner.assign(...args);
+  }
+
+  public connect(...args: any[]): any {
+    this.trace('connect', ...args);
+    this.inner.connect(...args);
+  }
+
+  public bind(...args: any[]): any {
+    this.trace('bind', ...args);
+    if (this.inner.bind) {
+      this.inner.bind(...args);
+    }
+  }
+
+  public unbind(...args: any[]): any {
+    this.trace('unbind', ...args);
+    if (this.inner.unbind) {
+      this.inner.unbind(...args);
+    }
+  }
+
+  public accept(...args: any[]): any {
+    this.trace('accept', ...args);
+    this.inner.accept(...args);
+  }
+
+  public trace(fnName: keyof MockTracingExpression, ...args: any[]): void {
+    this.calls.push([fnName, ...args]);
+  }
+}
+
+export interface MockSignaler extends ISignaler {}
+export class MockSignaler {
+  public calls: [keyof MockSignaler, ...any[]][] = [];
+
+  public addSignalListener(...args: any[]): void {
+    this.trace('addSignalListener', ...args);
+  }
+
+  public removeSignalListener(...args: any[]): void {
+    this.trace('removeSignalListener', ...args);
+  }
+
+  public trace(fnName: keyof MockSignaler, ...args: any[]): void {
+    this.calls.push([fnName, ...args]);
+  }
 }

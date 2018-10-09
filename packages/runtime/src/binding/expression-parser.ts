@@ -12,8 +12,6 @@ export interface IExpressionParser {
 export const IExpressionParser = DI.createInterface<IExpressionParser>()
   .withDefault(x => x.singleton(ExpressionParser));
 
-const emptyString = new PrimitiveLiteral('');
-
 /*@internal*/
 export class ExpressionParser implements IExpressionParser {
   private expressionLookup: Record<string, IsBindingBehavior>;
@@ -51,7 +49,7 @@ export class ExpressionParser implements IExpressionParser {
         // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
         // But don't cache it, because empty strings are always invalid for any other type of binding
         if (expression.length === 0 && (bindingType & (BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand))) {
-          return emptyString;
+          return PrimitiveLiteral.$empty;
         }
         let found = this.expressionLookup[expression];
         if (found === undefined) {

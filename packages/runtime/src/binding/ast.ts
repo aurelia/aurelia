@@ -413,8 +413,8 @@ export class Conditional implements IExpression {
 }
 
 export class AccessThis implements IExpression {
-  public static readonly $this: AccessThis;
-  public static readonly $parent: AccessThis;
+  public static readonly $this: AccessThis = new AccessThis(0);
+  public static readonly $parent: AccessThis = new AccessThis(1);
   public $kind: ExpressionKind.AccessThis;
   public assign: IExpression['assign'];
   public connect: IExpression['connect'];
@@ -793,11 +793,11 @@ export class Unary implements IExpression {
   }
 }
 export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> implements IExpression {
-  public static readonly $undefined: PrimitiveLiteral<undefined>;
-  public static readonly $null: PrimitiveLiteral<null>;
-  public static readonly $true: PrimitiveLiteral<true>;
-  public static readonly $false: PrimitiveLiteral<false>;
-  public static readonly $empty: PrimitiveLiteral<string>;
+  public static readonly $undefined: PrimitiveLiteral<undefined> = new PrimitiveLiteral<undefined>(undefined);
+  public static readonly $null: PrimitiveLiteral<null> = new PrimitiveLiteral<null>(null);
+  public static readonly $true: PrimitiveLiteral<true> = new PrimitiveLiteral<true>(true);
+  public static readonly $false: PrimitiveLiteral<false> = new PrimitiveLiteral<false>(false);
+  public static readonly $empty: PrimitiveLiteral<string> = new PrimitiveLiteral<''>('');
   public $kind: ExpressionKind.PrimitiveLiteral;
   public connect: IExpression['connect'];
   public assign: IExpression['assign'];
@@ -842,7 +842,7 @@ export class HtmlLiteral implements IExpression {
 }
 
 export class ArrayLiteral implements IExpression {
-  public static readonly $empty: ArrayLiteral;
+  public static readonly $empty: ArrayLiteral = new ArrayLiteral(PLATFORM.emptyArray);
   public $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
   constructor(public readonly elements: ReadonlyArray<IsAssign>) { }
@@ -870,7 +870,7 @@ export class ArrayLiteral implements IExpression {
 }
 
 export class ObjectLiteral implements IExpression {
-  public static readonly $empty: ObjectLiteral;
+  public static readonly $empty: ObjectLiteral = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
   public $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
   constructor(
@@ -901,7 +901,7 @@ export class ObjectLiteral implements IExpression {
 }
 
 export class Template implements IExpression {
-  public static readonly $empty: Template;
+  public static readonly $empty: Template = new Template(['']);
   public $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
   constructor(
@@ -1234,25 +1234,3 @@ for (let i = 0, ii = ast.length; i < ii; ++i) {
   proto.assign = proto.assign || <any>PLATFORM.noop;
   proto.connect = proto.connect || PLATFORM.noop;
 }
-
-const $this = new AccessThis(0);
-const $parent = new AccessThis(1);
-const $undefined = new PrimitiveLiteral<undefined>(undefined);
-const $null = new PrimitiveLiteral<null>(null);
-const $true = new PrimitiveLiteral<true>(true);
-const $false = new PrimitiveLiteral<false>(false);
-const $emptyString = new PrimitiveLiteral<''>('');
-const $emptyArray = new ArrayLiteral(PLATFORM.emptyArray);
-const $emptyObject = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
-const $emptyTemplate = new Template(['']);
-
-Object.defineProperty(AccessThis, '$this', { value: $this, writable: false, enumerable: true, configurable: false });
-Object.defineProperty(AccessThis, '$parent', { value: $parent, writable: false, enumerable: true, configurable: false });
-Object.defineProperty(PrimitiveLiteral, '$undefined', { value: $undefined, writable: false, enumerable: true, configurable: false });
-Object.defineProperty(PrimitiveLiteral, '$null', { value: $null, writable: false, enumerable: true, configurable: false });
-Object.defineProperty(PrimitiveLiteral, '$true', { value: $true, writable: false, enumerable: true, configurable: false });
-Object.defineProperty(PrimitiveLiteral, '$false', { value: $false, writable: false, enumerable: true, configurable: false });
-Object.defineProperty(PrimitiveLiteral, '$empty', { value: $emptyString, writable: false, enumerable: true, configurable: false });
-Object.defineProperty(ArrayLiteral, '$empty', { value: $emptyArray, writable: false, enumerable: true, configurable: false });
-Object.defineProperty(ObjectLiteral, '$empty', { value: $emptyObject, writable: false, enumerable: true, configurable: false });
-Object.defineProperty(Template, '$empty', { value: $emptyTemplate, writable: false, enumerable: true, configurable: false });

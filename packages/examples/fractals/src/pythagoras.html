@@ -1,0 +1,20 @@
+<template>
+  <svg remove>
+    <rect
+      x='0'
+      y='0'
+      width='1'
+      height='1'
+      fill.bind='fill' />
+    <g
+      if.bind='renderLeft'
+      as-element='pythagoras'
+      level.bind='level + 1'
+      transform.bind='state.leftTransform'></g>
+    <g
+      if.bind='renderRight'
+      as-element='pythagoras'
+      level.bind='level + 1'
+      transform.bind='state.rightTransform'></g>
+  </svg>
+</template>

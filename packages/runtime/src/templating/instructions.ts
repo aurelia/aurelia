@@ -118,7 +118,7 @@ export interface IListenerBindingInstruction extends ITargetedInstruction {
 }
 
 export interface ICallBindingInstruction extends ITargetedInstruction {
-  type: TargetedInstructionType.callBinding,
+  type: TargetedInstructionType.callBinding;
   srcOrExpr: string | IsBindingBehavior;
   dest: string;
 }

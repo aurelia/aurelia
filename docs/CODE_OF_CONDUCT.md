@@ -1,4 +1,4 @@
-# Contributor Covenant Code of Conduct
+# Code of Conduct
 
 As contributors and maintainers of Aurelia, we pledge to respect every contributor.
 

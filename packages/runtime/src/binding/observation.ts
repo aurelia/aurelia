@@ -48,6 +48,7 @@ export interface IBindingTargetObserver<
 export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
 
 export type IObservable = (IIndexable | string | Node | INode | Collection) & {
+  readonly $synthetic?: false;
   $observers?: Record<string, AccessorOrObserver>;
 };
 

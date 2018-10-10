@@ -1,5 +1,4 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { nativePush, nativeSplice } from './array-observer';
 import { BindingFlags } from './binding-flags';
 import { IBatchedCollectionSubscriber, IBatchedSubscriberCollection, IndexMap, IPropertySubscriber, ISubscriberCollection, MutationKind, MutationKindToBatchedSubscriber, MutationKindToSubscriber, SubscriberFlags } from './observation';
 
@@ -46,7 +45,7 @@ function addSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, s
     this._subscriberFlags |= SubscriberFlags.SubscribersRest;
     return true;
   }
-  nativePush.call(this._subscribersRest, subscriber);
+  this._subscribersRest.push(subscriber);
   return true;
 }
 
@@ -71,7 +70,7 @@ function removeSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>
     const subscribers = this._subscribersRest;
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
-        nativeSplice.call(subscribers, i, 1);
+        subscribers.splice(i, 1);
         if (ii === 1) {
           this._subscriberFlags &= ~SubscriberFlags.SubscribersRest;
         }
@@ -223,7 +222,7 @@ function addBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind.co
     this._batchedSubscriberFlags |= SubscriberFlags.SubscribersRest;
     return true;
   }
-  nativePush.call(this._batchedSubscribersRest, subscriber);
+  this._batchedSubscribersRest.push(subscriber);
   return true;
 }
 
@@ -248,7 +247,7 @@ function removeBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind
     const subscribers = this._batchedSubscribersRest;
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
-        nativeSplice.call(subscribers, i, 1);
+        subscribers.splice(i, 1);
         if (ii === 1) {
           this._batchedSubscriberFlags &= ~SubscriberFlags.SubscribersRest;
         }

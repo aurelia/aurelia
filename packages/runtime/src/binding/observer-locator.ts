@@ -1,17 +1,18 @@
 import { DI, IIndexable, inject, Primitive, Reporter } from '@aurelia/kernel';
 import { DOM } from '../dom';
 import { getArrayObserver } from './array-observer';
+import { IBindingContext, IOverrideContext } from './binding-context';
 import { IChangeSet } from './change-set';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
 import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from './element-observation';
 import { IEventManager } from './event-manager';
 import { getMapObserver } from './map-observer';
-import { AccessorOrObserver, CollectionKind, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet, CollectionObserver } from './observation';
+import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet } from './observation';
 import { PrimitiveObserver, SetterObserver } from './property-observation';
 import { getSetObserver } from './set-observer';
 import { ISVGAnalyzer } from './svg-analyzer';
-import { ClassAttributeAccessor, DataAttributeAccessor, PropertyAccessor, StyleAttributeAccessor, XLinkAttributeAccessor, ElementPropertyAccessor } from './target-accessors';
+import { ClassAttributeAccessor, DataAttributeAccessor, ElementPropertyAccessor, PropertyAccessor, StyleAttributeAccessor, XLinkAttributeAccessor } from './target-accessors';
 
 const toStringTag = Object.prototype.toString;
 
@@ -56,7 +57,10 @@ export class ObserverLocator implements IObserverLocator {
     private svgAnalyzer: ISVGAnalyzer
   ) {}
 
-  public getObserver(obj: IObservable, propertyName: string): AccessorOrObserver {
+  public getObserver(obj: IObservable | IBindingContext | IOverrideContext, propertyName: string): AccessorOrObserver {
+    if (obj.$synthetic === true) {
+      return obj.getObservers().getOrCreate(obj, propertyName);
+    }
     let observersLookup = obj.$observers;
     let observer;
 

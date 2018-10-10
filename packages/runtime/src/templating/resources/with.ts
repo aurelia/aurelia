@@ -1,5 +1,5 @@
 import { inject } from '@aurelia/kernel';
-import { BindingContext, IScope } from '../../binding/binding-context';
+import { BindingContext, IScope, Scope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
 import { IRenderLocation } from '../../dom';
 import { bindable } from '../bindable';
@@ -43,7 +43,7 @@ export class With {
   private bindChild(flags: BindingFlags): void {
     this.currentView.$bind(
       flags,
-      BindingContext.createScopeFromParent(this.$scope, this.value)
+      Scope.fromParent(this.$scope, this.value)
     );
   }
 }

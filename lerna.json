@@ -9,6 +9,7 @@
     "packages/plugin-svg",
     "packages/router",
     "packages/runtime",
+    "packages/testing",
     "packages/validation"
   ],
   "version": "0.2.0"

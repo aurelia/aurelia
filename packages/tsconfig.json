@@ -7,6 +7,7 @@
     { "path": "router" },
     { "path": "jit" },
     { "path": "debug" },
+    { "path": "testing" },
     { "path": "aot" },
     { "path": "plugin-requirejs" },
     { "path": "plugin-svg" }

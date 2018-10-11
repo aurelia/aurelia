@@ -18,6 +18,9 @@ export default {
   '.vscode': {
     'path': join(rootPath, '.vscode')
   },
+  'changelog': {
+    'path': join(rootPath, 'docs', 'CHANGELOG.md')
+  },
   'coverage': {
     'path': join(rootPath, 'coverage')
   },
@@ -33,6 +36,9 @@ export default {
   'packages': lernaJson.packages.map(p => {
     const name = p.split('/')[1];
     const path = join(packagesPath, name);
+    const changelog = {
+      path: join(path, 'CHANGELOG.md')
+    };
     const src = join(path, 'src');
     const scopedName = `@aurelia/${name}`;
     const coverage = join(rootPath, 'coverage', name);
@@ -46,7 +52,7 @@ export default {
     const amd = join(dist, `index.amd.js`);
     const cjs = join(dist, `index.cjs.js`);
     const iife = join(rootPath, 'dist', `${name}.js`);
-    return { name, jsName, namespace, fullName, path, iife, umd, es6, system, amd, cjs, src, dist, scopedName, coverage };
+    return { name, jsName, namespace, fullName, path, changelog, iife, umd, es6, system, amd, cjs, src, dist, scopedName, coverage };
   }),
   'scripts': {
     'path': join(rootPath, 'scripts')

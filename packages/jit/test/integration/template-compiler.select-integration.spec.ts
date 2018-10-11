@@ -1,108 +1,15 @@
-import { IContainer, DI, PLATFORM, Constructable, Primitive } from '../../../kernel/src';
-import { BasicConfiguration } from '../../src';
-import {
-  Aurelia, IChangeSet, CustomElementResource, valueConverter,
-  customElement, bindable, SetterObserver, Binding,
-  PropertyAccessor, ElementPropertyAccessor, Observer, IObserverLocator, SelectValueObserver
-} from '../../../runtime/src';
-import { expect } from 'chai';
-import { spy } from 'sinon';
-import { eachCartesianJoinFactory, h } from './util';
-
-
-@valueConverter('sort')
-export class SortValueConverter {
-  public toView(arr: any[], prop?: string, dir: 'asc' | 'desc' = 'asc'): any[] {
-    if (Array.isArray(arr)) {
-      const factor = dir === 'asc' ? 1 : -1;
-      if (prop && prop.length) {
-        arr.sort((a, b) => a[prop] - b[prop] * factor);
-      } else {
-        arr.sort((a, b) => a - b * factor);
-      }
-    }
-    return arr;
-  }
-}
-
-@valueConverter('json')
-export class JsonValueConverter {
-  public toView(input: any): string {
-    return JSON.stringify(input);
-  }
-  public fromView(input: string): any {
-    return JSON.parse(input);
-  }
-}
-
-
-@customElement({
-  name: 'name-tag',
-  templateOrNode: '<template>${name}</template>',
-  build: { required: true, compiler: 'default' },
-  dependencies: [],
-  instructions: [],
-  surrogates: []
-})
-class NameTag {
-
-  @bindable()
-  name: string;
-}
-
-const globalResources: any[] = [
-  SortValueConverter,
-  JsonValueConverter,
-  NameTag
-];
-
-const TestConfiguration = {
-  register(container: IContainer) {
-    container.register(...globalResources);
-  }
-}
-
-function createCustomElement<T = Record<string, any>>(
-  markup: string | Element,
-  klass: Constructable<T> = class {} as Constructable<T>,
-  ...dependencies: Function[]
-): T {
-  return new (CustomElementResource.define({
-    name: 'app',
-    dependencies: [...dependencies],
-    templateOrNode: markup,
-    build: { required: true, compiler: 'default' },
-    instructions: [],
-    surrogates: []
-  }, klass))();
-}
+import { Primitive } from "@aurelia/kernel";
+import { SelectValueObserver } from "@aurelia/runtime";
+import { tearDown } from "./prepare";
+import { expect } from "chai";
+import { h } from "./util";
+import {  setupAndStart } from "./prepare";
 
 describe('TemplateCompiler - <select/> Integration', () => {
-  let container: IContainer;
-  let observerLocator: IObserverLocator;
-  let au: Aurelia;
-  let host: HTMLElement;
-  let cs: IChangeSet
-
-  beforeEach(() => {
-    container = DI.createContainer();
-    observerLocator = container.get(IObserverLocator);
-    cs = container.get(IChangeSet);
-    container.register(TestConfiguration, BasicConfiguration)
-    host = document.createElement('app');
-    document.body.appendChild(host);
-    au = new Aurelia(container);
-  });
-
-  afterEach(() => {
-    au.stop();
-    document.body.removeChild(host);
-  });
-
   describe('<select/> - single', () => {
 
     it(`works with multiple toView bindings`, () => {
-      const component = createCustomElement(
+      const { au, host, cs, observerLocator } = setupAndStart(
         `<template>
           <select id="select1" value.to-view="selectedValue">
             <option>1</option>
@@ -121,7 +28,6 @@ describe('TemplateCompiler - <select/> Integration', () => {
           selectedValue: string = '2';
         }
       );
-      au.app({ host, component }).start();
       const select1 = document.querySelector('#select1') as HTMLSelectElement;
       const select2 = document.querySelector('#select2') as HTMLSelectElement;
       const select3 = document.querySelector('#select3') as HTMLSelectElement;
@@ -138,10 +44,11 @@ describe('TemplateCompiler - <select/> Integration', () => {
       expect(select3.value).to.equal('3');
       const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
       expect(observer3.currentValue).to.equal('2');
+      tearDown(au, cs, host);
     });
 
     it(`works with mixed of multiple binding: twoWay + toView`, () => {
-      const component = createCustomElement(
+      const { cs, component, observerLocator } = setupAndStart(
         `<template>
           <select id="select1" value.to-view="selectedValue">
             <option>1</option>
@@ -160,7 +67,6 @@ describe('TemplateCompiler - <select/> Integration', () => {
           selectedValue: string = '2';
         }
       );
-      au.app({ host, component }).start();
       const select1 = document.querySelector('#select1') as HTMLSelectElement;
       const select2 = document.querySelector('#select2') as HTMLSelectElement;
       const select3 = document.querySelector('#select3') as HTMLSelectElement;
@@ -191,7 +97,7 @@ describe('TemplateCompiler - <select/> Integration', () => {
   describe('<select/> - multiple', () => {
 
     it(`works with multiple toView bindings without pre-selection`, () => {
-      const component = createCustomElement(
+      const { cs, component, observerLocator } = setupAndStart(
         `<template>
           <select id="select1" multiple value.to-view="selectedValues">
             <option id="o11">1</option>
@@ -217,7 +123,6 @@ describe('TemplateCompiler - <select/> Integration', () => {
           selectedValues: Primitive[] = ['1', 2, '2', 3, '3'];
         }
       );
-      au.app({ host, component }).start();
       const select1 = document.querySelector('#select1') as HTMLSelectElement;
       const select2 = document.querySelector('#select2') as HTMLSelectElement;
       const select3 = document.querySelector('#select3') as HTMLSelectElement;
@@ -240,7 +145,7 @@ describe('TemplateCompiler - <select/> Integration', () => {
     });
 
     it(`works with mixed of two-way + to-view bindings with pre-selection`, () => {
-      const component = createCustomElement(
+      const { cs, component, observerLocator } = setupAndStart(
         `<template>
           <select id="select1" multiple value.to-view="selectedValues">
             <option id="o11">1</option>
@@ -266,7 +171,6 @@ describe('TemplateCompiler - <select/> Integration', () => {
           selectedValues: Primitive[] = [];
         }
       );
-      au.app({ host, component }).start();
       const select1 = document.querySelector('#select1') as HTMLSelectElement;
       const select2 = document.querySelector('#select2') as HTMLSelectElement;
       const select3 = document.querySelector('#select3') as HTMLSelectElement;
@@ -296,6 +200,42 @@ describe('TemplateCompiler - <select/> Integration', () => {
         option.selected = true;
       });
     });
+  });
+
+  it(`toViewBinding - select single`, () => {
+    const { au, host, cs, component } = setupAndStart(
+      <any>template(null,
+        select(
+          { 'value.to-view': 'selectedValue' },
+          ...[1,2].map(v => option({ value: v }))
+        )
+      )
+    );
+   expect(host.firstElementChild['value']).to.equal('1');
+    component.selectedValue = '2';
+    expect(host.firstElementChild['value']).to.equal('1');
+    cs.flushChanges();
+    expect(host.firstElementChild['value']).to.equal('2');
+    expect(host.firstElementChild.childNodes.item(1)['selected']).to.be.true;
+    tearDown(au, cs, host);
+  });
+
+  it(`twoWayBinding - select single`, () => {
+    const { au, host, cs, component } = setupAndStart(
+      <any>h('template',
+        null,
+        h('select',
+          { 'value.two-way': 'selectedValue' },
+          ...[1,2].map(v => h('option', { value: v }))
+        )
+      )
+    );
+    expect(component.selectedValue).to.be.undefined;
+    host.firstChild.childNodes.item(1)['selected'] = true;
+    expect(component.selectedValue).to.be.undefined;
+    host.firstChild.dispatchEvent(new CustomEvent('change'));
+    expect(component.selectedValue).to.equal('2');
+    tearDown(au, cs, host);
   });
 
   function template(attrs: Record<string, any> | null, ...children: Element[]) {

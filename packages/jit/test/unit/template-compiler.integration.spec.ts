@@ -110,6 +110,20 @@ function setup(template: string, ...registrations: any[]) {
   return { container, cs, host, au, component };
 }
 
+function setupAndMutate(template: string, mutate: (component: any) => void, ...registrations: any[]) {
+  const container = DI.createContainer();
+  container.register(...registrations);
+  const cs = container.get<IChangeSet>(IChangeSet);
+  container.register(TestConfiguration, BasicConfiguration)
+  const host = document.createElement('app');
+  document.body.appendChild(host);
+  const au = new Aurelia(container);
+  const component = createCustomElement(template);
+  mutate(component);
+  au.app({ host, component }).start();
+  return { container, cs, host, au, component };
+}
+
 function tearDown(au: Aurelia, cs: IChangeSet, host: HTMLElement) {
   au.stop();
   expect(cs.size).to.equal(0);
@@ -633,53 +647,104 @@ describe('TemplateCompiler (integration)', () => {
     expect(host.textContent).to.equal('');
   });
 
-  // TODO: this doesn't work (note that this is the same as the 2 tests above but the attributes swapped around)
-  // it(`repeater with custom element + inner bindable with different name than outer property, reversed`, () => {
-  //   @customElement({ name: 'foo', templateOrNode: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
-  //   class Foo { @bindable text: string; }
-  //   const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, Foo);
-  //   component.count = 3;
-  //   component.theText = 'a';
-  //   cs.flushChanges();
-  //   expect(host.textContent).to.equal('aaa');
+  it(`repeater with custom element + inner bindable with different name than outer property, reversed, undefined property`, () => {
+    @customElement({ name: 'foo', templateOrNode: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+    class Foo { @bindable text: string; }
+    const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, Foo);
 
-  //   tearDown(au, cs, host);
-  //   expect(host.textContent).to.equal('');
-  // });
+    component.count = 3;
+    component.theText = 'a';
+    cs.flushChanges();
+    expect(host.textContent).to.equal('undefinedundefinedundefined');
 
-  // it(`repeater with custom element + inner bindable with same name as outer property, reversed`, () => {
-  //   @customElement({ name: 'foo', templateOrNode: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
-  //   class Foo { @bindable text: string; }
-  //   const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" text.bind="text"></foo></template>`, Foo);
-  //   component.count = 3;
-  //   component.text = 'a';
-  //   cs.flushChanges();
-  //   expect(host.textContent).to.equal('aaa');
+    tearDown(au, cs, host);
+    expect(host.textContent).to.equal('');
+  });
 
-  //   tearDown(au, cs, host);
-  //   expect(host.textContent).to.equal('');
-  // });
+  it(`repeater with custom element + inner bindable with same name as outer property, reversed, undefined property`, () => {
+    @customElement({ name: 'foo', templateOrNode: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+    class Foo { @bindable text: string; }
+    const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" text.bind="text"></foo></template>`, Foo);
+    component.count = 3;
+    component.text = 'a';
+    cs.flushChanges();
+    expect(host.textContent).to.equal('undefinedundefinedundefined');
 
-  // TODO: this doesn't work (the repeater inside the custom element doesn't render)
-  // it(`repeater with custom element with repeater`, () => {
-  //   @customElement({ name: 'foo', templateOrNode: '<template><div repeat.for="item of todos">${item}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
-  //   class Foo { @bindable todos: any[] }
-  //   const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, Foo);
-  //   component.count = 3;
-  //   component.items = ['a', 'b', 'c']
-  //   cs.flushChanges();
-  //   expect(host.textContent).to.equal('abcabcabc');
+    tearDown(au, cs, host);
+    expect(host.textContent).to.equal('');
+  });
 
-  //   // component.count = 1;
-  //   // cs.flushChanges();
-  //   // expect(host.textContent).to.equal('abc');
+  it(`repeater with custom element + inner bindable with different name than outer property, reversed`, () => {
+    @customElement({ name: 'foo', templateOrNode: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+    class Foo { @bindable text; }
+    const { au, host, cs, component } = setupAndMutate(`<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, c => {
+      c.theText = 'a';
+    }, Foo);
 
-  //   // component.count = 3;
-  //   // cs.flushChanges();
-  //   // expect(host.textContent).to.equal('abcabcabc');
+    component.count = 3;
+    cs.flushChanges();
+    expect(host.textContent).to.equal('aaa');
 
-  //   tearDown(au, cs, host);
-  // });
+    tearDown(au, cs, host);
+    expect(host.textContent).to.equal('');
+  });
+
+  it(`repeater with custom element + inner bindable with same name as outer property, reversed`, () => {
+    @customElement({ name: 'foo', templateOrNode: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+    class Foo { @bindable text; }
+    const { au, host, cs, component } = setupAndMutate(`<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, c => {
+      c.theText = 'a';
+    }, Foo);
+
+    component.count = 3;
+    cs.flushChanges();
+    expect(host.textContent).to.equal('aaa');
+
+    tearDown(au, cs, host);
+    expect(host.textContent).to.equal('');
+  });
+
+  it(`repeater with custom element with repeater`, () => {
+    @customElement({ name: 'foo', templateOrNode: '<template><div repeat.for="item of todos">${item}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+    class Foo { @bindable todos: any[] }
+    const { au, host, cs, component } = setupAndMutate(`<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, c => {
+      c.todos = ['a', 'b', 'c']
+    }, Foo);
+    component.count = 3;
+    cs.flushChanges();
+    expect(host.textContent).to.equal('abcabcabc');
+
+    component.count = 1;
+    cs.flushChanges();
+    expect(host.textContent).to.equal('abc');
+
+    component.count = 3;
+    cs.flushChanges();
+    expect(host.textContent).to.equal('abcabcabc');
+
+    tearDown(au, cs, host);
+  });
+
+  it(`repeater with custom element with repeater, nested arrays`, () => {
+    @customElement({ name: 'foo', templateOrNode: '<template><div repeat.for="innerTodos of todos"><div repeat.for="item of innerTodos">${item}</div></div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+    class Foo { @bindable todos: any[] }
+    const { au, host, cs, component } = setupAndMutate(`<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, c => {
+      c.todos = [['a', 'b', 'c'], ['a', 'b', 'c'], ['a', 'b', 'c']]
+    }, Foo);
+    component.count = 3;
+    cs.flushChanges();
+    expect(host.textContent).to.equal('abcabcabcabcabcabcabcabcabc');
+
+    component.count = 1;
+    cs.flushChanges();
+    expect(host.textContent).to.equal('abcabcabc');
+
+    component.count = 3;
+    cs.flushChanges();
+    expect(host.textContent).to.equal('abcabcabcabcabcabcabcabcabc');
+
+    tearDown(au, cs, host);
+  });
 
   it(`nested repeater - array`, () => {
     const { au, host, cs, component } = setup(`<template><div repeat.for="item of items"><div repeat.for="child of item">\${child}</div></div></template>`);

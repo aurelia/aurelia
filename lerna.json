@@ -8,7 +8,8 @@
     "packages/plugin-requirejs",
     "packages/plugin-svg",
     "packages/router",
-    "packages/runtime"
+    "packages/runtime",
+    "packages/validation"
   ],
   "version": "0.2.0"
 }

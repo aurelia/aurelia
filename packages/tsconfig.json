@@ -3,6 +3,7 @@
   "references": [
     { "path": "kernel" },
     { "path": "runtime" },
+    { "path": "validation" },
     { "path": "router" },
     { "path": "jit" },
     { "path": "debug" },

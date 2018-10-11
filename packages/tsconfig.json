@@ -8,7 +8,9 @@
     { "path": "jit" },
     { "path": "debug" },
     { "path": "aot" },
+    { "path": "plugin-parcel" },
     { "path": "plugin-requirejs" },
+    { "path": "plugin-webpack" },
     { "path": "plugin-svg" }
   ]
 }

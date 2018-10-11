@@ -1,3 +1,9 @@
+<p>
+  <a href="https://aurelia.io/" target="_blank">
+    <img alt="Aurelia" src="docs/images/Aurelia_Logo_Color_RGB.svg">
+  </a>
+</p>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://badge.fury.io/js/%40aurelia%2Fkernel.svg)](https://badge.fury.io/js/%40aurelia%2Fkernel)
 [![CircleCI](https://circleci.com/gh/aurelia/aurelia.svg?style=shield)](https://circleci.com/gh/aurelia/aurelia)

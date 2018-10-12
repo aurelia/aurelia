@@ -54,9 +54,12 @@ export class View implements IView {
     }
     this.location = location;
 
-    if (this.$nodes.lastChild && this.$nodes.lastChild.nextSibling !== location) {
-      this.requiresNodeAdd = true;
-    }
+    // Note: this comment is just a temporary measure while we get some complex integration tests to work first.
+    // Just to reduce the amount of potential things to track down and check if something fails.
+    // When everything is working and tested, we can add this optimization (and others) back in.
+    //if (this.$nodes.lastChild && this.$nodes.lastChild.nextSibling !== location) {
+    this.requiresNodeAdd = true;
+    //}
   }
 
   public lockScope(scope: IScope): void {

@@ -494,7 +494,10 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     if (this.allowNodeRemoves) {
       this.removeNodesTail.$nextRemoveNodes = requestor;
       this.removeNodesTail = requestor;
-      this.allowNodeRemoves = false; // only remove roots
+      // Note: this comment is just a temporary measure while we get some complex integration tests to work first.
+      // Just to reduce the amount of potential things to track down and check if something fails.
+      // When everything is working and tested, we can add this optimization (and others) back in.
+      //this.allowNodeRemoves = false; // only remove roots
     }
   }
 

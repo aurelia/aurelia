@@ -272,7 +272,8 @@ describe(`View`, () => {
 
             expect(sut['location']).to.equal(location);
             if (sut.$nodes === NodeSequence.empty) {
-              expect(sut['requiresNodeAdd']).to.be.false;
+              // TODO uncomment this again if the currently commented logic in the view related to this is also uncommented
+              //expect(sut['requiresNodeAdd']).to.be.false;
             } else {
               expect(sut['requiresNodeAdd']).to.be.true;
             }

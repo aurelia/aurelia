@@ -55,3 +55,18 @@ At the final job of the `prepare_release` workflow there is an approval step. Th
 - Hit the approve button
 
 And voila!
+
+## Error recovery
+
+Should something go wrong in the release process itself and it needs to rerun from scratch, the best way to go about this is deleting the tag and pushing it again. There is no need to rerun prepare-release.
+
+After applying the needed fixes and pushing/merging those to master, assuming you are checked out on the latest master branch locally (or simply on the commit that contains the fixes):
+
+- Delete the tag locally
+
+```shell
+git tag --delete v0.1.0
+git push --delete origin v0.1.0
+```
+
+- Proceed from step 2.

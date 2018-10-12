@@ -64,6 +64,6 @@ export default {
     'path': join(rootPath, 'package.json')
   },
   'lerna.json': {
-    'path': join(rootPath, 'package.json')
+    'path': join(rootPath, 'lerna.json')
   }
 }

@@ -1,6 +1,7 @@
 import project from './project';
 import { loadPackageJson, savePackageJson, loadPackageLockJson, savePackageLockJson } from './package.json';
 import { createLogger, c } from './logger';
+import { readFileSync, writeFileSync } from 'fs';
 
 const log = createLogger('bump-version');
 
@@ -36,6 +37,9 @@ export async function updateDependencyVersions(newVersion: string) {
     await savePackageJson(pkg, 'packages', name);
     await savePackageLockJson(pkgLock, 'packages', name);
   }
+  const lernaJson = JSON.parse(readFileSync(project["lerna.json"].path, { encoding: 'utf8' }));
+  lernaJson.version = newVersion;
+  writeFileSync(project["lerna.json"].path, JSON.stringify(lernaJson, null, 2), { encoding: 'utf8' });
 }
 
 export function getDate(sep?: string): string {

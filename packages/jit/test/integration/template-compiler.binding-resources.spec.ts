@@ -1,9 +1,14 @@
-import { setupAndStart, tearDown } from './prepare';
+import { setupAndStart, tearDown, cleanup } from './prepare';
 import { expect } from 'chai';
 
-describe('TemplateCompiler - Binding Resources integration', () => {
-  it(`debounceBindingBehavior - input.value`, done => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.to-view="message & debounce:50"></template>`);
+// TemplateCompiler - Binding Resources integration
+describe.only('template-compiler.binding-resources', () => {
+  beforeEach(cleanup);
+  afterEach(cleanup);
+
+  // debounceBindingBehavior - input.value
+  it('01.', done => {
+    const { au, host, cs, component } = setupAndStart(`<template><input value.to-view="message & debounce:50"></template>`, null);
     expect(host.firstChild['value']).to.equal('');
     component.message = 'hello!';
     setTimeout(() => {

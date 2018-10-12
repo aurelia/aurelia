@@ -2,7 +2,19 @@
 import { BasicConfiguration } from "../../src";
 import { expect } from "chai";
 import { valueConverter, customElement, bindable, CustomElementResource, IChangeSet, IObserverLocator, Aurelia } from "@aurelia/runtime";
-import { IContainer, DI } from "@aurelia/kernel";
+import { IContainer, DI, Constructable } from "@aurelia/kernel";
+
+export function cleanup(): void {
+  const body = document.body;
+  let current = body.firstElementChild;
+  while (current !== null) {
+    const next = current.nextElementSibling;
+    if (current.tagName === 'APP') {
+      body.removeChild(current);
+    }
+    current = next;
+  }
+}
 
 @valueConverter('sort')
 export class SortValueConverter {
@@ -56,7 +68,7 @@ export const TestConfiguration = {
   }
 }
 
-export function createCustomElement(markup: string | Element, ...dependencies: Function[]): { [key: string]: any } {
+export function createCustomElement(markup: string | Element, $class: Constructable | null, ...dependencies: Function[]): { [key: string]: any } {
   return new (CustomElementResource.define({
     name: 'app',
     dependencies: [...dependencies],
@@ -64,7 +76,7 @@ export function createCustomElement(markup: string | Element, ...dependencies: F
     build: { required: true, compiler: 'default' },
     instructions: [],
     surrogates: []
-  }, class App { }))();
+  }, $class === null ? class App { } : $class))();
 }
 
 export function stringify(o) {
@@ -89,7 +101,7 @@ export function stringify(o) {
   return result;
 }
 
-export function setupAndStart(template: string, ...registrations: any[]) {
+export function setupAndStart(template: string, $class: Constructable | null, ...registrations: any[]) {
   const container = DI.createContainer();
   container.register(...registrations);
   const cs = container.get<IChangeSet>(IChangeSet);
@@ -98,12 +110,12 @@ export function setupAndStart(template: string, ...registrations: any[]) {
   const host = document.createElement('app');
   document.body.appendChild(host);
   const au = new Aurelia(container);
-  const component = createCustomElement(template);
+  const component = createCustomElement(template, $class);
   au.app({ host, component }).start();
   return { container, cs, host, au, component, observerLocator };
 }
 
-export function setup(template: string, ...registrations: any[]) {
+export function setup(template: string, $class: Constructable | null, ...registrations: any[]) {
   const container = DI.createContainer();
   container.register(...registrations);
   const cs = container.get<IChangeSet>(IChangeSet);
@@ -112,7 +124,7 @@ export function setup(template: string, ...registrations: any[]) {
   const host = document.createElement('app');
   document.body.appendChild(host);
   const au = new Aurelia(container);
-  const component = createCustomElement(template);
+  const component = createCustomElement(template, $class);
   return { container, cs, host, au, component, observerLocator };
 }
 

@@ -1,74 +1,87 @@
 import { expect } from "chai";
-import { tearDown, setupAndStart } from "./prepare";
+import { tearDown, setupAndStart, cleanup } from "./prepare";
 import { spy } from "sinon";
 
-describe('TemplateCompiler - Binding Commands integration', () => {
-  it(`textBinding - interpolation`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template>\${message}</template>`);
+// TemplateCompiler - Binding Commands integration
+describe.only('template-compiler.binding-commands', () => {
+  beforeEach(cleanup);
+  afterEach(cleanup);
+
+  // textBinding - interpolation
+  it('01.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template>\${message}</template>`, null);
     component.message = 'hello!';
     cs.flushChanges();
     expect(host.innerText).to.equal('hello!');
     tearDown(au, cs, host);
   });
 
-  it(`textBinding - interpolation with template`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template>\${\`\${message}\`}</template>`);
+  // textBinding - interpolation with template
+  it('02.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template>\${\`\${message}\`}</template>`, null);
     component.message = 'hello!';
     cs.flushChanges();
     expect(host.innerText).to.equal('hello!');
     tearDown(au, cs, host);
   });
 
-  it(`styleBinding - bind`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><div style.bind="foo"></div></template>`);
+  // styleBinding - bind
+  it('03.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><div style.bind="foo"></div></template>`, null);
     component.foo = 'color: green;';
     cs.flushChanges();
     expect((<HTMLElement>host.firstElementChild).style.cssText).to.equal('color: green;');
     tearDown(au, cs, host);
   });
 
-  it(`styleBinding - interpolation`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><div style="\${foo}"></div></template>`);
+  // styleBinding - interpolation
+  it('04.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><div style="\${foo}"></div></template>`, null);
     component.foo = 'color: green;';
     cs.flushChanges();
     expect((<HTMLElement>host.firstElementChild).style.cssText).to.equal('color: green;');
     tearDown(au, cs, host);
   });
 
-  it(`classBinding - bind`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><div class.bind="foo"></div></template>`);
+  // classBinding - bind
+  it('05.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><div class.bind="foo"></div></template>`, null);
     component.foo = 'foo bar';
     cs.flushChanges();
     expect((<HTMLElement>host.firstElementChild).classList.toString()).to.equal('au foo bar');
     tearDown(au, cs, host);
   });
 
-  it(`classBinding - interpolation`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><div class="\${foo}"></div></template>`);
+  // classBinding - interpolation
+  it('06.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><div class="\${foo}"></div></template>`, null);
     component.foo = 'foo bar';
     cs.flushChanges();
     expect((<HTMLElement>host.firstElementChild).classList.toString()).to.equal('\${foo} au foo bar'); // TODO: fix this
     tearDown(au, cs, host);
   });
 
-  it(`oneTimeBinding - input.value`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.one-time="message"></template>`);
+  // oneTimeBinding - input.value
+  it('07.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input value.one-time="message"></template>`, null);
     component.message = 'hello!';
     cs.flushChanges();
     expect(host.firstChild['value']).to.equal('');
     tearDown(au, cs, host);
   });
 
-  it(`toViewBinding - input.value`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.to-view="message"></template>`);
+  // toViewBinding - input.value
+  it('08.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input value.to-view="message"></template>`, null);
     component.message = 'hello!';
     cs.flushChanges();
     expect(host.firstChild['value']).to.equal('hello!');
     tearDown(au, cs, host);
   });
 
-  it(`fromViewBinding - input.value`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.from-view="message"></template>`);
+  // fromViewBinding - input.value
+  it('09.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input value.from-view="message"></template>`, null);
     component.message = 'hello!';
     cs.flushChanges();
     expect(host.firstChild['value']).to.equal('');
@@ -78,8 +91,9 @@ describe('TemplateCompiler - Binding Commands integration', () => {
     tearDown(au, cs, host);
   });
 
-  it(`twoWayBinding - input.value`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.two-way="message"></template>`);
+  // twoWayBinding - input.value
+  it('10.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input value.two-way="message"></template>`, null);
     host.firstChild['value'] = 'hello!';
     expect(component.message).to.be.undefined;
     host.firstChild.dispatchEvent(new CustomEvent('change'));
@@ -87,8 +101,9 @@ describe('TemplateCompiler - Binding Commands integration', () => {
     tearDown(au, cs, host);
   });
 
-  it(`twoWayBinding - input.value - jsonValueConverter`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.two-way="message | json"></template>`);
+  // twoWayBinding - input.value - jsonValueConverter
+  it('11.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input value.two-way="message | json"></template>`, null);
     expect(component.message).to.be.undefined;
     host.firstChild['value'] = '{"foo":"bar"}';
     expect(component.message).to.be.undefined;
@@ -101,16 +116,18 @@ describe('TemplateCompiler - Binding Commands integration', () => {
     tearDown(au, cs, host);
   });
 
-  it(`oneTimeBindingBehavior - input.value`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.to-view="message & oneTime"></template>`);
+  // oneTimeBindingBehavior - input.value
+  it('12.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input value.to-view="message & oneTime"></template>`, null);
     component.message = 'hello!';
     cs.flushChanges();
     expect(host.firstChild['value']).to.equal('');
     tearDown(au, cs, host);
   });
 
-  it(`toViewBindingBehavior - input.value`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.one-time="message & toView"></template>`);
+  // toViewBindingBehavior - input.value
+  it('13.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input value.one-time="message & toView"></template>`, null);
     component.message = 'hello!';
     cs.flushChanges();
     expect(host.firstChild['value']).to.equal('hello!');
@@ -118,8 +135,9 @@ describe('TemplateCompiler - Binding Commands integration', () => {
   });
 
 
-  it(`fromViewBindingBehavior - input.value`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.one-time="message & fromView"></template>`);
+  // fromViewBindingBehavior - input.value
+  it('14.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input value.one-time="message & fromView"></template>`, null);
     component.message = 'hello!';
     cs.flushChanges();
     expect(host.firstChild['value']).to.equal('');
@@ -129,8 +147,9 @@ describe('TemplateCompiler - Binding Commands integration', () => {
     tearDown(au, cs, host);
   });
 
-  it(`twoWayBindingBehavior - input.value`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input value.one-time="message & twoWay"></template>`);
+  // twoWayBindingBehavior - input.value
+  it('15.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input value.one-time="message & twoWay"></template>`, null);
     expect(component.message).to.be.undefined;
     host.firstChild['value'] = 'hello!';
     expect(component.message).to.be.undefined;
@@ -139,8 +158,9 @@ describe('TemplateCompiler - Binding Commands integration', () => {
     tearDown(au, cs, host);
   });
 
-  it(`toViewBinding - input checkbox`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input checked.to-view="checked" type="checkbox"></template>`);
+  // toViewBinding - input checkbox
+  it('16.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input checked.to-view="checked" type="checkbox"></template>`, null);
     expect(host.firstChild['checked']).to.be.false;
     component.checked = true;
     expect(host.firstChild['checked']).to.be.false;
@@ -149,8 +169,9 @@ describe('TemplateCompiler - Binding Commands integration', () => {
     tearDown(au, cs, host);
   });
 
-  it(`twoWayBinding - input checkbox`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><input checked.two-way="checked" type="checkbox"></template>`);
+  // twoWayBinding - input checkbox
+  it('17.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><input checked.two-way="checked" type="checkbox"></template>`, null);
     expect(component.checked).to.be.undefined;
     host.firstChild['checked'] = true;
     expect(component.checked).to.be.undefined;
@@ -159,24 +180,27 @@ describe('TemplateCompiler - Binding Commands integration', () => {
     tearDown(au, cs, host);
   });
 
-  it(`trigger - button`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><button click.trigger="doStuff()"></button></template>`);
+  // trigger - button
+  it('18.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><button click.trigger="doStuff()"></button></template>`, null);
     component.doStuff = spy();
     host.firstChild.dispatchEvent(new CustomEvent('click'));
     expect(component.doStuff).to.have.been.called;
     tearDown(au, cs, host);
   });
 
-  it(`delegate - button`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><button click.delegate="doStuff()"></button></template>`);
+  // delegate - button
+  it('19.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><button click.delegate="doStuff()"></button></template>`, null);
     component.doStuff = spy();
     host.firstChild.dispatchEvent(new CustomEvent('click', { bubbles: true }));
     expect(component.doStuff).to.have.been.called;
     tearDown(au, cs, host);
   });
 
-  it(`capture - button`, () => {
-    const { au, host, cs, component } = setupAndStart(`<template><button click.capture="doStuff()"></button></template>`);
+  // capture - button
+  it('20.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><button click.capture="doStuff()"></button></template>`, null);
     component.doStuff = spy()
     host.firstChild.dispatchEvent(new CustomEvent('click', { bubbles: true }));
     expect(component.doStuff).to.have.been.called;

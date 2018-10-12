@@ -1,47 +1,46 @@
 import { expect } from "chai";
-import { tearDown, createCustomElement, setupAndStart, TestConfiguration } from "./prepare";
+import { tearDown, createCustomElement, setupAndStart, TestConfiguration, cleanup } from "./prepare";
 import { customElement, bindable, IChangeSet, Aurelia, Binding, SetterObserver, PropertyAccessor, ElementPropertyAccessor, Observer } from "@aurelia/runtime";
 import { DI } from "@aurelia/kernel";
 import { BasicConfiguration } from "../../src";
 import { h } from "./util";
 import { InterpolationBinding } from "../../../runtime/src/binding/interpolation-binding";
 
+// TemplateCompiler - custom element integration
+describe.only('template-compiler.custom-elements', () => {
+  beforeEach(cleanup);
+  afterEach(cleanup);
 
-describe('TemplateCompiler - custom element integration', () => {
-
-  it(`custom elements`, () => {
-    const { au, host, cs, component } = setupAndStart(
-      `<template><name-tag name="bigopon"></name-tag></template>`,
-    );
+  // custom elements
+  it('01.', () => {
+    const { au, host, cs, component } = setupAndStart(`<template><name-tag name="bigopon"></name-tag></template>`, null);
     cs.flushChanges();
     expect(host.textContent).to.equal('bigopon');
     tearDown(au, cs, host);
   });
 
-  describe('[as-element]', () => {
+  //[as-element]
+  describe('02.', () => {
 
-    it('works with custom element with [as-element]', () => {
-      const { au, host, cs, component } = setupAndStart(
-        `<template><div as-element="name-tag" name="bigopon"></div></template>`,
-      );
+    //works with custom element with [as-element]
+    it('01.', () => {
+      const { au, host, cs, component } = setupAndStart(`<template><div as-element="name-tag" name="bigopon"></div></template>`, null);
       cs.flushChanges();
       expect(host.textContent).to.equal('bigopon');
       tearDown(au, cs, host);
     });
 
-    it('ignores tag name', () => {
-      const { au, host, cs, component } = setupAndStart(
-        `<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`,
-      );
+    //ignores tag name
+    it('02.', () => {
+      const { au, host, cs, component } = setupAndStart(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, null);
       expect(host.textContent).to.equal('Fred');
       tearDown(au, cs, host);
     });
   });
 
-  it('<let/>', () => {
-    const { au, host, cs, component } = setupAndStart(
-      '<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>',
-    );
+  //<let/>
+  it('03.', () => {
+    const { au, host, cs, component } = setupAndStart('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
     expect(host.textContent).to.equal(' ');
     component.firstName = 'bi';
     component.lastName = 'go';
@@ -51,10 +50,9 @@ describe('TemplateCompiler - custom element integration', () => {
     tearDown(au, cs, host);
   });
 
-  it('<let [to-view-model] />', () => {
-    const { au, host, cs, component } = setupAndStart(
-      '<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>',
-    );
+  //<let [to-view-model] />
+  it('04.', () => {
+    const { au, host, cs, component } = setupAndStart('<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
     component.firstName = 'bi';
     expect(component.fullName).to.equal('bi undefined');
     component.lastName = 'go';
@@ -64,7 +62,8 @@ describe('TemplateCompiler - custom element integration', () => {
     tearDown(au, cs, host);
   });
 
-  it('initial values propagate through multiple nested custom elements connected via bindables', () => {
+  //initial values propagate through multiple nested custom elements connected via bindables
+  it('05.', () => {
     const build = { required: true, compiler: 'default' };
     let boundCalls = 0;
 
@@ -163,7 +162,7 @@ describe('TemplateCompiler - custom element integration', () => {
     const host = document.createElement('app');
     document.body.appendChild(host);
     const au = new Aurelia(container);
-    const component = createCustomElement('<template><foo1 value.bind="value"></foo1>\${value}</template>');
+    const component = createCustomElement('<template><foo1 value.bind="value"></foo1>\${value}</template>', null);
     component.value = 'w00t';
     au.app({ host, component }).start();
 

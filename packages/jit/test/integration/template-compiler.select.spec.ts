@@ -1,15 +1,21 @@
 import { Primitive } from "@aurelia/kernel";
 import { SelectValueObserver } from "@aurelia/runtime";
-import { tearDown } from "./prepare";
+import { tearDown, cleanup } from "./prepare";
 import { expect } from "chai";
 import { h } from "./util";
-import {  setupAndStart } from "./prepare";
+import { setupAndStart, setup } from "./prepare";
 
-describe('TemplateCompiler - <select/> Integration', () => {
-  describe('<select/> - single', () => {
+// TemplateCompiler - <select/> Integration
+describe.only('template-compiler.select', () => {
+  beforeEach(cleanup);
+  afterEach(cleanup);
 
-    it(`works with multiple toView bindings`, () => {
-      const { au, host, cs, observerLocator } = setupAndStart(
+  //<select/> - single
+  describe('01.', () => {
+
+    //works with multiple toView bindings
+    it('01.', () => {
+      const { au, host, cs, observerLocator, component } = setupAndStart(
         `<template>
           <select id="select1" value.to-view="selectedValue">
             <option>1</option>
@@ -28,9 +34,9 @@ describe('TemplateCompiler - <select/> Integration', () => {
           selectedValue: string = '2';
         }
       );
-      const select1 = document.querySelector('#select1') as HTMLSelectElement;
-      const select2 = document.querySelector('#select2') as HTMLSelectElement;
-      const select3 = document.querySelector('#select3') as HTMLSelectElement;
+      const select1 = host.querySelector('#select1') as HTMLSelectElement;
+      const select2 = host.querySelector('#select2') as HTMLSelectElement;
+      const select3 = host.querySelector('#select3') as HTMLSelectElement;
       // Inititally, <select/>s are not affected by view model values
       expect(select1.value).to.equal('1');
       expect(select2.value).to.equal('1');
@@ -44,11 +50,20 @@ describe('TemplateCompiler - <select/> Integration', () => {
       expect(select3.value).to.equal('3');
       const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
       expect(observer3.currentValue).to.equal('2');
+
+      // expect no state changes after flushing
+      cs.flushChanges();
+      expect(select1.value).to.equal('2');
+      expect(select2.value).to.equal('2');
+      expect(select3.value).to.equal('3');
+      expect(observer3.currentValue).to.equal('2');
+
       tearDown(au, cs, host);
     });
 
-    it(`works with mixed of multiple binding: twoWay + toView`, () => {
-      const { cs, component, observerLocator } = setupAndStart(
+    //works with mixed of multiple binding: twoWay + toView
+    it('02.', () => {
+      const { au, host, cs, observerLocator, component } = setupAndStart(
         `<template>
           <select id="select1" value.to-view="selectedValue">
             <option>1</option>
@@ -67,9 +82,9 @@ describe('TemplateCompiler - <select/> Integration', () => {
           selectedValue: string = '2';
         }
       );
-      const select1 = document.querySelector('#select1') as HTMLSelectElement;
-      const select2 = document.querySelector('#select2') as HTMLSelectElement;
-      const select3 = document.querySelector('#select3') as HTMLSelectElement;
+      const select1 = host.querySelector('#select1') as HTMLSelectElement;
+      const select2 = host.querySelector('#select2') as HTMLSelectElement;
+      const select3 = host.querySelector('#select3') as HTMLSelectElement;
       expect(component.selectedValue).to.equal('2');
       // Inititally, <select/>s are not affected by view model values
       expect(select1.value).to.equal('1');
@@ -91,13 +106,23 @@ describe('TemplateCompiler - <select/> Integration', () => {
       expect(observer1.currentValue).to.equal('1');
       // verify observer 3 will take the view model value from changes, regardless valid value from view model
       expect(observer3.currentValue).to.equal('1');
+
+      // expect no state changes after flushing
+      cs.flushChanges();
+      expect(component.selectedValue).to.equal('1');
+      expect(observer1.currentValue).to.equal('1');
+      expect(observer3.currentValue).to.equal('1');
+
+      tearDown(au, cs, host);
     });
   });
 
-  describe('<select/> - multiple', () => {
+  //<select/> - multiple
+  describe('02.', () => {
 
-    it(`works with multiple toView bindings without pre-selection`, () => {
-      const { cs, component, observerLocator } = setupAndStart(
+    //works with multiple toView bindings without pre-selection
+    it('01.', () => {
+      const { au, host, cs, observerLocator, component } = setupAndStart(
         `<template>
           <select id="select1" multiple value.to-view="selectedValues">
             <option id="o11">1</option>
@@ -120,12 +145,12 @@ describe('TemplateCompiler - <select/> Integration', () => {
           </select>
         </template>`,
         class App {
-          selectedValues: Primitive[] = ['1', 2, '2', 3, '3'];
+          selectedValues: Primitive[] = ['1', 2, '2', 3, '3']
         }
       );
-      const select1 = document.querySelector('#select1') as HTMLSelectElement;
-      const select2 = document.querySelector('#select2') as HTMLSelectElement;
-      const select3 = document.querySelector('#select3') as HTMLSelectElement;
+      const select1 = host.querySelector('#select1') as HTMLSelectElement;
+      const select2 = host.querySelector('#select2') as HTMLSelectElement;
+      const select3 = host.querySelector('#select3') as HTMLSelectElement;
       const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
       const observer2 = observerLocator.getObserver(select2, 'value') as SelectValueObserver;
       const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
@@ -133,7 +158,7 @@ describe('TemplateCompiler - <select/> Integration', () => {
       expect(observer2.currentValue).to.equal(component.selectedValues);
       expect(observer3.currentValue).to.equal(component.selectedValues);
       cs.flushChanges();
-      const options = document.querySelectorAll('option');
+      const options = host.querySelectorAll('option');
       options.forEach(option => {
         expect(option.selected).to.be[component.selectedValues.includes(option.value) ? 'true' : 'false'];
       });
@@ -142,10 +167,19 @@ describe('TemplateCompiler - <select/> Integration', () => {
       options.forEach(option => {
         expect(option.selected).to.be.false;
       });
+
+      // expect no state changes after flushing
+      cs.flushChanges();
+      options.forEach(option => {
+        expect(option.selected).to.be.false;
+      });
+
+      tearDown(au, cs, host);
     });
 
-    it(`works with mixed of two-way + to-view bindings with pre-selection`, () => {
-      const { cs, component, observerLocator } = setupAndStart(
+    //works with mixed of two-way + to-view bindings with pre-selection
+    it('02.', () => {
+      const { au, host, cs, observerLocator, component } = setupAndStart(
         `<template>
           <select id="select1" multiple value.to-view="selectedValues">
             <option id="o11">1</option>
@@ -168,12 +202,12 @@ describe('TemplateCompiler - <select/> Integration', () => {
           </select>
         </template>`,
         class App {
-          selectedValues: Primitive[] = [];
+          selectedValues: Primitive[] = []
         }
       );
-      const select1 = document.querySelector('#select1') as HTMLSelectElement;
-      const select2 = document.querySelector('#select2') as HTMLSelectElement;
-      const select3 = document.querySelector('#select3') as HTMLSelectElement;
+      const select1 = host.querySelector('#select1') as HTMLSelectElement;
+      const select2 = host.querySelector('#select2') as HTMLSelectElement;
+      const select3 = host.querySelector('#select3') as HTMLSelectElement;
       const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
       const observer2 = observerLocator.getObserver(select2, 'value') as SelectValueObserver;
       const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
@@ -181,7 +215,7 @@ describe('TemplateCompiler - <select/> Integration', () => {
       expect(observer2.currentValue).to.equal(component.selectedValues);
       expect(observer3.currentValue).to.equal(component.selectedValues);
       cs.flushChanges();
-      const options = document.querySelectorAll('option');
+      const options = host.querySelectorAll('option');
       options.forEach(option => {
         expect(option.selected).to.be[component.selectedValues.includes(option.value) ? 'true' : 'false'];
       });
@@ -199,17 +233,27 @@ describe('TemplateCompiler - <select/> Integration', () => {
       [].forEach.call(select2.options, (option: HTMLOptionElement) => {
         option.selected = true;
       });
+
+      // expect no state changes after flushing
+      cs.flushChanges();
+      expect(component.selectedValues.toString()).to.equal(['8', '9', '10', '11', '12'].toString());
+      [].forEach.call(select2.options, (option: HTMLOptionElement) => {
+        option.selected = true;
+      });
+
+      tearDown(au, cs, host);
     });
   });
 
-  it(`toViewBinding - select single`, () => {
+  //toViewBinding - select single
+  it('03.', () => {
     const { au, host, cs, component } = setupAndStart(
       <any>template(null,
         select(
           { 'value.to-view': 'selectedValue' },
           ...[1,2].map(v => option({ value: v }))
         )
-      )
+      ), null
     );
    expect(host.firstElementChild['value']).to.equal('1');
     component.selectedValue = '2';
@@ -220,7 +264,8 @@ describe('TemplateCompiler - <select/> Integration', () => {
     tearDown(au, cs, host);
   });
 
-  it(`twoWayBinding - select single`, () => {
+  //twoWayBinding - select single
+  it('04.', () => {
     const { au, host, cs, component } = setupAndStart(
       <any>h('template',
         null,
@@ -228,7 +273,7 @@ describe('TemplateCompiler - <select/> Integration', () => {
           { 'value.two-way': 'selectedValue' },
           ...[1,2].map(v => h('option', { value: v }))
         )
-      )
+      ), null
     );
     expect(component.selectedValue).to.be.undefined;
     host.firstChild.childNodes.item(1)['selected'] = true;

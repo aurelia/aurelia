@@ -3,11 +3,15 @@
   "references": [
     { "path": "kernel" },
     { "path": "runtime" },
+    { "path": "validation" },
     { "path": "router" },
     { "path": "jit" },
     { "path": "debug" },
+    { "path": "testing" },
     { "path": "aot" },
+    { "path": "plugin-parcel" },
     { "path": "plugin-requirejs" },
+    { "path": "plugin-webpack" },
     { "path": "plugin-svg" }
   ]
 }

@@ -5,10 +5,14 @@
     "packages/debug",
     "packages/jit",
     "packages/kernel",
+    "packages/plugin-parcel",
     "packages/plugin-requirejs",
     "packages/plugin-svg",
+    "packages/plugin-webpack",
     "packages/router",
-    "packages/runtime"
+    "packages/runtime",
+    "packages/testing",
+    "packages/validation"
   ],
   "version": "0.2.0"
 }

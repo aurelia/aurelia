@@ -31,7 +31,9 @@ export class TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
 
   public populate: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => void;
 
-  constructor(public readonly slot: TestDataSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) {
+  constructor(
+    public readonly name: string,
+    public readonly slot: TestDataSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) {
     this.next = null;
     this.prev = null;
 
@@ -59,7 +61,7 @@ export class TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
   }
 
   public clone(slot: this['slot']): this {
-    const clone = new TestData(slot) as this;
+    const clone = new TestData(this.name, slot) as this;
     clone.populate = this.populate;
 
     return clone;
@@ -83,9 +85,23 @@ export class TestDataSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     this.current = null;
   }
 
-  public addData(data?: this['current']): Pick<TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>, 'setValue' | 'setFactory'> {
-    if (data === undefined) {
-      data = new TestData(this);
+  /**
+   * Adds a data point to the slot.
+   * @param name The friendly name of the data point. Its only purpose is to provide a more declarative way to build up a title for a fixture.
+   * @param data Optional. The existing data point to add. If omitted, one will be created.
+   */
+  public addData(name: string, data?: this['current']): Pick<TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>, 'setValue' | 'setFactory'>;
+
+  /**
+   * Adds a data point to the slot.
+   * @param data The existing data point to add.
+   */
+  public addData(data: this['current']): Pick<TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>, 'setValue' | 'setFactory'>;
+  public addData(nameOrData: this['current'] | string, data?: this['current']): Pick<TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>, 'setValue' | 'setFactory'> {
+    if (nameOrData instanceof TestData) {
+      data = nameOrData;
+    } else if (data === undefined) {
+      data = new TestData(nameOrData, this);
     }
     if (this.tail !== null) {
       data.prev = this.tail;
@@ -224,7 +240,8 @@ function runFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B,C,D,
   }).bind(undefined);
 }
 
-const defaultCreateTitle = (function(ctx: any) { return `fixture #${ctx.id}` }).bind(undefined);
+const defaultCreateTitle = (function(ctx: any) { return ctx.suite.name }).bind(undefined);
+const defaultAppendToTitle = (function(data: any) { return `.${data.name}` }).bind(undefined);
 export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O=a> {
   public asHead: TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>;
   public asTail: this['asHead'];
@@ -238,6 +255,7 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
   public tail: this['head'];
 
   private createTitle: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => string;
+  private appendToTitle: (data: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => string;
   private currentId: number;
 
   constructor(public readonly name: string) {
@@ -253,6 +271,7 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
     this.tail = null;
 
     this.createTitle = defaultCreateTitle;
+    this.appendToTitle = defaultAppendToTitle;
     this.currentId = 0;
   }
 
@@ -308,10 +327,18 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
   /**
    * Assign a function to generate a title which is passed to mocha's "it()" call.
    *
-   * Defaults to `fixture #${ctx.id}`
+   * @param createTitle Defaults to `ctx => ctx.suite.name`. If null is provided, the default is kept.
+   * @param appendToTitle Defaults to `data => '.${data.name}'`. If null is provided, the default is kept.
    */
-  public withTitle(createTitle: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => string): this {
-    this.createTitle = createTitle;
+  public withTitle(
+    createTitle: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => string,
+    appendToTitle: (data: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => string): this {
+    if (createTitle !== null) {
+      this.createTitle = createTitle;
+    }
+    if (appendToTitle !== null) {
+      this.appendToTitle = appendToTitle;
+    }
     return this;
   }
 
@@ -379,11 +406,13 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
   private createContext(id: number): TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     const ctx = new TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(this, id);
     let data = this.dsHead;
+    let dataNames = '';
     while (data !== null) {
       data.current.populate(ctx);
+      dataNames += this.appendToTitle(data.current);
       data = data.next;
     }
-    ctx.title = this.createTitle(ctx);
+    ctx.title = this.createTitle(ctx) + dataNames;
     return ctx;
   }
 

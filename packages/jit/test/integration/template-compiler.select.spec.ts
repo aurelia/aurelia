@@ -6,7 +6,7 @@ import { h } from "./util";
 import { setupAndStart, setup } from "./prepare";
 
 // TemplateCompiler - <select/> Integration
-describe.only('template-compiler.select', () => {
+describe('template-compiler.select', () => {
   beforeEach(cleanup);
   afterEach(cleanup);
 

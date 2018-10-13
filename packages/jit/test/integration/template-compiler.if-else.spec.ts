@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { tearDown, setupAndStart, cleanup } from './prepare';
 
 // TemplateCompiler - if/else integration
-describe.only('template-compiler.if-else', () => {
+describe('template-compiler.if-else', () => {
   beforeEach(cleanup);
   afterEach(cleanup);
 

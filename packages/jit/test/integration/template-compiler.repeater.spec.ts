@@ -3,54 +3,57 @@ import { PLATFORM, IIndexable } from "@aurelia/kernel";
 import { expect } from "chai";
 import { tearDown, setupAndStart, setup, cleanup } from "./prepare";
 import { IChangeSet, customElement, bindable } from "@aurelia/runtime";
+import { TestSuite } from '../../../../scripts/test-suite';
 
 // TemplateCompiler - repeater / template controller integration
-describe.only('template-compiler.repeater', () => {
+describe('template-compiler.repeater', () => {
   beforeEach(cleanup);
   afterEach(cleanup);
 
-  // repeater + if/else
-  describe(`01.`, () => {
-    eachCartesianJoinFactory([
-      <(() => [string, string, string, string, (component: any) => void])[]>[
-        () => ['101', `[a,b,c]`,             `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}],
-        () => ['102', `[c,b,a]|sort`,        `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}],
-        () => ['103', `[1+1,2+1,3+1]`,       `\${item}`,               `234`,    PLATFORM.noop],
-        () => ['104', `[1,2,3]`,             `\${item}`,               `123`,    PLATFORM.noop],
-        () => ['105', `[3,2,1]|sort`,        `\${item}`,               `123`,    PLATFORM.noop],
-        () => ['106', `[{i:1},{i:2},{i:3}]`, `\${item.i}`,             `123`,    PLATFORM.noop],
-        () => ['107', `[[1],[2],[3]]`,       `\${item[0]}`,            `123`,    PLATFORM.noop],
-        () => ['108', `[[a],[b],[c]]`,       `\${item[0]}`,            `123`,    c => {c.a=1;c.b=2;c.c=3}],
-        () => ['109', `3`,                   `\${item}`,               `012`,    PLATFORM.noop],
-        () => ['110', `null`,                `\${item}`,               ``,       PLATFORM.noop],
-        () => ['111', `undefined`,           `\${item}`,               ``,       PLATFORM.noop],
-        () => ['112', `items`,               `\${item}`,               `123`,    c=>c.items=['1','2','3']],
-        () => ['113', `items|sort`,          `\${item}`,               `123`,    c=>c.items=['3','2','1']],
-        () => ['114', `items`,               `\${item.i}`,             `123`,    c=>c.items=[{i:1},{i:2},{i:3}]],
-        () => ['115', `items|sort:'i'`,      `\${item.i}`,             `123`,    c=>c.items=[{i:3},{i:2},{i:1}]],
-        () => ['116', `items`,               `\${item}`,               `123`,    c=>c.items=new Set(['1','2','3'])],
-        () => ['117', `items`,               `\${item[0]}\${item[1]}`, `1a2b3c`, c=>c.items=new Map([['1','a'],['2','b'],['3','c']])]
-      ],
-      <(($1: [string, string, string, string, (component: any) => void]) => [string, string])[]>[
-        ([caseId, iterable, itemTemplate, textContent, initialize]) => ['201', `<template><div repeat.for="item of ${iterable}">${itemTemplate}</div></template>`],
-        ([caseId, iterable, itemTemplate, textContent, initialize]) => ['202', `<template><div repeat.for="item of ${iterable}" if.bind="true">${itemTemplate}</div></template>`],
-        ([caseId, iterable, itemTemplate, textContent, initialize]) => ['203', `<template><div if.bind="true" repeat.for="item of ${iterable}">${itemTemplate}</div></template>`],
-        ([caseId, iterable, itemTemplate, textContent, initialize]) => ['204', `<template><div if.bind="false"></div><div else repeat.for="item of ${iterable}">${itemTemplate}</div></template>`],
-        ([caseId, iterable, itemTemplate, textContent, initialize]) => ['205', `<template><template repeat.for="item of ${iterable}">${itemTemplate}</template></template>`],
-        ([caseId, iterable, itemTemplate, textContent, initialize]) => ['206', `<template><template repeat.for="item of ${iterable}"><div if.bind="true">${itemTemplate}</div></template></template>`],
-        ([caseId, iterable, itemTemplate, textContent, initialize]) => ['207', `<template><template repeat.for="item of ${iterable}"><div if.bind="false"></div><div else>${itemTemplate}</div></template></template>`],
-      ]
-    ], ([caseId1, iterable, itemTemplate, textContent, initialize], [caseId2, markup]) => {
-      it(`${caseId1}.${caseId2}`, () => {
-        const { au, host, cs, component } = setupAndStart(markup, null);
-        initialize(component)
-        expect(host.textContent.trim()).to.equal('');
-        cs.flushChanges();
-        expect(host.textContent).to.equal(textContent);
-        tearDown(au, cs, host);
-      });
-    })
-  });
+const suite = new TestSuite<[string, string, string, string, (component: any) => void], [string, string]>(`01`);
+
+  suite.withTitle(c => `${c.suite.name}.${c.a[0]}.${c.b[0]}`);
+
+  suite.addDataSlot('a')
+    .addData().setValue(['101', `[a,b,c]`,             `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}])
+    .addData().setValue(['102', `[c,b,a]|sort`,        `\${item}`,               `123`,    c => {c.a=1;c.b=2;c.c=3}])
+    .addData().setValue(['103', `[1+1,2+1,3+1]`,       `\${item}`,               `234`,    PLATFORM.noop])
+    .addData().setValue(['104', `[1,2,3]`,             `\${item}`,               `123`,    PLATFORM.noop])
+    .addData().setValue(['105', `[3,2,1]|sort`,        `\${item}`,               `123`,    PLATFORM.noop])
+    .addData().setValue(['106', `[{i:1},{i:2},{i:3}]`, `\${item.i}`,             `123`,    PLATFORM.noop])
+    .addData().setValue(['107', `[[1],[2],[3]]`,       `\${item[0]}`,            `123`,    PLATFORM.noop])
+    .addData().setValue(['108', `[[a],[b],[c]]`,       `\${item[0]}`,            `123`,    c => {c.a=1;c.b=2;c.c=3}])
+    .addData().setValue(['109', `3`,                   `\${item}`,               `012`,    PLATFORM.noop])
+    .addData().setValue(['110', `null`,                `\${item}`,               ``,       PLATFORM.noop])
+    .addData().setValue(['111', `undefined`,           `\${item}`,               ``,       PLATFORM.noop])
+    .addData().setValue(['112', `items`,               `\${item}`,               `123`,    c=>c.items=['1','2','3']])
+    .addData().setValue(['113', `items|sort`,          `\${item}`,               `123`,    c=>c.items=['3','2','1']])
+    .addData().setValue(['114', `items`,               `\${item.i}`,             `123`,    c=>c.items=[{i:1},{i:2},{i:3}]])
+    .addData().setValue(['115', `items|sort:'i'`,      `\${item.i}`,             `123`,    c=>c.items=[{i:3},{i:2},{i:1}]])
+    .addData().setValue(['116', `items`,               `\${item}`,               `123`,    c=>c.items=new Set(['1','2','3'])])
+    .addData().setValue(['117', `items`,               `\${item[0]}\${item[1]}`, `1a2b3c`, c=>c.items=new Map([['1','a'],['2','b'],['3','c']])]);
+
+  suite.addDataSlot('b')
+    .addData().setFactory(({a: [a0, items, tpl]}) => ['201', `<template><div repeat.for="item of ${items}">${tpl}</div></template>`])
+    .addData().setFactory(({a: [a0, items, tpl]}) => ['202', `<template><div repeat.for="item of ${items}" if.bind="true">${tpl}</div></template>`])
+    .addData().setFactory(({a: [a0, items, tpl]}) => ['203', `<template><div if.bind="true" repeat.for="item of ${items}">${tpl}</div></template>`])
+    .addData().setFactory(({a: [a0, items, tpl]}) => ['204', `<template><div if.bind="false"></div><div else repeat.for="item of ${items}">${tpl}</div></template>`])
+    .addData().setFactory(({a: [a0, items, tpl]}) => ['205', `<template><template repeat.for="item of ${items}">${tpl}</template></template>`])
+    .addData().setFactory(({a: [a0, items, tpl]}) => ['206', `<template><template repeat.for="item of ${items}"><div if.bind="true">${tpl}</div></template></template>`])
+    .addData().setFactory(({a: [a0, items, tpl]}) => ['207', `<template><template repeat.for="item of ${items}"><div if.bind="false"></div><div else>${tpl}</div></template></template>`]);
+
+  suite.addActionSlot()
+    .addAction(({a: [a0, a1, a2, expected, initialize], b: [b0, markup]}) => {
+      const { au, host, cs, component } = setupAndStart(markup, null);
+      initialize(component)
+      expect(host.textContent.trim()).to.equal('');
+      cs.flushChanges();
+      expect(host.textContent).to.equal(expected);
+      tearDown(au, cs, host);
+    });
+
+  suite.load();
+  suite.run();
 
   // repeater + if + custom element
   describe(`02.`, () => {

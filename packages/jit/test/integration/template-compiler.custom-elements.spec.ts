@@ -7,7 +7,7 @@ import { h } from "./util";
 import { InterpolationBinding } from "../../../runtime/src/binding/interpolation-binding";
 
 // TemplateCompiler - custom element integration
-describe.only('template-compiler.custom-elements', () => {
+describe('template-compiler.custom-elements', () => {
   beforeEach(cleanup);
   afterEach(cleanup);
 

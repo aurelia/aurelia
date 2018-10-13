@@ -3,7 +3,7 @@ import { tearDown, setupAndStart, cleanup } from "./prepare";
 import { spy } from "sinon";
 
 // TemplateCompiler - Binding Commands integration
-describe.only('template-compiler.binding-commands', () => {
+describe('template-compiler.binding-commands', () => {
   beforeEach(cleanup);
   afterEach(cleanup);
 

@@ -114,8 +114,8 @@ export class TestDataSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
   }
 
 
-  public clone(prop?: Exclude<keyof TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>, 'id' | 'suite' | 'title'>): this {
-    const clone = new TestDataSlot(prop === undefined ? this.prop : prop) as this;
+  public clone(): this {
+    const clone = new TestDataSlot(this.prop) as this;
     let current = this.head;
     while (current !== null) {
       clone.addData(current.clone(clone));
@@ -131,13 +131,16 @@ export class TestAction<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
   public next: this;
   public prev: this;
 
-  constructor(public readonly execute: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => void) {
+  constructor(
+    public readonly name: string,
+    public readonly execute: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => void,
+    public readonly slot: TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) {
     this.next = null;
     this.prev = null;
   }
 
-  public clone(): TestAction<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
-    return new TestAction(this.execute);
+  public clone(slot: this['slot']): this {
+    return new TestAction(this.name, this.execute, slot) as this;
   }
 }
 
@@ -149,7 +152,7 @@ export class TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
   public tail: this['head'];
   public current: this['head'];
 
-  constructor() {
+  constructor(public readonly name: string) {
     this.next = null;
     this.prev = null;
 
@@ -158,24 +161,24 @@ export class TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     this.current = null;
   }
 
-  public addAction(execute: this['head']['execute']): this;
+  public addAction(name: string, execute: this['head']['execute']): this;
   public addAction(action: this['head']): this;
-  public addAction(actionOrExecute: this['head'] | this['head']['execute']): this {
-    if (!(actionOrExecute instanceof TestAction)) {
-      actionOrExecute = new TestAction(actionOrExecute);
+  public addAction(nameOrAction: this['head'] | string, execute?: this['head']['execute']): this {
+    if (!(nameOrAction instanceof TestAction)) {
+      nameOrAction = new TestAction(nameOrAction, execute, this);
     }
     if (this.tail !== null) {
-      actionOrExecute.prev = this.tail;
-      this.tail.next = actionOrExecute;
+      nameOrAction.prev = this.tail;
+      this.tail.next = nameOrAction;
     } else {
-      this.head = this.current = actionOrExecute;
+      this.head = this.current = nameOrAction;
     }
-    this.tail = actionOrExecute;
+    this.tail = nameOrAction;
     return this;
   }
 
   public clone(): this {
-    return new TestActionSlot() as this;
+    return new TestActionSlot(this.name) as this;
   }
 }
 
@@ -212,7 +215,7 @@ export class TestFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
     const clone = new TestFixture() as this;
     let current = this.head;
     while (current !== null) {
-      clone.addAction(current.clone());
+      clone.addAction(current.clone(current.slot));
       current = current.next;
     }
     return clone;
@@ -240,8 +243,9 @@ function runFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B,C,D,
   }).bind(undefined);
 }
 
-const defaultCreateTitle = (function(ctx: any) { return ctx.suite.name }).bind(undefined);
-const defaultAppendToTitle = (function(data: any) { return `.${data.name}` }).bind(undefined);
+const createTitle = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return ctx.suite.name };
+const appendDataName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(data: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return ` [${data.slot.prop} ${data.name}]` };
+const appendActionName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(action: TestAction<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return ` [${action.slot.name} ${action.name}]` };
 export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O=a> {
   public asHead: TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>;
   public asTail: this['asHead'];
@@ -254,8 +258,6 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
   public head: TestFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>;
   public tail: this['head'];
 
-  private createTitle: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => string;
-  private appendToTitle: (data: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => string;
   private currentId: number;
 
   constructor(public readonly name: string) {
@@ -270,8 +272,6 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
     this.head = null;
     this.tail = null;
 
-    this.createTitle = defaultCreateTitle;
-    this.appendToTitle = defaultAppendToTitle;
     this.currentId = 0;
   }
 
@@ -281,20 +281,31 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
    *
    * Action slots are run in the order that they are added.
    *
-   * @param slot Optional. The existing action slot to add. If omitted, a new one will be created.
+   * @param slot The existing action slot to add.
    */
-  public addActionSlot(slot?: this['asHead']): this['asHead'] {
-    if (slot === undefined) {
-      slot = new TestActionSlot();
+  public addActionSlot(slot: this['asHead']): this['asHead'];
+
+  /**
+   * Add an action slot to the suite.
+   * The total number of tests will be multiplied by the number of actions added to this slot.
+   *
+   * Action slots are run in the order that they are added.
+   *
+   * @param name The name for the new slot to add. This is only used for generating the title of the test.
+   */
+  public addActionSlot(name: string): this['asHead'];
+  public addActionSlot(nameOrSlot?: this['asHead'] | string): this['asHead'] {
+    if (!(nameOrSlot instanceof TestActionSlot)) {
+      nameOrSlot = new TestActionSlot(nameOrSlot);
     }
     if (this.asTail !== null) {
-      slot.prev = this.asTail;
-      this.asTail.next = slot;
+      nameOrSlot.prev = this.asTail;
+      this.asTail.next = nameOrSlot;
     } else {
-      this.asHead = slot;
+      this.asHead = nameOrSlot;
     }
-    this.asTail = slot;
-    return slot;
+    this.asTail = nameOrSlot;
+    return nameOrSlot;
   }
 
   /**
@@ -310,42 +321,22 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
    * @param prop The property name of the TestContext that the data points will be assigned to.
    */
   public addDataSlot(prop: this['dsHead']['prop']): this['dsHead'];
-  public addDataSlot(slotOrProp: this['dsHead'] | this['dsHead']['prop']): this['dsHead'] {
-    if (!(slotOrProp instanceof TestDataSlot)) {
-      slotOrProp = new TestDataSlot(slotOrProp);
+  public addDataSlot(propOrSlot: this['dsHead'] | this['dsHead']['prop']): this['dsHead'] {
+    if (!(propOrSlot instanceof TestDataSlot)) {
+      propOrSlot = new TestDataSlot(propOrSlot);
     }
     if (this.dsTail !== null) {
-      slotOrProp.prev = this.dsTail;
-      this.dsTail.next = slotOrProp;
+      propOrSlot.prev = this.dsTail;
+      this.dsTail.next = propOrSlot;
     } else {
-      this.dsHead = slotOrProp;
+      this.dsHead = propOrSlot;
     }
-    this.dsTail = slotOrProp;
-    return slotOrProp;
-  }
-
-  /**
-   * Assign a function to generate a title which is passed to mocha's "it()" call.
-   *
-   * @param createTitle Defaults to `ctx => ctx.suite.name`. If null is provided, the default is kept.
-   * @param appendToTitle Defaults to `data => '.${data.name}'`. If null is provided, the default is kept.
-   */
-  public withTitle(
-    createTitle: (ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => string,
-    appendToTitle: (data: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) => string): this {
-    if (createTitle !== null) {
-      this.createTitle = createTitle;
-    }
-    if (appendToTitle !== null) {
-      this.appendToTitle = appendToTitle;
-    }
-    return this;
+    this.dsTail = propOrSlot;
+    return propOrSlot;
   }
 
   public clone(name?: string): this {
     const clone = new TestSuite(name === undefined ? this.name : name) as this;
-
-    clone.createTitle = this.createTitle;
 
     let action = this.asHead;
     while (action !== null) {
@@ -409,21 +400,24 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
     let dataNames = '';
     while (data !== null) {
       data.current.populate(ctx);
-      dataNames += this.appendToTitle(data.current);
+      dataNames += appendDataName(data.current);
       data = data.next;
     }
-    ctx.title = this.createTitle(ctx) + dataNames;
+    ctx.title = createTitle(ctx) + ' -' + dataNames;
     return ctx;
   }
 
   private createFixture(): this['head'] {
     const fixture = new TestFixture() as this['head'];
     let action = this.asHead;
+    let actionNames = '';
     while (action !== null) {
-      fixture.addAction(action.current.clone());
+      fixture.addAction(action.current.clone(action));
+      actionNames += appendActionName(action.current);
       action = action.next;
     }
     fixture.ctx = this.createContext(this.currentId++);
+    fixture.ctx.title += ' -' + actionNames;
     return fixture;
   }
 

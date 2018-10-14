@@ -1,4 +1,5 @@
 import { inject } from '@aurelia/kernel';
+import { IChangeSet } from '../../binding';
 import { BindingFlags } from '../../binding/binding-flags';
 import { DOM, INode, IRenderLocation } from '../../dom';
 import { bindable } from '../bindable';
@@ -9,7 +10,7 @@ import { CompositionCoordinator } from './composition-coordinator';
 
 export interface If extends ICustomAttribute {}
 @templateController('if')
-@inject(IViewFactory, IRenderLocation)
+@inject(IChangeSet, IViewFactory, IRenderLocation)
 export class If {
   @bindable public value: boolean = false;
 
@@ -19,12 +20,16 @@ export class If {
   public elseView: IView = null;
   public coordinator: CompositionCoordinator;
 
-  constructor(public ifFactory: IViewFactory, public location: IRenderLocation) {
-    this.coordinator = new CompositionCoordinator();
+  constructor(
+    public readonly changeSet: IChangeSet,
+    public ifFactory: IViewFactory,
+    public location: IRenderLocation) {
+    this.coordinator = new CompositionCoordinator(this.changeSet);
   }
 
   public binding(flags: BindingFlags): void {
-    this.updateView();
+    const view = this.updateView();
+    this.coordinator.compose(view);
     this.coordinator.binding(flags, this.$scope);
   }
 
@@ -52,11 +57,21 @@ export class If {
     this.coordinator.caching();
   }
 
-  public valueChanged(): void {
-    this.updateView();
+  public valueChanged(newValue: boolean, oldValue: boolean, flags: BindingFlags): void {
+    if ((flags & BindingFlags.fromFlushChanges) > 0) {
+      const view = this.updateView();
+      this.coordinator.compose(view);
+    } else {
+      this.changeSet.add(this);
+    }
   }
 
-  private updateView(): void {
+  public flushChanges(): void {
+    const view = this.updateView();
+    this.coordinator.compose(view);
+  }
+
+  private updateView(): IView {
     let view: IView;
 
     if (this.value) {
@@ -67,7 +82,7 @@ export class If {
       view = null;
     }
 
-    this.coordinator.compose(view);
+    return view;
   }
 
   private ensureView(view: IView, factory: IViewFactory): IView {

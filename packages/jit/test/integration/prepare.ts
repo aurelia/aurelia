@@ -70,10 +70,10 @@ export const TestConfiguration = {
 
 const buildRequired = { required: true, compiler: 'default' };
 
-export function defineCustomElement(name: string, markup: string, $class: Constructable, dependencies: ReadonlyArray<any> = PLATFORM.emptyArray) {
+export function defineCustomElement<T>(name: string, markupOrNode: string | Node, $class: Constructable<T>, dependencies: ReadonlyArray<any> = PLATFORM.emptyArray) {
   return CustomElementResource.define({
     name,
-    templateOrNode: markup,
+    templateOrNode: markupOrNode,
     build: buildRequired,
     dependencies: <any>dependencies,
     instructions: []

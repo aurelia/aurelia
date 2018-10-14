@@ -1,5 +1,5 @@
 import { IServiceLocator, Reporter } from '@aurelia/kernel';
-import { ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
+import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { IScope } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { BindingMode } from './binding-mode';
@@ -61,7 +61,10 @@ export class Binding implements IPartialConnectableBinding {
       const mode = this.mode;
 
       previousValue = targetObserver.getValue();
-      newValue = sourceExpression.evaluate(flags, $scope, locator);
+      // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+      if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+        newValue = sourceExpression.evaluate(flags, $scope, locator);
+      }
       if (newValue !== previousValue) {
         this.updateTarget(newValue, flags);
       }

@@ -178,7 +178,14 @@ export class TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
   }
 
   public clone(): this {
-    return new TestActionSlot(this.name) as this;
+    const clone = new TestActionSlot(this.name) as this;
+    let current = this.head;
+    while (current !== null) {
+      clone.addAction(current.clone(clone));
+      current = current.next;
+    }
+
+    return clone;
   }
 }
 
@@ -244,8 +251,8 @@ function runFixture<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(fixture: TestFixture<A,B,C,D,
 }
 
 const createTitle = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(ctx: TestContext<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return ctx.suite.name };
-const appendDataName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(data: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return ` [${data.slot.prop} ${data.name}]` };
-const appendActionName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(action: TestAction<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return ` [${action.slot.name} ${action.name}]` };
+const appendDataName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(data: TestData<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return data.name && data.name.length ? ` [${data.slot.prop} ${data.name}]` : ` [${data.slot.prop}]` };
+const appendActionName = function<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(action: TestAction<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>) { return action.name && action.name.length ? ` [${action.slot.name} ${action.name}]` : ` [${action.slot.name}]` };
 export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O=a> {
   public asHead: TestActionSlot<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>;
   public asTail: this['asHead'];
@@ -335,18 +342,18 @@ export class TestSuite<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O
     return propOrSlot;
   }
 
-  public clone(name?: string): this {
-    const clone = new TestSuite(name === undefined ? this.name : name) as this;
+  public clone<A=a,B=a,C=a,D=a,E=a,F=a,G=a,H=a,I=a,J=a,K=a,L=a,M=a,N=a,O=a>(name?: string): TestSuite<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O> {
+    const clone = new TestSuite<A,B,C,D,E,F,G,H,I,J,K,L,M,N,O>(name === undefined ? this.name : name);
 
     let action = this.asHead;
     while (action !== null) {
-      clone.addActionSlot(action.clone());
+      clone.addActionSlot(action.clone() as any);
       action = action.next;
     }
 
     let data = this.dsHead;
     while (data !== null) {
-      clone.addDataSlot(data.clone());
+      clone.addDataSlot(data.clone() as any);
       data = data.next;
     }
 

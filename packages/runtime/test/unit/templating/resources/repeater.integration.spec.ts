@@ -97,10 +97,6 @@ describe(`Repeat`, () => {
         Lifecycle.beginAttach(cs, host, LifecycleFlags.none).attach(sut).end();
 
         expect(sut.views.length).to.equal(count, `execute1, sut.views.length`);
-        expect(host.textContent).to.equal('', `execute1, host.textContent`);
-
-        cs.flushChanges();
-
         expect(sut.$scope.bindingContext.show).to.equal(show);
         expect(host.textContent).to.equal(sut.$scope.bindingContext.show ? trueValue : falseValue, `execute1, host.textContent`);
 

@@ -245,10 +245,6 @@ describe(`If/Else`, () => {
 
         Lifecycle.beginAttach(cs, host, LifecycleFlags.none).attach(ifSut).end();
 
-        expect(host.textContent).to.equal('', `execute1, host.textContent`);
-
-        cs.flushChanges();
-
         expect(host.textContent).to.equal(!!ifSut.value ? trueValue : falseValue, `execute1, host.textContent`);
 
       }, `$bind(fromBind)  -> $attach(none)`],

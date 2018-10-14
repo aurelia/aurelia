@@ -1,11 +1,18 @@
 import { expect } from 'chai';
 import { hydrateCustomElement } from '../behavior-assistance';
 import { Compose } from '../../../../src/templating/resources/compose';
-import { DOM, IViewFactory, customElement, ITemplateSource, BindingFlags, Lifecycle, LifecycleFlags, IAttach } from '../../../../src';
+import { DOM, IViewFactory, customElement, ITemplateSource, BindingFlags, Lifecycle, LifecycleFlags, IAttach, ChangeSet } from '../../../../src';
 import { PotentialRenderable } from '../../../../src/templating/create-element';
 import { ViewFactoryFake } from '../fakes/view-factory-fake';
 
 describe('The "compose" custom element', () => {
+  // this is not ideal (same instance will be reused for multiple loops) but probably fine
+  // need to revisit this later to give this extra dep a clean atomic entry point for the tests
+  let cs: ChangeSet;
+  beforeEach(() => {
+    cs = new ChangeSet();
+  });
+
   @customElement(createTemplateDefinition())
   class MyCustomElement {}
 
@@ -221,13 +228,13 @@ describe('The "compose" custom element', () => {
   }
 
   function runAttachLifecycle(item: IAttach, encapsulationSource = null) {
-    const attachLifecycle = Lifecycle.beginAttach(encapsulationSource, LifecycleFlags.none);
+    const attachLifecycle = Lifecycle.beginAttach(cs, encapsulationSource, LifecycleFlags.none);
     attachLifecycle.attach(item);
     attachLifecycle.end();
   }
 
   function runDetachLifecycle(item: IAttach) {
-    const detachLifecycle = Lifecycle.beginDetach(LifecycleFlags.none);
+    const detachLifecycle = Lifecycle.beginDetach(cs, LifecycleFlags.none);
     detachLifecycle.detach(item);
     detachLifecycle.end();
   }

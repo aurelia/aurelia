@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { Constructable } from '../../../../../kernel/src/index';
-import { BindingFlags, Lifecycle, LifecycleFlags, IAttach, IView } from '../../../../src/index';
+import { BindingFlags, Lifecycle, LifecycleFlags, IAttach, IView, ChangeSet } from '../../../../src/index';
 import { ViewFake } from '../fakes/view-fake';
 import { hydrateCustomAttribute } from '../behavior-assistance';
 import { createScope } from '../scope-assistance';
@@ -9,6 +9,8 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
   Type: T,
   getChildView: (attribute: InstanceType<T>) => IView
   ) {
+    const cs = new ChangeSet();
+
   it('creates a child instance from its template', () => {
     const { attribute } = hydrateCustomAttribute(Type);
     const child = getChildView(attribute);
@@ -77,13 +79,13 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends Construct
   });
 
   function runAttachLifecycle(item: IAttach) {
-    const attachLifecycle = Lifecycle.beginAttach(null, LifecycleFlags.none);
+    const attachLifecycle = Lifecycle.beginAttach(cs, null, LifecycleFlags.none);
     attachLifecycle.attach(item);
     attachLifecycle.end();
   }
 
   function runDetachLifecycle(item: IAttach) {
-    const detachLifecycle = Lifecycle.beginDetach(LifecycleFlags.none);
+    const detachLifecycle = Lifecycle.beginDetach(cs, LifecycleFlags.none);
     detachLifecycle.detach(item);
     detachLifecycle.end();
   }

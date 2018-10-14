@@ -82,11 +82,9 @@ export class If {
 }
 
 @templateController('else')
-@inject(IViewFactory, IRenderLocation)
+@inject(IViewFactory)
 export class Else {
-  constructor(private factory: IViewFactory, location: IRenderLocation) {
-    DOM.remove(location); // Only the location of the "if" is relevant.
-  }
+  constructor(private factory: IViewFactory) { }
 
   public link(ifBehavior: If): void {
     ifBehavior.elseFactory = this.factory;

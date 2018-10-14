@@ -335,8 +335,12 @@ describe('Binding', () => {
             expect(sut.handleChange).to.have.been.calledWithExactly(newValue, srcVal, flags);
 
             // verify the behavior inside handleChange
-            expect(expr.evaluate).to.have.been.calledOnce;
-            expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
+            if (expr.$kind === ExpressionKind.AccessScope && sut.observerSlots < 2) {
+              expect(expr.evaluate).not.to.have.been.called;
+            } else {
+              expect(expr.evaluate).to.have.been.calledOnce;
+              expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
+            }
 
             expect(targetObserver.getValue).to.have.been.calledOnce;
             expect(targetObserver.getValue).to.have.been.calledWithExactly();
@@ -463,8 +467,12 @@ describe('Binding', () => {
             expect(sut.handleChange).to.have.been.calledWithExactly(newValue, initialVal, flags);
 
             // verify the behavior inside handleChange
-            expect(expr.evaluate).to.have.been.calledOnce;
-            expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
+            if (expr.$kind === ExpressionKind.AccessScope && sut.observerSlots < 2) {
+              expect(expr.evaluate).not.to.have.been.called;
+            } else {
+              expect(expr.evaluate).to.have.been.calledOnce;
+              expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
+            }
 
             expect(expr.assign).to.have.been.calledOnce;
             expect(expr.assign).to.have.been.calledWithExactly(flags, scope, container, newValue);
@@ -673,8 +681,12 @@ describe('Binding', () => {
             expect(sut.handleChange).to.have.been.calledWithExactly(newValue1, srcVal, flags);
 
             // verify the behavior inside handleChange
-            expect(expr.evaluate).to.have.been.calledTwice;
-            expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
+            if (expr.$kind === ExpressionKind.AccessScope && sut.observerSlots < 2) {
+              expect(expr.evaluate).not.to.have.been.called;
+            } else {
+              expect(expr.evaluate).to.have.been.calledTwice;
+              expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
+            }
 
             expect(targetObserver.getValue).to.have.been.calledTwice;
             expect(targetObserver.getValue).to.have.been.calledWithExactly();

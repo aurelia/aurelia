@@ -14,8 +14,9 @@ describe('template-compiler.custom-elements', () => {
   // custom elements
   it('01.', () => {
     const { au, host, cs, component } = setupAndStart(`<template><name-tag name="bigopon"></name-tag></template>`, null);
-    cs.flushChanges();
+
     expect(host.textContent).to.equal('bigopon');
+
     tearDown(au, cs, host);
   });
 
@@ -25,15 +26,18 @@ describe('template-compiler.custom-elements', () => {
     //works with custom element with [as-element]
     it('01.', () => {
       const { au, host, cs, component } = setupAndStart(`<template><div as-element="name-tag" name="bigopon"></div></template>`, null);
-      cs.flushChanges();
+
       expect(host.textContent).to.equal('bigopon');
+
       tearDown(au, cs, host);
     });
 
     //ignores tag name
     it('02.', () => {
       const { au, host, cs, component } = setupAndStart(`<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, null);
+
       expect(host.textContent).to.equal('Fred');
+
       tearDown(au, cs, host);
     });
   });
@@ -41,12 +45,17 @@ describe('template-compiler.custom-elements', () => {
   //<let/>
   it('03.', () => {
     const { au, host, cs, component } = setupAndStart('<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
-    expect(host.textContent).to.equal(' ');
+    expect(host.textContent).to.equal('undefined undefined');
+
     component.firstName = 'bi';
     component.lastName = 'go';
-    expect(host.textContent).to.equal(' ');
+
+    expect(host.textContent).to.equal('undefined undefined');
+
     cs.flushChanges();
+
     expect(host.textContent).to.equal('bi go');
+
     tearDown(au, cs, host);
   });
 
@@ -232,19 +241,12 @@ describe('template-compiler.custom-elements', () => {
       i++;
     }
 
-    expect(host.textContent).to.equal(' '.repeat(6));
-    expect(cs.size).to.equal(6);
-    const changes = cs.toArray();
-    expect(changes[0]).to.be.instanceof(ElementPropertyAccessor);
-    expect(changes[1]).to.be.instanceof(ElementPropertyAccessor);
-    expect(changes[2]).to.be.instanceof(ElementPropertyAccessor);
-    expect(changes[3]).to.be.instanceof(ElementPropertyAccessor);
-    expect(changes[4]).to.be.instanceof(ElementPropertyAccessor);
-    expect(changes[5]).to.be.instanceof(ElementPropertyAccessor);
+    expect(cs.size).to.equal(0);
+    expect(host.textContent).to.equal('w00t'.repeat(6));
 
     component.value = 'w00t00t';
     expect(current.value).to.equal('w00t00t');
-    expect(host.textContent).to.equal(' '.repeat(6));
+    expect(host.textContent).to.equal('w00t'.repeat(6));
     expect(cs.size).to.equal(6);
 
     cs.flushChanges();

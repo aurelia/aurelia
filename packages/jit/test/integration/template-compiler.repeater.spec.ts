@@ -43,13 +43,14 @@ suite.addActionSlot('setup')
     class App {}
     const $App = defineCustomElement('app', markup, App);
     const component = new $App();
+    initialize(component)
+
     au.app({ component, host }).start();
 
-    initialize(component)
-    expect(host.textContent.trim()).to.equal('');
-    cs.flushChanges();
     expect(host.textContent).to.equal(expected);
+
     au.stop();
+
     expect(cs.size).to.equal(0);
     expect(host.textContent).to.equal('');
   });

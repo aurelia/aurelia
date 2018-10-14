@@ -14,6 +14,7 @@ describe('', () => {
     const { au, host, cs, component } = setupAndStart(`<template><foo repeat.for="i of count"></foo></template>`, null, Foo);
     component.count = 3;
     cs.flushChanges();
+
     expect(host.textContent).to.equal('aaa');
 
     tearDown(au, cs, host);
@@ -28,6 +29,7 @@ describe('', () => {
     component.count = 3;
     component.theText = 'a';
     cs.flushChanges();
+
     expect(host.textContent).to.equal('aaa');
 
     tearDown(au, cs, host);
@@ -42,6 +44,7 @@ describe('', () => {
     component.count = 3;
     component.text = 'a';
     cs.flushChanges();
+
     expect(host.textContent).to.equal('aaa');
 
     tearDown(au, cs, host);
@@ -57,6 +60,7 @@ describe('', () => {
     component.count = 3;
     component.theText = 'a';
     cs.flushChanges();
+
     expect(host.textContent).to.equal('undefinedundefinedundefined');
 
     tearDown(au, cs, host);
@@ -71,6 +75,7 @@ describe('', () => {
     component.count = 3;
     component.text = 'a';
     cs.flushChanges();
+
     expect(host.textContent).to.equal('undefinedundefinedundefined');
 
     tearDown(au, cs, host);
@@ -84,8 +89,9 @@ describe('', () => {
     const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, null, Foo);
     component.theText = 'a';
     component.count = 3;
+
     au.app({ host, component }).start();
-    cs.flushChanges();
+
     expect(host.textContent).to.equal('aaa');
 
     tearDown(au, cs, host);
@@ -99,8 +105,9 @@ describe('', () => {
     const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, null, Foo);
     component.theText = 'a';
     component.count = 3;
+
     au.app({ host, component }).start();
-    cs.flushChanges();
+
     expect(host.textContent).to.equal('aaa');
 
     tearDown(au, cs, host);
@@ -114,8 +121,9 @@ describe('', () => {
     const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, null, Foo);
     component.todos = ['a', 'b', 'c']
     component.count = 3;
+
     au.app({ host, component }).start();
-    cs.flushChanges();
+
     expect(host.textContent).to.equal('abcabcabc');
 
     component.count = 1;
@@ -136,8 +144,9 @@ describe('', () => {
     const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, null, Foo);
     component.todos = [['a', 'b', 'c'], ['a', 'b', 'c'], ['a', 'b', 'c']]
     component.count = 3;
+
     au.app({ host, component }).start();
-    cs.flushChanges();
+
     expect(host.textContent).to.equal('abcabcabcabcabcabcabcabcabc');
 
     component.count = 1;

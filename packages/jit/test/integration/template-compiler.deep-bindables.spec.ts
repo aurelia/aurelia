@@ -134,22 +134,17 @@ for (const suite of [nonWrappedBasic, wrappedBasic]) {
       component.$1 = '1';
       component.$2 = '2';
       component.$3 = '3';
+
       au.app({ host, component }).start();
 
-      expect(host.textContent.trim()).to.equal('');
-
-      cs.flushChanges();
       expect(host.textContent).to.equal('123'.repeat(4));
     })
     .addAction('no assign', ctx => {
       const { b: au, c: cs, d: host, e: app } = ctx;
-
       const component = new app();
+
       au.app({ host, component }).start();
 
-      expect(host.textContent.trim()).to.equal('');
-
-      cs.flushChanges();
       expect(host.textContent).to.equal('undefined'.repeat(12));
     })
 
@@ -187,11 +182,9 @@ noBindables.addActionSlot('act')
     component.$1 = '1';
     component.$2 = '2';
     component.$3 = '3';
+
     au.app({ host, component }).start();
 
-    expect(host.textContent.trim()).to.equal('');
-
-    cs.flushChanges();
     expect(host.textContent).to.equal('123' + 'undefined'.repeat(9));
   })
   .addAction('assign 2', ctx => {
@@ -201,11 +194,9 @@ noBindables.addActionSlot('act')
     component.a1 = '1';
     component.a2 = '2';
     component.a3 = '3';
+
     au.app({ host, component }).start();
 
-    expect(host.textContent.trim()).to.equal('');
-
-    cs.flushChanges();
     expect(host.textContent).to.equal('undefined'.repeat(12));
   })
   .addAction('assign 3', ctx => {
@@ -215,11 +206,9 @@ noBindables.addActionSlot('act')
     component.b1 = '1';
     component.b2 = '2';
     component.b3 = '3';
+
     au.app({ host, component }).start();
 
-    expect(host.textContent.trim()).to.equal('');
-
-    cs.flushChanges();
     expect(host.textContent).to.equal('undefined'.repeat(12));
   })
   .addAction('assign 4', ctx => {
@@ -229,11 +218,9 @@ noBindables.addActionSlot('act')
     component.c1 = '1';
     component.c2 = '2';
     component.c3 = '3';
+
     au.app({ host, component }).start();
 
-    expect(host.textContent.trim()).to.equal('');
-
-    cs.flushChanges();
     expect(host.textContent).to.equal('undefined'.repeat(12));
   });
 
@@ -265,22 +252,17 @@ duplicated.addActionSlot('act')
     component.$1 = '1';
     component.$2 = '2';
     component.$3 = '3';
+
     au.app({ host, component }).start();
 
-    expect(host.textContent.trim()).to.equal('');
-
-    cs.flushChanges();
     expect(host.textContent).to.equal('123'.repeat(1124));
   })
   .addAction('no assign', ctx => {
     const { b: au, c: cs, d: host, e: app } = ctx;
-
     const component = new app();
+
     au.app({ host, component }).start();
 
-    expect(host.textContent.trim()).to.equal('');
-
-    cs.flushChanges();
     expect(host.textContent).to.equal('undefined'.repeat(1124 * 3));
   })
 
@@ -367,11 +349,9 @@ staticTemplateCtrl.addActionSlot('act')
     component.$1 = '1';
     component.$2 = '2';
     component.$3 = '3';
+
     au.app({ host, component }).start();
 
-    expect(host.textContent.trim()).to.equal('');
-
-    cs.flushChanges();
     expect(host.textContent).to.equal('123'.repeat(4));
   })
 
@@ -468,11 +448,9 @@ boundTemplateCtrl.addActionSlot('act')
     component.$3 = '3';
     component.display = true;
     component.things = [1];
+
     au.app({ host, component }).start();
 
-    expect(host.textContent.trim()).to.equal('');
-
-    cs.flushChanges();
     expect(host.textContent).to.equal('123'.repeat(4));
   })
   .addAction('2', ctx => {
@@ -482,11 +460,9 @@ boundTemplateCtrl.addActionSlot('act')
     component.$1 = '1';
     component.$2 = '2';
     component.$3 = '3';
+
     au.app({ host, component }).start();
 
-    expect(host.textContent.trim()).to.equal('');
-
-    cs.flushChanges();
     expect(host.textContent).to.equal('123');
   })
 

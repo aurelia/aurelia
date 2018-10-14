@@ -27,12 +27,12 @@ import {
   ForBindingCommand,
   FromViewBindingCommand,
   OneTimeBindingCommand,
-  ParserRegistration,
-  TemplateCompiler,
   ToViewBindingCommand,
   TriggerBindingCommand,
   TwoWayBindingCommand
-} from '.';
+} from './binding-command';
+import { ParserRegistration } from './expression-parser';
+import { TemplateCompiler } from './template-compiler';
 
 const globalResources: any[] = [
   Compose,

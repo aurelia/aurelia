@@ -388,7 +388,7 @@ export class MockIfTextNodeTemplate {
     const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
     const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator));
 
-    const sut = new If(factory, nodes.firstChild);
+    const sut = new If(this.changeSet, factory, nodes.firstChild);
 
     (<any>sut)['$isAttached'] = false;
     (<any>sut)['$isBound'] = false;
@@ -417,7 +417,7 @@ export class MockElseTextNodeTemplate {
     const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
     const factory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator));
 
-    const sut = new Else(factory, nodes.firstChild);
+    const sut = new Else(factory);
 
     sut.link(<any>renderable.$attachables[renderable.$attachables.length - 1]);
 
@@ -448,7 +448,7 @@ export class MockIfElseTextNodeTemplate {
     const observerLocator = new ObserverLocator(this.changeSet, null, null, null);
     const ifFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.if, observerLocator));
 
-    const ifSut = new If(ifFactory, ifNodes.firstChild);
+    const ifSut = new If(this.changeSet, ifFactory, ifNodes.firstChild);
 
     (<any>ifSut)['$isAttached'] = false;
     (<any>ifSut)['$isBound'] = false;
@@ -461,11 +461,9 @@ export class MockIfElseTextNodeTemplate {
     renderable.$bindables.push(new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, null));
     renderable.$bindables.push(ifSut);
 
-    const elseNodes = MockNodeSequence.createRenderLocation();
-
     const elseFactory = new ViewFactory(null, <any>new MockTextNodeTemplate(expressions.else, observerLocator));
 
-    const elseSut = new Else(elseFactory, elseNodes.firstChild);
+    const elseSut = new Else(elseFactory);
 
     elseSut.link(<any>renderable.$attachables[renderable.$attachables.length - 1]);
 

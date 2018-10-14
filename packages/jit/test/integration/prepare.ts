@@ -2,7 +2,7 @@
 import { BasicConfiguration } from "../../src";
 import { expect } from "chai";
 import { valueConverter, customElement, bindable, CustomElementResource, IChangeSet, IObserverLocator, Aurelia } from "@aurelia/runtime";
-import { IContainer, DI, Constructable } from "@aurelia/kernel";
+import { IContainer, DI, Constructable, PLATFORM } from "@aurelia/kernel";
 
 export function cleanup(): void {
   const body = document.body;
@@ -66,6 +66,18 @@ export const TestConfiguration = {
   register(container: IContainer) {
     container.register(...globalResources);
   }
+}
+
+const buildRequired = { required: true, compiler: 'default' };
+
+export function defineCustomElement(name: string, markup: string, $class: Constructable, dependencies: ReadonlyArray<any> = PLATFORM.emptyArray) {
+  return CustomElementResource.define({
+    name,
+    templateOrNode: markup,
+    build: buildRequired,
+    dependencies: <any>dependencies,
+    instructions: []
+  }, $class);
 }
 
 export function createCustomElement(markup: string | Element, $class: Constructable | null, ...dependencies: Function[]): { [key: string]: any } {

@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { Char } from '.';
+import { Char } from './common';
 
 export class AttrSyntax {
   constructor(

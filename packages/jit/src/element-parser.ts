@@ -1,6 +1,6 @@
 import { DI, inject, PLATFORM } from '@aurelia/kernel';
 import { DOM, INode } from '@aurelia/runtime';
-import { AttrSyntax, IAttributeParser } from '.';
+import { AttrSyntax, IAttributeParser } from './attribute-parser';
 
 const domParser = <HTMLDivElement>DOM.createElement('div');
 
@@ -33,7 +33,7 @@ export class ElementSyntax {
     }
 
   public static createMarker(): ElementSyntax {
-    return new ElementSyntax(createMarker(), 'au-marker', null, PLATFORM.emptyArray, PLATFORM.emptyArray)
+    return new ElementSyntax(createMarker(), 'au-marker', null, PLATFORM.emptyArray, PLATFORM.emptyArray);
   }
 }
 

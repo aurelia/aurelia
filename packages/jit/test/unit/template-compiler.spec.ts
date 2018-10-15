@@ -142,14 +142,14 @@ describe('TemplateCompiler', () => {
         expect(actual.instructions[0].length).to.equal(3);
         const siblingInstructions = actual.instructions[0].slice(1);
         const expectedSiblingInstructions = [
-          { toVerify: ['type', 'def', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
-          { toVerify: ['type', 'def', 'to'], type: TT.hydrateAttribute, res: 'prop3' }
+          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
+          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' }
         ];
         verifyInstructions(siblingInstructions, expectedSiblingInstructions);
         const rootInstructions = actual.instructions[0][0]['instructions'] as any[];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'def', 'to'], type: TT.propertyBinding, to: 'prop1' },
-          { toVerify: ['type', 'def', 'to'], type: TT.propertyBinding, to: 'prop2' }
+          { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop1' },
+          { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop2' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
       });
@@ -170,7 +170,7 @@ describe('TemplateCompiler', () => {
         );
         const rootInstructions = actual.instructions[0] as any[];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'def'], type: TT.hydrateElement, res: 'el' }
+          { toVerify: ['type', 'res'], type: TT.hydrateElement, res: 'el' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
@@ -286,7 +286,7 @@ describe('TemplateCompiler', () => {
             class NotDiv {}
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>', [NotDiv]);
             verifyInstructions(instructions[0] as any, [
-              { toVerify: ['type', 'def'],
+              { toVerify: ['type', 'res'],
                 type: TT.hydrateElement, res: 'not-div' }
             ]);
           });
@@ -306,7 +306,7 @@ describe('TemplateCompiler', () => {
               );
 
               verifyInstructions(instructions[0] as any, [
-                { toVerify: ['type', 'def', 'to'],
+                { toVerify: ['type', 'res', 'to'],
                   type: TargetedInstructionType.hydrateTemplateController, res: 'if' }
               ]);
               const templateControllerInst = instructions[0][0] as any as IHydrateTemplateController;
@@ -316,7 +316,7 @@ describe('TemplateCompiler', () => {
               ]);
               const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [IHydrateElementInstruction];
               verifyInstructions([hydrateNotDivInstruction], [
-                { toVerify: ['type', 'def'],
+                { toVerify: ['type', 'res'],
                   type: TargetedInstructionType.hydrateElement, res: 'not-div' }
               ]);
               verifyInstructions(hydrateNotDivInstruction.instructions, []);

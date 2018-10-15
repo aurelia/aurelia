@@ -36,7 +36,7 @@ export interface IBuildInstruction {
 export interface ITemplateSource {
   name?: string;
   cache?: '*' | number;
-  templateOrNode?: string | INode;
+  template?: string | INode;
   instructions?: TargetedInstruction[][];
   dependencies?: any[];
   build?: IBuildInstruction;

@@ -118,7 +118,7 @@ export class Compose {
       return null;
     }
 
-    if ('templateOrNode' in subject) { // Raw Template Definition
+    if ('template' in subject) { // Raw Template Definition
       return this.renderingEngine.getViewFactory(
         subject,
         this.renderable.$context

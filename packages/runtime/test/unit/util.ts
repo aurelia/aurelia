@@ -18,7 +18,7 @@ export interface IRepeaterFixture {
 
 export function createTextBindingTemplateSource(propertyName: string, oneTime?: boolean): ITemplateSource {
   return {
-    templateOrNode: `<div><au-marker class="au"></au-marker> </div>`,
+    template: `<div><au-marker class="au"></au-marker> </div>`,
     instructions: [
       [
         {
@@ -109,7 +109,7 @@ export function createRepeaterTemplateSource({ elName, colName, itemName }: IRep
   return {
     name: elName,
     dependencies: [],
-    templateOrNode: `
+    template: `
       <au-marker class="au"></au-marker>
     `,
     instructions: [

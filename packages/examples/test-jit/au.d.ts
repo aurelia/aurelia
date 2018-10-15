@@ -2,7 +2,7 @@
 declare module '*.html' {
   interface ITemplateSource {
     name: string;
-    templateOrNode: string;
+    template: string;
     dependencies: any[]
   }
 

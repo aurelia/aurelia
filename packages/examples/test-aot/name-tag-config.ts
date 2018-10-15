@@ -5,7 +5,7 @@ import { DelegationStrategy } from '@aurelia/runtime';
 export const nameTagConfig: ITemplateSource = {
   name: 'name-tag',
   hasSlots: true,
-  templateOrNode: `
+  template: `
     <header>Super Duper name tag</header>
     <div>
       <input type="text" class="au"><br/>

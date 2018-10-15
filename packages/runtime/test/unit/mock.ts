@@ -335,7 +335,7 @@ export class MockTemplate implements ITemplate {
     public templateDefinition: TemplateDefinition) {
 
     this.renderContext = createMockRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
-    const markupOrNode = templateDefinition.templateOrNode;
+    const markupOrNode = templateDefinition.template;
     if (markupOrNode instanceof Node) {
       if ((<HTMLTemplateElement>markupOrNode).content) {
         this.template = markupOrNode as any;

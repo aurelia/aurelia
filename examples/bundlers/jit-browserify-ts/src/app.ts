@@ -4,7 +4,7 @@ import * as view from './app.html';
 
 @customElement({
   name: 'app',
-  templateOrNode: <any>view,
+  template: <any>view,
   build: {
     required: true,
     compiler: 'default'

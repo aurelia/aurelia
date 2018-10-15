@@ -34,7 +34,7 @@ export class PotentialRenderable {
   public get definition(): TemplateDefinition {
     return this.lazyDefinition || (this.lazyDefinition = {
       name: 'unnamed',
-      templateOrNode: this.node,
+      template: this.node,
       cache: 0,
       build: typeof this.node === 'string' ? {
         required: true,

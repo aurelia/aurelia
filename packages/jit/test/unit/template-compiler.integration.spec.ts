@@ -40,7 +40,7 @@ export class JsonValueConverter {
 
 @customElement({
   name: 'name-tag',
-  templateOrNode: '<template>${name}</template>',
+  template: '<template>${name}</template>',
   build: { required: true, compiler: 'default' },
   dependencies: [],
   instructions: [],
@@ -68,7 +68,7 @@ function createCustomElement(markup: string | Element, ...dependencies: Function
   return new (CustomElementResource.define({
     name: 'app',
     dependencies: [...dependencies],
-    templateOrNode: markup,
+    template: markup,
     build: { required: true, compiler: 'default' },
     instructions: [],
     surrogates: []
@@ -573,7 +573,7 @@ describe('TemplateCompiler (integration)', () => {
       ],
       ([templateCase, template], [itemsCase, initialItems, ifText, elseText], [markupCase, markup], count, [actionText, action]) => {
 
-        @customElement({ name: 'foo', templateOrNode: template, instructions: [], build: { required: true, compiler: 'default' } })
+        @customElement({ name: 'foo', template: template, instructions: [], build: { required: true, compiler: 'default' } })
         class Foo { @bindable public items: any; @bindable public display: boolean; }
 
         it(`template:${templateCase},items:${itemsCase},markup:${markupCase},count=${count}: ${actionText}`, () => {
@@ -596,7 +596,7 @@ describe('TemplateCompiler (integration)', () => {
 
 
   it(`repeater with custom element`, () => {
-    @customElement({ name: 'foo', templateOrNode: '<template>a</template>', instructions: [], build: { required: true, compiler: 'default' } })
+    @customElement({ name: 'foo', template: '<template>a</template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { }
     const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count"></foo></template>`, Foo);
     component.count = 3;
@@ -608,7 +608,7 @@ describe('TemplateCompiler (integration)', () => {
   });
 
   it(`repeater with custom element + inner bindable with different name than outer property`, () => {
-    @customElement({ name: 'foo', templateOrNode: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+    @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable text: string; }
     const { au, host, cs, component } = setup(`<template><foo text.bind="theText" repeat.for="i of count"></foo></template>`, Foo);
     component.count = 3;
@@ -621,7 +621,7 @@ describe('TemplateCompiler (integration)', () => {
   });
 
   it(`repeater with custom element + inner bindable with same name as outer property`, () => {
-    @customElement({ name: 'foo', templateOrNode: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+    @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable text: string; }
     const { au, host, cs, component } = setup(`<template><foo text.bind="text" repeat.for="i of count"></foo></template>`, Foo);
     component.count = 3;
@@ -635,7 +635,7 @@ describe('TemplateCompiler (integration)', () => {
 
   // TODO: this doesn't work (note that this is the same as the 2 tests above but the attributes swapped around)
   // it(`repeater with custom element + inner bindable with different name than outer property, reversed`, () => {
-  //   @customElement({ name: 'foo', templateOrNode: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+  //   @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
   //   class Foo { @bindable text: string; }
   //   const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, Foo);
   //   component.count = 3;
@@ -648,7 +648,7 @@ describe('TemplateCompiler (integration)', () => {
   // });
 
   // it(`repeater with custom element + inner bindable with same name as outer property, reversed`, () => {
-  //   @customElement({ name: 'foo', templateOrNode: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+  //   @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
   //   class Foo { @bindable text: string; }
   //   const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" text.bind="text"></foo></template>`, Foo);
   //   component.count = 3;
@@ -662,7 +662,7 @@ describe('TemplateCompiler (integration)', () => {
 
   // TODO: this doesn't work (the repeater inside the custom element doesn't render)
   // it(`repeater with custom element with repeater`, () => {
-  //   @customElement({ name: 'foo', templateOrNode: '<template><div repeat.for="item of todos">${item}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
+  //   @customElement({ name: 'foo', template: '<template><div repeat.for="item of todos">${item}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
   //   class Foo { @bindable todos: any[] }
   //   const { au, host, cs, component } = setup(`<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, Foo);
   //   component.count = 3;
@@ -824,7 +824,7 @@ describe('TemplateCompiler (integration)', () => {
     const build = { required: true, compiler: 'default' };
     let boundCalls = 0;
 
-    @customElement({ name: 'foo1', templateOrNode: `<template><foo2 value.bind="value" value2.bind="value1"></foo2>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo1', template: `<template><foo2 value.bind="value" value2.bind="value1"></foo2>\${value}</template>`, instructions: [], build })
     class Foo1 {
       @bindable()
       public value: any;
@@ -839,7 +839,7 @@ describe('TemplateCompiler (integration)', () => {
       }
     }
 
-    @customElement({ name: 'foo2', templateOrNode: `<template><foo3 value.bind="value" value2.bind="value2"></foo3>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo2', template: `<template><foo3 value.bind="value" value2.bind="value2"></foo3>\${value}</template>`, instructions: [], build })
     class Foo2 {
       @bindable()
       public value: any;
@@ -857,7 +857,7 @@ describe('TemplateCompiler (integration)', () => {
       }
     }
 
-    @customElement({ name: 'foo3', templateOrNode: `<template><foo4 value.bind="value" value2.bind="value2"></foo4>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo3', template: `<template><foo4 value.bind="value" value2.bind="value2"></foo4>\${value}</template>`, instructions: [], build })
     class Foo3 {
       @bindable()
       public value: any;
@@ -875,7 +875,7 @@ describe('TemplateCompiler (integration)', () => {
       }
     }
 
-    @customElement({ name: 'foo4', templateOrNode: `<template><foo5 value.bind="value" value2.bind="value2"></foo5>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo4', template: `<template><foo5 value.bind="value" value2.bind="value2"></foo5>\${value}</template>`, instructions: [], build })
     class Foo4 {
       @bindable()
       public value: any;
@@ -893,7 +893,7 @@ describe('TemplateCompiler (integration)', () => {
       }
     }
 
-    @customElement({ name: 'foo5', templateOrNode: `<template>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo5', template: `<template>\${value}</template>`, instructions: [], build })
     class Foo5 {
       @bindable()
       public value: any;

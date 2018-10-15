@@ -38,7 +38,7 @@ export class JsonValueConverter {
 
 @customElement({
   name: 'name-tag',
-  templateOrNode: '<template>${name}</template>',
+  template: '<template>${name}</template>',
   build: { required: true, compiler: 'default' },
   dependencies: [],
   instructions: [],
@@ -70,7 +70,7 @@ function createCustomElement<T = Record<string, any>>(
   return new (CustomElementResource.define({
     name: 'app',
     dependencies: [...dependencies],
-    templateOrNode: markup,
+    template: markup,
     build: { required: true, compiler: 'default' },
     instructions: [],
     surrogates: []

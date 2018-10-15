@@ -4,7 +4,7 @@ import { ITemplateSource, TargetedInstructionType, BindingMode } from '@aurelia/
 export const appConfig: ITemplateSource = {
   name: 'app',
   dependencies: [ ],
-  templateOrNode: `
+  template: `
     <div>
       <table class="table table-striped latest-data">
         <tbody>
@@ -20,7 +20,7 @@ export const appConfig: ITemplateSource = {
         res: 'repeat',
         src: {
           cache: "*",
-          templateOrNode: `
+          template: `
             <tr>
               <td class="dbname"><au-marker class="au"></au-marker> </td>
               <td class="query-count"><au-marker class="au"></au-marker> </td>
@@ -36,7 +36,7 @@ export const appConfig: ITemplateSource = {
                 res: 'repeat',
                 src: {
                   cache: "*",
-                  templateOrNode: `
+                  template: `
                   <td>
                     <au-marker class="au"></au-marker> <div class="popover left">
                       <div class="popover-content"><au-marker class="au"></au-marker> </div>

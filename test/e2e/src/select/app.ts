@@ -7,7 +7,7 @@ export interface IOption {
 
 @customElement({
   name: 'app',
-  templateOrNode: require('./app.html'),
+  template: require('./app.html'),
   build: {
     required: true,
     compiler: 'default'

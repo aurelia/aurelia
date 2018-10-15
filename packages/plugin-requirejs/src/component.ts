@@ -23,7 +23,7 @@ export function load(name: string, req, onLoad, config) {
         const templateImport = parseImport(name);
         const templateSource = {
           name: kebabCase(templateImport.basename),
-          templateOrNode: description.template,
+          template: description.template,
           build: {
             required: true,
             compiler: 'default'
@@ -50,7 +50,7 @@ export function write(pluginName: string, moduleName: string, write, config) {
       var Component = arguments[0].Component;
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
-        templateOrNode: '${escape(description.template)}',
+        template: '${escape(description.template)}',
         build: {
           required: true,
           compiler: 'default'

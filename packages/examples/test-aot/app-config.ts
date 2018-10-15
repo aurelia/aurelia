@@ -10,7 +10,7 @@ export const appConfig: ITemplateSource = {
   dependencies: [
     import1
   ],
-  templateOrNode: `
+  template: `
     <au-marker class="au"></au-marker> <br/>
     <au-marker class="au"></au-marker> <br/>
     <input type="text" class="au">
@@ -78,7 +78,7 @@ export const appConfig: ITemplateSource = {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'if',
         src: {
-          templateOrNode: `<div><au-marker class="au"></au-marker> </div>`,
+          template: `<div><au-marker class="au"></au-marker> </div>`,
           instructions: [
             [
               {
@@ -102,7 +102,7 @@ export const appConfig: ITemplateSource = {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'else',
         src: {
-          templateOrNode: `<div>No Message Duplicated</div>`,
+          template: `<div>No Message Duplicated</div>`,
           instructions: []
         },
         link: true,
@@ -114,7 +114,7 @@ export const appConfig: ITemplateSource = {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'repeat',
         src: {
-          templateOrNode: `<div><au-marker class="au"></au-marker> </div>`,
+          template: `<div><au-marker class="au"></au-marker> </div>`,
           instructions: [
             [
               {

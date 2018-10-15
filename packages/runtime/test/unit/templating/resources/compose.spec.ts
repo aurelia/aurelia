@@ -263,7 +263,7 @@ describe('The "compose" custom element', () => {
   function createTemplateDefinition(): ITemplateSource {
     return {
       name: 'dynamic',
-      templateOrNode: `
+      template: `
         <template>
           <div>Hello World</div>
         </template>

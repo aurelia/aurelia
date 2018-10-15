@@ -294,7 +294,7 @@ describe('ArrayRepeater - render html', () => {
     const templateSource: ITemplateSource = {
       name: 'app',
       dependencies: [],
-      templateOrNode: `<span class="au"></span> `,
+      template: `<span class="au"></span> `,
       instructions: [
         [
           {
@@ -302,7 +302,7 @@ describe('ArrayRepeater - render html', () => {
             res: 'repeat',
             src: {
               cache: "*",
-              templateOrNode: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
+              template: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
               instructions: [
                 [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'id' } ],
                 [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'length' } ],
@@ -312,7 +312,7 @@ describe('ArrayRepeater - render html', () => {
                     res: 'repeat',
                     src: {
                       cache: "*",
-                      templateOrNode: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
+                      template: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
                       instructions: [
                         [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'innerId' } ],
                         [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'innerLength' } ],
@@ -322,7 +322,7 @@ describe('ArrayRepeater - render html', () => {
                             res: 'repeat',
                             src: {
                               cache: "*",
-                              templateOrNode: `<span class="au"></span> `,
+                              template: `<span class="au"></span> `,
                               instructions: [
                                 [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'innerInnerId' } ]
                               ]

@@ -20,7 +20,7 @@ describe(`CompiledTemplate`, () => {
     it(`creates a new renderContext and createNodeSequence function`, () => {
       class Foo{}
       class Bar{static register(container: Container){ container.register(Registration.singleton(Bar, Bar)) }}
-      const src = { templateOrNode: createElement('<div>foo</div>'), dependencies: [Foo, Bar] };
+      const src = { template: createElement('<div>foo</div>'), dependencies: [Foo, Bar] };
       const viewFactory = new ViewFactory(null, null);
       const renderer = new Renderer(null, null, null, null, null);
       const renderingEngine = new MockRenderingEngine(null, viewFactory, renderer, null);

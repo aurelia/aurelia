@@ -3,7 +3,7 @@ import view from './app.html';
 
 @customElement({
   name: 'app',
-  templateOrNode: view,
+  template: view,
   build: {
     required: true,
     compiler: 'default'

@@ -123,7 +123,7 @@ export class RenderingEngine implements IRenderingEngine {
   private templateFromSource(definition: TemplateDefinition, parentContext?: IRenderContext): ITemplate {
     parentContext = parentContext || <ExposedContext>this.container;
 
-    if (definition && definition.templateOrNode) {
+    if (definition && definition.template) {
       if (definition.build.required) {
         const compilerName = definition.build.compiler || defaultCompilerName;
         const compiler = this.compilers[compilerName];
@@ -146,7 +146,7 @@ export class RenderingEngine implements IRenderingEngine {
 export function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefinition {
   return {
     name: definition.name || 'Unnamed Template',
-    templateOrNode: definition.templateOrNode,
+    template: definition.template,
     cache: definition.cache || 0,
     build: definition.build || {
       required: false

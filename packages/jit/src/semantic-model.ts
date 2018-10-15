@@ -24,8 +24,8 @@ export class SemanticModel {
     this.attrDefCache = {};
     this.elDefCache = {};
     this.commandCache = {};
-    const syntax = this.elParser.parse(definition.templateOrNode);
-    definition.templateOrNode = syntax.node;
+    const syntax = this.elParser.parse(definition.template);
+    definition.template = syntax.node;
     this.root = new ElementSymbol(
       /*   semanticModel*/this,
       /*isDefinitionRoot*/true,
@@ -459,7 +459,7 @@ export class ElementSymbol {
   }
 
   public lift(instruction: HydrateTemplateController): ElementSymbol {
-    const template = instruction.src.templateOrNode = DOM.createTemplate() as HTMLTemplateElement;
+    const template = instruction.src.template = DOM.createTemplate() as HTMLTemplateElement;
     const node = this.node as HTMLTemplateElement;
     if (this.isTemplate) {
       // copy remaining attributes over to the newly created template

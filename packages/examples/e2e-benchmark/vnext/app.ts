@@ -11,7 +11,7 @@ class Todo {
 
 @customElement({
   name: 'app',
-  templateOrNode: `
+  template: `
   <template>
     <input id="description" type="text" value.two-way="description">
     <input id="count" type="number" value.two-way="count">

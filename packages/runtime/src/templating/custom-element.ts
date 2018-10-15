@@ -295,7 +295,7 @@ function removeNodes(this: IInternalCustomElementImplementation): void {
 export function createCustomElementDescription(templateSource: ITemplateSource, Type: ICustomElementType): TemplateDefinition {
   return {
     name: templateSource.name || 'unnamed',
-    templateOrNode: templateSource.templateOrNode || null,
+    template: templateSource.template || null,
     cache: 0,
     build: templateSource.build || {
       required: false,

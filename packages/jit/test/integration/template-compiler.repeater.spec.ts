@@ -32,8 +32,7 @@ suite.addDataSlot('f')
   .addData('02').setFactory(({e: [items, tpl]}) => `<template><div repeat.for="item of ${items}" if.bind="true">${tpl}</div></template>`)
   .addData('03').setFactory(({e: [items, tpl]}) => `<template><div if.bind="true" repeat.for="item of ${items}">${tpl}</div></template>`)
   .addData('04').setFactory(({e: [items, tpl]}) => `<template><div if.bind="false"></div><div else repeat.for="item of ${items}">${tpl}</div></template>`)
-  // TODO: nodes aren't removed on au.stop()
-  //.addData('05').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}">${tpl}</template></template>`)
+  .addData('05').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}">${tpl}</template></template>`)
   .addData('06').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}"><div if.bind="true">${tpl}</div></template></template>`)
   .addData('07').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}"><div if.bind="false"></div><div else>${tpl}</div></template></template>`);
 

@@ -120,30 +120,28 @@ parentSuite.addDataSlot('f') // Template (custom element)
         </div>
       </template>
     </template>`)
-  // TODO: renderLocation is removed instead of view nodes
-  // .addData('10').setValue(
-  //   `<template>
-  //     <div repeat.for="item of items">
-  //       <template if.bind="display">
-  //         \${item.if}
-  //       </template>
-  //       <template else>
-  //         \${item.else}
-  //       </template>
-  //     </div>
-  //   </template>`)
-  //TODO: renderLocation is removed instead of view nodes
-  // .addData('11').setValue(
-  //   `<template>
-  //     <template repeat.for="item of items">
-  //       <template if.bind="display">
-  //         \${item.if}
-  //       </template>
-  //       <template else>
-  //         \${item.else}
-  //       </template>
-  //     </template>
-  //   </template>`)
+  .addData('10').setValue(
+    `<template>
+      <div repeat.for="item of items">
+        <template if.bind="display">
+          \${item.if}
+        </template>
+        <template else>
+          \${item.else}
+        </template>
+      </div>
+    </template>`)
+  .addData('11').setValue(
+    `<template>
+      <template repeat.for="item of items">
+        <template if.bind="display">
+          \${item.if}
+        </template>
+        <template else>
+          \${item.else}
+        </template>
+      </template>
+    </template>`)
   .addData('12').setValue(
     `<template>
       <div if.bind="display" repeat.for="item of items">
@@ -231,10 +229,21 @@ parentSuite.addDataSlot('h') // Markup (app)
       <foo else repeat.for="i of count" items.bind="items" display.bind="display">
       </foo>
     </template>`)
-// TODO: doesn't remove all nodes it needs to remove (or something), renders too much
-//.addData('06').setValue(`<template><div if.bind="false">do_not_show</div><foo items.bind="items" display.bind="display" else repeat.for="i of count"></foo></template>`)
-// TODO: incorrect bindings (or something), renders too little
-//.addData('07').setValue(`<template><foo items.bind="items" display.bind="display" repeat.for="i of count"></foo></template>`)
+// // TODO: doesn't remove all nodes it needs to remove (or something), renders too much
+//   .addData('06').setValue(
+//     `<template>
+//       <div if.bind="false">
+//         do_not_show
+//       </div>
+//       <foo items.bind="items" display.bind="display" else repeat.for="i of count">
+//       </foo>
+//     </template>`)
+// // TODO: incorrect bindings (or something), renders too little
+  // .addData('07').setValue(
+  //   `<template>
+  //     <foo items.bind="items" display.bind="display" repeat.for="i of count">
+  //     </foo>
+  //   </template>`)
 
 parentSuite.addDataSlot('i') // count
   .addData('01').setValue(1)

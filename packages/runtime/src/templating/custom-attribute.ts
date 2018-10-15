@@ -18,7 +18,7 @@ import { IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 
-export interface ICustomAttributeSource {
+export interface IAttributeDefinition {
   name: string;
   defaultBindingMode?: BindingMode;
   aliases?: string[];
@@ -26,9 +26,9 @@ export interface ICustomAttributeSource {
   bindables?: Record<string, IBindableDescription>;
 }
 
-export type AttributeDefinition = Immutable<Required<ICustomAttributeSource>> | null;
+export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
 
-export type ICustomAttributeType = IResourceType<ICustomAttributeSource, ICustomAttribute>;
+export type ICustomAttributeType = IResourceType<IAttributeDefinition, ICustomAttribute>;
 
 export interface ICustomAttribute extends IBindScope, IAttach {
   readonly $scope: IScope;
@@ -44,7 +44,7 @@ export interface IInternalCustomAttributeImplementation extends Writable<ICustom
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
  */
-export function customAttribute(nameOrSource: string | ICustomAttributeSource) {
+export function customAttribute(nameOrSource: string | IAttributeDefinition) {
   return function<T extends Constructable>(target: T) {
     return CustomAttributeResource.define(nameOrSource, target);
   }
@@ -55,24 +55,24 @@ export function customAttribute(nameOrSource: string | ICustomAttributeSource) {
  * attribute is placed on should be converted into a template and that this
  * attribute controls the instantiation of the template.
  */
-export function templateController(nameOrSource: string | Omit<ICustomAttributeSource, 'isTemplateController'>) {
+export function templateController(nameOrDef: string | Omit<IAttributeDefinition, 'isTemplateController'>) {
   return function<T extends Constructable>(target: T) {
-    let source: ICustomAttributeSource;
+    let def: IAttributeDefinition;
 
-    if (typeof nameOrSource === 'string') {
-      source = {
-        name: nameOrSource,
+    if (typeof nameOrDef === 'string') {
+      def = {
+        name: nameOrDef,
         isTemplateController: true
       };
     } else {
-      source = { isTemplateController: true, ...nameOrSource };
+      def = { isTemplateController: true, ...nameOrDef };
     }
 
-    return CustomAttributeResource.define(source, target);
+    return CustomAttributeResource.define(def, target);
   }
 }
 
-export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICustomAttributeType> = {
+export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICustomAttributeType> = {
   name: 'custom-attribute',
 
   keyFrom(name: string): string {
@@ -83,7 +83,7 @@ export const CustomAttributeResource: IResourceKind<ICustomAttributeSource, ICus
     return (type as any).kind === this;
   },
 
-  define<T extends Constructable>(nameOrSource: string | ICustomAttributeSource, ctor: T): T & ICustomAttributeType {
+  define<T extends Constructable>(nameOrSource: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
     const Type = ctor as ICustomAttributeType & T;
     const proto: ICustomAttribute = Type.prototype;
     const description = createCustomAttributeDescription(
@@ -209,12 +209,12 @@ function cache(this: IInternalCustomAttributeImplementation): void {
 }
 
 /*@internal*/
-export function createCustomAttributeDescription(attributeSource: ICustomAttributeSource, Type: ICustomAttributeType): ResourceDescription<ICustomAttributeSource> {
+export function createCustomAttributeDescription(def: IAttributeDefinition, Type: ICustomAttributeType): ResourceDescription<IAttributeDefinition> {
   return {
-    name: attributeSource.name,
-    aliases: attributeSource.aliases || PLATFORM.emptyArray,
-    defaultBindingMode: attributeSource.defaultBindingMode || BindingMode.toView,
-    isTemplateController: attributeSource.isTemplateController || false,
-    bindables: {...(Type as any).bindables, ...attributeSource.bindables}
+    name: def.name,
+    aliases: def.aliases || PLATFORM.emptyArray,
+    defaultBindingMode: def.defaultBindingMode || BindingMode.toView,
+    isTemplateController: def.isTemplateController || false,
+    bindables: {...(Type as any).bindables, ...def.bindables}
   };
 }

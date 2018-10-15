@@ -1,5 +1,5 @@
 import { Immutable, IServiceLocator, PLATFORM } from '@aurelia/kernel';
-import { BindingMode, CustomAttributeResource, CustomElementResource, DOM, IBindableDescription, ICustomAttributeSource, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
+import { BindingMode, CustomAttributeResource, CustomElementResource, DOM, IBindableDescription, IAttributeDefinition, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
 import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { BindingCommandResource,  IBindingCommand } from './binding-command';
 import { Char } from './common';
@@ -10,7 +10,7 @@ export class SemanticModel {
   public readonly isSemanticModel: true = true;
   public readonly root: ElementSymbol;
 
-  private readonly attrDefCache: Record<string, ICustomAttributeSource>;
+  private readonly attrDefCache: Record<string, IAttributeDefinition>;
   private readonly elDefCache: Record<string, ITemplateDefinition>;
   private readonly commandCache: Record<string, IBindingCommand>;
 
@@ -63,12 +63,12 @@ export class SemanticModel {
     return new SemanticModel(definition, resources, attrParser, elParser, exprParser);
   }
 
-  public getAttributeDefinition(name: string): ICustomAttributeSource {
+  public getAttributeDefinition(name: string): IAttributeDefinition {
     const existing = this.attrDefCache[name];
     if (existing !== undefined) {
       return existing;
     }
-    const definition = <ICustomAttributeSource>this.resources.find(CustomAttributeResource, name) || null;
+    const definition = <IAttributeDefinition>this.resources.find(CustomAttributeResource, name) || null;
     return this.attrDefCache[name] = definition;
   }
 
@@ -233,7 +233,7 @@ export class AttributeSymbol implements IAttributeSymbol {
     public readonly semanticModel: SemanticModel,
     public readonly $element: ElementSymbol,
     public readonly syntax: AttrSyntax,
-    public readonly definition: ICustomAttributeSource | null,
+    public readonly definition: IAttributeDefinition | null,
     public readonly command: IBindingCommand | null
   ) {
     this.target = syntax.target;

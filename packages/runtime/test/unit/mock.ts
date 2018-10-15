@@ -40,7 +40,7 @@ import {
   IChangeSet,
   ITemplateDefinition,
   IResourceType,
-  ICustomAttributeSource,
+  IAttributeDefinition,
   ICustomAttribute,
   IRenderer,
   INode,
@@ -708,7 +708,7 @@ export class MockRenderingEngine implements IRenderingEngine {
     return this.renderer;
   }
 
-  public applyRuntimeBehavior(type: IResourceType<ICustomAttributeSource, ICustomAttribute>, instance: ICustomAttribute): void;
+  public applyRuntimeBehavior(type: IResourceType<IAttributeDefinition, ICustomAttribute>, instance: ICustomAttribute): void;
   public applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement): void;
   public applyRuntimeBehavior(type: any, instance: any) {
     this.trace(`applyRuntimeBehavior`, type, instance);

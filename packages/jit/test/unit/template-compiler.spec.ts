@@ -665,7 +665,7 @@ describe(`TemplateCompiler - combinations`, () => {
 
   describe('custom attributes', () => {
     eachCartesianJoinFactory([
-      // ICustomAttributeSource.bindables
+      // IAttributeDefinition.bindables
       <(() => [Record<string, IBindableDescription> | undefined, BindingMode | undefined, string])[]>[
         () => [undefined, undefined, 'value'],
         () => [{}, undefined,  'value'],
@@ -679,7 +679,7 @@ describe(`TemplateCompiler - combinations`, () => {
         () => ['foo-foo', '', PrimitiveLiteral.$empty, class FooFoo{}],
         () => ['foo',     'bar', new AccessScope('bar'), class Foo{}]
       ],
-      // ICustomAttributeSource.defaultBindingMode
+      // IAttributeDefinition.defaultBindingMode
       <(() => BindingMode | undefined)[]>[
         () => undefined,
         () => BindingMode.oneTime,

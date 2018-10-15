@@ -14,6 +14,25 @@ export interface INode extends INodeLike {
   readonly content?: INode;
 }
 
+/*@internal*/
+export class AuMarker implements INode {
+  public get parentNode(): INode {
+    return this.nextSibling.parentNode;
+  }
+  public nextSibling: INode;
+  public previousSibling: INode = null;
+  public content?: INode;
+  public firstChild: INode = null;
+  public lastChild: INode = null;
+  public childNodes: ArrayLike<INode> = PLATFORM.emptyArray;
+
+  constructor(next: INode) {
+    this.nextSibling = next;
+  }
+  // tslint:disable-next-line:no-empty
+  public remove(): void { }
+}
+
 export interface ICustomElementHost extends INode {
   $customElement?: ICustomElement;
 }
@@ -270,7 +289,7 @@ export class TextNodeSequence implements INodeSequence {
     this.firstChild = text;
     this.lastChild = text;
     this.childNodes = [text];
-    this.targets = [{ nextSibling: text, remove: PLATFORM.noop } as any];
+    this.targets = [new AuMarker(text)];
   }
 
   public findTargets(): ArrayLike<INode> {

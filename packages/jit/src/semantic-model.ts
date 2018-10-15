@@ -140,7 +140,7 @@ export interface IAttributeSymbol {
   readonly rawCommand: string;
   readonly syntax: AttrSyntax;
   readonly command: IBindingCommand | null;
-  readonly dest: string;
+  readonly to: string;
   readonly mode: BindingMode;
   readonly bindable: IBindableDescription;
   readonly hasBindingCommand: boolean;
@@ -161,7 +161,7 @@ export class MultiAttributeBindingSymbol implements IAttributeSymbol {
   public readonly rawName: string;
   public readonly rawValue: string;
   public readonly rawCommand: string | null;
-  public readonly dest: string;
+  public readonly to: string;
   public readonly mode: BindingMode;
   public readonly bindable: Immutable<Required<IBindableDescription>> | null = null;
   public readonly hasBindingCommand: boolean;
@@ -190,7 +190,7 @@ export class MultiAttributeBindingSymbol implements IAttributeSymbol {
     for (const prop in bindables) {
       const b = bindables[prop];
       if (b.property === syntax.target) {
-        this.dest = b.property;
+        this.to = b.property;
         this.mode =  (b.mode && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
         this.bindable = b as Immutable<Required<IBindableDescription>>;
         this.isAttributeBindable = true;
@@ -198,7 +198,7 @@ export class MultiAttributeBindingSymbol implements IAttributeSymbol {
       }
     }
     if (!this.isAttributeBindable) {
-      this.dest = syntax.target;
+      this.to = syntax.target;
       this.mode = $parent.definition.defaultBindingMode || BindingMode.toView;
     }
   }
@@ -212,7 +212,7 @@ export class AttributeSymbol implements IAttributeSymbol {
   public readonly rawName: string;
   public readonly rawValue: string;
   public readonly rawCommand: string | null;
-  public readonly dest: string;
+  public readonly to: string;
   public readonly mode: BindingMode;
   public readonly bindable: Immutable<Required<IBindableDescription>> | null = null;
   public readonly isAttributeBindable: boolean = false;
@@ -277,14 +277,14 @@ export class AttributeSymbol implements IAttributeSymbol {
       if (!this.isMultiAttrBinding) {
         for (const prop in bindables) {
           const b = bindables[prop];
-          this.dest = b.property;
+          this.to = b.property;
           this.mode =  (b.mode && b.mode !== BindingMode.default) ? b.mode : (definition.defaultBindingMode || BindingMode.toView);
           this.bindable = b as Immutable<Required<IBindableDescription>>;
           this.isBindable = this.isAttributeBindable = true;
           break;
         }
         if (!this.isAttributeBindable) {
-          this.dest = 'value';
+          this.to = 'value';
           this.mode = definition.defaultBindingMode || BindingMode.toView;
           this.isBindable = this.isAttributeBindable = this.isDefaultAttributeBindable = true;
         }
@@ -294,7 +294,7 @@ export class AttributeSymbol implements IAttributeSymbol {
       for (const prop in bindables) {
         const b = bindables[prop];
         if (b.attribute === syntax.target) {
-          this.dest = b.property;
+          this.to = b.property;
           this.mode = (b.mode && b.mode !== BindingMode.default) ? b.mode : BindingMode.toView;
           this.bindable = b as Immutable<Required<IBindableDescription>>;
           this.isBindable = this.isElementBindable = true;
@@ -302,11 +302,11 @@ export class AttributeSymbol implements IAttributeSymbol {
         }
       }
       if (!this.isElementBindable) {
-        this.dest = syntax.target;
+        this.to = syntax.target;
         this.mode = BindingMode.toView;
       }
     } else {
-      this.dest = syntax.target;
+      this.to = syntax.target;
       this.mode = BindingMode.toView;
     }
   }

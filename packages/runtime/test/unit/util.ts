@@ -23,7 +23,7 @@ export function createTextBindingTemplateSource(propertyName: string, oneTime?: 
       [
         {
           type: TargetedInstructionType.textBinding,
-          srcOrExpr: propertyName
+          from: propertyName
         }
       ]
     ]
@@ -122,13 +122,13 @@ export function createRepeaterTemplateSource({ elName, colName, itemName }: IRep
             {
               type: TargetedInstructionType.propertyBinding,
               mode: BindingMode.toView,
-              srcOrExpr: colName,
-              dest: 'items'
+              from: colName,
+              to: 'items'
             },
             {
               type: TargetedInstructionType.setProperty,
               value: itemName,
-              dest: 'local'
+              to: 'local'
             }
           ]
         }

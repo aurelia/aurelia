@@ -48,10 +48,10 @@ export class Compose {
     };
 
     this.properties = instruction.instructions
-      .filter((x: any) => !composeProps.includes(x.dest))
+      .filter((x: any) => !composeProps.includes(x.to))
       .reduce((acc, item: any) => {
-        if (item.dest) {
-          acc[item.dest] = item;
+        if (item.to) {
+          acc[item.to] = item;
         }
 
         return acc;

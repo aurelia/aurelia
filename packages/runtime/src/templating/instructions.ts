@@ -80,70 +80,70 @@ export function isTargetedInstruction(value: any): value is TargetedInstruction 
 
 export interface ITextBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.textBinding;
-  srcOrExpr: string | Interpolation;
+  from: string | Interpolation;
 }
 
 export interface IInterpolationInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.interpolation;
-  srcOrExpr: string | Interpolation;
-  dest: string;
+  from: string | Interpolation;
+  to: string;
 }
 
 export interface IInterpolationInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.interpolation;
-  srcOrExpr: string | Interpolation;
-  dest: string;
+  from: string | Interpolation;
+  to: string;
 }
 
 export interface IPropertyBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.propertyBinding;
   mode: BindingMode;
-  srcOrExpr: string | IsBindingBehavior;
-  dest: string;
+  from: string | IsBindingBehavior;
+  to: string;
   oneTime?: boolean;
 }
 
 export interface IIteratorBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.iteratorBinding;
-  srcOrExpr: string | ForOfStatement;
-  dest: string;
+  from: string | ForOfStatement;
+  to: string;
 }
 
 export interface IListenerBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.listenerBinding;
-  srcOrExpr: string | IsBindingBehavior;
-  dest: string;
+  from: string | IsBindingBehavior;
+  to: string;
   strategy: DelegationStrategy;
   preventDefault: boolean;
 }
 
 export interface ICallBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.callBinding;
-  srcOrExpr: string | IsBindingBehavior;
-  dest: string;
+  from: string | IsBindingBehavior;
+  to: string;
 }
 
 export interface IRefBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.refBinding;
-  srcOrExpr: string | IsBindingBehavior;
+  from: string | IsBindingBehavior;
 }
 
 export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.stylePropertyBinding;
-  srcOrExpr: string | IsBindingBehavior;
-  dest: string;
+  from: string | IsBindingBehavior;
+  to: string;
 }
 
 export interface ISetPropertyInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.setProperty;
   value: any;
-  dest: string;
+  to: string;
 }
 
 export interface ISetAttributeInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.setAttribute;
   value: any;
-  dest: string;
+  to: string;
 }
 
 export interface IHydrateElementInstruction extends ITargetedInstruction {
@@ -180,6 +180,6 @@ export interface ILetElementInstruction extends ITargetedInstruction {
 
 export interface ILetBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.letBinding;
-  srcOrExpr: string | IsBindingBehavior | Interpolation;
-  dest: string;
+  from: string | IsBindingBehavior | Interpolation;
+  to: string;
 }

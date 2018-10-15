@@ -228,10 +228,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     let toViewModel = false;
     for (let i = 0, ii = attributes.length; ii > i; ++i) {
       const $attr = attributes[i];
-      const dest = PLATFORM.camelCase($attr.dest);
+      const to = PLATFORM.camelCase($attr.to);
       if ($attr.hasBindingCommand) {
         const expr = this.exprParser.parse($attr.rawValue, BindingType.BindCommand);
-        letInstructions.push(new LetBindingInstruction(expr, dest));
+        letInstructions.push(new LetBindingInstruction(expr, to));
       } else if ($attr.rawName === 'to-view-model') {
         toViewModel = true;
         (<Element>$el.node).removeAttribute('to-view-model');
@@ -239,9 +239,9 @@ export class TemplateCompiler implements ITemplateCompiler {
         const expr = this.exprParser.parse($attr.rawValue, BindingType.Interpolation);
         if (expr === null) {
           // Should just be a warning, but throw for now
-          throw new Error(`Invalid let binding. String liternal given for attribute: ${$attr.dest}`);
+          throw new Error(`Invalid let binding. String liternal given for attribute: ${$attr.to}`);
         }
-        letInstructions.push(new LetBindingInstruction(expr, dest));
+        letInstructions.push(new LetBindingInstruction(expr, to));
       }
     }
     $el.addInstructions([new LetElementInstruction(letInstructions, toViewModel)]);
@@ -273,10 +273,10 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (!$attr.hasBindingCommand) {
           const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
           if (expression !== null) {
-            return new InterpolationInstruction(expression, $attr.dest);
+            return new InterpolationInstruction(expression, $attr.to);
           }
           if ($attr.isMultiAttrBinding) {
-            return new SetPropertyInstruction($attr.rawValue, $attr.dest);
+            return new SetPropertyInstruction($attr.rawValue, $attr.to);
           }
         }
         // intentional nested block without a statement to ensure the expression variable isn't shadowed
@@ -285,14 +285,14 @@ export class TemplateCompiler implements ITemplateCompiler {
           const expression = parser.parse($attr.rawValue, BindingType.ToViewCommand);
           switch ($attr.mode) {
             case BindingMode.oneTime:
-              return new OneTimeBindingInstruction(expression, $attr.dest);
+              return new OneTimeBindingInstruction(expression, $attr.to);
             case BindingMode.fromView:
-              return new FromViewBindingInstruction(expression, $attr.dest);
+              return new FromViewBindingInstruction(expression, $attr.to);
             case BindingMode.twoWay:
-              return new TwoWayBindingInstruction(expression, $attr.dest);
+              return new TwoWayBindingInstruction(expression, $attr.to);
             case BindingMode.toView:
             default:
-              return new ToViewBindingInstruction(expression, $attr.dest);
+              return new ToViewBindingInstruction(expression, $attr.to);
           }
         }
       }
@@ -303,10 +303,10 @@ export class TemplateCompiler implements ITemplateCompiler {
           const expression = parser.parse($attr.rawValue, BindingType.Interpolation);
           if (expression === null) {
             // no interpolation -> make it a setProperty on the component
-            return new SetPropertyInstruction($attr.rawValue, $attr.dest);
+            return new SetPropertyInstruction($attr.rawValue, $attr.to);
           }
           // interpolation -> behave like toView (e.g. foo="${someProp}")
-          return new InterpolationInstruction(expression, $attr.dest);
+          return new InterpolationInstruction(expression, $attr.to);
         }
       }
       {
@@ -317,7 +317,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           return null;
         }
         // interpolation -> behave like toView (e.g. id="${someId}")
-        return new InterpolationInstruction(expression, $attr.dest);
+        return new InterpolationInstruction(expression, $attr.to);
       }
   }
 }

@@ -53,34 +53,34 @@ export const nameTagConfig: ITemplateSource = {
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        srcOrExpr: 'name',
-        dest: 'value'
+        from: 'name',
+        to: 'value'
       }
     ],
     [
       {
         type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView,
-        srcOrExpr: 'name',
-        dest: 'textContent'
+        from: 'name',
+        to: 'textContent'
       },
       {
         type: TargetedInstructionType.stylePropertyBinding,
-        srcOrExpr: 'nameTagColor',
-        dest: 'color'
+        from: 'nameTagColor',
+        to: 'color'
       }
     ],
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        srcOrExpr: 'nameTagColor',
-        dest: 'value'
+        from: 'nameTagColor',
+        to: 'value'
       }
     ],
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        srcOrExpr: 'nameTagBorderColor',
-        dest: 'value'
+        from: 'nameTagBorderColor',
+        to: 'value'
       }
     ],
     [
@@ -91,22 +91,22 @@ export const nameTagConfig: ITemplateSource = {
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        srcOrExpr: 'nameTagBorderWidth',
-        dest: 'value'
+        from: 'nameTagBorderWidth',
+        to: 'value'
       }
     ],
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        srcOrExpr: 'nameTagHeaderVisible',
-        dest: 'checked'
+        from: 'nameTagHeaderVisible',
+        to: 'checked'
       }
     ],
     [
       {
         type: TargetedInstructionType.listenerBinding,
-        srcOrExpr: 'click',
-        dest: 'submit',
+        from: 'click',
+        to: 'submit',
         preventDefault: true,
         strategy: DelegationStrategy.none
       }
@@ -115,13 +115,13 @@ export const nameTagConfig: ITemplateSource = {
   surrogates: [
     {
       type: TargetedInstructionType.stylePropertyBinding,
-      srcOrExpr: 'nameTagBorder',
-      dest: 'border'
+      from: 'nameTagBorder',
+      to: 'border'
     },
     {
       type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView,
-      srcOrExpr: 'nameTagClasses',
-      dest: 'className'
+      from: 'nameTagClasses',
+      to: 'className'
     }
   ]
 };

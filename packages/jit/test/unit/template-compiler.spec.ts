@@ -81,7 +81,7 @@ describe('TemplateCompiler', () => {
           );
           verifyInstructions(instructions as any, []);
           verifyInstructions(surrogates as any, [
-            { toVerify: ['type', 'value', 'dest'], type: TT.setAttribute, value: 'h-100', dest: 'class' }
+            { toVerify: ['type', 'value', 'to'], type: TT.setAttribute, value: 'h-100', to: 'class' }
           ]);
         });
 
@@ -93,7 +93,7 @@ describe('TemplateCompiler', () => {
           );
           verifyInstructions(instructions as any, [], 'normal');
           verifyInstructions(surrogates as any, [
-            { toVerify: ['type', 'dest'], type: TT.propertyBinding, dest: 'class' }
+            { toVerify: ['type', 'to'], type: TT.propertyBinding, to: 'class' }
           ], 'surrogate');
         });
 
@@ -105,7 +105,7 @@ describe('TemplateCompiler', () => {
           );
           verifyInstructions(instructions as any, [], 'normal');
           verifyInstructions(surrogates as any, [
-            { toVerify: ['type', 'dest'], type: TT.interpolation, dest: 'class' }
+            { toVerify: ['type', 'to'], type: TT.interpolation, to: 'class' }
           ], 'surrogate');
         });
 
@@ -142,14 +142,14 @@ describe('TemplateCompiler', () => {
         expect(actual.instructions[0].length).to.equal(3);
         const siblingInstructions = actual.instructions[0].slice(1);
         const expectedSiblingInstructions = [
-          { toVerify: ['type', 'res', 'dest'], type: TT.hydrateAttribute, res: 'prop3' },
-          { toVerify: ['type', 'res', 'dest'], type: TT.hydrateAttribute, res: 'prop3' }
+          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
+          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' }
         ];
         verifyInstructions(siblingInstructions, expectedSiblingInstructions);
         const rootInstructions = actual.instructions[0][0]['instructions'] as any[];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res', 'dest'], type: TT.propertyBinding, dest: 'prop1' },
-          { toVerify: ['type', 'res', 'dest'], type: TT.propertyBinding, dest: 'prop2' }
+          { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop1' },
+          { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop2' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
       });
@@ -175,7 +175,7 @@ describe('TemplateCompiler', () => {
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'dest', 'value'], type: TT.setProperty, dest: 'name', value: 'name' }
+          { toVerify: ['type', 'to', 'value'], type: TT.setProperty, to: 'name', value: 'name' }
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -197,7 +197,7 @@ describe('TemplateCompiler', () => {
         const rootInstructions = actual.instructions[0] as any[];
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'value', 'dest'], type: TT.setProperty, value: 'label', dest: 'backgroundColor' },
+          { toVerify: ['type', 'value', 'to'], type: TT.setProperty, value: 'label', to: 'backgroundColor' },
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -226,11 +226,11 @@ describe('TemplateCompiler', () => {
         const rootInstructions = actual.instructions[0] as any[];
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.twoWay, dest: 'propProp1' },
-          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.oneTime, dest: 'prop2' },
-          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.toView, dest: 'propProp3' },
-          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.fromView, dest: 'prop4' },
-          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.twoWay, dest: 'propProp5' },
+          { toVerify: ['type', 'mode', 'to'], mode: BindingMode.twoWay, to: 'propProp1' },
+          { toVerify: ['type', 'mode', 'to'], mode: BindingMode.oneTime, to: 'prop2' },
+          { toVerify: ['type', 'mode', 'to'], mode: BindingMode.toView, to: 'propProp3' },
+          { toVerify: ['type', 'mode', 'to'], mode: BindingMode.fromView, to: 'prop4' },
+          { toVerify: ['type', 'mode', 'to'], mode: BindingMode.twoWay, to: 'propProp5' },
         ].map((e: any) => {
           e.type = TT.propertyBinding;
           return e;
@@ -271,12 +271,12 @@ describe('TemplateCompiler', () => {
           expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.instructions as any, [
-            { toVerify: ['type', 'dest', 'srcOrExpr'],
-              type: TT.propertyBinding, dest: 'value', srcOrExpr: new AccessScope('p') },
-            { toVerify: ['type', 'dest', 'srcOrExpr'],
-              type: TT.propertyBinding, dest: 'name', srcOrExpr: new AccessScope('name') },
-            { toVerify: ['type', 'dest', 'srcOrExpr'],
-              type: TT.propertyBinding, dest: 'title', srcOrExpr: new AccessScope('title') },
+            { toVerify: ['type', 'to', 'from'],
+              type: TT.propertyBinding, to: 'value', from: new AccessScope('p') },
+            { toVerify: ['type', 'to', 'from'],
+              type: TT.propertyBinding, to: 'name', from: new AccessScope('name') },
+            { toVerify: ['type', 'to', 'from'],
+              type: TT.propertyBinding, to: 'title', from: new AccessScope('title') },
           ]);
         });
 
@@ -306,13 +306,13 @@ describe('TemplateCompiler', () => {
               );
 
               verifyInstructions(instructions[0] as any, [
-                { toVerify: ['type', 'res', 'dest'],
+                { toVerify: ['type', 'res', 'to'],
                   type: TargetedInstructionType.hydrateTemplateController, res: 'if' }
               ]);
               const templateControllerInst = instructions[0][0] as any as IHydrateTemplateController;
               verifyInstructions(templateControllerInst.instructions, [
-                { toVerify: ['type', 'dest', 'srcOrExpr'],
-                  type: TargetedInstructionType.propertyBinding, dest: 'value', srcOrExpr: new AccessScope('value') }
+                { toVerify: ['type', 'to', 'from'],
+                  type: TargetedInstructionType.propertyBinding, to: 'value', from: new AccessScope('value') }
               ]);
               const [hydrateNotDivInstruction] = templateControllerInst.src.instructions[0] as [IHydrateElementInstruction];
               verifyInstructions([hydrateNotDivInstruction], [
@@ -353,10 +353,10 @@ describe('TemplateCompiler', () => {
         it('compiles with attributes', () => {
           const { instructions } = compileWith(`<let a.bind="b" c="\${d}"></let>`);
           verifyInstructions((instructions[0][0] as any).instructions, [
-            { toVerify: ['type', 'dest', 'srcOrExp'],
-              type: TT.letBinding, dest: 'a', srcOrExpr: 'b' },
-            { toVerify: ['type', 'dest'],
-              type: TT.letBinding, dest: 'c' }
+            { toVerify: ['type', 'to', 'srcOrExp'],
+              type: TT.letBinding, to: 'a', from: 'b' },
+            { toVerify: ['type', 'to'],
+              type: TT.letBinding, to: 'c' }
           ]);
         });
 
@@ -419,20 +419,20 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
   if (attr === 'repeat.for') {
     return [{
       type: TT.iteratorBinding,
-      srcOrExpr: new ForOfStatement(
+      from: new ForOfStatement(
         new BindingIdentifier(value.split(' of ')[0]),
         new AccessScope(value.split(' of ')[1])),
-      dest: 'items'
+      to: 'items'
     }, {
       type: TT.setProperty,
       value: 'item',
-      dest: 'local'
+      to: 'local'
     }];
   } else {
     return [{
       type: TT.propertyBinding,
-      srcOrExpr: value.length === 0 ? PrimitiveLiteral.$empty : new AccessScope(value),
-      dest: 'value',
+      from: value.length === 0 ? PrimitiveLiteral.$empty : new AccessScope(value),
+      to: 'value',
       mode: BindingMode.toView,
       oneTime: false
     }];
@@ -571,38 +571,38 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
   if (!!bindable) {
     if (!!cmd && validCommands.indexOf(cmd) !== -1) {
       const type = TT.propertyBinding;
-      const dest = bindable.property;
-      const srcOrExpr = parseCore(attributeValue);
-      return { type, dest, mode, srcOrExpr, oneTime };
+      const to = bindable.property;
+      const from = parseCore(attributeValue);
+      return { type, to, mode, from, oneTime };
     } else {
-      const srcOrExpr = parseCore(attributeValue, <any>BindingType.Interpolation);
-      if (!!srcOrExpr) {
+      const from = parseCore(attributeValue, <any>BindingType.Interpolation);
+      if (!!from) {
         const type = TT.interpolation;
-        const dest = bindable.property;
-        return { type, dest, srcOrExpr };
+        const to = bindable.property;
+        return { type, to, from };
       } else {
         const type = TT.setProperty;
-        const dest = bindable.property;
+        const to = bindable.property;
         const value = attributeValue;
-        return { type, dest, value };
+        return { type, to, value };
       }
     }
   } else {
     const type = TT.propertyBinding;
-    const dest = attr;
+    const to = attr;
     if (!!cmd && validCommands.indexOf(cmd) !== -1) {
-      const srcOrExpr = parseCore(attributeValue);
-      return { type, dest, mode, srcOrExpr, oneTime };
+      const from = parseCore(attributeValue);
+      return { type, to, mode, from, oneTime };
     } else {
-      let srcOrExpr = parseCore(attributeValue, <any>BindingType.Interpolation);
-      if (!!srcOrExpr) {
+      let from = parseCore(attributeValue, <any>BindingType.Interpolation);
+      if (!!from) {
         const type = TT.interpolation;
-        return { type, dest, srcOrExpr };
+        return { type, to, from };
       } else if (isMulti) {
         const type = TT.setProperty;
-        const dest = attr;
+        const to = attr;
         const value = attributeValue;
-        return { type, dest, value };
+        return { type, to, value };
       } else {
         return null;
       }
@@ -636,16 +636,16 @@ describe(`TemplateCompiler - combinations`, () => {
         () => ['value', 'value', 'value', new AccessScope('value')]
       ],
       <(($1: [string], $2: [string, string, string, IExpression]) => [string, string, any])[]>[
-        ($1, [,, value, srcOrExpr]) => [`ref`,               value, { type: TT.refBinding,      srcOrExpr }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime,  oneTime: true  }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView, oneTime: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay,   oneTime: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.none,      preventDefault: true }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.capturing, preventDefault: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.call`,      value, { type: TT.callBinding,     srcOrExpr, dest }]
+        ($1, [,, value, from]) => [`ref`,               value, { type: TT.refBinding,      from }],
+        ($1, [attr, to, value, from]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from, to, mode: BindingMode.toView,   oneTime: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from, to, mode: BindingMode.toView,   oneTime: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from, to, mode: BindingMode.oneTime,  oneTime: true  }],
+        ($1, [attr, to, value, from]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from, to, mode: BindingMode.fromView, oneTime: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, from, to, mode: BindingMode.twoWay,   oneTime: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.none,      preventDefault: true }],
+        ($1, [attr, to, value, from]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.capturing, preventDefault: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.call`,      value, { type: TT.callBinding,     from, to }]
       ]
     ], ([el], $2, [n1, v1, i1]) => {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;
@@ -688,12 +688,12 @@ describe(`TemplateCompiler - combinations`, () => {
         () => BindingMode.twoWay
       ],
       <(($1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, IExpression, Constructable], $3: BindingMode) => [string, any])[]>[
-        ([, mode, dest], [attr,, srcOrExpr], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        ([, mode, dest], [attr,, srcOrExpr], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.to-view`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView }],
-        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.one-time`,  { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime }],
-        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.from-view`, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView }],
-        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.two-way`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay }]
+        ([, mode, to], [attr,, from], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, from, to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        ([, mode, to], [attr,, from], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from, to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        ([,, to], [attr,, from]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from, to, mode: BindingMode.toView }],
+        ([,, to], [attr,, from]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from, to, mode: BindingMode.oneTime }],
+        ([,, to], [attr,, from]) => [`${attr}.from-view`, { type: TT.propertyBinding, from, to, mode: BindingMode.fromView }],
+        ([,, to], [attr,, from]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from, to, mode: BindingMode.twoWay }]
       ]
     ], ([bindables], [attr, value,, ctor], defaultBindingMode, [name, childInstruction]) => {
       childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;

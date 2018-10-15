@@ -81,14 +81,14 @@ function createElementForTag(tagName: string, props?: any, children?: ArrayLike<
 
   if (props) {
     Object.keys(props)
-      .forEach(dest => {
-        const value = props[dest];
+      .forEach(to => {
+        const value = props[to];
 
         if (isTargetedInstruction(value)) {
           hasInstructions = true;
           instructions.push(value);
         } else {
-          DOM.setAttribute(element, dest, value);
+          DOM.setAttribute(element, to, value);
         }
       });
   }
@@ -128,24 +128,24 @@ function createElementForType(Type: ICustomElementType, props?: any, children?: 
 
   if (props) {
     Object.keys(props)
-      .forEach(dest => {
-        const value = props[dest];
+      .forEach(to => {
+        const value = props[to];
 
         if (isTargetedInstruction(value)) {
           childInstructions.push(value);
         } else {
-          const bindable = bindables[dest];
+          const bindable = bindables[to];
 
           if (bindable) {
             childInstructions.push({
               type: TargetedInstructionType.setProperty,
-              dest,
+              to,
               value
             });
           } else {
             childInstructions.push({
               type: TargetedInstructionType.setAttribute,
-              dest,
+              to,
               value
             });
           }

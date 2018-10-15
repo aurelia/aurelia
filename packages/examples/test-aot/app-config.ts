@@ -27,20 +27,20 @@ export const appConfig: ITemplateSource = {
     [
       {
         type: TargetedInstructionType.textBinding,
-        srcOrExpr: 'message'
+        from: 'message'
       }
     ],
     [
       {
         type: TargetedInstructionType.textBinding,
-        srcOrExpr: 'computedMessage'
+        from: 'computedMessage'
       }
     ],
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        srcOrExpr: 'message',
-        dest: 'value'
+        from: 'message',
+        to: 'value'
       }
     ],
     [
@@ -50,12 +50,12 @@ export const appConfig: ITemplateSource = {
         instructions: [
           {
             type: TargetedInstructionType.twoWayBinding,
-            srcOrExpr: 'message',
-            dest: 'name'
+            from: 'message',
+            to: 'name'
           },
           {
             type: TargetedInstructionType.refBinding,
-            srcOrExpr: 'nameTag'
+            from: 'nameTag'
           }
         ]
       }
@@ -63,14 +63,14 @@ export const appConfig: ITemplateSource = {
     [
       {
         type: TargetedInstructionType.textBinding,
-        srcOrExpr: 'message'
+        from: 'message'
       }
     ],
     [
       {
         type: TargetedInstructionType.twoWayBinding,
-        srcOrExpr: 'duplicateMessage',
-        dest: 'checked'
+        from: 'duplicateMessage',
+        to: 'checked'
       }
     ],
     [
@@ -83,7 +83,7 @@ export const appConfig: ITemplateSource = {
             [
               {
                 type: TargetedInstructionType.textBinding,
-                srcOrExpr: 'message'
+                from: 'message'
               }
             ]
           ]
@@ -91,8 +91,8 @@ export const appConfig: ITemplateSource = {
         instructions: [
           {
             type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView,
-            srcOrExpr: 'duplicateMessage',
-            dest: 'condition'
+            from: 'duplicateMessage',
+            to: 'condition'
           }
         ]
       }
@@ -119,7 +119,7 @@ export const appConfig: ITemplateSource = {
             [
               {
                 type: TargetedInstructionType.textBinding,
-                srcOrExpr: 'description'
+                from: 'description'
               }
             ]
           ]
@@ -127,13 +127,13 @@ export const appConfig: ITemplateSource = {
         instructions: [
           {
             type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView,
-            srcOrExpr: 'todos',
-            dest: 'items'
+            from: 'todos',
+            to: 'items'
           },
           {
             type: TargetedInstructionType.setProperty,
             value: 'todo',
-            dest: 'local'
+            to: 'local'
           }
         ]
       }
@@ -141,8 +141,8 @@ export const appConfig: ITemplateSource = {
     [
       {
         type: TargetedInstructionType.listenerBinding,
-        srcOrExpr: 'click',
-        dest: 'addTodo',
+        from: 'click',
+        to: 'addTodo',
         preventDefault: true,
         strategy: DelegationStrategy.none
       }

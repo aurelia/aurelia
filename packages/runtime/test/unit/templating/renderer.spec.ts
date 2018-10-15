@@ -87,8 +87,8 @@ describe('Renderer', () => {
   }
 
   describe('handles ITextBindingInstruction', () => {
-    for (const srcOrExpr of ['${foo}', new Interpolation(['', ''], [new AccessScope('foo')])] as any[]) {
-      const instruction = new TextBindingInstruction(srcOrExpr) as any;
+    for (const from of ['${foo}', new Interpolation(['', ''], [new AccessScope('foo')])] as any[]) {
+      const instruction = new TextBindingInstruction(from) as any;
       it(_`instruction=${instruction}`, () => {
         const { sut, renderable, target, placeholder, wrapper } = setup();
 
@@ -111,9 +111,9 @@ describe('Renderer', () => {
 
   describe('handles IPropertyBindingInstruction', () => {
     for (const Instruction of [OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction] as any[]) {
-      for (const dest of ['foo', 'bar']) {
-        for (const srcOrExpr of ['foo', new AccessScope('foo')]) {
-          const instruction = <IPropertyBindingInstruction>new (<any>Instruction)(srcOrExpr, dest);
+      for (const to of ['foo', 'bar']) {
+        for (const from of ['foo', new AccessScope('foo')]) {
+          const instruction = <IPropertyBindingInstruction>new (<any>Instruction)(from, to);
           it(_`instruction=${instruction}`, () => {
             const { sut, renderable, target, wrapper } = setup();
 
@@ -124,7 +124,7 @@ describe('Renderer', () => {
             expect(bindable.target).to.equal(target);
             expect(bindable.sourceExpression['name']).to.equal('foo');
             expect(bindable.mode).to.equal(instruction.mode);
-            expect(bindable.targetProperty).to.equal(dest);
+            expect(bindable.targetProperty).to.equal(to);
 
             tearDown({ wrapper });
           });
@@ -135,9 +135,9 @@ describe('Renderer', () => {
 
   describe('handles IListenerBindingInstruction', () => {
     for (const Instruction of [TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction] as any[]) {
-      for (const dest of ['foo', 'bar']) {
-        for (const srcOrExpr of ['foo', new AccessScope('foo')]) {
-          const instruction = <IListenerBindingInstruction>new (<any>Instruction)(srcOrExpr, dest);
+      for (const to of ['foo', 'bar']) {
+        for (const from of ['foo', new AccessScope('foo')]) {
+          const instruction = <IListenerBindingInstruction>new (<any>Instruction)(from, to);
           it(_`instruction=${instruction}`, () => {
             const { sut, renderable, target, wrapper } = setup();
 
@@ -148,7 +148,7 @@ describe('Renderer', () => {
             expect(bindable.target).to.equal(target);
             expect(bindable.sourceExpression['name']).to.equal('foo');
             expect(bindable.delegationStrategy).to.equal(instruction.strategy);
-            expect(bindable.targetEvent).to.equal(dest);
+            expect(bindable.targetEvent).to.equal(to);
             expect(bindable.preventDefault).to.equal(instruction.strategy === DelegationStrategy.none);
 
             tearDown({ wrapper });
@@ -159,9 +159,9 @@ describe('Renderer', () => {
   });
 
   describe('handles ICallBindingInstruction', () => {
-    for (const dest of ['foo', 'bar']) {
-      for (const srcOrExpr of ['foo()', new CallScope('foo', [])] as any[]) {
-        const instruction = new CallBindingInstruction(srcOrExpr, dest) as any;
+    for (const to of ['foo', 'bar']) {
+      for (const from of ['foo()', new CallScope('foo', [])] as any[]) {
+        const instruction = new CallBindingInstruction(from, to) as any;
         it(_`instruction=${instruction}`, () => {
           const { sut, renderable, target, wrapper } = setup();
 
@@ -170,7 +170,7 @@ describe('Renderer', () => {
           expect(renderable.$bindables.length).to.equal(1);
           const bindable = <Call>renderable.$bindables[0];
           expect(bindable.targetObserver['obj']).to.equal(target);
-          expect(bindable.targetObserver['propertyKey']).to.equal(dest);
+          expect(bindable.targetObserver['propertyKey']).to.equal(to);
           expect(bindable.sourceExpression['name']).to.equal('foo');
 
           tearDown({ wrapper });
@@ -180,8 +180,8 @@ describe('Renderer', () => {
   });
 
   describe('handles IRefBindingInstruction', () => {
-    for (const srcOrExpr of ['foo', new AccessScope('foo')] as any[]) {
-      const instruction = new RefBindingInstruction(srcOrExpr) as any;
+    for (const from of ['foo', new AccessScope('foo')] as any[]) {
+      const instruction = new RefBindingInstruction(from) as any;
       it(_`instruction=${instruction}`, () => {
         const { sut, renderable, target, wrapper } = setup();
 
@@ -198,9 +198,9 @@ describe('Renderer', () => {
   });
 
   describe('handles IStyleBindingInstruction', () => {
-    for (const dest of ['foo', 'bar']) {
-      for (const srcOrExpr of ['foo', new AccessScope('foo')] as any[]) {
-        const instruction = new StylePropertyBindingInstruction(srcOrExpr, dest) as any;
+    for (const to of ['foo', 'bar']) {
+      for (const from of ['foo', new AccessScope('foo')] as any[]) {
+        const instruction = new StylePropertyBindingInstruction(from, to) as any;
         it(_`instruction=${instruction}`, () => {
           const { sut, renderable, target, wrapper } = setup();
 
@@ -211,7 +211,7 @@ describe('Renderer', () => {
           expect(bindable.target).to.equal(target.style);
           expect(bindable.sourceExpression['name']).to.equal('foo');
           expect(bindable.mode).to.equal(BindingMode.toView);
-          expect(bindable.targetProperty).to.equal(dest);
+          expect(bindable.targetProperty).to.equal(to);
 
           tearDown({ wrapper });
         });
@@ -220,16 +220,16 @@ describe('Renderer', () => {
   });
 
   describe('handles ISetPropertyInstruction', () => {
-    for (const dest of ['foo', 'bar']) {
+    for (const to of ['foo', 'bar']) {
       for (const value of ['foo', 42, {}] as any[]) {
-        const instruction = new SetPropertyInstruction(value, dest) as any;
+        const instruction = new SetPropertyInstruction(value, to) as any;
         it(_`instruction=${instruction}`, () => {
           const { sut, renderable, target, wrapper } = setup();
 
           sut[instruction.type](renderable, target, instruction);
 
           expect(renderable.$bindables.length).to.equal(0);
-          expect(target[dest]).to.equal(value);
+          expect(target[to]).to.equal(value);
 
           tearDown({ wrapper });
         });
@@ -238,16 +238,16 @@ describe('Renderer', () => {
   });
 
   describe('handles ISetAttributeInstruction', () => {
-    for (const dest of ['id', 'accesskey', 'slot', 'tabindex']) {
+    for (const to of ['id', 'accesskey', 'slot', 'tabindex']) {
       for (const value of ['foo', 42, null] as any[]) {
-        const instruction = new SetAttributeInstruction(value, dest) as any;
+        const instruction = new SetAttributeInstruction(value, to) as any;
         it(_`instruction=${instruction}`, () => {
           const { sut, renderable, target, wrapper } = setup();
 
           sut[instruction.type](renderable, target, instruction);
 
           expect(renderable.$bindables.length).to.equal(0);
-          expect(target.getAttribute(dest)).to.equal(value + '');
+          expect(target.getAttribute(to)).to.equal(value + '');
 
           tearDown({ wrapper });
         });
@@ -308,10 +308,10 @@ describe('Renderer', () => {
   describe('<let/>', () => {
 
     describe('ILetElementInstruction', () => {
-      for (const dest of ['processedFoo', 'processedPoo']) {
+      for (const to of ['processedFoo', 'processedPoo']) {
         for (const value of ['foo', new AccessScope('foo')] as any[]) {
           const instruction = new LetElementInstruction(
-            [new LetBindingInstruction(value, dest)],
+            [new LetBindingInstruction(value, to)],
             Math.random() > .4
           ) as any;
           it(_`instruction=${instruction}`, () => {

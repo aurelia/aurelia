@@ -38,7 +38,7 @@ import {
   BindingIdentifier,
   RuntimeBehavior,
   IChangeSet,
-  ITemplateSource,
+  ITemplateDefinition,
   IResourceType,
   ICustomAttributeSource,
   ICustomAttribute,
@@ -693,12 +693,12 @@ export class MockRenderingEngine implements IRenderingEngine {
     this.calls = [];
   }
 
-  public getElementTemplate(definition: Immutable<Required<ITemplateSource>>, componentType?: ICustomElementType): ITemplate {
+  public getElementTemplate(definition: Immutable<Required<ITemplateDefinition>>, componentType?: ICustomElementType): ITemplate {
     this.trace(`getElementTemplate`, definition, componentType);
     return this.elementTemplate;
   }
 
-  public getViewFactory(source: Immutable<ITemplateSource>, parentContext?: IRenderContext): IViewFactory {
+  public getViewFactory(source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory {
     this.trace(`getViewFactory`, source, parentContext);
     return this.viewFactory;
   }
@@ -752,7 +752,7 @@ export class MockCustomElementWithAllLifecycles {
   public unbound(flags: BindingFlags): void {
     this.trace(`unbound`, flags);
   }
-  public render(host: INode, parts: Record<string, Immutable<ITemplateSource>>): INodeSequence {
+  public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): INodeSequence {
     this.trace(`render`, host, parts);
     return new MockTextNodeSequence();
   }

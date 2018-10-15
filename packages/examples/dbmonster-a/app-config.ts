@@ -1,7 +1,7 @@
-import { ITemplateSource, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
+import { ITemplateDefinition, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
 
 //this object is built up during compilation
-export const appConfig: ITemplateSource = {
+export const appConfig: ITemplateDefinition = {
   name: 'app',
   dependencies: [ ],
   template: `
@@ -18,7 +18,7 @@ export const appConfig: ITemplateSource = {
       {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'repeat',
-        src: {
+        def: {
           cache: "*",
           template: `
             <tr>
@@ -34,7 +34,7 @@ export const appConfig: ITemplateSource = {
               {
                 type: TargetedInstructionType.hydrateTemplateController,
                 res: 'repeat',
-                src: {
+                def: {
                   cache: "*",
                   template: `
                   <td>

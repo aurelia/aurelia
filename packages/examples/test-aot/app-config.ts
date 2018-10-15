@@ -1,11 +1,11 @@
-import { ITemplateSource, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
+import { ITemplateDefinition, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
 
 //extracted from view imports
 import * as import1 from "./name-tag";
 import { DelegationStrategy } from '@aurelia/runtime';
 
 //this object is built up during compilation
-export const appConfig: ITemplateSource = {
+export const appConfig: ITemplateDefinition = {
   name: 'app',
   dependencies: [
     import1
@@ -77,7 +77,7 @@ export const appConfig: ITemplateSource = {
       {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'if',
-        src: {
+        def: {
           template: `<div><au-marker class="au"></au-marker> </div>`,
           instructions: [
             [
@@ -101,7 +101,7 @@ export const appConfig: ITemplateSource = {
       {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'else',
-        src: {
+        def: {
           template: `<div>No Message Duplicated</div>`,
           instructions: []
         },
@@ -113,7 +113,7 @@ export const appConfig: ITemplateSource = {
       {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'repeat',
-        src: {
+        def: {
           template: `<div><au-marker class="au"></au-marker> </div>`,
           instructions: [
             [

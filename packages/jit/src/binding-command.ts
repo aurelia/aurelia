@@ -1,5 +1,5 @@
 import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
-import { BindingType, IExpressionParser, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
+import { BindingType, IExpressionParser, IResourceKind, IResourceType, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
 import {
   CallBindingInstruction,
   CaptureBindingInstruction,
@@ -184,12 +184,12 @@ export class ForBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    const src: ITemplateSource = {
+    const def: ITemplateDefinition = {
       name: 'repeat',
       template: $symbol.$element.node,
       instructions: []
     };
-    return new HydrateTemplateController(src, 'repeat', [
+    return new HydrateTemplateController(def, 'repeat', [
       new IteratorBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ForCommand), 'items'),
       new SetPropertyInstruction('item', 'local')
     // tslint:disable-next-line:align

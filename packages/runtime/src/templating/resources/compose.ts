@@ -7,7 +7,7 @@ import { customElement, ICustomElement } from '../custom-element';
 import {
   IHydrateElementInstruction,
   ITargetedInstruction,
-  ITemplateSource,
+  ITemplateDefinition,
   TargetedInstruction,
   TemplateDefinition
 } from '../instructions';
@@ -17,7 +17,7 @@ import { IRenderingEngine } from '../rendering-engine';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
 
-const composeSource: ITemplateSource = {
+const composeSource: ITemplateDefinition = {
   name: 'au-compose',
   containerless: true
 };

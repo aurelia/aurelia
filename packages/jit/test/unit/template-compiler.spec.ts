@@ -12,7 +12,7 @@ import {
   bindable,
   customAttribute,
   ViewCompileFlags,
-  ITemplateSource,
+  ITemplateDefinition,
   IHydrateTemplateController,
   IHydrateElementInstruction,
   TargetedInstructionType,
@@ -142,14 +142,14 @@ describe('TemplateCompiler', () => {
         expect(actual.instructions[0].length).to.equal(3);
         const siblingInstructions = actual.instructions[0].slice(1);
         const expectedSiblingInstructions = [
-          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
-          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' }
+          { toVerify: ['type', 'def', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
+          { toVerify: ['type', 'def', 'to'], type: TT.hydrateAttribute, res: 'prop3' }
         ];
         verifyInstructions(siblingInstructions, expectedSiblingInstructions);
         const rootInstructions = actual.instructions[0][0]['instructions'] as any[];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop1' },
-          { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop2' }
+          { toVerify: ['type', 'def', 'to'], type: TT.propertyBinding, to: 'prop1' },
+          { toVerify: ['type', 'def', 'to'], type: TT.propertyBinding, to: 'prop2' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
       });
@@ -170,7 +170,7 @@ describe('TemplateCompiler', () => {
         );
         const rootInstructions = actual.instructions[0] as any[];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res'], type: TT.hydrateElement, res: 'el' }
+          { toVerify: ['type', 'def'], type: TT.hydrateElement, res: 'el' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
@@ -253,7 +253,7 @@ describe('TemplateCompiler', () => {
           );
           expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
-          expect((hydratePropAttrInstruction.src.template as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
+          expect((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
         });
 
         it('moves attrbiutes instructions before the template controller into it', () => {
@@ -286,7 +286,7 @@ describe('TemplateCompiler', () => {
             class NotDiv {}
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>', [NotDiv]);
             verifyInstructions(instructions[0] as any, [
-              { toVerify: ['type', 'res'],
+              { toVerify: ['type', 'def'],
                 type: TT.hydrateElement, res: 'not-div' }
             ]);
           });
@@ -306,7 +306,7 @@ describe('TemplateCompiler', () => {
               );
 
               verifyInstructions(instructions[0] as any, [
-                { toVerify: ['type', 'res', 'to'],
+                { toVerify: ['type', 'def', 'to'],
                   type: TargetedInstructionType.hydrateTemplateController, res: 'if' }
               ]);
               const templateControllerInst = instructions[0][0] as any as IHydrateTemplateController;
@@ -314,9 +314,9 @@ describe('TemplateCompiler', () => {
                 { toVerify: ['type', 'to', 'from'],
                   type: TargetedInstructionType.propertyBinding, to: 'value', from: new AccessScope('value') }
               ]);
-              const [hydrateNotDivInstruction] = templateControllerInst.src.instructions[0] as [IHydrateElementInstruction];
+              const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [IHydrateElementInstruction];
               verifyInstructions([hydrateNotDivInstruction], [
-                { toVerify: ['type', 'res'],
+                { toVerify: ['type', 'def'],
                   type: TargetedInstructionType.hydrateElement, res: 'not-div' }
               ]);
               verifyInstructions(hydrateNotDivInstruction.instructions, []);
@@ -458,7 +458,7 @@ function createTemplateController(attr: string, target: string, value: string, t
     const instruction = {
       type: TT.hydrateTemplateController,
       res: target,
-      src: {
+      def: {
         name: target,
         template: createElement(`<template><au-marker class="au"></au-marker></template>`),
         instructions: [[childInstr]]
@@ -488,7 +488,7 @@ function createTemplateController(attr: string, target: string, value: string, t
     const instruction = {
       type: TT.hydrateTemplateController,
       res: target,
-      src: {
+      def: {
         name: target,
         template: createElement(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
         instructions
@@ -610,7 +610,7 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
   }
 }
 
-type CTCResult = [ITemplateSource, ITemplateSource];
+type CTCResult = [ITemplateDefinition, ITemplateDefinition];
 
 type Bindables = { [pdName: string]: IBindableDescription };
 
@@ -697,16 +697,16 @@ describe(`TemplateCompiler - combinations`, () => {
       ]
     ], ([bindables], [attr, value,, ctor], defaultBindingMode, [name, childInstruction]) => {
       childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
-      const src = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
+      const def = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 
-      it(`${markup}  CustomAttribute=${JSON.stringify(src)}`, () => {
+      it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, () => {
         const input = { template: markup, instructions: [], surrogates: [] };
-        const instruction = { type: TT.hydrateAttribute, res: src.name, instructions: [childInstruction] };
+        const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: [childInstruction] };
         const expected = { template: createElement(`<div ${name}="${value}" class="au"></div>`), instructions: [[instruction]], surrogates: [] };
 
-        const def = CustomAttributeResource.define(src, ctor);
-        const { sut, resources } = setup(def);
+        const $def = CustomAttributeResource.define(def, ctor);
+        const { sut, resources } = setup($def);
 
         const actual = sut.compile(<any>input, resources);
 

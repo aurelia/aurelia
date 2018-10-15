@@ -19,7 +19,7 @@ import {
   ISetPropertyInstruction,
   IStylePropertyBindingInstruction,
   ITargetedInstruction,
-  ITemplateSource,
+  ITemplateDefinition,
   ITextBindingInstruction,
   TargetedInstruction,
   TargetedInstructionType
@@ -103,7 +103,7 @@ export class SetAttributeInstruction implements ITargetedInstruction {
 }
 export class HydrateElementInstruction implements IHydrateElementInstruction {
   public type: TargetedInstructionType.hydrateElement = TargetedInstructionType.hydrateElement;
-  constructor(public res: any, public instructions: TargetedInstruction[], public parts?: Record<string, ITemplateSource>, public contentOverride?: INode) {}
+  constructor(public res: any, public instructions: TargetedInstruction[], public parts?: Record<string, ITemplateDefinition>, public contentOverride?: INode) {}
 }
 export class HydrateAttributeInstruction implements IHydrateAttributeInstruction {
   public type: TargetedInstructionType.hydrateAttribute = TargetedInstructionType.hydrateAttribute;
@@ -111,7 +111,7 @@ export class HydrateAttributeInstruction implements IHydrateAttributeInstruction
 }
 export class HydrateTemplateController implements IHydrateTemplateController {
   public type: TargetedInstructionType.hydrateTemplateController = TargetedInstructionType.hydrateTemplateController;
-  constructor(public src: ITemplateSource, public res: any, public instructions: TargetedInstruction[], public link?: boolean) {}
+  constructor(public def: ITemplateDefinition, public res: any, public instructions: TargetedInstruction[], public link?: boolean) {}
 }
 export class LetElementInstruction implements ILetElementInstruction {
   public type: TargetedInstructionType.letElement = TargetedInstructionType.letElement;

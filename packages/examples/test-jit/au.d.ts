@@ -1,11 +1,11 @@
 
 declare module '*.html' {
-  interface ITemplateSource {
+  interface ITemplateDefinition {
     name: string;
     template: string;
     dependencies: any[]
   }
 
-  var _: ITemplateSource;
+  var _: ITemplateDefinition;
   export default  _;
 }

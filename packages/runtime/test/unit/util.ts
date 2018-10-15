@@ -1,6 +1,6 @@
 import { spy } from 'sinon';
 import { IContainer } from '../../../kernel/src/index';
-import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource, ICustomElement, ITemplateSource, TargetedInstructionType, IExpressionParser, AccessMember, AccessScope, Repeat } from '../../src/index';
+import { IView, BindingMode, DOM, ForOfStatement, BindingIdentifier, CustomElementResource, ICustomElement, ITemplateDefinition, TargetedInstructionType, IExpressionParser, AccessMember, AccessScope, Repeat } from '../../src/index';
 import { _, stringify, jsonStringify, htmlStringify, verifyEqual, createElement, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory, getAllPropertyDescriptors } from '../../../../scripts/test-lib';
 import { h } from '../../../../scripts/test-lib-dom';
 
@@ -16,7 +16,7 @@ export interface IRepeaterFixture {
   propName?: string;
 }
 
-export function createTextBindingTemplateSource(propertyName: string, oneTime?: boolean): ITemplateSource {
+export function createTextBindingTemplateSource(propertyName: string, oneTime?: boolean): ITemplateDefinition {
   return {
     template: `<div><au-marker class="au"></au-marker> </div>`,
     instructions: [
@@ -105,7 +105,7 @@ export function incrementItems(items: any[], by: number, fixture?: IRepeaterFixt
  *
  * (currently specific to repeater)
  */
-export function createRepeaterTemplateSource({ elName, colName, itemName }: IRepeaterFixture, src: ITemplateSource): ITemplateSource {
+export function createRepeaterTemplateSource({ elName, colName, itemName }: IRepeaterFixture, def: ITemplateDefinition): ITemplateDefinition {
   return {
     name: elName,
     dependencies: [],
@@ -117,7 +117,7 @@ export function createRepeaterTemplateSource({ elName, colName, itemName }: IRep
         {
           type: TargetedInstructionType.hydrateTemplateController,
           res: 'repeat',
-          src: src,
+          def: def,
           instructions: [
             {
               type: TargetedInstructionType.propertyBinding,
@@ -163,8 +163,8 @@ export function createAureliaRepeaterConfig({ colName, itemName, propName }: IRe
  *
  * (currently specific to repeater)
  */
-export function createRepeater(fixture: IRepeaterFixture, initialItems: any[], src: ITemplateSource): ICustomElement {
-  const Type = CustomElementResource.define(src, class {});
+export function createRepeater(fixture: IRepeaterFixture, initialItems: any[], def: ITemplateDefinition): ICustomElement {
+  const Type = CustomElementResource.define(def, class {});
   const component = new Type();
   component[fixture.colName] = initialItems;
   return component as ICustomElement;

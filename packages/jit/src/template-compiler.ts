@@ -6,7 +6,7 @@ import {
   ILetBindingInstruction,
   IResourceDescriptions,
   ITemplateCompiler,
-  ITemplateSource,
+  ITemplateDefinition,
   TargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition,
@@ -40,7 +40,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   constructor(public exprParser: IExpressionParser, public elParser: IElementParser, public attrParser: IAttributeParser) { }
 
-  public compile(definition: ITemplateSource, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
+  public compile(definition: ITemplateDefinition, resources: IResourceDescriptions, flags?: ViewCompileFlags): TemplateDefinition {
     const model = SemanticModel.create(definition, resources, this.attrParser, this.elParser, this.exprParser);
     const root = model.root;
     let $el = root.isTemplate ? root.$content : root;

@@ -33,7 +33,7 @@ export interface IBuildInstruction {
   compiler?: string;
 }
 
-export interface ITemplateSource {
+export interface ITemplateDefinition {
   name?: string;
   cache?: '*' | number;
   template?: string | INode;
@@ -47,8 +47,8 @@ export interface ITemplateSource {
   hasSlots?: boolean;
 }
 
-export type TemplateDefinition = ResourceDescription<ITemplateSource>;
-export type TemplatePartDefinitions = Record<string, Immutable<ITemplateSource>>;
+export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
+export type TemplatePartDefinitions = Record<string, Immutable<ITemplateDefinition>>;
 export type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
 
 export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>();
@@ -150,7 +150,7 @@ export interface IHydrateElementInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: any;
   instructions: TargetedInstruction[];
-  parts?: Record<string, ITemplateSource>;
+  parts?: Record<string, ITemplateDefinition>;
 }
 
 export interface IHydrateAttributeInstruction extends ITargetedInstruction {
@@ -163,7 +163,7 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
   type: TargetedInstructionType.hydrateTemplateController;
   res: any;
   instructions: TargetedInstruction[];
-  src: ITemplateSource;
+  def: ITemplateDefinition;
   link?: boolean;
 }
 

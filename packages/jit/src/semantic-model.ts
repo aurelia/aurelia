@@ -1,5 +1,5 @@
 import { Immutable, IServiceLocator, PLATFORM } from '@aurelia/kernel';
-import { BindingMode, CustomAttributeResource, CustomElementResource, DOM, IBindableDescription, ICustomAttributeSource, IExpressionParser, IResourceDescriptions, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
+import { BindingMode, CustomAttributeResource, CustomElementResource, DOM, IBindableDescription, ICustomAttributeSource, IExpressionParser, IResourceDescriptions, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
 import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { BindingCommandResource,  IBindingCommand } from './binding-command';
 import { Char } from './common';
@@ -11,11 +11,11 @@ export class SemanticModel {
   public readonly root: ElementSymbol;
 
   private readonly attrDefCache: Record<string, ICustomAttributeSource>;
-  private readonly elDefCache: Record<string, ITemplateSource>;
+  private readonly elDefCache: Record<string, ITemplateDefinition>;
   private readonly commandCache: Record<string, IBindingCommand>;
 
   private constructor(
-    definition: ITemplateSource,
+    definition: ITemplateDefinition,
     public resources: IResourceDescriptions,
     public attrParser: IAttributeParser,
     public elParser: IElementParser,
@@ -37,17 +37,17 @@ export class SemanticModel {
   }
 
   public static create(
-    definition: ITemplateSource,
+    definition: ITemplateDefinition,
     resources: IResourceDescriptions,
     attrParser: IAttributeParser,
     elParser: IElementParser,
     exprParser: IExpressionParser): SemanticModel;
   public static create(
-    definition: ITemplateSource,
+    definition: ITemplateDefinition,
     resources: IResourceDescriptions,
     locator: IServiceLocator): SemanticModel;
   public static create(
-    definition: ITemplateSource,
+    definition: ITemplateDefinition,
     resources: IResourceDescriptions,
     attrParser: IServiceLocator | IAttributeParser,
     elParser?: IElementParser,
@@ -72,12 +72,12 @@ export class SemanticModel {
     return this.attrDefCache[name] = definition;
   }
 
-  public getElementDefinition(name: string): ITemplateSource {
+  public getElementDefinition(name: string): ITemplateDefinition {
     const existing = this.elDefCache[name];
     if (existing !== undefined) {
       return existing;
     }
-    const definition = <ITemplateSource>this.resources.find(CustomElementResource, name) || null;
+    const definition = <ITemplateDefinition>this.resources.find(CustomElementResource, name) || null;
     return this.elDefCache[name] = definition;
   }
 
@@ -103,7 +103,7 @@ export class SemanticModel {
 
   public getElementSymbol(syntax: ElementSyntax, parent: ElementSymbol): ElementSymbol {
     const node = syntax.node as Element;
-    let definition: ITemplateSource;
+    let definition: ITemplateDefinition;
     if (node.nodeType === NodeType.Element) {
       const resourceKey = (node.getAttribute('as-element') || node.nodeName).toLowerCase();
       definition = this.getElementDefinition(resourceKey);
@@ -119,7 +119,7 @@ export class SemanticModel {
     );
   }
 
-  public getTemplateElementSymbol(syntax: ElementSyntax, parent: ElementSymbol, definition: ITemplateSource, definitionRoot: ElementSymbol): ElementSymbol {
+  public getTemplateElementSymbol(syntax: ElementSyntax, parent: ElementSymbol, definition: ITemplateDefinition, definitionRoot: ElementSymbol): ElementSymbol {
     return new ElementSymbol(
       /*   semanticModel*/this,
       /*isDefinitionRoot*/true,
@@ -388,7 +388,7 @@ export class ElementSymbol {
     public readonly $root: ElementSymbol,
     public readonly $parent: ElementSymbol,
     syntax: ElementSyntax,
-    public readonly definition: ITemplateSource | null
+    public readonly definition: ITemplateDefinition | null
   ) {
     this.$root = isRoot ? this : $root;
     this._node = syntax.node;
@@ -459,7 +459,7 @@ export class ElementSymbol {
   }
 
   public lift(instruction: HydrateTemplateController): ElementSymbol {
-    const template = instruction.src.template = DOM.createTemplate() as HTMLTemplateElement;
+    const template = instruction.def.template = DOM.createTemplate() as HTMLTemplateElement;
     const node = this.node as HTMLTemplateElement;
     if (this.isTemplate) {
       // copy remaining attributes over to the newly created template
@@ -478,7 +478,7 @@ export class ElementSymbol {
     this.addInstructions([instruction]);
     this._isLifted = true;
     return this.semanticModel.getTemplateElementSymbol(
-      this.semanticModel.elParser.parse(template), this, instruction.src, null
+      this.semanticModel.elParser.parse(template), this, instruction.def, null
     );
   }
 

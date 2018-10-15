@@ -12,14 +12,14 @@ import { BindingContext, Scope } from '../binding/binding-context';
 import { BindingFlags } from '../binding/binding-flags';
 import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
-import { IHydrateElementInstruction, ITemplateSource, TemplateDefinition } from './instructions';
+import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
 import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks } from './lifecycle';
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 import { ITemplate } from './template';
 
-export interface ICustomElementType extends IResourceType<ITemplateSource, ICustomElement>, Immutable<Pick<Partial<ITemplateSource>, 'containerless' | 'shadowOptions' | 'bindables'>> { }
+export interface ICustomElementType extends IResourceType<ITemplateDefinition, ICustomElement>, Immutable<Pick<Partial<ITemplateDefinition>, 'containerless' | 'shadowOptions' | 'bindables'>> { }
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
@@ -34,7 +34,7 @@ export interface ICustomElement extends IBindSelf, IAttach, Omit<ILifecycleHooks
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
 
-export type ElementDefinition = Immutable<Required<ITemplateSource>> | null;
+export type ElementDefinition = Immutable<Required<ITemplateDefinition>> | null;
 
 /*@internal*/
 export interface IInternalCustomElementImplementation extends Writable<ICustomElement> {
@@ -45,7 +45,7 @@ export interface IInternalCustomElementImplementation extends Writable<ICustomEl
  * Decorator: Indicates that the decorated class is a custom element.
  */
 // tslint:disable-next-line:no-any
-export function customElement(nameOrSource: string | ITemplateSource): any {
+export function customElement(nameOrSource: string | ITemplateDefinition): any {
   return function<T extends Constructable>(target: T): T {
     return CustomElementResource.define(nameOrSource, target);
   };
@@ -87,7 +87,7 @@ export function containerless(maybeTarget?: any): any {
   return maybeTarget ? deco(maybeTarget) : deco;
 }
 
-export interface ICustomElementResource extends IResourceKind<ITemplateSource, ICustomElementType> {
+export interface ICustomElementResource extends IResourceKind<ITemplateDefinition, ICustomElementType> {
   behaviorFor(node: INode): ICustomElement | null;
 }
 
@@ -106,7 +106,7 @@ export const CustomElementResource: ICustomElementResource = {
     return node.$customElement || null;
   },
 
-  define<T extends Constructable>(nameOrSource: string | ITemplateSource, ctor: T = null): T & ICustomElementType {
+  define<T extends Constructable>(nameOrSource: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
     const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType;
     const description = createCustomElementDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
     const proto: ICustomElement = Type.prototype;
@@ -292,7 +292,7 @@ function removeNodes(this: IInternalCustomElementImplementation): void {
 }
 
 /*@internal*/
-export function createCustomElementDescription(templateSource: ITemplateSource, Type: ICustomElementType): TemplateDefinition {
+export function createCustomElementDescription(templateSource: ITemplateDefinition, Type: ICustomElementType): TemplateDefinition {
   return {
     name: templateSource.name || 'unnamed',
     template: templateSource.template || null,

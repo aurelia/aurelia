@@ -6,7 +6,7 @@ import { IObserverLocator } from '../binding/observer-locator';
 import { IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { ICustomAttribute, ICustomAttributeType } from './custom-attribute';
 import { ICustomElement, ICustomElementType } from './custom-element';
-import { ITemplateSource, TemplateDefinition } from './instructions';
+import { ITemplateDefinition, TemplateDefinition } from './instructions';
 import { ExposedContext, IRenderContext } from './render-context';
 import { IRenderer, Renderer } from './renderer';
 import { RuntimeBehavior } from './runtime-behavior';
@@ -17,7 +17,7 @@ import { ViewCompileFlags } from './view-compile-flags';
 
 export interface IRenderingEngine {
   getElementTemplate(definition: TemplateDefinition, componentType?: ICustomElementType): ITemplate;
-  getViewFactory(source: Immutable<ITemplateSource>, parentContext?: IRenderContext): IViewFactory;
+  getViewFactory(source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory;
 
   applyRuntimeBehavior(type: ICustomAttributeType, instance: ICustomAttribute): void;
   applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement): void;
@@ -34,7 +34,7 @@ const defaultCompilerName = 'default';
 /*@internal*/
 export class RenderingEngine implements IRenderingEngine {
   private templateLookup: Map<TemplateDefinition, ITemplate> = new Map();
-  private factoryLookup: Map<Immutable<ITemplateSource>, IViewFactory> = new Map();
+  private factoryLookup: Map<Immutable<ITemplateDefinition>, IViewFactory> = new Map();
   private behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior> = new Map();
   private compilers: Record<string, ITemplateCompiler>;
 
@@ -76,7 +76,7 @@ export class RenderingEngine implements IRenderingEngine {
     return found;
   }
 
-  public getViewFactory(definition: Immutable<ITemplateSource>, parentContext?: IRenderContext): IViewFactory {
+  public getViewFactory(definition: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory {
     if (!definition) {
       return null;
     }
@@ -132,7 +132,7 @@ export class RenderingEngine implements IRenderingEngine {
           throw Reporter.error(20, compilerName);
         }
 
-        definition = compiler.compile(<ITemplateSource>definition, new RuntimeCompilationResources(<ExposedContext>parentContext), ViewCompileFlags.surrogate);
+        definition = compiler.compile(<ITemplateDefinition>definition, new RuntimeCompilationResources(<ExposedContext>parentContext), ViewCompileFlags.surrogate);
       }
 
       return new CompiledTemplate(this, parentContext, definition);
@@ -143,7 +143,7 @@ export class RenderingEngine implements IRenderingEngine {
 }
 
 /*@internal*/
-export function createDefinition(definition: Immutable<ITemplateSource>): TemplateDefinition {
+export function createDefinition(definition: Immutable<ITemplateDefinition>): TemplateDefinition {
   return {
     name: definition.name || 'Unnamed Template',
     template: definition.template,

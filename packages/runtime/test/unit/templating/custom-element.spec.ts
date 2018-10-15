@@ -2,7 +2,7 @@ import { MockTextNodeSequence, MockRenderingEngine } from './../mock';
 import { IDetachLifecycle } from './../../../src/templating/lifecycle';
 import { BindingFlags } from './../../../src/binding/binding-flags';
 import { Immutable, PLATFORM } from '@aurelia/kernel';
-import { customElement, useShadowDOM, containerless, CustomElementResource, createCustomElementDescription, ShadowDOMProjector, ContainerlessProjector, HostProjector, CustomAttributeResource, INode, ITemplateSource, IAttachLifecycle, INodeSequence, ICustomElement, noViewTemplate } from '../../../src/index';
+import { customElement, useShadowDOM, containerless, CustomElementResource, createCustomElementDescription, ShadowDOMProjector, ContainerlessProjector, HostProjector, CustomAttributeResource, INode, ITemplateDefinition, IAttachLifecycle, INodeSequence, ICustomElement, noViewTemplate } from '../../../src/index';
 import { expect } from 'chai';
 
 describe('@customElement', () => {

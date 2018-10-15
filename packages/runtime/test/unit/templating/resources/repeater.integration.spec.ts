@@ -1,6 +1,6 @@
 import { createMarker, MockNodeSequence, MockIfElseTextNodeTemplate } from './../../mock';
 import {
-  ITemplateSource,
+  ITemplateDefinition,
   TargetedInstructionType,
   BindingMode,
   ForOfStatement,
@@ -291,7 +291,7 @@ describe('ArrayRepeater - render html', () => {
       }
     };
     au.register(aureliaConfig);
-    const templateSource: ITemplateSource = {
+    const templateSource: ITemplateDefinition = {
       name: 'app',
       dependencies: [],
       template: `<span class="au"></span> `,
@@ -300,7 +300,7 @@ describe('ArrayRepeater - render html', () => {
           {
             type: TargetedInstructionType.hydrateTemplateController,
             res: 'repeat',
-            src: {
+            def: {
               cache: "*",
               template: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
               instructions: [
@@ -310,7 +310,7 @@ describe('ArrayRepeater - render html', () => {
                   {
                     type: TargetedInstructionType.hydrateTemplateController,
                     res: 'repeat',
-                    src: {
+                    def: {
                       cache: "*",
                       template: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
                       instructions: [
@@ -320,7 +320,7 @@ describe('ArrayRepeater - render html', () => {
                           {
                             type: TargetedInstructionType.hydrateTemplateController,
                             res: 'repeat',
-                            src: {
+                            def: {
                               cache: "*",
                               template: `<span class="au"></span> `,
                               instructions: [

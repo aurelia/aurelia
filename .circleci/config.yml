@@ -265,7 +265,7 @@ jobs:
           name: Merge tag into release
           command: |
             git checkout release
-            git merge $CIRCLE_TAG --no-ff
+            git merge $CIRCLE_TAG --no-ff -Xtheirs
             git push
 
   publish_latest:

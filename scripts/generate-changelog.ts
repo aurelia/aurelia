@@ -1,6 +1,6 @@
 import { join } from 'path';
 import project from './project';
-import { writeFileSync, appendFileSync, readFileSync } from 'fs';
+import { writeFileSync, appendFileSync, readFileSync, existsSync } from 'fs';
 import { getCurrentVersion, getNewVersion, getDate } from './bump-version';
 import { getGitLog } from './git';
 import { createLogger, c } from './logger';
@@ -150,11 +150,18 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
   writeFileSync(project.changelog.path, newContent, { encoding: 'utf8' });
 
   for (const pkg of project.packages) {
-    const currentPkgChangelog = readFileSync(pkg.changelog.path, { encoding: 'utf8' });
-    const currentPkgParts = currentPkgChangelog.split(currentAnchor);
+    let existingChangeLog = '';
+    if (existsSync(pkg.changelog.path)) {
+      const currentPkgChangelog = readFileSync(pkg.changelog.path, { encoding: 'utf8' });
+      const currentPkgParts = currentPkgChangelog.split(currentAnchor);
+      const existingPart = currentPkgParts[1];
+      if (existingPart && existingPart.length) {
+        existingChangeLog = currentAnchor + existingPart;
+      }
+    }
 
     const { content: newPkgChangeLog } = await getChangeLogContent(from, to, pkg.path, pkg.scopedName, newVersion);
-    const newPkgContent = standardHeader + newPkgChangeLog + currentAnchor + (currentPkgParts[1] || '');
+    const newPkgContent = standardHeader + newPkgChangeLog + existingChangeLog;
     writeFileSync(pkg.changelog.path, newPkgContent, { encoding: 'utf8' });
   }
 

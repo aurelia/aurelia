@@ -1,6 +1,7 @@
 import project from './project';
-import { loadPackageJson, savePackageJson } from './package.json';
+import { loadPackageJson, savePackageJson, loadPackageLockJson, savePackageLockJson } from './package.json';
 import { createLogger, c } from './logger';
+import { readFileSync, writeFileSync } from 'fs';
 
 const log = createLogger('bump-version');
 
@@ -22,7 +23,8 @@ export async function updateDependencyVersions(newVersion: string) {
   for (const { name, scopedName } of project.packages) {
     log(`updating dependencies for ${c.magentaBright(scopedName)}`);
     const pkg = await loadPackageJson('packages', name);
-    pkg.version = newVersion;
+    const pkgLock = await loadPackageLockJson('packages', name);
+    pkg.version = pkgLock.version = newVersion;
     if ('dependencies' in pkg) {
       const deps = pkg.dependencies;
       for (const depName in deps) {
@@ -31,9 +33,13 @@ export async function updateDependencyVersions(newVersion: string) {
           deps[depName] = newVersion;
         }
       }
-      await savePackageJson(pkg, 'packages', name);
     }
+    await savePackageJson(pkg, 'packages', name);
+    await savePackageLockJson(pkgLock, 'packages', name);
   }
+  const lernaJson = JSON.parse(readFileSync(project["lerna.json"].path, { encoding: 'utf8' }));
+  lernaJson.version = newVersion;
+  writeFileSync(project["lerna.json"].path, JSON.stringify(lernaJson, null, 2), { encoding: 'utf8' });
 }
 
 export function getDate(sep?: string): string {

@@ -6,14 +6,14 @@ import {
   DelegateBindingInstruction,
   FromViewBindingInstruction,
   HydrateTemplateController,
-  IAttributeSymbol,
+  IteratorBindingInstruction,
   OneTimeBindingInstruction,
   SetPropertyInstruction,
   ToViewBindingInstruction,
   TriggerBindingInstruction,
-  TwoWayBindingInstruction,
-  IteratorBindingInstruction
-} from '.';
+  TwoWayBindingInstruction
+} from './instructions';
+import { IAttributeSymbol } from './semantic-model';
 
 export interface IBindingCommandSource {
   name: string;

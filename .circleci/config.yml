@@ -42,16 +42,10 @@ jobs:
   install:
     <<: *defaults
     steps:
-      - run:
-          name: "Show npm and node versions"
-          command: |
-            node --version
-            npm --version
       - checkout
       - run:
           name: "Install npm packages"
-          command: |
-            npm ci -dd
+          command: npm ci
       - save_cache:
           key: *cache_key
           paths:
@@ -65,12 +59,10 @@ jobs:
       - *step_bootstrap_build
       - run:
           name: "Create bundles with rollup"
-          command: |
-            npm run bundle:all
+          command: npm run bundle:all
       - run:
           name: "Create tarballs from the build outputs"
-          command: |
-            npm run publish:local
+          command: npm run publish:local
       - persist_to_workspace:
           root: ~/repo
           paths:
@@ -86,10 +78,7 @@ jobs:
       - *step_restore_cache
       - run:
           name: "Run unit tests"
-          command: |
-            npm run test-firefox
-          environment:
-            TS_NODE_PROJECT: ./scripts/tsconfig.json
+          command: npm run test-firefox
       - store_test_results:
           path: ~/repo/coverage
       - store_artifacts:
@@ -102,16 +91,7 @@ jobs:
       - *step_restore_cache
       - run:
           name: "Run unit tests"
-          command: |
-            npm run test
-          environment:
-            TS_NODE_PROJECT: ./scripts/tsconfig.json
-      - run:
-          name: Combine coverage reports
-          command: |
-            npm run combine-coverage:json
-            npm run combine-coverage:lcov
-          when: always
+          command: npm run test
       - run:
           name: Process coverage results for Code Climate
           command: |
@@ -122,8 +102,7 @@ jobs:
           when: always
       - run:
           name: Process coverage for Codecov
-          command: |
-            codecov -f ~/repo/coverage/coverage-final.json
+          command: codecov -f ~/repo/coverage/coverage-final.json
           when: always
       - store_test_results:
           path: ~/repo/coverage

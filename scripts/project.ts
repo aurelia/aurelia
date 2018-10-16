@@ -40,6 +40,12 @@ export default {
       path: join(path, 'CHANGELOG.md')
     };
     const src = join(path, 'src');
+    const test = {
+      path: join(path, 'test'),
+      setup: join(path, 'test', 'setup.ts'),
+      tsconfig: join(path, 'test', 'tsconfig.json')
+    };
+    const node_modules = join(path, 'node_modules');
     const scopedName = `@aurelia/${name}`;
     const coverage = join(rootPath, 'coverage', name);
     const jsName = PLATFORM.camelCase(name);
@@ -52,10 +58,11 @@ export default {
     const amd = join(dist, `index.amd.js`);
     const cjs = join(dist, `index.cjs.js`);
     const iife = join(rootPath, 'dist', `${name}.js`);
-    return { name, jsName, namespace, fullName, path, changelog, iife, umd, es6, system, amd, cjs, src, dist, scopedName, coverage };
+    return { name, jsName, namespace, fullName, path, changelog, iife, umd, es6, system, amd, cjs, src, test, node_modules, dist, scopedName, coverage };
   }),
   'scripts': {
-    'path': join(rootPath, 'scripts')
+    'path': join(rootPath, 'scripts'),
+    'tsconfig.test':  join(rootPath, 'scripts', 'tsconfig.test.json')
   },
   'test': {
     'path': join(rootPath, 'test')

@@ -29,7 +29,7 @@ export interface INode extends INodeLike {
   readonly nextSibling: INode | null;
   readonly previousSibling: INode | null;
   readonly nodeName: string;
-  readonly nodeType: typeof ELEMENT_NODE | typeof TEXT_NODE | typeof COMMENT_NODE | typeof DOCUMENT_FRAGMENT_NODE;
+  readonly nodeType: number;
 }
 export interface IAttr extends Partial<INode> {
   readonly name: string;
@@ -117,12 +117,9 @@ export interface INodeObserver {
 // tslint:disable:no-any
 export class DOM {
   private constructor() {}
-
-  /*@internal*/
   public static createDocumentFragment(): IDocumentFragment {
     return document.createDocumentFragment();
   }
-  /*@internal*/
   public static createTemplate(): IElement {
     return document.createElement('template');
   }

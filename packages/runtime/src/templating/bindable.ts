@@ -16,11 +16,21 @@ type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBin
 
 /**
  * Decorator: Specifies custom behavior for a bindable property.
- * @param configOrTarget The overrides.
+ * @param config The overrides
  */
 export function bindable(config?: BindableSource): BindableDecorator;
+/**
+ * Decorator: Specifies a bindable property on a class.
+ * @param prop The property name
+ */
+export function bindable(prop: string): ClassDecorator;
+/**
+ * Decorator: Specifies a bindable property on a class.
+ * @param target The class
+ * @param prop The property name
+ */
 export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string): void;
-export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(configOrTarget?: BindableSource | T): void | BindableDecorator {
+export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(configOrTarget?: BindableSource | T, prop?: string): void | BindableDecorator | ClassDecorator {
   let config: IBindableDescription;
 
   const decorator = function decorate($target: T, $prop: string): void {
@@ -38,14 +48,33 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
     if (!config.mode) {
       config.mode = BindingMode.toView;
     }
-    config.property = $prop;
-    bindables[$prop] = config;
+    if (arguments.length > 1) {
+      // Non invocation:
+      // - @bindable
+      // Invocation with or w/o opts:
+      // - @bindable()
+      // - @bindable({...opts})
+      config.property = $prop;
+    }
+    bindables[config.property] = config;
   };
   if (arguments.length > 1) {
+    // Non invocation:
+    // - @bindable
     config = {};
-    return decorator.apply(null, arguments);
+    return decorator(configOrTarget as T, prop);
+  } else if (typeof configOrTarget === 'string') {
+    // ClassDecorator
+    // - @bindable('bar')
+    // Direct call:
+    // - @bindable('bar')(Foo)
+    config = {};
+    return decorator as BindableDecorator;
   }
 
+  // Invocation with or w/o opts:
+  // - @bindable()
+  // - @bindable({...opts})
   config = (configOrTarget || {}) as IBindableDescription;
   return decorator as BindableDecorator;
 }

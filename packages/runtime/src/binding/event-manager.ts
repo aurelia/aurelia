@@ -1,5 +1,5 @@
 import { DI, IDisposable } from '@aurelia/kernel';
-import { DOM, INode } from '../dom';
+import { addEventListener, INode, removeEventListener } from '../dom';
 
 export interface IEventWithStandardPropagation extends Event {
   propagationStopped?: boolean;
@@ -81,14 +81,14 @@ export class ListenerTracker {
   public increment(): void {
     this.count++;
     if (this.count === 1) {
-      DOM.addEventListener(this.eventName, this.listener, null, this.capture);
+      addEventListener(this.eventName, this.listener, null, this.capture);
     }
   }
 
   public decrement(): void {
     this.count--;
     if (this.count === 0) {
-      DOM.removeEventListener(this.eventName, this.listener, null, this.capture);
+      removeEventListener(this.eventName, this.listener, null, this.capture);
     }
   }
 }
@@ -121,11 +121,11 @@ export class TriggerSubscription {
     public targetEvent: string,
     public callback: EventListenerOrEventListenerObject
   ) {
-    DOM.addEventListener(targetEvent, callback, target);
+    addEventListener(targetEvent, callback, target);
   }
 
   public dispose(): void {
-    DOM.removeEventListener(this.targetEvent, this.callback, this.target);
+    removeEventListener(this.targetEvent, this.callback, this.target);
   }
 }
 
@@ -163,7 +163,7 @@ export class EventSubscriber implements IEventSubscriber {
     this.target = node;
     this.handler = callbackOrListener;
 
-    const add = DOM.addEventListener;
+    const add = addEventListener;
     const events = this.events;
 
     for (let i = 0, ii = events.length; ii > i; ++i) {
@@ -175,7 +175,7 @@ export class EventSubscriber implements IEventSubscriber {
     const node = this.target;
     const callbackOrListener = this.handler;
     const events = this.events;
-    const remove = DOM.removeEventListener;
+    const remove = removeEventListener;
 
     for (let i = 0, ii = events.length; ii > i; ++i) {
       remove(events[i], callbackOrListener, node);

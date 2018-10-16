@@ -1,5 +1,5 @@
 import { DI, IIndexable, inject, Primitive, Reporter } from '@aurelia/kernel';
-import { DOM } from '../dom';
+import { isNodeInstance } from '../dom';
 import { getArrayObserver } from './array-observer';
 import { IBindingContext, IOverrideContext } from './binding-context';
 import { IChangeSet } from './change-set';
@@ -86,7 +86,7 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   public getAccessor(obj: IObservable, propertyName: string): IBindingTargetAccessor {
-    if (DOM.isNodeInstance(obj)) {
+    if (isNodeInstance(obj)) {
       const tagName = obj['tagName'];
       // this check comes first for hot path optimization
       if (propertyName === 'textContent') {
@@ -162,7 +162,7 @@ export class ObserverLocator implements IObserverLocator {
     }
 
     let isNode: boolean;
-    if (DOM.isNodeInstance(obj)) {
+    if (isNodeInstance(obj)) {
       if (propertyName === 'class') {
         return new ClassAttributeAccessor(this.changeSet, obj);
       }

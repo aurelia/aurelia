@@ -1,5 +1,5 @@
 import { IContainer, IDisposable, Immutable, ImmutableArray, IResolver, IServiceLocator, PLATFORM, Reporter } from '@aurelia/kernel';
-import { DOM, INode, IRenderLocation } from '../dom';
+import { INode, IRenderLocation, registerElementResolver } from '../dom';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { IRenderable } from './renderable';
 import { IRenderingEngine } from './rendering-engine';
@@ -23,7 +23,7 @@ export function createRenderContext(renderingEngine: IRenderingEngine, parentRen
   const renderLocationProvider = new InstanceProvider<IRenderLocation>();
   const renderer = renderingEngine.createRenderer(context);
 
-  DOM.registerElementResolver(context, elementProvider);
+  registerElementResolver(context, elementProvider);
 
   context.registerResolver(IViewFactory, factoryProvider);
   context.registerResolver(IRenderable, renderableProvider);

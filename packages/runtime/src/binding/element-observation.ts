@@ -1,5 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { DOM, INode, INodeObserver } from '../dom';
+import { createNodeObserver, INode, INodeObserver } from '../dom';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { IEventSubscriber } from './event-manager';
@@ -475,7 +475,7 @@ export class SelectValueObserver implements SelectValueObserver {
   }
 
   public bind(): void {
-    this.nodeObserver = DOM.createNodeObserver(
+    this.nodeObserver = createNodeObserver(
       this.obj,
       this.handleNodeChange.bind(this),
       childObserverOptions

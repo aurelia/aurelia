@@ -78,181 +78,235 @@ export interface INodeObserver {
   disconnect(): void;
 }
 
-export const DOM = {
-  createNodeSequenceFactory(markupOrNode: string | INode): () => INodeSequence {
-    let fragment: DocumentFragment;
-    if (DOM.isNodeInstance(markupOrNode)) {
-      if (markupOrNode.content !== undefined) {
-        fragment = markupOrNode.content as DocumentFragment;
-      } else {
-        fragment = DOM.createFragment() as DocumentFragment;;
-        DOM.appendChild(fragment, markupOrNode);
-      }
+/*@internal*/
+export function createNodeSequenceFactory(markupOrNode: string | INode): () => INodeSequence {
+  let fragment: DocumentFragment;
+  if (isNodeInstance(markupOrNode)) {
+    if (markupOrNode.content !== undefined) {
+      fragment = markupOrNode.content as DocumentFragment;
     } else {
-      const template = DOM.createTemplate();
-      (<Element>template).innerHTML = markupOrNode;
-      fragment = template.content as DocumentFragment;
+      fragment = createFragment() as DocumentFragment;;
+      appendChild(fragment, markupOrNode);
     }
-    const childNodes = fragment.childNodes;
-    if (childNodes.length === 2) {
-      const target = childNodes[0] as Element;
-      if (target.nodeName === 'AU-MARKER') {
-        const text = childNodes[1];
-        if (text.nodeType === 3 && text.textContent === ' ') {
-          // tslint:disable-next-line:typedef
-          return (function() {
-            return new TextNodeSequence(<Text>text.cloneNode(false));
-          }).bind(undefined);
-        }
+  } else {
+    const template = createTemplate();
+    (<Element>template).innerHTML = markupOrNode;
+    fragment = template.content as DocumentFragment;
+  }
+  const childNodes = fragment.childNodes;
+  if (childNodes.length === 2) {
+    const target = childNodes[0] as Element;
+    if (target.nodeName === 'AU-MARKER') {
+      const text = childNodes[1];
+      if (text.nodeType === 3 && text.textContent === ' ') {
+        // tslint:disable-next-line:typedef
+        return (function() {
+          return new TextNodeSequence(<Text>text.cloneNode(false));
+        }).bind(undefined);
       }
     }
-    // tslint:disable-next-line:typedef
-    return (function() {
-      return new FragmentNodeSequence(<DocumentFragment>fragment.cloneNode(true));
-    }).bind(undefined);
-  },
+  }
+  // tslint:disable-next-line:typedef
+  return (function() {
+    return new FragmentNodeSequence(<DocumentFragment>fragment.cloneNode(true));
+  }).bind(undefined);
+}
 
-  createElement(name: string): INode {
-    return document.createElement(name);
-  },
+/*@internal*/
+export function createElement(name: string): INode {
+  return document.createElement(name);
+}
 
-  createText(text: string): INode {
-    return document.createTextNode(text);
-  },
+/*@internal*/
+export function createText(text: string): INode {
+  return document.createTextNode(text);
+}
 
-  createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit) {
-    const observer = new MutationObserver(callback);
-    observer.observe(target as Node, options);
-    return observer;
-  },
+/*@internal*/
+export function createNodeObserver(target: INode, callback: MutationCallback, options: MutationObserverInit) {
+  const observer = new MutationObserver(callback);
+  observer.observe(target as Node, options);
+  return observer;
+}
 
-  attachShadow(host: INode, options: ShadowRootInit): INode {
-    return (host as Element).attachShadow(options);
-  },
+/*@internal*/
+export function attachShadow(host: INode, options: ShadowRootInit): INode {
+  return (host as Element).attachShadow(options);
+}
 
-  /*@internal*/
-  createTemplate(): INode {
-    return document.createElement('template');
-  },
+/*@internal*/
+export function createTemplate(): INode {
+  return document.createElement('template');
+}
 
-  /*@internal*/
-  createFragment(): INode {
-    return document.createDocumentFragment();
-  },
+/*@internal*/
+export function createFragment(): INode {
+  return document.createDocumentFragment();
+}
 
-  cloneNode(node: INode, deep?: boolean): INode {
-    return (<Node>node).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
-  },
+/*@internal*/
+export function cloneNode(node: INode, deep?: boolean): INode {
+  return (<Node>node).cloneNode(deep !== false); // use true unless the caller explicitly passes in false
+}
 
-  migrateChildNodes(currentParent: INode, newParent: INode): void {
-    const append = DOM.appendChild;
-    while (currentParent.firstChild) {
-      append(newParent, currentParent.firstChild);
-    }
-  },
+/*@internal*/
+export function migrateChildNodes(currentParent: INode, newParent: INode): void {
+  while (currentParent.firstChild) {
+    appendChild(newParent, currentParent.firstChild);
+  }
+}
 
-  isNodeInstance(potentialNode: any): potentialNode is INode {
-    return potentialNode instanceof Node;
-  },
+/*@internal*/
+export function isNodeInstance(potentialNode: any): potentialNode is INode {
+  return potentialNode instanceof Node;
+}
 
-  isElementNodeType(node: INode): boolean {
-    return (<Node>node).nodeType === 1;
-  },
+/*@internal*/
+export function isElementNodeType(node: INode): boolean {
+  return (<Node>node).nodeType === 1;
+}
 
-  isTextNodeType(node: INode): boolean {
-    return (<Node>node).nodeType === 3;
-  },
+/*@internal*/
+export function isTextNodeType(node: INode): boolean {
+  return (<Node>node).nodeType === 3;
+}
 
-  remove(node: INodeLike): void {
-    if ((<Element>node).remove) {
-      (<Element>node).remove();
-    } else {
-      (<Element>node).parentNode.removeChild(<any>node);
-    }
-  },
+/*@internal*/
+export function remove(node: INodeLike): void {
+  if ((<Element>node).remove) {
+    (<Element>node).remove();
+  } else {
+    (<Element>node).parentNode.removeChild(<any>node);
+  }
+}
 
-  replaceNode(newChild: INode, oldChild: INode): void {
-    if (oldChild.parentNode) {
-      (<Node>oldChild.parentNode).replaceChild(<Node>newChild, <Node>oldChild);
-    }
-  },
+/*@internal*/
+export function replaceNode(newChild: INode, oldChild: INode): void {
+  if (oldChild.parentNode) {
+    (<Node>oldChild.parentNode).replaceChild(<Node>newChild, <Node>oldChild);
+  }
+}
 
-  appendChild(parent: INode, child: INode): void {
-    (<Node>parent).appendChild(<Node>child);
-  },
+/*@internal*/
+export function appendChild(parent: INode, child: INode): void {
+  (<Node>parent).appendChild(<Node>child);
+}
 
-  insertBefore(nodeToInsert: INode, referenceNode: INode): void {
-    (<Node>referenceNode.parentNode).insertBefore(<Node>nodeToInsert, <Node>referenceNode);
-  },
+/*@internal*/
+export function insertBefore(nodeToInsert: INode, referenceNode: INode): void {
+  (<Node>referenceNode.parentNode).insertBefore(<Node>nodeToInsert, <Node>referenceNode);
+}
 
-  getAttribute(node: INode, name: string): any {
-    return (<Element>node).getAttribute(name);
-  },
+/*@internal*/
+export function getAttribute(node: INode, name: string): any {
+  return (<Element>node).getAttribute(name);
+}
 
-  setAttribute(node: INode, name: string, value: any): void {
-    (<Element>node).setAttribute(name, value);
-  },
+/*@internal*/
+export function setAttribute(node: INode, name: string, value: any): void {
+  (<Element>node).setAttribute(name, value);
+}
 
-  removeAttribute(node: INode, name: string): void {
-    (<Element>node).removeAttribute(name);
-  },
+/*@internal*/
+export function removeAttribute(node: INode, name: string): void {
+  (<Element>node).removeAttribute(name);
+}
 
-  hasClass(node: INode, className: string): boolean {
-    return (<Element>node).classList.contains(className);
-  },
+/*@internal*/
+export function hasClass(node: INode, className: string): boolean {
+  return (<Element>node).classList.contains(className);
+}
 
-  addClass(node: INode, className: string): void {
-    (<Element>node).classList.add(className);
-  },
+/*@internal*/
+export function addClass(node: INode, className: string): void {
+  (<Element>node).classList.add(className);
+}
 
-  removeClass(node: INode, className: string): void {
-    (<Element>node).classList.remove(className);
-  },
+/*@internal*/
+export function removeClass(node: INode, className: string): void {
+  (<Element>node).classList.remove(className);
+}
 
-  addEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any) {
-    (<Node>publisher || document).addEventListener(eventName, subscriber, options);
-  },
+/*@internal*/
+export function addEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any) {
+  (<Node>publisher || document).addEventListener(eventName, subscriber, options);
+}
 
-  removeEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any) {
-    (<Node>publisher || document).removeEventListener(eventName, subscriber, options);
-  },
+/*@internal*/
+export function removeEventListener(eventName: string, subscriber: any, publisher?: INode, options?: any) {
+  (<Node>publisher || document).removeEventListener(eventName, subscriber, options);
+}
 
-  isAllWhitespace(node: INode): boolean {
-    if ((<any>node).auInterpolationTarget === true) {
+/*@internal*/
+export function isAllWhitespace(node: INode): boolean {
+  if ((<any>node).auInterpolationTarget === true) {
+    return false;
+  }
+  const text = (node as Node).textContent;
+  const len = text.length;
+  let i = 0;
+  // for perf benchmark of this compared to the regex method: http://jsben.ch/p70q2 (also a general case against using regex)
+  while (i < len) {
+    // charCodes 0-0x20(32) can all be considered whitespace (non-whitespace chars in this range don't have a visual representation anyway)
+    if (text.charCodeAt(i) > 0x20) {
       return false;
     }
-    const text = (node as Node).textContent;
-    const len = text.length;
-    let i = 0;
-    // for perf benchmark of this compared to the regex method: http://jsben.ch/p70q2 (also a general case against using regex)
-    while (i < len) {
-      // charCodes 0-0x20(32) can all be considered whitespace (non-whitespace chars in this range don't have a visual representation anyway)
-      if (text.charCodeAt(i) > 0x20) {
-        return false;
-      }
-      i++;
-    }
-    return true;
-  },
-
-  treatAsNonWhitespace(node: INode): void {
-    // see isAllWhitespace above
-    (<any>node).auInterpolationTarget = true;
-  },
-
-  convertToRenderLocation(node: INode): IRenderLocation {
-    const location = document.createComment('au-loc');
-    // let this throw if node does not have a parent
-    (<Node>node.parentNode).replaceChild(location, <any>node);
-    return location;
-  },
-
-  registerElementResolver(container: IContainer, resolver: IResolver): void {
-    container.registerResolver(INode, resolver);
-    container.registerResolver(Element, resolver);
-    container.registerResolver(HTMLElement, resolver);
-    container.registerResolver(SVGElement, resolver);
+    i++;
   }
+  return true;
+}
+
+/*@internal*/
+export function treatAsNonWhitespace(node: INode): void {
+  // see isAllWhitespace above
+  (<any>node).auInterpolationTarget = true;
+}
+
+/*@internal*/
+export function convertToRenderLocation(node: INode): IRenderLocation {
+  const location = document.createComment('au-loc');
+  // let this throw if node does not have a parent
+  (<Node>node.parentNode).replaceChild(location, <any>node);
+  return location;
+}
+
+/*@internal*/
+export function registerElementResolver(container: IContainer, resolver: IResolver): void {
+  container.registerResolver(INode, resolver);
+  container.registerResolver(Element, resolver);
+  container.registerResolver(HTMLElement, resolver);
+  container.registerResolver(SVGElement, resolver);
+}
+
+export const DOM = {
+  /*@internal*/createFragment,
+  /*@internal*/createTemplate,
+  addClass,
+  addEventListener,
+  appendChild,
+  attachShadow,
+  cloneNode,
+  convertToRenderLocation,
+  createElement,
+  createNodeObserver,
+  createNodeSequenceFactory,
+  createText,
+  getAttribute,
+  hasClass,
+  insertBefore,
+  isAllWhitespace,
+  isElementNodeType,
+  isNodeInstance,
+  isTextNodeType,
+  migrateChildNodes,
+  registerElementResolver,
+  remove,
+  removeAttribute,
+  removeClass,
+  removeEventListener,
+  replaceNode,
+  setAttribute,
+  treatAsNonWhitespace
 };
 
 // This is an implementation of INodeSequence that represents "no DOM" to render.

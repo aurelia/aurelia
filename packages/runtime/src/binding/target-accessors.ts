@@ -1,9 +1,8 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { DOM, INode } from '../dom';
+import { addClass, getAttribute, INode, removeAttribute, removeClass, setAttribute } from '../dom';
 import { IChangeSet } from './change-set';
-import { IBindingTargetAccessor, MutationKind } from './observation';
+import { IBindingTargetAccessor } from './observation';
 import { targetObserver } from './target-observer';
-import { subscriberCollection } from './subscriber-collection';
 
 // tslint:disable-next-line:no-http-string
 const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
@@ -60,14 +59,14 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   }
 
   public getValue(): string {
-    return DOM.getAttribute(this.obj, this.propertyKey);
+    return getAttribute(this.obj, this.propertyKey);
   }
 
   public setValueCore(newValue: string): void {
     if (newValue === null) {
-      DOM.removeAttribute(this.obj, this.propertyKey);
+      removeAttribute(this.obj, this.propertyKey);
     } else {
-      DOM.setAttribute(this.obj, this.propertyKey, newValue);
+      setAttribute(this.obj, this.propertyKey, newValue);
     }
   }
 }
@@ -176,8 +175,6 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
   }
 
   public setValueCore(newValue: string): void {
-    const addClass = DOM.addClass;
-    const removeClass = DOM.removeClass;
     const nameIndex = this.nameIndex || {};
     let version = this.version;
     let names;

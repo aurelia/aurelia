@@ -1,4 +1,4 @@
-import { Omit, PLATFORM } from '@aurelia/kernel';
+import { Constructable, Omit, PLATFORM } from '@aurelia/kernel';
 import { BindingMode } from '../binding/binding-mode';
 
 export type BindableSource = Omit<IBindableDescription, 'property'>;
@@ -10,38 +10,42 @@ export interface IBindableDescription {
   property?: string;
 }
 
+type WithBindables = { bindables: Record<string, IBindableDescription> };
+type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>
+  (target: T, prop: string) => void;
+
 /**
  * Decorator: Specifies custom behavior for a bindable property.
  * @param configOrTarget The overrides.
  */
-export function bindable(configOrTarget?: BindableSource | Object, key?, descriptor?): any {
-  let deco = function(target, key2, descriptor2) {
-    target = target.constructor;
+export function bindable(config?: BindableSource): BindableDecorator;
+export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(target: T, prop: string): void;
+export function bindable<T extends InstanceType<Constructable & Partial<WithBindables>>>(configOrTarget?: BindableSource | T): void | BindableDecorator {
+  let config: IBindableDescription;
 
-    let bindables: Record<string, IBindableDescription> = target.bindables || (target.bindables = {});
-    let config: IBindableDescription = configOrTarget || {};
-
+  const decorator = function decorate($target: T, $prop: string): void {
+    const Type = $target.constructor as Constructable & Partial<WithBindables>;
+    let bindables = Type.bindables;
+    if (bindables === undefined) {
+      bindables = Type.bindables = {};
+    }
     if (!config.attribute) {
-      config.attribute = PLATFORM.kebabCase(key2);
+      config.attribute = PLATFORM.kebabCase($prop);
     }
-
     if (!config.callback) {
-      config.callback = `${key2}Changed`;
+      config.callback = `${$prop}Changed`;
     }
-
     if (!config.mode) {
       config.mode = BindingMode.toView;
     }
-
-    config.property = key2;
-    bindables[key2] = config;
+    config.property = $prop;
+    bindables[$prop] = config;
   };
-
-  if (key) { //placed on a property without parens
-    var target = configOrTarget;
-    configOrTarget = null; //ensure that the closure captures the fact that there's actually no config
-    return deco(target, key, descriptor);
+  if (arguments.length > 1) {
+    config = {};
+    return decorator.apply(null, arguments);
   }
 
-  return deco;
+  config = (configOrTarget || {}) as IBindableDescription;
+  return decorator as BindableDecorator;
 }

@@ -1,5 +1,5 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
-import { appendChild, createElement as DOMcreateElement, createText, INode, isNodeInstance, setAttribute } from '../dom';
+import { appendChild, createElement as DOMcreateElement, createTextNode, INode, isNodeInstance, setAttribute } from '../dom';
 import { ICustomElementType } from './custom-element';
 import {
   isTargetedInstruction,
@@ -165,7 +165,7 @@ function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructi
     const current = children[i];
 
     if (typeof current === 'string') {
-      appendChild(parent, createText(current));
+      appendChild(parent, createTextNode(current));
     } else if (isNodeInstance(current)) {
       appendChild(parent, current);
     } else {

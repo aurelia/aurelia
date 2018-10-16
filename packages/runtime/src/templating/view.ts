@@ -83,7 +83,7 @@ export class View implements IView {
         return;
       }
 
-      this.$unbind(flags);
+      this.$unbind(flags | BindingFlags.fromBind);
     }
 
     this.$scope = scope;

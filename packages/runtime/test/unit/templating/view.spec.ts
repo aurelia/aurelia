@@ -272,7 +272,8 @@ describe(`View`, () => {
 
             expect(sut['location']).to.equal(location);
             if (sut.$nodes === NodeSequence.empty) {
-              expect(sut['requiresNodeAdd']).to.be.false;
+              // TODO uncomment this again if the currently commented logic in the view related to this is also uncommented
+              //expect(sut['requiresNodeAdd']).to.be.false;
             } else {
               expect(sut['requiresNodeAdd']).to.be.true;
             }
@@ -287,9 +288,9 @@ describe(`View`, () => {
         }]
       ],
       [
-        () => {
+        ([$11, $12, $13, $14, changeSet]) => {
           const encapsulationSource = document.createElement('div');
-          return [`AttachLifecycle(div, none)`, encapsulationSource, Lifecycle.beginAttach(encapsulationSource, LifecycleFlags.none)]
+          return [`AttachLifecycle(div, none)`, encapsulationSource, Lifecycle.beginAttach(changeSet, encapsulationSource, LifecycleFlags.none)]
         }
       ],
       [
@@ -333,7 +334,7 @@ describe(`View`, () => {
         }]
       ],
       [
-        () => [`DetachLifecycle(none)`, new DetachLifecycleController(LifecycleFlags.none)]
+        ([$11, $12, $13, $14, changeSet]) => [`DetachLifecycle(none)`, new DetachLifecycleController(changeSet, LifecycleFlags.none)]
       ],
       [
         () => [`   noop`, PLATFORM.noop],

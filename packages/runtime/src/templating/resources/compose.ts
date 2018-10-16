@@ -1,4 +1,5 @@
 import { Constructable, Immutable, inject } from '@aurelia/kernel';
+import { IChangeSet } from '../../binding';
 import { BindingFlags } from '../../binding/binding-flags';
 import { INode } from '../../dom';
 import { bindable } from '../bindable';
@@ -28,7 +29,7 @@ type Subject = IViewFactory | IView | PotentialRenderable | Constructable | Temp
 
 export interface Compose extends ICustomElement {}
 @customElement(composeSource)
-@inject(IRenderable, ITargetedInstruction, IRenderingEngine)
+@inject(IChangeSet, IRenderable, ITargetedInstruction, IRenderingEngine)
 export class Compose {
   @bindable public subject: Subject | Promise<Subject> = null;
   @bindable public composing: boolean = false;
@@ -38,11 +39,12 @@ export class Compose {
   private lastSubject: Subject | Promise<Subject> = null;
 
   constructor(
+    public readonly changeSet: IChangeSet,
     private renderable: IRenderable,
     instruction: Immutable<IHydrateElementInstruction>,
     private renderingEngine: IRenderingEngine
   ) {
-    this.coordinator = new CompositionCoordinator();
+    this.coordinator = new CompositionCoordinator(this.changeSet);
     this.coordinator.onSwapComplete = () => {
       this.composing = false;
     };

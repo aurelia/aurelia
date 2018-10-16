@@ -95,6 +95,6 @@ export class ViewFake implements IView {
   constructor() {
     this.$bindables = [];
     this.$attachables = [];
-    this.$nodes = DOM.createFactoryFromMarkupOrNode('<div>Fake View</div>')();
+    this.$nodes = DOM.createNodeSequenceFactory('<div>Fake View</div>')();
   }
 }

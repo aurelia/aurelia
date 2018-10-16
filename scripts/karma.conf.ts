@@ -45,7 +45,6 @@ const commonChromeFlags = [
 ];
 
 export default function(config: IKarmaConfig): void {
-  const thisPackage = project.packages.find(p => p.name === config.package);
   let browsers: string[];
   if (process.env.BROWSERS) {
     browsers = [process.env.BROWSERS];
@@ -54,19 +53,27 @@ export default function(config: IKarmaConfig): void {
   } else {
     browsers = ['Chrome'];
   }
+  let packages = project.packages;
+  if (config.package && config.package.length) {
+    packages = packages.filter(p => config.package.split(',').indexOf(p.name) > -1);
+  }
 
   const options: IKarmaConfigOptions = {
-    basePath: thisPackage.path,
+    basePath: project.path,
     frameworks: ['mocha', 'chai'],
-    files: ['test/setup.ts'],
-    preprocessors: {
-      'test/setup.ts': ['webpack', 'sourcemap']
-    },
+    files: packages.map(p => p.test.setup),
+    preprocessors: packages.reduce((preprocessors, p) => {
+      preprocessors[p.test.setup] = ['webpack', 'sourcemap'];
+      return preprocessors;
+    }, {}),
     webpack: {
       mode: 'development',
       resolve: {
         extensions: ['.ts', '.js'],
-        modules: ['src', 'node_modules'],
+        modules: [
+          ...packages.map(p => p.src),
+          project.node_modules.path
+        ],
         alias: project.packages.reduce((alias, p) => {
           alias[p.scopedName] = p.src;
           return alias;
@@ -74,17 +81,15 @@ export default function(config: IKarmaConfig): void {
       },
       devtool: 'cheap-module-eval-source-map',
       module: {
-        rules: [
-          {
-            test: /\.ts$/,
-            loader: 'ts-loader',
-            exclude: /node_modules/,
-            options: {
-              configFile: 'tsconfig-test.json',
-              transpileOnly: true
-            }
+        rules: [{
+          test: /\.ts$/,
+          loader: 'ts-loader',
+          exclude: /node_modules/,
+          options: {
+            configFile: 'scripts/tsconfig.test.json',
+            transpileOnly: true
           }
-        ]
+        }]
       }
     },
     mime: {
@@ -146,10 +151,10 @@ export default function(config: IKarmaConfig): void {
     options.reporters.push('coverage-istanbul');
     options.coverageIstanbulReporter = {
       reports: ["html", "text-summary", "json", "lcovonly", "cobertura"],
-      dir: thisPackage.coverage
+      dir: project.coverage.path
     };
     options.junitReporter = {
-      outputDir: thisPackage.coverage,
+      outputDir: project.coverage.path,
       outputFile: 'test-results.xml',
       useBrowserName: false
     };

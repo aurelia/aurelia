@@ -1,5 +1,7 @@
 import {
   Constructable,
+  Decoratable,
+  Decorated,
   IContainer,
   Immutable,
   Omit,
@@ -49,46 +51,57 @@ export interface IInternalCustomElementImplementation extends Writable<ICustomEl
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-export function customElement(nameOrSource: string | ITemplateDefinition): any {
-  return function<T extends Constructable>(target: T): T {
+export function customElement<T extends Constructable>(nameOrSource: string | ITemplateDefinition): (target: Decoratable<ICustomElement, T>) => Decorated<ICustomElement, T> {
+  function customElementDecorator(target: Decoratable<ICustomElement, T>): Decorated<ICustomElement, T> {
     return CustomElementResource.define(nameOrSource, target);
-  };
+  }
+  return customElementDecorator;
 }
 
 const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
 };
 
+type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;
+
 /**
- * Decorator: Indicates that the custom element should render its view in Shadow
- * DOM.
+ * Decorator: Indicates that the custom element should render its view in ShadowDOM.
  */
-// tslint:disable-next-line:no-any
-export function useShadowDOM(targetOrOptions?: any): any {
+export function useShadowDOM<T extends Constructable>(options?: HasShadowOptions['shadowOptions']): (target: T & HasShadowOptions) => Decorated<HasShadowOptions, T>;
+/**
+ * Decorator: Indicates that the custom element should render its view in ShadowDOM.
+ */
+export function useShadowDOM<T extends Constructable>(target: (T & HasShadowOptions)): Decorated<HasShadowOptions, T>;
+export function useShadowDOM<T extends Constructable>(targetOrOptions?: (T & HasShadowOptions) | HasShadowOptions['shadowOptions']):  Decorated<HasShadowOptions, T> | ((target: T & HasShadowOptions) => Decorated<HasShadowOptions, T>) {
   const options = typeof targetOrOptions === 'function' || !targetOrOptions
     ? defaultShadowOptions
-    : targetOrOptions;
+    : targetOrOptions as HasShadowOptions['shadowOptions'];
 
-  const deco = function<T extends Constructable>(target: T): T {
-    (target as Writable<Partial<ICustomElementType>>).shadowOptions = options;
+  function useShadowDOMDecorator(target: T & HasShadowOptions): Decorated<HasShadowOptions, T> {
+    target.shadowOptions = options;
     return target;
-  };
+  }
 
-  return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
+  return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
+}
+
+type HasContainerless = Pick<ITemplateDefinition, 'containerless'>;
+
+function containerlessDecorator<T extends Constructable>(target: T & HasContainerless): Decorated<HasContainerless, T> {
+  target.containerless = true;
+  return target;
 }
 
 /**
- * Decorator: Indicates that the custom element should be rendered without its
- * element container.
+ * Decorator: Indicates that the custom element should be rendered without its element container.
  */
-// tslint:disable-next-line:no-any
-export function containerless(maybeTarget?: any): any {
-  const deco = function<T extends Constructable>(target: T): T {
-    (target as Writable<Partial<ICustomElementType>>).containerless = true;
-    return target;
-  };
-
-  return maybeTarget ? deco(maybeTarget) : deco;
+export function containerless(): typeof containerlessDecorator;
+/**
+ * Decorator: Indicates that the custom element should be rendered without its element container.
+ */
+export function containerless<T extends Constructable>(target: T & HasContainerless): Decorated<HasContainerless, T>;
+export function containerless<T extends Constructable>(target?: T & HasContainerless): Decorated<HasContainerless, T> | typeof containerlessDecorator {
+  return target === undefined ? containerlessDecorator : containerlessDecorator<T>(target);
 }
 
 export interface ICustomElementResource extends IResourceKind<ITemplateDefinition, ICustomElementType> {

@@ -1,4 +1,5 @@
 import { DI, IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
+import { IChangeSet } from './binding';
 import { BindingFlags } from './binding/binding-flags';
 import { Lifecycle, LifecycleFlags } from './templating';
 import { ICustomElement } from './templating/custom-element';
@@ -42,7 +43,7 @@ export class Aurelia {
 
       component.$bind(BindingFlags.fromStartTask | BindingFlags.fromBind);
 
-      Lifecycle.beginAttach(config.host, LifecycleFlags.none)
+      Lifecycle.beginAttach(this.container.get(IChangeSet), config.host, LifecycleFlags.none)
         .attach(component)
         .end();
     };
@@ -50,7 +51,7 @@ export class Aurelia {
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      const task = Lifecycle.beginDetach(LifecycleFlags.noTasks)
+      const task = Lifecycle.beginDetach(this.container.get(IChangeSet), LifecycleFlags.noTasks)
         .detach(component)
         .end();
 

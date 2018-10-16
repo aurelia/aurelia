@@ -1,4 +1,5 @@
 import { PLATFORM } from '@aurelia/kernel';
+import { IChangeSet } from '../../binding';
 import { IScope } from '../../binding/binding-context';
 import { BindingFlags } from '../../binding/binding-flags';
 import { INode } from '../../dom';
@@ -22,6 +23,8 @@ export class CompositionCoordinator {
   private scope: IScope;
   private isBound: boolean = false;
   private isAttached: boolean = false;
+
+  constructor(public readonly changeSet: IChangeSet) {}
 
   public compose(value: IView | Promise<IView>): void {
     if (this.swapTask.done) {
@@ -143,7 +146,7 @@ export class CompositionCoordinator {
       return Lifecycle.done;
     }
 
-    return Lifecycle.beginDetach(detachFlags | LifecycleFlags.unbindAfterDetached)
+    return Lifecycle.beginDetach(this.changeSet, detachFlags | LifecycleFlags.unbindAfterDetached)
       .detach(this.currentView)
       .end();
   }
@@ -158,7 +161,7 @@ export class CompositionCoordinator {
     }
 
     if (this.isAttached) {
-      return Lifecycle.beginAttach(this.encapsulationSource, LifecycleFlags.none)
+      return Lifecycle.beginAttach(this.changeSet, this.encapsulationSource, LifecycleFlags.none)
         .attach(this.currentView)
         .end();
     }

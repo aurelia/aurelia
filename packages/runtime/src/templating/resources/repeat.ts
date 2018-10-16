@@ -95,7 +95,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
           views[i] = factory.create();
         }
       } else if (newLength < oldLength) {
-        const lifecycle = Lifecycle.beginDetach(LifecycleFlags.unbindAfterDetached);
+        const lifecycle = Lifecycle.beginDetach(this.changeSet, LifecycleFlags.unbindAfterDetached);
         for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
           view.release();
           lifecycle.detach(view);
@@ -132,7 +132,7 @@ export class Repeat<T extends ObservedCollection = IObservedArray> {
 
     if (this.$isAttached) {
       const { location } = this;
-      const lifecycle = Lifecycle.beginAttach(this.encapsulationSource, LifecycleFlags.none);
+      const lifecycle = Lifecycle.beginAttach(this.changeSet, this.encapsulationSource, LifecycleFlags.none);
       if (indexMap === null) {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           const view = views[i];

@@ -1,12 +1,12 @@
 import { Immutable, Omit } from '@aurelia/kernel';
 import { ICustomElementType, IHydrateElementInstruction, IRenderable, IRenderingEngine, ITemplate } from '.';
-import { BindingFlags, IBindScope } from '../binding';
+import { BindingFlags, IBindScope, IChangeSet } from '../binding';
 import { INode, INodeSequence } from '../dom';
 
 export enum LifecycleFlags {
   none                = 0b0_001,
   noTasks             = 0b0_010,
-  unbindAfterDetached = 0b0_100,
+  unbindAfterDetached = 0b0_100
 }
 
 export interface IAttach {
@@ -359,6 +359,7 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
   private task: AggregateLifecycleTask = null;
 
   constructor(
+    public readonly changeSet: IChangeSet,
     public readonly flags: LifecycleFlags,
     private parent: AttachLifecycleController = null,
     private encapsulationSource: INode = null
@@ -394,7 +395,7 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
   }
 
   public createChild(): IAttachLifecycle {
-    const lifecycle = new AttachLifecycleController(this.flags, this);
+    const lifecycle = new AttachLifecycleController(this.changeSet, this.flags, this);
     this.queueAddNodes(lifecycle);
     this.queueAttachedCallback(lifecycle);
     return lifecycle;
@@ -413,6 +414,7 @@ export class AttachLifecycleController implements IAttachLifecycle, IAttachLifec
 
   /*@internal*/
   public processAll(): void {
+    this.changeSet.flushChanges();
     this.processAddNodes();
     this.processAttachedCallbacks();
   }
@@ -471,6 +473,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
   private allowNodeRemoves: boolean = true;
 
   constructor(
+    public readonly changeSet: IChangeSet,
     public readonly flags: LifecycleFlags,
     private parent: DetachLifecycleController = null
   ) {
@@ -494,7 +497,10 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
     if (this.allowNodeRemoves) {
       this.removeNodesTail.$nextRemoveNodes = requestor;
       this.removeNodesTail = requestor;
-      this.allowNodeRemoves = false; // only remove roots
+      // Note: this comment is just a temporary measure while we get some complex integration tests to work first.
+      // Just to reduce the amount of potential things to track down and check if something fails.
+      // When everything is working and tested, we can add this optimization (and others) back in.
+      //this.allowNodeRemoves = false; // only remove roots
     }
   }
 
@@ -515,7 +521,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
   }
 
   public createChild(): IDetachLifecycle {
-    const lifecycle = new DetachLifecycleController(this.flags, this);
+    const lifecycle = new DetachLifecycleController(this.changeSet, this.flags, this);
     this.queueRemoveNodes(lifecycle);
     this.queueDetachedCallback(lifecycle);
     return lifecycle;
@@ -548,6 +554,7 @@ export class DetachLifecycleController implements IDetachLifecycle, IDetachLifec
 
   /*@internal*/
   public processAll(): void {
+    this.changeSet.flushChanges();
     this.processRemoveNodes();
     this.processDetachedCallbacks();
   }
@@ -609,12 +616,12 @@ function isUnbindable(requestor: object): requestor is IBindScope {
 }
 
 export const Lifecycle = {
-  beginAttach(encapsulationSource: INode, flags: LifecycleFlags): IAttachLifecycleController {
-    return new AttachLifecycleController(flags, null, encapsulationSource);
+  beginAttach(changeSet: IChangeSet, encapsulationSource: INode, flags: LifecycleFlags): IAttachLifecycleController {
+    return new AttachLifecycleController(changeSet, flags, null, encapsulationSource);
   },
 
-  beginDetach(flags: LifecycleFlags): IDetachLifecycleController {
-    return new DetachLifecycleController(flags);
+  beginDetach(changeSet: IChangeSet, flags: LifecycleFlags): IDetachLifecycleController {
+    return new DetachLifecycleController(changeSet, flags);
   },
 
   done: {

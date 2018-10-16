@@ -1,4 +1,4 @@
-import { AttachLifecycleController, LifecycleFlags, Lifecycle, DetachLifecycleController } from '../../../src';
+import { AttachLifecycleController, LifecycleFlags, Lifecycle, DetachLifecycleController, ChangeSet } from '../../../src';
 import { eachCartesianJoinFactory } from '../util';
 import { LifecycleMock } from '../mock';
 import { expect } from 'chai';
@@ -162,7 +162,7 @@ describe(`AttachLifecycleController `, () => {
       [
         ([text, flags]) => [
           `single`,
-          new AttachLifecycleController(flags)
+          new AttachLifecycleController(new ChangeSet(), flags)
         ]
       ],
       [
@@ -323,7 +323,7 @@ describe(`DetachLifecycleController `, () => {
       [
         ([text, flags]) => [
           `single`,
-          new DetachLifecycleController(flags)
+          new DetachLifecycleController(new ChangeSet(), flags)
         ]
       ],
       [
@@ -406,11 +406,19 @@ describe(`DetachLifecycleController `, () => {
             expect(task).to.equal(Lifecycle.done);
 
             verifyRemoveNodesCalls(count, count, mock);
-            verifyDetachedCalls(count + 1, count, mock);
+
+            // TODO: when the "only remove root node" (or same flavor thereof) is enabled again in the DetachLifecycleController
+            verifyDetachedCalls(count * 2, count, mock);
 
             if (sut.flags === LifecycleFlags.unbindAfterDetached) {
-              verifyUnbindCalls(count * 2 + 1, count, mock);
+              verifyUnbindCalls(count * 3, count, mock);
             }
+            // the commented-out assertion further below should replace the assertion directly below
+            // verifyDetachedCalls(count + 1, count, mock);
+
+            // if (sut.flags === LifecycleFlags.unbindAfterDetached) {
+            //   verifyUnbindCalls(count * 2 + 1, count, mock);
+            // }
           }
         ],
         ($1, $2) => [
@@ -439,11 +447,20 @@ describe(`DetachLifecycleController `, () => {
 
             verifyCompleteAsyncWorkCalls(count * 2, count, mock);
             verifyRemoveNodesCalls(count * 4, count, mock);
-            verifyDetachedCalls(count * 4 + 1, count, mock);
+
+            // TODO: when the "only remove root node" (or same flavor thereof) is enabled again in the DetachLifecycleController
+            // the commented-out assertion further below should replace the assertion directly below
+            verifyDetachedCalls(count * 5, count, mock);
 
             if (sut.flags === LifecycleFlags.unbindAfterDetached) {
-              verifyUnbindCalls(count * 5 + 1, count, mock);
+              verifyUnbindCalls(count * 6, count, mock);
             }
+
+            // verifyDetachedCalls(count * 4 + 1, count, mock);
+
+            // if (sut.flags === LifecycleFlags.unbindAfterDetached) {
+            //   verifyUnbindCalls(count * 5 + 1, count, mock);
+            // }
           }
         ],
         ($1, $2) => [
@@ -473,11 +490,19 @@ describe(`DetachLifecycleController `, () => {
 
             verifyCancelAsyncWorkCalls(count * 2, count, mock);
             verifyRemoveNodesCalls(count * 4, count, mock);
-            verifyDetachedCalls(count * 4 + 1, count, mock);
+
+            // TODO: when the "only remove root node" (or same flavor thereof) is enabled again in the DetachLifecycleController
+            // the commented-out assertion further below should replace the assertion directly below
+            verifyDetachedCalls(count * 5, count, mock);
 
             if (sut.flags === LifecycleFlags.unbindAfterDetached) {
-              verifyUnbindCalls(count * 5 + 1, count, mock);
+              verifyUnbindCalls(count * 6, count, mock);
             }
+            // verifyDetachedCalls(count * 4 + 1, count, mock);
+
+            // if (sut.flags === LifecycleFlags.unbindAfterDetached) {
+            //   verifyUnbindCalls(count * 5 + 1, count, mock);
+            // }
           }
         ]
       ]

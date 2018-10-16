@@ -1048,7 +1048,7 @@ describe(`TemplateCompiler - combinations`, () => {
     });
   });
 
-  // it.only('test', () => {
+  // it('test', () => {
   //   const { sut, resources } = setup(
   //     <any>CustomElementResource.define({ name: 'foo' }, class Foo{}),
   //     <any>CustomAttributeResource.define({ name: 'bar' }, class Bar{})

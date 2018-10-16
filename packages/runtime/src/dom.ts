@@ -11,6 +11,26 @@ export interface INode extends INodeLike {
   readonly parentNode: INode | null;
   readonly nextSibling: INode | null;
   readonly previousSibling: INode | null;
+  readonly content?: INode;
+}
+
+/*@internal*/
+export class AuMarker implements INode {
+  public get parentNode(): INode {
+    return this.nextSibling.parentNode;
+  }
+  public nextSibling: INode;
+  public previousSibling: INode = null;
+  public content?: INode;
+  public firstChild: INode = null;
+  public lastChild: INode = null;
+  public childNodes: ArrayLike<INode> = PLATFORM.emptyArray;
+
+  constructor(next: INode) {
+    this.nextSibling = next;
+  }
+  // tslint:disable-next-line:no-empty
+  public remove(): void { }
 }
 
 export interface ICustomElementHost extends INode {
@@ -58,46 +78,38 @@ export interface INodeObserver {
   disconnect(): void;
 }
 
-/*@internal*/
-export function createNodeSequenceFromFragment(fragment: DocumentFragment): INodeSequence {
-  return new FragmentNodeSequence(<DocumentFragment>fragment.cloneNode(true));
-}
-
-// pre-declare certain functions whose behavior depends on a once-checked global condition for better performance
-function returnTrue(): true {
-  return true;
-}
-
-function returnFalse(): false {
-  return false;
-}
-
-function removeNormal(node: Element): void {
-  node.remove();
-}
-
-function removePolyfilled(node: Element): void {
-  // not sure if we still actually need this, this used to be an IE9/10 thing
-  node.parentNode.removeChild(node);
-}
-
 export const DOM = {
-  createFactoryFromMarkupOrNode(markupOrNode: string | INode): () => INodeSequence {
-    let template: HTMLTemplateElement;
-    if (markupOrNode instanceof Node) {
-      if ((<HTMLTemplateElement>markupOrNode).content) {
-        template = markupOrNode as any;
+  createNodeSequenceFactory(markupOrNode: string | INode): () => INodeSequence {
+    let fragment: DocumentFragment;
+    if (DOM.isNodeInstance(markupOrNode)) {
+      if (markupOrNode.content !== undefined) {
+        fragment = markupOrNode.content as DocumentFragment;
       } else {
-        template = DOM.createTemplate() as any;
-        template.content.appendChild(<Node>markupOrNode);
+        fragment = DOM.createFragment() as DocumentFragment;;
+        DOM.appendChild(fragment, markupOrNode);
       }
     } else {
-      template = DOM.createTemplate() as any;
-      template.innerHTML = <string>markupOrNode;
+      const template = DOM.createTemplate();
+      (<Element>template).innerHTML = markupOrNode;
+      fragment = template.content as DocumentFragment;
     }
-
-    // bind performs a bit better and gives a cleaner closure than an arrow function
-    return createNodeSequenceFromFragment.bind(null, template.content);
+    const childNodes = fragment.childNodes;
+    if (childNodes.length === 2) {
+      const target = childNodes[0] as Element;
+      if (target.nodeName === 'AU-MARKER') {
+        const text = childNodes[1];
+        if (text.nodeType === 3 && text.textContent === ' ') {
+          // tslint:disable-next-line:typedef
+          return (function() {
+            return new TextNodeSequence(<Text>text.cloneNode(false));
+          }).bind(undefined);
+        }
+      }
+    }
+    // tslint:disable-next-line:typedef
+    return (function() {
+      return new FragmentNodeSequence(<DocumentFragment>fragment.cloneNode(true));
+    }).bind(undefined);
   },
 
   createElement(name: string): INode {
@@ -121,6 +133,11 @@ export const DOM = {
   /*@internal*/
   createTemplate(): INode {
     return document.createElement('template');
+  },
+
+  /*@internal*/
+  createFragment(): INode {
+    return document.createDocumentFragment();
   },
 
   cloneNode(node: INode, deep?: boolean): INode {
@@ -147,11 +164,10 @@ export const DOM = {
   },
 
   remove(node: INodeLike): void {
-    // only check the prototype once and then permanently set a polyfilled or non-polyfilled call to save a few cycles
-    if (Element.prototype.remove === undefined) {
-      (DOM.remove = removePolyfilled)(<Element>node);
+    if ((<Element>node).remove) {
+      (<Element>node).remove();
     } else {
-      (DOM.remove = removeNormal)(<Element>node);
+      (<Element>node).parentNode.removeChild(<any>node);
     }
   },
 
@@ -255,6 +271,43 @@ const emptySequence: INodeSequence = {
 export const NodeSequence = {
   empty: emptySequence
 };
+
+/**
+ * An specialized INodeSequence with optimizations for text (interpolation) bindings
+ * The contract of this INodeSequence is:
+ * - the previous element is an `au-marker` node
+ * - text is the actual text node
+ */
+export class TextNodeSequence implements INodeSequence {
+  public firstChild: Text;
+  public lastChild: Text;
+  public childNodes: Text[];
+
+  private targets: [INode];
+
+  constructor(text: Text) {
+    this.firstChild = text;
+    this.lastChild = text;
+    this.childNodes = [text];
+    this.targets = [new AuMarker(text)];
+  }
+
+  public findTargets(): ArrayLike<INode> {
+    return this.targets;
+  }
+
+  public insertBefore(refNode: Node): void {
+    refNode.parentNode.insertBefore(this.firstChild, refNode);
+  }
+
+  public appendTo(parent: Node): void {
+    parent.appendChild(this.firstChild);
+  }
+
+  public remove(): void {
+    this.firstChild.remove()
+  }
+}
 
 // This is the most common form of INodeSequence.
 // Every custom element or template controller whose node sequence is based on an HTML template

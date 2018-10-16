@@ -459,7 +459,7 @@ export class ElementSymbol {
   }
 
   public lift(instruction: HydrateTemplateController): ElementSymbol {
-    const template = instruction.def.template = DOM.createTemplate() as HTMLTemplateElement;
+    const template = instruction.def.template = DOM.createElement('template') as HTMLTemplateElement;
     const node = this.node as HTMLTemplateElement;
     if (this.isTemplate) {
       // copy remaining attributes over to the newly created template

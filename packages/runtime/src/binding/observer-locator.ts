@@ -1,11 +1,11 @@
 import { DI, IIndexable, inject, Primitive, Reporter } from '@aurelia/kernel';
-import { isNodeInstance } from '../dom';
+import { IHTMLElement, IInputElement, isNodeInstance } from '../dom';
 import { getArrayObserver } from './array-observer';
 import { IBindingContext, IOverrideContext } from './binding-context';
 import { IChangeSet } from './change-set';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
-import { CheckedObserver, SelectValueObserver, ValueAttributeObserver } from './element-observation';
+import { CheckedObserver, ISelectElement, SelectValueObserver, ValueAttributeObserver } from './element-observation';
 import { IEventManager } from './event-manager';
 import { getMapObserver } from './map-observer';
 import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet } from './observation';
@@ -168,17 +168,17 @@ export class ObserverLocator implements IObserverLocator {
       }
 
       if (propertyName === 'style' || propertyName === 'css') {
-        return new StyleAttributeAccessor(this.changeSet, <HTMLElement>obj);
+        return new StyleAttributeAccessor(this.changeSet, <IHTMLElement>obj);
       }
 
       const tagName = obj['tagName'];
       const handler = this.eventManager.getElementHandler(obj, propertyName);
       if (propertyName === 'value' && tagName === 'SELECT') {
-        return new SelectValueObserver(this.changeSet, <HTMLSelectElement>obj, handler, this);
+        return new SelectValueObserver(this.changeSet, <ISelectElement>obj, handler, this);
       }
 
       if (propertyName === 'checked' && tagName === 'INPUT') {
-        return new CheckedObserver(this.changeSet, <HTMLInputElement>obj, handler, this);
+        return new CheckedObserver(this.changeSet, <IInputElement>obj, handler, this);
       }
 
       if (handler) {
@@ -187,7 +187,7 @@ export class ObserverLocator implements IObserverLocator {
 
       const xlinkResult = /^xlink:(.+)$/.exec(propertyName);
       if (xlinkResult) {
-        return new XLinkAttributeAccessor(this.changeSet, <Element>obj, propertyName, xlinkResult[1]);
+        return new XLinkAttributeAccessor(this.changeSet, <IHTMLElement>obj, propertyName, xlinkResult[1]);
       }
 
       if (propertyName === 'role'

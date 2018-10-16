@@ -40,6 +40,24 @@ export interface IElement extends INode {
   readonly content?: IDocumentFragment;
 }
 
+export interface IStyleDeclaration {
+  cssText: string;
+  setProperty(propertyName: string, value: string, priority?: string): void;
+  removeProperty(propertyName: string): void;
+}
+export interface IHTMLElement extends IElement {
+  readonly style: IStyleDeclaration;
+  setAttributeNS(namespace: string, qualifiedName: string, value: string): void;
+  getAttributeNS(namespace: string, qualifiedName: string): string;
+}
+
+export interface IInputElement extends IElement {
+  // tslint:disable-next-line:no-reserved-keywords
+  readonly type: string;
+  value: string;
+  checked: boolean;
+}
+
 export interface IText extends INode {
   readonly nodeName: '#text';
   readonly nodeType: typeof TEXT_NODE;

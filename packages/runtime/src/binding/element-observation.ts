@@ -1,5 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { createNodeObserver, IElement, INode, INodeObserver } from '../dom';
+import { createNodeObserver, IElement, IInputElement, INode, INodeObserver } from '../dom';
 import { IObserversLookup } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
@@ -121,21 +121,17 @@ ValueAttributeObserver.prototype.handler = null;
 
 const defaultHandleBatchedChangeFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
 
-export interface IInputElement extends IElement {
-  // tslint:disable-next-line:no-reserved-keywords
-  readonly type: string;
-  value: string;
-  checked: boolean;
+interface IInternalInputElement extends IInputElement {
+  matcher?: typeof defaultMatcher;
+  model?: any;
   $observers?: IObserversLookup & {
     model?: SetterObserver;
     value?: ValueAttributeObserver;
   };
-  matcher?: typeof defaultMatcher;
-  model?: any
 }
 
 export interface CheckedObserver extends
-  IBindingTargetObserver<IInputElement, string, Primitive | IIndexable>,
+  IBindingTargetObserver<IInternalInputElement, string, Primitive | IIndexable>,
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
@@ -153,7 +149,7 @@ export class CheckedObserver implements CheckedObserver {
 
   constructor(
     public changeSet: IChangeSet,
-    public obj: IInputElement,
+    public obj: IInternalInputElement,
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
   ) { }

@@ -1,5 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { addClass, getAttribute, INode, removeAttribute, removeClass, setAttribute } from '../dom';
+import { addClass, getAttribute,  IHTMLElement, INode, removeAttribute, removeClass, setAttribute } from '../dom';
 import { IChangeSet } from './change-set';
 import { IBindingTargetAccessor } from './observation';
 import { targetObserver } from './target-observer';
@@ -7,7 +7,7 @@ import { targetObserver } from './target-observer';
 // tslint:disable-next-line:no-http-string
 const xlinkAttributeNS = 'http://www.w3.org/1999/xlink';
 
-export interface XLinkAttributeAccessor extends IBindingTargetAccessor<Element, string, string> {}
+export interface XLinkAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, string, string> {}
 
 @targetObserver('')
 export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
@@ -24,7 +24,7 @@ export class XLinkAttributeAccessor implements XLinkAttributeAccessor {
 
   constructor(
     public changeSet: IChangeSet,
-    public obj: Element,
+    public obj: IHTMLElement,
     public propertyKey: string,
     public attributeName: string) {
 
@@ -71,7 +71,7 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   }
 }
 
-export interface StyleAttributeAccessor extends IBindingTargetAccessor<HTMLElement, 'style', string | IIndexable> {}
+export interface StyleAttributeAccessor extends IBindingTargetAccessor<IHTMLElement, 'style', string | IIndexable> {}
 
 @targetObserver()
 export class StyleAttributeAccessor implements StyleAttributeAccessor {
@@ -86,7 +86,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
 
   constructor(
     public changeSet: IChangeSet,
-    public obj: HTMLElement) {
+    public obj: IHTMLElement) {
 
     this.oldValue = this.currentValue = obj.style.cssText;
   }

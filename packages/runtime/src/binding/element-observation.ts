@@ -1,10 +1,12 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { createNodeObserver, INode, INodeObserver } from '../dom';
+import { createNodeObserver, IElement, INode, INodeObserver } from '../dom';
+import { IObserversLookup } from './binding-context';
 import { BindingFlags } from './binding-flags';
 import { IChangeSet } from './change-set';
 import { IEventSubscriber } from './event-manager';
 import { CollectionKind, IBatchedCollectionSubscriber, IBindingTargetObserver, ICollectionObserver, IndexMap, IPropertySubscriber } from './observation';
 import { IObserverLocator } from './observer-locator';
+import { SetterObserver } from './property-observation';
 import { targetObserver } from './target-observer';
 
 const inputValueDefaults = {
@@ -119,8 +121,21 @@ ValueAttributeObserver.prototype.handler = null;
 
 const defaultHandleBatchedChangeFlags = BindingFlags.fromFlushChanges | BindingFlags.updateTargetInstance;
 
+export interface IInputElement extends IElement {
+  // tslint:disable-next-line:no-reserved-keywords
+  readonly type: string;
+  value: string;
+  checked: boolean;
+  $observers?: IObserversLookup & {
+    model?: SetterObserver;
+    value?: ValueAttributeObserver;
+  };
+  matcher?: typeof defaultMatcher;
+  model?: any
+}
+
 export interface CheckedObserver extends
-  IBindingTargetObserver<HTMLInputElement, string, Primitive | IIndexable>,
+  IBindingTargetObserver<IInputElement, string, Primitive | IIndexable>,
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
@@ -134,11 +149,11 @@ export class CheckedObserver implements CheckedObserver {
   public flushChanges: () => void;
 
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
-  private valueObserver: ValueAttributeObserver;
+  private valueObserver: ValueAttributeObserver | SetterObserver;
 
   constructor(
     public changeSet: IChangeSet,
-    public obj: HTMLInputElement & { $observers?: any; matcher?: any; model?: any },
+    public obj: IInputElement,
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
   ) { }
@@ -270,14 +285,25 @@ const childObserverOptions = {
 };
 
 type UntypedArray = (Primitive | IIndexable)[];
-type HTMLOptionElementWithModel = HTMLOptionElement & { model?: Primitive | IIndexable };
 
 function defaultMatcher(a: Primitive | IIndexable, b: Primitive | IIndexable): boolean {
   return a === b;
 }
 
+export interface ISelectElement extends IElement {
+  multiple: boolean;
+  value: string;
+  options: ArrayLike<IOptionElement>;
+  matcher?: typeof defaultMatcher;
+}
+export interface IOptionElement extends IElement {
+  model?: Primitive | IIndexable;
+  selected: boolean;
+  value: string;
+}
+
 export interface SelectValueObserver extends
-  IBindingTargetObserver<HTMLSelectElement & { matcher?: typeof defaultMatcher }, string, Primitive | IIndexable | UntypedArray>,
+  IBindingTargetObserver<ISelectElement, string, Primitive | IIndexable | UntypedArray>,
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
@@ -295,7 +321,7 @@ export class SelectValueObserver implements SelectValueObserver {
 
   constructor(
     public changeSet: IChangeSet,
-    public obj: HTMLSelectElement & { matcher?: typeof defaultMatcher },
+    public obj: ISelectElement,
     public handler: IEventSubscriber,
     public observerLocator: IObserverLocator
   ) { }
@@ -362,7 +388,7 @@ export class SelectValueObserver implements SelectValueObserver {
     let i = options.length;
 
     while (i--) {
-      const option = options.item(i) as HTMLOptionElement & { model?: Primitive | IIndexable };
+      const option = options[i];
       const optionValue = option.hasOwnProperty('model') ? option.model : option.value;
       if (isArray) {
         option.selected = (<UntypedArray>currentValue).findIndex(item => !!matcher(optionValue, item)) !== -1;
@@ -402,12 +428,12 @@ export class SelectValueObserver implements SelectValueObserver {
       }
       // A.1.b
       // multi select
-      let option: HTMLOptionElementWithModel;
+      let option: IOptionElement;
       const matcher = obj.matcher || defaultMatcher;
       // A.1.b.i
       const values: UntypedArray = [];
       while (i < len) {
-        option = options.item(i);
+        option = options[i];
         if (option.selected) {
           values.push(option.hasOwnProperty('model')
             ? option.model
@@ -444,7 +470,7 @@ export class SelectValueObserver implements SelectValueObserver {
     // B.1
     let value: Primitive | IIndexable | UntypedArray = null;
     while (i < len) {
-      const option = options.item(i) as HTMLOptionElementWithModel;
+      const option = options[i];
       if (option.selected) {
         value = option.hasOwnProperty('model')
           ? option.model

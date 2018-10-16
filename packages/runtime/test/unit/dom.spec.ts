@@ -100,14 +100,14 @@ describe('DOM', () => {
       }
     }
 
-    const validInputArr: any[] = ['', 'asdf', 'div', 1, true, false, {}, new Error(), null, undefined];
+    const validInputArr: any[] = ['', 'asdf', 'div', 1, true, false, {}, new Error()];
     for (const validInput of validInputArr) {
       it(`should not throw for valid input type "${typeof validInput}"`, () => {
         verifyDoesNotThrow(DOM.createNodeSequenceFactory.bind(null, validInput));
       });
     }
 
-    const invalidInputArr: any[] = [Symbol()];
+    const invalidInputArr: any[] = [Symbol(), null, undefined];
     for (const invalidInput of invalidInputArr) {
       it(`should throw for invalid input type "${typeof invalidInput}"`, () => {
         verifyThrows(DOM.createNodeSequenceFactory.bind(null, invalidInput));

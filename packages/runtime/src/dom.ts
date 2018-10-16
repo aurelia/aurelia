@@ -158,7 +158,7 @@ export function migrateChildNodes(currentParent: INode, newParent: INode): void 
 
 /*@internal*/
 export function isNodeInstance(potentialNode: any): potentialNode is INode {
-  return potentialNode instanceof Node;
+  return potentialNode.nodeType > 0;
 }
 
 /*@internal*/

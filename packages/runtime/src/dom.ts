@@ -1,16 +1,6 @@
 import { DI, IContainer, IResolver, PLATFORM, Reporter, Writable } from '@aurelia/kernel';
 import { ICustomElement } from './templating/custom-element';
 
-// ensure we don't get "... is not defined" errors in non-browser environments
-// tslint:disable-next-line
-var document: typeof DOM;
-// tslint:disable-next-line
-var Element: IElement;
-// tslint:disable-next-line
-var HTMLElement: IElement;
-// tslint:disable-next-line
-var SVGElement: IElement;
-
 export const ELEMENT_NODE = 1;
 export const ATTRIBUTE_NODE = 2;
 export const TEXT_NODE = 3;
@@ -118,10 +108,10 @@ export interface INodeObserver {
 export class DOM {
   private constructor() {}
   public static createDocumentFragment(): IDocumentFragment {
-    return document.createDocumentFragment();
+    return <IDocumentFragment>document.createDocumentFragment();
   }
   public static createTemplate(): IElement {
-    return document.createElement('template');
+    return <IElement>document.createElement('template');
   }
   public static addClass(node: INode, className: string): void {
     (<any>node).classList.add(className);
@@ -147,7 +137,7 @@ export class DOM {
     return location;
   }
   public static createComment(text: string): IComment {
-    return document.createComment(text);
+    return <IComment>document.createComment(text);
   }
   public static createElement(name: string): IElement {
     return document.createElement(name);
@@ -190,7 +180,7 @@ export class DOM {
     }).bind(undefined);
   }
   public static createTextNode(text: string): IText {
-    return document.createTextNode(text);
+    return <IText>document.createTextNode(text);
   }
   public static getAttribute(node: INode, name: string): any {
     return (<any>node).getAttribute(name);

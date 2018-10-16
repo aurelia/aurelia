@@ -14,9 +14,10 @@ import { IBindScope } from '../binding/observation';
 import { INode } from '../dom';
 import { IResourceKind, IResourceType, ResourceDescription } from '../resource';
 import { IBindableDescription } from './bindable';
-import { IAttach, IAttachLifecycle, IDetachLifecycle } from './lifecycle';
+import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks } from './lifecycle';
 import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
+import { IRenderable } from './renderable';
 
 export interface IAttributeDefinition {
   name: string;
@@ -28,10 +29,14 @@ export interface IAttributeDefinition {
 
 export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
 
-export type ICustomAttributeType = IResourceType<IAttributeDefinition, ICustomAttribute>;
+export interface ICustomAttributeType extends
+  IResourceType<IAttributeDefinition, ICustomAttribute>,
+  Immutable<Pick<Partial<IAttributeDefinition>, 'bindables'>> { }
 
-export interface ICustomAttribute extends IBindScope, IAttach {
-  readonly $scope: IScope;
+type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$addNodes' | '$removeNodes'>>;
+type RequiredLifecycleProperties = Readonly<Pick<IRenderable, '$isAttached' | '$isBound' | '$scope'>>;
+
+export interface ICustomAttribute extends IBindScope, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {
   $hydrate(renderingEngine: IRenderingEngine): void;
 }
 
@@ -79,20 +84,17 @@ export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICusto
     return `${this.name}:${name}`;
   },
 
-  isType<T extends Constructable>(type: T): type is T & ICustomAttributeType {
-    return (type as any).kind === this;
+  isType<T extends Constructable & Partial<ICustomAttributeType>>(Type: T): Type is T & ICustomAttributeType {
+    return Type.kind === this;
   },
 
   define<T extends Constructable>(nameOrSource: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
-    const Type = ctor as ICustomAttributeType & T;
+    const Type = ctor as Writable<ICustomAttributeType> & T;
     const proto: ICustomAttribute = Type.prototype;
-    const description = createCustomAttributeDescription(
-      typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource,
-      Type
-    );
+    const description = createCustomAttributeDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, <T & ICustomAttributeType>Type);
 
-    (Type as Writable<ICustomAttributeType>).kind = CustomAttributeResource;
-    (Type as Writable<ICustomAttributeType>).description = description;
+    Type.kind = CustomAttributeResource;
+    Type.description = description;
     Type.register = register;
 
     proto.$hydrate = hydrate;
@@ -102,7 +104,7 @@ export const CustomAttributeResource: IResourceKind<IAttributeDefinition, ICusto
     proto.$unbind = unbind;
     proto.$cache = cache;
 
-    return Type;
+    return <ICustomAttributeType & T>Type;
   }
 };
 
@@ -113,23 +115,22 @@ function register(this: ICustomAttributeType, container: IContainer): void {
 
   container.register(Registration.transient(resourceKey, this));
 
-  for(let i = 0, ii = aliases.length; i < ii; ++i) {
+  for (let i = 0, ii = aliases.length; i < ii; ++i) {
     container.register(Registration.alias(resourceKey, aliases[i]));
   }
 }
 
 function hydrate(this: IInternalCustomAttributeImplementation, renderingEngine: IRenderingEngine): void {
+  const Type = this.constructor as ICustomAttributeType;
+
   this.$isAttached = false;
   this.$isBound = false;
   this.$scope = null;
 
-  renderingEngine.applyRuntimeBehavior(
-    this.constructor as ICustomAttributeType,
-    this
-  );
+  renderingEngine.applyRuntimeBehavior(Type, this);
 
   if (this.$behavior.hasCreated) {
-    (this as any).created();
+    this.created();
   }
 }
 
@@ -146,13 +147,13 @@ function bind(this: IInternalCustomAttributeImplementation, flags: BindingFlags,
   this.$scope = scope;
 
   if (behavior.hasBinding) {
-    (this as any).binding(flags | BindingFlags.fromBind);
+    this.binding(flags | BindingFlags.fromBind);
   }
 
   this.$isBound = true;
 
   if (behavior.hasBound) {
-    (this as any).bound(flags | BindingFlags.fromBind, scope);
+    this.bound(flags | BindingFlags.fromBind);
   }
 }
 
@@ -161,13 +162,13 @@ function unbind(this: IInternalCustomAttributeImplementation, flags: BindingFlag
     const behavior = this.$behavior;
 
     if (behavior.hasUnbinding) {
-      (this as any).unbinding(flags | BindingFlags.fromUnbind);
+      this.unbinding(flags | BindingFlags.fromUnbind);
     }
 
     this.$isBound = false;
 
     if (this.$behavior.hasUnbound) {
-      (this as any).unbound(flags | BindingFlags.fromUnbind);
+      this.unbound(flags | BindingFlags.fromUnbind);
     }
   }
 }
@@ -176,35 +177,37 @@ function attach(this: IInternalCustomAttributeImplementation, encapsulationSourc
   if (this.$isAttached) {
     return;
   }
+  const behavior = this.$behavior;
 
-  if (this.$behavior.hasAttaching) {
-    (this as any).attaching(encapsulationSource, lifecycle);
+  if (behavior.hasAttaching) {
+    this.attaching(encapsulationSource, lifecycle);
   }
 
   this.$isAttached = true;
 
-  if (this.$behavior.hasAttached) {
-    lifecycle.queueAttachedCallback(this as any);
+  if (behavior.hasAttached) {
+    lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
 }
 
 function detach(this: IInternalCustomAttributeImplementation, lifecycle: IDetachLifecycle): void {
   if (this.$isAttached) {
-    if (this.$behavior.hasDetaching) {
-      (this as any).detaching(lifecycle);
+    const behavior = this.$behavior;
+    if (behavior.hasDetaching) {
+      this.detaching(lifecycle);
     }
 
     this.$isAttached = false;
 
-    if (this.$behavior.hasDetached) {
-      lifecycle.queueDetachedCallback(this as any);
+    if (behavior.hasDetached) {
+      lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
   }
 }
 
 function cache(this: IInternalCustomAttributeImplementation): void {
   if (this.$behavior.hasCaching) {
-    (this as any).caching();
+    this.caching();
   }
 }
 
@@ -215,6 +218,6 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     aliases: def.aliases || PLATFORM.emptyArray,
     defaultBindingMode: def.defaultBindingMode || BindingMode.toView,
     isTemplateController: def.isTemplateController || false,
-    bindables: {...(Type as any).bindables, ...def.bindables}
+    bindables: {...Type.bindables, ...def.bindables}
   };
 }

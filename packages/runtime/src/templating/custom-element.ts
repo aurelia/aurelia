@@ -19,7 +19,9 @@ import { IRenderingEngine } from './rendering-engine';
 import { IRuntimeBehavior } from './runtime-behavior';
 import { ITemplate } from './template';
 
-export interface ICustomElementType extends IResourceType<ITemplateDefinition, ICustomElement>, Immutable<Pick<Partial<ITemplateDefinition>, 'containerless' | 'shadowOptions' | 'bindables'>> { }
+export interface ICustomElementType extends
+  IResourceType<ITemplateDefinition, ICustomElement>,
+  Immutable<Pick<Partial<ITemplateDefinition>, 'containerless' | 'shadowOptions' | 'bindables'>> { }
 
 export type IElementHydrationOptions = Immutable<Pick<IHydrateElementInstruction, 'parts'>>;
 
@@ -29,7 +31,10 @@ export interface IBindSelf {
   $unbind(flags: BindingFlags): void;
 }
 
-export interface ICustomElement extends IBindSelf, IAttach, Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$addNodes' | '$removeNodes'>>, Readonly<IRenderable> {
+type OptionalLifecycleHooks = Omit<ILifecycleHooks, Exclude<keyof IRenderable, '$addNodes' | '$removeNodes'>>;
+type RequiredLifecycleProperties = Readonly<IRenderable>;
+
+export interface ICustomElement extends IBindSelf, IAttach, OptionalLifecycleHooks, RequiredLifecycleProperties {
   readonly $projector: IElementProjector;
   $hydrate(renderingEngine: IRenderingEngine, host: INode, options?: IElementHydrationOptions): void;
 }
@@ -44,7 +49,6 @@ export interface IInternalCustomElementImplementation extends Writable<ICustomEl
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-// tslint:disable-next-line:no-any
 export function customElement(nameOrSource: string | ITemplateDefinition): any {
   return function<T extends Constructable>(target: T): T {
     return CustomElementResource.define(nameOrSource, target);
@@ -107,12 +111,12 @@ export const CustomElementResource: ICustomElementResource = {
   },
 
   define<T extends Constructable>(nameOrSource: string | ITemplateDefinition, ctor: T = null): T & ICustomElementType {
-    const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType;
-    const description = createCustomElementDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, Type);
-    const proto: ICustomElement = Type.prototype;
+    const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
+    const description = createCustomElementDescription(typeof nameOrSource === 'string' ? { name: nameOrSource } : nameOrSource, <ICustomElementType & T>Type);
+    const proto: Writable<ICustomElement> = Type.prototype;
 
-    (Type as Writable<ICustomElementType>).kind = CustomElementResource;
-    (Type as Writable<ICustomElementType>).description = description;
+    Type.kind = CustomElementResource;
+    Type.description = description;
     Type.register = register;
 
     proto.$hydrate = hydrate;
@@ -121,20 +125,16 @@ export const CustomElementResource: ICustomElementResource = {
     proto.$detach = detach;
     proto.$unbind = unbind;
     proto.$cache = cache;
-    (proto as Writable<IRenderable>).$addNodes = addNodes;
-    (proto as Writable<IRenderable>).$removeNodes = removeNodes;
+    proto.$addNodes = addNodes;
+    proto.$removeNodes = removeNodes;
 
-    return Type;
+    return <ICustomElementType & T>Type;
   }
 };
 
 function register(this: ICustomElementType, container: IContainer): void {
-  container.register(
-    Registration.transient(
-      CustomElementResource.keyFrom(this.description.name),
-      this
-    )
-  );
+  const resourceKey = CustomElementResource.keyFrom(this.description.name);
+  container.register(Registration.transient(resourceKey, this));
 }
 
 function hydrate(this: IInternalCustomElementImplementation, renderingEngine: IRenderingEngine, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
@@ -178,7 +178,6 @@ function bind(this: IInternalCustomElementImplementation, flags: BindingFlags): 
   if (this.$isBound) {
     return;
   }
-
   const behavior = this.$behavior;
 
   if (behavior.hasBinding) {
@@ -226,10 +225,10 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   if (this.$isAttached) {
     return;
   }
-
+  const behavior = this.$behavior;
   encapsulationSource = this.$projector.provideEncapsulationSource(encapsulationSource);
 
-  if (this.$behavior.hasAttaching) {
+  if (behavior.hasAttaching) {
     this.attaching(encapsulationSource, lifecycle);
   }
 
@@ -242,14 +241,15 @@ function attach(this: IInternalCustomElementImplementation, encapsulationSource:
   lifecycle.queueAddNodes(this);
   this.$isAttached = true;
 
-  if (this.$behavior.hasAttached) {
+  if (behavior.hasAttached) {
     lifecycle.queueAttachedCallback(<Required<typeof this>>this);
   }
 }
 
 function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLifecycle): void {
   if (this.$isAttached) {
-    if (this.$behavior.hasDetaching) {
+    const behavior = this.$behavior;
+    if (behavior.hasDetaching) {
       this.detaching(lifecycle);
     }
 
@@ -264,7 +264,7 @@ function detach(this: IInternalCustomElementImplementation, lifecycle: IDetachLi
 
     this.$isAttached = false;
 
-    if (this.$behavior.hasDetached) {
+    if (behavior.hasDetached) {
       lifecycle.queueDetachedCallback(<Required<typeof this>>this);
     }
   }
@@ -292,22 +292,22 @@ function removeNodes(this: IInternalCustomElementImplementation): void {
 }
 
 /*@internal*/
-export function createCustomElementDescription(templateSource: ITemplateDefinition, Type: ICustomElementType): TemplateDefinition {
+export function createCustomElementDescription(def: ITemplateDefinition, Type: ICustomElementType): TemplateDefinition {
   return {
-    name: templateSource.name || 'unnamed',
-    template: templateSource.template || null,
+    name: def.name || 'unnamed',
+    template: def.template || null,
     cache: 0,
-    build: templateSource.build || {
+    build: def.build || {
       required: false,
       compiler: 'default'
     },
-    bindables: {...Type.bindables, ...templateSource.bindables},
-    instructions: templateSource.instructions ? PLATFORM.toArray(templateSource.instructions) : PLATFORM.emptyArray,
-    dependencies: templateSource.dependencies ? PLATFORM.toArray(templateSource.dependencies) : PLATFORM.emptyArray,
-    surrogates: templateSource.surrogates ? PLATFORM.toArray(templateSource.surrogates) : PLATFORM.emptyArray,
-    containerless: templateSource.containerless || Type.containerless || false,
-    shadowOptions: templateSource.shadowOptions || Type.shadowOptions || null,
-    hasSlots: templateSource.hasSlots || false
+    bindables: {...Type.bindables, ...def.bindables},
+    instructions: def.instructions ? PLATFORM.toArray(def.instructions) : PLATFORM.emptyArray,
+    dependencies: def.dependencies ? PLATFORM.toArray(def.dependencies) : PLATFORM.emptyArray,
+    surrogates: def.surrogates ? PLATFORM.toArray(def.surrogates) : PLATFORM.emptyArray,
+    containerless: def.containerless || Type.containerless || false,
+    shadowOptions: def.shadowOptions || Type.shadowOptions || null,
+    hasSlots: def.hasSlots || false
   };
 }
 

@@ -48,14 +48,12 @@ export interface IInternalCustomElementImplementation extends Writable<ICustomEl
   $behavior: IRuntimeBehavior;
 }
 
+type CustomElementDecorator = <T extends Constructable>(target: Decoratable<ICustomElement, T>) => Decorated<ICustomElement, T>;
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-export function customElement<T extends Constructable>(nameOrSource: string | ITemplateDefinition): (target: Decoratable<ICustomElement, T>) => Decorated<ICustomElement, T> {
-  function customElementDecorator(target: Decoratable<ICustomElement, T>): Decorated<ICustomElement, T> {
-    return CustomElementResource.define(nameOrSource, target);
-  }
-  return customElementDecorator;
+export function customElement(nameOrSource: string | ITemplateDefinition): CustomElementDecorator {
+  return target => CustomElementResource.define(nameOrSource, target);
 }
 
 const defaultShadowOptions = {

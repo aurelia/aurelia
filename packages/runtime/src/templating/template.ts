@@ -27,7 +27,7 @@ export class CompiledTemplate implements ITemplate {
 
   constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
     this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
-    this.createNodeSequence = DOM.createNodeSequenceFactory(templateDefinition.templateOrNode);
+    this.createNodeSequence = DOM.createNodeSequenceFactory(templateDefinition.template);
   }
 
   public createFor(renderable: IRenderable, host?: INode, replacements?: TemplatePartDefinitions): INodeSequence {

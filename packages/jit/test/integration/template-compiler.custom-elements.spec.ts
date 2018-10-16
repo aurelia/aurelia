@@ -76,7 +76,7 @@ describe('template-compiler.custom-elements', () => {
     const build = { required: true, compiler: 'default' };
     let boundCalls = 0;
 
-    @customElement({ name: 'foo1', templateOrNode: `<template><foo2 value.bind="value" value2.bind="value1"></foo2>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo1', template: `<template><foo2 value.bind="value" value2.bind="value1"></foo2>\${value}</template>`, instructions: [], build })
     class Foo1 {
       @bindable()
       public value: any;
@@ -91,7 +91,7 @@ describe('template-compiler.custom-elements', () => {
       }
     }
 
-    @customElement({ name: 'foo2', templateOrNode: `<template><foo3 value.bind="value" value2.bind="value2"></foo3>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo2', template: `<template><foo3 value.bind="value" value2.bind="value2"></foo3>\${value}</template>`, instructions: [], build })
     class Foo2 {
       @bindable()
       public value: any;
@@ -109,7 +109,7 @@ describe('template-compiler.custom-elements', () => {
       }
     }
 
-    @customElement({ name: 'foo3', templateOrNode: `<template><foo4 value.bind="value" value2.bind="value2"></foo4>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo3', template: `<template><foo4 value.bind="value" value2.bind="value2"></foo4>\${value}</template>`, instructions: [], build })
     class Foo3 {
       @bindable()
       public value: any;
@@ -127,7 +127,7 @@ describe('template-compiler.custom-elements', () => {
       }
     }
 
-    @customElement({ name: 'foo4', templateOrNode: `<template><foo5 value.bind="value" value2.bind="value2"></foo5>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo4', template: `<template><foo5 value.bind="value" value2.bind="value2"></foo5>\${value}</template>`, instructions: [], build })
     class Foo4 {
       @bindable()
       public value: any;
@@ -145,7 +145,7 @@ describe('template-compiler.custom-elements', () => {
       }
     }
 
-    @customElement({ name: 'foo5', templateOrNode: `<template>\${value}</template>`, instructions: [], build })
+    @customElement({ name: 'foo5', template: `<template>\${value}</template>`, instructions: [], build })
     class Foo5 {
       @bindable()
       public value: any;

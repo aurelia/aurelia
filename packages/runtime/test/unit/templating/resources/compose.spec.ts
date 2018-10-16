@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { hydrateCustomElement } from '../behavior-assistance';
 import { Compose } from '../../../../src/templating/resources/compose';
-import { DOM, IViewFactory, customElement, ITemplateDefinition, BindingFlags, Lifecycle, LifecycleFlags, IAttach } from '../../../../src';
+import { DOM, IViewFactory, customElement, ITemplateDefinition, BindingFlags, Lifecycle, LifecycleFlags, IAttach, ChangeSet } from '../../../../src';
 import { PotentialRenderable } from '../../../../src/templating/create-element';
 import { ViewFactoryFake } from '../fakes/view-factory-fake';
 

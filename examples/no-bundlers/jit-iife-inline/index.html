@@ -21,7 +21,7 @@
     var host = document.querySelector('app');
     au.runtime.customElement({
       name: 'app',
-      templateOrNode: host.innerHTML,
+      template: host.innerHTML,
       build: { required: true, compiler: 'default' },
       instructions: []
     })(App)

@@ -1,6 +1,6 @@
 import { createMarker, MockNodeSequence, MockIfElseTextNodeTemplate } from './../../mock';
 import {
-  ITemplateSource,
+  ITemplateDefinition,
   TargetedInstructionType,
   BindingMode,
   ForOfStatement,
@@ -287,64 +287,64 @@ describe('ArrayRepeater - render html', () => {
       }
     };
     au.register(aureliaConfig);
-    const templateSource: ITemplateSource = {
+    const templateSource: ITemplateDefinition = {
       name: 'app',
       dependencies: [],
-      templateOrNode: `<span class="au"></span> `,
+      template: `<span class="au"></span> `,
       instructions: [
         [
           {
             type: TargetedInstructionType.hydrateTemplateController,
             res: 'repeat',
-            src: {
+            def: {
               cache: "*",
-              templateOrNode: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
+              template: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
               instructions: [
-                [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'id' } ],
-                [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'length' } ],
+                [ { type: TargetedInstructionType.textBinding, from: 'id' } ],
+                [ { type: TargetedInstructionType.textBinding, from: 'length' } ],
                 [
                   {
                     type: TargetedInstructionType.hydrateTemplateController,
                     res: 'repeat',
-                    src: {
+                    def: {
                       cache: "*",
-                      templateOrNode: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
+                      template: `<span class="au"></span> <span class="au"></span> <span class="au"></span> `,
                       instructions: [
-                        [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'innerId' } ],
-                        [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'innerLength' } ],
+                        [ { type: TargetedInstructionType.textBinding, from: 'innerId' } ],
+                        [ { type: TargetedInstructionType.textBinding, from: 'innerLength' } ],
                         [
                           {
                             type: TargetedInstructionType.hydrateTemplateController,
                             res: 'repeat',
-                            src: {
+                            def: {
                               cache: "*",
-                              templateOrNode: `<span class="au"></span> `,
+                              template: `<span class="au"></span> `,
                               instructions: [
-                                [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'innerInnerId' } ]
+                                [ { type: TargetedInstructionType.textBinding, from: 'innerInnerId' } ]
                               ]
                             },
                             instructions: [
-                              { type: TargetedInstructionType.iteratorBinding, srcOrExpr: 'innerInnerTodos', dest: 'items' },
-                              { type: TargetedInstructionType.setProperty, value: 'innerInnerTodo', dest: 'local' },
-                              { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
+                              { type: TargetedInstructionType.iteratorBinding, from: 'innerInnerTodos', to: 'items' },
+                              { type: TargetedInstructionType.setProperty, value: 'innerInnerTodo', to: 'local' },
+                              { type: TargetedInstructionType.setProperty, value: false, to: 'visualsRequireLifecycle' }
                             ]
                           }
                         ]
                       ]
                     },
                     instructions: [
-                      { type: TargetedInstructionType.iteratorBinding, srcOrExpr: 'innerTodos', dest: 'items' },
-                      { type: TargetedInstructionType.setProperty, value: 'innerTodo', dest: 'local' },
-                      { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
+                      { type: TargetedInstructionType.iteratorBinding, from: 'innerTodos', to: 'items' },
+                      { type: TargetedInstructionType.setProperty, value: 'innerTodo', to: 'local' },
+                      { type: TargetedInstructionType.setProperty, value: false, to: 'visualsRequireLifecycle' }
                     ]
                   }
                 ]
               ]
             },
             instructions: [
-              { type: TargetedInstructionType.iteratorBinding, srcOrExpr: 'todos', dest: 'items' },
-              { type: TargetedInstructionType.setProperty, value: 'todo', dest: 'local' },
-              { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
+              { type: TargetedInstructionType.iteratorBinding, from: 'todos', to: 'items' },
+              { type: TargetedInstructionType.setProperty, value: 'todo', to: 'local' },
+              { type: TargetedInstructionType.setProperty, value: false, to: 'visualsRequireLifecycle' }
             ]
           }
         ]

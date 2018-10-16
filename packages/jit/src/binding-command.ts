@@ -1,5 +1,5 @@
 import { Constructable, IContainer, Registration, Writable } from '@aurelia/kernel';
-import { BindingType, IExpressionParser, IResourceKind, IResourceType, ITemplateSource, TargetedInstruction } from '@aurelia/runtime';
+import { BindingType, IExpressionParser, IResourceKind, IResourceType, ITemplateDefinition, TargetedInstruction } from '@aurelia/runtime';
 import {
   CallBindingInstruction,
   CaptureBindingInstruction,
@@ -72,7 +72,7 @@ export class OneTimeBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new OneTimeBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.OneTimeCommand), $symbol.dest);
+    return new OneTimeBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.OneTimeCommand), $symbol.to);
   }
 }
 
@@ -83,7 +83,7 @@ export class ToViewBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new ToViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ToViewCommand), $symbol.dest);
+    return new ToViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ToViewCommand), $symbol.to);
   }
 }
 
@@ -94,7 +94,7 @@ export class FromViewBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new FromViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.FromViewCommand), $symbol.dest);
+    return new FromViewBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.FromViewCommand), $symbol.to);
   }
 }
 
@@ -105,7 +105,7 @@ export class TwoWayBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new TwoWayBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.TwoWayCommand), $symbol.dest);
+    return new TwoWayBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.TwoWayCommand), $symbol.to);
   }
 }
 
@@ -142,7 +142,7 @@ export class TriggerBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new TriggerBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.TriggerCommand), $symbol.dest);
+    return new TriggerBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.TriggerCommand), $symbol.to);
   }
 }
 
@@ -153,7 +153,7 @@ export class DelegateBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new DelegateBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.DelegateCommand), $symbol.dest);
+    return new DelegateBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.DelegateCommand), $symbol.to);
   }
 }
 
@@ -164,7 +164,7 @@ export class CaptureBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new CaptureBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.CaptureCommand), $symbol.dest);
+    return new CaptureBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.CaptureCommand), $symbol.to);
   }
 }
 
@@ -175,7 +175,7 @@ export class CallBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    return new CallBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.CallCommand), $symbol.dest);
+    return new CallBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.CallCommand), $symbol.to);
   }
 }
 
@@ -184,12 +184,12 @@ export class ForBindingCommand implements IBindingCommand {
   public static inject: Function[] = [IExpressionParser];
   constructor(private parser: IExpressionParser) {}
   public compile($symbol: IAttributeSymbol): TargetedInstruction {
-    const src: ITemplateSource = {
+    const def: ITemplateDefinition = {
       name: 'repeat',
-      templateOrNode: $symbol.$element.node,
+      template: $symbol.$element.node,
       instructions: []
     };
-    return new HydrateTemplateController(src, 'repeat', [
+    return new HydrateTemplateController(def, 'repeat', [
       new IteratorBindingInstruction(this.parser.parse($symbol.rawValue, BindingType.ForCommand), 'items'),
       new SetPropertyInstruction('item', 'local')
     // tslint:disable-next-line:align

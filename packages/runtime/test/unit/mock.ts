@@ -38,9 +38,9 @@ import {
   BindingIdentifier,
   RuntimeBehavior,
   IChangeSet,
-  ITemplateSource,
+  ITemplateDefinition,
   IResourceType,
-  ICustomAttributeSource,
+  IAttributeDefinition,
   ICustomAttribute,
   IRenderer,
   INode,
@@ -335,7 +335,7 @@ export class MockTemplate implements ITemplate {
     public templateDefinition: TemplateDefinition) {
 
     this.renderContext = createMockRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
-    const markupOrNode = templateDefinition.templateOrNode;
+    const markupOrNode = templateDefinition.template;
     if (markupOrNode instanceof Node) {
       if ((<HTMLTemplateElement>markupOrNode).content) {
         this.template = markupOrNode as any;
@@ -691,12 +691,12 @@ export class MockRenderingEngine implements IRenderingEngine {
     this.calls = [];
   }
 
-  public getElementTemplate(definition: Immutable<Required<ITemplateSource>>, componentType?: ICustomElementType): ITemplate {
+  public getElementTemplate(definition: Immutable<Required<ITemplateDefinition>>, componentType?: ICustomElementType): ITemplate {
     this.trace(`getElementTemplate`, definition, componentType);
     return this.elementTemplate;
   }
 
-  public getViewFactory(source: Immutable<ITemplateSource>, parentContext?: IRenderContext): IViewFactory {
+  public getViewFactory(source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory {
     this.trace(`getViewFactory`, source, parentContext);
     return this.viewFactory;
   }
@@ -706,7 +706,7 @@ export class MockRenderingEngine implements IRenderingEngine {
     return this.renderer;
   }
 
-  public applyRuntimeBehavior(type: IResourceType<ICustomAttributeSource, ICustomAttribute>, instance: ICustomAttribute): void;
+  public applyRuntimeBehavior(type: IResourceType<IAttributeDefinition, ICustomAttribute>, instance: ICustomAttribute): void;
   public applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement): void;
   public applyRuntimeBehavior(type: any, instance: any) {
     this.trace(`applyRuntimeBehavior`, type, instance);
@@ -750,7 +750,7 @@ export class MockCustomElementWithAllLifecycles {
   public unbound(flags: BindingFlags): void {
     this.trace(`unbound`, flags);
   }
-  public render(host: INode, parts: Record<string, Immutable<ITemplateSource>>): INodeSequence {
+  public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): INodeSequence {
     this.trace(`render`, host, parts);
     return new MockTextNodeSequence();
   }

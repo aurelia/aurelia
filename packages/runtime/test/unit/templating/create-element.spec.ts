@@ -96,14 +96,14 @@ describe(`createElement() creates element based on type`, () => {
         expect(instruction.res).to.equal(type.description.name);
         expect(instruction.instructions.length).to.equal(2);
         expect(instruction.instructions[0].type).to.equal(TargetedInstructionType.setAttribute);
-        expect(instruction.instructions[0]['dest']).to.equal('title');
+        expect(instruction.instructions[0]['to']).to.equal('title');
         expect(instruction.instructions[0]['value']).to.equal('asdf');
         if (type.description.bindables['foo']) {
           expect(instruction.instructions[1].type).to.equal(TargetedInstructionType.setProperty);
         } else {
           expect(instruction.instructions[1].type).to.equal(TargetedInstructionType.setAttribute);
         }
-        expect(instruction.instructions[1]['dest']).to.equal('foo');
+        expect(instruction.instructions[1]['to']).to.equal('foo');
         expect(instruction.instructions[1]['value']).to.equal('bar');
         expect(node.getAttribute('class')).to.equal('au');
       });

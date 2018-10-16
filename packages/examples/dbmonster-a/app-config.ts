@@ -1,10 +1,10 @@
-import { ITemplateSource, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
+import { ITemplateDefinition, TargetedInstructionType, BindingMode } from '@aurelia/runtime';
 
 //this object is built up during compilation
-export const appConfig: ITemplateSource = {
+export const appConfig: ITemplateDefinition = {
   name: 'app',
   dependencies: [ ],
-  templateOrNode: `
+  template: `
     <div>
       <table class="table table-striped latest-data">
         <tbody>
@@ -18,9 +18,9 @@ export const appConfig: ITemplateSource = {
       {
         type: TargetedInstructionType.hydrateTemplateController,
         res: 'repeat',
-        src: {
+        def: {
           cache: "*",
-          templateOrNode: `
+          template: `
             <tr>
               <td class="dbname"><au-marker class="au"></au-marker> </td>
               <td class="query-count"><au-marker class="au"></au-marker> </td>
@@ -28,15 +28,15 @@ export const appConfig: ITemplateSource = {
             </tr>
           `,
           instructions: [
-            [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'dbname' } ],
-            [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'nbQueries' } ],
+            [ { type: TargetedInstructionType.textBinding, from: 'dbname' } ],
+            [ { type: TargetedInstructionType.textBinding, from: 'nbQueries' } ],
             [
               {
                 type: TargetedInstructionType.hydrateTemplateController,
                 res: 'repeat',
-                src: {
+                def: {
                   cache: "*",
-                  templateOrNode: `
+                  template: `
                   <td>
                     <au-marker class="au"></au-marker> <div class="popover left">
                       <div class="popover-content"><au-marker class="au"></au-marker> </div>
@@ -45,23 +45,23 @@ export const appConfig: ITemplateSource = {
                   </td>
                   `,
                   instructions: [
-                    [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'formatElapsed' } ],
-                    [ { type: TargetedInstructionType.textBinding, srcOrExpr: 'query' } ]
+                    [ { type: TargetedInstructionType.textBinding, from: 'formatElapsed' } ],
+                    [ { type: TargetedInstructionType.textBinding, from: 'query' } ]
                   ]
                 },
                 instructions: [
-                  { type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, srcOrExpr: 'topFiveQueries', dest: 'items' },
-                  { type: TargetedInstructionType.setProperty, value: 'q', dest: 'local' },
-                  { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
+                  { type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, from: 'topFiveQueries', to: 'items' },
+                  { type: TargetedInstructionType.setProperty, value: 'q', to: 'local' },
+                  { type: TargetedInstructionType.setProperty, value: false, to: 'visualsRequireLifecycle' }
                 ]
               }
             ]
           ]
         },
         instructions: [
-          { type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, srcOrExpr: 'databases', dest: 'items' },
-          { type: TargetedInstructionType.setProperty, value: 'db', dest: 'local' },
-          { type: TargetedInstructionType.setProperty, value: false, dest: 'visualsRequireLifecycle' }
+          { type: TargetedInstructionType.propertyBinding, mode: BindingMode.toView, from: 'databases', to: 'items' },
+          { type: TargetedInstructionType.setProperty, value: 'db', to: 'local' },
+          { type: TargetedInstructionType.setProperty, value: false, to: 'visualsRequireLifecycle' }
         ]
       }
     ]

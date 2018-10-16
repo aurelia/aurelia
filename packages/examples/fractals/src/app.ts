@@ -6,7 +6,7 @@ export interface App extends ICustomElement {}
 
 @customElement({
   name: 'app',
-  templateOrNode: view,
+  template: view,
   build: {
     required: true,
     compiler: 'default'

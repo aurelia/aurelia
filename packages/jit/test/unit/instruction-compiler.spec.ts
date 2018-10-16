@@ -81,7 +81,7 @@ function createCustomElement(markup: string, ...dependencies: Function[]): { [ke
   return new (CustomElementResource.define({
     name: 'app',
     dependencies: [...dependencies],
-    templateOrNode: markup,
+    template: markup,
     build: { required: true, compiler: 'default' },
     instructions: [],
     surrogates: []

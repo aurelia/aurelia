@@ -8,7 +8,7 @@ import { customElement, ICustomElement } from '../custom-element';
 import {
   IHydrateElementInstruction,
   ITargetedInstruction,
-  ITemplateSource,
+  ITemplateDefinition,
   TargetedInstruction,
   TemplateDefinition
 } from '../instructions';
@@ -18,7 +18,7 @@ import { IRenderingEngine } from '../rendering-engine';
 import { IView, IViewFactory } from '../view';
 import { CompositionCoordinator } from './composition-coordinator';
 
-const composeSource: ITemplateSource = {
+const composeSource: ITemplateDefinition = {
   name: 'au-compose',
   containerless: true
 };
@@ -50,10 +50,10 @@ export class Compose {
     };
 
     this.properties = instruction.instructions
-      .filter((x: any) => !composeProps.includes(x.dest))
+      .filter((x: any) => !composeProps.includes(x.to))
       .reduce((acc, item: any) => {
-        if (item.dest) {
-          acc[item.dest] = item;
+        if (item.to) {
+          acc[item.to] = item;
         }
 
         return acc;
@@ -120,7 +120,7 @@ export class Compose {
       return null;
     }
 
-    if ('templateOrNode' in subject) { // Raw Template Definition
+    if ('template' in subject) { // Raw Template Definition
       return this.renderingEngine.getViewFactory(
         subject,
         this.renderable.$context

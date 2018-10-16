@@ -12,7 +12,7 @@ import {
   bindable,
   customAttribute,
   ViewCompileFlags,
-  ITemplateSource,
+  ITemplateDefinition,
   IHydrateTemplateController,
   IHydrateElementInstruction,
   TargetedInstructionType,
@@ -81,7 +81,7 @@ describe('TemplateCompiler', () => {
           );
           verifyInstructions(instructions as any, []);
           verifyInstructions(surrogates as any, [
-            { toVerify: ['type', 'value', 'dest'], type: TT.setAttribute, value: 'h-100', dest: 'class' }
+            { toVerify: ['type', 'value', 'to'], type: TT.setAttribute, value: 'h-100', to: 'class' }
           ]);
         });
 
@@ -93,7 +93,7 @@ describe('TemplateCompiler', () => {
           );
           verifyInstructions(instructions as any, [], 'normal');
           verifyInstructions(surrogates as any, [
-            { toVerify: ['type', 'dest'], type: TT.propertyBinding, dest: 'class' }
+            { toVerify: ['type', 'to'], type: TT.propertyBinding, to: 'class' }
           ], 'surrogate');
         });
 
@@ -105,7 +105,7 @@ describe('TemplateCompiler', () => {
           );
           verifyInstructions(instructions as any, [], 'normal');
           verifyInstructions(surrogates as any, [
-            { toVerify: ['type', 'dest'], type: TT.interpolation, dest: 'class' }
+            { toVerify: ['type', 'to'], type: TT.interpolation, to: 'class' }
           ], 'surrogate');
         });
 
@@ -142,14 +142,14 @@ describe('TemplateCompiler', () => {
         expect(actual.instructions[0].length).to.equal(3);
         const siblingInstructions = actual.instructions[0].slice(1);
         const expectedSiblingInstructions = [
-          { toVerify: ['type', 'res', 'dest'], type: TT.hydrateAttribute, res: 'prop3' },
-          { toVerify: ['type', 'res', 'dest'], type: TT.hydrateAttribute, res: 'prop3' }
+          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
+          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' }
         ];
         verifyInstructions(siblingInstructions, expectedSiblingInstructions);
         const rootInstructions = actual.instructions[0][0]['instructions'] as any[];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res', 'dest'], type: TT.propertyBinding, dest: 'prop1' },
-          { toVerify: ['type', 'res', 'dest'], type: TT.propertyBinding, dest: 'prop2' }
+          { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop1' },
+          { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop2' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
       });
@@ -175,7 +175,7 @@ describe('TemplateCompiler', () => {
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'dest', 'value'], type: TT.setProperty, dest: 'name', value: 'name' }
+          { toVerify: ['type', 'to', 'value'], type: TT.setProperty, to: 'name', value: 'name' }
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -197,7 +197,7 @@ describe('TemplateCompiler', () => {
         const rootInstructions = actual.instructions[0] as any[];
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'value', 'dest'], type: TT.setProperty, value: 'label', dest: 'backgroundColor' },
+          { toVerify: ['type', 'value', 'to'], type: TT.setProperty, value: 'label', to: 'backgroundColor' },
         ];
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
@@ -226,11 +226,11 @@ describe('TemplateCompiler', () => {
         const rootInstructions = actual.instructions[0] as any[];
 
         const expectedElInstructions = [
-          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.twoWay, dest: 'propProp1' },
-          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.oneTime, dest: 'prop2' },
-          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.toView, dest: 'propProp3' },
-          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.fromView, dest: 'prop4' },
-          { toVerify: ['type', 'mode', 'dest'], mode: BindingMode.twoWay, dest: 'propProp5' },
+          { toVerify: ['type', 'mode', 'to'], mode: BindingMode.twoWay, to: 'propProp1' },
+          { toVerify: ['type', 'mode', 'to'], mode: BindingMode.oneTime, to: 'prop2' },
+          { toVerify: ['type', 'mode', 'to'], mode: BindingMode.toView, to: 'propProp3' },
+          { toVerify: ['type', 'mode', 'to'], mode: BindingMode.fromView, to: 'prop4' },
+          { toVerify: ['type', 'mode', 'to'], mode: BindingMode.twoWay, to: 'propProp5' },
         ].map((e: any) => {
           e.type = TT.propertyBinding;
           return e;
@@ -247,13 +247,13 @@ describe('TemplateCompiler', () => {
           class Prop {
             value: any;
           }
-          const { templateOrNode, instructions } = compileWith(
+          const { template, instructions } = compileWith(
             `<template><el prop.bind="p"></el></template>`,
             [Prop]
           );
-          expect((templateOrNode as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
+          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
-          expect((hydratePropAttrInstruction.src.templateOrNode as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
+          expect((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
         });
 
         it('moves attrbiutes instructions before the template controller into it', () => {
@@ -264,19 +264,19 @@ describe('TemplateCompiler', () => {
           class Prop {
             value: any;
           }
-          const { templateOrNode, instructions } = compileWith(
+          const { template, instructions } = compileWith(
             `<template><el name.bind="name" title.bind="title" prop.bind="p"></el></template>`,
             [Prop]
           );
-          expect((templateOrNode as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
+          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-marker class="au"></au-marker></template>')
           const [hydratePropAttrInstruction] = instructions[0] as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.instructions as any, [
-            { toVerify: ['type', 'dest', 'srcOrExpr'],
-              type: TT.propertyBinding, dest: 'value', srcOrExpr: new AccessScope('p') },
-            { toVerify: ['type', 'dest', 'srcOrExpr'],
-              type: TT.propertyBinding, dest: 'name', srcOrExpr: new AccessScope('name') },
-            { toVerify: ['type', 'dest', 'srcOrExpr'],
-              type: TT.propertyBinding, dest: 'title', srcOrExpr: new AccessScope('title') },
+            { toVerify: ['type', 'to', 'from'],
+              type: TT.propertyBinding, to: 'value', from: new AccessScope('p') },
+            { toVerify: ['type', 'to', 'from'],
+              type: TT.propertyBinding, to: 'name', from: new AccessScope('name') },
+            { toVerify: ['type', 'to', 'from'],
+              type: TT.propertyBinding, to: 'title', from: new AccessScope('title') },
           ]);
         });
 
@@ -306,15 +306,15 @@ describe('TemplateCompiler', () => {
               );
 
               verifyInstructions(instructions[0] as any, [
-                { toVerify: ['type', 'res', 'dest'],
+                { toVerify: ['type', 'res', 'to'],
                   type: TargetedInstructionType.hydrateTemplateController, res: 'if' }
               ]);
               const templateControllerInst = instructions[0][0] as any as IHydrateTemplateController;
               verifyInstructions(templateControllerInst.instructions, [
-                { toVerify: ['type', 'dest', 'srcOrExpr'],
-                  type: TargetedInstructionType.propertyBinding, dest: 'value', srcOrExpr: new AccessScope('value') }
+                { toVerify: ['type', 'to', 'from'],
+                  type: TargetedInstructionType.propertyBinding, to: 'value', from: new AccessScope('value') }
               ]);
-              const [hydrateNotDivInstruction] = templateControllerInst.src.instructions[0] as [IHydrateElementInstruction];
+              const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [IHydrateElementInstruction];
               verifyInstructions([hydrateNotDivInstruction], [
                 { toVerify: ['type', 'res'],
                   type: TargetedInstructionType.hydrateElement, res: 'not-div' }
@@ -353,10 +353,10 @@ describe('TemplateCompiler', () => {
         it('compiles with attributes', () => {
           const { instructions } = compileWith(`<let a.bind="b" c="\${d}"></let>`);
           verifyInstructions((instructions[0][0] as any).instructions, [
-            { toVerify: ['type', 'dest', 'srcOrExp'],
-              type: TT.letBinding, dest: 'a', srcOrExpr: 'b' },
-            { toVerify: ['type', 'dest'],
-              type: TT.letBinding, dest: 'c' }
+            { toVerify: ['type', 'to', 'srcOrExp'],
+              type: TT.letBinding, to: 'a', from: 'b' },
+            { toVerify: ['type', 'to'],
+              type: TT.letBinding, to: 'c' }
           ]);
         });
 
@@ -387,7 +387,7 @@ describe('TemplateCompiler', () => {
 
     function compileWith(markup: string | Element, extraResources: any[] = [], viewCompileFlags?: ViewCompileFlags) {
       extraResources.forEach(e => e.register(container));
-      return sut.compile(<any>{ templateOrNode: markup, instructions: [], surrogates: [] }, resources, viewCompileFlags);
+      return sut.compile(<any>{ template: markup, instructions: [], surrogates: [] }, resources, viewCompileFlags);
     }
 
     function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
@@ -419,20 +419,20 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
   if (attr === 'repeat.for') {
     return [{
       type: TT.iteratorBinding,
-      srcOrExpr: new ForOfStatement(
+      from: new ForOfStatement(
         new BindingIdentifier(value.split(' of ')[0]),
         new AccessScope(value.split(' of ')[1])),
-      dest: 'items'
+      to: 'items'
     }, {
       type: TT.setProperty,
       value: 'item',
-      dest: 'local'
+      to: 'local'
     }];
   } else {
     return [{
       type: TT.propertyBinding,
-      srcOrExpr: value.length === 0 ? PrimitiveLiteral.$empty : new AccessScope(value),
-      dest: 'value',
+      from: value.length === 0 ? PrimitiveLiteral.$empty : new AccessScope(value),
+      to: 'value',
       mode: BindingMode.toView,
       oneTime: false
     }];
@@ -458,20 +458,20 @@ function createTemplateController(attr: string, target: string, value: string, t
     const instruction = {
       type: TT.hydrateTemplateController,
       res: target,
-      src: {
+      def: {
         name: target,
-        templateOrNode: createElement(`<template><au-marker class="au"></au-marker></template>`),
+        template: createElement(`<template><au-marker class="au"></au-marker></template>`),
         instructions: [[childInstr]]
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
     };
     const input = {
-      templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+      template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
       instructions: []
     }
     const output = {
-      templateOrNode: createElement(`<div><au-marker class="au"></au-marker></div>`),
+      template: createElement(`<div><au-marker class="au"></au-marker></div>`),
       instructions: [[instruction]]
     }
     return [input, <any>output];
@@ -488,9 +488,9 @@ function createTemplateController(attr: string, target: string, value: string, t
     const instruction = {
       type: TT.hydrateTemplateController,
       res: target,
-      src: {
+      def: {
         name: target,
-        templateOrNode: createElement(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
+        template: createElement(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
         instructions
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
@@ -498,11 +498,11 @@ function createTemplateController(attr: string, target: string, value: string, t
     };
     const rawMarkup = `<${tagName} ${attr}="${value||''}">${childTpl||''}</${tagName}>`;
     const input = {
-      templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+      template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
       instructions: []
     }
     const output = {
-      templateOrNode: createElement(finalize ? `<div><au-marker class="au"></au-marker></div>` : `<au-marker class="au"></au-marker>`),
+      template: createElement(finalize ? `<div><au-marker class="au"></au-marker></div>` : `<au-marker class="au"></au-marker>`),
       instructions: [[instruction]]
     }
     return [input, <any>output];
@@ -516,15 +516,15 @@ function createCustomElement(tagName: string, finalize: boolean, attributes: [st
     instructions: childInstructions
   };
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
-  const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput&&childInput.templateOrNode)||''}</${tagName}>`;
+  const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput&&childInput.template)||''}</${tagName}>`;
   const input = {
-    templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+    template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   }
-  const outputMarkup = <HTMLElement>createElement(`<${tagName} ${attributeMarkup}>${(childOutput&&childOutput.templateOrNode.outerHTML)||''}</${tagName}>`);
+  const outputMarkup = <HTMLElement>createElement(`<${tagName} ${attributeMarkup}>${(childOutput&&childOutput.template.outerHTML)||''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
-    templateOrNode: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
+    template: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
   }
   return [input, output];
@@ -537,15 +537,15 @@ function createCustomAttribute(resName: string, finalize: boolean, attributes: [
     instructions: childInstructions
   };
   const attributeMarkup = attributes.map(a => `${a[0]}: ${a[1]};`).join('');
-  const rawMarkup = `<div ${resName}="${attributeMarkup}">${(childInput&&childInput.templateOrNode)||''}</div>`;
+  const rawMarkup = `<div ${resName}="${attributeMarkup}">${(childInput&&childInput.template)||''}</div>`;
   const input = {
-    templateOrNode: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
+    template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   }
-  const outputMarkup = <HTMLElement>createElement(`<div ${resName}="${attributeMarkup}">${(childOutput&&childOutput.templateOrNode.outerHTML)||''}</div>`);
+  const outputMarkup = <HTMLElement>createElement(`<div ${resName}="${attributeMarkup}">${(childOutput&&childOutput.template.outerHTML)||''}</div>`);
   outputMarkup.classList.add('au');
   const output = {
-    templateOrNode: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
+    template: finalize ? createElement(`<div>${outputMarkup.outerHTML}</div>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
   }
   return [input, output];
@@ -571,38 +571,38 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
   if (!!bindable) {
     if (!!cmd && validCommands.indexOf(cmd) !== -1) {
       const type = TT.propertyBinding;
-      const dest = bindable.property;
-      const srcOrExpr = parseCore(attributeValue);
-      return { type, dest, mode, srcOrExpr, oneTime };
+      const to = bindable.property;
+      const from = parseCore(attributeValue);
+      return { type, to, mode, from, oneTime };
     } else {
-      const srcOrExpr = parseCore(attributeValue, <any>BindingType.Interpolation);
-      if (!!srcOrExpr) {
+      const from = parseCore(attributeValue, <any>BindingType.Interpolation);
+      if (!!from) {
         const type = TT.interpolation;
-        const dest = bindable.property;
-        return { type, dest, srcOrExpr };
+        const to = bindable.property;
+        return { type, to, from };
       } else {
         const type = TT.setProperty;
-        const dest = bindable.property;
+        const to = bindable.property;
         const value = attributeValue;
-        return { type, dest, value };
+        return { type, to, value };
       }
     }
   } else {
     const type = TT.propertyBinding;
-    const dest = attr;
+    const to = attr;
     if (!!cmd && validCommands.indexOf(cmd) !== -1) {
-      const srcOrExpr = parseCore(attributeValue);
-      return { type, dest, mode, srcOrExpr, oneTime };
+      const from = parseCore(attributeValue);
+      return { type, to, mode, from, oneTime };
     } else {
-      let srcOrExpr = parseCore(attributeValue, <any>BindingType.Interpolation);
-      if (!!srcOrExpr) {
+      let from = parseCore(attributeValue, <any>BindingType.Interpolation);
+      if (!!from) {
         const type = TT.interpolation;
-        return { type, dest, srcOrExpr };
+        return { type, to, from };
       } else if (isMulti) {
         const type = TT.setProperty;
-        const dest = attr;
+        const to = attr;
         const value = attributeValue;
-        return { type, dest, value };
+        return { type, to, value };
       } else {
         return null;
       }
@@ -610,7 +610,7 @@ function createAttributeInstruction(bindable: IBindableDescription | null, attri
   }
 }
 
-type CTCResult = [ITemplateSource, ITemplateSource];
+type CTCResult = [ITemplateDefinition, ITemplateDefinition];
 
 type Bindables = { [pdName: string]: IBindableDescription };
 
@@ -636,23 +636,23 @@ describe(`TemplateCompiler - combinations`, () => {
         () => ['value', 'value', 'value', new AccessScope('value')]
       ],
       <(($1: [string], $2: [string, string, string, IExpression]) => [string, string, any])[]>[
-        ($1, [,, value, srcOrExpr]) => [`ref`,               value, { type: TT.refBinding,      srcOrExpr }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView,   oneTime: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime,  oneTime: true  }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView, oneTime: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay,   oneTime: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.none,      preventDefault: true }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, srcOrExpr, dest, strategy: DelegationStrategy.capturing, preventDefault: false }],
-        ($1, [attr, dest, value, srcOrExpr]) => [`${attr}.call`,      value, { type: TT.callBinding,     srcOrExpr, dest }]
+        ($1, [,, value, from]) => [`ref`,               value, { type: TT.refBinding,      from }],
+        ($1, [attr, to, value, from]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from, to, mode: BindingMode.toView,   oneTime: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from, to, mode: BindingMode.toView,   oneTime: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from, to, mode: BindingMode.oneTime,  oneTime: true  }],
+        ($1, [attr, to, value, from]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from, to, mode: BindingMode.fromView, oneTime: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, from, to, mode: BindingMode.twoWay,   oneTime: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.trigger`,   value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.none,      preventDefault: true }],
+        ($1, [attr, to, value, from]) => [`${attr}.delegate`,  value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.capture`,   value, { type: TT.listenerBinding, from, to, strategy: DelegationStrategy.capturing, preventDefault: false }],
+        ($1, [attr, to, value, from]) => [`${attr}.call`,      value, { type: TT.callBinding,     from, to }]
       ]
     ], ([el], $2, [n1, v1, i1]) => {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;
 
       it(markup, () => {
-        const input = { templateOrNode: markup, instructions: [], surrogates: [] };
-        const expected = { templateOrNode: createElement(`<${el} ${n1}="${v1}" class="au"></${el}>`), instructions: [[i1]], surrogates: [] };
+        const input = { template: markup, instructions: [], surrogates: [] };
+        const expected = { template: createElement(`<${el} ${n1}="${v1}" class="au"></${el}>`), instructions: [[i1]], surrogates: [] };
 
         const { sut, resources } = setup();
 
@@ -665,7 +665,7 @@ describe(`TemplateCompiler - combinations`, () => {
 
   describe('custom attributes', () => {
     eachCartesianJoinFactory([
-      // ICustomAttributeSource.bindables
+      // IAttributeDefinition.bindables
       <(() => [Record<string, IBindableDescription> | undefined, BindingMode | undefined, string])[]>[
         () => [undefined, undefined, 'value'],
         () => [{}, undefined,  'value'],
@@ -679,7 +679,7 @@ describe(`TemplateCompiler - combinations`, () => {
         () => ['foo-foo', '', PrimitiveLiteral.$empty, class FooFoo{}],
         () => ['foo',     'bar', new AccessScope('bar'), class Foo{}]
       ],
-      // ICustomAttributeSource.defaultBindingMode
+      // IAttributeDefinition.defaultBindingMode
       <(() => BindingMode | undefined)[]>[
         () => undefined,
         () => BindingMode.oneTime,
@@ -688,25 +688,25 @@ describe(`TemplateCompiler - combinations`, () => {
         () => BindingMode.twoWay
       ],
       <(($1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, IExpression, Constructable], $3: BindingMode) => [string, any])[]>[
-        ([, mode, dest], [attr,, srcOrExpr], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        ([, mode, dest], [attr,, srcOrExpr], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, srcOrExpr, dest, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.to-view`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.toView }],
-        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.one-time`,  { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.oneTime }],
-        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.from-view`, { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.fromView }],
-        ([,, dest], [attr,, srcOrExpr]) => [`${attr}.two-way`,   { type: TT.propertyBinding, srcOrExpr, dest, mode: BindingMode.twoWay }]
+        ([, mode, to], [attr,, from], defaultMode) => [`${attr}`,           { type: TT.propertyBinding, from, to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        ([, mode, to], [attr,, from], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from, to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        ([,, to], [attr,, from]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from, to, mode: BindingMode.toView }],
+        ([,, to], [attr,, from]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from, to, mode: BindingMode.oneTime }],
+        ([,, to], [attr,, from]) => [`${attr}.from-view`, { type: TT.propertyBinding, from, to, mode: BindingMode.fromView }],
+        ([,, to], [attr,, from]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from, to, mode: BindingMode.twoWay }]
       ]
     ], ([bindables], [attr, value,, ctor], defaultBindingMode, [name, childInstruction]) => {
       childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
-      const src = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
+      const def = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 
-      it(`${markup}  CustomAttribute=${JSON.stringify(src)}`, () => {
-        const input = { templateOrNode: markup, instructions: [], surrogates: [] };
-        const instruction = { type: TT.hydrateAttribute, res: src.name, instructions: [childInstruction] };
-        const expected = { templateOrNode: createElement(`<div ${name}="${value}" class="au"></div>`), instructions: [[instruction]], surrogates: [] };
+      it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, () => {
+        const input = { template: markup, instructions: [], surrogates: [] };
+        const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: [childInstruction] };
+        const expected = { template: createElement(`<div ${name}="${value}" class="au"></div>`), instructions: [[instruction]], surrogates: [] };
 
-        const def = CustomAttributeResource.define(src, ctor);
-        const { sut, resources } = setup(def);
+        const $def = CustomAttributeResource.define(def, ctor);
+        const { sut, resources } = setup($def);
 
         const actual = sut.compile(<any>input, resources);
 
@@ -783,32 +783,32 @@ describe(`TemplateCompiler - combinations`, () => {
         () => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false)
       ],
       <(($1: CTCResult) => CTCResult)[]>[
-        ([input, output]) => createTemplateController('foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('if.bind',    'if',     'show',          'div',      false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('else',       'else',   '',              'div',      false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('else',       'else',   '',              'template', false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           'div',      false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           'template', false, output.instructions[0][0], input.templateOrNode)
+        ([input, output]) => createTemplateController('foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
+        ([input, output]) => createTemplateController('foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
+        ([input, output]) => createTemplateController('if.bind',    'if',     'show',          'div',      false, output.instructions[0][0], input.template),
+        ([input, output]) => createTemplateController('else',       'else',   '',              'div',      false, output.instructions[0][0], input.template),
+        ([input, output]) => createTemplateController('else',       'else',   '',              'template', false, output.instructions[0][0], input.template),
+        ([input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
+        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           'div',      false, output.instructions[0][0], input.template),
+        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           'template', false, output.instructions[0][0], input.template)
       ],
       <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
-        ($1, [input, output]) => createTemplateController('foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.templateOrNode)
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.template),
+        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
+        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
       ],
       <(($1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[]>[
-        ($1, $2, [input, output]) => createTemplateController('bar',        'bar',    '',              'div',      true, output.instructions[0][0], input.templateOrNode),
-        ($1, $2, [input, output]) => createTemplateController('bar',        'bar',    'baz',           'div',      true, output.instructions[0][0], input.templateOrNode),
-        ($1, $2, [input, output]) => createTemplateController('bar',        'bar',    'baz',           'template', true, output.instructions[0][0], input.templateOrNode),
-        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      true, output.instructions[0][0], input.templateOrNode),
-        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', true, output.instructions[0][0], input.templateOrNode)
+        ($1, $2, [input, output]) => createTemplateController('bar',        'bar',    '',              'div',      true, output.instructions[0][0], input.template),
+        ($1, $2, [input, output]) => createTemplateController('bar',        'bar',    'baz',           'div',      true, output.instructions[0][0], input.template),
+        ($1, $2, [input, output]) => createTemplateController('bar',        'bar',    'baz',           'template', true, output.instructions[0][0], input.template),
+        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      true, output.instructions[0][0], input.template),
+        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', true, output.instructions[0][0], input.template)
       ]
     ], ($1, $2, $3, [input, output]) => {
 
-      it(`${input.templateOrNode}`, () => {
+      it(`${input.template}`, () => {
 
         const { sut, resources } = setup(
           <any>CustomAttributeResource.define({ name: 'foo', isTemplateController: true }, class Foo{}),
@@ -841,31 +841,31 @@ describe(`TemplateCompiler - combinations`, () => {
         () => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false)
       ],
       <(($1: CTCResult) => CTCResult)[]>[
-        ([input, output]) => createTemplateController('bar',        'bar',    '',              null,       false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('else',       'else',   '',              null,       false, output.instructions[0][0], input.templateOrNode),
-        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           null,       false, output.instructions[0][0], input.templateOrNode)
+        ([input, output]) => createTemplateController('bar',        'bar',    '',              null,       false, output.instructions[0][0], input.template),
+        ([input, output]) => createTemplateController('else',       'else',   '',              null,       false, output.instructions[0][0], input.template),
+        ([input, output]) => createTemplateController('with.bind',  'with',   'foo',           null,       false, output.instructions[0][0], input.template)
       ],
       <(($1: CTCResult, $2: CTCResult) => CTCResult)[]>[
-        ($1, [input, output]) => createTemplateController('foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('baz',        'baz',    '',              null,       false, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.templateOrNode),
-        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.templateOrNode)
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
+        ($1, [input, output]) => createTemplateController('foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.template),
+        ($1, [input, output]) => createTemplateController('baz',        'baz',    '',              null,       false, output.instructions[0][0], input.template),
+        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
+        ($1, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
       ],
       <(($1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[]>[
-        ($1, $2, [input, output]) => createTemplateController('qux',        'qux',    '',              null,       false, output.instructions[0][0], input.templateOrNode),
-        ($1, $2, [input, output]) => createTemplateController('if.bind',    'if',     '',              'template', false, output.instructions[0][0], input.templateOrNode),
-        ($1, $2, [input, output]) => createTemplateController('if.bind',    'if',     '',              'div',      false, output.instructions[0][0], input.templateOrNode),
-        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.templateOrNode),
-        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.templateOrNode)
+        ($1, $2, [input, output]) => createTemplateController('qux',        'qux',    '',              null,       false, output.instructions[0][0], input.template),
+        ($1, $2, [input, output]) => createTemplateController('if.bind',    'if',     '',              'template', false, output.instructions[0][0], input.template),
+        ($1, $2, [input, output]) => createTemplateController('if.bind',    'if',     '',              'div',      false, output.instructions[0][0], input.template),
+        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
+        ($1, $2, [input, output]) => createTemplateController('repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
       ],
       <(($1: CTCResult, $2: CTCResult, $3: CTCResult, $4: CTCResult) => CTCResult)[]>[
-        ($1, $2, $3, [input, output]) => createTemplateController('quux',       'quux',   '',              null,       true, output.instructions[0][0], input.templateOrNode)
+        ($1, $2, $3, [input, output]) => createTemplateController('quux',       'quux',   '',              null,       true, output.instructions[0][0], input.template)
       ]
     ], ($1, $2, $3, $4, [input, output]) => {
 
-      it(`${input.templateOrNode}`, () => {
+      it(`${input.template}`, () => {
 
         const { sut, resources } = setup(
           <any>CustomAttributeResource.define({ name: 'foo',  isTemplateController: true }, class Foo{}),
@@ -918,11 +918,11 @@ describe(`TemplateCompiler - combinations`, () => {
       ]
     ], ([[input1, output1], [input2, output2], [input3, output3]]) => {
       const input = {
-        templateOrNode: `<div>${input1.templateOrNode}${input2.templateOrNode}${input3.templateOrNode}</div>`,
+        template: `<div>${input1.template}${input2.template}${input3.template}</div>`,
         instructions: []
       };
 
-      it(`${input.templateOrNode}`, () => {
+      it(`${input.template}`, () => {
 
         const { sut, resources } = setup(
           <any>CustomAttributeResource.define({ name: 'foo', isTemplateController: true }, class Foo{}),
@@ -931,7 +931,7 @@ describe(`TemplateCompiler - combinations`, () => {
         );
 
         const output = {
-          templateOrNode: createElement(`<div>${output1.templateOrNode['outerHTML']}${output2.templateOrNode['outerHTML']}${output3.templateOrNode['outerHTML']}</div>`),
+          template: createElement(`<div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]]
         };
         const actual = sut.compile(<any>input, resources);
@@ -1028,7 +1028,7 @@ describe(`TemplateCompiler - combinations`, () => {
         ($1, [input, output]) => createCustomElement(`baz`, true, [], [], [], output.instructions, output, input)
       ]
     ], ($1, $2, [input, output]) => {
-      it(`${input.templateOrNode}`, () => {
+      it(`${input.template}`, () => {
 
         const { sut, resources } = setup(
           <any>CustomElementResource.define({ name: 'foo' }, class Foo{}),

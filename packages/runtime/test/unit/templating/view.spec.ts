@@ -320,11 +320,11 @@ describe(`View`, () => {
           }
 
           // verify short-circuit if already attached
-          //const src = sut['$encapsulationSource'];
+          //const def = sut['$encapsulationSource'];
           sut['$encapsulationSource'] = null;
           sut.$attach(source, <any>lifecycle);
           expect(sut['$encapsulationSource']).to.be.null;
-          //sut['$encapsulationSource'] = src;
+          //sut['$encapsulationSource'] = def;
         }]
       ],
       [

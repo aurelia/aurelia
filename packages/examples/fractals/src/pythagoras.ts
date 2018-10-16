@@ -7,7 +7,7 @@ let count = 0;
 
 @customElement({
   name: 'pythagoras',
-  templateOrNode: (() => {
+  template: (() => {
     const parser = document.createElement('div');
     parser.innerHTML = view;
     const template = parser.firstElementChild as HTMLTemplateElement;

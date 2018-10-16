@@ -44,7 +44,7 @@ export class JsonValueConverter {
 
 @customElement({
   name: 'name-tag',
-  templateOrNode: '<template>${name}</template>',
+  template: '<template>${name}</template>',
   build: { required: true, compiler: 'default' },
   dependencies: [],
   instructions: [],
@@ -73,7 +73,7 @@ const buildRequired = { required: true, compiler: 'default' };
 export function defineCustomElement<T>(name: string, markupOrNode: string | Node, $class: Constructable<T>, dependencies: ReadonlyArray<any> = PLATFORM.emptyArray) {
   return CustomElementResource.define({
     name,
-    templateOrNode: markupOrNode,
+    template: markupOrNode,
     build: buildRequired,
     dependencies: <any>dependencies,
     instructions: []
@@ -84,7 +84,7 @@ export function createCustomElement(markup: string | Element, $class: Constructa
   return new (CustomElementResource.define({
     name: 'app',
     dependencies: [...dependencies],
-    templateOrNode: markup,
+    template: markup,
     build: { required: true, compiler: 'default' },
     instructions: [],
     surrogates: []

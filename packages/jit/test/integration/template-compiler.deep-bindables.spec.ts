@@ -112,10 +112,10 @@ const wrappedBasic = parentSuite.clone<IContainer, Aurelia, IChangeSet, HTMLElem
 wrappedBasic.addActionSlot('wrap in div')
   .addAction('setup', ctx => {
     const {
-      e: { description: { templateOrNode: appTemplate } },
-      f: { description: { templateOrNode: fooATemplate } },
-      g: { description: { templateOrNode: fooBTemplate } },
-      h: { description: { templateOrNode: fooCTemplate } }
+      e: { description: { template: appTemplate } },
+      f: { description: { template: fooATemplate } },
+      g: { description: { template: fooBTemplate } },
+      h: { description: { template: fooCTemplate } }
     } = ctx;
 
     for (const template of [appTemplate, fooATemplate, fooBTemplate, fooCTemplate]) {

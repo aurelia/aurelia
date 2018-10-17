@@ -1,4 +1,4 @@
-import { createNodeSequenceFactory, INode, INodeSequence, NodeSequence } from '../dom';
+import { DOM, INode, INodeSequence, NodeSequence } from '../dom';
 import { TemplateDefinition, TemplatePartDefinitions } from './instructions';
 import { createRenderContext, IRenderContext } from './render-context';
 import { IRenderable } from './renderable';
@@ -27,7 +27,7 @@ export class CompiledTemplate implements ITemplate {
 
   constructor(renderingEngine: IRenderingEngine, parentRenderContext: IRenderContext, private templateDefinition: TemplateDefinition) {
     this.renderContext = createRenderContext(renderingEngine, parentRenderContext, templateDefinition.dependencies);
-    this.createNodeSequence = createNodeSequenceFactory(templateDefinition.template);
+    this.createNodeSequence = DOM.createNodeSequenceFactory(templateDefinition.template);
   }
 
   public createFor(renderable: IRenderable, host?: INode, replacements?: TemplatePartDefinitions): INodeSequence {

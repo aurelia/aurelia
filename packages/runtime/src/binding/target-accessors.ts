@@ -1,5 +1,5 @@
 import { IIndexable, Primitive } from '@aurelia/kernel';
-import { addClass, getAttribute,  IHTMLElement, INode, removeAttribute, removeClass, setAttribute } from '../dom';
+import { DOM, IHTMLElement, INode } from '../dom';
 import { IChangeSet } from './change-set';
 import { IBindingTargetAccessor } from './observation';
 import { targetObserver } from './target-observer';
@@ -59,14 +59,14 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   }
 
   public getValue(): string {
-    return getAttribute(this.obj, this.propertyKey);
+    return DOM.getAttribute(this.obj, this.propertyKey);
   }
 
   public setValueCore(newValue: string): void {
     if (newValue === null) {
-      removeAttribute(this.obj, this.propertyKey);
+      DOM.removeAttribute(this.obj, this.propertyKey);
     } else {
-      setAttribute(this.obj, this.propertyKey, newValue);
+      DOM.setAttribute(this.obj, this.propertyKey, newValue);
     }
   }
 }
@@ -190,7 +190,7 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
           continue;
         }
         nameIndex[name] = version;
-        addClass(node, name);
+        DOM.addClass(node, name);
       }
     }
 
@@ -214,7 +214,7 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
       // will be removed if they're not present in the next update.
       // Better would be do have some configurability for this behavior, allowing the user to
       // decide whether initial classes always need to be kept, always removed, or something in between
-      removeClass(this.obj, name);
+      DOM.removeClass(this.obj, name);
     }
   }
 }

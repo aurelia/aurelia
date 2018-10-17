@@ -12,7 +12,7 @@ import {
 } from '@aurelia/kernel';
 import { Scope } from '../binding';
 import { BindingFlags } from '../binding/binding-flags';
-import { attachShadow, convertToRenderLocation, createNodeObserver, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
+import { DOM, ICustomElementHost, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IResourceKind, IResourceType } from '../resource';
 import { IHydrateElementInstruction, ITemplateDefinition, TemplateDefinition } from './instructions';
 import { IAttach, IAttachLifecycle, IDetachLifecycle, ILifecycleHooks } from './lifecycle';
@@ -365,7 +365,7 @@ export class ShadowDOMProjector implements IElementProjector {
     public host: ICustomElementHost,
     definition: TemplateDefinition
   ) {
-    this.shadowRoot = attachShadow(host, definition.shadowOptions || defaultShadowOptions);
+    this.shadowRoot = DOM.attachShadow(host, definition.shadowOptions || defaultShadowOptions);
     host.$customElement = $customElement;
     this.shadowRoot.$customElement = $customElement;
   }
@@ -375,7 +375,7 @@ export class ShadowDOMProjector implements IElementProjector {
   }
 
   public subscribeToChildrenChange(callback: () => void): void {
-    createNodeObserver(this.host, callback, childObserverOptions);
+    DOM.createNodeObserver(this.host, callback, childObserverOptions);
   }
 
   public provideEncapsulationSource(parentEncapsulationSource: INode): INode {
@@ -406,7 +406,7 @@ export class ContainerlessProjector implements IElementProjector {
       this.childNodes = PLATFORM.emptyArray;
     }
 
-    this.host = convertToRenderLocation(host);
+    this.host = DOM.convertToRenderLocation(host);
     this.host.$customElement = $customElement;
   }
 

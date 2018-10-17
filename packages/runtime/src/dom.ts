@@ -149,15 +149,15 @@ export class DOM {
   }
   public static createNodeSequenceFactory(markupOrNode: string | IElement): () => INodeSequence {
     let fragment: IDocumentFragment;
-    if (isNodeInstance(markupOrNode)) {
+    if (DOM.isNodeInstance(markupOrNode)) {
       if (markupOrNode.content !== undefined) {
         fragment = markupOrNode.content;
       } else {
-        fragment = createDocumentFragment();
-        appendChild(fragment, markupOrNode);
+        fragment = DOM.createDocumentFragment();
+        DOM.appendChild(fragment, markupOrNode);
       }
     } else {
-      const template = createTemplate();
+      const template = DOM.createTemplate();
       (<any>template).innerHTML = markupOrNode;
       fragment = template.content;
     }
@@ -225,7 +225,7 @@ export class DOM {
   }
   public static migrateChildNodes(currentParent: INode, newParent: INode): void {
     while (currentParent.firstChild) {
-      appendChild(newParent, currentParent.firstChild);
+      DOM.appendChild(newParent, currentParent.firstChild);
     }
   }
   public static registerElementResolver(container: IContainer, resolver: IResolver): void {
@@ -263,40 +263,6 @@ export class DOM {
     (<any>node).auInterpolationTarget = true;
   }
 }
-
-export const {
-  /*@internal*/createDocumentFragment,
-  /*@internal*/createTemplate,
-  /*@internal*/addClass,
-  /*@internal*/addEventListener,
-  /*@internal*/appendChild,
-  /*@internal*/attachShadow,
-  /*@internal*/cloneNode,
-  /*@internal*/convertToRenderLocation,
-  /*@internal*/createComment,
-  /*@internal*/createElement,
-  /*@internal*/createNodeObserver,
-  /*@internal*/createNodeSequenceFactory,
-  /*@internal*/createTextNode,
-  /*@internal*/getAttribute,
-  /*@internal*/hasClass,
-  /*@internal*/insertBefore,
-  /*@internal*/isAllWhitespace,
-  /*@internal*/isCommentNodeType,
-  /*@internal*/isDocumentFragmentType,
-  /*@internal*/isElementNodeType,
-  /*@internal*/isNodeInstance,
-  /*@internal*/isTextNodeType,
-  /*@internal*/migrateChildNodes,
-  /*@internal*/registerElementResolver,
-  /*@internal*/remove,
-  /*@internal*/removeAttribute,
-  /*@internal*/removeClass,
-  /*@internal*/removeEventListener,
-  /*@internal*/replaceNode,
-  /*@internal*/setAttribute,
-  /*@internal*/treatAsNonWhitespace
-} = DOM;
 
 // This is an implementation of INodeSequence that represents "no DOM" to render.
 // It's used in various places to avoid null and to encode

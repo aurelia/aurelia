@@ -1,5 +1,5 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
-import { appendChild, createElement as DOMcreateElement, createTextNode, INode, isNodeInstance, setAttribute } from '../dom';
+import { DOM, INode } from '../dom';
 import { ICustomElementType } from './custom-element';
 import {
   isTargetedInstruction,
@@ -66,7 +66,7 @@ export class PotentialRenderable {
 
   /*@internal*/
   public mergeInto(parent: INode, instructions: TargetedInstruction[][], dependencies: any[]): void {
-    appendChild(parent, this.node);
+    DOM.appendChild(parent, this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
   }
@@ -76,7 +76,7 @@ function createElementForTag(tagName: string, props?: any, children?: ArrayLike<
   const instructions: TargetedInstruction[] = [];
   const allInstructions = [];
   const dependencies = [];
-  const element = DOMcreateElement(tagName);
+  const element = DOM.createElement(tagName);
   let hasInstructions = false;
 
   if (props) {
@@ -88,13 +88,13 @@ function createElementForTag(tagName: string, props?: any, children?: ArrayLike<
           hasInstructions = true;
           instructions.push(value);
         } else {
-          setAttribute(element, to, value);
+          DOM.setAttribute(element, to, value);
         }
       });
   }
 
   if (hasInstructions) {
-    setAttribute(element, 'class', 'au');
+    DOM.setAttribute(element, 'class', 'au');
     allInstructions.push(instructions);
   }
 
@@ -112,9 +112,9 @@ function createElementForType(Type: ICustomElementType, props?: any, children?: 
   const dependencies = [];
   const childInstructions = [];
   const bindables = Type.description.bindables;
-  const element = DOMcreateElement(tagName);
+  const element = DOM.createElement(tagName);
 
-  setAttribute(element, 'class', 'au');
+  DOM.setAttribute(element, 'class', 'au');
 
   if (!dependencies.includes(Type)) {
     dependencies.push(Type);
@@ -165,9 +165,9 @@ function addChildren(parent: INode, children: ArrayLike<ChildType>, allInstructi
     const current = children[i];
 
     if (typeof current === 'string') {
-      appendChild(parent, createTextNode(current));
-    } else if (isNodeInstance(current)) {
-      appendChild(parent, current);
+      DOM.appendChild(parent, DOM.createTextNode(current));
+    } else if (DOM.isNodeInstance(current)) {
+      DOM.appendChild(parent, current);
     } else {
       current.mergeInto(parent, allInstructions, dependencies);
     }

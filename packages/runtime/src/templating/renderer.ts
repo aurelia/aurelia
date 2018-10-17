@@ -10,7 +10,7 @@ import { LetBinding } from '../binding/let-binding';
 import { Listener } from '../binding/listener';
 import { IObserverLocator } from '../binding/observer-locator';
 import { Ref } from '../binding/ref';
-import { convertToRenderLocation, INode, remove, setAttribute, treatAsNonWhitespace } from '../dom';
+import { DOM, INode } from '../dom';
 import { CustomAttributeResource, ICustomAttribute } from './custom-attribute';
 import { CustomElementResource, ICustomElement } from './custom-element';
 import {
@@ -104,8 +104,8 @@ export class Renderer implements IRenderer {
 
   public [TargetedInstructionType.textBinding](renderable: IRenderable, target: any, instruction: Immutable<ITextBindingInstruction>): void {
     const next = target.nextSibling;
-    treatAsNonWhitespace(next);
-    remove(target);
+    DOM.treatAsNonWhitespace(next);
+    DOM.remove(target);
     const from = instruction.from as any;
     const expr = (from.$kind ? from : this.parser.parse(from, BindingType.Interpolation)) as Interpolation;
     if (expr.isMulti) {
@@ -160,7 +160,7 @@ export class Renderer implements IRenderer {
   }
 
   public [TargetedInstructionType.setAttribute](renderable: IRenderable, target: any, instruction: Immutable<ISetAttributeInstruction>): void {
-    setAttribute(target, instruction.to, instruction.value);
+    DOM.setAttribute(target, instruction.to, instruction.value);
   }
 
   public [TargetedInstructionType.hydrateElement](renderable: IRenderable, target: any, instruction: Immutable<IHydrateElementInstruction>): void {
@@ -194,7 +194,7 @@ export class Renderer implements IRenderer {
     const childInstructions = instruction.instructions;
     const factory = this.renderingEngine.getViewFactory(instruction.def, this.context);
     const context = this.context;
-    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, convertToRenderLocation(target), false);
+    const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, DOM.convertToRenderLocation(target), false);
 
     const component = context.get<ICustomAttribute>(CustomAttributeResource.keyFrom(instruction.res));
     component.$hydrate(this.renderingEngine);

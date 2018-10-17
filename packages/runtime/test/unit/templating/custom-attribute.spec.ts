@@ -369,7 +369,188 @@ describe('@customAttribute', () => {
   });
 
   describe('$unbind', () => {
+    const initialStateAndInputScopePossibilities = [
+      {
+        description: '$isBound: false, $scope: null',
+        expectation: 'calls behaviors',
+        callsBehaviors: false,
+        setInitialProperties(sut: ICustomAttribute) {
+          const $sut = sut as Writable<ICustomAttribute>;
+          $sut.$isBound = false;
+        }
+      },
+      {
+        description: '$isBound: false, $scope !== null',
+        expectation: 'calls behaviors',
+        callsBehaviors: false,
+        setInitialProperties(sut: ICustomAttribute) {
+          const $sut = sut as Writable<ICustomAttribute>;
+          $sut.$isBound = false;
+        }
+      },
+      {
+        description: '$isBound: true, $scope: null',
+        expectation: 'calls behaviors',
+        callsBehaviors: true,
+        setInitialProperties(sut: ICustomAttribute) {
+          const $sut = sut as Writable<ICustomAttribute>;
+          $sut.$isBound = true;
+        }
+      },
+      {
+        description: '$isBound: true, $scope !== null',
+        expectation: 'calls behaviors',
+        callsBehaviors: true,
+        setInitialProperties(sut: ICustomAttribute) {
+          const $sut = sut as Writable<ICustomAttribute>;
+          $sut.$isBound = true;
+        }
+      }
+    ];
 
+    const flagsPossibilities = [
+      {
+        description: 'flags: BindingFlags.fromBind',
+        expectation: 'passed-through flags: fromUnbind|fromBind',
+        getFlags() {
+          return BindingFlags.fromUnbind;
+        },
+        getExpectedFlags() {
+          return BindingFlags.fromUnbind;
+        }
+      },
+      {
+        description: 'flags: BindingFlags.fromUnbind',
+        expectation: 'passed-through flags: fromUnbind',
+        getFlags() {
+          return BindingFlags.fromUnbind;
+        },
+        getExpectedFlags() {
+          return BindingFlags.fromUnbind | BindingFlags.fromUnbind;
+        }
+      },
+      {
+        description: 'flags: BindingFlags.updateTargetInstance',
+        expectation: 'passed-through flags: fromUnbind|updateTargetInstance',
+        getFlags() {
+          return BindingFlags.updateTargetInstance;
+        },
+        getExpectedFlags() {
+          return BindingFlags.fromUnbind | BindingFlags.updateTargetInstance;
+        }
+      }
+    ];
+
+    const behaviorPossibilities = [
+      {
+        description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: false',
+        expectation: 'calls binding(), does NOT call bound()',
+        getBehavior() {
+          return { hasUnbinding: true, hasUnbound: false };
+        },
+        verifyBehaviorInvocation(mock: IComponentLifecycleMock, flags: BindingFlags) {
+          mock.verifyUnbindingCalled(flags);
+          mock.verifyNoFurtherCalls();
+        }
+      },
+      {
+        description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: false',
+        expectation: 'does NOT call binding(), does NOT call bound()',
+        getBehavior() {
+          return { hasUnbinding: false, hasUnbound: false };
+        },
+        verifyBehaviorInvocation(mock: IComponentLifecycleMock, flags: BindingFlags) {
+          mock.verifyNoFurtherCalls();
+        }
+      },
+      {
+        description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: true',
+        expectation: 'calls binding(), calls bound()',
+        getBehavior() {
+          return { hasUnbinding: true, hasUnbound: true };
+        },
+        verifyBehaviorInvocation(mock: IComponentLifecycleMock, flags: BindingFlags) {
+          mock.verifyUnboundCalled(flags);
+          mock.verifyUnbindingCalled(flags);
+          mock.verifyNoFurtherCalls();
+        }
+      },
+      {
+        description: '$behavior.hasUnbinding: false, $behavior.hasUnbound: true',
+        expectation: 'does NOT call binding(), calls bound()',
+        getBehavior() {
+          return { hasUnbinding: false, hasUnbound: true };
+        },
+        verifyBehaviorInvocation(mock: IComponentLifecycleMock, flags: BindingFlags) {
+          mock.verifyUnboundCalled(flags);
+          mock.verifyNoFurtherCalls();
+        }
+      }
+    ];
+
+    function setup(behavior) {
+      const { sut } = setupBase();
+
+      sut['$behavior'] = behavior;
+
+      return { sut };
+    }
+
+    eachCartesianJoin([
+      initialStateAndInputScopePossibilities,
+      flagsPossibilities,
+      behaviorPossibilities,
+    ], (initialStatePossibility, flagsPossibility, behaviorPossibility) => {
+      const {
+        description: initialStateDescription,
+        expectation: initialStateExpectation,
+        callsBehaviors,
+        setInitialProperties
+      } = initialStatePossibility;
+      const {
+        description: flagsDescription,
+        expectation: flagsExpectation,
+        getFlags,
+        getExpectedFlags
+      } = flagsPossibility;
+      const {
+        description: behaviorDescription,
+        expectation: behaviorExpectation,
+        getBehavior,
+        verifyBehaviorInvocation
+      } = behaviorPossibility;
+
+      if (callsBehaviors) {
+        it(`${initialStateExpectation} if ${initialStateDescription} AND ${behaviorExpectation} if ${behaviorDescription} AND ${flagsExpectation} if ${flagsDescription}`, () => {
+          const behavior = getBehavior();
+          const expectedFlags = getExpectedFlags();
+
+          const { sut } = setup(behavior);
+
+          setInitialProperties(sut);
+
+          const flags = getFlags();
+
+          sut.$unbind(flags);
+
+          verifyBehaviorInvocation(sut, expectedFlags);
+        });
+      } else {
+        it(`${initialStateExpectation} if ${initialStateDescription} AND ${flagsExpectation} if ${flagsDescription}`, () => {
+          const behavior = getBehavior();
+
+          const { sut } = setup(behavior);
+
+          setInitialProperties(sut);
+
+          const flags = getFlags();
+
+          sut.$unbind(flags);
+
+          sut.verifyNoFurtherCalls();
+        });
+      }
+    });
   });
 
   describe('$attach', () => {

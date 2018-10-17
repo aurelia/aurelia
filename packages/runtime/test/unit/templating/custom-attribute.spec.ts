@@ -10,7 +10,7 @@ import { eachCartesianJoin } from '../util';
 // easier to pin down the source of the error when a test fail.
 describe('@customAttribute', () => {
 
-  function setupBase() {
+  function setup() {
     const decorate = customAttribute('foo');
     const Type = decorate(defineComponentLifecycleMock());
     const sut: ICustomAttribute & IComponentLifecycleMock = new (<any>Type)();
@@ -22,7 +22,7 @@ describe('@customAttribute', () => {
   // This is because the "real" sut is the decorator that modifies the prototype of the mock
   describe('$hydrate', () => {
 
-    const behaviorPossibilities = [
+    const behaviorSpecs = [
       {
         description: '$behavior.hasCreated: true',
         expectation: 'calls created()',
@@ -46,54 +46,46 @@ describe('@customAttribute', () => {
       }
     ];
 
-    function setup(behavior) {
-      const { Type, sut } = setupBase();
+    for (const behaviorSpec of behaviorSpecs) {
 
-      let appliedType: ICustomAttributeType;
-      let appliedInstance: ICustomAttribute;
-      const renderingEngine: IRenderingEngine = <any>{
-        applyRuntimeBehavior(type: ICustomAttributeType, instance: ICustomAttribute) {
-          instance['$behavior'] = behavior;
-          appliedType = type;
-          appliedInstance = instance;
-        }
-      };
-      function verifyBehaviorApplication() {
-        expect(appliedType).to.equal(Type, 'appliedType');
-        expect(appliedInstance).to.equal(sut, 'appliedInstance');
-      }
+      it(`sets properties, applies runtime behavior and ${behaviorSpec.expectation} if ${behaviorSpec.description}`, () => {
+        // Arrange
+        const { Type, sut } = setup();
 
-      return { sut, renderingEngine, verifyBehaviorApplication };
-    }
+        let appliedType: ICustomAttributeType;
+        let appliedInstance: ICustomAttribute;
+        const renderingEngine: IRenderingEngine = <any>{
+          applyRuntimeBehavior(type: ICustomAttributeType, instance: ICustomAttribute) {
+            instance['$behavior'] = behaviorSpec.getBehavior();
+            appliedType = type;
+            appliedInstance = instance;
+          }
+        };
 
-    for (const behaviorPossibility of behaviorPossibilities) {
-      const { description, getBehavior, expectation, verifyBehaviorInvocation } = behaviorPossibility;
-
-      it(`sets properties, applies runtime behavior and ${expectation} if ${description}`, () => {
-        const behavior = getBehavior();
-        const { sut, renderingEngine, verifyBehaviorApplication } = setup(behavior);
-
+        // Act
         sut.$hydrate(renderingEngine);
 
+        // Assert
         expect(sut.$isAttached).to.equal(false, 'sut.$isAttached');
         expect(sut.$isBound).to.equal(false, 'sut.$isBound');
         expect(sut.$scope).to.equal(null, 'sut.$scope');
 
-        verifyBehaviorApplication();
-        verifyBehaviorInvocation(sut);
+        expect(appliedType).to.equal(Type, 'appliedType');
+        expect(appliedInstance).to.equal(sut, 'appliedInstance');
+        behaviorSpec.verifyBehaviorInvocation(sut);
       });
     }
   });
 
   describe('$bind', () => {
-    const initialStateAndInputScopePossibilities = [
+    const propsAndScopeSpecs = [
       // $isBound: true, with 4 variants
       {
         description: '$isBound: true, $scope: null, different scope',
         expectation: 'calls $unbind, calls behaviors',
         callsUnbind: true,
         callsBehaviors: true,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = true;
           $sut.$scope = null;
@@ -107,7 +99,7 @@ describe('@customAttribute', () => {
         expectation: 'does NOT call $unbind, does NOT call behaviors',
         callsUnbind: false,
         callsBehaviors: false,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = true;
           $sut.$scope = null;
@@ -121,7 +113,7 @@ describe('@customAttribute', () => {
         expectation: 'calls $unbind, calls behaviors',
         callsUnbind: true,
         callsBehaviors: true,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = true;
           $sut.$scope = Scope.create(sut, null);
@@ -135,7 +127,7 @@ describe('@customAttribute', () => {
         expectation: 'does NOT call $unbind, does NOT call behaviors',
         callsUnbind: false,
         callsBehaviors: false,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = true;
           $sut.$scope = Scope.create(sut, null);
@@ -150,7 +142,7 @@ describe('@customAttribute', () => {
         expectation: 'does NOT call $unbind, calls behaviors',
         callsUnbind: false,
         callsBehaviors: true,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = false;
           $sut.$scope = null;
@@ -164,7 +156,7 @@ describe('@customAttribute', () => {
         expectation: 'does NOT call $unbind, calls behaviors',
         callsUnbind: false,
         callsBehaviors: true,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = false;
           $sut.$scope = null;
@@ -178,7 +170,7 @@ describe('@customAttribute', () => {
         expectation: 'does NOT call $unbind, calls behaviors',
         callsUnbind: false,
         callsBehaviors: true,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = false;
           $sut.$scope = Scope.create(sut, null);
@@ -192,7 +184,7 @@ describe('@customAttribute', () => {
         expectation: 'does NOT call $unbind, calls behaviors',
         callsUnbind: false,
         callsBehaviors: true,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = false;
           $sut.$scope = Scope.create(sut, null);
@@ -203,7 +195,7 @@ describe('@customAttribute', () => {
       }
     ];
 
-    const flagsPossibilities = [
+    const flagsSpecs = [
       {
         description: 'flags: BindingFlags.fromBind',
         expectation: 'passed-through flags: fromBind',
@@ -236,7 +228,7 @@ describe('@customAttribute', () => {
       }
     ];
 
-    const behaviorPossibilities = [
+    const behaviorSpecs = [
       {
         description: '$behavior.hasBinding: true, $behavior.hasBound: false',
         expectation: 'calls binding(), does NOT call bound()',
@@ -283,98 +275,54 @@ describe('@customAttribute', () => {
       }
     ];
 
-    function setup(behavior, callsUnbind, expectedFlags) {
-      const { sut } = setupBase();
+    eachCartesianJoin([
+      propsAndScopeSpecs,
+      flagsSpecs,
+      behaviorSpecs,
+    ], (psSpec, flagsSpec, behaviorSpec) => {
 
-      sut['$behavior'] = behavior;
+      it(`${psSpec.expectation} if ${psSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
+        // Arrange
+        const expectedFlags = flagsSpec.getExpectedFlags();
+        const { sut } = setup();
+        sut['$behavior'] = behaviorSpec.getBehavior();
 
-      let unbindCalled = false;
-      let unbindFlags;
-      sut.$unbind = flags => {
-        unbindCalled = true;
-        unbindFlags = flags;
-      };
-      function verifyLifecycleInvocation() {
-        expect(unbindCalled).to.equal(callsUnbind, 'unbindCalled');
+        let unbindCalled = false;
+        let unbindFlags;
+        sut.$unbind = flags => {
+          unbindCalled = true;
+          unbindFlags = flags;
+        };
+
+        psSpec.setProps(sut);
+
+        const scope = psSpec.getScope(sut);
+        const flags = flagsSpec.getFlags();
+
+        // Act
+        sut.$bind(flags, scope);
+
+        // Assert
+        expect(unbindCalled).to.equal(psSpec.callsUnbind, 'unbindCalled');
         if (unbindCalled) {
           expect(unbindFlags).to.equal(expectedFlags, 'unbindFlags')
         }
-      }
-
-      return { sut, verifyLifecycleInvocation };
-    }
-
-    eachCartesianJoin([
-      initialStateAndInputScopePossibilities,
-      flagsPossibilities,
-      behaviorPossibilities,
-    ], (initialStatePossibility, flagsPossibility, behaviorPossibility) => {
-      const {
-        description: initialStateDescription,
-        expectation: initialStateExpectation,
-        callsUnbind,
-        callsBehaviors,
-        setInitialProperties,
-        getScope
-      } = initialStatePossibility;
-      const {
-        description: flagsDescription,
-        expectation: flagsExpectation,
-        getFlags,
-        getExpectedFlags
-      } = flagsPossibility;
-      const {
-        description: behaviorDescription,
-        expectation: behaviorExpectation,
-        getBehavior,
-        verifyBehaviorInvocation
-      } = behaviorPossibility;
-
-      if (callsBehaviors) {
-        it(`${initialStateExpectation} if ${initialStateDescription} AND ${behaviorExpectation} if ${behaviorDescription} AND ${flagsExpectation} if ${flagsDescription}`, () => {
-          const behavior = getBehavior();
-          const expectedFlags = getExpectedFlags();
-
-          const { sut, verifyLifecycleInvocation } = setup(behavior, callsUnbind, expectedFlags);
-
-          setInitialProperties(sut);
-
-          const scope = getScope(sut);
-          const flags = getFlags();
-
-          sut.$bind(flags, scope);
-
-          verifyLifecycleInvocation();
-          verifyBehaviorInvocation(sut, expectedFlags);
-        });
-      } else {
-        it(`${initialStateExpectation} if ${initialStateDescription} AND ${flagsExpectation} if ${flagsDescription}`, () => {
-          const behavior = getBehavior();
-          const expectedFlags = getExpectedFlags();
-
-          const { sut, verifyLifecycleInvocation } = setup(behavior, callsUnbind, expectedFlags);
-
-          setInitialProperties(sut);
-
-          const scope = getScope(sut);
-          const flags = getFlags();
-
-          sut.$bind(flags, scope);
-
-          verifyLifecycleInvocation();
+        if (psSpec.callsBehaviors) {
+          behaviorSpec.verifyBehaviorInvocation(sut, expectedFlags);
+        } else {
           sut.verifyNoFurtherCalls();
-        });
-      }
+        }
+      });
     });
   });
 
   describe('$unbind', () => {
-    const initialStateAndInputScopePossibilities = [
+    const propsAndScopeSpecs = [
       {
         description: '$isBound: false, $scope: null',
         expectation: 'calls behaviors',
         callsBehaviors: false,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = false;
         }
@@ -383,7 +331,7 @@ describe('@customAttribute', () => {
         description: '$isBound: false, $scope !== null',
         expectation: 'calls behaviors',
         callsBehaviors: false,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = false;
         }
@@ -392,7 +340,7 @@ describe('@customAttribute', () => {
         description: '$isBound: true, $scope: null',
         expectation: 'calls behaviors',
         callsBehaviors: true,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = true;
         }
@@ -401,14 +349,14 @@ describe('@customAttribute', () => {
         description: '$isBound: true, $scope !== null',
         expectation: 'calls behaviors',
         callsBehaviors: true,
-        setInitialProperties(sut: ICustomAttribute) {
+        setProps(sut: ICustomAttribute) {
           const $sut = sut as Writable<ICustomAttribute>;
           $sut.$isBound = true;
         }
       }
     ];
 
-    const flagsPossibilities = [
+    const flagsSpec = [
       {
         description: 'flags: BindingFlags.fromBind',
         expectation: 'passed-through flags: fromUnbind|fromBind',
@@ -441,7 +389,7 @@ describe('@customAttribute', () => {
       }
     ];
 
-    const behaviorPossibilities = [
+    const behaviorSpecs = [
       {
         description: '$behavior.hasUnbinding: true, $behavior.hasUnbound: false',
         expectation: 'calls binding(), does NOT call bound()',
@@ -488,68 +436,35 @@ describe('@customAttribute', () => {
       }
     ];
 
-    function setup(behavior) {
-      const { sut } = setupBase();
-
-      sut['$behavior'] = behavior;
-
-      return { sut };
-    }
 
     eachCartesianJoin([
-      initialStateAndInputScopePossibilities,
-      flagsPossibilities,
-      behaviorPossibilities,
-    ], (initialStatePossibility, flagsPossibility, behaviorPossibility) => {
-      const {
-        description: initialStateDescription,
-        expectation: initialStateExpectation,
-        callsBehaviors,
-        setInitialProperties
-      } = initialStatePossibility;
-      const {
-        description: flagsDescription,
-        expectation: flagsExpectation,
-        getFlags,
-        getExpectedFlags
-      } = flagsPossibility;
-      const {
-        description: behaviorDescription,
-        expectation: behaviorExpectation,
-        getBehavior,
-        verifyBehaviorInvocation
-      } = behaviorPossibility;
+      propsAndScopeSpecs,
+      flagsSpec,
+      behaviorSpecs,
+  ], (psSpec, flagsSpec, behaviorSpec) => {
 
-      if (callsBehaviors) {
-        it(`${initialStateExpectation} if ${initialStateDescription} AND ${behaviorExpectation} if ${behaviorDescription} AND ${flagsExpectation} if ${flagsDescription}`, () => {
-          const behavior = getBehavior();
-          const expectedFlags = getExpectedFlags();
+      it(`${psSpec.expectation} if ${psSpec.description} AND ${behaviorSpec.expectation} if ${behaviorSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
+        // Arrange
+        const behavior = behaviorSpec.getBehavior();
+        const expectedFlags = flagsSpec.getExpectedFlags();
 
-          const { sut } = setup(behavior);
+        const { sut } = setup();
+        sut['$behavior'] = behavior;
 
-          setInitialProperties(sut);
+        psSpec.setProps(sut);
 
-          const flags = getFlags();
+        const flags = flagsSpec.getFlags();
 
-          sut.$unbind(flags);
+        // Act
+        sut.$unbind(flags);
 
-          verifyBehaviorInvocation(sut, expectedFlags);
-        });
-      } else {
-        it(`${initialStateExpectation} if ${initialStateDescription} AND ${flagsExpectation} if ${flagsDescription}`, () => {
-          const behavior = getBehavior();
-
-          const { sut } = setup(behavior);
-
-          setInitialProperties(sut);
-
-          const flags = getFlags();
-
-          sut.$unbind(flags);
-
+        // Assert
+        if (psSpec.callsBehaviors) {
+          behaviorSpec.verifyBehaviorInvocation(sut, expectedFlags);
+        } else {
           sut.verifyNoFurtherCalls();
-        });
-      }
+        }
+      });
     });
   });
 

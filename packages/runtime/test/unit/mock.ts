@@ -50,6 +50,7 @@ import {
   Scope
 } from '../../src';
 import { spy } from 'sinon';
+import { expect } from 'chai';
 
 export class MockContext {
   public log: any[] = [];
@@ -720,49 +721,122 @@ export class MockRenderingEngine implements IRenderingEngine {
 
 }
 
-export class MockCustomElementWithAllLifecycles {
-  public calls: [keyof MockCustomElementWithAllLifecycles, ...any[]][];
+export function defineComponentLifecycleMock() {
+  return class ComponentLifecycleMock {
+    public calls: [keyof ComponentLifecycleMock, ...any[]][] = [];
 
-  public created(): void {
-    this.trace(`created`);
-  }
-  public binding(flags: BindingFlags): void {
-    this.trace(`binding`, flags);
-  }
-  public bound(flags: BindingFlags): void {
-    this.trace(`bound`, flags);
-  }
-  public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
-    this.trace(`attaching`, encapsulationSource, lifecycle);
-  }
-  public attached(): void {
-    this.trace(`attached`);
-  }
-  public detaching(lifecycle: IDetachLifecycle): void {
-    this.trace(`detaching`, lifecycle);
-  }
-  public detached(): void {
-    this.trace(`detached`);
-  }
-  public unbinding(flags: BindingFlags): void {
-    this.trace(`unbinding`, flags);
-  }
-  public unbound(flags: BindingFlags): void {
-    this.trace(`unbound`, flags);
-  }
-  public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): INodeSequence {
-    this.trace(`render`, host, parts);
-    return new MockTextNodeSequence();
-  }
-  public caching(): void {
-    this.trace(`caching`);
-  }
+    constructor() {}
 
-  public trace(fnName: keyof MockCustomElementWithAllLifecycles, ...args: any[]): void {
-    this.calls.push([fnName, ...args]);
+    public created(): void {
+      this.trace(`created`);
+    }
+    public binding(flags: BindingFlags): void {
+      this.trace(`binding`, flags);
+    }
+    public bound(flags: BindingFlags): void {
+      this.trace(`bound`, flags);
+    }
+    public attaching(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+      this.trace(`attaching`, encapsulationSource, lifecycle);
+    }
+    public attached(): void {
+      this.trace(`attached`);
+    }
+    public detaching(lifecycle: IDetachLifecycle): void {
+      this.trace(`detaching`, lifecycle);
+    }
+    public detached(): void {
+      this.trace(`detached`);
+    }
+    public unbinding(flags: BindingFlags): void {
+      this.trace(`unbinding`, flags);
+    }
+    public unbound(flags: BindingFlags): void {
+      this.trace(`unbound`, flags);
+    }
+    public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): INodeSequence {
+      this.trace(`render`, host, parts);
+      return new MockTextNodeSequence();
+    }
+    public caching(): void {
+      this.trace(`caching`);
+    }
+
+    public trace(fnName: keyof ComponentLifecycleMock, ...args: any[]): void {
+      this.calls.push([fnName, ...args]);
+    }
+
+    public verifyCreatedCalled(): void {
+      this.verifyLastCall('created');
+    }
+    public verifyBindingCalled(flags: BindingFlags): void {
+      this.verifyLastCall(`binding`, flags);
+    }
+    public verifyBoundCalled(flags: BindingFlags): void {
+      this.verifyLastCall(`bound`, flags);
+    }
+    public verifyAttachingCalled(encapsulationSource: INode, lifecycle: IAttachLifecycle): void {
+      this.verifyLastCall(`attaching`, encapsulationSource, lifecycle);
+    }
+    public verifyAttachedCalled(): void {
+      this.verifyLastCall(`attached`);
+    }
+    public verifyDetachingCalled(lifecycle: IDetachLifecycle): void {
+      this.verifyLastCall(`detaching`, lifecycle);
+    }
+    public verifyDetachedCalled(): void {
+      this.verifyLastCall(`detached`);
+    }
+    public verifyUnbindingCalled(flags: BindingFlags): void {
+      this.verifyLastCall(`unbinding`, flags);
+    }
+    public verifyUnboundCalled(flags: BindingFlags): void {
+      this.verifyLastCall(`unbound`, flags);
+    }
+    public verifyRenderCalled(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): void {
+      this.verifyLastCall(`render`, host, parts);
+    }
+    public verifyCachingCalled(): void {
+      this.verifyLastCall(`caching`);
+    }
+    public verifyLastCall(name: string, ...args: any[]): void {
+      const calls = this.calls;
+      if (calls.length === 0) {
+        this.fail(`expected "${name}" to be the last called method, but no methods on this mock were called at all`);
+      }
+      const lastCall = calls.pop();
+      if (lastCall[0] !== name) {
+        if (calls.length === 0) {
+          this.fail(`expected "${name}" to be the last called method, but the ONLY method called on this mock was "${lastCall[0]}"`);
+        } else {
+          const callChain = calls.map(c => `"${c[0]}"`).join('->');
+          this.fail(`expected "${name}" to be the last called method, but the last method called on this mock was "${lastCall[0]}", preceded by: ${callChain}`);
+        }
+      }
+      for (let i = 0, ii = args.length; i < ii; ++i) {
+        const expected = args[i];
+        const actual = lastCall[i + 1];
+        if (expected !== actual) {
+          this.fail(`expected argument #${i} of the call to "${name}" to be: ${expected}, but instead got: ${actual}`);
+        }
+      }
+      if (lastCall.length > args.length + 1) {
+        this.fail(`expected "${name}" to have been called with ${args.length} arguments, but it was called with ${lastCall.length - 1} arguments instead (last argument is: ${lastCall[lastCall.length - 1]})`)
+      }
+    }
+    public verifyNoFurtherCalls(): void {
+      if (this.calls.length > 0) {
+        const callChain = this.calls.map(c => `"${c[0]}"`).join('->');
+        this.fail(`expected no further calls, but found additional calls: ${callChain}`);
+      }
+    }
+    private fail(message: string) {
+      throw new Error(`ComponentLifecycleMock: ${message}`);
+    }
   }
 }
 
+export type IComponentLifecycleMock = InstanceType<ReturnType<typeof defineComponentLifecycleMock>>;
 
 export class MockPropertySubscriber {
   public calls: [keyof MockPropertySubscriber, ...any[]][] = [];

@@ -431,9 +431,11 @@ export class AuMarker implements INode {
   }
   public remove(): void { /* do nothing */ }
 }
-(<Writable<AuMarker>>AuMarker.prototype).previousSibling = null;
-(<Writable<AuMarker>>AuMarker.prototype).firstChild = null;
-(<Writable<AuMarker>>AuMarker.prototype).lastChild = null;
-(<Writable<AuMarker>>AuMarker.prototype).childNodes = PLATFORM.emptyArray;
-(<Writable<AuMarker>>AuMarker.prototype).nodeName = 'AU-MARKER';
-(<Writable<AuMarker>>AuMarker.prototype).nodeType = ELEMENT_NODE;
+(proto => {
+  proto.previousSibling = null;
+  proto.firstChild = null;
+  proto.lastChild = null;
+  proto.childNodes = PLATFORM.emptyArray;
+  proto.nodeName = 'AU-MARKER';
+  proto.nodeType = ELEMENT_NODE;
+})(<Writable<AuMarker>>AuMarker.prototype);

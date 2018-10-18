@@ -107,7 +107,8 @@ function register(this: ICustomAttributeType, container: IContainer): void {
   container.register(Registration.transient(resourceKey, this));
 
   for (let i = 0, ii = aliases.length; i < ii; ++i) {
-    container.register(Registration.alias(resourceKey, aliases[i]));
+    const aliasKey = CustomAttributeResource.keyFrom(aliases[i]);
+    container.register(Registration.alias(resourceKey, aliasKey));
   }
 }
 
